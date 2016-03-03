@@ -37,8 +37,8 @@ ELSE(OpenIGTLink_DIR)
     SOURCE_DIR "${PLUS_OpenIGTLink_SRC_DIR}"
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
-    GIT_TAG "849b434b4b45a28e3955adf4ba1f3ececd51581e"
+    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/IGSIO/OpenIGTLink.git"
+    GIT_TAG "master"
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
@@ -46,7 +46,9 @@ ELSE(OpenIGTLink_DIR)
         -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
         -DBUILD_EXAMPLES:BOOL=OFF
         -DBUILD_TESTING:BOOL=OFF
-        -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=ON
+        -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=OFF
+        -DOpenIGTLink_PROTOCOL_VERSION_3:BOOL=ON
+        -DOpenIGTLink_MessageRTTI:BOOL=ON
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------

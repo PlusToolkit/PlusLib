@@ -82,9 +82,9 @@ public:
   /*! Update the number of frames in the header 
       This is used primarily by vtkVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
-      /param addPadding this should only be true if this is the first time this function is called, which typically happens in OpenImageHeader
-  */
-  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool addPadding=false) = 0;
+      /param isData3D is the data 3D or 2D?
+      */
+  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D) = 0;
 
   /*! Update a field in the image header with its current value */
   virtual PlusStatus UpdateFieldInImageHeader(const char* fieldName) = 0;
@@ -172,6 +172,7 @@ protected:
 
   /*! Get a custom string field value for a specific frame */
   bool SetCustomString(const char* fieldName, const char* fieldValue);
+  bool SetCustomString(const std::string& fieldName, const std::string& fieldValue);
 
   /*! Get a custom string field value (global, not for a specific frame) */
   const char* GetCustomString(const char* fieldName);

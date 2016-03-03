@@ -149,24 +149,41 @@ protected:
 */
 struct vtkCalibrationAlgoExport FidWire
 {
-  std::string Name;
+public:
+  void SetName(const std::string& aName);
+  const std::string& GetName() const;
+
   double EndPointFront[3];
   double EndPointBack[3];
+
+protected:
+  std::string Name;
 };
 
 //-----------------------------------------------------------------------------
 /*!
 \class FidPattern
 \brief This class stores the different Patterns defined in the configuration file. It contains the wires
-defintion, the distance from the line origin of each expected "dot" and the tolerances on these
+definition, the distance from the line origin of each expected "dot" and the tolerances on these
 distances.
 \ingroup PlusLibPatternRecognition
 */
 class vtkCalibrationAlgoExport FidPattern
 {
 public:
-  virtual ~FidPattern() { };
+  virtual ~FidPattern();
 
+  const std::vector<FidWire>& GetWires() const;
+  const std::vector<double>& GetDistanceToOriginMm() const;
+  const std::vector<double>& GetDistanceToOriginToleranceMm() const;
+
+  void AddWire(const FidWire& wire);
+  void AddDistanceToOriginElementMm(double aElement);
+  void SetDistanceToOriginElementMm(int index, double aElement);
+  void AddDistanceToOriginToleranceElementMm(double aElement);
+  void SetDistanceToOriginToleranceElementMm(int index, double aElement);
+
+protected:
   std::vector<FidWire> Wires;
   /// These distances are in mm.
   std::vector<double>  DistanceToOriginMm;
@@ -184,7 +201,7 @@ between lines 1 and 2, and, 2 and 3.
 class vtkCalibrationAlgoExport NWire : public FidPattern
 {
 public:
-  virtual ~NWire() { };
+  virtual ~NWire();
 
   double IntersectPosW12[3];
   double IntersectPosW32[3];
@@ -200,7 +217,7 @@ parallel fiducial wires.
 class vtkCalibrationAlgoExport CoplanarParallelWires : public FidPattern
 {
 public:
-  virtual ~CoplanarParallelWires() { };
+  virtual ~CoplanarParallelWires();
 };
 
 //-----------------------------------------------------------------------------
@@ -214,7 +231,7 @@ class vtkCalibrationAlgoExport PatternRecognitionResult
 public:
   PatternRecognitionResult();
 
-  /*! Clear the classe attributes once they are not needed anymore */
+  /*! Clear the class attributes once they are not needed anymore */
   void Clear();
 
   /*! Set the m_DotsFound to true if the algorithm found the corresponding dots, to false otherwise */
@@ -248,11 +265,14 @@ public:
   const std::vector<FidDot>& GetCandidateFidValues() const;
 
 protected:
-  /*! True if the dots are found, false otherwise. */
-  bool DotsFound;
-
   /*! X and Y values of found dots. */
   std::vector< std::vector<double> >  FoundDotsCoordinateValue;
+
+  /*! pointer to the fiducial candidates coordinates */
+  std::vector<FidDot>  CandidateFidValues; 
+
+  /*! True if the dots are found, false otherwise. */
+  bool DotsFound;
 
   /*! The combined intensity of the dots. This is the sum of the pixel
   values after the morphological operations, with the pixel values on the
@@ -262,9 +282,6 @@ protected:
 
   /*! number of possible fiducial points */
   double NumDots; 
-
-  /*! pointer to the fiducial candidates coordinates */
-  std::vector<FidDot>  CandidateFidValues; 
 };
 
 #endif //_FIDUCIAL_ALGORITHM_COMMON_H

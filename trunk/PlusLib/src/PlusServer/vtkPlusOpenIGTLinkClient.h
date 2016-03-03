@@ -10,10 +10,12 @@
 #include "vtkPlusServerExport.h"
 
 #include "igtlClientSocket.h"
+#include "igtlCommandMessage.h"
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
 #include "vtkObject.h"
 #include "vtkPlusCommand.h"
+#include "vtkPlusIgtlMessageFactory.h"
 
 #include <deque>
 #include <string>
@@ -42,11 +44,15 @@ public:
     
   /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
   PlusStatus Connect(double timeoutSec=-1);
+
+  /*! Disconnect from the connected server */
   PlusStatus Disconnect();
   
+  /*! Send a command to the connected server */
   PlusStatus SendCommand( vtkPlusCommand* command );
+
   /*! Wait for a command reply */
-  PlusStatus ReceiveReply(std::string &replyStr, double timeoutSec=0);
+  PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, uint8_t outErrorString[IGTL_COMMAND_NAME_SIZE], std::string& outContentXML, double timeoutSec=0);
   
   void Lock();
   void Unlock();
@@ -56,7 +62,7 @@ public:
     Note that this method is executed from the data receiver thread and not the
     main thread.
     If the message body is read then this method should return true.
-    If the meessage is not read then this method should return false (and the
+    If the message is not read then this method should return false (and the
     message body will be skipped).
   */
   virtual bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
@@ -65,16 +71,17 @@ public:
   }  
   
 protected:
-  
   vtkPlusOpenIGTLinkClient();
   virtual ~vtkPlusOpenIGTLinkClient();
 
   /*! Thread-safe method that allows child classes to read data from the socket */ 
   int SocketReceive(void* data, int length);
+
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
   
 private:
-
-  /*! Thread for receiveing control data from clients */ 
+  /*! Thread for receiving control data from clients */ 
   static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
 
   vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
@@ -84,7 +91,7 @@ private:
 
   int  DataReceiverThreadId;
 
-  /*! Multithreader instance for controlling threads */ 
+  /*! vtkMultiThreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
 
   /*! Mutex instance for safe data access */ 
@@ -93,7 +100,9 @@ private:
   
   igtl::ClientSocket::Pointer ClientSocket;
 
-  std::deque<std::string> Replies;
+  igtlUint32 LastGeneratedCommandId;
+
+  std::deque<igtl::RTSCommandMessage::Pointer> Replies;
 
   int         ServerPort;
   char*       ServerHost;

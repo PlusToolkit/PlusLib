@@ -567,7 +567,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   // Construct wires poly data
   for (std::vector<FidPattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
   {
-    for (std::vector<FidWire>::iterator wireIt = (*patternIt)->Wires.begin(); wireIt != (*patternIt)->Wires.end(); ++wireIt)
+    for (std::vector<FidWire>::const_iterator wireIt = (*patternIt)->GetWires().begin(); wireIt != (*patternIt)->GetWires().end(); ++wireIt)
     {
       double endPointFrontInPhantomFrame[4] = { wireIt->EndPointFront[0], wireIt->EndPointFront[1], wireIt->EndPointFront[2], 1.0 };
       double endPointBackInPhantomFrame[4] = { wireIt->EndPointBack[0], wireIt->EndPointBack[1], wireIt->EndPointBack[2], 1.0 };

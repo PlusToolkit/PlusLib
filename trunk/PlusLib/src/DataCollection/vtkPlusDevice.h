@@ -186,7 +186,7 @@ public:
 
   /*! Get the tool object for the specified tool port name */
   PlusStatus GetToolByPortName( const char* aPortName, vtkPlusDataSource*& aSource); 
-  /*! Get the tool object for the specified tool port name */
+  /*! Get the video source objects for the specified video port name */
   PlusStatus GetVideoSourcesByPortName( const char* aPortName, std::vector<vtkPlusDataSource*>& sources); 
 
   /*! Get the beginning of the tool iterator */
@@ -457,25 +457,32 @@ protected:
   virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
 
   /*!
-  This function can be called to add a video item to all video data sources
+  This function can be called to add a video item to the specified video data sources
   */
   PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
-  /*! 
-  This function is called by InternalUpdate() so that the subclasses
-  can communicate information back to the vtkTracker base class, which
-  will in turn relay the information to the appropriate vtkPlusDataSource.
+  /*!
+  This function can be called to add a video item to the specified video data sources
   */
-  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp);
+  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
+    PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields= NULL);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
-  can communicate information back to the vtkTracker base class, which
+  can communicate information back to the vtkPlusDevice base class, which
+  will in turn relay the information to the appropriate vtkPlusDataSource.
+  */
+  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const TrackedFrame::FieldMapType* customFields = NULL);
+
+  /*! 
+  This function is called by InternalUpdate() so that the subclasses
+  can communicate information back to the vtkPlusDevice base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp);
+  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device

@@ -118,6 +118,18 @@ bool vtkSequenceIOBase::SetCustomString(const char* fieldName, const char* field
 }
 
 //----------------------------------------------------------------------------
+bool vtkSequenceIOBase::SetCustomString(const std::string& fieldName, const std::string& fieldValue)
+{
+  if ( fieldName.empty() )
+  {
+    LOG_ERROR("Invalid field name");
+    return PLUS_FAIL;
+  }
+  this->TrackedFrameList->SetCustomString(fieldName, fieldValue); 
+  return PLUS_SUCCESS; 
+}
+
+//----------------------------------------------------------------------------
 const char* vtkSequenceIOBase::GetCustomString(const char* fieldName)
 {
   if (fieldName==NULL)
@@ -235,7 +247,7 @@ PlusStatus vtkSequenceIOBase::Write()
 //----------------------------------------------------------------------------
 PlusStatus vtkSequenceIOBase::Close()
 {
-  std::string headerFullPath = this->FileName;
+  std::string headerFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->FileName);
 
   // Rename header to final filename
   MoveFileInternal(this->TempHeaderFileName.c_str(), headerFullPath.c_str());

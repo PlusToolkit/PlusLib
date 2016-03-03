@@ -31,9 +31,12 @@ enum TrackedFrameFieldStatus
   \class TrackedFrame 
   \brief Stores tracked frame (image + pose information)
   \ingroup PlusLibCommon
-*/ 
+*/
 class vtkPlusCommonExport TrackedFrame
 {
+public:
+  static const char* FIELD_FRIENDLY_DEVICE_NAME;
+
 public:
   static const std::string TransformPostfix;
   static const std::string TransformStatusPostfix;

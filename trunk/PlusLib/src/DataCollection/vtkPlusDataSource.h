@@ -20,7 +20,7 @@
 #include "vtkPlusDevice.h"
 
 /*!
-\class vtkPlusDataSource 
+\class vtkPlusDataSource
 \brief Interface to a handheld 3D positioning tool or video source
 
 \ingroup PlusLibDataCollection
@@ -48,13 +48,13 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool requirePortNameInSourceConfiguration = false, bool requireImageOrientationInChannelConfiguration = false, const char* aDescriptiveNameForBuffer = NULL); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool requirePortNameInSourceConfiguration = false, bool requireImageOrientationInChannelConfiguration = false, const char* aDescriptiveNameForBuffer = NULL);
   /*! Write main configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement);
   /*! WriteCompactConfiguration is called when a channel is populating its tool data source links, most usages should call WriteConfiguration */
-  virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement); 
+  virtual PlusStatus WriteCompactConfiguration(vtkXMLDataElement* toolElement);
 
-  /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device 
+  /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device
   therefore it must be unique */
   PlusStatus SetSourceId(const char* toolSourceId);
   /*! Get source id */
@@ -67,34 +67,34 @@ public:
 
   std::string GetTransformName() const;
 
-  /*! Set port name. Port name is used to identify the source among all the sources provided by the device 
+  /*! Set port name. Port name is used to identify the source among all the sources provided by the device
   therefore it must be unique */
   PlusStatus SetPortName(const char* portName);
 
   /*! Set the image type. Does not convert the pixel values. */
-  PlusStatus SetImageType(US_IMAGE_TYPE imageType); 
+  PlusStatus SetImageType(US_IMAGE_TYPE imageType);
   /*! Get the image type (B-mode, RF, ...) */
   US_IMAGE_TYPE GetImageType();
 
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(int x, int y, int z); 
+  PlusStatus SetInputFrameSize(int x, int y, int z);
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(int frameSize[3]); 
+  PlusStatus SetInputFrameSize(int frameSize[3]);
   /*! Get the input frame size in pixel  */
   vtkGetVector3Macro(InputFrameSize,int);
 
-  /*! 
-	Get the oputput frame size in pixel. If no clipping rectangle is set then the output
-	frame size is the clipping rectangle size; otherwise it is the input frame size
+  /*!
+  Get the oputput frame size in pixel. If no clipping rectangle is set then the output
+  frame size is the clipping rectangle size; otherwise it is the input frame size
   */
   virtual int* GetOutputFrameSize();
   virtual PlusStatus GetOutputFrameSize(int &_arg1, int &_arg2, int &_arg3);
   virtual PlusStatus GetOutputFrameSize (int _arg[3]);
 
   /*! Set recording start time */
-  virtual void SetStartTime( double startTime ); 
+  virtual void SetStartTime( double startTime );
   /*! Get recording start time */
-  virtual double GetStartTime(); 
+  virtual double GetStartTime();
 
   /*! Get the number of items in the buffer */
   virtual int GetNumberOfItems();
@@ -104,7 +104,7 @@ public:
 
   /*!
     Get the frame rate from the buffer based on the number of frames in the buffer and the elapsed time.
-    Ideal frame rate shows the mean of the frame periods in the buffer based on the frame 
+    Ideal frame rate shows the mean of the frame periods in the buffer based on the frame
     number difference (aka the device frame rate).
     If framePeriodStdevSecPtr is not null, then the standard deviation of the frame period is computed as well (in seconds) and
     stored at the specified address.
@@ -138,10 +138,10 @@ public:
   virtual void Clear();
 
   /*! Dump the current state of the video buffer to metafile */
-  virtual PlusStatus WriteToSequenceFile( const char* filename, bool useCompression = false ); 
+  virtual PlusStatus WriteToSequenceFile( const char* filename, bool useCompression = false );
 
   /*! Get the table report of the timestamped buffer  */
-  virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable); 
+  virtual PlusStatus GetTimeStampReportTable(vtkTable* timeStampReportTable);
 
   /*! If TimeStampReporting is enabled then all filtered and unfiltered timestamp values will be saved in a table for diagnostic purposes. */
   void SetTimeStampReporting(bool enable);
@@ -154,13 +154,13 @@ public:
   */
   virtual PlusStatus SetBufferSize(int n);
   /*! Get the size of the buffer */
-  virtual int GetBufferSize(); 
+  virtual int GetBufferSize();
 
   /*! Get latest timestamp in the buffer */
-  virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );  
+  virtual ItemStatus GetLatestTimeStamp( double& latestTimestamp );
 
   /*! Get oldest timestamp in the buffer */
-  virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );  
+  virtual ItemStatus GetOldestTimeStamp( double& oldestTimestamp );
 
   /*! Get video buffer item timestamp */
   virtual ItemStatus GetTimeStamp( BufferItemUidType uid, double& timestamp);
@@ -176,8 +176,8 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -185,8 +185,8 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL); 
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -196,38 +196,44 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, 
-    int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP, 
-    const TrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType,
+                             int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP,
+                             const TrackedFrame::FieldMapType* customFields = NULL);
 
-    /*!
-    Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
-    If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
-    If filteredTiemstamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
+  /*!
+  Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
+  If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
+  If filteredTiemstamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
   */
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*! Get the device which owns this source. */
   // TODO : consider a re-design of this idea
-  void SetDevice(vtkPlusDevice* _arg){ this->Device = _arg; }
-  vtkPlusDevice* GetDevice(){ return this->Device; }
+  void SetDevice(vtkPlusDevice* _arg)
+  {
+    this->Device = _arg;
+  }
+  vtkPlusDevice* GetDevice()
+  {
+    return this->Device;
+  }
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
   vtkGetStringMacro(PortName);
 
   /*! Set the pixel type */
-  PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType); 
+  PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType);
   /*! Get the pixel type */
   virtual PlusCommon::VTKScalarPixelType GetPixelType();
 
   /*! Set the number of scalar components */
-  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents); 
+  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents);
   /*! Get the number of scalar components*/
   virtual int GetNumberOfScalarComponents();
 
-    /*!
-    Get the number of bytes per pixel
-    It is the number of bytes per scalar multiplied by the number of scalar components.
+  /*!
+  Get the number of bytes per pixel
+  It is the number of bytes per scalar multiplied by the number of scalar components.
   */
   int GetNumberOfBytesPerPixel();
 
@@ -238,13 +244,13 @@ public:
     This method is necessary for initializing the storage buffers and also serves as a convenient storage for the
     image orientation of the hardware device.
   */
-  virtual PlusStatus SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation); 
+  virtual PlusStatus SetInputImageOrientation(US_IMAGE_ORIENTATION imageOrientation);
   /*!
     Get the image orientation of the input data (MF, MN, ...).
     The internal buffer's image orientation and the output is always the standard MF (for B-mode) or FM (for RF-mode).
   */
   virtual US_IMAGE_ORIENTATION GetInputImageOrientation();
-  
+
   /*!
     Set the image orientation of the internal buffer.
     It has to be MF for all imaging modes except RF (for that the orientation has to be FM).
@@ -252,14 +258,14 @@ public:
   virtual PlusStatus SetOutputImageOrientation(US_IMAGE_ORIENTATION imageOrientation);
   virtual US_IMAGE_ORIENTATION GetOutputImageOrientation();
 
-  /*! Get type: vidoe or tool. */
+  /*! Get type: video or tool. */
   DataSourceType GetType() const;
   void SetType(DataSourceType aType);
 
   /*! Get the frame number (some devices have frame numbering, otherwise just increment if new frame received) */
   vtkGetMacro(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
-    
+
   /*!
     Get a custom property string.
     If the property is not defined then an empty string is returned.
@@ -312,13 +318,13 @@ protected:
 
   char *PortName;
   /*! The orientation of the image outputted by the device */
-  US_IMAGE_ORIENTATION InputImageOrientation; 
+  US_IMAGE_ORIENTATION InputImageOrientation;
 
   DataSourceType Type;
 
-  unsigned long FrameNumber; 
+  unsigned long FrameNumber;
 
-  char *SourceId; 
+  char *SourceId;
   char *ReferenceCoordinateFrameName;
 
   vtkPlusBuffer* Buffer;
@@ -334,15 +340,8 @@ protected:
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);
-  void operator=(const vtkPlusDataSource&);  
+  void operator=(const vtkPlusDataSource&);
 
 };
 
 #endif
-
-
-
-
-
-
-

@@ -195,14 +195,14 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 
   if (this->Name==NULL)
   {
-    this->QueueStringResponse("Volume reconstruction command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse("Volume reconstruction command failed, no command name specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   vtkVirtualVolumeReconstructor* reconstructorDevice=GetVolumeReconstructorDevice();
   if (reconstructorDevice==NULL)
   {
-    this->QueueStringResponse(std::string("Volume reconstruction command failed: device ")
+    this->QueueCommandResponse(std::string("Volume reconstruction command failed: device ")
       +(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId)+" is not found",PLUS_FAIL);
     return PLUS_FAIL;
   }
@@ -255,12 +255,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from sequence file: "<<(this->InputSeqFilename?this->InputSeqFilename:"(undefined)")<<", device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueStringResponse("Volume reconstruction from sequence file failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction from sequence file failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
     if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("Volume reconstruction from sequence file failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction from sequence file failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
@@ -268,12 +268,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     std::string errorMessage;
     if (reconstructorDevice->GetReconstructedVolumeFromFile(this->InputSeqFilename, volumeToSend, errorMessage)!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("Volume reconstruction from sequence file failed: reconstruction failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction from sequence file failed: reconstruction failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
       return PLUS_FAIL;
     }    
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueStringResponse("Volume reconstruction from sequence file completed: "+statusMessage,status);
+    this->QueueCommandResponse("Volume reconstruction from sequence file completed: "+statusMessage,status);
     return status;
   }
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
@@ -281,17 +281,17 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames starting, device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueStringResponse("Volume reconstruction starting from live frames failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction starting from live frames failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
     if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("Volume reconstruction starting from live frames failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction starting from live frames failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
     reconstructorDevice->SetEnableReconstruction(true);
-    this->QueueStringResponse("Volume reconstruction from live frames started, device: "+reconstructorDeviceId,PLUS_SUCCESS);
+    this->QueueCommandResponse("Volume reconstruction from live frames started, device: "+reconstructorDeviceId,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, STOP_LIVE_RECONSTRUCTION_CMD)==0)
@@ -299,7 +299,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
     if (!reconstructorDevice->GetEnableReconstruction() && reconstructorDevice->GetTotalFramesRecorded()==0)
     {
-      this->QueueStringResponse("Volume reconstruction stop from live frames failed: live volume reconstruction is already stopped, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction stop from live frames failed: live volume reconstruction is already stopped, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
 
@@ -309,13 +309,13 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     std::string errorMessage;
     if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage)!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("Volume reconstruction stop from live frames failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction stop from live frames failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueStringResponse("Volume reconstruction from live frames completed: "+statusMessage,status);
+    this->QueueCommandResponse("Volume reconstruction from live frames completed: "+statusMessage,status);
     return status;
   }     
   else if (STRCASECMP(this->Name, GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD)==0)
@@ -325,12 +325,12 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     std::string errorMessage;
     if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage, this->ApplyHoleFilling)!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("Volume reconstruction snapshot request failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction snapshot request failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
       return PLUS_FAIL;
     }
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueStringResponse("Volume reconstruction snapshot completed: "+statusMessage,status);
+    this->QueueCommandResponse("Volume reconstruction snapshot completed: "+statusMessage,status);
     return status;
   }
   else if (STRCASECMP(this->Name, SUSPEND_LIVE_RECONSTRUCTION_CMD)==0)
@@ -338,11 +338,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames suspending, device: "<<reconstructorDeviceId);
     if (!reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueStringResponse("Volume reconstruction suspend from live frames failed: live volume reconstruction is not in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction suspend from live frames failed: live volume reconstruction is not in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
    reconstructorDevice->SetEnableReconstruction(false);
-    this->QueueStringResponse("Volume reconstruction from live frames suspended, device: "+reconstructorDeviceId,PLUS_SUCCESS);
+    this->QueueCommandResponse("Volume reconstruction from live frames suspended, device: "+reconstructorDeviceId,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, RESUME_LIVE_RECONSTRUCTION_CMD)==0)
@@ -350,15 +350,15 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames resuming, device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueStringResponse("Volume reconstruction resume from live frames failed: live volume reconstruction is already in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse("Volume reconstruction resume from live frames failed: live volume reconstruction is already in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
       return PLUS_FAIL;
     }
     reconstructorDevice->SetEnableReconstruction(true);
-    this->QueueStringResponse("Volume reconstruction from live frames resumed, device: "+reconstructorDeviceId, PLUS_SUCCESS);
+    this->QueueCommandResponse("Volume reconstruction from live frames resumed, device: "+reconstructorDeviceId, PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
 
-  this->QueueStringResponse(std::string("vtkPlusReconstructVolumeCommand::Execute: failed, unknown command name ")+this->Name,PLUS_FAIL);
+  this->QueueCommandResponse(std::string("vtkPlusReconstructVolumeCommand::Execute: failed, unknown command name ")+this->Name,PLUS_FAIL);
   return PLUS_FAIL;
 } 
 

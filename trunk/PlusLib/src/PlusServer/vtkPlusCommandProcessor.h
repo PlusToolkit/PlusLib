@@ -58,13 +58,13 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(unsigned int clientId, const std::string &commandString, const std::string &deviceName, const std::string& uid); 
+  virtual PlusStatus QueueCommand(uint16_t commandVersion, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid); 
 
-  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA!*/
-  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
-
-  /*! Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE !*/
-  PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
+  /*! 
+    Adds a response to the response queue for reply. Can be called from any thread.
+    Adds support for receiving commands to be rejected without processing but send an error reply
+  */
+  virtual PlusStatus QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString); 
 
   /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
@@ -77,7 +77,7 @@ public:
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer); 
 
 protected:
-  vtkPlusCommand* CreatePlusCommand(const std::string &commandStr);
+  vtkPlusCommand* CreatePlusCommand(const std::string& commandName, const std::string &commandStr);
 
   /*! Thread for client connection handling */ 
   static void* CommandExecutionThread( vtkMultiThreader::ThreadInfo* data );
@@ -86,10 +86,10 @@ protected:
   virtual ~vtkPlusCommandProcessor();
 
 private:
-
+  /*! Link to the server that owns this command processor */
   vtkPlusOpenIGTLinkServer *PlusServer;
 
-    /*! Multithreader instance for controlling threads */ 
+  /*! vtkMultiThreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
 
   /*! Mutex instance for safe data access */ 

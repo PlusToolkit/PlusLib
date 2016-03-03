@@ -88,21 +88,21 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
   if (this->Name == NULL)
   {
-    this->QueueStringResponse("Command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse("Command failed, no command name specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   vtkDataCollector* dataCollector = this->GetDataCollector();
   if (dataCollector == NULL)
   {
-    this->QueueStringResponse("Command failed, no data collector",PLUS_FAIL);
+    this->QueueCommandResponse("Command failed, no data collector",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
-    this->QueueStringResponse("Command failed, unable to retrieve devices",PLUS_FAIL);
+    this->QueueCommandResponse("Command failed, unable to retrieve devices",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
@@ -129,7 +129,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
         }
       }
     }
-    this->QueueStringResponse(responseMessage,PLUS_SUCCESS);
+    this->QueueCommandResponse(responseMessage,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, REQUEST_DEVICE_ID_CMD) == 0)
@@ -158,10 +158,10 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
         addSeparator=true;
       }
     }
-    this->QueueStringResponse(responseMessage,PLUS_SUCCESS);
+    this->QueueCommandResponse(responseMessage,PLUS_SUCCESS);
     return PLUS_SUCCESS;
   }
 
-  this->QueueStringResponse("Unknown command, failed",PLUS_FAIL);
+  this->QueueCommandResponse("Unknown command, failed",PLUS_FAIL);
   return PLUS_FAIL;    
 }

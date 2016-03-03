@@ -8,8 +8,7 @@
 #define __vtkIntersonVideoSource_h
 
 #include "vtkDataCollectionExport.h"
-#include "vtkPlusDevice.h"
-#include "vtkUSImagingParameters.h"
+#include "vtkPlusUsDevice.h"
 
 /*!
   \class vtkIntersonVideoSource 
@@ -20,11 +19,11 @@
 
   \ingroup PlusLibDataCollection
 */
-class vtkDataCollectionExport vtkIntersonVideoSource : public vtkPlusDevice
+class vtkDataCollectionExport vtkIntersonVideoSource : public vtkPlusUsDevice
 {
 public:
   static vtkIntersonVideoSource *New();
-  vtkTypeMacro(vtkIntersonVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkIntersonVideoSource,vtkPlusUsDevice);
   void PrintSelf(ostream& os, vtkIndent indent);   
 
   virtual bool IsTracker() const { return false; }
@@ -39,32 +38,32 @@ public:
 
   virtual std::string GetSdkVersion();
 
-  /* Get the probe sound velocity */
+  /*! Get the probe sound velocity */
   PlusStatus GetSoundVelocity(double& aVel);
 
-  /* Set the probe depth in mm */
+  /*! Set the probe depth in mm */
   PlusStatus SetDepthMm(double depthMm);
-  /* Set the frequency in Mhz */
+  /*! Set the frequency in Mhz */
   PlusStatus SetFrequencyMhz(float freq);
-  /* Set the sector percent */
+  /*! Set the sector percent */
   PlusStatus SetSectorPercent(double value);
-  /* Set the intensity */
+  /*! Set the intensity */
   PlusStatus SetIntensity(int value);
-  /* Set the contrast */
+  /*! Set the contrast */
   PlusStatus SetContrast(int value);
-  /* Set the dynamic range */
+  /*! Set the dynamic range */
   PlusStatus SetDynRangeDb(double value);
-  /* Set the sound velocity */
+  /*! Set the sound velocity */
   PlusStatus SetSoundVelocity(double value);
-  /* Set the gain in percent */
+  /*! Set the gain in percent */
   PlusStatus SetTimeGainCompensationPercent(double gainPercent[3]);
-  /* Set the zoom factor. */
+  /*! Set the zoom factor. */
   PlusStatus SetZoomFactor(float zoomFactor);
-  /* Set the image size */
+  /*! Set the image size */
   PlusStatus SetImageSize(int imageSize[2]);
 
-  /* Apply a completely new set of imaging parameters to the device */
-  PlusStatus SetNewImagingParametersDevice(const vtkUsImagingParameters& newImagingParameters);
+  /*! Set the parameters in bulk */
+  virtual PlusStatus SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
 
   bool GetEnableProbeButtonMonitoring() const;
   void SetEnableProbeButtonMonitoring(bool _arg);
@@ -94,20 +93,22 @@ protected:
   PlusStatus GetSampleFrequencyDevice(double& aFreq);
   PlusStatus GetSoundVelocityDevice(float& aVel);
 
-  /* Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
+  /*! Represents the depth, in pixels, the display window will be. This defaults to 512 pixels for newly initialized probes.*/
   PlusStatus SetWindowDepthDevice(int height);
-  /* Set the probe depth in mm */
+  /*! Set the probe depth in mm */
   PlusStatus SetDepthMmDevice(double depthMm);
-  /* Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
+  /*! Set the desired probe frequency in Hz. The resulting probe speed will be approximately the value specified */
   PlusStatus SetFrequencyMhzDevice(float aFreq);
-  /* Set the sound velocity in the device */
+  /*! Set the sound velocity in the device */
   PlusStatus SetSoundVelocityDevice(double velocity);
-  /* Set the gain in percent in the device */
+  /*! Set the gain in percent in the device */
   PlusStatus SetTimeGainCompensationPercentDevice(double gainPercent[3]);
-  /* Set the zoom factor in the device. */
+  /*! Set the zoom factor in the device. */
   PlusStatus SetZoomFactorDevice(float zoomFactor);
+  /*! Set the lookup table from intensity and contrast */
+  PlusStatus SetLookupTableDevice(double intensity, double contrast);
 
-  /* Each probe has a defined set of allowed modes. 
+  /*! Each probe has a defined set of allowed modes. 
   These modes are combinations of pulse frequency and sample rate that yield acceptable results
   with that particular probe. While there is no enforcement to use only these modes, one should 
   understand the implications on image quality if one of the allowed modes is not selected.*/

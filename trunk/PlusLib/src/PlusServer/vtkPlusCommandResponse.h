@@ -8,7 +8,6 @@
 #define __VTKPLUSCOMMANDRESPONSE_H
 
 #include "PlusConfigure.h"
-
 #include "vtkMatrix4x4.h"
 #include "vtkPlusDevice.h"
 
@@ -23,14 +22,23 @@ public:
   static vtkPlusCommandResponse *New();
   vtkTypeMacro(vtkPlusCommandResponse, vtkObject);
 
+  vtkGetMacro(DeviceName,std::string);
+  vtkSetMacro(DeviceName,std::string);
   vtkGetMacro(ClientId,unsigned int);
   vtkSetMacro(ClientId,unsigned int);
+  vtkGetMacro(Status,PlusStatus);
+  vtkSetMacro(Status,PlusStatus);
 protected:
   vtkPlusCommandResponse()
   : ClientId(0)
+  , Id(0)
+  , Status(PLUS_SUCCESS)
   {
   }
+  std::string DeviceName;
   unsigned int ClientId;
+  uint32_t Id;
+  PlusStatus Status; // indicates if the command is succeeded or failed
 private:
   vtkPlusCommandResponse( const vtkPlusCommandResponse& );
   void operator=( const vtkPlusCommandResponse& );
@@ -45,23 +53,42 @@ public:
   static vtkPlusCommandStringResponse *New();
   vtkTypeMacro(vtkPlusCommandStringResponse, vtkPlusCommandResponse);
 
-  vtkGetMacro(DeviceName,std::string);
-  vtkSetMacro(DeviceName,std::string);
   vtkGetMacro(Message,std::string);
   vtkSetMacro(Message,std::string);
-  vtkGetMacro(Status,PlusStatus);
-  vtkSetMacro(Status,PlusStatus);
 protected:
   vtkPlusCommandStringResponse()
-  : Status(PLUS_SUCCESS)
   {
   }
-  std::string DeviceName;
   std::string Message;
-  PlusStatus Status; // indicates if the command is succeeded or failed
 private:
   vtkPlusCommandStringResponse( const vtkPlusCommandStringResponse& );
   void operator=( const vtkPlusCommandStringResponse& );
+};
+
+//----------------------------------------------------------------------------
+class vtkPlusCommandCommandResponse : public vtkPlusCommandResponse
+{
+public:
+  static vtkPlusCommandCommandResponse *New();
+  vtkTypeMacro(vtkPlusCommandCommandResponse, vtkPlusCommandResponse);
+
+  vtkGetMacro(Version,uint16_t);
+  vtkSetMacro(Version,uint16_t);
+  vtkGetMacro(OriginalId,uint32_t);
+  vtkSetMacro(OriginalId,uint32_t);
+  vtkGetMacro(ErrorString,std::string);
+  vtkSetMacro(ErrorString,std::string);
+
+protected:
+  vtkPlusCommandCommandResponse()
+  {
+  }
+  uint16_t Version;
+  uint32_t OriginalId;
+  std::string ErrorString;
+private:
+  vtkPlusCommandCommandResponse( const vtkPlusCommandCommandResponse& );
+  void operator=( const vtkPlusCommandCommandResponse& );
 };
 
 //----------------------------------------------------------------------------
