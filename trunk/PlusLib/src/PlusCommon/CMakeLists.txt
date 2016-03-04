@@ -58,8 +58,26 @@ ENDIF()
 SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
-# Build the library
+# Determine compiler compatibility
+IF(UNIX)
+  EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                  OUTPUT_VARIABLE GCC_VERSION)
+  STRING(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GCC_VERSION})
+  LIST(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
+  LIST(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
 
+  # Enable support for std::to_string
+  IF(${GCC_VERSION} VERSION_GREATER 4.6)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  ELSEIF(${GCC_VERSION} VERSION_GREATER 4.3)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  ELSE()
+    MESSAGE(FATAL_ERROR "gcc >= 4.3 required to build PlusLib. gcc >= 4.7 recommended.")
+  ENDIF()
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Build the library
 SET (PlusCommon_LIBS ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${PlusCommon_LIBS} )
 
 if (WIN32)  

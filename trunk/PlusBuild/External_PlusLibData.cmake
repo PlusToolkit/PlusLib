@@ -14,7 +14,7 @@ ExternalProject_Add(PlusLibData
   #--Download step--------------
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
-  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/branches/rankin-sandbox/PlusLibData
+  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusLibData
   ${PLUSLIBDATA_SVN_REV}
   #--Configure step-------------
   CONFIGURE_COMMAND ""
