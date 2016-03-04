@@ -26,7 +26,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # System Settings
 IF(${WIN32})
-  #this method adds the necessary compiler flag
+  # This method adds the necessary compiler flag
   SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
 ENDIF()
 
