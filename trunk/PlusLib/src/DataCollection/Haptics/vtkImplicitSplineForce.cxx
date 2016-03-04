@@ -23,8 +23,8 @@ vtkImplicitSplineForce::vtkImplicitSplineForce()
   // Constant for sigmoid function
   this->gammaSigmoid = 2;
   this->scaleForce = 20.0;
-  strcpy_s(this->SplineKnots, 255, "knot3DHeart.txt");
-  strcpy_s(this->ControlPoints, 255, " ");
+  this->SplineKnots = "knot3DHeart.txt";
+  this->ControlPoints = " ";
 
 }
 
@@ -44,14 +44,13 @@ vtkImplicitSplineForce::~vtkImplicitSplineForce()
 //----------------------------------------------------------------------------
 void vtkImplicitSplineForce::SetInput(char * controlPnt)
 {
-  strcpy_s(this->ControlPoints, 255, controlPnt);
+  this->ControlPoints = controlPnt;
   ReadFileControlPoints(controlPnt);
 }
 
 //----------------------------------------------------------------------------
 void vtkImplicitSplineForce::SetInput(int splineId)
 {
-
   ReadFile3DBSplineKnots(this->SplineKnots);
 
   // Read B-spline control points (coefficients) from file
@@ -396,7 +395,6 @@ double vtkImplicitSplineForce::BasisFunction3(int k, double *knot, double u, int
     }
   }
 
-
   // Normal: 1<=k<=K-3
   else
   {
@@ -502,8 +500,6 @@ double vtkImplicitSplineForce::BasisFunction3DerivativeD(int k, double *knot, do
       dNu = dtmp3;
     }
   }
-
-  // Normal: 1<=k<=K-3
   else
   {
     if(u<knot[k])
@@ -620,59 +616,66 @@ int vtkImplicitSplineForce::CalculateKnotIu(double u, double *knot, int K, int n
 }
 
 //----------------------------------------------------------------------------
-int vtkImplicitSplineForce::ReadFile3DBSplineKnots(char *fname)
+int vtkImplicitSplineForce::ReadFile3DBSplineKnots(const std::string& fname)
 {
-  int k;
-  FILE *fpInKnot(NULL);
-  fopen_s(&fpInKnot, fname, "r");
+  if( fname.empty() )
+  {
+    return -1;
+  }
+  ifstream fpInKnot;
+  fpInKnot.open(fname);
 
-  if( fpInKnot == NULL )
+  if( !fpInKnot.is_open() )
   {
     return -1;
   }
 
   // knot1/2/3
-  for(k=0; k<=NUM_INTERVALU_S; k++)
+  for(int k=0; k<=NUM_INTERVALU_S; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot1[k]);
+    fpInKnot >> knot1[k];
   }
 
-  for(k=0; k<=NUM_INTERVALV_S; k++)
+  for(int k=0; k<=NUM_INTERVALV_S; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot2[k]);
+    fpInKnot >> knot2[k];
   }
 
-  for(k=0; k<=NUM_INTERVALW_S; k++)
+  for(int k=0; k<=NUM_INTERVALW_S; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot3[k]);
+    fpInKnot >> knot3[k];
   }
 
   // knot1/2/3b
-  for(k=0; k<=DimKnot_U-1; k++)
+  for(int k=0; k<=DimKnot_U-1; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot1b[k]);
+    fpInKnot >> knot1b[k];
   }
-  for(k=0; k<=DimKnot_V-1; k++)
+  for(int k=0; k<=DimKnot_V-1; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot2b[k]);
+    fpInKnot >> knot2b[k];
   }
-  for(k=0; k<=DimKnot_W-1; k++)
+  for(int k=0; k<=DimKnot_W-1; k++)
   {
-    fscanf_s(fpInKnot, "%lf", &knot3b[k]);
+    fpInKnot >> knot3b[k];
   }
 
-  fclose(fpInKnot);
+  fpInKnot.close();
 
   return 0;
 }
 
 //----------------------------------------------------------------------------
-int vtkImplicitSplineForce::ReadFileControlPoints(char *fname)
+int vtkImplicitSplineForce::ReadFileControlPoints(const std::string& fname)
 {
-  FILE *fpIn(NULL);
-  fopen_s(&fpIn, fname, "r");
+  if( fname.empty() )
+  {
+    return -1;
+  }
+  ifstream fpInKnot;
+  fpInKnot.open(fname);
 
-  if( fpIn == NULL )
+  if( !fpInKnot.is_open() )
   {
     return -1;
   }
@@ -684,12 +687,12 @@ int vtkImplicitSplineForce::ReadFileControlPoints(char *fname)
     {
       for(j=0; j<DimCPoint_U; j++)
       {
-        fscanf_s(fpIn, "%lf", &controlQ3D[k][i][j]);
+        fpInKnot >> controlQ3D[k][i][j];
       }
     }
   }
 
-  fclose(fpIn);
+  fpInKnot.close();
 
   return 0;
 }

@@ -49,8 +49,8 @@ protected:
   double BasisFunction3DerivativeD(int k, double *knot, double u, int K);
   double CalculateDistanceBasis(double x, double y, double z, int n, int direction);
   int CalculateKnotIu(double u, double *knot, int K, int n);
-  int ReadFile3DBSplineKnots(char *fname);
-  int ReadFileControlPoints(char *fname);
+  int ReadFile3DBSplineKnots(const std::string& fname);
+  int ReadFileControlPoints(const std::string& fname);
 
   double controlQ3D[DimCPoint_W][DimCPoint_V][DimCPoint_U];
   double knot1[NUM_INTERVALU_S+1];
@@ -63,8 +63,8 @@ protected:
 
   double gammaSigmoid;
   double scaleForce;
-  char SplineKnots[255];
-  char ControlPoints[255];
+  std::string SplineKnots;
+  std::string ControlPoints;
 };
 
 #endif
