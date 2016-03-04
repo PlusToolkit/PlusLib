@@ -594,7 +594,13 @@ PlusStatus vtkMetaImageSequenceIO::OpenImageHeader()
   {
     this->NumberOfDimensions++;
   }
-  SetCustomString("NDims", std::to_string(this->NumberOfDimensions) );
+
+  {
+    std::stringstream ss;
+    ss << this->NumberOfDimensions;
+    SetCustomString("NDims", ss.str() );
+  }
+
   SetCustomString("BinaryData", "True");
   SetCustomString("BinaryDataByteOrderMSB", "False");
 
@@ -1379,12 +1385,16 @@ PlusStatus vtkMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfF
 
   if( numberOfFrames > 1 )
   {
-    int numChars = std::to_string(this->Dimensions[3]).length();
-    for( int i = 0; i < SEQMETA_FIELD_DIMSIZE_NUM_SPACES - numChars; ++ i )
     {
-      dimSizeStr << " ";
+      std::stringstream ss;
+      ss << this->Dimensions[3];
+      int numChars = ss.str().length();
+      for( int i = 0; i < SEQMETA_FIELD_DIMSIZE_NUM_SPACES - numChars; ++ i )
+      {
+        dimSizeStr << " ";
+      }
+      dimSizeStr << this->Dimensions[3];
     }
-    dimSizeStr << this->Dimensions[3];
   }
 
   this->SetCustomString(SEQMETA_FIELD_DIMSIZE, dimSizeStr.str().c_str());
