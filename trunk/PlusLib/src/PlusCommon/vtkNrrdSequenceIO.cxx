@@ -1102,7 +1102,12 @@ PlusStatus vtkNrrdSequenceIO::OpenImageHeader()
   // "This (or "space dimension") has to precede the other orientation-related fields, because it determines
   // how many components there are in the vectors of the space origin, space directions, and measurement frame fields."
   int numSpaceDimensions = isData3D ? 3 : 2;
-  SetCustomString("space dimension", std::to_string(numSpaceDimensions) );
+
+  {
+    std::stringstream ss;
+    ss << numSpaceDimensions;
+    SetCustomString("space dimension", ss.str() );
+  }
 
   // Generate the origin string, such as (0,0) or (0,0,0)
   std::stringstream originStr;
@@ -1801,13 +1806,17 @@ PlusStatus vtkNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames
 
   if( numberOfFrames > 1 )
   {
-    int numChars = std::to_string(this->Dimensions[3]).length();
-    for( int i = 0; i < SEQUENCE_FIELD_SIZES_NUM_SPACES - numChars; ++ i )
     {
-      sizesStr << " ";
+      std::stringstream ss;
+      ss << this->Dimensions[3];
+      int numChars = ss.str().length();
+      for( int i = 0; i < SEQUENCE_FIELD_SIZES_NUM_SPACES - numChars; ++ i )
+      {
+        sizesStr << " ";
+      }
+      sizesStr << this->Dimensions[3];
+      kindStr << "list";
     }
-    sizesStr << this->Dimensions[3];
-    kindStr << "list";
   }
 
   this->SetCustomString(SEQUENCE_FIELD_SIZES, sizesStr.str());
