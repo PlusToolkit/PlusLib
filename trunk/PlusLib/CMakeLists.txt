@@ -91,11 +91,6 @@ SET( USDIGITAL_SEI_INCLUDE_DIR ${USDIGITAL_SEI_BASE_DIR}/inc CACHE PATH "Path to
 SET( USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE )
 SET( USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE )
 
-SET( FREEDOM6S_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Freedom6s)
-SET( FREEDOM6S_INCLUDE_DIR ${FREEDOM6S_BASE_DIR}/include CACHE PATH "Path to the Freedom6s include directory (needed for the Freedom6s haptic device)." FORCE )
-SET( FREEDOM6S_BINARY_DIR ${FREEDOM6S_BASE_DIR}/bin CACHE PATH "Path to the Freedom6s binary directory (needed for the Freedom6s haptic device)." FORCE )
-SET( FREEDOM6S_LIB_DIR ${FREEDOM6S_BASE_DIR}/lib CACHE PATH "Path to the Freedom6s library directory (needed for the Freedom6s haptic device)." FORCE )
-
 # --------------------------------------------------------------------------
 # Subdirs
 #
