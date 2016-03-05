@@ -270,6 +270,25 @@ SET(ep_base "${CMAKE_BINARY_DIR}")
 SET(ep_common_args
   #-DCMAKE_INSTALL_PREFIX:PATH=${ep_install_dir}
   )
+  
+IF(UNIX)
+  EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                  OUTPUT_VARIABLE GCC_VERSION)
+  STRING(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GCC_VERSION})
+  LIST(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
+  LIST(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
+
+  # Allow inline namespacing to enable Qt::Orientation:: etc..
+  IF(${GCC_VERSION} VERSION_GREATER 4.6)
+    SET(ADDITIONAL_CXX_FLAGS "-std=c++11" CACHE STRING "Additional CXX Flags")
+  ELSEIF(${GCC_VERSION} VERSION_GREATER 4.3)
+    SET(ADDITIONAL_CXX_FLAGS "-std=c++0x" CACHE STRING "Additional CXX Flags")
+  ELSE()
+    MESSAGE(FATAL_ERROR "gcc >= 4.3 required to build RobartsVTK. gcc >= 4.7 recommended.")
+  ENDIF()
+ENDIF()
+MARK_AS_ADVANCED(ADDITIONAL_CXX_FLAGS)
+
 IF(NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio")
   SET(ep_common_args
     ${ep_common_args}
