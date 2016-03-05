@@ -128,14 +128,14 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 
   if (this->Name==NULL)
   {
-    this->QueueStringResponse("StealthLink command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse("StealthLink command failed, no command name specified",PLUS_FAIL);
     return PLUS_FAIL;
   }
 
   vtkStealthLinkTracker* stealthLinkDevice = GetStealthLinkDevice();
   if (stealthLinkDevice==NULL)
   {
-    this->QueueStringResponse(std::string("StealthLink command failed: device ")
+    this->QueueCommandResponse(std::string("StealthLink command failed: device ")
       +(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId)+" is not found",PLUS_FAIL);
     return PLUS_FAIL;
   }
@@ -154,15 +154,15 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     stealthLinkDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository());
     if (stealthLinkDevice->GetImage(requestedImageId, assignedImageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform)!=PLUS_SUCCESS)
     {
-      this->QueueStringResponse("vtkPlusStealthLinkCommand::Execute: failed, failed to receive image",PLUS_FAIL);
+      this->QueueCommandResponse("vtkPlusStealthLinkCommand::Execute: failed, failed to receive image",PLUS_FAIL);
       return PLUS_FAIL;
     }    
     std::string resultMessage;
     PlusStatus status = ProcessImageReply(assignedImageId,imageData,ijkToReferenceTransform,resultMessage);
-    this->QueueStringResponse("Volume sending completed: "+resultMessage,status);
+    this->QueueCommandResponse("Volume sending completed: "+resultMessage,status);
     return PLUS_SUCCESS;
   }
-  this->QueueStringResponse("vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name),PLUS_FAIL);
+  this->QueueCommandResponse("vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name),PLUS_FAIL);
   return PLUS_FAIL;
 } 
 //----------------------------------------------------------------------------
