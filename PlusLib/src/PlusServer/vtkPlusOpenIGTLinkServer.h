@@ -16,6 +16,10 @@
 #include "vtkSmartPointer.h"
 #include <deque>
 
+#if (_MSC_VER == 1500)
+  #include <stdint.h>
+#endif
+
 #include "igtlCommandMessage.h"
 #include "igtlServerSocket.h"
 

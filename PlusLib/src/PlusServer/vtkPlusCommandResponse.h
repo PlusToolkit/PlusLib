@@ -11,6 +11,10 @@
 #include "vtkMatrix4x4.h"
 #include "vtkPlusDevice.h"
 
+#if (_MSC_VER == 1500)
+  #include <stdint.h>
+#endif
+
 /*!
   \class PlusCommandResponse 
   \brief Structure to store command responses that Plus should send through OpenIGTLink
