@@ -40,7 +40,7 @@ ExternalProject_Add( tessdata
     BINARY_DIR "${PLUS_tessdata_src_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/tessdata.git"
-    GIT_TAG 52f304eb1c8b9456adf1c2b8431cc855623a6d26
+    GIT_TAG master
     #--Configure step-------------
     CONFIGURE_COMMAND ""
     #--Build step-----------------
