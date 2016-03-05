@@ -24,12 +24,7 @@ SET_SOURCE_FILES_PROPERTIES(
   ABSTRACT
 )
 
-SET(${PROJECT_NAME}_LIBS 
-  vtkCommonCore 
-  vtksys 
-  vtkCommonMath
-  vtkCommonDataModel
-  )
+SET(${PROJECT_NAME}_LIBS ${VTK_LIBRARIES} )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(PlusHaptics)
 
