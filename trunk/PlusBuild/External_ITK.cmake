@@ -1,7 +1,7 @@
 IF(ITK_DIR)
 
   # ITK has been built already
-  FIND_PACKAGE(ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
+  FIND_PACKAGE(ITK 4.9 REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
   
   MESSAGE(STATUS "Using ITK available at: ${ITK_DIR}")
   
@@ -45,10 +45,7 @@ ELSE(ITK_DIR)
 
   # ITK has not been built yet, so download and build it as an external project
   SET (ITKv4_REPOSITORY ${GIT_PROTOCOL}://itk.org/ITK.git)
-  SET (ITKv4_GIT_TAG 8d58556089399c11d51795d46d6b17c355af95dc) #v4.7.2 from 2015-04-30
-
-  # Strip -std=c++11 and/or -std=c++0x from ep_common_args because ITK doesn't support it
-  STRING(REGEX REPLACE "(.*)-std=c\\+\\+..(.*)" "\\1\\2" itk_ep_common_cxx_flags ${ep_common_cxx_flags})
+  SET (ITKv4_GIT_TAG v4.9.0) # 4.9 supports -std=c++11
 
   SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/itk")
   SET (PLUS_ITK_DIR "${CMAKE_BINARY_DIR}/itk-bin" CACHE INTERNAL "Path to store itk binaries")
@@ -69,7 +66,7 @@ ELSE(ITK_DIR)
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
-      -DCMAKE_CXX_FLAGS:STRING=${itk_ep_common_cxx_flags}
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON

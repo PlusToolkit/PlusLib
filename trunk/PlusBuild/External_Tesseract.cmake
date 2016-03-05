@@ -1,5 +1,5 @@
 SET(tesseract_DEPENDENCIES leptonica)
-SET(libpng_DEPENDENCIES zlib)
+SET(leptonica_DEPENDENCIES vtk) #for vtkzlib
 SET(tesseract_ROOT_DIR ${CMAKE_BINARY_DIR}/tesseract-super)
 
 # --------------------------------------------------------------------------
