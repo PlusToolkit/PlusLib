@@ -516,7 +516,12 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           uint32_t uid(0);
           try
           {
+#if (_MSC_VER == 1500)
+            std::istringstream ss(vtkPlusCommand::GetUidFromCommandDeviceName(deviceName));
+            ss >> uid;
+#else
             uid = std::stoi(vtkPlusCommand::GetUidFromCommandDeviceName(deviceName));
+#endif
           }
           catch (std::invalid_argument e)
           {
