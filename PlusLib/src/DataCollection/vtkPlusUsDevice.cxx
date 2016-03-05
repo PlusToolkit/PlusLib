@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkPlusUsDevice.h"
-#include "vtkUSImagingParameters.h"
+#include "vtkUsImagingParameters.h"
 
 #ifdef PLUS_USE_tesseract
 #include "vtkVirtualTextRecognizer.h"
