@@ -14,7 +14,7 @@ ExternalProject_Add( leptonica
     BINARY_DIR "${PLUS_leptonica_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/leptonica.git"
-    GIT_TAG ec18129f502acef9f8ae21aee269cf699394b54b
+    GIT_TAG master
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
