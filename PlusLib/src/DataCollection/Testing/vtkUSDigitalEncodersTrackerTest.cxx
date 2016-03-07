@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-\file TrackingTest.cxx
+\file vtkUSDigitalEncodersTrackerTest.cxx.cxx
 \brief This a simple test program to acquire a tracking data and optionally
 writes the buffer to a metafile and displays the live transform in a 3D view.
 */
@@ -17,14 +17,11 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkSmartPointer.h""
+#include "vtkSmartPointer.h"
+#include "vtkUSDigitalEncodersTracker.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
-
-#include "vtkUSDigitalEncodersTracker.h"
-
-
 
 int main(int argc, char **argv)
 {
@@ -74,7 +71,7 @@ int main(int argc, char **argv)
 
   ///// Reading configuration file
 
-  vtkSmartPointer< vtkUSDigitalEncodersTracker > usdigitalencodersTracker =
+  vtkSmartPointer< vtkUSDigitalEncodersTracker > usDigitalEncodersTracker =
     vtkSmartPointer< vtkUSDigitalEncodersTracker >::New();
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -85,17 +82,17 @@ int main(int argc, char **argv)
   }
 
   //  Reading configuration XML file
-  usdigitalencodersTracker->ReadConfiguration(configRootElement);
+  usDigitalEncodersTracker->ReadConfiguration(configRootElement);
 
   // Connect
-  if ( usdigitalencodersTracker->Connect() != PLUS_SUCCESS )
+  if ( usDigitalEncodersTracker->Connect() != PLUS_SUCCESS )
   {
     LOG_ERROR( "Unable to connect to Capistrano Probe" );
     exit(EXIT_FAILURE);
   }
   ///////////////
 
-  usdigitalencodersTracker->StartRecording();   //start recording frame from the video
+  usDigitalEncodersTracker->StartRecording();
 
   bool bTask = true;
   std::string inputMessage;
@@ -110,12 +107,9 @@ int main(int argc, char **argv)
     }
   }
 
-  usdigitalencodersTracker->StopRecording();
-  usdigitalencodersTracker->Disconnect();              //start recording frame from the video
-
+  usDigitalEncodersTracker->StopRecording();
+  usDigitalEncodersTracker->Disconnect();
 
   std::cout << "Test completed successfully!" << std::endl;
   return EXIT_SUCCESS;
-
 }
-

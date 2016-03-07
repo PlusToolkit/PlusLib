@@ -435,7 +435,19 @@ IF( PLUS_USE_OpenIGTLink )
   TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
   
 ENDIF( PLUS_USE_OpenIGTLink )
-  
+
+#*************************** vtkVirtualTextRecognizerTest ***************************
+IF (PLUS_TEST_tesseract)
+    ADD_EXECUTABLE(vtkVirtualTextRecognizerTest vtkVirtualTextRecognizerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkVirtualTextRecognizerTest vtkDataCollection vtkPlusCommon)
+    
+    ADD_TEST(vtkVirtualTextRecognizerTest 
+      ${EXECUTABLE_OUTPUT_PATH}/vtkVirtualTextRecognizerTest 
+      --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VirtualTextRecognizerTest.xml 
+      --device-id=TextRecognizerDevice 
+      --field-value=Peters
+      )
+ENDIF (PLUS_TEST_tesseract) 
   
 # --------------------------------------------------------------------------
 # Install
