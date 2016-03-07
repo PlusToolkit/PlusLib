@@ -94,8 +94,12 @@ int main(int argc, char **argv)
   }
 
   textRecognizer->SetMissingInputGracePeriodSec(0);
-
+  
+#ifdef _WIN32
   Sleep(500);
+#else
+  usleep(500000);
+#endif 
 
   vtkVirtualTextRecognizer::ChannelFieldListMap& map = textRecognizer->GetRecognitionFields();
   vtkVirtualTextRecognizer::FieldListIterator& it = map.begin()->second.begin();
