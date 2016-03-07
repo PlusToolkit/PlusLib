@@ -24,16 +24,17 @@ vtkStandardNewMacro(vtkVirtualTextRecognizer);
 
 namespace
 {
-  const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
-  const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
-  const char* PARAMETER_LIST_TAG_NAME = "TextFields";
-  const char* PARAMETER_TAG_NAME = "Field";
-  const char* PARAMETER_NAME_ATTRIBUTE = "Name";
-  const char* PARAMETER_CHANNEL_ATTRIBUTE = "Channel";
-  const char* PARAMETER_ORIGIN_ATTRIBUTE = "InputRegionOrigin";
-  const char* PARAMETER_SIZE_ATTRIBUTE = "InputRegionSize";
-  const int PARAMETER_DEPTH_BITS = 8;
-  const char* DEFAULT_LANGUAGE = "eng";
+  static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
+  static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
+  static const char* PARAMETER_LIST_TAG_NAME = "TextFields";
+  static const char* PARAMETER_TAG_NAME = "Field";
+  static const char* PARAMETER_NAME_ATTRIBUTE = "Name";
+  static const char* PARAMETER_CHANNEL_ATTRIBUTE = "Channel";
+  static const char* PARAMETER_ORIGIN_ATTRIBUTE = "InputRegionOrigin";
+  static const char* PARAMETER_SIZE_ATTRIBUTE = "InputRegionSize";
+  static const int PARAMETER_DEPTH_BITS = 8;
+  static const char* DEFAULT_LANGUAGE = "eng";
+  static const int TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -45,7 +46,6 @@ vtkVirtualTextRecognizer::vtkVirtualTextRecognizer()
   // The data capture thread will be used to regularly check the input devices and generate and update the output
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
-  this->MissingInputGracePeriodSec = 2.0;
 }
 
 //----------------------------------------------------------------------------
@@ -75,6 +75,14 @@ void vtkVirtualTextRecognizer::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
+#ifdef PLUS_TEST_tesseract
+//----------------------------------------------------------------------------
+vtkVirtualTextRecognizer::ChannelFieldListMap& vtkVirtualTextRecognizer::GetRecognitionFields()
+{
+  return this->RecognitionFields;
+}
+#endif
 
 //----------------------------------------------------------------------------
 PlusStatus vtkVirtualTextRecognizer::InternalUpdate()
@@ -109,7 +117,7 @@ PlusStatus vtkVirtualTextRecognizer::InternalUpdate()
 
       this->TesseractAPI->SetImage(parameter->ReceivedFrame);
       char* text_out = this->TesseractAPI->GetUTF8Text();
-      parameter->LatestParameterValue = std::string(text_out);
+      parameter->LatestParameterValue = PlusCommon::Trim(std::string(text_out));
       delete [] text_out;
     }
   }
@@ -218,6 +226,14 @@ PlusStatus vtkVirtualTextRecognizer::InternalDisconnect()
 PlusStatus vtkVirtualTextRecognizer::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
 {
   ClearConfiguration();
+
+  Superclass::ReadConfiguration(rootConfigElement);
+
+  if( this->MissingInputGracePeriodSec < TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT )
+  {
+    LOG_WARNING("MissingInputGracePeriodSec must be set to a value > 1s to allow input to arrive and be processed.");
+    this->MissingInputGracePeriodSec = TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT;
+  }
 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 

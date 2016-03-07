@@ -26,6 +26,9 @@ typedef struct Pix PIX;
 */
 class vtkDataCollectionExport vtkVirtualTextRecognizer : public vtkPlusDevice
 {
+#ifdef PLUS_TEST_tesseract
+public:
+#endif
   class TextFieldParameter
   {
   public:
@@ -81,6 +84,10 @@ public:
 
   vtkSetStringMacro(Language);
   vtkGetStringMacro(Language);
+
+#ifdef PLUS_TEST_tesseract
+  ChannelFieldListMap& GetRecognitionFields();
+#endif
 
 protected:
   virtual PlusStatus InternalUpdate();
