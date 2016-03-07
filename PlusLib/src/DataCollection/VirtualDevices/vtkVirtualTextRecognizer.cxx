@@ -4,10 +4,11 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusCommon.h"
 #include "PlusConfigure.h"
+#include "vtkDataCollector.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
-#include "vtkDataCollector.h"
 #include "vtkPlusDataSource.h"
 #include "vtkTrackedFrameList.h"
 #include "vtkVirtualTextRecognizer.h"
@@ -117,7 +118,8 @@ PlusStatus vtkVirtualTextRecognizer::InternalUpdate()
 
       this->TesseractAPI->SetImage(parameter->ReceivedFrame);
       char* text_out = this->TesseractAPI->GetUTF8Text();
-      parameter->LatestParameterValue = PlusCommon::Trim(std::string(text_out));
+      std::string textStr(text_out);
+      parameter->LatestParameterValue = PlusCommon::Trim(textStr);
       delete [] text_out;
     }
   }
