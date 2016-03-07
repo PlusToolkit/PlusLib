@@ -570,7 +570,9 @@ IF( NOT BUILDNAME )
     STRING(REGEX REPLACE "[ \n\l\t\r]" "" SYSTEM_NAME ${SYSTEM_NAME_FULL})
     EXECUTE_PROCESS(COMMAND sw_vers -productVersion OUTPUT_VARIABLE SYSTEM_VERSION)
     SET(SYSTEM_NAME "${SYSTEM_NAME}-${SYSTEM_VERSION}")
-    SET(COMPILER_NAME "clang") #TODO determine version command
+    EXECUTE_PROCESS(COMMAND clang --version OUTPUT_VARIABLE CLANG_VERSION)
+    STRING(REGEX MATCH "Apple LLVM version ([0-9]+\.[0-9]+\.[0-9]+)" CLANG_VERSION ${CLANG_VERSION})
+    SET(COMPILER_NAME "clang${CMAKE_MATCH_1}")
   ELSEIF( MSVC )
     # Use generator to determine name
     IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
