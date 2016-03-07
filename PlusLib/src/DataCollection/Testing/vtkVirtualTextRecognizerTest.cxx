@@ -101,8 +101,8 @@ int main(int argc, char **argv)
   usleep(500000);
 #endif 
 
-  vtkVirtualTextRecognizer::ChannelFieldListMap& map = textRecognizer->GetRecognitionFields();
-  vtkVirtualTextRecognizer::FieldListIterator& it = map.begin()->second.begin();
+  vtkVirtualTextRecognizer::ChannelFieldListMap map = textRecognizer->GetRecognitionFields();
+  vtkVirtualTextRecognizer::FieldListIterator it = map.begin()->second.begin();
   if( (*it)->LatestParameterValue != fieldValue )
   {
     LOG_ERROR("Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
