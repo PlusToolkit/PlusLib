@@ -263,7 +263,6 @@ ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
 # Specify common external project properties
 #-----------------------------------------------------------------------------
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
-INCLUDE(CTest)
 
 SET(ep_base "${CMAKE_BINARY_DIR}")
 
@@ -526,24 +525,84 @@ ENDIF(PLUSBUILD_USE_Tesseract)
 #------------------------------------------------------------------------------
 # Construct a descriptive build name
 #------------------------------------------------------------------------------
-IF( PLUSBUILD_USE_VTK6 )
-  SET(VTK_BUILD_NAME "vtk6")
-ELSE( PLUSBUILD_USE_VTK6 )
-  SET(VTK_BUILD_NAME "vtk5")
-ENDIF(PLUSBUILD_USE_VTK6)
+IF( NOT BUILDNAME )
+  IF( UNIX AND NOT APPLE )
+    SET(LINUX TRUE)
+  ENDIF()
 
-IF( PLUSBUILD_BUILD_PLUSAPP )
-  IF( Qt5Core_FOUND )
-    SET(QT_BUILD_NAME "qt5")
-  ELSEIF( QT4_FOUND )
-    SET(QT_BUILD_NAME "qt4")
-  ENDIF( Qt5Core_FOUND )
-ENDIF( PLUSBUILD_BUILD_PLUSAPP )
+  IF( PLUSBUILD_USE_VTK6 )
+    SET(VTK_BUILD_NAME "vtk6")
+  ELSE( PLUSBUILD_USE_VTK6 )
+    SET(VTK_BUILD_NAME "vtk5")
+  ENDIF(PLUSBUILD_USE_VTK6)
 
-INCLUDE(TargetArch.cmake)
-target_architecture(ARCHITECHTURE_BUILD_NAME)
+  IF( PLUSBUILD_BUILD_PLUSAPP )
+    IF( Qt5Core_FOUND )
+      SET(QT_BUILD_NAME "qt5")
+    ELSEIF( QT4_FOUND )
+      SET(QT_BUILD_NAME "qt4")
+    ENDIF( Qt5Core_FOUND )
+  ENDIF( PLUSBUILD_BUILD_PLUSAPP )
 
-SET(BUILDNAME "${CMAKE_SYSTEM_NAME}-${ARCHITECHTURE_BUILD_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
+  #Build a nice system and compiler name
+  IF( LINUX )
+    # System name
+    IF( EXISTS /etc/issue.net )
+      EXECUTE_PROCESS(COMMAND cat /etc/issue.net OUTPUT_VARIABLE SYSTEM_NAME_FULL)
+      STRING(REGEX REPLACE "[ \n\l\t\r]" "" SYSTEM_NAME ${SYSTEM_NAME_FULL})
+    ELSEIF( EXISTS /etc/issue )
+      EXECUTE_PROCESS(COMMAND cat /etc/issue OUTPUT_VARIABLE SYSTEM_NAME_FULL)
+      STRING(REGEX REPLACE "[ \n\l\t\r]" "" SYSTEM_NAME ${SYSTEM_NAME_FULL})
+    ELSEIF( EXISTS /etc/redhat-release )
+      EXECUTE_PROCESS(COMMAND cat /etc/redhat-release OUTPUT_VARIABLE SYSTEM_NAME_FULL)
+      STRING(REGEX REPLACE "[ \n\l\t\r]" "" SYSTEM_NAME ${SYSTEM_NAME_FULL})
+    ELSE()
+      SET(SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+    ENDIF()
+    STRING(TOLOWER ${SYSTEM_NAME} SYSTEM_NAME)
+    
+    # Compiler name
+    EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    SET(COMPILER_NAME "gcc-${GCC_VERSION}")
+  ELSEIF( APPLE )
+    EXECUTE_PROCESS(COMMAND sw_vers -productName OUTPUT_VARIABLE SYSTEM_NAME_FULL)
+    STRING(REGEX REPLACE "[ \n\l\t\r]" "" SYSTEM_NAME ${SYSTEM_NAME_FULL})
+    EXECUTE_PROCESS(COMMAND sw_vers -productVersion OUTPUT_VARIABLE SYSTEM_VERSION)
+    SET(SYSTEM_NAME "${SYSTEM_NAME}-${SYSTEM_VERSION}")
+    SET(COMPILER_NAME "clang") #TODO determine version command
+  ELSEIF( MSVC )
+    # Use generator to determine name
+    IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
+      SET(COMPILER_NAME vs08)
+    ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 10" )
+      SET(COMPILER_NAME vs10)
+    ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 11" )
+      SET(COMPILER_NAME vs12)
+    ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 12" )
+      SET(COMPILER_NAME vs13)
+    ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 14" )
+      SET(COMPILER_NAME vs15)
+    ELSE()
+      SET(COMPILER_NAME vs??)
+    ENDIF()
+  ELSEIF( MINGW )
+    # Compiler name
+    EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    SET(COMPILER_NAME "mingwgcc-${GCC_VERSION}")
+  ENDIF()
+  
+  IF( WIN32 )
+    # Build nice windows system name
+    EXECUTE_PROCESS(COMMAND systeminfo OUTPUT_VARIABLE SYSTEM_NAME_FULL)
+    STRING(REGEX MATCH "OS Name: *Microsoft Windows ([0-9]+)" WIN_VERSION ${SYSTEM_NAME_FULL})
+    SET(SYSTEM_NAME "win${CMAKE_MATCH_1}")
+  ENDIF()
+
+  SET(BUILDNAME "${COMPILER_NAME}${TEMP_OS_ARCH}-${SYSTEM_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
+ENDIF()
+
+#-----------------------------------------------------------------------------
+INCLUDE(CTest)
 
 IF(PLUSBUILD_DOWNLOAD_PlusDATA AND NOT PLUSBUILD_OFFLINE_BUILD)
   INCLUDE(External_PlusLibData.cmake)
