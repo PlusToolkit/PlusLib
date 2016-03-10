@@ -1146,14 +1146,15 @@ PlusStatus vtkCapistranoVideoSource::InternalUpdate()
   }
 
   TrackedFrame::FieldMapType customFields;
+  const double unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
 
   if( aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
                         aSource->GetInputImageOrientation(),
                         frameSize, VTK_UNSIGNED_CHAR,
                         1, US_IMG_BRIGHTNESS, 0,
                         this->FrameNumber,
-                        UNDEFINED_TIMESTAMP,
-                        UNDEFINED_TIMESTAMP,
+                        unfilteredTimestamp,
+                        unfilteredTimestamp,
                         &customFields) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());
