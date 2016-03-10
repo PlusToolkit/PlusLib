@@ -58,6 +58,8 @@ public:
   long                                 Encoder_SN;
   long                                 Encoder_Version;
   long                                 Encoder_Addr;
+  long                                 Encoder_Mode;
+  long                                 Encoder_Resolution;
   bool                                 Encoder_Connected;
   int                                  Encoder_Motion; // 0 : Linear motion , 1: Rotation
   double                               Encoder_PulseSpacing; 
@@ -75,9 +77,57 @@ public:
     this->Encoder_SN                   = 0;
     this->Encoder_Version              = 0;
     this->Encoder_Addr                 = 0;
+    // Supporting Modes:
+    /*
+    The mode is changed temporarily and will be effective until the encoder is
+    reset, powered down, or another mode change command is received. It is
+    not stored in the EEPROM. Mode byte as follows: 
+
+    |7|  6 |5|  4 |  3 |  2  | 1 | 0 |
+    |0|/256|0|incr|size|multi|stb|rev|
+
+    Reverse: rev = 1, the position increases counter clockwise.
+             rev = 0, the position increases clockwise.
+    Strobe:  stb = 1, the encoder operates in strobe mode: it waits for a strobe
+                     request before reading the position; this mode is used to
+                     synchronize multiple encoders. After entering this mode, wait
+                     at least 2 msec before sending the first strobe command.
+             stb = 0, the encoder operates in asynchronous
+                     mode: it reads the position within 2 milliseconds and sends
+                     the most current position when requested. The data can be
+                     from 0 to 2 milliseconds old.
+    Multi:   multi = 1, multi-turn mode: a 32 bit counter keeps track of the
+                       position (it increases or decreases over multiple turns, i.e. 3 1/
+                       2 turns at a resolution of 100 would be 350). This counter is
+                       cleared at reset.
+             multi = 0, single-turn mode: position is between zero and the max
+                       resolution, according to the shaft angle.
+                       Note: in older versions (V1.X), this bit indicated a fast mode
+                       (3msec update rate) with a 9 bit accuracy.
+                       Also, any other command besides position inquires can corrupt
+                       the multi-turn position.
+    Size: only effective in single-turn mode:
+             size = 1: the encoder always sends the position in 2 bytes, even
+                       if the resolution is 256 decimal or less.
+             size = 0: the position is sent as 1 byte if the resolution is up to
+                       256 decimal, or as 2 bytes if above 256 decimal.
+                       In multi-turn mode, the position is always 4 bytes and this bit is
+                       ignored.
+    Incr: only effective in multi-turn mode:
+             incr = 1: the encoder sends the position change since the last
+                       request, as a 32 bit signed number.
+             incr = 0: the encoder sends the position as a 32 bit signed
+                       number.
+    /256: only available for analog version,
+          only effective in multi-turn mode:
+             /256 = 1: the encoder position is divided by 256.
+             /256 = 0: the encoder position is normal.
+    */
+    this->Encoder_Mode                 = 4;    // Defaul mode : Strobe (OFF), MultiTurn(On), Size(OFF), Incr (OFF), /256 (OFF)
     this->Encoder_Motion               = 0;
     this->Encoder_PulseSpacing         = 0.0f;
     this->Encoder_Connected            = false;
+	this->Encoder_Resolution           = 3600; // Default encoder's resolution (3600)
     this->Encoder_LocalTransform       = vtkSmartPointer<vtkTransform>::New();
 
     /// Do we need this variable
@@ -143,6 +193,7 @@ PlusStatus vtkUSDigitalEncodersTracker::InternalConnect()
   // Initialization.
   if ( this->IsStepperAlive() != PLUS_SUCCESS )
   {
+    long EncoderStatus = ::InitializeSEI(this->COMPort , REINITIALIZE | AUTOASSIGN | NORESET );
     if ( ::InitializeSEI(this->COMPort , REINITIALIZE | AUTOASSIGN | NORESET ) != 0 )
     {
       LOG_ERROR("Failed to initialize SEI! COMPort="<<this->COMPort); 
@@ -170,13 +221,13 @@ PlusStatus vtkUSDigitalEncodersTracker::InternalConnect()
     long  lSerialNumber    = 0;
     long  lVersion         = 0;
     long  lAddress         = 0;
+    long  lMode            = 0;
     
     if ( ::GetDeviceInfo(deviceID, &lModel, &lSerialNumber, &lVersion, &lAddress) != 0 )
     {
-      LOG_ERROR("Failed to get SEI device info for device number: " << deviceID); 
+      LOG_ERROR("Failed to get SEI device info for device number: " << deviceID);
       return PLUS_FAIL; 
     }
-
 
     encoderinfopos = this->USDigitalEncoderInfoList.find( lSerialNumber ); 
 
@@ -190,7 +241,10 @@ PlusStatus vtkUSDigitalEncodersTracker::InternalConnect()
       encoderinfopos->second.Encoder_Model      = lModel;
       encoderinfopos->second.Encoder_Version    = lVersion;
       encoderinfopos->second.Encoder_Addr       = lAddress;
+      ::A2SetMode(encoderinfopos->second.Encoder_Addr, encoderinfopos->second.Encoder_Mode);
+      ::A2SetPosition(encoderinfopos->second.Encoder_Addr, 0);  // Initialize the value of the detected encoder
     }
+
   }
 
   // Remove unconnected encoder info from the encoder info list.
@@ -440,8 +494,11 @@ PlusStatus vtkUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement* roo
     }
 
     encodertrackingInfo.Encoder_Persistent    = isPersistent;
-    this->USDigitalEncoderTransformRepository->SetTransform(encodertrackingInfo.Encoder_TransformName,
-                                                            encodertrackingInfo.Encoder_TransformationMatrix); 
+    if(this->USDigitalEncoderTransformRepository->IsExistingTransform(encodertrackingInfo.Encoder_TransformName) != PLUS_SUCCESS)
+    {
+      this->USDigitalEncoderTransformRepository->SetTransform(encodertrackingInfo.Encoder_TransformName,
+                                                              encodertrackingInfo.Encoder_TransformationMatrix); 
+    }
 
     // ---- Get PreTMatrix:
     double vectorMatrix[16]={0}; 
@@ -465,7 +522,7 @@ PlusStatus vtkUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement* roo
     }
     
     vtkUSDigitalEncoderInfo encoderinfo;
-    encoderinfo.Encoder_TrackingInfo = 	encodertrackingInfo;
+    encoderinfo.Encoder_TrackingInfo = encodertrackingInfo;
     encoderinfo.Encoder_SN = atol(sn);
 
     // Reading the serial number of an US Digital Encoder
@@ -506,14 +563,34 @@ PlusStatus vtkUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement* roo
     }
     encoderinfo.Encoder_PulseSpacing = atof(pulseSpacing);
 
-    
-
     double localAxis[3]={0}; 
     if ( !EncoderInfoElement->GetVectorAttribute("LocalAxis", 3, encoderinfo.Encoder_LocalAxis) )
     {
       LOG_ERROR("Unable to find 'TMatrix' attribute of an encoder in the configuration file");  
       continue; 
     }
+
+    // Reading the mode of an US Digital Encoder
+    const char* mode = EncoderInfoElement->GetAttribute("Mode");
+    if ( mode == NULL )
+    {
+      LOG_ERROR("Cannot read the Mode of an US Digital Encoder");
+      // Using the defulat mode (multi-turn )
+      this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfo;
+      continue;
+    }
+    encoderinfo.Encoder_Mode = atol(mode);
+
+    // Reading the resolution of an US Digital Encoder
+    const char* resolution = EncoderInfoElement->GetAttribute("Resolution");
+    if ( resolution == NULL )
+    {
+      LOG_ERROR("Cannot read the Resolution of an US Digital Encoder");
+      // Using the defulat Resolution (3600 )
+      this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfo;
+      continue;
+    }
+    encoderinfo.Encoder_Resolution = atol(resolution);
 
     // Build the list of US Digital Encoder Info
     this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfo;
@@ -546,4 +623,233 @@ PlusStatus vtkUSDigitalEncodersTracker::IsStepperAlive()
   }
 
   return PLUS_SUCCESS; 
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncodersStrobeMode()
+{
+  if( ::A2SetStrobe() != 0 )
+  {
+    LOG_ERROR("Failed to set US digital A2 Encodrs as Strobe mode." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncodersSleep()
+{
+  if( ::A2SetSleep() != 0 )
+  {
+    LOG_ERROR("Failed to set US digital A2 Encodrs as Sleep mode." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncodersWakeup()
+{
+  if( ::A2SetWakeup() != 0 )
+  {
+    LOG_ERROR("Failed to set US digital A2 Encodrs as Wakeup mode." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithAddr(long address)
+{
+  if( ::A2SetOrigin(address) != 0 )
+  {
+    LOG_ERROR("Failed to set US digital A2 Encodr's origin point as current position." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithSN(long sn)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return SetUSDigitalA2EncoderOriginWithAddr(address);
+  }
+  else
+  {
+    LOG_ERROR("Failed to set US digital A2 Encodr's origin point as current position." );
+    return PLUS_FAIL; 
+  }
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
+{
+  EncoderInfoMapType::iterator it;
+  for(it = this->USDigitalEncoderInfoList.begin(); it!=this->USDigitalEncoderInfoList.end(); ++it)
+  {
+    if(this->SetUSDigitalA2EncoderOriginWithSN(it->second.Encoder_Addr) == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to set US digital A2 Encodr's origin point as current position." );
+      return PLUS_FAIL; 
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithAddr(long address, long mode)
+{
+  if( ::A2SetMode(address, mode) != 0 )
+  {
+    LOG_ERROR("Failed to set the mode of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithSN(long sn, long mode)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return SetUSDigitalA2EncoderModeWithAddr(address, mode);
+  }
+  else
+  {
+    LOG_ERROR("Failed to set the mode of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(long address, long* mode)
+{
+  if( ::A2GetMode(address, mode) != 0 )
+  {
+    LOG_ERROR("Failed to get the mode of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithSN(long sn, long* mode)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return GetUSDigitalA2EncoderModeWithAddr(address, mode);
+  }
+  else
+  {
+    LOG_ERROR("Failed to get the mode of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithAddr(long address, long res)
+{
+  if( ::A2SetResolution(address, res) != 0 )
+  {
+    LOG_ERROR("Failed to set the resoultion of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithSN(long sn, long res)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return SetUSDigitalA2EncoderResoultionWithAddr(address, res);
+  }
+  else
+  {
+    LOG_ERROR("Failed to set the resoultion of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res)
+{
+  if( ::A2GetResolution(address, res) != 0 )
+  {
+    LOG_ERROR("Failed to get the resoultion of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithSN(long sn, long* res)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return GetUSDigitalA2EncoderResoultionWithAddr(address, res);
+  }
+  else
+  {
+    LOG_ERROR("Failed to get the resoultion of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithAddr(long address, long pos)
+{
+  if( ::A2SetPosition(address, pos) != 0 )
+  {
+    LOG_ERROR("Failed to set the position of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithSN(long sn, long pos)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return SetUSDigitalA2EncoderPositionWithAddr(address, pos);
+  }
+  else
+  {
+    LOG_ERROR("Failed to set the position of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos)
+{
+  if( ::A2GetPosition(address, pos) != 0 )
+  {
+    LOG_ERROR("Failed to get the position of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+  return PLUS_SUCCESS;
+}
+
+
+PlusStatus vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithSN(long sn, long* pos)
+{
+  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
+  if( address> -1)
+  {
+    return GetUSDigitalA2EncoderPositionWithAddr(address, pos);
+  }
+  else
+  {
+    LOG_ERROR("Failed to get the position of an US digital A2 Encodr." );
+    return PLUS_FAIL; 
+  }
+}
+
+long vtkUSDigitalEncodersTracker::GetUSDigitalA2EncoderAddressWithSN(long sn)
+{
+  EncoderInfoMapType::iterator it;
+  it = this->USDigitalEncoderInfoList.find(sn);
+  if(it == this->USDigitalEncoderInfoList.end())
+  {
+    LOG_ERROR("Cannot find the Address of an US Digital encoder with its SN number." );
+    return -1;
+  }
+  else
+  {
+    return it->second.Encoder_Addr;
+  }
 }
