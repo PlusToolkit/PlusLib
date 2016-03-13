@@ -114,6 +114,29 @@ SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPR
 #SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
 
 #---------------------------------------------------------------------------
+ADD_EXECUTABLE(ExtractScanLines ExtractScanLines.cxx)
+TARGET_LINK_LIBRARIES(ExtractScanLines vtkImageProcessingAlgo)
+GENERATE_HELP_DOC(ExtractScanLines)
+
+#---------------------------------------------------------------------------
+ADD_TEST(ExtractScanLinesCurvilinearRunTest
+  ${EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
+  --config-file=${ConfigFilesDir}/Testing/SpineUltrasound-Lumbar-C5_config.xml
+  --source-seq-file=${TestDataDir}/SpineUltrasound-Lumbar-C5.mha
+  --output-seq-file=SpineUltrasound-Lumbar-C5_ScanLines.mha 
+  )
+SET_TESTS_PROPERTIES(ExtractScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+
+#---------------------------------------------------------------------------
+ADD_TEST(ExtractScanLinesLinearRunTest
+  ${EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
+  --config-file=${ConfigFilesDir}/Testing/BoneUltrasound_L14_config.xml
+  --source-seq-file=${TestDataDir}/BoneUltrasound_L14.mha
+  --output-seq-file=BoneUltrasound_L14_ScanLines.mha 
+  )
+SET_TESTS_PROPERTIES(ExtractScanLinesLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+
+#---------------------------------------------------------------------------
 IF (PLUS_USE_INTEL_MKL)
   ADD_EXECUTABLE(EnhanceBone EnhanceBone.cxx )
   TARGET_LINK_LIBRARIES(EnhanceBone vtkImageProcessingAlgo )
