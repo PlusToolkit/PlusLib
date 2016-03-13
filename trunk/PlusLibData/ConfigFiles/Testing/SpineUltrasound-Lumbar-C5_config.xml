@@ -1,0 +1,153 @@
+<PlusConfiguration version="2.3" PlusRevision="Plus-2.3.0.4338 - Win32">
+  <DataCollection StartupDelaySec="1">
+    <DeviceSet Name="Spine anesth C5 depth 10cm" Description="EM sensors plugged in from leftmost slot (Transducer 1): 1 Probe, 2 Reference, 3 Needle" />
+    <Device
+      Id="TrackerDevice"
+      Type="Ascension3DG"
+      AcquisitionRate="50"
+      LocalTimeOffsetSec="0.0"
+      FilterAcWideNotch="1"
+      ToolReferenceFrame="Tracker"
+      FilterAcNarrowNotch="0"
+      FilterDcAdaptive="0"
+      FilterLargeChange="0"
+      FilterAlpha="0">
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="0" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Reference" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Needle" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Reference" />
+          <DataSource Id="Needle" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo"
+      UsImageOrientation="UF"
+      AcquisitionRate="30"
+      LocalTimeOffsetSec="0.0"
+      IP="localhost"
+      ImagingMode="BMode"
+      AcquisitionDataType="BPost"
+      Depth="100"
+      SoundVelocity="1540"
+      Sector="-1"
+      Gain="-1"
+      DynRange="-1"
+      Zoom="-1"
+      Frequency="-1"
+      CompressionStatus="0"
+      Timeout="-1"
+      ConnectionSetupDelayMs="3000"
+      AutoClipEnabled="FALSE"
+      ImageGeometryOutputEnabled="FALSE">
+      <DataSources>
+        <DataSource
+          Type="Video"
+          Id="Video"
+          PortName="B"
+          PortUsImageOrientation="UF"
+          BufferSize="500"
+          AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    <Device Id="TrackedVideoDevice" Type="VirtualMixer">
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" />
+      </OutputChannels>
+    </Device>
+    <Device Id="CaptureDevice" Type="VirtualDiscCapture" BaseFilename="RecordingTest.mha" EnableCapturing="FALSE" RequestedFrameRate="15">
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+  
+  <ScanConversion 
+   TransducerName="Ultrasonix_C5-2"
+   TransducerGeometry="CURVILINEAR"
+   RadiusStartMm="50.0"
+   RadiusStopMm="100.0"
+   ThetaStartDeg="-24.0"
+   ThetaStopDeg="24.0"
+   OutputImageSizePixel="820 616"
+   TransducerCenterPixel="410 130"
+   OutputImageSpacingMmPerPixel="0.1526 0.1526"
+   NumberOfScanLines="90"
+   NumberOfSamplesPerScanLine="210"/>
+  
+  
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="1"
+    MaxTimeSpentWithProcessingMs="10"
+    ListeningPort="18944"
+    SendValidTransformsOnly="true"
+    OutputDeviceId="TrackedVideoDevice"
+    OutputChannelId="TrackedVideoStream">
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="NeedleToReference" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  <CoordinateDefinitions>
+    
+    <!--
+    This transform is commented out to allow volume reconstructor to run.
+    The ImageToReference transform is added to the data frame-by-frame, so this would create a
+    duplicate transform route in PLUS.
+    
+    <Transform From="Image" To="Probe"
+      Matrix="
+        0.00454611	0.186799	-0.00209376	14.5556
+        -0.1865	0.00465904	0.0107243	75.6785
+        0.0107727	0.00182876	0.186546	-3.45472
+        0	0	0	1"
+       Error="1.7" Date="2014.05.19 17:57:00" />
+    -->
+    
+    <Transform From="Image" To="TransducerOriginPixel"
+      Matrix="
+        1	0	0	-410
+        0	1	0	5
+        0	0	1	0
+        0	0	0	1"
+       Date="2011.12.06 17:57:00" />
+    <Transform From="NeedleTip" To="Needle"
+      Matrix="
+        0	0	1	7
+        0	1	0	0
+        -1	0	0	0
+        0	0	0	1"
+       Date="2012.02.06 17:57:00" />
+  </CoordinateDefinitions>
+
+  <VolumeReconstruction
+    OutputSpacing="0.5 0.5 0.5"
+    ClipRectangleOrigin="0 0"
+    ClipRectangleSize="820 616"
+    Interpolation="LINEAR"
+    Optimization="FULL"
+    Compounding="On"
+    FillHoles="Off" />
+ 
+</PlusConfiguration>
