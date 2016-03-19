@@ -172,7 +172,13 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkImageData> linesImage = vtkSmartPointer<vtkImageData>::New();
   linesImage->SetExtent(linesImageExtent);
+#if (VTK_MAJOR_VERSION < 6)
+  linesImage->SetScalarType(VTK_UNSIGNED_CHAR);
+  linesImage->SetNumberOfScalarComponents(1);
+  linesImage->AllocateScalars();
+#else
   linesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+#endif
 
   // Create frame lists for lines images and output images.
 
