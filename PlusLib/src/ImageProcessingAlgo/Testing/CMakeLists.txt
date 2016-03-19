@@ -137,6 +137,11 @@ ADD_TEST(ExtractScanLinesLinearRunTest
 SET_TESTS_PROPERTIES(ExtractScanLinesLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #---------------------------------------------------------------------------
+ADD_EXECUTABLE(ScanConvert ScanConvert.cxx)
+TARGET_LINK_LIBRARIES(ScanConvert vtkImageProcessingAlgo)
+GENERATE_HELP_DOC(ScanConvert)
+
+#---------------------------------------------------------------------------
 IF (PLUS_USE_INTEL_MKL)
   ADD_EXECUTABLE(EnhanceBone EnhanceBone.cxx )
   TARGET_LINK_LIBRARIES(EnhanceBone vtkImageProcessingAlgo )
