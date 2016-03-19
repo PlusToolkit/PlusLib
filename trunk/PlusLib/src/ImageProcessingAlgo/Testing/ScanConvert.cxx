@@ -115,7 +115,7 @@ int main(int argc, char **argv)
   {
     TrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
     
-    scanConverter->SetInputData( inputFrame->GetImageData()->GetImage() );
+    scanConverter->SetInputData_vtk5compatible( inputFrame->GetImageData()->GetImage() );
     scanConverter->Update();
     
     // Allocate and store output image.
