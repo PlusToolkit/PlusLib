@@ -152,6 +152,8 @@ ENDIF (PLUS_USE_INTEL_MKL)
 SET (INSTALL_TARGETS
   RfProcessor
   DrawScanLines
+  ExtractScanLines
+  ScanConvert
   )
 IF (PLUS_USE_INTEL_MKL)
   SET (INSTALL_TARGETS ${INSTALL_TARGETS} EnhanceBone )
