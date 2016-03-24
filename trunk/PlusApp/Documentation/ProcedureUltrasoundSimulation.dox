@@ -6,7 +6,7 @@ See detailed description of the algorithm parameters at the \ref DeviceUsSimulat
 
 \section UsSimulatorExample Example
 
-- Download the following files from https://subversion.assembla.com/svn/plus/trunk/PlusLib/data/ConfigFiles/
+- Download the following files from https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/
   - PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml 
   - GelBlockModel_Reference.stl
   - NeedleModel_NeedleTip.stl

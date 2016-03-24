@@ -171,7 +171,7 @@ STRIP_FROM_PATH        = "@PLUSLIB_SOURCE_DIR@"
 # specify the list of include paths that are normally passed to the compiler
 # using the -I flag.
 
-STRIP_FROM_INC_PATH    = "@PLUSLIB_SOURCE_DIR@/"
+STRIP_FROM_INC_PATH    = "@PLUSLIB_SOURCE_DIR@/src/"
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't
@@ -240,7 +240,6 @@ TAB_SIZE               = 2
 
 ALIASES                += OptionalAtt{1}=" \image html icons\optional.png Default = \c \"\1\" "
 ALIASES                += RequiredAtt=" \image html icons\required.png \" \" "
-ALIASES                += TodoAndras{1}=" \e \b TodoAndras \1 "
 ALIASES                += xmlAtt=" \image html icons\attribute.png \" \" "
 ALIASES                += xmlElem=" \image html icons\element.png \" \" "
 
@@ -804,9 +803,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = "@PLUSLIB_SOURCE_DIR@/data" \
-                         "@PLUSLIB_SOURCE_DIR@/docs" \
-                         "@PLUSLIB_SOURCE_DIR@/tools" \
+EXCLUDE                = "@PLUSLIB_SOURCE_DIR@/tools" \
                          "@PLUSLIB_SOURCE_DIR@/src/Documentation/ApiReference"
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
@@ -848,6 +845,7 @@ EXCLUDE_SYMBOLS        =
 # command).
 
 EXAMPLE_PATH           = "@PLUSLIB_SOURCE_DIR@" \
+                         "@PLUSLIB_DATA_DIR@" \
                          "@EXECUTABLE_OUTPUT_PATH@/Doc/Help"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the

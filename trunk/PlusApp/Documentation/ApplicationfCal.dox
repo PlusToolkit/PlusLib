@@ -229,6 +229,6 @@ This is probably caused by inaccurate stylus or phantom calibration. If you use 
 
 \section ApplicationfCalExampleConfigFile Example configuration file PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_2.0.xml"
 
 */
