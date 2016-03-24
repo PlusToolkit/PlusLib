@@ -65,6 +65,6 @@ Recommended values:
 
 \section PhidgetSpatialExampleConfigFile Example configuration file PlusDeviceSet_Server_PhidgetSpatial.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_PhidgetSpatial.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_PhidgetSpatial.xml"
 
 */

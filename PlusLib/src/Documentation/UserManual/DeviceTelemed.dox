@@ -38,6 +38,6 @@
 
 \section TelemedExampleConfigFile Example configuration file PlusDeviceSet_Server_TelemedVideoCapture.xml 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_TelemedVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_TelemedVideoCapture.xml"
 
 */

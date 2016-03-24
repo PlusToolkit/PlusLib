@@ -35,7 +35,7 @@
 
 \section OpenIGTLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_NDICertus.xml PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml"
 
 
 */

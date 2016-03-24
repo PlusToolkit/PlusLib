@@ -25,6 +25,6 @@ origin to the Stylus origin and the other two axes are aligned with the X and Y 
 
 \section AlgorithmPivotCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
 
 */

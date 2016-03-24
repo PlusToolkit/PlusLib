@@ -20,6 +20,6 @@ This device can recognize text (in the language specified by \ref Language) from
 
 \section VirtualTextRecognizerExampleConfigFile Example configuration file PlusDeviceSet_PlusServer_tesseract.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_PlusServer_tesseract.xml"
+\include "ConfigFiles/PlusDeviceSet_PlusServer_tesseract.xml"
 
 */

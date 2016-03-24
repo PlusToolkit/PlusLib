@@ -16,6 +16,6 @@ The mixer device is typically used for assigning position data to each image fra
 
 \section VirtualMixerExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
 
 */

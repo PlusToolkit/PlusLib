@@ -63,6 +63,6 @@ Settings for rotating/translating an object in the 3D view in 3D Slicer:
 
 \section D3dConnexionExampleConfigFile Example configuration file PlusDeviceSet_Server_3dConnexion.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_3dConnexion.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_3dConnexion.xml"
 
 */

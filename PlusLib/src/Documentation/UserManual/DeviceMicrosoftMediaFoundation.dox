@@ -41,7 +41,7 @@ If your framegrabber uses a "crossbar" for switching between multiple inputs (e.
 
 \section MicrosoftMediaFoundationExampleConfigFile Example configuration file PlusDeviceSet_Server_MmfColorVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_MmfColorVideoCapture.xml"
 
 
 

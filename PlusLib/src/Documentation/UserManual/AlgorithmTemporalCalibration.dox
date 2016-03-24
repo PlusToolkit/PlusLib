@@ -65,6 +65,6 @@ using simple linear regression. The filtered timestamp is the time corresponding
 
 \par Example configuration file
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_Sim_TemporalCalibration.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_Sim_TemporalCalibration.xml"
 
 */

@@ -34,10 +34,10 @@
 
 \section IntersonSDKCxxExampleConfigFileBMode Example configuration file for B-mode image acquisition PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5.xml"
 
 \section IntersonSDKCxxExampleConfigFileBAndRfMode Example configuration file for simultaneous B-mode and RF-mode image acquisition PlusDeviceSet_Server_IntersonSDKCxx_GP3.5_Rf.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5_Rf.xml" 
+\include "ConfigFiles/PlusDeviceSet_Server_IntersonSDKCxx_GP3.5_Rf.xml" 
 
 */

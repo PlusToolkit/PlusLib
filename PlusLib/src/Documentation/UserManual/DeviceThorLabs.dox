@@ -40,6 +40,6 @@ The first row of the image contains wavelength values in nm. The second row of t
     
 \section ThorLabsExampleConfigFile Example configuration file PlusDeviceSet_Server_ThorLabsVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_ThorLabsVideoCapture.xml"
 
 */

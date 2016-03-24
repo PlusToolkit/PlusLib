@@ -31,6 +31,6 @@ Simulates a fake tracking system with tools that have predetermined behavior. Th
 
 \section FakeExampleConfigFile Example configuration file PlusDeviceSet_FakeTracker_ToolState.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_FakeTracker_ToolState.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_FakeTracker_ToolState.xml"
 
 */

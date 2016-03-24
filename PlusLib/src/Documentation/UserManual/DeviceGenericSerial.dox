@@ -43,6 +43,6 @@ for reponse that is terminated by the same newline string.
 
 \section GenericSerialExampleConfigFile Example configuration file PlusDeviceSet_Server_GenericSerial.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_GenericSerial.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_GenericSerial.xml"
 
 */

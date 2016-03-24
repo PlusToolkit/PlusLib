@@ -37,7 +37,7 @@ The device manufacturer supports additional platforms. On request, Plus toolkit 
 \section OptimetConoProbeExampleConfigFile Example configuration file PlusDeviceSet_Server_OptimetConoProbe.xml
 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_OptimetConoProbe.xml" 
+\include "ConfigFiles/PlusDeviceSet_Server_OptimetConoProbe.xml" 
 
 
 

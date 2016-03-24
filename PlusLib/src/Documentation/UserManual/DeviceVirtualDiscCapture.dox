@@ -20,6 +20,6 @@ The file is saved as \ref FileSequenceMetafile format. If single file output for
 
 \section VirtualDiscCaptureExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
 */

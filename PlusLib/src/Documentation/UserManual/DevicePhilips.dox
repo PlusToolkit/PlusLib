@@ -45,6 +45,6 @@ This device is not included in any of the standard packages, as it requires acce
 
 \section PhilipsExampleConfigFile Example configuration file PlusDeviceSet_Server_Philips_ie33.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Phillips_ie33.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Phillips_ie33.xml"
 
 */

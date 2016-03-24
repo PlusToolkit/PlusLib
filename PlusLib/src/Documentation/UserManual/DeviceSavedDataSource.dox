@@ -41,10 +41,10 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 
 \section SavedDataSourceExampleConfigFileSimple Example configuration file for simple replay of all image and transform data - PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
 \section SavedDataSourceExampleConfigFileSeparateImagingTracking Example configuration file for replaying imaging and tracking data separately - PlusDeviceSet_DataCollectionOnly_SavedDataset.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml"
 
 */

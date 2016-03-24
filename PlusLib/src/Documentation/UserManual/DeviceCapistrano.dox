@@ -32,6 +32,6 @@
 
 \section CapistranoExampleConfigFile Example configuration file PlusDeviceSet_CapistranoVideoSourceTest.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_CapistranoVideoSourceTest.xml"
+\include "ConfigFiles/PlusDeviceSet_CapistranoVideoSourceTest.xml"
 
 */
