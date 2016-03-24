@@ -91,25 +91,25 @@ Porta interface specific Device attributes:
 - \xmlAtt \b PortaLicensePath Path to the licenses text file. Example value: "D:/Ultrasonix Settings/" \RequiredAtt
 - \xmlAtt \b PortaFirmwarePath Path to the Porta Firmware directory. Example value: "D:/sdk/porta/fw/" \RequiredAtt
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5_Ascension3DG_calibrated.xml"
 
 \section SonixVideoExampleConfigFileUltrasonixSpatialCalibrationC5 Example configuration file for tracked ultrasound acquisition using calibration matrix provided by Ultrasonix for C5-2/60 GPS probe
 
 The calibration remains valid even if the imaging depth is changed.
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_Ascension3DG_calibrated.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_Ascension3DG_calibrated.xml"
     
 \section SonixVideoExampleConfigFileUlterius Example configuration file for B-mode acquisition using Ulterius interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Ultrasonix_L14-5.xml"
 
 \section SonixVideoExampleConfigFilePorta Example configuration file for 3D B-mode acquisition by a motorized probe using Porta interface
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ultrasonix_4DL14-5_Porta_calibrated.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Ultrasonix_4DL14-5_Porta_calibrated.xml"
 
 \section SonixVideoExampleConfigFileRf Example configuration file for dual B-mode and RF-mode acquisition using Ulterius interface
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker_DualMode.xml"
 
 \section SonixVideoUltrasonixSpatialCalibration Using calibration matrices provided by Ultrasonix
 

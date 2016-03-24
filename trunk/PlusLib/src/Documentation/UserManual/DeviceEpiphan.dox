@@ -46,10 +46,10 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 
 \section EpiphanExampleConfigFile Example configuration file PlusDeviceSet_Server_EpiphanVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_EpiphanVideoCapture.xml"
 
 \par Epiphan Color Video Capture Example configuration file PlusDeviceSet_Server_EpiphanColorVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_EpiphanColorVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_EpiphanColorVideoCapture.xml"
 
 */>

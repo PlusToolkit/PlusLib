@@ -43,6 +43,6 @@
 
 \section ChRoboticsExampleConfigFile Example configuration file PlusDeviceSet_Server_ChRobotics.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_ChRobotics.xml"
 
 */

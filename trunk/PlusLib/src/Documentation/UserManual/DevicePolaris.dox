@@ -43,11 +43,11 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
 
 \section PolarisExampleConfigFile Example configuration file Polaris PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_NDIPolaris.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_NDIPolaris.xml"
 
 \section PolarisExampleConfigFileB Example configuration file Aurora PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_NDIAurora_NDIPolaris.xml"
 
 
 */

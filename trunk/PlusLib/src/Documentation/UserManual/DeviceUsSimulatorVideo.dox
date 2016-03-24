@@ -27,7 +27,7 @@
 
 \section UsSimulatorExampleConfigFile Example configuration file PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_SimulatedUltrasound_3DSlicer.xml"
 
 
 */

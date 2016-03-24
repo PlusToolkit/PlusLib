@@ -63,10 +63,10 @@
 \anchor inifile
 \section ExampleIniFile Example INI file
 
-\include "data/ConfigFiles/BkSettings/IniFile.ini"
+\include "ConfigFiles/BkSettings/IniFile.ini"
 
 \section BkProFocusExampleConfigFile Example configuration file PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml"
 
 */

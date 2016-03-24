@@ -34,10 +34,10 @@
     
     
 \section OptiTrackExampleConfigFile Example configuration file PlusDeviceSet_Server_OptiTrack.xml
-\include "data/ConfigFiles/PlusDeviceSet_Server_OptiTrack.xml" 
+\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack.xml" 
 
 \section RigidBpdyDefinitionExampleConfigFile Example configuration file RigidBodyXML.xml
-\include "data/ConfigFiles/RigidBodyOptitrack.xml" 
+\include "ConfigFiles/RigidBodyOptitrack.xml" 
 
 
 */

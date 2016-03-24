@@ -94,6 +94,6 @@ If no Certus device is attached to the system then the application crashes (due 
 
 \section NDICertusExampleConfigFile Example configuration file PlusDeviceSet_Server_NDICertus.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_NDICertus.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_NDICertus.xml"
 
 */

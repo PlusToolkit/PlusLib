@@ -39,7 +39,7 @@ The device manufacturer supports additional platforms. On request, Plus toolkit 
 \section MicronExampleConfigFile Example configuration file PlusDeviceSet_Server_MicronTracker.xml
 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml" 
+\include "ConfigFiles/PlusDeviceSet_Server_MicronTracker.xml" 
 
 
 

@@ -17,10 +17,10 @@ Inserts tracked frames into a volume
 
 PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
 PlusDeviceSet_OpenIGTLinkCommandsTest.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml"
 
 */

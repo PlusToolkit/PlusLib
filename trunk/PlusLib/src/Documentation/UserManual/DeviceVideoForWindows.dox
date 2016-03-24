@@ -38,6 +38,6 @@ Limitations: currently only certain color modes are supported, minor additional 
 
 \section VideoForWindowsExampleConfigFile Example configuration file PlusDeviceSet_Server_VfwVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_VfwVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_VfwVideoCapture.xml"
 
 */

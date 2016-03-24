@@ -90,6 +90,6 @@ Using OpenIGTLink messages \c GET_IMGMETA and \c GET_IMAGE(from a slicer client 
  
 \section StealthLinkExampleConfigFile Example configuration file PlusDeviceSet_Server_StealthLinkTracker.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_StealthLinkTracker.xml"
 
 */

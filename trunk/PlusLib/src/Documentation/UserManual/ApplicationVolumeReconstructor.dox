@@ -10,7 +10,7 @@ See description of volume reconstruction parameters on the \ref AlgorithmVolumeR
     VolumeReconstructor.exe --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-volume-file=vtkVolumeReconstructorWithHoleFillingTest1Output.mha --image-to-reference-transform=ImageToReference
 
 Files:
-- Device set config file: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/ConfigFiles/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml 
+- Device set config file: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/ConfigFiles/Testing/PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml 
 - Input frames: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/TestImages/SpinePhantomFreehand.mha 
 - Sample reconstructed volume: https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/data/TestImages/SpinePhantomFreehandReconstructed.mha
 

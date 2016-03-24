@@ -62,6 +62,6 @@ The quality numbers are stored in the translation component of the transformatio
 
 \section Ascension3DGExampleConfigFile Example configuration file PlusDeviceSet_Server_Ascension3DG.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Ascension3DG.xml"
     
 */

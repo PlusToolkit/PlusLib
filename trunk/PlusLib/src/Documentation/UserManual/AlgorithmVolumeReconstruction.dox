@@ -126,22 +126,22 @@ then the FanOriginPixel in the XML config file shall be (320,40).
 
 Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantom.xml"
 
 Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml"
 
 Example configuration file PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml
 
-\include "data/ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml"
+\include "ConfigFiles/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml"
 
 Example configuration file for Acquisition server (PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml) 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameAcquisition.xml"
 
 Example configuration file for Processing server (PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml) 
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml "
+\include "ConfigFiles/PlusDeviceSet_Server_Sim_NwirePhantomTrackedFrameProcessing.xml "
 
 */

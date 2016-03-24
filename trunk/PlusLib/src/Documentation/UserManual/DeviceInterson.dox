@@ -46,6 +46,6 @@
 
 \section IntersonExampleConfigFile Example configuration file PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_IntersonVideoCapture_WithParameters.xml"
 
 */

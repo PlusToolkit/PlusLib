@@ -42,7 +42,7 @@ Supported model: DFG/USB2pro analog frame grabbers with USB interface
 
 \section ICCapturingExampleConfigFile Example configuration file PlusDeviceSet_Server_ImagingControlsVideoCapture.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_ImagingControlsVideoCapture.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_ImagingControlsVideoCapture.xml"
 
 
 */

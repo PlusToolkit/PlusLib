@@ -39,6 +39,6 @@
 
 \section MicrochipExampleConfigFile Example configuration file PlusDeviceSet_Server_Microchip.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_Server_Microchip.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_Microchip.xml"
 
 */

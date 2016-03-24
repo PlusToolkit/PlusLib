@@ -73,6 +73,6 @@ If you image large structures then you probably need fCal 3 phantom. However, fC
 
 \section AlgorithmProbeCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
 
-\include "data/ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+\include "ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
 
 */
