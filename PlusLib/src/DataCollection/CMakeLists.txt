@@ -838,6 +838,7 @@ IF (PLUS_USE_MMF_VIDEO)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     MfVideoCaptureLibrary
     )
+  LINK_DIRECTORIES(${WINDOWS_SDK_LIBRARY_DIRS})
 ENDIF (PLUS_USE_MMF_VIDEO)
 
 # --------------------------------------------------------------------------
@@ -1033,6 +1034,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
     ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
     )
 
+  LINK_DIRECTORIES(${WINDOWS_SDK_LIBRARY_DIRS})
 ENDIF (PLUS_USE_TELEMED_VIDEO)
 
 # --------------------------------------------------------------------------
