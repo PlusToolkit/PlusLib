@@ -48,7 +48,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(NULL);
   m_DeviceSetSelectorWidget->setMaximumWidth(1200);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
-  m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
+  m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch server"));
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( connectToDevicesByConfigFile(std::string) ) );
 
   // Create status icon
@@ -274,7 +274,7 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
 
     m_DeviceSetSelectorWidget->SetDescriptionSuffix(QString(serverList.c_str()));
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
-    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop Server"));
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Stop server"));
   }
   else if( message.find("Server status: ") != std::string::npos )
   {
@@ -299,7 +299,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
     LOG_INFO("Disconnect request successful");
     m_DeviceSetSelectorWidget->ClearDescriptionSuffix();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch server"));
     return; 
   }
 
@@ -315,7 +315,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   {
     m_DeviceSetSelectorWidget->ClearDescriptionSuffix();
     m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch Server"));
+    m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch server"));
   }
 }
 
