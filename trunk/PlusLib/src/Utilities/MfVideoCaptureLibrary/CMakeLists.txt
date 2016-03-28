@@ -49,7 +49,7 @@ foreach(_lib ${MfVideoCaptureLibraryLibNames})
   if ("${${_libVarName}}" STREQUAL "${_libVarName}-NOTFOUND")
     MESSAGE(FATAL_ERROR "Library not found in Windows SDK: ${_lib}")
   endif()
-  LIST(APPEND MfVideoCaptureLibrary_LIBS "${_foundLib}") 
+  LIST(APPEND MfVideoCaptureLibrary_LIBS "${${_libVarName}}")
 endforeach()
 
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
