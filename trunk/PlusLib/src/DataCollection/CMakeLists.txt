@@ -112,8 +112,8 @@ ENDIF (WIN32)
 
 SET (External_Libraries_Install)
 SET (External_Libraries_Debug)
-SET (DataCollection_INCLUDE_DIRS 
-  ${DataCollection_INCLUDE_DIRS}
+
+SET (DataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/FakeTracking 
@@ -716,17 +716,15 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     )
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    optimized ${ICCAPTURING_TIS_UDSHL09_STATIC_LIB}
-    debug ${ICCAPTURING_TIS_UDSHL09D_STATIC_LIB}
+    optimized ${ICCAPTURING_TIS_UDSHL_STATIC_LIB}
+    debug ${ICCAPTURING_TIS_UDSHLD_STATIC_LIB}
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${ICCAPTURING_TIS_UDSHL09_SHARED_LIB}
-    ${ICCAPTURING_TIS_DSHOWLIB09_SHARED_LIB}
+    ${ICCAPTURING_TIS_UDSHL_SHARED_LIB}
     )
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
-    ${ICCAPTURING_TIS_UDSHL09D_SHARED_LIB}
-    ${ICCAPTURING_TIS_DSHOWLIB09D_SHARED_LIB}
+    ${ICCAPTURING_TIS_UDSHLD_SHARED_LIB}
     )
 ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 
@@ -835,7 +833,7 @@ IF (PLUS_USE_MMF_VIDEO)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
-    ${WINDOWSSDK_LATEST_DIR}/Include
+    ${WINDOWS_SDK_INCLUDE_DIRS}
     )
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
     MfVideoCaptureLibrary
@@ -1031,7 +1029,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
   # Find Telemed SDK include directory
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
     ${TELEMED_INCLUDE_DIR}
-    ${WINDOWSSDK_LATEST_DIR}/Include
+    ${WINDOWS_SDK_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
     )
 
