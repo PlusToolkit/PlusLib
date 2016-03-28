@@ -660,7 +660,7 @@ PlusStatus vtkNDICertusTracker::EnableToolPorts()
               vtkPlusDataSource* trackerTool = NULL; 
               if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
               {
-                LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName() ); 
+                LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName.str() << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str() );
                 this->PortEnabled[port] = 0; 
               }
             }
