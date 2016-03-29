@@ -167,7 +167,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
 
-        igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage.GetPointer());
+        igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->CreateAnother().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
         if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
         {
@@ -182,7 +182,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           numberOfErrors++; 
           continue;
         }
-        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(imageMessage.GetPointer()) ); 
+        igtlMessages.push_back( imageMessage.GetPointer() );
       }
     }
     // Transform message 
@@ -207,9 +207,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           return PLUS_FAIL;
         }
 
-        igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage.GetPointer());
+        igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->CreateAnother().GetPointer());
         vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(transformMessage.GetPointer()) ); 
+        igtlMessages.push_back( transformMessage.GetPointer() ); 
       }
     }
     // Position message
@@ -235,34 +235,34 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         float quaternion[4]={0,0,0,1};
         igtl::MatrixToQuaternion( igtlMatrix, quaternion );
 
-        igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage.GetPointer());
+        igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->CreateAnother().GetPointer());
         vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(positionMessage.GetPointer()) ); 
+        igtlMessages.push_back( positionMessage.GetPointer() ); 
       }
     }
     // TRACKEDFRAME message
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage) )
     {
-      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer()); 
+      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer());
       if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message"); 
         numberOfErrors++; 
         continue;
       }
-      igtlMessages.push_back(igtlMessage); 
+      igtlMessages.push_back(trackedFrameMessage.GetPointer()); 
     }
     // USMESSAGE message
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusUsMessage) )
     {
-      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer()); 
+      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer());
       if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack US message"); 
         numberOfErrors++; 
         continue;
       }
-      igtlMessages.push_back(igtlMessage); 
+      igtlMessages.push_back(usMessage.GetPointer()); 
     }
     // String message 
     else if ( typeid(*igtlMessage) == typeid(igtl::StringMessage) )
@@ -276,17 +276,17 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           // no value is available, do not send anything
           continue;
         }
-        igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage.GetPointer());
+        igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->CreateAnother().GetPointer());
         vtkPlusIgtlMessageCommon::PackStringMessage( stringMessage, stringName, stringValue, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(stringMessage.GetPointer()) ); 
+        igtlMessages.push_back( stringMessage.GetPointer() );
       }
     }
     else if ( typeid(*igtlMessage) == typeid(igtl::CommandMessage) )
     {
       // Is there any use case for the server sending commands to the client?
-      igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage.GetPointer());
+      igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->CreateAnother().GetPointer());
       //vtkPlusIgtlMessageCommon::PackCommandMessage( commandMessage );
-      igtlMessages.push_back( dynamic_cast<igtl::MessageBase*>(commandMessage.GetPointer()) ); 
+      igtlMessages.push_back( commandMessage.GetPointer() );
     }
     else
     {
