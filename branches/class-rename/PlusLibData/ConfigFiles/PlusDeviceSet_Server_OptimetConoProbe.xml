@@ -1,0 +1,51 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: OptimetConoprobe"
+      Description="Broadcasting single-point distance data through OpenIGTLink."
+    />
+    
+    <Device
+      Id="MeasurerDevice" 
+      Type="OptimetConoProbe"
+      ToolReferenceFrame="Measurer"
+      LocalTimeOffsetSec="0"
+      AcquisitionRate="100"
+      LensOriginAlignment="1.0 1.0 1.0 0.0 0.0 0.0"
+      DelayBetweenMeasurements="1" 
+      Frequency="100" 
+      CoarseLaserPower="13"
+      FineLaserPower="0">
+      <DataSources>
+        <DataSource Type="Tool" Id="Measurement" PortName="Measurement" />
+        <DataSource Type="Tool" Id="Parameters" PortName="Parameters" />        
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="MeasurerStream">
+          <DataSource Id="Measurement" />
+          <DataSource Id="Parameters" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="MeasurerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="MeasurementToMeasurer" />
+        <Transform Name="ParametersToMeasurer" />        
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

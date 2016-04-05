@@ -1,0 +1,99 @@
+<PlusConfiguration version="2.0">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Calibration Philips IE33 3D Probe + NDI Aurora (0 Empty, 1 Probe, 2 Stylus)"
+      Description="Broadcasting acquired 3D ultrasound video acquired on the Philips IE33 system through OpenIGTLink with NDI Aurora tracking" />
+     <Device
+      Id="TrackerDevice"
+      Type="AuroraTracker"
+      SerialPort="3"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker"
+      BaudRate="115200">
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" BufferSize="500" PortName="1" AveragedItemsForFiltering="20" />
+        <DataSource Type="Tool" Id="Stylus" BufferSize="500" PortName="2" AveragedItemsForFiltering="20" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Probe" />
+          <DataSource Id="Stylus" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice" 
+      Type="iE33Video" 
+      IPAddress="129.100.44.8"
+      Port="4013" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="AMF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ie33Philips3DCapture.nrrd"
+      EnableFileCompression="TRUE"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="1 0 0 0
+              0 1 0 0
+              0 0 1 0
+              0 0 0 1 "
+       Error="0" Date="072915_125658" />
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999664	0	0.0259255	2.05053
+        -0.000381964	0.999891	0.0147282	1.1649
+        -0.0259227	-0.0147331	0.999555	79.0579
+        0	0	0	1"
+      Error="0.179735" Date="102515_141453" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Probe" />
+      </ImageNames>
+      <TransformNames>
+        <Transform Name="StylusTipToProbe" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

@@ -1,0 +1,32 @@
+/**
+
+\page Calibration Calibration
+
+# Overview
+
+Typically tracking and imaging devices require spatial and temporal calibration after they are set up.
+
+Spatial calibration algorithms determine unknown transformations that remain constant after the system is set up.
+Typically these are transformations between the coordinate systems of an object (e.g., image slice, calibration phantom, stylus)
+and a tracking marker that is rigidly attached to that object.
+- \ref AlgorithmPivotCalibration is used for computing the transformation between the tip(`StylusTip`) of a pointer tool (a.k.a. stylus)
+and the marker that is attached to the tool (`Stylus`).
+- \ref AlgorithmPhantomRegistration determines the transformation between the calibration phantom's coordinate system (`Phantom`)
+and the attached marker's coordinate system (`Reference`). The method uses landmark registration: transformation between an object
+and the attached marker is computed by touching predefined positions on the object with a tracked stylus.
+- \ref AlgorithmProbeCalibration is used for determining the transformation between
+the coordinate system of the image (`Image`) and the marker that is attached to the US transducer (`Probe`).
+
+\ref AlgorithmTemporalCalibration determines time offset between data streams acquired by different devices. Temporal calibration
+is essential if data is acquired while tracked tools are moving, because then any temporal misalignment results in spatial errors.
+
+# Calibration using fCal
+
+\ref ApplicationfCal implements all the above described calibration algorithms in a single application.
+
+# Calibration using SlicerIGT modules
+
+<a href="http://www.slicerigt.org">SlicerIGT</a> extension of 3D Slicer contains a number of spatial calibration modules that allow
+computing transforms and using them in Plus.
+
+*/

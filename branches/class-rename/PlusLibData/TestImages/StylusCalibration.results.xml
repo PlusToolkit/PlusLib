@@ -1,0 +1,13 @@
+<PlusConfiguration version="1.2">
+
+  <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.000810646	-0.000220466	1	210.019
+        1	0	-0.000810646	-0.170252
+        1.7872e-007	1	0.000220466	0.0463022
+        0	0	0	1"
+       Error="0.48412" Date="052615_215714" />      
+  </CoordinateDefinitions>
+
+</PlusConfiguration>

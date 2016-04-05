@@ -1,0 +1,30 @@
+/*!
+\page ApplicationPointSetExtractor Point set extractor (PointSetExtractor)
+
+Extracts the tooltip positions of a selected tool (tpyically a stylus, but it can be any other tool) and saves it into a polygon file for visualization or further processing. Optionally it can show the pointset on the screen in 3D. It can be used for visualization of motion trajectories or for collecting a point cloud for surface reconstruction.
+
+\section ApplicationPointSetExtractorExamples Examples
+
+Output: points
+~~~
+PointSetExtractor --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-pointset-file=output.ply --reference-name=Tracker --stylus-name=Probe --display
+~~~
+\image html ApplicationPointSetExtractorPoint.png
+
+Output: spheres
+~~~
+PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-spheres --radius=0.3 --display
+~~~
+\image html ApplicationPointSetExtractorSphere.png
+
+Output: tube
+~~~
+PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-tube --display
+~~~
+\image html ApplicationPointSetExtractorTube.png
+
+\section ApplicationPointSetExtractorHelp Command-line parameters reference
+
+\verbinclude "PointSetExtractorHelp.txt"
+
+*/
