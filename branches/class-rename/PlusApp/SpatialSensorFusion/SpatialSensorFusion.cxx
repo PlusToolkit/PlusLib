@@ -15,14 +15,14 @@ See License.txt for details.
 #include "MahonyAhrsAlgo.h"
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkImageData.h" 
 #include "vtkMath.h"
 #include "vtkMatrix3x3.h"
 #include "vtkPointData.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <iomanip>
@@ -32,7 +32,7 @@ See License.txt for details.
 // There are relatively large differences between results computed by different compiler versions.
 const double DOUBLE_DIFF = 0.001;
 
-void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
+void Update(AhrsAlgo* ahrsAlgo, PlusTrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn=NULL);
 
 //-----------------------------------------------------------------------------
 int main(int argc, char **argv)
@@ -93,8 +93,8 @@ int main(int argc, char **argv)
 
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
-  vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-  if( vtkSequenceIO::Read(inputImgFile, frameList) != PLUS_SUCCESS )
+  vtkSmartPointer< vtkPlusTrackedFrameList > frameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
+  if( vtkPlusSequenceIO::Read(inputImgFile, frameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE;
@@ -144,8 +144,8 @@ int main(int argc, char **argv)
 
   // Initialization with the same frame
   ahrsAlgo->SetGain(initialProportionalGain, initialIntegralGain);
-  TrackedFrame *frame0=frameList->GetTrackedFrame(0);
-  TrackedFrame *frame1=frameList->GetTrackedFrame(1);
+  PlusTrackedFrame *frame0=frameList->GetTrackedFrame(0);
+  PlusTrackedFrame *frame1=frameList->GetTrackedFrame(1);
   double samplingFreqHz=125;
   double timeDiffSec=fabs(frame1->GetTimestamp()-frame0->GetTimestamp());
   if (timeDiffSec>1e-4)
@@ -164,13 +164,13 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkMatrix4x4> filteredTiltSensorToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   for (int frameIndex = 0; frameIndex<nFrames; frameIndex++)
   { 
-    TrackedFrame *frame=frameList->GetTrackedFrame(frameIndex); 
+    PlusTrackedFrame *frame=frameList->GetTrackedFrame(frameIndex); 
     Update(ahrsAlgo, frame, trackerReferenceFrame, westAxisIndex, true, filteredTiltSensorToTrackerTransform);
     frame->SetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),filteredTiltSensorToTrackerTransform);
     frame->SetCustomFrameTransformStatus(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame),FIELD_OK);
   }
 
-  if( vtkSequenceIO::Write(outputImgFile, frameList, US_IMG_ORIENT_XX) != PLUS_SUCCESS )
+  if( vtkPlusSequenceIO::Write(outputImgFile, frameList, US_IMG_ORIENT_XX) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE;
@@ -181,8 +181,8 @@ int main(int argc, char **argv)
   {
       // Read transformations data 
       LOG_DEBUG("Reading baseline meta file..."); 
-      vtkSmartPointer< vtkTrackedFrameList > baselineFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();
-      if( vtkSequenceIO::Read(baselineImgFile, baselineFrameList) != PLUS_SUCCESS )
+      vtkSmartPointer< vtkPlusTrackedFrameList > baselineFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
+      if( vtkPlusSequenceIO::Read(baselineImgFile, baselineFrameList) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to load input sequences file.");
         return EXIT_FAILURE;
@@ -194,8 +194,8 @@ int main(int argc, char **argv)
       //confirm that the post processed filtered tilt is the same as that in the baseline
       for (int frameIndex = 0; frameIndex < nFrames; frameIndex++)
       {
-        TrackedFrame *frame=frameList->GetTrackedFrame(frameIndex);
-        TrackedFrame *baselineFrame=baselineFrameList->GetTrackedFrame(frameIndex);
+        PlusTrackedFrame *frame=frameList->GetTrackedFrame(frameIndex);
+        PlusTrackedFrame *baselineFrame=baselineFrameList->GetTrackedFrame(frameIndex);
 
         vtkSmartPointer<vtkMatrix4x4> filteredTilt = vtkSmartPointer<vtkMatrix4x4>::New();
         frame->GetCustomFrameTransform(PlusTransformName("FilteredTiltSensor",trackerReferenceFrame), filteredTilt);
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 }
 
 
-void Update(AhrsAlgo* ahrsAlgo, TrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn/*=NULL*/)
+void Update(AhrsAlgo* ahrsAlgo, PlusTrackedFrame *frame, const std::string &trackerReferenceFrame, int westAxisIndex, bool useTimestamps, vtkMatrix4x4* filteredTiltSensorToTrackerTransformReturn/*=NULL*/)
 {
   double timestamp = frame->GetTimestamp();
   vtkSmartPointer<vtkMatrix4x4> gyroscopeMat = vtkSmartPointer<vtkMatrix4x4>::New();

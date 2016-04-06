@@ -50,63 +50,63 @@ SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} PlusHaptics CACHE INTERNAL "" F
 # --------------------------------------------------------------------------
 # Sources
 SET (DataCollection_SRCS
-  vtkDataCollector.cxx 
+  vtkPlusDataCollector.cxx 
   vtkPlusDevice.cxx
   vtkPlusUsDevice.cxx
   vtkPlusChannel.cxx
   vtkPlusDeviceFactory.cxx
   vtkPlusDataSource.cxx
-  vtkTimestampedCircularBuffer.cxx
-  StreamBufferItem.cxx
-  vtkGenericSerialDevice.cxx
-  FakeTracking/vtkFakeTracker.cxx   
-  SavedDataSource/vtkSavedDataSource.cxx 
-  VirtualDevices/vtkVirtualMixer.cxx
-  VirtualDevices/vtkVirtualSwitcher.cxx
-  VirtualDevices/vtkVirtualDiscCapture.cxx 
-  VirtualDevices/vtkVirtualVolumeReconstructor.cxx
-  ImageProcessor/vtkImageProcessorVideoSource.cxx
-  SerialLine.cxx
+  vtkPlusTimestampedCircularBuffer.cxx
+  PlusStreamBufferItem.cxx
+  vtkPlusGenericSerialDevice.cxx
+  FakeTracking/vtkPlusFakeTracker.cxx   
+  SavedDataSource/vtkPlusSavedDataSource.cxx 
+  VirtualDevices/vtkPlusVirtualMixer.cxx
+  VirtualDevices/vtkPlusVirtualSwitcher.cxx
+  VirtualDevices/vtkPlusVirtualDiscCapture.cxx 
+  VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
+  ImageProcessor/vtkPlusImageProcessorVideoSource.cxx
+  PlusSerialLine.cxx
   itkFcsvReader.cxx
   itkFcsvWriter.cxx
   vtkPlusBuffer.cxx 
-  UsSimulatorVideo/vtkUsSimulatorVideoSource.cxx
-  vtkUsImagingParameters.cxx
+  UsSimulatorVideo/vtkPlusUsSimulatorVideoSource.cxx
+  vtkPlusUsImagingParameters.cxx
   )
 
 IF(PLUS_USE_tesseract)
-  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkVirtualTextRecognizer.cxx)
+  SET (DataCollection_SRCS ${DataCollection_SRCS} VirtualDevices/vtkPlusVirtualTextRecognizer.cxx)
 ENDIF(PLUS_USE_tesseract)
 
 SET (DataCollection_HDRS)
 IF (WIN32)  
   SET (DataCollection_HDRS
-    vtkDataCollector.h 
+    vtkPlusDataCollector.h 
     vtkPlusDevice.h
     vtkPlusUsDevice.h
     vtkPlusChannel.h
     vtkPlusDeviceFactory.h
     vtkPlusDataSource.h
-    vtkTimestampedCircularBuffer.h 
-    StreamBufferItem.h
-    vtkGenericSerialDevice.h
-    FakeTracking/vtkFakeTracker.h
-    SavedDataSource/vtkSavedDataSource.h 
-    VirtualDevices/vtkVirtualMixer.h
-    VirtualDevices/vtkVirtualSwitcher.h
-    VirtualDevices/vtkVirtualDiscCapture.h
-    VirtualDevices/vtkVirtualTextRecognizer.h
-    VirtualDevices/vtkVirtualVolumeReconstructor.h
-    ImageProcessor/vtkImageProcessorVideoSource.h
-    SerialLine.h
+    vtkPlusTimestampedCircularBuffer.h 
+    PlusStreamBufferItem.h
+    vtkPlusGenericSerialDevice.h
+    FakeTracking/vtkPlusFakeTracker.h
+    SavedDataSource/vtkPlusSavedDataSource.h 
+    VirtualDevices/vtkPlusVirtualMixer.h
+    VirtualDevices/vtkPlusVirtualSwitcher.h
+    VirtualDevices/vtkPlusVirtualDiscCapture.h
+    VirtualDevices/vtkPlusVirtualTextRecognizer.h
+    VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
+    ImageProcessor/vtkPlusImageProcessorVideoSource.h
+    PlusSerialLine.h
     itkFcsvReader.h
     itkFcsvWriter.h
     vtkPlusBuffer.h 
-    UsSimulatorVideo/vtkUsSimulatorVideoSource.h
-    vtkUsImagingParameters.h
+    UsSimulatorVideo/vtkPlusUsSimulatorVideoSource.h
+    vtkPlusUsImagingParameters.h
     )
   IF(PLUS_USE_tesseract)
-    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkVirtualTextRecognizer.h)
+    SET (DataCollection_HDRS ${DataCollection_HDRS} VirtualDevices/vtkPlusVirtualTextRecognizer.h)
   ENDIF(PLUS_USE_tesseract)
 ENDIF (WIN32)  
 
@@ -130,11 +130,11 @@ IF (PLUS_USE_OPTITRACK)
 
     # PlusLib Files
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
-      OptiTrack/vtkOptiTrackTracker.cxx
+      OptiTrack/vtkPlusOptiTrackTracker.cxx
       )
         
       SET (DataCollection_HDRS ${DataCollection_HDRS}
-        OptiTrack/vtkOptiTrackTracker.h
+        OptiTrack/vtkPlusOptiTrackTracker.h
         )
     
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS}
@@ -161,14 +161,14 @@ ENDIF (PLUS_USE_OPTITRACK)
 # Optimet ConoProbe support
 IF (PLUS_USE_OPTIMET_CONOPROBE)
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
-      Optimet/vtkOptimetConoProbeMeasurer.cxx
+      Optimet/vtkPlusOptimetConoProbeMeasurer.cxx
       )
         
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${OPTIMETSMART32SDK_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
   
     IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
-        Optimet/vtkOptimetConoProbeMeasurer.h
+        Optimet/vtkPlusOptimetConoProbeMeasurer.h
         )
     ENDIF (WIN32)
     
@@ -192,14 +192,14 @@ ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 # NDI Certus support
 IF (PLUS_USE_CERTUS)
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
-      NDICertusTracking/vtkNDICertusTracker.cxx
+      NDICertusTracking/vtkPlusNDICertusTracker.cxx
       )
         
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} ${NDIOAPI_INCLUDE_DIR} CACHE INTERNAL "" FORCE )
   
     IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
-        NDICertusTracking/vtkNDICertusTracker.h
+        NDICertusTracking/vtkPlusNDICertusTracker.h
         )
     ENDIF (WIN32)
     
@@ -221,12 +221,12 @@ ENDIF (PLUS_USE_CERTUS)
 IF (PLUS_USE_POLARIS)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    PolarisTracking/vtkNDITracker.cxx
+    PolarisTracking/vtkPlusNDITracker.cxx
     )
   
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      PolarisTracking/vtkNDITracker.h
+      PolarisTracking/vtkPlusNDITracker.h
       )
   ENDIF (WIN32)
 
@@ -243,12 +243,12 @@ ENDIF (PLUS_USE_POLARIS)
 IF (PLUS_USE_MICRONTRACKER)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    MicronTracking/vtkMicronTracker.cxx
+    MicronTracking/vtkPlusMicronTracker.cxx
   )
   
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      MicronTracking/vtkMicronTracker.h
+      MicronTracking/vtkPlusMicronTracker.h
       )
   ENDIF (WIN32)
 
@@ -260,7 +260,7 @@ IF (PLUS_USE_MICRONTRACKER)
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
-    vtkMicronTrackerInterface
+    vtkPlusMicronTrackerInterface
     ${MICRONTRACKER_LIBRARY}
     )   
 
@@ -292,18 +292,18 @@ ENDIF (PLUS_USE_MICRONTRACKER)
 IF (PLUS_USE_BRACHY_TRACKER)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    BrachyTracking/vtkBrachyTracker.cxx
-    BrachyTracking/CmsBrachyStepper.cxx
-    BrachyTracking/CivcoBrachyStepper.cxx
+    BrachyTracking/vtkPlusBrachyTracker.cxx
+    BrachyTracking/PlusCmsBrachyStepper.cxx
+    BrachyTracking/PlusCivcoBrachyStepper.cxx
   )
   
   IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
-      BrachyTracking/vtkBrachyTracker.h
-      BrachyTracking/CmsBrachyStepper.h 
-      BrachyTracking/BrachyStepper.h 
-      BrachyTracking/CivcoBrachyStepper.h
+      BrachyTracking/vtkPlusBrachyTracker.h
+      BrachyTracking/PlusCmsBrachyStepper.h 
+      BrachyTracking/PlusBrachyStepper.h 
+      BrachyTracking/PlusCivcoBrachyStepper.h
       )
   ENDIF (WIN32)
     
@@ -328,13 +328,13 @@ ENDIF (PLUS_USE_BRACHY_TRACKER)
 IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.cxx
+    USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.cxx
   )
   
   IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
-      USDigitalEncodersTracking/vtkUSDigitalEncodersTracker.h
+      USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.h
       )
   ENDIF (WIN32)
     
@@ -387,12 +387,12 @@ ENDIF()
 IF( PLUS_USE_Ascension3DG )
    
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    Ascension3DGTracking/vtkAscension3DGTracker.cxx 
+    Ascension3DGTracking/vtkPlusAscension3DGTracker.cxx 
     )
     
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS} 
-      Ascension3DGTracking/vtkAscension3DGTracker.h 
+      Ascension3DGTracking/vtkPlusAscension3DGTracker.h 
       )
   ENDIF (WIN32)
 
@@ -456,10 +456,10 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   ENDIF()
   
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    PhidgetSpatialTracking/vtkPhidgetSpatialTracker.cxx 
+    PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx 
     )
   IF (WIN32)  
-    SET (DataCollection_HDRS ${DataCollection_HDRS} PhidgetSpatialTracking/vtkPhidgetSpatialTracker.h )
+    SET (DataCollection_HDRS ${DataCollection_HDRS} PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h )
   ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -485,10 +485,10 @@ IF( PLUS_USE_3dConnexion_TRACKER )
 
   IF (WIN32)  # the 3D mouse is currently supported on Windows only
     SET (DataCollection_SRCS ${DataCollection_SRCS} 
-      3dConnexionTracking/vtk3dConnexionTracker.cxx
+      3dConnexionTracking/vtkPlus3dConnexionTracker.cxx
       )
     IF (WIN32)  
-      SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtk3dConnexionTracker.h )
+      SET (DataCollection_HDRS ${DataCollection_HDRS} 3dConnexionTracking/vtkPlus3dConnexionTracker.h )
     ENDIF (WIN32)  
     SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
       ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
@@ -501,10 +501,10 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
         
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    ChRobotics/vtkChRoboticsTracker.cxx
+    ChRobotics/vtkPlusChRoboticsTracker.cxx
     )
   IF (WIN32)  
-    SET (DataCollection_HDRS ${DataCollection_HDRS} ChRobotics/vtkChRoboticsTracker.h )
+    SET (DataCollection_HDRS ${DataCollection_HDRS} ChRobotics/vtkPlusChRoboticsTracker.h )
   ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -515,10 +515,10 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
 # Microchip MARG sensor (magnetometer, accelerometer, gyroscope)
         
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    MicrochipTracking/vtkMicrochipTracker.cxx
+    MicrochipTracking/vtkPlusMicrochipTracker.cxx
     )
   IF (WIN32)  
-    SET (DataCollection_HDRS ${DataCollection_HDRS} MicrochipTracking/vtkMicrochipTracker.h )
+    SET (DataCollection_HDRS ${DataCollection_HDRS} MicrochipTracking/vtkPlusMicrochipTracker.h )
   ENDIF (WIN32)
   
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -530,16 +530,16 @@ ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 IF( PLUS_USE_OpenIGTLink )
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    OpenIGTLink/vtkOpenIGTLinkDevice.cxx 
-    OpenIGTLink/vtkOpenIGTLinkTracker.cxx 
-    OpenIGTLink/vtkOpenIGTLinkVideoSource.cxx
+    OpenIGTLink/vtkPlusOpenIGTLinkDevice.cxx 
+    OpenIGTLink/vtkPlusOpenIGTLinkTracker.cxx 
+    OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.cxx
     )
     
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      OpenIGTLink/vtkOpenIGTLinkDevice.h
-      OpenIGTLink/vtkOpenIGTLinkTracker.h 
-      OpenIGTLink/vtkOpenIGTLinkVideoSource.h
+      OpenIGTLink/vtkPlusOpenIGTLinkDevice.h
+      OpenIGTLink/vtkPlusOpenIGTLinkTracker.h 
+      OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -557,21 +557,21 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
 
   SET (DataCollection_SRCS
     ${DataCollection_SRCS}
-    SonixVideo/vtkSonixVideoSource.cxx
-    SonixVideo/vtkSonixVolumeReader.cxx
+    SonixVideo/vtkPlusSonixVideoSource.cxx
+    SonixVideo/vtkPlusSonixVolumeReader.cxx
     SonixVideo/itkUlteriusImageIO.cxx
     SonixVideo/itkUlteriusImageIOFactory.cxx   
-    SonixVideo/vtkSonixPortaVideoSource.cxx
+    SonixVideo/vtkPlusSonixPortaVideoSource.cxx
     )
     
   IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
-      SonixVideo/vtkSonixVideoSource.h
-      SonixVideo/vtkSonixVolumeReader.h
+      SonixVideo/vtkPlusSonixVideoSource.h
+      SonixVideo/vtkPlusSonixVolumeReader.h
       SonixVideo/itkUlteriusImageIO.h
       SonixVideo/itkUlteriusImageIOFactory.h
-      SonixVideo/vtkSonixPortaVideoSource.h
+      SonixVideo/vtkPlusSonixPortaVideoSource.h
       )
   ENDIF (WIN32)  
 
@@ -652,11 +652,11 @@ ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
 # OEM interface
 IF (PLUS_USE_BKPROFOCUS_VIDEO)  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    BkProFocus/vtkBkProFocusOemVideoSource.cxx 
+    BkProFocus/vtkPlusBkProFocusOemVideoSource.cxx 
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      BkProFocus/vtkBkProFocusOemVideoSource.h
+      BkProFocus/vtkPlusBkProFocusOemVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -677,12 +677,12 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   # CameraLink interface
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)  
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    BkProFocus/vtkBkProFocusCameraLinkVideoSource.cxx
+    BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.cxx
     BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      BkProFocus/vtkBkProFocusCameraLinkVideoSource.h
+      BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.h
       BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
   ENDIF (WIN32)  
@@ -699,13 +699,13 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
 
   SET (DataCollection_SRCS
     ${DataCollection_SRCS}
-    ICCapturing/vtkICCapturingSource.cxx
+    ICCapturing/vtkPlusICCapturingSource.cxx
     ICCapturing/ICCapturingListener.cxx
     )  
   IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
-      ICCapturing/vtkICCapturingSource.h
+      ICCapturing/vtkPlusICCapturingSource.h
       ICCapturing/ICCapturingListener.h 
       )
   ENDIF (WIN32)  
@@ -733,12 +733,12 @@ ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
 IF (PLUS_USE_STEALTHLINK)
   SET (DataCollection_SRCS
     ${DataCollection_SRCS}
-    StealthLink/vtkStealthLinkTracker.cxx
+    StealthLink/vtkPlusStealthLinkTracker.cxx
     )  
   IF (WIN32)  
     SET (DataCollection_HDRS
       ${DataCollection_HDRS}
-      StealthLink/vtkStealthLinkTracker.h
+      StealthLink/vtkPlusStealthLinkTracker.h
       )
   ENDIF (WIN32)  
   
@@ -771,12 +771,12 @@ ENDIF (PLUS_USE_STEALTHLINK)
 IF(PLUS_USE_IntuitiveDaVinci)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    IntuitiveDaVinci/vtkIntuitiveDaVinciTracker.cxx
+    IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.cxx
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
     )
 
   SET (DataCollection_HDRS ${DataCollection_HDRS}
-    IntuitiveDaVinci/vtkIntuitiveDaVinciTracker.h 
+    IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h 
     IntuitiveDaVinci/IntuitiveDaVinci.h
     )
 
@@ -799,11 +799,11 @@ ENDIF(PLUS_USE_IntuitiveDaVinci)
 IF (PLUS_USE_VFW_VIDEO)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    VideoForWindows/vtkWin32VideoSource2.cxx
+    VideoForWindows/vtkPlusWin32VideoSource2.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      VideoForWindows/vtkWin32VideoSource2.h
+      VideoForWindows/vtkPlusWin32VideoSource2.h
       )
   ENDIF (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
@@ -823,11 +823,11 @@ ENDIF (PLUS_USE_VFW_VIDEO)
 IF (PLUS_USE_MMF_VIDEO)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    MicrosoftMediaFoundation/vtkMmfVideoSource.cxx 
+    MicrosoftMediaFoundation/vtkPlusMmfVideoSource.cxx 
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      MicrosoftMediaFoundation/vtkMmfVideoSource.h 
+      MicrosoftMediaFoundation/vtkPlusMmfVideoSource.h 
       )
   ENDIF (WIN32)
   SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
@@ -854,11 +854,11 @@ IF (PLUS_USE_EPIPHAN)
   ENDIF()
 
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    Epiphan/vtkEpiphanVideoSource.cxx
+    Epiphan/vtkPlusEpiphanVideoSource.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      Epiphan/vtkEpiphanVideoSource.h
+      Epiphan/vtkPlusEpiphanVideoSource.h
       )
   ENDIF (WIN32)  
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
@@ -881,11 +881,11 @@ ENDIF (PLUS_USE_EPIPHAN)
 
 IF (PLUS_USE_CAPISTRANO_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    Capistrano/vtkCapistranoVideoSource.cxx
+    Capistrano/vtkPlusCapistranoVideoSource.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      Capistrano/vtkCapistranoVideoSource.h
+      Capistrano/vtkPlusCapistranoVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
@@ -932,11 +932,11 @@ ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
 
 IF (PLUS_USE_INTERSON_VIDEO)
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    Interson/vtkIntersonVideoSource.cxx
+    Interson/vtkPlusIntersonVideoSource.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      Interson/vtkIntersonVideoSource.h
+      Interson/vtkPlusIntersonVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
@@ -975,11 +975,11 @@ ENDIF (PLUS_USE_INTERSON_VIDEO)
 IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
   FIND_PACKAGE( IntersonSDKCxx REQUIRED )
   SET (DataCollection_SRCS ${DataCollection_SRCS} 
-    IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.cxx
+    IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.cxx
     )
   IF (WIN32)  
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      IntersonSDKCxx/vtkIntersonSDKCxxVideoSource.h
+      IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.h
       )
   ENDIF (WIN32)
   SET (DataCollection_LIBS ${DataCollection_LIBS} 
@@ -1012,7 +1012,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
   # )
   
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    Telemed/vtkTelemedVideoSource.cxx
+    Telemed/vtkPlusTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
     Telemed/Usgfw2_i.c
     Telemed/Usgfw2_p.c
@@ -1020,7 +1020,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
     )
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      Telemed/vtkTelemedVideoSource.h
+      Telemed/vtkPlusTelemedVideoSource.h
       Telemed/TelemedUltrasound.h
       Telemed/Usgfw2_h.h
       )
@@ -1041,11 +1041,11 @@ ENDIF (PLUS_USE_TELEMED_VIDEO)
 IF (PLUS_USE_THORLABS_VIDEO)
 
   SET (DataCollection_SRCS ${DataCollection_SRCS}
-    ThorLabs/vtkThorLabsVideoSource.cxx
+    ThorLabs/vtkPlusThorLabsVideoSource.cxx
     )
   IF (WIN32)
     SET (DataCollection_HDRS ${DataCollection_HDRS}
-      ThorLabs/vtkThorLabsVideoSource.h
+      ThorLabs/vtkPlusThorLabsVideoSource.h
       )
   ENDIF (WIN32)
 
@@ -1070,14 +1070,14 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
   ELSE(PLUS_USE_ULTRASONIX_VIDEO)
     SET (DataCollection_SRCS ${DataCollection_SRCS}
-      Philips3D/vtkPhilips3DProbeVideoSource.cxx 
-      Philips3D/vtkIEEListener.cxx 
+      Philips3D/vtkPlusPhilips3DProbeVideoSource.cxx 
+      Philips3D/vtkPlusIEEListener.cxx 
       )
 
     IF (WIN32)  
       SET (DataCollection_HDRS ${DataCollection_HDRS}
-        Philips3D/vtkPhilips3DProbeVideoSource.h
-        Philips3D/vtkIEEListener.h
+        Philips3D/vtkPlusPhilips3DProbeVideoSource.h
+        Philips3D/vtkPlusIEEListener.h
         )
     ENDIF (WIN32)
 
@@ -1123,7 +1123,7 @@ SET (DataCollection_LIBS ${DataCollection_LIBS}
   ${VTK_LIBRARIES}
   vtkPlusCommon  
   ${ITK_LIBRARIES}
-  vtkUsSimulatorAlgo
+  vtkPlusUsSimulatorAlgo
   vtkVolumeReconstruction
   vtkImageProcessingAlgo
   ) 
@@ -1142,7 +1142,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollection ${DataCollection_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkDataCollection CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkUsSimulatorAlgo;vtkImageProcessingAlgo CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkDataCollection vtkDataCollection;"${PlusLib_BINARY_DIR}/src/DataCollection/vtkDataCollection.vcproj";vtkPlusCommon;vtkPlusUsSimulatorAlgo;vtkImageProcessingAlgo CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH

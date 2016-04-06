@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkDirectory.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMath.h"
@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkVisualizationController.h"
 #include "vtkXMLUtilities.h"
@@ -329,7 +329,7 @@ PlusStatus vtkVisualizationController::StartDataCollection()
   LOG_TRACE("vtkVisualizationController::StartDataCollection"); 
 
   // Delete data collection if already exists
-  vtkDataCollector* dataCollector=this->GetDataCollector();
+  vtkPlusDataCollector* dataCollector=this->GetDataCollector();
   if (dataCollector != NULL)
   {
     dataCollector->Stop();
@@ -338,7 +338,7 @@ PlusStatus vtkVisualizationController::StartDataCollection()
   }
 
   // Create the proper data collector variant
-  dataCollector = vtkDataCollector::New();
+  dataCollector = vtkPlusDataCollector::New();
   this->SetDataCollector(dataCollector);
   dataCollector->Delete();
 
@@ -373,7 +373,7 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
 {
   LOG_TRACE("vtkVisualizationController::DumpBuffersToDirectory");
 
-  vtkDataCollector* dataCollector=this->GetDataCollector();
+  vtkPlusDataCollector* dataCollector=this->GetDataCollector();
   if (dataCollector==NULL || !dataCollector->GetConnected())
   {
     LOG_INFO("Data collector is not connected, buffers cannot be saved");
@@ -513,7 +513,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 
 PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
   if (this->SelectedChannel==NULL || this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get tracked frame from selected channel!");
@@ -584,7 +584,7 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
       return PLUS_FAIL;
     }
 
-    TrackedFrame trackedFrame;
+    PlusTrackedFrame trackedFrame;
     if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get tracked frame from data collector!");
@@ -781,7 +781,7 @@ PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXM
 
 PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 {
-  vtkSmartPointer<vtkDataCollector> dataCollector=this->GetDataCollector();
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector=this->GetDataCollector();
   if( dataCollector == NULL )
   {
     LOG_WARNING("Trying to disconnect from non-connected data collector.");
@@ -801,7 +801,7 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 
 PlusStatus vtkVisualizationController::ClearTransformRepository()
 {
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
 
   return PLUS_SUCCESS;

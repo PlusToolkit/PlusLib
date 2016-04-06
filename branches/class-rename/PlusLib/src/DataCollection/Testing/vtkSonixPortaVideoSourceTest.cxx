@@ -18,8 +18,8 @@
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
-#include "vtkSonixPortaVideoSource.h"
-#include "vtkUsImagingParameters.h"
+#include "vtkPlusSonixPortaVideoSource.h"
+#include "vtkPlusUsImagingParameters.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
 
@@ -174,7 +174,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
-void TestLinePlot(vtkSonixPortaVideoSource *portaGrabber)
+void TestLinePlot(vtkPlusSonixPortaVideoSource *portaGrabber)
 {
   // Set up a 2D scene, add an XY chart to it
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
@@ -263,13 +263,13 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkSonixPortaVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixPortaVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  vtkSmartPointer<vtkSonixPortaVideoSource> portaGrabber = vtkSmartPointer<vtkSonixPortaVideoSource>::New();
+  vtkSmartPointer<vtkPlusSonixPortaVideoSource> portaGrabber = vtkSmartPointer<vtkPlusSonixPortaVideoSource>::New();
 
   portaGrabber->SetStepPerFrame(stepPerFrame);
   portaGrabber->SetFramePerVolume(FramePerVolume);
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
   DisplayMode displayMode=SHOW_IMAGE;
   
   LOG_DEBUG("Acquisition mode: B");
-  portaGrabber->SetImagingMode(vtkUsImagingParameters::BMode);
+  portaGrabber->SetImagingMode(vtkPlusUsImagingParameters::BMode);
   displayMode=SHOW_IMAGE;
 
   portaGrabber->CreateDefaultOutputChannel();

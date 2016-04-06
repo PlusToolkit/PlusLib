@@ -8,12 +8,12 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
-#include "vtkMmfVideoSource.h"
+#include "vtkPlusMmfVideoSource.h"
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkMmfVideoSource.h"
+#include "vtkPlusMmfVideoSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -78,11 +78,11 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
 
-  vtkSmartPointer<vtkMmfVideoSource> frameGrabber = vtkSmartPointer<vtkMmfVideoSource>::New();  
+  vtkSmartPointer<vtkPlusMmfVideoSource> frameGrabber = vtkSmartPointer<vtkPlusMmfVideoSource>::New();  
 
   if (listDevices)
   {

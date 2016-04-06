@@ -24,8 +24,8 @@ See License.txt for details.
 #include "igtlStringMessage.h"
 
 class vtkXMLDataElement; 
-class TrackedFrame; 
-class vtkTransformRepository; 
+class PlusTrackedFrame; 
+class vtkPlusTransformRepository; 
 
 /*!
 \class vtkPlusIgtlMessageCommon 
@@ -43,22 +43,22 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Pack tracked frame message from tracked frame */ 
-  static PlusStatus PackTrackedFrameMessage( igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, TrackedFrame& trackedFrame); 
+  static PlusStatus PackTrackedFrameMessage( igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame); 
 
   /*! Unpack tracked frame message to tracked frame */ 
-  static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck); 
+  static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, int crccheck); 
 
   /*! Pack US message from tracked frame */ 
-  static PlusStatus PackUsMessage( igtl::PlusUsMessage::Pointer usMessage, TrackedFrame& trackedFrame); 
+  static PlusStatus PackUsMessage( igtl::PlusUsMessage::Pointer usMessage, PlusTrackedFrame& trackedFrame); 
 
   /*! Unpack US message to tracked frame */ 
-  static PlusStatus UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck); 
+  static PlusStatus UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, int crccheck); 
 
   /*! Pack image message from tracked frame */ 
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix ); 
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix ); 
 
   /*! Unpack image message to tracked frame */ 
-  static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck); 
+  static PlusStatus UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck); 
 
   /*! Pack image message from vtkImageData volume */ 
   static PlusStatus PackImageMessage( igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp );
@@ -87,7 +87,7 @@ public:
 
 
   /*! Generate igtl::Matrix4x4 with the selected transform name from the transform repository */ 
-  static PlusStatus GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkTransformRepository* transformRepository, PlusTransformName& transformName); 
+  static PlusStatus GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkPlusTransformRepository* transformRepository, PlusTransformName& transformName); 
 
 protected:
   vtkPlusIgtlMessageCommon();

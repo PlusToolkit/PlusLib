@@ -18,7 +18,7 @@ origin to the Stylus origin and the other two axes are aligned with the X and Y 
 
 \section PivotCalibrationConfigSettings Configuration settings
 
-- \xmlElem \b vtkPivotCalibrationAlgo
+- \xmlElem \b vtkPlusPivotCalibrationAlgo
   - \xmlAtt ObjectMarkerCoordinateFrame \RequiredAtt
   - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
   - \xmlAtt ObjectPivotPointCoordinateFrame \RequiredAtt

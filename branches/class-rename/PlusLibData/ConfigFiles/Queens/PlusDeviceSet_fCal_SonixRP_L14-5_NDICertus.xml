@@ -156,12 +156,12 @@ The computer needs to be on the same local network as Ultrasonix US and the Cert
     TemporalCalibrationDurationSec="10"
     DefaultSelectedChannelId="TrackedVideoStream" />
 
-  <vtkPivotCalibrationAlgo
+  <vtkPlusPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />
 
-  <vtkPhantomLandmarkRegistrationAlgo
+  <vtkPlusPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
@@ -171,7 +171,7 @@ The computer needs to be on the same local network as Ultrasonix US and the Cert
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
 
-  <vtkProbeCalibrationAlgo
+  <vtkPlusProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

@@ -15,8 +15,8 @@
 
 class DeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
-class vtkDataCollector;
-class vtkTransformRepository;
+class vtkPlusDataCollector;
+class vtkPlusTransformRepository;
 class QComboBox;
 class QWidget;
 

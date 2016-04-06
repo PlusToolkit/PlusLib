@@ -502,44 +502,44 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   // Capturing
   ExecuteStartAcquisition(client, captureDeviceId, false);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteSuspendAcquisition(client, captureDeviceId);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteResumeAcquisition(client, captureDeviceId);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteStopAcquisition(client, captureDeviceId, capturingOutputFileName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Volume reconstruction from file
   ExecuteReconstructFromFile(client, volumeReconstructionDeviceId, batchReconstructionInputFileName, batchReconstructionOutputFileName, batchReconstructionOutputImageName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Live volume reconstruction
   ExecuteStartReconstruction(client, volumeReconstructionDeviceId);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteSuspendReconstruction(client, volumeReconstructionDeviceId);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteResumeReconstruction(client, volumeReconstructionDeviceId);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteStopReconstruction(client, volumeReconstructionDeviceId, liveReconstructionOutputFileName, liveReconstructionOutputImageName);
   RETURN_IF_FAIL(PrintReply(client));
-  vtkAccurateTimer::DelayWithEventProcessing(2.0);
+  vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   return PLUS_SUCCESS;
 }
@@ -729,7 +729,7 @@ int main( int argc, char** argv )
     while (!StopClientRequested)
     {
       // the customized client logs the transformation matrices in the data receiver thread
-      vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+      vtkPlusAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
     }
   }
 

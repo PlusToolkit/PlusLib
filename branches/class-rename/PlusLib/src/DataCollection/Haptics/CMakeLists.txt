@@ -4,23 +4,23 @@ PROJECT(PlusHaptics)
 SET(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_SOURCE_DIR} ${${PROJECT_NAME}_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 SET ( ${PROJECT_NAME}_SRCS
-  vtkForceFeedback.cxx
-  vtkHapticForce.cxx
-  vtkImplicitSplineForce.cxx
-  vtkPolydataForce.cxx
+  vtkPlusForceFeedback.cxx
+  vtkPlusHapticForce.cxx
+  vtkPlusImplicitSplineForce.cxx
+  vtkPlusPolydataForce.cxx
 )
 
 IF( MSVC )
   SET ( ${PROJECT_NAME}_HDRS 
-    vtkForceFeedback.h 
-    vtkHapticForce.h 
-    vtkImplicitSplineForce.h 
-    vtkPolydataForce.h 
+    vtkPlusForceFeedback.h 
+    vtkPlusHapticForce.h 
+    vtkPlusImplicitSplineForce.h 
+    vtkPlusPolydataForce.h 
   )
 ENDIF()
 
 SET_SOURCE_FILES_PROPERTIES(
-  vtkForceFeedback
+  vtkPlusForceFeedback
   ABSTRACT
 )
 

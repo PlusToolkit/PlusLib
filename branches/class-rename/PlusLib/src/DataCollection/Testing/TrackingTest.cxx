@@ -14,7 +14,7 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkCommand.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
@@ -28,7 +28,7 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkTextActor.h"
 #include "vtkTextProperty.h"
 #include "vtkTimerLog.h"
-#include "vtkToolAxesActor.h" 
+#include "vtkPlusToolAxesActor.h" 
 #include "vtkTransform.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -50,7 +50,7 @@ public:
   {
     this->StepperTextActor->Delete();
     this->StepperTextActor=NULL;
-    for (std::map<std::string,vtkToolAxesActor*>::iterator it=this->ToolActors.begin(); it!=this->ToolActors.end(); ++it)
+    for (std::map<std::string,vtkPlusToolAxesActor*>::iterator it=this->ToolActors.begin(); it!=this->ToolActors.end(); ++it)
     {
       //this->Renderer->RemoveActor(this->ToolActors[i]);
       it->second->Delete(); 
@@ -93,7 +93,7 @@ public:
 
   void AddNewToolActor(const char * aToolId)
   {
-    vtkToolAxesActor* actor=vtkToolAxesActor::New();
+    vtkPlusToolAxesActor* actor=vtkPlusToolAxesActor::New();
     this->Renderer->AddActor(actor);
     actor->SetVisibility(false);
     this->ToolActors[aToolId]=actor;
@@ -118,7 +118,7 @@ public:
     std::ostringstream ss;
     ss.precision( 2 ); 
 
-    TrackedFrame trackedFrame; 
+    PlusTrackedFrame trackedFrame; 
     if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!");
@@ -194,13 +194,13 @@ public:
     this->TimerId=this->Iren->CreateOneShotTimer(100); 
   }
 
-  vtkDataCollector* DataCollector; 
+  vtkPlusDataCollector* DataCollector; 
   vtkPlusChannel* BroadcastChannel;
   std::string DeviceId;
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
-  std::map<std::string,vtkToolAxesActor*> ToolActors;
+  std::map<std::string,vtkPlusToolAxesActor*> ToolActors;
   int TimerId;
 };
 
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to parse data collection XML tag.");
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
     transformDisplayUpdater->Init();
 
     // Add an origin display actor
-    vtkSmartPointer<vtkToolAxesActor> originActor=vtkSmartPointer<vtkToolAxesActor>::New();
+    vtkSmartPointer<vtkPlusToolAxesActor> originActor=vtkSmartPointer<vtkPlusToolAxesActor>::New();
     originActor->SetName("origin");
     renderer->AddActor(originActor);
 

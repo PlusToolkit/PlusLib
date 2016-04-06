@@ -6,10 +6,10 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkPlusUsDevice.h"
-#include "vtkUsImagingParameters.h"
+#include "vtkPlusUsImagingParameters.h"
 
 #ifdef PLUS_USE_tesseract
-#include "vtkVirtualTextRecognizer.h"
+#include "vtkPlusVirtualTextRecognizer.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -19,8 +19,8 @@ vtkStandardNewMacro(vtkPlusUsDevice);
 //----------------------------------------------------------------------------
 vtkPlusUsDevice::vtkPlusUsDevice()
 : vtkPlusDevice()
-, RequestedImagingParameters(vtkUsImagingParameters::New())
-, CurrentImagingParameters(vtkUsImagingParameters::New())
+, RequestedImagingParameters(vtkPlusUsImagingParameters::New())
+, CurrentImagingParameters(vtkPlusUsImagingParameters::New())
 , ImageToTransducerTransformName(NULL)
 , TextRecognizerInputChannelName(NULL)
 {
@@ -53,7 +53,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* deviceConfig)
 {
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(TextRecognizerInputChannelName, deviceConfig);
-  XML_FIND_NESTED_ELEMENT_OPTIONAL(imagingParams, deviceConfig, vtkUsImagingParameters::XML_ELEMENT_TAG);
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
 
   if( imagingParams == NULL )
   {
@@ -66,7 +66,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* deviceConfig)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsDevice::WriteConfiguration(vtkXMLDataElement* deviceConfig)
 {
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imagingParams, deviceConfig, vtkUsImagingParameters::XML_ELEMENT_TAG);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(ImageToTransducerTransformName, deviceConfig);
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(TextRecognizerInputChannelName, deviceConfig);
 
@@ -79,7 +79,7 @@ PlusStatus vtkPlusUsDevice::InternalUpdate()
   if( this->InputChannel != NULL )
   {
     double aTimestamp(UNDEFINED_TIMESTAMP);
-    TrackedFrame frame;
+    PlusTrackedFrame frame;
     if( this->InputChannel->GetTrackedFrame(aTimestamp, frame, false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve frame from the input channel. No parameters can be retrieved.");
@@ -120,7 +120,7 @@ PlusStatus vtkPlusUsDevice::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters)
+PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters)
 {
   if( this->RequestedImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL )
   {
@@ -132,9 +132,9 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkUsImagingParameters
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  TrackedFrame::FieldMapType localCustomFields;
+  PlusTrackedFrame::FieldMapType localCustomFields;
   if( this->ImageToTransducerTransformName != NULL && customFields != NULL )
   {
     localCustomFields = *customFields;
@@ -145,9 +145,9 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields/*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
 {
-  TrackedFrame::FieldMapType localCustomFields;
+  PlusTrackedFrame::FieldMapType localCustomFields;
   if( this->ImageToTransducerTransformName != NULL && customFields != NULL )
   {
     localCustomFields = *customFields;
@@ -158,7 +158,7 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusUsDevice::CalculateImageToTransducer(TrackedFrame::FieldMapType& customFields)
+void vtkPlusUsDevice::CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields)
 {
   std::ostringstream imageToTransducerName;
   imageToTransducerName << ImageToTransducerTransform.GetTransformName() << "Transform";

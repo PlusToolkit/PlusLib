@@ -1,14 +1,14 @@
 
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkLineSource.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkUsScanConvertCurvilinear.h"
-#include "vtkUsScanConvertLinear.h"
+#include "vtkPlusTrackedFrameList.h"
+#include "vtkPlusUsScanConvertCurvilinear.h"
+#include "vtkPlusUsScanConvertLinear.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -34,7 +34,7 @@ void DrawLine(vtkImageData* imageData, int* imageExtent, double* start, double* 
 }
 
 //----------------------------------------------------------------------------
-void DrawScanLines(vtkUsScanConvert* scanConverter, vtkTrackedFrameList* trackedFrameList)
+void DrawScanLines(vtkPlusUsScanConvert* scanConverter, vtkPlusTrackedFrameList* trackedFrameList)
 {
   int *rfImageExtent = scanConverter->GetInputImageExtent();
   int numOfSamplesPerScanline = rfImageExtent[1]-rfImageExtent[0]+1;
@@ -44,7 +44,7 @@ void DrawScanLines(vtkUsScanConvert* scanConverter, vtkTrackedFrameList* tracked
   LOG_INFO("Processing "<<numberOfFrames<<" frames...");
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
-    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     vtkImageData* imageData = frame->GetImageData()->GetImage();
     int* outputExtent = imageData->GetExtent();
     for (int scanLine = 0; scanLine < numOfScanlines; scanLine++)
@@ -106,8 +106,8 @@ int main(int argc, char** argv)
   }
 
   // Read the image sequence
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  if( vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input image sequence.");
     exit(EXIT_FAILURE);
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 
   // Get number of scanlines from US simulator algo (if present)
   int numOfScanlines = 50;
-  vtkXMLDataElement* usSimulatorAlgoElement = configRootElement->LookupElementWithName("vtkUsSimulatorAlgo");
+  vtkXMLDataElement* usSimulatorAlgoElement = configRootElement->LookupElementWithName("vtkPlusUsSimulatorAlgo");
   if (usSimulatorAlgoElement != NULL)
   {
     // Get US simulator attributes
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    LOG_INFO("vtkUsSimulatorAlgo element not found in input configuration file. Using default NumberOfScanlines ("<<numOfScanlines<<")");
+    LOG_INFO("vtkPlusUsSimulatorAlgo element not found in input configuration file. Using default NumberOfScanlines ("<<numOfScanlines<<")");
   }
 
   // Call scanline generator with appropriate scanconvert
@@ -148,14 +148,14 @@ int main(int argc, char** argv)
     LOG_ERROR("Scan converter TransducerGeometry is undefined");
     return EXIT_FAILURE;
   }
-  vtkSmartPointer<vtkUsScanConvert> scanConverter;
+  vtkSmartPointer<vtkPlusUsScanConvert> scanConverter;
   if (STRCASECMP(transducerGeometry,"CURVILINEAR") == 0)
   {
-    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
+    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertCurvilinear::New());
   }
   else if (STRCASECMP(transducerGeometry, "LINEAR") == 0)
   {
-    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
+    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertLinear::New());
   }
   else
   {
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
     }
     outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.nrrd";
   }
-  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkPlusSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     return EXIT_FAILURE;
   }

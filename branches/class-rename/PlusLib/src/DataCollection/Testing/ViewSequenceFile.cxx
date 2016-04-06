@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkActorCollection.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCollectionIterator.h"
@@ -21,14 +21,14 @@ See License.txt for details.
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkRenderer.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <iomanip>
@@ -191,9 +191,9 @@ int main(int argc, char **argv)
 
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
-  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
+  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New(); 
   // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
-  if( vtkSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkPlusSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE; 
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
   // Read calibration matrices from the config file
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
   if ( !inputConfigFileName.empty() )
   {
     LOG_DEBUG("Reading config file...");
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
   for ( int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++ )
   {
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
-    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )

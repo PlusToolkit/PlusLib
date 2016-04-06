@@ -123,12 +123,12 @@
     MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackerStream" />
   
-  <vtkPivotCalibrationAlgo
+  <vtkPlusPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />
 
-  <vtkPhantomLandmarkRegistrationAlgo
+  <vtkPlusPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />

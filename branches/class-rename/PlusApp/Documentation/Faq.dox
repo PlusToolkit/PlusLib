@@ -34,9 +34,9 @@ Example: this section defines three tool coordinate frames (Probe, Reference, St
 
 ## Coordinate frames computed by calibration algorithms
 
-Example: vtkPivotCalibrationAlgo algorithm has two input coordinate frames and one frame that it defines (StylusTip)
+Example: vtkPlusPivotCalibrationAlgo algorithm has two input coordinate frames and one frame that it defines (StylusTip)
 
-    <vtkPivotCalibrationAlgo
+    <vtkPlusPivotCalibrationAlgo
       ObjectMarkerCoordinateFrame="Stylus"
       ReferenceCoordinateFrame="Reference"
       ObjectPivotPointCoordinateFrame="StylusTip"

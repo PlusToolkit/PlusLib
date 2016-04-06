@@ -10,131 +10,131 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 // Virtual devices
-#include "vtkVirtualMixer.h"
-#include "vtkVirtualSwitcher.h"
-#include "vtkVirtualDiscCapture.h"
-#include "vtkVirtualVolumeReconstructor.h"
-#include "vtkImageProcessorVideoSource.h"
-#include "vtkGenericSerialDevice.h"
+#include "vtkPlusVirtualMixer.h"
+#include "vtkPlusVirtualSwitcher.h"
+#include "vtkPlusVirtualDiscCapture.h"
+#include "vtkPlusVirtualVolumeReconstructor.h"
+#include "vtkPlusImageProcessorVideoSource.h"
+#include "vtkPlusGenericSerialDevice.h"
 
 //----------------------------------------------------------------------------
 // Tracker devices
 #include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
-#include "vtkOpenIGTLinkTracker.h" 
+#include "vtkPlusOpenIGTLinkTracker.h" 
 #endif
 #ifdef PLUS_USE_POLARIS
-#include "vtkNDITracker.h"
+#include "vtkPlusNDITracker.h"
 #endif
 #ifdef PLUS_USE_CERTUS
-#include "vtkNDICertusTracker.h"
+#include "vtkPlusNDICertusTracker.h"
 #endif
 #ifdef PLUS_USE_MICRONTRACKER
-#include "vtkMicronTracker.h"
+#include "vtkPlusMicronTracker.h"
 #endif
 #ifdef PLUS_USE_STEALTHLINK
-#include "vtkStealthLinkTracker.h"
+#include "vtkPlusStealthLinkTracker.h"
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
-#include "vtkBrachyTracker.h"
+#include "vtkPlusBrachyTracker.h"
 #endif
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
-#include "vtkUSDigitalEncodersTracker.h"
+#include "vtkPlusUSDigitalEncodersTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DG
-#include "vtkAscension3DGTracker.h"
+#include "vtkPlusAscension3DGTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DGm
 #include "vtkAscension3DGmTracker.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-#include "vtkOptimetConoProbeMeasurer.h"
+#include "vtkPlusOptimetConoProbeMeasurer.h"
 #endif 
 #ifdef PLUS_USE_OPTITRACK
-#include "vtkOptiTrackTracker.h"
+#include "vtkPlusOptiTrackTracker.h"
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
-#include "vtkPhidgetSpatialTracker.h"
+#include "vtkPlusPhidgetSpatialTracker.h"
 #endif
-#include "vtkFakeTracker.h"
-#include "vtkChRoboticsTracker.h"
-#include "vtkMicrochipTracker.h"
+#include "vtkPlusFakeTracker.h"
+#include "vtkPlusChRoboticsTracker.h"
+#include "vtkPlusMicrochipTracker.h"
 #ifdef PLUS_USE_3dConnexion_TRACKER
 // 3dConnexion tracker is supported on Windows only
-#include "vtk3dConnexionTracker.h"
+#include "vtkPlus3dConnexionTracker.h"
 #endif
 
 //----------------------------------------------------------------------------
 // Video sources
-#include "vtkSavedDataSource.h"
-#include "vtkUsSimulatorVideoSource.h"
+#include "vtkPlusSavedDataSource.h"
+#include "vtkPlusUsSimulatorVideoSource.h"
 
 #ifdef PLUS_USE_VFW_VIDEO
-#include "vtkWin32VideoSource2.h"
+#include "vtkPlusWin32VideoSource2.h"
 #endif
 
 #ifdef PLUS_USE_MMF_VIDEO
-#include "vtkMmfVideoSource.h"
+#include "vtkPlusMmfVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-#include "vtkSonixVideoSource.h"
-#include "vtkSonixPortaVideoSource.h"
+#include "vtkPlusSonixVideoSource.h"
+#include "vtkPlusSonixPortaVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-#include "vtkBkProFocusOemVideoSource.h"
+#include "vtkPlusBkProFocusOemVideoSource.h"
 #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-  #include "vtkBkProFocusCameraLinkVideoSource.h"
+  #include "vtkPlusBkProFocusCameraLinkVideoSource.h"
 #endif
 #endif
 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
-#include "vtkICCapturingSource.h"
+#include "vtkPlusICCapturingSource.h"
 #endif
 
 #ifdef PLUS_USE_INTERSON_VIDEO
-#include "vtkIntersonVideoSource.h"
+#include "vtkPlusIntersonVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
-#include "vtkIntersonSDKCxxVideoSource.h"
+#include "vtkPlusIntersonSDKCxxVideoSource.h"
 #endif
 
 
 #ifdef PLUS_USE_TELEMED_VIDEO
-#include "Telemed\vtkTelemedVideoSource.h"
+#include "Telemed\vtkPlusTelemedVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_THORLABS_VIDEO
-#include "ThorLabs\vtkThorLabsVideoSource.h"
+#include "ThorLabs\vtkPlusThorLabsVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_OpenIGTLink
-#include "vtkOpenIGTLinkVideoSource.h"
+#include "vtkPlusOpenIGTLinkVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_EPIPHAN
-#include "vtkEpiphanVideoSource.h"
+#include "vtkPlusEpiphanVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-#include "vtkIntuitiveDaVinciTracker.h"
+#include "vtkPlusIntuitiveDaVinciTracker.h"
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-#include "vtkPhilips3DProbeVideoSource.h"
+#include "vtkPlusPhilips3DProbeVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
-#include "Capistrano\vtkCapistranoVideoSource.h"
+#include "Capistrano\vtkPlusCapistranoVideoSource.h"
 #endif
 
 //---------------------------------------------------------------------------
 // Virtual devices
 #ifdef PLUS_USE_tesseract
-#include "vtkVirtualTextRecognizer.h"
+#include "vtkPlusVirtualTextRecognizer.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -145,35 +145,35 @@ vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 {
-  DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkFakeTracker::New; 
-  DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkChRoboticsTracker::New; 
-  DeviceTypes["Microchip"]=(PointerToDevice)&vtkMicrochipTracker::New;
+  DeviceTypes["FakeTracker"]=(PointerToDevice)&vtkPlusFakeTracker::New; 
+  DeviceTypes["ChRobotics"]=(PointerToDevice)&vtkPlusChRoboticsTracker::New; 
+  DeviceTypes["Microchip"]=(PointerToDevice)&vtkPlusMicrochipTracker::New;
   
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
-  DeviceTypes["3dConnexion"]=(PointerToDevice)&vtk3dConnexionTracker::New; 
+  DeviceTypes["3dConnexion"]=(PointerToDevice)&vtkPlus3dConnexionTracker::New; 
 #endif
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkOpenIGTLinkTracker::New;
+  DeviceTypes["OpenIGTLinkTracker"]=(PointerToDevice)&vtkPlusOpenIGTLinkTracker::New;
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
-  DeviceTypes["BrachyTracker"]=(PointerToDevice)&vtkBrachyTracker::New; 
+  DeviceTypes["BrachyTracker"]=(PointerToDevice)&vtkPlusBrachyTracker::New; 
 #endif 
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
-  DeviceTypes["USDigitalEncodersTracker"]=(PointerToDevice)&vtkUSDigitalEncodersTracker::New;
+  DeviceTypes["USDigitalEncodersTracker"]=(PointerToDevice)&vtkPlusUSDigitalEncodersTracker::New;
 #endif
 #ifdef PLUS_USE_CERTUS
-  DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkNDICertusTracker::New; 
+  DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkPlusNDICertusTracker::New; 
 #endif
 #ifdef PLUS_USE_POLARIS
-  DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkNDITracker::New; 
-  DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkNDITracker::New; 
+  DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkPlusNDITracker::New; 
+  DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkPlusNDITracker::New; 
 #endif
 #ifdef PLUS_USE_MICRONTRACKER  
-  DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkMicronTracker::New; 
+  DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkPlusMicronTracker::New; 
 #endif
 #ifdef PLUS_USE_STEALTHLINK
-  DeviceTypes["StealthLinkTracker"]=(PointerToDevice)&vtkStealthLinkTracker::New;
+  DeviceTypes["StealthLinkTracker"]=(PointerToDevice)&vtkPlusStealthLinkTracker::New;
 #endif
 #ifdef PLUS_USE_Ascension3DG  
   DeviceTypes["Ascension3DG"]=(PointerToDevice)&vtkAscension3DGTracker::New; 
@@ -182,80 +182,80 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["Ascension3DGm"]=(PointerToDevice)&vtkAscension3DGmTracker::New; 
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER  
-  DeviceTypes["PhidgetSpatial"]=(PointerToDevice)&vtkPhidgetSpatialTracker::New; 
+  DeviceTypes["PhidgetSpatial"]=(PointerToDevice)&vtkPlusPhidgetSpatialTracker::New; 
 #endif
 
-  DeviceTypes["SavedDataSource"]=(PointerToDevice)&vtkSavedDataSource::New; 
-  DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkUsSimulatorVideoSource::New;
-  DeviceTypes["ImageProcessor"]=(PointerToDevice)&vtkImageProcessorVideoSource::New;
-  DeviceTypes["GenericSerialDevice"]=(PointerToDevice)&vtkGenericSerialDevice::New;
+  DeviceTypes["SavedDataSource"]=(PointerToDevice)&vtkPlusSavedDataSource::New; 
+  DeviceTypes["UsSimulator"]=(PointerToDevice)&vtkPlusUsSimulatorVideoSource::New;
+  DeviceTypes["ImageProcessor"]=(PointerToDevice)&vtkPlusImageProcessorVideoSource::New;
+  DeviceTypes["GenericSerialDevice"]=(PointerToDevice)&vtkPlusGenericSerialDevice::New;
   DeviceTypes["NoiseVideo"]=(PointerToDevice)&vtkPlusDevice::New; 
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkOpenIGTLinkVideoSource::New; 
+  DeviceTypes["OpenIGTLinkVideo"]=(PointerToDevice)&vtkPlusOpenIGTLinkVideoSource::New; 
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  DeviceTypes["OptimetConoProbe"] = (PointerToDevice)&vtkOptimetConoProbeMeasurer::New;
+  DeviceTypes["OptimetConoProbe"] = (PointerToDevice)&vtkPlusOptimetConoProbeMeasurer::New;
 #endif 
 #ifdef PLUS_USE_OPTITRACK
-  DeviceTypes["OptiTrack"]=(PointerToDevice)&vtkOptiTrackTracker::New; 
+  DeviceTypes["OptiTrack"]=(PointerToDevice)&vtkPlusOptiTrackTracker::New; 
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-  DeviceTypes["SonixVideo"]=(PointerToDevice)&vtkSonixVideoSource::New; 
-  DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkSonixPortaVideoSource::New; 
+  DeviceTypes["SonixVideo"]=(PointerToDevice)&vtkPlusSonixVideoSource::New; 
+  DeviceTypes["SonixPortaVideo"]=(PointerToDevice)&vtkPlusSonixPortaVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkBkProFocusOemVideoSource::New; 
+  DeviceTypes["BkProFocusOem"]=(PointerToDevice)&vtkPlusBkProFocusOemVideoSource::New; 
   #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-    DeviceTypes["BkProFocusCameraLink"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New; 
-    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkBkProFocusCameraLinkVideoSource::New;  // for backward compatibility only
+    DeviceTypes["BkProFocusCameraLink"]=(PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New; 
+    DeviceTypes["BkProFocus"]=(PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New;  // for backward compatibility only
   #endif 
 #endif 
 #ifdef PLUS_USE_VFW_VIDEO
-  DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkWin32VideoSource2::New; 
+  DeviceTypes["VFWVideo"]=(PointerToDevice)&vtkPlusWin32VideoSource2::New; 
 #endif 
 #ifdef PLUS_USE_MMF_VIDEO
-  DeviceTypes["MmfVideo"]=(PointerToDevice)&vtkMmfVideoSource::New; 
+  DeviceTypes["MmfVideo"]=(PointerToDevice)&vtkPlusMmfVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
-  DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkICCapturingSource::New; 
+  DeviceTypes["ICCapturing"]=(PointerToDevice)&vtkPlusICCapturingSource::New; 
 #endif 
 #ifdef PLUS_USE_INTERSON_VIDEO
-  DeviceTypes["IntersonVideo"]=(PointerToDevice)&vtkIntersonVideoSource::New; 
+  DeviceTypes["IntersonVideo"]=(PointerToDevice)&vtkPlusIntersonVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
-  DeviceTypes["IntersonSDKCxxVideo"]=(PointerToDevice)&vtkIntersonSDKCxxVideoSource::New; 
+  DeviceTypes["IntersonSDKCxxVideo"]=(PointerToDevice)&vtkPlusIntersonSDKCxxVideoSource::New; 
 #endif 
 #ifdef PLUS_USE_TELEMED_VIDEO
-  DeviceTypes["TelemedVideo"]=(PointerToDevice)&vtkTelemedVideoSource::New;
+  DeviceTypes["TelemedVideo"]=(PointerToDevice)&vtkPlusTelemedVideoSource::New;
 #endif
 #ifdef PLUS_USE_THORLABS_VIDEO
-  DeviceTypes["ThorLabsVideo"]=(PointerToDevice)&vtkThorLabsVideoSource::New;
+  DeviceTypes["ThorLabsVideo"]=(PointerToDevice)&vtkPlusThorLabsVideoSource::New;
 #endif
 #ifdef PLUS_USE_EPIPHAN
-  DeviceTypes["Epiphan"]=(PointerToDevice)&vtkEpiphanVideoSource::New; 
+  DeviceTypes["Epiphan"]=(PointerToDevice)&vtkPlusEpiphanVideoSource::New; 
 #endif 
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-  DeviceTypes["IntuitiveDaVinci"]=(PointerToDevice)&vtkIntuitiveDaVinciTracker::New;
+  DeviceTypes["IntuitiveDaVinci"]=(PointerToDevice)&vtkPlusIntuitiveDaVinciTracker::New;
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-  DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPhilips3DProbeVideoSource::New;
+  DeviceTypes["iE33Video"]=(PointerToDevice)&vtkPlusPhilips3DProbeVideoSource::New;
 #endif
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
-	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkCapistranoVideoSource::New;
+	DeviceTypes["CapistranoVideo"]=(PointerToDevice)&vtkPlusCapistranoVideoSource::New;
 #endif
 #ifdef PLUS_USE_tesseract
-  DeviceTypes["VirtualTextRecognizer"]=(PointerToDevice)&vtkVirtualTextRecognizer::New;
+  DeviceTypes["VirtualTextRecognizer"]=(PointerToDevice)&vtkPlusVirtualTextRecognizer::New;
 #endif
 
   // Virtual Devices
-  DeviceTypes["VirtualMixer"]=(PointerToDevice)&vtkVirtualMixer::New;
-  DeviceTypes["VirtualSwitcher"]=(PointerToDevice)&vtkVirtualSwitcher::New;
-  DeviceTypes["VirtualDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
-  DeviceTypes["VirtualBufferedDiscCapture"]=(PointerToDevice)&vtkVirtualDiscCapture::New;
-  DeviceTypes["VirtualVolumeReconstructor"]=(PointerToDevice)&vtkVirtualVolumeReconstructor::New;
+  DeviceTypes["VirtualMixer"]=(PointerToDevice)&vtkPlusVirtualMixer::New;
+  DeviceTypes["VirtualSwitcher"]=(PointerToDevice)&vtkPlusVirtualSwitcher::New;
+  DeviceTypes["VirtualDiscCapture"]=(PointerToDevice)&vtkPlusVirtualDiscCapture::New;
+  DeviceTypes["VirtualBufferedDiscCapture"]=(PointerToDevice)&vtkPlusVirtualDiscCapture::New;
+  DeviceTypes["VirtualVolumeReconstructor"]=(PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New;
   
 }
 
