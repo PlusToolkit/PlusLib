@@ -10,10 +10,14 @@
 # if "$1" == "-I" goto individual
 
 # Run PlusBuild tests 
-/bin/bash ${CMAKE_BINARY_DIR}/BuildAndTest.sh $1
+/bin/bash BuildAndTest.sh $1
 
 # Run PlusLib tests 
-/bin/bash ${PLUSLIB_DIR}/BuildAndTest.sh $1
+cd ${PLUSLIB_DIR}
+/bin/bash BuildAndTest.sh $1
 
 # Run PlusApp tests 
-/bin/bash ${PLUSAPP_DIR}/BuildAndTest.sh $1
+cd ${PLUSAPP_DIR}
+/bin/bash BuildAndTest.sh $1
+
+cd ${CMAKE_BINARY_DIR}
