@@ -10,15 +10,10 @@
 # if "$1" == "-I" goto individual
 
 # Run PlusBuild tests 
-cd "/home/perklab/Devel/PlusBuild-bin"
-/bin/bash BuildAndTest.sh $1
+/bin/bash ${CMAKE_BINARY_DIR}/BuildAndTest.sh $1
 
 # Run PlusLib tests 
-cd "/home/perklab/Devel/PlusBuild-bin/PlusLib-bin"
-/bin/bash BuildAndTest.sh $1
+/bin/bash ${PLUSLIB_DIR}/BuildAndTest.sh $1
 
 # Run PlusApp tests 
-cd "/home/perklab/Devel/PlusBuild-bin/PlusApp-bin"
-/bin/bash BuildAndTest.sh $1
-
-cd "/home/perklab/Devel/PlusBuild-bin"
+/bin/bash ${PLUSAPP_DIR}/BuildAndTest.sh $1

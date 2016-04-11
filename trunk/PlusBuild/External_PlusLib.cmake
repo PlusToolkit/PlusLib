@@ -235,10 +235,11 @@ ENDIF( BUILDNAME )
 # --------------------------------------------------------------------------
 # PlusLib
 SET (PLUS_PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib CACHE INTERNAL "Path to store PlusLib contents.")
+SET (PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib-bin CACHE PATH "The directory containing PlusLib binaries" FORCE)
 ExternalProject_Add(PlusLib
   "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
   SOURCE_DIR "${PLUS_PLUSLIB_DIR}"
-  BINARY_DIR "PlusLib-bin"
+  BINARY_DIR "${PLUSLIB_DIR}"
   #--Download step--------------
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
@@ -294,4 +295,3 @@ ExternalProject_Add(PlusLib
   INSTALL_COMMAND ""
   DEPENDS ${PlusLib_DEPENDENCIES}
   )
-SET(PLUSLIB_DIR ${CMAKE_BINARY_DIR}/PlusLib-bin CACHE PATH "The directory containing PlusLib binaries" FORCE)
