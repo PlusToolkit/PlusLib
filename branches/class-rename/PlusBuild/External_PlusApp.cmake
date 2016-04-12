@@ -24,10 +24,11 @@ IF( BUILDNAME )
 ENDIF( BUILDNAME )
 
 SET (PLUS_PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp CACHE INTERNAL "Path to store PlusApp contents.")
+SET (PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp-bin CACHE PATH "The directory containing PlusApp binaries" FORCE)                
 ExternalProject_Add(PlusApp
   "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
   SOURCE_DIR "${PLUS_PLUSAPP_DIR}" 
-  BINARY_DIR "PlusApp-bin"
+  BINARY_DIR "${PLUSAPP_DIR}"
   #--Download step--------------
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
@@ -55,7 +56,6 @@ ExternalProject_Add(PlusApp
   INSTALL_COMMAND ""
   DEPENDS ${PlusApp_DEPENDENCIES}
   )
-SET(PLUSAPP_DIR ${CMAKE_BINARY_DIR}/PlusApp-bin CACHE PATH "The directory containing PlusApp binaries" FORCE)                
 
 # --------------------------------------------------------------------------
 # Copy Qt binaries to PLUS_EXECUTABLE_OUTPUT_PATH

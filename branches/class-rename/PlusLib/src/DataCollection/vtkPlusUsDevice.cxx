@@ -49,18 +49,25 @@ void vtkPlusUsDevice::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* deviceConfig)
+PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);
+  if (deviceConfig == NULL)
+  {
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Could not find corresponding element.");
+    return PLUS_FAIL;
+  }
+
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(TextRecognizerInputChannelName, deviceConfig);
   XML_FIND_NESTED_ELEMENT_OPTIONAL(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
 
-  if( imagingParams == NULL )
+  if( imagingParams != NULL )
   {
-    return PLUS_FAIL;
+    this->RequestedImagingParameters->ReadConfiguration(deviceConfig);
   }
 
-  return this->RequestedImagingParameters->ReadConfiguration(deviceConfig);
+  return Superclass::ReadConfiguration(rootConfigElement);
 }
 
 //----------------------------------------------------------------------------
