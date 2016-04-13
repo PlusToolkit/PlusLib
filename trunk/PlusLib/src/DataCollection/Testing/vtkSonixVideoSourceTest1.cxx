@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkSonixVideoSourceTest1.cxx
+  \file vtkPlusSonixVideoSourceTest1.cxx
   \brief Test basic connection to the Ultrasonix image acquisition
 
   If the --rendering-off switch is defined then the connection is established, images are 
@@ -33,10 +33,10 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkSonixVideoSource.h"
+#include "vtkPlusSonixVideoSource.h"
 #include "vtkTable.h"
 #include "vtkTableAlgorithm.h"
-#include "vtkUsImagingParameters.h"
+#include "vtkPlusUsImagingParameters.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
@@ -180,7 +180,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
-void TestLinePlot(vtkSonixVideoSource *sonixGrabber)
+void TestLinePlot(vtkPlusSonixVideoSource *sonixGrabber)
 {
   // Set up a 2D scene, add an XY chart to it
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
   
@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
 
@@ -290,7 +290,7 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
   
-  vtkSmartPointer<vtkSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
+  vtkSmartPointer<vtkPlusSonixVideoSource> sonixGrabber = vtkSmartPointer<vtkPlusSonixVideoSource>::New();
   sonixGrabber->SetDeviceId("VideoDevice");
   sonixGrabber->ReadConfiguration(configRootElement);
   

@@ -12,33 +12,33 @@ compares the results to a baseline
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkAxis.h"
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
 #include "vtkContextView.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
-#include "vtkLandmarkDetectionAlgo.h"
+#include "vtkPlusLandmarkDetectionAlgo.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPNGWriter.h"
-#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlot.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusConfig.h"
-#include "vtkReadTrackedSignals.h"
+#include "vtkPlusReadTrackedSignals.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkSavedDataSource.h"
-#include "vtkSequenceIO.h"
-#include "vtkMetaImageSequenceIO.h"
+#include "vtkPlusSavedDataSource.h"
+#include "vtkPlusSequenceIO.h"
+#include "vtkPlusMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTable.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -126,7 +126,7 @@ void SaveMetricPlot(const char* filename, vtkTable* stylusRef, vtkTable* stylusT
   writer->Write();
 }
 
-PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
+PlusStatus ConstructSignalPlot(vtkPlusTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
 {
   double signalTimeRangeMin = trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp();
   double signalTimeRangeMax = trackedStylusTipFrames->GetTrackedFrame(trackedStylusTipFrames->GetNumberOfTrackedFrames()-1)->GetTimestamp();
@@ -141,7 +141,7 @@ PlusStatus ConstructSignalPlot(vtkTrackedFrameList* trackedStylusTipFrames, std:
   double frequency = 1/(trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp()-trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp());
   LOG_INFO("Frequency first frames = "<< frequency << " Frequency average frame = "<<trackedStylusTipFrames->GetNumberOfTrackedFrames()/(signalTimeRangeMax-signalTimeRangeMin));
 
-  vtkSmartPointer<vtkReadTrackedSignals> trackerDataMetricExtractor = vtkSmartPointer<vtkReadTrackedSignals>::New();
+  vtkSmartPointer<vtkPlusReadTrackedSignals> trackerDataMetricExtractor = vtkSmartPointer<vtkPlusReadTrackedSignals>::New();
 
   trackerDataMetricExtractor->SetTrackerFrames(trackedStylusTipFrames);
   trackerDataMetricExtractor->SetSignalTimeRange(signalTimeRangeMin, signalTimeRangeMax);
@@ -228,7 +228,7 @@ int main (int argc, char* argv[])
 
   //--------------------------------------------------------------------------------------------------------------------------------------
   // Initialize data collection
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
   if (dataCollector->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS) {
     LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
     exit(EXIT_FAILURE);
@@ -265,7 +265,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   // Read coordinate definitions
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
@@ -278,7 +278,7 @@ int main (int argc, char* argv[])
   }
 
   // Initialize fake tracker
-  vtkSavedDataSource *trackerDevice = dynamic_cast<vtkSavedDataSource*>(aDevice);
+  vtkPlusSavedDataSource *trackerDevice = dynamic_cast<vtkPlusSavedDataSource*>(aDevice);
   if (trackerDevice== NULL)
   {
     LOG_ERROR("Invalid tracker object!");
@@ -289,7 +289,7 @@ int main (int argc, char* argv[])
   int numberFiles = 0;
   vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  if( vtkMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence) )
+  if( vtkPlusMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence) )
   {
     LOG_INFO("Only one sequence"<<extension);
     numberFiles=1;
@@ -314,14 +314,14 @@ int main (int argc, char* argv[])
       fileString += myDir->GetFile(i);
     }
     //extension = vtksys::SystemTools::GetFilenameExtension(fileString);
-    if( vtkMetaImageSequenceIO::CanReadFile(fileString) )
+    if( vtkPlusMetaImageSequenceIO::CanReadFile(fileString) )
     {
-      vtkSmartPointer<vtkTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+      vtkSmartPointer<vtkPlusTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
       if( !fileString.empty() )
       {
         trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
         LOG_INFO("Read stylus tracker data from " << fileString);
-        if( vtkSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS )
+        if( vtkPlusSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
           exit(EXIT_FAILURE);
@@ -353,7 +353,7 @@ int main (int argc, char* argv[])
 
       //----------------------------------------------------------------------------------------------
       // Initialize phantom registration
-      vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
+      vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo>::New();
       if (phantomRegistration == NULL)
       {
         LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
@@ -371,7 +371,7 @@ int main (int argc, char* argv[])
         exit(EXIT_FAILURE);
       }
       // Initialize Landmark detection
-      vtkSmartPointer<vtkLandmarkDetectionAlgo> landmarkDetection = vtkSmartPointer<vtkLandmarkDetectionAlgo>::New();
+      vtkSmartPointer<vtkPlusLandmarkDetectionAlgo> landmarkDetection = vtkSmartPointer<vtkPlusLandmarkDetectionAlgo>::New();
       if (landmarkDetection == NULL)
       {
         LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
@@ -399,7 +399,7 @@ int main (int argc, char* argv[])
       if (valid)
       {
         // Acquire positions for landmark detection
-        TrackedFrame trackedFrame;
+        PlusTrackedFrame trackedFrame;
         vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
         for (int j=0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j)
         {
@@ -521,7 +521,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkTransformRepository> currentTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  vtkSmartPointer<vtkPlusTransformRepository> currentTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
   if ( currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName); 
@@ -546,7 +546,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  vtkSmartPointer<vtkPlusTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
   if ( baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName); 

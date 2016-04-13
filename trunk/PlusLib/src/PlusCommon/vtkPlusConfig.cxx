@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 #include "vtkDirectory.h"
 #include "vtkMatrix4x4.h"
-#include "vtkRecursiveCriticalSection.h"
+#include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx" 
 
@@ -51,7 +51,7 @@ public:
 namespace
 {
   vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
-  vtkSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+  vtkPlusSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
 }
 
 //-----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
   if(!vtkPlusConfig::Instance) 
   {
-    PlusLockGuard<vtkSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
+    PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
 
     if( vtkPlusConfig::Instance != NULL )
     {
@@ -119,7 +119,7 @@ vtkPlusConfig::vtkPlusConfig()
 : DeviceSetConfigurationData(NULL)
 , ApplicationConfigurationData(NULL)
 {
-  this->ApplicationStartTimestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeString(); 
+  this->ApplicationStartTimestamp = vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString(); 
   
   // Retrieve the program directory (where the exe file is located)
   SetProgramDirectory();

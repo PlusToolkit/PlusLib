@@ -5,16 +5,16 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusReconstructVolumeCommand.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
-#include "vtkVolumeReconstructor.h"
-#include "vtkVirtualVolumeReconstructor.h"
+#include "vtkPlusTrackedFrameList.h"
+#include "vtkPlusTransformRepository.h"
+#include "vtkPlusVolumeReconstructor.h"
+#include "vtkPlusVirtualVolumeReconstructor.h"
 #include <float.h> // for DBL_MAX
 
 #define UNDEFINED_VALUE DBL_MAX
@@ -199,7 +199,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkVirtualVolumeReconstructor* reconstructorDevice=GetVolumeReconstructorDevice();
+  vtkPlusVirtualVolumeReconstructor* reconstructorDevice=GetVolumeReconstructorDevice();
   if (reconstructorDevice==NULL)
   {
     this->QueueCommandResponse(std::string("Volume reconstruction command failed: device ")
@@ -371,7 +371,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
   {
     std::string outputVolFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputVolFilename);
     LOG_INFO("Saving reconstructed volume to file: " << outputVolFileFullPath);
-    if (vtkVolumeReconstructor::SaveReconstructedVolumeToMetafile(volumeToSend, outputVolFileFullPath.c_str())!=PLUS_SUCCESS)
+    if (vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(volumeToSend, outputVolFileFullPath.c_str())!=PLUS_SUCCESS)
     {
       status=PLUS_FAIL;
       resultMessage += std::string("saving reconstructed volume to ")+outputVolFileFullPath+" failed";
@@ -404,15 +404,15 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
 }
 
 //----------------------------------------------------------------------------
-vtkVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeReconstructorDevice()
+vtkPlusVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeReconstructorDevice()
 {
-  vtkDataCollector* dataCollector=GetDataCollector();
+  vtkPlusDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("Data collector is invalid");    
     return NULL;
   }
-  vtkVirtualVolumeReconstructor *reconstructorDevice=NULL;
+  vtkPlusVirtualVolumeReconstructor *reconstructorDevice=NULL;
   if (this->VolumeReconstructorDeviceId!=NULL)
   {
     // Reconstructor device ID is specified
@@ -423,7 +423,7 @@ vtkVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeReconst
       return NULL;
     }
     // device found
-    reconstructorDevice = vtkVirtualVolumeReconstructor::SafeDownCast(device);
+    reconstructorDevice = vtkPlusVirtualVolumeReconstructor::SafeDownCast(device);
     if (reconstructorDevice==NULL)
     {
       // wrong type
@@ -436,7 +436,7 @@ vtkVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeReconst
     // No volume reconstruction device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      reconstructorDevice = vtkVirtualVolumeReconstructor::SafeDownCast(*it);
+      reconstructorDevice = vtkPlusVirtualVolumeReconstructor::SafeDownCast(*it);
       if (reconstructorDevice!=NULL)
       {      
         // found a recording device

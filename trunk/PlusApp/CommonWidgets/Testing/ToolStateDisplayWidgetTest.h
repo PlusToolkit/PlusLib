@@ -13,7 +13,7 @@
 class DeviceSetSelectorWidget;
 class ToolStateDisplayWidget;
 class vtkPlusChannel;
-class vtkDataCollector;
+class vtkPlusDataCollector;
 
 //-----------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ protected:
 
 	/*! Data source object */
 	vtkPlusChannel*	        m_SelectedChannel;
-  vtkDataCollector*       m_DataCollector;
+  vtkPlusDataCollector*       m_DataCollector;
 
 };
 

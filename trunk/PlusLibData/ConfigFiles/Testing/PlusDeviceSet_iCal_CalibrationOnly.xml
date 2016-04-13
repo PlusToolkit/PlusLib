@@ -93,11 +93,11 @@
     </Geometry>
   </PhantomDefinition>
 
-  <vtkBrachyStepperPhantomRegistrationAlgo
+  <vtkPlusBrachyStepperPhantomRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference" />
 
-  <vtkProbeCalibrationAlgo
+  <vtkPlusProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

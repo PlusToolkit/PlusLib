@@ -25,7 +25,7 @@ Rendering tries to emphasize edges and allow to choose an optimal size and viewi
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
 #include "vtkSTLReader.h"
-#include "vtkToolAxesActor.h" 
+#include "vtkPlusToolAxesActor.h" 
 #include "vtkTriangleFilter.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
   renderer->AddActor(modelEdgesActor);
 
   // Add an origin display actor
-  vtkSmartPointer<vtkToolAxesActor> originActor=vtkSmartPointer<vtkToolAxesActor>::New();
+  vtkSmartPointer<vtkPlusToolAxesActor> originActor=vtkSmartPointer<vtkPlusToolAxesActor>::New();
   originActor->SetName("origin");
   //renderer->AddActor(originActor);
 

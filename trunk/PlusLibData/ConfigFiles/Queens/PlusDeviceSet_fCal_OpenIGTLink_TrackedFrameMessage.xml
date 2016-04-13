@@ -137,12 +137,12 @@
     TemporalCalibrationDurationSec="10"
     DefaultSelectedChannelId="TrackedVideoStream" />
 
-  <vtkPivotCalibrationAlgo
+  <vtkPlusPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />
 
-  <vtkPhantomLandmarkRegistrationAlgo
+  <vtkPlusPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
@@ -152,7 +152,7 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
 
-  <vtkProbeCalibrationAlgo
+  <vtkPlusProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

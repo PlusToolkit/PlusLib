@@ -1,5 +1,5 @@
 <PlusConfiguration version="2.2">
-  <!-- Used by vtkUsSimulatorAlgoTest -->
+  <!-- Used by vtkPlusUsSimulatorAlgoTest -->
 
   <CoordinateDefinitions>
     <Transform
@@ -24,7 +24,7 @@
       Error="0.965947" Date="022412_105333" />
   </CoordinateDefinitions>
 
-  <vtkUsSimulatorAlgo
+  <vtkPlusUsSimulatorAlgo
     ImageCoordinateFrame="Image"
     ReferenceCoordinateFrame="Phantom"
     IncomingIntensityMwPerCm2="100"
@@ -92,6 +92,6 @@
         TransducerCenterPixel="600 34"
         OutputImageSpacingMmPerPixel="0.084 0.087" />
     </RfProcessing>
-  </vtkUsSimulatorAlgo>
+  </vtkPlusUsSimulatorAlgo>
 
 </PlusConfiguration>

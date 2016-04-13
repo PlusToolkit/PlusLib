@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
-#include "vtkICCapturingSource.h"
+#include "vtkPlusICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkRenderWindowInteractor.h"
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -65,11 +65,11 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkICCapturingSource> frameGrabber = vtkSmartPointer<vtkICCapturingSource>::New();
+  vtkSmartPointer<vtkPlusICCapturingSource> frameGrabber = vtkSmartPointer<vtkPlusICCapturingSource>::New();
 
   if (listDevices)
   {

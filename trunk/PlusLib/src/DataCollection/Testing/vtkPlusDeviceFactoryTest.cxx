@@ -5,10 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkFakeTracker.h"
+#include "vtkPlusFakeTracker.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
-#include "vtkSavedDataSource.h"
+#include "vtkPlusSavedDataSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 int main (int argc, char* argv[])
@@ -84,7 +84,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create Fakedevice device instance!"); 
     return EXIT_FAILURE; 
   }
-  if ( dynamic_cast<vtkFakeTracker*>(device) == NULL )
+  if ( dynamic_cast<vtkPlusFakeTracker*>(device) == NULL )
   {
     LOG_ERROR("Failed to create FakeTracker device instance!"); 
     return EXIT_FAILURE; 
@@ -129,7 +129,7 @@ int main (int argc, char* argv[])
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 
   }
-  if ( dynamic_cast<vtkSavedDataSource*>(device) == NULL )
+  if ( dynamic_cast<vtkPlusSavedDataSource*>(device) == NULL )
   {
     LOG_ERROR("Failed to create SavedDataset video source instance!"); 
     return EXIT_FAILURE; 

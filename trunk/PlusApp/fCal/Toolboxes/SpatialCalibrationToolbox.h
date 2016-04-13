@@ -12,13 +12,13 @@ See License.txt for details.
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
 
-#include "FidPatternRecognitionCommon.h"
+#include "PlusFidPatternRecognitionCommon.h"
 
 #include <QWidget>
 
-class vtkProbeCalibrationAlgo;
-class FidPatternRecognition;
-class vtkTrackedFrameList;
+class vtkPlusProbeCalibrationAlgo;
+class PlusFidPatternRecognition;
+class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -110,16 +110,16 @@ protected slots:
 
 protected:
   /*! Calibration algorithm */
-  vtkProbeCalibrationAlgo* m_Calibration;
+  vtkPlusProbeCalibrationAlgo* m_Calibration;
 
   /*! Pattern recognition algorithm */
-  FidPatternRecognition* m_PatternRecognition;
+  PlusFidPatternRecognition* m_PatternRecognition;
 
   /*! Tracked frame data for spatial calibration */
-  vtkTrackedFrameList* m_SpatialCalibrationData;
+  vtkPlusTrackedFrameList* m_SpatialCalibrationData;
 
   /*! Tracked frame data for validation of spatial calibration */
-  vtkTrackedFrameList* m_SpatialValidationData;
+  vtkPlusTrackedFrameList* m_SpatialValidationData;
 
   /*! Delay time before start acquisition [s] */
   int                        m_FreeHandStartupDelaySec;

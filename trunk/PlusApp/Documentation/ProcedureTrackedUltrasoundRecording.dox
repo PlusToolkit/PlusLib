@@ -28,7 +28,7 @@ Note that currently only data collection is implemented in fCal, calibration is 
 \subsubsection ProcedureTrackedUltrasoundRecordingRfAcquisitionUltrasonixTesting Testing the RF acquisition
 
 The simplest way to test if RF acquisition works is by running the following test:
-vtkSonixVideoSourceTest1.exe --sonix-ip=130.15.7.20 --acq-mode=rf
+vtkPlusSonixVideoSourceTest1.exe --sonix-ip=130.15.7.20 --acq-mode=rf
 
 If the system is not in research mode or there is a popup window displayed in the Ultrasonix exam software then it may not be possible to switch into RF acquisition mode. Before attempting to acquire RF data in Plus test if you can actually acquire RF data in the exam software (you may need to click on the Research touchscreen button, RF touchscreen button and press the Update/RightMouse physical button to enable RF acquisition).
 

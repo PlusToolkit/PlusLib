@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkDataCollectorVideoAcqTest.cxx 
+  \file vtkPlusDataCollectorVideoAcqTest.cxx 
   \brief This a simple test program to acquire a video sequence and write to a metafile
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
   
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
   dataCollector->ReadConfiguration( configRootElement );
   dataCollector->Connect(); 
   dataCollector->Start();

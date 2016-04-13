@@ -3,54 +3,54 @@
 
 SET (PlusCommon_SRCS 
   PlusCommon.cxx
-  vtkAccurateTimer.cxx 
+  vtkPlusAccurateTimer.cxx 
   vtkPlusLogger.cxx
-  vtkHTMLGenerator.cxx 
+  vtkPlusHTMLGenerator.cxx 
   vtkPlusConfig.cxx
   PlusMath.cxx 
-  vtkTransformRepository.cxx
+  vtkPlusTransformRepository.cxx
   PlusVideoFrame.cxx
-  vtkTrackedFrameList.cxx
-  TrackedFrame.cxx
-  vtkMetaImageSequenceIO.cxx
-  vtkSequenceIOBase.cxx
-  vtkSequenceIO.cxx
-  vtkRecursiveCriticalSection.cxx
-  vtkToolAxesActor.cxx
+  vtkPlusTrackedFrameList.cxx
+  PlusTrackedFrame.cxx
+  vtkPlusMetaImageSequenceIO.cxx
+  vtkPlusSequenceIOBase.cxx
+  vtkPlusSequenceIO.cxx
+  vtkPlusRecursiveCriticalSection.cxx
+  vtkPlusToolAxesActor.cxx
   )
 
 SET (PlusCommon_HDRS)
 if (WIN32)  
   SET (PlusCommon_HDRS
     PlusCommon.h
-    vtkAccurateTimer.h
+    vtkPlusAccurateTimer.h
     WindowsAccurateTimer.h
     vtkPlusLogger.h
-    vtkHTMLGenerator.h
+    vtkPlusHTMLGenerator.h
     vtkPlusConfig.h
     vtkPlusMacro.h
     PlusMath.h
-    vtkTransformRepository.h
-    vtkTrackedFrameList.h
-    TrackedFrame.h
+    vtkPlusTransformRepository.h
+    vtkPlusTrackedFrameList.h
+    PlusTrackedFrame.h
     PlusVideoFrame.h
     PlusVideoFrame.txx
-    vtkMetaImageSequenceIO.h
-    vtkSequenceIO.h
-    vtkSequenceIOBase.h
-    vtkRecursiveCriticalSection.h
-    vtkToolAxesActor.h
+    vtkPlusMetaImageSequenceIO.h
+    vtkPlusSequenceIO.h
+    vtkPlusSequenceIOBase.h
+    vtkPlusRecursiveCriticalSection.h
+    vtkPlusToolAxesActor.h
     PixelCodec.h
     )
 endif (WIN32)
 
 IF (VTK_MAJOR_VERSION GREATER 5)
   SET(PlusCommon_SRCS ${PlusCommon_SRCS}
-    vtkNrrdSequenceIO.cxx
+    vtkPlusNrrdSequenceIO.cxx
   )
   IF( WIN32 )
     SET (PlusCommon_HDRS ${PlusCommon_HDRS}
-      vtkNrrdSequenceIO.h
+      vtkPlusNrrdSequenceIO.h
     )
   ENDIF( WIN32 )
 ENDIF()

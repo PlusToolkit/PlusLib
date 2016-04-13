@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
-#include "vtkEpiphanVideoSource.h"
+#include "vtkPlusEpiphanVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkRenderWindowInteractor.h"
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
 
-  vtkSmartPointer<vtkEpiphanVideoSource> frameGrabber = vtkSmartPointer<vtkEpiphanVideoSource>::New();
+  vtkSmartPointer<vtkPlusEpiphanVideoSource> frameGrabber = vtkSmartPointer<vtkPlusEpiphanVideoSource>::New();
 
   if (!grabberLocation.empty())
   {

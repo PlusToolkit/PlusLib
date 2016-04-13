@@ -6,11 +6,11 @@ See License.txt for details.
 
 #include "ConfigurationToolbox.h"
 #include "DeviceSetSelectorWidget.h"
-#include "FidPatternRecognition.h"
+#include "PlusFidPatternRecognition.h"
 #include "ToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
-#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkVisualizationController.h"
@@ -519,14 +519,14 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   m_ParentMainWindow->SetPhantomWiresModelId("");
 
   // Get phantom coordinate frame name
-  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
+  vtkXMLDataElement* phantomRegistrationElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName( vtkPlusPhantomLandmarkRegistrationAlgo::GetConfigurationElementName().c_str() ); 
   if (phantomRegistrationElement == NULL)
   {
     LOG_INFO("No phantom registration algorithm configuration are found - no phantom will be shown");
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo>::New();
   if (phantomRegistration->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_WARNING("Reading phantom registration algorithm configuration failed!");
@@ -552,22 +552,22 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
   }
 
   // Get wire pattern
-  FidPatternRecognition patternRecognition;
+  PlusFidPatternRecognition patternRecognition;
   if (patternRecognition.ReadPhantomDefinition(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read phantom wire configuration!");
     return PLUS_FAIL;
   }
 
-  std::vector<FidPattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
+  std::vector<PlusFidPattern*> patterns( patternRecognition.GetFidLineFinder()->GetPatterns() );
   
   // Set an empty polydata to initialize
   phantomWiresDisplayablePolyData->SetPolyData(vtkSmartPointer<vtkPolyData>::New());
 
   // Construct wires poly data
-  for (std::vector<FidPattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
+  for (std::vector<PlusFidPattern*>::iterator patternIt = patterns.begin(); patternIt != patterns.end(); ++patternIt)
   {
-    for (std::vector<FidWire>::const_iterator wireIt = (*patternIt)->GetWires().begin(); wireIt != (*patternIt)->GetWires().end(); ++wireIt)
+    for (std::vector<PlusFidWire>::const_iterator wireIt = (*patternIt)->GetWires().begin(); wireIt != (*patternIt)->GetWires().end(); ++wireIt)
     {
       double endPointFrontInPhantomFrame[4] = { wireIt->EndPointFront[0], wireIt->EndPointFront[1], wireIt->EndPointFront[2], 1.0 };
       double endPointBackInPhantomFrame[4] = { wireIt->EndPointBack[0], wireIt->EndPointBack[1], wireIt->EndPointBack[2], 1.0 };

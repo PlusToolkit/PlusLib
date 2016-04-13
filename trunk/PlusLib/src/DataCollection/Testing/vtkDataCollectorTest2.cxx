@@ -5,17 +5,17 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkDataCollectorTest2.cxx 
+  \file vtkPlusDataCollectorTest2.cxx 
   \brief This a test program acquires both video and tracking data and writes them into separate metafiles
 */ 
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusBuffer.h"
-#include "vtkSavedDataSource.h"
+#include "vtkPlusSavedDataSource.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
 #include "vtkXMLUtilities.h"
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
@@ -95,10 +95,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkSavedDataSource* videoSource = dynamic_cast<vtkSavedDataSource*>(videoDevice); 
+    vtkPlusSavedDataSource* videoSource = dynamic_cast<vtkPlusSavedDataSource*>(videoDevice); 
     if ( videoSource == NULL )
     {
-      LOG_ERROR( "Unable to cast device to vtkSavedDataSource." );
+      LOG_ERROR( "Unable to cast device to vtkPlusSavedDataSource." );
       exit( EXIT_FAILURE );
     }
     videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str()); 
@@ -111,10 +111,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"TrackerDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkSavedDataSource* tracker = dynamic_cast<vtkSavedDataSource*>(trackerDevice); 
+    vtkPlusSavedDataSource* tracker = dynamic_cast<vtkPlusSavedDataSource*>(trackerDevice); 
     if ( tracker == NULL )
     {
-      LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
+      LOG_ERROR( "Unable to cast tracker to vtkPlusSavedDataSource" );
       exit( EXIT_FAILURE );
     }
     tracker->SetSequenceFile(inputTrackerBufferMetafile.c_str()); 

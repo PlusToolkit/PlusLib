@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandResponse.h"
 #include "vtkPlusRequestIdsCommand.h"
@@ -92,7 +92,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkDataCollector* dataCollector = this->GetDataCollector();
+  vtkPlusDataCollector* dataCollector = this->GetDataCollector();
   if (dataCollector == NULL)
   {
     this->QueueCommandResponse("Command failed, no data collector",PLUS_FAIL);

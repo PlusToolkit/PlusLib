@@ -5,9 +5,9 @@
 =========================================================Plus=header=end*/ 
 
 #include "ToolStateDisplayWidget.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkPlusChannel.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include <QGridLayout>
 
 //-----------------------------------------------------------------------------
@@ -93,7 +93,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, boo
 
   // Get transforms
   std::vector<PlusTransformName> transformNames;
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
@@ -167,7 +167,7 @@ int ToolStateDisplayWidget::GetDesiredHeight()
 
   // Get transforms
   std::vector<PlusTransformName> transformNames;
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
@@ -191,7 +191,7 @@ PlusStatus ToolStateDisplayWidget::Update()
 
   // Get transforms
   std::vector<PlusTransformName> transformNames;
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(&trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 

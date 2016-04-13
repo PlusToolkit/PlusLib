@@ -6,14 +6,14 @@ See License.txt for details.
 
 #include "SpatialCalibrationToolbox.h"
 
-#include "FidPatternRecognition.h"
+#include "PlusFidPatternRecognition.h"
 #include "SegmentationParameterDialog.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "fCalMainWindow.h"
 
 #include "vtkPlusDevice.h"
-#include "vtkProbeCalibrationAlgo.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusProbeCalibrationAlgo.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 
 #include <QFileDialog>
@@ -41,15 +41,15 @@ SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMain
   ui.setupUi(this);
 
   // Create algorithms
-  m_Calibration = vtkProbeCalibrationAlgo::New();
+  m_Calibration = vtkPlusProbeCalibrationAlgo::New();
 
-  m_PatternRecognition = new FidPatternRecognition();
+  m_PatternRecognition = new PlusFidPatternRecognition();
 
   // Create tracked frame lists
-  m_SpatialCalibrationData = vtkTrackedFrameList::New();
+  m_SpatialCalibrationData = vtkPlusTrackedFrameList::New();
   m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
-  m_SpatialValidationData = vtkTrackedFrameList::New();
+  m_SpatialValidationData = vtkPlusTrackedFrameList::New();
   m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
   // Change result display properties
@@ -486,7 +486,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
   std::string transformDate;
   double transformError = 0.0;
   bool valid = false;
-  vtkTransformRepository* tempTransformRepo = vtkTransformRepository::New();
+  vtkPlusTransformRepository* tempTransformRepo = vtkPlusTransformRepository::New();
   if ( tempTransformRepo->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS
     || tempTransformRepo->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrix, &valid) != PLUS_SUCCESS
     || tempTransformRepo->GetTransformDate(phantomToReferenceTransformName, transformDate) != PLUS_SUCCESS
@@ -693,7 +693,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   m_ParentMainWindow->GetVisualizationController()->EnableWireLabels(true);
 
   // Get current time
-  double startTimeSec = vtkAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
 
   // Calibrate if acquisition is ready
   if ( m_NumberOfSegmentedCalibrationImages >= m_NumberOfCalibrationImagesToAcquire
@@ -742,7 +742,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   }
 
   // Determine which data container to use
-  vtkTrackedFrameList* trackedFrameListToUse = NULL;
+  vtkPlusTrackedFrameList* trackedFrameListToUse = NULL;
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
     trackedFrameListToUse = m_SpatialValidationData;
@@ -772,11 +772,11 @@ void SpatialCalibrationToolbox::DoCalibration()
 
   // Remove tracked frames without valid transforms
   PlusTransformName probeToPhantomTransformName=PlusTransformName(m_Calibration->GetProbeCoordinateFrame(), m_Calibration->GetPhantomCoordinateFrame());
-  vtkTransformRepository* transformRepository=m_ParentMainWindow->GetVisualizationController()->GetTransformRepository();
+  vtkPlusTransformRepository* transformRepository=m_ParentMainWindow->GetVisualizationController()->GetTransformRepository();
   bool probeToPhantomTransformValid=false;
   for (int frameIndex=numberOfFramesBeforeRecording; frameIndex<trackedFrameListToUse->GetNumberOfTrackedFrames(); frameIndex++)
   {
-    TrackedFrame* trackedFrame=trackedFrameListToUse->GetTrackedFrame(frameIndex);
+    PlusTrackedFrame* trackedFrame=trackedFrameListToUse->GetTrackedFrame(frameIndex);
     transformRepository->SetTransforms(*trackedFrame);
     transformRepository->GetTransformValid(probeToPhantomTransformName, probeToPhantomTransformValid);
     if (!probeToPhantomTransformValid)
@@ -803,14 +803,14 @@ void SpatialCalibrationToolbox::DoCalibration()
   int numberOfNewlySegmentedImages = 0;
   if (numberOfFramesBeforeRecording<trackedFrameListToUse->GetNumberOfTrackedFrames())
   {
-    FidPatternRecognition::PatternRecognitionError error;
+    PlusFidPatternRecognition::PatternRecognitionError error;
     if ( m_PatternRecognition->RecognizePattern(trackedFrameListToUse, error, &numberOfNewlySegmentedImages) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to segment tracked frame list"); 
       QTimer::singleShot(50, this, SLOT(DoCalibration()));
       return;
     }
-    if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+    if( error == PlusFidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
     {
       LOG_WARNING("Too many candidates in frame. Some candidates have been truncated to prevent freezing of the application.");
     }
@@ -835,7 +835,7 @@ void SpatialCalibrationToolbox::DoCalibration()
   DisplaySegmentedPoints(probeToPhantomTransformValid);
 
   // Compute time spent with processing one frame in this round
-  double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
+  double computationTimeMs = (vtkPlusAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
   // Update last processing time if new tracked frames have been acquired
   if (trackedFrameListToUse->GetNumberOfTrackedFrames() > numberOfFramesBeforeRecording)
   {
@@ -877,7 +877,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   PlusTransformName transducerOriginPixelToTransducerOriginTransformName(m_ParentMainWindow->GetTransducerOriginPixelCoordinateFrame(), m_ParentMainWindow->GetTransducerOriginCoordinateFrame());
   m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransform(transducerOriginPixelToTransducerOriginTransformName, transducerOriginPixelToTransducerOriginTransform->GetMatrix());
   m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformPersistent(transducerOriginPixelToTransducerOriginTransformName, true);
-  m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+  m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
   vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId());
@@ -946,7 +946,7 @@ bool SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration()
   LOG_TRACE("SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration");
 
   // Try to load segmentation parameters from the device set configuration (see if it is there and correct)
-  FidPatternRecognition* patternRecognition = new FidPatternRecognition();
+  PlusFidPatternRecognition* patternRecognition = new PlusFidPatternRecognition();
   if (patternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     ui.label_InstructionsSpatial->setText(tr("Pattern recognition configuration needs to be imported"));
@@ -974,7 +974,7 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
   LOG_TRACE("SpatialCalibrationToolbox::DisplaySegmentedPoints");
 
   // Determine which data container to use
-  vtkTrackedFrameList* trackedFrameListToUse = NULL;
+  vtkPlusTrackedFrameList* trackedFrameListToUse = NULL;
   if (m_NumberOfSegmentedValidationImages < m_NumberOfValidationImagesToAcquire)
   {
     trackedFrameListToUse = m_SpatialValidationData;
@@ -988,7 +988,7 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
   vtkPoints* segmentedPoints = NULL;
   if (trackedFrameListToUse->GetNumberOfTrackedFrames()>0 && enable)
   {
-    TrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(trackedFrameListToUse->GetNumberOfTrackedFrames()-1); // most recently acquired frame
+    PlusTrackedFrame * frame = trackedFrameListToUse->GetTrackedFrame(trackedFrameListToUse->GetNumberOfTrackedFrames()-1); // most recently acquired frame
     segmentedPoints = frame->GetFiducialPointsCoordinatePx();
   }
   if (segmentedPoints && segmentedPoints->GetNumberOfPoints()>0)
@@ -1034,14 +1034,14 @@ void SpatialCalibrationToolbox::Reset()
   }
 
   // Create algorithms
-  m_Calibration = vtkProbeCalibrationAlgo::New();
-  m_PatternRecognition = new FidPatternRecognition();
+  m_Calibration = vtkPlusProbeCalibrationAlgo::New();
+  m_PatternRecognition = new PlusFidPatternRecognition();
 
   // Create tracked frame lists
-  m_SpatialCalibrationData = vtkTrackedFrameList::New();
+  m_SpatialCalibrationData = vtkPlusTrackedFrameList::New();
   m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK); 
 
-  m_SpatialValidationData = vtkTrackedFrameList::New();
+  m_SpatialValidationData = vtkPlusTrackedFrameList::New();
   m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
 
   // Restore calibration and pattern recognition algorithm details

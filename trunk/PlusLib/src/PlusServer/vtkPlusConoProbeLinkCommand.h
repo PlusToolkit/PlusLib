@@ -20,7 +20,7 @@ Authors include:
 
 #include "vtkPlusCommand.h"
 
-class vtkOptimetConoProbeMeasurer;
+class vtkPlusOptimetConoProbeMeasurer;
 
 /*!
   \class vtkPlusConoProbeLinkCommand 
@@ -60,7 +60,7 @@ public:
     Helper function to get pointer to the ConoProbe device
     \param conoProbeDeviceId ConoProbe device ID..
   */
-  vtkOptimetConoProbeMeasurer* GetConoProbeDevice(const char* conoProbeDeviceID);
+  vtkPlusOptimetConoProbeMeasurer* GetConoProbeDevice(const char* conoProbeDeviceID);
 
 protected:
 

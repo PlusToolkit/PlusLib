@@ -4,15 +4,15 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "FidPatternRecognition.h"
+#include "PlusFidPatternRecognition.h"
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkCommand.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtksys/CommandLineArguments.hxx" 
 #include <iostream>
@@ -62,8 +62,8 @@ int main (int argc, char* argv[])
   }  
 
   LOG_INFO( "Reading sequence meta file");  
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  if( vtkPlusSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;
@@ -78,9 +78,9 @@ int main (int argc, char* argv[])
   {
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / trackedFrameList->GetNumberOfTrackedFrames() ); 
 
-    FidPatternRecognition patternRecognition;
-    PatternRecognitionResult segResults;
-    FidPatternRecognition::PatternRecognitionError error;
+    PlusFidPatternRecognition patternRecognition;
+    PlusPatternRecognitionResult segResults;
+    PlusFidPatternRecognition::PatternRecognitionError error;
 
     try
     {

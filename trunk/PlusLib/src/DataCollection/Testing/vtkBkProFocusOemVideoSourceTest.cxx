@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
-#include "vtkBkProFocusOemVideoSource.h"
+#include "vtkPlusBkProFocusOemVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkRenderWindowInteractor.h"
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkBkProFocusOemVideoSource help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusBkProFocusOemVideoSource help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -70,12 +70,12 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkBkProFocusOemVideoSource help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusBkProFocusOemVideoSource help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
 
-  vtkSmartPointer<vtkBkProFocusOemVideoSource> frameGrabber = vtkSmartPointer<vtkBkProFocusOemVideoSource>::New();
+  vtkSmartPointer<vtkPlusBkProFocusOemVideoSource> frameGrabber = vtkSmartPointer<vtkPlusBkProFocusOemVideoSource>::New();
 
   frameGrabber->SetIniFileName(iniFile.c_str());
   frameGrabber->SetAcquisitionRate(frameRate);
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
       // a frame has been acquired
       break;
     }
-    vtkAccurateTimer::Delay(0.1);
+    vtkPlusAccurateTimer::Delay(0.1);
   }
   if (videoSource->GetNumberOfItems()<1)
   {

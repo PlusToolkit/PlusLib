@@ -9,7 +9,7 @@
 #include "SegmentationParameterDialog.h"
 #include "SegmentationParameterDialogTest.h"
 #include "StatusIcon.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusDevice.h"
 #include "vtkXMLUtilities.h"
 
@@ -186,7 +186,7 @@ PlusStatus SegmentationParameterDialogTest::StartDataCollection()
     m_DataCollector = NULL;
   }
 
-  m_DataCollector = vtkDataCollector::New();
+  m_DataCollector = vtkPlusDataCollector::New();
 
   // Initialize data collector and read configuration
   if (m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)

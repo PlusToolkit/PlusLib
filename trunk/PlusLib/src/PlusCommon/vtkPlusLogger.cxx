@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkCommand.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusLogger.h"
-#include "vtkRecursiveCriticalSection.h"
+#include "vtkPlusRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx" 
 #include <sstream>
 #include <string>
@@ -30,7 +30,7 @@ vtkStandardNewMacro(vtkPlusLoggerOutputWindow);
 //-----------------------------------------------------------------------------
 namespace
 {
-  vtkSimpleRecursiveCriticalSection LoggerCreationCriticalSection;
+  vtkPlusSimpleRecursiveCriticalSection LoggerCreationCriticalSection;
 }
 
 //-----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ void vtkPlusLoggerOutputWindow::PrintSelf(ostream& os, vtkIndent indent)
 //-------------------------------------------------------
 vtkPlusLogger::vtkPlusLogger()
 {
-  m_CriticalSection = vtkRecursiveCriticalSection::New();
+  m_CriticalSection = vtkPlusRecursiveCriticalSection::New();
 
   m_LogLevel = LOG_LEVEL_INFO;
 
@@ -165,7 +165,7 @@ vtkPlusLogger* vtkPlusLogger::Instance()
 {
   if (m_pInstance == NULL)
   {
-    PlusLockGuard<vtkSimpleRecursiveCriticalSection> loggerCreationGuard(&LoggerCreationCriticalSection);
+    PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> loggerCreationGuard(&LoggerCreationCriticalSection);
     if( m_pInstance != NULL )
     {
       return m_pInstance;
@@ -174,7 +174,7 @@ vtkPlusLogger* vtkPlusLogger::Instance()
     vtkPlusLogger* newLoggerInstance = new vtkPlusLogger;
     // lock the instance even before making it available to make sure the instance is fully
     // initialized before anybody uses it
-    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(newLoggerInstance->m_CriticalSection);
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(newLoggerInstance->m_CriticalSection);
     m_pInstance = newLoggerInstance;
 
     vtkPlusConfig::GetInstance(); // set the log file name from the XML config
@@ -253,14 +253,14 @@ void vtkPlusLogger::SetLogLevel(int logLevel)
     return;
   }
 
-  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
   m_LogLevel = logLevel;
 }
 
 //-------------------------------------------------------
 void vtkPlusLogger::SetLogFileName(const char* logfilename) 
 { 
-  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
 
   if ( this->m_FileStream.is_open() )
   {
@@ -302,7 +302,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   // If log level is not debug then only print messages for INFO logs (skip the INFO prefix, line numbers, etc.)
   bool onlyShowMessage = (level == LOG_LEVEL_INFO && m_LogLevel <= LOG_LEVEL_INFO);
 
-  std::string timestamp = vtkAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
+  std::string timestamp = vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeMSecString();
 
   std::ostringstream log; 
   switch (level)
@@ -328,7 +328,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   // Add timestamp to the log message
-  double currentTime = vtkAccurateTimer::GetSystemTime(); 
+  double currentTime = vtkPlusAccurateTimer::GetSystemTime(); 
   log << "|" << std::fixed << std::setw(10) << std::right << std::setfill('0') << currentTime << "|";
 
   // Either pad out the log or add the optional prefix and pad
@@ -350,7 +350,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char *msg, const char* 
   }
 
   {
-    PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
 
     if (m_LogLevel >= level)
     { 
@@ -447,7 +447,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const std::string& msg, const
 //-------------------------------------------------------
 void vtkPlusLogger::Flush()
 {
-  PlusLockGuard<vtkRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(this->m_CriticalSection);
 
   if ( this->m_FileStream.is_open() )
   {

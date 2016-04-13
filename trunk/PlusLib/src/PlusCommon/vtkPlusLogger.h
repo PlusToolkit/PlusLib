@@ -14,16 +14,16 @@
 #include <fstream>
 #include <sstream>
 
-class vtkRecursiveCriticalSection;
+class vtkPlusRecursiveCriticalSection;
 
 /*!
-  \class vtkConsoleOutputWindow
+  \class vtkPlusConsoleOutputWindow
   \brief This is a special output class for VTK logs that enforces VTK to
   log to the console instead of displaying them in a pop-up window.
   \sa vtkPlusLoggerOutputWindow
   \ingroup PlusLibCommon
 */
-class vtkConsoleOutputWindow : public vtkOutputWindow 
+class vtkPlusConsoleOutputWindow : public vtkOutputWindow 
 { 
 public: 
   /*! 
@@ -32,8 +32,8 @@ public:
     the constructor of vtkOutputWindow, which forces to create a vtkOutputWindow instance
     that writes log messages on the console.
   */
-  static vtkConsoleOutputWindow* New() 
-  { return new vtkConsoleOutputWindow; } 
+  static vtkPlusConsoleOutputWindow* New() 
+  { return new vtkPlusConsoleOutputWindow; } 
 };
 
 /*!
@@ -41,7 +41,7 @@ public:
   \brief This is a special output class for forwarding VTK logs
   to the Plus logging system instead of displaying them in a pop-up window
   or directly on the console.
-  \sa vtkConsoleOutputWindow
+  \sa vtkPlusConsoleOutputWindow
   \ingroup PlusLibCommon
 */
 class vtkPlusLoggerOutputWindow : public vtkOutputWindow
@@ -193,7 +193,7 @@ private:
     It is necessary because the logging object may be used in multiple
     threads simultaneously.
   */
-  vtkRecursiveCriticalSection* m_CriticalSection;
+  vtkPlusRecursiveCriticalSection* m_CriticalSection;
 };
 
 #endif

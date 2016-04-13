@@ -14,7 +14,7 @@
 
 #include <QWidget>
 
-class vtkVolumeReconstructor;
+class vtkPlusVolumeReconstructor;
 class vtkImageData;
 
 //-----------------------------------------------------------------------------
@@ -108,7 +108,7 @@ protected slots:
 
 protected:
   /*! Volume reconstructor instance */
-  vtkVolumeReconstructor*  m_VolumeReconstructor;
+  vtkPlusVolumeReconstructor*  m_VolumeReconstructor;
 
   /*! Reconstructed volume */
   vtkImageData*            m_ReconstructedVolume;
