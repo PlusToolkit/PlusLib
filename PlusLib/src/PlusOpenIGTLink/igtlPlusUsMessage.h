@@ -11,7 +11,7 @@ See License.txt for details.
 #include "igtlImageMessage.h"
 #include "igtl_types.h"
 
-class TrackedFrame;
+class PlusTrackedFrame;
 
 namespace igtl
 {
@@ -34,10 +34,10 @@ namespace igtl
 
   public:
     /*! Set Plus TrackedFrame */ 
-    PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
+    PlusStatus SetTrackedFrame( const PlusTrackedFrame& trackedFrame); 
 
     /*! Get Plus TrackedFrame */ 
-    TrackedFrame& GetTrackedFrame(); 
+    PlusTrackedFrame& GetTrackedFrame(); 
 
   protected:
 
@@ -70,7 +70,7 @@ namespace igtl
     PlusUsMessage();
     ~PlusUsMessage();
 
-    TrackedFrame m_TrackedFrame; 
+    PlusTrackedFrame m_TrackedFrame; 
     MessageHeader m_MessageHeader; 
   };
 }

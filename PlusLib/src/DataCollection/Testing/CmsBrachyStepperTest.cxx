@@ -6,8 +6,8 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "BrachyStepper.h"
-#include "CmsBrachyStepper.h"
+#include "PlusBrachyStepper.h"
+#include "PlusCmsBrachyStepper.h"
 #include <stdlib.h>
 #include <iostream>
 
@@ -53,19 +53,19 @@ int main (int argc, char* argv[])
   {
     LOG_INFO("Starting test " << reconnect + 1 ); 
 
-    CmsBrachyStepper *myStepper = new CmsBrachyStepper(inputComPort, 19200);
+    PlusCmsBrachyStepper *myStepper = new PlusCmsBrachyStepper(inputComPort, 19200);
 
     if ( STRCASECMP("Burdette Medical Systems Digital Stepper", stepperType.c_str()) == 0 )
     {
-      myStepper->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
+      myStepper->SetBrachyStepperType(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER); 
     }
     else if ( STRCASECMP("Burdette Medical Systems Digital Motorized Stepper", stepperType.c_str()) == 0 )
     {
-      myStepper->SetBrachyStepperType(BrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
+      myStepper->SetBrachyStepperType(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER); 
     }
     else if ( STRCASECMP("CMS Accuseed DS300", stepperType.c_str()) == 0 )
     {
-      myStepper->SetBrachyStepperType(BrachyStepper::CMS_ACCUSEED_DS300); 
+      myStepper->SetBrachyStepperType(PlusBrachyStepper::CMS_ACCUSEED_DS300); 
     }
 
     if (!myStepper->Connect())
@@ -220,8 +220,8 @@ int main (int argc, char* argv[])
         {
           LOG_INFO( "Probe moved to position: " << -5*i << "mm");
         }
-        vtkAccurateTimer::GetInstance()->Delay(1); 
-        //vtkAccurateTimer::Delay(1 + 0.001*samplingTimeMs); 
+        vtkPlusAccurateTimer::GetInstance()->Delay(1); 
+        //vtkPlusAccurateTimer::Delay(1 + 0.001*samplingTimeMs); 
       }
 
       for ( int i = 9; i >= 0; i-- )
@@ -236,8 +236,8 @@ int main (int argc, char* argv[])
         {
           LOG_INFO( "Probe moved to position: " << -5*i << "mm");
         }
-        vtkAccurateTimer::GetInstance()->Delay(1); 
-        //vtkAccurateTimer::Delay(1 + 0.001*samplingTimeMs); 
+        vtkPlusAccurateTimer::GetInstance()->Delay(1); 
+        //vtkPlusAccurateTimer::Delay(1 + 0.001*samplingTimeMs); 
       }
     }
 
@@ -257,7 +257,7 @@ int main (int argc, char* argv[])
         //return EXIT_FAILURE; 
       }
 
-      vtkAccurateTimer::Delay(0.001*samplingTimeMs); 
+      vtkPlusAccurateTimer::Delay(0.001*samplingTimeMs); 
     }
 
     LOG_INFO( "Stopping stepper...\n");

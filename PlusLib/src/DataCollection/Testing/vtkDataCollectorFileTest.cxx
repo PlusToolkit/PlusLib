@@ -5,24 +5,24 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkDataCollectorFileTest.cxx
-  \brief This program tests if a recorded tracked ultrasound buffer can be read and replayed from file using vtkDataCollectorFile
+  \file vtkPlusDataCollectorFileTest.cxx
+  \brief This program tests if a recorded tracked ultrasound buffer can be read and replayed from file using vtkPlusDataCollectorFile
 */ 
 
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
-#include "vtkDataCollector.h"
+#include "PlusTrackedFrame.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkSmartPointer.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
 
-PlusStatus CompareTransform(PlusTransformName &transformName, vtkTransformRepository* transformRepository, double xExpected, double yExpected, double zExpected)
+PlusStatus CompareTransform(PlusTransformName &transformName, vtkPlusTransformRepository* transformRepository, double xExpected, double yExpected, double zExpected)
 {
   vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   bool valid=false;
@@ -89,7 +89,7 @@ int main( int argc, char** argv )
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
@@ -108,17 +108,17 @@ int main( int argc, char** argv )
   }
 
   // Create the used objects
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
 
   PlusTransformName referenceToTrackerTransformName("Reference", "Tracker");
   PlusTransformName probeToTrackerTransformName("Probe", "Tracker");
   PlusTransformName stylusToTrackerTransformName("Stylus", "Tracker");
 
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   PlusStatus compareStatus=PLUS_SUCCESS;
 
-  vtkAccurateTimer::Delay(5.0); // wait for 5s until the frames are acquired into the buffer
+  vtkPlusAccurateTimer::Delay(5.0); // wait for 5s until the frames are acquired into the buffer
 
   // Check some transforms to ensure that the correct data is returned by the data collector
   // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha

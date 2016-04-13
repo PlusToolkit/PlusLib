@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkSmartPointer.h"
 
-#include "vtkRecursiveCriticalSection.h"
+#include "vtkPlusRecursiveCriticalSection.h"
 
 static double DOUBLE_THRESHOLD=0.0001; 
 
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
   if ( TestInvalidTransformName("to","to") != PLUS_SUCCESS ) { exit(EXIT_FAILURE); }
 
   LOG_INFO("Test recursive critical section");
-  vtkRecursiveCriticalSection* critSec = vtkRecursiveCriticalSection::New();
+  vtkPlusRecursiveCriticalSection* critSec = vtkPlusRecursiveCriticalSection::New();
   LOG_INFO(" Lock");
   critSec->Lock();
   LOG_INFO(" Lock again");

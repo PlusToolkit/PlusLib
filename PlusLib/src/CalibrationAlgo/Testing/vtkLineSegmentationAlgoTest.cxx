@@ -5,17 +5,17 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-\file vtkCenterOfRotationCalibAlgoTest.cxx 
+\file vtkPlusCenterOfRotationCalibAlgoTest.cxx 
 \brief This test computes center of rotation on a recorded data set and 
 compares the results to a baseline
 */ 
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "vtkLineSegmentationAlgo.h"
+#include "vtkPlusLineSegmentationAlgo.h"
 #include "vtkMath.h"
-#include "vtkSequenceIO.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusSequenceIO.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -25,7 +25,7 @@ const double MAX_ORIGIN_DISTANCE_PIXEL=10;
 const double MAX_LINE_ANGLE_DIFFERENCE_DEG=3;
 
 //----------------------------------------------------------------------------
-void WriteLineSegmentationResultsToFile(const std::string& resultSaveFilename, const std::vector<vtkLineSegmentationAlgo::LineParameters> &lineParameters)
+void WriteLineSegmentationResultsToFile(const std::string& resultSaveFilename, const std::vector<vtkPlusLineSegmentationAlgo::LineParameters> &lineParameters)
 {
   std::ofstream outFile; 
   outFile.open(resultSaveFilename.c_str());  
@@ -51,7 +51,7 @@ void WriteLineSegmentationResultsToFile(const std::string& resultSaveFilename, c
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ReadLineSegmentationResultsFromFile(const std::string& resultSaveFilename, std::vector<vtkLineSegmentationAlgo::LineParameters> &lineParameters)
+PlusStatus ReadLineSegmentationResultsFromFile(const std::string& resultSaveFilename, std::vector<vtkPlusLineSegmentationAlgo::LineParameters> &lineParameters)
 {
   lineParameters.clear();
   if (resultSaveFilename.empty())
@@ -85,7 +85,7 @@ PlusStatus ReadLineSegmentationResultsFromFile(const std::string& resultSaveFile
       return PLUS_FAIL;
     }
 
-    vtkLineSegmentationAlgo::LineParameters currentLineParams;
+    vtkPlusLineSegmentationAlgo::LineParameters currentLineParams;
 
     const char* baselineSegmentationStatusString = frameElem->GetAttribute("SegmentationStatus");  
     if (baselineSegmentationStatusString==NULL)
@@ -120,7 +120,7 @@ PlusStatus ReadLineSegmentationResultsFromFile(const std::string& resultSaveFile
     if (frameIndex>=lineParameters.size())
     {
       // expand the results array to be able to store the results
-      vtkLineSegmentationAlgo::LineParameters nonDetectedLineParams;
+      vtkPlusLineSegmentationAlgo::LineParameters nonDetectedLineParams;
       nonDetectedLineParams.lineDetected=false;
       nonDetectedLineParams.lineOriginPoint_Image[0]=0;
       nonDetectedLineParams.lineOriginPoint_Image[1]=0;
@@ -135,7 +135,7 @@ PlusStatus ReadLineSegmentationResultsFromFile(const std::string& resultSaveFile
 }
 
 //----------------------------------------------------------------------------
-int CompareLineSegmentationResults(const std::vector<vtkLineSegmentationAlgo::LineParameters> &lineParameters, const std::vector<vtkLineSegmentationAlgo::LineParameters> &baselineLineParameters)
+int CompareLineSegmentationResults(const std::vector<vtkPlusLineSegmentationAlgo::LineParameters> &lineParameters, const std::vector<vtkPlusLineSegmentationAlgo::LineParameters> &baselineLineParameters)
 {
   int numberOfFailures=0;
 
@@ -149,8 +149,8 @@ int CompareLineSegmentationResults(const std::vector<vtkLineSegmentationAlgo::Li
       continue;
     }
 
-    vtkLineSegmentationAlgo::LineParameters currentParam=lineParameters[frameIndex];
-    vtkLineSegmentationAlgo::LineParameters baselineParam=baselineLineParameters[frameIndex];
+    vtkPlusLineSegmentationAlgo::LineParameters currentParam=lineParameters[frameIndex];
+    vtkPlusLineSegmentationAlgo::LineParameters baselineParam=baselineLineParameters[frameIndex];
 
     if (currentParam.lineDetected!=baselineParam.lineDetected)
     {
@@ -250,14 +250,14 @@ int main(int argc, char **argv)
   }  
 
   LOG_DEBUG("Read input sequence");
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if ( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  if ( vtkPlusSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkLineSegmentationAlgo>::New(); 
+  vtkSmartPointer<vtkPlusLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New(); 
 
   if (clipRectOrigin.size()>0 || clipRectSize.size()>0)
   {
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Failed to get line positions from video frames");
     return PLUS_FAIL;
   }
-  std::vector<vtkLineSegmentationAlgo::LineParameters> lineParameters;
+  std::vector<vtkPlusLineSegmentationAlgo::LineParameters> lineParameters;
   lineSegmenter->GetDetectedLineParameters(lineParameters);
 
   // Save results to file
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
   if (!inputBaselineFileName.empty())
   {
     LOG_INFO("Comparing result with baseline..."); 
-    std::vector<vtkLineSegmentationAlgo::LineParameters> baselineLineParameters;
+    std::vector<vtkPlusLineSegmentationAlgo::LineParameters> baselineLineParameters;
     if (ReadLineSegmentationResultsFromFile(inputBaselineFileName, baselineLineParameters)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to read baseline data file");

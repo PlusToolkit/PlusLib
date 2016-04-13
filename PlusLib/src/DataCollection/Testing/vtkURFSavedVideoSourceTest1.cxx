@@ -13,12 +13,12 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
-#include "vtkSonixVideoSource.h"
+#include "vtkPlusSonixVideoSource.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
 
-vtkSmartPointer<vtkSonixVideoSource> sonixGrabber;
+vtkSmartPointer<vtkPlusSonixVideoSource> sonixGrabber;
 vtkImageViewer *viewer = NULL;
 vtkRenderWindowInteractor *iren = NULL;
 
@@ -59,13 +59,13 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   LOG_DEBUG("Reading config file finished.");
 
   //Add the video source here
-  sonixGrabber = vtkSmartPointer<vtkSonixVideoSource>::New();
+  sonixGrabber = vtkSmartPointer<vtkPlusSonixVideoSource>::New();
   sonixGrabber->SetImagingModeDevice(0);
   sonixGrabber->SetAcquisitionDataTypeDevice(0x00000005);
   sonixGrabber->ReadConfiguration(configRootElement);

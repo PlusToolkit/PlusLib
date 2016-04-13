@@ -6,7 +6,7 @@ TARGET_LINK_LIBRARIES(RfProcessor vtkImageProcessingAlgo ${VTK_LIBRARIES} )
 GENERATE_HELP_DOC(RfProcessor)
 
 # --------------------------------------------------------------------------
-ADD_TEST(vtkRfToBrightnessConvertRunTest
+ADD_TEST(vtkPlusRfToBrightnessConvertRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
@@ -14,17 +14,17 @@ ADD_TEST(vtkRfToBrightnessConvertRunTest
   --use-compression=false
   --operation=BRIGHTNESS_CONVERT
   )
-SET_TESTS_PROPERTIES( vtkRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusRfToBrightnessConvertRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkRfToBrightnessConvertCompareToBaselineTest
+ADD_TEST(vtkPlusRfToBrightnessConvertCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearBrightnessData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixCurvilinearBrightnessData.mha
   )
-SET_TESTS_PROPERTIES(vtkRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkRfToBrightnessConvertRunTest)
+SET_TESTS_PROPERTIES(vtkPlusRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkPlusRfToBrightnessConvertRunTest)
 
 # --------------------------------------------------------------------------
-ADD_TEST(vtkUsScanConvertCurvilinearRunTest
+ADD_TEST(vtkPlusUsScanConvertCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
@@ -32,17 +32,17 @@ ADD_TEST(vtkUsScanConvertCurvilinearRunTest
   --use-compression=false
   --operation=BRIGHTNESS_SCAN_CONVERT
   )
-SET_TESTS_PROPERTIES( vtkUsScanConvertCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusUsScanConvertCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
+ADD_TEST(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
   )
-SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
+SET_TESTS_PROPERTIES(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertCurvilinearRunTest)
 
 # --------------------------------------------------------------------------
-ADD_TEST(vtkUsScanConvertLinearRunTest
+ADD_TEST(vtkPlusUsScanConvertLinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
   --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
@@ -50,17 +50,17 @@ ADD_TEST(vtkUsScanConvertLinearRunTest
   --operation=BRIGHTNESS_SCAN_CONVERT
   --use-compression=false
   )
-SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkUsScanConvertLinearCompareToBaselineTest
+ADD_TEST(vtkPlusUsScanConvertLinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
    ${TestDataDir}/UltrasonixLinearScanConvertedData.mha
   )
-SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
+SET_TESTS_PROPERTIES(vtkPlusUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertLinearRunTest)
 
 # --------------------------------------------------------------------------
-ADD_TEST(vtkUsScanConvertBkCurvilinearRunTest
+ADD_TEST(vtkPlusUsScanConvertBkCurvilinearRunTest
   ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
   --rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
@@ -68,14 +68,14 @@ ADD_TEST(vtkUsScanConvertBkCurvilinearRunTest
   --operation=BRIGHTNESS_SCAN_CONVERT
   --use-compression=false
   )
-SET_TESTS_PROPERTIES( vtkUsScanConvertBkCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusUsScanConvertBkCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkUsScanConvertBkCurvilinearCompareToBaselineTest
+ADD_TEST(vtkPlusUsScanConvertBkCurvilinearCompareToBaselineTest
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/outputBkCurvilinearScanConvertedData_OutputChannel_VideoStream.mha
    ${TestDataDir}/BkCurvilinearScanConvertedData.mha
   )
-SET_TESTS_PROPERTIES(vtkUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertBkCurvilinearRunTest)
+SET_TESTS_PROPERTIES(vtkPlusUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertBkCurvilinearRunTest)
 
 #---------------------------------------------------------------------------
 ADD_EXECUTABLE(DrawScanLines DrawScanLines.cxx )
@@ -91,12 +91,12 @@ ADD_TEST(DrawScanLinesCurvilinearRunTest
   )
 SET_TESTS_PROPERTIES( DrawScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-#ADD_TEST(vtkUsScanConvertCurvilinearCompareToBaselineTest
+#ADD_TEST(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest
 #  ${CMAKE_COMMAND} -E compare_files 
 #   ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
 #   ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
 #  )
-#SET_TESTS_PROPERTIES(vtkUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertCurvilinearRunTest)
+#SET_TESTS_PROPERTIES(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertCurvilinearRunTest)
 
 # --------------------------------------------------------------------------
 ADD_TEST(DrawScanLinesLinearRunTest
@@ -105,13 +105,13 @@ ADD_TEST(DrawScanLinesLinearRunTest
   --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.mha
   --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.mha
   )
-SET_TESTS_PROPERTIES( vtkUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-#ADD_TEST(vtkUsScanConvertLinearCompareToBaselineTest
+#ADD_TEST(vtkPlusUsScanConvertLinearCompareToBaselineTest
 #  ${CMAKE_COMMAND} -E compare_files 
 #   ${TEST_OUTPUT_PATH}/outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha   
 #  )
-#SET_TESTS_PROPERTIES(vtkUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkUsScanConvertLinearRunTest)
+#SET_TESTS_PROPERTIES(vtkPlusUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertLinearRunTest)
 
 #---------------------------------------------------------------------------
 ADD_EXECUTABLE(ExtractScanLines ExtractScanLines.cxx)

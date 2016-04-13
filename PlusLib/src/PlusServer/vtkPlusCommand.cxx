@@ -93,7 +93,7 @@ void vtkPlusCommand::SetClientId(int clientId)
 }
 
 //----------------------------------------------------------------------------
-vtkDataCollector* vtkPlusCommand::GetDataCollector()
+vtkPlusDataCollector* vtkPlusCommand::GetDataCollector()
 {  
   if (this->CommandProcessor == NULL)
   {
@@ -108,7 +108,7 @@ vtkDataCollector* vtkPlusCommand::GetDataCollector()
     return NULL;
   }
 
-  vtkDataCollector* dataCollector = server->GetDataCollector();
+  vtkPlusDataCollector* dataCollector = server->GetDataCollector();
   if (dataCollector == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer::DataCollector is invalid");
@@ -118,7 +118,7 @@ vtkDataCollector* vtkPlusCommand::GetDataCollector()
 }
 
 //----------------------------------------------------------------------------
-vtkTransformRepository* vtkPlusCommand::GetTransformRepository()
+vtkPlusTransformRepository* vtkPlusCommand::GetTransformRepository()
 {
   if (this->CommandProcessor == NULL)
   {
@@ -133,7 +133,7 @@ vtkTransformRepository* vtkPlusCommand::GetTransformRepository()
     return NULL;
   }
 
-  vtkTransformRepository* aRepository = server->GetTransformRepository();
+  vtkPlusTransformRepository* aRepository = server->GetTransformRepository();
   if( aRepository == NULL )
   {
     LOG_ERROR("CommandProcessor::PlusServer::TransformRepository is invalid");

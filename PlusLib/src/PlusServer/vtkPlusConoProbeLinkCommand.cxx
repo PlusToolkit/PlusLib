@@ -8,8 +8,8 @@ See License.txt for details.
 
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusConoProbeLinkCommand.h"
-#include "vtkOptimetConoProbeMeasurer.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusOptimetConoProbeMeasurer.h"
+#include "vtkPlusDataCollector.h"
 
 vtkStandardNewMacro( vtkPlusConoProbeLinkCommand );
 
@@ -82,15 +82,15 @@ PlusStatus vtkPlusConoProbeLinkCommand::WriteConfiguration(vtkXMLDataElement* aC
 }
 
 //----------------------------------------------------------------------------
-vtkOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(const char* conoProbeDeviceID)
+vtkPlusOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(const char* conoProbeDeviceID)
 {
-  vtkDataCollector* dataCollector=GetDataCollector();
+  vtkPlusDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("Data collector is invalid");    
     return NULL;
   }
-  vtkOptimetConoProbeMeasurer* conoProbeDevice = NULL;
+  vtkPlusOptimetConoProbeMeasurer* conoProbeDevice = NULL;
   if (conoProbeDeviceID!=NULL)
   {
     // ConoProbe device ID is specified
@@ -101,7 +101,7 @@ vtkOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(con
       return NULL;
     }
     // device found
-    conoProbeDevice = vtkOptimetConoProbeMeasurer::SafeDownCast(device);
+    conoProbeDevice = vtkPlusOptimetConoProbeMeasurer::SafeDownCast(device);
     if (conoProbeDevice==NULL)
     {
       // wrong type
@@ -114,7 +114,7 @@ vtkOptimetConoProbeMeasurer* vtkPlusConoProbeLinkCommand::GetConoProbeDevice(con
     // No ConoProbe device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      conoProbeDevice = vtkOptimetConoProbeMeasurer::SafeDownCast(*it);
+      conoProbeDevice = vtkPlusOptimetConoProbeMeasurer::SafeDownCast(*it);
       if (conoProbeDevice!=NULL)
       {      
         // found a recording device
@@ -141,7 +141,7 @@ PlusStatus vtkPlusConoProbeLinkCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkOptimetConoProbeMeasurer *conoProbeDevice=GetConoProbeDevice(this->ConoProbeDeviceId);
+  vtkPlusOptimetConoProbeMeasurer *conoProbeDevice=GetConoProbeDevice(this->ConoProbeDeviceId);
   if (conoProbeDevice==NULL)
   {
     this->QueueStringResponse(std::string("OptimetConoProbe has not been found (")
