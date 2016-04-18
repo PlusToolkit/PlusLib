@@ -2,13 +2,13 @@
 #include "vtksys/CommandLineArguments.hxx"
 
 #include "PlusVideoFrame.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkMath.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusVolumeReconstructor.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 
 float DRAWING_COLOR = 255;
@@ -80,7 +80,7 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
 }
 
 //----------------------------------------------------------------------------
-void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reconstructor)
+void DrawClipRectangle(vtkImageData* imageData, vtkVolumeReconstructor* reconstructor)
 {
   int* clipRectangleOrigin = reconstructor->GetClipRectangleOrigin();
   int* clipRectangleSize = reconstructor->GetClipRectangleSize();
@@ -95,7 +95,7 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
 }
 
 //----------------------------------------------------------------------------
-void DrawClipFan(vtkImageData* imageData, vtkPlusVolumeReconstructor* reconstructor)
+void DrawClipFan(vtkImageData* imageData, vtkVolumeReconstructor* reconstructor)
 {
   bool isImageEmpty = false;
   reconstructor->UpdateFanAnglesFromImage(imageData, isImageEmpty);
@@ -181,8 +181,8 @@ int main(int argc, char** argv)
   }
 
   // Read the image sequence
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
     LOG_ERROR("VolumeReconstruction element was not found in input configuration file");
     return EXIT_FAILURE;
   }
-  vtkSmartPointer<vtkPlusVolumeReconstructor> reconstructor = vtkSmartPointer<vtkPlusVolumeReconstructor>::New();
+  vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New();
   if (reconstructor->ReadConfiguration(volumeReconstructionElement->GetParent())==PLUS_FAIL)
   {
     LOG_ERROR("Failed to parse VolumeReconstruction element in input configuration file");
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
   LOG_INFO("Processing "<<numberOfFrames<<" frames...");
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     vtkImageData* imageData = frame->GetImageData()->GetImage();
     DrawClipRectangle(imageData, reconstructor);
     DrawClipFan(imageData, reconstructor);
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
     }
     outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.nrrd";
   }
-  if( vtkPlusSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     //Error has already been logged
     return EXIT_FAILURE;

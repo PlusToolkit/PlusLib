@@ -10,20 +10,20 @@ See License.txt for details.
 compares the results to a baseline
 */ 
 
-#include "PlusFidPatternRecognition.h"
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusProbeCalibrationAlgo.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkProbeCalibrationAlgo.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -105,24 +105,24 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);  
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkPlusProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New();
+  vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
 
-  PlusFidPatternRecognition patternRecognition;
-  PlusFidPatternRecognition::PatternRecognitionError error;
+  FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   // Load and segment calibration image
   LOG_INFO("Read calibration sequence file..."); 
-  vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
@@ -142,8 +142,8 @@ int main (int argc, char* argv[])
   {
     // Load and segment validation image
     LOG_INFO("Read validation sequence file..."); 
-    vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-    if( vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+    if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
       return EXIT_FAILURE;

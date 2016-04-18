@@ -5,8 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusDataCollector.h"
+#include "TrackedFrame.h"
+#include "vtkDataCollector.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
@@ -14,9 +14,9 @@ See License.txt for details.
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusIgtlMessageFactory.h" 
 #include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkPlusRecursiveCriticalSection.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h" 
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h" 
 #include "vtkPlusCommand.h"
 
 // OpenIGTLink includes
@@ -41,8 +41,8 @@ static const double SAMPLING_SKIPPING_MARGIN_SEC=0.1;
 
 vtkStandardNewMacro( vtkPlusOpenIGTLinkServer ); 
 
-vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkPlusTransformRepository);
-vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkPlusDataCollector);
+vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkTransformRepository);
+vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkDataCollector);
 
 int vtkPlusOpenIGTLinkServer::ClientIdCounter=1;
 
@@ -63,7 +63,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
 , TransformRepository(NULL)
 , Threader(vtkSmartPointer<vtkMultiThreader>::New())
 , IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
-, IgtlClientsMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+, IgtlClientsMutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , ServerSocket(igtl::ServerSocket::New())
 , SendValidTransformsOnly(true)
 , IgtlMessageCrcCheckEnabled(0)
@@ -98,7 +98,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
 {
   if ( this->DataCollector == NULL )
   {
-    LOG_WARNING( "Tried to start OpenIGTLink server without a vtkPlusDataCollector" );
+    LOG_WARNING( "Tried to start OpenIGTLink server without a vtkDataCollector" );
     return PLUS_FAIL;
   }
 
@@ -122,7 +122,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
 
   this->PlusCommandProcessor->SetPlusServer(this);
 
-  this->BroadcastStartTime = vtkPlusAccurateTimer::GetSystemTime();
+  this->BroadcastStartTime = vtkAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -137,7 +137,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
     while ( this->ConnectionActive.second )
     {
       // Wait until the thread stops 
-      vtkPlusAccurateTimer::DelayWithEventProcessing( 0.2 ); 
+      vtkAccurateTimer::DelayWithEventProcessing( 0.2 ); 
     }
     this->ConnectionReceiverThreadId = -1;
     LOG_DEBUG("ConnectionReceiverThread stopped");
@@ -147,7 +147,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
   std::vector< int > clientIds;
   {
     // Get all the client ids and release the lock
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       clientIds.push_back(clientIterator->ClientId);
@@ -184,7 +184,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
     if (newClientSocket.IsNotNull())
     {
       // Lock before we change the clients list 
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
       ClientData newClient;
       self->IgtlClients.push_back(newClient);
 
@@ -282,7 +282,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
   {
     bool clientsConnected = false;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
       if ( !self->IgtlClients.empty() )
       {
         clientsConnected =true;
@@ -291,7 +291,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     if ( !clientsConnected )
     {
       // No client connected, wait for a while 
-      vtkPlusAccurateTimer::Delay(0.2);
+      vtkAccurateTimer::Delay(0.2);
       self->LastSentTrackedFrameTimestamp=0; // next time start sending from the most recent timestamp
       continue;
     }
@@ -316,8 +316,8 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec)
 {
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   // Acquire tracked frames since last acquisition (minimum 1 frame)
   if (self.LastProcessingTimePerFrameMs < 1)
@@ -349,7 +349,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
         if ( self.BroadcastChannel->GetTrackedFrameList(self.LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS )
         {
           LOG_ERROR("Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp ); 
-          vtkPlusAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
+          vtkAccurateTimer::Delay(DELAY_ON_SENDING_ERROR_SEC); 
         }
       }
     }
@@ -358,8 +358,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
   // There is no new frame in the buffer
   if ( trackedFrameList->GetNumberOfTrackedFrames() == 0 )
   {
-    vtkPlusAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC);
-    elapsedTimeSinceLastPacketSentSec += vtkPlusAccurateTimer::GetSystemTime() - startTimeSec; 
+    vtkAccurateTimer::Delay(DELAY_ON_NO_NEW_FRAMES_SEC);
+    elapsedTimeSinceLastPacketSentSec += vtkAccurateTimer::GetSystemTime() - startTimeSec; 
 
     // Send keep alive packet to clients 
     if ( 1000* elapsedTimeSinceLastPacketSentSec > ( CLIENT_SOCKET_TIMEOUT_MSEC / 2.0 ) )
@@ -380,7 +380,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
   }
 
   // Compute time spent with processing one frame in this round
-  double computationTimeMs = (vtkPlusAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
+  double computationTimeMs = (vtkAccurateTimer::GetSystemTime() - startTimeSec) * 1000.0;
 
   // Update last processing time if new tracked frames have been acquired
   if (trackedFrameList->GetNumberOfTrackedFrames() > 0 )
@@ -409,7 +409,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResults(vtkPlusOpenIGTLinkServer
 
       // Only send the response to the client that requested the command
       LOG_DEBUG("Send command reply to client " << (*responseIt)->GetClientId() << ": " << igtlResponseMessage->GetDeviceName());
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self.IgtlClientsMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(self.IgtlClientsMutex);
       igtl::ClientSocket::Pointer clientSocket = NULL;
       for ( std::list<ClientData>::iterator clientIterator = self.IgtlClients.begin(); clientIterator != self.IgtlClients.end(); ++clientIterator)
       {
@@ -478,7 +478,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
       if (c & igtl::MessageHeader::UNPACK_BODY) 
       {
         // Message received from client, need to lock to modify client info
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
+        PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
         client->ClientInfo = clientInfoMsg->GetClientInfo(); 
         LOG_DEBUG("Client info message received from client " << clientId); 
       }
@@ -614,7 +614,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& trackedFrame )
+PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( TrackedFrame& trackedFrame )
 {
   int numberOfErrors = 0; 
 
@@ -630,14 +630,14 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& tracked
 
   // Convert relative timestamp to UTC
   double timestampSystem = trackedFrame.GetTimestamp(); // save original timestamp, we'll restore it later
-  double timestampUniversal = vtkPlusAccurateTimer::GetUniversalTimeFromSystemTime(timestampSystem);
+  double timestampUniversal = vtkAccurateTimer::GetUniversalTimeFromSystemTime(timestampSystem);
   trackedFrame.SetTimestamp(timestampUniversal);  
 
   std::vector< int > disconnectedClientIds;
 
   {
     // Lock before we send message to the clients 
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
     for( std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       igtl::ClientSocket::Pointer clientSocket = (*clientIterator).ClientSocket;
@@ -697,7 +697,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
   // Stop the client's data receiver thread
   {
     // Request thread stop
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       if (clientIterator->ClientId!=clientId)
@@ -716,7 +716,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
     clientDataReceiverThreadStillActive = false;
     {
       // check if any of the receiver threads are still active
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
       for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
       {
         if (clientIterator->ClientId!=clientId)
@@ -742,7 +742,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
     if (clientDataReceiverThreadStillActive)
     {
       // give some time for the threads to finish
-      vtkPlusAccurateTimer::DelayWithEventProcessing( 0.2 );
+      vtkAccurateTimer::DelayWithEventProcessing( 0.2 );
     }
   } while (clientDataReceiverThreadStillActive);
 
@@ -750,7 +750,7 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
   int port = 0;
   std::string address = "unknown";
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       if (clientIterator->ClientId!=clientId)
@@ -780,7 +780,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
 
   {
     // Lock before we send message to the clients 
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
 
     for( std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
@@ -815,7 +815,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
 int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
 {
   // Lock before we send message to the clients 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
   return this->IgtlClients.size(); 
 }
 
@@ -865,13 +865,13 @@ int vtkPlusOpenIGTLinkServer::ProcessPendingCommands()
 }
 
 //------------------------------------------------------------------------------
-vtkPlusDataCollector* vtkPlusOpenIGTLinkServer::GetDataCollector()
+vtkDataCollector* vtkPlusOpenIGTLinkServer::GetDataCollector()
 {
   return this->DataCollector;
 }
 
 //------------------------------------------------------------------------------
-vtkPlusTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
+vtkTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
 {
   return this->TransformRepository;
 }
@@ -879,11 +879,11 @@ vtkPlusTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository()
 //------------------------------------------------------------------------------
 bool vtkPlusOpenIGTLinkServer::HasGracePeriodExpired()
 {
-  return (vtkPlusAccurateTimer::GetSystemTime() - this->BroadcastStartTime) > this->MissingInputGracePeriodSec;
+  return (vtkAccurateTimer::GetSystemTime() - this->BroadcastStartTime) > this->MissingInputGracePeriodSec;
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::Start(vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath)
+PlusStatus vtkPlusOpenIGTLinkServer::Start(vtkDataCollector* dataCollector, vtkTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath)
 {
   if( serverElement == NULL )
   {
@@ -964,7 +964,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     igtlMessage->SetDeviceName(imageName.c_str());
     
     if ( vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData, 
-      imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS )
+      imageToReferenceTransform, vtkAccurateTimer::GetSystemTime()) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to create image mesage from command response");
       return NULL;

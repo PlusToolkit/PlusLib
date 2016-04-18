@@ -5,18 +5,18 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusStealthLinkCommand.h"
-#include "StealthLink/vtkPlusStealthLinkTracker.h"
+#include "StealthLink/vtkStealthLinkTracker.h"
 
 #include "vtkImageData.h"
 #include "vtkDICOMImageReader.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusVolumeReconstructor.h"
-#include "vtkPlusVirtualVolumeReconstructor.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkVolumeReconstructor.h"
+#include "vtkVirtualVolumeReconstructor.h"
 #include <vtkImageFlip.h>
 #include <vtkPointData.h>
 #include <vtkDirectory.h>
@@ -132,7 +132,7 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkPlusStealthLinkTracker* stealthLinkDevice = GetStealthLinkDevice();
+  vtkStealthLinkTracker* stealthLinkDevice = GetStealthLinkDevice();
   if (stealthLinkDevice==NULL)
   {
     this->QueueCommandResponse(std::string("StealthLink command failed: device ")
@@ -181,9 +181,9 @@ PlusStatus vtkPlusStealthLinkCommand::ProcessImageReply(const std::string& image
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-vtkPlusStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
+vtkStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
 {
-  vtkPlusDataCollector* dataCollector=GetDataCollector();
+  vtkDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("Data collector is invalid");    
@@ -199,7 +199,7 @@ vtkPlusStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
       return NULL;
     }
     // device found
-    vtkPlusStealthLinkTracker *stealthLinkDevice = vtkPlusStealthLinkTracker::SafeDownCast(device);
+    vtkStealthLinkTracker *stealthLinkDevice = vtkStealthLinkTracker::SafeDownCast(device);
     if (stealthLinkDevice==NULL)
     {
       // wrong type
@@ -213,7 +213,7 @@ vtkPlusStealthLinkTracker* vtkPlusStealthLinkCommand::GetStealthLinkDevice()
     // No stealthlink device id is specified, auto-detect the first one and use that
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      vtkPlusStealthLinkTracker *stealthLinkDevice = vtkPlusStealthLinkTracker::SafeDownCast(*it);
+      vtkStealthLinkTracker *stealthLinkDevice = vtkStealthLinkTracker::SafeDownCast(*it);
       if (stealthLinkDevice!=NULL)
       {      
         // found a recording device

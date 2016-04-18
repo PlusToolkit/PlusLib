@@ -7,7 +7,7 @@ SET (PlusOpenIGTLink_SRCS
   PlusIgtlClientInfo.cxx 
   vtkPlusIgtlMessageFactory.cxx 
   vtkPlusIgtlMessageCommon.cxx 
-  vtkPlusIGTLMessageQueue.cxx
+  vtkIGTLMessageQueue.cxx
   )
   
 IF (WIN32)
@@ -18,7 +18,7 @@ IF (WIN32)
     PlusIgtlClientInfo.h 
     vtkPlusIgtlMessageFactory.h
     vtkPlusIgtlMessageCommon.h
-    vtkPlusIGTLMessageQueue.h
+    vtkIGTLMessageQueue.h
     )
 ENDIF (WIN32)
 

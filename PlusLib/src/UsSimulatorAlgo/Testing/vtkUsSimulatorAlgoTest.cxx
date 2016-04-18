@@ -6,21 +6,21 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkAppendPolyData.h"
 #include "vtkCubeSource.h"
 #include "vtkImageData.h" 
 #include "vtkMatrix4x4.h"
 #include "vtkPointData.h"
 #include "vtkSTLWriter.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTimerLog.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusUsSimulatorAlgo.h"
+#include "vtkTransformRepository.h"
+#include "vtkUsSimulatorAlgo.h"
 #include "vtkXMLImageDataWriter.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -38,7 +38,7 @@ See License.txt for details.
 #include "vtkInteractorStyleImage.h"
 
 //-----------------------------------------------------------------------------
-void CreateSliceModels(vtkPlusTrackedFrameList *trackedFrameList, vtkPlusTransformRepository *transformRepository, PlusTransformName &imageToReferenceTransformName, vtkPolyData *outputPolyData)
+void CreateSliceModels(vtkTrackedFrameList *trackedFrameList, vtkTransformRepository *transformRepository, PlusTransformName &imageToReferenceTransformName, vtkPolyData *outputPolyData)
 {
   // Prepare the output polydata.
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
@@ -46,7 +46,7 @@ void CreateSliceModels(vtkPlusTrackedFrameList *trackedFrameList, vtkPlusTransfo
   // Loop over each tracked image slice.
   for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
@@ -92,7 +92,7 @@ void CreateSliceModels(vtkPlusTrackedFrameList *trackedFrameList, vtkPlusTransfo
 }
 
 //-----------------------------------------------------------------------------
-void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepository* transformRepository, PlusTransformName imageToReferenceTransformName, std::string intersectionFile)
+void ShowResults(vtkTrackedFrameList* trackedFrameList, vtkTransformRepository* transformRepository, PlusTransformName imageToReferenceTransformName, std::string intersectionFile)
 {
   // Setup Renderer to visualize surface model and ultrasound planes
   vtkSmartPointer<vtkRenderer> rendererPoly = vtkSmartPointer<vtkRenderer>::New();
@@ -223,8 +223,8 @@ int main(int argc, char **argv)
 
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
-  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();         
-  if( vtkPlusSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New();         
+  if( vtkSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading input meta file completed"); 
 
   // Create repository for ultrasound images correlated to the iput tracked frames
-  vtkSmartPointer<vtkPlusTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   // Read config file
   LOG_DEBUG("Reading config file...")
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
   LOG_DEBUG("Reading config file finished.");
 
   // Create transform repository
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read transforms for transform repository!"); 
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
   }
 
   // Create simulator
-  vtkSmartPointer<vtkPlusUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkPlusUsSimulatorAlgo>::New(); 
+  vtkSmartPointer<vtkUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkUsSimulatorAlgo>::New(); 
   if ( usSimulator->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read US simulator configuration!"); 
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
     startTimeSec = vtkTimerLog::GetUniversalTime(); 
 
     LOG_DEBUG("Processing frame "<<i);
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
     timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
   }
 
-  if( vtkPlusSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     // Error has already been logged
     return EXIT_FAILURE;

@@ -10,11 +10,11 @@
 #include "vtkPlusServerExport.h"
 
 #include "vtkPlusCommand.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
 
-class vtkPlusStealthLinkTracker;
+class vtkStealthLinkTracker;
 
-//class vtkPlusStealthLinkTracker;
+//class vtkStealthLinkTracker;
 /*!
   \class vtkPlusStealthLinkCommand 
   \brief This command reconstructs a volume from an image sequence and saves it to disk or sends it to the client in an IMAGE message. 
@@ -77,7 +77,7 @@ protected:
   /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
   PlusStatus ProcessImageReply(const std::string& imageId,vtkImageData* volumeToSend, vtkMatrix4x4* imageToReferenceOrientationMatrixWithSpacing,std::string& resultMessage);
 
-  vtkPlusStealthLinkTracker* GetStealthLinkDevice();
+  vtkStealthLinkTracker* GetStealthLinkDevice();
 
   vtkPlusStealthLinkCommand();
   virtual ~vtkPlusStealthLinkCommand();  

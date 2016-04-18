@@ -13,14 +13,14 @@ happens between two threads. In real life, it happens between two programs.
 
 #include "PlusConfigure.h"
 #include "PlusCommon.h"
-#include "vtkPlusDataCollector.h"
-#include "vtkPlusOpenIGTLinkVideoSource.h"
+#include "vtkDataCollector.h"
+#include "vtkOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 // For catching Ctrl-C
@@ -29,8 +29,8 @@ happens between two threads. In real life, it happens between two programs.
 #include <cstdio>
 
 // Connect/disconnect clients to server for testing purposes
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement ); 
-PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList );
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement ); 
+PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList );
 
 // Forward declare signal handler
 void SignalInterruptHandler(int s);
@@ -112,7 +112,7 @@ int main( int argc, char** argv )
 
   LOG_INFO( "Server status: Reading configuration.");
   // Create data collector instance 
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
   if ( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Datacollector failed to read configuration"); 
@@ -120,7 +120,7 @@ int main( int argc, char** argv )
   }
 
   // Create transform repository instance 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Transform repository failed to read configuration"); 
@@ -170,10 +170,10 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }
 
-  double startTime = vtkPlusAccurateTimer::GetSystemTime(); 
+  double startTime = vtkAccurateTimer::GetSystemTime(); 
 
   // *************************** Testing **************************
-  std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> > testClientList; 
+  std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> > testClientList; 
   if ( !testingConfigFileName.empty() )
   {
     // During testing, there is only one instance of PlusServer, so we can acess serverList[0] directly
@@ -195,7 +195,7 @@ int main( int argc, char** argv )
       serverList[0]->Stop(); 
       exit(EXIT_FAILURE);
     }
-    vtkPlusAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTimeSec
+    vtkAccurateTimer::Delay( 1.0 ); // make sure the threads have some time to connect regardless of the specified runTimeSec
     LOG_INFO("Clients are connected");
   }
   // *************************** End of testing **************************
@@ -212,7 +212,7 @@ int main( int argc, char** argv )
 
   // Run server until requested 
   const double commandQueuePollIntervalSec=0.010;
-  while ( (neverStop || (vtkPlusAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested )
+  while ( (neverStop || (vtkAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested )
   {
     for( std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it )
     {
@@ -223,8 +223,8 @@ int main( int argc, char** argv )
       // Need to do it before processing messages.
       CheckConsoleWindowCloseRequested(consoleHwnd);
 #endif
-    // Need to process messages while waiting because some devices (such as the vtkPlusWin32VideoSource2) require event processing
-    vtkPlusAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+    // Need to process messages while waiting because some devices (such as the vtkWin32VideoSource2) require event processing
+    vtkAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
   }
     
   
@@ -272,7 +272,7 @@ int main( int argc, char** argv )
 }
 
 // -------------------------------------------------
-PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement )
+PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement )
 {
   if (configRootElement==NULL)
   {
@@ -287,7 +287,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkPl
 
   for ( int i = 0; i < numberOfClientsToConnect; ++i )
   {
-    vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource>::New(); 
+    vtkSmartPointer<vtkOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkOpenIGTLinkVideoSource>::New(); 
     client->SetDeviceId("OpenIGTLinkVideoSenderDevice");
     client->ReadConfiguration(configRootElement);
     client->SetServerAddress("localhost");
@@ -334,7 +334,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkPl
 }
 
 // -------------------------------------------------
-PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList )
+PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkOpenIGTLinkVideoSource> >& testClientList )
 {
   int numberOfErrors = 0; 
   for ( int i = 0; i < testClientList.size(); ++i )

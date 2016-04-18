@@ -26,7 +26,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusStatus PlusTrackedFrameMessage::SetTrackedFrame( const PlusTrackedFrame& trackedFrame ) 
+  PlusStatus PlusTrackedFrameMessage::SetTrackedFrame( const TrackedFrame& trackedFrame ) 
   {
     this->m_TrackedFrame = trackedFrame; 
 
@@ -60,7 +60,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusTrackedFrame PlusTrackedFrameMessage::GetTrackedFrame()
+  TrackedFrame PlusTrackedFrameMessage::GetTrackedFrame()
   {
     return this->m_TrackedFrame;
   }

@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkPlusCapistranoVideoSourceTest.cxx
+  \file vtkCapistranoVideoSourceTest.cxx
   \brief Test basic connection to the Capistrano USB ultrasound probe
 
   If the --rendering-off switch is defined then the connection is established, images are 
@@ -40,7 +40,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusCapistranoVideoSource.h"
+#include "vtkCapistranoVideoSource.h"
 
 #include "vtkTable.h"
 #include "vtkTableAlgorithm.h"
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 	if ( !args.Parse() )
 	{
 		std::cerr << "Problem parsing arguments" << std::endl;
-		std::cout << "\n\nvtkPlusCapistranoVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+		std::cout << "\n\nvtkCapistranoVideoSourceTest1 help:" << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
   
@@ -269,13 +269,13 @@ int main(int argc, char* argv[])
 
 	if ( printHelp ) 
 	{
-		std::cout << "\n\nvtkPlusCapistranoVideoSourceTest help:" << args.GetHelp() << std::endl;
+		std::cout << "\n\nvtkCapistranoVideoSourceTest help:" << args.GetHelp() << std::endl;
 		exit(EXIT_SUCCESS); 
 	}
 
 	
-	vtkSmartPointer< vtkPlusCapistranoVideoSource > capistranoDevice =
-	vtkSmartPointer< vtkPlusCapistranoVideoSource >::New();
+	vtkSmartPointer< vtkCapistranoVideoSource > capistranoDevice =
+	vtkSmartPointer< vtkCapistranoVideoSource >::New();
 	capistranoDevice->SetDeviceId("VideoDevice");
 
 	

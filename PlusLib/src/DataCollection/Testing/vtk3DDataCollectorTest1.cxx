@@ -10,18 +10,18 @@ See License.txt for details.
 */ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "itkMath.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkImageData.h" 
 #include "vtkImageHistogramStatistics.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusSavedDataSource.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusVirtualMixer.h"
+#include "vtkSavedDataSource.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkVirtualMixer.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -115,11 +115,11 @@ int main(int argc, char **argv)
   
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Configuration incorrect for vtkPlusDataCollectorTest1.");
+    LOG_ERROR("Configuration incorrect for vtkDataCollectorTest1.");
     exit( EXIT_FAILURE );
   }
   vtkPlusDevice* videoDevice(NULL);
@@ -131,10 +131,10 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
     exit(EXIT_FAILURE);
   }
-  vtkPlusSavedDataSource* videoSource = dynamic_cast<vtkPlusSavedDataSource*>(videoDevice); 
+  vtkSavedDataSource* videoSource = dynamic_cast<vtkSavedDataSource*>(videoDevice); 
   if ( videoSource == NULL )
   {
-    LOG_ERROR( "Unable to cast video source to vtkPlusSavedDataSource." );
+    LOG_ERROR( "Unable to cast video source to vtkSavedDataSource." );
     exit( EXIT_FAILURE );
   }
 
@@ -143,10 +143,10 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to locate the device with Id=\"TrackerDevice\". Check config file.");
     exit(EXIT_FAILURE);
   }
-  vtkPlusSavedDataSource* tracker = dynamic_cast<vtkPlusSavedDataSource*>(trackerDevice); 
+  vtkSavedDataSource* tracker = dynamic_cast<vtkSavedDataSource*>(trackerDevice); 
   if ( tracker == NULL )
   {
-    LOG_ERROR( "Unable to cast tracker to vtkPlusSavedDataSource" );
+    LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
     exit( EXIT_FAILURE );
   }
 
@@ -155,10 +155,10 @@ int main(int argc, char **argv)
     LOG_ERROR("Unable to locate the device with Id=\"TrackedVideoDevice\". Check config file.");
     exit(EXIT_FAILURE);
   }
-  vtkPlusVirtualMixer* mixer = dynamic_cast<vtkPlusVirtualMixer*>(trackedVideoDevice);
+  vtkVirtualMixer* mixer = dynamic_cast<vtkVirtualMixer*>(trackedVideoDevice);
   if( mixer == NULL )
   {
-    LOG_ERROR( "Unable to cast tracked video device to vtkPlusVirtualMixer" );
+    LOG_ERROR( "Unable to cast tracked video device to vtkVirtualMixer" );
     exit( EXIT_FAILURE );
   }
 
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
   usleep(1 * 1000000);
 #endif
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> frameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   double timestamp(0.0);
   mixer->GetChannel()->GetOldestTimestamp(timestamp);
   if( mixer->GetChannel()->GetTrackedFrameList(timestamp, frameList, 20) != PLUS_SUCCESS )

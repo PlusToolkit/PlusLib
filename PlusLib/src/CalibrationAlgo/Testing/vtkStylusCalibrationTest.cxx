@@ -12,17 +12,17 @@
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusDataCollector.h"
+#include "TrackedFrame.h"
+#include "vtkDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkPlusPivotCalibrationAlgo.h"
+#include "vtkPivotCalibrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -83,7 +83,7 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
   // Initialize data collection
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
   if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
@@ -116,7 +116,7 @@ int main (int argc, char* argv[])
   }
 
   // Initialize stylus calibration
-  vtkSmartPointer<vtkPlusPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPlusPivotCalibrationAlgo>::New();
+  vtkSmartPointer<vtkPivotCalibrationAlgo> pivotCalibration = vtkSmartPointer<vtkPivotCalibrationAlgo>::New();
   if (pivotCalibration == NULL)
   {
     LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
@@ -130,10 +130,10 @@ int main (int argc, char* argv[])
   }
 
   // Create and initialize transform repository
-  PlusTrackedFrame trackedFrame;
+  TrackedFrame trackedFrame;
   aChannel->GetTrackedFrame(&trackedFrame);
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   transformRepository->SetTransforms(trackedFrame);
 
   // Check stylus tool
@@ -152,7 +152,7 @@ int main (int argc, char* argv[])
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
     
-    PlusTrackedFrame trackedFrame; 
+    TrackedFrame trackedFrame; 
     if ( aChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!"); 

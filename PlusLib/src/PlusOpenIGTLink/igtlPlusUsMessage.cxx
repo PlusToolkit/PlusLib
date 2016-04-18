@@ -1,5 +1,5 @@
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "igtlPlusUsMessage.h"
 #include "igtl_image.h"
 #include "igtlutil/igtl_util.h"
@@ -52,13 +52,13 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusTrackedFrame& PlusUsMessage::GetTrackedFrame()
+  TrackedFrame& PlusUsMessage::GetTrackedFrame()
   {
     return this->m_TrackedFrame;
   }
 
   //----------------------------------------------------------------------------
-  PlusStatus PlusUsMessage::SetTrackedFrame( const PlusTrackedFrame& trackedFrame ) 
+  PlusStatus PlusUsMessage::SetTrackedFrame( const TrackedFrame& trackedFrame ) 
   {
     this->m_TrackedFrame = trackedFrame; 
 

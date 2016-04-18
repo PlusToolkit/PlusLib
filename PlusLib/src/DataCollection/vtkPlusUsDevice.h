@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-class vtkPlusUsImagingParameters;
+class vtkUsImagingParameters;
 class vtkPlusChannel;
 
 /*!
@@ -50,20 +50,20 @@ public:
   It is up to subclasses to take the new imaging parameter set and apply it to their respective devices
   /param newImagingParameters class containing the new ultrasound imaging parameters
   */
-  virtual PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
+  virtual PlusStatus SetNewImagingParameters(const vtkUsImagingParameters& newImagingParameters);
 
   /*!
   This function can be called to add a video item to all video data sources
   */
   PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   This function can be called to add a video item to the specified video data sources
   */
   PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
     PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields= NULL);
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields= NULL);
 
   /*!
     If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
@@ -78,15 +78,15 @@ public:
   vtkSetStringMacro(TextRecognizerInputChannelName);
 
 protected:
-  void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
+  void CalculateImageToTransducer(TrackedFrame::FieldMapType& customFields);
 
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();
 
   /// Store the requested imaging parameters
-  vtkPlusUsImagingParameters* RequestedImagingParameters;
+  vtkUsImagingParameters* RequestedImagingParameters;
   /// Store the current imaging parameters
-  vtkPlusUsImagingParameters* CurrentImagingParameters;
+  vtkUsImagingParameters* CurrentImagingParameters;
 
   /// Values used in calculation of image to transducer matrix
   double CurrentPixelSpacingMm[3];
@@ -97,7 +97,7 @@ protected:
   vtkPlusChannel* InputChannel;
 
   /// Container to hold values retrieved from the input
-  PlusTrackedFrame::FieldMapType FrameFields;
+  TrackedFrame::FieldMapType FrameFields;
 
   PlusTransformName ImageToTransducerTransform;
   char* TextRecognizerInputChannelName;

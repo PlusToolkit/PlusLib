@@ -5,20 +5,20 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-\file vtkPlusUSDigitalEncodersTrackerTest.cxx.cxx
+\file vtkUSDigitalEncodersTrackerTest.cxx.cxx
 \brief This a simple test program to acquire a tracking data and optionally
 writes the buffer to a metafile and displays the live transform in a 3D view.
 */
 
 #include "PlusConfigure.h"
 #include "vtkCommand.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusUSDigitalEncodersTracker.h"
+#include "vtkUSDigitalEncodersTracker.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
@@ -71,8 +71,8 @@ int main(int argc, char **argv)
 
   ///// Reading configuration file
 
-  vtkSmartPointer< vtkPlusUSDigitalEncodersTracker > usDigitalEncodersTracker =
-    vtkSmartPointer< vtkPlusUSDigitalEncodersTracker >::New();
+  vtkSmartPointer< vtkUSDigitalEncodersTracker > usDigitalEncodersTracker =
+    vtkSmartPointer< vtkUSDigitalEncodersTracker >::New();
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
   if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)

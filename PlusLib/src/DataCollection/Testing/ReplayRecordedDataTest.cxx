@@ -14,8 +14,8 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
-#include "vtkPlusSavedDataSource.h"
+#include "vtkDataCollector.h"
+#include "vtkSavedDataSource.h"
 
 
 int main( int argc, char** argv )
@@ -55,7 +55,7 @@ int main( int argc, char** argv )
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
   dataCollector->ReadConfiguration( configRootElement );
   

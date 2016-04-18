@@ -12,7 +12,7 @@
 #include "itkImageIOBase.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtksys/SystemTools.hxx"
 
 #include <float.h> // for DBL_MAX
@@ -108,7 +108,7 @@ enum PlusImagingMode
   
   Example:
   \code
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
   \endcode
 
   \ingroup PlusLibCommon
@@ -373,7 +373,7 @@ private:
       } \
       /* command failed, wait for some time and retry */ \
       numOfTries++;   \
-      vtkPlusAccurateTimer::Delay(delayBetweenRetryAttemptsSec_); \
+      vtkAccurateTimer::Delay(delayBetweenRetryAttemptsSec_); \
     } \
   }
 

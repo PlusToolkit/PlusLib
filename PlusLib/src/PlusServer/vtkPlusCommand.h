@@ -9,9 +9,9 @@
 
 #include "vtkPlusServerExport.h"
 
-class vtkPlusDataCollector;
+class vtkDataCollector;
 class vtkPlusCommandProcessor;
-class vtkPlusTransformRepository;
+class vtkTransformRepository;
 class vtkImageData;
 
 #include "vtkPlusCommandResponse.h"
@@ -103,10 +103,10 @@ public:
 
 protected:
   /*! Convenience function for getting a pointer to the data collector */
-  virtual vtkPlusDataCollector* GetDataCollector();
+  virtual vtkDataCollector* GetDataCollector();
 
   /*! Convenience function for getting a pointer to the transform repository */
-  virtual vtkPlusTransformRepository* GetTransformRepository();
+  virtual vtkTransformRepository* GetTransformRepository();
 
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();

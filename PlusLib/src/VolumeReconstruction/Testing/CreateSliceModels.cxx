@@ -26,11 +26,11 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkXMLUtilities.h"
 
-#include "PlusTrackedFrame.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusVolumeReconstructor.h"
+#include "TrackedFrame.h"
+#include "vtkSequenceIO.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
+#include "vtkVolumeReconstructor.h"
 
 
 int main( int argc, char** argv )
@@ -82,8 +82,8 @@ int main( int argc, char** argv )
 
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
-  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New(); 
-  if( vtkPlusSequenceIO::Read(inputMetaFilename, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer< vtkTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkTrackedFrameList >::New(); 
+  if( vtkSequenceIO::Read(inputMetaFilename, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -106,7 +106,7 @@ int main( int argc, char** argv )
   }
 
   // Read calibration matrices from the config file
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
   if ( !inputConfigFileName.empty() )
   {
     LOG_DEBUG("Reading config file...");
@@ -117,7 +117,7 @@ int main( int argc, char** argv )
       return EXIT_FAILURE;
     }
 
-    vtkSmartPointer< vtkPlusVolumeReconstructor > reconstructor = vtkSmartPointer< vtkPlusVolumeReconstructor >::New();
+    vtkSmartPointer< vtkVolumeReconstructor > reconstructor = vtkSmartPointer< vtkVolumeReconstructor >::New();
     reconstructor->ReadConfiguration(configRootElement);
     LOG_DEBUG("Reading config file done.");
     if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
@@ -156,7 +156,7 @@ int main( int argc, char** argv )
   // Loop over each tracked image slice.
   for ( int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Update transform repository 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )

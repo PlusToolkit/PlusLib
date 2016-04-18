@@ -5,16 +5,16 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusSpacingCalibAlgoTest.cxx 
+  \file vtkSpacingCalibAlgoTest.cxx 
   \brief This test runs a spacing calibration on a recorded data set and 
   compares the results to a baseline
 */ 
 
-#include "PlusFidPatternRecognition.h"
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
-#include "vtkPlusHTMLGenerator.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusSpacingCalibAlgo.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkSequenceIO.h"
+#include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -80,17 +80,17 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  PlusFidPatternRecognition patternRecognition; 
+  FidPatternRecognition patternRecognition; 
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading metafiles:");
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
   for ( unsigned int i = 0; i < inputSequenceMetafiles.size(); ++i )
   {
     LOG_INFO("Reading " << inputSequenceMetafiles[i] << " ..."); 
-    vtkSmartPointer<vtkPlusTrackedFrameList> tfList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-    if( vtkPlusSequenceIO::Read(inputSequenceMetafiles[i], tfList) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkTrackedFrameList> tfList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+    if( vtkSequenceIO::Read(inputSequenceMetafiles[i], tfList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafiles[i]); 
       return EXIT_FAILURE;
@@ -105,13 +105,13 @@ int main(int argc, char **argv)
 
   LOG_INFO("Testing image data segmentation...");
   int numberOfSuccessfullySegmentedImages = 0;
-  PlusFidPatternRecognition::PatternRecognitionError error;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.RecognizePattern(trackedFrameList, error, &numberOfSuccessfullySegmentedImages);
   LOG_INFO("Segmentation success rate: " << numberOfSuccessfullySegmentedImages << " out of " << trackedFrameList->GetNumberOfTrackedFrames()
     << " (" << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%)");
 
   LOG_INFO("Testing spacing computation...");
-  vtkSmartPointer<vtkPlusSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkPlusSpacingCalibAlgo>::New(); 
+  vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
   spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
   double spacing[2]={0};
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing HTML report generation..."); 
-  vtkSmartPointer<vtkPlusHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkPlusHTMLGenerator>::New(); 
+  vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
   htmlGenerator->SetBaseFilename("SpacingCalibrationReport");
   htmlGenerator->SetTitle("Spacing Calibration Test Report"); 
   spacingCalibAlgo->GenerateReport(htmlGenerator);

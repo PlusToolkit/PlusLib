@@ -11,10 +11,10 @@
 
 #include "vtkPlusCommand.h"
 
-class vtkPlusVolumeReconstructor;
-class vtkPlusTrackedFrameList;
-class vtkPlusTransformRepository;
-class vtkPlusVirtualVolumeReconstructor;
+class vtkVolumeReconstructor;
+class vtkTrackedFrameList;
+class vtkTransformRepository;
+class vtkVirtualVolumeReconstructor;
 /*!
   \class vtkPlusReconstructVolumeCommand 
   \brief This command reconstructs a volume from an image sequence and saves it to disk or sends it to the client in an IMAGE message. 
@@ -99,7 +99,7 @@ protected:
   /*! Saves image to disk (if requested) and prepare sending image as a response (if requested) */
   PlusStatus ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName, std::string &resultMessage);
 
-  vtkPlusVirtualVolumeReconstructor* GetVolumeReconstructorDevice();
+  vtkVirtualVolumeReconstructor* GetVolumeReconstructorDevice();
 
   vtkPlusReconstructVolumeCommand();
   virtual ~vtkPlusReconstructVolumeCommand();  

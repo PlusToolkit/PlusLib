@@ -4,23 +4,23 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (VolumeReconstruction_SRCS
-  vtkPlusPasteSliceIntoVolume.cxx 
-  vtkPlusVolumeReconstructor.cxx 
-  vtkPlusFillHolesInVolume.cxx
-  vtkPlusFanAngleDetectorAlgo.cxx
+  vtkPasteSliceIntoVolume.cxx 
+  vtkVolumeReconstructor.cxx 
+  vtkFillHolesInVolume.cxx
+  vtkFanAngleDetectorAlgo.cxx
   )
 
 SET (VolumeReconstruction_HDRS)
 if (WIN32)  
   SET (VolumeReconstruction_HDRS
     fixed.h
-    vtkPlusPasteSliceIntoVolume.h 
-    vtkPlusPasteSliceIntoVolumeHelperCommon.h 
-    vtkPlusPasteSliceIntoVolumeHelperOptimized.h 
-    vtkPlusPasteSliceIntoVolumeHelperUnoptimized.h 
-    vtkPlusVolumeReconstructor.h 
-    vtkPlusFillHolesInVolume.h
-    vtkPlusFanAngleDetectorAlgo.h
+    vtkPasteSliceIntoVolume.h 
+    vtkPasteSliceIntoVolumeHelperCommon.h 
+    vtkPasteSliceIntoVolumeHelperOptimized.h 
+    vtkPasteSliceIntoVolumeHelperUnoptimized.h 
+    vtkVolumeReconstructor.h 
+    vtkFillHolesInVolume.h
+    vtkFanAngleDetectorAlgo.h
     )
 endif (WIN32)  
 

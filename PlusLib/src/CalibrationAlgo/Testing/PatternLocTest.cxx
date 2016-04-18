@@ -4,13 +4,13 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "PlusFidPatternRecognition.h"
-#include "PlusPatternLocResultFile.h"
+#include "FidPatternRecognition.h"
+#include "PatternLocResultFile.h"
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusSequenceIO.h"
+#include "TrackedFrame.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -30,7 +30,7 @@ static const double FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, PlusFidPatternRecognition& patternRecognition, const char* fidPositionOutputFilename)
+void SegmentImageSequence( vtkTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, FidPatternRecognition& patternRecognition, const char* fidPositionOutputFilename)
 {
   double sumFiducialNum = 0;// divide by framenum
   double sumFiducialCandidate = 0;// divide by framenum
@@ -54,8 +54,8 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
     std::ostringstream possibleFiducialsImageFilename; 
     possibleFiducialsImageFilename << inputTestcaseName << std::setw(3) << std::setfill('0') << currentFrameIndex << ".bmp" << std::ends; 
 
-    PlusPatternRecognitionResult segResults;
-    PlusFidPatternRecognition::PatternRecognitionError error;
+    PatternRecognitionResult segResults;
+    FidPatternRecognition::PatternRecognitionError error;
 
     if ( trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
     {
@@ -92,17 +92,17 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
       outFileFidPositions << std::endl;
     }
 
-    PlusUsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+    UsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
     if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
     {
-      PlusUsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+      UsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
     }
   }
 
   double meanFid = sumFiducialNum/trackedFrameList->GetNumberOfTrackedFrames();
   double meanFidCandidate = sumFiducialCandidate/trackedFrameList->GetNumberOfTrackedFrames();
-  PlusUsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid, meanFidCandidate);
+  UsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid, meanFidCandidate);
 
   if (writeFidPositionsToFile)
   {
@@ -111,7 +111,7 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
 }
 
 // return the number of differences
-int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, PlusFidPatternRecognition& patternRecognition)
+int CompareSegmentationResults(const std::string& inputBaselineFileName, const std::string& outputTestResultsFileName, FidPatternRecognition& patternRecognition)
 {
   const bool reportWarningsAsFailure=true;
   int numberOfFailures=0;
@@ -137,13 +137,13 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
     return numberOfFailures;
   }
 
-  if (strcmp(baselineRootElem->GetName(), PlusUsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
+  if (strcmp(baselineRootElem->GetName(), UsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
   {
     LOG_ERROR("Baseline data file is invalid");
     numberOfFailures++;
     return numberOfFailures;
   }
-  if (strcmp(currentRootElem->GetName(), PlusUsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
+  if (strcmp(currentRootElem->GetName(), UsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
   {
     LOG_ERROR("newly generated data file is invalid");
     numberOfFailures++;
@@ -170,13 +170,13 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       }
       continue;
     }
-    if (strcmp(currentElem->GetName(),PlusUsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
+    if (strcmp(currentElem->GetName(),UsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
     { 
       // ignore all non-test-case elements
       continue;  
     }
 
-    if (currentElem->GetAttribute(PlusUsFidSegResultFile::ID_ATTRIBUTE_NAME)==NULL)  
+    if (currentElem->GetAttribute(UsFidSegResultFile::ID_ATTRIBUTE_NAME)==NULL)  
     {
       LOG_WARNING("Frame "<<nestedElemInd<<": Current data element doesn't have an id");
       if (reportWarningsAsFailure) 
@@ -186,9 +186,9 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       continue;
     }
 
-    LOG_DEBUG("Comparing "<<currentElem->GetAttribute(PlusUsFidSegResultFile::ID_ATTRIBUTE_NAME));
+    LOG_DEBUG("Comparing "<<currentElem->GetAttribute(UsFidSegResultFile::ID_ATTRIBUTE_NAME));
 
-    vtkXMLDataElement* baselineElem=baselineRootElem->FindNestedElementWithNameAndId(PlusUsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());    
+    vtkXMLDataElement* baselineElem=baselineRootElem->FindNestedElementWithNameAndId(UsFidSegResultFile::TEST_CASE_ELEMENT_NAME, currentElem->GetId());    
 
     if (baselineElem==NULL)
     {
@@ -197,7 +197,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
       continue;
     }
 
-    if (strcmp(baselineElem->GetName(),PlusUsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
+    if (strcmp(baselineElem->GetName(),UsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
     { 
       LOG_WARNING("Frame "<<nestedElemInd<<": Test case name mismatch");
       if (reportWarningsAsFailure) numberOfFailures++;      
@@ -416,13 +416,13 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  PlusFidPatternRecognition patternRecognition;
+  FidPatternRecognition patternRecognition;
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read from metafile");
   std::string inputImageSequencePath=inputTestDataDir+"/"+inputImageSequenceFileName;
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if( vtkSequenceIO::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
     return EXIT_FAILURE;
@@ -437,8 +437,8 @@ int main(int argc, char **argv)
     return EXIT_FAILURE; 
   }
 
-  PlusUsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
-  PlusUsFidSegResultFile::WriteSegmentationResultsParameters(outFile, patternRecognition, "");
+  UsFidSegResultFile::WriteSegmentationResultsHeader(outFile);
+  UsFidSegResultFile::WriteSegmentationResultsParameters(outFile, patternRecognition, "");
 
   const char* fidPositionOutputFilename=NULL;
   if (!outputFiducialPositionsFileName.empty())
@@ -449,7 +449,7 @@ int main(int argc, char **argv)
   LOG_INFO("Segment image sequence");
   SegmentImageSequence(trackedFrameList.GetPointer(), outFile, inputTestcaseName, inputImageSequenceFileName, patternRecognition, fidPositionOutputFilename); 
 
-  PlusUsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
+  UsFidSegResultFile::WriteSegmentationResultsFooter(outFile);
   outFile.close();
 
   LOG_DEBUG("Done!"); 

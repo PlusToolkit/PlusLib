@@ -18,7 +18,7 @@ See License.txt for details.
 */
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkAxis.h"
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
@@ -27,10 +27,10 @@ See License.txt for details.
 #include "vtkPlot.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkSequenceIO.h"
 #include "vtkTable.h"
-#include "vtkPlusTemporalCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTemporalCalibrationAlgo.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -246,22 +246,22 @@ int main(int argc, char **argv)
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
 
-  vtkPlusTemporalCalibrationAlgo* testTemporalCalibrationObject = vtkPlusTemporalCalibrationAlgo::New();
-  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE movingType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE);
-  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE fixedType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE);
-  vtkSmartPointer<vtkPlusTrackedFrameList> movingFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  vtkSmartPointer<vtkPlusTrackedFrameList> fixedFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkTemporalCalibrationAlgo* testTemporalCalibrationObject = vtkTemporalCalibrationAlgo::New();
+  vtkTemporalCalibrationAlgo::FRAME_TYPE movingType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE);
+  vtkTemporalCalibrationAlgo::FRAME_TYPE fixedType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE);
+  vtkSmartPointer<vtkTrackedFrameList> movingFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> fixedFrames = vtkSmartPointer<vtkTrackedFrameList>::New();
   if( !fixedProbeToReferenceTransformNameStr.empty() )
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     testTemporalCalibrationObject->SetFixedProbeToReferenceTransformName(fixedProbeToReferenceTransformNameStr);
-    fixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
     LOG_DEBUG("Fixed data type: tracking");
   }
   else
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-    fixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+    fixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
     LOG_DEBUG("Fixed data type: video");
   }
 
@@ -269,20 +269,20 @@ int main(int argc, char **argv)
   {
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     testTemporalCalibrationObject->SetMovingProbeToReferenceTransformName(movingProbeToReferenceTransformNameStr);
-    movingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
     LOG_DEBUG("Moving data type: video");
 
   }
   else
   {
     movingFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-    movingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+    movingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
     LOG_DEBUG("Moving data type: tracking");
   }
 
   //  Read fixed frames
   LOG_DEBUG("Read fixed data from " << inputFixedSequenceMetafile);
-  if( vtkPlusSequenceIO::Read(inputFixedSequenceMetafile, fixedFrames) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputFixedSequenceMetafile, fixedFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 
   //  Read moving frames
   LOG_DEBUG("Read moving data from " << inputMovingSequenceMetafile);
-  if( vtkPlusSequenceIO::Read(inputMovingSequenceMetafile, movingFrames) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Read(inputMovingSequenceMetafile, movingFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read moving data from sequence metafile: " << inputMovingSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
@@ -316,7 +316,7 @@ int main(int argc, char **argv)
     testTemporalCalibrationObject->SetVideoClipRectangle(clipRectOriginIntVec, clipRectSizeIntVec);
   }
 
-  vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error(vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE);
+  vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error(vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE);
 
   //  Calculate the time-offset
   if (testTemporalCalibrationObject->Update(error) != PLUS_SUCCESS)

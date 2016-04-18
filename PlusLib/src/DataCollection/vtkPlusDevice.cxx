@@ -15,10 +15,10 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusRecursiveCriticalSection.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkRecursiveCriticalSection.h"
+#include "vtkSequenceIO.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkWindows.h"
 #include "vtksys/SystemTools.hxx"
 #include <ctype.h>
@@ -156,7 +156,7 @@ vtkPlusDevice::vtkPlusDevice()
   this->Threader = vtkMultiThreader::New();
 
   // For threaded capture of transformations
-  this->UpdateMutex = vtkPlusRecursiveCriticalSection::New();
+  this->UpdateMutex = vtkRecursiveCriticalSection::New();
 }
 
 //----------------------------------------------------------------------------
@@ -505,7 +505,7 @@ PlusStatus vtkPlusDevice::WriteToSequenceFile( const char* filename, bool useCom
     }
   }
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
 
   PlusStatus status=PLUS_SUCCESS;
 
@@ -515,7 +515,7 @@ PlusStatus vtkPlusDevice::WriteToSequenceFile( const char* filename, bool useCom
   for ( int i = 0 ; i < numberOfItems; i++ ) 
   {
     //Create fake image 
-    PlusTrackedFrame trackedFrame;
+    TrackedFrame trackedFrame;
     PlusVideoFrame videoFrame;
     int frameSize[3] = {1,1,1};
     // Don't waste space, create a greyscale image
@@ -578,7 +578,7 @@ PlusStatus vtkPlusDevice::WriteToSequenceFile( const char* filename, bool useCom
   }
 
   // Save tracked frames to metafile
-  if( vtkPlusSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return PLUS_FAIL;
@@ -1015,7 +1015,7 @@ PlusStatus vtkPlusDevice::StartRecording()
     return PLUS_FAIL;
   }
 
-  this->RecordingStartTime = vtkPlusAccurateTimer::GetSystemTime();
+  this->RecordingStartTime = vtkAccurateTimer::GetSystemTime();
   this->Recording = 1;
 
   if( this->StartThreadForInternalUpdates )
@@ -1052,7 +1052,7 @@ PlusStatus vtkPlusDevice::StopRecording()
     // Let's give a chance to the thread to stop before we kill the connection
     while ( this->ThreadAlive )
     {
-      vtkPlusAccurateTimer::Delay(0.1);
+      vtkAccurateTimer::Delay(0.1);
     }
     this->ThreadId = -1; 
     LOCAL_LOG_DEBUG("Internal update thread terminated");
@@ -1083,7 +1083,7 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 
   while ( self->IsRecording() && self->GetCorrectlyConfigured() )
   {
-    double newtime = vtkPlusAccurateTimer::GetSystemTime();
+    double newtime = vtkAccurateTimer::GetSystemTime();
     // get current tracking rate over last few updates
     double difftime = newtime - currtime[updatecount%FRAME_RATE_AVERAGING];
     currtime[updatecount%FRAME_RATE_AVERAGING] = newtime;
@@ -1094,7 +1094,7 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
 
     {
       // Lock before update 
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(self->UpdateMutex);
       if (!self->Recording)
       {
         // recording has been stopped
@@ -1104,10 +1104,10 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo *data)
       self->UpdateTime.Modified();
     }
 
-    double delay = ( newtime + 1.0 / rate - vtkPlusAccurateTimer::GetSystemTime() );
+    double delay = ( newtime + 1.0 / rate - vtkAccurateTimer::GetSystemTime() );
     if ( delay > 0 )
     {
-      vtkPlusAccurateTimer::Delay(delay); 
+      vtkAccurateTimer::Delay(delay); 
     }
 
     updatecount++;
@@ -1229,7 +1229,7 @@ double vtkPlusDevice::GetStartTime()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::Probe()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
   if (this->InternalStartRecording() != PLUS_SUCCESS)
   {
@@ -1272,14 +1272,14 @@ PlusStatus vtkPlusDevice::ForceUpdate()
   }
 
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
     this->InternalUpdate();
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields /* = NULL */) 
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const TrackedFrame::FieldMapType* customFields /* = NULL */) 
 {
   if ( aToolSourceId == NULL )
   {
@@ -1308,7 +1308,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
   for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
@@ -1323,7 +1323,7 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields/*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
   for( std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
@@ -1338,7 +1338,7 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/) 
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const TrackedFrame::FieldMapType* customFields/*= NULL*/) 
 {
   if ( aToolSourceId == NULL )
   {
@@ -1891,9 +1891,9 @@ ChannelContainerIterator vtkPlusDevice::GetOutputChannelsEnd()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(PlusTrackedFrame& aFrame, std::string &aToolReferenceFrameName)
+PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName)
 {
-  LOG_TRACE("vtkPlusDataCollectorFile::GetTrackerToolReferenceFrame");
+  LOG_TRACE("vtkDataCollectorFile::GetTrackerToolReferenceFrame");
 
   // Try to find it out from the custom transforms that are stored in the tracked frame
   std::vector<PlusTransformName> transformNames;
@@ -1949,7 +1949,7 @@ PlusStatus vtkPlusDevice::AddOutputChannel(vtkPlusChannel* aChannel)
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusDevice::SetDataCollector( vtkPlusDataCollector* _arg )
+void vtkPlusDevice::SetDataCollector( vtkDataCollector* _arg )
 {
   this->DataCollector = _arg;
 }
@@ -2045,7 +2045,7 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
     else
     {
       key->Mode = Plus_RfMode;
-      LOCAL_LOG_INFO("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Found tag " << vtkPlusRfProcessor::GetRfProcessorTagName() << " so setting channel Mode to " << vtkPlusDevice::RFMODE_PORT_NAME << ".");
+      LOCAL_LOG_INFO("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Found tag " << vtkRfProcessor::GetRfProcessorTagName() << " so setting channel Mode to " << vtkPlusDevice::RFMODE_PORT_NAME << ".");
     }
     output.push_back(key);
   }
@@ -2056,7 +2056,7 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
 //------------------------------------------------------------------------------
 bool vtkPlusDevice::HasGracePeriodExpired()
 {
-  return (vtkPlusAccurateTimer::GetSystemTime() - this->RecordingStartTime) > this->MissingInputGracePeriodSec;
+  return (vtkAccurateTimer::GetSystemTime() - this->RecordingStartTime) > this->MissingInputGracePeriodSec;
 }
 
 //------------------------------------------------------------------------------

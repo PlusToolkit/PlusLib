@@ -10,21 +10,21 @@ See License.txt for details.
   several subsequences of frames and save the results
 */ 
 
-#include "PlusFidPatternRecognition.h"
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusProbeCalibrationAlgo.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkProbeCalibrationAlgo.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
+#include "vtkTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -32,8 +32,8 @@ See License.txt for details.
 #include <iostream>
 #include <stdlib.h>
 
-PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
-PlusStatus SetOptimizationMethod( vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method);
+PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
+PlusStatus SetOptimizationMethod( vtkProbeCalibrationAlgo* freehandCalibration, std::string method);
 
 enum OperationType
 {
@@ -97,26 +97,26 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);  
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkPlusProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New();
+  vtkSmartPointer<vtkProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkProbeCalibrationAlgo>::New();
   freehandCalibration->ReadConfiguration(configRootElement);
 
-  PlusFidPatternRecognition patternRecognition;
-  PlusFidPatternRecognition::PatternRecognitionError error;
+  FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   // Load and segment calibration image
-  vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
@@ -133,8 +133,8 @@ int main (int argc, char* argv[])
   LOG_INFO("Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Load and segment validation image
-  vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!"); 
     return EXIT_FAILURE;
@@ -264,7 +264,7 @@ int main (int argc, char* argv[])
     }
   }
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> sequenceTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> sequenceTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
 
   std::string methods[] = {"NO_OPTIMIZATION","7param2D","7param3D","8param2D","8param3D"};
   int numberOfMethods = sizeof(methods) / sizeof(methods[0]);
@@ -341,7 +341,7 @@ int main (int argc, char* argv[])
 
 //-------------------------------------------------------------------------------------------------
 
-PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
+PlusStatus SubSequenceMetafile( vtkTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
 {
   LOG_INFO("Create a sub sequence using" << selectedFrames.size() << " frames" );
   std::sort(selectedFrames.begin(),selectedFrames.end());
@@ -371,32 +371,32 @@ PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std:
 }
 
 //-------------------------------------------------------------------------------------------------
-PlusStatus SetOptimizationMethod( vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method)
+PlusStatus SetOptimizationMethod( vtkProbeCalibrationAlgo* freehandCalibration, std::string method)
 {
-  vtkPlusProbeCalibrationOptimizerAlgo* optimizer = freehandCalibration->GetOptimizer();
+  vtkProbeCalibrationOptimizerAlgo* optimizer = freehandCalibration->GetOptimizer();
 
   if ( STRCASECMP(method.c_str(), "NO_OPTIMIZATION" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_NONE);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_NONE);
   }
   else if ( STRCASECMP(method.c_str(), "7param2D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
     optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "7param3D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
     optimizer->SetIsotropicPixelSpacing(true);
   }
   else if ( STRCASECMP(method.c_str(), "8param2D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
     optimizer->SetIsotropicPixelSpacing(false);
   }
   else if ( STRCASECMP(method.c_str(), "8param3D" ) == 0 )
   {
-    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetOptimizationMethod(vtkProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
     optimizer->SetIsotropicPixelSpacing(false);
   }
   return PLUS_SUCCESS;

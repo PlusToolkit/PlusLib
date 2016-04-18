@@ -4,14 +4,14 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-// Test if no thread hang occur when using vtkPlusAccurateTimer
+// Test if no thread hang occur when using vtkAccurateTimer
 // On Windows also test if the timings are accurate enough
 
 #include "PlusConfigure.h"
 #include <time.h>
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkMultiThreader.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 
 //----------------------------------------------------------------------------
 // Global variables for communicating with the threads
@@ -22,14 +22,14 @@ std::vector<double> gDelayErrorsSec; // access controlled by gCritSec
 int gNumberOfDelayErrors = 0; // access controlled by gCritSec
 int gNumberOfThreadCompletions = 0; // access controlled by gCritSec
 double gMaxDelayErrorSec = 0.010;
-vtkSmartPointer<vtkPlusRecursiveCriticalSection> gCritSec = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
+vtkSmartPointer<vtkRecursiveCriticalSection> gCritSec = vtkSmartPointer<vtkRecursiveCriticalSection>::New();
 
 //----------------------------------------------------------------------------
 // Thread function
 void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
 {      
   // need to initialize random generation in each thread
-  srand((unsigned int)(vtkPlusAccurateTimer::GetSystemTime()-floor(vtkPlusAccurateTimer::GetSystemTime()))*1e6);
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6);
 
   int heartbeatStepCount=1000; // a message will be logged after heartbeatStepCount steps (to indicate if the thread is still alive)
   int stepCount=0;
@@ -38,9 +38,9 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
     double delaySec=gMaxDelaySec*double(rand())/double(RAND_MAX);
     
     // Measure the delay now
-    double timestampBefore=vtkPlusAccurateTimer::GetSystemTime();
-    vtkPlusAccurateTimer::Delay(delaySec);
-    double timestampAfter=vtkPlusAccurateTimer::GetSystemTime();
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
+    vtkAccurateTimer::Delay(delaySec);
+    double timestampAfter=vtkAccurateTimer::GetSystemTime();
 
     // Analyze and store the results
     double elapsedTimeSec = timestampAfter-timestampBefore;
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
   {
     // have some time between the startup of the threads to allow initialization of the accurate timer 
     // and also to make the threads a bit less similar to each other in term of timing
-    vtkPlusAccurateTimer::Delay(0.2); 
+    vtkAccurateTimer::Delay(0.2); 
 
     int threadId = multithreader->SpawnThread( (vtkThreadFunctionType)&timerTestThread, NULL );
     LOG_INFO("Thread started: "<<threadId);

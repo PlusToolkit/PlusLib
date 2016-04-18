@@ -241,7 +241,7 @@ PlusStatus ReadLSQRDataFromXml(vtkXMLDataElement* xmlLSQRMinimize, std::vector<v
 PlusStatus GenerateLSQRData(vtkXMLDataElement* xmlLSQRMinimize, int numberOfData, int numberOfOutliers)
 {
   // initialize random number generation with the sub-millisecond part of the current time
-  srand((unsigned int)(vtkPlusAccurateTimer::GetSystemTime()-floor(vtkPlusAccurateTimer::GetSystemTime()))*1e6); 
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6); 
 
   // Generate y = x - 1 linear equation coefficients for LSQR optimizer test and save it to xmlData 
   // Add some outliers also to the dataset 
@@ -307,7 +307,7 @@ template<class floatType> int TestFloor(const char* floatName)
   const int numberOfOperations=100000;
 
   // initialize random number generation with the sub-millisecond part of the current time
-  srand((unsigned int)(vtkPlusAccurateTimer::GetSystemTime()-floor(vtkPlusAccurateTimer::GetSystemTime()))*1e6); 
+  srand((unsigned int)(vtkAccurateTimer::GetSystemTime()-floor(vtkAccurateTimer::GetSystemTime()))*1e6); 
 
   //typedef double floatType;
 
@@ -320,7 +320,7 @@ template<class floatType> int TestFloor(const char* floatName)
   std::deque<floatType> testResultsPlusFloor(numberOfOperations);
   double timestampDiffPlusFloor=0;
   {
-    double timestampBefore=vtkPlusAccurateTimer::GetSystemTime();
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
       for (int i=0; i<numberOfOperations; i++)
@@ -328,14 +328,14 @@ template<class floatType> int TestFloor(const char* floatName)
         testResultsPlusFloor[i]=PlusMath::Floor(testFloatNumbers[i]);
       }
     }
-    double timestampAfter=vtkPlusAccurateTimer::GetSystemTime(); 
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
     timestampDiffPlusFloor=timestampAfter-timestampBefore;
   }
 
   std::deque<floatType> testResultsFloor(numberOfOperations);
   double timestampDiffFloor=0;
   {
-    double timestampBefore=vtkPlusAccurateTimer::GetSystemTime();
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
       for (int i=0; i<numberOfOperations; i++)
@@ -343,13 +343,13 @@ template<class floatType> int TestFloor(const char* floatName)
         testResultsFloor[i]=floor(testFloatNumbers[i]);
       }
     }
-    double timestampAfter=vtkPlusAccurateTimer::GetSystemTime(); 
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
     timestampDiffFloor=timestampAfter-timestampBefore;
   }
 
   double timestampDiffVtkFloor=0;
   {
-    double timestampBefore=vtkPlusAccurateTimer::GetSystemTime();
+    double timestampBefore=vtkAccurateTimer::GetSystemTime();
     for (int rep=0; rep<repeatOperations; rep++)
     {
       for (int i=0; i<numberOfOperations; i++)
@@ -357,7 +357,7 @@ template<class floatType> int TestFloor(const char* floatName)
         testResultsFloor[i]=vtkMath::Floor(testFloatNumbers[i]);
       }
     }
-    double timestampAfter=vtkPlusAccurateTimer::GetSystemTime(); 
+    double timestampAfter=vtkAccurateTimer::GetSystemTime(); 
     timestampDiffVtkFloor=timestampAfter-timestampBefore;
   }
 

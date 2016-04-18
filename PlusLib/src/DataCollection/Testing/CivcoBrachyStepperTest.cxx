@@ -6,8 +6,8 @@
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "PlusBrachyStepper.h"
-#include "PlusCivcoBrachyStepper.h"
+#include "BrachyStepper.h"
+#include "CivcoBrachyStepper.h"
 #include <stdlib.h>
 #include <iostream>
 
@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
   {
     LOG_INFO("Starting test " << reconnect + 1 ); 
 
-    PlusCivcoBrachyStepper *myStepper = new PlusCivcoBrachyStepper(inputComPort, 19200);
+    CivcoBrachyStepper *myStepper = new CivcoBrachyStepper(inputComPort, 19200);
 
     if ( myStepper->Connect() != PLUS_SUCCESS )
     {
@@ -102,7 +102,7 @@ int main (int argc, char* argv[])
         //return EXIT_FAILURE; 
       }
 
-      vtkPlusAccurateTimer::Delay(0.001*samplingTimeMs); 
+      vtkAccurateTimer::Delay(0.001*samplingTimeMs); 
     }
 
     LOG_INFO( "Stopping stepper...\n");

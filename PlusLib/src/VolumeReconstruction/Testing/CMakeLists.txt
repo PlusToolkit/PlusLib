@@ -133,10 +133,10 @@ SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 
 #***************************  CompareVolumes  ***************************
 # This program compares two volumes and outputs difference statistics
-ADD_EXECUTABLE( CompareVolumes CompareVolumes.cxx vtkPlusCompareVolumes.cxx )
+ADD_EXECUTABLE( CompareVolumes CompareVolumes.cxx vtkCompareVolumes.cxx )
 TARGET_LINK_LIBRARIES( CompareVolumes vtkPlusCommon )
 
-#***************************  DrawClipRegion  ***************************
+#***************************  CompareVolumes  ***************************
 # This program compares two volumes and outputs difference statistics
 ADD_EXECUTABLE( DrawClipRegion DrawClipRegion.cxx )
 TARGET_LINK_LIBRARIES( DrawClipRegion vtkPlusCommon vtkVolumeReconstruction)

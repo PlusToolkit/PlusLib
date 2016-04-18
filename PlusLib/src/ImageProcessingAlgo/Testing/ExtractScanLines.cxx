@@ -1,18 +1,18 @@
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkImageCast.h"
 #include "vtkImageData.h"
-#include "vtkPlusMetaImageSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusUsScanConvert.h"
-#include "vtkPlusUsScanConvertCurvilinear.h"
-#include "vtkPlusUsScanConvertLinear.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkUsScanConvert.h"
+#include "vtkUsScanConvertCurvilinear.h"
+#include "vtkUsScanConvertLinear.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 
 
-void extractScanLines(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData, vtkImageData* outputImageData)
+void extractScanLines(vtkUsScanConvert* scanConverter, vtkImageData* inputImageData, vtkImageData* outputImageData)
 {
   int* linesImageExtent = scanConverter->GetInputImageExtent();
   int lineLengthPx = linesImageExtent[1] - linesImageExtent[0] + 1;
@@ -143,14 +143,14 @@ int main(int argc, char **argv)
 
   // Create scan converter.
 
-  vtkSmartPointer<vtkPlusUsScanConvert> scanConverter;
+  vtkSmartPointer<vtkUsScanConvert> scanConverter;
   if (STRCASECMP(transducerGeometry, "CURVILINEAR")==0)
   {
-    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertCurvilinear::New());
+    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
   }
   else if (STRCASECMP(transducerGeometry, "LINEAR")==0)
   {
-    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertLinear::New());
+    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
   }
   else
   {
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
   // Read input image.
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> inputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> inputFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   inputFrameList->ReadFromSequenceMetafile(inputFileName.c_str());
   int numberOfFrames = inputFrameList->GetNumberOfTrackedFrames();
   
@@ -182,17 +182,17 @@ int main(int argc, char **argv)
 
   // Create frame lists for lines images and output images.
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> linesFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  vtkSmartPointer<vtkPlusTrackedFrameList> outputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> linesFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> outputFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
 
   // Iterate thought every frame.
 
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex ++ )
   {
-    PlusTrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
+    TrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
     
     linesFrameList->AddTrackedFrame(inputFrame);
-    PlusTrackedFrame* linesFrame = linesFrameList->GetTrackedFrame(linesFrameList->GetNumberOfTrackedFrames()-1);
+    TrackedFrame* linesFrame = linesFrameList->GetTrackedFrame(linesFrameList->GetNumberOfTrackedFrames()-1);
     linesFrame->GetImageData()->DeepCopyFrom(linesImage);  // Would there be a more efficient way to create this tracked frame?
 
     // Extract scan lines from image.

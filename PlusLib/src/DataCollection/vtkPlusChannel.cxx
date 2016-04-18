@@ -10,9 +10,9 @@ See License.txt for details.
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "PlusPlotter.h"
-#include "vtkPlusHTMLGenerator.h"
+#include "vtkHTMLGenerator.h"
 
 //----------------------------------------------------------------------------
 
@@ -124,10 +124,10 @@ PlusStatus vtkPlusChannel::ReadConfiguration( vtkXMLDataElement* aChannelElement
     return PLUS_FAIL;
   }
 
-  vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName(vtkPlusRfProcessor::GetRfProcessorTagName());
+  vtkXMLDataElement* rfElement = aChannelElement->FindNestedElementWithName(vtkRfProcessor::GetRfProcessorTagName());
   if (rfElement != NULL)
   {
-    this->RfProcessor = vtkPlusRfProcessor::New();
+    this->RfProcessor = vtkRfProcessor::New();
     this->RfProcessor->ReadConfiguration(rfElement);
     this->SaveRfProcessingParameters = true;
   }
@@ -364,7 +364,7 @@ void vtkPlusChannel::SetVideoSource( vtkPlusDataSource* aSource )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, PlusTrackedFrame& aTrackedFrame, bool enableImageData/*=true*/ )
+PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, TrackedFrame& aTrackedFrame, bool enableImageData/*=true*/ )
 {
   int numberOfErrors(0);
   double synchronizedTimestamp(0);
@@ -505,7 +505,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, PlusTrackedFrame& 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrame(PlusTrackedFrame* trackedFrame)
+PlusStatus vtkPlusChannel::GetTrackedFrame(TrackedFrame* trackedFrame)
 {
   //LOG_TRACE("vtkPlusDevice::GetTrackedFrame - TrackedFrame"); 
 
@@ -526,7 +526,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(PlusTrackedFrame* trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlreadyGot, vtkPlusTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd )
+PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlreadyGot, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd )
 {
   LOG_TRACE("vtkPlusDevice::GetTrackedFrameList(" << aTimestampOfLastFrameAlreadyGot << ", " << aMaxNumberOfFramesToAdd << ")"); 
 
@@ -541,7 +541,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
   {
     if ( this->VideoSource->GetNumberOfItems() == 0 )
     {
-      LOG_DEBUG("vtkPlusDataCollector::GetTrackedFrameList: the video buffer is empty, no items will be returned"); 
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the video buffer is empty, no items will be returned"); 
       return PLUS_SUCCESS;
     }
   }
@@ -556,7 +556,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
     }
     if ( masterTool->GetNumberOfItems() == 0 )
     {
-      LOG_DEBUG("vtkPlusDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
+      LOG_DEBUG("vtkDataCollector::GetTrackedFrameList: the tracker buffer is empty, no items will be returned"); 
       return PLUS_SUCCESS;
     }
   }
@@ -716,7 +716,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
     if ( timestampFrom > aTimestampOfLastFrameAlreadyGot || aTimestampOfLastFrameAlreadyGot == UNDEFINED_TIMESTAMP)
     {
       // Get tracked frame from buffer
-      PlusTrackedFrame* trackedFrame = new PlusTrackedFrame;
+      TrackedFrame* trackedFrame = new TrackedFrame;
 
       if ( this->GetTrackedFrame(timestampFrom, *trackedFrame) != PLUS_SUCCESS )
       {
@@ -727,7 +727,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
 
       // Add tracked frame to the list 
       aTimestampOfLastFrameAlreadyGot=trackedFrame->GetTimestamp();
-      if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+      if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
       {
         LOG_ERROR("Unable to add tracked frame to the list!" ); 
         return PLUS_FAIL; 
@@ -792,9 +792,9 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList( double& aTimestampOfLastFrameAlr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkPlusTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec/*=-1*/)
+PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec/*=-1*/)
 {
-  LOG_TRACE("vtkPlusDataCollector::GetTrackedFrameListSampled: aTimestampOfLastFrameAlreadyGot="<<aTimestampOfLastFrameAlreadyGot<<", aTimestampOfNextFrameToBeAdded="<<aTimestampOfNextFrameToBeAdded<<", aSamplingPeriodSec="<< aSamplingPeriodSec); 
+  LOG_TRACE("vtkDataCollector::GetTrackedFrameListSampled: aTimestampOfLastFrameAlreadyGot="<<aTimestampOfLastFrameAlreadyGot<<", aTimestampOfNextFrameToBeAdded="<<aTimestampOfNextFrameToBeAdded<<", aSamplingPeriodSec="<< aSamplingPeriodSec); 
 
   if ( aTrackedFrameList == NULL )
   {
@@ -802,7 +802,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
     return PLUS_FAIL; 
   }
 
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
   double mostRecentTimestamp(0); 
   if ( this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS )
@@ -816,7 +816,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
   for (; aTimestampOfNextFrameToBeAdded <= mostRecentTimestamp; aTimestampOfNextFrameToBeAdded += aSamplingPeriodSec)
   {       
     // If the time that is allowed for adding of frames is expired then stop the processing now
-    if (maxTimeLimitSec>0 && vtkPlusAccurateTimer::GetSystemTime() - startTimeSec > maxTimeLimitSec)
+    if (maxTimeLimitSec>0 && vtkAccurateTimer::GetSystemTime() - startTimeSec > maxTimeLimitSec)
     {
       LOG_DEBUG("Reached maximum time that is allowed for sampling frames");
       break;
@@ -852,7 +852,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
       continue;
     }
     // Get tracked frame from buffer (actually copies pixel and field data)
-    PlusTrackedFrame* trackedFrame = new PlusTrackedFrame;
+    TrackedFrame* trackedFrame = new TrackedFrame;
     if ( GetTrackedFrame(closestTimestamp, *trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Unable retrieve frame from the devices for time: " << std::fixed << aTimestampOfNextFrameToBeAdded <<", probably the item is not available in the buffers anymore. Frames may be lost."); 
@@ -861,7 +861,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double &aTimestampOfLastFr
     }
     aTimestampOfLastFrameAlreadyGot=trackedFrame->GetTimestamp();
     // Add tracked frame to the list 
-    if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
+    if ( aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS )
     {
       LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Unable to add tracked frame to the list" ); 
       status=PLUS_FAIL; 
@@ -1369,7 +1369,7 @@ PlusStatus vtkPlusChannel::SetCustomAttribute( const std::string& attributeId, c
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* htmlReport)
+PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkHTMLGenerator* htmlReport)
 {
   if (htmlReport == NULL)
   {
@@ -1380,7 +1380,7 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
   vtkSmartPointer<vtkTable> timestampReportTable = vtkSmartPointer<vtkTable>::New();
 
   std::string reportText = std::string("Device: ")+this->GetOwnerDevice()->GetDeviceId()+" - Channel: "+this->GetChannelId();
-  htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H1); 
+  htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H1); 
 
   std::string deviceAndChannelName=std::string(this->GetOwnerDevice()->GetDeviceId())+"-"+this->GetChannelId();
 
@@ -1399,7 +1399,7 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
     std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp()+"-"+deviceAndChannelName+"-VideoBufferTimestamps.txt" ); 
     PlusPlotter::DumpTableToFile( timestampReportTable, reportFile.c_str() );
 
-    htmlReport->AddText("Video data", vtkPlusHTMLGenerator::H2);
+    htmlReport->AddText("Video data", vtkHTMLGenerator::H2);
     std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName+"VideoBufferTimestamps.png").c_str(), "Video Data Acquisition Analysis");
     PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
     
@@ -1418,7 +1418,7 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
     }
 
     reportText =  std::string("Tracking data - ")+tool->GetSourceId();
-    htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H2);
+    htmlReport->AddText(reportText.c_str(), vtkHTMLGenerator::H2);
     std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName+"-"+tool->GetSourceId()+"-TrackerBufferTimestamps.png").c_str(), reportText.c_str());
     PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 

@@ -5,15 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusDataCollectorTest1.cxx 
+  \file vtkDataCollectorTest1.cxx 
   \brief This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
 */ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkImageData.h" 
 #include "vtkImageViewer.h"
 #include "vtkMatrix4x4.h"
@@ -22,10 +22,10 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkPlusRfProcessor.h"
-#include "vtkPlusSavedDataSource.h"
+#include "vtkRfProcessor.h"
+#include "vtkSavedDataSource.h"
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-  #include "vtkPlusSonixVideoSource.h"
+  #include "vtkSonixVideoSource.h"
 #endif
 #include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
@@ -42,7 +42,7 @@ public:
   {
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
-    PlusTrackedFrame trackedFrame; 
+    TrackedFrame trackedFrame; 
     if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to get tracked frame!"); 
@@ -98,14 +98,14 @@ public:
     this->Iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
 
-  vtkPlusDataCollector* DataCollector; 
+  vtkDataCollector* DataCollector; 
   vtkPlusChannel* BroadcastChannel;
   vtkImageViewer *Viewer;
   vtkRenderWindowInteractor *Iren;
   vtkTextActor *StepperTextActor; 
   PlusTransformName TransformName; 
   vtkImageData *ImageData;
-  vtkPlusRfProcessor *RfProcessor;
+  vtkRfProcessor *RfProcessor;
 };
 
 int main(int argc, char **argv)
@@ -162,11 +162,11 @@ int main(int argc, char **argv)
   
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Configuration incorrect for vtkPlusDataCollectorTest1.");
+    LOG_ERROR("Configuration incorrect for vtkDataCollectorTest1.");
     exit( EXIT_FAILURE );
   }
   vtkPlusDevice* videoDevice = NULL;
@@ -179,10 +179,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkPlusSavedDataSource* videoSource = dynamic_cast<vtkPlusSavedDataSource*>(videoDevice); 
+    vtkSavedDataSource* videoSource = dynamic_cast<vtkSavedDataSource*>(videoDevice); 
     if ( videoSource == NULL )
     {
-      LOG_ERROR( "Unable to cast video source to vtkPlusSavedDataSource." );
+      LOG_ERROR( "Unable to cast video source to vtkSavedDataSource." );
       exit( EXIT_FAILURE );
     }
     videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str()); 
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkPlusSonixVideoSource* videoSource = dynamic_cast<vtkPlusSonixVideoSource*>(videoDevice); 
+    vtkSonixVideoSource* videoSource = dynamic_cast<vtkSonixVideoSource*>(videoDevice); 
     if ( videoSource == NULL )
     {
       LOG_ERROR( "Video source is not SonixVideo. Cannot set IP address." );
@@ -213,10 +213,10 @@ int main(int argc, char **argv)
       LOG_ERROR("Unable to locate the device with Id=\"TrackerDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
-    vtkPlusSavedDataSource* tracker = dynamic_cast<vtkPlusSavedDataSource*>(trackerDevice); 
+    vtkSavedDataSource* tracker = dynamic_cast<vtkSavedDataSource*>(trackerDevice); 
     if ( tracker == NULL )
     {
-      LOG_ERROR( "Unable to cast tracker to vtkPlusSavedDataSource" );
+      LOG_ERROR( "Unable to cast tracker to vtkSavedDataSource" );
       exit( EXIT_FAILURE );
     }
     tracker->SetSequenceFile(inputTrackerBufferMetafile.c_str()); 
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
 
-    vtkSmartPointer<vtkPlusRfProcessor> rfProc=vtkSmartPointer<vtkPlusRfProcessor>::New();
+    vtkSmartPointer<vtkRfProcessor> rfProc=vtkSmartPointer<vtkRfProcessor>::New();
     rfProc->ReadConfiguration(configRootElement);
 
     //establish timer event and create timer
@@ -313,7 +313,7 @@ int main(int argc, char **argv)
 
   dataCollector->Disconnect();
 
-  std::cout << "vtkPlusDataCollectorTest1 completed successfully!" << std::endl;
+  std::cout << "vtkDataCollectorTest1 completed successfully!" << std::endl;
   return EXIT_SUCCESS; 
 
 }
