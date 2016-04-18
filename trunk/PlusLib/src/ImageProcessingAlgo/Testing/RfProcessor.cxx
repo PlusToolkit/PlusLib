@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkImageData.h" 
-#include "vtkPlusRfProcessor.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkRfProcessor.h"
+#include "vtkSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
   // Read transformations data 
   LOG_DEBUG("Reading input meta file..."); 
   // frameList it will contain initially the RF data and the image data will be replaced by the processed output
-  vtkSmartPointer< vtkPlusTrackedFrameList > frameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
-  if( vtkPlusSequenceIO::Read(inputRfFile, frameList) != PLUS_SUCCESS )
+  vtkSmartPointer< vtkTrackedFrameList > frameList = vtkSmartPointer< vtkTrackedFrameList >::New();
+  if( vtkSequenceIO::Read(inputRfFile, frameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
     }
 
     // Create converter
-    vtkSmartPointer<vtkPlusRfProcessor> rfProcessor = vtkSmartPointer<vtkPlusRfProcessor>::New(); 
+    vtkSmartPointer<vtkRfProcessor> rfProcessor = vtkSmartPointer<vtkRfProcessor>::New(); 
     if ( rfProcessor->ReadConfiguration(rfProcesingElement) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to read conversion parameters from the configuration file"); 
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
     // Process the frames
     for (unsigned int j = 0; j < frameList->GetNumberOfTrackedFrames(); j++)
     {
-      PlusTrackedFrame* rfFrame = frameList->GetTrackedFrame(j);
+      TrackedFrame* rfFrame = frameList->GetTrackedFrame(j);
 
       // Do the conversion
       rfProcessor->SetRfFrame(rfFrame->GetImageData()->GetImage(), rfFrame->GetImageData()->GetImageType());
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
       ss << vtksys::SystemTools::GetFilenameWithoutExtension(outputImgFile) << "_OutputChannel_" << i << vtksys::SystemTools::GetFilenameExtension(outputImgFile);
     }
 
-    if( vtkPlusSequenceIO::Write(ss.str(), frameList, frameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+    if( vtkSequenceIO::Write(ss.str(), frameList, frameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
     {
       // Error has already been logged
       exit(EXIT_FAILURE);

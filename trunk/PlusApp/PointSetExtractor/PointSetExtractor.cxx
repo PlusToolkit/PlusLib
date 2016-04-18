@@ -16,7 +16,7 @@
 */ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkActor.h"
 #include "vtkAppendPolyData.h"
 #include "vtkCamera.h"
@@ -34,10 +34,10 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSTLWriter.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkSequenceIO.h"
 #include "vtkSphereSource.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
 #include "vtkTriangleFilter.h"
 #include "vtkTubeFilter.h"
 #include "vtkXMLUtilities.h"
@@ -103,14 +103,14 @@ int main(int argc, char **argv)
 	/////////////// 
 
   LOG_INFO("Read input file...");
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  if( vtkSequenceIO::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputSequenceFileName);
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
 
   // Read config file
   if (!inputConfigFileName.empty())
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
   double stylusTipPositionInReferenceFrame[4]={0,0,0,1};  
   for ( int frame = 0; frame < trackedFrameList->GetNumberOfTrackedFrames(); ++frame )
   {
-    PlusTrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(frame);
+    TrackedFrame *trackedFrame = trackedFrameList->GetTrackedFrame(frame);
     transformRepository->SetTransforms(*trackedFrame);
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     bool valid = false;

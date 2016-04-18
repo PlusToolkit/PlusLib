@@ -7,9 +7,9 @@ See License.txt for details.
 #include "vtkPlusIgtlMessageCommon.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkPlusTransformRepository.h" 
-#include "vtkPlusTrackedFrameList.h" 
-#include "PlusTrackedFrame.h"
+#include "vtkTransformRepository.h" 
+#include "vtkTrackedFrameList.h" 
+#include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkImageData.h" 
@@ -37,7 +37,7 @@ void vtkPlusIgtlMessageCommon::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkPlusTransformRepository* transformRepository, PlusTransformName& transformName)
+PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkTransformRepository* transformRepository, PlusTransformName& transformName)
 {
   igtl::IdentityMatrix(igtlMatrix); 
 
@@ -75,7 +75,7 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, 
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame )
+PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, TrackedFrame& trackedFrame )
 {
   if ( trackedFrameMessage.IsNull() )
   {
@@ -91,7 +91,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFr
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -130,7 +130,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, PlusTrackedFrame& trackedFrame )
+PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, TrackedFrame& trackedFrame )
 {
   if ( usMessage.IsNull() )
   {
@@ -146,7 +146,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer 
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {
@@ -181,7 +181,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Point
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix )
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage, TrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix )
 {
   if ( imageMessage.IsNull() )
   {
@@ -302,7 +302,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
 //----------------------------------------------------------------------------
 // static 
-PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, PlusTrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket *socket, TrackedFrame& trackedFrame, const PlusTransformName &embeddedTransformName, int crccheck)
 {
   if ( headerMsg.IsNull() )
   {

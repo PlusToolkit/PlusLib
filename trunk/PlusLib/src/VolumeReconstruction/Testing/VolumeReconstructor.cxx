@@ -5,13 +5,13 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusVolumeReconstructor.h"
+#include "vtkSequenceIO.h"
+#include "vtkTrackedFrameList.h"
+#include "vtkTransformRepository.h"
+#include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -102,7 +102,7 @@ int main (int argc, char* argv[])
     exit( EXIT_FAILURE );
   }
 
-  vtkSmartPointer<vtkPlusVolumeReconstructor> reconstructor = vtkSmartPointer<vtkPlusVolumeReconstructor>::New(); 
+  vtkSmartPointer<vtkVolumeReconstructor> reconstructor = vtkSmartPointer<vtkVolumeReconstructor>::New(); 
 
   LOG_INFO( "Reading configuration file:" << inputConfigFileName );
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -118,7 +118,7 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE; 
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
   if (configRootElement->FindNestedElementWithName("CoordinateDefinitions")!=NULL)
   {
     if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
@@ -139,8 +139,8 @@ int main (int argc, char* argv[])
 
   // Read image sequence
   LOG_INFO("Reading image sequence " << inputImgSeqFileName );
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -177,7 +177,7 @@ int main (int argc, char* argv[])
     LOG_DEBUG("Frame: "<<frameIndex);
     vtkPlusLogger::PrintProgressbar( (100.0 * frameIndex) / numberOfFrames ); 
 
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
     {

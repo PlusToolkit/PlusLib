@@ -6,7 +6,7 @@ This algorithm determines the transformation between the ultrasound image and a 
 
 \section ProbeCalibrationConfigSettings Configuration settings
 
-- \xmlElem \b vtkPlusProbeCalibrationAlgo
+- \xmlElem \b vtkProbeCalibrationAlgo
   - \xmlAtt ImageCoordinateFrame \RequiredAtt
   - \xmlAtt ProbeCoordinateFrame \RequiredAtt
   - \xmlAtt PhantomCoordinateFrame \RequiredAtt

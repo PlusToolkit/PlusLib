@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkPlusMicronTracker.h"
+#include "vtkMicronTracker.h"
 #include "vtkImageData.h"
 #include "vtkImageViewer2.h"
 #include "vtkRenderWindowInteractor.h"
@@ -33,7 +33,7 @@ public:
   }
   vtkImageViewer2 *viewer;
   vtkRenderWindowInteractor *iren;
-  vtkPlusMicronTracker *frameGrabber;
+  vtkMicronTracker *frameGrabber;
   vtkImageData *leftImage;
 protected:
   vtkMyCallback()
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkPlusEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkPlusEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkEpiphanVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
 
-  vtkSmartPointer<vtkPlusMicronTracker> frameGrabber = vtkSmartPointer<vtkPlusMicronTracker>::New();
+  vtkSmartPointer<vtkMicronTracker> frameGrabber = vtkSmartPointer<vtkMicronTracker>::New();
 
   frameGrabber->SetAcquisitionRate(frameRate);
 

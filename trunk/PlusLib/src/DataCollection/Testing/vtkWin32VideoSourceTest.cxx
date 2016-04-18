@@ -13,7 +13,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusWin32VideoSource2.h"
+#include "vtkWin32VideoSource2.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
   }
 
-  vtkSmartPointer<vtkPlusWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkPlusWin32VideoSource2>::New();
+  vtkSmartPointer<vtkWin32VideoSource2> frameGrabber = vtkSmartPointer<vtkWin32VideoSource2>::New();
 
   frameGrabber->CreateDefaultOutputChannel();
 

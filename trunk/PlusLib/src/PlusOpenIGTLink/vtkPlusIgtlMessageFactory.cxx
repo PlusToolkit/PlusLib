@@ -6,9 +6,9 @@ See License.txt for details.
 
 #include "vtkPlusIgtlMessageFactory.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusTransformRepository.h" 
-#include "vtkPlusTrackedFrameList.h" 
-#include "PlusTrackedFrame.h"
+#include "vtkTransformRepository.h" 
+#include "vtkTrackedFrameList.h" 
+#include "TrackedFrame.h"
 #include "vtkMatrix4x4.h"
 #include "vtkImageData.h" 
 #include "vtksys/SystemTools.hxx"
@@ -117,8 +117,8 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const st
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, PlusTrackedFrame& trackedFrame,
-    bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository/*=NULL*/)
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, TrackedFrame& trackedFrame,
+    bool packValidTransformsOnly, vtkTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors = 0; 
   igtlMessages.clear(); 
@@ -169,11 +169,11 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
 
         igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->CreateAnother().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
-        if( trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
+        if( trackedFrame.IsCustomFrameFieldDefined(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
         {
           // Allow overriding of device name with something human readable
           // The transform name is passed in the metadata
-          deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+          deviceName = trackedFrame.GetCustomFrameField(TrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str()); 
         if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )

@@ -2,25 +2,25 @@
 # Sources
 
 SET (CalibrationAlgo_SRCS
-  PatternLocAlgo/PlusFidSegmentation.cxx
-  PatternLocAlgo/PlusFidLineFinder.cxx
-  PatternLocAlgo/PlusFidLabeling.cxx
-  PatternLocAlgo/PlusFidPatternRecognitionCommon.cxx
-  PatternLocAlgo/PlusFidPatternRecognition.cxx
-  PatternLocAlgo/PlusPatternLocResultFile.cxx
-  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.cxx 
-  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.cxx
-  vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.cxx
-  vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.cxx
-  vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.cxx
-  vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.cxx
-  vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.cxx
-  vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.cxx 
-  vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.cxx
-  vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.cxx
-  vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.cxx
-  vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.cxx 
-  vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.cxx 
+  PatternLocAlgo/FidSegmentation.cxx
+  PatternLocAlgo/FidLineFinder.cxx
+  PatternLocAlgo/FidLabeling.cxx
+  PatternLocAlgo/FidPatternRecognitionCommon.cxx
+  PatternLocAlgo/FidPatternRecognition.cxx
+  PatternLocAlgo/PatternLocResultFile.cxx
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.cxx
+  vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkLandmarkDetectionAlgo.cxx
+  vtkPhantomLandmarkRegistrationAlgo/vtkReadTrackedSignals.cxx
+  vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.cxx
+  vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.cxx 
+  vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.cxx
+  vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.cxx
+  vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.cxx 
+  vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.cxx 
   vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
@@ -36,25 +36,25 @@ SET (CalibrationAlgo_SRCS
 SET (CalibrationAlgo_HDRS)  
 IF (WIN32)  
   SET (CalibrationAlgo_HDRS
-    PatternLocAlgo/PlusFidSegmentation.h
-    PatternLocAlgo/PlusFidLineFinder.h
-    PatternLocAlgo/PlusFidLabeling.h
-    PatternLocAlgo/PlusFidPatternRecognitionCommon.h
-    PatternLocAlgo/PlusFidPatternRecognition.h
-    PatternLocAlgo/PlusPatternLocResultFile.h
-    vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.h
-    vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.h
-    vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.h
-    vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.h
-    vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.h
-    vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h 
-    vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.h
-    vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.h
-    vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.h
-    vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.h
-    vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.h
+    PatternLocAlgo/FidSegmentation.h
+    PatternLocAlgo/FidLineFinder.h
+    PatternLocAlgo/FidLabeling.h
+    PatternLocAlgo/FidPatternRecognitionCommon.h
+    PatternLocAlgo/FidPatternRecognition.h
+    PatternLocAlgo/PatternLocResultFile.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationAlgo.h
+    vtkProbeCalibrationAlgo/vtkProbeCalibrationOptimizerAlgo.h
+    vtkPivotCalibrationAlgo/vtkPivotCalibrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkPhantomLandmarkRegistrationAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkLandmarkDetectionAlgo.h
+    vtkPhantomLandmarkRegistrationAlgo/vtkReadTrackedSignals.h
+    vtkPhantomLinearObjectRegistrationAlgo/vtkPhantomLinearObjectRegistrationAlgo.h
+    vtkSpacingCalibAlgo/vtkSpacingCalibAlgo.h 
+    vtkCenterOfRotationCalibAlgo/vtkCenterOfRotationCalibAlgo.h
+    vtkBrachyStepperPhantomRegistrationAlgo/vtkBrachyStepperPhantomRegistrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkTemporalCalibrationAlgo.h
+    vtkTemporalCalibrationAlgo/vtkPrincipalMotionDetectionAlgo.h
+    vtkLineSegmentationAlgo/vtkLineSegmentationAlgo.h
     vtkPhantomLinearObjectRegistrationAlgo/Line.h
     vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
     vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h

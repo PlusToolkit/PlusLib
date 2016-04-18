@@ -10,7 +10,7 @@
 #include <sstream>
 #include <limits>
 
-#include "PlusFidPatternRecognition.h"
+#include "FidPatternRecognition.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLDataElement.h"
@@ -19,7 +19,7 @@
 #include "itkFcsvReader.h"
 #include "itkLandmarkSpatialObject.h"
 
-#include "PlusPatternLocResultFile.h"
+#include "PatternLocResultFile.h"
 
 void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, const std::string &fiducialPosFileName) 
 {
@@ -95,23 +95,23 @@ void WriteFiducialPositions(std::ofstream &outFile,const std::string &inputTestc
       it++; 
     }
 
-    PlusPatternRecognitionResult patRecognitionResults;
+    PatternRecognitionResult patRecognitionResults;
     patRecognitionResults.SetFoundDotsCoordinateValue( foundDotsCoordinateValue );
     patRecognitionResults.SetDotsFound(true);
 
     sumFiducialNum = sumFiducialNum + validFidNum; 
     
-    PlusUsFidSegResultFile::WriteSegmentationResults(outFile, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+    UsFidSegResultFile::WriteSegmentationResults(outFile, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
     if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
     {
-      PlusUsFidSegResultFile::WriteSegmentationResults(std::cout, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
+      UsFidSegResultFile::WriteSegmentationResults(std::cout, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
     }
 
   }  
     
   double meanFid = sumFiducialNum/numberOfFrames;
-  PlusUsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid);
+  UsFidSegResultFile::WriteSegmentationResultsStats(outFile,  meanFid);
   
 }
 
@@ -154,15 +154,15 @@ int main(int argc, char **argv)
   
   std::ofstream outputXmlFile; 
   outputXmlFile.open( outputXmlFileName.c_str());
-  PlusUsFidSegResultFile::WriteSegmentationResultsHeader(outputXmlFile);
+  UsFidSegResultFile::WriteSegmentationResultsHeader(outputXmlFile);
     
-  PlusFidPatternRecognition patternRecognition;
-  PlusUsFidSegResultFile::WriteSegmentationResultsParameters(outputXmlFile, patternRecognition, inputFcsvFileName);
+  FidPatternRecognition patternRecognition;
+  UsFidSegResultFile::WriteSegmentationResultsParameters(outputXmlFile, patternRecognition, inputFcsvFileName);
 
   
   std::string inputFcsvFilePath=inputTestDataDir+"/"+inputFcsvFileName;
   WriteFiducialPositions(outputXmlFile, inputTestcaseName, inputImageSequenceFileName, inputFcsvFilePath); 
-  PlusUsFidSegResultFile::WriteSegmentationResultsFooter(outputXmlFile);
+  UsFidSegResultFile::WriteSegmentationResultsFooter(outputXmlFile);
   outputXmlFile.close();
     
   LOG_DEBUG("Done!"); 

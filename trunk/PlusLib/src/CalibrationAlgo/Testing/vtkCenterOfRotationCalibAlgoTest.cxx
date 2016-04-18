@@ -5,18 +5,18 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusCenterOfRotationCalibAlgoTest.cxx 
+  \file vtkCenterOfRotationCalibAlgoTest.cxx 
   \brief This test computes center of rotation on a recorded data set and 
   compares the results to a baseline
 */ 
 
-#include "PlusFidPatternRecognition.h"
+#include "FidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusPlotter.h"
-#include "vtkPlusCenterOfRotationCalibAlgo.h"
-#include "vtkPlusHTMLGenerator.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusSpacingCalibAlgo.h"
+#include "vtkCenterOfRotationCalibAlgo.h"
+#include "vtkHTMLGenerator.h"
+#include "vtkSequenceIO.h"
+#include "vtkSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -81,14 +81,14 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  PlusFidPatternRecognition patternRecognition;
-  PlusFidPatternRecognition::PatternRecognitionError error;
+  FidPatternRecognition patternRecognition;
+  FidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Read center of rotation data from metafile...");
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  if( vtkSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS )
   {
       LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile); 
       return EXIT_FAILURE;
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     << " (" << (100.0 * numberOfSuccessfullySegmentedImages ) / trackedFrameList->GetNumberOfTrackedFrames() << "%)");
 
   LOG_INFO("Testing spacing computation...");
-  vtkSmartPointer<vtkPlusSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkPlusSpacingCalibAlgo>::New(); 
+  vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
   spacingCalibAlgo->SetInputs(trackedFrameList, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
   double spacing[2]={0}; 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing center of rotation computation algorithm...");
-  vtkSmartPointer<vtkPlusCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkPlusCenterOfRotationCalibAlgo>::New(); 
+  vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
   centerOfRotationCalibAlgo->SetInputs(trackedFrameList, trackedFrameIndices, spacing); 
   
   // Get center of rotation calibration output 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
   }
 
   LOG_INFO("Testing HTML report generation..."); 
-  vtkSmartPointer<vtkPlusHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkPlusHTMLGenerator>::New(); 
+  vtkSmartPointer<vtkHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkHTMLGenerator>::New(); 
   htmlGenerator->SetBaseFilename("CenterOfRotationCalibrationReport");
   htmlGenerator->SetTitle("Center of Rotation Calibration Report");
   spacingCalibAlgo->GenerateReport(htmlGenerator);

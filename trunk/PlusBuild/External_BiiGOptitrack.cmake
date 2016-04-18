@@ -37,15 +37,15 @@ IF(BiiGOptitrack_DIR)
   SET (PLUS_BiiGOptitrack_DIR "${BiiGOptitrack_DIR}" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
 ELSE(BiiGOptitrack_DIR)
 
-  # BiiGOptitrack has not been built yet, so download and build it as an external project
+  # NPTrackingTools has not been built yet, so download and build it as an external project
   SET (PLUS_BiiGOptitrack_SRC_DIR "${CMAKE_BINARY_DIR}/BiiGOptitrack")
   SET (PLUS_BiiGOptitrack_DIR "${CMAKE_BINARY_DIR}/BiiGOptitrack-bin" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
   ExternalProject_Add( BiiGOptitrack
     SOURCE_DIR "${PLUS_BiiGOptitrack_SRC_DIR}"
     BINARY_DIR "${PLUS_BiiGOptitrack_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/BiiGOptitrack"
-    GIT_TAG "master"
+    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/HGGM-LIM/BiiGOptitrack"
+    GIT_TAG "PLUS-v2.0"
     #--Configure step-------------
     CMAKE_ARGS
         ${ep_common_args}
@@ -53,7 +53,7 @@ ELSE(BiiGOptitrack_DIR)
         -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
         -DBUILD_EXAMPLES:BOOL=OFF
         -DBUILD_TESTING:BOOL=OFF
-        -DBiiGOptitrack_USE_FAKE_NPAPI:BOOL=OFF
+        -DBiiGOptitrack_USE_FAK_NPAPI:BOOL=OFF
         -DUSE_CalibrationValidation:BOOL=OFF
         -DUSE_IGTLinkPython:BOOL=OFF
         -DUSE_Python:BOOL=OFF
@@ -63,7 +63,7 @@ ELSE(BiiGOptitrack_DIR)
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
         -DBiiGOptitrack_OpenIGTLink_EXTERNAL_DIR:PATH=${PLUS_OpenIGTLink_DIR}
-        -DBiiGOptitrack_ITK_EXTERNAL_DIR:PATH=${PLUS_ITK_DIR}
+        -DBiiGOptitrack_ITK_EXTERNAL_DIR:PATH=${ITK_DIR}
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""

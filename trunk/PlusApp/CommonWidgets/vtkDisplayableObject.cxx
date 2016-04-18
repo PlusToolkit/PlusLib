@@ -8,7 +8,7 @@ See License.txt for details.
 
 #include "vtkActor.h"
 #include "vtkImageActor.h"
-#include "vtkPlusToolAxesActor.h"
+#include "vtkToolAxesActor.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkSTLReader.h"
@@ -179,7 +179,7 @@ vtkStandardNewMacro(vtkDisplayableAxes);
 vtkDisplayableAxes::vtkDisplayableAxes()
 : vtkDisplayableObject()
 {
-  vtkSmartPointer<vtkPlusToolAxesActor> axesActor = vtkSmartPointer<vtkPlusToolAxesActor>::New();
+  vtkSmartPointer<vtkToolAxesActor> axesActor = vtkSmartPointer<vtkToolAxesActor>::New();
   axesActor->SetShaftLength(50);
   this->SetActor(axesActor);
 }
@@ -210,7 +210,7 @@ void vtkDisplayableAxes::SetOpacity(double aOpacity)
 
 double vtkDisplayableAxes::GetOpacity()
 {
-  vtkPlusToolAxesActor* axesActor = dynamic_cast<vtkPlusToolAxesActor*>(this->Actor);
+  vtkToolAxesActor* axesActor = dynamic_cast<vtkToolAxesActor*>(this->Actor);
   if (axesActor)
   {
     return axesActor->GetVisibility() ? 1.0 : 0.0;
@@ -229,7 +229,7 @@ void vtkDisplayableAxes::SetObjectCoordinateFrame(const char* objectCoordinateFr
 {
   Superclass::SetObjectCoordinateFrame(objectCoordinateFrame);
 
-  vtkPlusToolAxesActor* axesActor = dynamic_cast<vtkPlusToolAxesActor*>(this->Actor);
+  vtkToolAxesActor* axesActor = dynamic_cast<vtkToolAxesActor*>(this->Actor);
   if (axesActor)
   {
     axesActor->SetName(this->ObjectCoordinateFrame);

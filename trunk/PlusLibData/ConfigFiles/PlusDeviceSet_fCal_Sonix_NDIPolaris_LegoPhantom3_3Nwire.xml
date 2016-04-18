@@ -179,12 +179,12 @@
     MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackedVideoStream" />
 
-  <vtkPlusPivotCalibrationAlgo
+  <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />
 
-  <vtkPlusPhantomLandmarkRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
@@ -194,7 +194,7 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
 
-  <vtkPlusProbeCalibrationAlgo
+  <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

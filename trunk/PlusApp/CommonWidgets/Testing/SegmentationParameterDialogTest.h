@@ -11,7 +11,7 @@
 
 #include <QDialog>
 
-class vtkPlusDataCollector;
+class vtkDataCollector;
 class DeviceSetSelectorWidget;
 
 //-----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ protected:
   DeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
 
   /*! Data collector object */
-  vtkPlusDataCollector*          m_DataCollector;
+  vtkDataCollector*          m_DataCollector;
 
   /*! Save configuration button */
   QPushButton*              m_SaveButton;

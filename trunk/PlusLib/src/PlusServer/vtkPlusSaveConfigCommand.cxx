@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusCommandResponse.h"
 #include "vtkPlusSaveConfigCommand.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusVirtualDiscCapture.h"
+#include "vtkTransformRepository.h"
+#include "vtkVirtualDiscCapture.h"
 
 vtkStandardNewMacro( vtkPlusSaveConfigCommand );
 

@@ -6,12 +6,12 @@ See License.txt for details.
 
 #include "CaptureControlWidget.h"
 #include "CapturingToolbox.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "VolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkSequenceIO.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
@@ -38,7 +38,7 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::Window
   ui.setupUi(this);
 
   // Create tracked frame list
-  m_RecordedFrames = vtkPlusTrackedFrameList::New();
+  m_RecordedFrames = vtkTrackedFrameList::New();
   m_RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
 
   // Connect events
@@ -316,7 +316,7 @@ void CapturingToolbox::TakeSnapshot()
 {
   LOG_TRACE("CapturingToolbox::TakeSnapshot"); 
 
-  PlusTrackedFrame trackedFrame;
+  TrackedFrame trackedFrame;
 
   if (m_ParentMainWindow->GetSelectedChannel() == NULL || m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
   {
@@ -355,7 +355,7 @@ void CapturingToolbox::TakeSnapshot()
   }
 
   // Add tracked frame to the list
-  if (m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+  if (m_RecordedFrames->AddTrackedFrame(&trackedFrame, vtkTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
   {
     LOG_WARNING("Frame could not be added because validation failed!");
     return;
@@ -379,7 +379,7 @@ void CapturingToolbox::Record()
 
   ui.plainTextEdit_saveResult->clear();
 
-  m_RecordingNextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   m_RecordingLastAlreadyRecordedFrameTimestamp=UNDEFINED_TIMESTAMP; // none yet
 
   // Start capturing
@@ -393,9 +393,9 @@ void CapturingToolbox::Capture()
 {
   //LOG_TRACE("CapturingToolbox::Capture");
 
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkAccurateTimer::GetSystemTime();
 
-  vtkPlusDataCollector* dataCollector = NULL;
+  vtkDataCollector* dataCollector = NULL;
   if ( (m_ParentMainWindow == NULL) || (m_ParentMainWindow->GetVisualizationController() == NULL) || ((dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector()) == NULL) )
   {
     LOG_ERROR("Unable to reach valid data collector object!");
@@ -430,8 +430,8 @@ void CapturingToolbox::Capture()
   }
   if (frame1Index > frame2Index)
   {   
-    PlusTrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
-    PlusTrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
+    TrackedFrame* frame1 = m_RecordedFrames->GetTrackedFrame(frame1Index);
+    TrackedFrame* frame2 = m_RecordedFrames->GetTrackedFrame(frame2Index);
     if (frame1 != NULL && frame2 != NULL)
     {
       double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
@@ -447,16 +447,16 @@ void CapturingToolbox::Capture()
   }
 
   // Check whether the recording needed more time than the sampling interval
-  double recordingTimeSec = vtkPlusAccurateTimer::GetSystemTime() - startTimeSec;
+  double recordingTimeSec = vtkAccurateTimer::GetSystemTime() - startTimeSec;
   if (recordingTimeSec > GetSamplingPeriodSec())
   {
     LOG_WARNING("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.");
   }
-  double recordingLagSec = vtkPlusAccurateTimer::GetSystemTime() - m_RecordingNextFrameToBeRecordedTimestamp;
+  double recordingLagSec = vtkAccurateTimer::GetSystemTime() - m_RecordingNextFrameToBeRecordedTimestamp;
   if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
   {
     LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
-    m_RecordingNextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    m_RecordingNextFrameToBeRecordedTimestamp = vtkAccurateTimer::GetSystemTime();
   }
 }
 
@@ -511,7 +511,7 @@ void CapturingToolbox::WriteToFile( const QString& aFilename )
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Actual saving
-  if( vtkPlusSequenceIO::Write(aFilename.toLatin1().constData(), m_RecordedFrames) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(aFilename.toLatin1().constData(), m_RecordedFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save tracked frames to sequence metafile!"); 
     return;
@@ -739,9 +739,9 @@ void CapturingToolbox::InitCaptureDeviceScrollArea()
     for( DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
     {
       vtkPlusDevice* aDevice = *it;
-      if( dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice) != NULL )
+      if( dynamic_cast<vtkVirtualDiscCapture*>(aDevice) != NULL )
       {
-        vtkPlusVirtualDiscCapture* capDevice = dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice);
+        vtkVirtualDiscCapture* capDevice = dynamic_cast<vtkVirtualDiscCapture*>(aDevice);
         CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
         aWidget->SetCaptureDevice(*capDevice);
         m_GridLayout->addWidget(aWidget);

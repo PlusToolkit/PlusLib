@@ -9,11 +9,11 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "PlusVideoFrame.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkImageVisualizer.h"
 #include "vtk3DObjectVisualizer.h"
 #include "vtkPolyData.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkTransformRepository.h"
 
 #include <QObject>
 
@@ -272,8 +272,8 @@ public:
   vtkGetMacro(AcquisitionFrameRate, int); 
   vtkGetObjectMacro(InputPolyData, vtkPolyData);
   vtkGetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository);
-  vtkGetObjectMacro(DataCollector, vtkPlusDataCollector);
+  vtkGetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkGetObjectMacro(DataCollector, vtkDataCollector);
 
   vtkRenderer* GetCanvasRenderer();
 
@@ -291,8 +291,8 @@ protected:
   vtkSetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
-  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
-  vtkSetObjectMacro(DataCollector, vtkPlusDataCollector);
+  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkSetObjectMacro(DataCollector, vtkDataCollector);
 
   vtkImageActor* GetImageActor();
 
@@ -338,10 +338,10 @@ protected:
   int AcquisitionFrameRate;
 
   /*! Transform repository to store and handle all transforms */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkTransformRepository* TransformRepository;
 
   vtkPlusChannel* SelectedChannel;
-  vtkPlusDataCollector* DataCollector;
+  vtkDataCollector* DataCollector;
 };
 
 #endif  // __vtkVisualizationController_h

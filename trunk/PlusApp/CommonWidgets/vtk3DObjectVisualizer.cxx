@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtk3DObjectVisualizer.h"
 #include "vtkDisplayableObject.h"
 #include "vtkGlyph3D.h"
@@ -119,7 +119,7 @@ PlusStatus vtk3DObjectVisualizer::Update()
   }
 
   // Get tracked frame and set the transforms
-  PlusTrackedFrame trackedFrame; 
+  TrackedFrame trackedFrame; 
   if ( this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame!"); 

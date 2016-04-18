@@ -24,7 +24,7 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusGetTransformCommand.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 #include "igtl_header.h"
 
@@ -34,7 +34,7 @@ vtkStandardNewMacro( vtkPlusCommandProcessor );
 vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 : PlusServer(NULL)
 , Threader(vtkSmartPointer<vtkMultiThreader>::New())
-, Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+, Mutex(vtkSmartPointer<vtkRecursiveCriticalSection>::New())
 , CommandExecutionActive(std::make_pair(false,false))
 , CommandExecutionThreadId(-1)
 {
@@ -99,7 +99,7 @@ PlusStatus vtkPlusCommandProcessor::Stop()
     while ( this->CommandExecutionActive.second )
     {
       // Wait until the thread stops 
-      vtkPlusAccurateTimer::Delay( 0.2 ); 
+      vtkAccurateTimer::Delay( 0.2 ); 
     }
     this->CommandExecutionThreadId = -1; 
   }
@@ -144,7 +144,7 @@ int vtkPlusCommandProcessor::ExecuteCommands()
   {
     vtkSmartPointer<vtkPlusCommand> cmd; // next command to be processed  
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       if (this->CommandQueue.empty())
       {
         return numberOfExecutedCommands;
@@ -161,7 +161,7 @@ int vtkPlusCommandProcessor::ExecuteCommands()
 
     // move the response objects from the command to the processor's queue
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);  
+      PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);  
       cmd->PopCommandResponses(this->CommandResponseQueue);
     }
     
@@ -268,7 +268,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
       response->SetStatus(PLUS_FAIL);
       {
         // Add response to the command response queue
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+        PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
         this->CommandResponseQueue.push_back(response);
       }
       return PLUS_FAIL;
@@ -287,7 +287,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
 
   {
     // Add command to the execution queue
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
     this->CommandQueue.push_back(cmd);
   }
   return PLUS_SUCCESS;
@@ -312,7 +312,7 @@ PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status
   response->SetStatus(status);
   {
     // Add response to the command response queue
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
     this->CommandResponseQueue.push_back(response);
   }
   return PLUS_SUCCESS;
@@ -321,7 +321,7 @@ PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status
 //------------------------------------------------------------------------------
 void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  PlusLockGuard<vtkRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   // Add reply to the sending queue
   // Append this->CommandResponses to 'responses'.
   // Elements appended to 'responses' are removed from this->CommandResponses.

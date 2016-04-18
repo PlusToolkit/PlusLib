@@ -11,11 +11,11 @@ See License.txt for details.
 #include "vtkSmartPointer.h"
 #include "vtkMatrix4x4.h"
 
-#include "vtkPlusMetaImageSequenceIO.h"
+#include "vtkMetaImageSequenceIO.h"
 #include "itkImage.h"
 
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkTrackedFrameList.h"
+#include "TrackedFrame.h"
 
 
 ///////////////////////////////////////////////////////////////////
@@ -60,14 +60,14 @@ int main(int argc, char **argv)
 
   ///////////////
 
-  vtkSmartPointer<vtkPlusMetaImageSequenceIO> reader=vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();        
+  vtkSmartPointer<vtkMetaImageSequenceIO> reader=vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
   reader->SetFileName(inputImageSequenceFileName.c_str());
   if (reader->Read()!=PLUS_SUCCESS)
   {    
     LOG_ERROR("Couldn't read sequence metafile: " <<  inputImageSequenceFileName ); 
     return EXIT_FAILURE;
   }    
-  vtkPlusTrackedFrameList* trackedFrameList = reader->GetTrackedFrameList();
+  vtkTrackedFrameList* trackedFrameList = reader->GetTrackedFrameList();
 
   if (trackedFrameList==NULL)
   {
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
   // ****************************************************************************** 
   // Test writing
 
-  vtkSmartPointer<vtkPlusMetaImageSequenceIO> writer=vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();      
+  vtkSmartPointer<vtkMetaImageSequenceIO> writer=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writer->UseCompressionOn();
   writer->SetFileName(outputImageSequenceFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList); 
@@ -216,8 +216,8 @@ int main(int argc, char **argv)
   matrix->SetElement(0,3, -50); 
   matrix->SetElement(0,3, 150); 
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> dummyTrackedFrame = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  PlusTrackedFrame validFrame; 
+  vtkSmartPointer<vtkTrackedFrameList> dummyTrackedFrame = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  TrackedFrame validFrame; 
   int frameSize[3]={200,200,1}; 
   validFrame.GetImageData()->AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1); 
   validFrame.GetImageData()->FillBlank(); 
@@ -225,12 +225,12 @@ int main(int argc, char **argv)
   validFrame.SetCustomFrameField("FrameNumber", "0"); 
   validFrame.SetTimestamp(1.0); 
 
-  PlusTrackedFrame invalidFrame; 
+  TrackedFrame invalidFrame; 
   invalidFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix); 
   invalidFrame.SetCustomFrameField("FrameNumber", "1"); 
   invalidFrame.SetTimestamp(2.0); 
 
-  PlusTrackedFrame validFrame_copy(validFrame); 
+  TrackedFrame validFrame_copy(validFrame); 
   validFrame_copy.SetTimestamp(3.0); 
   validFrame_copy.SetCustomFrameField("FrameNumber", "3"); 
 
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
   dummyTrackedFrame->AddTrackedFrame(&invalidFrame); 
   dummyTrackedFrame->AddTrackedFrame(&validFrame_copy); 
 
-  vtkSmartPointer<vtkPlusMetaImageSequenceIO> writerImageStatus=vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();      
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
   writerImageStatus->SetTrackedFrameList(dummyTrackedFrame); 
   writerImageStatus->UseCompressionOn();
@@ -249,14 +249,14 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }  
 
-  vtkSmartPointer<vtkPlusMetaImageSequenceIO> readerImageStatus=vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();        
+  vtkSmartPointer<vtkMetaImageSequenceIO> readerImageStatus=vtkSmartPointer<vtkMetaImageSequenceIO>::New();        
   readerImageStatus->SetFileName(outputImageSequenceFileName.c_str());
   if (readerImageStatus->Read()!=PLUS_SUCCESS)
   {    
     LOG_ERROR("Couldn't read sequence metafile: " <<  outputImageSequenceFileName ); 
     return EXIT_FAILURE;
   }    
-  vtkPlusTrackedFrameList* trackedFrameListImageStatus=readerImageStatus->GetTrackedFrameList();
+  vtkTrackedFrameList* trackedFrameListImageStatus=readerImageStatus->GetTrackedFrameList();
   if (trackedFrameListImageStatus==NULL)
   {
     LOG_ERROR("Unable to get trackedFrameList!"); 
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 
   // Test metafile writting with different sized images 
 
-  PlusTrackedFrame differentSizeFrame; 
+  TrackedFrame differentSizeFrame; 
   int frameSizeSmaller[3]={150,150,1}; 
   differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, VTK_UNSIGNED_CHAR, 1); 
   differentSizeFrame.GetImageData()->FillBlank(); 
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
   differentSizeFrame.SetTimestamp(6.0); 
   dummyTrackedFrame->AddTrackedFrame(&differentSizeFrame); 
 
-  vtkSmartPointer<vtkPlusMetaImageSequenceIO> writerDiffSize=vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();      
+  vtkSmartPointer<vtkMetaImageSequenceIO> writerDiffSize=vtkSmartPointer<vtkMetaImageSequenceIO>::New();      
   writerDiffSize->SetFileName(outputImageSequenceFileName.c_str());
   writerDiffSize->SetTrackedFrameList(dummyTrackedFrame); 
   writerDiffSize->UseCompressionOff();
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
   if (writerDiffSize->Write()==PLUS_SUCCESS)
   {    
     vtkPlusLogger::Instance()->SetLogLevel(oldVerboseLevel);
-    LOG_ERROR("Expect a 'Frame size mismatch' error in vtkPlusMetaImageSequenceIO but the operation has been reported to be successful." ); 
+    LOG_ERROR("Expect a 'Frame size mismatch' error in vtkMetaImageSequenceIO but the operation has been reported to be successful." ); 
     return EXIT_FAILURE;
   }
   vtkPlusLogger::Instance()->SetLogLevel(oldVerboseLevel);  
@@ -300,10 +300,10 @@ int main(int argc, char **argv)
   if ( numberOfFailures > 0 )
   {
     LOG_ERROR("Total number of failures: " << numberOfFailures ); 
-    LOG_ERROR("vtkPlusMetaImageSequenceIOTest1 failed!"); 
+    LOG_ERROR("vtkMetaImageSequenceIOTest1 failed!"); 
     return EXIT_FAILURE;
   }
 
-  LOG_INFO("vtkPlusMetaImageSequenceIOTest1 completed successfully!"); 
+  LOG_INFO("vtkMetaImageSequenceIOTest1 completed successfully!"); 
   return EXIT_SUCCESS; 
 }

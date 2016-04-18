@@ -15,7 +15,7 @@ See License.txt for details.
 #include <QWidget>
 #include <QTime>
 
-class vtkPlusPivotCalibrationAlgo;
+class vtkPivotCalibrationAlgo;
 class vtkMatrix4x4;
 
 //-----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ public:
   * Return pivot calibration algorithm object
   * \return Pivot calibration algo
   */
-  vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
+  vtkPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
 
 protected slots:
 
@@ -97,7 +97,7 @@ protected:
   void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
 
   /*! Pivot calibration algorithm */
-  vtkPlusPivotCalibrationAlgo*   m_PivotCalibration;
+  vtkPivotCalibrationAlgo*   m_PivotCalibration;
 
   /*! Number of points to acquire */
   int                        m_NumberOfPoints;

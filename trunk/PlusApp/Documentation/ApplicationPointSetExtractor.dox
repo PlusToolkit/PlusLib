@@ -7,19 +7,19 @@ Extracts the tooltip positions of a selected tool (tpyically a stylus, but it ca
 
 Output: points
 ~~~
-PointSetExtractor --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkPlusVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-pointset-file=output.ply --reference-name=Tracker --stylus-name=Probe --display
+PointSetExtractor --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-pointset-file=output.ply --reference-name=Tracker --stylus-name=Probe --display
 ~~~
 \image html ApplicationPointSetExtractorPoint.png
 
 Output: spheres
 ~~~
-PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkPlusVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-spheres --radius=0.3 --display
+PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-spheres --radius=0.3 --display
 ~~~
 \image html ApplicationPointSetExtractorSphere.png
 
 Output: tube
 ~~~
-PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkPlusVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-tube --display
+PointSetExtractor.exe --config-file=PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml --source-seq-file=NwirePhantomFreehand.mha --output-surface-file=output.stl --reference-name=Tracker --stylus-name=Probe --add-tube --display
 ~~~
 \image html ApplicationPointSetExtractorTube.png
 

@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "TemporalCalibrationToolbox.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusTemporalCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTemporalCalibrationAlgo.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QTimer>
@@ -49,18 +49,18 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 , UncalibratedPlotContextView(NULL)
 , CalibratedPlotContextView(NULL)
 , FixedChannel(NULL)
-, FixedType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
+, FixedType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE)
 , MovingChannel(NULL)
-, MovingType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
-, TemporalCalibrationAlgo(vtkPlusTemporalCalibrationAlgo::New())
+, MovingType(vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE)
+, TemporalCalibrationAlgo(vtkTemporalCalibrationAlgo::New())
 , RequestedFixedChannel("")
 , RequestedMovingChannel("")
 {
   ui.setupUi(this);
 
   // Create tracked frame lists
-  TemporalCalibrationFixedData = vtkPlusTrackedFrameList::New();
-  TemporalCalibrationMovingData = vtkPlusTrackedFrameList::New();
+  TemporalCalibrationFixedData = vtkTrackedFrameList::New();
+  TemporalCalibrationMovingData = vtkTrackedFrameList::New();
 
   // Set up timer to wait before acquisition
   m_StartupDelayTimer = new QTimer(this);
@@ -539,11 +539,11 @@ void TemporalCalibrationToolbox::StartCalibration()
   // Set validation transform names for tracked frame list
   // Set the local time offset to 0 before synchronization
   QString curFixedType = ui.comboBox_FixedSourceValue->itemData(ui.comboBox_FixedSourceValue->currentIndex()).toString();
-  this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+  this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
   if( QString::compare(curFixedType, QString("Video")) != 0 )
   {
-    this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
     this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
     this->FixedValidationTransformName.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(this->FixedValidationTransformName);
@@ -556,11 +556,11 @@ void TemporalCalibrationToolbox::StartCalibration()
   this->PreviousFixedOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
   QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).toString();
-  this->MovingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
+  this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
   if( QString::compare(curMovingType, QString("Video")) != 0 )
   {
-    this->MovingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+    this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
     this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
     this->MovingValidationTransformName.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(this->MovingValidationTransformName);
@@ -575,11 +575,11 @@ void TemporalCalibrationToolbox::StartCalibration()
   TemporalCalibrationFixedData->Clear();
   TemporalCalibrationMovingData->Clear();
 
-  double currentTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double currentTimeSec = vtkAccurateTimer::GetSystemTime();
   LastRecordedFixedItemTimestamp = UNDEFINED_TIMESTAMP; // means start from latest
   LastRecordedMovingItemTimestamp = UNDEFINED_TIMESTAMP; // means start from latest
 
-  StartTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  StartTimeSec = vtkAccurateTimer::GetSystemTime();
   CancelRequest = false;
 
   SetState(ToolboxState_InProgress);
@@ -612,12 +612,12 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   QApplication::processEvents();
 
   this->TemporalCalibrationAlgo->SetFixedFrames(TemporalCalibrationFixedData, this->FixedType);
-  if( this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
+  if( this->FixedType == vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
   {
     this->TemporalCalibrationAlgo->SetFixedProbeToReferenceTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()));
   }
   this->TemporalCalibrationAlgo->SetMovingFrames(TemporalCalibrationMovingData, this->MovingType);
-  if( this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
+  if( this->MovingType == vtkTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
   {
     this->TemporalCalibrationAlgo->SetMovingProbeToReferenceTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()));
   }
@@ -625,48 +625,48 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   this->TemporalCalibrationAlgo->SetSamplingResolutionSec(0.001);
 
   //  Calculate the time-offset
-  vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error = vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE;
+  vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR error = vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE;
   std::string errorStr;
   std::ostringstream strs;
   if (this->TemporalCalibrationAlgo->Update(error) != PLUS_SUCCESS)
   {
     switch (error)
     {
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
       double correlation;
       this->TemporalCalibrationAlgo->GetBestCorrelation(correlation);
 
       strs << "Result above threshold. " << correlation;
       errorStr = strs.str();
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
       errorStr = "Invalid transform name.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
       errorStr = "No timestamps on data.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
       errorStr = "Unable to normalize the data.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
       errorStr = "Correlation list empty. Unable to perform analysis on data.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
       errorStr = "Missing video data.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
       errorStr = "Data not in MF orientation.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES:
       errorStr = "Not enough frames in fixed signal.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
       errorStr = "No frames in ultrasound data.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
       errorStr = "Sampling resolution too small.";
       break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE:
+    case vtkTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE:
       break;
     }
 
@@ -745,7 +745,7 @@ void TemporalCalibrationToolbox::DoCalibration()
   LOG_TRACE("TemporalCalibrationToolbox::DoCalibration");
 
   // Get current time
-  double currentTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double currentTimeSec = vtkAccurateTimer::GetSystemTime();
 
   if (currentTimeSec - StartTimeSec >= this->TemporalCalibrationDurationSec)
   {
@@ -829,8 +829,8 @@ void TemporalCalibrationToolbox::CancelCalibration()
 
     this->FixedChannel = NULL;
     this->MovingChannel = NULL;
-    this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE;
-    this->MovingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE;
+    this->FixedType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
+    this->MovingType = vtkTemporalCalibrationAlgo::FRAME_TYPE_NONE;
     this->FixedValidationTransformName.Clear();
     this->MovingValidationTransformName.Clear();
 
@@ -994,13 +994,13 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
       QVariant strVar = QVariant::fromValue(QString("Video"));
       ui.comboBox_FixedSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
-    PlusTrackedFrame frame;
+    TrackedFrame frame;
     if( this->FixedChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->FixedChannel->GetChannelId() );
       return;
     }
-    vtkPlusTransformRepository* repo = vtkPlusTransformRepository::New();
+    vtkTransformRepository* repo = vtkTransformRepository::New();
     repo->SetTransforms(frame);
 
     std::vector<PlusTransformName> nameList;
@@ -1072,13 +1072,13 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
       QVariant strVar = QVariant::fromValue(QString("Video"));
       ui.comboBox_MovingSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
-    PlusTrackedFrame frame;
+    TrackedFrame frame;
     if( this->MovingChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->MovingChannel->GetChannelId() );
       return;
     }
-    vtkPlusTransformRepository* repo = vtkPlusTransformRepository::New();
+    vtkTransformRepository* repo = vtkTransformRepository::New();
     repo->SetTransforms(frame);
 
     std::vector<PlusTransformName> nameList;

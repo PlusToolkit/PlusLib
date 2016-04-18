@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkPlusTelemedVideoSourceTest.cxx
+  \file vtkTelemedVideoSourceTest.cxx
   \brief Test basic connection to the Telemed ultrasound probe
 
   If the --rendering-off switch is defined then the connection is established, images are
@@ -16,7 +16,7 @@
   \ingroup PlusLibDataCollection
 */
 #include "PlusConfigure.h"
-#include "vtkPlusTelemedVideoSource.h"
+#include "vtkTelemedVideoSource.h"
 #include "vtkPlusDataSource.h"
 #include "vtkCallbackCommand.h"
 #include "vtkChartXY.h"
@@ -176,7 +176,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
-void TestLinePlot(vtkPlusTelemedVideoSource *TelemedDevice)
+void TestLinePlot(vtkTelemedVideoSource *TelemedDevice)
 {
   // Set up a 2D scene, add an XY chart to it
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -280,11 +280,11 @@ int main(int argc, char* argv[])
 
   if ( printHelp )
   {
-    std::cout << "\n\nvtkPlusTelemedVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkTelemedVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
 
-  vtkSmartPointer<vtkPlusTelemedVideoSource> TelemedDevice = vtkSmartPointer<vtkPlusTelemedVideoSource>::New();
+  vtkSmartPointer<vtkTelemedVideoSource> TelemedDevice = vtkSmartPointer<vtkTelemedVideoSource>::New();
   TelemedDevice->SetDeviceId("VideoDevice");
 
   // Read config file

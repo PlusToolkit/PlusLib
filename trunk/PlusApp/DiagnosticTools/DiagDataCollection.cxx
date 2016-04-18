@@ -5,8 +5,8 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
-#include "vtkPlusHTMLGenerator.h"
+#include "vtkDataCollector.h"
+#include "vtkHTMLGenerator.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
+  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
 
   dataCollector->ReadConfiguration(configRootElement);
 
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 
   // Print statistics
 
-  vtkSmartPointer<vtkPlusHTMLGenerator> htmlReport = vtkSmartPointer<vtkPlusHTMLGenerator>::New();
+  vtkSmartPointer<vtkHTMLGenerator> htmlReport = vtkSmartPointer<vtkHTMLGenerator>::New();
   htmlReport->SetBaseFilename("DataCollectionReport");
   htmlReport->SetTitle("Data Collection Report");
   for (std::vector< vtkPlusChannel* >::iterator acqChannelIt=acqChannels.begin(); acqChannelIt!=acqChannels.end(); ++acqChannelIt)
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
     }
 
     // Add info to data acq report
-//    htmlReport->AddText(std::string(std::string("Channel: ")+(*acqChannelIt)->GetChannelId()).c_str(), vtkPlusHTMLGenerator::H1);
+//    htmlReport->AddText(std::string(std::string("Channel: ")+(*acqChannelIt)->GetChannelId()).c_str(), vtkHTMLGenerator::H1);
     (*acqChannelIt)->GenerateDataAcquisitionReport(htmlReport);
   }
 

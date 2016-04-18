@@ -172,7 +172,7 @@
     DefaultSelectedChannelId="TrackedVideoStream" 
     FreeHandStartupDelaySec="3" />
 
-  <vtkPlusPivotCalibrationAlgo
+  <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />
@@ -181,7 +181,7 @@
     ClipRectangleOrigin="27 27" 
     ClipRectangleSize="766 562" />
 
-  <vtkPlusPhantomLandmarkRegistrationAlgo
+  <vtkPhantomLandmarkRegistrationAlgo
     PhantomCoordinateFrame="Phantom"
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
@@ -191,7 +191,7 @@
     ReferenceCoordinateFrame="Reference"
     StylusTipCoordinateFrame="StylusTip" />
 
-  <vtkPlusProbeCalibrationAlgo
+  <vtkProbeCalibrationAlgo
     ImageCoordinateFrame="Image"
     ProbeCoordinateFrame="Probe"
     PhantomCoordinateFrame="Phantom"

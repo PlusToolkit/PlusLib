@@ -5,16 +5,16 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "ConfigFileSaverDialog.h"
-#include "PlusFidPatternRecognition.h"
-#include "PlusFidPatternRecognitionCommon.h"
+#include "FidPatternRecognition.h"
+#include "FidPatternRecognitionCommon.h"
 #include "PlusVideoFrame.h"
 #include "SegmentationParameterDialog.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "vtkActor.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkConeSource.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkImageData.h" 
@@ -29,11 +29,11 @@ See License.txt for details.
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkSequenceIO.h"
 #include "vtkSphereSource.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
@@ -753,7 +753,7 @@ private:
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel)
+SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aCollector, vtkPlusChannel* aChannel)
 : QDialog(aParent)
 , m_DataCollector(aCollector)
 , m_SelectedChannel(aChannel)
@@ -799,7 +799,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkPl
   connect(m_CanvasRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateCanvas()));
 
   // Initialize calibration controller (does the segmentation)
-  m_PatternRecognition = new PlusFidPatternRecognition();
+  m_PatternRecognition = new FidPatternRecognition();
   m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   ui.doubleSpinBox_MaxLineShiftMm->setValue(m_PatternRecognition->GetFidLabeling()->GetMaxLineShiftMm());
@@ -1066,7 +1066,7 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read UseOriginalImageIntensityForDotIntensityScore from configuration");
   }
 
-  double maxCandidates(PlusFidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES); 
+  double maxCandidates(FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES); 
   if ( segmentationParameters->GetScalarAttribute("NumberOfMaximumFiducialPointCandidates", maxCandidates) )
   {
     ui.doubleSpinBox_MaxCandidates->setValue(maxCandidates);
@@ -1168,7 +1168,7 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
   segmentationParameters->SetIntAttribute("UseOriginalImageIntensityForDotIntensityScore", (ui.checkBox_OriginalIntensityForDots->isChecked() ? 1 : 0) );
 
-  if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == PlusFidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+  if( segmentationParameters->GetAttribute("NumberOfMaximumFiducialPointCandidates") != NULL && ui.doubleSpinBox_MaxCandidates->value() == FidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
   {
 #if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
@@ -1282,10 +1282,10 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   }
 
   // Segment image
-  PlusPatternRecognitionResult segResults;
-  PlusFidPatternRecognition::PatternRecognitionError error = PlusFidPatternRecognition::PATTERN_RECOGNITION_ERROR_NO_ERROR;
+  PatternRecognitionResult segResults;
+  FidPatternRecognition::PatternRecognitionError error = FidPatternRecognition::PATTERN_RECOGNITION_ERROR_NO_ERROR;
   m_PatternRecognition->RecognizePattern(&m_Frame, segResults, error, 0); // 0: the frame is not saved into a buffer, so there is no specific frame index
-  if( error == PlusFidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
+  if( error == FidPatternRecognition::PATTERN_RECOGNITION_ERROR_TOO_MANY_CANDIDATES )
   {
     ui.label_Feedback->setText("Too many candidates. Reduce ROI region.");
     ui.label_Feedback->setStyleSheet("QLabel { color : orange; }");
@@ -1309,7 +1309,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   vtkSmartPointer<vtkPoints> candidatePoints = vtkSmartPointer<vtkPoints>::New();
   candidatePoints->SetNumberOfPoints(segResults.GetCandidateFidValues().size());
 
-  std::vector<PlusFidDot> candidateDots = segResults.GetCandidateFidValues();
+  std::vector<FidDot> candidateDots = segResults.GetCandidateFidValues();
   for (int i=0; i<candidateDots.size(); ++i)
   {
     candidatePoints->InsertPoint(i, candidateDots[i].GetX(), candidateDots[i].GetY(), -0.3);
@@ -1355,12 +1355,12 @@ void SegmentationParameterDialog::ExportImage()
 {
   LOG_TRACE("SegmentationParameterDialog::ExportImage()");
   
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
   trackedFrameList->AddTrackedFrame(&m_Frame);
 
   std::string fileName = vtkPlusConfig::GetInstance()->GetImagePath(
     std::string("SegmentationParameterDialog_ExportedImage_")+vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S.mha") );
-  if( vtkPlusSequenceIO::Write(fileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkSequenceIO::Write(fileName, trackedFrameList) != PLUS_SUCCESS )
   {
     QMessageBox::information(this, tr("Image exported"),
       QString("Image exported as sequence file as %1").arg(fileName.c_str()));

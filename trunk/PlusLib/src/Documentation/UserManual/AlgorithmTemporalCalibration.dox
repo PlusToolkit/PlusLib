@@ -56,7 +56,7 @@ using simple linear regression. The filtered timestamp is the time corresponding
   
 \par Configuration settings
 
-- \xmlElem \b vtkPlusTemporalCalibrationAlgo
+- \xmlElem \b vtkTemporalCalibrationAlgo
   - \xmlAtt \c ClipRectangleOrigin and \c ClipRectangleSize define a region to take into account when line detection is performed on images. Optional attribute, if not specified then the whole image is used.
   - \xmlAtt \c SaveIntermediateImages controls if diagnostic information of line detection in images is written to files.\OptionalAtt{FALSE}.
     - \c FALSE No debug information will be written.

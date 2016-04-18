@@ -52,7 +52,7 @@ See demo video at: http://youtu.be/6Oi8baLmRNY
 
 Notes:
 - If you have selected a wrong point, click "Undo" to remove the last added landmark point a click "Reset" button to start from the beginning.
-- You can get better phantom registration error by reducing \c StylusTipMaximumDisplacementThresholdMm attribute (in the \c vtkPlusPhantomLandmarkRegistrationAlgo element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. \c StylusTipMaximumDisplacementThresholdMm has to be considerably larger (usually three times bigger works fine) than the stylus calibration error.
+- You can get better phantom registration error by reducing \c StylusTipMaximumDisplacementThresholdMm attribute (in the \c vtkPhantomLandmarkRegistrationAlgo element of the configuration file) but the stylus swivel has to be done more slowly and carefully, and detection may take longer. \c StylusTipMaximumDisplacementThresholdMm has to be considerably larger (usually three times bigger works fine) than the stylus calibration error.
 - A small window on the left will indicate the points that are to be selected on the phantom. The content of this window can be rotated and zoomed using the mouse.
 - Some trackers (especially electromagnetic trackers) measure the position less accurately when the tool is moved or rotated quickly, therefore it is advisable to pivot the stylus slowly if the calibration error is high.
 
@@ -180,7 +180,7 @@ Resolution:
 2. Check that the fiducial line intersection points are correctly detected on the images. Adjust the segmentation parameters, if necessary.
 3. Performs all the checks listed in the "I get large (>2-3mm) calibration error..." section
 
-Plus can enforce the ImageToProbe matrix to be orthogonal. To enable this feature, add two attributes to the vtkPlusProbeCalibrationAlgo element: OptimizationMethod="2D" and IsotropicPixelSpacing="TRUE". Set IsotropicPixelSpacing to false if you use a linear probe and you calibrate in a liquid in that the speed of sound is not the same as the setting in the ultrasound scanner (e.g., speed of sound in water is about 1490m/s, speed of sound by default on most ultrasound scanners is set to 1540m/s).
+Plus can enforce the ImageToProbe matrix to be orthogonal. To enable this feature, add two attributes to the vtkProbeCalibrationAlgo element: OptimizationMethod="2D" and IsotropicPixelSpacing="TRUE". Set IsotropicPixelSpacing to false if you use a linear probe and you calibrate in a liquid in that the speed of sound is not the same as the setting in the ultrasound scanner (e.g., speed of sound in water is about 1490m/s, speed of sound by default on most ultrasound scanners is set to 1540m/s).
 
 \subsection SystemCalibrationFaqNoPointsDuringStylusCalibration No points can be collected during stylus calibration
 

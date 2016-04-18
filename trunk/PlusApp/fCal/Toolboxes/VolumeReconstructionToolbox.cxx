@@ -10,10 +10,10 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkMarchingContourFilter.h"
 #include "vtkPolyDataMapper.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkSequenceIO.h"
+#include "vtkTrackedFrameList.h"
 #include "vtkVisualizationController.h"
-#include "vtkPlusVolumeReconstructor.h"
+#include "vtkVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 #include <QFileDialog>
 
@@ -30,7 +30,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
 {
   ui.setupUi(this);
 
-  m_VolumeReconstructor = vtkPlusVolumeReconstructor::New();
+  m_VolumeReconstructor = vtkVolumeReconstructor::New();
   m_ReconstructedVolume = vtkImageData::New();
 
   // Connect events
@@ -372,7 +372,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
   m_ParentMainWindow->SetStatusBarProgress(0);
   RefreshContent();
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = NULL;
+  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = NULL;
 
   if (ui.comboBox_InputImage->currentText().left(1) == "<" && ui.comboBox_InputImage->currentText().right(1) == ">") // If unsaved image is selected
   {
@@ -394,8 +394,8 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     {
       imageFileNameIndex = ui.comboBox_InputImage->currentIndex();
     }
-    trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-    if( vtkPlusSequenceIO::Read(m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData(), trackedFrameList) != PLUS_SUCCESS )
+    trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+    if( vtkSequenceIO::Read(m_ImageFileNames.at( imageFileNameIndex ).toLatin1().constData(), trackedFrameList) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to load input image file!");
       return PLUS_FAIL;
@@ -424,7 +424,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
     m_ParentMainWindow->SetStatusBarProgress((int)((100.0 * frameIndex) / numberOfFrames + 0.49));
     RefreshContent();
 
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
     if ( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransforms(*frame) != PLUS_SUCCESS )
     {
@@ -534,7 +534,7 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
   }
 
   // Get recorded tracked frame list from Capturing toolbox
-  vtkPlusTrackedFrameList* recordedFrames = NULL;
+  vtkTrackedFrameList* recordedFrames = NULL;
   CapturingToolbox* capturingToolbox = dynamic_cast<CapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
   if ((capturingToolbox == NULL) || ((recordedFrames = capturingToolbox->GetRecordedFrames()) == NULL))
   {
@@ -611,7 +611,7 @@ void VolumeReconstructionToolbox::Reset()
     m_ReconstructedVolume->Delete();
     m_ReconstructedVolume = NULL;
   }
-  m_VolumeReconstructor = vtkPlusVolumeReconstructor::New();
+  m_VolumeReconstructor = vtkVolumeReconstructor::New();
   m_ReconstructedVolume = vtkImageData::New();
 }
 

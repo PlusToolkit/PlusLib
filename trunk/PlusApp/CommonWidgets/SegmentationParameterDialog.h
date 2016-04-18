@@ -8,14 +8,14 @@
 #define SEGMENTATIONPARAMETERDIALOG_H
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "TrackedFrame.h"
 #include "ui_SegmentationParameterDialog.h"
 #include <QDialog>
 
-class PlusFidPatternRecognition;
+class FidPatternRecognition;
 class QTimer;
 class vtkActor;
-class vtkPlusDataCollector;
+class vtkDataCollector;
 class vtkImageActor;
 class vtkImageVisualizer;
 class vtkPlusChannel;
@@ -39,7 +39,7 @@ public:
 	* \param aParent Parent object
 	* \param aDataCollector Data collector (needed for the image output)
 	*/
-	SegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel);
+	SegmentationParameterDialog(QWidget* aParent, vtkDataCollector* aCollector, vtkPlusChannel* aChannel);
 
 	/*!
 	* Destructor
@@ -287,7 +287,7 @@ protected slots:
 
 protected:
   /*! Data collector */
-  vtkPlusDataCollector*         m_DataCollector;
+  vtkDataCollector*         m_DataCollector;
   vtkPlusChannel*           m_SelectedChannel;
 
 	/*! Actor for displaying segmented points */
@@ -318,13 +318,13 @@ protected:
   double                    m_ApproximateSpacingMmPerPixel;
 
   /*! Pattern recognition object for segmenting the images */
-  PlusFidPatternRecognition*    m_PatternRecognition;
+  FidPatternRecognition*    m_PatternRecognition;
 
   /*! Flag indicating if image is frozen (using Freeze button) */
   bool                      m_ImageFrozen;
 
   /*! Tracked frame to hold the desired image to proces*/
-  PlusTrackedFrame              m_Frame;
+  TrackedFrame              m_Frame;
 
 protected:
 	Ui::SegmentationParameterDialog ui;

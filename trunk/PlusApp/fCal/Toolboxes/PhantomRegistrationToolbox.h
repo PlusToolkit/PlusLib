@@ -14,9 +14,9 @@ See License.txt for details.
 
 #include <QWidget>
 
-class vtkPlusPhantomLandmarkRegistrationAlgo;
-class vtkPlusPhantomLinearObjectRegistrationAlgo;
-class vtkPlusLandmarkDetectionAlgo;
+class vtkPhantomLandmarkRegistrationAlgo;
+class vtkPhantomLinearObjectRegistrationAlgo;
+class vtkLandmarkDetectionAlgo;
 class vtkActor;
 class vtkPolyData;
 class vtkRenderer;
@@ -91,13 +91,13 @@ public:
   * Return phantom landmark registration algorithm object
   * \return Phantom registration algo
   */
-  vtkPlusPhantomLandmarkRegistrationAlgo* GetPhantomLandmarkRegistrationAlgo();;
+  vtkPhantomLandmarkRegistrationAlgo* GetPhantomLandmarkRegistrationAlgo();;
 
   /*!
   * Return phantom linear object registration algorithm object
   * \return Phantom registration algo
   */
-  vtkPlusPhantomLinearObjectRegistrationAlgo* GetPhantomLinearObjectRegistrationAlgo();;
+  vtkPhantomLinearObjectRegistrationAlgo* GetPhantomLinearObjectRegistrationAlgo();;
 
   /*!
   * Sets the state of the linear object registration
@@ -191,13 +191,13 @@ protected:
 
 protected:
   /*! Phantom landmark registration algorithm */
-  vtkPlusPhantomLandmarkRegistrationAlgo*     m_PhantomLandmarkRegistration;
+  vtkPhantomLandmarkRegistrationAlgo*     m_PhantomLandmarkRegistration;
 
   /*! Phantom linear object registration algorithm */
-  vtkPlusPhantomLinearObjectRegistrationAlgo* m_PhantomLinearObjectRegistration;
+  vtkPhantomLinearObjectRegistrationAlgo* m_PhantomLinearObjectRegistration;
 
   /*! Stylus tip Landmark detection algorithm */
-  vtkPlusLandmarkDetectionAlgo*                  m_LandmarkDetection;
+  vtkLandmarkDetectionAlgo*                  m_LandmarkDetection;
 
   /*! Landmark already detected */
   int                                    m_LandmarkDetected;

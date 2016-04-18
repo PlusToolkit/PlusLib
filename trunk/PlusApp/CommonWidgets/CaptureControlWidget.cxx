@@ -5,9 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CaptureControlWidget.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkDataCollector.h"
 #include "vtkPlusChannel.h"
-#include "vtkPlusVirtualDiscCapture.h"
+#include "vtkVirtualDiscCapture.h"
 #include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
 #include <QMessageBox>
@@ -154,7 +154,7 @@ void CaptureControlWidget::StartStopButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice)
+void CaptureControlWidget::SetCaptureDevice(vtkVirtualDiscCapture& aDevice)
 {
   m_Device = &aDevice;
 

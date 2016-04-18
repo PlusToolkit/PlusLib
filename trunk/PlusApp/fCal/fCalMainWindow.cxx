@@ -17,8 +17,8 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkPlusDataSource.h"
 #include "vtkRenderWindow.h"
-#include "vtkPlusVirtualDiscCapture.h"
-#include "vtkPlusVirtualMixer.h"
+#include "vtkVirtualDiscCapture.h"
+#include "vtkVirtualMixer.h"
 #include "vtkVisualizationController.h"
 #include <QFileDialog>
 #include <QLabel>
@@ -827,7 +827,7 @@ void fCalMainWindow::BuildChannelMenu()
   for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
   {
     vtkPlusDevice* device = *it;
-    if( dynamic_cast<vtkPlusVirtualDiscCapture*>(device) != NULL )
+    if( dynamic_cast<vtkVirtualDiscCapture*>(device) != NULL )
     {
       continue;
     }

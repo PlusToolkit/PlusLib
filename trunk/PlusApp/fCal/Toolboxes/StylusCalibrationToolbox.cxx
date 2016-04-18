@@ -8,7 +8,7 @@ See License.txt for details.
 
 #include "fCalMainWindow.h"
 #include "PlusMath.h"
-#include "vtkPlusPivotCalibrationAlgo.h"
+#include "vtkPivotCalibrationAlgo.h"
 #include "vtkVisualizationController.h"
 
 #include <QFileDialog>
@@ -28,7 +28,7 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
   ui.setupUi(this);
 
   // Create algorithm class
-  m_PivotCalibration = vtkPlusPivotCalibrationAlgo::New();
+  m_PivotCalibration = vtkPivotCalibrationAlgo::New();
   if (m_PivotCalibration == NULL)
   {
     LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");

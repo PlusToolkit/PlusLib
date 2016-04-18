@@ -9,18 +9,18 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "vtkVisualizationController.h"
 
-#include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
-#include "vtkPlusPhantomLinearObjectRegistrationAlgo.h"
-#include "vtkPlusPivotCalibrationAlgo.h"
-#include "vtkPlusFakeTracker.h"
-#include "vtkPlusLandmarkDetectionAlgo.h"
+#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPhantomLinearObjectRegistrationAlgo.h"
+#include "vtkPivotCalibrationAlgo.h"
+#include "vtkFakeTracker.h"
+#include "vtkLandmarkDetectionAlgo.h"
 
 #include <QFileDialog>
 #include <QTimer>
 
 #include "PlusMath.h"
 
-#include "vtkPlusAccurateTimer.h"
+#include "vtkAccurateTimer.h"
 #include "vtkGlyph3D.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
@@ -46,21 +46,21 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   ui.setupUi(this);
 
   // Create algorithm class
-  m_PhantomLandmarkRegistration = vtkPlusPhantomLandmarkRegistrationAlgo::New();
+  m_PhantomLandmarkRegistration = vtkPhantomLandmarkRegistrationAlgo::New();
   if(m_PhantomLandmarkRegistration == NULL)
   {
     LOG_ERROR("Unable to instantiate phantom landmark registration algorithm class!");
     return;
   }
 
-  m_PhantomLinearObjectRegistration = vtkPlusPhantomLinearObjectRegistrationAlgo::New();
+  m_PhantomLinearObjectRegistration = vtkPhantomLinearObjectRegistrationAlgo::New();
   if(m_PhantomLinearObjectRegistration == NULL)
   {
     LOG_ERROR("Unable to instantiate phantom linear object registration algorithm class!");
     return;
   }
 
-  m_LandmarkDetection = vtkPlusLandmarkDetectionAlgo::New();
+  m_LandmarkDetection = vtkLandmarkDetectionAlgo::New();
   if(m_LandmarkDetection == NULL)
   {
     LOG_ERROR("Unable to instantiate pivot detection algorithm class!");
@@ -169,7 +169,7 @@ PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
 
 //-----------------------------------------------------------------------------
 //Set the camera to view the next detection landmark to be found and highlight it
-PlusStatus SetCameraViewAndHighlightNextLandmark(vtkCamera* activeCamera, vtkPlusPhantomLandmarkRegistrationAlgo* phantomLandmarkRegistration, int nextLandmarkIndex, vtkPoints * nextLandmark_Reference )
+PlusStatus SetCameraViewAndHighlightNextLandmark(vtkCamera* activeCamera, vtkPhantomLandmarkRegistrationAlgo* phantomLandmarkRegistration, int nextLandmarkIndex, vtkPoints * nextLandmark_Reference )
 {
   double tempPtr[4]={-1,0,0,1};//up vector
   activeCamera->SetViewUp(tempPtr);
@@ -664,7 +664,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
     return PLUS_FAIL;
   }
 
-  vtkPlusDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   m_LandmarkDetection->SetMinimunDistanceBetweenLandmarksMm(m_PhantomLandmarkRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
 
   if(dataCollector)
@@ -711,7 +711,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   }
 
   // Read stylus coordinate frame name
-  vtkPlusPivotCalibrationAlgo* pivotCalibrationAlgo = vtkPlusPivotCalibrationAlgo::New();
+  vtkPivotCalibrationAlgo* pivotCalibrationAlgo = vtkPivotCalibrationAlgo::New();
   if(pivotCalibrationAlgo->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read stylus coordinate frame name!");
@@ -726,7 +726,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
   std::string transformDate;
   double transformError = 0.0;
   bool valid = false;
-  vtkPlusTransformRepository* tempTransformRepo = vtkPlusTransformRepository::New();
+  vtkTransformRepository* tempTransformRepo = vtkTransformRepository::New();
   if( tempTransformRepo->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS
     || tempTransformRepo->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransformMatrix, &valid) != PLUS_SUCCESS
     || tempTransformRepo->GetTransformDate(stylusTipToStylusTransformName, transformDate) != PLUS_SUCCESS
@@ -771,18 +771,18 @@ void PhantomRegistrationToolbox::RecordPoint()
   //disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipPositionToLandmarkPivotingRegistration() ) );
 
   // If tracker is FakeTracker then set counter (trigger position change) and wait for it to apply the new position
-  vtkPlusDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
 
   if(dataCollector)
   {
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      vtkPlusFakeTracker *fakeTracker = dynamic_cast<vtkPlusFakeTracker*>(*it);
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
       if(fakeTracker != NULL)
       {
         fakeTracker->SetCounter(m_CurrentLandmarkIndex);
         fakeTracker->SetTransformRepository(m_ParentMainWindow->GetVisualizationController()->GetTransformRepository());
-        vtkPlusAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+        vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
         break;
       }
     }
@@ -943,12 +943,12 @@ void PhantomRegistrationToolbox::Undo()
   }
 
   // If tracker is FakeTracker then set counter
-  vtkPlusDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   if(dataCollector)
   {
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      vtkPlusFakeTracker *fakeTracker = dynamic_cast<vtkPlusFakeTracker*>(*it);
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
 
       if(fakeTracker != NULL)
       {
@@ -1007,12 +1007,12 @@ void PhantomRegistrationToolbox::Reset()
   }
 
   // If tracker is FakeTracker then reset counter
-  vtkPlusDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
+  vtkDataCollector* dataCollector = m_ParentMainWindow->GetVisualizationController()->GetDataCollector();
   if(dataCollector)
   {
     for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
     {
-      vtkPlusFakeTracker *fakeTracker = dynamic_cast<vtkPlusFakeTracker*>(*it);
+      vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(*it);
 
       if(fakeTracker != NULL)
       {
@@ -1434,14 +1434,14 @@ LandmarkPivotingState PhantomRegistrationToolbox::GetLandmarkPivotingState()
 
 //-----------------------------------------------------------------------------
 
-vtkPlusPhantomLandmarkRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLandmarkRegistrationAlgo()
+vtkPhantomLandmarkRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLandmarkRegistrationAlgo()
 {
   return m_PhantomLandmarkRegistration;
 }
 
 //-----------------------------------------------------------------------------
 
-vtkPlusPhantomLinearObjectRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLinearObjectRegistrationAlgo()
+vtkPhantomLinearObjectRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLinearObjectRegistrationAlgo()
 {
   return m_PhantomLinearObjectRegistration;
 }

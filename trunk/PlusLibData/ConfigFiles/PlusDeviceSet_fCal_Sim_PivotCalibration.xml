@@ -48,7 +48,7 @@ vtkStylusCalibrationTest uses this configuration" />
     MovingSourceId="ProbeToTracker"
     DefaultSelectedChannelId="TrackerStream" />
 
-  <vtkPlusPivotCalibrationAlgo
+  <vtkPivotCalibrationAlgo
     ObjectMarkerCoordinateFrame="Stylus"
     ReferenceCoordinateFrame="Reference"
     ObjectPivotPointCoordinateFrame="StylusTip" />

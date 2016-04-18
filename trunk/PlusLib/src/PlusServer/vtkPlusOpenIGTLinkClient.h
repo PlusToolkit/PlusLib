@@ -21,7 +21,7 @@
 #include <string>
 
 class vtkMultiThreader; 
-class vtkPlusRecursiveCriticalSection;
+class vtkRecursiveCriticalSection;
 
 /*!
   \class vtkPlusOpenIGTLinkClient 
@@ -95,8 +95,8 @@ private:
   vtkSmartPointer<vtkMultiThreader> Threader;
 
   /*! Mutex instance for safe data access */ 
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> SocketMutex;
+  vtkSmartPointer<vtkRecursiveCriticalSection> Mutex;
+  vtkSmartPointer<vtkRecursiveCriticalSection> SocketMutex;
   
   igtl::ClientSocket::Pointer ClientSocket;
 
