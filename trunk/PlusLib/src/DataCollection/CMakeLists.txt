@@ -7,7 +7,6 @@ OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
 OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
-OPTION (PLUS_USE_FREEDOM6S "Provide support for the Freedom6s haptic device" OFF)
 OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
 OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
 OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
@@ -353,34 +352,6 @@ IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     )
 
 ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER)
-
-#--------------------------------------------------------------------------
-# Freedom6s device
-IF( PLUS_USE_FREEDOM6S )
-  SET (DataCollection_SRCS ${DataCollection_SRCS}
-    Freedom6s/vtkFreedom6SDevice.cxx
-  )
-
-  IF (MSVC)  
-    SET (DataCollection_HDRS
-      ${DataCollection_HDRS}
-      Freedom6s/vtkFreedom6SDevice.h
-      )
-  ENDIF()
-
-  SET (DataCollection_INCLUDE_DIRS ${DataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Freedom6s
-    ${FREEDOM6S_INCLUDE_DIR}
-    CACHE INTERNAL "" FORCE)
-  
-  SET (DataCollection_LIBS ${DataCollection_LIBS}
-    ${FREEDOM6S_LIB_DIR}/freedom6s${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
-
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${FREEDOM6S_BINARY_DIR}/freedom6s${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-ENDIF()
 
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
