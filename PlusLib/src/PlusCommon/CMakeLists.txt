@@ -12,9 +12,9 @@ SET (PlusCommon_SRCS
   PlusVideoFrame.cxx
   vtkPlusTrackedFrameList.cxx
   PlusTrackedFrame.cxx
-  vtkPlusMetaImageSequenceIO.cxx
-  vtkPlusSequenceIOBase.cxx
-  vtkPlusSequenceIO.cxx
+  IO/vtkPlusMetaImageSequenceIO.cxx
+  IO/vtkPlusSequenceIOBase.cxx
+  IO/vtkPlusSequenceIO.cxx
   vtkPlusRecursiveCriticalSection.cxx
   vtkPlusToolAxesActor.cxx
   )
@@ -35,9 +35,9 @@ if (WIN32)
     PlusTrackedFrame.h
     PlusVideoFrame.h
     PlusVideoFrame.txx
-    vtkPlusMetaImageSequenceIO.h
-    vtkPlusSequenceIO.h
-    vtkPlusSequenceIOBase.h
+    IO/vtkPlusMetaImageSequenceIO.h
+    IO/vtkPlusSequenceIO.h
+    IO/vtkPlusSequenceIOBase.h
     vtkPlusRecursiveCriticalSection.h
     vtkPlusToolAxesActor.h
     PixelCodec.h
@@ -46,16 +46,20 @@ endif (WIN32)
 
 IF (VTK_MAJOR_VERSION GREATER 5)
   SET(PlusCommon_SRCS ${PlusCommon_SRCS}
-    vtkPlusNrrdSequenceIO.cxx
+    IO/vtkPlusNrrdSequenceIO.cxx
   )
   IF( WIN32 )
     SET (PlusCommon_HDRS ${PlusCommon_HDRS}
-      vtkPlusNrrdSequenceIO.h
+      IO/vtkPlusNrrdSequenceIO.h
     )
   ENDIF( WIN32 )
 ENDIF()
 
-SET (PlusCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+SET (PlusCommon_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/IO
+  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
