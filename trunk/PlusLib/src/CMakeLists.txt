@@ -222,16 +222,32 @@ export(TARGETS
   ${PLUSLIB_DEPENDENCIES}
   FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake"
   )
- 
+
+#-----------------------------------------------------------------------------
+# With regards to ticket #1075, also generate in top-level directory
+export(TARGETS 
+  ${PLUSLIB_DEPENDENCIES}
+  FILE "${CMAKE_BINARY_DIR}/PlusLibTargets.cmake"
+  )
+
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE PlusLib)
 
+#-----------------------------------------------------------------------------
+# Re: #1075 eventually remove this section after people are used to the new location
 # Create a PlusConfig.cmake file for the use from the build tree
 CONFIGURE_FILE(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
 CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
+
+#-----------------------------------------------------------------------------
+# With regards to ticket #1075, also generate in top-level directory
+CONFIGURE_FILE(PlusLibConfig.cmake.in
+  "${CMAKE_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
+CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
+  "${CMAKE_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
