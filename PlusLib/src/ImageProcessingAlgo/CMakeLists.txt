@@ -18,25 +18,25 @@ ENDIF()
 
 # Sources
 SET (ImageProcessingAlgo_SRCS
-    vtkTrackedFrameProcessor.cxx
-    vtkBoneEnhancer.cxx
-    vtkRfToBrightnessConvert.cxx
-    vtkUsScanConvert.cxx 
-    vtkUsScanConvertLinear.cxx 
-    vtkUsScanConvertCurvilinear.cxx 
-    vtkRfProcessor.cxx
+    vtkPlusTrackedFrameProcessor.cxx
+    vtkPlusBoneEnhancer.cxx
+    vtkPlusRfToBrightnessConvert.cxx
+    vtkPlusUsScanConvert.cxx 
+    vtkPlusUsScanConvertLinear.cxx 
+    vtkPlusUsScanConvertCurvilinear.cxx 
+    vtkPlusRfProcessor.cxx
     )
 
 SET (ImageProcessingAlgo_HDRS)
 if (WIN32)    
   SET (ImageProcessingAlgo_HDRS
-    vtkTrackedFrameProcessor.h
-    vtkBoneEnhancer.h
-    vtkRfToBrightnessConvert.h 
-    vtkUsScanConvert.h
-    vtkUsScanConvertLinear.h 
-    vtkUsScanConvertCurvilinear.h 
-    vtkRfProcessor.h
+    vtkPlusTrackedFrameProcessor.h
+    vtkPlusBoneEnhancer.h
+    vtkPlusRfToBrightnessConvert.h 
+    vtkPlusUsScanConvert.h
+    vtkPlusUsScanConvertLinear.h 
+    vtkPlusUsScanConvertCurvilinear.h 
+    vtkPlusRfProcessor.h
     )
 endif (WIN32)
 
@@ -47,11 +47,11 @@ SET (ImageProcessingAlgo_INCLUDE_DIRS
 
 IF (PLUS_USE_INTEL_MKL)    
   SET (ImageProcessingAlgo_SRCS ${ImageProcessingAlgo_SRCS}
-      vtkForoughiBoneSurfaceProbability.cxx
+      vtkPlusForoughiBoneSurfaceProbability.cxx
       )
   if (WIN32)    
     SET (ImageProcessingAlgo_HDRS ${ImageProcessingAlgo_HDRS}
-      vtkForoughiBoneSurfaceProbability.h
+      vtkPlusForoughiBoneSurfaceProbability.h
       )
   endif (WIN32)
   SET (ImageProcessingAlgo_INCLUDE_DIRS ${ImageProcessingAlgo_INCLUDE_DIRS}

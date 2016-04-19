@@ -122,7 +122,7 @@
 #include "vtkObjectFactory.h"
 
 // Frequently needed Plus includes
-#include "vtkAccurateTimer.h"
+#include "vtkPlusAccurateTimer.h"
 #include "PlusCommon.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusConfig.h"

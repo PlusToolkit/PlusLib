@@ -6,15 +6,15 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
-#include "TrackedFrame.h"
-#include "vtkForoughiBoneSurfaceProbability.h"
+#include "PlusTrackedFrame.h"
+#include "vtkPlusForoughiBoneSurfaceProbability.h"
 #include "vtkImageCast.h"
 #include "vtkImageData.h"
 #include "vtkMetaImageReader.h"
 #include "vtkMetaImageWriter.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -60,8 +60,8 @@ int main(int argc, char** argv)
   }
 
   // Read the image sequence
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  if( vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read sequence file: " << inputImgSeqFileName);
     exit(EXIT_FAILURE);
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   vtkSmartPointer<vtkImageCast> castToDouble = vtkSmartPointer<vtkImageCast>::New();
   castToDouble->SetOutputScalarTypeToDouble();
 
-  vtkSmartPointer<vtkForoughiBoneSurfaceProbability> boneSurfaceFilter = vtkSmartPointer<vtkForoughiBoneSurfaceProbability>::New();
+  vtkSmartPointer<vtkPlusForoughiBoneSurfaceProbability> boneSurfaceFilter = vtkSmartPointer<vtkPlusForoughiBoneSurfaceProbability>::New();
   boneSurfaceFilter->SetInputConnection(castToDouble->GetOutputPort());
   
   vtkSmartPointer<vtkImageCast> castToUnsignedChar = vtkSmartPointer<vtkImageCast>::New();
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     }
     outputImgSeqFileName = inputImgSeqFileName + "-Bones.nrrd";
   }
-  if( vtkSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if( vtkPlusSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to save output volume to " << outputImgSeqFileName); 
     return EXIT_FAILURE;

@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusGetImageCommand.h"
 
 #include "vtkImageData.h"
@@ -93,7 +93,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetImageCommand::ExecuteImageReply()
 {
-  vtkDataCollector* dataCollector=GetDataCollector();
+  vtkPlusDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("vtkPlusGetImageCommand failed. The Datacollector is NULL");
@@ -148,7 +148,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply()
 {
-  vtkDataCollector* dataCollector=GetDataCollector();
+  vtkPlusDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
     LOG_ERROR("vtkPlusGetImageCommand failed. The Datacollector is NULL");

@@ -10,15 +10,15 @@
 #include "PlusConfigure.h"
 #include "vtkDataCollectionExport.h"
 
-#include "StreamBufferItem.h"
+#include "PlusStreamBufferItem.h"
 #include "vtkDataObject.h"
-#include "vtkRfProcessor.h"
+#include "vtkPlusRfProcessor.h"
 
-class TrackedFrame;
-class vtkHTMLGenerator;
+class PlusTrackedFrame;
+class vtkPlusHTMLGenerator;
 class vtkPlusDataSource;
 class vtkPlusDevice;
-class vtkTrackedFrameList;
+class vtkPlusTrackedFrameList;
 
 typedef std::map<std::string, vtkPlusDataSource*> DataSourceContainer;
 typedef DataSourceContainer::iterator DataSourceContainerIterator;
@@ -96,8 +96,8 @@ public:
     \param trackedFrame Target tracked frame
     \param enableImageData Enable returning of image data. Tracking data will be interpolated at the timestamp of the image data.
   */
-  virtual PlusStatus GetTrackedFrame(double timestamp, TrackedFrame& trackedFrame, bool enableImageData=true);
-  virtual PlusStatus GetTrackedFrame(TrackedFrame *trackedFrame);
+  virtual PlusStatus GetTrackedFrame(double timestamp, PlusTrackedFrame& trackedFrame, bool enableImageData=true);
+  virtual PlusStatus GetTrackedFrame(PlusTrackedFrame *trackedFrame);
 
   /*!
     Get the tracked frame list from devices since time specified
@@ -107,7 +107,7 @@ public:
     \param aSamplingPeriodSec Sampling period time for getting the frames in seconds (timestamps are in seconds too)
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec=-1); 
+  virtual PlusStatus GetTrackedFrameListSampled(double &aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkPlusTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec=-1); 
 
   /*!
     Get all the tracked frame list from devices since time specified
@@ -118,7 +118,7 @@ public:
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
     \param aMaxNumberOfFramesToAdd Maximum this number of frames will be added (can be used for limiting the time spent in this method)
   */
-  PlusStatus GetTrackedFrameList( double& aTimestampOfLastFrameAlreadyGot, vtkTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
+  PlusStatus GetTrackedFrameList( double& aTimestampOfLastFrameAlreadyGot, vtkPlusTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd );
 
   /*! Get the closest tracked frame timestamp to the specified time */
   virtual double GetClosestTrackedFrameTimestampByTime(double time);
@@ -145,8 +145,8 @@ public:
   vtkSetStringMacro(ChannelId);
   vtkGetStringMacro(ChannelId);
 
-  vtkGetObjectMacro(RfProcessor, vtkRfProcessor);
-  vtkSetObjectMacro(RfProcessor, vtkRfProcessor);
+  vtkGetObjectMacro(RfProcessor, vtkPlusRfProcessor);
+  vtkSetObjectMacro(RfProcessor, vtkPlusRfProcessor);
 
   vtkSetMacro(SaveRfProcessingParameters, bool);
 
@@ -154,7 +154,7 @@ public:
     Add generated html report from data acquisition to the existing html report. 
     htmlReport and plotter arguments has to be defined by the caller function 
   */
-  virtual PlusStatus GenerateDataAcquisitionReport( vtkHTMLGenerator* htmlReport); 
+  virtual PlusStatus GenerateDataAcquisitionReport( vtkPlusHTMLGenerator* htmlReport); 
 
 protected:
   /*! Get number of tracked frames between two given timestamps (inclusive) */
@@ -167,7 +167,7 @@ protected:
   char *                    ChannelId;
 
   /*! RF to brightness conversion */
-  vtkRfProcessor* RfProcessor;
+  vtkPlusRfProcessor* RfProcessor;
   vtkImageData* BlankImage;
   StreamBufferItem BrightnessOutputTrackedFrame;
   int BrightnessFrameSize[3];

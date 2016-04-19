@@ -12,8 +12,8 @@ See License.txt for details.
 
 #include "PlusCommon.h"
 #include "vtkStdString.h"
-#include "StreamBufferItem.h"
-#include "TrackedFrame.h"
+#include "PlusStreamBufferItem.h"
+#include "PlusTrackedFrame.h"
 
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
@@ -21,9 +21,9 @@ See License.txt for details.
 
 #include <string>
 
-class TrackedFrame;
-class vtkDataCollector;
-class vtkHTMLGenerator;
+class PlusTrackedFrame;
+class vtkPlusDataCollector;
+class vtkPlusHTMLGenerator;
 class vtkPlusBuffer;
 class vtkPlusDataSource;
 class vtkXMLDataElement;
@@ -128,7 +128,7 @@ public:
   virtual PlusStatus StopRecording();
 
   /*! Return the reference frame */
-  static PlusStatus GetToolReferenceFrameFromTrackedFrame(TrackedFrame& aFrame, std::string &aToolReferenceFrameName);
+  static PlusStatus GetToolReferenceFrameFromTrackedFrame(PlusTrackedFrame& aFrame, std::string &aToolReferenceFrameName);
 
   /*! 
   Get the buffer that is used to hold the data
@@ -244,7 +244,7 @@ public:
   vtkGetMacro(CorrectlyConfigured, bool);
 
   /*! Set the parent data collector */
-  virtual void SetDataCollector(vtkDataCollector* _arg);
+  virtual void SetDataCollector(vtkPlusDataCollector* _arg);
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
@@ -271,7 +271,7 @@ public:
   // VTK doesn't generally use 'friend' functions they are public
   // instead of protected.  Do not use them anywhere except inside
   // vtkPlusDevice.cxx.
-  vtkRecursiveCriticalSection* UpdateMutex;
+  vtkPlusRecursiveCriticalSection* UpdateMutex;
   vtkTimeStamp UpdateTime;
   double InternalUpdateRate;  
   //ETX
@@ -460,21 +460,21 @@ protected:
   This function can be called to add a video item to the specified video data sources
   */
   PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields = NULL);
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   This function can be called to add a video item to the specified video data sources
   */
   PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
     PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
-    double filteredTimestamp=UNDEFINED_TIMESTAMP, const TrackedFrame::FieldMapType* customFields= NULL);
+    double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields= NULL);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
   can communicate information back to the vtkPlusDevice base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   */
-  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const TrackedFrame::FieldMapType* customFields = NULL);
+  PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses
@@ -482,7 +482,7 @@ protected:
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const TrackedFrame::FieldMapType* customFields = NULL);
+  PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4 *matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device
@@ -513,7 +513,7 @@ protected:
   vtkSetMacro(RecordingStartTime, double);
   vtkGetMacro(RecordingStartTime, double); 
 
-  virtual vtkDataCollector* GetDataCollector() { return this->DataCollector; }
+  virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
 
   bool HasGracePeriodExpired();
 
@@ -549,7 +549,7 @@ protected:
   /*! Id of the device */
   char* DeviceId;
 
-  vtkDataCollector* DataCollector;
+  vtkPlusDataCollector* DataCollector;
 
   /*! Acquisition rate */
   double AcquisitionRate;

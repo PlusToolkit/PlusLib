@@ -15,7 +15,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtkSmartPointer.h"
 
-#include "PatternLocResultFile.h"
+#include "PlusPatternLocResultFile.h"
 
 static const int FIDUCIAL_COUNT_PER_SLICE=7;
 static const int MAX_FIDUCIAL_COUNT=50;
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     LOG_ERROR("Reading XML data file failed: " << inputXmlFileName);
     exit(EXIT_FAILURE);
   }
-  if (strcmp(rootElem->GetName(), UsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
+  if (strcmp(rootElem->GetName(), PlusUsFidSegResultFile::TEST_RESULTS_ELEMENT_NAME) != 0)
   {
     LOG_ERROR("XML data file is invalid");
     exit(EXIT_FAILURE);
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
       LOG_ERROR("Invalid current data element");
       exit(EXIT_FAILURE);
     }
-    if (strcmp(currentElem->GetName(),UsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
+    if (strcmp(currentElem->GetName(),PlusUsFidSegResultFile::TEST_CASE_ELEMENT_NAME)!=0)
     { 
       // ignore all non-test-case elements
       continue;  

@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkSonixVideoSourceTest1.cxx
+  \file vtkPlusSonixVideoSourceTest1.cxx
   \brief Test basic connection to the Ultrasonix image acquisition
 
   If the --rendering-off switch is defined then the connection is established, images are 
@@ -19,9 +19,9 @@
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
 #include "vtkImageData.h"
-#include "vtkPhilips3DProbeVideoSource.h"
+#include "vtkPlusPhilips3DProbeVideoSource.h"
 #include "vtkPlusChannel.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <stdlib.h>
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkPhilips3DProbeVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusPhilips3DProbeVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
   
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkPhilips3DProbeVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusPhilips3DProbeVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
   
-  vtkSmartPointer<vtkPhilips3DProbeVideoSource> philipsDevice = vtkSmartPointer<vtkPhilips3DProbeVideoSource>::New();
+  vtkSmartPointer<vtkPlusPhilips3DProbeVideoSource> philipsDevice = vtkSmartPointer<vtkPlusPhilips3DProbeVideoSource>::New();
   philipsDevice->SetDeviceId("VideoDevice");
   philipsDevice->ReadConfiguration(configRootElement);
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
   usleep(3 * 1000000);
 #endif
 
-  vtkSmartPointer<vtkTrackedFrameList> frameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkPlusTrackedFrameList> frameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   vtkPlusChannel* channel = *philipsDevice->GetOutputChannelsStart();
 
   double oldTimestamp(0.0);

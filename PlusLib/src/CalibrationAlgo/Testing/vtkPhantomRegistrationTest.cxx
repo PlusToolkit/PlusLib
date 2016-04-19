@@ -12,17 +12,17 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "TrackedFrame.h"
-#include "vtkDataCollector.h"
-#include "vtkFakeTracker.h"
+#include "PlusTrackedFrame.h"
+#include "vtkPlusDataCollector.h"
+#include "vtkPlusFakeTracker.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPhantomLandmarkRegistrationAlgo.h"
+#include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkSmartPointer.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -71,7 +71,7 @@ int main (int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
 
   // Initialize data collection
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New(); 
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New(); 
   if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS) {
     LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str()); 
     exit(EXIT_FAILURE);
@@ -110,7 +110,7 @@ int main (int argc, char* argv[])
   }
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
@@ -118,7 +118,7 @@ int main (int argc, char* argv[])
   }
 
   // Initialize phantom registration
-  vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPhantomLandmarkRegistrationAlgo>::New();
+  vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo>::New();
   if (phantomRegistration == NULL)
   {
     LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
@@ -138,20 +138,20 @@ int main (int argc, char* argv[])
   }
 
   // Acquire landmarks
-  vtkFakeTracker *fakeTracker = dynamic_cast<vtkFakeTracker*>(aDevice);
+  vtkPlusFakeTracker *fakeTracker = dynamic_cast<vtkPlusFakeTracker*>(aDevice);
   if (fakeTracker == NULL) {
     LOG_ERROR("Invalid tracker object!");
     exit(EXIT_FAILURE);
   }
   fakeTracker->SetTransformRepository(transformRepository);
 
-  TrackedFrame trackedFrame;
+  PlusTrackedFrame trackedFrame;
   PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
   
   for (int landmarkCounter=0; landmarkCounter<numberOfLandmarks; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
-    vtkAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+    vtkPlusAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -237,7 +237,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkTransformRepository> currentTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  vtkSmartPointer<vtkPlusTransformRepository> currentTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
   if ( currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName); 
@@ -262,7 +262,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkTransformRepository>::New(); 
+  vtkSmartPointer<vtkPlusTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
   if ( baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName); 

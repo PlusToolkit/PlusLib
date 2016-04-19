@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkDoubleArray.h"
 #include "vtkImageData.h"
 #include "vtkIntArray.h"
@@ -15,8 +15,8 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
-#include "vtkSequenceIO.h"
-#include "vtkTrackedFrameList.h"
+#include "vtkPlusSequenceIO.h"
+#include "vtkPlusTrackedFrameList.h"
 #include "vtkUnsignedLongLongArray.h"
 
 static const double NEGLIGIBLE_TIME_DIFFERENCE=0.00001; // in seconds, used for comparing between exact timestamps
@@ -75,7 +75,7 @@ vtkPlusBuffer::vtkPlusBuffer()
   , ImageType(US_IMG_BRIGHTNESS)
   , NumberOfScalarComponents(1)
   , ImageOrientation(US_IMG_ORIENT_MF)
-  , StreamBuffer(vtkTimestampedCircularBuffer::New())
+  , StreamBuffer(vtkPlusTimestampedCircularBuffer::New())
   , MaxAllowedTimeDifference(0.5)
   , DescriptiveName(NULL)
 {
@@ -225,11 +225,11 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
                                   const int clipRectangleSize[3],
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+                                  const PlusTrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
   {
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
   }
 
   if (filteredTimestamp == UNDEFINED_TIMESTAMP)
@@ -341,7 +341,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   // Add custom fields
   if ( customFields != NULL )
   {
-    for ( TrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
+    for ( PlusTrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
     {
       newObjectInBuffer->SetCustomFrameField( it->first, it->second );
       std::string name(it->first);
@@ -364,7 +364,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
                                   const int clipRectangleSize[3],
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+                                  const PlusTrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -384,7 +384,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame,
                                   const int clipRectangleSize[3],
                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const TrackedFrame::FieldMapType* customFields /*=NULL*/)
+                                  const PlusTrackedFrame::FieldMapType* customFields /*=NULL*/)
 {
   if ( frame == NULL )
   {
@@ -396,7 +396,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const TrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   if ( matrix  == NULL )
   {
@@ -405,7 +405,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
   }
   if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
   {
-    unfilteredTimestamp = vtkAccurateTimer::GetSystemTime();
+    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
   }
   if (filteredTimestamp == UNDEFINED_TIMESTAMP)
   {
@@ -455,7 +455,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus st
   // Add custom fields
   if ( customFields != NULL )
   {
-    for ( TrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
+    for ( PlusTrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it )
     {
       newObjectInBuffer->SetCustomFrameField( it->first, it->second );
       std::string name(it->first);
@@ -676,7 +676,7 @@ int vtkPlusBuffer::GetNumberOfBytesPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
+PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
 {
   int numberOfErrors=0;
 
@@ -838,7 +838,7 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile( const char* filename, bool useCom
   LOG_TRACE("vtkPlusBuffer::WriteToSequenceFile");
 
   const int numberOfFrames = this->GetNumberOfItems();
-  vtkSmartPointer<vtkTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   PlusStatus status = PLUS_SUCCESS;
 
@@ -852,7 +852,7 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile( const char* filename, bool useCom
       continue;
     }
 
-    TrackedFrame* trackedFrame = new TrackedFrame;
+    PlusTrackedFrame* trackedFrame = new PlusTrackedFrame;
 
     // Add image data
     trackedFrame->SetImageData(bufferItem.GetFrame());
@@ -886,7 +886,7 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile( const char* filename, bool useCom
   }
 
   // Save tracked frames to metafile
-  if( vtkSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if( vtkPlusSequenceIO::Write(filename, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     return PLUS_FAIL;
@@ -1234,7 +1234,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime( double time, 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
+PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameList *sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, PlusTransformName& transformName)
 {
   int numberOfErrors=0;
 

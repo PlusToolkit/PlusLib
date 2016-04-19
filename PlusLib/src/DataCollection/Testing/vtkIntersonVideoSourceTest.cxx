@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkIntersonVideoSourceTest.cxx
+  \file vtkPlusIntersonVideoSourceTest.cxx
   \brief Test basic connection to the Interson USB ultrasound probe
 
   If the --rendering-off switch is defined then the connection is established, images are 
@@ -32,7 +32,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkIntersonVideoSource.h"
+#include "vtkPlusIntersonVideoSource.h"
 #include "vtkTable.h"
 #include "vtkTableAlgorithm.h"
 #include "vtkXMLUtilities.h"
@@ -176,7 +176,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
-void TestLinePlot(vtkIntersonVideoSource *intersonDevice)
+void TestLinePlot(vtkPlusIntersonVideoSource *intersonDevice)
 {
   // Set up a 2D scene, add an XY chart to it
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusSonixVideoSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
   
@@ -280,11 +280,11 @@ int main(int argc, char* argv[])
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkIntersonVideoSourceTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusIntersonVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
   }
 
-  vtkSmartPointer<vtkIntersonVideoSource> intersonDevice = vtkSmartPointer<vtkIntersonVideoSource>::New();
+  vtkSmartPointer<vtkPlusIntersonVideoSource> intersonDevice = vtkSmartPointer<vtkPlusIntersonVideoSource>::New();
   intersonDevice->SetDeviceId("VideoDevice");
 
   // Read config file

@@ -5,8 +5,8 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
-#include "vtkVirtualTextRecognizer.h"
+#include "vtkPlusDataCollector.h"
+#include "vtkPlusVirtualTextRecognizer.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <map>
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
   if ( printHelp )
   {
-    std::cout << "\n\nvtkVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -58,11 +58,11 @@ int main(int argc, char **argv)
 
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  vtkSmartPointer<vtkDataCollector> dataCollector = vtkSmartPointer<vtkDataCollector>::New();
+  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
 
   if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Configuration incorrect for vtkVirtualTextRecognizerTest.");
+    LOG_ERROR("Configuration incorrect for vtkPlusVirtualTextRecognizerTest.");
     return EXIT_FAILURE;
   }
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
   }
 
-  vtkVirtualTextRecognizer* textRecognizer = vtkVirtualTextRecognizer::SafeDownCast(device);
+  vtkPlusVirtualTextRecognizer* textRecognizer = vtkPlusVirtualTextRecognizer::SafeDownCast(device);
 
   if( textRecognizer == NULL )
   {
@@ -101,8 +101,8 @@ int main(int argc, char **argv)
   usleep(500000);
 #endif 
 
-  vtkVirtualTextRecognizer::ChannelFieldListMap map = textRecognizer->GetRecognitionFields();
-  vtkVirtualTextRecognizer::FieldListIterator it = map.begin()->second.begin();
+  vtkPlusVirtualTextRecognizer::ChannelFieldListMap map = textRecognizer->GetRecognitionFields();
+  vtkPlusVirtualTextRecognizer::FieldListIterator it = map.begin()->second.begin();
   if( (*it)->LatestParameterValue != fieldValue )
   {
     LOG_ERROR("Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
