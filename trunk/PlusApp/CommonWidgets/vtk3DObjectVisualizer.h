@@ -17,7 +17,7 @@
 #include "vtkPolyData.h"
 #include "vtkRenderer.h"
 #include "vtkSmartPointer.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 
 //-----------------------------------------------------------------------------
 
@@ -134,7 +134,7 @@ public:
 
   PlusStatus SetChannel(vtkPlusChannel* channel);
 
-  vtkSetObjectMacro(TransformRepository, vtkTransformRepository);
+  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
 
 protected:
   vtkSetObjectMacro(ImageActor, vtkImageActor);
@@ -191,7 +191,7 @@ protected:
   char* VolumeID;
 
   /*! Reference to Transform repository that stores and handles all transforms */
-  vtkTransformRepository* TransformRepository;
+  vtkPlusTransformRepository* TransformRepository;
 
   /*! Channel to visualize */
   vtkPlusChannel* SelectedChannel;

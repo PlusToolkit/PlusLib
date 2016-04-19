@@ -8,7 +8,7 @@ This algorithm computes transformation between a phantom object coordinate syste
 
 \subsection PhantomLandmarkRegistrationConfigSettings Configuration settings
 
-- \xmlElem \b vtkPhantomLandmarkRegistrationAlgo
+- \xmlElem \b vtkPlusPhantomLandmarkRegistrationAlgo
   - \xmlAtt PhantomCoordinateFrame \RequiredAtt
   - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
   - \xmlAtt StylusTipCoordinateFrame \RequiredAtt
@@ -30,7 +30,7 @@ This is an \b experimental algorithm that can use linear features (points, lines
 
 \subsection PhantomLinearObjectRegistrationConfigSettings Configuration settings
 
-- \xmlElem \b vtkPhantomLinearObjectRegistrationAlgo
+- \xmlElem \b vtkPlusPhantomLinearObjectRegistrationAlgo
   - \xmlAtt PhantomCoordinateFrame \RequiredAtt
   - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
   - \xmlAtt StylusTipCoordinateFrame \RequiredAtt

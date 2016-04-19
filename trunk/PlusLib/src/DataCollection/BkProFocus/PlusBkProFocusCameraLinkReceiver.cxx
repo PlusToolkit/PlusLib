@@ -1,5 +1,5 @@
 #include "PlusBkProFocusCameraLinkReceiver.h"
-#include "vtkBkProFocusCameraLinkVideoSource.h"
+#include "vtkPlusBkProFocusCameraLinkVideoSource.h"
 
 #include "ResearchInterface.h"
 
@@ -12,7 +12,7 @@ const int HEADER_SIZE_BYTES = 4; // The header consists of two 16 bit fields
 //----------------------------------------------------------------------------
 PlusBkProFocusCameraLinkReceiver::PlusBkProFocusCameraLinkReceiver()
 {
-  m_ImagingMode=vtkBkProFocusCameraLinkVideoSource::RfMode;
+  m_ImagingMode=vtkPlusBkProFocusCameraLinkVideoSource::RfMode;
 
   m_Frame = NULL;
 
@@ -168,12 +168,12 @@ bool PlusBkProFocusCameraLinkReceiver::DataAvailable(int lines, int pitch, void 
 
   switch (m_ImagingMode)
   {
-  case vtkBkProFocusCameraLinkVideoSource::BMode:
+  case vtkPlusBkProFocusCameraLinkVideoSource::BMode:
     {
       LOG_ERROR("B-mode imaging is not supported");
       break;
     }
-  case vtkBkProFocusCameraLinkVideoSource::RfMode:
+  case vtkPlusBkProFocusCameraLinkVideoSource::RfMode:
     {
       if (m_CallbackVideoSource!=NULL)
       {
@@ -192,13 +192,13 @@ bool PlusBkProFocusCameraLinkReceiver::DataAvailable(int lines, int pitch, void 
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusCameraLinkReceiver::SetPlusVideoSource(vtkBkProFocusCameraLinkVideoSource *videoSource)
+void PlusBkProFocusCameraLinkReceiver::SetPlusVideoSource(vtkPlusBkProFocusCameraLinkVideoSource *videoSource)
 {
   m_CallbackVideoSource = videoSource;
 }
 
 //----------------------------------------------------------------------------
-void PlusBkProFocusCameraLinkReceiver::SetImagingMode(vtkBkProFocusCameraLinkVideoSource::ImagingModeType imagingMode)
+void PlusBkProFocusCameraLinkReceiver::SetImagingMode(vtkPlusBkProFocusCameraLinkVideoSource::ImagingModeType imagingMode)
 {
   m_ImagingMode = imagingMode;
 }

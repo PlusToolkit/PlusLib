@@ -41,6 +41,8 @@ IF(ITK_DIR)
     SET (PLUS_ITK_DIR "${ITK_DIR}" CACHE INTERNAL "Path to store itk binaries")
   ENDIF()
   
+  SET(PLUS_ITK_DIR ${ITK_DIR})
+  
 ELSE(ITK_DIR)
 
   # ITK has not been built yet, so download and build it as an external project

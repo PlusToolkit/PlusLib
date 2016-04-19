@@ -14,7 +14,7 @@
 #include "vtkXMLDataElement.h"
 
 class vtkMatrix4x4; 
-class vtkRecursiveCriticalSection;
+class vtkPlusRecursiveCriticalSection;
 
 /*!
   \class vtkPlusConfig 

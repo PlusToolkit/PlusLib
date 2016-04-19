@@ -78,7 +78,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
       <OutputChannels>
         <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
       </OutputChannels>      
-      <vtkUsSimulatorAlgo
+      <vtkPlusUsSimulatorAlgo
         ImageCoordinateFrame="Image"
         ReferenceCoordinateFrame="Reference"
         IncomingIntensityMwPerCm2="300"
@@ -164,7 +164,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
             OutputImageSizePixel="820 616"
             OutputImageSpacingMmPerPixel="0.084 0.087" />
         </RfProcessing>
-      </vtkUsSimulatorAlgo>
+      </vtkPlusUsSimulatorAlgo>
 
     </Device>
 

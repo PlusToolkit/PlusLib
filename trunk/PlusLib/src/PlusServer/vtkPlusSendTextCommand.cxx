@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusSendTextCommand.h"
 
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 
 vtkStandardNewMacro( vtkPlusSendTextCommand );
 
@@ -95,7 +95,7 @@ PlusStatus vtkPlusSendTextCommand::Execute()
     <<", device: "<<(this->DeviceId==NULL?"(undefined)":this->DeviceId)
     <<", text: "<<(this->Text==NULL?"(undefined)":this->Text) );
 
-  vtkDataCollector* dataCollector = GetDataCollector();
+  vtkPlusDataCollector* dataCollector = GetDataCollector();
   if ( dataCollector == NULL )
   {
     this->QueueCommandResponse("vtkPlusSendTextCommand command failed, invalid data collector",PLUS_FAIL);

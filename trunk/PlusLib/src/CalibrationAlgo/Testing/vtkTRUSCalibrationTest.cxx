@@ -10,18 +10,18 @@
   compares the results to a baseline
 */ 
 
-#include "FidPatternRecognition.h"
+#include "PlusFidPatternRecognition.h"
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "vtkBrachyStepperPhantomRegistrationAlgo.h"
-#include "vtkCenterOfRotationCalibAlgo.h"
+#include "vtkPlusBrachyStepperPhantomRegistrationAlgo.h"
+#include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
-#include "vtkProbeCalibrationAlgo.h"
-#include "vtkSequenceIO.h"
-#include "vtkSpacingCalibAlgo.h"
-#include "vtkTrackedFrameList.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusProbeCalibrationAlgo.h"
+#include "vtkPlusSequenceIO.h"
+#include "vtkPlusSpacingCalibAlgo.h"
+#include "vtkPlusTrackedFrameList.h"
+#include "vtkPlusTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -79,13 +79,13 @@ int main (int argc, char* argv[])
   }  
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
-  FidPatternRecognition patternRecognition;
-  FidPatternRecognition::PatternRecognitionError error;
+  PlusFidPatternRecognition patternRecognition;
+  PlusFidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
-  vtkSmartPointer<vtkTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New(); 
-  if( vtkSequenceIO::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  if( vtkPlusSequenceIO::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputProbeRotationSeqMetafile); 
     return EXIT_FAILURE;
@@ -99,7 +99,7 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO("Starting spacing calibration...");
-  vtkSmartPointer<vtkSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkSpacingCalibAlgo>::New(); 
+  vtkSmartPointer<vtkPlusSpacingCalibAlgo> spacingCalibAlgo = vtkSmartPointer<vtkPlusSpacingCalibAlgo>::New(); 
   spacingCalibAlgo->SetInputs(probeRotationTrackedFrameList, patternRecognition.GetFidLineFinder()->GetNWires()); 
 
   double spacing[2]={0};
@@ -121,7 +121,7 @@ int main (int argc, char* argv[])
   }
 
   LOG_INFO("Starting center of rotation calibration...");
-  vtkSmartPointer<vtkCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkCenterOfRotationCalibAlgo>::New(); 
+  vtkSmartPointer<vtkPlusCenterOfRotationCalibAlgo> centerOfRotationCalibAlgo = vtkSmartPointer<vtkPlusCenterOfRotationCalibAlgo>::New(); 
   centerOfRotationCalibAlgo->SetInputs(probeRotationTrackedFrameList, trackedFrameIndices, spacing); 
   
   // Get center of rotation calibration output 
@@ -137,7 +137,7 @@ int main (int argc, char* argv[])
   }
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkTransformRepository> transformRepository = vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
@@ -145,7 +145,7 @@ int main (int argc, char* argv[])
   }
 
   // Phantom registration
-  vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkBrachyStepperPhantomRegistrationAlgo>::New(); 
+  vtkSmartPointer<vtkPlusBrachyStepperPhantomRegistrationAlgo> phantomRegistrationAlgo = vtkSmartPointer<vtkPlusBrachyStepperPhantomRegistrationAlgo>::New(); 
   if (phantomRegistrationAlgo->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read phantom definition!");
@@ -161,8 +161,8 @@ int main (int argc, char* argv[])
   }
 
   // Load and segment validation tracked frame list
-  vtkSmartPointer<vtkTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  if( vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputValidationSeqMetafile ); 
     return EXIT_FAILURE; 
@@ -176,8 +176,8 @@ int main (int argc, char* argv[])
   }
 
   // Load and segment calibration tracked frame list
-  vtkSmartPointer<vtkTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
-  if( vtkSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  if( vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputCalibrationSeqMetafile ); 
     return EXIT_FAILURE; 
@@ -193,7 +193,7 @@ int main (int argc, char* argv[])
   LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Initialize the probe calibration algo 
-  vtkSmartPointer<vtkProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkProbeCalibrationAlgo>::New(); 
+  vtkSmartPointer<vtkPlusProbeCalibrationAlgo> probeCal = vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New(); 
   probeCal->ReadConfiguration(configRootElement); 
 
   // Calibrate

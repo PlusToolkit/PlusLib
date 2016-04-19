@@ -5,10 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusGetTransformCommand.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 
 vtkStandardNewMacro( vtkPlusGetTransformCommand );
 

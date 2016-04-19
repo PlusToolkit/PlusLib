@@ -7,7 +7,7 @@ See License.txt for details.
 #include "DeviceSetSelectorWidget.h"
 #include "ToolStateDisplayWidget.h"
 #include "ToolStateDisplayWidgetTest.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkXMLUtilities.h"
@@ -172,7 +172,7 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
   if (m_DataCollector != NULL) {
     m_DataCollector->Stop();
   } else {
-    m_DataCollector = vtkDataCollector::New();
+    m_DataCollector = vtkPlusDataCollector::New();
   }
 
   // Initialize data collector and read configuration

@@ -12,8 +12,8 @@
 #include "vtkMatrix4x4.h"
 
 #include "PlusMath.h"
-#include "vtkTransformRepository.h"
-#include "TrackedFrame.h"
+#include "vtkPlusTransformRepository.h"
+#include "PlusTrackedFrame.h"
 #include "vtkXMLUtilities.h"
 
 int main(int argc, char **argv)
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   /////////////////////////////////////////////////////////////////////////////
   // Set up coordinate transforms
 
-  vtkSmartPointer<vtkTransformRepository> transformRepository=vtkSmartPointer<vtkTransformRepository>::New();
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository=vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   double dProbeToTrackerError(0.1235); 
   vtkSmartPointer<vtkMatrix4x4> mxProbeToTracker=vtkSmartPointer<vtkMatrix4x4>::New();  
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
   transformRepository->SetTransformPersistent(tnProbeToTracker, true); 
   transformRepository->SetTransformError(tnProbeToTracker, dProbeToTrackerError); 
 
-  TrackedFrame trackedFrame; 
+  PlusTrackedFrame trackedFrame; 
   vtkSmartPointer<vtkMatrix4x4> mxStylusToTracker=vtkSmartPointer<vtkMatrix4x4>::New();  
   mxStylusToTracker->Element[1][3]=25;
   mxStylusToTracker->Element[0][0]=0.1;

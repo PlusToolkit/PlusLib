@@ -51,15 +51,39 @@ ExternalProject_Add( tessdata
     DEPENDS ""
     )
 SET( tesseract_DEPENDENCIES ${tesseract_DEPENDENCIES} tessdata )
-IF( WIN32 )
-  IF( "$ENV{TESSDATA_PREFIX}" STREQUAL "" OR NOT "$ENV{TESSDATA_PREFIX}" STREQUAL "${PLUS_tessdata_src_DIR}")
-    MESSAGE(STATUS "Setting TESSDATA_PREFIX environment variable to enable loading of OCR languages.")
+
+IF( "$ENV{TESSDATA_PREFIX}" STREQUAL "" OR NOT "$ENV{TESSDATA_PREFIX}" STREQUAL "${PLUS_tessdata_src_DIR}")
+  MESSAGE(STATUS "Setting TESSDATA_PREFIX environment variable to enable loading of OCR languages.")
+  IF( WIN32 )
     EXECUTE_PROCESS(COMMAND setx TESSDATA_PREFIX ${PLUS_tessdata_src_DIR})
-  ELSE()
-    MESSAGE(STATUS "Using TESSDATA_PREFIX=$ENV{TESSDATA_PREFIX}.")
+  ELSEIF( UNIX )
+    # Linux GUI environment env variables are not affected by this, so if they close cmake-gui
+    # and re-open it, this env variable will not be found
+    # Perform a more advanced check to see if the export is in the .xsessionrc file, if so, simply 
+    # set the ENV for this cmake-gui session
+    IF(EXISTS $ENV{HOME}/.xsessionrc )
+        FILE(READ $ENV{HOME}/.xsessionrc XSESSIONRC_FILE_CONTENTS)
+      STRING(REGEX MATCH "export TESSDATA_PREFIX=(.*)" TESSDATA_PREFIX_MATCH ${XSESSIONRC_FILE_CONTENTS})
+      IF( TESSDATA_PREFIX_MATCH )
+          IF(NOT ${CMAKE_MATCH_1} STREQUAL ${PLUS_tessdata_src_DIR})
+        # modify .xsessionrc file
+        STRING(REPLACE ${TESSDATA_PREFIX_MATCH} "" XSESSIONRC_FILE_CONTENTS ${XSESSIONRC_FILE_CONTENTS})
+        FILE(WRITE $ENV{HOME}/.xsessionrc ${XSESSIONRC_FILE_CONTENTS})
+        FILE(APPEND $ENV{HOME}/.xsessionrc "export TESSDATA_PREFIX=${PLUS_tessdata_src_DIR}")
+          ENDIF()
+        ELSE()
+        FILE(APPEND $ENV{HOME}/.xsessionrc "export TESSDATA_PREFIX=${PLUS_tessdata_src_DIR}")
+        ENDIF()
+    ELSE()
+        FILE(WRITE $ENV{HOME}/.xsessionrc "export TESSDATA_PREFIX=${PLUS_tessdata_src_DIR}")
+    ENDIF()
   ENDIF()
-ENDIF( WIN32 )
-# TODO: else linux, export env var? I don't know if CMake can do that...
+
+  # Lastly, set it for this cmake session as well
+  SET(ENV{TESSDATA_PREFIX} ${PLUS_tessdata_src_DIR})
+ELSE()
+  MESSAGE(STATUS "Using TESSDATA_PREFIX=$ENV{TESSDATA_PREFIX}.")
+ENDIF()
 
 # --------------------------------------------------------------------------
 # tesseract-ocr-cmake

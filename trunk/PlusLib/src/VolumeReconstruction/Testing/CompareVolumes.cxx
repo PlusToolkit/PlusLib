@@ -23,7 +23,7 @@
 #include "vtkImageHistogramStatistics.h"
 #include "vtkMetaImageReader.h"
 
-#include "vtkCompareVolumes.h"
+#include "vtkPlusCompareVolumes.h"
 
 //-----------------------------------------------------------------------------
 int SimpleCompareVolumes(vtkImageData* testVol, vtkImageData* refVol, double simpleCompareMaxError)
@@ -316,7 +316,7 @@ int main( int argc, char** argv )
 
   // calculate the histogram for the difference image
   LOG_INFO("Calculating difference images and statistics...");
-  vtkSmartPointer<vtkCompareVolumes> histogramGenerator = vtkSmartPointer<vtkCompareVolumes>::New();
+  vtkSmartPointer<vtkPlusCompareVolumes> histogramGenerator = vtkSmartPointer<vtkPlusCompareVolumes>::New();
   histogramGenerator->SetInputGT(groundTruthRoi);
   histogramGenerator->SetInputGTAlpha(groundTruthAlphaRoi);
   histogramGenerator->SetInputTest(testingImageRoi);

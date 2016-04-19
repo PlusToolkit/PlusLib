@@ -6,14 +6,14 @@
 
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
-#include "TrackedFrame.h" 
+#include "PlusTrackedFrame.h" 
 #include "vtkImageData.h"
 #include "vtkImageDifference.h"
 #include "vtkImageExtractComponents.h"
-#include "vtkSequenceIO.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkSonixVolumeReader.h"
-#include "vtkTrackedFrameList.h" 
+#include "vtkPlusSonixVolumeReader.h"
+#include "vtkPlusTrackedFrameList.h" 
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 #include <iostream>
@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   if ( !args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
-    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -50,7 +50,7 @@ int main (int argc, char* argv[])
 
   if ( printHelp ) 
   {
-    std::cout << "\n\nvtkICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
+    std::cout << "\n\nvtkPlusICCapturingSourceTest1 help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS); 
 
   }
@@ -62,9 +62,9 @@ int main (int argc, char* argv[])
   }
 
 
-  vtkSmartPointer<vtkTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkPlusTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
 
-  if ( vtkSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(inputFileName.c_str(), sonixVolumeData ) != PLUS_SUCCESS )
+  if ( vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(inputFileName.c_str(), sonixVolumeData ) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to generate tracked frame from sonix volume: " << inputFileName ); 
     exit(EXIT_FAILURE); 
@@ -74,7 +74,7 @@ int main (int argc, char* argv[])
   {
     std::string path = vtkPlusConfig::GetInstance()->GetOutputPath(outputFileName); 
     LOG_INFO("Save tracked frames to " << path);
-    if( vtkSequenceIO::Write(path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false) != PLUS_SUCCESS )
+    if( vtkPlusSequenceIO::Write(path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to save sonix volume to " << path); 
     }

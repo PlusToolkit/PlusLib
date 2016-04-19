@@ -10,12 +10,12 @@ See License.txt for details.
 #include "AbstractToolbox.h"
 #include "PlusConfigure.h"
 #include "ui_TemporalCalibrationToolbox.h"
-#include "vtkTemporalCalibrationAlgo.h"
+#include "vtkPlusTemporalCalibrationAlgo.h"
 #include <QWidget>
 class vtkContextView;
 class vtkPlusChannel;
 class vtkTable;
-class vtkTrackedFrameList;
+class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
@@ -107,10 +107,10 @@ protected:
 protected:
 
   /*! Tracked frame for tracking data for temporal calibration */
-  vtkTrackedFrameList* TemporalCalibrationFixedData;
+  vtkPlusTrackedFrameList* TemporalCalibrationFixedData;
 
   /*! Tracked frame for video data for temporal calibration */
-  vtkTrackedFrameList* TemporalCalibrationMovingData;
+  vtkPlusTrackedFrameList* TemporalCalibrationMovingData;
 
   /*! Delay time before start acquisition [s] */
   int                        m_FreeHandStartupDelaySec;
@@ -164,14 +164,14 @@ protected:
   vtkContextView* CalibratedPlotContextView;
 
   vtkPlusChannel* FixedChannel;
-  vtkTemporalCalibrationAlgo::FRAME_TYPE FixedType;
+  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE FixedType;
   vtkPlusChannel* MovingChannel;
-  vtkTemporalCalibrationAlgo::FRAME_TYPE MovingType;
+  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE MovingType;
 
   PlusTransformName FixedValidationTransformName;
   PlusTransformName MovingValidationTransformName;
 
-  vtkTemporalCalibrationAlgo* TemporalCalibrationAlgo;
+  vtkPlusTemporalCalibrationAlgo* TemporalCalibrationAlgo;
 
   std::string RequestedFixedChannel;
   std::string RequestedMovingChannel;

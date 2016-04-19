@@ -17,7 +17,7 @@
 #include "igtlMessageBase.h"
 #include "igtl_types.h"
 #include "igtl_win32header.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 
 namespace igtl
 {
@@ -44,10 +44,10 @@ public:
 public:
 
   /*! Set Plus TrackedFrame */ 
-  PlusStatus SetTrackedFrame( const TrackedFrame& trackedFrame); 
+  PlusStatus SetTrackedFrame( const PlusTrackedFrame& trackedFrame); 
 
   /*! Get Plus TrackedFrame */ 
-  TrackedFrame GetTrackedFrame(); 
+  PlusTrackedFrame GetTrackedFrame(); 
   
 protected:
   class MessageHeader 
@@ -110,7 +110,7 @@ protected:
   PlusTrackedFrameMessage();
   ~PlusTrackedFrameMessage();
 
-  TrackedFrame m_TrackedFrame; 
+  PlusTrackedFrame m_TrackedFrame; 
   std::string m_TrackedFrameXmlData; 
 
   MessageHeader m_MessageHeader; 

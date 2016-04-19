@@ -8,10 +8,10 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "PlusServerLauncherMainWindow.h"
 #include "StatusIcon.h"
-#include "vtkDataCollector.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
-#include "vtkTransformRepository.h"
+#include "vtkPlusTransformRepository.h"
 #include <QComboBox>
 #include <QIcon>
 #include <QKeyEvent>

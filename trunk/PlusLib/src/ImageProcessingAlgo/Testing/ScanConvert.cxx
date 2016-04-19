@@ -1,11 +1,11 @@
 #include "PlusConfigure.h"
-#include "TrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
-#include "vtkTrackedFrameList.h"
-#include "vtkUsScanConvert.h"
-#include "vtkUsScanConvertCurvilinear.h"
-#include "vtkUsScanConvertLinear.h"
+#include "vtkPlusTrackedFrameList.h"
+#include "vtkPlusUsScanConvert.h"
+#include "vtkPlusUsScanConvertCurvilinear.h"
+#include "vtkPlusUsScanConvertLinear.h"
 
 
 int main(int argc, char **argv)
@@ -83,14 +83,14 @@ int main(int argc, char **argv)
 
   // Create scan converter.
 
-  vtkSmartPointer<vtkUsScanConvert> scanConverter;
+  vtkSmartPointer<vtkPlusUsScanConvert> scanConverter;
   if (STRCASECMP(transducerGeometry, "CURVILINEAR")==0)
   {
-    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertCurvilinear::New());
+    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertCurvilinear::New());
   }
   else if (STRCASECMP(transducerGeometry, "LINEAR")==0)
   {
-    scanConverter = vtkSmartPointer<vtkUsScanConvert>::Take(vtkUsScanConvertLinear::New());
+    scanConverter = vtkSmartPointer<vtkPlusUsScanConvert>::Take(vtkPlusUsScanConvertLinear::New());
   }
   else
   {
@@ -101,19 +101,19 @@ int main(int argc, char **argv)
   
   // Read input image.
 
-  vtkSmartPointer<vtkTrackedFrameList> inputFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkPlusTrackedFrameList> inputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   inputFrameList->ReadFromSequenceMetafile(inputFileName.c_str());
   int numberOfFrames = inputFrameList->GetNumberOfTrackedFrames();
   
   // Create output frame list.
 
-  vtkSmartPointer<vtkTrackedFrameList> outputFrameList = vtkSmartPointer<vtkTrackedFrameList>::New();
+  vtkSmartPointer<vtkPlusTrackedFrameList> outputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   // Iterate thought every frame.
 
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex ++ )
   {
-    TrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
+    PlusTrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
     
     scanConverter->SetInputData_vtk5compatible( inputFrame->GetImageData()->GetImage() );
     scanConverter->Update();
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     // Allocate and store output image.
 
     outputFrameList->AddTrackedFrame(inputFrame);
-    TrackedFrame* outputFrame = outputFrameList->GetTrackedFrame(outputFrameList->GetNumberOfTrackedFrames()-1);
+    PlusTrackedFrame* outputFrame = outputFrameList->GetTrackedFrame(outputFrameList->GetNumberOfTrackedFrames()-1);
     outputFrame->GetImageData()->DeepCopyFrom(scanConverter->GetOutput());
   }
 
