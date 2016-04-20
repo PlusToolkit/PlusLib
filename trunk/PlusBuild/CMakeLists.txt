@@ -526,6 +526,8 @@ ENDIF(PLUSBUILD_USE_Tesseract)
 # Construct a descriptive build name
 #------------------------------------------------------------------------------
 IF( NOT BUILDNAME )
+  SET(BUILD_ARCHITECTURE "x64")
+
   IF( UNIX AND NOT APPLE )
     SET(LINUX TRUE)
   ENDIF()
@@ -600,9 +602,13 @@ IF( NOT BUILDNAME )
     EXECUTE_PROCESS(COMMAND systeminfo OUTPUT_VARIABLE SYSTEM_NAME_FULL)
     STRING(REGEX MATCH "OS Name: *Microsoft Windows ([0-9]+)" WIN_VERSION ${SYSTEM_NAME_FULL})
     SET(SYSTEM_NAME "win${CMAKE_MATCH_1}")
+    
+    IF( NOT ${CMAKE_GENERATOR} MATCHES "x64" )
+      SET(BUILD_ARCHITECTURE "x32")
+    ENDIF()
   ENDIF()
 
-  SET(BUILDNAME "${COMPILER_NAME}${TEMP_OS_ARCH}-${SYSTEM_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
+  SET(BUILDNAME "${COMPILER_NAME}${BUILD_ARCHITECTURE}-${SYSTEM_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}" CACHE STRING "Name of the build on the dashboard")
 ENDIF()
 
 #-----------------------------------------------------------------------------
