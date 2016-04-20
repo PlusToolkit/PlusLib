@@ -56,8 +56,8 @@ SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_
 SET (PlusServer_LIBS   
   vtkPlusCommon 
   #vtkPlusOpenIGTLink
-  vtkDataCollection
-  vtkVolumeReconstruction
+  vtkPlusDataCollection
+  vtkPlusVolumeReconstruction
   )
 
 INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )

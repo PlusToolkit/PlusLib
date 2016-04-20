@@ -186,7 +186,7 @@ ENDIF(PLUS_USE_OpenIGTLink)
 # Build the DiagnosticTools 
 IF (PLUSAPP_BUILD_DiagnosticTools)
   ADD_SUBDIRECTORY(DiagnosticTools)
-  ADD_DEPENDENCIES( DiagDataCollection ${PLUSLIB_DEPENDENCIES} )
+  ADD_DEPENDENCIES( DiagPlusDataCollection ${PLUSLIB_DEPENDENCIES} )
 ENDIF (PLUSAPP_BUILD_DiagnosticTools)
 
 # --------------------------------------------------------------------------

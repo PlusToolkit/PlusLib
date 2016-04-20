@@ -83,7 +83,7 @@ SET (CommonWidgets_LIBS
     ${CommonWidgets_LIBS} 
     ${QT_LIBRARIES} 
     ${VTK_LIBRARIES}
-    vtkCalibrationAlgo
+    vtkPlusCalibration
     vtkPlusCommon
     )
 

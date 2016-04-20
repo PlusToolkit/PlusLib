@@ -1,15 +1,15 @@
 SET (DIAGDATA_LIBS
   ${VTK_LIBRARIES}
-  vtkDataCollection 
+  vtkPlusDataCollection 
   vtkPlusCommon
   )
 IF (PLUS_USE_OpenIGTLink)
   SET (DIAGDATA_LIBS ${DIAGDATA_LIBS} OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
-ADD_EXECUTABLE(DiagDataCollection DiagDataCollection.cxx)
-TARGET_LINK_LIBRARIES(DiagDataCollection ${DIAGDATA_LIBS})
-GENERATE_HELP_DOC(DiagDataCollection)
+ADD_EXECUTABLE(DiagPlusDataCollection DiagDataCollection.cxx)
+TARGET_LINK_LIBRARIES(DiagPlusDataCollection ${DIAGDATA_LIBS})
+GENERATE_HELP_DOC(DiagPlusDataCollection)
 
 #-------------------------------------------------------------------------------------------- 
 
@@ -29,7 +29,7 @@ ENDIF(PLUS_USE_OpenIGTLink)
 # Install
 IF(PLUSAPP_INSTALL_BIN_DIR)
 
-INSTALL(TARGETS DiagDataCollection
+INSTALL(TARGETS DiagPlusDataCollection
   DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
   COMPONENT RuntimeLibraries
   )

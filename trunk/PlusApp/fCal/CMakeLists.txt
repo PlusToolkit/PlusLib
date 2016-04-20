@@ -85,9 +85,9 @@ SET (fCal_LIBS
     itkvnl 
     itkvnl_algo 
     ${VTK_LIBRARIES}
-    vtkCalibrationAlgo 
-    vtkDataCollection 
-    vtkVolumeReconstruction
+    vtkPlusCalibration 
+    vtkPlusDataCollection 
+    vtkPlusVolumeReconstruction
     )
 
 IF (PLUS_USE_OpenIGTLink)

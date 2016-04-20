@@ -2,7 +2,7 @@ SET (PSEXT_LIBS
      vtkPlusCommon
     )
 
-# ---------------------- DiagDataCollection ---------------------
+# ---------------------- DiagPlusDataCollection ---------------------
 #
 ADD_EXECUTABLE(PointSetExtractor PointSetExtractor.cxx)
 TARGET_LINK_LIBRARIES(PointSetExtractor ${PSEXT_LIBS} )

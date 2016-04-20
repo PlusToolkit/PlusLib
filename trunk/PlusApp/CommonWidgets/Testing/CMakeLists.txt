@@ -28,8 +28,8 @@ SET (SegmentationParameterDialogTest_LIBS
     ${QT_LIBRARIES}
     CommonWidgets
     vtkPlusCommon
-    vtkCalibrationAlgo
-    vtkDataCollection
+    vtkPlusCalibration
+    vtkPlusDataCollection
   )
   
 ADD_EXECUTABLE(
@@ -81,7 +81,7 @@ SET (ToolStateDisplayWidgetTest_LIBS
     ${QT_LIBRARIES}
     CommonWidgets
     vtkPlusCommon
-    vtkDataCollection
+    vtkPlusDataCollection
   )
   
 ADD_EXECUTABLE(
