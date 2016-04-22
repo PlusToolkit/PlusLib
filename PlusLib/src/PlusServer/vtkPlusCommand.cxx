@@ -168,7 +168,7 @@ PlusStatus vtkPlusCommand::ValidateName()
 std::string vtkPlusCommand::GenerateReplyDeviceName(uint32_t Id)
 {
   std::ostringstream ss;
-  ss << DEVICE_NAME_REPLY << Id;
+  ss << DEVICE_NAME_REPLY << "_" << Id;
   return ss.str();
 }
 
