@@ -146,7 +146,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
       std::string deviceClassName;
       if (this->DeviceType!=NULL)
       {
-        deviceClassName=std::string("vtk")+this->DeviceType;
+        deviceClassName=std::string("vtkPlus")+this->DeviceType;
       }
       if (deviceClassName.empty() || aDevice->GetClassName()==deviceClassName)
       {
