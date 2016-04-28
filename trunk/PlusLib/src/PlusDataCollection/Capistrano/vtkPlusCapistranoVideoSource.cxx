@@ -711,7 +711,7 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->ClockDivider                           = 2;       //1
   this->CineBuffers                            = 32;
   this->SampleFrequency                        = 40.0f;
-  this->PulseFrequency                        = 12.0f;
+  this->PulseFrequency                         = 12.0f;
   this->Internal->ImagingParameters->SetProbeVoltage(30.0f);
   this->Internal->ImagingParameters->SetSoundVelocity(1532.0f);
   this->Internal->ImagingParameters->SetDepthMm(36); // mm
@@ -1145,7 +1145,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
               << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
-  TrackedFrame::FieldMapType customFields;
+  PlusTrackedFrame::FieldMapType customFields;
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   if( aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
