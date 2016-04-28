@@ -54,18 +54,18 @@ public:
   // ---------------------------------------------------------------------------
   // Public member variables ---------------------------------------------------
   vtkPlusUSDigitalEncodersTracker *        External;
-  long                                 Encoder_Model;
-  long                                 Encoder_SN;
-  long                                 Encoder_Version;
-  long                                 Encoder_Addr;
-  long                                 Encoder_Mode;
-  long                                 Encoder_Resolution;
-  bool                                 Encoder_Connected;
-  int                                  Encoder_Motion; // 0 : Linear motion , 1: Rotation
-  double                               Encoder_PulseSpacing; 
-  long                                 Encoder_Value;
-  vtkSmartPointer<vtkTransform>        Encoder_LocalTransform;
-  double                               Encoder_LocalAxis[3];
+  long                                     Encoder_Model;
+  long                                     Encoder_SN;
+  long                                     Encoder_Version;
+  long                                     Encoder_Addr;
+  long                                     Encoder_Mode;
+  long                                     Encoder_Resolution;
+  bool                                     Encoder_Connected;
+  int                                      Encoder_Motion; // 0 : Linear motion , 1: Rotation
+  double                                   Encoder_PulseSpacing; 
+  long                                     Encoder_Value;
+  vtkSmartPointer<vtkTransform>            Encoder_LocalTransform;
+  double                                   Encoder_LocalAxis[3];
   vtkPlusEncoderTrackingInfo               Encoder_TrackingInfo;
 
   // ---------------------------------------------------------------------------
@@ -684,7 +684,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
   EncoderInfoMapType::iterator it;
   for(it = this->USDigitalEncoderInfoList.begin(); it!=this->USDigitalEncoderInfoList.end(); ++it)
   {
-    if(this->SetUSDigitalA2EncoderOriginWithSN(it->second.Encoder_Addr) == PLUS_FAIL)
+    if(this->SetUSDigitalA2EncoderOriginWithAddr(it->second.Encoder_Addr) == PLUS_FAIL)
     {
       LOG_ERROR("Failed to set US digital A2 Encodr's origin point as current position." );
       return PLUS_FAIL; 
