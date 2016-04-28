@@ -108,7 +108,6 @@ vtkPlusSonixVideoSource::~vtkPlusSonixVideoSource()
   this->SetSonixIP(NULL);
   delete this->Ult;
   this->Ult = NULL;
-  this->SetImageToTransducerTransformName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -314,6 +313,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
 
     std::ostringstream transducerOriginStr;
     transducerOriginStr << this->CurrentTransducerOriginPixels[0] << " " << this->CurrentTransducerOriginPixels[1];
+    // TODO : OpenIGTLink v3 will eliminate this short form necessity
     customFields["TransducerOriginPix"] = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
   }
 
@@ -660,7 +660,6 @@ PlusStatus vtkPlusSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   
   XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(ImageGeometryOutputEnabled, deviceConfig);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
 
   Superclass::WriteConfiguration(deviceConfig);
 

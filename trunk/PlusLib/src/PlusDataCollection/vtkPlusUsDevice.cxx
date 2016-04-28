@@ -18,11 +18,10 @@ vtkStandardNewMacro(vtkPlusUsDevice);
 
 //----------------------------------------------------------------------------
 vtkPlusUsDevice::vtkPlusUsDevice()
-: vtkPlusDevice()
-, RequestedImagingParameters(vtkPlusUsImagingParameters::New())
-, CurrentImagingParameters(vtkPlusUsImagingParameters::New())
-, ImageToTransducerTransformName(NULL)
-, TextRecognizerInputChannelName(NULL)
+  : vtkPlusDevice()
+  , RequestedImagingParameters(vtkPlusUsImagingParameters::New())
+  , CurrentImagingParameters(vtkPlusUsImagingParameters::New())
+  , TextRecognizerInputChannelName(NULL)
 {
   this->CurrentTransducerOriginPixels[0]=-1;
   this->CurrentTransducerOriginPixels[1]=-1;
@@ -58,8 +57,12 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
     return PLUS_FAIL;
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(TextRecognizerInputChannelName, deviceConfig);
+  const char * transformName = deviceConfig->GetAttribute("ImageToTransducerTransformName");
+  if( transformName == NULL || this->ImageToTransducerTransform.SetTransformName(transformName) != PLUS_SUCCESS )
+  {
+    LOG_ERROR("Transform name is not properly formatted. It should be of the format <From>ToTransducer.");
+  }
   XML_FIND_NESTED_ELEMENT_OPTIONAL(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
 
   if( imagingParams != NULL )
@@ -74,8 +77,11 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
 PlusStatus vtkPlusUsDevice::WriteConfiguration(vtkXMLDataElement* deviceConfig)
 {
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(ImageToTransducerTransformName, deviceConfig);
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(TextRecognizerInputChannelName, deviceConfig);
+  if( this->TextRecognizerInputChannelName != NULL )
+  {
+    deviceConfig->SetAttribute("ImageToTransducerTransformName", this->ImageToTransducerTransform.GetTransformName().c_str());
+  }
 
   return this->CurrentImagingParameters->WriteConfiguration(deviceConfig);
 }
@@ -102,28 +108,17 @@ PlusStatus vtkPlusUsDevice::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsDevice::NotifyConfigured()
 {
-  if( this->TextRecognizerInputChannelName != NULL )
+  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
   {
-    if( ImageToTransducerTransform.SetTransformName(this->ImageToTransducerTransformName) != PLUS_SUCCESS )
+    vtkPlusChannel* channel = *it;
+    if( STRCASECMP(channel->GetChannelId(), this->TextRecognizerInputChannelName) == 0 )
     {
-      LOG_ERROR("Transform name is not properly formatted. It should be of the format <From>ToTransducer.");
-      return PLUS_FAIL;
+      this->InputChannel = channel;
+      return PLUS_SUCCESS;
     }
-
-    for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
-    {
-      vtkPlusChannel* channel = *it;
-      if( STRCASECMP(channel->GetChannelId(), this->TextRecognizerInputChannelName) == 0 )
-      {
-        this->InputChannel = channel;
-        return PLUS_SUCCESS;
-      }
-    }
-    LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
-    return PLUS_FAIL;
   }
-
-  return PLUS_SUCCESS;
+  LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -142,10 +137,10 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkPlusUsImagingParame
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if( this->ImageToTransducerTransformName != NULL && customFields != NULL )
+  if( !this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL )
   {
     localCustomFields = *customFields;
-    CalculateImageToTransducer(localCustomFields);
+    this->CalculateImageToTransducer(localCustomFields);
   }
 
   return Superclass::AddVideoItemToVideoSources(videoSources, frame, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields);
@@ -155,10 +150,10 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if( this->ImageToTransducerTransformName != NULL && customFields != NULL )
+  if( !this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL )
   {
     localCustomFields = *customFields;
-    CalculateImageToTransducer(localCustomFields);
+    this->CalculateImageToTransducer(localCustomFields);
   }
 
   return Superclass::AddVideoItemToVideoSources(videoSources, imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields);
