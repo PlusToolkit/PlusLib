@@ -55,13 +55,13 @@ public:
   /*!
   This function can be called to add a video item to all video data sources
   */
-  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   This function can be called to add a video item to the specified video data sources
   */
-  PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
     PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields= NULL);
 
@@ -71,9 +71,6 @@ public:
     x axis direction is towards marked side, y axis direction is towards sound propagation direction,
     and z direction is cross product of x and y, unit is mm.
   */
-  vtkGetStringMacro(ImageToTransducerTransformName);
-  vtkSetStringMacro(ImageToTransducerTransformName);
-
   vtkGetStringMacro(TextRecognizerInputChannelName);
   vtkSetStringMacro(TextRecognizerInputChannelName);
 
@@ -101,7 +98,6 @@ protected:
 
   PlusTransformName ImageToTransducerTransform;
   char* TextRecognizerInputChannelName;
-  char* ImageToTransducerTransformName;
 
 private:
   vtkPlusUsDevice(const vtkPlusUsDevice&);  // Not implemented.
