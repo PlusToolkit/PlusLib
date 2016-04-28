@@ -1124,7 +1124,6 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   if ( aSource->GetNumberOfItems() == 0 )
   {
     LOG_DEBUG("Set up image buffer for Interson");
-    aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetInputFrameSize(frameSize);
