@@ -642,6 +642,8 @@ PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, LutCenter, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, LutWindow, deviceConfig);
 
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, CurrentPixelSpacingMm, deviceConfig);
+
   this->Internal->ImagingParameters->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
@@ -735,6 +737,9 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   // to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates          = true;
   this->AcquisitionRate                        = 5;
+  this->CurrentPixelSpacingMm[0]               = 1.0;
+  this->CurrentPixelSpacingMm[1]               = 1.0;
+  this->CurrentPixelSpacingMm[2]               = 1.0;
 }
 
 // ----------------------------------------------------------------------------
@@ -1047,6 +1052,20 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   GetProbeNameDevice(probeName);
   LOG_DEBUG("Capistrano probe name: "<<probeName<<", ID: "<<usbProbeID(this->Internal->ProbeHandle));
 
+  // Initialize Custom Field of this data source
+  this->CustomFields.clear();
+  std::ostringstream spacingStream;
+  unsigned int numSpaceDimensions = 3;
+  for( unsigned int i = 0; i < numSpaceDimensions ; ++i )
+    {
+    spacingStream << this->CurrentPixelSpacingMm[i];
+    if( i != numSpaceDimensions - 1 )
+      {
+      spacingStream << " ";
+      }
+    }
+  this->CustomFields["ElementSpacing"] = spacingStream.str();
+
   return PLUS_SUCCESS;
 }
 
@@ -1144,7 +1163,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
               << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
-  PlusTrackedFrame::FieldMapType customFields;
+  //PlusTrackedFrame::FieldMapType customFields;
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   if( aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
@@ -1154,7 +1173,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
                         this->FrameNumber,
                         unfilteredTimestamp,
                         unfilteredTimestamp,
-                        &customFields) != PLUS_SUCCESS )
+                        &this->CustomFields) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());
     return PLUS_FAIL;

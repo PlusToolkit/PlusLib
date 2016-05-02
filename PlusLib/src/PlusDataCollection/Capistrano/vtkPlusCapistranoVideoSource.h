@@ -8,7 +8,7 @@
 #define __vtkPlusCapistranoVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusUsDevice.h"
 #include "vtkPlusUsImagingParameters.h"
 
 /*!
@@ -20,7 +20,7 @@
 
  \ingroup PlusLibDataCollection.
 */
-class vtkPlusDataCollectionExport vtkPlusCapistranoVideoSource: public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusCapistranoVideoSource: public vtkPlusUsDevice
 {
 public:
   /*! Constructor for a smart pointer of this class*/
@@ -111,6 +111,12 @@ public:
 
   /* Apply a completely new set of imaging parameters to the device */
   PlusStatus SetNewImagingParametersDevice(const vtkPlusUsImagingParameters& newImagingParameters);
+
+  /*! Set Current Pixel Spacing values Of US Image (mm) */
+  vtkSetVector3Macro(CurrentPixelSpacingMm, double); 
+
+  /*! Get Current Pixel Spacing values Of US Image (mm) */
+  vtkGetVector3Macro(CurrentPixelSpacingMm, double); 
 protected:
 
   /*! Constructor */
@@ -193,19 +199,21 @@ protected:
   class        vtkInternal;
   vtkInternal* Internal;
 
-  bool         Frozen;
-  bool         UpdateParameters;
-  bool         BidirectionalMode;
-  int          ProbeID;
-  int          ClockDivider;
-  int          CineBuffers;
-  float        SampleFrequency;
-  float        PulseFrequency;
-  bool         Interpolate;
-  bool         AverageMode;
-  unsigned int CurrentBModeViewOption;
-  double       LutCenter;
-  double       LutWindow;
+  bool                           Frozen;
+  bool                           UpdateParameters;
+  bool                           BidirectionalMode;
+  int                            ProbeID;
+  int                            ClockDivider;
+  int                            CineBuffers;
+  float                          SampleFrequency;
+  float                          PulseFrequency;
+  bool                           Interpolate;
+  bool                           AverageMode;
+  unsigned int                   CurrentBModeViewOption;
+  double                         LutCenter;
+  double                         LutWindow;
+
+  PlusTrackedFrame::FieldMapType CustomFields;
 
 private:
   vtkPlusCapistranoVideoSource(const vtkPlusCapistranoVideoSource &); // Not implemented
