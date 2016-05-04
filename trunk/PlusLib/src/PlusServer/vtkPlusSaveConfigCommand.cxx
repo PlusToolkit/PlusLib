@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollector.h"
@@ -18,7 +18,7 @@ static const char SAVE_CONFIG_CMD[] = "SaveConfig";
 
 //----------------------------------------------------------------------------
 vtkPlusSaveConfigCommand::vtkPlusSaveConfigCommand()
-: Filename(NULL)
+  : Filename(NULL)
 {
 }
 
@@ -30,20 +30,20 @@ vtkPlusSaveConfigCommand::~vtkPlusSaveConfigCommand()
 
 //----------------------------------------------------------------------------
 void vtkPlusSaveConfigCommand::SetNameToSaveConfig()
-{ 
+{
   this->SetName(SAVE_CONFIG_CMD);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusSaveConfigCommand::GetCommandNames(std::list<std::string>& cmdNames)
-{ 
-  cmdNames.clear(); 
+{
+  cmdNames.clear();
   cmdNames.push_back(SAVE_CONFIG_CMD);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusSaveConfigCommand::GetDescription(const char* commandName)
-{ 
+{
   std::string desc;
   if (commandName == NULL || STRCASECMP(commandName, SAVE_CONFIG_CMD))
   {
@@ -62,7 +62,7 @@ void vtkPlusSaveConfigCommand::PrintSelf( ostream& os, vtkIndent indent )
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSaveConfigCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -73,11 +73,11 @@ PlusStatus vtkPlusSaveConfigCommand::ReadConfiguration(vtkXMLDataElement* aConfi
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSaveConfigCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
-  }  
+  }
   // Start parameters
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(Filename, aConfig);
   return PLUS_SUCCESS;
@@ -97,17 +97,17 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
 
   if( this->GetDataCollector() == NULL)
   {
-    this->QueueCommandResponse(baseMessageString + " can't access data collector",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Can't access data collector.");
     return PLUS_FAIL;
   }
   if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
-    || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+      || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
-    this->QueueCommandResponse(baseMessageString + " unable to write configuration",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Unable to write configuration.");
     return PLUS_FAIL;
   }
 
   PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-  this->QueueCommandResponse(baseMessageString + " completed successfully",PLUS_SUCCESS);
+  this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + " Completed successfully.");
   return PLUS_SUCCESS;
 }

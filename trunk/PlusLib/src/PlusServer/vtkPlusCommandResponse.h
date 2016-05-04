@@ -80,8 +80,15 @@ public:
   vtkSetMacro(Version,uint16_t);
   vtkGetMacro(OriginalId,uint32_t);
   vtkSetMacro(OriginalId,uint32_t);
+  vtkGetMacro(CommandName,std::string);
+  vtkSetMacro(CommandName,std::string);
   vtkGetMacro(ErrorString,std::string);
   vtkSetMacro(ErrorString,std::string);
+  vtkGetMacro(ResultString,std::string);
+  vtkSetMacro(ResultString,std::string);
+
+  void SetParameters(const std::map<std::string, std::string>& values);
+  const std::map<std::string, std::string>& GetParameters() const;
 
 protected:
   vtkPlusCommandCommandResponse()
@@ -89,7 +96,11 @@ protected:
   }
   uint16_t Version;
   uint32_t OriginalId;
+  std::string CommandName;
   std::string ErrorString;
+  std::string ResultString;
+  std::map<std::string, std::string> Parameters;
+
 private:
   vtkPlusCommandCommandResponse( const vtkPlusCommandCommandResponse& );
   void operator=( const vtkPlusCommandCommandResponse& );

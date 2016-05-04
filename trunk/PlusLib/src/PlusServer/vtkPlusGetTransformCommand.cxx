@@ -5,8 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
+#include "igtl_header.h"
 #include "vtkPlusCommandProcessor.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusTransformRepository.h"
 
@@ -16,7 +17,7 @@ static const char GET_TRANSFORM_CMD[] = "GetTransform";
 
 //----------------------------------------------------------------------------
 vtkPlusGetTransformCommand::vtkPlusGetTransformCommand()
-: TransformName(NULL)
+  : TransformName(NULL)
 {
 }
 
@@ -28,20 +29,20 @@ vtkPlusGetTransformCommand::~vtkPlusGetTransformCommand()
 
 //----------------------------------------------------------------------------
 void vtkPlusGetTransformCommand::SetNameToGetTransform()
-{ 
+{
   this->SetName(GET_TRANSFORM_CMD);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusGetTransformCommand::GetCommandNames(std::list<std::string>& cmdNames)
-{ 
-  cmdNames.clear(); 
+{
+  cmdNames.clear();
   cmdNames.push_back(GET_TRANSFORM_CMD);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusGetTransformCommand::GetDescription(const char* commandName)
-{ 
+{
   std::string desc;
   if (commandName==NULL || STRCASECMP(commandName, GET_TRANSFORM_CMD))
   {
@@ -59,7 +60,7 @@ void vtkPlusGetTransformCommand::PrintSelf( ostream& os, vtkIndent indent )
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetTransformCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -70,14 +71,14 @@ PlusStatus vtkPlusGetTransformCommand::ReadConfiguration(vtkXMLDataElement* aCon
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetTransformCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
-  }  
+  }
 
   aConfig->SetAttribute("TransformName", this->GetTransformName());
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -91,7 +92,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
 
   if( this->GetTransformRepository() == NULL )
   {
-    this->QueueCommandResponse(baseMessageString + " failed: invalid transform repository",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Failed: invalid transform repository.");
     return PLUS_FAIL;
   }
 
@@ -100,7 +101,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
 
   if( this->GetTransformRepository()->IsExistingTransform(aName) != PLUS_SUCCESS)
   {
-    this->QueueCommandResponse(baseMessageString + " failed. Transform not found.", PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Failed. Transform not found.");
     return PLUS_SUCCESS;
   }
 
@@ -112,21 +113,38 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
   this->GetTransformRepository()->GetTransformDate(aName, date);
   double error;
   this->GetTransformRepository()->GetTransformError(aName, error);
+  std::ostringstream errorStringStream;
+  errorStringStream << error;
 
-  std::stringstream ss;
-  ss << "<name=\"" << aName.GetTransformName() << "\" value=\"";
+  std::ostringstream valueStringStream;
+  if( this->Version <= IGTL_HEADER_VERSION_2 )
+  {
+    valueStringStream << "<name=\"" << aName.GetTransformName() << "\" value=\"";
+  }
   for( int i = 0; i < 4; ++i )
   {
     for( int j = 0; j < 4; ++j)
     {
-      ss << value->GetElement(i, j);
+      valueStringStream << value->GetElement(i, j);
       if( i * j < 9 )
       {
-        ss << " ";
+        valueStringStream << " ";
       }
     }
   }
-  ss << "\" persistent=\"" << (persistent ? "true" : "false") << "\" date=\"" << date << "\" error=\"" << error << "\"/>";
-  this->QueueCommandResponse(baseMessageString + ss.str(),PLUS_SUCCESS);
+  if( this->Version <= IGTL_HEADER_VERSION_2 )
+  {
+    valueStringStream << "\" persistent=\"" << (persistent ? "true" : "false") << "\" date=\"" << date << "\" error=\"" << error << "\"/>";
+    this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + valueStringStream.str());
+  }
+  else
+  {
+    std::map<std::string, std::string> parameters;
+    parameters[aName.GetTransformName()] = valueStringStream.str();
+    parameters["persistent"] = persistent ? "true" : "false";
+    parameters["date"] = date;
+    parameters["error"] = errorStringStream.str();
+    this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + " Command successful.", "", &parameters);
+  }
   return PLUS_SUCCESS;
 }

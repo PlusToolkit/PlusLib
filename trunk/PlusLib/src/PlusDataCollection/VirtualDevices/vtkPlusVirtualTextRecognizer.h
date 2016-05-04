@@ -8,6 +8,7 @@ See License.txt for details.
 #define __vtkPlusVirtualTextRecognizer_h
 
 #include "vtkPlusDataCollectionExport.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 
 namespace tesseract
@@ -85,6 +86,9 @@ public:
   vtkSetStringMacro(Language);
   vtkGetStringMacro(Language);
 
+  vtkSetObjectMacro(OutputDataSource, vtkPlusDataSource);
+  vtkGetObjectMacro(OutputDataSource, vtkPlusDataSource);
+
 #ifdef PLUS_TEST_tesseract
   ChannelFieldListMap& GetRecognitionFields();
 #endif
@@ -112,6 +116,8 @@ protected:
 
   /// Map of channels to fields so that we only have to grab an image once from the each source channel
   ChannelFieldListMap RecognitionFields;
+
+  vtkPlusDataSource* OutputDataSource;
 
 protected:
   vtkPlusVirtualTextRecognizer();

@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "igtlCommandMessage.h"
@@ -18,7 +18,7 @@ See License.txt for details.
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
 
-vtkStandardNewMacro( vtkPlusOpenIGTLinkClient ); 
+vtkStandardNewMacro( vtkPlusOpenIGTLinkClient );
 
 //----------------------------------------------------------------------------
 /*! Protected constructor. */
@@ -33,7 +33,9 @@ vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
   , Threader(vtkSmartPointer<vtkMultiThreader>::New())
   , ServerHost(NULL)
   , ServerPort(-1)
+  , ServerIGTLVersion(IGTL_HEADER_VERSION_2)
 {
+  // TODO: dynamically determine server igt capabilities and then update server IGTL version
 }
 
 //----------------------------------------------------------------------------
@@ -69,7 +71,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect(double timeoutSec/*=-1*/)
 
   if ( this->DataReceiverThreadId < 0 )
   {
-    this->DataReceiverActive.first = true; 
+    this->DataReceiverActive.first = true;
     this->DataReceiverThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&DataReceiverThread, this );
   }
 
@@ -84,16 +86,16 @@ PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
     this->ClientSocket->CloseSocket();
   }
 
-  // Stop data receiver thread 
+  // Stop data receiver thread
   if ( this->DataReceiverThreadId >=0 )
   {
-    this->DataReceiverActive.first = false; 
+    this->DataReceiverActive.first = false;
     while ( this->DataReceiverActive.second )
     {
-      // Wait until the thread stops 
-      vtkPlusAccurateTimer::Delay( 0.2 ); 
+      // Wait until the thread stops
+      vtkPlusAccurateTimer::Delay( 0.2 );
     }
-    this->DataReceiverThreadId = -1; 
+    this->DataReceiverThreadId = -1;
   }
 
   return PLUS_SUCCESS;
@@ -101,9 +103,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
-{  
-  // Convert the command to a string message.
-
+{
   // Get the XML string
   vtkSmartPointer<vtkXMLDataElement> cmdConfig = vtkSmartPointer<vtkXMLDataElement>::New();
   command->WriteConfiguration(cmdConfig);
@@ -111,10 +111,9 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   vtkXMLUtilities::FlattenElement(cmdConfig, xmlStr);
   xmlStr << std::ends;
 
-  // TODO : determine a way of configurable client name
-  std::stringstream deviceNameSs;
-  deviceNameSs << "PlusClient_" << PLUSLIB_VERSION;
+  std::ostringstream commandUidStringStream;
 
+  // Ensure commandUid is populated
   igtlUint32 commandUid;
   if (command->GetId())
   {
@@ -122,26 +121,61 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   }
   else
   {
-    // command UID is not specified, generate one automatically
-    commandUid = LastGeneratedCommandId;
-    LastGeneratedCommandId++;
+    if( ServerIGTLVersion <= IGTL_HEADER_VERSION_2 )
+    {
+      // command UID is not specified, generate one automatically from the timestamp
+      commandUid = vtkPlusAccurateTimer::GetUniversalTime();
+    }
+    else
+    {
+      // command UID is not specified, generate one automatically
+      commandUid = LastGeneratedCommandId;
+      LastGeneratedCommandId++;
+    }
   }
 
-  igtl::CommandMessage::Pointer commandMessage = igtl::CommandMessage::New();
-  commandMessage->SetDeviceName( deviceNameSs.str().c_str() );
-  commandMessage->SetCommandId( commandUid );
-  commandMessage->SetCommandName( command->GetName() );
-  commandMessage->SetCommandContent( xmlStr.str().c_str() );
-  commandMessage->Pack();
+  // Generate the device name
+  std::ostringstream deviceNameSs;
+  if( ServerIGTLVersion > IGTL_HEADER_VERSION_2 )
+  {
+    // TODO : determine a way of configurable client name
+    deviceNameSs << "PlusClient_" << PLUSLIB_VERSION;
+  }
+  else
+  {
+    std::string deviceName;
+    commandUidStringStream << commandUid;
+    vtkPlusCommand::GenerateCommandDeviceName(commandUidStringStream.str(), deviceName);
+    deviceNameSs << deviceName;
+  }
+
+  igtl::MessageBase::Pointer message;
+  if( ServerIGTLVersion <= IGTL_HEADER_VERSION_2 )
+  {
+    igtl::StringMessage::Pointer strMsg = igtl::StringMessage::New();
+    strMsg->SetDeviceName( deviceNameSs.str().c_str() );
+    std::string xmlString=xmlStr.str();
+    strMsg->SetString( xmlString.c_str() );
+    strMsg->Pack();
+    message = strMsg;
+  }
+  else
+  {
+    igtl::CommandMessage::Pointer cmdMsg = igtl::CommandMessage::New();
+    cmdMsg->SetDeviceName( deviceNameSs.str().c_str() );
+    cmdMsg->SetCommandId( commandUid );
+    cmdMsg->SetCommandName( command->GetName() );
+    cmdMsg->SetCommandContent( xmlStr.str().c_str() );
+    cmdMsg->Pack();
+    message = cmdMsg;
+  }
 
   // Send the string message to the server.
-
-  // int alive = this->ClientSocket->GetConnected();
   LOG_DEBUG( "Sending message: " << xmlStr.str() );
   int success = 0;
   {
     PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
-    success = this->ClientSocket->Send( commandMessage->GetPackPointer(), commandMessage->GetPackSize() );
+    success = this->ClientSocket->Send( message->GetPackPointer(), message->GetPackSize() );
   }
   if ( !success )
   {
@@ -152,7 +186,9 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOriginalCommandId, uint8_t outErrorString[IGTL_COMMAND_NAME_SIZE], std::string& outContentXML, double timeoutSec/*=0*/)
+PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString,
+    std::string& outContent, std::map<std::string, std::string>& outParameters,
+    std::string& outCommandName, double timeoutSec/*=0*/)
 {
   double startTimeSec=vtkPlusAccurateTimer::GetSystemTime();
   while (1)
@@ -162,38 +198,92 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
       PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       if (!this->Replies.empty())
       {
-        igtl::RTSCommandMessage::Pointer rtsCommandMsg = this->Replies.front();
-        vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(rtsCommandMsg->GetCommandContent().c_str()));
-        if(cmdElement == NULL )
+        igtl::MessageBase::Pointer message = this->Replies.front();
+        if( typeid(*message) == typeid(igtl::StringMessage) )
         {
-          LOG_ERROR("Unable to parse command reply as XML. Skipping.");
-          continue;
+          // Process the command as v1/v2 string reply
+          igtl::StringMessage::Pointer strMsg = dynamic_cast<igtl::StringMessage*>(message.GetPointer());
+
+          /* <CommandReply Status="SUCCESS" Message="VTK_ENCODING_NONE" /> */
+          vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(strMsg->GetString()));
+          if(cmdElement == NULL )
+          {
+            LOG_ERROR("Unable to parse command reply as XML. Skipping.");
+            continue;
+          }
+          if( cmdElement->GetAttribute("Status") == NULL )
+          {
+            LOG_ERROR("No status returned. Skipping.");
+            continue;
+          }
+          result = std::string(cmdElement->GetAttribute("Status")) == "SUCCESS";
+          if( cmdElement->GetAttribute("Message") == NULL )
+          {
+            LOG_ERROR("No message returned. Skipping.");
+            continue;
+          }
+          outContent = cmdElement->GetAttribute("Message");
+        }
+        else if( typeid(*message) == typeid(igtl::RTSCommandMessage) )
+        {
+          // Process the command as v3 RTS_Command
+          igtl::RTSCommandMessage::Pointer rtsCommandMsg = dynamic_cast<igtl::RTSCommandMessage*>(message.GetPointer());
+
+          vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(rtsCommandMsg->GetCommandContent().c_str()));
+
+
+          outCommandName = rtsCommandMsg->GetCommandName();
+          outOriginalCommandId = rtsCommandMsg->GetCommandId();
+
+          XML_FIND_NESTED_ELEMENT_OPTIONAL(resultElement, cmdElement, "Result");
+          if( resultElement != NULL)
+          {
+            result = STRCASECMP(resultElement->GetCharacterData(), "true") == 0 ? true : false;
+          }
+          XML_FIND_NESTED_ELEMENT_OPTIONAL(errorElement, cmdElement, "Error");
+          if( !result && errorElement == NULL )
+          {
+            LOG_ERROR("Server sent error without reason. Notify server developers.");
+          }
+          else if( !result && errorElement != NULL )
+          {
+            outErrorString = errorElement->GetCharacterData();
+          }
+          XML_FIND_NESTED_ELEMENT_REQUIRED(messageElement, cmdElement, "Message");
+          outContent = messageElement->GetCharacterData();
+
+          XML_FIND_NESTED_ELEMENT_OPTIONAL(parametersElement, cmdElement, "Parameters");
+          if( parametersElement != NULL )
+          {
+            // Parse key values from sub elements and throw them into the map
+            for( int i = 0; i < parametersElement->GetNumberOfNestedElements(); ++i )
+            {
+              vtkXMLDataElement* parameterElement = parametersElement->GetNestedElement(i);
+              if( STRCASECMP(parameterElement->GetName(), "Parameter") != 0 )
+              {
+                continue;
+              }
+
+              if( parameterElement->GetAttribute("Name") == NULL || parameterElement->GetAttribute("Value") == NULL)
+              {
+                LOG_ERROR("Unable to parse Parameter element. Expected \"Name\" and \"Value\" attribute in Key tag.");
+                continue;
+              }
+              outParameters[parameterElement->GetAttribute("Name")] = parameterElement->GetAttribute("Value");
+            }
+          }
         }
 
-        XML_FIND_NESTED_ELEMENT_OPTIONAL(resultElement, cmdElement, "Result");
-        if( resultElement != NULL)
-        {
-          result = STRCASECMP(resultElement->GetCharacterData(), "true") == 0 ? true : false;
-        }
-
-        memset(outErrorString, 0, IGTL_COMMAND_NAME_SIZE);
-        if(!result)
-        {
-          strcpy((char*)outErrorString, rtsCommandMsg->GetCommandErrorString().c_str());
-        }
-
-        outOriginalCommandId = rtsCommandMsg->GetCommandId();
-        outContentXML = rtsCommandMsg->GetCommandContent();
         this->Replies.pop_front();
         return PLUS_SUCCESS;
       }
-    }      
-    if (vtkPlusAccurateTimer::GetSystemTime()-startTimeSec>timeoutSec)
+    }
+    if( vtkPlusAccurateTimer::GetSystemTime() - startTimeSec>timeoutSec )
     {
       LOG_DEBUG("vtkPlusOpenIGTLinkClient::ReceiveReply timeout passed ("<<timeoutSec<<"sec)");
       return PLUS_FAIL;
     }
-    vtkPlusAccurateTimer::Delay(0.010);    
+    vtkPlusAccurateTimer::Delay(0.010);
   }
   return PLUS_FAIL;
 }
@@ -208,7 +298,7 @@ void vtkPlusOpenIGTLinkClient::PrintSelf( ostream& os, vtkIndent indent )
 void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo* data )
 {
   vtkPlusOpenIGTLinkClient* self = (vtkPlusOpenIGTLinkClient*)( data->UserData );
-  self->DataReceiverActive.second = true; 
+  self->DataReceiverActive.second = true;
 
   while ( self->DataReceiverActive.first )
   {
@@ -223,18 +313,18 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       numOfBytesReceived = self->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
     }
     if ( numOfBytesReceived == 0  // No message received
-      || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
-      )
+         || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
+       )
     {
       // Failed to receive data, maybe the socket is disconnected
-      vtkPlusAccurateTimer::Delay(0.1);      
-      continue; 
+      vtkPlusAccurateTimer::Delay(0.1);
+      continue;
     }
 
     int c = headerMsg->Unpack(1);
-    if ( !(c & igtl::MessageHeader::UNPACK_HEADER)) 
+    if ( !(c & igtl::MessageHeader::UNPACK_HEADER))
     {
-      LOG_ERROR("Failed to receive reply (invalid header)");      
+      LOG_ERROR("Failed to receive reply (invalid header)");
       continue;
     }
 
@@ -251,18 +341,20 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       continue;
     }
 
-    if ( typeid(*bodyMsg) == typeid(igtl::RTSCommandMessage) )
+    // Only accept string messages if they have a deviceName of the format ACK_xyz
+    if( (typeid(*bodyMsg) == typeid(igtl::StringMessage)
+         && vtkPlusCommand::IsReplyDeviceName(headerMsg->GetDeviceName(),""))
+        || typeid(*bodyMsg) == typeid(igtl::RTSCommandMessage) )
     {
-      igtl::RTSCommandMessage::Pointer rtsCommandMsg = dynamic_cast<igtl::RTSCommandMessage*>(bodyMsg.GetPointer());
-      rtsCommandMsg->SetMessageHeader(headerMsg); 
-      rtsCommandMsg->AllocatePack(); 
+      bodyMsg->SetMessageHeader(headerMsg);
+      bodyMsg->AllocatePack();
       {
         PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
-        self->ClientSocket->Receive(rtsCommandMsg->GetPackBodyPointer(), rtsCommandMsg->GetPackBodySize() ); 
+        self->ClientSocket->Receive(bodyMsg->GetPackBodyPointer(), bodyMsg->GetPackBodySize() );
       }
 
-      int c = rtsCommandMsg->Unpack(1);
-      if ( !(c & igtl::MessageHeader::UNPACK_BODY)) 
+      int c = bodyMsg->Unpack(1);
+      if ( !(c & igtl::MessageHeader::UNPACK_BODY))
       {
         LOG_ERROR("Failed to receive reply (invalid body)");
         continue;
@@ -270,24 +362,23 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
       {
         // save command reply
         PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
-        self->Replies.push_back(rtsCommandMsg);
-        LOG_DEBUG("Reply received for command " << rtsCommandMsg->GetCommandId() << " with content: " << rtsCommandMsg->GetCommandContent() );
-      }      
+        self->Replies.push_back(bodyMsg);
+      }
     }
     else
     {
-      // if the device type is unknown, skip reading. 
+      // if the incoming message is not a reply to a command, we discard it and continue
       LOG_TRACE("Received message: " << headerMsg->GetMessageType() << " (not processed)");
       {
         PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
       }
     }
-  } // ConnectionActive
+  }
 
   // Close thread
   self->DataReceiverThreadId = -1;
-  self->DataReceiverActive.second = false; 
+  self->DataReceiverActive.second = false;
   return NULL;
 }
 

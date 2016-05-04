@@ -2,12 +2,16 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
+#include "igtl_header.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusCommandProcessor.h"
 #include "vtkPlusCommandResponse.h"
+#include "vtkPlusDataCollector.h"
+#include "vtkPlusDeviceFactory.h"
+#include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusRequestIdsCommand.h"
 
 vtkStandardNewMacro( vtkPlusRequestIdsCommand );
@@ -17,7 +21,7 @@ static const char REQUEST_DEVICE_ID_CMD[]="RequestDeviceIds";
 
 //----------------------------------------------------------------------------
 vtkPlusRequestIdsCommand::vtkPlusRequestIdsCommand()
-: DeviceType(NULL)
+  : DeviceType(NULL)
 {
 }
 
@@ -27,20 +31,26 @@ vtkPlusRequestIdsCommand::~vtkPlusRequestIdsCommand()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusRequestIdsCommand::SetNameToRequestChannelIds() { SetName(REQUEST_CHANNEL_ID_CMD); }
-void vtkPlusRequestIdsCommand::SetNameToRequestDeviceIds() { SetName(REQUEST_DEVICE_ID_CMD); }
+void vtkPlusRequestIdsCommand::SetNameToRequestChannelIds()
+{
+  SetName(REQUEST_CHANNEL_ID_CMD);
+}
+void vtkPlusRequestIdsCommand::SetNameToRequestDeviceIds()
+{
+  SetName(REQUEST_DEVICE_ID_CMD);
+}
 
 //----------------------------------------------------------------------------
 void vtkPlusRequestIdsCommand::GetCommandNames(std::list<std::string> &cmdNames)
-{ 
-  cmdNames.clear(); 
+{
+  cmdNames.clear();
   cmdNames.push_back(REQUEST_CHANNEL_ID_CMD);
   cmdNames.push_back(REQUEST_DEVICE_ID_CMD);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusRequestIdsCommand::GetDescription(const char* commandName)
-{ 
+{
   std::string desc;
   if (commandName == NULL || STRCASECMP(commandName, REQUEST_CHANNEL_ID_CMD) )
   {
@@ -63,7 +73,7 @@ void vtkPlusRequestIdsCommand::PrintSelf( ostream& os, vtkIndent indent )
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -74,7 +84,7 @@ PlusStatus vtkPlusRequestIdsCommand::ReadConfiguration(vtkXMLDataElement* aConfi
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::WriteConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -88,30 +98,30 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
   if (this->Name == NULL)
   {
-    this->QueueCommandResponse("Command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
   }
 
   vtkPlusDataCollector* dataCollector = this->GetDataCollector();
   if (dataCollector == NULL)
   {
-    this->QueueCommandResponse("Command failed, no data collector",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No data collector.");
     return PLUS_FAIL;
   }
 
   DeviceCollection aCollection;
   if( dataCollector->GetDevices(aCollection) != PLUS_SUCCESS )
   {
-    this->QueueCommandResponse("Command failed, unable to retrieve devices",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed, see error message.", "Unable to retrieve devices.");
     return PLUS_FAIL;
   }
 
-  PlusStatus status = PLUS_SUCCESS;
-  
   if (STRCASECMP(this->Name, REQUEST_CHANNEL_ID_CMD) == 0)
   {
     std::string responseMessage;
-    bool addSeparator=false;
+    bool addSeparator = false;
+    std::map<std::string, std::string> keyValuePairs;
+
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
       vtkPlusDevice* aDevice = *deviceIt;
@@ -119,23 +129,40 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
       {
         for( ChannelContainerConstIterator it = aDevice->GetOutputChannelsStart(); it != aDevice->GetOutputChannelsEnd(); ++it )
         {
-          vtkPlusChannel* aChannel = *it;
           if (addSeparator)
           {
             responseMessage += ",";
           }
-          responseMessage += aChannel->GetChannelId();
-          addSeparator=true;
+          responseMessage += (*it)->GetChannelId();
+          addSeparator = true;
+          keyValuePairs[(*it)->GetChannelId()] = (*it)->GetChannelId();
         }
       }
     }
-    this->QueueCommandResponse(responseMessage,PLUS_SUCCESS);
+    std::ostringstream oss;
+    PlusIgtlClientInfo info;
+    if( this->CommandProcessor->GetPlusServer()->GetClientInfo(this->GetClientId(), info) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Unable to locate client data for client id: " << this->GetClientId());
+    }
+    if( info.ClientIGTLVersion <= IGTL_HEADER_VERSION_2 )
+    {
+      oss << responseMessage;
+    }
+    else
+    {
+      oss << "Found: " << keyValuePairs.size() << " parameter" << (keyValuePairs.size() > 1 ? "s." : ".");
+    }
+
+    this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, REQUEST_DEVICE_ID_CMD) == 0)
   {
     std::string responseMessage;
-    bool addSeparator=false;
+    bool addSeparator = false;
+    std::map<std::string, std::string> keyValuePairs;
+
     for( DeviceCollectionConstIterator deviceIt = aCollection.begin(); deviceIt != aCollection.end(); ++deviceIt)
     {
       vtkPlusDevice* aDevice = *deviceIt;
@@ -146,22 +173,44 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
       std::string deviceClassName;
       if (this->DeviceType!=NULL)
       {
-        deviceClassName=std::string("vtkPlus")+this->DeviceType;
+        // Translate requested device ID (factory name) to c++ class name
+        vtkSmartPointer<vtkPlusDeviceFactory> factory = vtkSmartPointer<vtkPlusDeviceFactory>::New();
+        if( factory->GetDeviceClassName(this->DeviceType, deviceClassName) != PLUS_SUCCESS )
+        {
+          this->QueueCommandResponse(PLUS_FAIL, "Command failed, see error message.", "Unknown device type requested.");
+          return PLUS_FAIL;
+        }
       }
       if (deviceClassName.empty() || aDevice->GetClassName()==deviceClassName)
       {
         if (addSeparator)
-          {
-            responseMessage += ",";
-          }
+        {
+          responseMessage += ",";
+        }
         responseMessage += aDevice->GetDeviceId();
-        addSeparator=true;
+        addSeparator = true;
+
+        keyValuePairs[aDevice->GetDeviceId()] = aDevice->GetDeviceId();
       }
     }
-    this->QueueCommandResponse(responseMessage,PLUS_SUCCESS);
+    std::ostringstream oss;
+    PlusIgtlClientInfo info;
+    if( this->CommandProcessor->GetPlusServer()->GetClientInfo(this->GetClientId(), info) != PLUS_SUCCESS )
+    {
+      LOG_WARNING("Unable to locate client data for client id: " << this->GetClientId());
+    }
+    if( info.ClientIGTLVersion <= IGTL_HEADER_VERSION_2 )
+    {
+      oss << responseMessage;
+    }
+    else
+    {
+      oss << "Found: " << keyValuePairs.size() << " parameter" << (keyValuePairs.size() > 1 ? "s." : ".");
+    }
+    this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
 
-  this->QueueCommandResponse("Unknown command, failed",PLUS_FAIL);
-  return PLUS_FAIL;    
+  this->QueueCommandResponse(PLUS_FAIL, "Command failed, see error message.", "Unknown command.");
+  return PLUS_FAIL;
 }

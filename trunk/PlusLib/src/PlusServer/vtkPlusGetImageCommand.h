@@ -47,10 +47,10 @@ public:
 protected:
 
   /*! Prepare sending image as a response */
-  PlusStatus ExecuteImageReply();
+  PlusStatus ExecuteImageReply(std::string& outErrorString);
 
-  /*! Send the image meta datasets from all the connectede devices to slicer through openigtlink */
-  PlusStatus ExecuteImageMetaReply();
+  /*! Send the image meta datasets from all the connected devices to slicer through openigtlink */
+  PlusStatus ExecuteImageMetaReply(std::string& outErrorString);
 
   vtkPlusGetImageCommand();
   virtual ~vtkPlusGetImageCommand(); 

@@ -20,6 +20,9 @@
       Type="VirtualTextRecognizer"
       MissingInputGracePeriodSec="1" 
       Language="eng" >
+       <DataSources>
+        <DataSource Type="Data" Id="Data"/>
+      </DataSources>
       <TextFields>
         <Field Channel="TrackedVideoStream" Name="patient-last-name" InputRegionOrigin="260 885" InputRegionSize="82 20" />
         <Field Channel="TrackedVideoStream" Name="tee-temperature" InputRegionOrigin="75 185" InputRegionSize="55 20" />
@@ -27,6 +30,9 @@
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="DataTrackedVideoStream"/>
+      </OutputChannels>
     </Device>
   </DataCollection>
 </PlusConfiguration>

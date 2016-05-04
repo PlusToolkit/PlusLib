@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollector.h"
@@ -33,11 +33,11 @@ vtkStandardNewMacro( vtkPlusReconstructVolumeCommand );
 
 //----------------------------------------------------------------------------
 vtkPlusReconstructVolumeCommand::vtkPlusReconstructVolumeCommand()
-: InputSeqFilename(NULL)
-, OutputVolFilename(NULL)
-, OutputVolDeviceName(NULL)
-, VolumeReconstructorDeviceId(NULL)
-, ApplyHoleFilling(true)
+  : InputSeqFilename(NULL)
+  , OutputVolFilename(NULL)
+  , OutputVolDeviceName(NULL)
+  , VolumeReconstructorDeviceId(NULL)
+  , ApplyHoleFilling(true)
 {
   this->OutputOrigin[0]=UNDEFINED_VALUE;
   this->OutputOrigin[1]=UNDEFINED_VALUE;
@@ -63,12 +63,30 @@ vtkPlusReconstructVolumeCommand::~vtkPlusReconstructVolumeCommand()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusReconstructVolumeCommand::SetNameToReconstruct() { SetName(RECONSTRUCT_PRERECORDED_CMD); }
-void vtkPlusReconstructVolumeCommand::SetNameToStart() { SetName(START_LIVE_RECONSTRUCTION_CMD); }
-void vtkPlusReconstructVolumeCommand::SetNameToStop() { SetName(STOP_LIVE_RECONSTRUCTION_CMD); }
-void vtkPlusReconstructVolumeCommand::SetNameToSuspend() { SetName(SUSPEND_LIVE_RECONSTRUCTION_CMD); }
-void vtkPlusReconstructVolumeCommand::SetNameToResume() { SetName(RESUME_LIVE_RECONSTRUCTION_CMD); }
-void vtkPlusReconstructVolumeCommand::SetNameToGetSnapshot() { SetName(GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD); }
+void vtkPlusReconstructVolumeCommand::SetNameToReconstruct()
+{
+  SetName(RECONSTRUCT_PRERECORDED_CMD);
+}
+void vtkPlusReconstructVolumeCommand::SetNameToStart()
+{
+  SetName(START_LIVE_RECONSTRUCTION_CMD);
+}
+void vtkPlusReconstructVolumeCommand::SetNameToStop()
+{
+  SetName(STOP_LIVE_RECONSTRUCTION_CMD);
+}
+void vtkPlusReconstructVolumeCommand::SetNameToSuspend()
+{
+  SetName(SUSPEND_LIVE_RECONSTRUCTION_CMD);
+}
+void vtkPlusReconstructVolumeCommand::SetNameToResume()
+{
+  SetName(RESUME_LIVE_RECONSTRUCTION_CMD);
+}
+void vtkPlusReconstructVolumeCommand::SetNameToGetSnapshot()
+{
+  SetName(GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD);
+}
 
 //----------------------------------------------------------------------------
 void vtkPlusReconstructVolumeCommand::PrintSelf( ostream& os, vtkIndent indent )
@@ -78,8 +96,8 @@ void vtkPlusReconstructVolumeCommand::PrintSelf( ostream& os, vtkIndent indent )
 
 //----------------------------------------------------------------------------
 void vtkPlusReconstructVolumeCommand::GetCommandNames(std::list<std::string> &cmdNames)
-{ 
-  cmdNames.clear(); 
+{
+  cmdNames.clear();
   cmdNames.push_back(RECONSTRUCT_PRERECORDED_CMD);
   cmdNames.push_back(START_LIVE_RECONSTRUCTION_CMD);
   cmdNames.push_back(SUSPEND_LIVE_RECONSTRUCTION_CMD);
@@ -90,7 +108,7 @@ void vtkPlusReconstructVolumeCommand::GetCommandNames(std::list<std::string> &cm
 
 //----------------------------------------------------------------------------
 std::string vtkPlusReconstructVolumeCommand::GetDescription(const char* commandName)
-{ 
+{
   std::string desc;
   if (commandName==NULL || STRCASECMP(commandName, RECONSTRUCT_PRERECORDED_CMD))
   {
@@ -122,13 +140,13 @@ std::string vtkPlusReconstructVolumeCommand::GetDescription(const char* commandN
     desc+=GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD;
     desc+=": Request a snapshot of the live reconstruction result. Attributes: VolumeReconstructorDeviceId: ID of the volume reconstructor device. OutputVolFilename: name of the output volume file name (optional). OutputVolDeviceName: name of the OpenIGTLink device for the IMAGE message (optional). ApplyHoleFilling: if FALSE then holes will not be filled (optional, default: TRUE).";
   }
-  
+
   return desc;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -150,7 +168,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement*
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -162,22 +180,22 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(OutputVolDeviceName, aConfig);
 
   if (this->OutputOrigin[0]!=UNDEFINED_VALUE
-    && this->OutputOrigin[1]!=UNDEFINED_VALUE
-    && this->OutputOrigin[2]!=UNDEFINED_VALUE)
+      && this->OutputOrigin[1]!=UNDEFINED_VALUE
+      && this->OutputOrigin[2]!=UNDEFINED_VALUE)
   {
     aConfig->SetVectorAttribute("OutputOrigin", 3, this->OutputOrigin);
   }
 
   if (this->OutputSpacing[0]!=UNDEFINED_VALUE
-    && this->OutputSpacing[1]!=UNDEFINED_VALUE
-    && this->OutputSpacing[2]!=UNDEFINED_VALUE)
+      && this->OutputSpacing[1]!=UNDEFINED_VALUE
+      && this->OutputSpacing[2]!=UNDEFINED_VALUE)
   {
     aConfig->SetVectorAttribute("OutputSpacing", 3, this->OutputSpacing);
   }
 
   if (this->OutputExtent[1]>=this->OutputExtent[0]
-    && this->OutputExtent[3]>=this->OutputExtent[2]
-    && this->OutputExtent[5]>=this->OutputExtent[4])
+      && this->OutputExtent[3]>=this->OutputExtent[2]
+      && this->OutputExtent[5]>=this->OutputExtent[4])
   {
     aConfig->SetVectorAttribute("OutputExtent", 6, this->OutputExtent);
   }
@@ -191,19 +209,19 @@ PlusStatus vtkPlusReconstructVolumeCommand::WriteConfiguration(vtkXMLDataElement
 PlusStatus vtkPlusReconstructVolumeCommand::Execute()
 {
   LOG_DEBUG("vtkPlusReconstructVolumeCommand::Execute: "<<(this->Name?this->Name:"(undefined)")
-    <<", device: "<<(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId) );
+            <<", device: "<<(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId) );
 
   if (this->Name==NULL)
   {
-    this->QueueCommandResponse("Volume reconstruction command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
   }
 
   vtkPlusVirtualVolumeReconstructor* reconstructorDevice=GetVolumeReconstructorDevice();
   if (reconstructorDevice==NULL)
   {
-    this->QueueCommandResponse(std::string("Volume reconstruction command failed: device ")
-      +(this->VolumeReconstructorDeviceId==NULL?"(undefined)":this->VolumeReconstructorDeviceId)+" is not found",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", std::string("Device ")
+                               + (this->VolumeReconstructorDeviceId == NULL ? "(undefined)" : this->VolumeReconstructorDeviceId) + std::string(" is not found."));
     return PLUS_FAIL;
   }
 
@@ -215,83 +233,83 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
   if (this->GetOutputVolDeviceName()!=NULL)
   {
     reconstructorDevice->SetOutputVolDeviceName(this->GetOutputVolDeviceName());
-  }  
+  }
   std::string outputVolFilename = (reconstructorDevice->GetOutputVolFilename()?reconstructorDevice->GetOutputVolFilename():"");
   std::string outputVolDeviceName = (reconstructorDevice->GetOutputVolDeviceName()?reconstructorDevice->GetOutputVolDeviceName():"");
 
-  std::string reconstructorDeviceId=(reconstructorDevice->GetDeviceId()==NULL?"(unknown)":reconstructorDevice->GetDeviceId());  
+  std::string reconstructorDeviceId=(reconstructorDevice->GetDeviceId()==NULL?"(unknown)":reconstructorDevice->GetDeviceId());
 
   // Set output volume size and resolution
   if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0
-    || STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
+      || STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
   {
     // Only allow changing the output volume when we start the reconstruction
 
     if (this->OutputOrigin[0]!=UNDEFINED_VALUE
-      && this->OutputOrigin[1]!=UNDEFINED_VALUE
-      && this->OutputOrigin[2]!=UNDEFINED_VALUE)
+        && this->OutputOrigin[1]!=UNDEFINED_VALUE
+        && this->OutputOrigin[2]!=UNDEFINED_VALUE)
     {
       reconstructorDevice->SetOutputOrigin(this->OutputOrigin);
     }
 
     if (this->OutputSpacing[0]!=UNDEFINED_VALUE
-      && this->OutputSpacing[1]!=UNDEFINED_VALUE
-      && this->OutputSpacing[2]!=UNDEFINED_VALUE)
+        && this->OutputSpacing[1]!=UNDEFINED_VALUE
+        && this->OutputSpacing[2]!=UNDEFINED_VALUE)
     {
       reconstructorDevice->SetOutputSpacing(this->OutputSpacing);
     }
 
     if (this->OutputExtent[1]>=this->OutputExtent[0]
-    && this->OutputExtent[3]>=this->OutputExtent[2]
-    && this->OutputExtent[5]>=this->OutputExtent[4])
+        && this->OutputExtent[3]>=this->OutputExtent[2]
+        && this->OutputExtent[5]>=this->OutputExtent[4])
     {
       reconstructorDevice->SetOutputExtent(this->OutputExtent);
     }
-
   }
 
+  std::string baseMessage = std::string(this->Name) + std::string("(") + reconstructorDeviceId + std::string(")");
   if (STRCASECMP(this->Name, RECONSTRUCT_PRERECORDED_CMD)==0)
   {
     LOG_INFO("Volume reconstruction from sequence file: "<<(this->InputSeqFilename?this->InputSeqFilename:"(undefined)")<<", device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueCommandResponse("Volume reconstruction from sequence file failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction from sequence file failed: live volume reconstruction is in progress.");
       return PLUS_FAIL;
     }
-    if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
+    if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository()) != PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("Volume reconstruction from sequence file failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction from sequence file failed: cannot get transform repository.");
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
     vtkSmartPointer<vtkImageData> volumeToSend=vtkSmartPointer<vtkImageData>::New();
     std::string errorMessage;
-    if (reconstructorDevice->GetReconstructedVolumeFromFile(this->InputSeqFilename, volumeToSend, errorMessage)!=PLUS_SUCCESS)
+    if (reconstructorDevice->GetReconstructedVolumeFromFile(this->InputSeqFilename, volumeToSend, errorMessage) != PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("Volume reconstruction from sequence file failed: reconstruction failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction from sequence file failed: " + errorMessage);
       return PLUS_FAIL;
-    }    
+    }
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueCommandResponse("Volume reconstruction from sequence file completed: "+statusMessage,status);
+    this->QueueCommandResponse(status, std::string("Command ") + std::string((status == PLUS_SUCCESS ? "succeeded." : "failed. See error message.")), baseMessage + " Reconstruction from sequence file completed: " + statusMessage);
     return status;
   }
   else if (STRCASECMP(this->Name, START_LIVE_RECONSTRUCTION_CMD)==0)
-  {    
+  {
     LOG_INFO("Volume reconstruction from live frames starting, device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueCommandResponse("Volume reconstruction starting from live frames failed: live volume reconstruction is in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction starting from live frames failed: live volume reconstruction is in progress.");
       return PLUS_FAIL;
     }
-    if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository())!=PLUS_SUCCESS)
+    if (reconstructorDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository()) != PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("Volume reconstruction starting from live frames failed: cannot get transform repository, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction starting from live frames failed: cannot get transform repository.");
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
     reconstructorDevice->SetEnableReconstruction(true);
-    this->QueueCommandResponse("Volume reconstruction from live frames started, device: "+reconstructorDeviceId,PLUS_SUCCESS);
+    this->QueueCommandResponse(PLUS_SUCCESS, baseMessage + " Volume reconstruction from live frames started.");
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, STOP_LIVE_RECONSTRUCTION_CMD)==0)
@@ -299,7 +317,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
     if (!reconstructorDevice->GetEnableReconstruction() && reconstructorDevice->GetTotalFramesRecorded()==0)
     {
-      this->QueueCommandResponse("Volume reconstruction stop from live frames failed: live volume reconstruction is already stopped, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction stop from live frames failed: live volume reconstruction is already stopped, device.");
       return PLUS_FAIL;
     }
 
@@ -309,28 +327,28 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     std::string errorMessage;
     if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage)!=PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("Volume reconstruction stop from live frames failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + "Reconstruction stop from live frames failed: " + errorMessage);
       return PLUS_FAIL;
     }
     reconstructorDevice->Reset(); // Clear volume
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueCommandResponse("Volume reconstruction from live frames completed: "+statusMessage,status);
+    this->QueueCommandResponse(status, std::string("Command ") + std::string((status == PLUS_SUCCESS ? "succeeded." : "failed. See error message.")), baseMessage + " Reconstruction from live frames completed: " + statusMessage);
     return status;
-  }     
+  }
   else if (STRCASECMP(this->Name, GET_LIVE_RECONSTRUCTION_SNAPSHOT_CMD)==0)
-  {    
+  {
     LOG_INFO("Volume reconstruction from live frames snapshot request, device: "<<reconstructorDeviceId);
     vtkSmartPointer<vtkImageData> volumeToSend=vtkSmartPointer<vtkImageData>::New();
     std::string errorMessage;
     if (reconstructorDevice->GetReconstructedVolume(volumeToSend, errorMessage, this->ApplyHoleFilling)!=PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("Volume reconstruction snapshot request failed, device: "+reconstructorDeviceId+" "+errorMessage,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction snapshot request failed, device: " + errorMessage);
       return PLUS_FAIL;
     }
     std::string statusMessage;
     PlusStatus status = ProcessImageReply(volumeToSend, outputVolFilename, outputVolDeviceName, statusMessage);
-    this->QueueCommandResponse("Volume reconstruction snapshot completed: "+statusMessage,status);
+    this->QueueCommandResponse(status, std::string("Command ") + std::string((status == PLUS_SUCCESS ? "succeeded." : "failed. See error message.")), baseMessage + " " + statusMessage);
     return status;
   }
   else if (STRCASECMP(this->Name, SUSPEND_LIVE_RECONSTRUCTION_CMD)==0)
@@ -338,11 +356,11 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames suspending, device: "<<reconstructorDeviceId);
     if (!reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueCommandResponse("Volume reconstruction suspend from live frames failed: live volume reconstruction is not in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction suspend from live frames failed: live volume reconstruction is not in progress.");
       return PLUS_FAIL;
     }
-   reconstructorDevice->SetEnableReconstruction(false);
-    this->QueueCommandResponse("Volume reconstruction from live frames suspended, device: "+reconstructorDeviceId,PLUS_SUCCESS);
+    reconstructorDevice->SetEnableReconstruction(false);
+    this->QueueCommandResponse(PLUS_SUCCESS, "Volume reconstruction from live frames suspended, device: " + reconstructorDeviceId);
     return PLUS_SUCCESS;
   }
   else if (STRCASECMP(this->Name, RESUME_LIVE_RECONSTRUCTION_CMD)==0)
@@ -350,17 +368,17 @@ PlusStatus vtkPlusReconstructVolumeCommand::Execute()
     LOG_INFO("Volume reconstruction from live frames resuming, device: "<<reconstructorDeviceId);
     if (reconstructorDevice->GetEnableReconstruction())
     {
-      this->QueueCommandResponse("Volume reconstruction resume from live frames failed: live volume reconstruction is already in progress, device: "+reconstructorDeviceId,PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " Reconstruction resume from live frames failed: live volume reconstruction is already in progress.");
       return PLUS_FAIL;
     }
     reconstructorDevice->SetEnableReconstruction(true);
-    this->QueueCommandResponse("Volume reconstruction from live frames resumed, device: "+reconstructorDeviceId, PLUS_SUCCESS);
+    this->QueueCommandResponse(PLUS_SUCCESS, baseMessage + " Volume reconstruction from live frames resumed.");
     return PLUS_SUCCESS;
   }
 
-  this->QueueCommandResponse(std::string("vtkPlusReconstructVolumeCommand::Execute: failed, unknown command name ")+this->Name,PLUS_FAIL);
+  this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + "Unknown command name: " + this->Name + ".");
   return PLUS_FAIL;
-} 
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volumeToSend, const std::string& outputVolFilename, const std::string& outputVolDeviceName, std::string &resultMessage)
@@ -380,9 +398,9 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
     {
       resultMessage += std::string("saved reconstructed volume to file: ")+outputVolFileFullPath;
     }
-  }    
+  }
   if (!outputVolDeviceName.empty())
-  {    
+  {
     // send the reconstructed volume with the reply
     LOG_DEBUG("Send image to client through OpenIGTLink");
     vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
@@ -409,7 +427,7 @@ vtkPlusVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeRec
   vtkPlusDataCollector* dataCollector=GetDataCollector();
   if (dataCollector==NULL)
   {
-    LOG_ERROR("Data collector is invalid");    
+    LOG_ERROR("Data collector is invalid");
     return NULL;
   }
   vtkPlusVirtualVolumeReconstructor *reconstructorDevice=NULL;
@@ -438,7 +456,7 @@ vtkPlusVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeRec
     {
       reconstructorDevice = vtkPlusVirtualVolumeReconstructor::SafeDownCast(*it);
       if (reconstructorDevice!=NULL)
-      {      
+      {
         // found a recording device
         break;
       }
@@ -448,6 +466,6 @@ vtkPlusVirtualVolumeReconstructor* vtkPlusReconstructVolumeCommand::GetVolumeRec
       LOG_ERROR("No VirtualVolumeReconstructor has been found");
       return NULL;
     }
-  }  
+  }
   return reconstructorDevice;
 }

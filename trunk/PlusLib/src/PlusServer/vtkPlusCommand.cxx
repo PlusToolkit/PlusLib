@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "igtl_header.h"
@@ -17,17 +17,17 @@ const char* vtkPlusCommand::DEVICE_NAME_REPLY = "ACK";
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::vtkPlusCommand()
-: CommandProcessor(NULL)
-, ClientId(0)
-, Id(0)
-, Name(NULL)
-, DeviceName(NULL)
+  : CommandProcessor(NULL)
+  , ClientId(0)
+  , Id(0)
+  , Name(NULL)
+  , DeviceName(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusCommand::~vtkPlusCommand()
-{  
+{
   this->SetName(NULL);
   this->SetDeviceName(NULL);
 }
@@ -40,7 +40,7 @@ void vtkPlusCommand::PrintSelf( ostream& os, vtkIndent indent )
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (aConfig == NULL)
   {
     LOG_ERROR("vtkPlusCommand::ReadConfiguration failed, input is NULL");
@@ -56,7 +56,7 @@ PlusStatus vtkPlusCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
-{  
+{
   if (aConfig==NULL)
   {
     LOG_ERROR("vtkPlusCommand::WriteConfiguration failed, input is NULL");
@@ -82,19 +82,19 @@ PlusStatus vtkPlusCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 
 //----------------------------------------------------------------------------
 void vtkPlusCommand::SetCommandProcessor( vtkPlusCommandProcessor *processor )
-{  
+{
   this->CommandProcessor=processor;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCommand::SetClientId(int clientId)
-{  
+{
   this->ClientId=clientId;
 }
 
 //----------------------------------------------------------------------------
 vtkPlusDataCollector* vtkPlusCommand::GetDataCollector()
-{  
+{
   if (this->CommandProcessor == NULL)
   {
     LOG_ERROR("CommandProcessor is invalid");
@@ -144,7 +144,7 @@ vtkPlusTransformRepository* vtkPlusCommand::GetTransformRepository()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommand::ValidateName()
-{  
+{
   if (this->Name==NULL)
   {
     LOG_ERROR("Command name is not specified");
@@ -170,6 +170,54 @@ std::string vtkPlusCommand::GenerateReplyDeviceName(uint32_t Id)
   std::ostringstream ss;
   ss << DEVICE_NAME_REPLY << "_" << Id;
   return ss.str();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusCommand::GenerateCommandDeviceName(const std::string &uid, std::string& outDeviceName)
+{
+  if( uid.empty() )
+  {
+    return PLUS_FAIL;
+  }
+
+  outDeviceName = std::string(DEVICE_NAME_COMMAND) + "_" + uid;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommand::IsCommandDeviceName(const std::string &deviceName)
+{
+  std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
+  if (prefix.compare(DEVICE_NAME_COMMAND) != 0)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommand::IsReplyDeviceName(const std::string &deviceName, const std::string &uid)
+{
+  std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
+  if (prefix.compare(DEVICE_NAME_REPLY) != 0)
+  {
+    // not ACK_...
+    return false;
+  }
+  if ( uid.empty() )
+  {
+    // ACK is received and no uid check is needed
+    return true;
+  }
+  std::string uidInDeviceName = GetUidFromCommandDeviceName(deviceName);
+  if (uidInDeviceName.compare(uid) != 0)
+  {
+    // uid mismatch
+    return false;
+  }
+  // this is an ACK_... message and the uid matches
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -205,14 +253,20 @@ void vtkPlusCommand::PopCommandResponses(PlusCommandResponseList &responses)
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusCommand::QueueCommandResponse(const std::string& reply, PlusStatus status)
+void vtkPlusCommand::QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error, const std::map<std::string, std::string>* values)
 {
-  vtkSmartPointer<vtkPlusCommandCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();  
+  vtkSmartPointer<vtkPlusCommandCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
   commandResponse->SetClientId(this->ClientId);
   commandResponse->SetOriginalId(this->Id);
   commandResponse->SetDeviceName(this->DeviceName);
+  commandResponse->SetCommandName(this->GetName());
   commandResponse->SetStatus(status);
   commandResponse->SetVersion(this->Version);
-  commandResponse->SetErrorString(reply);
+  commandResponse->SetErrorString(error);
+  commandResponse->SetResultString(message);
+  if( values != NULL )
+  {
+    commandResponse->SetParameters(*values);
+  }
   this->CommandResponseQueue.push_back(commandResponse);
 }

@@ -25,17 +25,17 @@ vtkStandardNewMacro(vtkPlusVirtualTextRecognizer);
 
 namespace
 {
-  static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
-  static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
-  static const char* PARAMETER_LIST_TAG_NAME = "TextFields";
-  static const char* PARAMETER_TAG_NAME = "Field";
-  static const char* PARAMETER_NAME_ATTRIBUTE = "Name";
-  static const char* PARAMETER_CHANNEL_ATTRIBUTE = "Channel";
-  static const char* PARAMETER_ORIGIN_ATTRIBUTE = "InputRegionOrigin";
-  static const char* PARAMETER_SIZE_ATTRIBUTE = "InputRegionSize";
-  static const int PARAMETER_DEPTH_BITS = 8;
-  static const char* DEFAULT_LANGUAGE = "eng";
-  static const int TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT = 1;
+static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
+static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
+static const char* PARAMETER_LIST_TAG_NAME = "TextFields";
+static const char* PARAMETER_TAG_NAME = "Field";
+static const char* PARAMETER_NAME_ATTRIBUTE = "Name";
+static const char* PARAMETER_CHANNEL_ATTRIBUTE = "Channel";
+static const char* PARAMETER_ORIGIN_ATTRIBUTE = "InputRegionOrigin";
+static const char* PARAMETER_SIZE_ATTRIBUTE = "InputRegionSize";
+static const int PARAMETER_DEPTH_BITS = 8;
+static const char* DEFAULT_LANGUAGE = "eng";
+static const int TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -43,6 +43,7 @@ vtkPlusVirtualTextRecognizer::vtkPlusVirtualTextRecognizer()
   : vtkPlusDevice()
   , Language(NULL)
   , TrackedFrames(vtkPlusTrackedFrameList::New())
+  , OutputDataSource(NULL)
 {
   // The data capture thread will be used to regularly check the input devices and generate and update the output
   this->StartThreadForInternalUpdates = true;
@@ -113,7 +114,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
         continue;
       }
 
-      // We have a frame, let's parse it      
+      // We have a frame, let's parse it
       vtkImageDataToPix(frame, parameter);
 
       this->TesseractAPI->SetImage(parameter->ReceivedFrame);
@@ -121,6 +122,8 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
       std::string textStr(text_out);
       parameter->LatestParameterValue = PlusCommon::Trim(textStr);
       delete [] text_out;
+
+      frame.SetCustomFrameField(parameter->ParameterName, parameter->LatestParameterValue);
     }
   }
 
@@ -130,8 +133,8 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
 //----------------------------------------------------------------------------
 void vtkPlusVirtualTextRecognizer::vtkImageDataToPix(PlusTrackedFrame& frame, TextFieldParameter* parameter)
 {
-  PlusVideoFrame::GetOrientedClippedImage(frame.GetImageData()->GetImage(), PlusVideoFrame::FlipInfoType(), 
-    frame.GetImageData()->GetImageType(), parameter->ScreenRegion, parameter->Origin, parameter->Size);
+  PlusVideoFrame::GetOrientedClippedImage(frame.GetImageData()->GetImage(), PlusVideoFrame::FlipInfoType(),
+                                          frame.GetImageData()->GetImageType(), parameter->ScreenRegion, parameter->Origin, parameter->Size);
 
   unsigned int *data = pixGetData(parameter->ReceivedFrame);
   int wpl = pixGetWpl(parameter->ReceivedFrame);
@@ -166,7 +169,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::FindOrQueryFrame(PlusTrackedFrame& fram
 
   if ( !parameter->SourceChannel->GetVideoDataAvailable() )
   {
-    LOG_WARNING("Processed data is not generated, as no video data is available yet. Device ID: " << this->GetDeviceId()); 
+    LOG_WARNING("Processed data is not generated, as no video data is available yet. Device ID: " << this->GetDeviceId());
     return PLUS_FAIL;
   }
 
@@ -176,14 +179,17 @@ PlusStatus vtkPlusVirtualTextRecognizer::FindOrQueryFrame(PlusTrackedFrame& fram
     return PLUS_FAIL;
   }
 
+  // Search the retrieved frames to see is this timestamp has already been pulled
   std::map<double, int>::iterator frameIt = QueriedFramesIndexes.find(mostRecent);
+
+  // If it hasn't, go get the latest
   if( frameIt == QueriedFramesIndexes.end() )
   {
     this->TrackedFrames->Clear();
     double aTimestamp(UNDEFINED_TIMESTAMP);
     if ( parameter->SourceChannel->GetTrackedFrameList(aTimestamp, this->TrackedFrames, 1) != PLUS_SUCCESS )
     {
-      LOG_INFO("Failed to get tracked frame list from data collector."); 
+      LOG_INFO("Failed to get tracked frame list from data collector.");
       return PLUS_FAIL;
     }
     double timestamp = TrackedFrames->GetTrackedFrame(0)->GetTimestamp();
@@ -206,7 +212,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::FindOrQueryFrame(PlusTrackedFrame& fram
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
 {
-  this->TesseractAPI = new tesseract::TessBaseAPI(); 
+  this->TesseractAPI = new tesseract::TessBaseAPI();
   this->TesseractAPI->Init(NULL, Language, tesseract::OEM_TESSERACT_CUBE_COMBINED);
   this->TesseractAPI->SetPageSegMode(tesseract::PSM_SINGLE_LINE);
 
@@ -229,6 +235,13 @@ PlusStatus vtkPlusVirtualTextRecognizer::ReadConfiguration( vtkXMLDataElement* r
 {
   ClearConfiguration();
 
+  vtkXMLDataElement* deviceConfig = this->FindThisDeviceElement(rootConfigElement);
+  if (deviceConfig == NULL)
+  {
+    LOG_ERROR("Unable to continue configuration of "<<this->GetClassName()<<". Could not find corresponding element.");
+    return PLUS_FAIL;
+  }
+
   Superclass::ReadConfiguration(rootConfigElement);
 
   if( this->MissingInputGracePeriodSec < TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT )
@@ -236,8 +249,6 @@ PlusStatus vtkPlusVirtualTextRecognizer::ReadConfiguration( vtkXMLDataElement* r
     LOG_WARNING("MissingInputGracePeriodSec must be set to a value > 1s to allow input to arrive and be processed.");
     this->MissingInputGracePeriodSec = TEXT_RECOGNIZER_MISSING_INPUT_DEFAULT;
   }
-
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   this->SetLanguage(DEFAULT_LANGUAGE);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(Language, deviceConfig);
@@ -331,6 +342,18 @@ PlusStatus vtkPlusVirtualTextRecognizer::NotifyConfigured()
   if( this->InputChannels.size() < 1 )
   {
     LOG_ERROR("Screen reader needs at least one input image to analyze. Please add an input channel with video data.");
+    return PLUS_FAIL;
+  }
+
+  if( !this->InputChannels[0]->HasVideoSource() )
+  {
+    LOG_ERROR("Input channel does not have a video source. Need video to analyze.");
+    return PLUS_FAIL;
+  }
+
+  if( this->OutputChannels.size() != 1 )
+  {
+    LOG_ERROR("No output channels defined. Recognizer needs an output channel to send text." );
     return PLUS_FAIL;
   }
 

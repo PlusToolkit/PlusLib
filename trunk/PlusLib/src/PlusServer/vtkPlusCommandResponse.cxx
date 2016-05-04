@@ -12,3 +12,13 @@ vtkStandardNewMacro( vtkPlusCommandStringResponse );
 vtkStandardNewMacro( vtkPlusCommandImageResponse );
 vtkStandardNewMacro( vtkPlusCommandImageMetaDataResponse );
 vtkStandardNewMacro( vtkPlusCommandCommandResponse );
+
+void vtkPlusCommandCommandResponse::SetParameters(const std::map<std::string, std::string>& values)
+{
+  this->Parameters = values;
+}
+
+const std::map<std::string, std::string>& vtkPlusCommandCommandResponse::GetParameters() const
+{
+  return Parameters;
+}

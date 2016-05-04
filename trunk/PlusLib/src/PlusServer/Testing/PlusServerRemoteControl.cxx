@@ -2,14 +2,15 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 /*!
-\file PlusServerRemoteControl.cxx 
+\file PlusServerRemoteControl.cxx
 \brief Client to remote control PlusServer through OpenIGTLink
-*/ 
+*/
 
 #include "PlusConfigure.h"
+#include "igtl_header.h"
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
@@ -19,7 +20,7 @@ See License.txt for details.
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusGetTransformCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
-  #include "vtkPlusStealthLinkCommand.h"
+#include "vtkPlusStealthLinkCommand.h"
 #endif
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/Process.h"
@@ -62,13 +63,13 @@ public:
     }
 
     igtl::TransformMessage::Pointer transformMsg = dynamic_cast<igtl::TransformMessage*>(bodyMsg.GetPointer());
-    transformMsg->SetMessageHeader(messageHeader); 
-    transformMsg->AllocatePack();    
+    transformMsg->SetMessageHeader(messageHeader);
+    transformMsg->AllocatePack();
     SocketReceive(transformMsg->GetPackBodyPointer(), transformMsg->GetPackBodySize());
     messageBodyReceived=true;
 
     int c = transformMsg->Unpack(1);
-    if ( !(c & igtl::MessageHeader::UNPACK_BODY)) 
+    if ( !(c & igtl::MessageHeader::UNPACK_BODY))
     {
       LOG_ERROR("Failed to receive TRANSFORM reply (invalid body)");
       return messageBodyReceived;
@@ -79,7 +80,7 @@ public:
     transformMsg->GetMatrix(mx);
     LOG_INFO("Matrix for "<<transformMsg->GetDeviceName()<<" TRANSFORM received: ");
     igtl::PrintMatrix(mx);
-    
+
     return messageBodyReceived;
   }
 
@@ -91,7 +92,7 @@ private:
   void operator=( const vtkPlusOpenIGTLinkClientWithTransformLogging& );
 };
 
-vtkStandardNewMacro( vtkPlusOpenIGTLinkClientWithTransformLogging ); 
+vtkStandardNewMacro( vtkPlusOpenIGTLinkClientWithTransformLogging );
 
 // Utility functions for sending commands
 
@@ -108,10 +109,11 @@ void PrintCommand(vtkPlusCommand* command)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, bool enableCompression)
+PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, bool enableCompression, int commandId)
 {
-  vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();    
+  vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStart();
+  cmd->SetId(commandId);
   cmd->SetEnableCompression(enableCompression);
   if ( !deviceId.empty() )
   {
@@ -122,10 +124,11 @@ PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, std::string outputFilename)
+PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, std::string outputFilename, int commandId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStop();
+  cmd->SetId(commandId);
   if (outputFilename.empty())
   {
     outputFilename="PlusServerRecording.nrrd";
@@ -140,10 +143,11 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, int commandId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToSuspend();
+  cmd->SetId(commandId);
   if ( !deviceId.empty() )
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
@@ -153,10 +157,11 @@ PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, int commandId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd=vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToResume();
+  cmd->SetId(commandId);
   if ( !deviceId.empty() )
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
@@ -166,10 +171,11 @@ PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std:
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &inputFilename, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &inputFilename, const std::string &outputFilename, const std::string &outputImageName, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToReconstruct();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -188,10 +194,11 @@ PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const st
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToStart();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -201,10 +208,11 @@ PlusStatus ExecuteStartReconstruction(vtkPlusOpenIGTLinkClient* client, const st
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToSuspend();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -214,10 +222,11 @@ PlusStatus ExecuteSuspendReconstruction(vtkPlusOpenIGTLinkClient* client, const 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId)
+PlusStatus ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToResume();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -227,10 +236,11 @@ PlusStatus ExecuteResumeReconstruction(vtkPlusOpenIGTLinkClient* client, const s
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToGetSnapshot();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -248,10 +258,11 @@ PlusStatus ExecuteGetSnapshotReconstruction(vtkPlusOpenIGTLinkClient* client, co
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName)
+PlusStatus ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &outputFilename, const std::string &outputImageName, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd=vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToStop();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetVolumeReconstructorDeviceId(deviceId.c_str());
@@ -270,10 +281,11 @@ PlusStatus ExecuteStopReconstruction(vtkPlusOpenIGTLinkClient* client, const std
 //----------------------------------------------------------------------------
 #ifdef PLUS_USE_STEALTHLINK
 PlusStatus ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string &deviceId, const std::string &dicomOutputDirectory, const std::string& volumeEmbeddedTransformToFrame,
-                                                                                      const bool& keepReceivedDicomFiles)
+                              const bool& keepReceivedDicomFiles, int commandId)
 {
   vtkSmartPointer<vtkPlusStealthLinkCommand> cmd=vtkSmartPointer<vtkPlusStealthLinkCommand>::New();
   cmd->SetNameToGetExam();
+  cmd->SetId(commandId);
   if (!deviceId.empty())
   {
     cmd->SetStealthLinkDeviceId(deviceId.c_str());
@@ -292,29 +304,32 @@ PlusStatus ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string
 }
 #endif
 //----------------------------------------------------------------------------
-PlusStatus ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client)
+PlusStatus ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client, int commandId)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestChannelIds();
+  cmd->SetId(commandId);
   PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::string &deviceType)
+PlusStatus ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::string &deviceType, int commandId)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
   cmd->SetNameToRequestDeviceIds();
+  cmd->SetId(commandId);
   cmd->SetDeviceType(deviceType.c_str());
   PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName, const std::string &transformValue, const std::string &transformError, const std::string &transformDate, const std::string &transformPersistent)
+PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName, const std::string &transformValue, const std::string &transformError, const std::string &transformDate, const std::string &transformPersistent, int commandId)
 {
   vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
   cmd->SetNameToUpdateTransform();
+  cmd->SetId(commandId);
   cmd->SetTransformName(transformName.c_str());
   double value = 0.0;
   PlusCommon::StringToDouble(transformError.c_str(), value);
@@ -344,30 +359,33 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteGetTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName)
+PlusStatus ExecuteGetTransform(vtkPlusOpenIGTLinkClient* client, const std::string &transformName, int commandId)
 {
   vtkSmartPointer<vtkPlusGetTransformCommand> cmd = vtkSmartPointer<vtkPlusGetTransformCommand>::New();
   cmd->SetNameToGetTransform();
+  cmd->SetId(commandId);
   cmd->SetTransformName(transformName.c_str());
   PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename)
+PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string &outputFilename, int commandId)
 {
   vtkSmartPointer<vtkPlusSaveConfigCommand> cmd = vtkSmartPointer<vtkPlusSaveConfigCommand>::New();
   cmd->SetNameToSaveConfig();
+  cmd->SetId(commandId);
   cmd->SetFilename(outputFilename.c_str());
   PrintCommand(cmd);
   return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &text, bool responseExpected)
+PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &deviceId, const std::string &text, bool responseExpected, int commandId)
 {
   vtkSmartPointer<vtkPlusSendTextCommand> cmd = vtkSmartPointer<vtkPlusSendTextCommand>::New();
   cmd->SetNameToSendText();
+  cmd->SetId(commandId);
   cmd->SetText(text.c_str());
   cmd->SetDeviceId(deviceId.c_str());
   cmd->SetResponseExpected(responseExpected);
@@ -376,24 +394,17 @@ PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
+PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client, std::string& outReplyMessage, std::string& outErrorMessage, std::map<std::string, std::string>& parameters)
 {
   uint32_t commandId;
-  uint8_t errorString[IGTL_COMMAND_NAME_SIZE];
+  std::string commandName;
+
   bool result;
-  std::string xmlContent;
 
   const double replyTimeoutSec=30;
-  if (client->ReceiveReply(result, commandId, errorString, xmlContent, replyTimeoutSec) != PLUS_SUCCESS)
+  if (client->ReceiveReply(result, commandId, outErrorMessage, outReplyMessage, parameters, commandName, replyTimeoutSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
-    return PLUS_FAIL;
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> replyElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(xmlContent.c_str()) );
-  if (replyElement == NULL)
-  {	
-    LOG_ERROR("Unable to parse reply"); 
     return PLUS_FAIL;
   }
 
@@ -403,10 +414,14 @@ PlusStatus PrintReply(vtkPlusOpenIGTLinkClient* client)
   LOG_INFO("Status: " << (status == PLUS_SUCCESS ? "SUCCESS" : "FAIL") );
   if( !result )
   {
-    LOG_INFO("Error: " << errorString);
+    LOG_INFO("Error: " << outErrorMessage);
   }
-  LOG_INFO("Content: " << xmlContent);
-  
+  LOG_INFO("Message: " << outReplyMessage);
+  for( std::map<std::string, std::string>::const_iterator it = parameters.begin(); it != parameters.end(); ++it )
+  {
+    LOG_INFO(it->first << ": " << it->second);
+  }
+
   return status;
 }
 
@@ -418,11 +433,11 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess* 
 
   if ( !vtksys::SystemTools::FileExists( executablePath.c_str(), true) )
   {
-    LOG_ERROR("Unable to find executable at: " << executablePath); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to find executable at: " << executablePath);
+    return PLUS_FAIL;
   }
 
-  try 
+  try
   {
     processPtr = vtksysProcess_New();
 
@@ -446,8 +461,8 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess* 
   }
   catch (...)
   {
-    LOG_ERROR("Failed to start PlusServer"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Failed to start PlusServer");
+    return PLUS_FAIL;
   }
 }
 
@@ -475,7 +490,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
   const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
   const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
-  
+
   // There is no NRRD support in VTK5, so only use it with VTK6
 #if (VTK_MAJOR_VERSION < 6)
   const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
@@ -487,58 +502,124 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
 #endif
 
+  std::string replyMessage;
+  std::string errorMessage;
+  std::map<std::string, std::string> parameters;
+  int commandId = 1;
+
   // Basic commands
-  ExecuteGetChannelIds(client);
-  RETURN_IF_FAIL(PrintReply(client));
-  ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor");
-  RETURN_IF_FAIL(PrintReply(client));
-  ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE");
-  RETURN_IF_FAIL(PrintReply(client));
-  ExecuteGetTransform(client, "Test1ToReference");
-  RETURN_IF_FAIL(PrintReply(client));
-  ExecuteSaveConfig(client, "Test1SavedConfig.xml");
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetChannelIds(client, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
+  {
+    if( replyMessage != "TrackedVideoStream" )
+    {
+      LOG_ERROR("Incorrect reply sent. Got: " << replyMessage << ". Expected: \"TrackedVideoStream\"");
+    }
+  }
+  else
+  {
+    if( parameters.size() == 0 || parameters.find("TrackedVideoStream") == parameters.end())
+    {
+      LOG_ERROR("Empty result or entry not found in list of device IDs.");
+    }
+    else
+    {
+      if( parameters["TrackedVideoStream"].compare("TrackedVideoStream") != 0 )
+      {
+        LOG_ERROR("Incorrect parameter returned. Got: " << parameters["TrackedVideoStream"] << ". Expected: \"TrackedVideoStream\"");
+      }
+    }
+  }
+  parameters.clear();
+
+  ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor", commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
+  {
+    if( replyMessage != "VolumeReconstructorDevice" )
+    {
+      LOG_ERROR("Incorrect reply sent. Got: " << replyMessage << ". Expected: \"VolumeReconstructorDevice\"");
+    }
+  }
+  else
+  {
+    if( parameters.size() == 0)
+    {
+      LOG_ERROR("Empty result returned for list of device IDs.");
+    }
+    else
+    {
+      if( parameters["VolumeReconstructorDevice"].compare("VolumeReconstructorDevice") != 0 )
+      {
+        LOG_ERROR("Incorrect parameter returned.");
+      }
+    }
+  }
+  parameters.clear();
+
+  ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE", commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
+  ExecuteGetTransform(client, "Test1ToReference", commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
+  ExecuteSaveConfig(client, "Test1SavedConfig.xml", commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
 
   // Capturing
-  ExecuteStartAcquisition(client, captureDeviceId, false);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteStartAcquisition(client, captureDeviceId, false, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteSuspendAcquisition(client, captureDeviceId);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteSuspendAcquisition(client, captureDeviceId, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteResumeAcquisition(client, captureDeviceId);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteResumeAcquisition(client, captureDeviceId, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteStopAcquisition(client, captureDeviceId, capturingOutputFileName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteStopAcquisition(client, captureDeviceId, capturingOutputFileName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Volume reconstruction from file
-  ExecuteReconstructFromFile(client, volumeReconstructionDeviceId, batchReconstructionInputFileName, batchReconstructionOutputFileName, batchReconstructionOutputImageName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteReconstructFromFile(client, volumeReconstructionDeviceId, batchReconstructionInputFileName, batchReconstructionOutputFileName, batchReconstructionOutputImageName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Live volume reconstruction
-  ExecuteStartReconstruction(client, volumeReconstructionDeviceId);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteStartReconstruction(client, volumeReconstructionDeviceId, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteSuspendReconstruction(client, volumeReconstructionDeviceId);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteSuspendReconstruction(client, volumeReconstructionDeviceId, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteResumeReconstruction(client, volumeReconstructionDeviceId);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteResumeReconstruction(client, volumeReconstructionDeviceId, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
-  ExecuteStopReconstruction(client, volumeReconstructionDeviceId, liveReconstructionOutputFileName, liveReconstructionOutputImageName);
-  RETURN_IF_FAIL(PrintReply(client));
+  ExecuteStopReconstruction(client, volumeReconstructionDeviceId, liveReconstructionOutputFileName, liveReconstructionOutputImageName, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   return PLUS_SUCCESS;
@@ -570,6 +651,7 @@ int main( int argc, char** argv )
   std::string transformValue;
   std::string dicomOutputDirectory;
   std::string volumeEmbeddedTransformToFrame;
+  int serverIGTLVersion;
   std::string text;
   bool keepReceivedDicomFiles = false;
   bool responseExpected = false;
@@ -578,14 +660,15 @@ int main( int argc, char** argv )
   bool keepConnected=false;
   std::string serverConfigFileName;
   bool runTests=false;
+  int commandId(0);
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
 
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
-  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
-    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT, UPDATE_TRANSFORM, GET_TRANSFORM)" );
+  args.AddArgument( "--command-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &commandId, "Command ID to send to the server.");
+  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
@@ -597,13 +680,15 @@ int main( int argc, char** argv )
   args.AddArgument( "--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update." );
   args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
   args.AddArgument( "--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &enableCompression, "Set capture device to record compressed data. Only supported with .nrrd capture." );
-  args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");  
+  args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");
   args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
   args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
   args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT,&volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
   args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
   args.AddArgument( "--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
   args.AddArgument( "--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped." );
+  // TODO : add dynamic querying of server (GetCapabilities?) to enable dynamic version negotiation
+  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
   args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
 
   if ( !args.Parse() )
@@ -612,12 +697,12 @@ int main( int argc, char** argv )
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-  
+
   if ( command.empty() && !keepConnected && !runTests)
   {
-    LOG_ERROR("The program has nothing to do, as neither --command, --keep-connected, nor --run-tests is specifed"); 
+    LOG_ERROR("The program has nothing to do, as neither --command, --keep-connected, nor --run-tests is specifed");
     std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit(EXIT_FAILURE); 
+    exit(EXIT_FAILURE);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
@@ -643,12 +728,15 @@ int main( int argc, char** argv )
   }
   client->SetServerHost(serverHost.c_str());
   client->SetServerPort(serverPort);
+  client->SetServerIGTLVersion(serverIGTLVersion);
   if (client->Connect(15.0)==PLUS_FAIL)
   {
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     StopPlusServerProcess(plusServerProcess);
     exit(EXIT_FAILURE);
   }
+
+  
 
   int processReturnValue = EXIT_SUCCESS;
 
@@ -657,22 +745,70 @@ int main( int argc, char** argv )
   {
     PlusStatus commandExecutionStatus = PLUS_SUCCESS;
     // Execute command
-    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0) { commandExecutionStatus = ExecuteStartAcquisition(client, deviceId, enableCompression); }
-    else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0) { commandExecutionStatus = ExecuteStopAcquisition(client, deviceId, outputFilename); }
-    else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0) { commandExecutionStatus = ExecuteSuspendAcquisition(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0) { commandExecutionStatus = ExecuteResumeAcquisition(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteStartReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteSuspendReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteResumeReconstruction(client, deviceId); }
-    else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0) { commandExecutionStatus = ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0) { commandExecutionStatus = ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0) { commandExecutionStatus = ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName); }
-    else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0) { commandExecutionStatus = ExecuteGetChannelIds(client); }
-    else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0) { commandExecutionStatus = ExecuteGetDeviceIds(client, deviceId /* actually a device type */); }
-    else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0) { commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent); }
-    else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0) { commandExecutionStatus = ExecuteSaveConfig(client, outputFilename); }
-    else if (STRCASECMP(command.c_str(), "SEND_TEXT")==0) { commandExecutionStatus = ExecuteSendText(client, deviceId, text, responseExpected); }
-    else if (STRCASECMP(command.c_str(), "GET_TRANSFORM")==0) { commandExecutionStatus = ExecuteGetTransform(client, transformName); }
+    if (STRCASECMP(command.c_str(),"START_ACQUISITION")==0)
+    {
+      commandExecutionStatus = ExecuteStartAcquisition(client, deviceId, enableCompression, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"STOP_ACQUISITION")==0)
+    {
+      commandExecutionStatus = ExecuteStopAcquisition(client, deviceId, outputFilename, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_ACQUISITION")==0)
+    {
+      commandExecutionStatus = ExecuteSuspendAcquisition(client, deviceId, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"RESUME_ACQUISITION")==0)
+    {
+      commandExecutionStatus = ExecuteResumeAcquisition(client, deviceId, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"START_RECONSTRUCTION")==0)
+    {
+      commandExecutionStatus = ExecuteStartReconstruction(client, deviceId, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"SUSPEND_RECONSTRUCTION")==0)
+    {
+      commandExecutionStatus = ExecuteSuspendReconstruction(client, deviceId, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"RESUME_RECONSTRUCTION")==0)
+    {
+      commandExecutionStatus = ExecuteResumeReconstruction(client, deviceId, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"GET_RECONSTRUCTION_SNAPSHOT")==0)
+    {
+      commandExecutionStatus = ExecuteGetSnapshotReconstruction(client, deviceId, outputFilename, outputImageName, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"STOP_RECONSTRUCTION")==0)
+    {
+      commandExecutionStatus = ExecuteStopReconstruction(client, deviceId, outputFilename, outputImageName, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"RECONSTRUCT")==0)
+    {
+      commandExecutionStatus = ExecuteReconstructFromFile(client, deviceId, inputFilename, outputFilename, outputImageName, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"GET_CHANNEL_IDS")==0)
+    {
+      commandExecutionStatus = ExecuteGetChannelIds(client, commandId);
+    }
+    else if (STRCASECMP(command.c_str(),"GET_DEVICE_IDS")==0)
+    {
+      commandExecutionStatus = ExecuteGetDeviceIds(client, deviceId /* actually a device type */, commandId);
+    }
+    else if (STRCASECMP(command.c_str(), "UPDATE_TRANSFORM")==0)
+    {
+      commandExecutionStatus = ExecuteUpdateTransform(client, transformName, transformValue, transformError, transformDate, transformPersistent, commandId);
+    }
+    else if (STRCASECMP(command.c_str(), "SAVE_CONFIG")==0)
+    {
+      commandExecutionStatus = ExecuteSaveConfig(client, outputFilename, commandId);
+    }
+    else if (STRCASECMP(command.c_str(), "SEND_TEXT")==0)
+    {
+      commandExecutionStatus = ExecuteSendText(client, deviceId, text, responseExpected, commandId);
+    }
+    else if (STRCASECMP(command.c_str(), "GET_TRANSFORM")==0)
+    {
+      commandExecutionStatus = ExecuteGetTransform(client, transformName, commandId);
+    }
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
@@ -690,7 +826,10 @@ int main( int argc, char** argv )
     }
     if (commandExecutionStatus == PLUS_SUCCESS)
     {
-      if (PrintReply(client)!=PLUS_SUCCESS)
+      std::string replyMessage;
+      std::string errorMessage;
+      std::map<std::string, std::string> parameters;
+      if (ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters) != PLUS_SUCCESS)
       {
         processReturnValue = EXIT_FAILURE;
       }
@@ -724,7 +863,7 @@ int main( int argc, char** argv )
     std::cout << "Press Ctrl-C to quit:" << std::endl;
     // Set up signal catching
     signal(SIGINT, SignalInterruptHandler);
-    // Run client until requested 
+    // Run client until requested
     const double commandQueuePollIntervalSec=0.010;
     while (!StopClientRequested)
     {
