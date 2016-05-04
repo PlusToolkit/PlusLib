@@ -35,6 +35,12 @@ public:
   /*! Create a new device instance from device type, delete previous device if's not NULL */ 
   PlusStatus CreateInstance(const char* aDeviceType, vtkPlusDevice* &aDevice, const std::string &aDeviceId);
 
+  /*! Retrieve a C++ class name given a factory name */
+  virtual PlusStatus GetDeviceClassName(const std::string& deviceTypeName, std::string& classNameOut) const;
+  
+  /*! Retrieve a factory device type given a C++ class name */
+  virtual PlusStatus GetDeviceTypeName(const std::string& deviceClassName, std::string& typeNameOut) const;
+
 protected:
   vtkPlusDeviceFactory(void);
   virtual ~vtkPlusDeviceFactory(void);
@@ -42,7 +48,9 @@ protected:
   /*! Function pointer for storing New() static methods of vtkPlusDevice classes */ 
   typedef vtkPlusDevice* (*PointerToDevice)(); 
   /*! Map tracker types and the New() static methods of vtkPlusDevice classes */ 
-  std::map<std::string,PointerToDevice> DeviceTypes; 
+  std::map<std::string,PointerToDevice> DeviceTypes;
+  /*! Lookup map to translate factory names to C++ class names */
+  std::map<std::string, std::string> DeviceTypeClassNames;
 
 private:
   vtkPlusDeviceFactory(const vtkPlusDeviceFactory&);

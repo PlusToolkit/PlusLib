@@ -78,7 +78,6 @@ public:
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeMacro( vtkPlusOpenIGTLinkServer, vtkObject );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
-  
 
   /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
   PlusStatus Start(vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
@@ -115,7 +114,12 @@ public:
   virtual vtkPlusTransformRepository* GetTransformRepository();
 
   /*! Get number of connected clients */ 
-  virtual int GetNumberOfConnectedClients(); 
+  virtual int GetNumberOfConnectedClients();
+
+  /*! Retrieve a COPY of client info for a given clientId 
+    Locks access to the client info for the duration of the function
+    */
+  virtual PlusStatus GetClientInfo(unsigned int clientId, PlusIgtlClientInfo& outClientInfo) const;
 
   /*! Start server */ 
   PlusStatus StartOpenIGTLinkService();

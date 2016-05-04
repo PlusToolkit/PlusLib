@@ -214,6 +214,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
 //----------------------------------------------------------------------------
 void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
 {
+  os << indent << "IGTL version: " << this->ClientIGTLVersion;
   os << indent << "Message types: ";
   if ( !this->IgtlMessageTypes.empty() )
   {

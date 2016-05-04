@@ -47,6 +47,12 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  int GetClientIGTLVersion() const { return this->ClientIGTLVersion; };
+  void SetClientIGTLVersion(int version){ this->ClientIGTLVersion = version; };
+
+  /*! IGTL version supported by the client */
+  int ClientIGTLVersion;
+
   /*! Message types that client expects from the server */ 
   std::vector<std::string> IgtlMessageTypes; 
 

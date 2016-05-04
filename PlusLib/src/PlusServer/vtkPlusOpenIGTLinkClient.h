@@ -41,6 +41,9 @@ public:
   
   vtkSetMacro( ServerPort, int );
   vtkSetStringMacro( ServerHost );
+
+  vtkSetMacro( ServerIGTLVersion, int );
+  vtkGetMacro( ServerIGTLVersion, int );
     
   /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
   PlusStatus Connect(double timeoutSec=-1);
@@ -52,7 +55,7 @@ public:
   PlusStatus SendCommand( vtkPlusCommand* command );
 
   /*! Wait for a command reply */
-  PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, uint8_t outErrorString[IGTL_COMMAND_NAME_SIZE], std::string& outContentXML, double timeoutSec=0);
+  PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec=0);
   
   void Lock();
   void Unlock();
@@ -102,11 +105,11 @@ private:
 
   igtlUint32 LastGeneratedCommandId;
 
-  std::deque<igtl::RTSCommandMessage::Pointer> Replies;
+  std::deque<igtl::MessageBase::Pointer> Replies;
 
   int         ServerPort;
   char*       ServerHost;
-  
+  int         ServerIGTLVersion;
 };
 
 #endif
