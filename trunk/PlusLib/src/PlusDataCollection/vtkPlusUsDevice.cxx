@@ -120,8 +120,9 @@ PlusStatus vtkPlusUsDevice::NotifyConfigured()
       }
     }
     LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
+    return PLUS_FAIL;
   }
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
