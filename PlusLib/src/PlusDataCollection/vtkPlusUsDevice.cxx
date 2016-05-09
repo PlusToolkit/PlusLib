@@ -108,16 +108,19 @@ PlusStatus vtkPlusUsDevice::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsDevice::NotifyConfigured()
 {
-  for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  if( this->TextRecognizerInputChannelName != NULL )
   {
-    vtkPlusChannel* channel = *it;
-    if( STRCASECMP(channel->GetChannelId(), this->TextRecognizerInputChannelName) == 0 )
+    for( ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
     {
-      this->InputChannel = channel;
-      return PLUS_SUCCESS;
+      vtkPlusChannel* channel = *it;
+      if( STRCASECMP(channel->GetChannelId(), this->TextRecognizerInputChannelName) == 0 )
+      {
+        this->InputChannel = channel;
+        return PLUS_SUCCESS;
+      }
     }
+    LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
   }
-  LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
   return PLUS_FAIL;
 }
 
