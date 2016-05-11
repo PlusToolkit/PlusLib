@@ -1,5 +1,4 @@
 IF(IntersonSDKCxx_DIR)
-
   # IntersonSDKCxx has been built already
   FIND_PACKAGE(IntersonSDKCxx REQUIRED PATHS ${IntersonSDKCxx_DIR} NO_DEFAULT_PATH)
   
@@ -20,14 +19,14 @@ IF(IntersonSDKCxx_DIR)
   SET (PLUS_IntersonSDKCxx_DIR "${IntersonSDKCxx_DIR}" CACHE INTERNAL "Path to store IntersonSDKCxx binaries")
   
 ELSE(IntersonSDKCxx_DIR)
-
   # IntersonSDKCxx has not been built yet, so download and build it as an external project
   SET (IntersonSDKCxx_REPOSITORY ${GIT_PROTOCOL}://github.com/KitwareMedical/IntersonSDKCxx.git)
   SET (IntersonSDKCxx_GIT_TAG 819d620052be7e9b232e12d8946793c15cfbf5a3)
 
-  SET (PLUS_IntersonSDKCxx_SRC_DIR "${CMAKE_BINARY_DIR}/IntersonSDKCxx")
-  SET (PLUS_IntersonSDKCxx_DIR "${CMAKE_BINARY_DIR}/IntersonSDKCxx-bin" CACHE INTERNAL "Path to store IntersonSDKCxx binaries")
+  SET (PLUS_IntersonSDKCxx_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/IntersonSDKCxx")
+  SET (PLUS_IntersonSDKCxx_DIR "${CMAKE_BINARY_DIR}/Deps/IntersonSDKCxx-bin" CACHE INTERNAL "Path to store IntersonSDKCxx binaries")
   ExternalProject_Add( IntersonSDKCxx
+    PREFIX "${CMAKE_BINARY_DIR}/Deps/IntersonSDKCxx-prefix"
     SOURCE_DIR "${PLUS_IntersonSDKCxx_SRC_DIR}"
     BINARY_DIR "${PLUS_IntersonSDKCxx_DIR}"
     #--Download step--------------

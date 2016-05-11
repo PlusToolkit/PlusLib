@@ -82,11 +82,14 @@ ENDIF (PLUSBUILD_OFFLINE_BUILD)
 # Determine the operating system to set default values accordingly
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
 SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY OFF)
+SET (ENABLED_BY_DEFAULT_ON_WINDOWS64_ONLY OFF)
 if (CMAKE_HOST_WIN32)
   SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
   if (NOT CMAKE_CL_64)
     SET (ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY ON)
-  endif ()
+  else()
+    SET (ENABLED_BY_DEFAULT_ON_WINDOWS64_ONLY ON)
+  endif()
 endif (CMAKE_HOST_WIN32)
 
 OPTION(PLUSBUILD_USE_3DSlicer "Instead of building ITK, VTK, OpenIGTLink, etc., get them from a 3D Slicer build tree." OFF)
@@ -206,6 +209,7 @@ ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
   SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
 ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+OPTION(PLUS_USE_OvrvisionPro "Provide support for the OvrVision Pro stereo camera." OFF)
 
 # Other
 
@@ -267,11 +271,8 @@ ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
 SET(ep_base "${CMAKE_BINARY_DIR}")
+SET(ep_common_args)
 
-SET(ep_common_args
-  #-DCMAKE_INSTALL_PREFIX:PATH=${ep_install_dir}
-  )
-  
 IF(UNIX)
   EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                   OUTPUT_VARIABLE GCC_VERSION)
@@ -281,14 +282,15 @@ IF(UNIX)
 
   # Allow inline namespacing to enable Qt::Orientation:: etc..
   IF(${GCC_VERSION} VERSION_GREATER 4.6)
-    SET(ADDITIONAL_CXX_FLAGS "-std=c++11" CACHE STRING "Additional CXX Flags")
+    SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -std=c++11" CACHE STRING "Additional CXX Flags")
   ELSEIF(${GCC_VERSION} VERSION_GREATER 4.3)
-    SET(ADDITIONAL_CXX_FLAGS "-std=c++0x" CACHE STRING "Additional CXX Flags")
+    SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -std=c++0x" CACHE STRING "Additional CXX Flags")
   ELSE()
     MESSAGE(FATAL_ERROR "gcc >= 4.3 required to build RobartsVTK. gcc >= 4.7 recommended.")
   ENDIF()
 ENDIF()
 MARK_AS_ADVANCED(ADDITIONAL_CXX_FLAGS)
+MARK_AS_ADVANCED(ADDITIONAL_C_FLAGS)
 
 IF( UNIX AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -fPIC")
@@ -472,6 +474,11 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
   ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
 ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 
+IF( PLUS_USE_OvrvisionPro )
+  IF( MSVC AND NOT ${CMAKE_GENERATOR} MATCHES "Win64" )
+    MESSAGE( FATAL_ERROR "OvrvisionPro can only be used with 64 bit builds." )
+  ENDIF()
+ENDIF()
 
 #------------------------------------------------------------------------------
 # Specify target dependencies
@@ -515,14 +522,19 @@ ENDIF()
 SET(PlusApp_DEPENDENCIES PlusLib)
 SET(PlusModelCatalog_DEPENDENCIES PlusLib)
 
-#------------------------------------------------------------------------------
-# Set up project for PlusLib, PlusApp, and PlusModelCatalog
-#------------------------------------------------------------------------------
-
 IF(PLUSBUILD_USE_Tesseract)
   INCLUDE(External_Tesseract.cmake)
   LIST(APPEND PlusLib_DEPENDENCIES tesseract)
 ENDIF(PLUSBUILD_USE_Tesseract)
+
+IF(PLUS_USE_OvrvisionPro)
+  INCLUDE(External_OpenCV.cmake)
+  SET(ArUco_DEPENDENCIES OpenCV)
+  INCLUDE(External_ArUco.cmake)
+  SET(OvrvisionPro_DEPENDENCIES OpenCV ArUco)
+  INCLUDE(External_OvrvisionPro.cmake)
+  LIST(APPEND PlusLib_DEPENDENCIES OvrvisionPro)
+ENDIF()
 
 #------------------------------------------------------------------------------
 # Construct a descriptive build name
@@ -623,7 +635,9 @@ ELSE()
 ENDIF()
 MARK_AS_ADVANCED(BUILDNAME)
 
-#-----------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Set up project for PlusLib, PlusApp, and PlusModelCatalog
+#------------------------------------------------------------------------------
 INCLUDE(CTest)
 
 IF(PLUSBUILD_DOWNLOAD_PlusDATA AND NOT PLUSBUILD_OFFLINE_BUILD)

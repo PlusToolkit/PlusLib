@@ -1,10 +1,7 @@
 IF(ITK_DIR)
-
   # ITK has been built already
   FIND_PACKAGE(ITK 4.9 REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
-  
-  MESSAGE(STATUS "Using ITK available at: ${ITK_DIR}")
-  
+
   IF(ITK_FOUND)
     MESSAGE(STATUS "Using ITK available at: ${ITK_DIR}")
     
@@ -44,15 +41,15 @@ IF(ITK_DIR)
   SET(PLUS_ITK_DIR ${ITK_DIR})
   
 ELSE(ITK_DIR)
-
   # ITK has not been built yet, so download and build it as an external project
   SET (ITKv4_REPOSITORY ${GIT_PROTOCOL}://itk.org/ITK.git)
   SET (ITKv4_GIT_TAG v4.9.0) # 4.9 supports -std=c++11
 
-  SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/itk")
-  SET (PLUS_ITK_DIR "${CMAKE_BINARY_DIR}/itk-bin" CACHE INTERNAL "Path to store itk binaries")
+  SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/itk")
+  SET (PLUS_ITK_DIR "${CMAKE_BINARY_DIR}/Deps/itk-bin" CACHE INTERNAL "Path to store itk binaries")
   ExternalProject_Add( itk
     "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
+    PREFIX "${CMAKE_BINARY_DIR}/Deps/itk-prefix"
     SOURCE_DIR "${PLUS_ITK_SRC_DIR}"
     BINARY_DIR "${PLUS_ITK_DIR}"
     #--Download step--------------
@@ -70,8 +67,6 @@ ELSE(ITK_DIR)
       -DITK_USE_REVIEW:BOOL=ON
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-      -DITK_LEGACY_REMOVE:BOOL=ON
-      -DKWSYS_USE_MD5:BOOL=ON
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""

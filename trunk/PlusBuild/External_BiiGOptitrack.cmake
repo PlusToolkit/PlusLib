@@ -38,9 +38,10 @@ IF(BiiGOptitrack_DIR)
 ELSE(BiiGOptitrack_DIR)
 
   # BiiGOptitrack has not been built yet, so download and build it as an external project
-  SET (PLUS_BiiGOptitrack_SRC_DIR "${CMAKE_BINARY_DIR}/BiiGOptitrack")
-  SET (PLUS_BiiGOptitrack_DIR "${CMAKE_BINARY_DIR}/BiiGOptitrack-bin" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
+  SET (PLUS_BiiGOptitrack_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/BiiGOptitrack")
+  SET (PLUS_BiiGOptitrack_DIR "${CMAKE_BINARY_DIR}/Deps/BiiGOptitrack-bin" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
   ExternalProject_Add( BiiGOptitrack
+    PREFIX "${CMAKE_BINARY_DIR}/Deps/BiiGOptitrack-prefix"
     SOURCE_DIR "${PLUS_BiiGOptitrack_SRC_DIR}"
     BINARY_DIR "${PLUS_BiiGOptitrack_DIR}"
     #--Download step--------------
