@@ -812,7 +812,7 @@ int main( int argc, char** argv )
     else if (STRCASECMP(command.c_str(), "GET_EXAM_DATA")==0)
     {
 #ifdef PLUS_USE_STEALTHLINK
-      commandExecutionStatus = ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles);
+      commandExecutionStatus = ExecuteGetExamData(client, deviceId,dicomOutputDirectory,volumeEmbeddedTransformToFrame,keepReceivedDicomFiles, commandId);
 #else
       LOG_ERROR("Plus is not built with StealthLink support");
       commandExecutionStatus = PLUS_FAIL;

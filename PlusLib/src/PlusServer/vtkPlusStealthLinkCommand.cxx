@@ -128,15 +128,15 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
 
   if (this->Name==NULL)
   {
-    this->QueueCommandResponse("StealthLink command failed, no command name specified",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, "StealthLink command failed, no command name specified");
     return PLUS_FAIL;
   }
 
   vtkPlusStealthLinkTracker* stealthLinkDevice = GetStealthLinkDevice();
   if (stealthLinkDevice==NULL)
   {
-    this->QueueCommandResponse(std::string("StealthLink command failed: device ")
-      +(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId)+" is not found",PLUS_FAIL);
+    this->QueueCommandResponse(PLUS_FAIL, std::string("StealthLink command failed: device ")
+      +(this->StealthLinkDeviceId==NULL?"(undefined)":this->StealthLinkDeviceId)+" is not found");
     return PLUS_FAIL;
   }
 
@@ -154,15 +154,15 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     stealthLinkDevice->UpdateTransformRepository(this->CommandProcessor->GetPlusServer()->GetTransformRepository());
     if (stealthLinkDevice->GetImage(requestedImageId, assignedImageId, std::string(this->GetVolumeEmbeddedTransformToFrame()),imageData,ijkToReferenceTransform)!=PLUS_SUCCESS)
     {
-      this->QueueCommandResponse("vtkPlusStealthLinkCommand::Execute: failed, failed to receive image",PLUS_FAIL);
+      this->QueueCommandResponse(PLUS_FAIL, "vtkPlusStealthLinkCommand::Execute: failed, failed to receive image");
       return PLUS_FAIL;
     }    
     std::string resultMessage;
     PlusStatus status = ProcessImageReply(assignedImageId,imageData,ijkToReferenceTransform,resultMessage);
-    this->QueueCommandResponse("Volume sending completed: "+resultMessage,status);
+    this->QueueCommandResponse(status, "Volume sending completed: "+resultMessage);
     return PLUS_SUCCESS;
   }
-  this->QueueCommandResponse("vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name),PLUS_FAIL);
+  this->QueueCommandResponse(PLUS_FAIL, "vtkPlusStealthLinkCommand::Execute: failed, unknown command name: "+std::string(this->Name));
   return PLUS_FAIL;
 } 
 //----------------------------------------------------------------------------
