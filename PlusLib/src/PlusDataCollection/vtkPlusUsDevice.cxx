@@ -23,11 +23,13 @@ vtkPlusUsDevice::vtkPlusUsDevice()
   , CurrentImagingParameters(vtkPlusUsImagingParameters::New())
   , TextRecognizerInputChannelName(NULL)
 {
-  this->CurrentTransducerOriginPixels[0]=-1;
-  this->CurrentTransducerOriginPixels[1]=-1;
+  this->CurrentTransducerOriginPixels[0]=0;
+  this->CurrentTransducerOriginPixels[1]=0;
+  this->CurrentTransducerOriginPixels[2]=0;
 
-  this->CurrentPixelSpacingMm[0]=-1;
-  this->CurrentPixelSpacingMm[1]=-1;
+  this->CurrentPixelSpacingMm[0]=1;
+  this->CurrentPixelSpacingMm[1]=1;
+  this->CurrentPixelSpacingMm[2]=1;
 }
 
 //----------------------------------------------------------------------------
