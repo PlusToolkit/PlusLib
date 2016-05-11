@@ -293,10 +293,14 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
 
     this->CurrentPixelSpacingMm[0] = 0.001*currentPixelSpacingMicron.x;
     this->CurrentPixelSpacingMm[1] = 0.001*currentPixelSpacingMicron.y;
+    // Use the mean spacing as Z spacing to minimize out-of-plane distortion
+    // when using this information for transforming non-planar objects
+    this->CurrentPixelSpacingMm[2] = (this->CurrentPixelSpacingMm[0]+this->CurrentPixelSpacingMm[1])/2.0;
 
     int *clipRectangleOrigin = aSource->GetClipRectangleOrigin();
     this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels.x-clipRectangleOrigin[0];
     this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels.y-clipRectangleOrigin[1];
+    this->CurrentTransducerOriginPixels[2] = 0;
   }
 
   PlusTrackedFrame::FieldMapType customFields;
