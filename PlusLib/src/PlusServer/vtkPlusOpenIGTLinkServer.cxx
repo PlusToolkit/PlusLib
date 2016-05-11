@@ -819,7 +819,7 @@ int vtkPlusOpenIGTLinkServer::GetNumberOfConnectedClients()
 PlusStatus vtkPlusOpenIGTLinkServer::GetClientInfo(unsigned int clientId, PlusIgtlClientInfo& outClientInfo) const
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
-  for( std::list<ClientData>::const_iterator it = this->IgtlClients.cbegin(); it != this->IgtlClients.cend(); ++it )
+  for( std::list<ClientData>::const_iterator it = this->IgtlClients.begin(); it != this->IgtlClients.end(); ++it )
   {
     if( it->ClientId == clientId )
     {
