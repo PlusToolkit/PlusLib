@@ -601,9 +601,13 @@ ENDIF()
 IF( WIN32 )
   # Build nice windows system name
   EXECUTE_PROCESS(COMMAND systeminfo OUTPUT_VARIABLE SYSTEM_NAME_FULL)
-  STRING(REGEX MATCH "OS Name: *Microsoft Windows ([0-9]+)" WIN_VERSION ${SYSTEM_NAME_FULL})
-  SET(SYSTEM_NAME "win${CMAKE_MATCH_1}")
-  
+  IF ("${SYSTEM_NAME_FULL}" STREQUAL "")
+    # On WindowsXP systeminfo does not exist, command output is empty
+    SET(SYSTEM_NAME "win")
+  ELSE()
+    STRING(REGEX MATCH "OS Name: *Microsoft Windows ([0-9]+)" WIN_VERSION ${SYSTEM_NAME_FULL})
+    SET(SYSTEM_NAME "win${CMAKE_MATCH_1}")
+  ENDIF()
   IF( NOT ${CMAKE_GENERATOR} MATCHES "x64" )
     SET(BUILD_ARCHITECTURE "x32")
   ENDIF()
