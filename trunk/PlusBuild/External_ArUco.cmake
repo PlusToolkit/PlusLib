@@ -60,7 +60,7 @@ ELSE(ArUco_DIR)
       ${ep_common_args}
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
       -DBUILD_SHARED_LIBS:BOOL=ON
-      -DOpenCV_DIR:PATH=${OpenCV_DIR}
+      -DOpenCV_DIR:PATH=${PLUS_OpenCV_DIR}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
