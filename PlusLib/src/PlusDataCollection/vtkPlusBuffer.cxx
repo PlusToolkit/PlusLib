@@ -396,9 +396,74 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusVideoFrame* frame,
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusBuffer::AddItem(const PlusTrackedFrame::FieldMapType& fields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+{
+  if( fields.empty() )
+  {
+    return PLUS_SUCCESS;
+  }
+
+  if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
+  {
+    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  }
+  if (filteredTimestamp == UNDEFINED_TIMESTAMP)
+  {
+    bool filteredTimestampProbablyValid=true;
+    if ( this->StreamBuffer->CreateFilteredTimeStampForItem(frameNumber, unfilteredTimestamp, filteredTimestamp, filteredTimestampProbablyValid) != PLUS_SUCCESS )
+    {
+      LOCAL_LOG_DEBUG("Failed to create filtered timestamp for tracker buffer item with item index: " << frameNumber);
+      return PLUS_FAIL;
+    }
+    if ( !filteredTimestampProbablyValid )
+    {
+      LOG_INFO("Filtered timestamp is probably invalid for tracker buffer item with item index=" << frameNumber << ", time="<<unfilteredTimestamp<<". The item may have been tagged with an inaccurate timestamp, therefore it will not be recorded." );
+      return PLUS_SUCCESS;
+    }
+  }
+  else
+  {
+    this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
+  }
+
+  int bufferIndex(0);
+  BufferItemUidType itemUid;
+
+  PlusLockGuard<StreamItemCircularBuffer> dataBufferGuardedLock(this->StreamBuffer);
+  if ( this->StreamBuffer->PrepareForNewItem(filteredTimestamp, itemUid, bufferIndex) != PLUS_SUCCESS )
+  {
+    // Just a debug message, because we want to avoid unnecessary warning messages if the timestamp is the same as last one
+    LOCAL_LOG_DEBUG( "vtkPlusBuffer: Failed to prepare for adding new frame to tracker buffer!");
+    return PLUS_FAIL;
+  }
+
+  // get the pointer to the correct location in the tracker buffer, where this data needs to be copied
+  StreamBufferItem* newObjectInBuffer = this->StreamBuffer->GetBufferItemPointerFromBufferIndex(bufferIndex);
+  if ( newObjectInBuffer == NULL )
+  {
+    LOCAL_LOG_ERROR( "vtkPlusBuffer: Failed to get pointer to data buffer object from the tracker buffer for the new frame!");
+    return PLUS_FAIL;
+  }
+
+  newObjectInBuffer->SetFilteredTimestamp( filteredTimestamp );
+  newObjectInBuffer->SetUnfilteredTimestamp( unfilteredTimestamp );
+  newObjectInBuffer->SetIndex( frameNumber );
+  newObjectInBuffer->SetUid( itemUid );
+
+  // Add custom fields
+  for ( PlusTrackedFrame::FieldMapType::const_iterator it = fields.begin(); it != fields.end(); ++it )
+  {
+    newObjectInBuffer->SetCustomFrameField( it->first, it->second );
+    std::string name(it->first);
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4 *matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
-  if ( matrix  == NULL )
+  if ( matrix == NULL )
   {
     LOCAL_LOG_ERROR( "vtkPlusBuffer: Unable to add NULL matrix to tracker buffer!");
     return PLUS_FAIL;
@@ -1404,6 +1469,12 @@ bool vtkPlusBuffer::GetLatestItemHasValidVideoData()
 bool vtkPlusBuffer::GetLatestItemHasValidTransformData()
 {
   return this->StreamBuffer->GetLatestItemHasValidTransformData();
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusBuffer::GetLatestItemHasValidFieldData()
+{
+  return this->StreamBuffer->GetLatestItemHasValidFieldData();
 }
 
 #undef LOCAL_LOG_ERROR

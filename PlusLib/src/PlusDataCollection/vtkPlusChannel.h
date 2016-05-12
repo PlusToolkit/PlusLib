@@ -71,10 +71,22 @@ public:
   inline DataSourceContainerConstIterator GetToolsStartConstIterator() const { return this->Tools.begin(); };
   inline DataSourceContainerConstIterator GetToolsEndConstIterator() const { return this->Tools.end(); };
 
+  int FieldCount() const { return this->FieldDataSources.size(); }
+  PlusStatus AddFieldDataSource(vtkPlusDataSource* aSource );
+  PlusStatus RemoveFieldDataSource(const char* sourceId);
+  PlusStatus GetFieldDataSource(vtkPlusDataSource*& aSource, const char* sourceId);
+  PlusStatus RemoveFieldDataSources();
+  inline DataSourceContainerIterator GetFieldDataSourcesStartIterator() { return this->FieldDataSources.begin(); };
+  inline DataSourceContainerIterator GetFieldDataSourcesEndIterator() { return this->FieldDataSources.end(); };
+  inline DataSourceContainerConstIterator GetFieldDataSourcesStartConstIterator() const { return this->FieldDataSources.begin(); };
+  inline DataSourceContainerConstIterator GetFieldDataSourcesEndConstIterator() const { return this->FieldDataSources.end(); };
+
   bool GetTrackingDataAvailable();
   bool GetVideoDataAvailable();
+  bool GetFieldDataAvailable();
   bool GetTrackingEnabled() const;
   bool GetVideoEnabled() const;
+  bool GetFieldDataEnabled() const;
 
   /*! Make a request for the latest image frame */
   vtkImageData* GetBrightnessOutput();
@@ -97,7 +109,7 @@ public:
     \param enableImageData Enable returning of image data. Tracking data will be interpolated at the timestamp of the image data.
   */
   virtual PlusStatus GetTrackedFrame(double timestamp, PlusTrackedFrame& trackedFrame, bool enableImageData=true);
-  virtual PlusStatus GetTrackedFrame(PlusTrackedFrame *trackedFrame);
+  virtual PlusStatus GetTrackedFrame(PlusTrackedFrame &trackedFrame);
 
   /*!
     Get the tracked frame list from devices since time specified
@@ -161,6 +173,7 @@ protected:
   virtual int GetNumberOfFramesBetweenTimestamps(double aTimestampFrom, double aTimestampTo);
 
 protected:
+  DataSourceContainer       FieldDataSources;
   DataSourceContainer       Tools;
   vtkPlusDataSource*        VideoSource;
   vtkPlusDevice*            OwnerDevice;

@@ -332,7 +332,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
   if (self.BroadcastChannel != NULL)
   {
     if ( ( self.BroadcastChannel->HasVideoSource() && !self.BroadcastChannel->GetVideoDataAvailable())
-         || (!self.BroadcastChannel->HasVideoSource() && !self.BroadcastChannel->GetTrackingDataAvailable()) )
+      || (!self.BroadcastChannel->HasVideoSource() && !(self.BroadcastChannel->GetTrackingDataAvailable() || self.BroadcastChannel->GetFieldDataAvailable())) )
     {
       LOG_DYNAMIC("No data is broadcasted, as no data is available yet.", self.GracePeriodLogLevel);
     }
@@ -372,7 +372,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
     return PLUS_FAIL;
   }
 
-  for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+   for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     // Send tracked frame
     self.SendTrackedFrame( *trackedFrameList->GetTrackedFrame(i) );

@@ -66,6 +66,7 @@ public:
 
   /*! Get custom frame field value */
   const char* GetCustomFrameField(const char* fieldName); 
+  const char* GetCustomFrameField(const std::string& fieldName); 
 
   /*! Delete custom frame field */
   PlusStatus DeleteCustomFrameField( const char* fieldName ); 

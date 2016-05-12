@@ -172,7 +172,7 @@ protected:
 
   vtkPlusLogger::LogLevelType GracePeriodLogLevel;
 
-  PlusStatus GetInputTrackedFrame(PlusTrackedFrame* aFrame);
+  PlusStatus GetInputTrackedFrame(PlusTrackedFrame& aFrame);
   PlusStatus GetInputTrackedFrameListSampled(double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
   PlusStatus GetLatestInputItemTimestamp(double &timestamp);
 

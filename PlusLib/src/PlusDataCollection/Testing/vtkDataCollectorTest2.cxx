@@ -169,7 +169,7 @@ int main(int argc, char **argv)
   {
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
     LOG_INFO("Write tracker buffer to " << fullPath );
-    tracker->WriteToSequenceFile(fullPath.c_str(), outputCompressed); 
+    tracker->WriteToolsToSequenceFile(fullPath.c_str(), outputCompressed); 
   }
 
 

@@ -131,7 +131,7 @@ int main (int argc, char* argv[])
 
   // Create and initialize transform repository
   PlusTrackedFrame trackedFrame;
-  aChannel->GetTrackedFrame(&trackedFrame);
+  aChannel->GetTrackedFrame(trackedFrame);
 
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   transformRepository->SetTransforms(trackedFrame);
@@ -153,7 +153,7 @@ int main (int argc, char* argv[])
 
     
     PlusTrackedFrame trackedFrame; 
-    if ( aChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( aChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!"); 
       exit(EXIT_FAILURE);

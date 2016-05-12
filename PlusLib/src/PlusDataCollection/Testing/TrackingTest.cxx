@@ -119,7 +119,7 @@ public:
     ss.precision( 2 ); 
 
     PlusTrackedFrame trackedFrame; 
-    if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( this->BroadcastChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!");
       return; 
@@ -413,7 +413,7 @@ int main(int argc, char **argv)
     tracker->DeepCopy(aDevice);
     std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
     LOG_INFO("Write tracker to " << fullPath);
-    tracker->WriteToSequenceFile(fullPath.c_str(), true); 
+    tracker->WriteToolsToSequenceFile(fullPath.c_str(), true); 
   }
 
   std::cout << "Test completed successfully!" << std::endl;

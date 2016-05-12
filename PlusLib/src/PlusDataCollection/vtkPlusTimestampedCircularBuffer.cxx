@@ -268,6 +268,18 @@ bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidTransformData()
 }
 
 //----------------------------------------------------------------------------
+bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidFieldData()
+{
+  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  if (this->NumberOfItems<1)
+  {
+    return false;
+  }
+  int latestItemBufferIndex = (this->WritePointer>0) ? (this->WritePointer - 1) : (this->BufferItemContainer.size()-1);
+  return this->BufferItemContainer[latestItemBufferIndex].HasValidFieldData();
+}
+
+//----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetIndex(const BufferItemUidType uid, unsigned long &index)
 { 
   PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
@@ -281,7 +293,6 @@ ItemStatus vtkPlusTimestampedCircularBuffer::GetIndex(const BufferItemUidType ui
   index = itemPtr->GetIndex();
   return status;
 }
-
 
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex )

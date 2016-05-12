@@ -343,6 +343,12 @@ const char* PlusTrackedFrame::GetCustomFrameField(const char* fieldName)
 }
 
 //----------------------------------------------------------------------------
+const char* PlusTrackedFrame::GetCustomFrameField(const std::string& fieldName)
+{
+  return this->GetCustomFrameField(fieldName.c_str());
+}
+
+//----------------------------------------------------------------------------
 PlusStatus PlusTrackedFrame::DeleteCustomFrameField( const char* fieldName )
 {
   if ( fieldName == NULL )

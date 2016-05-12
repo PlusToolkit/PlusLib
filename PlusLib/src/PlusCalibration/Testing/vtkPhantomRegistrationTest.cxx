@@ -155,7 +155,7 @@ int main (int argc, char* argv[])
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    aChannel->GetTrackedFrame(&trackedFrame);
+    aChannel->GetTrackedFrame(trackedFrame);
     transformRepository->SetTransforms(trackedFrame);
 
     bool valid(false); 

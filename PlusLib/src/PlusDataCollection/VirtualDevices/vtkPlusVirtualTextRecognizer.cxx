@@ -43,7 +43,7 @@ vtkPlusVirtualTextRecognizer::vtkPlusVirtualTextRecognizer()
   : vtkPlusDevice()
   , Language(NULL)
   , TrackedFrames(vtkPlusTrackedFrameList::New())
-  , OutputDataSource(NULL)
+  , OutputChannel(NULL)
 {
   // The data capture thread will be used to regularly check the input devices and generate and update the output
   this->StartThreadForInternalUpdates = true;
@@ -126,6 +126,22 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
       frame.SetCustomFrameField(parameter->ParameterName, parameter->LatestParameterValue);
     }
   }
+
+  // Build the field map to send to the data sources
+  PlusTrackedFrame::FieldMapType fieldMap;
+  for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
+  {
+    for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
+    {
+      fieldMap[(*fieldIt)->ParameterName] = (*fieldIt)->LatestParameterValue;
+    }
+  }
+
+  for( DataSourceContainerIterator it = this->OutputChannel->GetFieldDataSourcesStartIterator(); it != this->OutputChannel->GetFieldDataSourcesEndIterator(); ++it )
+  {
+    it->second->AddItem(fieldMap, this->FrameNumber);
+  }
+  this->FrameNumber++;
 
   return PLUS_SUCCESS;
 }
@@ -360,6 +376,22 @@ PlusStatus vtkPlusVirtualTextRecognizer::NotifyConfigured()
   if( this->RecognitionFields.size() < 1 )
   {
     LOG_ERROR("Screen reader has no fields defined. There's nothing for me to do!");
+  }
+
+  if( this->OutputChannels.size() > 0 )
+  {
+    this->OutputChannel = this->OutputChannels[0];
+  }
+  else
+  {
+    LOG_ERROR("Screen reader requires an output channel.");
+    return PLUS_FAIL;
+  }
+
+  if( !this->OutputChannel->GetFieldDataEnabled() )
+  {
+    LOG_ERROR("Screen reader requires an output channel with at least one field data source defined.");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
