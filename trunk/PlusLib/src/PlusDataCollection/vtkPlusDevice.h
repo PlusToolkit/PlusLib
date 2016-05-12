@@ -142,9 +142,9 @@ public:
   Set size of the internal frame buffer, i.e. the number of most recent frames that
   are stored in the video source class internally.
   */
-  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* toolSourceId = NULL);
+  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* aSourceId = NULL);
   /*! Get size of the internal frame buffer. */
-  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char * toolSourceId = NULL);
+  virtual PlusStatus GetBufferSize( vtkPlusChannel& aChannel, int& outVal, const char * aSourceId = NULL );
 
   /*! Set recording start time */
   virtual void SetStartTime( double startTime );
@@ -158,7 +158,7 @@ public:
   virtual bool IsVirtual() const { return false; }
   /*!
   Reset the device. The actual reset action is defined in subclasses. A reset is typically performed on the users request
-  while the device is connected. A reset can be used for zeroing sensors, cancelling an operation in progress, etc.
+  while the device is connected. A reset can be used for zeroing sensors, canceling an operation in progress, etc.
   */
   virtual PlusStatus Reset();
 
@@ -166,7 +166,7 @@ public:
   void ClearAllBuffers();
 
   /*! Dump the current state of the device to sequence file (with each tools and buffers) */
-  virtual PlusStatus WriteToSequenceFile(const char* filename, bool useCompression = false );
+  virtual PlusStatus WriteToolsToSequenceFile(const char* filename, bool useCompression = false );
 
   /*! Make this device into a copy of another device. */
   void DeepCopy(vtkPlusDevice* device);
@@ -176,10 +176,11 @@ public:
 
   /*! Get the data source object for the specified Id name, checks both video and tools */
   PlusStatus GetDataSource(const char* aSourceId, vtkPlusDataSource*& aSource);
+  PlusStatus GetDataSource(const std::string& aSourceId, vtkPlusDataSource*& aSource);
 
   /*! Get the tool object for the specified tool name */
-  PlusStatus GetTool(const char* aToolSourceId, vtkPlusDataSource*& aTool);
-  PlusStatus GetTool(const std::string& aToolSourceId, vtkPlusDataSource*& aTool);
+  PlusStatus GetTool(const char* aToolSourceId, vtkPlusDataSource*& aTool) const;
+  PlusStatus GetTool(const std::string& aToolSourceId, vtkPlusDataSource*& aTool) const;
 
   /*! Get the first active tool among all the source tools */
   PlusStatus GetFirstActiveTool(vtkPlusDataSource*& aTool) const; 
@@ -225,6 +226,22 @@ public:
   /*! Get number of images */
   int GetNumberOfVideoSources() const;
 
+  /*! Get the field data source for the specified field data id */
+  PlusStatus GetFieldDataSource(const char* aSourceId, vtkPlusDataSource*& aSource) const;
+  PlusStatus GetFieldDataSource(const std::string& aSourceId, vtkPlusDataSource*& aSource) const;
+
+  /*! Get the beginning of the field data iterator */
+  DataSourceContainerConstIterator GetFieldDataSourcessIteratorBegin() const; 
+
+  /*! Get the end of the field data iterator */
+  DataSourceContainerConstIterator GetFieldDataSourcessIteratorEnd() const;
+
+  /*! Add field data to the device */
+  PlusStatus AddFieldDataSource(vtkPlusDataSource* aSource);
+
+  /*! Get number of field data sources */
+  int GetNumberOfFieldDataSources() const;
+
   /*! Convert tool status to string */
   static std::string ConvertToolStatusToString(ToolStatus status); 
 
@@ -248,6 +265,9 @@ public:
 
   /*! Set buffer size of all available tools */
   void SetToolsBufferSize( int aBufferSize ); 
+
+  /*! Set buffer size of all available field data sources */
+  void SetFieldDataSourcesBufferSize( int aBufferSize ); 
 
   /*! Set local time offset of all available buffers */
   virtual void SetLocalTimeOffsetSec( double aTimeOffsetSec );
@@ -542,6 +562,7 @@ protected:
   StreamBufferItem* CurrentStreamBufferItem;
   DataSourceContainer Tools; 
   DataSourceContainer VideoSources;
+  DataSourceContainer Fields;
 
   /*! Reference name of the tools */
   char* ToolReferenceFrameName; 

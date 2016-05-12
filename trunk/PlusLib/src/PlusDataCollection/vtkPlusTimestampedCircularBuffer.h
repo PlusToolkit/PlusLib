@@ -105,6 +105,7 @@ public:
   
   virtual bool GetLatestItemHasValidVideoData();
   virtual bool GetLatestItemHasValidTransformData();
+  virtual bool GetLatestItemHasValidFieldData();
 
 
   /*! Get the index assigned by the data acuiqisition system (usually a counter) from the buffer by frame UID. */

@@ -113,3 +113,8 @@ ToolStatus StreamBufferItem::GetStatus() const
   return this->Status;
 }
 
+//----------------------------------------------------------------------------
+bool StreamBufferItem::HasValidFieldData() const
+{
+  return this->CustomFrameFields.size() > 0;
+}

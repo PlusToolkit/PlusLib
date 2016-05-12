@@ -105,7 +105,16 @@ int main(int argc, char **argv)
   vtkPlusVirtualTextRecognizer::FieldListIterator it = map.begin()->second.begin();
   if( (*it)->LatestParameterValue != fieldValue )
   {
-    LOG_ERROR("Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
+    LOG_ERROR("Direct: Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
+    return EXIT_FAILURE;
+  }
+
+  PlusTrackedFrame frame;
+  (*device->GetOutputChannelsStart())->GetTrackedFrame(frame);
+
+  if( frame.GetCustomFrameField((*it)->ParameterName) == NULL || STRCASECMP(frame.GetCustomFrameField((*it)->ParameterName), fieldValue.c_str()) != 0 )
+  {
+    LOG_ERROR("Tracked Frame: Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
     return EXIT_FAILURE;
   }
 

@@ -11,18 +11,26 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkTransform.h"
 
+//----------------------------------------------------------------------------
+
 vtkStandardNewMacro(vtkPlusDataSource);
 
 //----------------------------------------------------------------------------
+
+std::string vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG = "Tool";
+std::string vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG = "Video";
+std::string vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG = "FieldData";
+
+//----------------------------------------------------------------------------
 vtkPlusDataSource::vtkPlusDataSource()
-: Device(NULL)
-, PortName(NULL)
-, InputImageOrientation(US_IMG_ORIENT_XX) // a.k.a. PortUsImageOrientation, PortImageOrientation
-, Type(DATA_SOURCE_TYPE_NONE)
-, FrameNumber(0)
-, SourceId(NULL)
-, ReferenceCoordinateFrameName(NULL)
-, Buffer(vtkPlusBuffer::New())
+  : Device(NULL)
+  , PortName(NULL)
+  , InputImageOrientation(US_IMG_ORIENT_XX) // a.k.a. PortUsImageOrientation, PortImageOrientation
+  , Type(DATA_SOURCE_TYPE_NONE)
+  , FrameNumber(0)
+  , SourceId(NULL)
+  , ReferenceCoordinateFrameName(NULL)
+  , Buffer(vtkPlusBuffer::New())
 {
   this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
   this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
@@ -42,25 +50,25 @@ vtkPlusDataSource::~vtkPlusDataSource()
 {
   if ( this->SourceId != NULL )
   {
-    delete [] this->SourceId; 
-    this->SourceId = NULL; 
+    delete [] this->SourceId;
+    this->SourceId = NULL;
   }
 
   if ( this->ReferenceCoordinateFrameName != NULL )
   {
-    delete [] this->ReferenceCoordinateFrameName; 
-    this->ReferenceCoordinateFrameName = NULL; 
+    delete [] this->ReferenceCoordinateFrameName;
+    this->ReferenceCoordinateFrameName = NULL;
   }
 
   if ( this->PortName != NULL )
   {
-    delete [] this->PortName; 
-    this->PortName=NULL; 
+    delete [] this->PortName;
+    this->PortName=NULL;
   }
 
   if ( this->Buffer != NULL )
   {
-    this->Buffer->Delete(); 
+    this->Buffer->Delete();
     this->Buffer = NULL;
   }
 }
@@ -72,28 +80,39 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 
   if ( this->Device )
   {
-    os << indent << "Tracker: " << this->Device << "\n";
+    os << indent << "Tracker: " << this->Device << std::endl;
   }
   if ( this->SourceId )
   {
-    os << indent << "SourceId: " << this->GetSourceId() << "\n";
+    os << indent << "SourceId: " << this->GetSourceId() << std::endl;
   }
   if ( this->Type != DATA_SOURCE_TYPE_NONE )
   {
-    os << indent << "Type: " << ((this->Type == DATA_SOURCE_TYPE_VIDEO) ? "Video" : "Tool") << "\n";
+    switch (this->Type)
+    {
+    case DATA_SOURCE_TYPE_TOOL:
+      os << indent << "Type: Tool" << std::endl;
+      break;
+    case DATA_SOURCE_TYPE_VIDEO:
+      os << indent << "Type: Video" << std::endl;
+      break;
+    case DATA_SOURCE_TYPE_FIELDDATA:
+      os << indent << "Type: Fields" << std::endl;
+      break;
+    }
   }
   if ( this->ReferenceCoordinateFrameName )
   {
-    os << indent << "ReferenceCoordinateFrameName: " << this->GetReferenceCoordinateFrameName() << "\n";
+    os << indent << "ReferenceCoordinateFrameName: " << this->GetReferenceCoordinateFrameName() << std::endl;
   }
   if ( this->PortName )
   {
-    os << indent << "PortName: " << this->GetPortName() << "\n";
+    os << indent << "PortName: " << this->GetPortName() << std::endl;
   }
 
   if ( this->Buffer )
   {
-    os << indent << "Buffer: " << this->Buffer << "\n";
+    os << indent << "Buffer: " << this->Buffer << std::endl;
     this->Buffer->PrintSelf(os,indent.GetNextIndent());
   }
 }
@@ -101,110 +120,122 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::SetSourceId(const char* aSourceId)
 {
-  if ( this->SourceId == NULL && aSourceId == NULL) 
-  { 
+  if ( this->SourceId == NULL && aSourceId == NULL)
+  {
     return PLUS_SUCCESS;
-  } 
+  }
 
-  if ( this->SourceId && aSourceId && ( STRCASECMP(this->SourceId, aSourceId) == 0 ) ) 
-  { 
+  if ( this->SourceId && aSourceId && ( STRCASECMP(this->SourceId, aSourceId) == 0 ) )
+  {
     return PLUS_SUCCESS;
-  } 
+  }
 
   if ( this->SourceId != NULL )
   {
     // Here we would normally delete SourceId and set it to NULL, but we just return with an error instead because modification of the value is not allowed
-    LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'" ); 
-    return PLUS_FAIL; 
+    LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'" );
+    return PLUS_FAIL;
   }
 
   if (aSourceId!=NULL)
   {
     // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(aSourceId) + 1; 
-    char *cp1 =  new char[n]; 
-    const char *cp2 = (aSourceId); 
+    size_t n = strlen(aSourceId) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (aSourceId);
     this->SourceId = cp1;
-    do { *cp1++ = *cp2++; } while ( --n ); 
+    do
+    {
+      *cp1++ = *cp2++;
+    }
+    while ( --n );
   }
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* referenceCoordinateName)
 {
-  if ( this->ReferenceCoordinateFrameName == NULL && referenceCoordinateName == NULL) 
-  { 
+  if ( this->ReferenceCoordinateFrameName == NULL && referenceCoordinateName == NULL)
+  {
     return PLUS_SUCCESS;
-  } 
+  }
 
-  if ( this->ReferenceCoordinateFrameName && referenceCoordinateName && ( STRCASECMP(this->ReferenceCoordinateFrameName, referenceCoordinateName) == 0 ) ) 
-  { 
+  if ( this->ReferenceCoordinateFrameName && referenceCoordinateName && ( STRCASECMP(this->ReferenceCoordinateFrameName, referenceCoordinateName) == 0 ) )
+  {
     return PLUS_SUCCESS;
-  } 
+  }
 
   if ( this->ReferenceCoordinateFrameName != NULL )
   {
     // Here we would normally delete ReferenceCoordinateFrame and set it to NULL, but we just return with an error instead because modification of the value is not allowed
-    LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" ); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'" );
+    return PLUS_FAIL;
   }
 
   if (referenceCoordinateName!=NULL)
   {
     // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(referenceCoordinateName) + 1; 
-    char *cp1 =  new char[n]; 
-    const char *cp2 = (referenceCoordinateName); 
+    size_t n = strlen(referenceCoordinateName) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (referenceCoordinateName);
     this->ReferenceCoordinateFrameName = cp1;
-    do { *cp1++ = *cp2++; } while ( --n ); 
+    do
+    {
+      *cp1++ = *cp2++;
+    }
+    while ( --n );
   }
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 {
-  if ( this->PortName == NULL && portName == NULL) 
-  { 
+  if ( this->PortName == NULL && portName == NULL)
+  {
     // no change (current and requested name are both empty)
     return PLUS_SUCCESS;
-  } 
+  }
 
-  if ( this->PortName && portName && ( STRCASECMP(this->PortName, portName) == 0 ) ) 
-  { 
+  if ( this->PortName && portName && ( STRCASECMP(this->PortName, portName) == 0 ) )
+  {
     // no change (current and requested names are te same)
     return PLUS_SUCCESS;
-  } 
+  }
 
   if ( this->PortName != NULL )
   {
     // Here we would normally delete PortName and set it to NULL, but we just return with an error instead because modification of the value is not allowed
-    LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'" ); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'" );
+    return PLUS_FAIL;
   }
 
   if ( portName != NULL )
   {
     // Copy string (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(portName) + 1; 
-    char *cp1 =  new char[n]; 
-    const char *cp2 = (portName); 
+    size_t n = strlen(portName) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (portName);
     this->PortName = cp1;
-    do { *cp1++ = *cp2++; } while ( --n ); 
+    do
+    {
+      *cp1++ = *cp2++;
+    }
+    while ( --n );
   }
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 {
-  LOG_TRACE("vtkPlusDataSource::DeepCopy"); 
+  LOG_TRACE("vtkPlusDataSource::DeepCopy");
 
-  this->SetSourceId( aSource->GetSourceId() ); 
+  this->SetSourceId( aSource->GetSourceId() );
   this->SetType( aSource->GetType() );
   this->SetReferenceCoordinateFrameName( aSource->GetReferenceCoordinateFrameName() );
 
@@ -219,43 +250,48 @@ void vtkPlusDataSource::DeepCopy(vtkPlusDataSource *aSource)
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool requirePortNameInSourceConfiguration, bool requireImageOrientationInSourceConfiguration, const char* aDescriptiveNameForBuffer)
 {
-  LOG_TRACE("vtkPlusDataSource::ReadConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::ReadConfiguration");
 
   if ( sourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure data source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to configure data source! (XML data element is NULL)");
+    return PLUS_FAIL;
   }
 
-  const char* sourceId = sourceElement->GetAttribute("Id"); 
-  if ( sourceId == NULL ) 
+  const char* sourceId = sourceElement->GetAttribute("Id");
+  if ( sourceId == NULL )
   {
-    LOG_ERROR("Unable to find attribute Id! Id attribute is mandatory in source definition."); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to find attribute Id! Id attribute is mandatory in source definition.");
+    return PLUS_FAIL;
   }
 
-  const char* portName = sourceElement->GetAttribute("PortName"); 
-  if ( portName != NULL ) 
+  const char* portName = sourceElement->GetAttribute("PortName");
+  if ( portName != NULL )
   {
-    this->SetPortName(portName); 
+    this->SetPortName(portName);
   }
 
-  const char* type = sourceElement->GetAttribute("Type"); 
-  if ( type != NULL && STRCASECMP(type, "Tool") == 0 ) 
+  const char* type = sourceElement->GetAttribute("Type");
+  if ( type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_TOOL_TAG.c_str()) == 0 )
   {
     PlusTransformName idName(sourceId, this->GetReferenceCoordinateFrameName());
     this->SetSourceId(idName.GetTransformName().c_str());
     this->SetType(DATA_SOURCE_TYPE_TOOL);
-    
+
     if (requirePortNameInSourceConfiguration && portName == NULL )
     {
-      LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition."); 
-      return PLUS_FAIL; 
+      LOG_ERROR("Unable to find PortName! This attribute is mandatory in tool definition.");
+      return PLUS_FAIL;
     }
   }
-  else if ( type != NULL && STRCASECMP(type, "Video") == 0 ) 
+  else if( type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_FIELDDATA_TAG.c_str()) == 0 )
   {
-    this->SetSourceId(sourceId); 
+    this->SetSourceId(sourceId);
+    this->SetType(DATA_SOURCE_TYPE_FIELDDATA);
+  }
+  else if ( type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_VIDEO_TAG.c_str()) == 0 )
+  {
+    this->SetSourceId(sourceId);
     this->SetType(DATA_SOURCE_TYPE_VIDEO);
 
     const char* usImageOrientation = sourceElement->GetAttribute("PortUsImageOrientation");
@@ -273,8 +309,8 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
       LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetSourceId() << "\' element - please set PortUsImageOrientation in the source configuration");
     }
 
-    const char* imageType = sourceElement->GetAttribute("ImageType"); 
-    if ( imageType != NULL && this->GetBuffer() != NULL ) 
+    const char* imageType = sourceElement->GetAttribute("ImageType");
+    if ( imageType != NULL && this->GetBuffer() != NULL )
     {
       if( STRCASECMP(imageType, "BRIGHTNESS") == 0 )
       {
@@ -301,7 +337,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     // Clipping parameters:
     // Users may forget that images are 3D and provide clipping coordinates and size in 2D only.
     // Detect this and set correct values in the third component.
-    int tmpValue[3]={0}; // 3 so that we can see if only 2 components could be successfully read
+    int tmpValue[3]= {0}; // 3 so that we can see if only 2 components could be successfully read
     int clipRectangleOriginComponents = sourceElement->GetVectorAttribute("ClipRectangleOrigin", 3, tmpValue);
     if (clipRectangleOriginComponents==2)
     {
@@ -345,8 +381,8 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     return PLUS_FAIL;
   }
 
-  int bufferSize = 0; 
-  if ( sourceElement->GetScalarAttribute("BufferSize", bufferSize) ) 
+  int bufferSize = 0;
+  if ( sourceElement->GetScalarAttribute("BufferSize", bufferSize) )
   {
     this->GetBuffer()->SetBufferSize(bufferSize);
   }
@@ -400,12 +436,12 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElement )
 {
-  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration");
 
   if ( aSourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure data source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to configure data source! (XML data element is NULL)");
+    return PLUS_FAIL;
   }
 
   if( this->GetType() == DATA_SOURCE_TYPE_TOOL )
@@ -454,12 +490,12 @@ PlusStatus vtkPlusDataSource::WriteConfiguration( vtkXMLDataElement* aSourceElem
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::WriteCompactConfiguration( vtkXMLDataElement* aSourceElement )
 {
-  LOG_TRACE("vtkPlusDataSource::WriteConfiguration"); 
+  LOG_TRACE("vtkPlusDataSource::WriteConfiguration");
 
   if ( aSourceElement == NULL )
   {
-    LOG_ERROR("Unable to configure source! (XML data element is NULL)"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to configure source! (XML data element is NULL)");
+    return PLUS_FAIL;
   }
 
   if( this->GetType() == DATA_SOURCE_TYPE_TOOL )
@@ -532,6 +568,12 @@ PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION u
   return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::AddItem(const PlusTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
+{
+  return this->GetBuffer()->AddItem(customFields, frameNumber, unfilteredTimestamp, filteredTimestamp);
+}
+
 //-----------------------------------------------------------------------------
 US_IMAGE_TYPE vtkPlusDataSource::GetImageType()
 {
@@ -565,9 +607,9 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
     else
     {
       LOG_WARNING("Clipping information cannot fit within the original image extents ["<<extents[0]<<","<<extents[1]<<","
-        <<extents[2]<<","<<extents[3]<<","<<extents[4]<<","<<extents[5]<<"]. No clipping will be performed."
-        <<" Origin=[" << this->ClipRectangleOrigin[0] << "," << this->ClipRectangleOrigin[1] << "," << this->ClipRectangleOrigin[2] << "]."
-        <<" Size=[" << this->ClipRectangleSize[0] << "," << this->ClipRectangleSize[1] << "," << this->ClipRectangleSize[2] << "].");
+                  <<extents[2]<<","<<extents[3]<<","<<extents[4]<<","<<extents[5]<<"]. No clipping will be performed."
+                  <<" Origin=[" << this->ClipRectangleOrigin[0] << "," << this->ClipRectangleOrigin[1] << "," << this->ClipRectangleOrigin[2] << "]."
+                  <<" Size=[" << this->ClipRectangleSize[0] << "," << this->ClipRectangleSize[1] << "," << this->ClipRectangleSize[2] << "].");
       this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
       this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
       this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
@@ -580,9 +622,9 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
   PlusVideoFrame::FlipInfoType flipInfo;
   if ( PlusVideoFrame::GetFlipAxes(this->InputImageOrientation, this->GetBuffer()->GetImageType(), this->GetBuffer()->GetImageOrientation(), flipInfo) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(this->InputImageOrientation) << 
-      " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()) <<
-      " for a buffer of type " << PlusVideoFrame::GetStringFromUsImageType(this->GetBuffer()->GetImageType()));
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << PlusVideoFrame::GetStringFromUsImageOrientation(this->InputImageOrientation) <<
+              " to " << PlusVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()) <<
+              " for a buffer of type " << PlusVideoFrame::GetStringFromUsImageType(this->GetBuffer()->GetImageType()));
     return PLUS_FAIL;
   }
 
@@ -656,7 +698,7 @@ PlusStatus vtkPlusDataSource::SetOutputImageOrientation(US_IMAGE_ORIENTATION ima
   if (imageOrientation!=US_IMG_ORIENT_MF && imageOrientation!=US_IMG_ORIENT_FM)
   {
     LOG_ERROR("vtkPlusDataSource::SetOutputImageOrientation failed: only standard MF and FM orientations are allowed, got "
-      << PlusVideoFrame::GetStringFromUsImageOrientation(imageOrientation));
+              << PlusVideoFrame::GetStringFromUsImageOrientation(imageOrientation));
     return PLUS_FAIL;
   }
   return this->GetBuffer()->SetImageOrientation(imageOrientation);
@@ -744,6 +786,12 @@ bool vtkPlusDataSource::GetLatestItemHasValidVideoData()
 bool vtkPlusDataSource::GetLatestItemHasValidTransformData()
 {
   return this->GetBuffer()->GetLatestItemHasValidTransformData();
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDataSource::GetLatestItemHasValidFieldData()
+{
+  return this->GetBuffer()->GetLatestItemHasValidFieldData();
 }
 
 //-----------------------------------------------------------------------------

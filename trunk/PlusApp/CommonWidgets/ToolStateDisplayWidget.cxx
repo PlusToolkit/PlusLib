@@ -94,7 +94,7 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, boo
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   PlusTrackedFrame trackedFrame;
-  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   // Set up layout
@@ -168,7 +168,7 @@ int ToolStateDisplayWidget::GetDesiredHeight()
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   PlusTrackedFrame trackedFrame;
-  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   int numberOfTools = transformNames.size();
@@ -192,7 +192,7 @@ PlusStatus ToolStateDisplayWidget::Update()
   // Get transforms
   std::vector<PlusTransformName> transformNames;
   PlusTrackedFrame trackedFrame;
-  m_SelectedChannel->GetTrackedFrame(&trackedFrame);
+  m_SelectedChannel->GetTrackedFrame(trackedFrame);
   trackedFrame.GetCustomFrameTransformNameList(transformNames);
 
   if (transformNames.size()!=m_ToolStateLabels.size())

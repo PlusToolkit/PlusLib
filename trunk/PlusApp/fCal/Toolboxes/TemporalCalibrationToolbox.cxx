@@ -995,7 +995,7 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
       ui.comboBox_FixedSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
     PlusTrackedFrame frame;
-    if( this->FixedChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
+    if( this->FixedChannel->GetTrackedFrame(frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->FixedChannel->GetChannelId() );
       return;
@@ -1073,7 +1073,7 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
       ui.comboBox_MovingSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
     PlusTrackedFrame frame;
-    if( this->MovingChannel->GetTrackedFrame(&frame) != PLUS_SUCCESS )
+    if( this->MovingChannel->GetTrackedFrame(frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->MovingChannel->GetChannelId() );
       return;

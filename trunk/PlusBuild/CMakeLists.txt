@@ -514,7 +514,7 @@ IF( PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR )
   INCLUDE(External_IntersonSDKCxx.cmake)
 ENDIF()
 
-IF ( PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR )
+IF ( PLUS_USE_OPTITRACK AND PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR )
   SET(BiiGOptitrack_DEPENDENCIES itk OpenIGTLink)
   LIST(APPEND PlusLib_DEPENDENCIES BiiGOptitrack)
 ENDIF()

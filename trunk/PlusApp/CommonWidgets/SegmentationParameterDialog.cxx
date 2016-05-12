@@ -885,7 +885,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
     LOG_WARNING("Data source has no output port, canvas image actor initalization failed.");
   }
 
-  if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+  if( m_SelectedChannel->GetTrackedFrame(m_Frame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to retrieve tracked frame.");
     return PLUS_FAIL;
@@ -1273,7 +1273,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
   {
-    if( m_SelectedChannel->GetTrackedFrame(&m_Frame) != PLUS_SUCCESS )
+    if( m_SelectedChannel->GetTrackedFrame(m_Frame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Unable to retrieve tracked frame.");
       return PLUS_FAIL;

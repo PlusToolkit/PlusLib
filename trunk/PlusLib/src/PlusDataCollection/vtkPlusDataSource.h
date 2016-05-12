@@ -21,7 +21,7 @@
 
 /*!
 \class vtkPlusDataSource
-\brief Interface to a handheld 3D positioning tool or video source
+\brief Interface to a 3D positioning tool, video source, or generalized data stream
 
 \ingroup PlusLibDataCollection
 */
@@ -33,6 +33,7 @@ enum DataSourceType
   DATA_SOURCE_TYPE_NONE,
   DATA_SOURCE_TYPE_TOOL,
   DATA_SOURCE_TYPE_VIDEO,
+  DATA_SOURCE_TYPE_FIELDDATA,
 };
 
 class vtkPlusDataCollectionExport vtkPlusDataSource : public vtkObject
@@ -42,7 +43,11 @@ class vtkPlusDataCollectionExport vtkPlusDataSource : public vtkObject
   typedef CustomPropertyMap::const_iterator CustomPropertyMapConstIterator;
 
 public:
+  static std::string DATA_SOURCE_TYPE_TOOL_TAG;
+  static std::string DATA_SOURCE_TYPE_VIDEO_TAG;
+  static std::string DATA_SOURCE_TYPE_FIELDDATA_TAG;
 
+public:
   static vtkPlusDataSource *New();
   vtkTypeMacro(vtkPlusDataSource,vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -122,6 +127,9 @@ public:
   /*! Returns true if the latest item contains valid transform data */
   virtual bool GetLatestItemHasValidTransformData();
 
+  /*! Returns true if the latest item contains valid field data */
+  virtual bool GetLatestItemHasValidFieldData();
+
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
   /*! Get the most recent frame from the buffer */
@@ -197,8 +205,16 @@ public:
     then the frame is not added to the buffer.
   */
   virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType,
-                             int  numberOfBytesToSkip, long   frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP,
+                             int  numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
+
+  /*!
+    Add custom fields to the new item
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
+  virtual PlusStatus AddItem(const PlusTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, double filteredTimestamp=UNDEFINED_TIMESTAMP);
 
   /*!
   Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).

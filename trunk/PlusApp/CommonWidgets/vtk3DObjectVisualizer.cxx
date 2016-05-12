@@ -120,7 +120,7 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
   // Get tracked frame and set the transforms
   PlusTrackedFrame trackedFrame; 
-  if ( this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  if ( this->SelectedChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to get tracked frame!"); 
     return PLUS_FAIL; 

@@ -318,7 +318,7 @@ void CapturingToolbox::TakeSnapshot()
 
   PlusTrackedFrame trackedFrame;
 
-  if (m_ParentMainWindow->GetSelectedChannel() == NULL || m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (m_ParentMainWindow->GetSelectedChannel() == NULL || m_ParentMainWindow->GetSelectedChannel()->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tracked frame for the snapshot!");
     return;

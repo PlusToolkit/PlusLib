@@ -43,7 +43,7 @@ public:
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New(); 
 
     PlusTrackedFrame trackedFrame; 
-    if ( this->BroadcastChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+    if ( this->BroadcastChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
     {
       LOG_WARNING("Unable to get tracked frame!"); 
       return; 

@@ -147,6 +147,7 @@ public:
 
   void SetValidTransformData(bool aValid) { ValidTransformData = aValid; }
   bool HasValidTransformData() const { return ValidTransformData; }
+  bool HasValidFieldData() const;
   bool HasValidVideoData() const 
   { 
     return Frame.IsImageValid();
@@ -157,7 +158,7 @@ protected:
   double FilteredTimeStamp;
   double UnfilteredTimeStamp;
 
-  /*! index assigned by the data acuiqisition system (usually a counter) */
+  /*! index assigned by the data acquisition system (usually a counter) */
   unsigned long Index; 
 
   /*! unique identifier assigned by the storage buffer, it is guaranteed to increase monotonously, by one for each frame that is added to the buffer*/

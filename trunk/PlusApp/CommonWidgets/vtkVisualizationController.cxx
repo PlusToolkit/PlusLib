@@ -514,7 +514,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   PlusTrackedFrame trackedFrame;
-  if (this->SelectedChannel==NULL || this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+  if (this->SelectedChannel==NULL || this->SelectedChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to get tracked frame from selected channel!");
     return PLUS_FAIL;
@@ -585,7 +585,7 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
     }
 
     PlusTrackedFrame trackedFrame;
-    if (this->SelectedChannel->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS)
+    if (this->SelectedChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to get tracked frame from data collector!");
       return PLUS_FAIL;

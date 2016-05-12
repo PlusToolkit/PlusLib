@@ -225,14 +225,14 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     }
   }
   PlusTrackedFrame trackedFrame;
-  if ( this->InputChannels[0]->GetTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  if ( this->InputChannels[0]->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
     this->LastProcessedInputDataTimestamp = vtkPlusAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
 
-  LOG_TRACE("Image to be processed: timestamp="<<trackedFrame.GetTimestamp());
+  LOG_TRACE("Image to be processed: timestamp=" << trackedFrame.GetTimestamp());
   
   if( this->OutputChannels.empty() )
   {

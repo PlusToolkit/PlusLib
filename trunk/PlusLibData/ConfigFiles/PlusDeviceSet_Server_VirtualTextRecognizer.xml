@@ -37,4 +37,21 @@
       </OutputChannels>
     </Device>
   </DataCollection>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="DataChannel" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="STRING" />
+      </MessageTypes>
+      <StringNames>
+        <String Name="patient-last-name" />
+        <String Name="tee-temperature" />
+      </StringNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
 </PlusConfiguration>

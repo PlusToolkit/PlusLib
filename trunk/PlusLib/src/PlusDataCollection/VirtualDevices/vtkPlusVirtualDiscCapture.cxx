@@ -519,7 +519,7 @@ PlusStatus vtkPlusVirtualDiscCapture::TakeSnapshot()
   }
 
   PlusTrackedFrame trackedFrame;
-  if( this->GetInputTrackedFrame(&trackedFrame) != PLUS_SUCCESS )
+  if( this->GetInputTrackedFrame(trackedFrame) != PLUS_SUCCESS )
   {
     LOG_ERROR(this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!");
     return PLUS_FAIL;
@@ -626,7 +626,7 @@ int vtkPlusVirtualDiscCapture::OutputChannelCount() const
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::GetInputTrackedFrame( PlusTrackedFrame* aFrame )
+PlusStatus vtkPlusVirtualDiscCapture::GetInputTrackedFrame( PlusTrackedFrame& aFrame )
 {
   if( this->OutputChannels.empty() )
   {
