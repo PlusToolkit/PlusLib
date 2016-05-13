@@ -975,7 +975,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   // acquire might have a different size
   aSource->Clear();
   std::vector<int> frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
-  aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
+  //aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
   aSource->SetImageType(US_IMG_BRIGHTNESS);
   aSource->SetPixelType( VTK_UNSIGNED_CHAR );
   aSource->SetInputFrameSize(frameSizeInPx[0], frameSizeInPx[1], 1);// frameSizeInPx[2]);
