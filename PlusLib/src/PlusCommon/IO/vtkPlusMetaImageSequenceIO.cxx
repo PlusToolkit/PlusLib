@@ -1346,13 +1346,9 @@ PlusStatus vtkPlusMetaImageSequenceIO::SetFileName( const std::string& aFilename
       pixFileName+=".raw";
     }
 
-    // Use the same path as the header but replace the filename
-    std::vector<std::string> pathElements;
-    vtksys::SystemTools::SplitPath(this->FileName.c_str(), pathElements);
-    pathElements.erase(pathElements.end()-1);
-    pathElements.push_back(pixFileName);
-
-    this->PixelDataFileName=vtksys::SystemTools::JoinPath(pathElements);
+    // Use only the file name of pixFileName for PixelDataFile.
+    // To support compatibility of a saved *.mhd file on Linux or Mac OSX machine.
+    this->PixelDataFileName=pixFileName;
   }
   else
   {
