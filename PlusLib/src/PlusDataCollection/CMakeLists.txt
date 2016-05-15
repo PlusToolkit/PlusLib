@@ -43,8 +43,8 @@ ENDIF()
 # Haptics
 ADD_SUBDIRECTORY(Haptics)
 
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusHaptics_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} PlusHaptics CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${vtkPlusHaptics_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusHaptics CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Sources
@@ -311,10 +311,11 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ${USDIGITAL_SEI_INCLUDE_DIR}
     CACHE INTERNAL "" FORCE)    
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
+  ADD_LIBRARY(USDigitalEncoders SHARED IMPORTED)
+  SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_IMPLIB ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX})
+  SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_LOCATION ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX})
 
+  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} USDigitalEncoders )
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
@@ -372,21 +373,19 @@ IF( PLUS_USE_Ascension3DG )
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE)
 
-  IF ( ${CMAKE_GENERATOR} MATCHES "Win64" )
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-      ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG64${CMAKE_STATIC_LIBRARY_SUFFIX}
-      )
-    SET ( External_Libraries_Install ${External_Libraries_Install}
-      ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG64${CMAKE_SHARED_LIBRARY_SUFFIX} 
-      )
-  ELSE( ${CMAKE_GENERATOR} MATCHES "Win64" )
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-      ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX}
-      )
-    SET ( External_Libraries_Install ${External_Libraries_Install}
-      ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} 
-      )
-  ENDIF( ${CMAKE_GENERATOR} MATCHES "Win64" )
+  ADD_LIBRARY(Ascension3DG SHARED IMPORTED)
+  IF ( (MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64") OR MINGW )
+    SET(Ascension3DG_LIB_FILE ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG64${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE FILEPATH "Lib file for Ascension3DG.")
+    SET(Ascension3DG_SHARED_LIB_FILE ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG64${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE FILEPATH "DLL file for Ascension3DG.")
+  ELSE()
+    SET(Ascension3DG_LIB_FILE ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE FILEPATH "Lib file for Ascension3DG.")
+    SET(Ascension3DG_SHARED_LIB_FILE ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE FILEPATH "DLL file for Ascension3DG.")
+  ENDIF()
+  
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DG)
+  SET(External_Libraries_Install ${External_Libraries_Install} ${Ascension3DG_SHARED_LIB_FILE})
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${Ascension3DG_LIB_FILE})
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${Ascension3DG_SHARED_LIB_FILE})
 
 ENDIF( PLUS_USE_Ascension3DG )
 
@@ -404,49 +403,42 @@ IF( PLUS_USE_Ascension3DGm )
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE)
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-    ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )
-  
+  ADD_LIBRARY(Ascension3DGm SHARED IMPORTED)
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX})
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} )
+
+  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DGm )
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-        
+
 ENDIF( PLUS_USE_Ascension3DGm )
 
 #--------------------------------------------------------------------------
 # PhidgetSpatial 3/3/3 MARG sensor (magnetometer, accelerometer, gyroscope)
 IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 
-  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_WIN64_LIB_DIR} )
-    SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_WIN64_BINARY_DIR} ) 
-  ELSE()
-    SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_WIN32_LIB_DIR} )
-    SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_WIN32_BINARY_DIR} ) 
-  ENDIF()
-  
   SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
     PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx 
     )
-  IF (WIN32)  
+  IF (WIN32)
     SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h )
   ENDIF (WIN32)
-  
+
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
     CACHE INTERNAL "" FORCE)
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-    ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX}
-    vtkxio
-    )
+  ADD_LIBRARY(phidget SHARED IMPORTED)
+  SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX})
+  SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX})
 
+  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-          
+
 ENDIF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 
 #--------------------------------------------------------------------------
@@ -458,44 +450,44 @@ IF( PLUS_USE_3dConnexion_TRACKER )
     SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
       3dConnexionTracking/vtkPlus3dConnexionTracker.cxx
       )
-    IF (WIN32)  
+    IF (WIN32)
       SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} 3dConnexionTracking/vtkPlus3dConnexionTracker.h )
-    ENDIF (WIN32)  
+    ENDIF (WIN32)
     SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
       ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
       CACHE INTERNAL "" FORCE)
   ENDIF (WIN32)
-  
+
 ENDIF( PLUS_USE_3dConnexion_TRACKER )
 
 #--------------------------------------------------------------------------
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
-        
-  SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
-    ChRobotics/vtkPlusChRoboticsTracker.cxx
-    )
-  IF (WIN32)  
-    SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} ChRobotics/vtkPlusChRoboticsTracker.h )
-  ENDIF (WIN32)
-  
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
-    CACHE INTERNAL "" FORCE)
+
+SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
+  ChRobotics/vtkPlusChRoboticsTracker.cxx
+  )
+IF (WIN32)
+  SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} ChRobotics/vtkPlusChRoboticsTracker.h )
+ENDIF (WIN32)
+
+SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
+  CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------
 # Microchip MARG sensor (magnetometer, accelerometer, gyroscope)
-        
-  SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
-    MicrochipTracking/vtkPlusMicrochipTracker.cxx
-    )
-  IF (WIN32)  
-    SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} MicrochipTracking/vtkPlusMicrochipTracker.h )
-  ENDIF (WIN32)
-  
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
-    CACHE INTERNAL "" FORCE)
-    
+
+SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
+  MicrochipTracking/vtkPlusMicrochipTracker.cxx
+  )
+IF (WIN32)  
+  SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS} MicrochipTracking/vtkPlusMicrochipTracker.h )
+ENDIF (WIN32)
+
+SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
+  CACHE INTERNAL "" FORCE)
+
 #--------------------------------------------------------------------------
 # OpenIGTLink 
 
@@ -513,9 +505,11 @@ IF( PLUS_USE_OpenIGTLink )
       OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
       )
   ENDIF (WIN32)
+
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLink
-    CACHE INTERNAL "" FORCE)  
+    ${OpenIGTLink_INCLUDE_DIRS}
+    CACHE INTERNAL "" FORCE)
   
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 
@@ -535,7 +529,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SonixVideo/vtkPlusSonixPortaVideoSource.cxx
     )
     
-  IF (WIN32)  
+  IF (WIN32)
     SET (PlusDataCollection_HDRS
       ${PlusDataCollection_HDRS}
       SonixVideo/vtkPlusSonixVideoSource.h
@@ -544,7 +538,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
       SonixVideo/itkUlteriusImageIOFactory.h
       SonixVideo/vtkPlusSonixPortaVideoSource.h
       )
-  ENDIF (WIN32)  
+  ENDIF (WIN32)
 
   MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
   IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 1)
@@ -555,7 +549,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
       optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
       debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
-      )    
+      )
     SET ( External_Libraries_Install ${External_Libraries_Install}
       ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -815,15 +809,6 @@ ENDIF (PLUS_USE_MMF_VIDEO)
 # Epiphan support
 
 IF (PLUS_USE_EPIPHAN)
-
-  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET (EPIPHAN_BINARY_DIR ${EPIPHAN_WIN64_BINARY_DIR})
-    SET (EPIPHAN_LIB_DIR ${EPIPHAN_WIN64_LIB_DIR})
-  ELSE()
-    SET (EPIPHAN_BINARY_DIR ${EPIPHAN_WIN32_BINARY_DIR})
-    SET (EPIPHAN_LIB_DIR ${EPIPHAN_WIN32_LIB_DIR})
-  ENDIF()
-
   SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
     Epiphan/vtkPlusEpiphanVideoSource.cxx
     )
@@ -831,20 +816,26 @@ IF (PLUS_USE_EPIPHAN)
     SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
       Epiphan/vtkPlusEpiphanVideoSource.h
       )
-  ENDIF (WIN32)  
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
-    ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX}
-    )    
+  ENDIF (WIN32)
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${EPIPHAN_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Epiphan
-    )          
+    )
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
+
+  # Create a target for proper CMake infrastructure
+  ADD_LIBRARY(Epiphan SHARED IMPORTED)
+  SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_IMPLIB ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX})
+  SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_LOCATION ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX})
+  
+  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    Epiphan
+  )
 ENDIF (PLUS_USE_EPIPHAN)
 
 # --------------------------------------------------------------------------

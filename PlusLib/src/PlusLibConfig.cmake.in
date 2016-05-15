@@ -1,15 +1,32 @@
-# - Config file for the Plus package
-# It defines the following variables
-#  PLUSLIB_INCLUDE_DIRS - include directories for Plus
-#  PLUSLIB_LIBRARY_DIRS - library directories for Plus (normally not used!)
- 
+#-----------------------------------------------------------------------------
+# Configuration file for the Public Library for Ultrasound (PLUS) toolkit
+#
+# © Copyright 2016 The Laboratory for Percutaneous Surgery, Queen's University, Canada
+#
+# This file can be passed to a CMake FIND_PACKAGE call with the following syntax:
+#
+# FIND_PACKAGE(PlusLib @PLUSLIB_VERSION@ <REQUIRED|QUIET> <NO_MODULE>)
+#   If NO_MODULE is included, set the variable PlusLib_DIR:PATH=@CMAKE_BINARY_DIR@
+# 
+# Once successful, you can either use the USE_FILE approach by the following CMake command:
+# INCLUDE(${PLUS_USE_FILE})
+#
+# Or you can use the following variables to configure your CMake project:
+#  PlusLib_INCLUDE_DIRS - include directories for Plus headers
+#  PlusLib_LIBRARIES - list of CMake targets produced by this build of Plus
+#  PlusLib_DATA_DIR - directory containing data collector configuration files, sample images, and 3d models
+#-----------------------------------------------------------------------------
+
+SET(PlusLib_TARGETS_FILE @CMAKE_BINARY_DIR@/PlusLibTargets.cmake)
+INCLUDE(${PlusLib_TARGETS_FILE})
+
 # Tell the user project where to find our headers and libraries
-SET(PLUSLIB_INCLUDE_DIRS "@PLUSLIB_INCLUDE_DIRS@")
-SET(PLUSLIB_LIBRARY_DIRS "@PLUSLIB_LIBRARY_DIRS@")
-SET(PLUSLIB_DATA_DIR "@PLUSLIB_DATA_DIR@")
+SET(PlusLib_INCLUDE_DIRS "@PLUSLIB_INCLUDE_DIRS@")
+SET(PlusLib_DATA_DIR "@PLUSLIB_DATA_DIR@")
+SET(PlusLib_LIBRARIES "@PLUSLIB_DEPENDENCIES@")
 
 # Tell the user project where to find Plus use file
-SET(PlusLib_USE_FILE "@CMAKE_CURRENT_BINARY_DIR@/UsePlusLib.cmake" )
+SET(PlusLib_USE_FILE "@CMAKE_BINARY_DIR@/UsePlusLib.cmake" )
 
 # Get the location for IntersonCxx
 SET(PLUS_USE_INTERSONSDKCXX_VIDEO "@PLUS_USE_INTERSONSDKCXX_VIDEO@")
@@ -19,6 +36,38 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
   ENDIF()
   FIND_PACKAGE(IntersonSDKCxx REQUIRED)
 ENDIF()
- 
-# Our library dependencies (contains definitions for IMPORTED targets)
-include("@CMAKE_CURRENT_BINARY_DIR@/PlusLibLibraryDepends.cmake")
+
+IF( @PLUS_USE_EPIPHAN@ )
+  ADD_LIBRARY(Epiphan SHARED IMPORTED)
+  SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_IMPLIB @EPIPHAN_LIB_DIR@/frmgrab@CMAKE_STATIC_LIBRARY_SUFFIX@)
+  SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_LOCATION @EPIPHAN_BINARY_DIR@/frmgrab@CMAKE_SHARED_LIBRARY_SUFFIX@)
+  LIST(APPEND PlusLib_LIBRARIES Epiphan)
+ENDIF()
+
+IF( @PLUS_USE_Ascension3DG@ )
+  ADD_LIBRARY(Ascension3DG SHARED IMPORTED)
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB @Ascension3DG_LIB_FILE@)
+  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION @Ascension3DG_SHARED_LIB_FILE@)
+  LIST(APPEND PlusLib_LIBRARIES Ascension3DG)
+ENDIF()
+
+IF( @PLUS_USE_Ascension3DGm@ )
+  ADD_LIBRARY(Ascension3DGm SHARED IMPORTED)
+  SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_IMPLIB @ATC_MEDSAFE_LIB_DIR@/ATC3DGm@CMAKE_STATIC_LIBRARY_SUFFIX@)
+  SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_LOCATION @Ascension3DG_SHARED_LIB_FILE@)
+  LIST(APPEND PlusLib_LIBRARIES Ascension3DGm)
+ENDIF()
+
+IF( @PLUS_USE_PHIDGET_SPATIAL_TRACKER@ )
+  ADD_LIBRARY(phidget SHARED IMPORTED)
+  SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB @PHIDGET_SPATIAL_LIB_DIR@/phidget21@CMAKE_STATIC_LIBRARY_SUFFIX@)
+  SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION @PHIDGET_SPATIAL_BINARY_DIR@/phidget21@CMAKE_SHARED_LIBRARY_SUFFIX@)
+  LIST(APPEND PlusLib_LIBRARIES phidget)
+ENDIF()
+
+IF( @PLUS_USE_BRACHY_TRACKER@ )
+  ADD_LIBRARY(USDigitalEncoders SHARED IMPORTED)
+  SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_IMPLIB @USDIGITAL_SEI_LIB_DIR@/SEIDrv32@CMAKE_STATIC_LIBRARY_SUFFIX@)
+  SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_LOCATION @USDIGITAL_SEI_BINARY_DIR@/SEIDrv32@CMAKE_SHARED_LIBRARY_SUFFIX@)
+  LIST(APPEND PlusLib_LIBRARIES USDigitalEncoders)
+ENDIF()

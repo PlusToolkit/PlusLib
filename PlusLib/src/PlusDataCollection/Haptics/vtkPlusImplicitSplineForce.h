@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkPlusImplicitSplineForce_h
 
 #include "PlusConfigure.h"
-#include "PlusHapticsExport.h"
+#include "vtkPlusHapticsExport.h"
 
 #include "vtkPlusForceFeedback.h"
 
@@ -25,7 +25,7 @@ class vtkMatrix4x4;
 #define DimKnot_V DimCPoint_V+2
 #define DimKnot_W DimCPoint_W+2
 
-class PlusHapticsExport vtkPlusImplicitSplineForce : public vtkPlusForceFeedback
+class vtkPlusHapticsExport vtkPlusImplicitSplineForce : public vtkPlusForceFeedback
 {
 public:
   static vtkPlusImplicitSplineForce *New();

@@ -306,9 +306,33 @@ ENDIF(BUILD_DOCUMENTATION)
 
 ADD_SUBDIRECTORY(Documentation)
 
+#----------------------------------------------------------------------------
+# Append entries for export to UsePlusLib.cmake
+IF( ${PLUS_USE_EPIPHAN} )
+  LIST(APPEND PLUSLIB_DEPENDENCIES Epiphan)
+ENDIF()
+IF( ${PLUS_USE_Ascension3DG} )
+  LIST(APPEND PLUSLIB_DEPENDENCIES Ascension3DG)
+ENDIF()
+IF( ${PLUS_USE_Ascension3DGm} )
+  LIST(APPEND PLUSLIB_DEPENDENCIES Ascension3DGm)
+ENDIF()
+IF( ${PLUS_USE_PHIDGET_SPATIAL_TRACKER} )
+  LIST(APPEND PLUSLIB_DEPENDENCIES phidget)
+ENDIF()
+IF( ${PLUS_USE_BRACHY_TRACKER} )
+  LIST(APPEND PLUSLIB_DEPENDENCIES USDigitalEncoders)
+ENDIF()
+
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library 
 # 
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)	
+  ${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)
+  
+  #-----------------------------------------------------------------------------
+# With regards to ticket #1075, also generate in top-level directory
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+  ${CMAKE_BINARY_DIR}/UsePlusLib.cmake @ONLY)

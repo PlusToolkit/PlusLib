@@ -13,6 +13,8 @@ SET(PLUSLIB_VERSION_MINOR "3")
 SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
+MESSAGE(STATUS "Configuring PLUS toolkit version ${PLUSLIB_VERSION}.")
+
 IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" ) 
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
     SET(PLUSLIB_PLATFORM "Win64" CACHE STRING "Name of the platform this instance of PlusLib is built on")
@@ -20,8 +22,14 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
     SET(PLUSLIB_PLATFORM "Win32" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ENDIF()
 ELSE()
-  SET (PLUSLIB_PLATFORM "Linux/Mac" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+  IF( APPLE )
+    SET (PLUSLIB_PLATFORM "OSX" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+  ELSE()
+    SET (PLUSLIB_PLATFORM "Linux" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+  ENDIF()
 ENDIF()
+
+MESSAGE(STATUS "Detected platform: ${PLUSLIB_PLATFORM}.")
 
 # --------------------------------------------------------------------------
 # System Settings
@@ -70,26 +78,55 @@ SET( ATC_TRAKSTAR_BINARY_DIR ${ATC_TRAKSTAR_BASE_DIR}/bin CACHE PATH "Path to th
 SET( ATC_MEDSAFE_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Ascension/medSAFE_940033_Rev_F)
 SET( ATC_MEDSAFE_INCLUDE_DIR ${ATC_MEDSAFE_BASE_DIR}/inc CACHE PATH "Path to the Ascension medSAFE 3D Guidance include folder (where the ATC3DGm.h file is located)" FORCE )
 SET( ATC_MEDSAFE_LIB_DIR ${ATC_MEDSAFE_BASE_DIR}/lib CACHE PATH "Path to the Ascension medSAFE 3D Guidance lib folder" FORCE )
-SET( ATC_MEDSAFE_BINARY_DIR ${ATC_MEDSAFE_BASE_DIR}/bin CACHE PATH "Path to the Ascension medSAFE 3D Guidance dll folder" FORCE ) 
+SET( ATC_MEDSAFE_BINARY_DIR ${ATC_MEDSAFE_BASE_DIR}/bin CACHE PATH "Path to the Ascension medSAFE 3D Guidance dll folder" FORCE )
+MARK_AS_ADVANCED(ATC_TRAKSTAR_BASE_DIR 
+  ATC_TRAKSTAR_INCLUDE_DIR 
+  ATC_TRAKSTAR_LIB_DIR 
+  ATC_TRAKSTAR_BINARY_DIR 
+  ATC_MEDSAFE_BASE_DIR 
+  ATC_MEDSAFE_INCLUDE_DIR 
+  ATC_MEDSAFE_LIB_DIR 
+  ATC_MEDSAFE_BINARY_DIR)
 
 SET( PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)  
 SET( PHIDGET_SPATIAL_INCLUDE_DIR ${PHIDGET_SPATIAL_BASE_DIR} CACHE PATH "Path to the Phidget Spatial include folder" FORCE )
-SET( PHIDGET_SPATIAL_WIN32_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x86 CACHE PATH "Path to the Phidget Spatial 32-bit lib folder" FORCE )
-SET( PHIDGET_SPATIAL_WIN32_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x86 CACHE PATH "Path to the Phidget Spatial 32-bit dll folder" FORCE ) 
-SET( PHIDGET_SPATIAL_WIN64_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x64 CACHE PATH "Path to the Phidget Spatial 64-bit lib folder" FORCE )
-SET( PHIDGET_SPATIAL_WIN64_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x64 CACHE PATH "Path to the Phidget Spatial 64-bit dll folder" FORCE ) 
+IF( MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64" )
+  SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x64 CACHE PATH "Path to the Phidget Spatial 64-bit lib folder" FORCE )
+  SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x64 CACHE PATH "Path to the Phidget Spatial 64-bit dll folder" FORCE )
+ELSE()
+  SET( PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x86 CACHE PATH "Path to the Phidget Spatial 32-bit lib folder" FORCE )
+  SET( PHIDGET_SPATIAL_BINARY_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x86 CACHE PATH "Path to the Phidget Spatial 32-bit dll folder" FORCE )
+ENDIF()
+MARK_AS_ADVANCED(PHIDGET_SPATIAL_BASE_DIR
+  PHIDGET_SPATIAL_INCLUDE_DIR
+  PHIDGET_SPATIAL_LIB_DIR
+  PHIDGET_SPATIAL_BINARY_DIR
+  )
 
 SET( EPIPHAN_SDK_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Epiphan )
 SET( EPIPHAN_INCLUDE_DIR ${EPIPHAN_SDK_BASE_DIR} CACHE PATH "Path to the Epiphan SDK include directory." FORCE )
-SET( EPIPHAN_WIN32_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/Win32 CACHE PATH "Path to the Epiphan 32-bit dll folder" FORCE )
-SET( EPIPHAN_WIN32_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/Win32 CACHE PATH "Path to the Epiphan 32-bit lib folder" FORCE )
-SET( EPIPHAN_WIN64_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/x64 CACHE PATH "Path to the Epiphan 64-bit dll folder" FORCE )
-SET( EPIPHAN_WIN64_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/x64 CACHE PATH "Path to the Epiphan 64-bit lib folder" FORCE )
+IF( MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64" )
+  SET (EPIPHAN_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/x64 CACHE PATH "Directory containing Epiphan shared library file." FORCE)
+  SET (EPIPHAN_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/x64 CACHE PATH "Directory containing Epiphan static library file." FORCE)
+ELSE()
+  SET (EPIPHAN_BINARY_DIR ${EPIPHAN_SDK_BASE_DIR}/Win32 CACHE PATH "Directory containing Epiphan shared library file." FORCE)
+  SET (EPIPHAN_LIB_DIR ${EPIPHAN_SDK_BASE_DIR}/Win32 CACHE PATH "Directory containing Epiphan static library file." FORCE)
+ENDIF()
+MARK_AS_ADVANCED(EPIPHAN_SDK_BASE_DIR
+  EPIPHAN_INCLUDE_DIR
+  EPIPHAN_BINARY_DIR
+  EPIPHAN_LIB_DIR
+  )
 
 SET( USDIGITAL_SEI_BASE_DIR ${PLUSLIB_TOOLS_DIR}/UsDigital/SEI_5.22)
 SET( USDIGITAL_SEI_INCLUDE_DIR ${USDIGITAL_SEI_BASE_DIR}/inc CACHE PATH "Path to the US Digital SEI include directory (needed for the CIVCO stepper)." FORCE )
 SET( USDIGITAL_SEI_BINARY_DIR ${USDIGITAL_SEI_BASE_DIR}/bin CACHE PATH "Path to the US Digital SEI binary directory (needed for the CIVCO stepper)." FORCE )
 SET( USDIGITAL_SEI_LIB_DIR ${USDIGITAL_SEI_BASE_DIR}/lib CACHE PATH "Path to the US Digital SEI library directory (needed for the CIVCO stepper)." FORCE )
+MARK_AS_ADVANCED(USDIGITAL_SEI_BASE_DIR
+  USDIGITAL_SEI_INCLUDE_DIR
+  USDIGITAL_SEI_BINARY_DIR
+  USDIGITAL_SEI_LIB_DIR
+  )
 
 # --------------------------------------------------------------------------
 # Subdirs
