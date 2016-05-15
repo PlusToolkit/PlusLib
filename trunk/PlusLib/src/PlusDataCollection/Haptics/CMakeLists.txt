@@ -1,4 +1,4 @@
-PROJECT(PlusHaptics)
+PROJECT(vtkPlusHaptics)
 
 # Add entries to project details
 SET(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_SOURCE_DIR} ${${PROJECT_NAME}_BINARY_DIR} CACHE INTERNAL "" FORCE)
@@ -26,7 +26,7 @@ SET_SOURCE_FILES_PROPERTIES(
 
 SET(${PROJECT_NAME}_LIBS ${VTK_LIBRARIES} )
 
-GENERATE_EXPORT_DIRECTIVE_FILE(PlusHaptics)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusHaptics)
 
 # -----------------------------------------------------------------
 # Build the library

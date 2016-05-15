@@ -8,13 +8,13 @@ See License.txt for details.
 #define __vtkPlusForceFeedback_h
 
 #include "PlusConfigure.h"
-#include "PlusHapticsExport.h"
+#include "vtkPlusHapticsExport.h"
 
 #include "vtkObject.h"
 
 class vtkMatrix4x4;
 
-class PlusHapticsExport vtkPlusForceFeedback : public vtkObject
+class vtkPlusHapticsExport vtkPlusForceFeedback : public vtkObject
 {
 public:
   static vtkPlusForceFeedback *New();

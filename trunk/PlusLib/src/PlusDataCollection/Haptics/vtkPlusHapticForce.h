@@ -8,14 +8,14 @@ See License.txt for details.
 #define __vtkPlusHapticForce_h
 
 #include "PlusConfigure.h"
-#include "PlusHapticsExport.h"
+#include "vtkPlusHapticsExport.h"
 
 #include "vtkObject.h"
 #include <vector>
 
 class vtkPlusForceFeedback;
 
-class PlusHapticsExport vtkPlusHapticForce : public vtkObject
+class vtkPlusHapticsExport vtkPlusHapticForce : public vtkObject
 {
 public:
   static vtkPlusHapticForce *New();

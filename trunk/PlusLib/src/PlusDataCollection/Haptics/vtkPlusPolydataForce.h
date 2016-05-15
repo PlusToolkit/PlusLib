@@ -8,13 +8,13 @@ See License.txt for details.
 #define __vtkPlusPolydataForce_h
 
 #include "PlusConfigure.h"
-#include "PlusHapticsExport.h"
+#include "vtkPlusHapticsExport.h"
 
 #include "vtkPlusForceFeedback.h"
 
 class vtkPolyData;
 
-class PlusHapticsExport vtkPlusPolydataForce : public vtkPlusForceFeedback
+class vtkPlusHapticsExport vtkPlusPolydataForce : public vtkPlusForceFeedback
 {
 public:
   static vtkPlusPolydataForce *New();
