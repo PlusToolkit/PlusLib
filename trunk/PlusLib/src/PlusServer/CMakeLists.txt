@@ -73,12 +73,24 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtkPlusServer.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
+# Executables built by PlusServer project
+ADD_EXECUTABLE( PlusServer PlusServer.cxx )
+TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkPlusDataCollection ${VTK_LIBRARIES} )
+
+ADD_EXECUTABLE( PlusServerRemoteControl PlusServerRemoteControl.cxx )
+TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusServer )
+  
+# --------------------------------------------------------------------------
 # Install
 #
 INSTALL(TARGETS vtkPlusServer
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
+  )
+
+INSTALL(TARGETS PlusServer PlusServerRemoteControl
+  DESTINATION bin COMPONENT RuntimeExecutables
   )
   
 # --------------------------------------------------------------------------
