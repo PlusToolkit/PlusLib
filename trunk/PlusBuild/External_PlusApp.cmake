@@ -49,6 +49,7 @@ ExternalProject_Add(PlusApp
     -DPLUSAPP_PACKAGE_EDITION:STRING=${PLUSAPP_PACKAGE_EDITION}
     -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
     -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+    -DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
     ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
   #--Build step-----------------
   BUILD_ALWAYS 1
