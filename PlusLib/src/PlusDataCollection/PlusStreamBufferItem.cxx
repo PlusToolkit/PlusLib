@@ -58,6 +58,12 @@ StreamBufferItem& StreamBufferItem::operator=(StreamBufferItem const &dataItem)
 }
 
 //----------------------------------------------------------------------------
+void StreamBufferItem::SetCustomFrameField(std::string fieldName, std::string fieldValue)
+{
+  this->CustomFrameFields[fieldName] = fieldValue;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus StreamBufferItem::DeepCopy(StreamBufferItem* dataItem)
 {
   if ( dataItem == NULL )
