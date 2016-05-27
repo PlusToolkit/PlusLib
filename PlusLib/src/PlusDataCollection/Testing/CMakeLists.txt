@@ -384,6 +384,12 @@ IF (PLUS_USE_MICRONTRACKER)
     TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon)    
 ENDIF (PLUS_USE_MICRONTRACKER) 
 
+#*************************** IntelRealSenseTrackerTest ***************************
+IF (PLUS_USE_INTELREALSENSE)
+    ADD_EXECUTABLE(vtkIntelRealSenseTrackerTest vtkIntelRealSenseTrackerTest.cxx)
+    TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon)    
+ENDIF (PLUS_USE_INTELREALSENSE)
+
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPlusDeviceFactoryTest vtkPlusDataCollection vtkPlusCommon)

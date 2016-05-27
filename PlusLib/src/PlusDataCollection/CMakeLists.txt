@@ -287,6 +287,34 @@ IF (PLUS_USE_MICRONTRACKER)
 ENDIF (PLUS_USE_MICRONTRACKER)
 
 #--------------------------------------------------------------------------
+# MICRONTRACKER support
+IF (PLUS_USE_INTELREALSENSE)
+
+  SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+    IntelRealSense/vtkPlusIntelRealSenseTracker.cxx
+  )
+  
+  IF (WIN32)  
+    SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+      IntelRealSense/vtkPlusIntelRealSenseTracker.h
+      )
+  ENDIF (WIN32)
+
+  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSense
+	${INTELREALSENSE_INCLUDE_DIR}
+    CACHE INTERNAL "" FORCE)
+  
+  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    optimized ${INTELREALSENSE_RELEASE_LIB}
+    debug ${INTELREALSENSE_DEBUG_LIB}
+    )
+
+  # TODO: may need to install DLLs
+  
+ENDIF (PLUS_USE_INTELREALSENSE)
+
+#--------------------------------------------------------------------------
 # BrachyTracker support
 IF (PLUS_USE_BRACHY_TRACKER)
 
