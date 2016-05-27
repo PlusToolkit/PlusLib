@@ -201,11 +201,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         }
 
         igtl::Matrix4x4 igtlMatrix; 
-        if( vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName) == PLUS_FAIL )
-        {
-          LOG_ERROR("Invalid transform requested from repository: " << transformName);
-          return PLUS_FAIL;
-        }
+        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
         igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->CreateAnother().GetPointer());
         vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
@@ -225,11 +221,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         */
         PlusTransformName transformName = (*transformNameIterator);
         igtl::Matrix4x4 igtlMatrix; 
-        if( vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName) == PLUS_FAIL )
-        {
-          LOG_ERROR("Invalid transform requested from repository: " << transformName);
-          return PLUS_FAIL;
-        }
+        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
         float position[3]={igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
         float quaternion[4]={0,0,0,1};
