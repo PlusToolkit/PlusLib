@@ -87,7 +87,7 @@ public:
   void SetUid(BufferItemUidType uid) { this->Uid = uid; }; 
 
   /*! Set custom frame field */
-  void SetCustomFrameField(std::string fieldName, std::string fieldValue) { this->CustomFrameFields[fieldName] = fieldValue; }
+  void SetCustomFrameField(std::string fieldName, std::string fieldValue);
 
   /*! Get custom frame field value */ 
   const char* GetCustomFrameField(const char* fieldName)

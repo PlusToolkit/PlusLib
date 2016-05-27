@@ -61,7 +61,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(TextRecognizerInputChannelName, deviceConfig);
   const char * transformName = deviceConfig->GetAttribute("ImageToTransducerTransformName");
-  if( transformName == NULL || this->ImageToTransducerTransform.SetTransformName(transformName) != PLUS_SUCCESS )
+  if( transformName != NULL && this->ImageToTransducerTransform.SetTransformName(transformName) != PLUS_SUCCESS )
   {
     LOG_ERROR("Transform name is not properly formatted. It should be of the format <From>ToTransducer.");
   }
@@ -156,7 +156,7 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if( !this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL )
+  if( this->ImageToTransducerTransform.IsValid() && customFields != NULL )
   {
     localCustomFields = *customFields;
     this->CalculateImageToTransducer(localCustomFields);
