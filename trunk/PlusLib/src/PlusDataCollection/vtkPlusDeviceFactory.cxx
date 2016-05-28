@@ -30,7 +30,7 @@ See License.txt for details.
 #ifdef PLUS_USE_CERTUS
 #include "vtkPlusNDICertusTracker.h"
 #endif
-#ifdef PLUS_USE_ßTRACKER
+#ifdef PLUS_USE_MICRONTRACKER
 #include "vtkPlusMicronTracker.h"
 #endif
 #ifdef PLUS_USE_INTELREALSENSE
@@ -182,7 +182,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkPlusNDITracker::New;
   DeviceTypeClassNames["AuroraTracker"] = "vtkPlusNDITracker"; 
 #endif
-#ifdef PLUS_USE_MICRONTRACKER  
+#ifdef PLUS_USE_MICRONTRACKER
   DeviceTypes["MicronTracker"]=(PointerToDevice)&vtkPlusMicronTracker::New;
   DeviceTypeClassNames["MicronTracker"] = "vtkPlusMicronTracker"; 
 #endif
