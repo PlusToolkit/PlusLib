@@ -34,7 +34,9 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
     std::string Name; 
     /*! Name of the IGTL image message embedded transform "To" frame */ 
     std::string EmbeddedTransformToFrame; 
-  }; 
+  };
+
+  PlusIgtlClientInfo();
 
   /*! Deserialize client info data from string xml data */ 
   PlusStatus SetClientInfoFromXmlData( const char* strXmlData );

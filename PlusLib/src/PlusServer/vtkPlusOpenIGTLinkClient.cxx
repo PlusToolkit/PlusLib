@@ -33,7 +33,7 @@ vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
   , Threader(vtkSmartPointer<vtkMultiThreader>::New())
   , ServerHost(NULL)
   , ServerPort(-1)
-  , ServerIGTLVersion(IGTL_HEADER_VERSION_2)
+  , ServerIGTLVersion(IGTL_HEADER_VERSION_1)
 {
   // TODO: dynamically determine server igt capabilities and then update server IGTL version
 }
