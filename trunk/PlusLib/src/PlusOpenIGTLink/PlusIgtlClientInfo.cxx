@@ -6,6 +6,15 @@ See License.txt for details.
 
 #include "PlusIgtlClientInfo.h"
 
+#include "igtl_header.h"
+
+//----------------------------------------------------------------------------
+PlusIgtlClientInfo::PlusIgtlClientInfo()
+  : ClientIGTLVersion(IGTL_HEADER_VERSION_1)
+{
+
+}
+
 //----------------------------------------------------------------------------
 PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData( const char* strXmlData )
 {
