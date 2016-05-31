@@ -1339,9 +1339,9 @@ PlusStatus vtkPlusCapistranoVideoSource::SetBModeViewOption(unsigned int bModeVi
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(int imageSize[2])
+PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(int imageSize[3])
 {
-  return this->Internal->ImagingParameters->SetImageSize(imageSize, 2);
+  return this->Internal->ImagingParameters->SetImageSize(imageSize, 3);
 }
 
 // ----------------------------------------------------------------------------
@@ -1719,7 +1719,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtk
   {
     std::vector<int> imageSizeVec;
     this->Internal->ImagingParameters->GetImageSize(imageSizeVec);
-    int imageSize[2] = {imageSizeVec[0], imageSizeVec[1]};
+    int imageSize[3] = {imageSizeVec[0], imageSizeVec[1], 1};
 
     if (this->SetImageSize(imageSize) == PLUS_FAIL )
     {
