@@ -45,7 +45,10 @@ vtkPlusSequenceIOBase::vtkPlusSequenceIOBase()
 //----------------------------------------------------------------------------
 vtkPlusSequenceIOBase::~vtkPlusSequenceIOBase()
 {
-  SetTrackedFrameList(NULL);
+  if( this->TrackedFrameList != NULL )
+  {
+    this->SetTrackedFrameList(NULL);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -83,7 +86,7 @@ PlusStatus vtkPlusSequenceIOBase::DeleteCustomFrameString(int frameNumber, const
     return PLUS_FAIL;
   }
 
-  return trackedFrame->DeleteCustomFrameField(fieldName); 
+  return trackedFrame->DeleteCustomFrameField(fieldName);
 }
 
 //----------------------------------------------------------------------------
@@ -101,8 +104,8 @@ PlusStatus vtkPlusSequenceIOBase::SetCustomFrameString(int frameNumber, const ch
     LOG_ERROR("Cannot access frame "<<frameNumber);
     return PLUS_FAIL;
   }
-  trackedFrame->SetCustomFrameField( fieldName, fieldValue );     
-  return PLUS_SUCCESS; 
+  trackedFrame->SetCustomFrameField( fieldName, fieldValue );
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -113,8 +116,8 @@ bool vtkPlusSequenceIOBase::SetCustomString(const char* fieldName, const char* f
     LOG_ERROR("Invalid field name");
     return PLUS_FAIL;
   }
-  this->TrackedFrameList->SetCustomString(fieldName, fieldValue); 
-  return PLUS_SUCCESS; 
+  this->TrackedFrameList->SetCustomString(fieldName, fieldValue);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -125,8 +128,8 @@ bool vtkPlusSequenceIOBase::SetCustomString(const std::string& fieldName, const 
     LOG_ERROR("Invalid field name");
     return PLUS_FAIL;
   }
-  this->TrackedFrameList->SetCustomString(fieldName, fieldValue); 
-  return PLUS_SUCCESS; 
+  this->TrackedFrameList->SetCustomString(fieldName, fieldValue);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -137,7 +140,13 @@ const char* vtkPlusSequenceIOBase::GetCustomString(const char* fieldName)
     LOG_ERROR("Invalid field name or value");
     return NULL;
   }
-  return this->TrackedFrameList->GetCustomString(fieldName); 
+  return this->TrackedFrameList->GetCustomString(fieldName);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusSequenceIOBase::GetCustomString(const std::string& fieldName)
+{
+  return this->TrackedFrameList->GetCustomString(fieldName);
 }
 
 //----------------------------------------------------------------------------
@@ -164,7 +173,7 @@ PlusStatus vtkPlusSequenceIOBase::PrepareHeader()
     {
       // No specific orientation is requested, so just use the same as in the memory
       this->ImageOrientationInFile=this->TrackedFrameList->GetImageOrientation();
-    }  
+    }
     if (this->ImageOrientationInFile!=this->TrackedFrameList->GetImageOrientation())
     {
       // Reordering of the frames is not implemented, so just save the images as they are in the memory
@@ -270,7 +279,7 @@ PlusStatus vtkPlusSequenceIOBase::Close()
     std::string pixelDataFileNameOnly=vtksys::SystemTools::GetFilenameName(this->PixelDataFileName);
     pathElements.push_back(pixelDataFileNameOnly);
     std::string pixFullPath = vtksys::SystemTools::JoinPath(pathElements);
-     
+
     MoveFileInternal(this->TempImageFileName.c_str(), pixFullPath.c_str());
   }
 
@@ -299,7 +308,7 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
   if ( this->PixelType == VTK_VOID )
   {
     // If the pixel type was not defined, define it to UCHAR
-    this->PixelType = VTK_UNSIGNED_CHAR; 
+    this->PixelType = VTK_UNSIGNED_CHAR;
   }
 
   PlusStatus result = PLUS_SUCCESS;
@@ -307,14 +316,14 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
   {
     if (imageDataAvailable)
     {
-      // Create a blank frame if we have to write an invalid frame to sequence file 
-      PlusVideoFrame blankFrame; 
+      // Create a blank frame if we have to write an invalid frame to sequence file
+      PlusVideoFrame blankFrame;
       if ( blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents)!=PLUS_SUCCESS)
       {
-        LOG_ERROR("Failed to allocate space for blank image."); 
-        return PLUS_FAIL; 
+        LOG_ERROR("Failed to allocate space for blank image.");
+        return PLUS_FAIL;
       }
-      blankFrame.FillBlank(); 
+      blankFrame.FillBlank();
 
       // not compressed
       for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
@@ -322,18 +331,18 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
         PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
         PlusVideoFrame* videoFrame = &blankFrame;
-        if ( this->EnableImageDataWrite && trackedFrame->GetImageData()->IsImageValid() ) 
+        if ( this->EnableImageDataWrite && trackedFrame->GetImageData()->IsImageValid() )
         {
-          videoFrame = trackedFrame->GetImageData(); 
+          videoFrame = trackedFrame->GetImageData();
         }
 
         size_t writtenSize = 0;
         PlusStatus status = PlusCommon::RobustFwrite(this->OutputImageFileHandle, videoFrame->GetScalarPointer(),
-          videoFrame->GetFrameSizeInBytes(), writtenSize);  
+                            videoFrame->GetFrameSizeInBytes(), writtenSize);
         if (status==PLUS_FAIL)
         {
           LOG_ERROR("Unable to write entire frame to file. Frame size: " << videoFrame->GetFrameSizeInBytes()
-            << ", successfully written: " << writtenSize << " bytes");
+                    << ", successfully written: " << writtenSize << " bytes");
         }
         this->TotalBytesWritten += writtenSize;
       }
@@ -408,7 +417,7 @@ PlusStatus vtkPlusSequenceIOBase::MoveFileInternal(const char* oldname, const ch
 #else
   if( !vtksys::SystemTools::CopyFileAlways(oldname, newname) )
   {
-	  return PLUS_FAIL;
+    return PLUS_FAIL;
   }
   vtksys::SystemTools::RemoveFile(oldname);
 #endif
@@ -446,15 +455,15 @@ void vtkPlusSequenceIOBase::GetMaximumImageDimensions(int maxFrameSize[3])
 
   for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
-    int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize(); 
+    int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
     if ( maxFrameSize[0] < currFrameSize[0] )
     {
-      maxFrameSize[0] = currFrameSize[0]; 
+      maxFrameSize[0] = currFrameSize[0];
     }
 
     if ( maxFrameSize[1] < currFrameSize[1] )
     {
-      maxFrameSize[1] = currFrameSize[1]; 
+      maxFrameSize[1] = currFrameSize[1];
     }
 
     if( maxFrameSize[2] < currFrameSize[2] )

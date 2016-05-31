@@ -645,6 +645,18 @@ const char* vtkPlusTrackedFrameList::GetCustomString( const char* fieldName )
   return NULL; 
 }
 
+
+//----------------------------------------------------------------------------
+std::string vtkPlusTrackedFrameList::GetCustomString(const std::string& fieldName) const
+{
+  FieldMapType::const_iterator fieldIterator = this->CustomFields.find(fieldName); 
+  if ( fieldIterator != this->CustomFields.end() )
+  {
+    return fieldIterator->second; 
+  }
+  return std::string(""); 
+}
+
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTrackedFrameList::GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
 {

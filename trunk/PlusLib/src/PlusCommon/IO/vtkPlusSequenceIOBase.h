@@ -176,6 +176,7 @@ protected:
 
   /*! Get a custom string field value (global, not for a specific frame) */
   const char* GetCustomString(const char* fieldName);
+  std::string GetCustomString(const std::string& fieldName);
 
   /*!
     Convenience function that extends the tracked frame list (if needed) to make sure
