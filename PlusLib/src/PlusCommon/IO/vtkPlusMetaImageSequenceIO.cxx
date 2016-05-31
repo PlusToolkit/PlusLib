@@ -840,7 +840,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::AppendImagesToHeader()
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for appending.");
     return PLUS_FAIL;
   }
 
@@ -890,7 +890,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::FinalizeHeader()
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for writing");
+    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for appending.");
     return PLUS_FAIL;
   }
 
@@ -1208,6 +1208,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fiel
     LOG_ERROR("Cannot update file header, filename is invalid");
     return PLUS_FAIL;
   }
+
   FILE *stream=NULL;
   // open in read+write binary mode
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "r+b" ) != PLUS_SUCCESS )
@@ -1390,6 +1391,13 @@ PlusStatus vtkPlusMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numbe
         dimSizeStr << " ";
       }
       dimSizeStr << this->Dimensions[3];
+    }
+  }
+  else
+  {
+    for( int i = 0; i < SEQMETA_FIELD_DIMSIZE_NUM_SPACES; ++ i )
+    {
+      dimSizeStr << " ";
     }
   }
 

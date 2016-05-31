@@ -180,6 +180,7 @@ public:
 
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString( const char* fieldName ); 
+  virtual std::string GetCustomString( const std::string& fieldName ) const; 
 
   /*! Set custom string value to \c fieldValue. If \c fieldValue is NULL then the field is deleted. */
   virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue); 
