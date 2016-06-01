@@ -4,11 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-// TODO: need to evaluate if USE_INTELREALSENSE_TIMESTAMPS without filtering
-// is better then simply using accurate timestamp with filtering.
-// E.g., it could be checked by performing temporal calibration.
-// #define USE_INTELREALSENSE_TIMESTAMPS
-
 #include "PlusConfigure.h"
 #include "vtkPlusIntelRealSenseTracker.h"
 
@@ -30,8 +25,6 @@ See License.txt for details.
 
 // From FF_ObjectTracking sample
 #define ID_DEVICEX   21000
-
-/****************************************************************************/
 
 vtkStandardNewMacro(vtkPlusIntelRealSenseTracker);
 
@@ -154,8 +147,6 @@ vtkPlusIntelRealSenseTracker::vtkPlusIntelRealSenseTracker()
 #endif
 
   this->IsTrackingInitialized = 0;
-//  this->MT = new IntelRealSenseTrackerInterface();
-
 
   // for accurate timing
   this->FrameNumber = 0;
@@ -175,22 +166,13 @@ vtkPlusIntelRealSenseTracker::~vtkPlusIntelRealSenseTracker()
 {
   if (this->IsTrackingInitialized)
   {
-    //this->MT->mtEnd();
     this->IsTrackingInitialized=false;
   }
-  /*
-  if ( this->MT != NULL )
-  {    
-    delete this->MT;
-    this->MT = NULL;
-  }
-  */
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusIntelRealSenseTracker::GetSdkVersion()
 {
-  //return this->MT->GetSdkVersion(); 
 	return "";
 }
 
@@ -210,34 +192,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::Probe()
     LOG_DEBUG("Unable to find IntelRealSenseTracker camera calibration file at: " << cameraCalibrationFilePath);
   }
 
-  /*
-  if (this->MT->mtInit(iniFilePath)!=1)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera");
-    return PLUS_FAIL;
-  }
-  */
-
-  /*
-  // Try to attach the cameras till find the cameras
-  if (this->MT->mtSetupCameras()!=1)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera: setup cameras failed. Check the camera connections.");
-    return PLUS_FAIL;
-  }
-  */
-
-  /*
-  int numOfCameras = this->MT->mtGetNumOfCameras();
-  if (numOfCameras==0)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera: no cameras attached. Check the camera connections.");
-    return PLUS_FAIL;
-  }
-  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
-  */
-
-  //this->MT->mtEnd();
   this->IsTrackingInitialized=false;
 
   return PLUS_SUCCESS;
@@ -289,48 +243,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
   const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;        
 #endif
 
-  // Set status and transform for tools with detected markers
-  /*
-  vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
-  std::set<std::string> identifiedToolSourceIds;
-  vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
-  mToolToTracker->Identity();
- */
-  /*
-  for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
-  {
-  char* identifiedTemplateName=this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
-  vtkPlusDataSource* tool = NULL;
-  if ( this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS )
-  {
-  LOG_DEBUG("Marker " << identifiedTemplateName << " has no associated tool");
-  continue;
-  }
-
-  GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
-  #ifdef USE_INTELREALSENSE_TIMESTAMPS
-  this->ToolTimeStampedUpdateWithoutFiltering( tool->GetSourceId(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
-  #else
-  this->ToolTimeStampedUpdate( tool->GetSourceId(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
-  #endif
-
-  identifiedToolSourceIds.insert(tool->GetSourceId());
-  }
-
-  // Set status for tools with non-detected markers
-  transformMatrix->Identity();
-  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
-  {
-  if (identifiedToolSourceIds.find(it->second->GetSourceId())!=identifiedToolSourceIds.end())
-  {
-  // this tool has been found and update has been already called with the correct transform
-  LOG_TRACE("Tool "<<it->second->GetSourceId()<<": found");
-  continue;
-  }
-  LOG_TRACE("Tool "<<it->second->GetSourceId()<<": not found");
-
-  }
-  */
 
   if (this->Internal->SenseMgr->AcquireFrame(true) < PXC_STATUS_NO_ERROR)
   {
@@ -364,8 +276,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
       {
         updatedTrackingCount += (!iter->isTracking) ? 1 : 0;
         iter->isTracking = true;
-        //LOG_INFO("Position: " << trackData.translation.x << ", " << trackData.translation.y << ", " << trackData.translation.z)
-        //compute transformMatrix
         double rotationQuat[4] = { trackData.rotation.w, trackData.rotation.x, trackData.rotation.y, trackData.rotation.z };
         double rotationMatrix[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         vtkMath::QuaternionToMatrix3x3(rotationQuat, rotationMatrix);
@@ -383,7 +293,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
         transformMatrix->SetElement(2, 3, trackData.translation.z);
         vtkMatrix4x4::Multiply4x4(leftHandedToRightHanded, transformMatrix, transformMatrix);
         vtkMatrix4x4::Multiply4x4(transformMatrix, leftHandedToRightHanded, transformMatrix);
-        //LOG_INFO("Position: " << transformMatrix->GetElement(0, 3) << ", " << transformMatrix->GetElement(1, 3) << ", " << transformMatrix->GetElement(2, 3));
       }
       else
       {
@@ -406,57 +315,9 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntelRealSenseTracker::RefreshMarkerTemplates()
-{
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusIntelRealSenseTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
-{  
-
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSenseTracker::GetImage(vtkImageData* leftImage, vtkImageData* rightImage)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-  /*
-  unsigned char** leftImageArray=0;
-  unsigned char** rightImageArray=0;
-  if (this->MT->mtGetLeftRightImageArray(leftImageArray, rightImageArray) == -1)
-  {
-    LOG_ERROR("Error getting images from IntelRealSenseTracker");
-    return PLUS_FAIL;
-  }
-
-  int imageWidth=this->MT->mtGetXResolution(-1);
-  int imageHeight=this->MT->mtGetYResolution(-1);
-
-  if (leftImage != NULL)
-  {
-    vtkSmartPointer<vtkImageImport> imageImport=vtkSmartPointer<vtkImageImport>::New();
-    imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetImportVoidPointer((unsigned char*)leftImageArray);
-    imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetDataExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
-    imageImport->SetWholeExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
-    imageImport->Update();
-    leftImage->DeepCopy(imageImport->GetOutput());
-  }
-
-  if (rightImage != NULL)
-  {
-    vtkSmartPointer<vtkImageImport> imageImport=vtkSmartPointer<vtkImageImport>::New();
-    imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetImportVoidPointer((unsigned char*)rightImageArray);
-    imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetDataExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
-    imageImport->SetWholeExtent(0,imageWidth-1, 0,imageHeight-1, 0,0);
-    imageImport->Update();
-    rightImage->DeepCopy(imageImport->GetOutput());
-  }
-  */
   return PLUS_SUCCESS;
 }
 
@@ -472,14 +333,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     vtkPlusDataSource *tool = it->second;
-    /*
-    ->GetSourceId()) != identifiedToolSourceIds.end())
-    {
-    // this tool has been found and update has been already called with the correct transform
-    LOG_TRACE("Tool " << it->second->GetSourceId() << ": found");
-    continue;
-    }
-    */
   }
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
@@ -513,7 +366,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
       this->Internal->Targets.push_back(Model((pxcCHAR*)mapFilePathW.c_str(), toolSourceId));
     }
   }
-
   return PLUS_SUCCESS;
 }
 
@@ -549,22 +401,14 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
     LOG_ERROR("Failed to create an SDK SenseManager");
     return PLUS_FAIL;
   }
-
   
   PXCSession *session = this->Internal->SenseMgr->QuerySession();
   PXCSession::CoordinateSystem cs = session->QueryCoordinateSystem();
-  //session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_REAR_OPENCV);
-  //session->SetCoordinateSystem(PXCSession::CoordinateSystem(2));
-  //cs = session->QueryCoordinateSystem();
-  //this->Internal->Session->SetCoordinateSystem(PXCSession::CoordinateSystem(2));
-  //this->Internal->Session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_REAR_OPENCV);
-  //this->Internal->Session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_FRONT_DEFAULT);
 
   /* Set Mode & Source */
   pxcStatus sts = PXC_STATUS_NO_ERROR;
   this->Internal->CaptureMgr = this->Internal->SenseMgr->QueryCaptureManager(); //no need to Release it is released with senseMgr
   // Live streaming
-  //pxcCHAR* device = this->DeviceName.c_str();
   PXCCapture::DeviceInfo dinfo;
   this->Internal->GetDeviceInfo(0, dinfo);
   pxcCHAR* device = dinfo.name;
@@ -634,51 +478,6 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
     }
   }
 
-
-
-  /*
-  if (this->MT->mtInit(iniFilePath)!=1)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera");
-    return PLUS_FAIL;
-  }
-
-  // Try to attach the cameras till find the cameras
-  if (this->MT->mtSetupCameras()!=1)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera: setup cameras failed. Check the camera connections and INI and Markers file locations.");
-    this->MT->mtEnd();
-    return PLUS_FAIL;
-  }
-
-  int numOfCameras = this->MT->mtGetNumOfCameras();
-  if (numOfCameras==0)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera: no cameras attached. Check the camera connections and INI and Markers file locations.");
-    this->MT->mtEnd();
-    return PLUS_FAIL;
-  }
-  LOG_DEBUG("Number of attached cameras: " << numOfCameras );
-  for (int i=0; i<numOfCameras; i++)
-  {
-    LOG_DEBUG("Camera "<<i<<": "
-      <<this->MT->mtGetXResolution(i)<<"x"<<this->MT->mtGetYResolution(i)<<", "
-      <<this->MT->mtGetNumOfSensors(i)<<" sensors "
-      <<"(serial number: "<<this->MT->mtGetSerialNum(i)<<")");
-  }
-  
-  if (RefreshMarkerTemplates()!=PLUS_SUCCESS)
-  {
-    LOG_ERROR("Error in initializing Intel RealSense Camera: Failed to load marker templates. Check if the marker directory is set correctly.");
-    this->MT->mtEnd();
-    return PLUS_FAIL;
-  }
-
-#ifdef USE_INTELREALSENSE_TIMESTAMPS
-  this->TrackerTimeToSystemTimeSec = 0;
-  this->TrackerTimeToSystemTimeComputed = false;
-#endif
-  */
   this->IsTrackingInitialized=1;
 
   return PLUS_SUCCESS;
