@@ -287,7 +287,7 @@ IF (PLUS_USE_MICRONTRACKER)
 ENDIF (PLUS_USE_MICRONTRACKER)
 
 #--------------------------------------------------------------------------
-# MICRONTRACKER support
+# INTELREALSENSE support
 IF (PLUS_USE_INTELREALSENSE)
 
   SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
