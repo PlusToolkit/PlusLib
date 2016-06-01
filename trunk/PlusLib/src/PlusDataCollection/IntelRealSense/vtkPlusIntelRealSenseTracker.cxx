@@ -15,6 +15,7 @@ See License.txt for details.
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
 #include "vtkImageImport.h"
+#include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDataSource.h"
@@ -48,9 +49,10 @@ public:
     model_filename[0] = '\0';
   }
 
-  Model(pxcCHAR *filename)
+  Model(pxcCHAR *filename, std::string aToolSourceId)
   {
     wcsncpy_s<1024>(model_filename, filename, 1024);
+    toolSourceId = aToolSourceId;
   }
 
   struct TrackingState
@@ -70,8 +72,9 @@ public:
     cosIDs.push_back(state);
   }
 
-  pxcCHAR  model_filename[1024];
+  pxcCHAR model_filename[1024];
   std::vector<TrackingState> cosIDs;
+  std::string toolSourceId;
 };
 
 typedef std::vector<Model>::iterator				TargetIterator;
@@ -287,11 +290,12 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
 #endif
 
   // Set status and transform for tools with detected markers
+  /*
   vtkSmartPointer<vtkMatrix4x4> transformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   std::set<std::string> identifiedToolSourceIds;
   vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
   mToolToTracker->Identity();
- 
+ */
   /*
   for (int identifedMarkerIndex=0; identifedMarkerIndex<this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
   {
@@ -344,19 +348,42 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
     LOG_DEBUG("Sample found!")
   }
 
+  vtkSmartPointer<vtkMatrix4x4> leftHandedToRightHanded = vtkSmartPointer<vtkMatrix4x4>::New();
+  leftHandedToRightHanded->SetElement(0, 0, 1);
+  leftHandedToRightHanded->SetElement(1, 1, 1);
+  leftHandedToRightHanded->SetElement(2, 2, -1);
+
   // Loop over all of the registered targets (COS IDs) and see if they are tracked
   for (TargetIterator targetIter = this->Internal->Targets.begin(); targetIter != this->Internal->Targets.end(); targetIter++)
   {
     for (TrackingIterator iter = targetIter->cosIDs.begin(); iter != targetIter->cosIDs.end(); iter++)
     {
       this->Internal->Tracker->QueryTrackingValues(iter->cosID, trackData);
-
+      vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       if (PXCTracker::IsTracking(trackData.state))
       {
         updatedTrackingCount += (!iter->isTracking) ? 1 : 0;
         iter->isTracking = true;
-        LOG_INFO("Position: " << trackData.translation.x << ", " << trackData.translation.y << ", " << trackData.translation.z)
-        //TODO: compute transformMatrix
+        //LOG_INFO("Position: " << trackData.translation.x << ", " << trackData.translation.y << ", " << trackData.translation.z)
+        //compute transformMatrix
+        double rotationQuat[4] = { trackData.rotation.w, trackData.rotation.x, trackData.rotation.y, trackData.rotation.z };
+        double rotationMatrix[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+        vtkMath::QuaternionToMatrix3x3(rotationQuat, rotationMatrix);
+        int columnMap[3] = { 1, 2, 0 };
+        double columnSign[3] = { -1, -1, 1 };
+        for (int i = 0; i < 3; i++)
+        {
+          for (int j = 0; j < 3; j++)
+          {
+            transformMatrix->SetElement(i, j, columnSign[i]*rotationMatrix[i][columnMap[j]]);
+          }
+        }
+        transformMatrix->SetElement(0, 3, trackData.translation.x);
+        transformMatrix->SetElement(1, 3, trackData.translation.y);
+        transformMatrix->SetElement(2, 3, trackData.translation.z);
+        vtkMatrix4x4::Multiply4x4(leftHandedToRightHanded, transformMatrix, transformMatrix);
+        vtkMatrix4x4::Multiply4x4(transformMatrix, leftHandedToRightHanded, transformMatrix);
+        //LOG_INFO("Position: " << transformMatrix->GetElement(0, 3) << ", " << transformMatrix->GetElement(1, 3) << ", " << transformMatrix->GetElement(2, 3));
       }
       else
       {
@@ -364,13 +391,11 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
         iter->isTracking = false;
       }
 
-      /*
 #ifdef USE_INTELREALSENSE_TIMESTAMPS
-      ToolTimeStampedUpdateWithoutFiltering(iter->GetSourceId(), transformMatrix, iter->isTracking?TOOL_OK:TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
+      ToolTimeStampedUpdateWithoutFiltering(targetIter->toolSourceId.c_str(), transformMatrix, iter->isTracking?TOOL_OK:TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
 #else
-      ToolTimeStampedUpdate(iter->GetSourceId(), transformMatrix, iter->isTracking ? TOOL_OK : TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
+      ToolTimeStampedUpdate(targetIter->toolSourceId.c_str(), transformMatrix, iter->isTracking ? TOOL_OK : TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
 #endif
-      */
 
     }
   }
@@ -383,57 +408,13 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSenseTracker::RefreshMarkerTemplates()
 {
-  /*
-  std::vector<std::string> vTemplatesName;
-  std::vector<std::string> vTemplatesError;
-
-  std::string templateFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
-  LOG_DEBUG("Loading the marker templates from "<<templateFullPath);
-  if ( !vtksys::SystemTools::FileExists( templateFullPath.c_str(), false) )
-  {
-    LOG_WARNING("Unable to find IntelRealSenseTracker TemplateDirectory at: " << templateFullPath);
-  }
-  int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
-  for (int i=0; i<vTemplatesName.size(); i++)
-  {
-    LOG_DEBUG("Loaded " << vTemplatesName[i]);
-  }
-  if (callResult != 0)
-  {
-    LOG_ERROR("Failed to load marker templates from "<<templateFullPath);
-    for (int i=0; i<vTemplatesError.size(); i++)
-    {
-      LOG_ERROR("Error loading template: " << vTemplatesError[i]);
-    }
-    return PLUS_FAIL;
-  }
-  */
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusIntelRealSenseTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {  
-/*
-  std::vector<double> vRotMat;
-  this->MT->mtGetRotations( vRotMat, markerIndex );
-  std::vector<double> vPos;
-  this->MT->mtGetTranslations(vPos, markerIndex);
 
-  transformMatrix->Identity();
-  int rotIndex =0;
-  for(int col=0; col < 3; col++)
-  {
-    for (int row=0; row < 3; row++)
-    {
-      transformMatrix->SetElement(row, col, vRotMat[rotIndex++]);
-    }
-  }
-  // Add the offset to the last column of the transformation matrix
-  transformMatrix->SetElement(0,3,vPos[0]);
-  transformMatrix->SetElement(1,3,vPos[1]);
-  transformMatrix->SetElement(2,3,vPos[2]);
-*/
 }
 
 //----------------------------------------------------------------------------
@@ -516,6 +497,8 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
       continue;
     }
     const char* toolId = toolDataElement->GetAttribute("Id");
+    PlusTransformName toolTransformName(toolId, this->GetToolReferenceFrameName());
+    std::string toolSourceId = toolTransformName.GetTransformName();
     if (toolId == NULL)
     {
       LOG_ERROR("Failed to initialize NDI tool: DataSource Id is missing");
@@ -527,7 +510,7 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
       std::string mapFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(mapFile);
       std::wstring mapFilePathW;
       StringToWString(mapFilePathW, mapFilePath);
-      this->Internal->Targets.push_back(Model((pxcCHAR*)mapFilePathW.c_str()));
+      this->Internal->Targets.push_back(Model((pxcCHAR*)mapFilePathW.c_str(), toolSourceId));
     }
   }
 
@@ -559,7 +542,7 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
     LOG_ERROR("Failed to create an SDK session");
     return PLUS_FAIL;
   }
-
+  
   this->Internal->SenseMgr = this->Internal->Session->CreateSenseManager();
   if (!this->Internal->SenseMgr)
   {
@@ -567,17 +550,25 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
+  
+  PXCSession *session = this->Internal->SenseMgr->QuerySession();
+  PXCSession::CoordinateSystem cs = session->QueryCoordinateSystem();
+  //session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_REAR_OPENCV);
+  //session->SetCoordinateSystem(PXCSession::CoordinateSystem(2));
+  //cs = session->QueryCoordinateSystem();
+  //this->Internal->Session->SetCoordinateSystem(PXCSession::CoordinateSystem(2));
+  //this->Internal->Session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_REAR_OPENCV);
+  //this->Internal->Session->SetCoordinateSystem(PXCSession::COORDINATE_SYSTEM_FRONT_DEFAULT);
+
   /* Set Mode & Source */
   pxcStatus sts = PXC_STATUS_NO_ERROR;
   this->Internal->CaptureMgr = this->Internal->SenseMgr->QueryCaptureManager(); //no need to Release it is released with senseMgr
-
   // Live streaming
   //pxcCHAR* device = this->DeviceName.c_str();
   PXCCapture::DeviceInfo dinfo;
   this->Internal->GetDeviceInfo(0, dinfo);
   pxcCHAR* device = dinfo.name;
   this->Internal->CaptureMgr->FilterByDeviceInfo(device, 0, 0);
-
   bool stsFlag = true;
 
   /* Set Module */
