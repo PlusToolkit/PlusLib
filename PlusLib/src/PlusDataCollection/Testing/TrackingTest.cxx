@@ -122,6 +122,7 @@ public:
     if ( this->BroadcastChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
     {
       LOG_ERROR("Failed to get tracked frame!");
+      this->TimerId = this->Iren->CreateOneShotTimer(100);
       return; 
     }
 
