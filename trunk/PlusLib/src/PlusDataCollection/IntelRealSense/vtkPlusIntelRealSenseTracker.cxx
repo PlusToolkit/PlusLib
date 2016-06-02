@@ -3,7 +3,8 @@ Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
-
+//Marker Location
+//C:\devel\PlusExp-bin\PlusLibData\ConfigFiles\IntelRealSenseToolDefinitions
 #include "PlusConfigure.h"
 #include "vtkPlusIntelRealSenseTracker.h"
 
