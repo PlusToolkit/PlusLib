@@ -13,14 +13,14 @@ See License.txt for details.
 
 namespace tesseract
 {
-  class TessBaseAPI;
+class TessBaseAPI;
 }
 class vtkPlusTrackedFrameList;
 typedef struct Pix PIX;
 
 /*!
 \class vtkPlusVirtualTextRecognizer
-\brief 
+\brief
 
 \ingroup PlusLibDataCollection
 */
@@ -54,6 +54,7 @@ public:
     int Size[3];
   };
 
+public:
   typedef std::vector<TextFieldParameter*> FieldList;
   typedef FieldList::iterator FieldListIterator;
   typedef std::map<vtkPlusChannel*, FieldList > ChannelFieldListMap;
@@ -79,8 +80,14 @@ public:
   /*! Callback after configuration of all devices is complete */
   virtual PlusStatus NotifyConfigured();
 
-  virtual bool IsTracker() const { return false; }
-  virtual bool IsVirtual() const { return true; }
+  virtual bool IsTracker() const
+  {
+    return false;
+  }
+  virtual bool IsVirtual() const
+  {
+    return true;
+  }
 
   vtkSetStringMacro(Language);
   vtkGetStringMacro(Language);
@@ -102,8 +109,8 @@ protected:
   void vtkImageDataToPix(PlusTrackedFrame& frame, TextFieldParameter* parameter);
 
   /// If a frame has been queried for this input channel, reuse it instead of getting a new one
-  PlusStatus FindOrQueryFrame(PlusTrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, TextFieldParameter* parameter, 
-    std::vector<PlusTrackedFrame*>& queriedFrames);
+  PlusStatus FindOrQueryFrame(PlusTrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, TextFieldParameter* parameter,
+                              std::vector<PlusTrackedFrame*>& queriedFrames);
 
   /// Language used for detection
   char* Language;
