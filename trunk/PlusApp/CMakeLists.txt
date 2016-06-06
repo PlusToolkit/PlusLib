@@ -172,6 +172,7 @@ SET(CMAKE_AUTORCC ON)
 # --------------------------------------------------------------------------
 # Build the PlusCommonWidgets library (Qt)
 ADD_SUBDIRECTORY(PlusCommonWidgets)
+SET(PLUSAPP_LIBRARIES PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build various utilities
