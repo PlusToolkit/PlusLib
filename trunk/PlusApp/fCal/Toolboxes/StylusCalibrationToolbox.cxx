@@ -9,7 +9,7 @@ See License.txt for details.
 #include "fCalMainWindow.h"
 #include "PlusMath.h"
 #include "vtkPlusPivotCalibrationAlgo.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 
 #include <QFileDialog>
 #include <QTimer>
@@ -219,7 +219,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
     // Later, we will re-enable only those that we wish shown for this toolbox
     if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
     {
-      m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+      m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_3D);
       m_ParentMainWindow->GetVisualizationController()->HideAll();
     }
 

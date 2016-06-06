@@ -4,7 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "ToolStateDisplayWidget.h"
+#include "PlusToolStateDisplayWidget.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusTrackedFrameList.h"
@@ -12,7 +12,7 @@
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags aFlags)
+PlusToolStateDisplayWidget::PlusToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_SelectedChannel(NULL)
   , m_Initialized(false)
@@ -33,7 +33,7 @@ ToolStateDisplayWidget::ToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidget::~ToolStateDisplayWidget()
+PlusToolStateDisplayWidget::~PlusToolStateDisplayWidget()
 {
   m_ToolNameLabels.clear();
   m_ToolStateLabels.clear();
@@ -43,9 +43,9 @@ ToolStateDisplayWidget::~ToolStateDisplayWidget()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful)
+PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful)
 {
-  LOG_TRACE("ToolStateDisplayWidget::InitializeTools"); 
+  LOG_TRACE("PlusToolStateDisplayWidget::InitializeTools"); 
 
   // Clear former content
   if (this->layout()) {
@@ -149,16 +149,16 @@ PlusStatus ToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, boo
 
 //-----------------------------------------------------------------------------
 
-bool ToolStateDisplayWidget::IsInitialized()
+bool PlusToolStateDisplayWidget::IsInitialized()
 {
   return m_Initialized;
 }
 
 //-----------------------------------------------------------------------------
 
-int ToolStateDisplayWidget::GetDesiredHeight()
+int PlusToolStateDisplayWidget::GetDesiredHeight()
 {
-  LOG_TRACE("ToolStateDisplayWidget::GetDesiredHeight"); 
+  LOG_TRACE("PlusToolStateDisplayWidget::GetDesiredHeight"); 
 
   if ( m_SelectedChannel == NULL )
   {
@@ -178,7 +178,7 @@ int ToolStateDisplayWidget::GetDesiredHeight()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidget::Update()
+PlusStatus PlusToolStateDisplayWidget::Update()
 {
   if (! m_Initialized)
   {

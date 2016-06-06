@@ -11,7 +11,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusTemporalCalibrationAlgo.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include <QFileDialog>
 #include <QTimer>
 #include <vtkChartXY.h>
@@ -307,7 +307,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     {
       m_ParentMainWindow->GetVisualizationController()->HideAll();
       // 2D mode auto-turns back on the image
-      m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D);
+      m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_2D);
     }
 
     // Enable or disable the image manipulation menu

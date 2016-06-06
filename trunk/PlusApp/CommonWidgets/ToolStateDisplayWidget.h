@@ -16,11 +16,11 @@ class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
-/*! \class ToolStateDisplayWidget 
+/*! \class PlusToolStateDisplayWidget 
  * \brief Widget that shows state of all tools available to the tracker
  * \ingroup PlusAppCommonWidgets
  */
-class ToolStateDisplayWidget : public QWidget
+class PlusToolStateDisplayWidget : public QWidget
 {
 	Q_OBJECT
 
@@ -30,12 +30,12 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
+	PlusToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
 	/*!
 	* Destructor
 	*/
-	~ToolStateDisplayWidget();
+	~PlusToolStateDisplayWidget();
 
 	/*!
 	* Read tools and set up widget

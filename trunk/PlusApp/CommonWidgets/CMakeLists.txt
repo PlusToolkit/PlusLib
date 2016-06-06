@@ -4,16 +4,16 @@ PROJECT(CommonWidgets)
 # Sources
 
 SET (CommonWidgets_SRCS
-  DeviceSetSelectorWidget.cxx
-  StatusIcon.cxx
-  ToolStateDisplayWidget.cxx
-  ConfigFileSaverDialog.cxx
-  SegmentationParameterDialog.cxx
-  vtkVisualizationController.cxx
-  vtkDisplayableObject.cxx
-  vtkImageVisualizer.cxx
-  vtk3DObjectVisualizer.cxx
-  CaptureControlWidget.cxx 
+  PlusDeviceSetSelectorWidget.cxx
+  PlusStatusIcon.cxx
+  PlusToolStateDisplayWidget.cxx
+  PlusConfigFileSaverDialog.cxx
+  PlusSegmentationParameterDialog.cxx
+  vtkPlusVisualizationController.cxx
+  vtkPlusDisplayableObject.cxx
+  vtkPlusImageVisualizer.cxx
+  vtkPlus3DObjectVisualizer.cxx
+  PlusCaptureControlWidget.cxx 
   QCustomAction.cxx 
   )
 
@@ -24,24 +24,24 @@ if (WIN32)
 endif (WIN32)
 
 SET (CommonWidgets_UI_HDRS
-    DeviceSetSelectorWidget.h
-    StatusIcon.h
-    ToolStateDisplayWidget.h
-    ConfigFileSaverDialog.h
-    SegmentationParameterDialog.h
-    vtkVisualizationController.h
-    vtkDisplayableObject.h
-    vtkImageVisualizer.h
-    vtk3DObjectVisualizer.h
-    CaptureControlWidget.h 
+    PlusDeviceSetSelectorWidget.h
+    PlusStatusIcon.h
+    PlusToolStateDisplayWidget.h
+    PlusConfigFileSaverDialog.h
+    PlusSegmentationParameterDialog.h
+    vtkPlusVisualizationController.h
+    vtkPlusDisplayableObject.h
+    vtkPlusImageVisualizer.h
+    vtkPlus3DObjectVisualizer.h
+    PlusCaptureControlWidget.h 
     QCustomAction.h 
   )
 
 SET (CommonWidgets_UI_SRCS
-  DeviceSetSelectorWidget.ui
-  ConfigFileSaverDialog.ui
-  SegmentationParameterDialog.ui
-  CaptureControlWidget.ui 
+  PlusDeviceSetSelectorWidget.ui
+  PlusConfigFileSaverDialog.ui
+  PlusSegmentationParameterDialog.ui
+  PlusCaptureControlWidget.ui 
   )
 
 SET( QT_Resources

@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
 #include <QApplication>
@@ -25,11 +25,11 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkVisualizationController);
+vtkStandardNewMacro(vtkPlusVisualizationController);
 
 //-----------------------------------------------------------------------------
 
-vtkVisualizationController::vtkVisualizationController()
+vtkPlusVisualizationController::vtkPlusVisualizationController()
 : ImageVisualizer(NULL)
 , PerspectiveVisualizer(NULL)
 , Canvas(NULL)
@@ -87,7 +87,7 @@ vtkVisualizationController::vtkVisualizationController()
 
 //-----------------------------------------------------------------------------
 
-vtkVisualizationController::~vtkVisualizationController()
+vtkPlusVisualizationController::~vtkPlusVisualizationController()
 {
   if (this->AcquisitionTimer != NULL)
   {
@@ -125,7 +125,7 @@ vtkVisualizationController::~vtkVisualizationController()
 
 //-----------------------------------------------------------------------------
 
-void vtkVisualizationController::SetCanvas(QVTKWidget* aCanvas)
+void vtkPlusVisualizationController::SetCanvas(QVTKWidget* aCanvas)
 {
   this->Canvas = aCanvas;
   this->Canvas->setFocusPolicy(Qt::ClickFocus);
@@ -133,9 +133,9 @@ void vtkVisualizationController::SetCanvas(QVTKWidget* aCanvas)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetAcquisitionFrameRate(int aFrameRate)
+PlusStatus vtkPlusVisualizationController::SetAcquisitionFrameRate(int aFrameRate)
 {
-  LOG_TRACE("vtkVisualizationController::SetAcquisitionFrameRate(" << aFrameRate << ")");
+  LOG_TRACE("vtkPlusVisualizationController::SetAcquisitionFrameRate(" << aFrameRate << ")");
 
   this->AcquisitionFrameRate = aFrameRate;
 
@@ -158,9 +158,9 @@ PlusStatus vtkVisualizationController::SetAcquisitionFrameRate(int aFrameRate)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::HideAll()
+PlusStatus vtkPlusVisualizationController::HideAll()
 {
-  LOG_TRACE("vtkVisualizationController::HideAll");
+  LOG_TRACE("vtkPlusVisualizationController::HideAll");
 
   // Hide all actors from the renderer
   if( this->PerspectiveVisualizer != NULL )
@@ -177,9 +177,9 @@ PlusStatus vtkVisualizationController::HideAll()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowInput(bool aOn)
+PlusStatus vtkPlusVisualizationController::ShowInput(bool aOn)
 {
-  LOG_TRACE("vtkVisualizationController::ShowInput(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkPlusVisualizationController::ShowInput(" << (aOn?"true":"false") << ")");
 
   if( this->CurrentMode == DISPLAY_MODE_3D && this->PerspectiveVisualizer != NULL )
   {
@@ -192,9 +192,9 @@ PlusStatus vtkVisualizationController::ShowInput(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowResult(bool aOn)
+PlusStatus vtkPlusVisualizationController::ShowResult(bool aOn)
 {
-  LOG_TRACE("vtkVisualizationController::ShowResult(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkPlusVisualizationController::ShowResult(" << (aOn?"true":"false") << ")");
 
   if( this->CurrentMode == DISPLAY_MODE_3D && this->PerspectiveVisualizer != NULL )
   {
@@ -212,9 +212,9 @@ PlusStatus vtkVisualizationController::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode )
+PlusStatus vtkPlusVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode )
 {
-  LOG_TRACE("vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE " << (aMode?"true":"false") << ")");
+  LOG_TRACE("vtkPlusVisualizationController::SetVisualizationMode( DISPLAY_MODE " << (aMode?"true":"false") << ")");
 
   if (this->GetDataCollector() == NULL)
   {
@@ -305,9 +305,9 @@ PlusStatus vtkVisualizationController::SetVisualizationMode( DISPLAY_MODE aMode 
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowOrientationMarkers( bool aShow )
+PlusStatus vtkPlusVisualizationController::ShowOrientationMarkers( bool aShow )
 {
-  LOG_TRACE("vtkVisualizationController::ShowOrientationMarkers(" << (aShow?"true":"false") << ")");
+  LOG_TRACE("vtkPlusVisualizationController::ShowOrientationMarkers(" << (aShow?"true":"false") << ")");
 
   if( this->ImageVisualizer != NULL && this->Is2DMode() )
   {
@@ -324,9 +324,9 @@ PlusStatus vtkVisualizationController::ShowOrientationMarkers( bool aShow )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::StartDataCollection()
+PlusStatus vtkPlusVisualizationController::StartDataCollection()
 {
-  LOG_TRACE("vtkVisualizationController::StartDataCollection"); 
+  LOG_TRACE("vtkPlusVisualizationController::StartDataCollection"); 
 
   // Delete data collection if already exists
   vtkPlusDataCollector* dataCollector=this->GetDataCollector();
@@ -369,9 +369,9 @@ PlusStatus vtkVisualizationController::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirectory)
+PlusStatus vtkPlusVisualizationController::DumpBuffersToDirectory(const char* aDirectory)
 {
-  LOG_TRACE("vtkVisualizationController::DumpBuffersToDirectory");
+  LOG_TRACE("vtkPlusVisualizationController::DumpBuffersToDirectory");
 
   vtkPlusDataCollector* dataCollector=this->GetDataCollector();
   if (dataCollector==NULL || !dataCollector->GetConnected())
@@ -391,9 +391,9 @@ PlusStatus vtkVisualizationController::DumpBuffersToDirectory(const char* aDirec
 
 //-----------------------------------------------------------------------------
 
-void vtkVisualizationController::resizeEvent( QResizeEvent* aEvent )
+void vtkPlusVisualizationController::resizeEvent( QResizeEvent* aEvent )
 {
-  LOG_TRACE("vtkVisualizationController::resizeEvent( ... )");
+  LOG_TRACE("vtkPlusVisualizationController::resizeEvent( ... )");
   if( this->ImageVisualizer != NULL)
   {
     this->ImageVisualizer->UpdateCameraPose();
@@ -402,9 +402,9 @@ void vtkVisualizationController::resizeEvent( QResizeEvent* aEvent )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetScreenRightDownAxesOrientation( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
+PlusStatus vtkPlusVisualizationController::SetScreenRightDownAxesOrientation( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
 {
-  LOG_TRACE("vtkVisualizationController::ShowOrientationMarkers(" << aOrientation << ")");
+  LOG_TRACE("vtkPlusVisualizationController::ShowOrientationMarkers(" << aOrientation << ")");
 
   if( this->ImageVisualizer != NULL)
   {
@@ -417,7 +417,7 @@ PlusStatus vtkVisualizationController::SetScreenRightDownAxesOrientation( US_IMA
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::Update()
+PlusStatus vtkPlusVisualizationController::Update()
 {
   if( this->PerspectiveVisualizer != NULL && CurrentMode == DISPLAY_MODE_3D )
   {
@@ -436,7 +436,7 @@ PlusStatus vtkVisualizationController::Update()
 
 //-----------------------------------------------------------------------------
 
-vtkRenderer* vtkVisualizationController::GetCanvasRenderer()
+vtkRenderer* vtkPlusVisualizationController::GetCanvasRenderer()
 {
   if( this->CurrentMode == DISPLAY_MODE_3D && this->PerspectiveVisualizer != NULL)
   {
@@ -452,7 +452,7 @@ vtkRenderer* vtkVisualizationController::GetCanvasRenderer()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::EnableVolumeActor( bool aEnable )
+PlusStatus vtkPlusVisualizationController::EnableVolumeActor( bool aEnable )
 {
   if( aEnable )
   {
@@ -474,7 +474,7 @@ PlusStatus vtkVisualizationController::EnableVolumeActor( bool aEnable )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
+PlusStatus vtkPlusVisualizationController::GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -483,7 +483,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(const char*
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
+PlusStatus vtkPlusVisualizationController::GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid/* = NULL*/)
 {
   vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (GetTransformMatrix(aTransform, transformMatrix, aValid) != PLUS_SUCCESS)
@@ -502,7 +502,7 @@ PlusStatus vtkVisualizationController::GetTransformTranslationString(PlusTransfo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkPlusVisualizationController::GetTransformMatrix(const char* aTransformFrom, const char* aTransformTo, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -511,7 +511,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(const char* aTransform
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
+PlusStatus vtkPlusVisualizationController::GetTransformMatrix(PlusTransformName aTransform, vtkMatrix4x4* aOutputMatrix, bool* aValid/* = NULL*/)
 {
   PlusTrackedFrame trackedFrame;
   if (this->SelectedChannel==NULL || this->SelectedChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
@@ -538,7 +538,7 @@ PlusStatus vtkVisualizationController::GetTransformMatrix(PlusTransformName aTra
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
+PlusStatus vtkPlusVisualizationController::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
 {
   if( this->PerspectiveVisualizer != NULL )
   {
@@ -550,7 +550,7 @@ PlusStatus vtkVisualizationController::SetVolumeMapper( vtkPolyDataMapper* aCont
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, double b )
+PlusStatus vtkPlusVisualizationController::SetVolumeColor( double r, double g, double b )
 {
   if( this->PerspectiveVisualizer != NULL )
   {
@@ -561,7 +561,7 @@ PlusStatus vtkVisualizationController::SetVolumeColor( double r, double g, doubl
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetInputColor( double r, double g, double b )
+PlusStatus vtkPlusVisualizationController::SetInputColor( double r, double g, double b )
 {
   if( this->PerspectiveVisualizer != NULL )
   {
@@ -572,7 +572,7 @@ PlusStatus vtkVisualizationController::SetInputColor( double r, double g, double
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
+PlusStatus vtkPlusVisualizationController::IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame/* = true */)
 {
   PlusTransformName transformName(aTransformFrom, aTransformTo);
 
@@ -609,7 +609,7 @@ PlusStatus vtkVisualizationController::IsExistingTransform(const char* aTransfor
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::DisconnectInput()
+PlusStatus vtkPlusVisualizationController::DisconnectInput()
 {
   if( this->GetImageActor() != NULL )
   {
@@ -621,7 +621,7 @@ PlusStatus vtkVisualizationController::DisconnectInput()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ConnectInput()
+PlusStatus vtkPlusVisualizationController::ConnectInput()
 {
   vtkPlusChannel* aChannel(NULL);
   if( this->GetImageActor() != NULL && this->SelectedChannel != NULL )
@@ -634,7 +634,7 @@ PlusStatus vtkVisualizationController::ConnectInput()
 
 //-----------------------------------------------------------------------------
 
-vtkImageActor* vtkVisualizationController::GetImageActor()
+vtkImageActor* vtkPlusVisualizationController::GetImageActor()
 {
   if( this->CurrentMode == DISPLAY_MODE_2D && this->ImageVisualizer != NULL )
   {
@@ -650,23 +650,23 @@ vtkImageActor* vtkVisualizationController::GetImageActor()
 
 //-----------------------------------------------------------------------------
 
-bool vtkVisualizationController::Is2DMode()
+bool vtkPlusVisualizationController::Is2DMode()
 {
   return CurrentMode == DISPLAY_MODE_2D;
 }
 
 //-----------------------------------------------------------------------------
 
-bool vtkVisualizationController::Is3DMode()
+bool vtkPlusVisualizationController::Is3DMode()
 {
   return CurrentMode == DISPLAY_MODE_3D;
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::HideRenderer()
+PlusStatus vtkPlusVisualizationController::HideRenderer()
 {
-  LOG_TRACE("vtkVisualizationController::HideRenderer");
+  LOG_TRACE("vtkPlusVisualizationController::HideRenderer");
 
   if( this->Canvas == NULL )
   {
@@ -694,7 +694,7 @@ PlusStatus vtkVisualizationController::HideRenderer()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
+PlusStatus vtkPlusVisualizationController::ShowAllObjects( bool aShow )
 {
   if( this->PerspectiveVisualizer != NULL )
   {
@@ -705,7 +705,7 @@ PlusStatus vtkVisualizationController::ShowAllObjects( bool aShow )
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkVisualizationController::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
+PlusStatus vtkPlusVisualizationController::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
 {
   if( this->ImageVisualizer == NULL )
   {
@@ -722,7 +722,7 @@ PlusStatus vtkVisualizationController::ReadRoiConfiguration(vtkXMLDataElement* a
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXMLElement)
+PlusStatus vtkPlusVisualizationController::ReadConfiguration(vtkXMLDataElement* aXMLElement)
 {
   // Fill up transform repository
   if( this->TransformRepository->ReadConfiguration(aXMLElement) != PLUS_SUCCESS )
@@ -755,7 +755,7 @@ PlusStatus vtkVisualizationController::ReadConfiguration(vtkXMLDataElement* aXML
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXMLElement)
+PlusStatus vtkPlusVisualizationController::WriteConfiguration(vtkXMLDataElement* aXMLElement)
 {
   PlusStatus status = PLUS_SUCCESS;
 
@@ -779,7 +779,7 @@ PlusStatus vtkVisualizationController::WriteConfiguration(vtkXMLDataElement* aXM
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
+PlusStatus vtkPlusVisualizationController::StopAndDisconnectDataCollector()
 {
   vtkSmartPointer<vtkPlusDataCollector> dataCollector=this->GetDataCollector();
   if( dataCollector == NULL )
@@ -799,7 +799,7 @@ PlusStatus vtkVisualizationController::StopAndDisconnectDataCollector()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ClearTransformRepository()
+PlusStatus vtkPlusVisualizationController::ClearTransformRepository()
 {
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
   this->SetTransformRepository(transformRepository);
@@ -809,7 +809,7 @@ PlusStatus vtkVisualizationController::ClearTransformRepository()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
+PlusStatus vtkPlusVisualizationController::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
 {
   if( this->ImageVisualizer == NULL )
   {
@@ -822,7 +822,7 @@ PlusStatus vtkVisualizationController::SetROIBounds( int xMin, int xMax, int yMi
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::EnableROI( bool aEnable )
+PlusStatus vtkPlusVisualizationController::EnableROI( bool aEnable )
 {
   if( this->ImageVisualizer != NULL )
   {
@@ -836,9 +836,9 @@ PlusStatus vtkVisualizationController::EnableROI( bool aEnable )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::EnableWireLabels( bool aEnable )
+PlusStatus vtkPlusVisualizationController::EnableWireLabels( bool aEnable )
 {
-  LOG_TRACE("vtkVisualizationController::EnableWireLabels");
+  LOG_TRACE("vtkPlusVisualizationController::EnableWireLabels");
 
   if( this->ImageVisualizer != NULL )
   {
@@ -852,9 +852,9 @@ PlusStatus vtkVisualizationController::EnableWireLabels( bool aEnable )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::SetWireLabelPositions( vtkPoints* aPointList )
+PlusStatus vtkPlusVisualizationController::SetWireLabelPositions( vtkPoints* aPointList )
 {
-  LOG_TRACE("vtkVisualizationController::SetWireLabelPositions");
+  LOG_TRACE("vtkPlusVisualizationController::SetWireLabelPositions");
 
   if( this->ImageVisualizer != NULL )
   {
@@ -868,9 +868,9 @@ PlusStatus vtkVisualizationController::SetWireLabelPositions( vtkPoints* aPointL
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, bool aOn )
+PlusStatus vtkPlusVisualizationController::ShowObjectById( const char* aModelId, bool aOn )
 {
-  LOG_TRACE("vtkVisualizationController::ShowObjectById");
+  LOG_TRACE("vtkPlusVisualizationController::ShowObjectById");
 
   if( aModelId == NULL )
   {
@@ -889,9 +889,9 @@ PlusStatus vtkVisualizationController::ShowObjectById( const char* aModelId, boo
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::AddObject(vtkDisplayableObject* aObject)
+PlusStatus vtkPlusVisualizationController::AddObject(vtkDisplayableObject* aObject)
 {
-  LOG_TRACE("vtkVisualizationController::AddObject");
+  LOG_TRACE("vtkPlusVisualizationController::AddObject");
 
   if( aObject == NULL )
   {
@@ -910,9 +910,9 @@ PlusStatus vtkVisualizationController::AddObject(vtkDisplayableObject* aObject)
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId )
+vtkDisplayableObject* vtkPlusVisualizationController::GetObjectById( const char* aId )
 {
-  LOG_TRACE("vtkVisualizationController::ShowObjectById");
+  LOG_TRACE("vtkPlusVisualizationController::ShowObjectById");
 
   if( aId == NULL )
   {
@@ -930,7 +930,7 @@ vtkDisplayableObject* vtkVisualizationController::GetObjectById( const char* aId
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkVisualizationController::Reset()
+PlusStatus vtkPlusVisualizationController::Reset()
 {
   PlusStatus perspective, image;
   if( this->PerspectiveVisualizer != NULL )
@@ -947,7 +947,7 @@ PlusStatus vtkVisualizationController::Reset()
 
 //-----------------------------------------------------------------------------
 
-void vtkVisualizationController::SetInputData( vtkImageData * input )
+void vtkPlusVisualizationController::SetInputData( vtkImageData * input )
 {
   if( this->ImageVisualizer != NULL )
   {
@@ -957,7 +957,7 @@ void vtkVisualizationController::SetInputData( vtkImageData * input )
 
 //-----------------------------------------------------------------------------
 
-void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
+void vtkPlusVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
 {
   this->SelectedChannel = aChannel;
 
@@ -973,7 +973,7 @@ void vtkVisualizationController::SetSelectedChannel( vtkPlusChannel* aChannel )
 }
 
 //-----------------------------------------------------------------------------
-void vtkVisualizationController::SetSliceNumber(int number)
+void vtkPlusVisualizationController::SetSliceNumber(int number)
 {
   if( this->ImageVisualizer != NULL )
   {

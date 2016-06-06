@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 
 #include <QFileDialog>
 #include <QTimer>
@@ -242,7 +242,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
     if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
     {
       // 2D mode auto-turns back on the image
-      if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
+      if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
         LOG_WARNING("Unable to switch to 2D visualization. Unable to use freehand calibration toolbox.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();
@@ -566,7 +566,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   LOG_INFO("Edit segmentation parameters started");
 
   // Disconnect realtime image from main canvas
-  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
+  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_NONE);
   if( m_ParentMainWindow->GetVisualizationController()->DisconnectInput() != PLUS_SUCCESS )
   {
     LOG_ERROR("Unable to disconnect input. Cannot show input in SegmentationParameterDialog.");

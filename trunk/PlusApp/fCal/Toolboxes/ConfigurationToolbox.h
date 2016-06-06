@@ -14,8 +14,8 @@ See License.txt for details.
 
 #include <QWidget>
 
-class DeviceSetSelectorWidget;
-class ToolStateDisplayWidget;
+class PlusDeviceSetSelectorWidget;
+class PlusToolStateDisplayWidget;
 class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
@@ -128,10 +128,10 @@ signals:
 
 protected:
   /*! Device set selector widget */
-  DeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
+  PlusDeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
 
   /*! Tool state display widget */
-  ToolStateDisplayWidget*   m_ToolStateDisplayWidget;
+  PlusToolStateDisplayWidget*   m_ToolStateDisplayWidget;
 
   /*! Window that is created when tool state display widget is popped out */
   QWidget*                  m_ToolStatePopOutWindow;

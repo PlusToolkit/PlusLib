@@ -22,7 +22,7 @@ See License.txt for details.
 * \brief Data selector widget class
 * \ingroup PlusAppCommonWidgets
 */
-class DeviceSetSelectorWidget : public QWidget
+class PlusDeviceSetSelectorWidget : public QWidget
 {
   Q_OBJECT
 
@@ -32,12 +32,12 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  DeviceSetSelectorWidget(QWidget* aParent = 0);
+  PlusDeviceSetSelectorWidget(QWidget* aParent = 0);
 
   /*!
   * Destructor
   */
-  ~DeviceSetSelectorWidget();
+  ~PlusDeviceSetSelectorWidget();
 
   /*!
   * Set device set configuration directory

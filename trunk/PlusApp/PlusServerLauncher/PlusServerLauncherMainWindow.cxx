@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "DeviceSetSelectorWidget.h"
+#include "PlusDeviceSetSelectorWidget.h"
 #include "PlusCommon.h"
 #include "PlusServerLauncherMainWindow.h"
 #include "StatusIcon.h"
@@ -45,7 +45,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   ui.setupUi(this);
 
   // Create device set selector widget
-  m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(NULL);
+  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(NULL);
   m_DeviceSetSelectorWidget->setMaximumWidth(1200);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
   m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch server"));

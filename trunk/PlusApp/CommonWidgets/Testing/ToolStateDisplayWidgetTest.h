@@ -10,18 +10,18 @@
 #include "PlusConfigure.h"
 #include <QDialog>
 
-class DeviceSetSelectorWidget;
-class ToolStateDisplayWidget;
+class PlusDeviceSetSelectorWidget;
+class PlusToolStateDisplayWidget;
 class vtkPlusChannel;
 class vtkPlusDataCollector;
 
 //-----------------------------------------------------------------------------
 
-/*! \class ToolStateDisplayWidgetTest 
- * \brief Qt application for testing ToolStateDisplayWidget
+/*! \class PlusToolStateDisplayWidgetTest 
+ * \brief Qt application for testing PlusToolStateDisplayWidget
  * \ingroup PlusAppCommonWidgets
  */
-class ToolStateDisplayWidgetTest : public QDialog
+class PlusToolStateDisplayWidgetTest : public QDialog
 {
 	Q_OBJECT
 
@@ -31,12 +31,12 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	ToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+	PlusToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
-	~ToolStateDisplayWidgetTest();
+	~PlusToolStateDisplayWidgetTest();
 
 protected slots:
 	/*!
@@ -62,10 +62,10 @@ protected:
 
 protected:
   /*! Device set selector widget */
-	DeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
+	PlusDeviceSetSelectorWidget*	m_DeviceSetSelectorWidget;
 
 	/*! Tool state display widget */
-	ToolStateDisplayWidget*		m_ToolStateDisplayWidget;
+	PlusToolStateDisplayWidget*		m_ToolStateDisplayWidget;
 
 	/*! Data source object */
 	vtkPlusChannel*	        m_SelectedChannel;

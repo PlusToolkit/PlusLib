@@ -4,9 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "DeviceSetSelectorWidget.h"
-#include "ToolStateDisplayWidget.h"
-#include "ToolStateDisplayWidgetTest.h"
+#include "PlusDeviceSetSelectorWidget.h"
+#include "PlusToolStateDisplayWidget.h"
+#include "PlusToolStateDisplayWidgetTest.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
@@ -15,7 +15,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
+PlusToolStateDisplayWidgetTest::PlusToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
 : QDialog(parent, flags)
 , m_DeviceSetSelectorWidget(NULL)
 , m_DataCollector(NULL)
@@ -25,13 +25,13 @@ ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::Wind
   this->setMaximumSize(480, 300);
 
   // Create device set selector widget
-  m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->setMinimumWidth(472);
   m_DeviceSetSelectorWidget->setMaximumHeight(220);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
-  m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
+  m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget(this);
   m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
   m_ToolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight() + 40);
   m_ToolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
@@ -52,7 +52,7 @@ ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::Wind
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidgetTest::~ToolStateDisplayWidgetTest()
+PlusToolStateDisplayWidgetTest::~PlusToolStateDisplayWidgetTest()
 {
   if (m_DataCollector != NULL) {
     m_DataCollector->Stop();
@@ -62,9 +62,9 @@ ToolStateDisplayWidgetTest::~ToolStateDisplayWidgetTest()
 
 //-----------------------------------------------------------------------------
 
-void ToolStateDisplayWidgetTest::RefreshToolDisplay()
+void PlusToolStateDisplayWidgetTest::RefreshToolDisplay()
 {
-  //LOG_TRACE("ToolStateDisplayWidgetTest::RefreshToolDisplay"); 
+  //LOG_TRACE("PlusToolStateDisplayWidgetTest::RefreshToolDisplay"); 
 
   if (m_ToolStateDisplayWidget->IsInitialized()) {
     m_ToolStateDisplayWidget->Update();
@@ -73,9 +73,9 @@ void ToolStateDisplayWidgetTest::RefreshToolDisplay()
 
 //-----------------------------------------------------------------------------
 
-void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
+void PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
-  LOG_TRACE("ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile");
+  LOG_TRACE("PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile");
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
@@ -129,7 +129,7 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
 
         if( this->SelectChannel(m_SelectedChannel) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Unable to select channel in ToolStateDisplayWidgetTest");
+          LOG_ERROR("Unable to select channel in PlusToolStateDisplayWidgetTest");
           return;
         }
 
@@ -164,9 +164,9 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
+PlusStatus PlusToolStateDisplayWidgetTest::StartDataCollection()
 {
-  LOG_TRACE("ToolStateDisplayWidgetTest::StartDataCollection"); 
+  LOG_TRACE("PlusToolStateDisplayWidgetTest::StartDataCollection"); 
 
   // Stop data collection if already started
   if (m_DataCollector != NULL) {
@@ -223,7 +223,7 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
+PlusStatus PlusToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
 {
   vtkPlusDevice* aDevice(NULL);
 

@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
 #include "vtkPlusSequenceIO.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include "vtksys/SystemTools.hxx"
 #include <QFileDialog>
 #include <QGridLayout>
@@ -145,7 +145,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
     // If the force show devices isn't enabled, set it to 2D
     if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
     {
-      if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
+      if( m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_2D) != PLUS_SUCCESS )
       {
         LOG_WARNING("Unable to switch to 2D visualization. No video feed to capture.");
         m_ParentMainWindow->GetVisualizationController()->HideRenderer();

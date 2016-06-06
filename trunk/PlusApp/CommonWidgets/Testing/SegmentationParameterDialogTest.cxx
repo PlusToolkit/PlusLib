@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 #include "ConfigFileSaverDialog.h"
-#include "DeviceSetSelectorWidget.h"
+#include "PlusDeviceSetSelectorWidget.h"
 #include "SegmentationParameterDialog.h"
 #include "SegmentationParameterDialogTest.h"
 #include "StatusIcon.h"
@@ -25,7 +25,7 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   this->setMaximumSize(480, 320);
 
   // Create device set selector widget
-  m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(this);
   m_DeviceSetSelectorWidget->setMinimumWidth(472);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );

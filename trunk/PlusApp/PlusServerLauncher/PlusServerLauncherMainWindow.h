@@ -13,7 +13,7 @@
 #include <QMainWindow>
 #include <QProcess>
 
-class DeviceSetSelectorWidget;
+class PlusDeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
 class vtkPlusDataCollector;
 class vtkPlusTransformRepository;
@@ -77,7 +77,7 @@ protected:
 
 protected:
   /*! Device set selector widget */
-  DeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
+  PlusDeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
   QProcess* m_CurrentServerInstance;

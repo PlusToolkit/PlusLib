@@ -5,15 +5,15 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "ConfigurationToolbox.h"
-#include "DeviceSetSelectorWidget.h"
+#include "PlusDeviceSetSelectorWidget.h"
 #include "PlusFidPatternRecognition.h"
-#include "ToolStateDisplayWidget.h"
+#include "PlusToolStateDisplayWidget.h"
 #include "fCalMainWindow.h"
 #include "vtkLineSource.h"
 #include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
@@ -34,7 +34,7 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   ui.setupUi(this);
 
   // Create and setup device set selector widget
-  m_DeviceSetSelectorWidget = new DeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(this);
 
   QFile styleSheetFile(":/styles/Resources/style_DeviceSetComboBox.qss");
   styleSheetFile.open(QIODevice::ReadOnly);
@@ -43,7 +43,7 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
   m_DeviceSetSelectorWidget->setStyleSheet(styleSheet);
 
   // Create tool box state widget
-  m_ToolStateDisplayWidget = new ToolStateDisplayWidget(this);
+  m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget(this);
   m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
   // Make connections

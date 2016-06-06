@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "DeviceSetSelectorWidget.h"
+#include "PlusDeviceSetSelectorWidget.h"
 
 #include <QAction>
 #include <QDesktopServices>
@@ -28,7 +28,7 @@ enum DataItemRoles
 
 //-----------------------------------------------------------------------------
 
-DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
+PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
   : QWidget(aParent)
   , m_ConnectionSuccessful(false)
   , m_EditMenu(NULL)
@@ -53,7 +53,7 @@ DeviceSetSelectorWidget::DeviceSetSelectorWidget(QWidget* aParent)
 
 //-----------------------------------------------------------------------------
 
-DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
+PlusDeviceSetSelectorWidget::~PlusDeviceSetSelectorWidget()
 {
   if( this->m_EditMenu)
   {
@@ -69,7 +69,7 @@ DeviceSetSelectorWidget::~DeviceSetSelectorWidget()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
+PlusStatus PlusDeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
 {
   LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toLatin1().constData() << ")");
 
@@ -97,7 +97,7 @@ PlusStatus DeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::OpenConfigurationDirectory()
+void PlusDeviceSetSelectorWidget::OpenConfigurationDirectory()
 {
   LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked"); 
 
@@ -122,7 +122,7 @@ void DeviceSetSelectorWidget::OpenConfigurationDirectory()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::InvokeConnect()
+void PlusDeviceSetSelectorWidget::InvokeConnect()
 {
   LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
 
@@ -140,7 +140,7 @@ void DeviceSetSelectorWidget::InvokeConnect()
 
 //-----------------------------------------------------------------------------
 
-std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
+std::string PlusDeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
   LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
 
@@ -149,7 +149,7 @@ std::string DeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::InvokeDisconnect()
+void PlusDeviceSetSelectorWidget::InvokeDisconnect()
 {
   LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
 
@@ -163,7 +163,7 @@ void DeviceSetSelectorWidget::InvokeDisconnect()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
+void PlusDeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
   LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
 
@@ -185,7 +185,7 @@ void DeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
+void PlusDeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
   LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
 
@@ -252,7 +252,7 @@ void DeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful
 
 //-----------------------------------------------------------------------------
 
-bool DeviceSetSelectorWidget::GetConnectionSuccessful()
+bool PlusDeviceSetSelectorWidget::GetConnectionSuccessful()
 {
   LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful"); 
 
@@ -261,7 +261,7 @@ bool DeviceSetSelectorWidget::GetConnectionSuccessful()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
+PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
   LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toLatin1().constData() << ")"); 
 
@@ -401,7 +401,7 @@ PlusStatus DeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 }
 
 //----------------------------------------------------------------------------
-void DeviceSetSelectorWidget::UpdateDescriptionText()
+void PlusDeviceSetSelectorWidget::UpdateDescriptionText()
 {
   QString text;
   if( !m_DescriptionPrefix.isEmpty() )
@@ -421,7 +421,7 @@ void DeviceSetSelectorWidget::UpdateDescriptionText()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::RefreshFolder()
+void PlusDeviceSetSelectorWidget::RefreshFolder()
 {
   LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
 
@@ -433,7 +433,7 @@ void DeviceSetSelectorWidget::RefreshFolder()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::EditConfiguration()
+void PlusDeviceSetSelectorWidget::EditConfiguration()
 {
   LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
 
@@ -478,7 +478,7 @@ void DeviceSetSelectorWidget::EditConfiguration()
 }
 
 //----------------------------------------------------------------------------
-void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
+void PlusDeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
 {
   if( m_EditorSelectAction == NULL )
   {
@@ -496,7 +496,7 @@ void DeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
 }
 
 //-----------------------------------------------------------------------------
-void DeviceSetSelectorWidget::SelectEditor()
+void PlusDeviceSetSelectorWidget::SelectEditor()
 {
   // File open dialog for selecting editor application
   QString filter = QString( tr( "Executables ( *.exe );;" ) );
@@ -511,7 +511,7 @@ void DeviceSetSelectorWidget::SelectEditor()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
+void PlusDeviceSetSelectorWidget::ResetTrackerButtonClicked()
 {
   LOG_TRACE("DeviceSetSelectorWidget::ResetTrackerButtonClicked()");
 
@@ -520,27 +520,27 @@ void DeviceSetSelectorWidget::ResetTrackerButtonClicked()
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
+void PlusDeviceSetSelectorWidget::ShowResetTrackerButton( bool aValue )
 {
   ui.pushButton_ResetTracker->setVisible(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void DeviceSetSelectorWidget::SetConnectButtonText(QString text)
+void PlusDeviceSetSelectorWidget::SetConnectButtonText(QString text)
 {
   ui.pushButton_Connect->setText(text);
 }
 
 //----------------------------------------------------------------------------
-void DeviceSetSelectorWidget::SetDescriptionSuffix(const QString& string)
+void PlusDeviceSetSelectorWidget::SetDescriptionSuffix(const QString& string)
 {
   this->m_DescriptionSuffix = string;
   this->UpdateDescriptionText();
 }
 
 //----------------------------------------------------------------------------
-void DeviceSetSelectorWidget::ClearDescriptionSuffix()
+void PlusDeviceSetSelectorWidget::ClearDescriptionSuffix()
 {
   this->SetDescriptionSuffix("");
 }

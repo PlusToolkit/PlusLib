@@ -31,7 +31,7 @@ class QVTKWidget;
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkVisualizationController
+/*! \class vtkPlusVisualizationController
 \brief Class that is responsible for managing a connection with tracked data and managing the visualization of said data
 
 Usage: Instantiate, set the QVTKCanvas that is to be managed by this visualizer the call Initialize function. Updating the visualization is done by attaching Update() to a QTimer (self-managed). 
@@ -44,7 +44,7 @@ Devices and objects can be shown and hidden (HideAll(), ShowAllObjects(), ShowOb
 
 \ingroup PlusAppCommonWidgets
 */
-class vtkVisualizationController : public QObject, public vtkObject
+class vtkPlusVisualizationController : public QObject, public vtkObject
 {
   Q_OBJECT
 
@@ -56,7 +56,7 @@ public:
   };
 
   /*! New */
-  static vtkVisualizationController *New();
+  static vtkPlusVisualizationController *New();
 
   /*! Start data collection */
   PlusStatus StartDataCollection();
@@ -302,12 +302,12 @@ protected:
   /*!
   * Constructor
   */
-  vtkVisualizationController();
+  vtkPlusVisualizationController();
 
   /*!
   * Destructor
   */
-  virtual ~vtkVisualizationController();	
+  virtual ~vtkPlusVisualizationController();	
 
 protected:
   /*! 2D visualizer */

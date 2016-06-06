@@ -19,7 +19,7 @@ See License.txt for details.
 #include "vtkRenderWindow.h"
 #include "vtkPlusVirtualDiscCapture.h"
 #include "vtkPlusVirtualMixer.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
@@ -140,7 +140,7 @@ void fCalMainWindow::Initialize()
   ui.pushButton_ImageOrientation->installEventFilter(this);
 
   // Create visualizer
-  m_VisualizationController = vtkVisualizationController::New();
+  m_VisualizationController = vtkPlusVisualizationController::New();
   m_VisualizationController->SetCanvas(ui.canvas);
 
   // Hide it until we have something to show
@@ -665,7 +665,7 @@ void fCalMainWindow::ShowDevicesToggled()
   if( aOn )
   {
     // Force override, show 3D and ALLLLLL devices
-    m_VisualizationController->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+    m_VisualizationController->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_3D);
     m_VisualizationController->ShowAllObjects(true);
     m_VisualizationController->ShowInput(m_ShowPoints);
     m_VisualizationController->ShowResult(m_ShowPoints);
@@ -880,7 +880,7 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
     }
 
     this->GetVisualizationController()->DisconnectInput();
-    this->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_NONE);
+    this->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_NONE);
   }
 
   this->BuildChannelMenu();

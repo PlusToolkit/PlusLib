@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkPolyDataMapper.h"
 #include "vtkPlusSequenceIO.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkVisualizationController.h"
+#include "vtkPlusVisualizationController.h"
 #include "vtkPlusVolumeReconstructor.h"
 #include "vtkXMLUtilities.h"
 #include <QFileDialog>
@@ -119,12 +119,12 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
   // Later, we will re-enable only those that we wish shown for this toolbox
   if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
   {
-    m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+    m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_3D);
     m_ParentMainWindow->GetVisualizationController()->HideAll();
   }
 
   // Set it to 3D mode
-  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkVisualizationController::DISPLAY_MODE_3D);
+  m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_3D);
 
   // Enable or disable the image manipulation menu
   m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );

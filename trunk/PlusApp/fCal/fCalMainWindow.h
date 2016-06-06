@@ -19,7 +19,7 @@ class QTimer;
 class StatusIcon;
 class vtkPlusChannel;
 class vtkPlusDevice;
-class vtkVisualizationController;
+class vtkPlusVisualizationController;
 
 //-----------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkVisualizationController* GetVisualizationController() { return m_VisualizationController; };
+  vtkPlusVisualizationController* GetVisualizationController() { return m_VisualizationController; };
 
   /*!
   * Set status bar text
@@ -280,7 +280,7 @@ protected:
 
 protected:
   /*! Object visualizer */
-  vtkVisualizationController*  m_VisualizationController;
+  vtkPlusVisualizationController*  m_VisualizationController;
 
   /*! Label on the left of the statusbar */
   QLabel*					    m_StatusBarLabel;
