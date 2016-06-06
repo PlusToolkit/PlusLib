@@ -669,3 +669,27 @@ PlusStatus vtkPlusDataCollector::GetChannel( vtkPlusChannel* &aChannel, const st
   aChannel = NULL;
   return PLUS_FAIL;
 }
+
+PlusStatus vtkPlusDataCollector::GetFirstChannel(vtkPlusChannel*& aChannel) const
+{
+  aChannel = NULL;
+
+  if( this->Devices.size() == 0 )
+  {
+    LOG_ERROR("Cannot return first device: No devices to return.");
+    return PLUS_FAIL;
+  }
+
+  for( DeviceCollectionConstIterator it = this->Devices.begin(); it != this->Devices.end(); ++it )
+  {
+    if( (*it)->OutputChannelCount() == 0 )
+    {
+      continue;
+    }
+
+    aChannel = *(*it)->GetOutputChannelsStart();
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}

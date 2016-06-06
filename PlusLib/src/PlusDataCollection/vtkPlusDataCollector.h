@@ -86,6 +86,7 @@ public:
     \param aChannelId the ID of the requested device
   */
   PlusStatus GetChannel(vtkPlusChannel* &aChannel, const std::string &aChannelId) const;
+  PlusStatus GetFirstChannel(vtkPlusChannel* &aChannel) const;
 
   /*!
     Allow iteration over devices
@@ -123,6 +124,7 @@ public:
     Identify if the device is started or not
   */
   bool GetStarted() const;
+  bool IsStarted() const { return this->GetStarted(); }
 
   /*
     Is the system connected?
