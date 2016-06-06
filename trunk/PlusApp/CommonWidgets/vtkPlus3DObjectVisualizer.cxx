@@ -6,8 +6,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
-#include "vtk3DObjectVisualizer.h"
-#include "vtkDisplayableObject.h"
+#include "vtkPlus3DObjectVisualizer.h"
+#include "vtkPlusDisplayableObject.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageSliceMapper.h"
 #include "vtkObjectFactory.h"
@@ -19,12 +19,12 @@ See License.txt for details.
 #include "vtkSphereSource.h"
 
 //-----------------------------------------------------------------------------
-vtkStandardNewMacro(vtk3DObjectVisualizer);
+vtkStandardNewMacro(vtkPlus3DObjectVisualizer);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 
-vtk3DObjectVisualizer::vtk3DObjectVisualizer()
+vtkPlus3DObjectVisualizer::vtkPlus3DObjectVisualizer()
 : CanvasRenderer(NULL)
 , ImageActor(NULL)
 , InputActor(NULL)
@@ -85,7 +85,7 @@ vtk3DObjectVisualizer::vtk3DObjectVisualizer()
 
 //-----------------------------------------------------------------------------
 
-vtk3DObjectVisualizer::~vtk3DObjectVisualizer()
+vtkPlus3DObjectVisualizer::~vtkPlus3DObjectVisualizer()
 {
   ClearDisplayableObjects();
 
@@ -99,13 +99,13 @@ vtk3DObjectVisualizer::~vtk3DObjectVisualizer()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::Update()
+PlusStatus vtkPlus3DObjectVisualizer::Update()
 {
   // If none of the objects are displayable then return with fail
   bool noObjectsToDisplay = true;
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
     if ( displayableObject->IsDisplayable() && displayableObject->GetActor() && displayableObject->GetActor()->GetVisibility() > 0 )
     {
       noObjectsToDisplay = false;
@@ -141,9 +141,9 @@ PlusStatus vtk3DObjectVisualizer::Update()
   bool resetCameraNeeded = false;
 
   // Update actors of displayable objects
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
     PlusTransformName objectCoordinateFrameToWorldTransformName(displayableObject->GetObjectCoordinateFrame(), this->WorldCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> objectCoordinateFrameToWorldTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -212,13 +212,13 @@ PlusStatus vtk3DObjectVisualizer::Update()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
+PlusStatus vtkPlus3DObjectVisualizer::ClearDisplayableObjects()
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ClearDisplayableObjects");
 
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* tool = *it;
+    vtkPlusDisplayableObject* tool = *it;
     if (tool != NULL)
     {
       if (tool->GetActor() != NULL)
@@ -238,13 +238,13 @@ PlusStatus vtk3DObjectVisualizer::ClearDisplayableObjects()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
+PlusStatus vtkPlus3DObjectVisualizer::ShowAllObjects(bool aOn)
 {
   LOG_TRACE("vtkPerspectiveVisualizer::ShowAllObjects(" << (aOn?"true":"false") << ")");
 
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
     if ((displayableObject != NULL) && (displayableObject->GetActor() != NULL))
     {
       displayableObject->GetActor()->SetVisibility(aOn);
@@ -256,7 +256,7 @@ PlusStatus vtk3DObjectVisualizer::ShowAllObjects(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
+PlusStatus vtkPlus3DObjectVisualizer::ShowInput(bool aOn)
 {
   this->InputActor->SetVisibility(aOn);
   this->CanvasRenderer->Modified();
@@ -265,7 +265,7 @@ PlusStatus vtk3DObjectVisualizer::ShowInput(bool aOn)
 }
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::SetInputColor(double r, double g, double b)
+PlusStatus vtkPlus3DObjectVisualizer::SetInputColor(double r, double g, double b)
 {
   this->InputActor->GetProperty()->SetColor(r, g, b);
   this->CanvasRenderer->Modified();
@@ -275,7 +275,7 @@ PlusStatus vtk3DObjectVisualizer::SetInputColor(double r, double g, double b)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowResult(bool aOn)
+PlusStatus vtkPlus3DObjectVisualizer::ShowResult(bool aOn)
 {
   this->ResultActor->SetVisibility(aOn);
   this->CanvasRenderer->Modified();
@@ -285,7 +285,7 @@ PlusStatus vtk3DObjectVisualizer::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::HideAll()
+PlusStatus vtkPlus3DObjectVisualizer::HideAll()
 {
   this->InputActor->VisibilityOff();
   this->ResultActor->VisibilityOff();
@@ -299,22 +299,22 @@ PlusStatus vtk3DObjectVisualizer::HideAll()
 }
 
 //-----------------------------------------------------------------------------
-void vtk3DObjectVisualizer::SetInputPolyData(vtkPolyData* aPolyData)
+void vtkPlus3DObjectVisualizer::SetInputPolyData(vtkPolyData* aPolyData)
 {
   this->InputGlyph->SetInputData_vtk5compatible(aPolyData);
 }
 
 //-----------------------------------------------------------------------------
-void vtk3DObjectVisualizer::SetResultPolyData(vtkPolyData* aPolyData)
+void vtkPlus3DObjectVisualizer::SetResultPolyData(vtkPolyData* aPolyData)
 {
   this->ResultGlyph->SetInputData_vtk5compatible(aPolyData);
 }
 
 
 //-----------------------------------------------------------------------------
-PlusStatus vtk3DObjectVisualizer::SetChannel(vtkPlusChannel* channel)
+PlusStatus vtkPlus3DObjectVisualizer::SetChannel(vtkPlusChannel* channel)
 {
-  LOG_TRACE("vtk3DObjectVisualizer::SetChannel");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::SetChannel");
   SetSelectedChannel(channel);
 
   if( this->SelectedChannel != NULL )
@@ -343,7 +343,7 @@ PlusStatus vtk3DObjectVisualizer::SetChannel(vtkPlusChannel* channel)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLElement)
+PlusStatus vtkPlus3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLElement)
 {
   // Rendering section
   vtkXMLDataElement* renderingElement = aXMLElement->FindNestedElementWithName("Rendering"); 
@@ -384,7 +384,7 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
     }
 
     // Create displayable tool
-    vtkDisplayableObject* displayableObject = vtkDisplayableObject::New(type);
+    vtkPlusDisplayableObject* displayableObject = vtkPlusDisplayableObject::New(type);
 
     // Image has a special actor, set it now in the displayable object
     if (STRCASECMP(type, "Image") == 0)
@@ -415,9 +415,9 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
   }
 
   // Add displayable object actors to renderer
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
     if (displayableObject == NULL)
     {
       LOG_ERROR("Invalid displayable object!");
@@ -449,13 +449,13 @@ PlusStatus vtk3DObjectVisualizer::ReadConfiguration(vtkXMLDataElement* aXMLEleme
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn )
+PlusStatus vtkPlus3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn )
 {
-  LOG_TRACE("vtk3DObjectVisualizer::ShowObjectById(" << aModelId << ", " << (aOn?"true":"false") << ")");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::ShowObjectById(" << aModelId << ", " << (aOn?"true":"false") << ")");
 
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
 
     if( displayableObject->GetObjectId() != NULL && STRCASECMP(displayableObject->GetObjectId(), aModelId) == 0 )
     {
@@ -468,18 +468,18 @@ PlusStatus vtk3DObjectVisualizer::ShowObjectById( const char* aModelId, bool aOn
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtk3DObjectVisualizer::GetObjectById( const char* aModelId )
+vtkPlusDisplayableObject* vtkPlus3DObjectVisualizer::GetObjectById( const char* aModelId )
 {
   if (aModelId==NULL)
   {
     return NULL;
   }
 
-  LOG_TRACE("vtk3DObjectVisualizer::GetObjectById(" << aModelId << ")");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::GetObjectById(" << aModelId << ")");
 
-  for (std::vector<vtkDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
+  for (std::vector<vtkPlusDisplayableObject*>::iterator it = this->DisplayableObjects.begin(); it != this->DisplayableObjects.end(); ++it)
   {
-    vtkDisplayableObject* displayableObject = *it;
+    vtkPlusDisplayableObject* displayableObject = *it;
 
     if( displayableObject->GetObjectId() != NULL && STRCASECMP(displayableObject->GetObjectId(), aModelId) == 0 )
     {
@@ -492,23 +492,23 @@ vtkDisplayableObject* vtk3DObjectVisualizer::GetObjectById( const char* aModelId
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::AddObject( vtkDisplayableObject* displayableObject )
+PlusStatus vtkPlus3DObjectVisualizer::AddObject( vtkPlusDisplayableObject* displayableObject )
 {
-  LOG_TRACE("vtk3DObjectVisualizer::AddObject");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::AddObject");
 
   if (displayableObject==NULL || displayableObject->GetObjectId()==NULL)
   {
-    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: invalid input object")
+    LOG_ERROR("vtkPlus3DObjectVisualizer::AddObject failed: invalid input object")
     return PLUS_FAIL;
   }
   if (GetObjectById(displayableObject->GetObjectId())!=NULL)
   {
-    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" already exists")
+    LOG_ERROR("vtkPlus3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" already exists")
     return PLUS_FAIL;
   }
   if (displayableObject->GetActor()==NULL)
   {
-    LOG_ERROR("vtk3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" does not have a valid actor")
+    LOG_ERROR("vtkPlus3DObjectVisualizer::AddObject failed: object with name "<<displayableObject->GetObjectId()<<" does not have a valid actor")
     return PLUS_FAIL;
   }
 
@@ -521,9 +521,9 @@ PlusStatus vtk3DObjectVisualizer::AddObject( vtkDisplayableObject* displayableOb
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::SetVolumeColor( double r, double g, double b )
+PlusStatus vtkPlus3DObjectVisualizer::SetVolumeColor( double r, double g, double b )
 {
-  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeColor(" << r << ", " << g << ", " << b << ")");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::SetVolumeColor(" << r << ", " << g << ", " << b << ")");
 
   if( this->GetVolumeActor() )
   {
@@ -536,9 +536,9 @@ PlusStatus vtk3DObjectVisualizer::SetVolumeColor( double r, double g, double b )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtk3DObjectVisualizer::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
+PlusStatus vtkPlus3DObjectVisualizer::SetVolumeMapper( vtkPolyDataMapper* aContourMapper )
 {
-  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeMapper(...)");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::SetVolumeMapper(...)");
 
   if( this->GetVolumeID() == NULL )
   {
@@ -546,7 +546,7 @@ PlusStatus vtk3DObjectVisualizer::SetVolumeMapper( vtkPolyDataMapper* aContourMa
     return PLUS_FAIL;
   }
 
-  vtkDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
+  vtkPlusDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
   if( disObj )
   {
     vtkDisplayablePolyData* polyObj = dynamic_cast<vtkDisplayablePolyData*>(disObj);
@@ -563,9 +563,9 @@ PlusStatus vtk3DObjectVisualizer::SetVolumeMapper( vtkPolyDataMapper* aContourMa
 
 //-----------------------------------------------------------------------------
 
-vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
+vtkActor* vtkPlus3DObjectVisualizer::GetVolumeActor()
 {
-  LOG_TRACE("vtk3DObjectVisualizer::SetVolumeMapper(...)");
+  LOG_TRACE("vtkPlus3DObjectVisualizer::SetVolumeMapper(...)");
 
   if( this->GetVolumeID() == NULL )
   {
@@ -573,7 +573,7 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
     return NULL;
   }
 
-  vtkDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
+  vtkPlusDisplayableObject* disObj = this->GetObjectById(this->GetVolumeID());
   if( disObj )
   {
     vtkActor* actor = dynamic_cast<vtkActor*>(disObj->GetActor());
@@ -587,7 +587,7 @@ vtkActor* vtk3DObjectVisualizer::GetVolumeActor()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtk3DObjectVisualizer::SetSliceNumber(int number)
+PlusStatus vtkPlus3DObjectVisualizer::SetSliceNumber(int number)
 {
   if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
   {

@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "CaptureControlWidget.h"
+#include "PlusCaptureControlWidget.h"
 #include "CapturingToolbox.h"
 #include "PlusTrackedFrame.h"
 #include "VolumeReconstructionToolbox.h"
@@ -113,9 +113,9 @@ void CapturingToolbox::RefreshContent()
   }
 
   ui.pushButton_SaveAll->setEnabled(false);
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
-    CaptureControlWidget* widget = *it;
+    PlusCaptureControlWidget* widget = *it;
     if( widget->CanSave() )
     {
       ui.pushButton_SaveAll->setEnabled(true);
@@ -126,9 +126,9 @@ void CapturingToolbox::RefreshContent()
   ui.pushButton_ClearAll->setEnabled( m_CaptureWidgets.size() > 0 );
   ui.pushButton_StartStopAll->setEnabled( m_CaptureWidgets.size() > 0 );
 
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
-    CaptureControlWidget* widget = *it;
+    PlusCaptureControlWidget* widget = *it;
     widget->UpdateBasedOnState();
   }
 }
@@ -655,9 +655,9 @@ void CapturingToolbox::StartStopAll()
     enable = false;
   }
 
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
-    CaptureControlWidget* widget = *it;
+    PlusCaptureControlWidget* widget = *it;
     widget->SetEnableCapturing(enable);
   }
 }
@@ -665,9 +665,9 @@ void CapturingToolbox::StartStopAll()
 //-----------------------------------------------------------------------------
 void CapturingToolbox::ClearAll()
 {
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
-    CaptureControlWidget* widget = *it;
+    PlusCaptureControlWidget* widget = *it;
     widget->Clear();
   }
 }
@@ -675,9 +675,9 @@ void CapturingToolbox::ClearAll()
 //-----------------------------------------------------------------------------
 void CapturingToolbox::SaveAll()
 {
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
-    CaptureControlWidget* widget = *it;
+    PlusCaptureControlWidget* widget = *it;
     widget->SaveFile();
   }
 }
@@ -685,7 +685,7 @@ void CapturingToolbox::SaveAll()
 //-----------------------------------------------------------------------------
 void CapturingToolbox::OnDeactivated()
 {
-  for( std::vector<CaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
+  for( std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it )
   {
     disconnect((*it), SIGNAL(EmitStatusMessage(const std::string&)), this, SLOT(HandleStatusMessage(const std::string&)) );
     m_GridLayout->removeWidget(*it);
@@ -742,7 +742,7 @@ void CapturingToolbox::InitCaptureDeviceScrollArea()
       if( dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice) != NULL )
       {
         vtkPlusVirtualDiscCapture* capDevice = dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice);
-        CaptureControlWidget* aWidget = new CaptureControlWidget(NULL);
+        PlusCaptureControlWidget* aWidget = new PlusCaptureControlWidget(NULL);
         aWidget->SetCaptureDevice(*capDevice);
         m_GridLayout->addWidget(aWidget);
         m_CaptureWidgets.push_back(aWidget);

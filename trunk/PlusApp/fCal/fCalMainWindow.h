@@ -16,7 +16,7 @@ class QCustomAction;
 class QLabel;
 class QProgressBar;
 class QTimer;
-class StatusIcon;
+class PlusStatusIcon;
 class vtkPlusChannel;
 class vtkPlusDevice;
 class vtkPlusVisualizationController;
@@ -298,7 +298,7 @@ protected:
   QTimer*             m_UiRefreshTimer;
 
   /*! Status icon instance */
-  StatusIcon*         m_StatusIcon;
+  PlusStatusIcon*         m_StatusIcon;
 
   /*! List of toolbox objects (the indices are the type identifiers) */
   std::vector<AbstractToolbox*> m_ToolboxList;

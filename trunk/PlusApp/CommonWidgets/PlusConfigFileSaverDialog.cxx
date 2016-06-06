@@ -4,7 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "ConfigFileSaverDialog.h"
+#include "PlusConfigFileSaverDialog.h"
 
 #include <QFileDialog>
 #include <QString>
@@ -15,7 +15,7 @@
 
 //-----------------------------------------------------------------------------
 
-ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent)
+PlusConfigFileSaverDialog::PlusConfigFileSaverDialog(QWidget* aParent)
 	: QDialog(aParent)
 {
 	ui.setupUi(this);
@@ -30,15 +30,15 @@ ConfigFileSaverDialog::ConfigFileSaverDialog(QWidget* aParent)
 
 //-----------------------------------------------------------------------------
 
-ConfigFileSaverDialog::~ConfigFileSaverDialog()
+PlusConfigFileSaverDialog::~PlusConfigFileSaverDialog()
 {
 }
 
 //-----------------------------------------------------------------------------
 
-void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
+void PlusConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 {
-  LOG_TRACE("ConfigFileSaverDialog::OpenDestinationDirectoryClicked"); 
+  LOG_TRACE("PlusConfigFileSaverDialog::OpenDestinationDirectoryClicked"); 
 
 	// Directory open dialog for selecting configuration directory 
 	QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Select destination directory" ) ), m_DestinationDirectory);
@@ -57,9 +57,9 @@ void ConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 
 //-----------------------------------------------------------------------------
 
-void ConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
+void PlusConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
 {
-	LOG_TRACE("ConfigFileSaverDialog::SetDestinationDirectory(" << aDirectory << ")"); 
+	LOG_TRACE("PlusConfigFileSaverDialog::SetDestinationDirectory(" << aDirectory << ")"); 
 
 	m_DestinationDirectory = aDirectory.c_str();
 
@@ -69,9 +69,9 @@ void ConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ConfigFileSaverDialog::ReadConfiguration()
+PlusStatus PlusConfigFileSaverDialog::ReadConfiguration()
 {
-  LOG_TRACE("ConfigFileSaverDialog::ReadConfiguration");
+  LOG_TRACE("PlusConfigFileSaverDialog::ReadConfiguration");
 
   // Find Device set element
 	vtkXMLDataElement* dataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
@@ -112,10 +112,10 @@ PlusStatus ConfigFileSaverDialog::ReadConfiguration()
 
 //-----------------------------------------------------------------------------
 
-void ConfigFileSaverDialog::SaveClicked()
+void PlusConfigFileSaverDialog::SaveClicked()
 {
 
-  LOG_TRACE("ConfigFileSaverDialog::SaveClicked");
+  LOG_TRACE("PlusConfigFileSaverDialog::SaveClicked");
 
   // Get root element
   vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();

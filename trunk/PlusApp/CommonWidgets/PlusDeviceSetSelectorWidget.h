@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef DEVICESETSELECTORWIDGET_H
 #define DEVICESETSELECTORWIDGET_H
 
-#include "ui_DeviceSetSelectorWidget.h"
+#include "ui_PlusDeviceSetSelectorWidget.h"
 
 #include "PlusConfigure.h"
 

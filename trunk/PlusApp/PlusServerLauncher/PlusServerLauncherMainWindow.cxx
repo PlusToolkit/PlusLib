@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusDeviceSetSelectorWidget.h"
 #include "PlusCommon.h"
 #include "PlusServerLauncherMainWindow.h"
-#include "StatusIcon.h"
+#include "PlusStatusIcon.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
@@ -52,7 +52,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent, Qt::
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( connectToDevicesByConfigFile(std::string) ) );
 
   // Create status icon
-  StatusIcon* statusIcon = new StatusIcon(NULL);
+  PlusStatusIcon* statusIcon = new PlusStatusIcon(NULL);
   // Show only the last few thousand messages
   // (it should be enough, as all the messages are available in log files anyway)
   statusIcon->SetMaxMessageCount(3000);

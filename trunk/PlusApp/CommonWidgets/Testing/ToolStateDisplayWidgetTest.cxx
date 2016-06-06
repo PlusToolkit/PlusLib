@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusDeviceSetSelectorWidget.h"
 #include "PlusToolStateDisplayWidget.h"
-#include "PlusToolStateDisplayWidgetTest.h"
+#include "ToolStateDisplayWidgetTest.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
@@ -15,7 +15,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-PlusToolStateDisplayWidgetTest::PlusToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
+ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
 : QDialog(parent, flags)
 , m_DeviceSetSelectorWidget(NULL)
 , m_DataCollector(NULL)
@@ -52,7 +52,7 @@ PlusToolStateDisplayWidgetTest::PlusToolStateDisplayWidgetTest(QWidget *parent, 
 
 //-----------------------------------------------------------------------------
 
-PlusToolStateDisplayWidgetTest::~PlusToolStateDisplayWidgetTest()
+ToolStateDisplayWidgetTest::~ToolStateDisplayWidgetTest()
 {
   if (m_DataCollector != NULL) {
     m_DataCollector->Stop();
@@ -62,9 +62,9 @@ PlusToolStateDisplayWidgetTest::~PlusToolStateDisplayWidgetTest()
 
 //-----------------------------------------------------------------------------
 
-void PlusToolStateDisplayWidgetTest::RefreshToolDisplay()
+void ToolStateDisplayWidgetTest::RefreshToolDisplay()
 {
-  //LOG_TRACE("PlusToolStateDisplayWidgetTest::RefreshToolDisplay"); 
+  //LOG_TRACE("ToolStateDisplayWidgetTest::RefreshToolDisplay"); 
 
   if (m_ToolStateDisplayWidget->IsInitialized()) {
     m_ToolStateDisplayWidget->Update();
@@ -73,9 +73,9 @@ void PlusToolStateDisplayWidgetTest::RefreshToolDisplay()
 
 //-----------------------------------------------------------------------------
 
-void PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
+void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
-  LOG_TRACE("PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile");
+  LOG_TRACE("ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile");
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
@@ -129,7 +129,7 @@ void PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aC
 
         if( this->SelectChannel(m_SelectedChannel) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Unable to select channel in PlusToolStateDisplayWidgetTest");
+          LOG_ERROR("Unable to select channel in ToolStateDisplayWidgetTest");
           return;
         }
 
@@ -164,9 +164,9 @@ void PlusToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aC
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PlusToolStateDisplayWidgetTest::StartDataCollection()
+PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 {
-  LOG_TRACE("PlusToolStateDisplayWidgetTest::StartDataCollection"); 
+  LOG_TRACE("ToolStateDisplayWidgetTest::StartDataCollection"); 
 
   // Stop data collection if already started
   if (m_DataCollector != NULL) {
@@ -223,7 +223,7 @@ PlusStatus PlusToolStateDisplayWidgetTest::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PlusToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
+PlusStatus ToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
 {
   vtkPlusDevice* aDevice(NULL);
 

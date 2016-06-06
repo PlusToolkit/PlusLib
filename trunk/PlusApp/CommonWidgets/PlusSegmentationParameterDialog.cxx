@@ -4,11 +4,11 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "ConfigFileSaverDialog.h"
+#include "PlusConfigFileSaverDialog.h"
 #include "PlusFidPatternRecognition.h"
 #include "PlusFidPatternRecognitionCommon.h"
 #include "PlusVideoFrame.h"
-#include "SegmentationParameterDialog.h"
+#include "PlusSegmentationParameterDialog.h"
 #include "PlusTrackedFrame.h"
 #include "vtkActor.h"
 #include "vtkCallbackCommand.h"
@@ -18,7 +18,7 @@ See License.txt for details.
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkImageData.h" 
-#include "vtkImageVisualizer.h"
+#include "vtkPlusImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkMath.h"
 #include "vtkPlusChannel.h"
@@ -68,7 +68,7 @@ public:
   * \brief Set parent segmentation parameter dialog
   * \param aParentDialog Pointer to the parent dialog
   */
-  void SetParentDialog(SegmentationParameterDialog* aParentDialog)
+  void SetParentDialog(PlusSegmentationParameterDialog* aParentDialog)
   {
     LOG_TRACE("vtkSegmentationParameterDialogModeHandlerBase::SetParentDialog");
 
@@ -162,7 +162,7 @@ protected:
 
 protected:
   //! Parent segmentation parameter dialog
-  SegmentationParameterDialog*  m_ParentDialog;
+  PlusSegmentationParameterDialog*  m_ParentDialog;
 
   //! Actor collection for the current mode
   vtkSmartPointer<vtkActorCollection> m_ActorCollection;
@@ -336,11 +336,11 @@ protected:
     LOG_TRACE("vtkROIModeHandler::InitializeVisualization");
 
     // Create actors
-    SetupHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1], vtkImageVisualizer:: ROI_COLOR[2]);
+    SetupHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0],  vtkPlusImageVisualizer::ROI_COLOR[1], vtkPlusImageVisualizer:: ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    SetupHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkImageVisualizer::ROI_COLOR[0],  vtkImageVisualizer::ROI_COLOR[1],  vtkImageVisualizer::ROI_COLOR[2]);
+    SetupHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0],  vtkPlusImageVisualizer::ROI_COLOR[1],  vtkPlusImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -753,7 +753,7 @@ private:
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel)
+PlusSegmentationParameterDialog::PlusSegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel)
 : QDialog(aParent)
 , m_DataCollector(aCollector)
 , m_SelectedChannel(aChannel)
@@ -825,7 +825,7 @@ SegmentationParameterDialog::SegmentationParameterDialog(QWidget* aParent, vtkPl
 
 //-----------------------------------------------------------------------------
 
-SegmentationParameterDialog::~SegmentationParameterDialog()
+PlusSegmentationParameterDialog::~PlusSegmentationParameterDialog()
 {
   if (m_PatternRecognition != NULL) {
     delete m_PatternRecognition; 
@@ -871,9 +871,9 @@ SegmentationParameterDialog::~SegmentationParameterDialog()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::InitializeVisualization()
+PlusStatus PlusSegmentationParameterDialog::InitializeVisualization()
 {
-  LOG_TRACE("SegmentationParameterDialog::InitializeVisualization");
+  LOG_TRACE("PlusSegmentationParameterDialog::InitializeVisualization");
 
   if (m_SelectedChannel == NULL || m_SelectedChannel->GetOwnerDevice()->GetConnected() == false) {
     LOG_ERROR("Data source is not initialized!");
@@ -915,7 +915,7 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
   m_CandidatesPolyData->Initialize();
 
   // Setup canvas
-  m_ImageVisualizer = vtkImageVisualizer::New();
+  m_ImageVisualizer = vtkPlusImageVisualizer::New();
   m_ImageVisualizer->SetChannel(m_SelectedChannel);
   if( m_ImageVisualizer->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
   {
@@ -947,9 +947,9 @@ PlusStatus SegmentationParameterDialog::InitializeVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::ReadConfiguration()
+PlusStatus PlusSegmentationParameterDialog::ReadConfiguration()
 {
-  LOG_TRACE("SegmentationParameterDialog::ReadConfiguration");
+  LOG_TRACE("PlusSegmentationParameterDialog::ReadConfiguration");
 
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
@@ -1081,9 +1081,9 @@ PlusStatus SegmentationParameterDialog::ReadConfiguration()
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ApplyAndCloseClicked()
+void PlusSegmentationParameterDialog::ApplyAndCloseClicked()
 {
-  LOG_TRACE("SegmentationParameterDialog::ApplyAndCloseClicked");
+  LOG_TRACE("PlusSegmentationParameterDialog::ApplyAndCloseClicked");
 
   if (WriteConfiguration() != PLUS_SUCCESS) {
     LOG_ERROR("Write configuration failed!");
@@ -1095,16 +1095,16 @@ void SegmentationParameterDialog::ApplyAndCloseClicked()
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::SaveAndCloseClicked()
+void PlusSegmentationParameterDialog::SaveAndCloseClicked()
 {
-  LOG_TRACE("SegmentationParameterDialog::SaveAndCloseClicked");
+  LOG_TRACE("PlusSegmentationParameterDialog::SaveAndCloseClicked");
 
   if (WriteConfiguration() != PLUS_SUCCESS) {
     LOG_ERROR("Write configuration failed!");
     return;
   }
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
+  PlusConfigFileSaverDialog* configSaverDialog = new PlusConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;
@@ -1114,9 +1114,9 @@ void SegmentationParameterDialog::SaveAndCloseClicked()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::WriteConfiguration()
+PlusStatus PlusSegmentationParameterDialog::WriteConfiguration()
 {
-  LOG_TRACE("SegmentationParameterDialog::WriteConfiguration");
+  LOG_TRACE("PlusSegmentationParameterDialog::WriteConfiguration");
 
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("Segmentation");
@@ -1187,9 +1187,9 @@ PlusStatus SegmentationParameterDialog::WriteConfiguration()
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::GroupBoxROIToggled(bool aOn)
+void PlusSegmentationParameterDialog::GroupBoxROIToggled(bool aOn)
 {
-  LOG_TRACE("SegmentationParameterDialog::GroupBoxROIToggled(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::GroupBoxROIToggled(" << (aOn?"true":"false") << ")");
 
   ui.groupBox_Spacing->blockSignals(true);
   ui.groupBox_Spacing->setChecked(!aOn);
@@ -1215,9 +1215,9 @@ void SegmentationParameterDialog::GroupBoxROIToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::GroupBoxSpacingToggled(bool aOn)
+void PlusSegmentationParameterDialog::GroupBoxSpacingToggled(bool aOn)
 {
-  LOG_TRACE("SegmentationParameterDialog::GroupBoxSpacingToggled(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::GroupBoxSpacingToggled(" << (aOn?"true":"false") << ")");
 
   ui.groupBox_ROI->blockSignals(true);
   ui.groupBox_ROI->setChecked(!aOn);
@@ -1243,9 +1243,9 @@ void SegmentationParameterDialog::GroupBoxSpacingToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
+void PlusSegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
 {
-  LOG_TRACE("SegmentationParameterDialog::resizeEvent");
+  LOG_TRACE("PlusSegmentationParameterDialog::resizeEvent");
 
   if( m_ImageVisualizer != NULL )
   {
@@ -1255,9 +1255,9 @@ void SegmentationParameterDialog::resizeEvent(QResizeEvent* aEvent)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::UpdateCanvas()
+void PlusSegmentationParameterDialog::UpdateCanvas()
 {
-  //LOG_TRACE("SegmentationParameterDialog::UpdateCanvas");
+  //LOG_TRACE("PlusSegmentationParameterDialog::UpdateCanvas");
 
   SegmentCurrentImage();
 
@@ -1266,9 +1266,9 @@ void SegmentationParameterDialog::UpdateCanvas()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
+PlusStatus PlusSegmentationParameterDialog::SegmentCurrentImage()
 {
-  LOG_TRACE("SegmentationParameterDialog::SegmentCurrentImage");
+  LOG_TRACE("PlusSegmentationParameterDialog::SegmentCurrentImage");
 
   // If image is not frozen, then have DataCollector get the latest frame (else it uses the frozen one for segmentation)
   if (!m_ImageFrozen)
@@ -1340,7 +1340,7 @@ PlusStatus SegmentationParameterDialog::SegmentCurrentImage()
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::FreezeImage(bool aOn)
+void PlusSegmentationParameterDialog::FreezeImage(bool aOn)
 {
   LOG_INFO("FreezeImage turned " << (aOn?"on":"off"));
 
@@ -1351,9 +1351,9 @@ void SegmentationParameterDialog::FreezeImage(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ExportImage()
+void PlusSegmentationParameterDialog::ExportImage()
 {
-  LOG_TRACE("SegmentationParameterDialog::ExportImage()");
+  LOG_TRACE("PlusSegmentationParameterDialog::ExportImage()");
   
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   trackedFrameList->AddTrackedFrame(&m_Frame);
@@ -1386,9 +1386,9 @@ void SegmentationParameterDialog::ExportImage()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::SwitchToROIMode()
+PlusStatus PlusSegmentationParameterDialog::SwitchToROIMode()
 {
-  LOG_TRACE("SegmentationParameterDialog::SwitchToROIMode");
+  LOG_TRACE("PlusSegmentationParameterDialog::SwitchToROIMode");
 
   if (m_ROIModeHandler == NULL) {
     m_ROIModeHandler = vtkROIModeHandler::New(); 
@@ -1412,9 +1412,9 @@ PlusStatus SegmentationParameterDialog::SwitchToROIMode()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::SwitchToSpacingMode()
+PlusStatus PlusSegmentationParameterDialog::SwitchToSpacingMode()
 {
-  LOG_TRACE("SegmentationParameterDialog::SwitchToSpacingMode");
+  LOG_TRACE("PlusSegmentationParameterDialog::SwitchToSpacingMode");
 
   if (m_SpacingModeHandler == NULL) {
     m_SpacingModeHandler = vtkSpacingModeHandler::New(); 
@@ -1438,9 +1438,9 @@ PlusStatus SegmentationParameterDialog::SwitchToSpacingMode()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
+PlusStatus PlusSegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
 {
-  LOG_TRACE("SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum");
+  LOG_TRACE("PlusSegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum");
 
   double spacing = (ui.doubleSpinBox_ReferenceWidth->text().toDouble() + ui.doubleSpinBox_ReferenceHeight->text().toDouble()) / m_SpacingModeHandler->GetLineLengthSumImagePixel();
   ui.label_SpacingResult->setText(QString("%1").arg(spacing));
@@ -1454,27 +1454,27 @@ PlusStatus SegmentationParameterDialog::ComputeSpacingFromMeasuredLengthSum()
 
 //-----------------------------------------------------------------------------
 
-double SegmentationParameterDialog::GetSpacingReferenceWidth()
+double PlusSegmentationParameterDialog::GetSpacingReferenceWidth()
 {
-  LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceWidth");
+  LOG_TRACE("PlusSegmentationParameterDialog::GetSpacingReferenceWidth");
 
   return ui.doubleSpinBox_ReferenceWidth->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
 
-double SegmentationParameterDialog::GetSpacingReferenceHeight()
+double PlusSegmentationParameterDialog::GetSpacingReferenceHeight()
 {
-  LOG_TRACE("SegmentationParameterDialog::GetSpacingReferenceHeight");
+  LOG_TRACE("PlusSegmentationParameterDialog::GetSpacingReferenceHeight");
 
   return ui.doubleSpinBox_ReferenceHeight->text().toDouble();
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[3])
+PlusStatus PlusSegmentationParameterDialog::GetFrameSize(int aImageDimensions[3])
 {
-  LOG_TRACE("SegmentationParameterDialog::GetFrameSize");
+  LOG_TRACE("PlusSegmentationParameterDialog::GetFrameSize");
 
   m_SelectedChannel->GetBrightnessFrameSize(aImageDimensions);
 
@@ -1483,9 +1483,9 @@ PlusStatus SegmentationParameterDialog::GetFrameSize(int aImageDimensions[3])
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, int aYMax)
+PlusStatus PlusSegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, int aYMax)
 {
-  LOG_TRACE("SegmentationParameterDialog::SetROI(" << aXMin << ", " << aYMin << ", " << aXMax << ", " << aYMax << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::SetROI(" << aXMin << ", " << aYMin << ", " << aXMax << ", " << aYMax << ")");
 
   // Get valid values form the algorithm
   int validXMin = -1;
@@ -1553,9 +1553,9 @@ PlusStatus SegmentationParameterDialog::SetROI(int aXMin, int aYMin, int aXMax, 
 
 //-----------------------------------------------------------------------------
 
-PlusStatus SegmentationParameterDialog::GetROI(int &aXMin, int &aYMin, int &aXMax, int &aYMax)
+PlusStatus PlusSegmentationParameterDialog::GetROI(int &aXMin, int &aYMin, int &aXMax, int &aYMax)
 {
-  LOG_TRACE("SegmentationParameterDialog::GetROI");
+  LOG_TRACE("PlusSegmentationParameterDialog::GetROI");
 
   m_PatternRecognition->GetFidSegmentation()->GetRegionOfInterest(aXMin, aYMin, aXMax, aYMax);
 
@@ -1564,66 +1564,66 @@ PlusStatus SegmentationParameterDialog::GetROI(int &aXMin, int &aYMin, int &aXMa
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ROIXMinChanged(int aValue)
+void PlusSegmentationParameterDialog::ROIXMinChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ROIXMinChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ROIXMinChanged(" << aValue << ")");
   SetROI(aValue, -1, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ROIYMinChanged(int aValue)
+void PlusSegmentationParameterDialog::ROIYMinChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ROIYMinChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ROIYMinChanged(" << aValue << ")");
   SetROI(-1, aValue, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ROIXMaxChanged(int aValue)
+void PlusSegmentationParameterDialog::ROIXMaxChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ROIXMaxChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ROIXMaxChanged(" << aValue << ")");
   SetROI(-1, -1, aValue, -1);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ROIYMaxChanged(int aValue)
+void PlusSegmentationParameterDialog::ROIYMaxChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ROIYMaxChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ROIYMaxChanged(" << aValue << ")");
   SetROI(-1, -1, -1, aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ReferenceWidthChanged(int aValue)
+void PlusSegmentationParameterDialog::ReferenceWidthChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ReferenceWidthChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ReferenceWidthChanged(" << aValue << ")");
   ComputeSpacingFromMeasuredLengthSum();
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ReferenceHeightChanged(int aValue)
+void PlusSegmentationParameterDialog::ReferenceHeightChanged(int aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ReferenceHeightChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ReferenceHeightChanged(" << aValue << ")");
   ComputeSpacingFromMeasuredLengthSum();
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::OpeningCircleRadiusChanged(double aValue)
+void PlusSegmentationParameterDialog::OpeningCircleRadiusChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::OpeningCircleRadiusChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::OpeningCircleRadiusChanged(" << aValue << ")");
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningCircleRadiusMm(aValue);
   m_PatternRecognition->GetFidSegmentation()->UpdateParameters();
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
+void PlusSegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::OpeningBarSizeChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::OpeningBarSizeChanged(" << aValue << ")");
 
   m_PatternRecognition->GetFidSegmentation()->SetMorphologicalOpeningBarSizeMm(aValue);
 
@@ -1633,82 +1633,82 @@ void SegmentationParameterDialog::OpeningBarSizeChanged(double aValue)
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
+void PlusSegmentationParameterDialog::LinePairDistanceErrorChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::LinePairDistanceErrorChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLabeling()->SetMaxLinePairDistanceErrorPercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::AngleDifferenceChanged(double aValue)
+void PlusSegmentationParameterDialog::AngleDifferenceChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::AngleDifferenceChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::AngleDifferenceChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLabeling()->SetMaxAngleDifferenceDegrees(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::MinThetaChanged(double aValue)
+void PlusSegmentationParameterDialog::MinThetaChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::MinThetaChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLineFinder()->SetMinThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMinThetaDeg(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::MaxThetaChanged(double aValue)
+void PlusSegmentationParameterDialog::MaxThetaChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::MaxThetaChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLineFinder()->SetMaxThetaDegrees(aValue);
   m_PatternRecognition->GetFidLabeling()->SetMaxThetaDeg(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::AngleToleranceChanged(double aValue)
+void PlusSegmentationParameterDialog::AngleToleranceChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::AngleToleranceChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::AngleToleranceChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLabeling()->SetAngleToleranceDeg(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(double aValue)
+void PlusSegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::CollinearPointsMaxDistanceFromLineChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLineFinder()->SetCollinearPointsMaxDistanceFromLineMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::ImageThresholdChanged(double aValue)
+void PlusSegmentationParameterDialog::ImageThresholdChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::ImageThresholdChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::ImageThresholdChanged(" << aValue << ")");
   m_PatternRecognition->GetFidSegmentation()->SetThresholdImagePercent(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
+void PlusSegmentationParameterDialog::MaxLineShiftMmChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::MaxLineShiftMmChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::MaxLineShiftMmChanged(" << aValue << ")");
   m_PatternRecognition->GetFidLabeling()->SetMaxLineShiftMm(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::MaxCandidatesChanged(double aValue)
+void PlusSegmentationParameterDialog::MaxCandidatesChanged(double aValue)
 {
-  LOG_TRACE("SegmentationParameterDialog::MaxCandidatesChanged(" << aValue << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::MaxCandidatesChanged(" << aValue << ")");
   m_PatternRecognition->SetNumberOfMaximumFiducialPointCandidates(aValue);
 }
 
 //-----------------------------------------------------------------------------
 
-void SegmentationParameterDialog::OriginalIntensityForDotsToggled(bool aOn)
+void PlusSegmentationParameterDialog::OriginalIntensityForDotsToggled(bool aOn)
 {
-  LOG_TRACE("SegmentationParameterDialog::OriginalIntensityForDotsToggled(" << (aOn?"true":"false") << ")");
+  LOG_TRACE("PlusSegmentationParameterDialog::OriginalIntensityForDotsToggled(" << (aOn?"true":"false") << ")");
   m_PatternRecognition->GetFidSegmentation()->SetUseOriginalImageIntensityForDotIntensityScore(aOn);
 }

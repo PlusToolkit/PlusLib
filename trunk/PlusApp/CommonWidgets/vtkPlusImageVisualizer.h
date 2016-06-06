@@ -33,14 +33,14 @@ class vtkImageSliceMapper;
 * \brief Class that manages the displaying of a 2D image in a QT canvas element
 * \ingroup PlusAppCommonWidgets
 */
-class vtkImageVisualizer : public vtkObject
+class vtkPlusImageVisualizer : public vtkObject
 {
 
 public:
   /*!
   * New
   */
-  static vtkImageVisualizer *New();
+  static vtkPlusImageVisualizer *New();
 
   /*! Publicly available color for ROI */
   static double ROI_COLOR[3];
@@ -164,12 +164,12 @@ protected:
   /*!
   * Constructor
   */
-  vtkImageVisualizer();
+  vtkPlusImageVisualizer();
 
   /*!
   * Destructor
   */
-  ~vtkImageVisualizer();
+  ~vtkPlusImageVisualizer();
 
   vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
   vtkSetObjectMacro(HorizontalOrientationTextActor, vtkTextActor3D);

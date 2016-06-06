@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "CapturingToolbox.h"
-#include "ConfigFileSaverDialog.h"
+#include "PlusConfigFileSaverDialog.h"
 #include "ConfigurationToolbox.h"
 #include "PhantomRegistrationToolbox.h"
 #include "QCustomAction.h"
 #include "SpatialCalibrationToolbox.h"
-#include "StatusIcon.h"
+#include "PlusStatusIcon.h"
 #include "StylusCalibrationToolbox.h"
 #include "TemporalCalibrationToolbox.h"
 #include "VolumeReconstructionToolbox.h"
@@ -94,7 +94,7 @@ void fCalMainWindow::Initialize()
   LOG_TRACE("fCalMainWindow::Initialize");
 
   // Create status icon
-  m_StatusIcon = new StatusIcon(this);
+  m_StatusIcon = new PlusStatusIcon(this);
 
   // Set up timer for refreshing UI
   m_UiRefreshTimer = new QTimer(this);
@@ -646,7 +646,7 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
   // Write the current state into the device set configuration XML
   GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
+  PlusConfigFileSaverDialog* configSaverDialog = new PlusConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;

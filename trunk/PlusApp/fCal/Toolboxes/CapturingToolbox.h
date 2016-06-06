@@ -14,7 +14,7 @@ See License.txt for details.
 #include <QString>
 #include <QWidget>
 
-class CaptureControlWidget;
+class PlusCaptureControlWidget;
 class QScrollArea;
 class QGridLayout;
 class QSpacerItem;
@@ -187,7 +187,7 @@ protected:
   std::string m_LastSaveLocation;
 
   /* Container holding capture widgets */
-  std::vector<CaptureControlWidget*>  m_CaptureWidgets;
+  std::vector<PlusCaptureControlWidget*>  m_CaptureWidgets;
 
   QScrollArea* m_ScrollArea;
 

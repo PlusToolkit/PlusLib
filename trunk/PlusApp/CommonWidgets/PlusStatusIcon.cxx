@@ -4,7 +4,7 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "StatusIcon.h"
+#include "PlusStatusIcon.h"
 #include <QCoreApplication>
 #include <QGridLayout>
 #include <QMenu>
@@ -24,7 +24,7 @@ namespace
 }
 //-----------------------------------------------------------------------------
 
-StatusIcon::StatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
+PlusStatusIcon::PlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
   , m_DotLabel(NULL)
@@ -70,14 +70,14 @@ StatusIcon::StatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 
 //-----------------------------------------------------------------------------
 
-StatusIcon::~StatusIcon()
+PlusStatusIcon::~PlusStatusIcon()
 {
   vtkPlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::AddMessage(QString aInputString)
+void PlusStatusIcon::AddMessage(QString aInputString)
 {
   // No matter what store the log entry to be able to reconstruct it later
   m_MessageLog.push_back(aInputString);
@@ -97,7 +97,7 @@ void StatusIcon::AddMessage(QString aInputString)
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ParseMessage(QString &aInputString)
+void PlusStatusIcon::ParseMessage(QString &aInputString)
 {
   // Parse input string and extract log level and the message
   bool ok;
@@ -183,7 +183,7 @@ void StatusIcon::ParseMessage(QString &aInputString)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus StatusIcon::ConstructMessageListWidget()
+PlusStatus PlusStatusIcon::ConstructMessageListWidget()
 {
   LOG_TRACE("ToolStateDisplayWidget::ConstructMessageListWidget"); 
 
@@ -257,7 +257,7 @@ PlusStatus StatusIcon::ConstructMessageListWidget()
 
 //-----------------------------------------------------------------------------
 
-bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
+bool PlusStatusIcon::eventFilter(QObject *obj, QEvent *ev)
 {
   if ( ev->type() == QEvent::MouseButtonPress ) 
   {
@@ -302,7 +302,7 @@ bool StatusIcon::eventFilter(QObject *obj, QEvent *ev)
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::CreateCustomContextMenu( const QPoint& aPoint )
+void PlusStatusIcon::CreateCustomContextMenu( const QPoint& aPoint )
 {
   QMenu *menu = m_MessageTextEdit->createStandardContextMenu();
   QAction* clear = new QAction("Clear", this);
@@ -314,7 +314,7 @@ void StatusIcon::CreateCustomContextMenu( const QPoint& aPoint )
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ClearMessageList()
+void PlusStatusIcon::ClearMessageList()
 {
   m_MessageTextEdit->clear();
   ResetIconState();
@@ -323,14 +323,14 @@ void StatusIcon::ClearMessageList()
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ApplyFilterTimerFired()
+void PlusStatusIcon::ApplyFilterTimerFired()
 {
   this->ApplyFilter();
 }
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ClearFilterButtonClicked()
+void PlusStatusIcon::ClearFilterButtonClicked()
 {
   // clear log
   m_FilterLineEdit->clear();
@@ -340,7 +340,7 @@ void StatusIcon::ClearFilterButtonClicked()
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::FilterLineEditEdited(const QString&)
+void PlusStatusIcon::FilterLineEditEdited(const QString&)
 {
   m_ClearFilterButton->setEnabled(!m_FilterLineEdit->text().isEmpty());
 
@@ -355,7 +355,7 @@ void StatusIcon::FilterLineEditEdited(const QString&)
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ApplyFilter()
+void PlusStatusIcon::ApplyFilter()
 {
   // Clear the log
   m_MessageTextEdit->clear();
@@ -373,14 +373,14 @@ void StatusIcon::ApplyFilter()
 
 //-----------------------------------------------------------------------------
 
-void StatusIcon::ResetIconState()
+void PlusStatusIcon::ResetIconState()
 {
   m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
   m_DotLabel->setPixmap( QPixmap( ":/icons/Resources/icon_DotGreen.png" ) );
 }
 
 //-----------------------------------------------------------------------------
-void StatusIcon::SetMaxMessageCount( int count )
+void PlusStatusIcon::SetMaxMessageCount( int count )
 {
   if( count < 0 )
   {

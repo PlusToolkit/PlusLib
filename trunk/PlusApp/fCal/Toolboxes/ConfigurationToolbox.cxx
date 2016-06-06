@@ -535,7 +535,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 
   // Get phantom displayable model object
   
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(PHANTOM_WIRES_MODEL_ID);
+  vtkPlusDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(PHANTOM_WIRES_MODEL_ID);
   vtkDisplayablePolyData* phantomWiresDisplayablePolyData = dynamic_cast<vtkDisplayablePolyData*>(object);
   if (phantomWiresDisplayablePolyData==NULL)
   {

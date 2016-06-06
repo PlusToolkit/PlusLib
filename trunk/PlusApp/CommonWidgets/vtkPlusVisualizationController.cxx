@@ -65,13 +65,13 @@ vtkPlusVisualizationController::vtkPlusVisualizationController()
   this->AcquisitionTimer->start(1000.0 / this->AcquisitionFrameRate);
 
   // Create 2D visualizer
-  vtkSmartPointer<vtkImageVisualizer> imageVisualizer = vtkSmartPointer<vtkImageVisualizer>::New();
+  vtkSmartPointer<vtkPlusImageVisualizer> imageVisualizer = vtkSmartPointer<vtkPlusImageVisualizer>::New();
   imageVisualizer->SetResultPolyData(this->ResultPolyData);
   imageVisualizer->EnableROI(false);
   this->SetImageVisualizer(imageVisualizer);
 
   // Create 3D visualizer
-  vtkSmartPointer<vtk3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtk3DObjectVisualizer>::New();
+  vtkSmartPointer<vtkPlus3DObjectVisualizer> perspectiveVisualizer = vtkSmartPointer<vtkPlus3DObjectVisualizer>::New();
   perspectiveVisualizer->SetResultPolyData(this->ResultPolyData);
   perspectiveVisualizer->SetInputPolyData(this->InputPolyData);
   this->SetPerspectiveVisualizer(perspectiveVisualizer);
@@ -889,7 +889,7 @@ PlusStatus vtkPlusVisualizationController::ShowObjectById( const char* aModelId,
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPlusVisualizationController::AddObject(vtkDisplayableObject* aObject)
+PlusStatus vtkPlusVisualizationController::AddObject(vtkPlusDisplayableObject* aObject)
 {
   LOG_TRACE("vtkPlusVisualizationController::AddObject");
 
@@ -910,7 +910,7 @@ PlusStatus vtkPlusVisualizationController::AddObject(vtkDisplayableObject* aObje
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtkPlusVisualizationController::GetObjectById( const char* aId )
+vtkPlusDisplayableObject* vtkPlusVisualizationController::GetObjectById( const char* aId )
 {
   LOG_TRACE("vtkPlusVisualizationController::ShowObjectById");
 

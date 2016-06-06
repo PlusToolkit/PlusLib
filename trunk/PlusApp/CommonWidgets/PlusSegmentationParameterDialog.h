@@ -9,7 +9,7 @@
 
 #include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
-#include "ui_SegmentationParameterDialog.h"
+#include "ui_PlusSegmentationParameterDialog.h"
 #include <QDialog>
 
 class PlusFidPatternRecognition;
@@ -17,7 +17,7 @@ class QTimer;
 class vtkActor;
 class vtkPlusDataCollector;
 class vtkImageActor;
-class vtkImageVisualizer;
+class vtkPlusImageVisualizer;
 class vtkPlusChannel;
 class vtkPolyData;
 class vtkROIModeHandler;
@@ -25,11 +25,11 @@ class vtkSpacingModeHandler;
 
 //-----------------------------------------------------------------------------
 
-/*! \class SegmentationParameterDialog 
+/*! \class PlusSegmentationParameterDialog 
  * \brief Segmentation parameter setting dialog class
  * \ingroup PlusAppCommonWidgets
  */
-class SegmentationParameterDialog : public QDialog
+class PlusSegmentationParameterDialog : public QDialog
 {
 	Q_OBJECT
 
@@ -39,12 +39,12 @@ public:
 	* \param aParent Parent object
 	* \param aDataCollector Data collector (needed for the image output)
 	*/
-	SegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel);
+	PlusSegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel);
 
 	/*!
 	* Destructor
 	*/
-	~SegmentationParameterDialog();
+	~PlusSegmentationParameterDialog();
 
 	/*!
 	* Return canvas renderer
@@ -309,7 +309,7 @@ protected:
 	vtkRenderer*			        m_CanvasRenderer; 
 
   /*! 2D Image Visualization */
-  vtkImageVisualizer*       m_ImageVisualizer;
+  vtkPlusImageVisualizer*       m_ImageVisualizer;
 
   /*! Timer for refreshing the canvas */
   QTimer*                   m_CanvasRefreshTimer;

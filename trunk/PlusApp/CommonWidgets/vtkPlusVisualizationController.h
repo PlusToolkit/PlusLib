@@ -10,8 +10,8 @@ See License.txt for details.
 #include "PlusCommon.h"
 #include "PlusVideoFrame.h"
 #include "vtkPlusDataCollector.h"
-#include "vtkImageVisualizer.h"
-#include "vtk3DObjectVisualizer.h"
+#include "vtkPlusImageVisualizer.h"
+#include "vtkPlus3DObjectVisualizer.h"
 #include "vtkPolyData.h"
 #include "vtkPlusTransformRepository.h"
 
@@ -95,13 +95,13 @@ public:
   * Forward the AddObject request to the 3D visualizer
   * \param aObject the object to be added. Must have a valid actor.
   */
-  PlusStatus AddObject(vtkDisplayableObject* aObject);
+  PlusStatus AddObject(vtkPlusDisplayableObject* aObject);
 
   /*!
   * Forward the GetObjectById request to the 3D visualizer
   * \param aModelId Model ID to operate on
   */
-  vtkDisplayableObject* GetObjectById( const char* aId );
+  vtkPlusDisplayableObject* GetObjectById( const char* aId );
 
   /*!
   * Forward the ShowAllObjects request to the 3D visualizer
@@ -285,10 +285,10 @@ public:
   void SetInputData( vtkImageData * input );
 
 protected:
-  vtkGetObjectMacro(ImageVisualizer, vtkImageVisualizer);
-  vtkGetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);
-  vtkSetObjectMacro(ImageVisualizer, vtkImageVisualizer);
-  vtkSetObjectMacro(PerspectiveVisualizer, vtk3DObjectVisualizer);
+  vtkGetObjectMacro(ImageVisualizer, vtkPlusImageVisualizer);
+  vtkGetObjectMacro(PerspectiveVisualizer, vtkPlus3DObjectVisualizer);
+  vtkSetObjectMacro(ImageVisualizer, vtkPlusImageVisualizer);
+  vtkSetObjectMacro(PerspectiveVisualizer, vtkPlus3DObjectVisualizer);
   vtkSetObjectMacro(InputPolyData, vtkPolyData);
   vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
@@ -311,10 +311,10 @@ protected:
 
 protected:
   /*! 2D visualizer */
-  vtkImageVisualizer* ImageVisualizer;
+  vtkPlusImageVisualizer* ImageVisualizer;
 
   /*! 3D visualizer */
-  vtk3DObjectVisualizer* PerspectiveVisualizer;
+  vtkPlus3DObjectVisualizer* PerspectiveVisualizer;
 
   /*! Reference to the canvas */
   QVTKWidget* Canvas;

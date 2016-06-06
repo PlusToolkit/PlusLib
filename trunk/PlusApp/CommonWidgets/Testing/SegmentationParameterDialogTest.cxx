@@ -4,11 +4,11 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "ConfigFileSaverDialog.h"
+#include "PlusConfigFileSaverDialog.h"
 #include "PlusDeviceSetSelectorWidget.h"
-#include "SegmentationParameterDialog.h"
+#include "PlusSegmentationParameterDialog.h"
 #include "SegmentationParameterDialogTest.h"
-#include "StatusIcon.h"
+#include "PlusStatusIcon.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusDevice.h"
 #include "vtkXMLUtilities.h"
@@ -31,7 +31,7 @@ SegmentationParameterDialogTest::SegmentationParameterDialogTest(QWidget *parent
   connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
 
   // Create status icon
-  StatusIcon* statusIcon = new StatusIcon(this);
+  PlusStatusIcon* statusIcon = new PlusStatusIcon(this);
 
   // Create save configuration button
   m_SaveButton = new QPushButton(tr("Save configuration..."), this);
@@ -146,7 +146,7 @@ void SegmentationParameterDialogTest::ConnectToDevicesByConfigFile(std::string a
         aChannel = *(aDevice->GetOutputChannelsStart());
 
         // Show segmentation parameter dialog
-        SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_DataCollector, aChannel);
+        PlusSegmentationParameterDialog* segmentationParamDialog = new PlusSegmentationParameterDialog(this, m_DataCollector, aChannel);
         segmentationParamDialog->exec();
 
         delete segmentationParamDialog;
@@ -219,7 +219,7 @@ void SegmentationParameterDialogTest::SaveConfigurationClicked()
 {
   LOG_TRACE("SegmentationParameterDialogTest::SaveConfigurationClicked"); 
 
-  ConfigFileSaverDialog* configSaverDialog = new ConfigFileSaverDialog(this);
+  PlusConfigFileSaverDialog* configSaverDialog = new PlusConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;

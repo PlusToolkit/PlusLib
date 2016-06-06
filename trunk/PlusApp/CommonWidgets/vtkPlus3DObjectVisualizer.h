@@ -9,7 +9,7 @@
 
 #include "vtkActor.h"
 #include "vtkCamera.h"
-#include "vtkDisplayableObject.h"
+#include "vtkPlusDisplayableObject.h"
 #include "vtkGlyph3D.h"
 #include "vtkImageActor.h"
 #include "vtkObject.h"
@@ -23,29 +23,29 @@
 
 class vtkImageSliceMapper;
 
-/*! \class vtk3DObjectVisualizer 
+/*! \class vtkPlus3DObjectVisualizer 
  * \brief Class that manages the displaying of a 3D object visualization in a QT canvas element
  * \ingroup PlusAppCommonWidgets
  */
-class vtk3DObjectVisualizer : public vtkObject
+class vtkPlus3DObjectVisualizer : public vtkObject
 {
 public:
   /*!
   * New
   */
-  static vtk3DObjectVisualizer *New();
+  static vtkPlus3DObjectVisualizer *New();
 
   /*!
   * Return a displayable object
   * \param aModelId Model ID of the object to return
   */
-  vtkDisplayableObject* GetObjectById( const char* aModelId );
+  vtkPlusDisplayableObject* GetObjectById( const char* aModelId );
 
   /*!
   * Return a displayable object
   * \param aModelId Model ID of the object to return
   */
-  PlusStatus AddObject( vtkDisplayableObject* displayableObject );
+  PlusStatus AddObject( vtkPlusDisplayableObject* displayableObject );
 
 
   /*! Clear displayable object vector */
@@ -151,17 +151,17 @@ protected:
   /*!
   * Constructor
   */
-  vtk3DObjectVisualizer();
+  vtkPlus3DObjectVisualizer();
 
   /*!
   * Destructor
   */
-  virtual ~vtk3DObjectVisualizer();
+  virtual ~vtkPlus3DObjectVisualizer();
 
 protected:
 
   /*! List of displayable objects */
-  std::vector<vtkDisplayableObject*> DisplayableObjects;
+  std::vector<vtkPlusDisplayableObject*> DisplayableObjects;
 
   /*! Renderer for the canvas */
   vtkRenderer* CanvasRenderer; 

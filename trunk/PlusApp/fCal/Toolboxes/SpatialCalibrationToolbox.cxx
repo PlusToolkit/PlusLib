@@ -7,7 +7,7 @@ See License.txt for details.
 #include "SpatialCalibrationToolbox.h"
 
 #include "PlusFidPatternRecognition.h"
-#include "SegmentationParameterDialog.h"
+#include "PlusSegmentationParameterDialog.h"
 #include "PlusTrackedFrame.h"
 #include "fCalMainWindow.h"
 
@@ -569,12 +569,12 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
   m_ParentMainWindow->GetVisualizationController()->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_NONE);
   if( m_ParentMainWindow->GetVisualizationController()->DisconnectInput() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to disconnect input. Cannot show input in SegmentationParameterDialog.");
+    LOG_ERROR("Unable to disconnect input. Cannot show input in PlusSegmentationParameterDialog.");
     return;
   }
 
   // Show segmentation parameter dialog
-  SegmentationParameterDialog* segmentationParamDialog = new SegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), m_ParentMainWindow->GetSelectedChannel());
+  PlusSegmentationParameterDialog* segmentationParamDialog = new PlusSegmentationParameterDialog(this, m_ParentMainWindow->GetVisualizationController()->GetDataCollector(), m_ParentMainWindow->GetSelectedChannel());
   segmentationParamDialog->exec();
   delete segmentationParamDialog;
 
@@ -880,7 +880,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
   m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()->SetTransformDate(transducerOriginPixelToTransducerOriginTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
 
   // Set result for visualization
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId());
+  vtkPlusDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetTransducerModelId());
   if (object != NULL)
   {
     object->DisplayableOn();

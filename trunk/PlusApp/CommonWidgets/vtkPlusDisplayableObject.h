@@ -19,21 +19,21 @@ class vtkPolyDataMapper;
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkDisplayableObject 
+/*! \class vtkPlusDisplayableObject 
  * \brief Class that encapsulates the objects needed for visualizing a tool - the tool object, the actor, a flag indicating whether it is displayable
  * \ingroup PlusAppCommonWidgets
  */
-class vtkDisplayableObject : public vtkObject
+class vtkPlusDisplayableObject : public vtkObject
 {
 public:
-	vtkTypeMacro(vtkDisplayableObject,vtkObject);
-  static vtkDisplayableObject *New() { return NULL; };
+	vtkTypeMacro(vtkPlusDisplayableObject,vtkObject);
+  static vtkPlusDisplayableObject *New() { return NULL; };
 
   /*!
   * New function that gets the type and instantiates the proper displayable object class
   * \param aType Type that is read from the DisplayabelObject element of the configuration (eg. "Model")
   */
-  static vtkDisplayableObject *New(const char* aType);
+  static vtkPlusDisplayableObject *New(const char* aType);
 
   /*! Returns displayable status */
   virtual bool IsDisplayable() = 0;
@@ -76,10 +76,10 @@ public:
 
 protected:
   /*! Constructor */
-  vtkDisplayableObject();
+  vtkPlusDisplayableObject();
 
   /*! Destructor */
-  virtual ~vtkDisplayableObject();
+  virtual ~vtkPlusDisplayableObject();
 
 protected:
   /* Object coordinate frame name */
@@ -101,13 +101,13 @@ protected:
 //-----------------------------------------------------------------------------
 
 /*! \class vtkDisplayableImage 
- * \brief Specialized vtkDisplayableObject that displays an image
+ * \brief Specialized vtkPlusDisplayableObject that displays an image
  * \ingroup PlusAppCommonWidgets
  */
-class vtkDisplayableImage : public vtkDisplayableObject
+class vtkDisplayableImage : public vtkPlusDisplayableObject
 {
 public:
-	vtkTypeMacro(vtkDisplayableImage,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayableImage,vtkPlusDisplayableObject);
 
 	static vtkDisplayableImage *New();
 
@@ -131,13 +131,13 @@ protected:
 //-----------------------------------------------------------------------------
 
 /*! \class vtkDisplayableAxes
- * \brief Specialized vtkDisplayableObject that displays axes of a coordinate system
+ * \brief Specialized vtkPlusDisplayableObject that displays axes of a coordinate system
  * \ingroup PlusAppCommonWidgets
  */
-class vtkDisplayableAxes : public vtkDisplayableObject
+class vtkDisplayableAxes : public vtkPlusDisplayableObject
 {
 public:
-	vtkTypeMacro(vtkDisplayableAxes,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayableAxes,vtkPlusDisplayableObject);
 
 	static vtkDisplayableAxes *New();
 
@@ -164,13 +164,13 @@ protected:
 //-----------------------------------------------------------------------------
 
 /*! \class vtkDisplayablePolyData 
- * \brief Specialized vtkDisplayableObject that displays a poly data
+ * \brief Specialized vtkPlusDisplayableObject that displays a poly data
  * \ingroup PlusAppCommonWidgets
  */
-class vtkDisplayablePolyData : public vtkDisplayableObject
+class vtkDisplayablePolyData : public vtkPlusDisplayableObject
 {
 public:
-	vtkTypeMacro(vtkDisplayablePolyData,vtkDisplayableObject);
+	vtkTypeMacro(vtkDisplayablePolyData,vtkPlusDisplayableObject);
 
   static vtkDisplayablePolyData *New();
 
@@ -213,7 +213,7 @@ protected:
 //-----------------------------------------------------------------------------
 
 /*! \class vtkDisplayableModel 
- * \brief Specialized vtkDisplayableObject that displays a model
+ * \brief Specialized vtkPlusDisplayableObject that displays a model
  * \ingroup PlusAppCommonWidgets
  */
 class vtkDisplayableModel : public vtkDisplayablePolyData

@@ -8,7 +8,7 @@
 #include "vtksys/SystemTools.hxx"
 
 #include <QApplication>
-#include "PlusToolStateDisplayWidgetTest.h"
+#include "ToolStateDisplayWidgetTest.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   // Start the application
   QApplication app(argc, argv);
 
-	PlusToolStateDisplayWidgetTest toolStateDisplayWidgetTest;
+	ToolStateDisplayWidgetTest toolStateDisplayWidgetTest;
 	toolStateDisplayWidgetTest.show();
 
   return app.exec();

@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "CaptureControlWidget.h"
+#include "PlusCaptureControlWidget.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusVirtualDiscCapture.h"
@@ -14,7 +14,7 @@ See License.txt for details.
 #include <QTimer>
 
 //-----------------------------------------------------------------------------
-CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
+PlusCaptureControlWidget::PlusCaptureControlWidget(QWidget* aParent)
 : QWidget(aParent)
 , m_Device(NULL)
 {
@@ -35,12 +35,12 @@ CaptureControlWidget::CaptureControlWidget(QWidget* aParent)
 }
 
 //-----------------------------------------------------------------------------
-CaptureControlWidget::~CaptureControlWidget()
+PlusCaptureControlWidget::~PlusCaptureControlWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus CaptureControlWidget::WriteToFile( const QString& aFilename )
+PlusStatus PlusCaptureControlWidget::WriteToFile( const QString& aFilename )
 {
   // Force an update of the configuration
   if( this->GetCaptureDevice()->GetDataCollector() != NULL )
@@ -63,9 +63,9 @@ PlusStatus CaptureControlWidget::WriteToFile( const QString& aFilename )
 }
 
 //-----------------------------------------------------------------------------
-double CaptureControlWidget::GetMaximumFrameRate() const
+double PlusCaptureControlWidget::GetMaximumFrameRate() const
 {
-  LOG_TRACE("CaptureControlWidget::GetMaximumFrameRate");
+  LOG_TRACE("PlusCaptureControlWidget::GetMaximumFrameRate");
 
   if (m_Device == NULL )
   {
@@ -77,7 +77,7 @@ double CaptureControlWidget::GetMaximumFrameRate() const
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::UpdateBasedOnState()
+void PlusCaptureControlWidget::UpdateBasedOnState()
 {
   if( m_Device != NULL )
   {
@@ -128,13 +128,13 @@ void CaptureControlWidget::UpdateBasedOnState()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus CaptureControlWidget::SaveToMetafile( std::string aOutput )
+PlusStatus PlusCaptureControlWidget::SaveToMetafile( std::string aOutput )
 {
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::StartStopButtonPressed()
+void PlusCaptureControlWidget::StartStopButtonPressed()
 {
   if( m_Device != NULL )
   {
@@ -154,7 +154,7 @@ void CaptureControlWidget::StartStopButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice)
+void PlusCaptureControlWidget::SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice)
 {
   m_Device = &aDevice;
 
@@ -164,13 +164,13 @@ void CaptureControlWidget::SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice)
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SaveButtonPressed()
+void PlusCaptureControlWidget::SaveButtonPressed()
 {
   this->SaveFile();
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SaveAsButtonPressed()
+void PlusCaptureControlWidget::SaveAsButtonPressed()
 {
   bool isCapturing = m_Device->GetEnableCapturing();
 
@@ -213,9 +213,9 @@ void CaptureControlWidget::SaveAsButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SamplingRateChanged( int aValue )
+void PlusCaptureControlWidget::SamplingRateChanged( int aValue )
 {
-  LOG_TRACE("CaptureControlWidget::RecordingFrameRateChanged(" << aValue << ")"); 
+  LOG_TRACE("PlusCaptureControlWidget::RecordingFrameRateChanged(" << aValue << ")"); 
 
   double maxFrameRate = GetMaximumFrameRate();
   int samplingRate = (int)(pow(2.0, ui.samplingRateSlider->maximum() - aValue));
@@ -239,21 +239,21 @@ void CaptureControlWidget::SamplingRateChanged( int aValue )
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::ClearButtonPressed()
+void PlusCaptureControlWidget::ClearButtonPressed()
 {
   this->Clear();
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SendStatusMessage( const std::string& aMessage )
+void PlusCaptureControlWidget::SendStatusMessage( const std::string& aMessage )
 {
   emit EmitStatusMessage(aMessage);
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::TakeSnapshot()
+void PlusCaptureControlWidget::TakeSnapshot()
 {
-  LOG_TRACE("CaptureControlWidget::TakeSnapshot"); 
+  LOG_TRACE("PlusCaptureControlWidget::TakeSnapshot"); 
 
   if( this->m_Device->TakeSnapshot() != PLUS_SUCCESS )
   {
@@ -271,7 +271,7 @@ void CaptureControlWidget::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SetEnableCapturing( bool aCapturing )
+void PlusCaptureControlWidget::SetEnableCapturing( bool aCapturing )
 {
   if( m_Device != NULL )
   {
@@ -282,9 +282,9 @@ void CaptureControlWidget::SetEnableCapturing( bool aCapturing )
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::SaveFile()
+void PlusCaptureControlWidget::SaveFile()
 {
-  LOG_TRACE("CaptureControlWidget::SaveFile"); 
+  LOG_TRACE("PlusCaptureControlWidget::SaveFile"); 
 
   // Stop recording
   m_Device->SetEnableCapturing(false);
@@ -319,7 +319,7 @@ void CaptureControlWidget::SaveFile()
 }
 
 //-----------------------------------------------------------------------------
-void CaptureControlWidget::Clear()
+void PlusCaptureControlWidget::Clear()
 {
   m_Device->SetEnableCapturing(false);
   m_Device->Reset();
@@ -334,13 +334,13 @@ void CaptureControlWidget::Clear()
 }
 
 //-----------------------------------------------------------------------------
-bool CaptureControlWidget::CanSave() const
+bool PlusCaptureControlWidget::CanSave() const
 {
   return !m_Device->GetEnableCapturing() && m_Device->HasUnsavedData();
 }
 
 //-----------------------------------------------------------------------------
-bool CaptureControlWidget::CanRecord() const
+bool PlusCaptureControlWidget::CanRecord() const
 {
   return m_Device != NULL;
 }

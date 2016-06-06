@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "vtkConeSource.h"
-#include "vtkImageVisualizer.h"
+#include "vtkPlusImageVisualizer.h"
 #include "vtkLineSource.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
@@ -17,10 +17,10 @@ See License.txt for details.
 #include "vtkImageSliceMapper.h"
 
 //-----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkImageVisualizer);
+vtkStandardNewMacro(vtkPlusImageVisualizer);
 //-----------------------------------------------------------------------------
 
-double vtkImageVisualizer::ROI_COLOR[3] = {1.0, 0.0, 0.5};
+double vtkPlusImageVisualizer::ROI_COLOR[3] = {1.0, 0.0, 0.5};
 static double RESULT_SPHERE_COLOR[3] = {0.0, 0.8, 0.0};
 static const double MAX_WIDGET_THICKNESS = 10.0;  // maximum thickness of any object in the scene (camera is positioned at -MAX_WIDGET_THICKNESS - 1
 static double HORIZONTAL_TEXT_ORIENTATION_MARKER_OFFSET[3] = {30.0, 17.0, -1.0};
@@ -33,7 +33,7 @@ static const double ORIENTATION_MARKER_CONE_HEIGHT = 15.0;
 
 //-----------------------------------------------------------------------------
 
-vtkImageVisualizer::vtkImageVisualizer()
+vtkPlusImageVisualizer::vtkPlusImageVisualizer()
 : CanvasRenderer(NULL)
 , ImageActor(NULL)
 , ResultActor(NULL)
@@ -96,7 +96,7 @@ vtkImageVisualizer::vtkImageVisualizer()
 
 //-----------------------------------------------------------------------------
 
-vtkImageVisualizer::~vtkImageVisualizer()
+vtkPlusImageVisualizer::~vtkPlusImageVisualizer()
 {
   ClearScreenAlignedActorList();
 
@@ -133,7 +133,7 @@ vtkImageVisualizer::~vtkImageVisualizer()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
+PlusStatus vtkPlusImageVisualizer::InitializeOrientationMarkers()
 {
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetOrientationMarkerAssembly(assembly);
@@ -224,7 +224,7 @@ PlusStatus vtkImageVisualizer::InitializeOrientationMarkers()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
+PlusStatus vtkPlusImageVisualizer::UpdateOrientationMarkerLabelling()
 {
   // Force redraw of vtkTextActor3D (it's necessary probably
   // due to a bug in VTK)
@@ -275,9 +275,9 @@ PlusStatus vtkImageVisualizer::UpdateOrientationMarkerLabelling()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::UpdateCameraPose()
+PlusStatus vtkPlusImageVisualizer::UpdateCameraPose()
 {
-  LOG_TRACE("vtkImageVisualizer::UpdateCameraPose");
+  LOG_TRACE("vtkPlusImageVisualizer::UpdateCameraPose");
 
   // Only set new camera if image actor is visible and data collector is connected
   if ((this->ImageActor == NULL) || (this->ImageActor->GetVisibility() == 0) || (this->SelectedChannel==NULL) )
@@ -383,9 +383,9 @@ PlusStatus vtkImageVisualizer::UpdateCameraPose()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
+PlusStatus vtkPlusImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIENTATION aOrientation /*= US_IMG_ORIENT_MF*/ )
 {
-  LOG_TRACE("vtkImageVisualizer::SetScreenRightDownAxesOrientation(" << aOrientation << ")");
+  LOG_TRACE("vtkPlusImageVisualizer::SetScreenRightDownAxesOrientation(" << aOrientation << ")");
 
   this->CurrentMarkerOrientation = aOrientation;
 
@@ -403,7 +403,7 @@ PlusStatus vtkImageVisualizer::SetScreenRightDownAxesOrientation( US_IMAGE_ORIEN
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::ShowOrientationMarkers( bool aShow )
+PlusStatus vtkPlusImageVisualizer::ShowOrientationMarkers( bool aShow )
 {
   if( !aShow )
   {
@@ -419,7 +419,7 @@ PlusStatus vtkImageVisualizer::ShowOrientationMarkers( bool aShow )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::HideAll()
+PlusStatus vtkPlusImageVisualizer::HideAll()
 {
   this->ResultActor->VisibilityOff();
   this->ImageActor->VisibilityOff();
@@ -431,7 +431,7 @@ PlusStatus vtkImageVisualizer::HideAll()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::ShowResult(bool aOn)
+PlusStatus vtkPlusImageVisualizer::ShowResult(bool aOn)
 {
   this->ResultActor->SetVisibility(aOn);
   this->CanvasRenderer->Modified();
@@ -441,7 +441,7 @@ PlusStatus vtkImageVisualizer::ShowResult(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::SetResultColor(double r, double g, double b)
+PlusStatus vtkPlusImageVisualizer::SetResultColor(double r, double g, double b)
 {
   this->ResultActor->GetProperty()->SetColor(r, g, b);
 
@@ -450,7 +450,7 @@ PlusStatus vtkImageVisualizer::SetResultColor(double r, double g, double b)
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::SetResultOpacity(double aOpacity)
+PlusStatus vtkPlusImageVisualizer::SetResultOpacity(double aOpacity)
 {
   this->ResultActor->GetProperty()->SetOpacity(aOpacity);
 
@@ -459,25 +459,25 @@ PlusStatus vtkImageVisualizer::SetResultOpacity(double aOpacity)
 
 //-----------------------------------------------------------------------------
 
-void vtkImageVisualizer::SetInputData(vtkImageData* aImage )
+void vtkPlusImageVisualizer::SetInputData(vtkImageData* aImage )
 {
-  LOG_TRACE("vtkImageVisualizer::SetInputData");
+  LOG_TRACE("vtkPlusImageVisualizer::SetInputData");
 
   this->GetImageActor()->SetInputData_vtk5compatible(aImage);
 }
 
 //-----------------------------------------------------------------------------
-void vtkImageVisualizer::SetResultPolyData(vtkPolyData* aResultPolyData )
+void vtkPlusImageVisualizer::SetResultPolyData(vtkPolyData* aResultPolyData )
 {
-  LOG_TRACE("vtkImageVisualizer::SetResultPolyData");
+  LOG_TRACE("vtkPlusImageVisualizer::SetResultPolyData");
   this->ResultGlyph->SetInputData_vtk5compatible(aResultPolyData);
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::AddScreenAlignedProp(vtkProp3D* aProp )
+PlusStatus vtkPlusImageVisualizer::AddScreenAlignedProp(vtkProp3D* aProp )
 {
-  LOG_TRACE("vtkImageVisualizer::AddScreenAlignedProp");
+  LOG_TRACE("vtkPlusImageVisualizer::AddScreenAlignedProp");
 
   // Store the prop for later manipulation
   this->ScreenAlignedProps->AddItem(aProp);
@@ -497,7 +497,7 @@ PlusStatus vtkImageVisualizer::AddScreenAlignedProp(vtkProp3D* aProp )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::RemoveScreenAlignedProp( vtkProp3D* aProp )
+PlusStatus vtkPlusImageVisualizer::RemoveScreenAlignedProp( vtkProp3D* aProp )
 {
   // Find index of aProp
   int i = 0;
@@ -533,9 +533,9 @@ PlusStatus vtkImageVisualizer::RemoveScreenAlignedProp( vtkProp3D* aProp )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
+PlusStatus vtkPlusImageVisualizer::ClearScreenAlignedActorList()
 {
-  LOG_TRACE("vtkImageVisualizer::ClearScreenAlignedActorList");
+  LOG_TRACE("vtkPlusImageVisualizer::ClearScreenAlignedActorList");
 
   vtkProp3D *prop=NULL;
   vtkCollectionSimpleIterator pit;
@@ -552,9 +552,9 @@ PlusStatus vtkImageVisualizer::ClearScreenAlignedActorList()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
+PlusStatus vtkPlusImageVisualizer::UpdateScreenAlignedActors()
 {
-  LOG_TRACE("vtkImageVisualizer::UpdateScreenAlignedActors");
+  LOG_TRACE("vtkPlusImageVisualizer::UpdateScreenAlignedActors");
 
   // Only set new camera if image actor is visible and data collector is connected
   if (this->SelectedChannel==NULL)
@@ -641,7 +641,7 @@ PlusStatus vtkImageVisualizer::UpdateScreenAlignedActors()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkImageVisualizer::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
+PlusStatus vtkPlusImageVisualizer::ReadRoiConfiguration(vtkXMLDataElement* aXMLElement)
 {
   //Find segmentation parameters element
   vtkXMLDataElement* segmentationParameters = aXMLElement->FindNestedElementWithName("Segmentation");
@@ -678,9 +678,9 @@ PlusStatus vtkImageVisualizer::ReadRoiConfiguration(vtkXMLDataElement* aXMLEleme
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
+PlusStatus vtkPlusImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  LOG_TRACE("vtkImageVisualizer::ReadConfiguration");
+  LOG_TRACE("vtkPlusImageVisualizer::ReadConfiguration");
 
   // Rendering section
   vtkXMLDataElement* xmlElement = aConfig->FindNestedElementWithName("Rendering"); 
@@ -714,9 +714,9 @@ PlusStatus vtkImageVisualizer::ReadConfiguration( vtkXMLDataElement* aConfig )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
+PlusStatus vtkPlusImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int yMax )
 {
-  LOG_TRACE("vtkImageVisualizer::SetROIBounds");
+  LOG_TRACE("vtkPlusImageVisualizer::SetROIBounds");
 
   if (xMin > 0) {
     this->RegionOfInterest[0] = xMin;
@@ -752,9 +752,9 @@ PlusStatus vtkImageVisualizer::SetROIBounds( int xMin, int xMax, int yMin, int y
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeROIVisualization()
+PlusStatus vtkPlusImageVisualizer::InitializeROIVisualization()
 {
-  LOG_TRACE("vtkImageVisualizer::InitializeROIVisualization");
+  LOG_TRACE("vtkPlusImageVisualizer::InitializeROIVisualization");
 
   vtkSmartPointer<vtkAssembly> assembly = vtkSmartPointer<vtkAssembly>::New();
   this->SetROIActorAssembly(assembly);
@@ -798,9 +798,9 @@ PlusStatus vtkImageVisualizer::InitializeROIVisualization()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
+PlusStatus vtkPlusImageVisualizer::EnableROI( bool aEnable )
 {
-  LOG_TRACE("vtkImageVisualizer::EnableROI");
+  LOG_TRACE("vtkPlusImageVisualizer::EnableROI");
 
   if (aEnable) 
   {
@@ -821,9 +821,9 @@ PlusStatus vtkImageVisualizer::EnableROI( bool aEnable )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::EnableWireLabels( bool aEnable )
+PlusStatus vtkPlusImageVisualizer::EnableWireLabels( bool aEnable )
 {
-  LOG_TRACE("vtkImageVisualizer::EnableWireLabels");
+  LOG_TRACE("vtkPlusImageVisualizer::EnableWireLabels");
 
   for( std::vector<vtkTextActor3D*>::iterator it = this->WireActors.begin(); it != this->WireActors.end(); ++it )
   {
@@ -842,9 +842,9 @@ PlusStatus vtkImageVisualizer::EnableWireLabels( bool aEnable )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElement* aConfig)
 {
-  LOG_TRACE("vtkImageVisualizer::InitializeWireLabelVisualization");
+  LOG_TRACE("vtkPlusImageVisualizer::InitializeWireLabelVisualization");
 
   this->ClearWireLabelVisualization();
 
@@ -926,9 +926,9 @@ PlusStatus vtkImageVisualizer::InitializeWireLabelVisualization(vtkXMLDataElemen
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
+PlusStatus vtkPlusImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
 {
-  LOG_TRACE("vtkImageVisualizer::SetWireLabelPositions");
+  LOG_TRACE("vtkPlusImageVisualizer::SetWireLabelPositions");
 
   if( aPointList == NULL || aPointList->GetNumberOfPoints() == 0)
   {
@@ -975,14 +975,14 @@ PlusStatus vtkImageVisualizer::SetWireLabelPositions( vtkPoints* aPointList )
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::Reset()
+PlusStatus vtkPlusImageVisualizer::Reset()
 {
   return this->ClearWireLabelVisualization();
 }
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkImageVisualizer::ClearWireLabelVisualization()
+PlusStatus vtkPlusImageVisualizer::ClearWireLabelVisualization()
 {
   for( std::vector<vtkTextActor3D*>::iterator it = this->WireActors.begin(); it != this->WireActors.end(); ++it )
   {
@@ -994,7 +994,7 @@ PlusStatus vtkImageVisualizer::ClearWireLabelVisualization()
 }
 
 //-----------------------------------------------------------------------------
-void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
+void vtkPlusImageVisualizer::SetChannel(vtkPlusChannel *channel)
 {
   SetSelectedChannel(channel);
 
@@ -1011,7 +1011,7 @@ void vtkImageVisualizer::SetChannel(vtkPlusChannel *channel)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkImageVisualizer::SetSliceNumber(int number)
+PlusStatus vtkPlusImageVisualizer::SetSliceNumber(int number)
 {
   if( number >= this->ImageMapper->GetSliceNumberMinValue() && number <= this->ImageMapper->GetSliceNumberMaxValue() )
   {

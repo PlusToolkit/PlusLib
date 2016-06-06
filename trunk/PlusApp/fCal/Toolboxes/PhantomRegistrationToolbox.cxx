@@ -279,7 +279,7 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
     LOG_ERROR("Unable to retrieve phantom model by ID. Is the phantom model ID well defined?");
     return PLUS_FAIL;
   }
-  vtkDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
+  vtkPlusDisplayableObject* phantom = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetPhantomModelId());
   vtkDisplayableModel* phantomDisplayableModel = dynamic_cast<vtkDisplayableModel*>(phantom);
   if( phantomDisplayableModel == NULL )
   {
@@ -1052,7 +1052,7 @@ void PhantomRegistrationToolbox::StartLinearObjectRegistration()
   m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(inputPoints);
 
   // Initialize stylus tool
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+  vtkPlusDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
   if(object == NULL)
   {
     LOG_ERROR("No stylus tip displayable objects could be found!");
@@ -1136,7 +1136,7 @@ void PhantomRegistrationToolbox::StartLandmarkDetectionRegistration()
     //m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints(nextInputPoint);
 
     // Initialize stylus tool
-    vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+    vtkPlusDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
     if(object == NULL)
     {
       LOG_ERROR("No stylus tip displayable objects could be found!");

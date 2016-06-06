@@ -17,11 +17,11 @@ class vtkPlusDataCollector;
 
 //-----------------------------------------------------------------------------
 
-/*! \class PlusToolStateDisplayWidgetTest 
+/*! \class ToolStateDisplayWidgetTest 
  * \brief Qt application for testing PlusToolStateDisplayWidget
  * \ingroup PlusAppCommonWidgets
  */
-class PlusToolStateDisplayWidgetTest : public QDialog
+class ToolStateDisplayWidgetTest : public QDialog
 {
 	Q_OBJECT
 
@@ -31,12 +31,12 @@ public:
 	* \param aParent parent
 	* \param aFlags widget flag
 	*/
-	PlusToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+	ToolStateDisplayWidgetTest(QWidget *parent = 0, Qt::WindowFlags flags = 0);
 
 	/*!
 	* \brief Destructor
 	*/
-	~PlusToolStateDisplayWidgetTest();
+	~ToolStateDisplayWidgetTest();
 
 protected slots:
 	/*!

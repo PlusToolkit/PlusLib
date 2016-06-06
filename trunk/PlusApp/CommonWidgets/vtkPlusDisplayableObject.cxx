@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkDisplayableObject.h"
+#include "vtkPlusDisplayableObject.h"
 
 #include "vtkActor.h"
 #include "vtkImageActor.h"
@@ -22,15 +22,15 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-vtkCxxSetObjectMacro(vtkDisplayableObject, Actor, vtkProp3D);
+vtkCxxSetObjectMacro(vtkPlusDisplayableObject, Actor, vtkProp3D);
 
 //----------------------------------------------------------------------------
 
-vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
+vtkPlusDisplayableObject* vtkPlusDisplayableObject::New(const char* aType)
 {
   if (aType==NULL)
   {
-    LOG_ERROR("vtkDisplayableObject::New failed. Object type is not specified");
+    LOG_ERROR("vtkPlusDisplayableObject::New failed. Object type is not specified");
     return NULL;
   }
   if (STRCASECMP(aType, "Model") == 0)
@@ -49,13 +49,13 @@ vtkDisplayableObject* vtkDisplayableObject::New(const char* aType)
   {
     return vtkDisplayablePolyData::New();
   }
-  LOG_ERROR("vtkDisplayableObject::New failed. Unkonwn object type: "<<aType);
+  LOG_ERROR("vtkPlusDisplayableObject::New failed. Unkonwn object type: "<<aType);
   return NULL;
 }
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject::vtkDisplayableObject()
+vtkPlusDisplayableObject::vtkPlusDisplayableObject()
 : Actor(NULL)
 , ObjectCoordinateFrame(NULL)
 , ObjectId(NULL)
@@ -67,7 +67,7 @@ vtkDisplayableObject::vtkDisplayableObject()
 
 //-----------------------------------------------------------------------------
 
-vtkDisplayableObject::~vtkDisplayableObject()
+vtkPlusDisplayableObject::~vtkPlusDisplayableObject()
 {
   this->SetActor(NULL);
   this->SetObjectId(NULL);
@@ -75,9 +75,9 @@ vtkDisplayableObject::~vtkDisplayableObject()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  LOG_TRACE("vtkDisplayableObject::ReadConfiguration");
+  LOG_TRACE("vtkPlusDisplayableObject::ReadConfiguration");
 
   // Object coordinate frame name
   const char* objectCoordinateFrame = aConfig->GetAttribute("ObjectCoordinateFrame");
@@ -116,7 +116,7 @@ vtkStandardNewMacro(vtkDisplayableImage);
 //-----------------------------------------------------------------------------
 
 vtkDisplayableImage::vtkDisplayableImage()
-: vtkDisplayableObject()
+: vtkPlusDisplayableObject()
 {
 }
 
@@ -177,7 +177,7 @@ vtkStandardNewMacro(vtkDisplayableAxes);
 //-----------------------------------------------------------------------------
 
 vtkDisplayableAxes::vtkDisplayableAxes()
-: vtkDisplayableObject()
+: vtkPlusDisplayableObject()
 {
   vtkSmartPointer<vtkPlusToolAxesActor> axesActor = vtkSmartPointer<vtkPlusToolAxesActor>::New();
   axesActor->SetShaftLength(50);
@@ -250,7 +250,7 @@ vtkStandardNewMacro(vtkDisplayablePolyData);
 //-----------------------------------------------------------------------------
 
 vtkDisplayablePolyData::vtkDisplayablePolyData()
-: vtkDisplayableObject()
+: vtkPlusDisplayableObject()
 , PolyData(NULL)
 {
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();

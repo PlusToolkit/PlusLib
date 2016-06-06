@@ -45,14 +45,14 @@ signals:
  
 //-----------------------------------------------------------------------------
 
-/*! \class StatusIcon 
+/*! \class PlusStatusIcon 
  *
  * Widget that shows the current status of the application and displays all log messages occurred
  *
  * \ingroup PlusAppCommonWidgets
  *
  */
-class StatusIcon : public QWidget
+class PlusStatusIcon : public QWidget
 {
   Q_OBJECT
 
@@ -62,12 +62,12 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  StatusIcon(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
+  PlusStatusIcon(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
   */
-  ~StatusIcon();
+  ~PlusStatusIcon();
 
   void SetMaxMessageCount(int count);
 

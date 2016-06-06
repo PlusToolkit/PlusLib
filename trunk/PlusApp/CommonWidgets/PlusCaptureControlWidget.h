@@ -8,7 +8,7 @@ See License.txt for details.
 #define __CaptureControlWidget_h
 
 #include "PlusConfigure.h"
-#include "ui_CaptureControlWidget.h"
+#include "ui_PlusCaptureControlWidget.h"
 #include "vtkPlusVirtualDiscCapture.h"
 #include <QString>
 #include <QWidget>
@@ -17,11 +17,11 @@ class QTimer;
 
 //-----------------------------------------------------------------------------
 
-/*! \class CaptureControlWidget 
+/*! \class PlusCaptureControlWidget 
 * \brief Control vtkPlusVirtualDiscCapture devices
 * \ingroup PlusAppCaptureClient
 */
-class CaptureControlWidget : public QWidget
+class PlusCaptureControlWidget : public QWidget
 {
   Q_OBJECT
 
@@ -31,12 +31,12 @@ public:
   * \param aParent Parent main window
   * \param aFlags widget flag
   */
-  CaptureControlWidget(QWidget* aParent);
+  PlusCaptureControlWidget(QWidget* aParent);
 
   /*!
   * Destructor
   */
-  ~CaptureControlWidget();
+  ~PlusCaptureControlWidget();
 
   virtual void UpdateBasedOnState();
 

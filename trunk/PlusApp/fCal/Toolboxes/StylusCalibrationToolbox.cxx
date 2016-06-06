@@ -435,7 +435,7 @@ void StylusCalibrationToolbox::Start()
   m_PivotCalibration->RemoveAllCalibrationPoints();
 
   // Initialize stylus tool
-  vtkDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
+  vtkPlusDisplayableObject* object = m_ParentMainWindow->GetVisualizationController()->GetObjectById(m_ParentMainWindow->GetStylusModelId());
   if (object == NULL)
   {
     LOG_ERROR("No stylus tip displayable objects could be found!");
