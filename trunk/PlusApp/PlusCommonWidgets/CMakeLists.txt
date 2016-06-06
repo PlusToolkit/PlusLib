@@ -1,9 +1,9 @@
-PROJECT(CommonWidgets)
+PROJECT(PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Sources
 
-SET (CommonWidgets_SRCS
+SET (PlusCommonWidgets_SRCS
   PlusDeviceSetSelectorWidget.cxx
   PlusStatusIcon.cxx
   PlusToolStateDisplayWidget.cxx
@@ -18,12 +18,12 @@ SET (CommonWidgets_SRCS
   )
 
 if (WIN32)
-  SET (CommonWidgets_SRCS
-    ${CommonWidgets_SRCS}
+  SET (PlusCommonWidgets_SRCS
+    ${PlusCommonWidgets_SRCS}
     )
 endif (WIN32)
 
-SET (CommonWidgets_UI_HDRS
+SET (PlusCommonWidgets_UI_HDRS
     PlusDeviceSetSelectorWidget.h
     PlusStatusIcon.h
     PlusToolStateDisplayWidget.h
@@ -37,7 +37,7 @@ SET (CommonWidgets_UI_HDRS
     QCustomAction.h 
   )
 
-SET (CommonWidgets_UI_SRCS
+SET (PlusCommonWidgets_UI_SRCS
   PlusDeviceSetSelectorWidget.ui
   PlusConfigFileSaverDialog.ui
   PlusSegmentationParameterDialog.ui
@@ -45,7 +45,7 @@ SET (CommonWidgets_UI_SRCS
   )
 
 SET( QT_Resources
-     CommonWidgets.qrc
+     PlusCommonWidgets.qrc
     )
 
 # --------------------------------------------------------------------------
@@ -79,8 +79,8 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (CommonWidgets_LIBS 
-    ${CommonWidgets_LIBS} 
+SET (PlusCommonWidgets_LIBS 
+    ${PlusCommonWidgets_LIBS} 
     ${QT_LIBRARIES} 
     ${VTK_LIBRARIES}
     vtkPlusCalibration
@@ -88,13 +88,13 @@ SET (CommonWidgets_LIBS
     )
 
 IF (${VTK_VERSION_MAJOR} LESS 6)
-  SET (CommonWidgets_LIBS ${CommonWidgets_LIBS}
+  SET (PlusCommonWidgets_LIBS ${PlusCommonWidgets_LIBS}
     QVTK
     )
 ENDIF()
 
-ADD_LIBRARY(CommonWidgets STATIC ${CommonWidgets_SRCS} ${CommonWidgets_UI_HDRS} ${CommonWidgets_UI_SRCS} ${QT_Resources})
-TARGET_LINK_LIBRARIES(CommonWidgets  ${VTK_LIBRARIES} ${CommonWidgets_LIBS})
+ADD_LIBRARY(PlusCommonWidgets STATIC ${PlusCommonWidgets_SRCS} ${PlusCommonWidgets_UI_HDRS} ${PlusCommonWidgets_UI_SRCS} ${QT_Resources})
+TARGET_LINK_LIBRARIES(PlusCommonWidgets  ${VTK_LIBRARIES} ${PlusCommonWidgets_LIBS})
 
 # --------------------------------------------------------------------------
 # Testing

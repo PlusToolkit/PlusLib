@@ -170,8 +170,8 @@ SET(CMAKE_AUTOUIC ON)
 SET(CMAKE_AUTORCC ON)
 
 # --------------------------------------------------------------------------
-# Build the CommonWidgets library (Qt)
-ADD_SUBDIRECTORY(CommonWidgets)
+# Build the PlusCommonWidgets library (Qt)
+ADD_SUBDIRECTORY(PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build various utilities
@@ -229,13 +229,13 @@ INCLUDE_PLUSLIB_MS_PROJECTS()
 SET (PLUSAPP_INCLUDE_DIRS   
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/CommonWidgets
-  ${CMAKE_CURRENT_BINARY_DIR}/CommonWidgets
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusCommonWidgets
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusCommonWidgets
   )
 # --------------------------------------------------------------------------
 # Create PlusApp target list 
 SET( PLUSAPP_TARGETS
-  CommonWidgets
+  PlusCommonWidgets
   )
 
 # Add all targets to the build-tree export set
