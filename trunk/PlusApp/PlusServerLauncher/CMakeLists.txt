@@ -25,7 +25,7 @@ SET (PlusServerLauncher_UI_SRCS
 
 SET (PlusServerLauncher_QT_Resources
   PlusServerLauncher.qrc
-  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
   )
 
 # --------------------------------------------------------------------------
@@ -45,8 +45,8 @@ ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
-INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/PlusCommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
@@ -54,7 +54,7 @@ INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
 SET (PlusServerLauncher_LIBS 
     ${PlusServerLauncher_LIBS} 
     ${QT_LIBRARIES} 
-    CommonWidgets
+    PlusCommonWidgets
     vtkPlusServer    
     )
 

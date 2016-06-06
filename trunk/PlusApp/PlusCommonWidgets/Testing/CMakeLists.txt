@@ -18,15 +18,15 @@ ELSE(${QT_VERSION_MAJOR} EQUAL 5)
 
 ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
-INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
-INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/PlusCommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 
 #--------------------------------------------------------------------------------------------
   
 SET (SegmentationParameterDialogTest_LIBS 
     ${SegmentationParameterDialogTest_LIBS} 
     ${QT_LIBRARIES}
-    CommonWidgets
+    PlusCommonWidgets
     vtkPlusCommon
     vtkPlusCalibration
     vtkPlusDataCollection
@@ -37,7 +37,7 @@ ADD_EXECUTABLE(
   SegmentationParameterDialogTestMain.cxx
   SegmentationParameterDialogTest.cxx
   SegmentationParameterDialogTest.h
-  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(SegmentationParameterDialogTest ${SegmentationParameterDialogTest_LIBS})
@@ -71,15 +71,15 @@ ELSE(${QT_VERSION_MAJOR} EQUAL 5)
 
 ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 
-INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/CommonWidgets)
-INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/CommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_BINARY_DIR}/PlusCommonWidgets)
+INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 
 #--------------------------------------------------------------------------------------------
   
 SET (ToolStateDisplayWidgetTest_LIBS 
     ${ToolStateDisplayWidgetTest_LIBS} 
     ${QT_LIBRARIES}
-    CommonWidgets
+    PlusCommonWidgets
     vtkPlusCommon
     vtkPlusDataCollection
   )
@@ -89,7 +89,7 @@ ADD_EXECUTABLE(
   ToolStateDisplayWidgetTestMain.cxx
   ToolStateDisplayWidgetTest.cxx
   ToolStateDisplayWidgetTest.h
-  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
   )
   
 TARGET_LINK_LIBRARIES(ToolStateDisplayWidgetTest ${ToolStateDisplayWidgetTest_LIBS})
@@ -101,7 +101,7 @@ IF (PLUSAPP_TEST_GUI)
   ADD_TEST(DeviceSetSelectorWidgetTest
       ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
       -stderr
-      -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/DeviceSetSelectorWidgetTest.sikuli
+      -run ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/Testing/DeviceSetSelectorWidgetTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
           --device-set-configuration-dir=${ConfigFilesDir}/Testing
@@ -114,7 +114,7 @@ IF (PLUSAPP_TEST_GUI)
   ADD_TEST(StatusIconTest
       ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
       -stderr
-      -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/StatusIconTest.sikuli
+      -run ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/Testing/StatusIconTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
           --device-set-configuration-dir=${ConfigFilesDir}/Testing
@@ -128,7 +128,7 @@ IF (PLUSAPP_TEST_GUI)
   ADD_TEST(SegmentationParameterDialogTest
       ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
       -stderr
-      -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
+      -run ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/Testing/SegmentationParameterDialogTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
           --device-set-configuration-dir=${ConfigFilesDir}/Testing
@@ -142,7 +142,7 @@ IF (PLUSAPP_TEST_GUI)
   ADD_TEST(ConfigFileSaverDialogTest
       ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
       -stderr
-      -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ConfigFileSaverDialogTest.sikuli
+      -run ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/Testing/ConfigFileSaverDialogTest.sikuli
       --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
           --device-set-configuration-dir=${ConfigFilesDir}/Testing
@@ -157,7 +157,7 @@ IF (PLUSAPP_TEST_GUI)
   ADD_TEST(ToolStateDisplayWidgetTest
       ${SIKULI_BIN_DIR}/Sikuli-IDE.exe
       -stderr
-      -run ${PlusApp_SOURCE_DIR}/CommonWidgets/Testing/ToolStateDisplayWidgetTest.sikuli
+      -run ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/Testing/ToolStateDisplayWidgetTest.sikuli
         --args
           ${TEST_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest
           --device-set-configuration-dir=${ConfigFilesDir}/Testing

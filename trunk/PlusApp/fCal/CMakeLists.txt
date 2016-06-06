@@ -47,7 +47,7 @@ SET (fCal_UI_SRCS
 
 SET (fCal_QT_Resources
   fCal.qrc
-  ${PlusApp_SOURCE_DIR}/CommonWidgets/CommonWidgets.qrc
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
   )
   
 
@@ -71,15 +71,15 @@ ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
-include_directories(${PlusApp_BINARY_DIR}/CommonWidgets)
-include_directories(${PlusApp_SOURCE_DIR}/CommonWidgets)
+include_directories(${PlusApp_BINARY_DIR}/PlusCommonWidgets)
+include_directories(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
 SET (fCal_LIBS 
     ${fCal_LIBS} 
     ${QT_LIBRARIES} 
-    CommonWidgets
+    PlusCommonWidgets
     vtkPlusCommon
     ${ITK_LIBRARIES}
     itkvnl 
