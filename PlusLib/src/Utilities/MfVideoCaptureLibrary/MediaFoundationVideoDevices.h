@@ -23,10 +23,11 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include <vector>
 
 struct IMFAttributes;
-class MfVideoCapture::MediaFoundationVideoDevice;
 
 namespace MfVideoCapture
 {
+  class MediaFoundationVideoDevice;
+
   /// Class for managing of list of video devices
   class MediaFoundationVideoDevices
   {
