@@ -257,7 +257,7 @@ SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
 SET( PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels" )
 SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
 
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   # PlusConfig.xml generation for Windows (separate directories for different build types)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
