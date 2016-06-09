@@ -7,6 +7,7 @@ See License.txt for details.
 #ifndef __vtkPlusVirtualTextRecognizer_h
 #define __vtkPlusVirtualTextRecognizer_h
 
+#include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
