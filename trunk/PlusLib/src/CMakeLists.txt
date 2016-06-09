@@ -2,7 +2,7 @@
 
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
-# 
+#
 FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 IF ( VTK_FOUND )
 INCLUDE(${VTK_USE_FILE})
@@ -12,7 +12,7 @@ ENDIF ( VTK_FOUND )
 
 #
 # Try to find ITK and include its settings (otherwise complain)
-# 
+#
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF ( ITK_FOUND )
   INCLUDE( ${ITK_USE_FILE} )
@@ -23,7 +23,7 @@ ENDIF( ITK_FOUND )
 
 # --------------------------------------------------------------------------
 # Use OpenIGTLink protocol
-# 
+#
 OPTION(PLUS_USE_OpenIGTLink "Use the OpenIGTLink protocol" OFF)
 SET(PLUS_OPENIGTLINK_VERSION)
 IF(PLUS_USE_OpenIGTLink)
@@ -41,12 +41,12 @@ ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
 # Options
-OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS} )     
+OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS} )
 # OPTION (BUILD_SLICER_MODULE "Build project as Slicer module" OFF)
 
 # --------------------------------------------------------------------------
 # Use accurate or simple timer protocol
-# 
+#
 # DevPartnerStudio performance profiler hangs if the accurate timer
 # is used.If USE_SIMPLE_TIMER is defined then the accurate timer is
 # bypassed. It should only be enabled for performance profiling.
@@ -75,7 +75,7 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Sikuli binary directory path.
-# 
+#
 SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
 
 # --------------------------------------------------------------------------
@@ -86,18 +86,6 @@ SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus
 # is not found by default (as it does not have a proper USE file), therefore we add
 # the library output directory to the library search path
 LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
-
-# --------------------------------------------------------------------------
-# Configure include file
-# 
-CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
-  )
-CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
-  )  
 
 # --------------------------------------------------------------------------
 # Command-line application documentation
@@ -119,7 +107,7 @@ MACRO(GENERATE_HELP_DOC TARGET_NAME)
       WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Doc/Help
       )
   ENDIF(BUILD_DOCUMENTATION)
-ENDMACRO(GENERATE_HELP_DOC) 
+ENDMACRO(GENERATE_HELP_DOC)
 
 # --------------------------------------------------------------------------
 # Library export directive file generation
@@ -135,7 +123,7 @@ MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
     ${PlusLib_SOURCE_DIR}/src/PlusExport.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
     )
-ENDMACRO(GENERATE_EXPORT_DIRECTIVE_FILE) 
+ENDMACRO(GENERATE_EXPORT_DIRECTIVE_FILE)
 
 # --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories
@@ -152,7 +140,7 @@ SET(PLUSLIB_INCLUDE_DIRS "" CACHE INTERNAL "" )
 # --------------------------------------------------------------------------
 # Current directory
 
-SET (BASIC_INCLUDE_DIRS 	
+SET (BASIC_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_BINARY_DIR}"
   )
@@ -210,22 +198,34 @@ ENDIF()
 
 ADD_SUBDIRECTORY(scripts)
 
-FILE(GLOB headers 
+FILE(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   )
 
 # --------------------------------------------------------------------------
-# Create Plus target list 
+# Configure include file
+#
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
+  )
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
+  )
+
+# --------------------------------------------------------------------------
+# Create Plus target list
 
 # Add all targets to the build-tree export set
-export(TARGETS 
+export(TARGETS
   ${PLUSLIB_DEPENDENCIES}
   FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusLibLibraryDepends.cmake"
   )
 
 #-----------------------------------------------------------------------------
 # With regards to ticket #1075, also generate in top-level directory
-export(TARGETS 
+export(TARGETS
   ${PLUSLIB_DEPENDENCIES}
   FILE "${CMAKE_BINARY_DIR}/PlusLibTargets.cmake"
   )
@@ -251,7 +251,7 @@ CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
-# 
+#
 SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles" )
 SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
 SET( PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels" )
@@ -262,7 +262,7 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
-    )	    
+    )
   CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
@@ -274,13 +274,13 @@ ELSE()
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
     )
 ENDIF()
-  
+
 #-----------------------------------------------------------------------------
 # Documentation
 #
 OPTION(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." OFF)
 MARK_AS_ADVANCED(BUILD_DOCUMENTATION)
- 
+
 IF(BUILD_DOCUMENTATION)
 
   SET(PROGWIN64 "PROGRAMFILES")
@@ -325,14 +325,14 @@ IF( ${PLUS_USE_BRACHY_TRACKER} )
 ENDIF()
 
 #-----------------------------------------------------------------------------
-# Generate include file for projects that use this library 
-# 
+# Generate include file for projects that use this library
+#
 CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)
-  
+
   #-----------------------------------------------------------------------------
 # With regards to ticket #1075, also generate in top-level directory
 CONFIGURE_FILE(
-  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in 
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in
   ${CMAKE_BINARY_DIR}/UsePlusLib.cmake @ONLY)
