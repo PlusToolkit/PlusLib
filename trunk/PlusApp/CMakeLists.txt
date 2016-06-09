@@ -139,7 +139,9 @@ INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
   # to always look for includes there:
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-FIND_PACKAGE(Qt4 QUIET)
+IF(NOT PLUSBUILD_USE_QT5_ONLY)
+  FIND_PACKAGE(Qt4 QUIET)
+ENDIF()
 
 IF ( NOT QT4_FOUND )
   IF(EXISTS ${QT_QMAKE_EXECUTABLE} )
@@ -147,14 +149,9 @@ IF ( NOT QT4_FOUND )
     GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BINARY_DIR} DIRECTORY)
   ENDIF()
 
-  FIND_PACKAGE(Qt5Widgets QUIET)
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
 
-  #get_cmake_property(_variableNames VARIABLES)
-  #foreach (_variableName ${_variableNames})
-    #message(STATUS "${_variableName}=${${_variableName}}")
-  #endforeach()
-
-  IF ( NOT Qt5Gui_FOUND )
+  IF ( NOT Qt5_FOUND )
     MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
   ENDIF()
 
