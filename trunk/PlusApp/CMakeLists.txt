@@ -12,7 +12,7 @@ IF ( NOT PLUSLIB_DIR )
     FIND_PACKAGE (PlusLib)
 ELSE ()
     FIND_PACKAGE (PlusLib REQUIRED PATHS "${PLUSLIB_DIR}/src" NO_DEFAULT_PATH)
-ENDIF() 
+ENDIF()
 
 IF ( PlusLib_FOUND)
   INCLUDE( ${PlusLib_USE_FILE} )
@@ -21,17 +21,17 @@ ELSE( PlusLib_FOUND )
 ENDIF( PlusLib_FOUND )
 
 # ------------------------------------------------------------------------
-# Set project version number: PlusApp version should identical to Plus version 
+# Set project version number: PlusApp version should identical to Plus version
 SET(PLUSAPP_VERSION_MAJOR ${PLUSLIB_VERSION_MAJOR})
 SET(PLUSAPP_VERSION_MINOR ${PLUSLIB_VERSION_MINOR})
 SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 SET(PLUSAPP_REVISION ${PLUSLIB_REVISION})
 
-SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.") 
+SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.")
 
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
-     
+
 # --------------------------------------------------------------------------
 # Testing
 #
@@ -61,7 +61,7 @@ CONFIGURE_FILE(
   CreateUserManual.bat.in
   ${CMAKE_CURRENT_BINARY_DIR}/CreateUserManual.bat
   )
-  
+
 # --------------------------------------------------------------------------
 # Find SVN for revision information status and automatic update of the repository
 #
@@ -72,9 +72,9 @@ ELSE(PLUSAPP_OFFLINE_BUILD)
   FIND_PACKAGE(Subversion)
   IF(Subversion_FOUND)
     Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
-    MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}") 
+    MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}")
     SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
-  ENDIF(Subversion_FOUND) 
+  ENDIF(Subversion_FOUND)
   SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 ENDIF(PLUSAPP_OFFLINE_BUILD)
 
@@ -83,7 +83,7 @@ OPTION(BUILD_SHARED_LIBS
   "Build with shared libraries."
   ${VTK_BUILD_SHARED_LIBS}
   ${ITK_BUILD_SHARED_LIBS}
-  )    
+  )
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
@@ -129,12 +129,12 @@ ENDMACRO(GENERATE_HELP_DOC)
 
 # --------------------------------------------------------------------------
 # Packaging
-# 
-INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake) 
+#
+INCLUDE (${CMAKE_CURRENT_SOURCE_DIR}/CPackConfig.cmake)
 
 # --------------------------------------------------------------------------
 # Qt
-# 
+#
 # As moc files are generated in the binary dir, tell CMake
   # to always look for includes there:
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -184,7 +184,7 @@ IF(PLUS_USE_OpenIGTLink)
 ENDIF(PLUS_USE_OpenIGTLink)
 
 # --------------------------------------------------------------------------
-# Build the DiagnosticTools 
+# Build the DiagnosticTools
 IF (PLUSAPP_BUILD_DiagnosticTools)
   ADD_SUBDIRECTORY(DiagnosticTools)
   ADD_DEPENDENCIES( DiagPlusDataCollection ${PLUSLIB_DEPENDENCIES} )
@@ -203,8 +203,8 @@ ENDIF (PLUSAPP_BUILD_fCal)
 option(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." ${PLUSLIB_BUILD_DOCUMENTATION})
 mark_as_advanced(BUILD_DOCUMENTATION)
 
-IF (BUILD_DOCUMENTATION) 
- 
+IF (BUILD_DOCUMENTATION)
+
   IF(NOT PLUSLIB_BUILD_DOCUMENTATION)
     # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
     find_program(DOXYGEN_DOT_EXECUTABLE
@@ -224,25 +224,25 @@ ENDIF (BUILD_DOCUMENTATION)
 ADD_SUBDIRECTORY(Documentation)
 
 #-----------------------------------------------------------------------------
-# Include PlusLib MS projects 
+# Include PlusLib MS projects
 INCLUDE_PLUSLIB_MS_PROJECTS()
 
-SET (PLUSAPP_INCLUDE_DIRS   
+SET (PLUSAPP_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusCommonWidgets
   ${CMAKE_CURRENT_BINARY_DIR}/PlusCommonWidgets
   )
 # --------------------------------------------------------------------------
-# Create PlusApp target list 
+# Create PlusApp target list
 SET( PLUSAPP_TARGETS
   PlusCommonWidgets
   )
 
 # Add all targets to the build-tree export set
 export(TARGETS ${PLUSAPP_TARGETS}
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusAppLibraryDepends.cmake") 
-  
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusAppLibraryDepends.cmake")
+
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE PlusApp)
@@ -252,19 +252,19 @@ configure_file(PlusAppConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfig.cmake" @ONLY)
 configure_file(PlusAppConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusAppConfigVersion.cmake" @ONLY)
-  
+
 #-----------------------------------------------------------------------------
-# Generate include file for projects that use this library 
-# 
+# Generate include file for projects that use this library
+#
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusApp.cmake.in 
+  ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusApp.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/UsePlusApp.cmake
     @ONLY
   )
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration file for the install
-# 
+#
 SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "../config" )
 SET( PLUSCONFIG_IMAGE_DIR "../data" )
 SET( PLUSCONFIG_MODEL_DIR "../config" )
@@ -273,23 +273,29 @@ SET( PLUSCONFIG_SCRIPTS_DIR "../scripts" )
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
   ${CMAKE_CURRENT_BINARY_DIR}/PlusConfig.xml
-  )  
+  )
 
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
-# 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat
-  )  
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
-  )
+#
+IF(WIN32)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CreatePackage.bat.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CreatePackage.bat
+    )
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
+    ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+    )
+ELSE()
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
+    )
+    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ)
+endif()
 #-----------------------------------------------------------------------------
-# Install files 
+# Install files
 INCLUDE(InstallFiles.cmake)
