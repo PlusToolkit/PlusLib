@@ -670,21 +670,27 @@ ENDIF(PLUSBUILD_BUILD_PLUSMODELCATALOG)
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic update build and test
 #
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in
-  ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
-  )
+IF(WIN32)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
+    ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
+    )
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in
+    ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.sh
+    )
 
-STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}")
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.sh
-  )
+  STRING(REPLACE "/" "\\" PLUSBUILD_BIN_DIR_WIN "${CMAKE_BINARY_DIR}")
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.bat.in
+    ${CMAKE_CURRENT_BINARY_DIR}/PlusBuildAndTest.bat
+    )
+ELSE()
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/PlusBuildAndTest.sh.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/PlusBuildAndTest.sh
+    )
+    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/PlusBuildAndTest.sh
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ)
+ENDIF()
