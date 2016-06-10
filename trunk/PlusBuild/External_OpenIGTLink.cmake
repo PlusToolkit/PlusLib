@@ -6,7 +6,7 @@ IF(OpenIGTLink_DIR)
   MESSAGE(STATUS "Using OpenIGTLink available at: ${OpenIGTLink_DIR}")
   
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
     FILE(COPY 
       ${OpenIGTLink_LIBRARY_DIRS}/Release/
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release

@@ -16,7 +16,7 @@ IF(BiiGOptitrack_DIR)
   MESSAGE(STATUS "Using BiiGOptitrack available at: ${BiiGOptitrack_DIR}")
 
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
     FILE(COPY
       ${BiiGOptitrack_LIBRARY_DIRS}/
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release

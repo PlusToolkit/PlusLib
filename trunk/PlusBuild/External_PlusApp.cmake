@@ -75,7 +75,7 @@ ELSE()
 ENDIF()
 
 # Copy shared libraries to bin directory to allow running Plus applications in the build tree
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
   FILE(COPY "${QT_BINARY_DIR}/"
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
     FILES_MATCHING REGEX ${RELEASE_REGEX_PATTERN}

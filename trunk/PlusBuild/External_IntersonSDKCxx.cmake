@@ -5,7 +5,7 @@ IF(IntersonSDKCxx_DIR)
   MESSAGE(STATUS "Using IntersonSDKCxx available at: ${IntersonSDKCxx_DIR}")
 
   SET( _config )
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
     SET( _config "/Release" )
   ENDIF()
   FOREACH(_libpath ${IntersonSDKCxx_RUNTIME_LIBRARY_DIRS})
