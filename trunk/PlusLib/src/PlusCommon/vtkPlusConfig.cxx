@@ -172,7 +172,10 @@ void vtkPlusConfig::SetProgramDirectory()
   if (_NSGetExecutablePath(cProgramPath, &size) == 0)
   {
     std::string path=vtksys::SystemTools::CollapseFullPath(cProgramPath);
-    this->ProgramDirectory=path;
+    std::string dirName;
+    std::string fileName;
+    vtksys::SystemTools::SplitProgramPath(path.c_str(), dirName, fileName);
+    this->ProgramDirectory=dirName;
   }
   else
   {
