@@ -154,7 +154,7 @@ SET(vcProj_vtkPlusImageProcessing vtkPlusImageProcessing;"${PlusLib_BINARY_DIR}/
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" )
+IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
         )
