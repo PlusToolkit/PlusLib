@@ -117,7 +117,7 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
     QLabel* toolNameLabel = new QLabel(this);
     toolNameLabel->setText(toolNameString);
     toolNameLabel->setToolTip(toolNameString);
-    QSizePolicy sizePolicyNameLabel(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    QSizePolicy sizePolicyNameLabel(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
     sizePolicyNameLabel.setHorizontalStretch(2);
     toolNameLabel->setSizePolicy(sizePolicyNameLabel);
     grid->addWidget(toolNameLabel, i, 0, Qt::AlignLeft);

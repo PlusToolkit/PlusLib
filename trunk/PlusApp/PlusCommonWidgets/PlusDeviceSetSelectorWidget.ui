@@ -6,15 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>258</width>
-    <height>209</height>
+    <width>280</width>
+    <height>327</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DeviceSetSelector</string>
+   <string>Plus Device Set Selector</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <property name="spacing">
@@ -35,10 +44,16 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>325</width>
+         <height>16777215</height>
+        </size>
        </property>
        <property name="readOnly">
         <bool>true</bool>
@@ -47,12 +62,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_OpenConfigurationDirectory">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="minimumSize">
         <size>
          <width>23</width>
@@ -75,7 +84,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="CommonWidgets.qrc">
+        <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
        <property name="iconSize">
@@ -88,12 +97,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_RefreshFolder">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="minimumSize">
         <size>
          <width>23</width>
@@ -116,7 +119,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="CommonWidgets.qrc">
+        <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Refresh.png</normaloff>:/icons/Resources/icon_Refresh.png</iconset>
        </property>
       </widget>
@@ -169,17 +172,11 @@
          <height>0</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="text">
         <string>Connect</string>
        </property>
        <property name="icon">
-        <iconset resource="CommonWidgets.qrc">
+        <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Connect.png</normaloff>:/icons/Resources/icon_Connect.png</iconset>
        </property>
       </widget>
@@ -205,12 +202,6 @@
          <height>0</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>90</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="text">
         <string>Reset Tracker</string>
        </property>
@@ -221,22 +212,10 @@
    <item row="5" column="0">
     <widget class="QTextEdit" name="textEdit_Description">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>64</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>
@@ -253,24 +232,6 @@
      </property>
      <item>
       <widget class="QPushButton" name="pushButton_EditConfiguration">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
        <property name="focusPolicy">
         <enum>Qt::NoFocus</enum>
        </property>
@@ -281,7 +242,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="CommonWidgets.qrc">
+        <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
        </property>
       </widget>
@@ -289,16 +250,10 @@
      <item>
       <widget class="QComboBox" name="comboBox_DeviceSet">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>21</height>
-        </size>
        </property>
        <property name="maxVisibleItems">
         <number>35</number>
@@ -310,7 +265,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="CommonWidgets.qrc"/>
+  <include location="PlusCommonWidgets.qrc"/>
  </resources>
  <connections/>
 </ui>

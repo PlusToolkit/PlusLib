@@ -35,6 +35,12 @@ public:
   PlusDeviceSetSelectorWidget(QWidget* aParent = 0);
 
   /*!
+  * Set the device set combo box maximum size ratio
+  * \param ratio the ratio to set
+  */
+  void SetDeviceSetComboBoxMaximumSizeRatio(double ratio);
+
+  /*!
   * Destructor
   */
   ~PlusDeviceSetSelectorWidget();
@@ -122,6 +128,8 @@ protected:
   */
   PlusStatus ParseDirectory(QString aDirectory);
 
+  virtual void resizeEvent(QResizeEvent* event);
+
   protected slots:
     /*!
     * Pops up open directory dialog and saves the selected one into application
@@ -178,6 +186,9 @@ protected:
 
   /*! Flag telling whether connection has been successful */
   bool	  m_ConnectionSuccessful;
+
+  /*! If not -1, define the maximum size of the device set combobox relative to the current screen size */
+  double DeviceSetComboBoxMaximumSizeRatio;
 
   /*! Prefix to the description in the main text box */
   QString m_DescriptionPrefix;

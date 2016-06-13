@@ -2,12 +2,13 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusDeviceSetSelectorWidget.h"
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QDesktopWidget>
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QMenu>
@@ -33,6 +34,7 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
   , m_ConnectionSuccessful(false)
   , m_EditMenu(NULL)
   , m_EditorSelectAction(NULL)
+  , DeviceSetComboBoxMaximumSizeRatio(-1)
 {
   ui.setupUi(this);
 
@@ -45,10 +47,16 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
   connect( ui.comboBox_DeviceSet, SIGNAL( currentIndexChanged(int) ), this, SLOT( DeviceSetSelected(int) ) );
   connect( ui.pushButton_ResetTracker, SIGNAL( clicked() ), this, SLOT( ResetTrackerButtonClicked() ) );
   ui.pushButton_ResetTracker->setVisible(false);
-  
+
   connect( ui.pushButton_EditConfiguration, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( ShowEditContextMenu(QPoint) ) );
 
   SetConfigurationDirectory(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str());
+}
+
+//----------------------------------------------------------------------------
+void PlusDeviceSetSelectorWidget::SetDeviceSetComboBoxMaximumSizeRatio(double ratio)
+{
+  this->DeviceSetComboBoxMaximumSizeRatio = ratio;
 }
 
 //-----------------------------------------------------------------------------
@@ -99,9 +107,9 @@ PlusStatus PlusDeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirec
 
 void PlusDeviceSetSelectorWidget::OpenConfigurationDirectory()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked"); 
+  LOG_TRACE("DeviceSetSelectorWidget::OpenConfigurationDirectoryClicked");
 
-  // Directory open dialog for selecting configuration directory 
+  // Directory open dialog for selecting configuration directory
   QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open configuration directory" ) ), m_ConfigurationDirectory);
   if (dirName.isNull())
   {
@@ -124,12 +132,12 @@ void PlusDeviceSetSelectorWidget::OpenConfigurationDirectory()
 
 void PlusDeviceSetSelectorWidget::InvokeConnect()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect"); 
+  LOG_TRACE("DeviceSetSelectorWidget::InvokeConnect");
 
   if ( ui.comboBox_DeviceSet->currentIndex() < 0 )
   {
-    // combo box is empty 
-    return; 
+    // combo box is empty
+    return;
   }
 
   ui.pushButton_Connect->setEnabled(false);
@@ -142,16 +150,16 @@ void PlusDeviceSetSelectorWidget::InvokeConnect()
 
 std::string PlusDeviceSetSelectorWidget::GetSelectedDeviceSetDescription()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription"); 
+  LOG_TRACE("DeviceSetSelectorWidget::GetSelectedDeviceSetDescription");
 
-  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString().toLatin1().constData(); 
+  return ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), DescriptionRole).toString().toLatin1().constData();
 }
 
 //-----------------------------------------------------------------------------
 
 void PlusDeviceSetSelectorWidget::InvokeDisconnect()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect"); 
+  LOG_TRACE("DeviceSetSelectorWidget::InvokeDisconnect");
 
   RefreshFolder();
 
@@ -165,7 +173,7 @@ void PlusDeviceSetSelectorWidget::InvokeDisconnect()
 
 void PlusDeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::DeviceSetSelected(" << aIndex << ")");
 
   if ((aIndex < 0) || (aIndex >= ui.comboBox_DeviceSet->count()))
   {
@@ -178,16 +186,16 @@ void PlusDeviceSetSelectorWidget::DeviceSetSelected(int aIndex)
 
   ui.comboBox_DeviceSet->setToolTip(ui.comboBox_DeviceSet->currentText() + "\n" + ui.comboBox_DeviceSet->itemData(aIndex, FileNameRole).toString());
 
-  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString(); 
+  QString configurationFilePath = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString();
 
-  emit DeviceSetSelected( configurationFilePath.toLatin1().constData() ); 
+  emit DeviceSetSelected( configurationFilePath.toLatin1().constData() );
 }
 
 //-----------------------------------------------------------------------------
 
 void PlusDeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSuccessful)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::SetConnectionSuccessful(" << (aConnectionSuccessful?"true":"false") << ")");
 
   m_ConnectionSuccessful = aConnectionSuccessful;
 
@@ -222,7 +230,8 @@ void PlusDeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSucces
     }
   }
   else
-  { // If disconnect button has been pushed
+  {
+    // If disconnect button has been pushed
     if ( !m_ConnectionSuccessful )
     {
       ui.pushButton_Connect->setProperty("connected", QVariant(false));
@@ -254,7 +263,7 @@ void PlusDeviceSetSelectorWidget::SetConnectionSuccessful(bool aConnectionSucces
 
 bool PlusDeviceSetSelectorWidget::GetConnectionSuccessful()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful"); 
+  LOG_TRACE("DeviceSetSelectorWidget::GetConnectionSuccessful");
 
   return m_ConnectionSuccessful;
 }
@@ -263,7 +272,7 @@ bool PlusDeviceSetSelectorWidget::GetConnectionSuccessful()
 
 PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 {
-  LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toLatin1().constData() << ")"); 
+  LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toLatin1().constData() << ")");
 
   QDir configDir(aDirectory);
   QStringList fileList(configDir.entryList());
@@ -277,7 +286,7 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   }
 
   // Block signals before we add items
-  ui.comboBox_DeviceSet->blockSignals(true); 
+  ui.comboBox_DeviceSet->blockSignals(true);
   ui.comboBox_DeviceSet->clear();
 
   QStringListIterator filesIterator(fileList);
@@ -314,11 +323,13 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
         QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
         if (list.count() > 0)
-        { // If it has a DataCollection children then use the first one
+        {
+          // If it has a DataCollection children then use the first one
           docElem = list.at(0).toElement();
         }
         else
-        { // If it does not have a DataCollection then it cannot be used for connecting
+        {
+          // If it does not have a DataCollection then it cannot be used for connecting
           continue;
         }
       }
@@ -364,12 +375,12 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       ui.comboBox_DeviceSet->addItem(name, fileName);
       int currentIndex = ui.comboBox_DeviceSet->findText(name, Qt::MatchExactly);
 
-      ui.comboBox_DeviceSet->setItemData(currentIndex, description, DescriptionRole); 
+      ui.comboBox_DeviceSet->setItemData(currentIndex, description, DescriptionRole);
 
-      // Add tooltip word wrapped rich text  
+      // Add tooltip word wrapped rich text
       name.prepend("<p>");
       name.append("</p> <p>"+fileInfo.fileName().toLatin1()+"</p> <p>"+description.toLatin1()+"</p>");
-      ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole); 
+      ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole);
 
     }
     else
@@ -391,13 +402,26 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   ui.comboBox_DeviceSet->model()->sort(0);
 
   // Unblock signals after we add items
-  ui.comboBox_DeviceSet->blockSignals(false); 
+  ui.comboBox_DeviceSet->blockSignals(false);
 
   // Restore the  saved selection
   int lastSelectedDeviceSetIndex = ui.comboBox_DeviceSet->findData( QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())));
   ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex);
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void PlusDeviceSetSelectorWidget::resizeEvent(QResizeEvent* event)
+{
+  QWidget::resizeEvent(event);
+
+  if( DeviceSetComboBoxMaximumSizeRatio != -1 )
+  {
+    QDesktopWidget desktop;
+    int screenWidth = desktop.screenGeometry(desktop.screenNumber(this)).width();
+    ui.comboBox_DeviceSet->setMaximumWidth( screenWidth * DeviceSetComboBoxMaximumSizeRatio );
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -423,7 +447,7 @@ void PlusDeviceSetSelectorWidget::UpdateDescriptionText()
 
 void PlusDeviceSetSelectorWidget::RefreshFolder()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked"); 
+  LOG_TRACE("DeviceSetSelectorWidget::RefreshFolderClicked");
 
   if (ParseDirectory(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory().c_str())) != PLUS_SUCCESS)
   {
@@ -435,7 +459,7 @@ void PlusDeviceSetSelectorWidget::RefreshFolder()
 
 void PlusDeviceSetSelectorWidget::EditConfiguration()
 {
-  LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration"); 
+  LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration");
 
   QString configurationFilePath;
   int deviceSetIndex=ui.comboBox_DeviceSet->currentIndex();
@@ -445,7 +469,7 @@ void PlusDeviceSetSelectorWidget::EditConfiguration()
   }
   else
   {
-    LOG_ERROR("Cannot edit configuration file. No configuration is selected."); 
+    LOG_ERROR("Cannot edit configuration file. No configuration is selected.");
     return;
   }
   QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable().c_str());
@@ -501,7 +525,8 @@ void PlusDeviceSetSelectorWidget::SelectEditor()
   // File open dialog for selecting editor application
   QString filter = QString( tr( "Executables ( *.exe );;" ) );
   QString fileName = QFileDialog::getOpenFileName(NULL, QString( tr( "Select XML editor application" ) ), "", filter);
-  if (fileName.isNull()) {
+  if (fileName.isNull())
+  {
     return;
   }
 
