@@ -457,11 +457,19 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
   }
 
   this->Internal->Projection = this->Internal->SenseMgr->QueryCaptureManager()->QueryDevice()->CreateProjection();
-
+  pxcUID cosID;
   for (size_t i = 0; i < this->Internal->Targets.size(); i++)
   {
     this->Internal->Targets[i].cosIDs.clear();
 
+    
+    //case TRACKING_2D:
+    sts = this->Internal->Tracker->Set2DTrackFromFile(this->Internal->Targets[i].model_filename, cosID);
+    this->Internal->Targets[i].addCosID(cosID, L"2D Image");
+    
+
+    //case TRACKING_3D:
+    /*
     pxcUID firstID, lastID;
     sts = this->Internal->Tracker->Set3DTrack(this->Internal->Targets[i].model_filename, firstID, lastID);
     while (firstID <= lastID)
@@ -471,7 +479,7 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
       this->Internal->Targets[i].addCosID(firstID, vals.targetName);
       firstID++;
     }
-
+    */
     if (sts < PXC_STATUS_NO_ERROR)
     {
       LOG_ERROR("Failed to set tracking configuration");
