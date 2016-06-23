@@ -125,7 +125,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
   for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
   {
     vtkPlusDevice* plusDevice = (*it);
-    if(plusDevice->GetDeviceId() ==NULL)
+    if(plusDevice->GetDeviceId() == NULL)
     {
       outErrorString = "PLUS device has a NULL id.";
       return PLUS_FAIL;
@@ -158,6 +158,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
         imageResponse->SetClientId(this->ClientId);
         imageResponse->SetImageName(this->GetImageId());
         imageResponse->SetImageData(imageData);
+        imageResponse->SetVersion(this->GetVersion());
         imageResponse->SetImageToReferenceTransform(ijkToRasTransform);
 
         return PLUS_SUCCESS;
@@ -211,9 +212,10 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
     LOG_INFO("There are currently no images on the devices that are connected through plus.");
   }
 
-  vtkSmartPointer<vtkPlusCommandImageMetaDataResponse > imageMetaDataResponse=vtkSmartPointer<vtkPlusCommandImageMetaDataResponse >::New();
+  vtkSmartPointer<vtkPlusCommandImageMetaDataResponse > imageMetaDataResponse=vtkSmartPointer<vtkPlusCommandImageMetaDataResponse>::New();
   this->CommandResponseQueue.push_back(imageMetaDataResponse);
   imageMetaDataResponse->SetClientId(this->ClientId);
+  imageMetaDataResponse->SetVersion(this->GetVersion());
   imageMetaDataResponse->SetImageMetaDataItems(imageMetaDataList);
   return PLUS_SUCCESS;
 }

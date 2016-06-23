@@ -103,9 +103,9 @@ protected:
     igtl_uint32 m_XmlDataSizeInBytes; 
   };
 
-  virtual int  GetBodyPackSize();
-  virtual int  PackBody();
-  virtual int  UnpackBody();
+  virtual int  GetContentPackSize();
+  virtual int  PackContent();
+  virtual int  UnpackContent();
 
   PlusTrackedFrameMessage();
   ~PlusTrackedFrameMessage();

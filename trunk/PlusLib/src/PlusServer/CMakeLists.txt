@@ -4,51 +4,53 @@ SET (PlusServer_SRCS
   vtkPlusOpenIGTLinkServer.cxx
   vtkPlusOpenIGTLinkClient.cxx
   vtkPlusCommandResponse.cxx
-  vtkPlusCommand.cxx 
   vtkPlusCommandProcessor.cxx 
-  vtkPlusReconstructVolumeCommand.cxx 
-  vtkPlusStartStopRecordingCommand.cxx 
-  vtkPlusRequestIdsCommand.cxx 
-  vtkPlusUpdateTransformCommand.cxx 
-  vtkPlusSaveConfigCommand.cxx 
-  vtkPlusSendTextCommand.cxx
-  vtkPlusGetImageCommand.cxx
-  vtkPlusGetTransformCommand.cxx
+  Commands/vtkPlusCommand.cxx 
+  Commands/vtkPlusVersionCommand.cxx 
+  Commands/vtkPlusReconstructVolumeCommand.cxx 
+  Commands/vtkPlusStartStopRecordingCommand.cxx 
+  Commands/vtkPlusRequestIdsCommand.cxx 
+  Commands/vtkPlusUpdateTransformCommand.cxx 
+  Commands/vtkPlusSaveConfigCommand.cxx 
+  Commands/vtkPlusSendTextCommand.cxx
+  Commands/vtkPlusGetImageCommand.cxx
+  Commands/vtkPlusGetTransformCommand.cxx
   )
 
 IF (WIN32)
   SET (PlusServer_HDRS 
     vtkPlusOpenIGTLinkServer.h
     vtkPlusOpenIGTLinkClient.h
-    vtkPlusCommand.h
     vtkPlusCommandResponse.h
     vtkPlusCommandProcessor.h
-    vtkPlusReconstructVolumeCommand.h
-    vtkPlusStartStopRecordingCommand.h
-    vtkPlusRequestIdsCommand.h 
-    vtkPlusUpdateTransformCommand.h 
-    vtkPlusSaveConfigCommand.h 
-    vtkPlusSendTextCommand.h
-    vtkPlusGetImageCommand.h
-	vtkPlusGetTransformCommand.h
+    Commands/vtkPlusCommand.h
+    Commands/vtkPlusVersionCommand.h 
+    Commands/vtkPlusReconstructVolumeCommand.h
+    Commands/vtkPlusStartStopRecordingCommand.h
+    Commands/vtkPlusRequestIdsCommand.h 
+    Commands/vtkPlusUpdateTransformCommand.h 
+    Commands/vtkPlusSaveConfigCommand.h 
+    Commands/vtkPlusSendTextCommand.h
+    Commands/vtkPlusGetImageCommand.h
+    Commands/vtkPlusGetTransformCommand.h
     )
 ENDIF (WIN32)
 
 IF (PLUS_USE_STEALTHLINK)
-  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusStealthLinkCommand.cxx)
+  SET (PlusServer_SRCS  ${PlusServer_SRCS} Commands/vtkPlusStealthLinkCommand.cxx)
   IF (WIN32)
-    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusStealthLinkCommand.h)
+    SET (PlusServer_HDRS ${PlusServer_HDRS} Commands/vtkPlusStealthLinkCommand.h)
   ENDIF (WIN32)
 ENDIF(PLUS_USE_STEALTHLINK)
 
 IF (PLUS_USE_OPTIMET_CONOPROBE)
-  SET (PlusServer_SRCS  ${PlusServer_SRCS} vtkPlusConoProbeLinkCommand.cxx)
+  SET (PlusServer_SRCS  ${PlusServer_SRCS} Commands/vtkPlusConoProbeLinkCommand.cxx)
   IF (WIN32)
-    SET (PlusServer_HDRS ${PlusServer_HDRS} vtkPlusConoProbeLinkCommand.h)
+    SET (PlusServer_HDRS ${PlusServer_HDRS} Commands/vtkPlusConoProbeLinkCommand.h)
   ENDIF (WIN32)
 ENDIF(PLUS_USE_OPTIMET_CONOPROBE)
 
-SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Commands CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library

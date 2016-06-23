@@ -42,8 +42,7 @@ namespace igtl
   PlusUsMessage::PlusUsMessage()
     : ImageMessage()
   {
-    this->m_DefaultBodyType = "USMESSAGE";
-    this->m_DeviceName ="USMessage";
+    this->m_SendMessageType = "USMESSAGE";
   }
 
   //----------------------------------------------------------------------------
@@ -197,7 +196,7 @@ namespace igtl
   //----------------------------------------------------------------------------
   int PlusUsMessage::PackBody()
   {
-    igtl::ImageMessage::PackBody();
+    igtl::ImageMessage::PackContent();
 
     MessageHeader* header = (MessageHeader*)(m_Image + GetSubVolumeImageSize() );
     header->m_DataType = this->m_MessageHeader.m_DataType; 
@@ -223,9 +222,9 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusUsMessage::UnpackBody()
+  int PlusUsMessage::UnpackContent()
   {
-    igtl::ImageMessage::UnpackBody();
+    igtl::ImageMessage::UnpackContent();
 
     MessageHeader* header = (MessageHeader*)(m_Image + GetSubVolumeImageSize() );
 

@@ -5,10 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkPlusOpenIGTLinkDevice.h"
-
+#include "igtlMessageFactory.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusOpenIGTLinkDevice.h"
 
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
 
@@ -176,7 +176,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   // Send message to server 
   int retValue = 0;
   RETRY_UNTIL_TRUE( 
-    (retValue = this->ClientSocket->Send( clientInfoMsg->GetPackPointer(), clientInfoMsg->GetPackSize() ))!=0,
+    (retValue = this->ClientSocket->Send( clientInfoMsg->GetBufferPointer(), clientInfoMsg->GetBufferSize() ))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
   if ( retValue == 0 )
@@ -224,18 +224,20 @@ void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::Messa
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg)
 {
-  headerMsg = igtl::MessageHeader::New();
-  headerMsg->InitPack();
+  {
+    igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
+    headerMsg = factory->CreateHeaderMessage();
+  }
 
   int numOfBytesReceived = 0;
   RETRY_UNTIL_TRUE(
-    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() ))!=0,
+    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetBufferPointer(), headerMsg->GetBufferSize() ))!=0,
     this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
   if ( numOfBytesReceived > 0)
   {
     // Data is received
-    if ( numOfBytesReceived != headerMsg->GetPackSize() )
+    if ( numOfBytesReceived != headerMsg->GetBufferSize() )
     {
       // Received data is not as we expected
       LOG_ERROR("Couldn't receive data from OpenIGTLink device "<<this->GetDeviceId()<<": (unexpected header size)"); 

@@ -17,7 +17,7 @@ namespace igtl
   PlusTrackedFrameMessage::PlusTrackedFrameMessage() 
     : MessageBase()
   {
-    this->m_DefaultBodyType = "TRACKEDFRAME";
+    this->m_SendMessageType = "TRACKEDFRAME";
   }
 
   //----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusTrackedFrameMessage::GetBodyPackSize()
+  int PlusTrackedFrameMessage::GetContentPackSize()
   {
      return this->m_MessageHeader.GetMessageHeaderSize() 
       + this->m_MessageHeader.m_ImageDataSizeInBytes 
@@ -74,9 +74,9 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusTrackedFrameMessage::PackBody()
+  int PlusTrackedFrameMessage::PackContent()
   {
-    AllocatePack();
+    AllocateBuffer();
 
     // Copy header
     MessageHeader* header = (MessageHeader*)( this->m_Body );
@@ -111,7 +111,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  int PlusTrackedFrameMessage::UnpackBody()
+  int PlusTrackedFrameMessage::UnpackContent()
   {
     MessageHeader* header = (MessageHeader*)( this->m_Body );
 

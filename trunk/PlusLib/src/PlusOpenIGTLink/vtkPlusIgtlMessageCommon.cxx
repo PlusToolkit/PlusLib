@@ -111,9 +111,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
     trackedFrameMsg = igtl::PlusTrackedFrameMessage::New();
   }
   trackedFrameMsg->SetMessageHeader(headerMsg);
-  trackedFrameMsg->AllocatePack();
+  trackedFrameMsg->AllocateBuffer();
 
-  socket->Receive(trackedFrameMsg->GetPackBodyPointer(), trackedFrameMsg->GetPackBodySize());
+  socket->Receive(trackedFrameMsg->GetBufferBodyPointer(), trackedFrameMsg->GetBufferBodySize());
 
   int c = trackedFrameMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
@@ -162,9 +162,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage( igtl::MessageHeader::Point
 
   igtl::PlusUsMessage::Pointer usMsg = igtl::PlusUsMessage::New();
   usMsg->SetMessageHeader(headerMsg);
-  usMsg->AllocatePack();
+  usMsg->AllocateBuffer();
 
-  socket->Receive(usMsg->GetPackBodyPointer(), usMsg->GetPackBodySize());
+  socket->Receive(usMsg->GetBufferBodyPointer(), usMsg->GetBufferBodySize());
 
   int c = usMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
@@ -297,7 +297,6 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   imageMessage->Pack();
 
   return PLUS_SUCCESS; 
-
 }
 
 //----------------------------------------------------------------------------
@@ -323,9 +322,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage( igtl::MessageHeader::Po
     imgMsg = igtl::ImageMessage::New();
   }
   imgMsg->SetMessageHeader(headerMsg);
-  imgMsg->AllocatePack();
+  imgMsg->AllocateBuffer();
 
-  socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+  socket->Receive(imgMsg->GetBufferBodyPointer(), imgMsg->GetBufferBodySize());
 
   int c = imgMsg->Unpack(crccheck);
   if (! (c & igtl::MessageHeader::UNPACK_BODY) ) 
@@ -596,9 +595,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
     transMsg = igtl::TransformMessage::New();
   }
   transMsg->SetMessageHeader(headerMsg);
-  transMsg->AllocatePack();
+  transMsg->AllocateBuffer();
 
-  socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+  socket->Receive(transMsg->GetBufferBodyPointer(), transMsg->GetBufferBodySize());
 
   int c = transMsg->Unpack(crccheck);
   if ( !(c & igtl::MessageHeader::UNPACK_BODY) )
@@ -686,9 +685,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
     posMsg = igtl::PositionMessage::New();
   }
   posMsg->SetMessageHeader(headerMsg);
-  posMsg->AllocatePack();
+  posMsg->AllocateBuffer();
 
-  socket->Receive(posMsg->GetPackBodyPointer(), posMsg->GetPackBodySize());
+  socket->Receive(posMsg->GetBufferBodyPointer(), posMsg->GetBufferBodySize());
 
   //  If crccheck is specified it performs CRC check and unpack the data only if CRC passes
   int c = posMsg->Unpack(crccheck);

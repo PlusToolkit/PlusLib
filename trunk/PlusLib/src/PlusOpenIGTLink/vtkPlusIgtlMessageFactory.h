@@ -46,16 +46,22 @@ public:
   /*! Print all supported OpenIGTLink message types */
   virtual void PrintAvailableMessageTypes(ostream& os, vtkIndent indent);
 
+  /// Constructs a message header.
+  /// Throws invalid_argument if headerMsg is NULL.
+  /// Throws invalid_argument if this->IsValid(headerMsg) returns false.
+  /// Creates message, calls InitBuffer()
+  igtl::MessageHeader::Pointer CreateHeaderMessage(int version = IGTL_HEADER_VERSION_1) const;
+
   /// Constructs a message from the given populated header.
   /// Throws invalid_argument if headerMsg is NULL.
   /// Throws invalid_argument if this->IsValid(headerMsg) returns false.
-  /// Creates message, sets header onto message and calls AllocatePack() on the message.
+  /// Creates message, sets header onto message and calls AllocateBuffer() on the message.
   igtl::MessageBase::Pointer CreateReceiveMessage(igtl::MessageHeader::Pointer headerMsg) const;
 
   /// Constructs an empty message from the given message type.
   /// Throws invalid_argument if messageType is empty.
-  /// Creates message, sets header onto message and calls AllocatePack() on the message.
-  igtl::MessageBase::Pointer CreateSendMessage(const std::string& messageType) const;
+  /// Creates message, sets header onto message and calls AllocateBuffer() on the message.
+  igtl::MessageBase::Pointer CreateSendMessage(const std::string& messageType, int version = IGTL_HEADER_VERSION_1) const;
 
   /*! 
   Generate and pack IGTL messages from tracked frame

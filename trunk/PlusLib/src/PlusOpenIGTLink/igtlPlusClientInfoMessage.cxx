@@ -18,7 +18,7 @@ namespace igtl
 //----------------------------------------------------------------------------
 PlusClientInfoMessage::PlusClientInfoMessage() : StringMessage()
 {
-  this->m_DefaultBodyType = "CLIENTINFO";
+  this->m_SendMessageType = "CLIENTINFO";
 }
 
 //----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalDisconnect()
 
     int retValue = 0;
     RETRY_UNTIL_TRUE( 
-      (retValue = this->ClientSocket->Send( stpMsg->GetPackPointer(), stpMsg->GetPackSize() ))!=0,
+      (retValue = this->ClientSocket->Send( stpMsg->GetBufferPointer(), stpMsg->GetBufferSize() ))!=0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
     if ( retValue == 0 )
@@ -139,9 +139,9 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   // TDATA message
   igtl::TrackingDataMessage::Pointer tdataMsg = dynamic_cast<igtl::TrackingDataMessage*>(bodyMsg.GetPointer());
   tdataMsg->SetMessageHeader( headerMsg );
-  tdataMsg->AllocatePack();
+  tdataMsg->AllocateBuffer();
 
-  this->ClientSocket->Receive( tdataMsg->GetPackBodyPointer(), tdataMsg->GetPackBodySize() );
+  this->ClientSocket->Receive( tdataMsg->GetBufferBodyPointer(), tdataMsg->GetBufferBodySize() );
   int c = tdataMsg->Unpack( this->IgtlMessageCrcCheckEnabled );
   if ( ! ( c & igtl::MessageHeader::UNPACK_BODY ) )
   {
@@ -358,7 +358,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::SendRequestedMessageTypes()
 
     int retValue = 0;
     RETRY_UNTIL_TRUE( 
-      (retValue = this->ClientSocket->Send( sttMsg->GetPackPointer(), sttMsg->GetPackSize() ))!=0,
+      (retValue = this->ClientSocket->Send( sttMsg->GetBufferPointer(), sttMsg->GetBufferSize() ))!=0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
 
     if ( retValue == 0 )
