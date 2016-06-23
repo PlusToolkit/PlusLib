@@ -111,7 +111,7 @@ public:
 
     Checks if a deviceName is a reply to a command. For example: ACK_13 is a reply to CMD_13
   */
-  static bool IsReplyDeviceName(const std::string &deviceName, const std::string &uid);
+  static bool IsReplyDeviceName(const std::string &deviceName, const std::string &uid = std::string(""));
 
   /*!
     Gets the uid from a device name (e.g., device name is CMD_abc123, it returns abc123)

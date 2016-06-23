@@ -26,6 +26,8 @@ public:
   static vtkPlusCommandResponse *New();
   vtkTypeMacro(vtkPlusCommandResponse, vtkObject);
 
+  vtkGetMacro(Version,uint16_t);
+  vtkSetMacro(Version,uint16_t);
   vtkGetMacro(DeviceName,std::string);
   vtkSetMacro(DeviceName,std::string);
   vtkGetMacro(ClientId,unsigned int);
@@ -39,6 +41,7 @@ protected:
   , Status(PLUS_SUCCESS)
   {
   }
+  uint16_t Version;
   std::string DeviceName;
   unsigned int ClientId;
   uint32_t Id;
@@ -76,8 +79,6 @@ public:
   static vtkPlusCommandCommandResponse *New();
   vtkTypeMacro(vtkPlusCommandCommandResponse, vtkPlusCommandResponse);
 
-  vtkGetMacro(Version,uint16_t);
-  vtkSetMacro(Version,uint16_t);
   vtkGetMacro(OriginalId,uint32_t);
   vtkSetMacro(OriginalId,uint32_t);
   vtkGetMacro(CommandName,std::string);
@@ -94,7 +95,6 @@ protected:
   vtkPlusCommandCommandResponse()
   {
   }
-  uint16_t Version;
   uint32_t OriginalId;
   std::string CommandName;
   std::string ErrorString;

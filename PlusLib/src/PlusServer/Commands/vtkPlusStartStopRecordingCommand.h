@@ -64,12 +64,10 @@ public:
   vtkPlusVirtualDiscCapture* GetCaptureDevice(const char* captureDeviceId);
 
 protected:
-
   vtkPlusStartStopRecordingCommand();
   virtual ~vtkPlusStartStopRecordingCommand();
   
 private:
-
   bool  EnableCompression;
   char* OutputFilename;
   char* CaptureDeviceId;
@@ -79,6 +77,4 @@ private:
   
 };
 
-
 #endif
-

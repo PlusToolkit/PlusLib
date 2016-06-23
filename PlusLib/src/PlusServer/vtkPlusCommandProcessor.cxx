@@ -10,23 +10,24 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
-#include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusGetImageCommand.h"
+#include "vtkPlusReconstructVolumeCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   #include "vtkPlusConoProbeLinkCommand.h"
 #endif
+#include "igtl_header.h"
+#include "vtkPlusGetTransformCommand.h"
+#include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
-#include "vtkPlusGetTransformCommand.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkPlusVersionCommand.h"
 #include "vtkXMLUtilities.h"
-#include "igtl_header.h"
 
 vtkStandardNewMacro( vtkPlusCommandProcessor );
 
@@ -46,6 +47,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSaveConfigCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSendTextCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusVersionCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif
@@ -264,6 +266,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
       response->SetClientId(clientId);
       response->SetDeviceName(deviceName);
       response->SetOriginalId(uid);
+      response->SetVersion(commandVersion);
       response->SetErrorString(errorMessage);
       response->SetStatus(PLUS_FAIL);
       {

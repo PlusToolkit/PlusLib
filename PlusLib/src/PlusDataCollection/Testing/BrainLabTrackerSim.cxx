@@ -84,7 +84,7 @@ void SendTrackingData(igtl::Socket::Pointer& socket, igtl::TrackingDataMessage::
   }
 
   trackingMsg->Pack();
-  socket->Send(trackingMsg->GetPackPointer(), trackingMsg->GetPackSize());
+  socket->Send(trackingMsg->GetBufferPointer(), trackingMsg->GetBufferSize());
 
   phi0 += 0.1;
   theta0 += 0.2;
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int rs = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        int rs = socket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
         if (rs == 0)
         {
           if (threadID >= 0)
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
           socket->CloseSocket();
           break;
         }
-        if (rs != headerMsg->GetPackSize())
+        if (rs != headerMsg->GetBufferSize())
         {
           continue;
         }
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 
           igtl::StartTrackingDataMessage::Pointer startTracking = dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMsg.GetPointer());
 
-          socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
+          socket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
           const int enableCrcCheck=1;
           int unpackSuccess = startTracking->Unpack(enableCrcCheck);
           if (unpackSuccess & igtl::MessageHeader::UNPACK_BODY)

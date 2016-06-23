@@ -65,7 +65,7 @@ namespace igtl
 
     virtual int GetBodyPackSize();
     virtual int PackBody();
-    virtual int UnpackBody();
+    virtual int UnpackContent();
 
     PlusUsMessage();
     ~PlusUsMessage();

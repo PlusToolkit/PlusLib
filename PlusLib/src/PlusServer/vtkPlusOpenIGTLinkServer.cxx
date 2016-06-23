@@ -20,12 +20,13 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 
 // OpenIGTLink includes
-#include "igtlImageMetaMessage.h"
-#include "igtlImageMessage.h"
-#include "igtlMessageHeader.h"
 #include "igtlCommandMessage.h"
+#include "igtlImageMessage.h"
+#include "igtlImageMetaMessage.h"
+#include "igtlMessageHeader.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlStatusMessage.h"
+#include "igtlStringMessage.h"
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
@@ -57,6 +58,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , LastProcessingTimePerFrameMs(-1)
   , ConnectionReceiverThreadId(-1)
   , DataSenderThreadId(-1)
+  , IGTLProtocolVersion(IGTL_HEADER_VERSION_3)
   , ConnectionActive(std::make_pair(false,false))
   , DataSenderActive(std::make_pair(false,false))
   , DataCollector(NULL)
@@ -302,7 +304,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
     }
 
     // Send remote command execution replies to clients before sending any images/transforms/etc...
-    SendCommandResults(*self);
+    SendCommandResponses(*self);
 
     // Send image/tracking/string data
     SendLatestFramesToClients(*self, elapsedTimeSinceLastPacketSentSec);
@@ -391,7 +393,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResults(vtkPlusOpenIGTLinkServer& self)
+PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResponses(vtkPlusOpenIGTLinkServer& self)
 {
   PlusCommandResponseList replies;
   self.PlusCommandProcessor->PopCommandResponses(replies);
@@ -448,8 +450,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
   while ( client->DataReceiverActive.first )
   {
     igtl::MessageHeader::Pointer headerMsg;
-    headerMsg = igtl::MessageHeader::New();
-    headerMsg->InitPack();
+    {
+      igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
+      headerMsg = factory->CreateHeaderMessage();
+    }
 
     // Receive generic header from the socket
     int bytesReceived = clientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
@@ -459,6 +463,12 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     }
 
     headerMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+
+    {
+      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
+      client->ClientInfo.ClientIGTLVersion = std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetVersion());
+    }
+
     igtl::MessageBase::Pointer bodyMessage = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
     if( bodyMessage.IsNull() )
     {
@@ -943,7 +953,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
   vtkPlusCommandStringResponse* stringResponse=vtkPlusCommandStringResponse::SafeDownCast(response);
   if (stringResponse)
   {
-    igtl::StringMessage::Pointer igtlMessage = igtl::StringMessage::New();
+    igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", response->GetVersion()).GetPointer());
     igtlMessage->SetDeviceName(stringResponse->GetDeviceName().c_str());
     igtlMessage->SetString(stringResponse->GetMessage());
     LOG_DEBUG("String response: " << stringResponse->GetMessage());
@@ -972,7 +982,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       return NULL;
     }
 
-    igtl::ImageMessage::Pointer igtlMessage = igtl::ImageMessage::New();
+    igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", response->GetVersion()).GetPointer());
     igtlMessage->SetDeviceName(imageName.c_str());
 
     if ( vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData,
@@ -990,7 +1000,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     std::string imageMetaDataName="PlusServerImageMetaData";
     PlusCommon::ImageMetaDataList imageMetaDataList;
     imageMetaDataResponse->GetImageMetaDataItems(imageMetaDataList);
-    igtl::ImageMetaMessage::Pointer igtlMessage = igtl::ImageMetaMessage::New();
+    igtl::ImageMetaMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMetaMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMGMETA", response->GetVersion()).GetPointer());
     igtlMessage->SetDeviceName(imageMetaDataName.c_str());
     if ( vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtlMessage,imageMetaDataList) != PLUS_SUCCESS )
     {
@@ -1006,7 +1016,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     if( commandResponse->GetVersion() == IGTL_HEADER_VERSION_1 || commandResponse->GetVersion() == IGTL_HEADER_VERSION_2 )
     {
       // Incoming command was a v1/v2 style command, reply as such
-      igtl::StringMessage::Pointer igtlMessage = igtl::StringMessage::New();
+      igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", response->GetVersion()).GetPointer());
       igtlMessage->SetDeviceName( vtkPlusCommand::GenerateReplyDeviceName(commandResponse->GetOriginalId()) );
 
       std::ostringstream replyStr;
@@ -1022,13 +1032,15 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       LOG_DEBUG("Command response: "<<replyStr.str());
       return igtlMessage.GetPointer();
     }
-    else if( commandResponse->GetVersion() == IGTL_HEADER_VERSION_3 )
+    else if( commandResponse->GetVersion() >= IGTL_HEADER_VERSION_3 )
     {
-      // Incoming command was a v3 style command, reply as such
-      igtl::RTSCommandMessage::Pointer igtlMessage = igtl::RTSCommandMessage::New();
+      // Incoming command was a modern style command, reply using our latest 
+      igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", response->GetVersion()).GetPointer());
       //TODO : should this device name be the name of the server?
       igtlMessage->SetDeviceName(commandResponse->GetDeviceName().c_str());
       igtlMessage->SetCommandName(commandResponse->GetCommandName());
+      igtlMessage->SetVersion(this->GetIGTLProtocolVersion());
+      igtlMessage->SetCommandId(commandResponse->GetOriginalId());
 
       std::ostringstream replyStr;
       replyStr << "<Command><Result>" << (commandResponse->GetStatus() ? "true" : "false") << "</Result>";
@@ -1036,14 +1048,12 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       {
         replyStr << "<Error>" << commandResponse->GetErrorString() << "</Error>";
       }
-      replyStr << "<Message>" << commandResponse->GetResultString() << "</Message>";
-      // TODO : move parameters XML in body message to message metadata fields when metadata is implemented
-      replyStr << "<Parameters>";
+      replyStr << "<Message>" << commandResponse->GetResultString() << "</Message></Command>";
+
       for( std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it )
       {
-        replyStr << "<Parameter Name=\"" << it->first << "\" Value=\"" << it->second << "\"/>";
+        igtlMessage->AddMetaDataElement(it->first, 3, it->second);
       }
-      replyStr << "</Parameters></Command>";
 
       LOG_DEBUG("Command response: "<<replyStr.str());
       igtlMessage->SetCommandContent(replyStr.str());

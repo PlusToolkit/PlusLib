@@ -52,7 +52,7 @@ public:
   PlusStatus Disconnect();
   
   /*! Send a command to the connected server */
-  PlusStatus SendCommand( vtkPlusCommand* command );
+  PlusStatus SendCommand( vtkPlusCommand* command, int versionOverride = -1 );
 
   /*! Wait for a command reply */
   PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec=0);

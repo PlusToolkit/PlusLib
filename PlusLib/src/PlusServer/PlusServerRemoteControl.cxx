@@ -11,6 +11,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "igtl_header.h"
+#include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusOpenIGTLinkClient.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
@@ -18,7 +19,7 @@ See License.txt for details.
 #include "vtkPlusSendTextCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
-#include "vtkPlusGetTransformCommand.h"
+#include "vtkPlusVersionCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
 #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -304,6 +305,16 @@ PlusStatus ExecuteGetExamData(vtkPlusOpenIGTLinkClient* client,const std::string
 }
 #endif
 //----------------------------------------------------------------------------
+PlusStatus ExecuteVersion(vtkPlusOpenIGTLinkClient* client, int commandId)
+{
+  vtkSmartPointer<vtkPlusVersionCommand> cmd=vtkSmartPointer<vtkPlusVersionCommand>::New();
+  cmd->SetNameToVersion();
+  cmd->SetId(commandId);
+  PrintCommand(cmd);
+  return client->SendCommand(cmd, std::max<int>(client->GetServerIGTLVersion(), IGTL_HEADER_VERSION_3));
+}
+
+//----------------------------------------------------------------------------
 PlusStatus ExecuteGetChannelIds(vtkPlusOpenIGTLinkClient* client, int commandId)
 {
   vtkSmartPointer<vtkPlusRequestIdsCommand> cmd=vtkSmartPointer<vtkPlusRequestIdsCommand>::New();
@@ -394,17 +405,18 @@ PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string &
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client, std::string& outReplyMessage, std::string& outErrorMessage, std::map<std::string, std::string>& parameters)
+PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client, bool& didTimeout, std::string& outReplyMessage, std::string& outErrorMessage, std::map<std::string, std::string>& parameters, int timeoutSec = 30)
 {
   uint32_t commandId;
   std::string commandName;
 
   bool result;
 
-  const double replyTimeoutSec=30;
+  const double replyTimeoutSec=timeoutSec;
   if (client->ReceiveReply(result, commandId, outErrorMessage, outReplyMessage, parameters, commandName, replyTimeoutSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to receive reply to the command");
+    didTimeout = true;
     return PLUS_FAIL;
   }
 
@@ -480,7 +492,7 @@ void StopPlusServerProcess(vtksysProcess* &processPtr)
 #define RETURN_IF_FAIL(cmd) if (cmd!=PLUS_SUCCESS) { return PLUS_FAIL; };
 
 //----------------------------------------------------------------------------
-PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
+PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client, bool testVersion)
 {
   const char captureDeviceId[]="CaptureDevice";
   const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha"; // must match the extension defined in the config file
@@ -506,10 +518,32 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   std::string errorMessage;
   std::map<std::string, std::string> parameters;
   int commandId = 1;
+  bool didTimeout(false);
+
+  if( testVersion )
+  {
+    ExecuteVersion(client, commandId++);
+    PlusStatus result = ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters, 3);
+    if( result == PLUS_FAIL && didTimeout && client->GetServerIGTLVersion() < 3 )
+    {
+      LOG_ERROR("Version handshake to the server timed out but it was unexpected.");
+      exit(EXIT_FAILURE);
+    }
+    else if( result == PLUS_SUCCESS && parameters.find("Version") != parameters.end() )
+    {
+      LOG_INFO("Server IGTL Version: " << std::stoi(parameters["Version"]));
+    }
+    else
+    {
+      LOG_ERROR("Version handshake to the server failed.");
+      exit(EXIT_FAILURE);
+    }
+    parameters.clear();
+  }
 
   // Basic commands
   ExecuteGetChannelIds(client, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
   {
     if( replyMessage != "TrackedVideoStream" )
@@ -534,7 +568,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   parameters.clear();
 
   ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor", commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
   {
     if( replyMessage != "VolumeReconstructorDevice" )
@@ -559,66 +593,66 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   parameters.clear();
 
   ExecuteUpdateTransform(client, "Test1ToReference", "1 0 0 10 0 1.2 0.1 12 0.1 0.2 -0.9 -20 0 0 0 1", "1.4", "100314_182141", "TRUE", commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   ExecuteGetTransform(client, "Test1ToReference", commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   ExecuteSaveConfig(client, "Test1SavedConfig.xml", commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
 
   // Capturing
   ExecuteStartAcquisition(client, captureDeviceId, false, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteSuspendAcquisition(client, captureDeviceId, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteResumeAcquisition(client, captureDeviceId, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteStopAcquisition(client, captureDeviceId, capturingOutputFileName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Volume reconstruction from file
   ExecuteReconstructFromFile(client, volumeReconstructionDeviceId, batchReconstructionInputFileName, batchReconstructionOutputFileName, batchReconstructionOutputImageName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
   // Live volume reconstruction
   ExecuteStartReconstruction(client, volumeReconstructionDeviceId, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteSuspendReconstruction(client, volumeReconstructionDeviceId, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteResumeReconstruction(client, volumeReconstructionDeviceId, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteGetSnapshotReconstruction(client, volumeReconstructionDeviceId, snapshotReconstructionOutputFileName, snapshotReconstructionOutputImageName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
   ExecuteStopReconstruction(client, volumeReconstructionDeviceId, liveReconstructionOutputFileName, liveReconstructionOutputImageName, commandId++);
-  RETURN_IF_FAIL(ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters));
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
 
@@ -660,6 +694,7 @@ int main( int argc, char** argv )
   bool keepConnected=false;
   std::string serverConfigFileName;
   bool runTests=false;
+  bool runVersionTest=false;
   int commandId(0);
 
   vtksys::CommandLineArguments args;
@@ -690,6 +725,7 @@ int main( int argc, char** argv )
   // TODO : add dynamic querying of server (GetCapabilities?) to enable dynamic version negotiation
   args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
   args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
+  args.AddArgument( "--run-version-test", vtksys::CommandLineArguments::NO_ARGUMENT, &runVersionTest, "Run the version test.");
 
   if ( !args.Parse() )
   {
@@ -736,7 +772,7 @@ int main( int argc, char** argv )
     exit(EXIT_FAILURE);
   }
 
-  
+
 
   int processReturnValue = EXIT_SUCCESS;
 
@@ -828,8 +864,9 @@ int main( int argc, char** argv )
     {
       std::string replyMessage;
       std::string errorMessage;
+      bool didTimeout;
       std::map<std::string, std::string> parameters;
-      if (ReceiveAndPrintReply(client, replyMessage, errorMessage, parameters) != PLUS_SUCCESS)
+      if (ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters) != PLUS_SUCCESS)
       {
         processReturnValue = EXIT_FAILURE;
       }
@@ -849,7 +886,7 @@ int main( int argc, char** argv )
   // Run automatic tests
   if (runTests)
   {
-    if (RunTests(client)!=PLUS_SUCCESS)
+    if (RunTests(client, runVersionTest)!=PLUS_SUCCESS)
     {
       processReturnValue = EXIT_FAILURE;
     }

@@ -4,16 +4,16 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
-#include "vtkPlusIgtlMessageFactory.h"
-#include "vtkObjectFactory.h"
-#include "vtkPlusTransformRepository.h" 
-#include "vtkPlusTrackedFrameList.h" 
 #include "PlusTrackedFrame.h"
-#include "vtkMatrix4x4.h"
-#include "vtkImageData.h" 
-#include "vtksys/SystemTools.hxx"
-#include "vtkPlusIgtlMessageCommon.h"
 #include "PlusVideoFrame.h" 
+#include "vtkImageData.h" 
+#include "vtkMatrix4x4.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlusIgtlMessageCommon.h"
+#include "vtkPlusIgtlMessageFactory.h"
+#include "vtkPlusTrackedFrameList.h" 
+#include "vtkPlusTransformRepository.h" 
+#include "vtksys/SystemTools.hxx"
 #include <typeinfo>
 
 //----------------------------------------------------------------------------
@@ -72,6 +72,12 @@ void vtkPlusIgtlMessageFactory::PrintAvailableMessageTypes(ostream& os, vtkInden
 }
 
 //----------------------------------------------------------------------------
+igtl::MessageHeader::Pointer vtkPlusIgtlMessageFactory::CreateHeaderMessage(int version /*= IGTL_HEADER_VERSION_1*/) const
+{
+  return this->IgtlFactory->CreateHeaderMessage(version);
+}
+
+//----------------------------------------------------------------------------
 igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const igtl::MessageHeader::Pointer aIgtlMessageHdr) const
 {
   if( aIgtlMessageHdr.IsNull() )
@@ -101,12 +107,12 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
 }
 
 //----------------------------------------------------------------------------
-igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const std::string& messageType) const
+igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const std::string& messageType, int version /*= IGTL_HEADER_VERSION_1*/) const
 {
   igtl::MessageBase::Pointer aMessageBase;
   try
   {
-    aMessageBase = this->IgtlFactory->CreateSendMessage(messageType);
+    aMessageBase = this->IgtlFactory->CreateSendMessage(messageType, version);
   }
   catch (std::invalid_argument* e)
   {
@@ -134,7 +140,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     igtl::MessageBase::Pointer igtlMessage;
     try
     {
-      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType);
+      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.ClientIGTLVersion);
     }
     catch (std::invalid_argument* e)
     {
@@ -167,7 +173,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
 
-        igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->CreateAnother().GetPointer());
+        igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
         if( trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
         {
@@ -203,7 +209,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::Matrix4x4 igtlMatrix; 
         vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
-        igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->CreateAnother().GetPointer());
+        igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
         vtkPlusIgtlMessageCommon::PackTransformMessage( transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( transformMessage.GetPointer() ); 
       }
@@ -227,7 +233,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         float quaternion[4]={0,0,0,1};
         igtl::MatrixToQuaternion( igtlMatrix, quaternion );
 
-        igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->CreateAnother().GetPointer());
+        igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->Clone().GetPointer());
         vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( positionMessage.GetPointer() ); 
       }
@@ -235,7 +241,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     // TRACKEDFRAME message
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage) )
     {
-      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage.GetPointer());
+      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
       if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message"); 
@@ -247,7 +253,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     // USMESSAGE message
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusUsMessage) )
     {
-      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage.GetPointer());
+      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage->Clone().GetPointer());
       if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack US message"); 
@@ -268,7 +274,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           // no value is available, do not send anything
           continue;
         }
-        igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->CreateAnother().GetPointer());
+        igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
         vtkPlusIgtlMessageCommon::PackStringMessage( stringMessage, stringName, stringValue, trackedFrame.GetTimestamp() );
         igtlMessages.push_back( stringMessage.GetPointer() );
       }
@@ -276,7 +282,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     else if ( typeid(*igtlMessage) == typeid(igtl::CommandMessage) )
     {
       // Is there any use case for the server sending commands to the client?
-      igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->CreateAnother().GetPointer());
+      igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->Clone().GetPointer());
       //vtkPlusIgtlMessageCommon::PackCommandMessage( commandMessage );
       igtlMessages.push_back( commandMessage.GetPointer() );
     }

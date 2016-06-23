@@ -35,7 +35,7 @@ vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
   , ServerPort(-1)
   , ServerIGTLVersion(IGTL_HEADER_VERSION_1)
 {
-  // TODO: dynamically determine server igt capabilities and then update server IGTL version
+
 }
 
 //----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
+PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int versionOverride /* = -1 */ )
 {
   // Get the XML string
   vtkSmartPointer<vtkXMLDataElement> cmdConfig = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -149,10 +149,12 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
     deviceNameSs << deviceName;
   }
 
+  int versionToSend = versionOverride > 0 ? versionOverride : ServerIGTLVersion;
+
   igtl::MessageBase::Pointer message;
-  if( ServerIGTLVersion <= IGTL_HEADER_VERSION_2 )
+  if( versionToSend <= IGTL_HEADER_VERSION_2 )
   {
-    igtl::StringMessage::Pointer strMsg = igtl::StringMessage::New();
+    igtl::StringMessage::Pointer strMsg = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", versionToSend).GetPointer());
     strMsg->SetDeviceName( deviceNameSs.str().c_str() );
     std::string xmlString=xmlStr.str();
     strMsg->SetString( xmlString.c_str() );
@@ -161,7 +163,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   }
   else
   {
-    igtl::CommandMessage::Pointer cmdMsg = igtl::CommandMessage::New();
+    igtl::CommandMessage::Pointer cmdMsg = dynamic_cast<igtl::CommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("COMMAND", versionToSend).GetPointer());
     cmdMsg->SetDeviceName( deviceNameSs.str().c_str() );
     cmdMsg->SetCommandId( commandUid );
     cmdMsg->SetCommandName( command->GetName() );
@@ -204,6 +206,10 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
           // Process the command as v1/v2 string reply
           igtl::StringMessage::Pointer strMsg = dynamic_cast<igtl::StringMessage*>(message.GetPointer());
 
+          if( vtkPlusCommand::IsReplyDeviceName(strMsg->GetDeviceName()) )
+          {
+            outOriginalCommandId = std::stoi(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()));
+          }
           /* <CommandReply Status="SUCCESS" Message="VTK_ENCODING_NONE" /> */
           vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(strMsg->GetString()));
           if(cmdElement == NULL )
@@ -231,7 +237,6 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
 
           vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(rtsCommandMsg->GetCommandContent().c_str()));
 
-
           outCommandName = rtsCommandMsg->GetCommandName();
           outOriginalCommandId = rtsCommandMsg->GetCommandId();
 
@@ -252,26 +257,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
           XML_FIND_NESTED_ELEMENT_REQUIRED(messageElement, cmdElement, "Message");
           outContent = messageElement->GetCharacterData();
 
-          XML_FIND_NESTED_ELEMENT_OPTIONAL(parametersElement, cmdElement, "Parameters");
-          if( parametersElement != NULL )
-          {
-            // Parse key values from sub elements and throw them into the map
-            for( int i = 0; i < parametersElement->GetNumberOfNestedElements(); ++i )
-            {
-              vtkXMLDataElement* parameterElement = parametersElement->GetNestedElement(i);
-              if( STRCASECMP(parameterElement->GetName(), "Parameter") != 0 )
-              {
-                continue;
-              }
-
-              if( parameterElement->GetAttribute("Name") == NULL || parameterElement->GetAttribute("Value") == NULL)
-              {
-                LOG_ERROR("Unable to parse Parameter element. Expected \"Name\" and \"Value\" attribute in Key tag.");
-                continue;
-              }
-              outParameters[parameterElement->GetAttribute("Name")] = parameterElement->GetAttribute("Value");
-            }
-          }
+          outParameters = rtsCommandMsg->GetMetaData();
         }
 
         this->Replies.pop_front();
@@ -303,8 +289,10 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
   while ( self->DataReceiverActive.first )
   {
     igtl::MessageHeader::Pointer headerMsg;
-    headerMsg = igtl::MessageHeader::New();
-    headerMsg->InitPack();
+    {
+      igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
+      headerMsg = factory->CreateHeaderMessage();
+    }
 
     // Receive generic header from the socket
     int numOfBytesReceived = 0;

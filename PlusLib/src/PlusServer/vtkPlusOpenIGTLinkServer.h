@@ -128,6 +128,8 @@ public:
   PlusStatus StopOpenIGTLinkService();
 
   vtkGetStringMacro(ConfigFilename);
+
+  vtkGetMacro(IGTLProtocolVersion, int);
     
   /*! 
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 
@@ -149,7 +151,7 @@ protected:
   static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
 
   /*! Process the command replies queue and send messages */
-  static PlusStatus SendCommandResults(vtkPlusOpenIGTLinkServer& self);
+  static PlusStatus SendCommandResponses(vtkPlusOpenIGTLinkServer& self);
 
   /*! Analyze an incoming command and queue for processing */
   static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t> &previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);
@@ -206,6 +208,9 @@ private:
 
   /*! Multithreader instance for controlling threads */ 
   vtkSmartPointer<vtkMultiThreader> Threader;
+
+  /*! The version of the IGTL protocol that this server is using */
+  int IGTLProtocolVersion;
  
   /*! Server listening port */ 
   int  ListeningPort;
