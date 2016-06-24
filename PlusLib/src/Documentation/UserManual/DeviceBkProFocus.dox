@@ -17,7 +17,7 @@
 
 \section BkProFocusInstallation Installation
 
-- B-mode image acquisition through the OEM interface has some limitations, see <a href="https://www.assembla.com/spaces/plus/tickets/753">#753</a> and <a href="https://www.assembla.com/spaces/plus/tickets/754">#754</a>. The responsiveness of the BK scanner software may be impacted if images are acquired continuously at a frame rate higher than a few frames per second.
+- Limitation of B-mode image acquisition through the OEM interface: the application crashes on disconnect (see <a href="https://www.assembla.com/spaces/plus/tickets/753">#753</a>)
 - RF acquisition through TeledyneDalsa CameraLink interface card is supported, using Sapera API.
   - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
   - Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll. This dll can only be used with 64-bit Plus build on 64-bit OS and 32-bit Plus build on a 32-bit OS. Therefore the bitness of the Plus package shall match the bitness of the operating system.
@@ -33,6 +33,10 @@
 - \xmlAtt \b IniFileName. INI file name. Is the name of the BK ini file that stores connection and acquisition settings.
   If a relative path is specified then it is relative to the device set configuration directory.
   See an example \ref inifile "INI file" below. \RequiredAtt
+
+- \xmlAtt \b ContinuousStreamingEnabled Uses continuous image streaming for significantly faster image transfer. \OptionalAtt{FALSE}
+  - TRUE: Use fast image transfer useing GRAB_FRAME command. This feature may require additional license from BK.
+  - FALSE: Request transfer of each frame. The responsiveness of the BK scanner software may be impacted if images are acquired continuously at a frame rate higher than a few frames per second. 
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
   - \xmlElem \ref DataSource \RequiredAtt
