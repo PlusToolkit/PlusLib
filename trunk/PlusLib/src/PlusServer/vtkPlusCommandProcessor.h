@@ -58,7 +58,7 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand *cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(uint16_t commandVersion, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid); 
+  virtual PlusStatus QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid); 
 
   /*! 
     Adds a response to the response queue for reply. Can be called from any thread.

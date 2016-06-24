@@ -117,7 +117,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
   errorStringStream << error;
 
   std::ostringstream valueStringStream;
-  if( this->Version <= IGTL_HEADER_VERSION_2 )
+  if( !this->RespondWithCommandMessage )
   {
     valueStringStream << "<name=\"" << aName.GetTransformName() << "\" value=\"";
   }
@@ -132,7 +132,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
       }
     }
   }
-  if( this->Version <= IGTL_HEADER_VERSION_2 )
+  if( !this->RespondWithCommandMessage )
   {
     valueStringStream << "\" persistent=\"" << (persistent ? "true" : "false") << "\" date=\"" << date << "\" error=\"" << error << "\"/>";
     this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + valueStringStream.str());

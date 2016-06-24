@@ -6,6 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "igtlCommandMessage.h"
+#include "igtlCommon.h"
 #include "igtlMessageHeader.h"
 #include "igtlOSUtil.h"
 #include "igtlServerSocket.h"
@@ -102,7 +103,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int versionOverride /* = -1 */ )
+PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
 {
   // Get the XML string
   vtkSmartPointer<vtkXMLDataElement> cmdConfig = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -121,7 +122,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int v
   }
   else
   {
-    if( ServerIGTLVersion <= IGTL_HEADER_VERSION_2 )
+    if( igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion()) < IGTL_HEADER_VERSION_2 )
     {
       // command UID is not specified, generate one automatically from the timestamp
       commandUid = vtkPlusAccurateTimer::GetUniversalTime();
@@ -136,7 +137,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int v
 
   // Generate the device name
   std::ostringstream deviceNameSs;
-  if( ServerIGTLVersion > IGTL_HEADER_VERSION_2 )
+  if( igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion()) >= IGTL_HEADER_VERSION_2 )
   {
     // TODO : determine a way of configurable client name
     deviceNameSs << "PlusClient_" << PLUSLIB_VERSION;
@@ -149,12 +150,10 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int v
     deviceNameSs << deviceName;
   }
 
-  int versionToSend = versionOverride > 0 ? versionOverride : ServerIGTLVersion;
-
   igtl::MessageBase::Pointer message;
-  if( versionToSend <= IGTL_HEADER_VERSION_2 )
+  if( igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion()) < IGTL_HEADER_VERSION_2 )
   {
-    igtl::StringMessage::Pointer strMsg = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", versionToSend).GetPointer());
+    igtl::StringMessage::Pointer strMsg = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion())).GetPointer());
     strMsg->SetDeviceName( deviceNameSs.str().c_str() );
     std::string xmlString=xmlStr.str();
     strMsg->SetString( xmlString.c_str() );
@@ -163,7 +162,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command, int v
   }
   else
   {
-    igtl::CommandMessage::Pointer cmdMsg = dynamic_cast<igtl::CommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("COMMAND", versionToSend).GetPointer());
+    igtl::CommandMessage::Pointer cmdMsg = dynamic_cast<igtl::CommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("COMMAND", igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion())).GetPointer());
     cmdMsg->SetDeviceName( deviceNameSs.str().c_str() );
     cmdMsg->SetCommandId( commandUid );
     cmdMsg->SetCommandName( command->GetName() );
@@ -291,7 +290,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
     igtl::MessageHeader::Pointer headerMsg;
     {
       igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-      headerMsg = factory->CreateHeaderMessage();
+      headerMsg = factory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
     }
 
     // Receive generic header from the socket

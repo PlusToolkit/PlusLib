@@ -10,6 +10,7 @@ See License.txt for details.
 */
 
 #include "PlusConfigure.h"
+#include "igtlCommon.h"
 #include "igtl_header.h"
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusOpenIGTLinkClient.h"
@@ -311,7 +312,7 @@ PlusStatus ExecuteVersion(vtkPlusOpenIGTLinkClient* client, int commandId)
   cmd->SetNameToVersion();
   cmd->SetId(commandId);
   PrintCommand(cmd);
-  return client->SendCommand(cmd, std::max<int>(client->GetServerIGTLVersion(), IGTL_HEADER_VERSION_3));
+  return client->SendCommand(cmd);
 }
 
 //----------------------------------------------------------------------------
@@ -492,7 +493,7 @@ void StopPlusServerProcess(vtksysProcess* &processPtr)
 #define RETURN_IF_FAIL(cmd) if (cmd!=PLUS_SUCCESS) { return PLUS_FAIL; };
 
 //----------------------------------------------------------------------------
-PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client, bool testVersion)
+PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 {
   const char captureDeviceId[]="CaptureDevice";
   const char capturingOutputFileName[]="OpenIGTTrackedVideoRecordingTest.mha"; // must match the extension defined in the config file
@@ -520,12 +521,13 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client, bool testVersion)
   int commandId = 1;
   bool didTimeout(false);
 
-  if( testVersion )
+  if( client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3 )
   {
     ExecuteVersion(client, commandId++);
     PlusStatus result = ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters, 3);
-    if( result == PLUS_FAIL && didTimeout && client->GetServerIGTLVersion() < 3 )
+    if( result == PLUS_FAIL && didTimeout && client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3 )
     {
+      // Version 3 and greater expect a reply to the version command, if it timed out, it is an error
       LOG_ERROR("Version handshake to the server timed out but it was unexpected.");
       exit(EXIT_FAILURE);
     }
@@ -544,7 +546,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client, bool testVersion)
   // Basic commands
   ExecuteGetChannelIds(client, commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
-  if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
+  if( client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3 )
   {
     if( replyMessage != "TrackedVideoStream" )
     {
@@ -569,7 +571,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client, bool testVersion)
 
   ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor", commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
-  if( client->GetServerIGTLVersion() <= IGTL_HEADER_VERSION_2 )
+  if( client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3 )
   {
     if( replyMessage != "VolumeReconstructorDevice" )
     {
@@ -685,7 +687,7 @@ int main( int argc, char** argv )
   std::string transformValue;
   std::string dicomOutputDirectory;
   std::string volumeEmbeddedTransformToFrame;
-  int serverIGTLVersion;
+  int serverHeaderVersion;
   std::string text;
   bool keepReceivedDicomFiles = false;
   bool responseExpected = false;
@@ -694,7 +696,7 @@ int main( int argc, char** argv )
   bool keepConnected=false;
   std::string serverConfigFileName;
   bool runTests=false;
-  bool runVersionTest=false;
+  int serverIGTLVersion(-1);
   int commandId(0);
 
   vtksys::CommandLineArguments args;
@@ -703,7 +705,7 @@ int main( int argc, char** argv )
   args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
   args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
   args.AddArgument( "--command-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &commandId, "Command ID to send to the server.");
-  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
+  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHeaderVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
   args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
   args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
   args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
@@ -722,10 +724,8 @@ int main( int argc, char** argv )
   args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
   args.AddArgument( "--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
   args.AddArgument( "--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped." );
-  // TODO : add dynamic querying of server (GetCapabilities?) to enable dynamic version negotiation
-  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
   args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
-  args.AddArgument( "--run-version-test", vtksys::CommandLineArguments::NO_ARGUMENT, &runVersionTest, "Run the version test.");
+  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "IGLT protocol version of the server.");
 
   if ( !args.Parse() )
   {
@@ -764,15 +764,16 @@ int main( int argc, char** argv )
   }
   client->SetServerHost(serverHost.c_str());
   client->SetServerPort(serverPort);
-  client->SetServerIGTLVersion(serverIGTLVersion);
+  if( serverIGTLVersion > 0 )
+  {
+    client->SetServerIGTLVersion(serverIGTLVersion);
+  }
   if (client->Connect(15.0)==PLUS_FAIL)
   {
     LOG_ERROR("Failed to connect to server at "<<serverHost<<":"<<serverPort);
     StopPlusServerProcess(plusServerProcess);
     exit(EXIT_FAILURE);
   }
-
-
 
   int processReturnValue = EXIT_SUCCESS;
 
@@ -886,7 +887,7 @@ int main( int argc, char** argv )
   // Run automatic tests
   if (runTests)
   {
-    if (RunTests(client, runVersionTest)!=PLUS_SUCCESS)
+    if (RunTests(client)!=PLUS_SUCCESS)
     {
       processReturnValue = EXIT_FAILURE;
     }

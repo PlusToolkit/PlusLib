@@ -10,7 +10,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo::PlusIgtlClientInfo()
-  : ClientIGTLVersion(IGTL_HEADER_VERSION_1)
+  : ClientHeaderVersion(IGTL_HEADER_VERSION_1)
 {
 
 }
@@ -223,7 +223,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData( std::string& strXmlData )
 //----------------------------------------------------------------------------
 void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
 {
-  os << indent << "IGTL version: " << this->ClientIGTLVersion;
+  os << indent << "IGTL version: " << this->ClientHeaderVersion;
   os << indent << "Message types: ";
   if ( !this->IgtlMessageTypes.empty() )
   {

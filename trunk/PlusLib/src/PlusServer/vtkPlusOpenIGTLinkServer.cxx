@@ -58,7 +58,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , LastProcessingTimePerFrameMs(-1)
   , ConnectionReceiverThreadId(-1)
   , DataSenderThreadId(-1)
-  , IGTLProtocolVersion(IGTL_HEADER_VERSION_3)
+  , IGTLProtocolVersion(OpenIGTLink_PROTOCOL_VERSION)
   , ConnectionActive(std::make_pair(false,false))
   , DataSenderActive(std::make_pair(false,false))
   , DataCollector(NULL)
@@ -452,7 +452,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     igtl::MessageHeader::Pointer headerMsg;
     {
       igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-      headerMsg = factory->CreateHeaderMessage();
+      headerMsg = factory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
     }
 
     // Receive generic header from the socket
@@ -466,7 +466,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
 
     {
       PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
-      client->ClientInfo.ClientIGTLVersion = std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetVersion());
+      client->ClientInfo.ClientHeaderVersion = std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion());
     }
 
     igtl::MessageBase::Pointer bodyMessage = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
@@ -560,7 +560,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(stringMsg->GetString()) );
         std::string commandName = std::string(cmdElement->GetAttribute("Name") == NULL ? "" : cmdElement->GetAttribute("Name"));
 
-        self->PlusCommandProcessor->QueueCommand(IGTL_HEADER_VERSION_1, clientId, commandName, stringMsg->GetString(), deviceName, uid);
+        self->PlusCommandProcessor->QueueCommand(false, clientId, commandName, stringMsg->GetString(), deviceName, uid);
       }
 
     }
@@ -568,8 +568,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     {
       igtl::CommandMessage::Pointer commandMsg = dynamic_cast<igtl::CommandMessage*>(bodyMessage.GetPointer());
       commandMsg->SetMessageHeader(headerMsg);
-      commandMsg->AllocatePack();
-      clientSocket->Receive(commandMsg->GetPackBodyPointer(), commandMsg->GetPackBodySize() );
+      commandMsg->AllocateBuffer();
+      clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize() );
 
       int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY)
@@ -592,10 +592,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
           previousCommandIds.pop_front();
         }
 
-        LOG_DEBUG("Received version " << IGTL_HEADER_VERSION_3 << " command " << commandMsg->GetCommandName()
+        LOG_DEBUG("Received header version " << commandMsg->GetHeaderVersion() << " command " << commandMsg->GetCommandName()
                   << " from client " << clientId << ", device " << deviceName << " with UID " << uid << ": " << commandMsg->GetCommandContent());
 
-        self->PlusCommandProcessor->QueueCommand(IGTL_HEADER_VERSION_3, clientId, commandMsg->GetCommandName(), commandMsg->GetCommandContent(), deviceName, uid);
+        self->PlusCommandProcessor->QueueCommand(true, clientId, commandMsg->GetCommandName(), commandMsg->GetCommandContent(), deviceName, uid);
       }
       else
       {
@@ -953,7 +953,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
   vtkPlusCommandStringResponse* stringResponse=vtkPlusCommandStringResponse::SafeDownCast(response);
   if (stringResponse)
   {
-    igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", response->GetVersion()).GetPointer());
+    igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", IGTL_HEADER_VERSION_1).GetPointer());
     igtlMessage->SetDeviceName(stringResponse->GetDeviceName().c_str());
     igtlMessage->SetString(stringResponse->GetMessage());
     LOG_DEBUG("String response: " << stringResponse->GetMessage());
@@ -982,7 +982,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       return NULL;
     }
 
-    igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", response->GetVersion()).GetPointer());
+    igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", IGTL_HEADER_VERSION_1).GetPointer());
     igtlMessage->SetDeviceName(imageName.c_str());
 
     if ( vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData,
@@ -1000,7 +1000,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     std::string imageMetaDataName="PlusServerImageMetaData";
     PlusCommon::ImageMetaDataList imageMetaDataList;
     imageMetaDataResponse->GetImageMetaDataItems(imageMetaDataList);
-    igtl::ImageMetaMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMetaMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMGMETA", response->GetVersion()).GetPointer());
+    igtl::ImageMetaMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMetaMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMGMETA", IGTL_HEADER_VERSION_1).GetPointer());
     igtlMessage->SetDeviceName(imageMetaDataName.c_str());
     if ( vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtlMessage,imageMetaDataList) != PLUS_SUCCESS )
     {
@@ -1013,10 +1013,10 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
   vtkPlusCommandCommandResponse* commandResponse = vtkPlusCommandCommandResponse::SafeDownCast(response);
   if( commandResponse )
   {
-    if( commandResponse->GetVersion() == IGTL_HEADER_VERSION_1 || commandResponse->GetVersion() == IGTL_HEADER_VERSION_2 )
+    if( !commandResponse->GetRespondWithCommandMessage() )
     {
       // Incoming command was a v1/v2 style command, reply as such
-      igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", response->GetVersion()).GetPointer());
+      igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", IGTL_HEADER_VERSION_1).GetPointer());
       igtlMessage->SetDeviceName( vtkPlusCommand::GenerateReplyDeviceName(commandResponse->GetOriginalId()) );
 
       std::ostringstream replyStr;
@@ -1032,14 +1032,13 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       LOG_DEBUG("Command response: "<<replyStr.str());
       return igtlMessage.GetPointer();
     }
-    else if( commandResponse->GetVersion() >= IGTL_HEADER_VERSION_3 )
+    else
     {
       // Incoming command was a modern style command, reply using our latest 
-      igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", response->GetVersion()).GetPointer());
+      igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", IGTL_HEADER_VERSION_2).GetPointer());
       //TODO : should this device name be the name of the server?
       igtlMessage->SetDeviceName(commandResponse->GetDeviceName().c_str());
       igtlMessage->SetCommandName(commandResponse->GetCommandName());
-      igtlMessage->SetVersion(this->GetIGTLProtocolVersion());
       igtlMessage->SetCommandId(commandResponse->GetOriginalId());
 
       std::ostringstream replyStr;
@@ -1059,11 +1058,6 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       igtlMessage->SetCommandContent(replyStr.str());
 
       return igtlMessage.GetPointer();
-    }
-    else
-    {
-      LOG_ERROR("Unknown IGTL protocol version. Cannot respond to command!");
-      return NULL;
     }
   }
 

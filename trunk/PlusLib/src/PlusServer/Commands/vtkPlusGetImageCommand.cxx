@@ -158,7 +158,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
         imageResponse->SetClientId(this->ClientId);
         imageResponse->SetImageName(this->GetImageId());
         imageResponse->SetImageData(imageData);
-        imageResponse->SetVersion(this->GetVersion());
+        imageResponse->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
         imageResponse->SetImageToReferenceTransform(ijkToRasTransform);
 
         return PLUS_SUCCESS;
@@ -215,7 +215,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
   vtkSmartPointer<vtkPlusCommandImageMetaDataResponse > imageMetaDataResponse=vtkSmartPointer<vtkPlusCommandImageMetaDataResponse>::New();
   this->CommandResponseQueue.push_back(imageMetaDataResponse);
   imageMetaDataResponse->SetClientId(this->ClientId);
-  imageMetaDataResponse->SetVersion(this->GetVersion());
+  imageMetaDataResponse->SetRespondWithCommandMessage(this->GetRespondWithCommandMessage());
   imageMetaDataResponse->SetImageMetaDataItems(imageMetaDataList);
   return PLUS_SUCCESS;
 }
