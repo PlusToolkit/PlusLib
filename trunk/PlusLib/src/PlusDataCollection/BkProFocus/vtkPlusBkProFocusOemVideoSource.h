@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+// GRAB_FRAME API was partly contributed by by Xin Kang at SZI, Children's National Medical Center
+
 #ifndef __vtkPlusBkProFocusOemVideoSource_h
 #define __vtkPlusBkProFocusOemVideoSource_h
 
@@ -40,7 +42,29 @@ public:
   /*! Set the name of the BK ini file that stores connection and acquisition settings */
   vtkSetStringMacro(IniFileName);
 
+  /*!
+    Enable/disable continuous streaming. Continuous streaming (GRAB_FRAME command) requires extra license
+    from BK but it allows faster image acquisition.
+  */
+  vtkSetMacro(ContinuousStreamingEnabled, bool);
+
+  /*!
+  Enable/disable continuous streaming. Continuous streaming (GRAB_FRAME command) requires extra license
+  from BK but it allows faster image acquisition.
+  */
+  vtkGetMacro(ContinuousStreamingEnabled, bool);
+
+  /*!
+  Enable/disable continuous streaming. Continuous streaming (GRAB_FRAME command) requires extra license
+  from BK but it allows faster image acquisition.
+  */
+  vtkBooleanMacro(ContinuousStreamingEnabled, bool);
+
 protected:
+	
+  // Size of the ultrasound image. Only used if ContinuousStreamingEnabled is true.
+  int UltrasoundWindowSize[2];
+
   /*! Constructor */
   vtkPlusBkProFocusOemVideoSource();
   /*! Destructor */
@@ -61,6 +85,9 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
+  /*! The internal function which ...  */
+	PlusStatus QueryImageSize();
+
   PlusStatus GetFullIniFilePath(std::string &fullPath);
 
   PlusStatus DecodePngImage(unsigned char* pngBuffer, unsigned int pngBufferSize, vtkImageData* decodedImage);
@@ -68,9 +95,11 @@ protected:
   /*! BK ini file storing the connection and acquisition settings */
   char* IniFileName;
 
+  bool ContinuousStreamingEnabled;
+
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
-  vtkInternal* Internal;  
+  vtkInternal* Internal;
 
 private:
   vtkPlusBkProFocusOemVideoSource(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.
