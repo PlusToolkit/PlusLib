@@ -50,12 +50,11 @@ public:
   PlusTrackedFrame GetTrackedFrame(); 
   
 protected:
-  class MessageHeader 
+  class TrackedFrameHeader 
   {
   public:
-    MessageHeader()
-      : m_Version(IGTL_HEADER_VERSION_3)
-      , m_ScalarType()
+    TrackedFrameHeader()
+      : m_ScalarType()
       , m_NumberOfComponents(0)
       , m_ImageType(0)
       , m_ImageDataSizeInBytes(0)
@@ -67,7 +66,6 @@ protected:
     size_t GetMessageHeaderSize()
     {
       size_t headersize = 0; 
-      headersize += sizeof(igtl_uint16);  // m_Version
       headersize += sizeof(igtl_uint16);  // m_ScalarType
       headersize += sizeof(igtl_uint16);   // m_NumberOfComponents
       headersize += sizeof(igtl_uint16);  // m_ImageType
@@ -82,7 +80,6 @@ protected:
     {
       if (igtl_is_little_endian()) 
       {
-        m_Version = BYTE_SWAP_INT16(m_Version); 
         m_ScalarType = BYTE_SWAP_INT16(m_ScalarType); 
         m_NumberOfComponents = BYTE_SWAP_INT16(m_NumberOfComponents);
         m_ImageType = BYTE_SWAP_INT16(m_ImageType);
@@ -94,7 +91,6 @@ protected:
       }
     }
 
-    igtl_uint16 m_Version;          /* data format version number(1)   */
     igtl_uint16 m_ScalarType;      /* scalar type                     */
     igtl_uint16 m_NumberOfComponents; /* number of scalar components */
     igtl_uint16 m_ImageType;          /* image type */
@@ -113,7 +109,7 @@ protected:
   PlusTrackedFrame m_TrackedFrame; 
   std::string m_TrackedFrameXmlData; 
 
-  MessageHeader m_MessageHeader; 
+  TrackedFrameHeader m_MessageHeader; 
 };
 
 #pragma pack()

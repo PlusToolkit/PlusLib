@@ -36,10 +36,6 @@ namespace igtl
       return PLUS_FAIL; 
     }
 
-    // TODO : update this to send version 3
-
-    // Version 
-    this->m_MessageHeader.m_Version = IGTL_HEADER_VERSION_1; 
     // Frame size 
     this->m_MessageHeader.m_FrameSize[0] = this->m_TrackedFrame.GetFrameSize()[0];
     this->m_MessageHeader.m_FrameSize[1] = this->m_TrackedFrame.GetFrameSize()[1];
@@ -56,7 +52,6 @@ namespace igtl
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes(); 
 
     return PLUS_SUCCESS; 
-
   }
 
   //----------------------------------------------------------------------------
@@ -79,8 +74,7 @@ namespace igtl
     AllocateBuffer();
 
     // Copy header
-    MessageHeader* header = (MessageHeader*)( this->m_Body );
-    header->m_Version = this->m_MessageHeader.m_Version; 
+    TrackedFrameHeader* header = (TrackedFrameHeader*)( this->m_Body );
     header->m_ScalarType = this->m_MessageHeader.m_ScalarType;
     header->m_NumberOfComponents = this->m_MessageHeader.m_NumberOfComponents;
     header->m_ImageType = this->m_MessageHeader.m_ImageType;
@@ -113,13 +107,12 @@ namespace igtl
   //----------------------------------------------------------------------------
   int PlusTrackedFrameMessage::UnpackContent()
   {
-    MessageHeader* header = (MessageHeader*)( this->m_Body );
+    TrackedFrameHeader* header = (TrackedFrameHeader*)( this->m_Body );
 
     // Convert header endian
     header->ConvertEndianness(); 
 
     // Copy header
-    this->m_MessageHeader.m_Version = header->m_Version; 
     this->m_MessageHeader.m_ScalarType = header->m_ScalarType;
     this->m_MessageHeader.m_NumberOfComponents = header->m_NumberOfComponents;
     this->m_MessageHeader.m_ImageType = header->m_ImageType;

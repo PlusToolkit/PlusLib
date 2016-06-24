@@ -72,9 +72,9 @@ void vtkPlusIgtlMessageFactory::PrintAvailableMessageTypes(ostream& os, vtkInden
 }
 
 //----------------------------------------------------------------------------
-igtl::MessageHeader::Pointer vtkPlusIgtlMessageFactory::CreateHeaderMessage(int version /*= IGTL_HEADER_VERSION_1*/) const
+igtl::MessageHeader::Pointer vtkPlusIgtlMessageFactory::CreateHeaderMessage(int headerVersion) const
 {
-  return this->IgtlFactory->CreateHeaderMessage(version);
+  return this->IgtlFactory->CreateHeaderMessage(headerVersion);
 }
 
 //----------------------------------------------------------------------------
@@ -107,12 +107,12 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
 }
 
 //----------------------------------------------------------------------------
-igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const std::string& messageType, int version /*= IGTL_HEADER_VERSION_1*/) const
+igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const std::string& messageType, int headerVersion) const
 {
   igtl::MessageBase::Pointer aMessageBase;
   try
   {
-    aMessageBase = this->IgtlFactory->CreateSendMessage(messageType, version);
+    aMessageBase = this->IgtlFactory->CreateSendMessage(messageType, headerVersion);
   }
   catch (std::invalid_argument* e)
   {
@@ -140,7 +140,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     igtl::MessageBase::Pointer igtlMessage;
     try
     {
-      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.ClientIGTLVersion);
+      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.ClientHeaderVersion);
     }
     catch (std::invalid_argument* e)
     {

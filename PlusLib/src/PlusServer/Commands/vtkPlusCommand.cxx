@@ -261,7 +261,7 @@ void vtkPlusCommand::QueueCommandResponse(PlusStatus status, const std::string& 
   commandResponse->SetDeviceName(this->DeviceName);
   commandResponse->SetCommandName(this->GetName());
   commandResponse->SetStatus(status);
-  commandResponse->SetVersion(this->Version);
+  commandResponse->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
   commandResponse->SetErrorString(error);
   commandResponse->SetResultString(message);
   if( values != NULL )

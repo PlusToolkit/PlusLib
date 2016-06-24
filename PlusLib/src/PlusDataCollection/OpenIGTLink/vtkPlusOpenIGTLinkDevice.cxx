@@ -226,7 +226,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
 {
   {
     igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-    headerMsg = factory->CreateHeaderMessage();
+    headerMsg = factory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
   }
 
   int numOfBytesReceived = 0;

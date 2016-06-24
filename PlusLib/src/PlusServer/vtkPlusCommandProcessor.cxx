@@ -234,7 +234,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid)
 {  
   if( commandString.empty() )
   {
@@ -251,12 +251,12 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
   vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandName, commandString));
   if (cmd.GetPointer() == NULL)
   {
-    if( commandVersion == IGTL_HEADER_VERSION_1 || commandVersion == IGTL_HEADER_VERSION_2 )
+    if( !respondUsingIGTLCommand )
     {
       this->QueueStringResponse(PLUS_FAIL, deviceName, std::string("Error attempting to process command."));
       return PLUS_FAIL;
     }
-    else if( commandVersion == IGTL_HEADER_VERSION_3 )
+    else
     {
       // TODO : determine error string syntax/standard
       std::string errorMessage = commandName + std::string(": failure");
@@ -266,7 +266,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
       response->SetClientId(clientId);
       response->SetDeviceName(deviceName);
       response->SetOriginalId(uid);
-      response->SetVersion(commandVersion);
+      response->SetRespondWithCommandMessage(true);
       response->SetErrorString(errorMessage);
       response->SetStatus(PLUS_FAIL);
       {
@@ -276,17 +276,12 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(uint16_t commandVersion, unsign
       }
       return PLUS_FAIL;
     }
-    else
-    {
-      LOG_ERROR("Unknown IGT protocol version.");
-      return PLUS_FAIL;
-    }
   }
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
   cmd->SetId(uid);
-  cmd->SetVersion(commandVersion);
+  cmd->SetRespondWithCommandMessage(respondUsingIGTLCommand);
 
   {
     // Add command to the execution queue

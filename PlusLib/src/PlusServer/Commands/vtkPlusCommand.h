@@ -64,6 +64,9 @@ public:
   /*! Returns the list of command names that this command can process */
   virtual void GetCommandNames(std::list<std::string> &cmdNames)=0;
 
+  vtkGetMacro(RespondWithCommandMessage, bool);
+  vtkSetMacro(RespondWithCommandMessage, bool);
+
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
@@ -72,9 +75,6 @@ public:
 
   vtkGetMacro(Id, uint32_t);
   vtkSetMacro(Id, uint32_t);
-
-  vtkGetMacro(Version, uint16_t);
-  vtkSetMacro(Version, uint16_t);
 
   /*!
     Get command responses from the device, append them to the provided list, and then remove them from the command.
@@ -150,8 +150,8 @@ protected:
   /*! Unique identifier of the command. It can be used to match commands and replies. */
   uint32_t Id;
 
-  /*! OpenIGTLink version of the incoming command */
-  uint16_t Version;
+  /*! Should we respond using igtl::StringMessage or igtl::CommandMessage */
+  bool RespondWithCommandMessage;
 
   /*!
     Name of the command. One command class may handle multiple commands, this Name member defines
