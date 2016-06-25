@@ -207,7 +207,11 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
 
           if( vtkPlusCommand::IsReplyDeviceName(strMsg->GetDeviceName()) )
           {
-            outOriginalCommandId = std::stoi(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()));
+			if (PlusCommon::StringToInt<uint32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
+			{
+			  LOG_ERROR("Failed to get UID from command device name.");
+			  continue;
+			}
           }
           /* <CommandReply Status="SUCCESS" Message="VTK_ENCODING_NONE" /> */
           vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(strMsg->GetString()));
