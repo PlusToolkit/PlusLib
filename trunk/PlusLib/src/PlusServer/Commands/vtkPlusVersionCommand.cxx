@@ -56,7 +56,7 @@ std::string vtkPlusVersionCommand::GetDescription(const char* commandName)
 PlusStatus vtkPlusVersionCommand::Execute()
 {
   std::map<std::string, std::string> metadata;
-  metadata["Version"] = std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
+  metadata["Version"] = PlusCommon::ToString(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
   this->QueueCommandResponse(PLUS_SUCCESS, "Success.", "", &metadata);
   return PLUS_SUCCESS;
 }

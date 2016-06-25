@@ -533,7 +533,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
     }
     else if( result == PLUS_SUCCESS && parameters.find("Version") != parameters.end() )
     {
-      LOG_INFO("Server IGTL Version: " << std::stoi(parameters["Version"]));
+      LOG_INFO("Server IGTL Version: " << parameters["Version"]);
     }
     else
     {
