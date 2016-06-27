@@ -43,6 +43,8 @@ static std::string SEQUENCE_FIELD_IMG_STATUS = "Status";
 
 static const int SEQUENCE_FIELD_SIZES_NUM_SPACES = 8;
 
+#if VTK_MAJOR_VERSION < 7
+
 #define ALLOC(size) malloc(size)
 #define TRYFREE(p) {if (p) free(p);}
 
@@ -65,8 +67,8 @@ static const int SEQUENCE_FIELD_SIZES_NUM_SPACES = 8;
 #  if defined(__TURBOC__) || defined(__BORLANDC__)
 #    if(__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
 /* Allow compilation with ANSI keywords only enabled */
-void _Cdecl farfree( void *block );
-void *_Cdecl farmalloc( unsigned long nbytes );
+void _Cdecl farfree( void* block );
+void* _Cdecl farmalloc( unsigned long nbytes );
 #    else
 #      include <alloc.h>
 #    endif
@@ -176,12 +178,12 @@ typedef struct gz_stream
   z_stream stream;
   int      z_err;   /* error code for last stream operation */
   int      z_eof;   /* set if end of input file */
-  FILE     *file;   /* .gz file */
-  Byte     *inbuf;  /* input buffer */
-  Byte     *outbuf; /* output buffer */
+  FILE*     file;   /* .gz file */
+  Byte*     inbuf;  /* input buffer */
+  Byte*     outbuf; /* output buffer */
   uLong    crc;     /* crc32 of uncompressed data */
-  char     *msg;    /* error message */
-  char     *path;   /* path name for debugging only */
+  char*     msg;    /* error message */
+  char*     path;   /* path name for debugging only */
   int      transparent; /* 1 if input file is not a .gz file */
   char     mode;    /* 'w' or 'r' */
   z_off_t  start;   /* start of compressed data in file (header skipped) */
@@ -256,7 +258,7 @@ Read a byte from a gz_stream; update next_in and avail_in. Return EOF
 for end of file.
 IN assertion: the stream s has been successfully opened for reading.
 */
-static int get_byte(gz_stream * s)
+static int get_byte(gz_stream* s)
 {
   if (s->z_eof)
   {
@@ -289,7 +291,7 @@ IN assertion: the stream s has already been created sucessfully;
 s->stream.avail_in is zero for the first time, but may be non-zero
 for concatenated .gz files.
 */
-static void check_header(gz_stream *s)
+static void check_header(gz_stream* s)
 {
   int method; /* method byte */
   int flags;  /* flags byte */
@@ -376,17 +378,17 @@ static gzFile gz_open_offset (const char* path, const char* mode, int fd, z_off_
   int err;
   int level = Z_DEFAULT_COMPRESSION; /* compression level */
   int strategy = Z_DEFAULT_STRATEGY; /* compression strategy */
-  char *p = (char*)mode;
-  gz_stream *s;
+  char* p = (char*)mode;
+  gz_stream* s;
   char fmode[80]; /* copy of mode, without the compression level */
-  char *m = fmode;
+  char* m = fmode;
 
   if (!path || !mode)
   {
     return Z_NULL;
   }
 
-  s = (gz_stream *)ALLOC(sizeof(gz_stream));
+  s = (gz_stream*)ALLOC(sizeof(gz_stream));
   if (!s)
   {
     return Z_NULL;
@@ -517,6 +519,8 @@ static gzFile gz_open_offset (const char* path, const char* mode, int fd, z_off_
 
   return (gzFile)s;
 }
+#endif
+
 }
 
 //----------------------------------------------------------------------------
@@ -547,7 +551,7 @@ void vtkPlusNrrdSequenceIO::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 {
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen(&stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
@@ -829,13 +833,34 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 
   int numberOfErrors=0;
 
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   gzFile gzStream=NULL;
 
   if ( this->UseCompression && this->Encoding >= NRRD_ENCODING_GZ && this->Encoding < NRRD_ENCODING_BZ2)
   {
+#if VTK_MAJOR_VERSION > 6
+    if (FileOpen(&stream, this->GetPixelDataFilePath().c_str(), "rb") != PLUS_SUCCESS)
+    {
+      LOG_ERROR("The file " << this->GetPixelDataFilePath() << " could not be opened for reading");
+      fclose(stream);
+      return PLUS_FAIL;
+    }
+    if (fseek(stream, this->PixelDataFileOffset, SEEK_SET))
+    {
+      LOG_ERROR("Unable to seek to offset " << this->PixelDataFileOffset << ". " << ferror(stream));
+      fclose(stream);
+      return PLUS_FAIL;
+    }
+#if _WIN32
+    gzStream = gzdopen(_fileno(stream), "rb");
+#else
+    gzStream = gzdopen(fileno(stream), "rb");
+#endif
+
+#else
     // gzipped
     gzStream = gz_open_offset(this->GetPixelDataFilePath().c_str(), "rb", -1, this->PixelDataFileOffset);
+#endif
   }
   else
   {
@@ -939,7 +964,8 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
       }
     }
   }
-  if( !this->UseCompression )
+
+  if (!this->UseCompression)
   {
     fclose( stream );
   }
@@ -957,7 +983,11 @@ PlusStatus vtkPlusNrrdSequenceIO::PrepareImageFile()
 {
   if( this->GetUseCompression() )
   {
+#if VTK_MAJOR_VERSION > 6
+    this->CompressionStream = gzopen(this->TempImageFileName.c_str(), "a");
+#else
     this->CompressionStream = gzopen(this->TempImageFileName.c_str(), "ab+");
+#endif
 
     int error;
     gzerror(this->CompressionStream, &error);
@@ -1065,7 +1095,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     // but then, we need to save the original frame size for each frame and crop the image when we read it
     for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
-      int * currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
+      int* currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
       if ( this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid()
            && ( frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] || frameSize[2] != currFrameSize[2])  )
       {
@@ -1172,7 +1202,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     SetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN, originStr.str());
   }
 
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "wb" ) != PLUS_SUCCESS )
   {
@@ -1225,7 +1255,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
 {
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
@@ -1275,7 +1305,7 @@ PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::FinalizeHeader()
 {
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
@@ -1374,7 +1404,7 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType)
+PlusStatus vtkPlusNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::string& elementTypeStr, PlusCommon::VTKScalarPixelType& vtkPixelType)
 {
   if (elementTypeStr.compare("signed char")==0)
   {
@@ -1551,7 +1581,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::strin
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr)
+PlusStatus vtkPlusNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string& elementTypeStr)
 {
   if (vtkPixelType==VTK_VOID)
   {
@@ -1602,7 +1632,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
     LOG_ERROR("Cannot update file header, filename is invalid");
     return PLUS_FAIL;
   }
-  FILE *stream=NULL;
+  FILE* stream=NULL;
   // open in read+write binary mode
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "r+b" ) != PLUS_SUCCESS )
   {
