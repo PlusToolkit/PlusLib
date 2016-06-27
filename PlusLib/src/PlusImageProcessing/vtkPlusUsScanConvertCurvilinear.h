@@ -14,22 +14,25 @@ See License.txt for details.
 \class vtkPlusUsScanConvertCurvilinear
 \brief This class performs scan conversion from scan lines for curvilinear probes
 \ingroup PlusLibImageProcessingAlgo
-*/ 
+*/
 class vtkPlusImageProcessingExport vtkPlusUsScanConvertCurvilinear : public vtkPlusUsScanConvert
 {
 public:
-  static vtkPlusUsScanConvertCurvilinear *New();
+  static vtkPlusUsScanConvertCurvilinear* New();
   vtkTypeMacro(vtkPlusUsScanConvertCurvilinear,vtkPlusUsScanConvert);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual const char* GetTransducerGeometry() { return "CURVILINEAR"; }
-  
+  virtual const char* GetTransducerGeometry()
+  {
+    return "CURVILINEAR";
+  }
+
   /*! Read configuration from xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* scanConversionElement);   
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* scanConversionElement);
 
   /*! Write configuration to xml data. The scanConversionElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);   
-  
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* scanConversionElement);
+
   /*! Get the scan converted image */
   virtual vtkImageData* GetOutput();
 
@@ -44,7 +47,10 @@ public:
   };
 
   /*! Retrieve the InterpolatedPointArray (used internally by the thread function) */
-  const std::vector<InterpolatedPoint> & GetInterpolatedPointArray() { return this->InterpolatedPointArray; };
+  const std::vector<InterpolatedPoint>& GetInterpolatedPointArray()
+  {
+    return this->InterpolatedPointArray;
+  };
 
   /*! Initialize the parameters used in reconstruction. These are for the cases when video source can obtain them from the hardware */
   vtkSetMacro(RadiusStartMm, double);
@@ -55,7 +61,7 @@ public:
   vtkSetMacro(ThetaStopDeg, double);
   vtkSetMacro(OutputImageStartDepthMm, double);
 
-  /*! 
+  /*!
     Get the start and end point of the selected scanline
     transducer surface, the end point is far from the transducer surface.
     \param scanLineIndex Index of the scanline. Starts with 0 (the scanline closest to the marked side of the transducer)
@@ -72,8 +78,8 @@ protected:
   virtual ~vtkPlusUsScanConvertCurvilinear();
 
   virtual int SplitExtent(int splitExt[6], int startExt[6], int num, int total);
-  
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
+  virtual int RequestInformation(vtkInformation*, vtkInformationVector**, vtkInformationVector*);
 
   virtual int RequestUpdateExtent (vtkInformation*, vtkInformationVector**, vtkInformationVector*);
   
@@ -120,13 +126,13 @@ protected:
   double InterpTransducerCenterPixel[2];
   double InterpIntensityScaling;
 
-  /*! 
+  /*!
     Computes the InterpolatedPointArray from the method arguments. The array is not recomputed if
     the input arguments are the same as last time.
-  */  
+  */
   void ComputeInterpolatedPointArray(
-    int *inputImageExtent, double radiusStartMm, double radiusStopMm, double thetaStartDeg, double thetaStopDeg,
-    int *outputImageExtent, double *outputImageSpacing, double* transducerCenterPixel, double intensityScaling
+    int* inputImageExtent, double radiusStartMm, double radiusStopMm, double thetaStartDeg, double thetaStopDeg,
+    int* outputImageExtent, double* outputImageSpacing, double* transducerCenterPixel, double intensityScaling
   );
 
 private:

@@ -127,7 +127,7 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
   }
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData_vtk5compatible(slicesPolyData);  
+  mapper->SetInputData_vtk5compatible(slicesPolyData);
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
   rendererPoly->AddActor(actor);

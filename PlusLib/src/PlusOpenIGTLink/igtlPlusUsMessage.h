@@ -33,6 +33,9 @@ namespace igtl
       igtlNewMacro(igtl::PlusUsMessage);
 
   public:
+    /*! Override to use the plus igtl factory */
+    virtual igtl::MessageBase::Pointer Clone();
+
     /*! Set Plus TrackedFrame */ 
     PlusStatus SetTrackedFrame( const PlusTrackedFrame& trackedFrame); 
 
@@ -63,8 +66,8 @@ namespace igtl
       igtl_int32 m_TxOffset;              // For phased array, the number of elements that are offset in the steered image
     };
 
-    virtual int GetBodyPackSize();
-    virtual int PackBody();
+    virtual int CalculateContentBufferSize();
+    virtual int PackContent();
     virtual int UnpackContent();
 
     PlusUsMessage();

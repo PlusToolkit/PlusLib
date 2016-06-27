@@ -78,7 +78,7 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
     // Attempt metafile read
     if ( frameList->ReadFromSequenceMetafile(filename) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to read video buffer from sequence metafile: " << filename); 
+      LOG_ERROR("Failed to read video buffer from sequence metafile: " << filename);
       return PLUS_FAIL;
     }
 
@@ -91,7 +91,7 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
     // Attempt Nrrd read
     if( frameList->ReadFromNrrdFile(filename.c_str()) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to read video buffer from Nrrd file: " << filename); 
+      LOG_ERROR("Failed to read video buffer from Nrrd file: " << filename);
       return PLUS_FAIL;
     }
 

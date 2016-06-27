@@ -859,7 +859,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     //gzseek(gzStream, this->PixelDataFileOffset, SEEK_SET);
     if (gzread(gzStream, (void*)gzAllFramesPixelBuffer, allFramesPixelBufferSize) != allFramesPixelBufferSize)
     {
-      LOG_ERROR("Could not read " << allFramesPixelBufferSize << " bytes from "<<GetPixelDataFilePath());
+      LOG_ERROR("Could not uncompress " << allFramesCompressedPixelBufferSize << " bytes to " << allFramesPixelBufferSize << " bytes from " << GetPixelDataFilePath());
       gzclose(gzStream);
       return PLUS_FAIL;
     }

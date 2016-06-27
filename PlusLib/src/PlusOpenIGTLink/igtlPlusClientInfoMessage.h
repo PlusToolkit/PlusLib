@@ -33,6 +33,8 @@ public:
   igtlNewMacro( igtl::PlusClientInfoMessage );
 
 public:
+  /*! Override to use the plus igtl factory */
+  virtual igtl::MessageBase::Pointer Clone();
 
   /*! Set Plus IGTL Client Info */ 
   void SetClientInfo( const PlusIgtlClientInfo& clientInfo ); 

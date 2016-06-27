@@ -43,6 +43,9 @@ public:
 
 public:
 
+  /*! Override clone so that we use the plus igtl factory */
+  virtual igtl::MessageBase::Pointer Clone();
+
   /*! Set Plus TrackedFrame */ 
   PlusStatus SetTrackedFrame( const PlusTrackedFrame& trackedFrame); 
 
@@ -99,7 +102,7 @@ protected:
     igtl_uint32 m_XmlDataSizeInBytes; 
   };
 
-  virtual int  GetContentPackSize();
+  virtual int  CalculateContentBufferSize();
   virtual int  PackContent();
   virtual int  UnpackContent();
 

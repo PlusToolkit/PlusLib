@@ -5,12 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 #include "PlusConfigure.h"
-
 #include "igtlPlusClientInfoMessage.h"
-
 #include "igtlutil/igtl_header.h"
 #include "igtlutil/igtl_util.h"
-
+#include "vtkPlusIgtlMessageFactory.h"
 
 namespace igtl 
 {
@@ -24,6 +22,33 @@ PlusClientInfoMessage::PlusClientInfoMessage() : StringMessage()
 //----------------------------------------------------------------------------
 PlusClientInfoMessage::~PlusClientInfoMessage()
 {
+}
+
+//----------------------------------------------------------------------------
+igtl::MessageBase::Pointer PlusClientInfoMessage::Clone()
+{
+  igtl::PlusClientInfoMessage::Pointer clone;
+  {
+    vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
+    clone = dynamic_cast<igtl::PlusClientInfoMessage*>(factory->CreateSendMessage(this->GetMessageType(), this->GetHeaderVersion()).GetPointer());
+  }
+
+  int bodySize = this->m_MessageSize - IGTL_HEADER_SIZE;
+  clone->InitBuffer();
+  clone->CopyHeader(this);
+  clone->AllocateBuffer(bodySize);
+  if (bodySize > 0)
+  {
+    clone->CopyBody(this);
+  }
+
+#if OpenIGTLink_HEADER_VERSION >= 2
+  clone->m_MetaDataHeader = this->m_MetaDataHeader;
+  clone->m_MetaDataMap = this->m_MetaDataMap;
+  clone->m_IsExtendedHeaderUnpacked = this->m_IsExtendedHeaderUnpacked;
+#endif
+
+  return clone;
 }
 
 //----------------------------------------------------------------------------

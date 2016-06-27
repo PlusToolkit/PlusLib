@@ -17,11 +17,11 @@ PlusTransformName::~PlusTransformName()
 //-------------------------------------------------------
 PlusTransformName::PlusTransformName(std::string aFrom, std::string aTo )
 {
-  this->Capitalize(aFrom); 
-  this->m_From = aFrom; 
+  this->Capitalize(aFrom);
+  this->m_From = aFrom;
 
-  this->Capitalize(aTo); 
-  this->m_To = aTo; 
+  this->Capitalize(aTo);
+  this->m_To = aTo;
 }
 
 //-------------------------------------------------------
@@ -43,13 +43,13 @@ bool PlusTransformName::IsValid() const
     return false;
   }
 
-  return true; 
+  return true;
 }
 
 //-------------------------------------------------------
 PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
 {
-  this->m_From.clear(); 
+  this->m_From.clear();
   this->m_To.clear();
 
   if ( aTransformName == NULL )
@@ -61,7 +61,7 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   std::string transformNameStr(aTransformName);
   size_t posTo=std::string::npos;
 
-  // Check if the string has only one valid 'To' phrase 
+  // Check if the string has only one valid 'To' phrase
   int numOfMatch=0;
   std::string subString = transformNameStr;
   size_t posToTested=std::string::npos;
@@ -86,7 +86,7 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
     return PLUS_FAIL;
   }
 
-  // Find <FrameFrom>To<FrameTo> matches 
+  // Find <FrameFrom>To<FrameTo> matches
   if ( posTo == std::string::npos )
   {
     LOG_ERROR("Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!");
@@ -114,8 +114,8 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
   }
 
   this->m_To = postFrom;
-  this->Capitalize(this->m_From); 
-  this->Capitalize(this->m_To); 
+  this->Capitalize(this->m_From);
+  this->Capitalize(this->m_To);
 
   return PLUS_SUCCESS;
 }
@@ -135,26 +135,26 @@ PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) cons
     return PLUS_FAIL;
   }
 
-  aTransformName =( this->m_From + std::string("To") + this->m_To); 
-  return PLUS_SUCCESS; 
+  aTransformName =( this->m_From + std::string("To") + this->m_To);
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------
 std::string PlusTransformName::GetTransformName() const
 {
-  return ( this->m_From + std::string("To") + this->m_To); 
+  return ( this->m_From + std::string("To") + this->m_To);
 }
 
 //-------------------------------------------------------
 std::string PlusTransformName::From() const
 {
-  return this->m_From; 
+  return this->m_From;
 }
 
 //-------------------------------------------------------
 std::string PlusTransformName::To() const
 {
-  return this->m_To; 
+  return this->m_To;
 }
 
 //-------------------------------------------------------
@@ -263,7 +263,7 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
 }
 
 //-------------------------------------------------------
-std::string PlusCommon::Trim(std::string &str)
+std::string PlusCommon::Trim(std::string& str)
 {
   str.erase(str.find_last_not_of(" \t\r\n")+1);
   str.erase(0,str.find_first_not_of(" \t\r\n"));
@@ -283,16 +283,27 @@ std::string PlusCommon::Trim(const char* c)
 // &lt;, &gt;, &amp;, &quot;, &apos;, respectively.
 void PrintWithEscapedData(ostream& os, const char* data)
 {
-  for(size_t i=0;i<strlen(data);i++)
+  for(size_t i=0; i<strlen(data); i++)
   {
     switch(data[i])
     {
-      case '&': os << "&amp;"; break;
-      case '<': os << "&lt;"; break;
-      case '>': os << "&gt;"; break;
-      case '"': os << "&quot;"; break;
-      case '\'': os << "&apos;"; break;
-      default: os << data[i];
+    case '&':
+      os << "&amp;";
+      break;
+    case '<':
+      os << "&lt;";
+      break;
+    case '>':
+      os << "&gt;";
+      break;
+    case '"':
+      os << "&quot;";
+      break;
+    case '\'':
+      os << "&apos;";
+      break;
+    default:
+      os << data[i];
     }
   }
 }
@@ -312,14 +323,14 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
   // If there are many attributes then print each of them in separate lines to improve readability
   bool printEachAttributeInNewLine=elem->GetNumberOfAttributes()>5;
 
-  for(int i=0;i < elem->GetNumberOfAttributes();++i)
+  for(int i=0; i < elem->GetNumberOfAttributes(); ++i)
   {
     std::string attName=elem->GetAttributeName(i);
 
     // Find out if it's a matrix element, because we format them somewhat differently
     bool matrixElement=false;
     const int MATRIX_ELEM_COUNT=16;
-    double matrixValues[MATRIX_ELEM_COUNT]={0};
+    double matrixValues[MATRIX_ELEM_COUNT]= {0};
     if (attName.find("Matrix")!=std::string::npos || attName.find("Transform")!=std::string::npos)
     {
       if (elem->GetVectorAttribute(attName.c_str(),MATRIX_ELEM_COUNT, matrixValues) == MATRIX_ELEM_COUNT)
@@ -362,10 +373,10 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
       os << "\"";
     }
   }
-  // Long format tag is needed if either or both 
-  // nested elements or inline data are present.  
+  // Long format tag is needed if either or both
+  // nested elements or inline data are present.
   std::string charData;
-  char *charDataPtr=elem->GetCharacterData();
+  char* charDataPtr=elem->GetCharacterData();
   if (charDataPtr!=NULL)
   {
     charData=charDataPtr;
@@ -376,7 +387,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
   {
     os << ">\n";
     // nested elements
-    for(int i=0;i < elem->GetNumberOfNestedElements();++i)
+    for(int i=0; i < elem->GetNumberOfNestedElements(); ++i)
     {
       PrintXML(os,nextIndent,elem->GetNestedElement(i));
     }
@@ -453,7 +464,7 @@ void PlusCommon::RemoveAttribute(vtkXMLDataElement* elem, const char *name)
 //----------------------------------------------------------------------------
 std::string PlusCommon::GetPlusLibVersionString()
 {
-  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION); 
+  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION);
 #ifdef _DEBUG
   plusLibVersion += " (debug build)";
 #endif
@@ -465,12 +476,12 @@ std::string PlusCommon::GetPlusLibVersionString()
   plusLibVersion += " - Mac";
 #else
   plusLibVersion += " - Linux";
-#endif 
+#endif
   return plusLibVersion;
 }
 
 //-------------------------------------------------------
-void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::vector<std::string> &elems, bool keepEmptyParts)
+void PlusCommon::SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts)
 {
   std::istringstream ss(s);
   std::string item;
@@ -484,7 +495,7 @@ void PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, std::ve
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(const std::string &s, char delim, bool keepEmptyParts/*=true*/)
+vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts/*=true*/)
 {
   std::vector<std::string> tokens;
   PlusCommon::SplitStringIntoTokens(s, delim, tokens, keepEmptyParts);
@@ -520,30 +531,30 @@ vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std:
 //-------------------------------------------------------
 bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
 {
-  return ( 
-      clipOrigin[0] != PlusCommon::NO_CLIP &&
-      clipOrigin[1] != PlusCommon::NO_CLIP &&
-      clipOrigin[2] != PlusCommon::NO_CLIP &&
-      clipSize[0] != PlusCommon::NO_CLIP &&
-      clipSize[1] != PlusCommon::NO_CLIP &&
-      clipSize[2] != PlusCommon::NO_CLIP
-  );
+  return (
+           clipOrigin[0] != PlusCommon::NO_CLIP &&
+           clipOrigin[1] != PlusCommon::NO_CLIP &&
+           clipOrigin[2] != PlusCommon::NO_CLIP &&
+           clipSize[0] != PlusCommon::NO_CLIP &&
+           clipSize[1] != PlusCommon::NO_CLIP &&
+           clipSize[2] != PlusCommon::NO_CLIP
+         );
 }
 
 //-------------------------------------------------------
 bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6])
 {
   return (clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1]) &&
-      (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&  // Verify that the origin is within the image
-      (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
+         (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&  // Verify that the origin is within the image
+         (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
 
-      (clipOrigin[0]+clipSize[0]-1 <= extents[1]) &&
-      (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
-      (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
+         (clipOrigin[0]+clipSize[0]-1 <= extents[1]) &&
+         (clipOrigin[1]+clipSize[1]-1 <= extents[3]) && // Verify that the extent of the clipping falls within the image
+         (clipOrigin[2]+clipSize[2]-1 <= extents[5]);
 }
 
 //-------------------------------------------------------
-PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t &writtenSize)
+PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize)
 {
   // on some systems fwrite cannot write all data in one chunk, therefore we have to write
   // chunks until all bytes are written or failed to write any bytes
@@ -560,7 +571,7 @@ PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSiz
       break;
     }
   }
-  
+
   writtenSize = dataSize-remainingBytes;
   if (remainingBytes>0)
   {
