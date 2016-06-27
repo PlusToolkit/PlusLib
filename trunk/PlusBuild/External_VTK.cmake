@@ -66,7 +66,7 @@ ELSE(VTK_DIR)
 
   # VTK has not been built yet, so download and build it as an external project
   
-  OPTION(PLUSBUILD_USE_VTK7 "Plus uses VTK7 instead of VTK6/VTK5" ON)
+  OPTION(PLUSBUILD_USE_VTK7 "Plus uses VTK7 instead of VTK6/VTK5" OFF)
   OPTION(PLUSBUILD_USE_VTK6 "Plus uses VTK6 instead of VTK5" ON)
   
   SET(VTK_GIT_PROTOCOL ${GIT_PROTOCOL})
