@@ -242,37 +242,18 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
-  FIND_FILE(QT_QMAKE_EXECUTABLE qmake${CMAKE_EXECUTABLE_SUFFIX}
-    PATH
-      $ENV{QTDIR}
-      "C:/Qt/4.7.4/bin"
-      "../Qt/4.7.4/bin"
-      "../../Qt/4.7.4/bin"
-      "C:/Qt/4.8.7/bin"
-      "../Qt/4.8.7/bin"
-      "../../Qt/4.8.7/bin"
-    )
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
 
-  IF( NOT PLUSBUILD_USE_QT5_ONLY )
+  IF ( NOT Qt5_FOUND )
     FIND_PACKAGE(Qt4 QUIET)
-  ENDIF()
 
-  IF ( NOT QT4_FOUND )
-    IF(EXISTS ${QT_QMAKE_EXECUTABLE} )
-      GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-      GET_FILENAME_COMPONENT(CMAKE_PREFIX_PATH ${QT_BINARY_DIR} DIRECTORY)
-    ENDIF()
-
-    FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
-
-    IF ( NOT Qt5_FOUND )
-      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-    ENDIF()
+    IF ( NOT Qt4_FOUND)
+      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE (Qt4) or CMAKE_PREFIX_PATH (Qt5) or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+    ENDIF() 
+  ELSE()
     SET(QT_VERSION_MAJOR ${Qt5Widgets_VERSION_MAJOR})
-    GET_FILENAME_COMPONENT(PREFIX_PATH ${Qt5Widgets_DIR} DIRECTORY)
-    SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${PREFIX_PATH} CACHE PATH "")
   ENDIF()
-ENDIF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Specify common external project properties
@@ -349,26 +330,16 @@ IF ( PLUSBUILD_USE_3DSlicer )
     INCLUDE( ${Slicer_USE_FILE} )
     IF(PLUSBUILD_USE_OpenIGTLink)
       FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer_BINARY_DIR}/../OpenIGTLink-build" NO_DEFAULT_PATH )
-    ENDIF(PLUSBUILD_USE_OpenIGTLink)
-  ENDIF( Slicer_FOUND )
+    ENDIF()
+  ENDIF()
 
-  ## Try to find Slicer3
-  FIND_PACKAGE( Slicer3 PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET )
-  IF ( Slicer3_FOUND )
-    INCLUDE( ${Slicer3_USE_FILE} )
-    IF(PLUSBUILD_USE_OpenIGTLink)
-      FIND_PACKAGE(OpenIGTLink REQUIRED PATHS "${Slicer3_HOME}/../Slicer3-lib/OpenIGTLink-build" NO_DEFAULT_PATH )
-    ENDIF(PLUSBUILD_USE_OpenIGTLink)
-  ENDIF( Slicer3_FOUND )
-
-  IF ( NOT Slicer_FOUND AND NOT Slicer3_FOUND)
+  IF ( NOT Slicer_FOUND )
     MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
   ENDIF()
 
   # Qt might have been found earlier, run find_package to reset all the QT_... CMake variables
   FIND_PACKAGE(Qt4)
-
-ENDIF ( PLUSBUILD_USE_3DSlicer )
+ENDIF()
 
 INCLUDE(External_VTK.cmake)
 INCLUDE(External_ITK.cmake)
@@ -561,11 +532,15 @@ IF( UNIX AND NOT APPLE )
   SET(LINUX TRUE)
 ENDIF()
 
-IF( PLUSBUILD_USE_VTK6 )
-  SET(VTK_BUILD_NAME "vtk6")
-ELSE( PLUSBUILD_USE_VTK6 )
-  SET(VTK_BUILD_NAME "vtk5")
-ENDIF(PLUSBUILD_USE_VTK6)
+IF( ${VTK_GIT_TAG} MATCHES "v7" )
+  SET(VTK_BUILD_NAME "vtk7")
+ELSE()
+  IF( PLUSBUILD_USE_VTK6 )
+    SET(VTK_BUILD_NAME "vtk6")
+  ELSE( PLUSBUILD_USE_VTK6 )
+    SET(VTK_BUILD_NAME "vtk5")
+  ENDIF(PLUSBUILD_USE_VTK6)
+ENDIF()
 
 IF( PLUSBUILD_BUILD_PLUSAPP )
   IF( Qt5Core_FOUND )

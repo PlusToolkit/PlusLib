@@ -196,9 +196,9 @@ size_t vtksys_Encoding_wcstombs(char* dest, const wchar_t* str, size_t n)
     }
   return WideCharToMultiByte(CP_ACP, 0, str, -1, dest, (int)n, NULL, NULL) - 1;
 }
-vtksys_stl::string vtksys_Encoding_ToNarrow(const vtksys_stl::wstring& wcstr)
+std::string vtksys_Encoding_ToNarrow(const std::wstring& wcstr)
 {
-  vtksys_stl::string str;
+  std::string str;
   size_t length = vtksys_Encoding_wcstombs(0, wcstr.c_str(), 0) + 1;
   if(length > 0)
     {

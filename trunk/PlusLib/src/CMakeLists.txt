@@ -2,17 +2,16 @@
 
 # --------------------------------------------------------------------------
 # Try to find VTK and include its settings (otherwise complain)
-#
 FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
+
 IF ( VTK_FOUND )
-INCLUDE(${VTK_USE_FILE})
+  INCLUDE(${VTK_USE_FILE})
 ELSE ( VTK_FOUND )
-    MESSAGE( FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
+  MESSAGE( FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
 ENDIF ( VTK_FOUND )
 
-#
+# --------------------------------------------------------------------------
 # Try to find ITK and include its settings (otherwise complain)
-#
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF ( ITK_FOUND )
   INCLUDE( ${ITK_USE_FILE} )

@@ -214,7 +214,7 @@ public:
     textWriter->SetFieldDelimiter("\t"); 
     textWriter->SetUseStringDelimiter(false); 
     textWriter->SetFileName(filename); 
-    textWriter->SetInputData_vtk5compatible( table ); 
+    textWriter->SetInputData_vtk5compatible( table );
     textWriter->Update(); 
 
     return PLUS_SUCCESS; 

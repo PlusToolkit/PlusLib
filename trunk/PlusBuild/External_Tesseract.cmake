@@ -97,7 +97,7 @@ ExternalProject_Add( tesseract
     BINARY_DIR "${PLUS_tesseract_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/PLUSToolkit/tesseract-ocr-cmake.git"
-    GIT_TAG cd300ab908ed39c739c1047805df22a4d3cae7f8
+    GIT_TAG 21855d0568a9253dede4e223aae71c0249b90438
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}

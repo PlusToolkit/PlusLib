@@ -45,11 +45,11 @@ void extractScanLines(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputIm
 }
 
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   bool printHelp = false;
   vtksys::CommandLineArguments args;
-  
+
   std::string inputFileName;
   std::string outputFileName;
   std::string configFileName;
@@ -82,13 +82,13 @@ int main(int argc, char **argv)
     std::cerr << "--input-seq-file not found!" << std::endl;
     return EXIT_FAILURE;
   }
-  
+
   if (configFileName.empty())
   {
     std::cerr << "--config-file not found!" << std::endl;
     return EXIT_FAILURE;
   }
-  
+
   if (outputFileName.empty())
   {
     std::cerr << "--output-seq-file not found!" << std::endl;
@@ -99,8 +99,8 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
   if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, configFileName.c_str())==PLUS_FAIL)
-  {  
-    LOG_ERROR("Unable to read configuration from file " << configFileName.c_str()); 
+  {
+    LOG_ERROR("Unable to read configuration from file " << configFileName.c_str());
     return EXIT_FAILURE;
   }
 
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, NumberOfScanLines, numberOfScanLines, scanConversionElement)
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, NumberOfSamplesPerScanLine, numberOfSamplesPerScanLine, scanConversionElement)
-  
+
   if ( scanConversionElement->GetAttribute("NumberOfScanLines") == NULL )
   {
     LOG_WARNING("NumberOfScanLines attribute not specified. Using default value.")
@@ -164,10 +164,10 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkPlusTrackedFrameList> inputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   inputFrameList->ReadFromSequenceMetafile(inputFileName.c_str());
   int numberOfFrames = inputFrameList->GetNumberOfTrackedFrames();
-  
+
   // Create lines image (this is the image which holds scan lines in rows).
 
-  int linesImageExtent[6]={0, numberOfSamplesPerScanLine-1, 0, numberOfScanLines-1, 0, 0};
+  int linesImageExtent[6]= {0, numberOfSamplesPerScanLine-1, 0, numberOfScanLines-1, 0, 0};
   scanConverter->SetInputImageExtent(linesImageExtent);
 
   vtkSmartPointer<vtkImageData> linesImage = vtkSmartPointer<vtkImageData>::New();
@@ -181,16 +181,14 @@ int main(int argc, char **argv)
 #endif
 
   // Create frame lists for lines images and output images.
-
   vtkSmartPointer<vtkPlusTrackedFrameList> linesFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   vtkSmartPointer<vtkPlusTrackedFrameList> outputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   // Iterate thought every frame.
-
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex ++ )
   {
     PlusTrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
-    
+
     linesFrameList->AddTrackedFrame(inputFrame);
     PlusTrackedFrame* linesFrame = linesFrameList->GetTrackedFrame(linesFrameList->GetNumberOfTrackedFrames()-1);
     linesFrame->GetImageData()->DeepCopyFrom(linesImage);  // Would there be a more efficient way to create this tracked frame?
@@ -198,11 +196,11 @@ int main(int argc, char **argv)
     // Extract scan lines from image.
     extractScanLines(scanConverter, inputFrame->GetImageData()->GetImage(), linesFrame->GetImageData()->GetImage() );
   }
-  
+
   std::cout << "Writing output to file. Setting log level to 1, regardless of user specified verbose level." << std::endl;
   vtkPlusLogger::Instance()->SetLogLevel(1);
-  
+
   linesFrameList->SaveToSequenceMetafile(outputFileName.c_str());
-  
+
   return EXIT_SUCCESS;
 }
