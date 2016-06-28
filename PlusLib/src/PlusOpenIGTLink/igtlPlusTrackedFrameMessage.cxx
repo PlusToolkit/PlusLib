@@ -27,25 +27,27 @@ PlusTrackedFrameMessage::~PlusTrackedFrameMessage()
 //----------------------------------------------------------------------------
 igtl::MessageBase::Pointer PlusTrackedFrameMessage::Clone()
 {
-  igtl::PlusTrackedFrameMessage::Pointer clone;
+  igtl::MessageBase::Pointer clone;
   {
     vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
-    clone = dynamic_cast<igtl::PlusTrackedFrameMessage*>(factory->CreateSendMessage(this->GetMessageType(), this->GetHeaderVersion()).GetPointer());
+    clone = dynamic_cast<igtl::MessageBase*>(factory->CreateSendMessage(this->GetMessageType(), this->GetHeaderVersion()).GetPointer());
   }
 
+  igtl::PlusTrackedFrameMessage::Pointer msg = dynamic_cast<igtl::PlusTrackedFrameMessage*>(clone.GetPointer());
+
   int bodySize = this->m_MessageSize - IGTL_HEADER_SIZE;
-  clone->InitBuffer();
-  clone->CopyHeader(this);
-  clone->AllocateBuffer(bodySize);
+  msg->InitBuffer();
+  msg->CopyHeader(this);
+  msg->AllocateBuffer(bodySize);
   if (bodySize > 0)
   {
-    clone->CopyBody(this);
+    msg->CopyBody(this);
   }
 
 #if OpenIGTLink_HEADER_VERSION >= 2
-  clone->m_MetaDataHeader = this->m_MetaDataHeader;
-  clone->m_MetaDataMap = this->m_MetaDataMap;
-  clone->m_IsExtendedHeaderUnpacked = this->m_IsExtendedHeaderUnpacked;
+  msg->m_MetaDataHeader = this->m_MetaDataHeader;
+  msg->m_MetaDataMap = this->m_MetaDataMap;
+  msg->m_IsExtendedHeaderUnpacked = this->m_IsExtendedHeaderUnpacked;
 #endif
 
   return clone;
