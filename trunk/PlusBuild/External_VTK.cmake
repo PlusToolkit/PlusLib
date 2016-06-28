@@ -149,7 +149,7 @@ ELSE(VTK_DIR)
         )
     ENDIF()
 
-    SET(VTK_GIT_REPOSITORY "github.com/PLUSToolkit/VTK.git")
+    SET(VTK_GIT_REPOSITORY "github.com/Slicer/VTK.git")
     SET(VTK_GIT_TAG "slicer-v5.10.1")
     SET(VTK_VERSION_SPECIFIC_ARGS
       -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
@@ -165,6 +165,8 @@ ELSE(VTK_DIR)
         )
     ENDIF()
   ENDIF()
+  
+  MESSAGE(STATUS "Downloading VTK ${VTK_GIT_TAG} from: ${VTK_GIT_PROTOCOL}://${VTK_GIT_REPOSITORY}")
 
   SET (PLUS_VTK_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/vtk")
   SET (PLUS_VTK_DIR "${CMAKE_BINARY_DIR}/Deps/vtk-bin" CACHE INTERNAL "Path to store vtk binaries")
