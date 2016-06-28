@@ -25,9 +25,8 @@ See License.txt for details.
 #include "vtkPlusTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
-#if defined(_MSC_VER) && _MSC_VER > 1800
-// For dup()
-#include <corecrt_io.h>
+#if defined(_WIN32)
+#include <io.h>
 #endif
 
 namespace
