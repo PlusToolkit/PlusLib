@@ -13,6 +13,7 @@ SET (PlusCommon_SRCS
   vtkPlusTrackedFrameList.cxx
   PlusTrackedFrame.cxx
   IO/vtkPlusMetaImageSequenceIO.cxx
+  IO/vtkPlusNrrdSequenceIO.cxx
   IO/vtkPlusSequenceIOBase.cxx
   IO/vtkPlusSequenceIO.cxx
   vtkPlusRecursiveCriticalSection.cxx
@@ -37,23 +38,13 @@ if (WIN32)
     PlusVideoFrame.txx
     IO/vtkPlusMetaImageSequenceIO.h
     IO/vtkPlusSequenceIO.h
+    IO/vtkPlusNrrdSequenceIO.h
     IO/vtkPlusSequenceIOBase.h
     vtkPlusRecursiveCriticalSection.h
     vtkPlusToolAxesActor.h
     PixelCodec.h
     )
 endif (WIN32)
-
-IF (VTK_MAJOR_VERSION GREATER 5)
-  SET(PlusCommon_SRCS ${PlusCommon_SRCS}
-    IO/vtkPlusNrrdSequenceIO.cxx
-  )
-  IF( WIN32 )
-    SET (PlusCommon_HDRS ${PlusCommon_HDRS}
-      IO/vtkPlusNrrdSequenceIO.h
-    )
-  ENDIF( WIN32 )
-ENDIF()
 
 SET (PlusCommon_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR} 
