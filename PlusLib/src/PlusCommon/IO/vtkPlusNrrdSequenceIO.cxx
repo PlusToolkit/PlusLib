@@ -25,6 +25,10 @@ See License.txt for details.
 #include "vtkPlusTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
+#if defined(_MSC_VER) && _MSC_VER > 1800
+#include <corecrt_io.h>
+#endif
+
 namespace
 {
 
@@ -851,11 +855,18 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
       fclose(stream);
       return PLUS_FAIL;
     }
+    
 #if _WIN32
-    gzStream = gzdopen(_fileno(stream), "rb");
+    gzStream = gzdopen(_dup(_fileno(stream)), "rb");
 #else
-    gzStream = gzdopen(fileno(stream), "rb");
+    gzStream = gzdopen(dup(fileno(stream)), "rb");
 #endif
+    if (gzStream == NULL)
+    {
+      LOG_ERROR("Unable to open gz stream.");
+      fclose(stream);
+      return PLUS_FAIL;
+    }
 
 #else
     // gzipped
