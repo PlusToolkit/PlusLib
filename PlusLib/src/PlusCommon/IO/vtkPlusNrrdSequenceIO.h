@@ -38,6 +38,8 @@ class vtkPlusCommonExport vtkPlusNrrdSequenceIO : public vtkPlusSequenceIOBase
     NRRD_ENCODING_BZIP2 = NRRD_ENCODING_BZ2
   };
 
+  static std::string EncodingToString(NrrdEncoding encoding);
+
 public:
   static vtkPlusNrrdSequenceIO *New();
   vtkTypeMacro(vtkPlusNrrdSequenceIO, vtkPlusSequenceIOBase);
@@ -121,14 +123,14 @@ protected:
   /*! Convert an encoding to a string*/
   static std::string NrrdEncodingToString(NrrdEncoding encoding);
 
-private:    
+protected:
   /*! Nrrd encoding type */
   NrrdEncoding Encoding;
 
   /*! file handle for the compression stream */
   gzFile CompressionStream;
-  
-protected:
+
+private:
   vtkPlusNrrdSequenceIO(const vtkPlusNrrdSequenceIO&); //purposely not implemented
   void operator=(const vtkPlusNrrdSequenceIO&); //purposely not implemented
 };

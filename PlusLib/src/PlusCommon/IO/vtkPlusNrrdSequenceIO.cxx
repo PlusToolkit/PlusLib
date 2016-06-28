@@ -26,504 +26,24 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 
 #if defined(_MSC_VER) && _MSC_VER > 1800
+// For dup()
 #include <corecrt_io.h>
 #endif
 
 namespace
 {
 
-static const int MAX_LINE_LENGTH=1000;
-
-static const std::string SEQUENCE_FIELD_US_IMG_ORIENT = std::string("ultrasound image orientation");
-static const std::string SEQUENCE_FIELD_US_IMG_TYPE = std::string("ultrasound image type");
 static const char* SEQUENCE_FIELD_ELEMENT_DATA_FILE = "data file";
 static const char* SEQUENCE_FIELD_KINDS = "kinds";
-static const char* SEQUENCE_FIELD_SPACE_ORIGIN = "space origin";
-static const char* SEQUENCE_FIELD_SPACE_DIRECTIONS = "space directions";
 static const char* SEQUENCE_FIELD_SIZES = "sizes";
-
+static const char* SEQUENCE_FIELD_SPACE_DIRECTIONS = "space directions";
+static const char* SEQUENCE_FIELD_SPACE_ORIGIN = "space origin";
+static const int MAX_LINE_LENGTH=1000;
+static const int SEQUENCE_FIELD_SIZES_NUM_SPACES = 8;
+static const std::string SEQUENCE_FIELD_US_IMG_ORIENT = std::string("ultrasound image orientation");
+static const std::string SEQUENCE_FIELD_US_IMG_TYPE = std::string("ultrasound image type");
 static std::string SEQUENCE_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame";
 static std::string SEQUENCE_FIELD_IMG_STATUS = "Status";
-
-static const int SEQUENCE_FIELD_SIZES_NUM_SPACES = 8;
-
-#if VTK_MAJOR_VERSION < 7
-
-#define ALLOC(size) malloc(size)
-#define TRYFREE(p) {if (p) free(p);}
-
-#ifndef Z_BUFSIZE
-#  ifdef MAXSEG_64K
-#    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
-#  else
-#    define Z_BUFSIZE 16384
-#  endif
-#endif
-
-#if MAX_MEM_LEVEL >= 8
-#  define DEF_MEM_LEVEL 8
-#else
-#  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
-#endif
-
-#if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
-#  define OS_CODE  0x00
-#  if defined(__TURBOC__) || defined(__BORLANDC__)
-#    if(__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
-/* Allow compilation with ANSI keywords only enabled */
-void _Cdecl farfree( void* block );
-void* _Cdecl farmalloc( unsigned long nbytes );
-#    else
-#      include <alloc.h>
-#    endif
-#  else /* MSC or DJGPP */
-#    include <malloc.h>
-#  endif
-#endif
-
-#ifdef AMIGA
-#  define OS_CODE  0x01
-#endif
-
-#if defined(VAXC) || defined(VMS)
-#  define OS_CODE  0x02
-#  define F_OPEN(name, mode) \
-  fopen((name), (mode), "mbc=60", "ctx=stm", "rfm=fix", "mrs=512")
-#endif
-
-#if defined(ATARI) || defined(atarist)
-#  define OS_CODE  0x05
-#endif
-
-#ifdef OS2
-#  define OS_CODE  0x06
-#  ifdef M_I86
-#include <malloc.h>
-#  endif
-#endif
-
-#if defined(MACOS) || defined(TARGET_OS_MAC)
-#  define OS_CODE  0x07
-#  if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
-#    include <unix.h> /* for fdopen */
-#  else
-#    ifndef fdopen
-#      define fdopen(fd,mode) NULL /* No fdopen() */
-#    endif
-#  endif
-#endif
-
-#ifdef TOPS20
-#  define OS_CODE  0x0a
-#endif
-
-#ifdef WIN32
-#  ifndef __CYGWIN__  /* Cygwin is Unix, not Win32 */
-#    define OS_CODE  0x0b
-#  endif
-#endif
-
-#ifdef __50SERIES /* Prime/PRIMOS */
-#  define OS_CODE  0x0f
-#endif
-
-#if defined(_BEOS_) || defined(RISCOS)
-#  define fdopen(fd,mode) NULL /* No fdopen() */
-#endif
-
-#if (defined(_MSC_VER) && (_MSC_VER > 600))
-#  if defined(_WIN32_WCE)
-#    define fdopen(fd,mode) NULL /* No fdopen() */
-#    ifndef _PTRDIFF_T_DEFINED
-typedef int ptrdiff_t;
-#      define _PTRDIFF_T_DEFINED
-#    endif
-#  else
-#    define fdopen(fd,type)  _fdopen(fd,type)
-#  endif
-#endif
-
-#ifndef OS_CODE
-#  define OS_CODE  0x03  /* assume Unix */
-#endif
-
-#ifndef F_OPEN
-#  define F_OPEN(name, mode) fopen((name), (mode))
-#endif
-
-#ifdef NO_ERRNO_H
-#   ifdef _WIN32_WCE
-/* The Microsoft C Run-Time Library for Windows CE doesn't have
-* errno.  We define it as a global variable to simplify porting.
-* Its value is always 0 and should not be used.  We rename it to
-* avoid conflict with other libraries that use the same workaround.
-*/
-#     define errno z_errno
-#   endif
-extern int errno;
-#else
-#  ifndef _WIN32_WCE
-#    include <errno.h>
-#  endif
-#endif
-
-/* gzip flag byte */
-#define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
-#define HEAD_CRC     0x02 /* bit 1 set: header CRC present */
-#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
-#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
-#define COMMENT      0x10 /* bit 4 set: file comment present */
-#define RESERVED     0xE0 /* bits 5..7: reserved */
-
-static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
-
-typedef struct gz_stream
-{
-  z_stream stream;
-  int      z_err;   /* error code for last stream operation */
-  int      z_eof;   /* set if end of input file */
-  FILE*     file;   /* .gz file */
-  Byte*     inbuf;  /* input buffer */
-  Byte*     outbuf; /* output buffer */
-  uLong    crc;     /* crc32 of uncompressed data */
-  char*     msg;    /* error message */
-  char*     path;   /* path name for debugging only */
-  int      transparent; /* 1 if input file is not a .gz file */
-  char     mode;    /* 'w' or 'r' */
-  z_off_t  start;   /* start of compressed data in file (header skipped) */
-  z_off_t  in;      /* bytes into deflate or inflate */
-  z_off_t  out;     /* bytes out of deflate or inflate */
-  int      back;    /* one character push-back */
-  int      last;    /* true if push-back is last character */
-} gz_stream;
-
-/* ===========================================================================
-Opens a gzip (.gz) file for reading or writing. The mode parameter
-is as in fopen ("rb" or "wb"). The file is given either by file descriptor
-or path name (if fd == -1).
-gz_open returns NULL if the file could not be opened or if there was
-insufficient memory to allocate the (de)compression state; errno
-can be checked to distinguish the two cases (if errno is zero, the
-zlib error is Z_MEM_ERROR).
-offset is an optional parameter defining the offset of compressed data
-within the file. Good for files that have a header before gzipped data
-*/
-/* ===========================================================================
-* Cleanup then free the given gz_stream. Return a zlib error code.
-Try freeing in the reverse order of allocations.
-*/
-static int destroy (gz_stream* s)
-{
-  int err = Z_OK;
-
-  if (!s)
-  {
-    return Z_STREAM_ERROR;
-  }
-
-  TRYFREE(s->msg);
-
-  if (s->stream.state != NULL)
-  {
-    if (s->mode == 'w')
-    {
-#ifdef NO_GZCOMPRESS
-      err = Z_STREAM_ERROR;
-#else
-      err = deflateEnd(&(s->stream));
-#endif
-    }
-    else if (s->mode == 'r')
-    {
-      err = inflateEnd(&(s->stream));
-    }
-  }
-  if (s->file != NULL && fclose(s->file))
-  {
-#ifdef ESPIPE
-    if (errno != ESPIPE) /* fclose is broken for pipes in HP/UX */
-#endif
-      err = Z_ERRNO;
-  }
-  if (s->z_err < 0)
-  {
-    err = s->z_err;
-  }
-
-  TRYFREE(s->inbuf);
-  TRYFREE(s->outbuf);
-  TRYFREE(s->path);
-  TRYFREE(s);
-  return err;
-}
-
-/* ===========================================================================
-Read a byte from a gz_stream; update next_in and avail_in. Return EOF
-for end of file.
-IN assertion: the stream s has been successfully opened for reading.
-*/
-static int get_byte(gz_stream* s)
-{
-  if (s->z_eof)
-  {
-    return EOF;
-  }
-  if (s->stream.avail_in == 0)
-  {
-    errno = 0;
-    s->stream.avail_in = (uInt)fread(s->inbuf, 1, Z_BUFSIZE, s->file);
-    if (s->stream.avail_in == 0)
-    {
-      s->z_eof = 1;
-      if (ferror(s->file))
-      {
-        s->z_err = Z_ERRNO;
-      }
-      return EOF;
-    }
-    s->stream.next_in = s->inbuf;
-  }
-  s->stream.avail_in--;
-  return *(s->stream.next_in)++;
-}
-/* ===========================================================================
-Check the gzip header of a gz_stream opened for reading. Set the stream
-mode to transparent if the gzip magic header is not present; set s->err
-to Z_DATA_ERROR if the magic header is present but the rest of the header
-is incorrect.
-IN assertion: the stream s has already been created sucessfully;
-s->stream.avail_in is zero for the first time, but may be non-zero
-for concatenated .gz files.
-*/
-static void check_header(gz_stream* s)
-{
-  int method; /* method byte */
-  int flags;  /* flags byte */
-  uInt len;
-  int c;
-
-  /* Assure two bytes in the buffer so we can peek ahead -- handle case
-  where first byte of header is at the end of the buffer after the last
-  gzip segment */
-  len = s->stream.avail_in;
-  if (len < 2)
-  {
-    if (len)
-    {
-      s->inbuf[0] = s->stream.next_in[0];
-    }
-    errno = 0;
-    len = (uInt)fread(s->inbuf + len, 1, Z_BUFSIZE >> len, s->file);
-    if (len == 0 && ferror(s->file))
-    {
-      s->z_err = Z_ERRNO;
-    }
-    s->stream.avail_in += len;
-    s->stream.next_in = s->inbuf;
-    if (s->stream.avail_in < 2)
-    {
-      s->transparent = s->stream.avail_in;
-      return;
-    }
-  }
-
-  /* Peek ahead to check the gzip magic header */
-  if (s->stream.next_in[0] != gz_magic[0] ||
-      s->stream.next_in[1] != gz_magic[1])
-  {
-    s->transparent = 1;
-    return;
-  }
-  s->stream.avail_in -= 2;
-  s->stream.next_in += 2;
-
-  /* Check the rest of the gzip header */
-  method = get_byte(s);
-  flags = get_byte(s);
-  if (method != Z_DEFLATED || (flags & RESERVED) != 0)
-  {
-    s->z_err = Z_DATA_ERROR;
-    return;
-  }
-
-  /* Discard time, xflags and OS code: */
-  for (len = 0; len < 6; len++)
-  {
-    (void)get_byte(s);
-  }
-
-  if ((flags & EXTRA_FIELD) != 0)   /* skip the extra field */
-  {
-    len  =  (uInt)get_byte(s);
-    len += ((uInt)get_byte(s))<<8;
-    /* len is garbage if EOF but the loop below will quit anyway */
-    while (len-- != 0 && get_byte(s) != EOF) ;
-  }
-  if ((flags & ORIG_NAME) != 0)   /* skip the original file name */
-  {
-    while ((c = get_byte(s)) != 0 && c != EOF) ;
-  }
-  if ((flags & COMMENT) != 0)     /* skip the .gz file comment */
-  {
-    while ((c = get_byte(s)) != 0 && c != EOF) ;
-  }
-  if ((flags & HEAD_CRC) != 0)    /* skip the header crc */
-  {
-    for (len = 0; len < 2; len++)
-    {
-      (void)get_byte(s);
-    }
-  }
-  s->z_err = s->z_eof ? Z_DATA_ERROR : Z_OK;
-}
-
-static gzFile gz_open_offset (const char* path, const char* mode, int fd, z_off_t offset=0)
-{
-  int err;
-  int level = Z_DEFAULT_COMPRESSION; /* compression level */
-  int strategy = Z_DEFAULT_STRATEGY; /* compression strategy */
-  char* p = (char*)mode;
-  gz_stream* s;
-  char fmode[80]; /* copy of mode, without the compression level */
-  char* m = fmode;
-
-  if (!path || !mode)
-  {
-    return Z_NULL;
-  }
-
-  s = (gz_stream*)ALLOC(sizeof(gz_stream));
-  if (!s)
-  {
-    return Z_NULL;
-  }
-
-  s->stream.zalloc = (alloc_func)0;
-  s->stream.zfree = (free_func)0;
-  s->stream.opaque = (voidpf)0;
-  s->stream.next_in = s->inbuf = Z_NULL;
-  s->stream.next_out = s->outbuf = Z_NULL;
-  s->stream.avail_in = s->stream.avail_out = 0;
-  s->file = NULL;
-  s->z_err = Z_OK;
-  s->z_eof = 0;
-  s->out = 0;
-  s->back = EOF;
-  s->crc = crc32(0L, Z_NULL, 0);
-  s->msg = NULL;
-  s->transparent = 0;
-
-  s->path = (char*)ALLOC(strlen(path)+1);
-  if (s->path == NULL)
-  {
-    return destroy(s), (gzFile)Z_NULL;
-  }
-  strcpy(s->path, path); /* do this early for debugging */
-
-  s->mode = '\0';
-  do
-  {
-    if (*p == 'r')
-    {
-      s->mode = 'r';
-    }
-    if (*p == 'w' || *p == 'a')
-    {
-      s->mode = 'w';
-    }
-    if (*p >= '0' && *p <= '9')
-    {
-      level = *p - '0';
-    }
-    else if (*p == 'f')
-    {
-      strategy = Z_FILTERED;
-    }
-    else if (*p == 'h')
-    {
-      strategy = Z_HUFFMAN_ONLY;
-    }
-    else if (*p == 'R')
-    {
-      strategy = Z_RLE;
-    }
-    else
-    {
-      *m++ = *p; /* copy the mode */
-    }
-  }
-  while (*p++ && m != fmode + sizeof(fmode));
-  if (s->mode == '\0')
-  {
-    return destroy(s), (gzFile)Z_NULL;
-  }
-
-  if (s->mode == 'w')
-  {
-    s->in = 0;
-#ifdef NO_GZCOMPRESS
-    err = Z_STREAM_ERROR;
-#else
-    err = deflateInit2(&(s->stream), level,
-                       Z_DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, strategy);
-    /* windowBits is passed < 0 to suppress zlib header */
-
-    s->stream.next_out = s->outbuf = (Byte*)ALLOC(Z_BUFSIZE);
-#endif
-    if (err != Z_OK || s->outbuf == Z_NULL)
-    {
-      return destroy(s), (gzFile)Z_NULL;
-    }
-  }
-  else
-  {
-    s->in = offset;
-    s->stream.next_in  = s->inbuf = (Byte*)ALLOC(Z_BUFSIZE);
-
-    err = inflateInit2(&(s->stream), -MAX_WBITS);
-    /* windowBits is passed < 0 to tell that there is no zlib header.
-    * Note that in this case inflate *requires* an extra "dummy" byte
-    * after the compressed stream in order to complete decompression and
-    * return Z_STREAM_END. Here the gzip CRC32 ensures that 4 bytes are
-    * present after the compressed stream.
-    */
-    if (err != Z_OK || s->inbuf == Z_NULL)
-    {
-      return destroy(s), (gzFile)Z_NULL;
-    }
-  }
-  s->stream.avail_out = Z_BUFSIZE;
-
-  errno = 0;
-  s->file = fd < 0 ? F_OPEN(path, fmode) : (FILE*)fdopen(fd, fmode);
-
-  if (s->file == NULL)
-  {
-    return destroy(s), (gzFile)Z_NULL;
-  }
-  if (s->mode == 'w')
-  {
-    /* Write a very simple .gz header:
-    */
-    fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", gz_magic[0], gz_magic[1],
-            Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
-    s->start = 10L;
-    /* We use 10L instead of ftell(s->file) to because ftell causes an
-    * fflush on some systems. This version of the library doesn't use
-    * start anyway in write mode, so this initialization is not
-    * necessary.
-    */
-  }
-  else
-  {
-    fseek(s->file, offset, SEEK_CUR);
-    check_header(s); /* skip the .gz header */
-    s->start = ftell(s->file) - s->stream.avail_in;
-  }
-
-  return (gzFile)s;
-}
-#endif
 
 }
 
@@ -545,11 +65,29 @@ vtkPlusNrrdSequenceIO::~vtkPlusNrrdSequenceIO()
 }
 
 //----------------------------------------------------------------------------
+std::string vtkPlusNrrdSequenceIO::EncodingToString(NrrdEncoding encoding)
+{
+  switch (encoding)
+  {
+  case vtkPlusNrrdSequenceIO::NRRD_ENCODING_RAW:
+    return "NRRD_ENCODING_RAW";
+  case vtkPlusNrrdSequenceIO::NRRD_ENCODING_TXT:
+    return "NRRD_ENCODING_TXT";
+  case vtkPlusNrrdSequenceIO::NRRD_ENCODING_HEX:
+    return "NRRD_ENCODING_HEX";
+  case vtkPlusNrrdSequenceIO::NRRD_ENCODING_GZ:
+    return "NRRD_ENCODING_GZ";
+  case vtkPlusNrrdSequenceIO::NRRD_ENCODING_BZ2:
+    return "NRRD_ENCODING_BZ2";
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusNrrdSequenceIO::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  // TODO : anything specific to print
+  os << indent << "NrrdEncoding: " << EncodingToString(this->Encoding) << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -842,7 +380,6 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 
   if ( this->UseCompression && this->Encoding >= NRRD_ENCODING_GZ && this->Encoding < NRRD_ENCODING_BZ2)
   {
-#if VTK_MAJOR_VERSION > 6
     if (FileOpen(&stream, this->GetPixelDataFilePath().c_str(), "rb") != PLUS_SUCCESS)
     {
       LOG_ERROR("The file " << this->GetPixelDataFilePath() << " could not be opened for reading");
@@ -855,23 +392,19 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
       fclose(stream);
       return PLUS_FAIL;
     }
-    
+
 #if _WIN32
     gzStream = gzdopen(_dup(_fileno(stream)), "rb");
 #else
     gzStream = gzdopen(dup(fileno(stream)), "rb");
 #endif
+
     if (gzStream == NULL)
     {
       LOG_ERROR("Unable to open gz stream.");
       fclose(stream);
       return PLUS_FAIL;
     }
-
-#else
-    // gzipped
-    gzStream = gz_open_offset(this->GetPixelDataFilePath().c_str(), "rb", -1, this->PixelDataFileOffset);
-#endif
   }
   else
   {
@@ -892,7 +425,6 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 
     vtkPlusNrrdSequenceIO::FilePositionOffsetType allFramesCompressedPixelBufferSize = vtkPlusNrrdSequenceIO::GetFileSize( this->GetPixelDataFilePath() ) - this->PixelDataFileOffset;
 
-    //gzseek(gzStream, this->PixelDataFileOffset, SEEK_SET);
     if (gzread(gzStream, (void*)gzAllFramesPixelBuffer, allFramesPixelBufferSize) != allFramesPixelBufferSize)
     {
       LOG_ERROR("Could not uncompress " << allFramesCompressedPixelBufferSize << " bytes to " << allFramesPixelBufferSize << " bytes from " << GetPixelDataFilePath());
@@ -994,11 +526,7 @@ PlusStatus vtkPlusNrrdSequenceIO::PrepareImageFile()
 {
   if( this->GetUseCompression() )
   {
-#if VTK_MAJOR_VERSION > 6
     this->CompressionStream = gzopen(this->TempImageFileName.c_str(), "a");
-#else
-    this->CompressionStream = gzopen(this->TempImageFileName.c_str(), "ab+");
-#endif
 
     int error;
     gzerror(this->CompressionStream, &error);
