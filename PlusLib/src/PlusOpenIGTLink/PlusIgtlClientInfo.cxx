@@ -11,6 +11,9 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo::PlusIgtlClientInfo()
   : ClientHeaderVersion(IGTL_HEADER_VERSION_1)
+  , Resolution(0)
+  , TDATARequested(false)
+  , LastTDATASentTimeStamp(-1)
 {
 
 }
@@ -295,4 +298,16 @@ void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << "(none)";
   }
+}
+
+//----------------------------------------------------------------------------
+int PlusIgtlClientInfo::GetClientHeaderVersion() const
+{
+  return this->ClientHeaderVersion;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetClientHeaderVersion(int version)
+{
+  this->ClientHeaderVersion = version;
 }

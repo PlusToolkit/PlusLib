@@ -176,11 +176,27 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand( vtkPlusCommand* command )
   int success = 0;
   {
     PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
-    success = this->ClientSocket->Send( message->GetPackPointer(), message->GetPackSize() );
+    success = this->ClientSocket->Send( message->GetBufferPointer(), message->GetBufferSize() );
   }
   if ( !success )
   {
     LOG_ERROR( "OpenIGTLink client couldn't send command to server." );
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkClient::SendMessage(igtl::MessageBase::Pointer packedMessage)
+{
+  int success = 0;
+  {
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    success = this->ClientSocket->Send(packedMessage->GetBufferPointer(), packedMessage->GetBufferSize());
+  }
+  if (!success)
+  {
+    LOG_ERROR("OpenIGTLink client couldn't send message to server.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -207,13 +223,12 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
 
           if( vtkPlusCommand::IsReplyDeviceName(strMsg->GetDeviceName()) )
           {
-			if (PlusCommon::StringToInt<uint32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
-			{
-			  LOG_ERROR("Failed to get UID from command device name.");
-			  continue;
-			}
+            if (PlusCommon::StringToInt<uint32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
+            {
+              LOG_ERROR("Failed to get UID from command device name.");
+              continue;
+            }
           }
-          /* <CommandReply Status="SUCCESS" Message="VTK_ENCODING_NONE" /> */
           vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(strMsg->GetString()));
           if(cmdElement == NULL )
           {
