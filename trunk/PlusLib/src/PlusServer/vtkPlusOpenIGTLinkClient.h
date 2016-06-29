@@ -54,6 +54,9 @@ public:
   /*! Send a command to the connected server */
   PlusStatus SendCommand( vtkPlusCommand* command );
 
+  /*! Send a packed message to the connected server */
+  PlusStatus SendMessage(igtl::MessageBase::Pointer packedMessage);
+
   /*! Wait for a command reply */
   PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec=0);
   

@@ -11,6 +11,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "igtlCommon.h"
+#include "igtlTrackingDataMessage.h"
 #include "igtl_header.h"
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusOpenIGTLinkClient.h"
@@ -21,6 +22,7 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusVersionCommand.h"
+#include "vtkPlusIgtlMessageFactory.h"
 #ifdef PLUS_USE_STEALTHLINK
 #include "vtkPlusStealthLinkCommand.h"
 #endif
@@ -393,6 +395,25 @@ PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string
 }
 
 //----------------------------------------------------------------------------
+PlusStatus ExecuteStartTDATA(vtkPlusOpenIGTLinkClient* client, int commandId)
+{
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
+  igtl::StartTrackingDataMessage* msg = dynamic_cast<igtl::StartTrackingDataMessage*>(factory->CreateSendMessage("STT_TDATA", IGTL_HEADER_VERSION_1).GetPointer());
+  msg->SetResolution(25);
+  msg->Pack();
+  return client->SendMessage(msg);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus ExecuteStopTDATA(vtkPlusOpenIGTLinkClient* client, int commandId)
+{
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
+  igtl::StopTrackingDataMessage* msg = dynamic_cast<igtl::StopTrackingDataMessage*>(factory->CreateSendMessage("STP_TDATA", IGTL_HEADER_VERSION_1).GetPointer());
+  msg->Pack();
+  return client->SendMessage(msg);
+}
+
+//----------------------------------------------------------------------------
 PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string& deviceId, const std::string& text, bool responseExpected, int commandId)
 {
   vtkSmartPointer<vtkPlusSendTextCommand> cmd = vtkSmartPointer<vtkPlusSendTextCommand>::New();
@@ -503,17 +524,9 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   const char batchReconstructionOutputImageName[]="VolumeReconstructedBatch";
   const char snapshotReconstructionOutputImageName[]="VolumeReconstructedSnapshot";
   const char liveReconstructionOutputImageName[]="VolumeReconstructedLive";
-
-  // There is no NRRD support in VTK5, so only use it with VTK6
-#if (VTK_MAJOR_VERSION < 6)
-  const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.mha";
-  const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.mha";
-  const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.mha";
-#else
   const char batchReconstructionOutputFileName[]="VolumeReconstructedBatch.nrrd";
   const char snapshotReconstructionOutputFileName[]="VolumeReconstructedSnapshot.nrrd";
   const char liveReconstructionOutputFileName[]="VolumeReconstructedLive.nrrd";
-#endif
 
   std::string replyMessage;
   std::string errorMessage;
@@ -601,6 +614,12 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   ExecuteSaveConfig(client, "Test1SavedConfig.xml", commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
+  parameters.clear();
+  ExecuteStartTDATA(client, commandId++);
+  RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
+  parameters.clear();
+  ExecuteStopTDATA(client, commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
 

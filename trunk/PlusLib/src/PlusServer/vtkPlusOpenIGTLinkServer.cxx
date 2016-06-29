@@ -334,7 +334,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
   if (self.BroadcastChannel != NULL)
   {
     if ( ( self.BroadcastChannel->HasVideoSource() && !self.BroadcastChannel->GetVideoDataAvailable())
-      || (!self.BroadcastChannel->HasVideoSource() && !(self.BroadcastChannel->GetTrackingDataAvailable() || self.BroadcastChannel->GetFieldDataAvailable())) )
+         || (!self.BroadcastChannel->HasVideoSource() && !(self.BroadcastChannel->GetTrackingDataAvailable() || self.BroadcastChannel->GetFieldDataAvailable())) )
     {
       LOG_DYNAMIC("No data is broadcasted, as no data is available yet.", self.GracePeriodLogLevel);
     }
@@ -374,7 +374,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
     return PLUS_FAIL;
   }
 
-   for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for ( int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i )
   {
     // Send tracked frame
     self.SendTrackedFrame( *trackedFrameList->GetTrackedFrame(i) );
@@ -480,7 +480,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     {
       igtl::PlusClientInfoMessage::Pointer clientInfoMsg = dynamic_cast<igtl::PlusClientInfoMessage*>(bodyMessage.GetPointer());
       clientInfoMsg->SetMessageHeader(headerMsg);
-      clientInfoMsg->AllocatePack();
+      clientInfoMsg->AllocateBuffer();
 
       clientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize() );
 
@@ -508,7 +508,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     {
       igtl::StringMessage::Pointer stringMsg = dynamic_cast<igtl::StringMessage*>(bodyMessage.GetPointer());
       stringMsg->SetMessageHeader(headerMsg);
-      stringMsg->AllocatePack();
+      stringMsg->AllocateBuffer();
       clientSocket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize() );
 
       // We are receiving old style commands, handle it
@@ -602,6 +602,33 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         LOG_ERROR("STRING message unpacking failed for client "<<clientId);
       }
     }
+    else if (typeid(*bodyMessage) == typeid(igtl::StartTrackingDataMessage))
+    {
+      std::string deviceName("");
+
+      igtl::StartTrackingDataMessage::Pointer startTracking;
+      startTracking = igtl::StartTrackingDataMessage::New();
+      startTracking->SetMessageHeader(headerMsg);
+      startTracking->AllocateBuffer();
+
+      clientSocket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
+
+      int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (c & igtl::MessageHeader::UNPACK_BODY)
+      {
+        client->ClientInfo.Resolution = startTracking->GetResolution();
+        client->ClientInfo.TDATARequested = true;
+      }
+      else
+      {
+        LOG_ERROR("Client " << clientId << " STT_TDATA failed: could not retrieve startTracking message");
+        return NULL;
+      }
+    }
+    else if (typeid(*bodyMessage) == typeid(igtl::StopTrackingDataMessage))
+    {
+      client->ClientInfo.TDATARequested = false;
+    }
     else
     {
       // if the device type is unknown, skip reading.
@@ -612,7 +639,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
     }
   } // ConnectionActive
 
-  // Close thread
+// Close thread
   client->DataReceiverThreadId = -1;
   client->DataReceiverActive.second = false;
   return NULL;
@@ -865,6 +892,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->DefaultClientInfo.TransformNames.clear();
   this->DefaultClientInfo.ImageStreams.clear();
   this->DefaultClientInfo.StringNames.clear();
+  this->DefaultClientInfo.Resolution = 0;
+  this->DefaultClientInfo.TDATARequested = false;
 
   vtkXMLDataElement* defaultClientInfo = serverElement->FindNestedElementWithName("DefaultClientInfo");
   if ( defaultClientInfo != NULL )
@@ -1034,7 +1063,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     }
     else
     {
-      // Incoming command was a modern style command, reply using our latest 
+      // Incoming command was a modern style command, reply using our latest
       igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", IGTL_HEADER_VERSION_2).GetPointer());
       //TODO : should this device name be the name of the server?
       igtlMessage->SetDeviceName(commandResponse->GetDeviceName().c_str());
