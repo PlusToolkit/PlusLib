@@ -3,7 +3,8 @@ PROJECT(PlusBuild)
 # Configure the build to work (although with limited functionalities) if only
 # src directory of the repository is available
 #
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
+
 IF(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 ENDIF(COMMAND cmake_policy)
