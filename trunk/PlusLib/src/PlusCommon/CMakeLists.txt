@@ -76,14 +76,29 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtkPlusCommon.vcproj" CACHE INTERNAL "" FORCE)
 
+#--------------------------------------------------------------------------------------------
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_EXECUTABLE(EditSequenceFile Tools/EditSequenceFile.cxx )
+  TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon )
+  GENERATE_HELP_DOC(EditSequenceFile)
+  
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
+  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
+
+  INSTALL(TARGETS EditSequenceFile ModelRenderer
+    RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeExecutables
+    )
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Install
 #
-  
+
 INSTALL(TARGETS vtkPlusCommon
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
+  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

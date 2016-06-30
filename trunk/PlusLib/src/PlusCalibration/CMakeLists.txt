@@ -104,14 +104,62 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkPlusCalibration vtkPlusCalibration;"${PlusLib_BINARY_DIR}/src/PlusCalibration/vtkPlusCalibration.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE( ConvertFcsvToXml
+    Tools/ConvertFcsvToXml.cxx 
+    )
+
+  # Link the executable to the algo library.
+  TARGET_LINK_LIBRARIES( ConvertFcsvToXml
+    vtkPlusCalibration
+    ITKCommon
+    ${VTK_LIBRARIES}
+    vtkPlusDataCollection
+    )
+
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE( ConvertXmlToFcsv
+    Tools/ConvertXmlToFcsv.cxx 
+    )
+
+  # Link the executable to the algo library.
+  TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
+    vtkPlusCalibration
+    ITKCommon
+    ${VTK_LIBRARIES}
+    vtkPlusDataCollection
+    )
+
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE(TemporalCalibration Tools/TemporalCalibration.cxx)
+  TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES} vtkPlusDataCollection)
+  GENERATE_HELP_DOC(TemporalCalibration)
+
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE(ProbeCalibration Tools/ProbeCalibration.cxx)
+  TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+  GENERATE_HELP_DOC(ProbeCalibration)
+
+  INSTALL(
+    TARGETS
+      ConvertFcsvToXml
+      ConvertXmlToFcsv
+      TemporalCalibration
+      ProbeCalibration
+    DESTINATION bin
+    COMPONENT RuntimeExecutables
+    )
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Install
 #
 
 INSTALL(TARGETS vtkPlusCalibration
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
+  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

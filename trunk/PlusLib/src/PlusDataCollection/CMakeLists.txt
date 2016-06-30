@@ -1185,6 +1185,22 @@ ELSE()
 ENDIF()
 
 # --------------------------------------------------------------------------
+# Tools
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_EXECUTABLE(ViewSequenceFile Tools/ViewSequenceFile.cxx )
+  TARGET_LINK_LIBRARIES(ViewSequenceFile vtkPlusDataCollection )
+  GENERATE_HELP_DOC(ViewSequenceFile)
+
+  ADD_EXECUTABLE(PlusVersion Tools/PlusVersion.cxx )
+  TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkPlusDataCollection)
+  GENERATE_HELP_DOC(PlusVersion)
+  
+  INSTALL(TARGETS PlusVersion ViewSequenceFile
+    RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Install
 #
 INSTALL(FILES ${External_Libraries_Install}
@@ -1193,8 +1209,8 @@ INSTALL(FILES ${External_Libraries_Install}
   
 INSTALL(TARGETS vtkPlusDataCollection
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
+  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
   
 # --------------------------------------------------------------------------

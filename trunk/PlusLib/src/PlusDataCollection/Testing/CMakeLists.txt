@@ -110,13 +110,11 @@ ADD_TEST(vtkDataCollectorFileTest
 SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(PlusVersion PlusVersion.cxx )
-TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkPlusDataCollection)
-GENERATE_HELP_DOC(PlusVersion)
-
-ADD_TEST(PlusVersion 
-  ${EXECUTABLE_OUTPUT_PATH}/PlusVersion
-  )
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_TEST(PlusVersion 
+    ${EXECUTABLE_OUTPUT_PATH}/PlusVersion
+    )
+ENDIF()
 
 #***************************  vtkMetaImageSequenceIOTest  ***************************
 ADD_EXECUTABLE(vtkMetaImageSequenceIOTest vtkMetaImageSequenceIOTest.cxx )
@@ -129,18 +127,16 @@ ADD_TEST(vtkMetaImageSequenceIOTest
 SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
  
 #***************************  ViewSequenceFile  ***************************
-ADD_EXECUTABLE(ViewSequenceFile ViewSequenceFile.cxx )
-TARGET_LINK_LIBRARIES(ViewSequenceFile vtkPlusDataCollection )
-GENERATE_HELP_DOC(ViewSequenceFile)
-
-ADD_TEST(ViewSequenceFileTest
-  ${EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
-  --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
-  --image-to-reference-transform=ImageToTracker
-  --rendering-off
-  )
-SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_TEST(ViewSequenceFileTest
+    ${EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
+    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
+    --image-to-reference-transform=ImageToTracker
+    --rendering-off
+    )
+  SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
@@ -461,8 +457,6 @@ ENDIF (PLUS_TEST_tesseract)
 
 INSTALL(
   TARGETS 
-    PlusVersion 
-    ViewSequenceFile
     TrackingTest
   DESTINATION bin
   COMPONENT RuntimeExecutables
