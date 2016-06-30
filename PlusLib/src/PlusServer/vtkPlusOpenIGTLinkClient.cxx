@@ -316,7 +316,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
     int numOfBytesReceived = 0;
     {
       PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
-      numOfBytesReceived = self->ClientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
+      numOfBytesReceived = self->ClientSocket->Receive( headerMsg->GetBufferPointer(), headerMsg->GetBufferSize() );
     }
     if ( numOfBytesReceived == 0  // No message received
          || numOfBytesReceived != headerMsg->GetPackSize() // Received data is not as we expected
@@ -353,14 +353,35 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread( vtkMultiThreader::ThreadInfo
         || typeid(*bodyMsg) == typeid(igtl::RTSCommandMessage) )
     {
       bodyMsg->SetMessageHeader(headerMsg);
-      bodyMsg->AllocatePack();
+      bodyMsg->AllocateBuffer();
       {
         PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
-        self->ClientSocket->Receive(bodyMsg->GetPackBodyPointer(), bodyMsg->GetPackBodySize() );
+        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize() );
       }
 
       int c = bodyMsg->Unpack(1);
       if ( !(c & igtl::MessageHeader::UNPACK_BODY))
+      {
+        LOG_ERROR("Failed to receive reply (invalid body)");
+        continue;
+      }
+      {
+        // save command reply
+        PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
+        self->Replies.push_back(bodyMsg);
+      }
+    }
+    else if (typeid(*bodyMsg) == typeid(igtl::RTSTrackingDataMessage))
+    {
+      bodyMsg->SetMessageHeader(headerMsg);
+      bodyMsg->AllocateBuffer();
+      {
+        PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
+        self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize());
+      }
+
+      int c = bodyMsg->Unpack(1);
+      if (!(c & igtl::MessageHeader::UNPACK_BODY))
       {
         LOG_ERROR("Failed to receive reply (invalid body)");
         continue;

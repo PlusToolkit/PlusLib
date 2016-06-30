@@ -27,6 +27,7 @@ See License.txt for details.
 #include "igtlPlusClientInfoMessage.h"
 #include "igtlStatusMessage.h"
 #include "igtlStringMessage.h"
+#include "igtlTrackingDataMessage.h"
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
@@ -70,6 +71,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , SendValidTransformsOnly(true)
   , IgtlMessageCrcCheckEnabled(0)
   , PlusCommandProcessor(vtkSmartPointer<vtkPlusCommandProcessor>::New())
+  , MessageResponseQueueMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
   , OutputChannelId(NULL)
   , BroadcastChannel(NULL)
   , ConfigFilename(NULL)
@@ -87,6 +89,34 @@ vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
   this->SetTransformRepository(NULL);
   this->SetDataCollector(NULL);
   this->SetConfigFilename(NULL);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::QueueMessageReponseForClient(int clientId, igtl::MessageBase::Pointer message)
+{
+  bool found(false);
+  {
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
+    {
+      if (clientIterator->ClientId == clientId)
+      {
+        found = true;
+        break;
+      }
+    }
+  }
+
+  if (!found)
+  {
+    LOG_ERROR("Requested clientId " << clientId << " not found in list.");
+    return PLUS_FAIL;
+  }
+
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> mutexGuardedLock(this->MessageResponseQueueMutex);
+  this->MessageResponseQueue[clientId].push_back(message);
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -303,6 +333,8 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       self->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
     }
 
+    SendMessageResponses(*self);
+
     // Send remote command execution replies to clients before sending any images/transforms/etc...
     SendCommandResponses(*self);
 
@@ -393,6 +425,42 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenIGTLinkServer::SendMessageResponses(vtkPlusOpenIGTLinkServer& self)
+{
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> mutexGuardedLock(self.MessageResponseQueueMutex);
+  if (!self.MessageResponseQueue.empty())
+  {
+    for (ClientIdToMessageListMap::iterator it = self.MessageResponseQueue.begin(); it != self.MessageResponseQueue.end(); ++it)
+    {
+      PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self.IgtlClientsMutex);
+      igtl::ClientSocket::Pointer clientSocket = NULL;
+
+      for (std::list<ClientData>::iterator clientIterator = self.IgtlClients.begin(); clientIterator != self.IgtlClients.end(); ++clientIterator)
+      {
+        if (clientIterator->ClientId == it->first)
+        {
+          clientSocket = clientIterator->ClientSocket;
+          break;
+        }
+      }
+      if (clientSocket.IsNull())
+      {
+        LOG_WARNING("Message reply cannot be sent to client " << it->first << ", probably client has been disconnected.");
+        continue;
+      }
+
+      for (std::vector<igtl::MessageBase::Pointer>::iterator messageIt = it->second.begin(); messageIt != it->second.end(); ++messageIt)
+      {
+        clientSocket->Send((*messageIt)->GetBufferPointer(), (*messageIt)->GetBufferSize());
+      }
+    }
+    self.MessageResponseQueue.clear();
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResponses(vtkPlusOpenIGTLinkServer& self)
 {
   PlusCommandResponseList replies;
@@ -426,7 +494,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResponses(vtkPlusOpenIGTLinkServ
         LOG_WARNING("Message reply cannot be sent to client "<<(*responseIt)->GetClientId()<<", probably client has been disconnected");
         continue;
       }
-      clientSocket->Send(igtlResponseMessage->GetPackPointer(), igtlResponseMessage->GetPackSize());
+      clientSocket->Send(igtlResponseMessage->GetBufferPointer(), igtlResponseMessage->GetBufferSize());
     }
   }
 
@@ -624,10 +692,21 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
         LOG_ERROR("Client " << clientId << " STT_TDATA failed: could not retrieve startTracking message");
         return NULL;
       }
+
+      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
+      igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
+      rtsMsg->SetStatus(0);
+      rtsMsg->Pack();
+      self->QueueMessageReponseForClient(client->ClientId, msg);
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StopTrackingDataMessage))
     {
       client->ClientInfo.TDATARequested = false;
+      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
+      igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
+      rtsMsg->SetStatus(0);
+      rtsMsg->Pack();
+      self->QueueMessageReponseForClient(client->ClientId, msg);
     }
     else
     {
@@ -694,7 +773,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& tracked
 
         int retValue = 0;
         RETRY_UNTIL_TRUE(
-          (retValue = clientSocket->Send( igtlMessage->GetPackPointer(), igtlMessage->GetPackSize()))!=0,
+          (retValue = clientSocket->Send( igtlMessage->GetBufferPointer(), igtlMessage->GetBufferSize()))!=0,
           this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
         if ( retValue == 0 )
         {
