@@ -399,10 +399,10 @@ ADD_TEST(vtkPlusDeviceFactoryTest
 # output is not checked for errors and warnings, as some error logs are expected
 
 #*************************** NDICertusTest ***************************
-IF (PLUS_USE_CERTUS)
+IF (PLUS_USE_NDI_CERTUS)
   ADD_EXECUTABLE(NDICertusTest NDICertusTest.cxx)
   TARGET_LINK_LIBRARIES(NDICertusTest vtkPlusDataCollection)
-ENDIF (PLUS_USE_CERTUS)
+ENDIF (PLUS_USE_NDI_CERTUS)
 
 #*************************** CmsBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)

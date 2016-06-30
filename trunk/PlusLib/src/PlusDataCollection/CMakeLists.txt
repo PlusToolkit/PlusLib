@@ -2,8 +2,24 @@
 # Options
 OPTION (PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
 OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
-OPTION (PLUS_USE_POLARIS "Provide support for the NDI Polaris and Aurora" OFF)
-OPTION (PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
+
+OPTION(PLUS_USE_NDI "Provide support for the NDI POLARIS and AURORA" OFF)
+OPTION(PLUS_USE_NDI_CERTUS "Provide support for the NDI Certus" OFF)
+
+OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
+MARK_AS_ADVANCED(PLUS_USE_POLARIS)
+OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
+MARK_AS_ADVANCED(PLUS_USE_NDI_CERTUS)
+
+IF(PLUS_USE_POLARIS)
+  MESSAGE("PLUS_USE_POLARIS has been deprecated. Please enable PLUS_USE_NDI intead.")
+  SET(PLUS_USE_NDI ON CACHE BOOL "Provide support for the NDI POLARIS and AURORA" FORCE)
+ENDIF()
+IF(PLUS_USE_CERTUS)
+  MESSAGE("PLUS_USE_CERTUS has been deprecated. Please enable PLUS_USE_NDI_CERTUS intead.")
+  SET(PLUS_USE_NDI_CERTUS ON CACHE BOOL "Provide support for the NDI Certus" FORCE)
+ENDIF()
+
 OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
 OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
@@ -189,7 +205,7 @@ ENDIF (PLUS_USE_OPTIMET_CONOPROBE)
 
 # --------------------------------------------------------------------------
 # NDI Certus support
-IF (PLUS_USE_CERTUS)
+IF (PLUS_USE_NDI_CERTUS)
     SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
       NDICertusTracking/vtkPlusNDICertusTracker.cxx
       )
@@ -213,12 +229,11 @@ IF (PLUS_USE_CERTUS)
     SET ( External_Libraries_Install ${External_Libraries_Install}
       ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
-ENDIF (PLUS_USE_CERTUS)
+ENDIF (PLUS_USE_NDI_CERTUS)
 
 #--------------------------------------------------------------------------
-# NDI POLARIS support
-IF (PLUS_USE_POLARIS)
-
+# NDI COMMON API support
+IF (PLUS_USE_NDI)
   SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
     PolarisTracking/vtkPlusNDITracker.cxx
     )
@@ -233,9 +248,8 @@ IF (PLUS_USE_POLARIS)
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
     CACHE INTERNAL "" FORCE)
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} vtkndicapi )    
-              
-ENDIF (PLUS_USE_POLARIS)
+  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} vtkndicapi )
+ENDIF (PLUS_USE_NDI)
 
 #--------------------------------------------------------------------------
 # MICRONTRACKER support

@@ -191,8 +191,24 @@ OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs Compact Spectro
 # Tracking hardware
 OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
 OPTION(PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
+
+OPTION(PLUS_USE_NDI "Provide support for the NDI POLARIS and AURORA" OFF)
+OPTION(PLUS_USE_NDI_CERTUS "Provide support for the NDI Certus" OFF)
+
 OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
+MARK_AS_ADVANCED(PLUS_USE_POLARIS)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
+MARK_AS_ADVANCED(PLUS_USE_NDI_CERTUS)
+
+IF(PLUS_USE_POLARIS)
+  MESSAGE("PLUS_USE_POLARIS has been deprecated. Please enable PLUS_USE_NDI intead.")
+  SET(PLUS_USE_NDI ON CACHE BOOL "Provide support for the NDI POLARIS and AURORA" FORCE)
+ENDIF()
+IF(PLUS_USE_CERTUS)
+  MESSAGE("PLUS_USE_CERTUS has been deprecated. Please enable PLUS_USE_NDI_CERTUS intead.")
+  SET(PLUS_USE_NDI_CERTUS ON CACHE BOOL "Provide support for the NDI Certus" FORCE)
+ENDIF()
+
 OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
 OPTION(PLUS_USE_INTELREALSENSE "Provide support for Intel RealSense cameras" OFF)
 OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the Brachy Steppers" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
@@ -210,7 +226,6 @@ ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
   SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
 ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
-OPTION(PLUS_USE_OvrvisionPro "Provide support for the OvrVision Pro stereo camera." OFF)
 
 # Other
 
