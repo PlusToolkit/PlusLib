@@ -226,15 +226,14 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           PlusTransformName transformName = (*transformNameIterator);
 
           bool isValid = false;
-          transformRepository->GetTransformValid(transformName, isValid);
+          vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
+          transformRepository->GetTransform(transformName, mat, &isValid);
 
-          if (!isValid && packValidTransformsOnly)
+          if (!isValid)
           {
             continue;
           }
 
-          vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-          transformRepository->GetTransform(transformName, mat, &isValid);
           std::string transformNameStr;
           transformName.GetTransformName(transformNameStr);
 

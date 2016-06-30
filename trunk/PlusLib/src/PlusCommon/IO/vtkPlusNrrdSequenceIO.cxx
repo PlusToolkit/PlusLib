@@ -79,6 +79,7 @@ std::string vtkPlusNrrdSequenceIO::EncodingToString(NrrdEncoding encoding)
   case vtkPlusNrrdSequenceIO::NRRD_ENCODING_BZ2:
     return "NRRD_ENCODING_BZ2";
   }
+  return "";
 }
 
 //----------------------------------------------------------------------------

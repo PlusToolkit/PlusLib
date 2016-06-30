@@ -64,7 +64,7 @@ public:
     Adds a response to the response queue for reply. Can be called from any thread.
     Adds support for receiving commands to be rejected without processing but send an error reply
   */
-  virtual PlusStatus QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString); 
+  virtual PlusStatus QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString);
 
   /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.

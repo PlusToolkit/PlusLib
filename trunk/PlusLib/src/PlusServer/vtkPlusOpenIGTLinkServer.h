@@ -74,6 +74,8 @@ struct ClientData
 */
 class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 {
+  typedef std::map<int, std::vector<igtl::MessageBase::Pointer> > ClientIdToMessageListMap;
+
 public:
   static vtkPlusOpenIGTLinkServer *New();
   vtkTypeMacro( vtkPlusOpenIGTLinkServer, vtkObject );
@@ -141,6 +143,9 @@ protected:
   vtkPlusOpenIGTLinkServer();
   virtual ~vtkPlusOpenIGTLinkServer();
 
+  /*! Add a response to the queue for sending to the client */
+  PlusStatus QueueMessageReponseForClient(int clientId, igtl::MessageBase::Pointer message);
+
   /*! Thread for client connection handling */ 
   static void* ConnectionReceiverThread( vtkMultiThreader::ThreadInfo* data );
   
@@ -149,6 +154,9 @@ protected:
 
   /*! Attempt to send any unsent frames to clients, if unsuccessful, accumulate an elapsed time */
   static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
+
+  /*! Process the message replies queue and send messages */
+  static PlusStatus SendMessageResponses(vtkPlusOpenIGTLinkServer& self);
 
   /*! Process the command replies queue and send messages */
   static PlusStatus SendCommandResponses(vtkPlusOpenIGTLinkServer& self);
@@ -193,7 +201,6 @@ protected:
   bool HasGracePeriodExpired();
 
 private:
-  
   vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
   void operator=( const vtkPlusOpenIGTLinkServer& );
 
@@ -265,6 +272,12 @@ private:
 
   /*! Factory to generate commands that are invoked remotely */ 
   vtkSmartPointer<vtkPlusCommandProcessor> PlusCommandProcessor;
+
+  /*! List of messages to be sent as replies per client*/
+  ClientIdToMessageListMap MessageResponseQueue;
+
+  /*! Mutex to protect access to the message response list */
+  vtkSmartPointer<vtkPlusRecursiveCriticalSection> MessageResponseQueueMutex;
 
   /*! Channel ID to request the data from */
   char* OutputChannelId;

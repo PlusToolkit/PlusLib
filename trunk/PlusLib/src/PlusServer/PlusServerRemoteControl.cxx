@@ -398,9 +398,10 @@ PlusStatus ExecuteSaveConfig(vtkPlusOpenIGTLinkClient* client, const std::string
 PlusStatus ExecuteStartTDATA(vtkPlusOpenIGTLinkClient* client, int commandId)
 {
   vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
-  igtl::StartTrackingDataMessage* msg = dynamic_cast<igtl::StartTrackingDataMessage*>(factory->CreateSendMessage("STT_TDATA", IGTL_HEADER_VERSION_1).GetPointer());
-  msg->SetResolution(25);
-  msg->Pack();
+  igtl::MessageBase::Pointer msg = factory->CreateSendMessage("STT_TDATA", IGTL_HEADER_VERSION_1);
+  igtl::StartTrackingDataMessage* startMsg = dynamic_cast<igtl::StartTrackingDataMessage*>(msg.GetPointer());
+  startMsg->SetResolution(25);
+  startMsg->Pack();
   return client->SendMessage(msg);
 }
 
@@ -408,8 +409,9 @@ PlusStatus ExecuteStartTDATA(vtkPlusOpenIGTLinkClient* client, int commandId)
 PlusStatus ExecuteStopTDATA(vtkPlusOpenIGTLinkClient* client, int commandId)
 {
   vtkSmartPointer<vtkPlusIgtlMessageFactory> factory = vtkSmartPointer<vtkPlusIgtlMessageFactory>::New();
-  igtl::StopTrackingDataMessage* msg = dynamic_cast<igtl::StopTrackingDataMessage*>(factory->CreateSendMessage("STP_TDATA", IGTL_HEADER_VERSION_1).GetPointer());
-  msg->Pack();
+  igtl::MessageBase::Pointer msg = factory->CreateSendMessage("STP_TDATA", IGTL_HEADER_VERSION_1);
+  igtl::StopTrackingDataMessage* stopMsg = dynamic_cast<igtl::StopTrackingDataMessage*>(msg.GetPointer());
+  stopMsg->Pack();
   return client->SendMessage(msg);
 }
 
