@@ -51,19 +51,6 @@ ADD_TEST(vtkStylusCalibrationTest
   )
 SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-##--------------------------------------------------------------------------------------------
-#ADD_EXECUTABLE(vtkPivotDetectionTest vtkPivotDetectionTest.cxx)
-#TARGET_LINK_LIBRARIES(vtkPivotDetectionTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
-
-#ADD_TEST(vtkPivotDetectionTest
-#  ${EXECUTABLE_OUTPUT_PATH}/vtkPivotDetectionTest
-#  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_PivotCalibration.xml
-#  --tracker-input-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-#  --baseline-file=${TestDataDir}/PivotDetection.results.xml 
-#  --outlier-generation-probability=0.05
-#  )
-#SET_TESTS_PROPERTIES( vtkPivotDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
 TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
@@ -89,68 +76,64 @@ SET_TESTS_PROPERTIES( vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAI
 
 #--------------------------------------------------------------------------------------------
 
-
-ADD_EXECUTABLE(ProbeCalibration ProbeCalibration.cxx)
-TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
-GENERATE_HELP_DOC(ProbeCalibration)
-
 ADD_EXECUTABLE(vtkFreehandCalibrationStatisticalEvaluation vtkFreehandCalibrationStatisticalEvaluation.cxx)
 TARGET_LINK_LIBRARIES(vtkFreehandCalibrationStatisticalEvaluation itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
 
-ADD_TEST(vtkFreehandCalibration3NWiresTest
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_Sim_SpatialCalibration_1.2.xml
-  --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
-  --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
-  --baseline-file=${TestDataDir}/FreehandCalibration3NWires.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_TEST(vtkFreehandCalibration3NWiresTest
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_Sim_SpatialCalibration_1.2.xml
+    --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires.mha 
+    --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
+    --baseline-file=${TestDataDir}/FreehandCalibration3NWires.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_SpatialCalibration_2.0.xml
-  --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires_fCal2.0.mha 
-  --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.mha 
-  --baseline-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_SpatialCalibration_2.0.xml
+    --calibration-seq-file=${TestDataDir}/fCal_Test_Calibration_3NWires_fCal2.0.mha 
+    --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.mha 
+    --baseline-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEI_OptimizationMethod.xml
-  --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
-  --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
-  --baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEI_OptimizationMethod.xml
+    --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+    --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
+    --baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEA_OptimizationMethod.xml
-  --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
-  --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
-  --baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IPEA_OptimizationMethod.xml
+    --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+    --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
+    --baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEI_OptimizationMethod.xml
-  --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
-  --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
-  --baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEI_OptimizationMethod.xml
+    --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+    --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
+    --baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
-  ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEA_OptimizationMethod.xml
-  --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
-  --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
-  --baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
-  )
-SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
+  ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
+    ${EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OPEA_OptimizationMethod.xml
+    --calibration-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_1.mha 
+    --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
+    --baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
+    )
+  SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
@@ -209,21 +192,6 @@ ADD_TEST(SpacingCalibAlgoTest-3NWires
 SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(TemporalCalibration TemporalCalibration.cxx)
-TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES} vtkPlusDataCollection)
-GENERATE_HELP_DOC(TemporalCalibration)
-
-ADD_TEST(TemporalPlusCalibrationTest1 
-  ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibration
-  --moving-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-  --moving-probe-to-reference-transform=ProbeToReference
-  --fixed-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-  --sampling-resolution-sec=0.001
-  --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
-  )
-SET_TESTS_PROPERTIES( TemporalPlusCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
 TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES})
 
@@ -237,55 +205,35 @@ SET_TESTS_PROPERTIES( vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRE
 
 
 ###################################################
-ADD_EXECUTABLE( ConvertFcsvToXml
-  ConvertFcsvToXml.cxx 
-  )
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  ADD_TEST(ConvertFcsvToXml
+    ${EXECUTABLE_OUTPUT_PATH}/ConvertFcsvToXml
+    --test-data-dir=${TestDataDir}
+    --fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
+    --img-seq-file=ila5.mhd
+    --testcase=ila5
+    --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
+    )
+  SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
- SET(ITK_LIBRARIES
-  ITKCommon
-  )
+  ###################################################
+  ADD_TEST(ConvertXmlToFcsv
+    ${EXECUTABLE_OUTPUT_PATH}/ConvertXmlToFcsv
+    --xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
+    --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
+    )
+  SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-# Link the executable to the algo library.
-TARGET_LINK_LIBRARIES( ConvertFcsvToXml
-  vtkPlusCalibration
-  ${ITK_LIBRARIES}
-  ${VTK_LIBRARIES}
-  vtkPlusDataCollection
-  ) 
-  
-ADD_TEST(ConvertFcsvToXml
-  ${EXECUTABLE_OUTPUT_PATH}/ConvertFcsvToXml
-  --test-data-dir=${TestDataDir}
-  --fcsv-file=UsTestSeqIla5ManualFidSeg.fcsv
-  --img-seq-file=ila5.mhd
-  --testcase=ila5
-  --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
-  )
-SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-###################################################
-ADD_EXECUTABLE( ConvertXmlToFcsv
-  ConvertXmlToFcsv.cxx 
-  )
-
- SET(ITK_LIBRARIES
-  ITKCommon
-  )
-
-# Link the executable to the algo library.
-TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
-  vtkPlusCalibration
-  ${ITK_LIBRARIES}
-  ${VTK_LIBRARIES}
-  vtkPlusDataCollection
-  ) 
-  
-ADD_TEST(ConvertXmlToFcsv
-  ${EXECUTABLE_OUTPUT_PATH}/ConvertXmlToFcsv
-  --xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
-  --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
-  )
-SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  ADD_TEST(TemporalPlusCalibrationTest1 
+    ${EXECUTABLE_OUTPUT_PATH}/TemporalCalibration
+    --moving-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --moving-probe-to-reference-transform=ProbeToReference
+    --fixed-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
+    --sampling-resolution-sec=0.001
+    --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
+    )
+  SET_TESTS_PROPERTIES( TemporalPlusCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()
 
 ###################################################
 ADD_EXECUTABLE( PatternLocTest
@@ -305,8 +253,7 @@ TARGET_LINK_LIBRARIES( PatternLocTest
   vtkPlusDataCollection
   vtkPlusCalibration  
   vtkPlusDataCollection
-  ) 
-
+  )
 
 ###################################################
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened
@@ -387,15 +334,3 @@ TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
   ${VTK_LIBRARIES}
   vtkPlusDataCollection
   ) 
-
-# --------------------------------------------------------------------------
-# Install
-#
-
-INSTALL(
-  TARGETS
-    TemporalCalibration
-    ProbeCalibration
-  DESTINATION bin
-  COMPONENT RuntimeExecutables
-  )

@@ -167,6 +167,54 @@ ELSE()
         )        
 ENDIF()
 
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  #---------------------------------------------------------------------------
+  ADD_EXECUTABLE(RfProcessor Tools/RfProcessor.cxx )
+  TARGET_LINK_LIBRARIES(RfProcessor vtkPlusImageProcessing ${VTK_LIBRARIES} )
+  GENERATE_HELP_DOC(RfProcessor)
+
+  #---------------------------------------------------------------------------
+  ADD_EXECUTABLE(DrawScanLines Tools/DrawScanLines.cxx )
+  TARGET_LINK_LIBRARIES(DrawScanLines vtkPlusImageProcessing )
+  GENERATE_HELP_DOC(DrawScanLines)
+
+  #---------------------------------------------------------------------------
+  ADD_EXECUTABLE(ExtractScanLines Tools/ExtractScanLines.cxx)
+  TARGET_LINK_LIBRARIES(ExtractScanLines vtkPlusImageProcessing)
+  GENERATE_HELP_DOC(ExtractScanLines)
+
+  #---------------------------------------------------------------------------
+  ADD_EXECUTABLE(ScanConvert Tools/ScanConvert.cxx)
+  TARGET_LINK_LIBRARIES(ScanConvert vtkPlusImageProcessing)
+  GENERATE_HELP_DOC(ScanConvert)
+
+  #---------------------------------------------------------------------------
+  IF (PLUS_USE_INTEL_MKL)
+    ADD_EXECUTABLE(EnhanceBone Tools/EnhanceBone.cxx )
+    TARGET_LINK_LIBRARIES(EnhanceBone vtkPlusImageProcessing )
+    GENERATE_HELP_DOC(EnhanceBone)
+  ENDIF (PLUS_USE_INTEL_MKL)
+
+  # --------------------------------------------------------------------------
+  SET (INSTALL_TARGETS
+    RfProcessor
+    DrawScanLines
+    ExtractScanLines
+    ScanConvert
+    )
+  IF (PLUS_USE_INTEL_MKL)
+    SET (INSTALL_TARGETS ${INSTALL_TARGETS} EnhanceBone )
+  ENDIF (PLUS_USE_INTEL_MKL)
+
+  INSTALL(
+    TARGETS ${INSTALL_TARGETS}
+    RUNTIME
+    DESTINATION bin
+    CONFIGURATIONS Release
+    COMPONENT RuntimeExecutables
+    )
+ENDIF()
+
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
@@ -178,6 +226,6 @@ ENDIF (BUILD_TESTING)
 
 INSTALL(TARGETS vtkPlusImageProcessing
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION bin CONFIGURATIONS Release COMPONENT Development
+  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
