@@ -33,9 +33,9 @@ SET (PlusOpenIGTLink_LIBS
   OpenIGTLink
   )
 
-INCLUDE_DIRECTORIES( ${PlusOpenIGTLink_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
 ADD_LIBRARY(vtkPlusOpenIGTLink ${PlusOpenIGTLink_SRCS} ${PlusOpenIGTLink_HDRS})
+target_include_directories(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink ${PlusOpenIGTLink_LIBS})
 
 # --------------------------------------------------------------------------

@@ -29,7 +29,6 @@ SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
   MfVideoCaptureLoggerMacros.h
   )
 
-INCLUDE_DIRECTORIES( ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS})
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
 
 SET (MfVideoCaptureLibraryLibNames
@@ -54,6 +53,7 @@ endforeach()
 
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
 TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary ${MfVideoCaptureLibrary_LIBS})
+target_include_directories(MfVideoCaptureLibrary PUBLIC ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

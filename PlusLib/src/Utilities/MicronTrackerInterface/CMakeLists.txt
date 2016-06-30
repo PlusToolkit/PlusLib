@@ -39,13 +39,13 @@ SET (vtkPlusMicronTrackerInterface_INCLUDE_DIRS
   ${MICRONTRACKER_INCLUDE_DIR}
   )
 
-INCLUDE_DIRECTORIES( ${vtkPlusMicronTrackerInterface_INCLUDE_DIRS} )
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${vtkPlusMicronTrackerInterface_INCLUDE_DIRS} CACHE INTERNAL "")
 
 # Create a static library (to not have too many DLLs and also because
 # the driver library interface havily uses STL containers, which are unsafe
 # to use at a DLL interface)
 ADD_LIBRARY(vtkPlusMicronTrackerInterface STATIC ${vtkPlusMicronTrackerInterface_SRCS})
+target_include_directories(vtkPlusMicronTrackerInterface PUBLIC ${vtkPlusMicronTrackerInterface_INCLUDE_DIRS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project 

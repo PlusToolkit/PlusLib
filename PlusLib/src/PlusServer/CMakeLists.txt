@@ -61,9 +61,9 @@ SET (PlusServer_LIBS
   vtkPlusVolumeReconstruction
   )
 
-INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
+target_include_directories(vtkPlusServer PUBLIC ${PlusServer_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusServer ${PlusServer_LIBS})
 
 # --------------------------------------------------------------------------

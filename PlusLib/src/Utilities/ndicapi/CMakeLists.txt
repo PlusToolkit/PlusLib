@@ -21,7 +21,6 @@ IF (WIN32)
   ENDIF (NOT BORLAND)
 ENDIF (WIN32)
 
-INCLUDE_DIRECTORIES( ${VTKNDICAPI_INCLUDE_DIRS} )
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${VTKNDICAPI_INCLUDE_DIRS} CACHE INTERNAL "")
 
 ADD_LIBRARY(vtkndicapi STATIC ${common_SRCS})
@@ -29,6 +28,7 @@ TARGET_LINK_LIBRARIES( vtkndicapi )
 IF(NOT WIN32)
   SET_TARGET_PROPERTIES( vtkndicapi PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF()
+target_include_directories(vtkndicapi PUBLIC ${VTKNDICAPI_INCLUDE_DIRS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project 

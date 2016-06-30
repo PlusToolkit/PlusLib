@@ -64,9 +64,9 @@ IF (PLUS_USE_OpenIGTLink)
    SET (PlusCommon_LIBS ${PlusCommon_LIBS} OpenIGTLink )
 ENDIF(PLUS_USE_OpenIGTLink)   
 
-INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
+target_include_directories(vtkPlusCommon PUBLIC ${PlusCommon_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
 
 # --------------------------------------------------------------------------

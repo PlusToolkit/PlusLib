@@ -1136,9 +1136,9 @@ SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
   ${PlusUsSimulator_INCLUDE_DIRS}
   )
 
-INCLUDE_DIRECTORIES( ${PlusDataCollection_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusDataCollection)
 ADD_LIBRARY(vtkPlusDataCollection ${PlusDataCollection_SRCS} ${PlusDataCollection_HDRS})
+target_include_directories(vtkPlusDataCollection PUBLIC ${PlusDataCollection_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusDataCollection ${PlusDataCollection_LIBS})
 
 # --------------------------------------------------------------------------

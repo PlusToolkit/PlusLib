@@ -22,9 +22,9 @@ SET (PlusUsSimulator_LIBS
   vtkPlusImageProcessing
   )     
 
-INCLUDE_DIRECTORIES( ${PlusUsSimulator_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusUsSimulator)
 ADD_LIBRARY(vtkPlusUsSimulator ${PlusUsSimulator_SRCS} ${PlusUsSimulator_HDRS})
+target_include_directories(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusUsSimulator ${PlusUsSimulator_LIBS})
 
 # --------------------------------------------------------------------------

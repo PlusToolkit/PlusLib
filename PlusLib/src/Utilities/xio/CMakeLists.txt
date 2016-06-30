@@ -9,6 +9,7 @@ SET(SRCS
   )
 
 ADD_LIBRARY(vtkxio STATIC ${SRCS})
+target_include_directories(vtkxio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 TARGET_LINK_LIBRARIES( vtkxio )
 
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} 
