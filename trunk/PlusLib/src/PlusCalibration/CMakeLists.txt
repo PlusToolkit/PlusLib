@@ -92,9 +92,9 @@ SET (PlusCalibration_LIBS
   vtkPlusCommon
   )
 
-INCLUDE_DIRECTORIES( ${PlusCalibration_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCalibration)
 ADD_LIBRARY( vtkPlusCalibration ${PlusCalibration_SRCS} ${PlusCalibration_HDRS} )
+target_include_directories(vtkPlusCalibration PUBLIC ${PlusCalibration_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
 
 # --------------------------------------------------------------------------

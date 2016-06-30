@@ -140,9 +140,9 @@ IF (PLUS_USE_INTEL_MKL)
     )
 ENDIF (PLUS_USE_INTEL_MKL)
 
-INCLUDE_DIRECTORIES( ${PlusImageProcessing_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusImageProcessing)
 ADD_LIBRARY(vtkPlusImageProcessing ${PlusImageProcessing_SRCS} ${PlusImageProcessing_HDRS})
+target_include_directories(vtkPlusImageProcessing PUBLIC ${PlusImageProcessing_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(vtkPlusImageProcessing ${PlusImageProcessing_LIBS})
 
 # --------------------------------------------------------------------------

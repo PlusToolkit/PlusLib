@@ -34,9 +34,9 @@ SET (PlusVolumeReconstruction_LIBS
   vtkPlusCommon
   )
 
-INCLUDE_DIRECTORIES( ${PlusVolumeReconstruction_INCLUDE_DIRS} )
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
 ADD_LIBRARY(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_SRCS} ${PlusVolumeReconstruction_HDRS})
+target_include_directories(vtkPlusVolumeReconstruction PUBLIC ${PlusVolumeReconstruction_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(  vtkPlusVolumeReconstruction  ${PlusVolumeReconstruction_LIBS} )
 
 # --------------------------------------------------------------------------
