@@ -99,14 +99,6 @@ The pre-built Plus binaries usually contain the latest hardware SDK. Run PlusVer
 
 Use \ref ApplicationEditSequenceFile - see the examples.
 
-\section Questions Any questions?
-
-To ask any questions, register at <a href="http://www.assembla.com">www.assembla.com</a> and
-<a href="https://www.assembla.com/spaces/watch/plus">join the Plus space as watcher</a>. Then
-<a href="https://www.assembla.com/spaces/plus/messages/new"> post a new message</a> to the message board.
-
-To ask question from a specific person, click the <em>Email specific members</em> option.
-
 # What causes this error: "Angle difference between interpolated orientation is large, interpolation may be inaccurate"?
 
 This message indicates that the angle difference between two subsequent pose measurements is too large.
@@ -115,5 +107,17 @@ Possible reasons:
 - tool is moved (rotated) too quickly: move the tools slower
 - acquisition rate is very low: increase AcquisitionRate attribute of the Device in the Device set configuration file
 - pose tracking sensor is damaged: can be confirmed by visualizing the tool position in 3D and check if it follows the actual motion of the tool
+
+# Performance issues on Ultrasonix machine with exam software 6.1
+
+Some options for workarounds include updating to exam software 6.1.1, which include numerous performance increases.
+
+Users may experience CPU overload when just streaming images over the network. A workaround to this is to raise the priority of PlusServer in the Task Manager of Sonix Touch. A setting "high" already provides acceptable user experience and no loss of data. Priority setting of "real time" is even faster.
+
+\section Questions Any questions?
+
+To ask any questions, register at <a href="http://www.assembla.com">www.assembla.com</a> and
+<a href="https://www.assembla.com/spaces/watch/plus">join the Plus space as watcher</a>. Then
+<a href="https://www.assembla.com/spaces/plus/messages/new"> post a new message</a> to the message board.
 
 */
