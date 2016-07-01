@@ -267,7 +267,6 @@ IF (PLUS_USE_MICRONTRACKER)
 
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
-    ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking/Utils
     CACHE INTERNAL "" FORCE)
    
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
@@ -839,7 +838,6 @@ IF (PLUS_USE_MMF_VIDEO)
   ENDIF (WIN32)
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
-    ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation/InputCaptureLibrary
     ${WINDOWS_SDK_INCLUDE_DIRS}
     )
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 

@@ -80,7 +80,6 @@ SET (PlusCalibration_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkProbeCalibrationAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSpacingCalibAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkTemporalCalibrationAlgo
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkLandmarkDetectionAlgo
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
