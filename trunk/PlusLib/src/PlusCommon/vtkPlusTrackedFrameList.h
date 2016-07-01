@@ -80,11 +80,13 @@ public:
   /*! Read the tracked data from sequence metafile */
   virtual PlusStatus ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName);
 
+#if VTK_MAJOR_VERSION > 5
   /*! Save the tracked data to Nrrd file */
   PlusStatus SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
 
   /*! Read the tracked data from Nrrd file */
   virtual PlusStatus ReadFromNrrdFile(const std::string& trackedSequenceDataFileName);
+#endif
 
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList()
