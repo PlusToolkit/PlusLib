@@ -108,12 +108,6 @@ Possible reasons:
 - acquisition rate is very low: increase AcquisitionRate attribute of the Device in the Device set configuration file
 - pose tracking sensor is damaged: can be confirmed by visualizing the tool position in 3D and check if it follows the actual motion of the tool
 
-# Performance issues on Ultrasonix machine with exam software 6.1
-
-Some options for workarounds include updating to exam software 6.1.1, which include numerous performance increases.
-
-Users may experience CPU overload when just streaming images over the network. A workaround to this is to raise the priority of PlusServer in the Task Manager of Sonix Touch. A setting "high" already provides acceptable user experience and no loss of data. Priority setting of "real time" is even faster.
-
 \section Questions Any questions?
 
 To ask any questions, register at <a href="http://www.assembla.com">www.assembla.com</a> and
