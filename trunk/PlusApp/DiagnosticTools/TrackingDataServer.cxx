@@ -25,7 +25,8 @@ void* ThreadFunction(void* ptr);
 int   SendTrackingData(igtl::Socket::Pointer& socket, igtl::TrackingDataMessage::Pointer& trackingMsg);
 void  GetRandomTestMatrix(igtl::Matrix4x4& matrix, float phi, float theta);
 
-typedef struct {
+typedef struct
+{
   int   nloop;
   igtl::MutexLock::Pointer glock;
   igtl::Socket::Pointer socket;
@@ -42,9 +43,9 @@ int main(int argc, char* argv[])
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
-  args.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &port, "Server port number");	
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
+  args.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &port, "Server port number");
 
   if ( !args.Parse() )
   {
@@ -53,10 +54,10 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  if ( printHelp ) 
+  if ( printHelp )
   {
     std::cout << args.GetHelp() << std::endl;
-    exit(EXIT_SUCCESS); 
+    exit(EXIT_SUCCESS);
   }
 
   /*! igtl Factory for message sending */
@@ -91,17 +92,14 @@ int main(int argc, char* argv[])
       std::cerr << "A client is connected." << std::endl;
 
       // Create a message buffer to receive header
-      igtl::MessageHeader::Pointer headerMsg;
-      headerMsg = igtl::MessageHeader::New();
+      igtl::MessageHeader::Pointer headerMsg = IgtlMessageFactory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
+
       //------------------------------------------------------------
       // loop
       while(true)
       {
-        // Initialize receive buffer
-        headerMsg->InitPack();
-
         // Receive generic header from the socket
-        int rs = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        int rs = socket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
         if (rs == 0)
         {
           if (threadID >= 0)
@@ -115,7 +113,7 @@ int main(int argc, char* argv[])
           socket->CloseSocket();
           break;
         }
-        if (rs != headerMsg->GetPackSize())
+        if (rs != headerMsg->GetBufferSize())
         {
           continue;
         }
@@ -136,9 +134,9 @@ int main(int argc, char* argv[])
           igtl::StartTrackingDataMessage::Pointer startTracking;
           startTracking = igtl::StartTrackingDataMessage::New();
           startTracking->SetMessageHeader(headerMsg);
-          startTracking->AllocatePack();
+          startTracking->AllocateBuffer();
 
-          int r2 = socket->Receive(startTracking->GetPackBodyPointer(), startTracking->GetPackBodySize());
+          int r2 = socket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
           int c = startTracking->Unpack(1);
           if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
           {
@@ -176,19 +174,15 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Close connection (The example code never reaches to this section ...)
   serverSocket->CloseSocket();
-
 }
-
 
 void* ThreadFunction(void* ptr)
 {
   //------------------------------------------------------------
   // Get thread information
-  igtl::MultiThreader::ThreadInfo* info = 
+  igtl::MultiThreader::ThreadInfo* info =
     static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
 
-  //int id      = info->ThreadID;
-  //int nThread = info->NumberOfThreads;
   ThreadData* td = static_cast<ThreadData*>(info->UserData);
 
   //------------------------------------------------------------
@@ -196,8 +190,6 @@ void* ThreadFunction(void* ptr)
   igtl::MutexLock::Pointer glock = td->glock;
   long interval = td->interval;
   std::cerr << "Interval = " << interval << " (ms)" << std::endl;
-  //long interval = 1000;
-  //long interval = (id + 1) * 100; // (ms)
 
   igtl::Socket::Pointer& socket = td->socket;
 
@@ -241,10 +233,6 @@ void* ThreadFunction(void* ptr)
     igtl::Sleep(interval);
   }
 
-  //glock->Lock();
-  //std::cerr << "Thread #" << id << ": end." << std::endl;
-  //glock->Unlock();
-
   return NULL;
 }
 
@@ -278,7 +266,7 @@ int SendTrackingData(igtl::Socket::Pointer& socket, igtl::TrackingDataMessage::P
   ptr->SetMatrix(matrix);
 
   trackingMsg->Pack();
-  socket->Send(trackingMsg->GetPackPointer(), trackingMsg->GetPackSize());
+  socket->Send(trackingMsg->GetBufferPointer(), trackingMsg->GetBufferSize());
 
   phi0 += 0.1;
   phi1 += 0.2;
