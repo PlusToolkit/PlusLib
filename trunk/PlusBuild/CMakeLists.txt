@@ -386,7 +386,7 @@ IF ( PLUS_USE_OPTIMET_CONOPROBE )
   ENDIF()
 ENDIF()
 
-IF ( PLUS_USE_CERTUS )
+IF ( PLUS_USE_NDI_CERTUS )
   FIND_PACKAGE (NDIOAPI)
   IF ( NOT NDIOAPI_FOUND)
     MESSAGE( FATAL_ERROR "This project requires NDI Oapi for CERTUS tracking. One of the components is missing. Please verify configuration or turn off PLUS_USE_CERTUS.")
