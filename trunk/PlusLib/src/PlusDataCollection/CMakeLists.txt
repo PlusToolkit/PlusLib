@@ -623,8 +623,12 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
     SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/ulterius/lib CACHE PATH "Path to the Ultrasonix SDK Ulterius library directory." FORCE)
-    SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc ${ULTRASONIX_SDK_DIR}/porta/wrapper CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
-    SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)                  
+    IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION GREATER 5)
+      SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc ${ULTRASONIX_SDK_DIR}/porta/wrapper CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
+    ELSE()
+      SET(PORTA_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/porta/inc CACHE PATH "Path to the Ultrasonix SDK Porta include directory." FORCE)
+    ENDIF()
+    SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)
 
     SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
       ${PORTA_LIB_DIR}/porta.lib
@@ -1139,6 +1143,13 @@ SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusDataCollection)
 ADD_LIBRARY(vtkPlusDataCollection ${PlusDataCollection_SRCS} ${PlusDataCollection_HDRS})
 target_include_directories(vtkPlusDataCollection PUBLIC ${PlusDataCollection_INCLUDE_DIRS} )
+
+IF(MSVC)
+  # enable parallel in-target build as data collection is the largest project by far
+  # do not add to interface defines as downstream targets don't necessarily need MP
+  target_compile_options(vtkPlusDataCollection PRIVATE /MP)
+ENDIF()
+
 TARGET_LINK_LIBRARIES(vtkPlusDataCollection ${PlusDataCollection_LIBS})
 
 # --------------------------------------------------------------------------
