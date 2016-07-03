@@ -58,7 +58,7 @@ public:
   PlusStatus SendMessage(igtl::MessageBase::Pointer packedMessage);
 
   /*! Wait for a command reply */
-  PlusStatus ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec=0);
+  PlusStatus ReceiveReply(PlusStatus& result, int32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec=0);
   
   void Lock();
   void Unlock();

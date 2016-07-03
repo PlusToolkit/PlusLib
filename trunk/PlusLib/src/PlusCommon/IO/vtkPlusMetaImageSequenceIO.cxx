@@ -653,7 +653,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
   }
 
   // Update NDims and Dims fields in header
-  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D);
+  this->GenerateFrameSizeCustomStrings(this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D);
 
   // PixelType
   if (this->TrackedFrameList->IsContainingValidImageData())
@@ -1256,7 +1256,8 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fiel
         newLineStr << " ";
       }
       // rewind to file pointer the first character of the line
-      fseek(stream, -lineStr.size(), SEEK_CUR);
+      int size = lineStr.size();
+      fseek(stream, -size, SEEK_CUR);
 
       // overwrite the old line
       if (fwrite(newLineStr.str().c_str(), 1, newLineStr.str().size(), stream)!=newLineStr.str().size())
@@ -1370,7 +1371,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::SetFileName( const std::string& aFilename
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusMetaImageSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D)
+PlusStatus vtkPlusMetaImageSequenceIO::GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D)
 {
   std::stringstream dimSizeStr;
   this->Dimensions[3]=numberOfFrames;

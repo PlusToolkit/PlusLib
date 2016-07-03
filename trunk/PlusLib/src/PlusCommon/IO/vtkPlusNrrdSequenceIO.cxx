@@ -38,7 +38,7 @@ static const char* SEQUENCE_FIELD_SIZES = "sizes";
 static const char* SEQUENCE_FIELD_SPACE_DIRECTIONS = "space directions";
 static const char* SEQUENCE_FIELD_SPACE_ORIGIN = "space origin";
 static const int MAX_LINE_LENGTH = 1000;
-static const int SEQUENCE_FIELD_PADDED_LENGTH = 30;
+static const int SEQUENCE_FIELD_PADDED_LINE_LENGTH = 40;
 static const std::string SEQUENCE_FIELD_US_IMG_ORIENT = std::string("ultrasound image orientation");
 static const std::string SEQUENCE_FIELD_US_IMG_TYPE = std::string("ultrasound image type");
 static std::string SEQUENCE_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame";
@@ -251,7 +251,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("sizes"));
   int dimSize(0);
   int spatialDomainCount(0);
-  for(int i = 0; i < kinds.size(); i++)
+  for(unsigned int i = 0; i < kinds.size(); i++)
   {
     issDimSize >> dimSize;
     if( kinds[i].compare("domain") == 0)
@@ -649,7 +649,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   SetCustomString("endian", "little");
 
   // Update sizes field in header
-  this->OverwriteNumberOfFramesInHeader(this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D);
+  this->GenerateFrameSizeCustomStrings(this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D);
 
   // PixelType
   if (this->TrackedFrameList->IsContainingValidImageData())
@@ -1209,7 +1209,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
     {
       // found the field that has to be updated, grab the value
       std::string value = lineStr.substr(colonFound + 1);
-      if( lineStr[colonFound + 1] == '=')
+      if (lineStr[colonFound + 1] == '=')
       {
         // It is a key/value
         value = lineStr.substr(colonFound + 2);
@@ -1218,44 +1218,11 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
 
       // construct a new line with the updated value
       std::ostringstream newLineStr;
-      newLineStr << name << ":" << (isKeyValue ? "=" : " ");
-
-      std::vector<std::string> tokens;
-      PlusCommon::SplitStringIntoTokens(GetCustomString(name.c_str()), ' ', tokens, false);
-
-      if(tokens.size() == 1)
-      {
-        LOG_ERROR("Cannot pad fields in NRRD that only have a value with only a single element.");
-        fclose(stream);
-        return PLUS_FAIL;
-      }
-      else
-      {
-        // Output normally until the last element
-        for( std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end() - 1; ++it )
-        {
-          newLineStr << *it;
-          if( it != tokens.end() - 2 )
-          {
-            newLineStr << " ";
-          }
-        }
-      }
-
-      std::string lastToken(*(tokens.end() - 1));
-
-      // Pad between the second last and last element
-      // need to add padding whitespace characters to fully replace the old line
-      int paddingCharactersNeeded = lineStr.size() - newLineStr.str().size() - lastToken.length() - 1; // 1 for the newline character
-      for (int i = 0; i < paddingCharactersNeeded; i++)
-      {
-        newLineStr << " ";
-      }
-
-      newLineStr << lastToken;
+      newLineStr << name << ":" << (isKeyValue ? "=" : " ") << GetCustomString(name.c_str());
 
       // rewind to file pointer the first character of the line
-      fseek(stream, -lineStr.size(), SEEK_CUR);
+      int size = lineStr.size();
+      fseek(stream, -size, SEEK_CUR);
 
       // overwrite the old line
       if (fwrite(newLineStr.str().c_str(), 1, newLineStr.str().size(), stream) != newLineStr.str().size())
@@ -1344,7 +1311,7 @@ PlusStatus vtkPlusNrrdSequenceIO::SetFileName( const std::string& aFilename )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D)
+PlusStatus vtkPlusNrrdSequenceIO::GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D)
 {
   if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() )
   {
@@ -1360,56 +1327,47 @@ PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFr
     kindStr << "vector" << " ";
   }
 
-  int numSpaceDimensions = isData3D ? 3 : 2;
+  int entries = (isData3D ? 3 : 2) + (numberOfFrames > 1 ? 1 : 0);
 
   this->Dimensions[3] = numberOfFrames;
-  for(int i = 0; i < numSpaceDimensions; ++i )
+  // Write out all but the last entry
+  for(int i = 0; i < entries - 1; ++i )
   {
-    kindStr << "domain";
-    sizesStr << this->Dimensions[i];
-    if( i != numSpaceDimensions - 1 )
-    {
-      kindStr << " ";
-      sizesStr << " ";
-    }
+    kindStr << "domain" << " ";
+    sizesStr << this->Dimensions[i] << " ";
   }
 
-  if( numberOfFrames > 1 )
+  // pad kind string with spaces then append last entry
+  int lastDimension = (numberOfFrames > 1 ? 3 : (isData3D ? 2 : 1));
+  std::string lastKind;
+  if (numberOfFrames > 1)
   {
-    {
-      // Pad the sizes field
-      std::stringstream ss;
-      ss << this->Dimensions[3];
-      int numChars = ss.str().length() + sizesStr.str().length();
-      for( int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i )
-      {
-        sizesStr << " ";
-      }
-      sizesStr << this->Dimensions[3];
-    }
-
-    // Pad the kinds field
-    int numChars = kindStr.str().length() + std::string(" list").length();
-    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
-    {
-      kindStr << " ";
-    }
-    kindStr << " list";
+    lastKind = "list";
   }
   else
   {
-    // Pad anyways for any future changes
-    int numChars = sizesStr.str().length();
-    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
+    lastKind = "domain";
+  }
+
+  {
+    std::stringstream ss;
+    ss << this->Dimensions[lastDimension];
+    // strlen(SEQUENCE_FIELD_SIZES) + 2 for "sizes: "
+    int numchars = sizesStr.str().length() + ss.str().length() + strlen(SEQUENCE_FIELD_SIZES) + 2;
+    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LINE_LENGTH - numchars; ++i)
     {
       sizesStr << " ";
     }
-    numChars = kindStr.str().length();
-    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
-    {
-      kindStr << " ";
-    }
+    sizesStr << this->Dimensions[lastDimension];
   }
+
+  // strlen(SEQUENCE_FIELD_SIZES) + 2 for "kinds: "
+  int numchars = kindStr.str().length() + lastKind.length() + strlen(SEQUENCE_FIELD_KINDS) + 2;
+  for (int i = 0; i < SEQUENCE_FIELD_PADDED_LINE_LENGTH - numchars; ++i)
+  {
+    kindStr << " ";
+  }
+  kindStr << lastKind;
 
   this->SetCustomString(SEQUENCE_FIELD_SIZES, sizesStr.str());
   this->SetCustomString(SEQUENCE_FIELD_KINDS, kindStr.str());

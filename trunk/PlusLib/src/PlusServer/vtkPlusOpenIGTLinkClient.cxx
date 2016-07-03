@@ -203,7 +203,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendMessage(igtl::MessageBase::Pointer pack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOriginalCommandId, std::string& outErrorString,
+PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(PlusStatus& result, int32_t& outOriginalCommandId, std::string& outErrorString,
     std::string& outContent, std::map<std::string, std::string>& outParameters,
     std::string& outCommandName, double timeoutSec/*=0*/)
 {
@@ -223,7 +223,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
 
           if( vtkPlusCommand::IsReplyDeviceName(strMsg->GetDeviceName()) )
           {
-            if (PlusCommon::StringToInt<uint32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
+            if (PlusCommon::StringToInt<int32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
             {
               LOG_ERROR("Failed to get UID from command device name.");
               continue;
@@ -240,7 +240,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
             LOG_ERROR("No status returned. Skipping.");
             continue;
           }
-          result = std::string(cmdElement->GetAttribute("Status")) == "SUCCESS";
+          result = std::string(cmdElement->GetAttribute("Status")) == "SUCCESS" ? PLUS_SUCCESS : PLUS_FAIL;
           if( cmdElement->GetAttribute("Message") == NULL )
           {
             LOG_ERROR("No message returned. Skipping.");
@@ -261,7 +261,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
           XML_FIND_NESTED_ELEMENT_OPTIONAL(resultElement, cmdElement, "Result");
           if( resultElement != NULL)
           {
-            result = STRCASECMP(resultElement->GetCharacterData(), "true") == 0 ? true : false;
+            result = STRCASECMP(resultElement->GetCharacterData(), "true") == 0 ? PLUS_SUCCESS : PLUS_FAIL;
           }
           XML_FIND_NESTED_ELEMENT_OPTIONAL(errorElement, cmdElement, "Error");
           if( !result && errorElement == NULL )
@@ -276,6 +276,15 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(bool& result, uint32_t& outOri
           outContent = messageElement->GetCharacterData();
 
           outParameters = rtsCommandMsg->GetMetaData();
+        }
+        else if (typeid(*message) == typeid(igtl::RTSTrackingDataMessage))
+        {
+          igtl::RTSTrackingDataMessage* rtsTrackingMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(message.GetPointer());
+
+          result = rtsTrackingMsg->GetStatus() == 0 ? PLUS_SUCCESS : PLUS_FAIL;
+          outContent = (rtsTrackingMsg->GetStatus() == 0 ? "SUCCESS" : "FAILURE");
+          outCommandName = "RTSTrackingDataMessage";
+          outOriginalCommandId = -1;
         }
 
         this->Replies.pop_front();
