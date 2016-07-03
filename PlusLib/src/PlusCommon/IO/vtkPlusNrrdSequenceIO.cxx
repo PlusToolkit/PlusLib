@@ -1384,7 +1384,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFr
         sizesStr << " ";
       }
       sizesStr << this->Dimensions[3];
-      kindStr << "list";
+      kindStr << " list";
     }
   }
 
