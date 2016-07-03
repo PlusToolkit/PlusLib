@@ -51,7 +51,7 @@ public:
       /param dimensions number of dimensions in the data
       /param isData3D is the data 3D or 2D?
   */
-  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D);
+  virtual PlusStatus GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D);
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save

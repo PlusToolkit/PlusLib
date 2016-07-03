@@ -79,12 +79,13 @@ public:
   
   virtual std::string GetFileName();
 
-  /*! Update the number of frames in the header 
-      This is used primarily by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+  /*! Generate frame size related custom strings and store them
+      This is used by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+      and this class to initialize the values when opening the image header
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
-  virtual PlusStatus OverwriteNumberOfFramesInHeader(int numberOfFrames, bool isData3D) = 0;
+  virtual PlusStatus GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D) = 0;
 
   /*! Update a field in the image header with its current value */
   virtual PlusStatus UpdateFieldInImageHeader(const char* fieldName) = 0;

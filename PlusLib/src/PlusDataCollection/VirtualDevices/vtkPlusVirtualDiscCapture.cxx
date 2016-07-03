@@ -223,7 +223,7 @@ PlusStatus vtkPlusVirtualDiscCapture::CloseFile(const char* aFilename /* = NULL 
     this->WriteFrames(true);
   }
   
-  this->Writer->OverwriteNumberOfFramesInHeader(this->TotalFramesRecorded, this->GetIsData3D());
+  this->Writer->GenerateFrameSizeCustomStrings(this->TotalFramesRecorded, this->GetIsData3D());
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
