@@ -37,8 +37,8 @@ static const char* SEQUENCE_FIELD_KINDS = "kinds";
 static const char* SEQUENCE_FIELD_SIZES = "sizes";
 static const char* SEQUENCE_FIELD_SPACE_DIRECTIONS = "space directions";
 static const char* SEQUENCE_FIELD_SPACE_ORIGIN = "space origin";
-static const int MAX_LINE_LENGTH=1000;
-static const int SEQUENCE_FIELD_SIZES_NUM_SPACES = 8;
+static const int MAX_LINE_LENGTH = 1000;
+static const int SEQUENCE_FIELD_PADDED_LENGTH = 30;
 static const std::string SEQUENCE_FIELD_US_IMG_ORIENT = std::string("ultrasound image orientation");
 static const std::string SEQUENCE_FIELD_US_IMG_TYPE = std::string("ultrasound image type");
 static std::string SEQUENCE_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame";
@@ -93,7 +93,7 @@ void vtkPlusNrrdSequenceIO::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 {
-  FILE* stream=NULL;
+  FILE* stream = NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen(&stream, this->FileName.c_str(), "rb" ) != PLUS_SUCCESS )
   {
@@ -103,10 +103,10 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 
   bool dataFileEntryFound(false);
 
-  char line[MAX_LINE_LENGTH+1]= {0};
+  char line[MAX_LINE_LENGTH + 1] = {0};
   while (fgets( line, MAX_LINE_LENGTH, stream ))
   {
-    std::string lineStr=line;
+    std::string lineStr = line;
 
     if( lineStr.compare("\n") == 0 )
     {
@@ -114,7 +114,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
       {
         // pixel data stored locally
         // this->PixelDataFileName is already empty string unless overriden by data file: field
-        this->PixelDataFileOffset=FTELL(stream);
+        this->PixelDataFileOffset = FTELL(stream);
       }
       // this is the last element of the header
       break;
@@ -122,7 +122,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 
     size_t separatorFound;
     separatorFound = lineStr.find_first_of("#");
-    if ( separatorFound != std::string::npos || lineStr.find("NRRD")==0)
+    if ( separatorFound != std::string::npos || lineStr.find("NRRD") == 0)
     {
       // Header definition or comment found, skip
       continue;
@@ -135,19 +135,19 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
       LOG_WARNING("Parsing line failed, colon is missing (" << lineStr << ")");
       continue;
     }
-    std::string name = lineStr.substr(0,separatorFound);
-    std::string value = lineStr.substr(separatorFound+1);
-    if( lineStr[separatorFound+1] == '=')
+    std::string name = lineStr.substr(0, separatorFound);
+    std::string value = lineStr.substr(separatorFound + 1);
+    if( lineStr[separatorFound + 1] == '=')
     {
       // It is a key/value
-      value = lineStr.substr(separatorFound+2);
+      value = lineStr.substr(separatorFound + 2);
     }
 
     // trim spaces from the left and right
     PlusCommon::Trim(name);
     PlusCommon::Trim(value);
 
-    if (name.compare(0,SEQUENCE_FIELD_FRAME_FIELD_PREFIX.size(),SEQUENCE_FIELD_FRAME_FIELD_PREFIX)!=0)
+    if (name.compare(0, SEQUENCE_FIELD_FRAME_FIELD_PREFIX.size(), SEQUENCE_FIELD_FRAME_FIELD_PREFIX) != 0)
     {
       // field
       SetCustomString(name.c_str(), value.c_str());
@@ -156,29 +156,29 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
       if (name.compare(SEQUENCE_FIELD_ELEMENT_DATA_FILE) == 0)
       {
         dataFileEntryFound = true;
-        this->PixelDataFileName=value;
-        this->PixelDataFileOffset=0;
+        this->PixelDataFileName = value;
+        this->PixelDataFileOffset = 0;
       }
     }
     else
     {
       // frame field
       // name: Seq_Frame0000_CustomTransform
-      name.erase(0,SEQUENCE_FIELD_FRAME_FIELD_PREFIX.size()); // 0000_CustomTransform
+      name.erase(0, SEQUENCE_FIELD_FRAME_FIELD_PREFIX.size()); // 0000_CustomTransform
 
       // Split line into name and value
       size_t underscoreFound;
       underscoreFound = name.find_first_of("_");
       if (underscoreFound == std::string::npos)
       {
-        LOG_WARNING("Parsing line failed, underscore is missing from frame field name ("<<lineStr<<")");
+        LOG_WARNING("Parsing line failed, underscore is missing from frame field name (" << lineStr << ")");
         continue;
       }
       std::string frameNumberStr = name.substr(0, underscoreFound); // 0000
-      std::string frameFieldName = name.substr(underscoreFound+1); // CustomTransform
+      std::string frameFieldName = name.substr(underscoreFound + 1); // CustomTransform
 
-      int frameNumber=0;
-      if (PlusCommon::StringToInt(frameNumberStr.c_str(), frameNumber)!=PLUS_SUCCESS)
+      int frameNumber = 0;
+      if (PlusCommon::StringToInt(frameNumberStr.c_str(), frameNumber) != PLUS_SUCCESS)
       {
         LOG_WARNING("Parsing line failed, cannot get frame number from frame field (" << lineStr << ")");
         continue;
@@ -221,16 +221,16 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
     return PLUS_FAIL;
   }
 
-  int nDims=3;
-  if ( PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("dimension"), nDims)==PLUS_SUCCESS )
+  int nDims = 3;
+  if ( PlusCommon::StringToInt(this->TrackedFrameList->GetCustomString("dimension"), nDims) == PLUS_SUCCESS )
   {
-    if (nDims!=2 && nDims!=3 && nDims!=4)
+    if (nDims != 2 && nDims != 3 && nDims != 4)
     {
-      LOG_ERROR("Invalid dimension (shall be 2 or 3 or 4): "<<nDims);
+      LOG_ERROR("Invalid dimension (shall be 2 or 3 or 4): " << nDims);
       return PLUS_FAIL;
     }
   }
-  this->NumberOfDimensions=nDims;
+  this->NumberOfDimensions = nDims;
 
   std::vector<std::string> kinds;
   if( this->TrackedFrameList->GetCustomString("kinds") != NULL )
@@ -239,8 +239,8 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
   }
   else
   {
-    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions-1 << " domains and 1 list.");
-    for( int i = 0; i < this->NumberOfDimensions-1; ++i )
+    LOG_WARNING(SEQUENCE_FIELD_KINDS << " field not found in header. Defaulting to " << this->NumberOfDimensions - 1 << " domains and 1 list.");
+    for( int i = 0; i < this->NumberOfDimensions - 1; ++i )
     {
       kinds.push_back(std::string("domain"));
     }
@@ -251,7 +251,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString("sizes"));
   int dimSize(0);
   int spatialDomainCount(0);
-  for(int i=0; i < kinds.size(); i++)
+  for(int i = 0; i < kinds.size(); i++)
   {
     issDimSize >> dimSize;
     if( kinds[i].compare("domain") == 0)
@@ -261,12 +261,12 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
         LOG_ERROR("PLUS supports up to 3 spatial domains. File: " << this->FileName << " contains more than 3.");
         return PLUS_FAIL;
       }
-      this->Dimensions[spatialDomainCount]=dimSize;
+      this->Dimensions[spatialDomainCount] = dimSize;
       spatialDomainCount++;
     }
     else if( kinds[i].compare("time") == 0 || kinds[i].compare("list") == 0) // time = resampling ok, list = resampling not ok
     {
-      this->Dimensions[3]=dimSize;
+      this->Dimensions[3] = dimSize;
     }
     else if( kinds[i].compare("vector") == 0)
     {
@@ -291,7 +291,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
     }
     else if ( ConvertNrrdTypeToVtkPixelType(elementType, this->PixelType) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unknown component type: "<<elementType);
+      LOG_ERROR("Unknown component type: " << elementType);
       return PLUS_FAIL;
     }
 
@@ -310,11 +310,11 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
     // TODO: handle detection of image orientation in file from space/space dimensions, space origin and space directions
     // handle only orthogonal rotations
 
-    const char* imgTypeStr=GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
-    if (imgTypeStr==NULL)
+    const char* imgTypeStr = GetCustomString(SEQUENCE_FIELD_US_IMG_TYPE.c_str());
+    if (imgTypeStr == NULL)
     {
       // if the image type is not defined then assume that it is B-mode image
-      this->ImageType=US_IMG_BRIGHTNESS;
+      this->ImageType = US_IMG_BRIGHTNESS;
       LOG_WARNING(SEQUENCE_FIELD_US_IMG_TYPE << " field not found in header. Defaulting to US_IMG_BRIGHTNESS.");
     }
     else
@@ -325,7 +325,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
     // If no specific image orientation is requested then determine it automatically from the image type
     // B-mode: MF
     // RF-mode: FM
-    if (this->ImageOrientationInMemory==US_IMG_ORIENT_XX)
+    if (this->ImageOrientationInMemory == US_IMG_ORIENT_XX)
     {
       switch (this->ImageType)
       {
@@ -339,7 +339,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
         this->SetImageOrientationInMemory(US_IMG_ORIENT_FM);
         break;
       default:
-        if (this->Dimensions[0]==0 && this->Dimensions[1]==0 && this->Dimensions[2]==0)
+        if (this->Dimensions[0] == 0 && this->Dimensions[1] == 0 && this->Dimensions[2] == 0)
         {
           LOG_DEBUG("Only tracking data is available in the file");
         }
@@ -360,23 +360,23 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 // Read the spacing and dimensions of the image.
 PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 {
-  int frameCount=this->Dimensions[3];
-  unsigned int frameSizeInBytes=0;
-  if (this->Dimensions[0]>0 && this->Dimensions[1]>0 && this->Dimensions[2]>0)
+  int frameCount = this->Dimensions[3];
+  unsigned int frameSizeInBytes = 0;
+  if (this->Dimensions[0] > 0 && this->Dimensions[1] > 0 && this->Dimensions[2] > 0)
   {
-    frameSizeInBytes=this->Dimensions[0]*this->Dimensions[1]*this->Dimensions[2]*PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType)*this->NumberOfScalarComponents;
+    frameSizeInBytes = this->Dimensions[0] * this->Dimensions[1] * this->Dimensions[2] * PlusVideoFrame::GetNumberOfBytesPerScalar(this->PixelType) * this->NumberOfScalarComponents;
   }
 
-  if (frameSizeInBytes==0)
+  if (frameSizeInBytes == 0)
   {
     LOG_DEBUG("No image data in the file");
     return PLUS_SUCCESS;
   }
 
-  int numberOfErrors=0;
+  int numberOfErrors = 0;
 
-  FILE* stream=NULL;
-  gzFile gzStream=NULL;
+  FILE* stream = NULL;
+  gzFile gzStream = NULL;
 
   if ( this->UseCompression && this->Encoding >= NRRD_ENCODING_GZ && this->Encoding < NRRD_ENCODING_BZ2)
   {
@@ -420,7 +420,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
   if (this->UseCompression && this->Encoding >= NRRD_ENCODING_GZ && this->Encoding < NRRD_ENCODING_BZ2)
   {
     //gzip uncompression
-    unsigned int allFramesPixelBufferSize=frameCount*frameSizeInBytes;
+    unsigned int allFramesPixelBufferSize = frameCount * frameSizeInBytes;
     gzAllFramesPixelBuffer = new unsigned char[allFramesPixelBufferSize];
 
     vtkPlusNrrdSequenceIO::FilePositionOffsetType allFramesCompressedPixelBufferSize = vtkPlusNrrdSequenceIO::GetFileSize( this->GetPixelDataFilePath() ) - this->PixelDataFileOffset;
@@ -436,10 +436,10 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 
   std::vector<unsigned char> pixelBuffer;
   pixelBuffer.resize(frameSizeInBytes);
-  for (int frameNumber=0; frameNumber < frameCount; frameNumber++)
+  for (int frameNumber = 0; frameNumber < frameCount; frameNumber++)
   {
     this->CreateTrackedFrameIfNonExisting(frameNumber);
-    PlusTrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
     // Allocate frame only if it is valid
     const char* imgStatus = trackedFrame->GetCustomFrameField(SEQUENCE_FIELD_IMG_STATUS.c_str());
@@ -463,9 +463,9 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
     trackedFrame->GetImageData()->SetImageType(this->ImageType);
 
-    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents)!=PLUS_SUCCESS)
+    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Cannot allocate memory for frame "<<frameNumber);
+      LOG_ERROR("Cannot allocate memory for frame " << frameNumber);
       numberOfErrors++;
       continue;
     }
@@ -483,7 +483,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
 
     if ( !this->UseCompression )
     {
-      FilePositionOffsetType offset = this->PixelDataFileOffset+frameNumber*frameSizeInBytes;
+      FilePositionOffsetType offset = this->PixelDataFileOffset + frameNumber * frameSizeInBytes;
       FSEEK(stream, offset, SEEK_SET);
       if ( fread(&(pixelBuffer[0]), 1, frameSizeInBytes, stream) != frameSizeInBytes)
       {
@@ -499,7 +499,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     }
     else
     {
-      if ( PlusVideoFrame::GetOrientedClippedImage(gzAllFramesPixelBuffer+frameNumber*frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
+      if ( PlusVideoFrame::GetOrientedClippedImage(gzAllFramesPixelBuffer + frameNumber * frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get oriented image from sequence file (frame number: " << frameNumber << ")!");
         numberOfErrors++;
@@ -513,7 +513,7 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     fclose( stream );
   }
 
-  if (numberOfErrors>0)
+  if (numberOfErrors > 0)
   {
     return PLUS_FAIL;
   }
@@ -609,7 +609,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     SetCustomString("encoding", "raw");
   }
 
-  int frameSize[3] = {0,0,0};
+  int frameSize[3] = {0, 0, 0};
   if( this->EnableImageDataWrite )
   {
     this->GetMaximumImageDimensions(frameSize);
@@ -622,17 +622,17 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   }
 
   // Set the dimensions of the data to be written
-  this->Dimensions[0]=frameSize[0];
-  this->Dimensions[1]=frameSize[1];
-  this->Dimensions[2]=frameSize[2];
-  this->Dimensions[3]=this->TrackedFrameList->GetNumberOfTrackedFrames();
+  this->Dimensions[0] = frameSize[0];
+  this->Dimensions[1] = frameSize[1];
+  this->Dimensions[2] = frameSize[2];
+  this->Dimensions[3] = this->TrackedFrameList->GetNumberOfTrackedFrames();
 
   if( this->EnableImageDataWrite )
   {
     // Make sure the frame size is the same for each valid image
     // If it's needed, we can use the largest frame size for each frame and copy the image data row by row
     // but then, we need to save the original frame size for each frame and crop the image when we read it
-    for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+    for (unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
       int* currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
       if ( this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid()
@@ -654,7 +654,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   // PixelType
   if (this->TrackedFrameList->IsContainingValidImageData())
   {
-    this->PixelType=this->TrackedFrameList->GetPixelType();
+    this->PixelType = this->TrackedFrameList->GetPixelType();
     if ( this->PixelType == VTK_VOID )
     {
       // If the pixel type was not defined, define it to UCHAR
@@ -732,16 +732,16 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   }
 
   // Add fields with default values if they are not present already
-  if (GetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS)==NULL)
+  if (GetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS) == NULL)
   {
     SetCustomString(SEQUENCE_FIELD_SPACE_DIRECTIONS, spaceDirectionStr.str());
   }
-  if (GetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN)==NULL)
+  if (GetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN) == NULL)
   {
     SetCustomString(SEQUENCE_FIELD_SPACE_ORIGIN, originStr.str());
   }
 
-  FILE* stream=NULL;
+  FILE* stream = NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "wb" ) != PLUS_SUCCESS )
   {
@@ -763,9 +763,9 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
 
   std::vector<std::string> fieldNames;
   this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
-  for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++)
+  for (std::vector<std::string>::iterator it = fieldNames.begin(); it != fieldNames.end(); it++)
   {
-    std::string field=(*it)+": "+GetCustomString(it->c_str())+"\n";
+    std::string field = (*it) + ": " + GetCustomString(it->c_str()) + "\n";
     fputs(field.c_str(), stream);
     this->TotalBytesWritten += field.length();
   }
@@ -773,7 +773,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   // Image orientation
   if( this->EnableImageDataWrite )
   {
-    std::string orientationStr=SEQUENCE_FIELD_US_IMG_ORIENT+":="+PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile)+"\n";
+    std::string orientationStr = SEQUENCE_FIELD_US_IMG_ORIENT + ":=" + PlusVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientationInFile) + "\n";
     fputs(orientationStr.c_str(), stream);
     this->TotalBytesWritten += orientationStr.length();
   }
@@ -781,7 +781,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   // Image type
   if( this->EnableImageDataWrite )
   {
-    std::string orientationStr=SEQUENCE_FIELD_US_IMG_TYPE+":="+PlusVideoFrame::GetStringFromUsImageType(this->ImageType)+"\n";
+    std::string orientationStr = SEQUENCE_FIELD_US_IMG_TYPE + ":=" + PlusVideoFrame::GetStringFromUsImageType(this->ImageType) + "\n";
     fputs(orientationStr.c_str(), stream);
     this->TotalBytesWritten += orientationStr.length();
   }
@@ -794,7 +794,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
 {
-  FILE* stream=NULL;
+  FILE* stream = NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
@@ -805,9 +805,9 @@ PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
   // Write frame fields (Seq_Frame0000_... = ...)
   for (unsigned int frameNumber = CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + CurrentFrameOffset; frameNumber++)
   {
-    LOG_DEBUG("Writing frame "<<frameNumber);
+    LOG_DEBUG("Writing frame " << frameNumber);
     unsigned int adjustedFrameNumber = frameNumber - CurrentFrameOffset;
-    PlusTrackedFrame* trackedFrame=this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
+    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(adjustedFrameNumber);
 
     std::ostringstream frameIndexStr;
     frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber;
@@ -815,9 +815,9 @@ PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
     std::vector<std::string> fieldNames;
     trackedFrame->GetCustomFrameFieldNameList(fieldNames);
 
-    for (std::vector<std::string>::iterator it=fieldNames.begin(); it != fieldNames.end(); it++)
+    for (std::vector<std::string>::iterator it = fieldNames.begin(); it != fieldNames.end(); it++)
     {
-      std::string field=SEQUENCE_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + ":=" + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
+      std::string field = SEQUENCE_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + ":=" + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
       TotalBytesWritten += field.length();
     }
@@ -828,9 +828,9 @@ PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
       std::string imageStatus("OK");
       if ( !trackedFrame->GetImageData()->IsImageValid() )
       {
-        imageStatus="INVALID";
+        imageStatus = "INVALID";
       }
-      std::string imgStatusField=SEQUENCE_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQUENCE_FIELD_IMG_STATUS + ":=" + imageStatus + "\n";
+      std::string imgStatusField = SEQUENCE_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + SEQUENCE_FIELD_IMG_STATUS + ":=" + imageStatus + "\n";
       fputs(imgStatusField.c_str(), stream);
       TotalBytesWritten += imgStatusField.length();
     }
@@ -844,7 +844,7 @@ PlusStatus vtkPlusNrrdSequenceIO::AppendImagesToHeader()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::FinalizeHeader()
 {
-  FILE* stream=NULL;
+  FILE* stream = NULL;
   // open in binary mode because we determine the start of the image buffer also during this read
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "ab+" ) != PLUS_SUCCESS )
   {
@@ -884,7 +884,7 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
 {
   LOG_DEBUG("Writing compressed pixel data into file started");
 
-  compressedDataSize=0;
+  compressedDataSize = 0;
 
   // Create a blank frame if we have to write an invalid frame to file
   PlusVideoFrame blankFrame;
@@ -895,16 +895,16 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
   }
   blankFrame.FillBlank();
 
-  for (unsigned int frameNumber=0; frameNumber<this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
+  for (unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
     PlusTrackedFrame* trackedFrame(NULL);
 
     if( this->EnableImageDataWrite )
     {
       trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
-      if (trackedFrame==NULL)
+      if (trackedFrame == NULL)
       {
-        LOG_ERROR("Cannot access frame "<<frameNumber<<" while trying to writing compress data into file");
+        LOG_ERROR("Cannot access frame " << frameNumber << " while trying to writing compress data into file");
         gzclose(this->CompressionStream);
         return PLUS_FAIL;
       }
@@ -930,11 +930,11 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
     gzerror(this->CompressionStream, &errnum);
     if( errnum != Z_OK )
     {
-      LOG_ERROR("Error writing compressed data into file. errnum: " <<errnum);
+      LOG_ERROR("Error writing compressed data into file. errnum: " << errnum);
       gzclose(this->CompressionStream);
       return PLUS_FAIL;
     }
-    compressedDataSize+=numberOfBytesReadyForWriting;
+    compressedDataSize += numberOfBytesReadyForWriting;
   }
 
   LOG_DEBUG("Writing compressed pixel data into file completed");
@@ -945,174 +945,174 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::string& elementTypeStr, PlusCommon::VTKScalarPixelType& vtkPixelType)
 {
-  if (elementTypeStr.compare("signed char")==0)
+  if (elementTypeStr.compare("signed char") == 0)
   {
     vtkPixelType = VTK_CHAR;
   }
-  else if (elementTypeStr.compare("int8")==0)
+  else if (elementTypeStr.compare("int8") == 0)
   {
     vtkPixelType = VTK_CHAR;
   }
-  else if (elementTypeStr.compare("int8_t")==0)
+  else if (elementTypeStr.compare("int8_t") == 0)
   {
     vtkPixelType = VTK_CHAR;
   }
-  else if (elementTypeStr.compare("uchar")==0)
+  else if (elementTypeStr.compare("uchar") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_CHAR;
   }
-  else if (elementTypeStr.compare("unsigned char")==0)
+  else if (elementTypeStr.compare("unsigned char") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_CHAR;
   }
-  else if (elementTypeStr.compare("uint8")==0)
+  else if (elementTypeStr.compare("uint8") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_CHAR;
   }
-  else if (elementTypeStr.compare("uint8_t")==0)
+  else if (elementTypeStr.compare("uint8_t") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_CHAR;
   }
-  else if (elementTypeStr.compare("short")==0)
+  else if (elementTypeStr.compare("short") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("short int")==0)
+  else if (elementTypeStr.compare("short int") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("signed short")==0)
+  else if (elementTypeStr.compare("signed short") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("signed short int")==0)
+  else if (elementTypeStr.compare("signed short int") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("int16")==0)
+  else if (elementTypeStr.compare("int16") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("int16_t")==0)
+  else if (elementTypeStr.compare("int16_t") == 0)
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("ushort")==0)
+  else if (elementTypeStr.compare("ushort") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("unsigned short")==0)
+  else if (elementTypeStr.compare("unsigned short") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("unsigned short int")==0)
+  else if (elementTypeStr.compare("unsigned short int") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("uint16")==0)
+  else if (elementTypeStr.compare("uint16") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("uint16_t")==0)
+  else if (elementTypeStr.compare("uint16_t") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("int")==0)
+  else if (elementTypeStr.compare("int") == 0)
   {
     vtkPixelType = VTK_INT;
   }
-  else if (elementTypeStr.compare("signed int")==0)
+  else if (elementTypeStr.compare("signed int") == 0)
   {
     vtkPixelType = VTK_INT;
   }
-  else if (elementTypeStr.compare("int32")==0)
+  else if (elementTypeStr.compare("int32") == 0)
   {
     vtkPixelType = VTK_INT;
   }
-  else if (elementTypeStr.compare("int32_t")==0)
+  else if (elementTypeStr.compare("int32_t") == 0)
   {
     vtkPixelType = VTK_INT;
   }
-  else if (elementTypeStr.compare("uint")==0)
+  else if (elementTypeStr.compare("uint") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_INT;
   }
-  else if (elementTypeStr.compare("unsigned int")==0)
+  else if (elementTypeStr.compare("unsigned int") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_INT;
   }
-  else if (elementTypeStr.compare("uint32")==0)
+  else if (elementTypeStr.compare("uint32") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_INT;
   }
-  else if (elementTypeStr.compare("uint32_t")==0)
+  else if (elementTypeStr.compare("uint32_t") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_INT;
   }
-  else if (elementTypeStr.compare("longlong")==0)
+  else if (elementTypeStr.compare("longlong") == 0)
   {
     vtkPixelType = VTK_LONG;
   }
-  else if (elementTypeStr.compare("long long")==0)
+  else if (elementTypeStr.compare("long long") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("long long int")==0)
+  else if (elementTypeStr.compare("long long int") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("signed long long")==0)
+  else if (elementTypeStr.compare("signed long long") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("signed long long int")==0)
+  else if (elementTypeStr.compare("signed long long int") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("int64")==0)
+  else if (elementTypeStr.compare("int64") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("int64_t")==0)
+  else if (elementTypeStr.compare("int64_t") == 0)
   {
     vtkPixelType = VTK_LONG_LONG;
   }
-  else if (elementTypeStr.compare("ulonglong")==0)
+  else if (elementTypeStr.compare("ulonglong") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_LONG_LONG;
   }
-  else if (elementTypeStr.compare("unsigned long long")==0)
+  else if (elementTypeStr.compare("unsigned long long") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_LONG_LONG;
   }
-  else if (elementTypeStr.compare("unsigned long long int")==0)
+  else if (elementTypeStr.compare("unsigned long long int") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_LONG_LONG;
   }
-  else if (elementTypeStr.compare("uint64")==0)
+  else if (elementTypeStr.compare("uint64") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_LONG_LONG;
   }
-  else if (elementTypeStr.compare("uint64_t")==0)
+  else if (elementTypeStr.compare("uint64_t") == 0)
   {
     vtkPixelType = VTK_UNSIGNED_LONG_LONG;
   }
-  else if (elementTypeStr.compare("float")==0)
+  else if (elementTypeStr.compare("float") == 0)
   {
     vtkPixelType = VTK_FLOAT;
   }
-  else if (elementTypeStr.compare("double")==0)
+  else if (elementTypeStr.compare("double") == 0)
   {
     vtkPixelType = VTK_DOUBLE;
   }
-  else if (elementTypeStr.compare("none")==0)
+  else if (elementTypeStr.compare("none") == 0)
   {
     vtkPixelType = VTK_VOID;
   }
   else
   {
     LOG_ERROR("Unknown Nrrd data type: " << elementTypeStr);
-    vtkPixelType=VTK_VOID;
+    vtkPixelType = VTK_VOID;
     return PLUS_FAIL;
   }
 
@@ -1122,12 +1122,12 @@ PlusStatus vtkPlusNrrdSequenceIO::ConvertNrrdTypeToVtkPixelType(const std::strin
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string& elementTypeStr)
 {
-  if (vtkPixelType==VTK_VOID)
+  if (vtkPixelType == VTK_VOID)
   {
-    elementTypeStr="none";
+    elementTypeStr = "none";
     return PLUS_SUCCESS;
   }
-  const char* ElementTypes[]=
+  const char* ElementTypes[] =
   {
     "int8",
     "uint8",
@@ -1141,20 +1141,20 @@ PlusStatus vtkPlusNrrdSequenceIO::ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKS
     "double",
   };
 
-  PlusCommon::VTKScalarPixelType testedPixelType=VTK_VOID;
-  for (unsigned int i=0; i<sizeof(ElementTypes); i++)
+  PlusCommon::VTKScalarPixelType testedPixelType = VTK_VOID;
+  for (unsigned int i = 0; i < sizeof(ElementTypes); i++)
   {
-    if (ConvertNrrdTypeToVtkPixelType(ElementTypes[i], testedPixelType)!=PLUS_SUCCESS)
+    if (ConvertNrrdTypeToVtkPixelType(ElementTypes[i], testedPixelType) != PLUS_SUCCESS)
     {
       continue;
     }
-    if (testedPixelType==vtkPixelType)
+    if (testedPixelType == vtkPixelType)
     {
-      elementTypeStr=ElementTypes[i];
+      elementTypeStr = ElementTypes[i];
       return PLUS_SUCCESS;
     }
   }
-  elementTypeStr="none";
+  elementTypeStr = "none";
   return PLUS_FAIL;
 }
 
@@ -1171,7 +1171,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
     LOG_ERROR("Cannot update file header, filename is invalid");
     return PLUS_FAIL;
   }
-  FILE* stream=NULL;
+  FILE* stream = NULL;
   // open in read+write binary mode
   if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "r+b" ) != PLUS_SUCCESS )
   {
@@ -1181,38 +1181,38 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
 
   fseek(stream, 0, SEEK_SET);
 
-  char line[MAX_LINE_LENGTH+1]= {0};
+  char line[MAX_LINE_LENGTH + 1] = {0};
   while (fgets( line, MAX_LINE_LENGTH, stream ))
   {
     std::string lineStr(line);
 
     // Split line into name and value
     size_t colonFound;
-    colonFound=lineStr.find_first_of(":");
-    if (colonFound==std::string::npos || lineStr[0] == '#')
+    colonFound = lineStr.find_first_of(":");
+    if (colonFound == std::string::npos || lineStr[0] == '#')
     {
-      LOG_WARNING("Not a field line. Skipping... ("<<lineStr<<")");
+      LOG_WARNING("Not a field line. Skipping... (" << lineStr << ")");
       continue;
     }
-    std::string name=lineStr.substr(0,colonFound);
+    std::string name = lineStr.substr(0, colonFound);
     PlusCommon::Trim(name);
 
     bool isKeyValue(false);
     size_t equalFound;
-    equalFound=lineStr.find_first_of("=");
+    equalFound = lineStr.find_first_of("=");
     if(equalFound != std::string::npos )
     {
       isKeyValue = true;
     }
 
-    if (name.compare(fieldName)==0)
+    if (name.compare(fieldName) == 0)
     {
       // found the field that has to be updated, grab the value
-      std::string value = lineStr.substr(colonFound+1);
-      if( lineStr[colonFound+1] == '=')
+      std::string value = lineStr.substr(colonFound + 1);
+      if( lineStr[colonFound + 1] == '=')
       {
         // It is a key/value
-        value = lineStr.substr(colonFound+2);
+        value = lineStr.substr(colonFound + 2);
       }
       PlusCommon::Trim(value);
 
@@ -1221,32 +1221,33 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
       newLineStr << name << ":" << (isKeyValue ? "=" : " ");
 
       std::vector<std::string> tokens;
-      PlusCommon::SplitStringIntoTokens(GetCustomString(name.c_str()), ' ', tokens);
+      PlusCommon::SplitStringIntoTokens(GetCustomString(name.c_str()), ' ', tokens, false);
 
       if(tokens.size() == 1)
       {
-        LOG_ERROR("Cannot pad fields in Nrrd that only have a value with only a single element.");
+        LOG_ERROR("Cannot pad fields in NRRD that only have a value with only a single element.");
         fclose(stream);
         return PLUS_FAIL;
       }
       else
       {
-        // put the padding in between the second last and last token
-        for( std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end()-1; ++it )
+        // Output normally until the last element
+        for( std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end() - 1; ++it )
         {
           newLineStr << *it;
-          if( it != tokens.end()-2 )
+          if( it != tokens.end() - 2 )
           {
             newLineStr << " ";
           }
         }
       }
 
-      std::string lastToken(*(tokens.end()-1));
+      std::string lastToken(*(tokens.end() - 1));
 
+      // Pad between the second last and last element
       // need to add padding whitespace characters to fully replace the old line
-      int paddingCharactersNeeded = lineStr.size()-newLineStr.str().size()-lastToken.length()-1;
-      for (int i=0; i<paddingCharactersNeeded; i++)
+      int paddingCharactersNeeded = lineStr.size() - newLineStr.str().size() - lastToken.length() - 1; // 1 for the newline character
+      for (int i = 0; i < paddingCharactersNeeded; i++)
       {
         newLineStr << " ";
       }
@@ -1257,7 +1258,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
       fseek(stream, -lineStr.size(), SEEK_CUR);
 
       // overwrite the old line
-      if (fwrite(newLineStr.str().c_str(), 1, newLineStr.str().size(), stream)!=newLineStr.str().size())
+      if (fwrite(newLineStr.str().c_str(), 1, newLineStr.str().size(), stream) != newLineStr.str().size())
       {
         LOG_ERROR("Cannot update line in image header (writing the updated line into the file failed)");
         fclose( stream );
@@ -1270,7 +1271,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
 
     if (ferror(stream))
     {
-      LOG_ERROR("Error reading the file "<<this->FileName);
+      LOG_ERROR("Error reading the file " << this->FileName);
       break;
     }
     if (feof(stream))
@@ -1280,7 +1281,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader(const char* fieldName
   }
 
   fclose( stream );
-  LOG_ERROR("Field "<<fieldName<<" is not found in the header file, update with new value is failed:");
+  LOG_ERROR("Field " << fieldName << " is not found in the header file, update with new value is failed:");
   return PLUS_FAIL;
 }
 
@@ -1309,34 +1310,34 @@ PlusStatus vtkPlusNrrdSequenceIO::SetFileName( const std::string& aFilename )
 
   this->FileName = aFilename;
   // Trim whitespace and " characters from the beginning and end of the filename
-  this->FileName.erase(this->FileName.find_last_not_of(" \"\t\r\n")+1);
-  this->FileName.erase(0,this->FileName.find_first_not_of(" \"\t\r\n"));
+  this->FileName.erase(this->FileName.find_last_not_of(" \"\t\r\n") + 1);
+  this->FileName.erase(0, this->FileName.find_first_not_of(" \"\t\r\n"));
 
   // Set pixel data filename at the same time
   std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(this->FileName);
-  if (STRCASECMP(fileExt.c_str(),".nrrd")==0)
+  if (STRCASECMP(fileExt.c_str(), ".nrrd") == 0)
   {
-    this->PixelDataFileName=std::string(""); //empty string denotes local storage
+    this->PixelDataFileName = std::string(""); //empty string denotes local storage
   }
-  else if (STRCASECMP(fileExt.c_str(),".nhdr")==0)
+  else if (STRCASECMP(fileExt.c_str(), ".nhdr") == 0)
   {
-    std::string pixFileName=vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
+    std::string pixFileName = vtksys::SystemTools::GetFilenameWithoutExtension(this->FileName);
     if (this->UseCompression)
     {
-      pixFileName+=".raw.gz";
+      pixFileName += ".raw.gz";
     }
     else
     {
-      pixFileName+=".raw";
+      pixFileName += ".raw";
     }
 
-    this->PixelDataFileName=pixFileName;
+    this->PixelDataFileName = pixFileName;
   }
   else
   {
     LOG_WARNING("Writing sequence file with '" << fileExt << "' extension is not supported. Using nrrd extension instead.");
-    this->FileName+=".nrrd";
-    this->PixelDataFileName=std::string(""); //empty string denotes local storage
+    this->FileName += ".nrrd";
+    this->PixelDataFileName = std::string(""); //empty string denotes local storage
   }
 
   return PLUS_SUCCESS;
@@ -1347,7 +1348,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFr
 {
   if (this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() )
   {
-    this->NumberOfScalarComponents=this->TrackedFrameList->GetNumberOfScalarComponents();
+    this->NumberOfScalarComponents = this->TrackedFrameList->GetNumberOfScalarComponents();
   }
 
   std::stringstream sizesStr;
@@ -1366,7 +1367,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFr
   {
     kindStr << "domain";
     sizesStr << this->Dimensions[i];
-    if( i != numSpaceDimensions-1 )
+    if( i != numSpaceDimensions - 1 )
     {
       kindStr << " ";
       sizesStr << " ";
@@ -1376,15 +1377,37 @@ PlusStatus vtkPlusNrrdSequenceIO::OverwriteNumberOfFramesInHeader(int numberOfFr
   if( numberOfFrames > 1 )
   {
     {
+      // Pad the sizes field
       std::stringstream ss;
       ss << this->Dimensions[3];
-      int numChars = ss.str().length();
-      for( int i = 0; i < SEQUENCE_FIELD_SIZES_NUM_SPACES - numChars; ++ i )
+      int numChars = ss.str().length() + sizesStr.str().length();
+      for( int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i )
       {
         sizesStr << " ";
       }
       sizesStr << this->Dimensions[3];
-      kindStr << " list";
+    }
+
+    // Pad the kinds field
+    int numChars = kindStr.str().length() + std::string(" list").length();
+    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
+    {
+      kindStr << " ";
+    }
+    kindStr << " list";
+  }
+  else
+  {
+    // Pad anyways for any future changes
+    int numChars = sizesStr.str().length();
+    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
+    {
+      sizesStr << " ";
+    }
+    numChars = kindStr.str().length();
+    for (int i = 0; i < SEQUENCE_FIELD_PADDED_LENGTH - numChars; ++i)
+    {
+      kindStr << " ";
     }
   }
 
@@ -1405,39 +1428,39 @@ vtkPlusNrrdSequenceIO::FilePositionOffsetType vtkPlusNrrdSequenceIO::GetFileSize
 //----------------------------------------------------------------------------
 vtkPlusNrrdSequenceIO::NrrdEncoding vtkPlusNrrdSequenceIO::StringToNrrdEncoding(const std::string& encoding)
 {
-  if(encoding.compare("raw")==0)
+  if(encoding.compare("raw") == 0)
   {
     return NRRD_ENCODING_RAW;
   }
-  else if(encoding.compare("txt")==0)
+  else if(encoding.compare("txt") == 0)
   {
     return NRRD_ENCODING_TXT;
   }
-  else if(encoding.compare("text")==0)
+  else if(encoding.compare("text") == 0)
   {
     return NRRD_ENCODING_TEXT;
   }
-  else if(encoding.compare("ascii")==0)
+  else if(encoding.compare("ascii") == 0)
   {
     return NRRD_ENCODING_ASCII;
   }
-  else if(encoding.compare("hex")==0)
+  else if(encoding.compare("hex") == 0)
   {
     return NRRD_ENCODING_HEX;
   }
-  else if(encoding.compare("gz")==0)
+  else if(encoding.compare("gz") == 0)
   {
     return NRRD_ENCODING_GZ;
   }
-  else if(encoding.compare("gzip")==0)
+  else if(encoding.compare("gzip") == 0)
   {
     return NRRD_ENCODING_GZIP;
   }
-  else if(encoding.compare("bz2")==0)
+  else if(encoding.compare("bz2") == 0)
   {
     return NRRD_ENCODING_BZ2;
   }
-  else if(encoding.compare("bzip2")==0)
+  else if(encoding.compare("bzip2") == 0)
   {
     return NRRD_ENCODING_BZIP2;
   }
