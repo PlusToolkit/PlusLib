@@ -14,7 +14,7 @@ SET(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-OPTION(PLUSBUILD_OFFLINE_BUILD "Build Plus without internet connection. All libraries must be downloaded and updated manually." OFF)
+OPTION(PLUSBUILD_OFFLINE_BUILD "Build Plus without an internet connection. All libraries must be downloaded and updated manually." OFF)
 MARK_AS_ADVANCED(PLUSBUILD_OFFLINE_BUILD)
 
 IF (PLUSBUILD_OFFLINE_BUILD)
