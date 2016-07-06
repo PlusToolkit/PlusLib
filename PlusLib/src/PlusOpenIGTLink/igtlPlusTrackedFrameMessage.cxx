@@ -45,7 +45,7 @@ igtl::MessageBase::Pointer PlusTrackedFrameMessage::Clone()
   }
 
 #if OpenIGTLink_HEADER_VERSION >= 2
-  msg->m_MetaDataHeader = this->m_MetaDataHeader;
+  msg->m_MetaDataHeaderEntries = this->m_MetaDataHeaderEntries;
   msg->m_MetaDataMap = this->m_MetaDataMap;
   msg->m_IsExtendedHeaderUnpacked = this->m_IsExtendedHeaderUnpacked;
 #endif
