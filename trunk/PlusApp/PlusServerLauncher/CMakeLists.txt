@@ -52,10 +52,10 @@ INCLUDE_DIRECTORIES(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 # Build the library
 
 SET (PlusServerLauncher_LIBS 
-    ${PlusServerLauncher_LIBS} 
-    ${QT_LIBRARIES} 
+    ${QT_LIBRARIES}
+    ${VTK_LIBRARIES}
     PlusCommonWidgets
-    vtkPlusServer    
+    vtkPlusServer
     )
 
 SET (APP_MODE "")
@@ -65,7 +65,7 @@ IF(${WIN32})
 ENDIF()
 
 ADD_EXECUTABLE( PlusServerLauncher ${APP_MODE} ${PlusServerLauncher_SRCS} ${PlusServerLauncher_UI_HDRS} ${PlusServerLauncher_UI_SRCS} ${PlusServerLauncher_QT_Resources})
-TARGET_LINK_LIBRARIES( PlusServerLauncher ${VTK_LIBRARIES} ${PlusServerLauncher_LIBS} )
+TARGET_LINK_LIBRARIES( PlusServerLauncher ${PlusServerLauncher_LIBS} )
 
 # --------------------------------------------------------------------------
 # Install
