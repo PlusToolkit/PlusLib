@@ -39,7 +39,7 @@ ELSE(OpenIGTLink_DIR)
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/IGSIO/OpenIGTLink.git"
-    GIT_TAG "e13a7bbc28ddc6404d7d908320110221ee398081"
+    GIT_TAG "c4fee7d697e81e308da1a7f2da283b2e950f3d5e"
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
