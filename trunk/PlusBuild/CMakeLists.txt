@@ -259,7 +259,7 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 #-----------------------------------------------------------------------------
 SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
 IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
-  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql QUIET)
 
   IF ( NOT Qt5_FOUND )
     FIND_PACKAGE(Qt4 QUIET)
@@ -269,7 +269,6 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     ENDIF()
 
     GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-    GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
     SET(ep_qt_args
       -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
       )
@@ -279,15 +278,19 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     SET(QT_VERSION_PATCH ${Qt5Core_VERSION_PATCH})
     SET(QT_VERSION ${Qt5Core_VERSION})
     GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
-    GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
     SET(ep_qt_args
       -DQt5_DIR:PATH=${Qt5_DIR}
-      -DQt5Widgets_DIR:PATH=${Qt5_DIR}Widgets
-      -DQt5Designer_DIR:PATH=${Qt5_DIR}Designer
-      -DQt5OpenGL_DIR:PATH=${Qt5_DIR}OpenGL
-      -DQt5Sql_DIR:PATH=${Qt5_DIR}Sql
-      -DQt5WebKitWidgets_DIR:PATH=${Qt5_DIR}WebKitWidgets
+      -DQt5Widgets_DIR:PATH=${Qt5Widgets_DIR}
+      -DQt5Designer_DIR:PATH=${Qt5Designer_DIR}
+      -DQt5OpenGL_DIR:PATH=${Qt5OpenGL_DIR}
+      -DQt5Sql_DIR:PATH=${Qt5Sql_DIR}
       )
+    # WebKitWidgets does not exist in Qt 5.6.0 and later
+    IF(QT_VERSION VERSION_LESS 5.6.0)
+      SET(ep_qt_args ${ep_qt_args}
+        -DQt5WebKitWidgets_DIR:PATH=${Qt5_DIR}WebKitWidgets
+        )
+    ENDIF()
   ENDIF()
 ENDIF()
 
