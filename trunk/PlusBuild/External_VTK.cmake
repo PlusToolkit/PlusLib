@@ -188,17 +188,16 @@ ELSE(VTK_DIR)
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
+        ${ep_qt_args}
         ${VTK_VERSION_SPECIFIC_ARGS}
         -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
         -DBUILD_TESTING:BOOL=OFF 
         -DBUILD_EXAMPLES:BOOL=OFF
         -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
         -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
         -DVTK_SMP_IMPLEMENTATION_TYPE:STRING="OpenMP"
         -DVTK_QT_VERSION:STRING=${QT_VERSION_MAJOR}
         -DVTK_WRAP_PYTHON:BOOL=OFF
-        -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""

@@ -257,6 +257,7 @@ SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 #-----------------------------------------------------------------------------
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
+SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
 IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
   FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
 
@@ -264,11 +265,14 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     FIND_PACKAGE(Qt4 QUIET)
 
     IF ( NOT Qt4_FOUND)
-      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE (Qt4) or CMAKE_PREFIX_PATH (Qt5) or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp but Qt was not found. Please specify QT_QMAKE_EXECUTABLE (for Qt4) or Qt5_DIR (for Qt5) or turn off PLUSBUILD_BUILD_PLUSAPP option.")
     ENDIF()
 
     GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
     GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
+    SET(ep_qt_args
+      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
+      )
   ELSE()
     SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR})
     SET(QT_VERSION_MINOR ${Qt5Core_VERSION_MINOR})
@@ -276,6 +280,14 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
     SET(QT_VERSION ${Qt5Core_VERSION})
     GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
     GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
+    SET(ep_qt_args
+      -DQt5_DIR:PATH=${Qt5_DIR}
+      -DQt5Widgets_DIR:PATH=${Qt5_DIR}Widgets
+      -DQt5Designer_DIR:PATH=${Qt5_DIR}Designer
+      -DQt5OpenGL_DIR:PATH=${Qt5_DIR}OpenGL
+      -DQt5Sql_DIR:PATH=${Qt5_DIR}Sql
+      -DQt5WebKitWidgets_DIR:PATH=${Qt5_DIR}WebKitWidgets
+      )
   ENDIF()
 ENDIF()
 
