@@ -188,6 +188,7 @@ public:
 
   /*! Get US_IMAGE_TYPE enum value from string */
   static US_IMAGE_TYPE GetUsImageTypeFromString( const char* imgTypeStr );
+  static US_IMAGE_TYPE GetUsImageTypeFromString(const std::string& imgTypeStr);
 
   /*! Get US_IMAGE_TYPE string value from enum */
   static const char* GetStringFromUsImageType(US_IMAGE_TYPE imgType);

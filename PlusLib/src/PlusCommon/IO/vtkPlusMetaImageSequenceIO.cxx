@@ -1229,9 +1229,9 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
 
   // open in read+write
 #if _MSC_VER <= 1500
-  std::fstream stream(this->TempHeaderFileName.c_str(), std::ios::in | std::ios::out);
+  std::fstream stream( this->TempHeaderFileName.c_str(), std::ios::in | std::ios::out | std::ios::binary);
 #else
-  std::fstream stream(this->TempHeaderFileName, std::ios::in | std::ios::out);
+  std::fstream stream( this->TempHeaderFileName, std::ios::in | std::ios::out | std::ios::binary );
 #endif
 
   if ( !stream )
@@ -1264,14 +1264,15 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
 
       // need to add padding whitespace characters to fully replace the old line
       int paddingCharactersNeeded = SEQMETA_FIELD_PADDED_LINE_LENGTH - newLineStr.str().size();
-      if ( paddingCharactersNeeded < 0 )
-      {
-        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
-        return PLUS_FAIL;
-      }
       for ( int i = 0; i < paddingCharactersNeeded; i++ )
       {
         newLineStr << " ";
+      }
+
+      if ( newLineStr.str().length() != line.length() )
+      {
+        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
+        return PLUS_FAIL;
       }
 
       // rewind to file pointer the first character of the line
