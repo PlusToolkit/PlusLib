@@ -487,22 +487,16 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
     # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
     # They both cannot be enabled at the same time.
     MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
-  ELSE(PLUS_USE_ULTRASONIX_VIDEO)
+  ELSE()
     SET (PLUS_Philips_MAJOR_VERSION 1 CACHE STRING "Set Philips library major version (version: [major].[minor].[patch])")
     SET (PLUS_Philips_MINOR_VERSION 0 CACHE STRING "Set Philips library minor version (version: [major].[minor].[patch])")
     SET (PLUS_Philips_PATCH_VERSION 0 CACHE STRING "Set Philips library patch version (version: [major].[minor].[patch])")
     FIND_PACKAGE(Philips)
     IF( NOT PHILIPS_FOUND )
       MESSAGE( FATAL_ERROR "In order to use the Philips ie33 ultrasound system, the requisite DLLs must be made available. Please verify configuration or turn off PLUS_USE_PHILIPS_3D_ULTRASOUND.")
-    ENDIF(NOT PHILIPS_FOUND)
+    ENDIF()
       MESSAGE( STATUS "To use the Philips devices you must:" )
       MESSAGE( STATUS "1. Register '${CMAKE_CURRENT_BINARY_DIR}/bin/Debug|Release/Stream3d.dll'. If you are using a 32-bit OS, this can be done by running 'regsvr32 Stream3d.dll' in command line. If you are using a 64-bit OS, this can be done by the following procedure. Open the command line in administrator mode (Right click on cmd, choose 'Run as administrator'). Go to directory 'C:/Windows/SysWow64'. Run the regsvr32 command in SysWow64." )
-  ENDIF(PLUS_USE_ULTRASONIX_VIDEO)
-ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
-
-IF( PLUS_USE_OvrvisionPro )
-  IF( MSVC AND NOT ${CMAKE_GENERATOR} MATCHES "Win64" )
-    MESSAGE( FATAL_ERROR "OvrvisionPro can only be used with 64 bit builds." )
   ENDIF()
 ENDIF()
 
@@ -552,15 +546,6 @@ IF(PLUSBUILD_USE_Tesseract)
   INCLUDE(External_Tesseract.cmake)
   LIST(APPEND PlusLib_DEPENDENCIES tesseract)
 ENDIF(PLUSBUILD_USE_Tesseract)
-
-IF(PLUS_USE_OvrvisionPro)
-  INCLUDE(External_OpenCV.cmake)
-  SET(ArUco_DEPENDENCIES OpenCV)
-  INCLUDE(External_ArUco.cmake)
-  SET(OvrvisionPro_DEPENDENCIES OpenCV ArUco)
-  INCLUDE(External_OvrvisionPro.cmake)
-  LIST(APPEND PlusLib_DEPENDENCIES OvrvisionPro)
-ENDIF()
 
 #------------------------------------------------------------------------------
 # Construct a descriptive build name
