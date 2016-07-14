@@ -51,12 +51,13 @@ namespace
 
   static const int MAX_LINE_LENGTH = 1000;
 
-  static const int SEQMETA_FIELD_DIMSIZE_NUM_SPACES = 8;
+  static const int SEQMETA_FIELD_PADDED_LINE_LENGTH = 40;
   static const char* SEQMETA_FIELD_US_IMG_ORIENT = "UltrasoundImageOrientation";
   static const char* SEQMETA_FIELD_US_IMG_TYPE = "UltrasoundImageType";
   static const char* SEQMETA_FIELD_ELEMENT_DATA_FILE = "ElementDataFile";
   static const char* SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL = "LOCAL";
   static const char* SEQMETA_FIELD_DIMSIZE = "DimSize";
+  static const char* SEQMETA_FIELD_KINDS = "Kinds";
   static const char* SEQMETA_FIELD_COMPRESSED_DATA_SIZE = "CompressedDataSize";
 
   static std::string SEQMETA_FIELD_FRAME_FIELD_PREFIX = "Seq_Frame";
@@ -182,129 +183,153 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
 
   fclose( stream );
 
-  const char* binaryDataFieldValue = this->TrackedFrameList->GetCustomString( "BinaryData" );
-  if ( binaryDataFieldValue != NULL )
-  {
-    if( STRCASECMP( binaryDataFieldValue, "true" ) == 0 )
-    {
-      this->IsPixelDataBinary = true;
-    }
-    else
-    {
-      this->IsPixelDataBinary = false;
-    }
-  }
-  else
-  {
-    LOG_WARNING( "BinaryData field has not been found in " << this->FileName << ". Assume binary data." );
-    this->IsPixelDataBinary = true;
-  }
-  if ( !this->IsPixelDataBinary )
-  {
-    LOG_ERROR( "Failed to read " << this->FileName << ". Only binary pixel data (BinaryData=true) reading is supported." );
-    return PLUS_FAIL;
-  }
-
-  if( this->TrackedFrameList->GetCustomString( "CompressedData" ) != NULL
-      && STRCASECMP( this->TrackedFrameList->GetCustomString( "CompressedData" ), "true" ) == 0 )
-  {
-    SetUseCompression( true );
-  }
-  else
-  {
-    SetUseCompression( false );
-  }
-
-  int numberOfScalarComponents = 1;
-  if ( this->TrackedFrameList->GetCustomString( "ElementNumberOfChannels" ) != NULL )
-  {
-    // this field is optional
-    PlusCommon::StringToInt( this->TrackedFrameList->GetCustomString( "ElementNumberOfChannels" ), this->NumberOfScalarComponents );
-  }
-
-  std::string elementTypeStr = this->TrackedFrameList->GetCustomString( "ElementType" );
-  if ( ConvertMetaElementTypeToVtkPixelType( elementTypeStr.c_str(), this->PixelType ) != PLUS_SUCCESS )
-  {
-    LOG_ERROR( "Unknown component type: " << elementTypeStr );
-    return PLUS_FAIL;
-  }
-
   int nDims = 3;
   if ( PlusCommon::StringToInt( this->TrackedFrameList->GetCustomString( "NDims" ), nDims ) == PLUS_SUCCESS )
   {
     if ( nDims != 2 && nDims != 3 && nDims != 4 )
     {
-      LOG_ERROR( "Invalid dimension (shall be 2 or 3 or 4): " << nDims );
+      LOG_ERROR( "Invalid NDims value: " << nDims << ". Valid range is [2,4]." );
       return PLUS_FAIL;
     }
   }
   this->NumberOfDimensions = nDims;
 
-  std::string imgOrientStr = std::string( GetCustomString( SEQMETA_FIELD_US_IMG_ORIENT ) );
-  this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
-
-  const char* imgTypeStr = GetCustomString( SEQMETA_FIELD_US_IMG_TYPE );
-  if ( imgTypeStr == NULL )
+  std::vector<std::string> kinds;
+  if ( this->TrackedFrameList->GetCustomString( SEQMETA_FIELD_KINDS ) != NULL )
   {
-    // if the image type is not defined then assume that it is B-mode image
-    this->ImageType = US_IMG_BRIGHTNESS;
+    PlusCommon::SplitStringIntoTokens( std::string( this->TrackedFrameList->GetCustomString( SEQMETA_FIELD_KINDS ) ), ' ', kinds );
   }
   else
   {
-    this->ImageType = PlusVideoFrame::GetUsImageTypeFromString( imgTypeStr );
+    LOG_WARNING( SEQMETA_FIELD_KINDS << " not found in file: " << this->FileName << ". Treating the last dimension as time." );
+
+    for ( int i = 0; i < this->NumberOfDimensions - 1; i++ )
+    {
+      kinds.push_back( "domain" );
+    }
+    kinds.push_back( "list" );
   }
 
-  // DimSize = 640 480 567, DimSize = 640 480 40 567, DimSize = 640 480
   std::istringstream issDimSize( this->TrackedFrameList->GetCustomString( SEQMETA_FIELD_DIMSIZE ) );
   int dimSize( 0 );
-  for( int i = 0; i < this->NumberOfDimensions - 1; i++ )
+  int spatialDomainCount( 0 );
+  for ( unsigned int i = 0; i < kinds.size(); i++ )
   {
     issDimSize >> dimSize;
-    this->Dimensions[i] = dimSize;
-  }
-
-  issDimSize >> dimSize;
-  if (nDims == 2) // HACK : temporarily assume that 2 dims means a flat 2d image
-  {
-    this->Dimensions[1] = dimSize;
-  }
-  else if( nDims == 3 && imgOrientStr.length() == 3 ) // HACK : erroneously trying to infer dimensionality from string
-  {
-    this->Dimensions[2] = 1;
-    this->Dimensions[3] = dimSize;
-  }
-  else
-  {
-    this->Dimensions[3] = dimSize;
-  }
-
-  // If no specific image orientation is requested then determine it automatically from the image type
-  // B-mode: MF
-  // RF-mode: FM
-  if ( this->ImageOrientationInMemory == US_IMG_ORIENT_XX )
-  {
-    switch ( this->ImageType )
+    if ( kinds[i].compare( "domain" ) == 0 )
     {
-    case US_IMG_BRIGHTNESS:
-    case US_IMG_RGB_COLOR:
-      this->SetImageOrientationInMemory( US_IMG_ORIENT_MF );
-      break;
-    case US_IMG_RF_I_LINE_Q_LINE:
-    case US_IMG_RF_IQ_LINE:
-    case US_IMG_RF_REAL:
-      this->SetImageOrientationInMemory( US_IMG_ORIENT_FM );
-      break;
-    default:
-      if ( this->Dimensions[0] == 0 && this->Dimensions[1] == 0 && this->Dimensions[2] == 1 )
+      if ( spatialDomainCount == 3 && dimSize > 1 ) // 0-indexed, this is the 4th spatial domain
       {
-        LOG_DEBUG( "Only tracking data is available in the metafile" );
+        LOG_ERROR( "PLUS supports up to 3 spatial domains. File: " << this->FileName << " contains more than 3." );
+        return PLUS_FAIL;
+      }
+      this->Dimensions[spatialDomainCount] = dimSize;
+      spatialDomainCount++;
+    }
+    else if ( kinds[i].compare( "time" ) == 0 || kinds[i].compare( "list" ) == 0 ) // time = resampling ok, list = resampling not ok
+    {
+      this->Dimensions[3] = dimSize;
+    }
+  }
+
+  // Post process to handle setting 3rd dimension to 0 if there is no image data in the file
+  if ( this->Dimensions[0] == 0 || this->Dimensions[1] == 0 )
+  {
+    this->Dimensions[2] = 0;
+  }
+
+  // Only check image related settings if dimensions are not 0 0 0
+  if ( this->Dimensions[0] != 0 && this->Dimensions[1] != 0 && this->Dimensions[2] != 0 )
+  {
+    std::string imgOrientStr = std::string( GetCustomString( SEQMETA_FIELD_US_IMG_ORIENT ) );
+    this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
+
+    const char* imgTypeStr = GetCustomString( SEQMETA_FIELD_US_IMG_TYPE );
+    if ( imgTypeStr == NULL )
+    {
+      // if the image type is not defined then assume that it is B-mode image
+      this->ImageType = US_IMG_BRIGHTNESS;
+    }
+    else
+    {
+      this->ImageType = PlusVideoFrame::GetUsImageTypeFromString( imgTypeStr );
+    }
+
+    const char* binaryDataFieldValue = this->TrackedFrameList->GetCustomString( "BinaryData" );
+    if ( binaryDataFieldValue != NULL )
+    {
+      if ( STRCASECMP( binaryDataFieldValue, "true" ) == 0 )
+      {
+        this->IsPixelDataBinary = true;
       }
       else
       {
-        LOG_WARNING( "Cannot determine image orientation automatically, unknown image type " <<
-                     ( imgTypeStr ? imgTypeStr : "(undefined)" ) << ", use the same orientation in memory as in the file" );
+        this->IsPixelDataBinary = false;
       }
-      this->SetImageOrientationInMemory( this->ImageOrientationInFile );
+    }
+    else
+    {
+      LOG_WARNING( "BinaryData field has not been found in " << this->FileName << ". Assume binary data." );
+      this->IsPixelDataBinary = true;
+    }
+    if ( !this->IsPixelDataBinary )
+    {
+      LOG_ERROR( "Failed to read " << this->FileName << ". Only binary pixel data (BinaryData=true) reading is supported." );
+      return PLUS_FAIL;
+    }
+
+    if ( this->TrackedFrameList->GetCustomString( "CompressedData" ) != NULL
+         && STRCASECMP( this->TrackedFrameList->GetCustomString( "CompressedData" ), "true" ) == 0 )
+    {
+      SetUseCompression( true );
+    }
+    else
+    {
+      SetUseCompression( false );
+    }
+
+    int numberOfScalarComponents = 1;
+    if ( this->TrackedFrameList->GetCustomString( "ElementNumberOfChannels" ) != NULL )
+    {
+      // this field is optional
+      PlusCommon::StringToInt( this->TrackedFrameList->GetCustomString( "ElementNumberOfChannels" ), this->NumberOfScalarComponents );
+    }
+
+    std::string elementTypeStr = this->TrackedFrameList->GetCustomString( "ElementType" );
+    if ( ConvertMetaElementTypeToVtkPixelType( elementTypeStr.c_str(), this->PixelType ) != PLUS_SUCCESS )
+    {
+      LOG_ERROR( "Unknown component type: " << elementTypeStr );
+      return PLUS_FAIL;
+    }
+
+    // If no specific image orientation is requested then determine it automatically from the image type
+    // B-mode: MF
+    // RF-mode: FM
+    if ( this->ImageOrientationInMemory == US_IMG_ORIENT_XX )
+    {
+      switch ( this->ImageType )
+      {
+      case US_IMG_BRIGHTNESS:
+      case US_IMG_RGB_COLOR:
+        this->SetImageOrientationInMemory( US_IMG_ORIENT_MF );
+        break;
+      case US_IMG_RF_I_LINE_Q_LINE:
+      case US_IMG_RF_IQ_LINE:
+      case US_IMG_RF_REAL:
+        this->SetImageOrientationInMemory( US_IMG_ORIENT_FM );
+        break;
+      default:
+        if ( this->Dimensions[0] == 0 && this->Dimensions[1] == 0 && this->Dimensions[2] == 1 )
+        {
+          LOG_DEBUG( "Only tracking data is available in the metafile" );
+        }
+        else
+        {
+          LOG_WARNING( "Cannot determine image orientation automatically, unknown image type " <<
+                       ( imgTypeStr ? imgTypeStr : "(undefined)" ) << ", use the same orientation in memory as in the file" );
+        }
+        this->SetImageOrientationInMemory( this->ImageOrientationInFile );
+      }
     }
   }
 
@@ -594,7 +619,13 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
   if ( GetUseCompression() )
   {
     SetCustomString( "CompressedData", "True" );
-    SetCustomString( SEQMETA_FIELD_COMPRESSED_DATA_SIZE, "0                " ); // add spaces so that later the field can be updated with larger values
+    int paddingCharacters = SEQMETA_FIELD_PADDED_LINE_LENGTH - strlen( SEQMETA_FIELD_COMPRESSED_DATA_SIZE ) - 4;
+    std::string compDataSize( "0" );
+    for ( int i = 0; i < paddingCharacters; ++i )
+    {
+      compDataSize += " ";
+    }
+    SetCustomString( SEQMETA_FIELD_COMPRESSED_DATA_SIZE, compDataSize ); // add spaces so that later the field can be updated with larger values
   }
   else
   {
@@ -1186,7 +1217,8 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
 {
   if( fieldName == NULL )
   {
-    return PLUS_SUCCESS;
+    LOG_ERROR( "NULL fieldname sent to vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader" );
+    return PLUS_FAIL;
   }
 
   if ( this->TempHeaderFileName.empty() )
@@ -1195,30 +1227,27 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
     return PLUS_FAIL;
   }
 
-  FILE* stream = NULL;
-  // open in read+write binary mode
-  if ( FileOpen( &stream, this->TempHeaderFileName.c_str(), "r+b" ) != PLUS_SUCCESS )
+  // open in read+write
+  std::fstream stream( this->TempHeaderFileName, std::ios::in | std::ios::out | std::ios::binary );
+
+  if ( !stream )
   {
     LOG_ERROR( "The file " << this->TempHeaderFileName << " could not be opened for reading and writing" );
     return PLUS_FAIL;
   }
 
-  fseek( stream, 0, SEEK_SET );
-
-  char line[MAX_LINE_LENGTH + 1] = {0};
-  while ( fgets( line, MAX_LINE_LENGTH, stream ) )
+  std::string line;
+  while ( std::getline( stream, line ) )
   {
-    std::string lineStr = line;
-
     // Split line into name and value
     size_t equalSignFound;
-    equalSignFound = lineStr.find_first_of( "=" );
+    equalSignFound = line.find_first_of( "=" );
     if ( equalSignFound == std::string::npos )
     {
-      LOG_WARNING( "Parsing line failed, equal sign is missing (" << lineStr << ")" );
+      LOG_WARNING( "Parsing line failed, equal sign is missing (" << line << ")" );
       continue;
     }
-    std::string name = lineStr.substr( 0, equalSignFound );
+    std::string name = line.substr( 0, equalSignFound );
     PlusCommon::Trim( name );
 
     if ( name.compare( fieldName ) == 0 )
@@ -1228,47 +1257,38 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
       // construct a new line with the updated value
       std::ostringstream newLineStr;
       newLineStr << name << " = " << GetCustomString( name.c_str() );
+
       // need to add padding whitespace characters to fully replace the old line
-      // the -1 is to account for the difference in \n in lineStr vs no \n in newLineStr (yet)
-      int paddingCharactersNeeded = lineStr.size() - newLineStr.str().size() - 1;
+      int paddingCharactersNeeded = SEQMETA_FIELD_PADDED_LINE_LENGTH - newLineStr.str().size();
       if ( paddingCharactersNeeded < 0 )
       {
-        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << lineStr << "')" );
-        fclose( stream );
+        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
         return PLUS_FAIL;
       }
       for ( int i = 0; i < paddingCharactersNeeded; i++ )
       {
         newLineStr << " ";
       }
+
       // rewind to file pointer the first character of the line
-      int size = lineStr.size();
-      fseek( stream, -size, SEEK_CUR );
+      stream.seekp( -std::ios::off_type( line.size() ) - 1, std::ios_base::cur );
 
       // overwrite the old line
-      if ( fwrite( newLineStr.str().c_str(), 1, newLineStr.str().size(), stream ) != newLineStr.str().size() )
+      if ( !( stream << newLineStr.str() ) )
       {
         LOG_ERROR( "Cannot update line in image header (writing the updated line into the file failed)" );
-        fclose( stream );
         return PLUS_FAIL;
       }
 
-      fclose( stream );
       return PLUS_SUCCESS;
     }
-
-    if ( ferror( stream ) )
+    else if ( name.compare( SEQMETA_FIELD_ELEMENT_DATA_FILE ) == 0 )
     {
-      LOG_ERROR( "Error reading the file " << this->FileName );
-      break;
-    }
-    if ( feof( stream ) )
-    {
+      // this is guaranteed to be the last line in the header
       break;
     }
   }
 
-  fclose( stream );
   LOG_ERROR( "Field " << fieldName << " is not found in the header file, update with new value is failed:" );
   return PLUS_FAIL;
 }
@@ -1277,6 +1297,12 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
 const char* vtkPlusMetaImageSequenceIO::GetDimensionSizeString()
 {
   return SEQMETA_FIELD_DIMSIZE;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkPlusMetaImageSequenceIO::GetDimensionKindsString()
+{
+  return SEQMETA_FIELD_KINDS;
 }
 
 //----------------------------------------------------------------------------
@@ -1359,36 +1385,64 @@ PlusStatus vtkPlusMetaImageSequenceIO::SetFileName( const std::string& aFilename
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMetaImageSequenceIO::GenerateFrameSizeCustomStrings( int numberOfFrames, bool isData3D )
 {
-  std::stringstream dimSizeStr;
-  this->Dimensions[3] = numberOfFrames;
-  dimSizeStr << this->Dimensions[0] << " " << this->Dimensions[1];
-  if( isData3D || ( !isData3D && this->Output2DDataWithZDimensionIncluded ) )
+  if ( this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() )
   {
-    dimSizeStr << " " << this->Dimensions[2];
+    this->NumberOfScalarComponents = this->TrackedFrameList->GetNumberOfScalarComponents();
   }
 
-  if( numberOfFrames > 1 )
+  std::stringstream sizesStr;
+  std::stringstream kindStr;
+
+  if ( this->NumberOfScalarComponents > 1 )
   {
-    {
-      std::stringstream ss;
-      ss << this->Dimensions[3];
-      int numChars = ss.str().length();
-      for( int i = 0; i < SEQMETA_FIELD_DIMSIZE_NUM_SPACES - numChars; ++ i )
-      {
-        dimSizeStr << " ";
-      }
-      dimSizeStr << this->Dimensions[3];
-    }
+    sizesStr << this->NumberOfScalarComponents << " ";
+    kindStr << "vector" << " ";
+  }
+
+  int entries = ( isData3D ? 3 : 2 ) + ( numberOfFrames > 1 ? 1 : 0 );
+
+  this->Dimensions[3] = numberOfFrames;
+  // Write out all but the last entry
+  for ( int i = 0; i < entries - 1; ++i )
+  {
+    kindStr << "domain" << " ";
+    sizesStr << this->Dimensions[i] << " ";
+  }
+
+  // pad kind string with spaces then append last entry
+  int lastDimension = ( numberOfFrames > 1 ? 3 : ( isData3D ? 2 : 1 ) );
+  std::string lastKind;
+  if ( numberOfFrames > 1 )
+  {
+    lastKind = "list";
   }
   else
   {
-    for( int i = 0; i < SEQMETA_FIELD_DIMSIZE_NUM_SPACES; ++ i )
-    {
-      dimSizeStr << " ";
-    }
+    lastKind = "domain";
   }
 
-  this->SetCustomString( SEQMETA_FIELD_DIMSIZE, dimSizeStr.str().c_str() );
+  {
+    std::stringstream ss;
+    ss << this->Dimensions[lastDimension];
+    // strlen(SEQUENCE_FIELD_SIZES) + 2 for "DimSize = "
+    int numchars = sizesStr.str().length() + ss.str().length() + strlen( SEQMETA_FIELD_DIMSIZE ) + 3;
+    for ( int i = 0; i < SEQMETA_FIELD_PADDED_LINE_LENGTH - numchars; ++i )
+    {
+      sizesStr << " ";
+    }
+    sizesStr << this->Dimensions[lastDimension];
+  }
+
+  // strlen(SEQUENCE_FIELD_SIZES) + 3 for "Kinds = "
+  int numchars = kindStr.str().length() + lastKind.length() + strlen( SEQMETA_FIELD_KINDS ) + 3;
+  for ( int i = 0; i < SEQMETA_FIELD_PADDED_LINE_LENGTH - numchars; ++i )
+  {
+    kindStr << " ";
+  }
+  kindStr << lastKind;
+
+  this->SetCustomString( SEQMETA_FIELD_DIMSIZE, sizesStr.str() );
+  this->SetCustomString( SEQMETA_FIELD_KINDS, kindStr.str() );
 
   return PLUS_SUCCESS;
 }

@@ -214,7 +214,8 @@ Seq_Frame0198_ToolToTrackerTransform = 1 0 0 1.27617 0 1 0 2.9949 0 0 1 -68.8926
 Seq_Frame0199_ToolToTrackerTransform = 1 0 0 1.25779 0 1 0 2.95176 0 0 1 -67.9004 0 0 0 1
 Seq_Frame0200_ToolToTrackerTransform = 1 0 0 1.23153 0 1 0 2.89014 0 0 1 -66.4828 0 0 0 1
 UltrasoundImageOrientation = MFA
-DimSize = 640 480 201
+DimSize = 640 480 201              
+Kinds = domain domain list
 ElementType = MET_UCHAR
 ElementDataFile = LOCAL
 xœì½WT_ßï·öŒz*€$z5¦™6`Šé½÷ÞÁ¦cš$$Ñ1½—¿6MÂÿÿóœ\$7¹>ç¬¼ÉÉEr‘•‹ä$''Ïyó^•‹œ•al\@ÂHÈû³–F3[ÒOßùþöþÍÞ @ ä;Äýï>„€’K| @\Ÿïé?•1X…Ûû]üÀÅZî]óô¨àÉÇ½Gwuº?¢S7Ú¨. PÚçýP·žxzé‹í^2ÕÔºiXƒ¯UØû@Ë ¥áÕöc	×^¤Ð$‡„ØNÌ¤÷ºgî’áqg’Ÿ" Ôœà¯Gˆ^L¥Ú¬Õe­îkµÚÝÇûG›½ƒŠûè‡ça( W¾Ù{æ‹ýžüŒœç­¼ËµÐª{À5d)°*^oF¡ˆËöÞ‘î¨’8…#, üžµ[GŽÕ?Û{æ U¨Ý}FwµÇo"®ô-º&ÐÀÙÀo|³œ7ò&ùñV2™œù,ŽdêfÝ$Nz8õwÚ‘š_ÿM¼šaŸÌ<ZÊFYÍtÍ{å‰•~GºjÌˆŸîª<åZÿêõÒé!’×v*;>öpï-÷òîOÊ4šè©iW ÈAò ìÏ5k!ÒÎ>9eûcðÊìK6Rü´×5l)”Ñ´×5LvNÎ{•S‘Bü’a6ÜÛ…Ìð”‰‡Ë'Ç½2

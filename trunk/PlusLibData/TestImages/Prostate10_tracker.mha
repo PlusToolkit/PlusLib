@@ -61,7 +61,8 @@ Seq_Frame0009_ToolToTrackerTransformStatus = OK
 Seq_Frame0009_Timestamp = 5.5
 Seq_Frame0009_ToolToTrackerTransform = -0.201071 -0.973876 0.105558 231.725 0.374602 -0.176217 -0.910271 -45.0949 0.905029 -0.143353 0.400239 -23.7923 0 0 0 1 
 Seq_Frame0009_UnfilteredTimestamp = 5.5
-DimSize = 1 1 10
+DimSize = 1 1 10              
+Kinds = domain domain list
 ElementType = MET_UCHAR
 ElementDataFile = LOCAL
 0000000000

@@ -1213,7 +1213,8 @@ Seq_Frame0199_ProbeRotation = -30.1288
 Seq_Frame0199_TemplatePosition = 0
 Seq_Frame0199_Timestamp = 019.9
 UltrasoundImageOrientation = MN
-DimSize = 640 480 200
+DimSize = 640 480 200              
+Kinds = domain domain list
 ElementType = MET_UCHAR
 ElementDataFile = LOCAL
 xœìÝ|É½8ðÏìªwY–,÷Þ{ï6.¸âØÆÝcšØpï0˜jz7½÷ã

@@ -65,8 +65,8 @@ public:
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString();
 
-    /*! Return NULL */
-  virtual const char* GetDimensionKindsString(){return NULL;}
+    /*! Return the string that represents the dimensional kinds */
+  virtual const char* GetDimensionKindsString();
 
   /*!
     Set input/output file name. The file contains only the image header in case of
