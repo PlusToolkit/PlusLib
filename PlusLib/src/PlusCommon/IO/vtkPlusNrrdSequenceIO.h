@@ -11,7 +11,7 @@
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
-#endif 
+#endif
 
 #include "vtkPlusSequenceIOBase.h"
 #include "vtk_zlib.h"
@@ -32,30 +32,30 @@ class vtkPlusCommonExport vtkPlusNrrdSequenceIO : public vtkPlusSequenceIOBase
     NRRD_ENCODING_TEXT = NRRD_ENCODING_TXT,
     NRRD_ENCODING_ASCII = NRRD_ENCODING_TXT,
     NRRD_ENCODING_HEX,
-    NRRD_ENCODING_GZ, 
+    NRRD_ENCODING_GZ,
     NRRD_ENCODING_GZIP = NRRD_ENCODING_GZ,
     NRRD_ENCODING_BZ2,
     NRRD_ENCODING_BZIP2 = NRRD_ENCODING_BZ2
   };
 
-  static std::string EncodingToString(NrrdEncoding encoding);
+  static std::string EncodingToString( NrrdEncoding encoding );
 
 public:
-  static vtkPlusNrrdSequenceIO *New();
-  vtkTypeMacro(vtkPlusNrrdSequenceIO, vtkPlusSequenceIOBase);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkPlusNrrdSequenceIO* New();
+  vtkTypeMacro( vtkPlusNrrdSequenceIO, vtkPlusSequenceIOBase );
+  virtual void PrintSelf( ostream& os, vtkIndent indent );
 
-  /*! Update the number of frames in the header 
+  /*! Update the number of frames in the header
       This is used primarily by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
       /param dimensions number of dimensions in the data
       /param isData3D is the data 3D or 2D?
   */
-  virtual PlusStatus GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D);
+  virtual PlusStatus GenerateFrameSizeCustomStrings( int numberOfFrames, bool isData3D );
 
-  /*! 
+  /*!
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
-    in the header the image data related fields. 
+    in the header the image data related fields.
   */
   virtual PlusStatus AppendImagesToHeader();
 
@@ -66,13 +66,13 @@ public:
   virtual PlusStatus Close();
 
   /*! Check if this class can read the specified file */
-  static bool CanReadFile(const std::string& filename);
+  static bool CanReadFile( const std::string& filename );
 
   /*! Check if this class can write the specified file */
-  static bool CanWriteFile(const std::string& filename);
+  static bool CanWriteFile( const std::string& filename );
 
   /*! Update a field in the image header with its current value */
-  virtual PlusStatus UpdateFieldInImageHeader(const char* fieldName);
+  virtual PlusStatus UpdateFieldInImageHeader( const char* fieldName );
 
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString();
@@ -84,7 +84,7 @@ public:
     Set input/output file name. The file contains only the image header in case of
     nhdr images and the full image (including pixel data) in case of nrrd images.
   */
-  virtual PlusStatus SetFileName(const std::string& aFilename);
+  virtual PlusStatus SetFileName( const std::string& aFilename );
 
 protected:
   vtkPlusNrrdSequenceIO();
@@ -102,26 +102,26 @@ protected:
   /*! Write all the fields to the image file header */
   virtual PlusStatus OpenImageHeader();
 
-  /*! 
-    Writes the compressed pixel data directly into file. 
+  /*!
+    Writes the compressed pixel data directly into file.
     The compression is performed in chunks, so no excessive memory is used for the compression.
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(int &compressedDataSize);
+  virtual PlusStatus WriteCompressedImagePixelsToFile( int& compressedDataSize );
 
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertNrrdTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
+  PlusStatus ConvertNrrdTypeToVtkPixelType( const std::string& elementTypeStr, PlusCommon::VTKScalarPixelType& vtkPixelType );
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertVtkPixelTypeToNrrdType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
+  PlusStatus ConvertVtkPixelTypeToNrrdType( PlusCommon::VTKScalarPixelType vtkPixelType, std::string& elementTypeStr );
 
   /*! Return the size of a file */
-  static FilePositionOffsetType GetFileSize(const std::string& filename);
+  static FilePositionOffsetType GetFileSize( const std::string& filename );
 
   /*! Convert a string to an encoding */
-  static NrrdEncoding StringToNrrdEncoding(const std::string& encoding);
+  static NrrdEncoding StringToNrrdEncoding( const std::string& encoding );
 
   /*! Convert an encoding to a string*/
-  static std::string NrrdEncodingToString(NrrdEncoding encoding);
+  static std::string NrrdEncodingToString( NrrdEncoding encoding );
 
 protected:
   /*! Nrrd encoding type */
@@ -131,8 +131,8 @@ protected:
   gzFile CompressionStream;
 
 private:
-  vtkPlusNrrdSequenceIO(const vtkPlusNrrdSequenceIO&); //purposely not implemented
-  void operator=(const vtkPlusNrrdSequenceIO&); //purposely not implemented
+  vtkPlusNrrdSequenceIO( const vtkPlusNrrdSequenceIO& ); //purposely not implemented
+  void operator=( const vtkPlusNrrdSequenceIO& ); //purposely not implemented
 };
 
 #endif // __vtkPlusNrrdSequenceIO_h 
