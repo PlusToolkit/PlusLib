@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>280</width>
-    <height>327</height>
+    <width>321</width>
+    <height>403</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,18 +43,6 @@
      </property>
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>325</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -62,21 +50,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_OpenConfigurationDirectory">
-       <property name="minimumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
        <property name="toolTip">
         <string>Select other device set configuration directory</string>
        </property>
@@ -87,31 +60,10 @@
         <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_RefreshFolder">
-       <property name="minimumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
-       </property>
        <property name="toolTip">
         <string>Refresh device set list from currently selected configuration directory</string>
        </property>
@@ -166,12 +118,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_Connect">
-       <property name="minimumSize">
-        <size>
-         <width>90</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="text">
         <string>Connect</string>
        </property>
@@ -196,12 +142,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_ResetTracker">
-       <property name="minimumSize">
-        <size>
-         <width>90</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="text">
         <string>Reset Tracker</string>
        </property>
@@ -231,10 +171,20 @@
       <number>1</number>
      </property>
      <item>
-      <widget class="QPushButton" name="pushButton_EditConfiguration">
-       <property name="focusPolicy">
-        <enum>Qt::NoFocus</enum>
+      <widget class="QComboBox" name="comboBox_DeviceSet">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
+       <property name="maxVisibleItems">
+        <number>35</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_EditConfiguration">
        <property name="toolTip">
         <string>Edit configuration file</string>
        </property>
@@ -244,19 +194,6 @@
        <property name="icon">
         <iconset resource="PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_DeviceSet">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maxVisibleItems">
-        <number>35</number>
        </property>
       </widget>
      </item>

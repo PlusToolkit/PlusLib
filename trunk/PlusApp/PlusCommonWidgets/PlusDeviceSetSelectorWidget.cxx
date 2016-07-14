@@ -38,6 +38,11 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
 {
   ui.setupUi(this);
 
+  // Make the directory and configuration selector textbox/combobox the same height as the pushbuttons
+  // to make the layout nicer (they are shown in the same row, so it does not look nice if their height is different)
+  ui.lineEdit_ConfigurationDirectory->setFixedHeight(ui.pushButton_OpenConfigurationDirectory->sizeHint().height());
+  ui.comboBox_DeviceSet->setFixedHeight(ui.pushButton_EditConfiguration->sizeHint().height());
+
   ui.pushButton_EditConfiguration->setContextMenuPolicy(Qt::CustomContextMenu);
 
   connect( ui.pushButton_OpenConfigurationDirectory, SIGNAL( clicked() ), this, SLOT( OpenConfigurationDirectory() ) );
