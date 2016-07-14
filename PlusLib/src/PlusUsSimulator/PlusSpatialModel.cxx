@@ -277,6 +277,10 @@ void PlusSpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensit
   if (transmittedIntensity>MINIMUM_BEAM_INTENSITY)
   {
     numberOfIterationsToReachMinimumBeamIntensity=std::min<int>(numberOfFilledPixels, floor(log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay))+1);
+    if (numberOfIterationsToReachMinimumBeamIntensity < 0) // may happen when AttenuationCoefficientDbPerCmMhz is close to 0
+    {
+      numberOfIterationsToReachMinimumBeamIntensity = 0;
+    }
     double backScatterFactor = transmittedIntensity * intensityAttenuatedFractionPerPixel * this->BackscatterDiffuseReflectionCoefficient / intensityTransmittedFractionPerPixelTwoWay;
     for(int currentPixelInFilledPixels = 0; currentPixelInFilledPixels<numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++)  
     {
