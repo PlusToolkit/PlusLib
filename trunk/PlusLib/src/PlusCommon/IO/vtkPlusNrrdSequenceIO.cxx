@@ -1170,7 +1170,11 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
   }
 
   // open in read+write
+#if _MSC_VER <= 1500
+  std::fstream stream(this->TempHeaderFileName.c_str(), std::ios::in | std::ios::out);
+#else
   std::fstream stream(this->TempHeaderFileName, std::ios::in | std::ios::out);
+#endif
 
   if (!stream)
   {
