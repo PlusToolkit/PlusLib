@@ -16,6 +16,7 @@ See License.txt for details.
 
 static const char QUALITY_PORT_NAME_1[]="quality1";
 static const char QUALITY_PORT_NAME_2[]="quality2";
+static const char QUALITY_PORT_NAME_3[] = "quality3";
 
 static const char PROP_QUALITY_ERROR_SLOPE[]="QualityErrorSlope";
 static const char PROP_QUALITY_ERROR_OFFSET[]="QualityErrorOffset";
@@ -347,7 +348,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalUpdate()
   // Scan the sensors and request a record if the sensor is physically attached
   for(int sensorIndex=0;sensorIndex<sysConfig.numberSensors;sensorIndex++)
   {
-    if(SensorAttached[sensorIndex])
+    if(this->SensorAttached[sensorIndex])
     {
       // sensor attached so get record
       if (this->CheckReturnStatus( GetAsynchronousRecord(sensorIndex, record+sensorIndex, sizeof(*record)) ) != PLUS_SUCCESS)
@@ -371,7 +372,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalUpdate()
   std::vector<unsigned short> qualityValues(sysConfig.numberSensors,0);
   for ( unsigned short sensorIndex = 0; sensorIndex < sysConfig.numberSensors; ++ sensorIndex )
   {
-    if ( ! SensorAttached [ sensorIndex ] )
+    if (!this->SensorAttached[sensorIndex])
     {
       // Sensor disabled because it was not defined in the configuration file
       continue; 
@@ -444,6 +445,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalUpdate()
 
   vtkPlusAscension3DGTrackerBase::QualityToolTimeStampedUpdate(QUALITY_PORT_NAME_1, 0, qualityValues, unfilteredTimestamp);
   vtkPlusAscension3DGTrackerBase::QualityToolTimeStampedUpdate(QUALITY_PORT_NAME_2, 3, qualityValues, unfilteredTimestamp);
+  vtkPlusAscension3DGTrackerBase::QualityToolTimeStampedUpdate(QUALITY_PORT_NAME_3, 6, qualityValues, unfilteredTimestamp);
 
   return (numberOfErrors > 0 ? PLUS_FAIL : PLUS_SUCCESS);
 }
@@ -554,7 +556,8 @@ PlusStatus vtkPlusAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement*
 bool vtkPlusAscension3DGTrackerBase::IsQualityPortName(const char* name)
 {
   if (STRCASECMP(name, QUALITY_PORT_NAME_1)==0
-    || STRCASECMP(name, QUALITY_PORT_NAME_2)==0)
+    || STRCASECMP(name, QUALITY_PORT_NAME_2)==0
+    || STRCASECMP(name, QUALITY_PORT_NAME_3) == 0)
   {
     return true;
   }
