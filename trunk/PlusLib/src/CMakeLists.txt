@@ -53,6 +53,9 @@ OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS}
 OPTION(PLUS_USE_SIMPLE_TIMER "Use simple timer (not very accurate but more compatible with performance profilers)" OFF)
 MARK_AS_ADVANCED(PLUS_USE_SIMPLE_TIMER)
 
+OPTION (PLUS_TEST_HIGH_ACCURACY_TIMING "Enable testing of high-accuracy timing. High-accuracy timing may not be available on virtual machines and so testing may be turned off to avoid false alarams." ON)
+MARK_AS_ADVANCED(PLUS_TEST_HIGH_ACCURACY_TIMING)
+
 OPTION(PLUS_USE_INTEL_MKL "Use the Intel MKL library (only for image processing)" OFF)
 
 # --------------------------------------------------------------------------
