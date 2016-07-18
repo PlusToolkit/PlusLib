@@ -4,8 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "ChrSerialPacket.h"
 #include "PlusConfigure.h"
+
+#include "ChrSerialPacket.h"
 #include "PlusSerialLine.h"
 #include "vtkPlusChRoboticsTracker.h"
 #include "vtkMatrix4x4.h"

@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include "PlusCivcoBrachyStepper.h"
 #include "SEIDrv32.h"
 #include <sstream>

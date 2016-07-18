@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusConfigure.h"
+
 #include "vtkPlus3dConnexionTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"

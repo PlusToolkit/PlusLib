@@ -4,8 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusBkProFocusCameraLinkReceiver.h"
 #include "PlusConfigure.h"
+
+#include "PlusBkProFocusCameraLinkReceiver.h"
 #include "vtkPlusBkProFocusCameraLinkVideoSource.h"
 #include "vtkImageData.h"
 #include "vtkImageImport.h"

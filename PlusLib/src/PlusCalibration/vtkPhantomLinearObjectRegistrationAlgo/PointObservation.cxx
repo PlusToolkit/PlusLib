@@ -1,3 +1,4 @@
+#include "PlusConfigure.h"
 
 #include "PointObservation.h"
 

@@ -4,9 +4,10 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+#include "PlusConfigure.h"
+
 #include "PlusFidPatternRecognition.h"
 #include "PlusPatternLocResultFile.h"
-#include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusSequenceIO.h"
 #include "vtkSmartPointer.h"

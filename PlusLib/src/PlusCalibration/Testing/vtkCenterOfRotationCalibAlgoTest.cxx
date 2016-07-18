@@ -10,8 +10,9 @@
   compares the results to a baseline
 */ 
 
-#include "PlusFidPatternRecognition.h"
 #include "PlusConfigure.h"
+
+#include "PlusFidPatternRecognition.h"
 #include "PlusPlotter.h"
 #include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkPlusHTMLGenerator.h"

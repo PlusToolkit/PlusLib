@@ -12,8 +12,9 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Adam Rankin
 =========================================================================*/
 
-#include "PixelCodec.h"
 #include "PlusConfigure.h"
+
+#include "PixelCodec.h"
 #include "vtkPlusMmfVideoSource.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"

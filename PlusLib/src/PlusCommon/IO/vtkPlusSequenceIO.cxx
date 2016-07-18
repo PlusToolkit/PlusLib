@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include "vtkPlusMetaImageSequenceIO.h"
 #if VTK_MAJOR_VERSION > 5
 #include "vtkPlusNrrdSequenceIO.h"

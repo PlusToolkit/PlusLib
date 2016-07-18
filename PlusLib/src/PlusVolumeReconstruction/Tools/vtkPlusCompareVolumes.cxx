@@ -13,6 +13,8 @@
 
 =========================================================================*/
 
+#include "PlusConfigure.h"
+
 #include "vtkPlusCompareVolumes.h"
 
 #include "PlusMath.h"

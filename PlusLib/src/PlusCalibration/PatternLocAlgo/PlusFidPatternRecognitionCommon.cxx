@@ -4,8 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusFidPatternRecognitionCommon.h"
 #include "PlusConfigure.h"
+#include "PlusFidPatternRecognitionCommon.h"
 #include "vtkMath.h"
 
 //-----------------------------------------------------------------------------

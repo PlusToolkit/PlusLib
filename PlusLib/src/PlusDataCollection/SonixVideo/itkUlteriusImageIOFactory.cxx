@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include "itkUlteriusImageIOFactory.h"
 #include "itkCreateObjectFunction.h"
 #include "itkUlteriusImageIO.h"

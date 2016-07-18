@@ -1,3 +1,5 @@
+#include "PlusConfigure.h"
+
 #include "PlusBkProFocusCameraLinkReceiver.h"
 #include "vtkPlusBkProFocusCameraLinkVideoSource.h"
 
