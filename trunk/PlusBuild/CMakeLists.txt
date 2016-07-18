@@ -285,12 +285,13 @@ IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
       -DQt5OpenGL_DIR:PATH=${Qt5OpenGL_DIR}
       -DQt5Sql_DIR:PATH=${Qt5Sql_DIR}
       )
-    # WebKitWidgets does not exist in Qt 5.6.0 and later
-    IF(QT_VERSION VERSION_LESS 5.6.0)
+    # WebKitWidgets is deprecated in Qt 5.3 and removed in 5.6.0
+    find_package(Qt5 COMPONENTS WebKitWidgets QUIET)
+    if(Qt5WebKitWidgets_FOUND)
       SET(ep_qt_args ${ep_qt_args}
-        -DQt5WebKitWidgets_DIR:PATH=${Qt5_DIR}WebKitWidgets
+        -DQt5WebKitWidgets_DIR:PATH=${Qt5WebKitWidgets_DIR}
         )
-    ENDIF()
+    endif()
   ENDIF()
 ENDIF()
 
