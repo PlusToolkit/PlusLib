@@ -107,6 +107,7 @@ ExternalProject_Add( tesseract
         -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_tesseract_DIR}
         -DLeptonica_DIR:PATH=${PLUS_leptonica_DIR}
     #--Build step-----------------
+    BUILD_ALWAYS 1
     #--Install step-----------------
     #--Dependencies-----------------
     DEPENDS ${tesseract_DEPENDENCIES}

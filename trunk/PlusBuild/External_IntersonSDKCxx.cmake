@@ -41,6 +41,7 @@ ELSE(IntersonSDKCxx_DIR)
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
+    BUILD_ALWAYS 1    
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS ${IntersonSDKCxx_DEPENDENCIES}

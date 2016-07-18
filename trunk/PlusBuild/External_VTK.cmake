@@ -199,6 +199,7 @@ ELSE(VTK_DIR)
         -DVTK_QT_VERSION:STRING=${QT_VERSION_MAJOR}
         -DVTK_WRAP_PYTHON:BOOL=OFF
     #--Build step-----------------
+    BUILD_ALWAYS 1
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS ${VTK_DEPENDENCIES}

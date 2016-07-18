@@ -66,6 +66,7 @@ ELSE(BiiGOptitrack_DIR)
         -DBiiGOptitrack_OpenIGTLink_EXTERNAL_DIR:PATH=${PLUS_OpenIGTLink_DIR}
         -DBiiGOptitrack_ITK_EXTERNAL_DIR:PATH=${PLUS_ITK_DIR}
     #--Build step-----------------
+    BUILD_ALWAYS 1
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS ${BiiGOptitrack_DEPENDENCIES}

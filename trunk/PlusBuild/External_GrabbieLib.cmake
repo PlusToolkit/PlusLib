@@ -46,6 +46,7 @@ ExternalProject_Add( GrabbieLib
     -DGRABBIE_USE_CAMERALINK:BOOL=${PLUS_USE_BKPROFOCUS_CAMERALINK}    
     ${GRABBIELIB_ADDITIONAL_SDK_ARGS}
   #--Build step-----------------
+  BUILD_ALWAYS 1
   #--Install step-----------------
   INSTALL_COMMAND ""
   )
