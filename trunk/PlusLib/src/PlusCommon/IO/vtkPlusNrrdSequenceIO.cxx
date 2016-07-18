@@ -522,7 +522,7 @@ PlusStatus vtkPlusNrrdSequenceIO::PrepareImageFile()
 {
   if( this->GetUseCompression() )
   {
-    this->CompressionStream = gzopen( this->TempImageFileName.c_str(), "a" );
+    this->CompressionStream = gzopen( this->TempImageFileName.c_str(), "ab" );
 
     int error;
     gzerror( this->CompressionStream, &error );
