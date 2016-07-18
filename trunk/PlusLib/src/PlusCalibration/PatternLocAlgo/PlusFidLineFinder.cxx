@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusFidLineFinder.h"
 #include "PlusConfigure.h"
+#include "PlusFidLineFinder.h"
 #include "PlusMath.h"
 #include "vtkMath.h"
 #include <algorithm>

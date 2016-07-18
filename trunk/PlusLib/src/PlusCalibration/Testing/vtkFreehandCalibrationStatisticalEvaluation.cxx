@@ -10,8 +10,9 @@ See License.txt for details.
   several subsequences of frames and save the results
 */ 
 
-#include "PlusFidPatternRecognition.h"
 #include "PlusConfigure.h"
+
+#include "PlusFidPatternRecognition.h"
 #include "PlusMath.h"
 #include "PlusTrackedFrame.h"
 #include "vtkCallbackCommand.h"

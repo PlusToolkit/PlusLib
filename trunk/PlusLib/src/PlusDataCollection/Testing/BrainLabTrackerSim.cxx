@@ -17,6 +17,8 @@ See License.txt for details.
   and later transforms are sent for an additional Pointer tool as well.
 */  
 
+#include "PlusConfigure.h"
+
 #include <iostream>
 #include <math.h>
 #include <cstdlib>

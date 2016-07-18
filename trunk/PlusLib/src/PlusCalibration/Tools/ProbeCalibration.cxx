@@ -10,8 +10,9 @@ See License.txt for details.
 compares the results to a baseline
 */ 
 
-#include "PlusFidPatternRecognition.h"
 #include "PlusConfigure.h"
+
+#include "PlusFidPatternRecognition.h"
 #include "PlusMath.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"

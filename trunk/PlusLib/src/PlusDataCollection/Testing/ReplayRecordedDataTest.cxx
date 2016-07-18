@@ -9,11 +9,12 @@ See License.txt for details.
   \brief This program tests if a recorded tracked ultrasound buffer can be read.
 */ 
 
+#include "PlusConfigure.h"
+
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkXMLUtilities.h"
 
-#include "PlusConfigure.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusSavedDataSource.h"
 

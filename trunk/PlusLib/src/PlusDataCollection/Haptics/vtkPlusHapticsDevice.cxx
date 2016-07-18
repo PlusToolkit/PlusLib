@@ -43,6 +43,8 @@ POSSIBILITY OF SUCH DAMAGES.
 =========================================================================*/
 //----------------------------------------------------------------------------
 
+#include "PlusConfigure.h"
+
 #include "vtkPlusHapticsDevice.h"
 #include "vtkTimerLog.h"
 

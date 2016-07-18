@@ -4,10 +4,11 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include "PlusBrachyStepper.h"
 #include "PlusCivcoBrachyStepper.h"
 #include "PlusCmsBrachyStepper.h"
-#include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusAccurateTimer.h"
 #include "vtkPlusBrachyTracker.h"

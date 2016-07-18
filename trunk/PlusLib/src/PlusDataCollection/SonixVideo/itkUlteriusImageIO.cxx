@@ -8,6 +8,8 @@
 #pragma warning ( disable : 4786 )
 #endif
 
+#include "PlusConfigure.h"
+
 #include <string>
 #include <stdlib.h>
 #include "itkUlteriusImageIO.h"

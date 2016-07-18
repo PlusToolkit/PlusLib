@@ -4,13 +4,14 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include <deque>
 
 #include "vtkDebugLeaksManager.h"
 #include "vtkSystemIncludes.h"
 #include "vtkDebugLeaksManager.h"
 
-#include "PlusConfigure.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "PlusMath.h"
 #include "vtkXMLDataElement.h"

@@ -15,6 +15,8 @@ Adam Rankin (Robarts Research Institute, The University of Western Ontario)
 Andras Lasso (Queen's University, Kingston, Ontario, Canada)
 =========================================================================*/  
 
+#include "PlusConfigure.h"
+
 #include "ImagingModes.h" // Ulterius imaging modes
 #include "ulterius_def.h"
 #include "vtkImageData.h"

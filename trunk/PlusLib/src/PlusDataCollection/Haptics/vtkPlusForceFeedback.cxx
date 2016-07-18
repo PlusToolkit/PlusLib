@@ -4,6 +4,8 @@ Copyright (c) John SH Baxter, Robarts Research Institute. All rights reserved.
 See License.txt for details.
 =========================================================================*/
 
+#include "PlusConfigure.h"
+
 #include "vtkPlusForceFeedback.h"
 #include "vtkObjectFactory.h"
 #include "vtkMatrix4x4.h"

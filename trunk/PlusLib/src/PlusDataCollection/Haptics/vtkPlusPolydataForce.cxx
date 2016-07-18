@@ -4,6 +4,8 @@ Copyright (c) John SH Baxter, Robarts Research Institute. All rights reserved.
 See License.txt for details.
 =========================================================================*/
 
+#include "PlusConfigure.h"
+
 #include "vtkObjectFactory.h"
 #include "vtkPolyData.h"
 #include "vtkPlusPolydataForce.h"

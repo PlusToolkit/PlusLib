@@ -7,6 +7,8 @@
 // ICCapturingListener.cpp: implementation of the ICCapturingListener class.
 //----------------------------------------------------------------------------
 
+#include "PlusConfigure.h"
+
 #include "ICCapturingListener.h"
 #include <iostream>
 #include <sstream>

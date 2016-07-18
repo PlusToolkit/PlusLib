@@ -4,8 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "ICCapturingListener.h"
 #include "PlusConfigure.h"
+
+#include "ICCapturingListener.h"
 #include "vtkPlusICCapturingSource.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"

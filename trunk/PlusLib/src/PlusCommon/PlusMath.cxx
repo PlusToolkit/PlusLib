@@ -4,6 +4,8 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
+
 #include "PlusMath.h"
 
 #include "vnl/vnl_sparse_matrix.h"

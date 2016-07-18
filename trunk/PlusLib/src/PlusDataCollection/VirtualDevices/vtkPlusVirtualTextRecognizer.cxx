@@ -4,8 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusCommon.h"
 #include "PlusConfigure.h"
+
+#include "PlusCommon.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
