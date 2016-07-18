@@ -235,6 +235,9 @@ ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
+OPTION (PLUS_TEST_HIGH_ACCURACY_TIMING "Enable testing of high-accuracy timing. High-accuracy timing may not be available on virtual machines and so testing may be turned off to avoid false alarams." ON)
+MARK_AS_ADVANCED(PLUS_TEST_HIGH_ACCURACY_TIMING)
+
 SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.")
 
 #-----------------------------------------------------------------------------
