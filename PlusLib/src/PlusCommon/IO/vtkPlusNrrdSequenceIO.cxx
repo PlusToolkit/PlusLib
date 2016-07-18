@@ -326,25 +326,25 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
       }
     }
 
-    if (this->TrackedFrameList->GetCustomString("encoding") != NULL)
+    if ( this->TrackedFrameList->GetCustomString( "encoding" ) != NULL )
     {
       // set fields according to encoding
-      std::string encoding = std::string(this->TrackedFrameList->GetCustomString("encoding"));
-      this->Encoding = vtkPlusNrrdSequenceIO::StringToNrrdEncoding(encoding);
-      if (this->Encoding >= NRRD_ENCODING_GZ)
+      std::string encoding = std::string( this->TrackedFrameList->GetCustomString( "encoding" ) );
+      this->Encoding = vtkPlusNrrdSequenceIO::StringToNrrdEncoding( encoding );
+      if ( this->Encoding >= NRRD_ENCODING_GZ )
       {
         this->UseCompression = true;
       }
-      if (this->Encoding >= NRRD_ENCODING_BZ2)
+      if ( this->Encoding >= NRRD_ENCODING_BZ2 )
       {
         // TODO : enable bzip2 encoding
-        LOG_ERROR("bzip2 encoding is currently not supported. Please re-encode NRRD using gzip encoding and re-run. Apologies for the inconvenience.");
+        LOG_ERROR( "bzip2 encoding is currently not supported. Please re-encode NRRD using gzip encoding and re-run. Apologies for the inconvenience." );
         return PLUS_FAIL;
       }
     }
     else
     {
-      LOG_ERROR("Field encoding not found in file: " << this->FileName << ". Unable to read.");
+      LOG_ERROR( "Field encoding not found in file: " << this->FileName << ". Unable to read." );
       return PLUS_FAIL;
     }
   }
@@ -382,18 +382,18 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
       fclose( stream );
       return PLUS_FAIL;
     }
-    if ( fseek( stream, this->PixelDataFileOffset, SEEK_SET ) )
-    {
-      LOG_ERROR( "Unable to seek to offset " << this->PixelDataFileOffset << ". " << ferror( stream ) );
-      fclose( stream );
-      return PLUS_FAIL;
-    }
 
 #if _WIN32
-    gzStream = gzdopen( _dup( _fileno( stream ) ), "rb" );
+    int fd = _fileno( stream );
+    int dupFd = _dup( fd );
+    _lseek( dupFd, this->PixelDataFileOffset, SEEK_SET );
 #else
-    gzStream = gzdopen( dup( fileno( stream ) ), "rb" );
+    int fd = fileno( stream );
+    int dupFd = dup( fd );
+    lseek( dupFd, this->PixelDataFileOffset, SEEK_SET );
 #endif
+
+    gzStream = gzdopen(dupFd, "rb");
 
     if ( gzStream == NULL )
     {
@@ -1159,7 +1159,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
 {
   if( fieldName == NULL )
   {
-    LOG_ERROR("NULL fieldname sent to vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader");
+    LOG_ERROR( "NULL fieldname sent to vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader" );
     return PLUS_FAIL;
   }
 
@@ -1170,21 +1170,21 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
   }
 
 #if _MSC_VER <= 1500
-  std::fstream stream(this->TempHeaderFileName.c_str(), std::ios::in | std::ios::out | std::ios::binary);
+  std::fstream stream( this->TempHeaderFileName.c_str(), std::ios::in | std::ios::out | std::ios::binary );
 #else
-  std::fstream stream(this->TempHeaderFileName, std::ios::in | std::ios::out | std::ios::binary);
+  std::fstream stream( this->TempHeaderFileName, std::ios::in | std::ios::out | std::ios::binary );
 #endif
 
-  if (!stream)
+  if ( !stream )
   {
-    LOG_ERROR("The file " << this->TempHeaderFileName << " could not be opened for reading and writing");
+    LOG_ERROR( "The file " << this->TempHeaderFileName << " could not be opened for reading and writing" );
     return PLUS_FAIL;
   }
 
   std::string line;
-  while (std::getline(stream, line))
+  while ( std::getline( stream, line ) )
   {
-    if (line.empty())
+    if ( line.empty() )
     {
       // reached the end of the header
       break;
@@ -1213,7 +1213,7 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
     {
       // found the field that has to be updated, grab the value
       std::string value = line.substr( colonFound + 1 );
-      if (line[colonFound + 1] == '=' )
+      if ( line[colonFound + 1] == '=' )
       {
         // It is a key/value
         value = line.substr( colonFound + 2 );
@@ -1226,24 +1226,24 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
 
       // need to add padding whitespace characters to fully replace the old line
       int paddingCharactersNeeded = SEQUENCE_FIELD_PADDED_LINE_LENGTH - newLineStr.str().size();
-      for (int i = 0; i < paddingCharactersNeeded; i++)
+      for ( int i = 0; i < paddingCharactersNeeded; i++ )
       {
         newLineStr << " ";
       }
 
-      if (newLineStr.str().length() != line.length())
+      if ( newLineStr.str().length() != line.length() )
       {
-        LOG_ERROR("Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')");
+        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
         return PLUS_FAIL;
       }
 
       // rewind to file pointer the first character of the line
-      stream.seekp(-std::ios::off_type(line.size()) - 1, std::ios_base::cur);
+      stream.seekp( -std::ios::off_type( line.size() ) - 1, std::ios_base::cur );
 
       // overwrite the old line
-      if (!(stream << newLineStr.str()))
+      if ( !( stream << newLineStr.str() ) )
       {
-        LOG_ERROR("Cannot update line in image header (writing the updated line into the file failed)");
+        LOG_ERROR( "Cannot update line in image header (writing the updated line into the file failed)" );
         return PLUS_FAIL;
       }
 
