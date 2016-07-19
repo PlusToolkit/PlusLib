@@ -104,7 +104,7 @@ PlusStatus PlusUsMessage::SetTrackedFrame( const PlusTrackedFrame& trackedFrame 
 
   int offset[3]= {0};
   int imageSizePixels[3]= {0};
-  int size[3]= {0};
+  unsigned int size[3]= {0};
 
   // NOTE: MUSiiC library expects the frame size in the format
   // as Ultrasonix provide, not like Plus (Plus: if vector data switch width and

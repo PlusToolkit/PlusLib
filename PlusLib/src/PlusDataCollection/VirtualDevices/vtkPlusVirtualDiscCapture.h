@@ -92,8 +92,8 @@ protected:
   virtual PlusStatus ClearRecordedFrames();
 
   vtkSetMacro(ActualFrameRate, double);
-  vtkSetMacro(FrameBufferSize, int);
-  vtkGetMacro(FrameBufferSize, int);
+  vtkSetMacro(FrameBufferSize, unsigned int);
+  vtkGetMacro(FrameBufferSize, unsigned int);
   vtkSetMacro(IsData3D, bool);
 
   virtual PlusStatus InternalConnect();
@@ -163,7 +163,7 @@ protected:
   /*! Internal flag to control capturing */
   bool EnableCapturing;
 
-  int FrameBufferSize;
+  unsigned int FrameBufferSize;
 
   bool IsData3D;
 

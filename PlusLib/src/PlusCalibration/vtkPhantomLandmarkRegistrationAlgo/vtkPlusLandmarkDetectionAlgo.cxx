@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "PlusXmlUtils.h"
@@ -12,7 +12,7 @@ See License.txt for details.
 
 #include "vtkMatrix4x4.h"
 
-vtkStandardNewMacro(vtkPlusLandmarkDetectionAlgo);
+vtkStandardNewMacro( vtkPlusLandmarkDetectionAlgo );
 
 //-----------------------------------------------------------------------------
 // Default algorithm parameters
@@ -22,205 +22,205 @@ static const double PERCENTAGE_WINDOWS_SKIP = 0.1;//The first windows detected a
 vtkPlusLandmarkDetectionAlgo::vtkPlusLandmarkDetectionAlgo()
 {
   this->DetectedLandmarkPoints_Reference = NULL;
-  this->SetDetectedLandmarkPoints_Reference(vtkSmartPointer<vtkPoints>::New());
+  this->SetDetectedLandmarkPoints_Reference( vtkSmartPointer<vtkPoints>::New() );
 
-  this->AcquisitionRate=20.0;
-  this->FilterWindowTimeSec=0.2;
-  this->DetectionTimeSec=1.0;
+  this->AcquisitionRate = 20.0;
+  this->FilterWindowTimeSec = 0.2;
+  this->DetectionTimeSec = 1.0;
   this->StylusShaftMinimumDisplacementThresholdMm = 30;
   this->StylusTipMaximumDisplacementThresholdMm = 1.5;
-  this->MinimunDistanceBetweenLandmarksMm=15.0;
+  this->MinimunDistanceBetweenLandmarksMm = 15.0;
 }
 
 //-----------------------------------------------------------------------------
 vtkPlusLandmarkDetectionAlgo::~vtkPlusLandmarkDetectionAlgo()
 {
   this->StylusTipToReferenceTransformsDeque.clear();
-  this->SetDetectedLandmarkPoints_Reference(NULL);
+  this->SetDetectedLandmarkPoints_Reference( NULL );
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::SetAcquisitionRate(double aquisitionRateSamplePerSec)
+PlusStatus vtkPlusLandmarkDetectionAlgo::SetAcquisitionRate( double aquisitionRateSamplePerSec )
 {
-  if(aquisitionRateSamplePerSec<=0)
+  if( aquisitionRateSamplePerSec <= 0 )
   {
-    LOG_ERROR("Specified acquisition rate "<< aquisitionRateSamplePerSec << "[SamplePerSec]is not positive");
+    LOG_ERROR( "Specified acquisition rate " << aquisitionRateSamplePerSec << "[SamplePerSec]is not positive" );
     return PLUS_FAIL;
   }
-  this->AcquisitionRate=aquisitionRateSamplePerSec;
+  this->AcquisitionRate = aquisitionRateSamplePerSec;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::SetDetectionTimeSec(double detectionTimeSec)
+PlusStatus vtkPlusLandmarkDetectionAlgo::SetDetectionTimeSec( double detectionTimeSec )
 {
-  if(detectionTimeSec<=0)
+  if( detectionTimeSec <= 0 )
   {
-    LOG_ERROR("Specified detection time (" << detectionTimeSec << " [s]) is not positive");
+    LOG_ERROR( "Specified detection time (" << detectionTimeSec << " [s]) is not positive" );
     return PLUS_FAIL;
   }
-  this->DetectionTimeSec=detectionTimeSec;
+  this->DetectionTimeSec = detectionTimeSec;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::SetFilterWindowTimeSec(double filterWindowTimeSec)
+PlusStatus vtkPlusLandmarkDetectionAlgo::SetFilterWindowTimeSec( double filterWindowTimeSec )
 {
-  if(filterWindowTimeSec<=0)
+  if( filterWindowTimeSec <= 0 )
   {
-    LOG_ERROR("Specified window time (" << filterWindowTimeSec << " [s]) is not positive");
+    LOG_ERROR( "Specified window time (" << filterWindowTimeSec << " [s]) is not positive" );
     return PLUS_FAIL;
   }
-  this->FilterWindowTimeSec=filterWindowTimeSec;
+  this->FilterWindowTimeSec = filterWindowTimeSec;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::SetStylusShaftMinimumDisplacementThresholdMm(double stylusShaftMinimumDisplacementThresholdMm)
+PlusStatus vtkPlusLandmarkDetectionAlgo::SetStylusShaftMinimumDisplacementThresholdMm( double stylusShaftMinimumDisplacementThresholdMm )
 {
-  if(stylusShaftMinimumDisplacementThresholdMm<0)
+  if( stylusShaftMinimumDisplacementThresholdMm < 0 )
   {
-    LOG_ERROR("Specified stylusShaftMinimumDisplacementThreshold (" << stylusShaftMinimumDisplacementThresholdMm << " [mm]) is negative");
+    LOG_ERROR( "Specified stylusShaftMinimumDisplacementThreshold (" << stylusShaftMinimumDisplacementThresholdMm << " [mm]) is negative" );
     return PLUS_FAIL;
   }
-  this->StylusShaftMinimumDisplacementThresholdMm=stylusShaftMinimumDisplacementThresholdMm;
+  this->StylusShaftMinimumDisplacementThresholdMm = stylusShaftMinimumDisplacementThresholdMm;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::SetStylusTipMaximumDisplacementThresholdMm(double stylusTipMaximumMotionThresholdMm)
+PlusStatus vtkPlusLandmarkDetectionAlgo::SetStylusTipMaximumDisplacementThresholdMm( double stylusTipMaximumMotionThresholdMm )
 {
-  if(stylusTipMaximumMotionThresholdMm<0)
+  if( stylusTipMaximumMotionThresholdMm < 0 )
   {
-    LOG_ERROR("Specified StylusTipMaximumDisplacementThreshold (" << stylusTipMaximumMotionThresholdMm << " [mm]) is negative");
+    LOG_ERROR( "Specified StylusTipMaximumDisplacementThreshold (" << stylusTipMaximumMotionThresholdMm << " [mm]) is negative" );
     return PLUS_FAIL;
   }
-  this->StylusTipMaximumDisplacementThresholdMm=stylusTipMaximumMotionThresholdMm;
+  this->StylusTipMaximumDisplacementThresholdMm = stylusTipMaximumMotionThresholdMm;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::ComputeFilterWindowSize(int & filterWindowSize)
+PlusStatus vtkPlusLandmarkDetectionAlgo::ComputeFilterWindowSize( unsigned int& filterWindowSize )
 {
-  if(this->AcquisitionRate<=0)
+  if( this->AcquisitionRate <= 0 )
   {
-    LOG_ERROR("Specified acquisition rate is not positive");
+    LOG_ERROR( "Specified acquisition rate is not positive" );
     return PLUS_FAIL;
   }
-  filterWindowSize=PlusMath::Round(this->AcquisitionRate*this->FilterWindowTimeSec);
-  if(filterWindowSize<1)
+  filterWindowSize = static_cast<unsigned int>( PlusMath::Round( this->AcquisitionRate * this->FilterWindowTimeSec ) );
+  if( filterWindowSize < 1 )
   {
-    LOG_WARNING("The smallest window size is set to 1");
-    filterWindowSize=1;
+    LOG_WARNING( "The smallest window size is set to 1" );
+    filterWindowSize = 1;
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::ComputeNumberOfWindows(int & numberOfWindows)
+PlusStatus vtkPlusLandmarkDetectionAlgo::ComputeNumberOfWindows( unsigned int& numberOfWindows )
 {
-  if(this->FilterWindowTimeSec<=0 || this->DetectionTimeSec<=this->FilterWindowTimeSec)
+  if( this->FilterWindowTimeSec <= 0 || this->DetectionTimeSec <= this->FilterWindowTimeSec )
   {
-    LOG_ERROR("Detection ("<<this->DetectionTimeSec<<" [s]) or filter window ("<< this->FilterWindowTimeSec<<" [s]) times are not correct");
+    LOG_ERROR( "Detection (" << this->DetectionTimeSec << " [s]) or filter window (" << this->FilterWindowTimeSec << " [s]) times are not correct" );
     return PLUS_FAIL;
   }
 
-  numberOfWindows=this->DetectionTimeSec/this->FilterWindowTimeSec;
+  numberOfWindows = this->DetectionTimeSec / this->FilterWindowTimeSec;
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusLandmarkDetectionAlgo::ResetDetection()
 {
-  LOG_DEBUG("Reset");
+  LOG_DEBUG( "Reset" );
   this->StylusTipToReferenceTransformsDeque.clear();
   this->DetectedLandmarkPoints_Reference->Reset();
   return PLUS_SUCCESS;
-} 
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLandmarkDetectionAlgo::DeleteLastLandmark()
 {
-  if(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()<=0)
+  if( this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() <= 0 )
   {
-    LOG_ERROR("There were no landmark detected");
+    LOG_ERROR( "There were no landmark detected" );
     return PLUS_FAIL;
   }
-  this->DetectedLandmarkPoints_Reference->GetData()->RemoveTuple(this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()-1);
+  this->DetectedLandmarkPoints_Reference->GetData()->RemoveTuple( this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() - 1 );
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::InsertLandmark_Reference(double stylusTipPosition_Reference[4])
+PlusStatus vtkPlusLandmarkDetectionAlgo::InsertLandmark_Reference( double stylusTipPosition_Reference[4] )
 {
-  int existingLandmarkId=GetNearExistingLandmarkId(stylusTipPosition_Reference);
-  if( existingLandmarkId!=-1)
+  int existingLandmarkId = GetNearExistingLandmarkId( stylusTipPosition_Reference );
+  if( existingLandmarkId != -1 )
   {
-    LOG_INFO("No landmark inserted, landmark #"<< existingLandmarkId<<" was already detected");
+    LOG_INFO( "No landmark inserted, landmark #" << existingLandmarkId << " was already detected" );
     return PLUS_SUCCESS;
   }
-  this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipPosition_Reference);
+  this->DetectedLandmarkPoints_Reference->InsertNextPoint( stylusTipPosition_Reference );
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::FilterStylusTipPositionsWindow(double stylusTipFiltered_Reference[4])
+PlusStatus vtkPlusLandmarkDetectionAlgo::FilterStylusTipPositionsWindow( double stylusTipFiltered_Reference[4] )
 {
-  int filterWindowSize=0;
-  if (ComputeFilterWindowSize(filterWindowSize)==PLUS_FAIL)
+  unsigned int filterWindowSize = 0;
+  if ( ComputeFilterWindowSize( filterWindowSize ) == PLUS_FAIL )
   {
     return PLUS_FAIL;
   }
 
-  if(this->StylusTipToReferenceTransformsDeque.size()<filterWindowSize)
+  if( this->StylusTipToReferenceTransformsDeque.size() < filterWindowSize )
   {
-    LOG_ERROR("There are not enough stylus tip positions acquired yet");
+    LOG_ERROR( "There are not enough stylus tip positions acquired yet" );
     return PLUS_FAIL;
   }
 
-  std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.end();
-  double stylusTipPositionSum_Reference[4] = {0,0,0,1};
-  for(int i=0;i<filterWindowSize;i++)
+  std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt = this->StylusTipToReferenceTransformsDeque.end();
+  double stylusTipPositionSum_Reference[4] = {0, 0, 0, 1};
+  for( unsigned int i = 0; i < filterWindowSize; i++ )
   {
     stylusTipToReferenceTransformIt--;
-    stylusTipPositionSum_Reference[0] +=(*stylusTipToReferenceTransformIt)->Element[0][3];
-    stylusTipPositionSum_Reference[1] +=(*stylusTipToReferenceTransformIt)->Element[1][3];
-    stylusTipPositionSum_Reference[2] +=(*stylusTipToReferenceTransformIt)->Element[2][3];
+    stylusTipPositionSum_Reference[0] += ( *stylusTipToReferenceTransformIt )->Element[0][3];
+    stylusTipPositionSum_Reference[1] += ( *stylusTipToReferenceTransformIt )->Element[1][3];
+    stylusTipPositionSum_Reference[2] += ( *stylusTipToReferenceTransformIt )->Element[2][3];
   }
   //make sure we don't divide by zero
-  if(filterWindowSize==0)
+  if( filterWindowSize == 0 )
   {
-    LOG_ERROR("Filter window size is zero can not be used, how does it happened!");
+    LOG_ERROR( "Filter window size is zero can not be used, how does it happened!" );
     return PLUS_FAIL;
   }
-  stylusTipFiltered_Reference[0]=stylusTipPositionSum_Reference[0]/filterWindowSize;
-  stylusTipFiltered_Reference[1]=stylusTipPositionSum_Reference[1]/filterWindowSize;
-  stylusTipFiltered_Reference[2]=stylusTipPositionSum_Reference[2]/filterWindowSize;
-  stylusTipFiltered_Reference[3]=1.0;
+  stylusTipFiltered_Reference[0] = stylusTipPositionSum_Reference[0] / filterWindowSize;
+  stylusTipFiltered_Reference[1] = stylusTipPositionSum_Reference[1] / filterWindowSize;
+  stylusTipFiltered_Reference[2] = stylusTipPositionSum_Reference[2] / filterWindowSize;
+  stylusTipFiltered_Reference[3] = 1.0;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform(vtkMatrix4x4* stylusTipToReferenceTransform, int &newLandmarkDetected)
+PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform( vtkMatrix4x4* stylusTipToReferenceTransform, int& newLandmarkDetected )
 {
   newLandmarkDetected = -1;
-  if (stylusTipToReferenceTransform == NULL )
+  if ( stylusTipToReferenceTransform == NULL )
   {
-    LOG_ERROR("stylusTipToReferenceTransform is NULL");
+    LOG_ERROR( "stylusTipToReferenceTransform is NULL" );
     return PLUS_FAIL;
   }
 
-  this->StylusTipToReferenceTransformsDeque.push_back(stylusTipToReferenceTransform);
+  this->StylusTipToReferenceTransformsDeque.push_back( stylusTipToReferenceTransform );
 
-  int filterWindowSize=0;
-  int numberOfRequiredWindows=0;
-  if (ComputeFilterWindowSize(filterWindowSize)==PLUS_FAIL || ComputeNumberOfWindows(numberOfRequiredWindows)==PLUS_FAIL)
+  unsigned int filterWindowSize = 0;
+  unsigned int numberOfRequiredWindows = 0;
+  if ( ComputeFilterWindowSize( filterWindowSize ) == PLUS_FAIL || ComputeNumberOfWindows( numberOfRequiredWindows ) == PLUS_FAIL )
   {
     return PLUS_FAIL;
   }
 
-  bool windowCompleted = (this->StylusTipToReferenceTransformsDeque.size() % filterWindowSize) == 0;
-  if (!windowCompleted)
+  bool windowCompleted = ( this->StylusTipToReferenceTransformsDeque.size() % filterWindowSize ) == 0;
+  if ( !windowCompleted )
   {
     // just keep collecting more data
     return PLUS_SUCCESS;
@@ -229,46 +229,46 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform
   // We've just completed a new window
 
   // Update StylusTipPathBoundingBox
-  double stylusTipFiltered_Reference[4]={0,0,0,1}; // stylus tip position in the last window
-  if (FilterStylusTipPositionsWindow( stylusTipFiltered_Reference)!=PLUS_SUCCESS)
+  double stylusTipFiltered_Reference[4] = {0, 0, 0, 1}; // stylus tip position in the last window
+  if ( FilterStylusTipPositionsWindow( stylusTipFiltered_Reference ) != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
-  this->StylusTipPathBoundingBox.AddPoint(stylusTipFiltered_Reference);
+  this->StylusTipPathBoundingBox.AddPoint( stylusTipFiltered_Reference );
 
   // Update StylusShaftPathBoundingBox
   //Point 10 cm above the stylus tip, if it moves(window change bigger than AboveLandmarkThresholdMm) while the tip is static (window change smaller than LandmarkThresholdMm then it is landmark point.
-  double StylusShaftPoint_StylusTip[4]={100,0,0,1};
-  double StylusShaftPoint_Reference[4]={0,0,0,1};
-  stylusTipToReferenceTransform->MultiplyPoint(StylusShaftPoint_StylusTip, StylusShaftPoint_Reference);
-  this->StylusShaftPathBoundingBox.AddPoint(StylusShaftPoint_Reference);
+  double StylusShaftPoint_StylusTip[4] = {100, 0, 0, 1};
+  double StylusShaftPoint_Reference[4] = {0, 0, 0, 1};
+  stylusTipToReferenceTransform->MultiplyPoint( StylusShaftPoint_StylusTip, StylusShaftPoint_Reference );
+  this->StylusShaftPathBoundingBox.AddPoint( StylusShaftPoint_Reference );
 
-  int numberOfAcquiredWindows =PlusMath::Floor(this->StylusTipToReferenceTransformsDeque.size()/filterWindowSize);
+  unsigned int numberOfAcquiredWindows = PlusMath::Floor( this->StylusTipToReferenceTransformsDeque.size() / filterWindowSize );
 
   // Print all available StylusTipToReferenceTransform positions if debug level is TRACE
-  bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE;
-  if (debugOutput)
+  bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
+  if ( debugOutput )
   {
-    LOG_TRACE("Window Landmark ("<< stylusTipFiltered_Reference[0]<< ", "<< stylusTipFiltered_Reference[1]<< ", "<< stylusTipFiltered_Reference[2]<< ") found keep going");
-    int i =0;
-    for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.begin();
-      markerToReferenceTransformIt!=this->StylusTipToReferenceTransformsDeque.end(); ++markerToReferenceTransformIt)
+    LOG_TRACE( "Window Landmark (" << stylusTipFiltered_Reference[0] << ", " << stylusTipFiltered_Reference[1] << ", " << stylusTipFiltered_Reference[2] << ") found keep going" );
+    int i = 0;
+    for ( std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator markerToReferenceTransformIt = this->StylusTipToReferenceTransformsDeque.begin();
+          markerToReferenceTransformIt != this->StylusTipToReferenceTransformsDeque.end(); ++markerToReferenceTransformIt )
     {
-      if(i%filterWindowSize==0)
+      if( i % filterWindowSize == 0 )
       {
-        LOG_TRACE("Window "<<(i/filterWindowSize)<<":");
+        LOG_TRACE( "Window " << ( i / filterWindowSize ) << ":" );
       }
-      LOG_TRACE("P( " << -(*markerToReferenceTransformIt)->Element[0][3]<<", " << -(*markerToReferenceTransformIt)->Element[1][3]<<", " << -(*markerToReferenceTransformIt)->Element[2][3]<<")");
+      LOG_TRACE( "P( " << -( *markerToReferenceTransformIt )->Element[0][3] << ", " << -( *markerToReferenceTransformIt )->Element[1][3] << ", " << -( *markerToReferenceTransformIt )->Element[2][3] << ")" );
       i++;
     }
   }
 
   // If tip is moved then clear transforms and start detection of the latest landmark from scratch
   double stylusTipPathBoundingBoxSize[3] = {0};
-  this->StylusTipPathBoundingBox.GetLengths(stylusTipPathBoundingBoxSize);
-  if( vtkMath::Norm(stylusTipPathBoundingBoxSize)>this->StylusTipMaximumDisplacementThresholdMm)
+  this->StylusTipPathBoundingBox.GetLengths( stylusTipPathBoundingBoxSize );
+  if( vtkMath::Norm( stylusTipPathBoundingBoxSize ) > this->StylusTipMaximumDisplacementThresholdMm )
   {
-    LOG_TRACE("StylusTip has moved: StylusTipBoundingBox norm = " <<vtkMath::Norm(stylusTipPathBoundingBoxSize));
+    LOG_TRACE( "StylusTip has moved: StylusTipBoundingBox norm = " << vtkMath::Norm( stylusTipPathBoundingBoxSize ) );
     this->StylusTipToReferenceTransformsDeque.clear();
     this->StylusShaftPathBoundingBox.Reset();
     this->StylusTipPathBoundingBox.Reset();
@@ -276,16 +276,16 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform
   }
 
   // If enough rotation range has been covered and we collected enough windows then we accept this as a new landmark point
-  if(numberOfAcquiredWindows < numberOfRequiredWindows)
+  if( numberOfAcquiredWindows < numberOfRequiredWindows )
   {
     // not enough windows yet
     // just keep collecting more data
     return PLUS_SUCCESS;
   }
 
-  double stylusShaftPathBoundingBoxSize[3]={0};
-  this->StylusShaftPathBoundingBox.GetLengths(stylusShaftPathBoundingBoxSize);
-  if(vtkMath::Norm(stylusShaftPathBoundingBoxSize)<this->StylusShaftMinimumDisplacementThresholdMm)
+  double stylusShaftPathBoundingBoxSize[3] = {0};
+  this->StylusShaftPathBoundingBox.GetLengths( stylusShaftPathBoundingBoxSize );
+  if( vtkMath::Norm( stylusShaftPathBoundingBoxSize ) < this->StylusShaftMinimumDisplacementThresholdMm )
   {
     // not enough pivoting yet
     // just keep collecting more data
@@ -300,26 +300,26 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform
   this->StylusShaftPathBoundingBox.Reset();
   this->StylusTipToReferenceTransformsDeque.clear();
 
-  if(numberOfLandmarksBefore != this->DetectedLandmarkPoints_Reference->GetNumberOfPoints())
+  if( numberOfLandmarksBefore != this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() )
   {
     newLandmarkDetected = this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();
   }
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusLandmarkDetectionAlgo::GetNearExistingLandmarkId(double stylusTipPosition_Reference[4])
+int vtkPlusLandmarkDetectionAlgo::GetNearExistingLandmarkId( double stylusTipPosition_Reference[4] )
 {
-  double detectedLandmark_Reference[4] = {0,0,0,1};
-  double landmarkDifference_Reference[4] = {0,0,0,0};
-  for(int id=0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
+  double detectedLandmark_Reference[4] = {0, 0, 0, 1};
+  double landmarkDifference_Reference[4] = {0, 0, 0, 0};
+  for( int id = 0; id < this->DetectedLandmarkPoints_Reference->GetNumberOfPoints(); id++ )
   {
-    this->DetectedLandmarkPoints_Reference->GetPoint(id, detectedLandmark_Reference);
-    landmarkDifference_Reference[0]=detectedLandmark_Reference[0]-stylusTipPosition_Reference[0];
-    landmarkDifference_Reference[1]=detectedLandmark_Reference[1]-stylusTipPosition_Reference[1];
-    landmarkDifference_Reference[2]=detectedLandmark_Reference[2]-stylusTipPosition_Reference[2];
-    landmarkDifference_Reference[3]=detectedLandmark_Reference[3]-stylusTipPosition_Reference[3];
-    if(vtkMath::Norm(landmarkDifference_Reference)<this->MinimunDistanceBetweenLandmarksMm/3)
+    this->DetectedLandmarkPoints_Reference->GetPoint( id, detectedLandmark_Reference );
+    landmarkDifference_Reference[0] = detectedLandmark_Reference[0] - stylusTipPosition_Reference[0];
+    landmarkDifference_Reference[1] = detectedLandmark_Reference[1] - stylusTipPosition_Reference[1];
+    landmarkDifference_Reference[2] = detectedLandmark_Reference[2] - stylusTipPosition_Reference[2];
+    landmarkDifference_Reference[3] = detectedLandmark_Reference[3] - stylusTipPosition_Reference[3];
+    if( vtkMath::Norm( landmarkDifference_Reference ) < this->MinimunDistanceBetweenLandmarksMm / 3 )
     {
       return id;
     }
@@ -330,75 +330,75 @@ int vtkPlusLandmarkDetectionAlgo::GetNearExistingLandmarkId(double stylusTipPosi
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLandmarkDetectionAlgo::EstimateLandmarkPosition()
 {
-  int filterWindowSize=0;
-  int numberOfRequiredWindows=0;
-  if (ComputeFilterWindowSize(filterWindowSize)==PLUS_FAIL ||ComputeNumberOfWindows(numberOfRequiredWindows)==PLUS_FAIL)
+  unsigned int filterWindowSize = 0;
+  unsigned int numberOfRequiredWindows = 0;
+  if ( ComputeFilterWindowSize( filterWindowSize ) == PLUS_FAIL || ComputeNumberOfWindows( numberOfRequiredWindows ) == PLUS_FAIL )
   {
     return PLUS_FAIL;
   }
 
-  int numberOfWindowsSkip = filterWindowSize=PlusMath::Round(numberOfRequiredWindows*PERCENTAGE_WINDOWS_SKIP);
-  if(filterWindowSize<1)
+  int numberOfWindowsSkip = filterWindowSize = PlusMath::Round( numberOfRequiredWindows * PERCENTAGE_WINDOWS_SKIP );
+  if( filterWindowSize < 1 )
   {
-    LOG_WARNING("The smallest number of windows to skip is set to 1");
-    filterWindowSize=1;
+    LOG_WARNING( "The smallest number of windows to skip is set to 1" );
+    filterWindowSize = 1;
   }
 
-  int i=0;
+  unsigned int i = 0;
   std::vector<double> values[4];
-  for (std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt=this->StylusTipToReferenceTransformsDeque.begin();
-    stylusTipToReferenceTransformIt!=this->StylusTipToReferenceTransformsDeque.end(); ++stylusTipToReferenceTransformIt)
+  for ( std::deque< vtkSmartPointer<vtkMatrix4x4> >::iterator stylusTipToReferenceTransformIt = this->StylusTipToReferenceTransformsDeque.begin();
+        stylusTipToReferenceTransformIt != this->StylusTipToReferenceTransformsDeque.end(); ++stylusTipToReferenceTransformIt )
   {
     //Don't use first numberOfWindowsSkip windows
-    if(i>=(filterWindowSize*numberOfWindowsSkip) && i <(numberOfRequiredWindows)*filterWindowSize)
+    if( i >= ( filterWindowSize * numberOfWindowsSkip ) && i < ( numberOfRequiredWindows )*filterWindowSize )
     {
-      double sylusTip_Reference[3]={(*stylusTipToReferenceTransformIt)->Element[0][3], (*stylusTipToReferenceTransformIt)->Element[1][3], (*stylusTipToReferenceTransformIt)->Element[2][3]};
+      double sylusTip_Reference[3] = {( *stylusTipToReferenceTransformIt )->Element[0][3], ( *stylusTipToReferenceTransformIt )->Element[1][3], ( *stylusTipToReferenceTransformIt )->Element[2][3]};
       values[0].push_back( sylusTip_Reference[0] );
       values[1].push_back( sylusTip_Reference[1] );
       values[2].push_back( sylusTip_Reference[2] );
-      values[3].push_back(vtkMath::Norm( sylusTip_Reference) );
+      values[3].push_back( vtkMath::Norm( sylusTip_Reference ) );
     }
     i++;
   }
 
-  if(values[0].size()!=(numberOfRequiredWindows-numberOfWindowsSkip)*filterWindowSize)
+  if( values[0].size() != ( numberOfRequiredWindows - numberOfWindowsSkip )*filterWindowSize )
   {
-    LOG_ERROR("Not right number of points to estimate landmark position");//LOG error and do something CLEAR?
+    LOG_ERROR( "Not right number of points to estimate landmark position" ); //LOG error and do something CLEAR?
     return PLUS_FAIL;
   }
 
-  double stylusTipMean_Reference[4] = {0,0,0,1};
-  double stylusTipStdev_Reference[4] = {0,0,0,0};
+  double stylusTipMean_Reference[4] = {0, 0, 0, 1};
+  double stylusTipStdev_Reference[4] = {0, 0, 0, 0};
   for ( int j = 0; j < 4; ++j )
   {
-    PlusMath::ComputeMeanAndStdev( values[j], stylusTipMean_Reference[j], stylusTipStdev_Reference[j]);
+    PlusMath::ComputeMeanAndStdev( values[j], stylusTipMean_Reference[j], stylusTipStdev_Reference[j] );
   }
-  int existingLandmarkId=GetNearExistingLandmarkId(stylusTipMean_Reference);
-  if (existingLandmarkId!=-1)
+  int existingLandmarkId = GetNearExistingLandmarkId( stylusTipMean_Reference );
+  if ( existingLandmarkId != -1 )
   {
-    LOG_INFO("Landmark #"<<existingLandmarkId<<" was already detected");
+    LOG_INFO( "Landmark #" << existingLandmarkId << " was already detected" );
     return PLUS_SUCCESS;
   }
-  this->DetectedLandmarkPoints_Reference->InsertNextPoint(stylusTipMean_Reference);
+  this->DetectedLandmarkPoints_Reference->InsertNextPoint( stylusTipMean_Reference );
 
-  LOG_DEBUG("Stylus tip positions used for detection");
-  LOG_DEBUG("Stylus tips STD deviation ( " << stylusTipStdev_Reference[0]<< ", "<< stylusTipStdev_Reference[1]<< ", "<< stylusTipStdev_Reference[2]<< ") Norm = "<< vtkMath::Norm(stylusTipStdev_Reference) );
-  LOG_DEBUG("Stylus tips Magnitude STD deviation "<< stylusTipStdev_Reference[3]);
+  LOG_DEBUG( "Stylus tip positions used for detection" );
+  LOG_DEBUG( "Stylus tips STD deviation ( " << stylusTipStdev_Reference[0] << ", " << stylusTipStdev_Reference[1] << ", " << stylusTipStdev_Reference[2] << ") Norm = " << vtkMath::Norm( stylusTipStdev_Reference ) );
+  LOG_DEBUG( "Stylus tips Magnitude STD deviation " << stylusTipStdev_Reference[3] );
 
   //compute the mean vector, compute the magnitude of error vector, get stats for this magnitude
   std::vector<double> sylusTipsToMeanVectorsMagnitude;
-  for(int j=0;j<values[0].size(); j++)
+  for( unsigned int j = 0; j < values[0].size(); j++ )
   {
-    double sylusTipToMeanVector[3]={stylusTipMean_Reference[0]-values[0][j],stylusTipMean_Reference[1]-values[1][j],stylusTipMean_Reference[2]-values[2][j]};
-    sylusTipsToMeanVectorsMagnitude.push_back(vtkMath::Norm(sylusTipToMeanVector));
+    double sylusTipToMeanVector[3] = {stylusTipMean_Reference[0] - values[0][j], stylusTipMean_Reference[1] - values[1][j], stylusTipMean_Reference[2] - values[2][j]};
+    sylusTipsToMeanVectorsMagnitude.push_back( vtkMath::Norm( sylusTipToMeanVector ) );
   }
 
-  double stylusVectorsMagnitudeMean=0;
-  double stylusVectorsMagnitudeStdev=0;
-  PlusMath::ComputeMeanAndStdev( sylusTipsToMeanVectorsMagnitude, stylusVectorsMagnitudeMean, stylusVectorsMagnitudeStdev);
-  LOG_DEBUG("Error magnitude = ||StylusTipsMean-StylusTip||");
-  LOG_DEBUG("Error magnitude Mean = "<< stylusVectorsMagnitudeMean);
-  LOG_DEBUG("Error magnitude STD deviation = "<< stylusVectorsMagnitudeStdev);
+  double stylusVectorsMagnitudeMean = 0;
+  double stylusVectorsMagnitudeStdev = 0;
+  PlusMath::ComputeMeanAndStdev( sylusTipsToMeanVectorsMagnitude, stylusVectorsMagnitudeMean, stylusVectorsMagnitudeStdev );
+  LOG_DEBUG( "Error magnitude = ||StylusTipsMean-StylusTip||" );
+  LOG_DEBUG( "Error magnitude Mean = " << stylusVectorsMagnitudeMean );
+  LOG_DEBUG( "Error magnitude STD deviation = " << stylusVectorsMagnitudeStdev );
 
   return PLUS_SUCCESS;
 }
@@ -406,15 +406,15 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::EstimateLandmarkPosition()
 //-----------------------------------------------------------------------------
 std::string vtkPlusLandmarkDetectionAlgo::GetDetectedLandmarksString( double aPrecision/*=3*/ )
 {
-  if (this->DetectedLandmarkPoints_Reference->GetNumberOfPoints()>0)
+  if ( this->DetectedLandmarkPoints_Reference->GetNumberOfPoints() > 0 )
   {
     std::ostringstream s;
-    double landmarkDetected_Reference[4] = {0,0,0,1};
-    s << std::fixed << std::setprecision(aPrecision);
-    for (int id =0; id<this->DetectedLandmarkPoints_Reference->GetNumberOfPoints();id++)
+    double landmarkDetected_Reference[4] = {0, 0, 0, 1};
+    s << std::fixed << std::setprecision( aPrecision );
+    for ( int id = 0; id < this->DetectedLandmarkPoints_Reference->GetNumberOfPoints(); id++ )
     {
-      this->DetectedLandmarkPoints_Reference->GetPoint(id, landmarkDetected_Reference);
-      s <<"Landmark "<< id+1 << " (" << landmarkDetected_Reference[0]<<", " << landmarkDetected_Reference[1]<<", " << landmarkDetected_Reference[2]<<")";
+      this->DetectedLandmarkPoints_Reference->GetPoint( id, landmarkDetected_Reference );
+      s << "Landmark " << id + 1 << " (" << landmarkDetected_Reference[0] << ", " << landmarkDetected_Reference[1] << ", " << landmarkDetected_Reference[2] << ")";
     }
     s << std::ends;
     return s.str();
@@ -426,25 +426,25 @@ std::string vtkPlusLandmarkDetectionAlgo::GetDetectedLandmarksString( double aPr
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusLandmarkDetectionAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusLandmarkDetectionAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
 {
-  XML_FIND_NESTED_ELEMENT_REQUIRED(PhantomLandmarkLandmarkDetectionElement, aConfig, "vtkPlusPhantomLandmarkRegistrationAlgo");
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, PhantomLandmarkLandmarkDetectionElement);
+  XML_FIND_NESTED_ELEMENT_REQUIRED( PhantomLandmarkLandmarkDetectionElement, aConfig, "vtkPlusPhantomLandmarkRegistrationAlgo" );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, AcquisitionRate, PhantomLandmarkLandmarkDetectionElement );
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FilterWindowTimeSec, PhantomLandmarkLandmarkDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DetectionTimeSec, PhantomLandmarkLandmarkDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, StylusShaftMinimumDisplacementThresholdMm, PhantomLandmarkLandmarkDetectionElement);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, StylusTipMaximumDisplacementThresholdMm, PhantomLandmarkLandmarkDetectionElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, FilterWindowTimeSec, PhantomLandmarkLandmarkDetectionElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, DetectionTimeSec, PhantomLandmarkLandmarkDetectionElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, StylusShaftMinimumDisplacementThresholdMm, PhantomLandmarkLandmarkDetectionElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, StylusTipMaximumDisplacementThresholdMm, PhantomLandmarkLandmarkDetectionElement );
 
-  int filterWindowSize=0;
-  int numberOfWindows=0;
-  if (ComputeFilterWindowSize(filterWindowSize)==PLUS_FAIL || ComputeNumberOfWindows(numberOfWindows)==PLUS_FAIL)
+  unsigned int filterWindowSize = 0;
+  unsigned int numberOfWindows = 0;
+  if ( ComputeFilterWindowSize( filterWindowSize ) == PLUS_FAIL || ComputeNumberOfWindows( numberOfWindows ) == PLUS_FAIL )
   {
     return PLUS_FAIL;
   }
 
-  LOG_DEBUG("AcquisitionRate = "<< AcquisitionRate << "[fps] WindowTimeSec = " << FilterWindowTimeSec<<"[s] DetectionTimeSec = "<< DetectionTimeSec <<"[s]");
-  LOG_DEBUG("NumberOfWindows = "<< numberOfWindows<< " WindowSize = "<< filterWindowSize<< " MinimunDistanceBetweenLandmarksMm = "<< MinimunDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << StylusTipMaximumDisplacementThresholdMm <<"[mm]");
+  LOG_DEBUG( "AcquisitionRate = " << AcquisitionRate << "[fps] WindowTimeSec = " << FilterWindowTimeSec << "[s] DetectionTimeSec = " << DetectionTimeSec << "[s]" );
+  LOG_DEBUG( "NumberOfWindows = " << numberOfWindows << " WindowSize = " << filterWindowSize << " MinimunDistanceBetweenLandmarksMm = " << MinimunDistanceBetweenLandmarksMm << "[mm] LandmarkThreshold " << StylusTipMaximumDisplacementThresholdMm << "[mm]" );
 
   return PLUS_SUCCESS;
 }

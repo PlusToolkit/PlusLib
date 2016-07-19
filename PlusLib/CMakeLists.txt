@@ -29,9 +29,10 @@ MESSAGE(STATUS "Detected platform: ${PLUSLIB_PLATFORM}.")
 
 # --------------------------------------------------------------------------
 # System Settings
-IF(${WIN32})
+IF(WIN32)
   # This method adds the necessary compiler flag
   SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
+  add_definitions(-D_MSC_PLATFORM_TOOLSET_$(PlatformToolset))
 ENDIF()
 
 # --------------------------------------------------------------------------

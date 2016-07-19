@@ -54,9 +54,9 @@ private:
   {
   public:
     /// Returns a vector of length 8
-    std::vector<double> toVector();
+    std::vector<int> toVector();
     /// Converts a vector into stored values
-    void fromVector(const std::vector<double> input);
+    void fromVector(const std::vector<int> input);
     /// Outputs a string separated by 'separator'
     std::string toString(char separator=' ');
     /// Converts a string into stored values

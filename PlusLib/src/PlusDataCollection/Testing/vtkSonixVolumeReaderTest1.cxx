@@ -95,14 +95,19 @@ int main (int argc, char* argv[])
   imageExtractorBase->Update(); 
   vtkImageData* baselineRGB=imageExtractorBase->GetOutput();
 
-  if ( sonixVolumeData->GetNumberOfTrackedFrames() < inputFrameNumber )
+  if (inputFrameNumber < 0)
   {
-    LOG_ERROR("Unable to get tracked frame from list, frame number (" << inputFrameNumber 
+    inputFrameNumber = 0;
+  }
+  unsigned int inputFrameNumberUint = static_cast<unsigned int>(inputFrameNumber);
+  if ( sonixVolumeData->GetNumberOfTrackedFrames() < inputFrameNumberUint)
+  {
+    LOG_ERROR("Unable to get tracked frame from list, frame number (" << inputFrameNumberUint
       << ") is larger than tracked frame list size (" << sonixVolumeData->GetNumberOfTrackedFrames() << ")!"); 
     exit(EXIT_FAILURE); 
   }
 
-  PlusVideoFrame* videoFrame = sonixVolumeData->GetTrackedFrame(inputFrameNumber)->GetImageData(); 
+  PlusVideoFrame* videoFrame = sonixVolumeData->GetTrackedFrame(inputFrameNumberUint)->GetImageData();
 
   if ( !videoFrame->IsImageValid() )
   {

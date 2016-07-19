@@ -16,7 +16,7 @@ class vtkModifiedBSPTree;
 class vtkPolyData;
 
 /*!
-  \class SpatialModel 
+  \class SpatialModel
   \brief Class to store all properties of a simulated object.
   \ingroup PlusLibUsSimulatorAlgo
 */
@@ -28,9 +28,9 @@ public:
   {
     LineIntersectionInfo()
     {
-      Model=NULL;
-      IntersectionDistanceFromStartPointMm=0;
-      IntersectionIncidenceAngleRad=0;
+      Model = NULL;
+      IntersectionDistanceFromStartPointMm = 0;
+      IntersectionIncidenceAngleRad = 0;
     }
     PlusSpatialModel* Model;
     // Distance between the line starting point and the intersection point, in mm
@@ -39,31 +39,31 @@ public:
     double IntersectionIncidenceAngleRad;
   };
 
-  PlusSpatialModel(); 
-  virtual ~PlusSpatialModel(); 
+  PlusSpatialModel();
+  virtual ~PlusSpatialModel();
 
   /*! Copy constructor. Performs shallow-copy. */
-  PlusSpatialModel( const PlusSpatialModel& model);
+  PlusSpatialModel( const PlusSpatialModel& model );
   /*! Assignment operator. Performs shallow-copy. */
-  void operator=( const PlusSpatialModel& model);
+  void operator=( const PlusSpatialModel& model );
 
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* spatialModelElement);
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* spatialModelElement );
 
   /*! Set the surface model file name (STL or VTP). It can be used to override the model file name specified in the XML configuration. */
-  void SetModelFile(const char* modelFile);
+  void SetModelFile( const char* modelFile );
 
-  /*! Set US imaging frequency for generated image */ 
-  void SetImagingFrequencyMhz(double frequencyMhz);
+  /*! Set US imaging frequency for generated image */
+  void SetImagingFrequencyMhz( double frequencyMhz );
 
   const std::string& GetName() { return this->Name; };
-  void SetName(const std::string& name) { this->Name=name; };
+  void SetName( const std::string& name ) { this->Name = name; };
 
   const std::string& GetObjectCoordinateFrame() { return this->ObjectCoordinateFrame; };
-  void SetObjectCoordinateFrame(const std::string& objectCoordinateFrame) { this->ObjectCoordinateFrame=objectCoordinateFrame; };
+  void SetObjectCoordinateFrame( const std::string& objectCoordinateFrame ) { this->ObjectCoordinateFrame = objectCoordinateFrame; };
 
   vtkMatrix4x4* GetModelToObjectTransform() { return this->ModelToObjectTransform; };
 
-  void SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform);
+  void SetReferenceToObjectTransform( vtkMatrix4x4* referenceToObjectTransform );
 
   /*!
     Get all the intersection points of the model and a line. Input and output points are all in Model coordinate system.
@@ -71,45 +71,45 @@ public:
     If the line starts inside the model then the first intersection position is 0.
     The unit of the reference coordinate system must be in mm.
   */
-  void GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference);
+  void GetLineIntersections( std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference );
 
   double GetAcousticImpedanceMegarayls();
-  
-  /*! 
+
+  /*!
     Computes relative intensities inside the model
     \param incidentIntensity Dimensionless value, if there is 100% reflection at the surface then this
       fraction of the beam intensity would be sensed at the transducer. It includes the effect of attenuation of both incoming and reflected direction.
     \param transmittedIntensity: intensity when the beam leaves the model
   */
-  void CalculateIntensity(std::vector<double>& reflectedIntensity, int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
-    double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double &transmittedIntensity, double incidenceAngleRad);
+  void CalculateIntensity( std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
+                           double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad );
 
-  void SetDensityKgPerM3(double d) { this->DensityKgPerM3=d; };
-  void SetSoundVelocityMPerSec(double d) { this->SoundVelocityMPerSec=d; };
-  void SetAttenuationCoefficientDbPerCmMhz(double d) { this->AttenuationCoefficientDbPerCmMhz=d; };
-  void SetSurfaceReflectionIntensityDecayDbPerMm(double d) { this->SurfaceReflectionIntensityDecayDbPerMm=d; };
-  void SetBackscatterDiffuseReflectionCoefficient(double d) { this->BackscatterDiffuseReflectionCoefficient=d; };
-  void SetSurfaceDiffuseReflectionCoefficient(double d) { this->SurfaceDiffuseReflectionCoefficient=d; };
-  void SetSurfaceSpecularReflectionCoefficient(double d) { this->SurfaceSpecularReflectionCoefficient=d; };
-  void SetTransducerSpatialModelMaxOverlapMm(double d) { this->TransducerSpatialModelMaxOverlapMm=d; };
+  void SetDensityKgPerM3( double d ) { this->DensityKgPerM3 = d; };
+  void SetSoundVelocityMPerSec( double d ) { this->SoundVelocityMPerSec = d; };
+  void SetAttenuationCoefficientDbPerCmMhz( double d ) { this->AttenuationCoefficientDbPerCmMhz = d; };
+  void SetSurfaceReflectionIntensityDecayDbPerMm( double d ) { this->SurfaceReflectionIntensityDecayDbPerMm = d; };
+  void SetBackscatterDiffuseReflectionCoefficient( double d ) { this->BackscatterDiffuseReflectionCoefficient = d; };
+  void SetSurfaceDiffuseReflectionCoefficient( double d ) { this->SurfaceDiffuseReflectionCoefficient = d; };
+  void SetSurfaceSpecularReflectionCoefficient( double d ) { this->SurfaceSpecularReflectionCoefficient = d; };
+  void SetTransducerSpatialModelMaxOverlapMm( double d ) { this->TransducerSpatialModelMaxOverlapMm = d; };
 
 protected:
 
-  void SetPolyData(vtkPolyData* polyData);
-  void SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer);
-  void SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform);
-  void SetModelToObjectTransform(double* matrixElements);
+  void SetPolyData( vtkPolyData* polyData );
+  void SetModelLocalizer( vtkModifiedBSPTree* modelLocalizer );
+  void SetModelToObjectTransform( vtkMatrix4x4* modelToObjectTransform );
+  void SetModelToObjectTransform( double* matrixElements );
 
   PlusStatus UpdateModelFile();
-  void UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements);
+  void UpdatePrecomputedAttenuations( double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements );
 
 private:
 
   //PlusStatus LoadModel(const std::string& absoluteImagePath);
 
   /*! Identifying name of Model*/
-  std::string Name; 
-  
+  std::string Name;
+
   /*! Name of the STL or VTP model file. If no ModelFile is defined then it means that the model is everywhere (background material). */
   std::string ModelFile;
 
@@ -133,15 +133,15 @@ private:
   std::string ObjectCoordinateFrame;
 
   //TODO: /*! ModelToReferenceTransform */ ... is not read in previously, probably not needed, keep an eye on it
-  
+
   /*! Ultrasound frequency */
-  double ImagingFrequencyMhz; 
-  
+  double ImagingFrequencyMhz;
+
   /*! Density in kg/m^3 of the material the model is comprised of */
-  double DensityKgPerM3; 
+  double DensityKgPerM3;
 
   /*! Velocity of sound in the model material (m/s) */
-  double SoundVelocityMPerSec; 
+  double SoundVelocityMPerSec;
 
   /*! Attenuation coefficient of the model material (dB / cm / MHz). Includes both absorption and scattering. Positive number. */
   double AttenuationCoefficientDbPerCmMhz;
@@ -164,7 +164,7 @@ private:
     TransducerSpatialModelMaxOverlapMm determines how far from the transducer surface (inside the transducer) we start searching
     for scanline/SpatialModel intersections.
     If the value is too small then inside/outside segments may be inverted for the overlapping model.
-    If the value is too large then it may slightly slow down the simulation. 
+    If the value is too large then it may slightly slow down the simulation.
     When it is decided if a certain part of a scanline is inside or outside of a model it is assumed that
     after 1 (or 3, 5, 7, ...) intersections we are inside the model and after 2 (or 4, 6, 8, ...) intersections we are outside the model.
     This is only true if the scanline start point is outside every spatial model. This is always true in theory, but in practice, due to
@@ -177,7 +177,7 @@ private:
   /*!
     The fraction of the attenuated intensity that is reflected (backscattered) in a mirror-like way.
     Smooth, polished surfaces have higher values (range: 0.0-1.0).
-    A value of one means all the attenuation is caused by a perfect reflection.    
+    A value of one means all the attenuation is caused by a perfect reflection.
     Usually not just scattering occurs (there are various ways of scattering) but also absorption, so the value is much less than 1.0.
   */
   double SurfaceSpecularReflectionCoefficient;

@@ -605,7 +605,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     SetCustomString( "encoding", "raw" );
   }
 
-  int frameSize[3] = {0, 0, 0};
+  unsigned int frameSize[3] = {0, 0, 0};
   if( this->EnableImageDataWrite )
   {
     this->GetMaximumImageDimensions( frameSize );
@@ -630,7 +630,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     // but then, we need to save the original frame size for each frame and crop the image when we read it
     for ( unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++ )
     {
-      int* currFrameSize = this->TrackedFrameList->GetTrackedFrame( frameNumber )->GetFrameSize();
+      unsigned int* currFrameSize = this->TrackedFrameList->GetTrackedFrame( frameNumber )->GetFrameSize();
       if ( this->TrackedFrameList->GetTrackedFrame( frameNumber )->GetImageData()->IsImageValid()
            && ( frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] || frameSize[2] != currFrameSize[2] )  )
       {
