@@ -15,7 +15,7 @@ class vtkPlusDataSource;
 class vtkMatrix4x4;
 
 /*!
-\class vtkPlus3dConnexionTracker 
+\class vtkPlus3dConnexionTracker
 \brief Interface for 3D Connexion 3D mouse devices
 
 This class reads transforms from 3D mouse devices.
@@ -26,8 +26,8 @@ class vtkPlusDataCollectionExport vtkPlus3dConnexionTracker : public vtkPlusDevi
 {
 public:
 
-  static vtkPlus3dConnexionTracker *New();
-  vtkTypeMacro( vtkPlus3dConnexionTracker,vtkPlusDevice );
+  static vtkPlus3dConnexionTracker* New();
+  vtkTypeMacro( vtkPlus3dConnexionTracker, vtkPlusDevice );
 
   /*! Connect to device */
   PlusStatus InternalConnect();
@@ -35,8 +35,8 @@ public:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-  /*! 
-  Probe to see if the tracking system is present on the specified serial port.  
+  /*!
+  Probe to see if the tracking system is present on the specified serial port.
   */
   PlusStatus Probe();
 
@@ -48,16 +48,16 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+  PlusStatus WriteConfiguration( vtkXMLDataElement* config );
 
   /*! Process input event received from the device. For internal use only. Public to allow calling from static function. */
   void ProcessDeviceInputEvent( LPARAM lParam );
 
   /*! Callback function called when capture window is destroyed. For internal use only. Public to allow calling from static function. */
-  void OnCaptureWindowDestroy(); 
+  void OnCaptureWindowDestroy();
 
   enum OperatingModeType
   {
@@ -66,7 +66,7 @@ public:
   };
 
   virtual bool IsTracker() const { return true; }
-  
+
 protected:
 
   vtkPlus3dConnexionTracker();
@@ -88,12 +88,12 @@ protected:
   PlusStatus CreateCaptureWindow();
 
   /*! Delete the capture window */
-  void DestroyCaptureWindow();  
+  void DestroyCaptureWindow();
 
 private:  // Functions.
 
   vtkPlus3dConnexionTracker( const vtkPlus3dConnexionTracker& );
-  void operator=( const vtkPlus3dConnexionTracker& );  
+  void operator=( const vtkPlus3dConnexionTracker& );
 
 private:  // Variables.
 
@@ -102,20 +102,20 @@ private:  // Variables.
   vtkMatrix4x4* DeviceToTrackerTransform;
   double TranslationScales[3];
   double RotationScales[3];
-  
+
   OperatingModeType OperatingMode;
 
-  /*! Mutex instance simultaneous access of mouse pose transform (LatestMouseTransform) from the tracker and the main thread */ 
+  /*! Mutex instance simultaneous access of mouse pose transform (LatestMouseTransform) from the tracker and the main thread */
   vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
 
   std::string CaptureWindowClassName;
   HWND CaptureWindowHandle;
 
   /*! Pointer to the first element of an array of raw input devices */
-  PRAWINPUTDEVICE     RegisteredRawInputDevices;
+  PRAWINPUTDEVICE RegisteredRawInputDevices;
   /*! Number of raw input devices in the RawInputDevices array */
-  int NumberOfRegisteredRawInputDevices;
-  
+  unsigned int NumberOfRegisteredRawInputDevices;
+
 };
 
 #endif

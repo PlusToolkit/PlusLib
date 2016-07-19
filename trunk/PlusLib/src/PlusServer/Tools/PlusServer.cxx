@@ -337,7 +337,7 @@ PlusStatus ConnectClients( int listeningPort, std::vector< vtkSmartPointer<vtkPl
 PlusStatus DisconnectClients( std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList )
 {
   int numberOfErrors = 0; 
-  for ( int i = 0; i < testClientList.size(); ++i )
+  for ( unsigned int i = 0; i < testClientList.size(); ++i )
   {
     if ( testClientList[i]->StopRecording() != PLUS_SUCCESS )
     {

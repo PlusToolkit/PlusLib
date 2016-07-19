@@ -373,7 +373,7 @@ PlusVideoFrame& PlusVideoFrame::operator=( PlusVideoFrame const& videoItem )
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
   if ( videoItem.GetFrameSizeInBytes() > 0 )
   {
-    int frameSize[3] = {0, 0, 0};
+    unsigned int frameSize[3] = {0, 0, 0};
     videoItem.GetFrameSize( frameSize );
 
     if ( this->AllocateFrame( frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents() ) != PLUS_SUCCESS )
@@ -456,9 +456,56 @@ PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const int imageSi
 }
 
 //----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents )
+{
+  if ( imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0 )
+  {
+    LOG_WARNING( "Single slice images should have a dimension of z=1" );
+  }
+
+  if ( image != NULL )
+  {
+    int imageExtents[6] = { 0, 0, 0, 0, 0, 0 };
+    image->GetExtent( imageExtents );
+    if ( imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
+         imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
+         imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
+         image->GetScalarType() == pixType &&
+         image->GetNumberOfScalarComponents() == numberOfScalarComponents )
+    {
+      // already allocated, no change
+      return PLUS_SUCCESS;
+    }
+  }
+
+  image->SetExtent( 0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1 );
+
+#if (VTK_MAJOR_VERSION < 6)
+  image->SetScalarType( pixType );
+  image->SetNumberOfScalarComponents( numberOfScalarComponents );
+  image->AllocateScalars();
+#else
+  image->AllocateScalars( pixType, numberOfScalarComponents );
+#endif
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::AllocateFrame( const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents )
 {
   if( this->GetImage() == NULL )
+  {
+    this->SetImageData( vtkImageData::New() );
+  }
+  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame( this->GetImage(), imageSize, pixType, numberOfScalarComponents );
+  return allocStatus;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::AllocateFrame( const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents )
+{
+  if ( this->GetImage() == NULL )
   {
     this->SetImageData( vtkImageData::New() );
   }
@@ -473,13 +520,8 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     return 0;
   }
-  int frameSize[3] = {0, 0, 0};
+  unsigned int frameSize[3] = {0, 0, 0};
   this->GetFrameSize( frameSize );
-
-  if( frameSize[0] <= 0 || frameSize[1] <= 0 || frameSize[2] <= 0 )
-  {
-    return 0;
-  }
 
   int bytesPerScalar = GetNumberOfBytesPerScalar();
   if ( bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4 && bytesPerScalar != 8 )
@@ -585,7 +627,7 @@ void* PlusVideoFrame::GetScalarPointer() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetFrameSize( int frameSize[3] ) const
+PlusStatus PlusVideoFrame::GetFrameSize( unsigned int frameSize[3] ) const
 {
   if ( !this->IsImageValid() )
   {
@@ -593,8 +635,24 @@ PlusStatus PlusVideoFrame::GetFrameSize( int frameSize[3] ) const
     return PLUS_FAIL;
   }
 
-  this->Image->GetDimensions( frameSize );
+  int frameSizeSigned[3];
+  this->Image->GetDimensions( frameSizeSigned );
 
+  if ( frameSizeSigned[0] < 0 )
+  {
+    frameSizeSigned[0] = 0;
+  }
+  if ( frameSizeSigned[1] < 0 )
+  {
+    frameSizeSigned[1] = 0;
+  }
+  if ( frameSizeSigned[2] < 0 )
+  {
+    frameSizeSigned[2] = 0;
+  }
+  frameSize[0] = static_cast<unsigned int>( frameSizeSigned[0] );
+  frameSize[1] = static_cast<unsigned int>( frameSizeSigned[1] );
+  frameSize[2] = static_cast<unsigned int>( frameSizeSigned[2] );
   return PLUS_SUCCESS;
 }
 
@@ -980,13 +1038,66 @@ int* WholeExtentCallback_1_1_1( void* )
   return defaultextent;
 }
 
+
+
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType pixType,
     int numberOfScalarComponents,
     const int inputFrameSizeInPx[3],
+    PlusVideoFrame& outBufferItem,
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3] )
+{
+  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, pixType,
+         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize );
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+    FlipInfoType flipInfo, US_IMAGE_TYPE inUsImageType,
+    PlusCommon::VTKScalarPixelType inUsImagePixelType,
+    unsigned int numberOfScalarComponents,
+    const unsigned int inputFrameSizeInPx[3],
+    PlusVideoFrame& outBufferItem,
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3] )
+{
+  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, inUsImagePixelType,
+         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize );
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+    FlipInfoType flipInfo,
+    US_IMAGE_TYPE inUsImageType,
+    PlusCommon::VTKScalarPixelType pixType,
+    int numberOfScalarComponents,
+    const int inputFrameSizeInPx[3],
+    vtkImageData* outUsOrientedImage,
+    const int clipRectangleOrigin[3],
+    const int clipRectangleSize[3] )
+{
+  if ( inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0 )
+  {
+    LOG_ERROR( "Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting." );
+    return PLUS_FAIL;
+  }
+
+  unsigned int frameSizeInPxUint[3] = { static_cast<unsigned int>( inputFrameSizeInPx[0] ), static_cast<unsigned int>( inputFrameSizeInPx[1] ), static_cast<unsigned int>( inputFrameSizeInPx[2] ) };
+  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, pixType, static_cast<unsigned int>( numberOfScalarComponents ), frameSizeInPxUint, outUsOrientedImage,
+         clipRectangleOrigin, clipRectangleSize );
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+    FlipInfoType flipInfo,
+    US_IMAGE_TYPE inUsImageType,
+    PlusCommon::VTKScalarPixelType inUsImagePixelType,
+    unsigned int numberOfScalarComponents,
+    const unsigned int inputFrameSizeInPx[3],
     vtkImageData* outUsOrientedImage,
     const int clipRectangleOrigin[3],
     const int clipRectangleSize[3] )
@@ -1026,21 +1137,6 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(  unsigned char* imageDataPtr
                       outUsOrientedImage, clipRectangleOrigin, clipRectangleSize );
 
   return result;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
-    FlipInfoType flipInfo,
-    US_IMAGE_TYPE inUsImageType,
-    PlusCommon::VTKScalarPixelType pixType,
-    int numberOfScalarComponents,
-    const int inputFrameSizeInPx[3],
-    PlusVideoFrame& outBufferItem,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
-{
-  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, pixType,
-         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize );
 }
 
 //----------------------------------------------------------------------------

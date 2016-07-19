@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef POINTOBSERVATIONBUFFER_H
 #define POINTOBSERVATIONBUFFER_H
@@ -27,14 +27,15 @@ See License.txt for details.
 class PointObservationBuffer
 {
 private:
-  std::vector<PointObservation*> observations;
+  typedef std::vector<PointObservation*> PointObservationVector;
+  PointObservationVector observations;
 
 public:
 
   PointObservationBuffer();
   ~PointObservationBuffer();
 
-  int Size() const;
+  PointObservationVector::size_type Size() const;
   PointObservation* GetObservation( int index ) const;
 
   void AddObservation( PointObservation* newObservation );

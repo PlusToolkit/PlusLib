@@ -79,6 +79,12 @@ ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
 target_include_directories(vtkPlusCommon PUBLIC ${PlusCommon_INCLUDE_DIRS} )
 TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
 
+IF(MSVC)
+  # enable parallel in-target build
+  # do not add to interface defines as downstream targets don't necessarily need MP
+  target_compile_options(vtkPlusCommon PRIVATE /MP)
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Set external MS project 
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCommon CACHE INTERNAL "" FORCE)

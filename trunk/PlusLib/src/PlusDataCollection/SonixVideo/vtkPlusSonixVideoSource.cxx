@@ -234,10 +234,10 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
 
   vtkPlusDataSource* aSource = sources[0];
 
-  int frameSize[3] = {0,0,0};
+  unsigned int frameSize[3] = {0,0,0};
   aSource->GetInputFrameSize(frameSize);
   int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
-  const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
+  const unsigned int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel;
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 0; 
@@ -910,7 +910,9 @@ PlusStatus vtkPlusSonixVideoSource::SetTimeGainCompensationDevice(int tgc[8])
   PlusStatus result = this->SetParamValueDevice("b-tgc", tgcStruct, tgcStruct);
   if( result == PLUS_SUCCESS )
   {
-    this->RequestedImagingParameters->SetTimeGainCompensation(tgcStruct.toVector());
+    std::vector<int> vec = tgcStruct.toVector();
+    std::vector<double> vecDouble(vec.begin(), vec.end());
+    this->RequestedImagingParameters->SetTimeGainCompensation(vecDouble);
   }
   return result;
 }
@@ -922,7 +924,9 @@ PlusStatus vtkPlusSonixVideoSource::SetTimeGainCompensationDevice(const Plus_uTG
   PlusStatus result = this->SetParamValueDevice("b-tgc", local, local);
   if( result == PLUS_SUCCESS )
   {
-    this->RequestedImagingParameters->SetTimeGainCompensation(local.toVector());
+    std::vector<int> vec = local.toVector();
+    std::vector<double> vecDouble(vec.begin(), vec.end());
+    this->RequestedImagingParameters->SetTimeGainCompensation(vecDouble);
   }
   return result;
 }
@@ -934,7 +938,10 @@ PlusStatus vtkPlusSonixVideoSource::GetTimeGainCompensationDevice(int tgc[8])
   PlusStatus result = GetParamValueDevice("b-tgc", tgcStruct, tgcStruct);
   if( result == PLUS_SUCCESS )
   {
-    this->CurrentImagingParameters->SetTimeGainCompensation(tgcStruct.toVector());
+    // Cache the value of this request
+    std::vector<int> vec = tgcStruct.toVector();
+    std::vector<double> vecDouble(vec.begin(), vec.end());
+    this->CurrentImagingParameters->SetTimeGainCompensation(vecDouble);
     std::copy(tgcStruct.toVector().begin(), tgcStruct.toVector().end(), tgc);
   }
   return result;
@@ -946,7 +953,10 @@ PlusStatus vtkPlusSonixVideoSource::GetTimeGainCompensationDevice(Plus_uTGC& tgc
   PlusStatus result = GetParamValueDevice("b-tgc", tgc, tgc);
   if( result == PLUS_SUCCESS )
   {
-    this->CurrentImagingParameters->SetTimeGainCompensation(tgc.toVector());
+    // Cache the value of this request
+    std::vector<int> vec = tgc.toVector();
+    std::vector<double> vecDouble(vec.begin(), vec.end());
+    this->CurrentImagingParameters->SetTimeGainCompensation(vecDouble);
   }
   return result;
 }
@@ -1396,9 +1406,9 @@ PlusStatus vtkPlusSonixVideoSource::GetRequestedImagingDataTypeFromSources(int &
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> vtkPlusSonixVideoSource::Plus_uTGC::toVector()
+std::vector<int> vtkPlusSonixVideoSource::Plus_uTGC::toVector()
 {
-  std::vector<double> result;
+  std::vector<int> result;
   result.push_back(this->v1);
   result.push_back(this->v2);
   result.push_back(this->v3);
@@ -1411,7 +1421,7 @@ std::vector<double> vtkPlusSonixVideoSource::Plus_uTGC::toVector()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSonixVideoSource::Plus_uTGC::fromVector(const std::vector<double> input)
+void vtkPlusSonixVideoSource::Plus_uTGC::fromVector(const std::vector<int> input)
 {
   if( input.size() != 8 )
   {
@@ -1438,7 +1448,7 @@ std::string vtkPlusSonixVideoSource::Plus_uTGC::toString(char separator/*=' '*/)
 //----------------------------------------------------------------------------
 void vtkPlusSonixVideoSource::Plus_uTGC::fromString(const std::string& input, char separator/*=' '*/)
 {
-  std::vector<double> vect;
+  std::vector<int> vect;
   std::stringstream ss(input);
 
   double i;

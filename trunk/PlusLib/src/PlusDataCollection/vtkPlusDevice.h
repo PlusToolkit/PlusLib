@@ -7,27 +7,24 @@ See License.txt for details.
 #ifndef __vtkPlusDevice_h
 #define __vtkPlusDevice_h
 
-#include "PlusConfigure.h"
-#include "vtkPlusDataCollectionExport.h"
-
 #include "PlusCommon.h"
-#include "vtkStdString.h"
+#include "PlusConfigure.h"
 #include "PlusStreamBufferItem.h"
 #include "PlusTrackedFrame.h"
-
 #include "vtkImageAlgorithm.h"
 #include "vtkMultiThreader.h"
 #include "vtkPlusChannel.h"
-
+#include "vtkPlusDataCollectionExport.h"
+#include "vtkStdString.h"
 #include <string>
 
 class PlusTrackedFrame;
-class vtkPlusDataCollector;
-class vtkPlusHTMLGenerator;
 class vtkPlusBuffer;
+class vtkPlusDataCollector;
 class vtkPlusDataSource;
-class vtkXMLDataElement;
 class vtkPlusDevice;
+class vtkPlusHTMLGenerator;
+class vtkXMLDataElement;
 
 typedef std::vector<vtkPlusChannel*> ChannelContainer;
 typedef ChannelContainer::const_iterator ChannelContainerConstIterator;
@@ -209,7 +206,7 @@ public:
   std::vector<vtkPlusDataSource*> GetVideoSources() const;
 
   /*! Get the video source for the specified source index */
-  PlusStatus GetVideoSourceByIndex(const int index, vtkPlusDataSource*& aVideoSource);
+  PlusStatus GetVideoSourceByIndex(const unsigned int index, vtkPlusDataSource*& aVideoSource);
 
   /*! Get the first active image object */
   PlusStatus GetFirstVideoSource(vtkPlusDataSource*& anImage); 
@@ -360,6 +357,7 @@ public:
   automatically choose a new frame size.
   */
   virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y,  int z);
+  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, unsigned int x, unsigned int y, unsigned int z);
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
@@ -369,16 +367,16 @@ public:
   virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int dim[3]) { return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]); };
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z);
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int &x, unsigned int &y, unsigned int &z);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, int dim[3]);
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int dim[3]);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, int &x, int &y, int &z);
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int &x, unsigned int &y, unsigned int &z);
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, int dim[3]);
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int dim[3]);
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);
@@ -436,7 +434,7 @@ public:
   /*! Convenience function for getting the first available video source in the output channels */
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
 
-  /*! Return a list of items that desrcibe what image volumes this device can provide */
+  /*! Return a list of items that describe what image volumes this device can provide */
   virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaDataItems);
 
   /*!
@@ -488,6 +486,9 @@ protected:
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], 
     PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp=UNDEFINED_TIMESTAMP, 
     double filteredTimestamp=UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields= NULL);
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const unsigned int frameSizeInPx[3],
+    PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+    double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*! 
   This function is called by InternalUpdate() so that the subclasses

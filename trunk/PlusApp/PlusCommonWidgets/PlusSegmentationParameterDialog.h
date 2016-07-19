@@ -63,13 +63,13 @@ public:
 	* Set ROI values to spinBoxes (if a values is -1, it is not set - because usually only 2 values change at a time)
   * \return Success flag
 	*/
-  PlusStatus SetROI(int aXMin, int aYMin, int aXMax, int aYMax);
+  PlusStatus SetROI(unsigned int aXMin, unsigned int aYMin, unsigned int aXMax, unsigned int aYMax);
 
 	/*!
 	* Get ROI values from spinBoxes
   * \return Success flag
 	*/
-  PlusStatus GetROI(int &aXMin, int &aYMin, int &aXMax, int &aYMax);
+  PlusStatus GetROI(unsigned int &aXMin, unsigned int &aYMin, unsigned int &aXMax, unsigned int &aYMax);
 
 	/*!
 	* Compute and set spacing according to summed measured length (got from the mode handler)

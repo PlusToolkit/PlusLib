@@ -16,7 +16,7 @@ conditions are met:
 1) Redistribution of the source code, in verbatim or modified
 form, must retain the above copyright notice, this license,
 the following disclaimer, and any notices that refer to this
-license and/or the following disclaimer.  
+license and/or the following disclaimer.
 
 2) Redistribution in binary form must include the above copyright
 notice, a copy of this license and the following disclaimer
@@ -58,9 +58,9 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 #include <string.h>
 
-vtkStandardNewMacro(vtkPlusNDITracker);
+vtkStandardNewMacro( vtkPlusNDITracker );
 
-const int VIRTUAL_SROM_SIZE=1024;
+const int VIRTUAL_SROM_SIZE = 1024;
 
 //----------------------------------------------------------------------------
 vtkPlusNDITracker::vtkPlusNDITracker()
@@ -72,76 +72,76 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   this->BaudRate = 9600;
   this->MeasurementVolumeNumber = 0; // keep default volume
 
-  this->LastFrameNumber=0;
+  this->LastFrameNumber = 0;
 
-  memset(this->CommandReply,0,VTK_NDI_REPLY_LEN);
+  memset( this->CommandReply, 0, VTK_NDI_REPLY_LEN );
 
   // PortName for data source is not required if RomFile is specified, so we don't need to enable this->RequirePortNameInDeviceSetConfiguration
-  
+
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
-  this->AcquisitionRate=50;
+  this->StartThreadForInternalUpdates = true;
+  this->AcquisitionRate = 50;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusNDITracker::~vtkPlusNDITracker() 
+vtkPlusNDITracker::~vtkPlusNDITracker()
 {
-  if (this->Recording)
+  if ( this->Recording )
   {
     this->StopRecording();
-  }  
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  }
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
     delete [] toolDescriptorIt->second.VirtualSROM;
     toolDescriptorIt->second.VirtualSROM = NULL;
   }
-  this->SetVersion(NULL);
+  this->SetVersion( NULL );
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusNDITracker::PrintSelf( ostream& os, vtkIndent indent )
 {
-  Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusNDITracker::GetSdkVersion()
 {
-  std::ostringstream version; 
-  version << "NDICAPI-" << NDICAPI_MAJOR_VERSION << "." << NDICAPI_MINOR_VERSION; 
-  return version.str(); 
+  std::ostringstream version;
+  version << "NDICAPI-" << NDICAPI_MAJOR_VERSION << "." << NDICAPI_MINOR_VERSION;
+  return version.str();
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::Probe()
 {
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
     return PLUS_SUCCESS;
   }
   int errnum = NDI_OPEN_ERROR;
-  char *devicename = NULL;  
-  if (this->SerialPort > 0)
+  char* devicename = NULL;
+  if ( this->SerialPort > 0 )
   {
-    devicename = ndiDeviceName(this->SerialPort-1);
-    if (devicename)
+    devicename = ndiDeviceName( this->SerialPort - 1 );
+    if ( devicename )
     {
-      errnum = ndiProbe(devicename);
+      errnum = ndiProbe( devicename );
     }
   }
   else
   {
     // if SerialPort is set to -1, then probe the first N serial ports
-    const int MAX_SERIAL_PORT_NUMBER=20; // the serial port is almost surely less than this number
-    for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
+    const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
+    for ( int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++ )
     {
-      devicename = ndiDeviceName(i);
-      if (devicename)
+      devicename = ndiDeviceName( i );
+      if ( devicename )
       {
-        errnum = ndiProbe(devicename);
-        if (errnum == NDI_OKAY)
+        errnum = ndiProbe( devicename );
+        if ( errnum == NDI_OKAY )
         {
-          this->SerialPort = i+1;
+          this->SerialPort = i + 1;
           break;
         }
       }
@@ -149,20 +149,20 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
 
   // if probe was okay, then send VER:0 to identify device
-  if (errnum != NDI_OKAY)
+  if ( errnum != NDI_OKAY )
   {
     return PLUS_FAIL;
   }
 
-  this->Device = ndiOpen(devicename);
-  if (this->Device)
+  this->Device = ndiOpen( devicename );
+  if ( this->Device )
   {
-    this->SetVersion(ndiVER(this->Device,0));
-    ndiClose(this->Device);
+    this->SetVersion( ndiVER( this->Device, 0 ) );
+    ndiClose( this->Device );
     this->Device = 0;
   }
   return PLUS_SUCCESS;
-} 
+}
 
 //----------------------------------------------------------------------------
 // Send a raw command to the tracking unit.
@@ -171,29 +171,29 @@ PlusStatus vtkPlusNDITracker::Probe()
 // send the command.
 // Otherwise, open communication with the unit, send the command,
 // and close communication.
-char *vtkPlusNDITracker::Command(const char *command)
+char* vtkPlusNDITracker::Command( const char* command )
 {
   this->CommandReply[0] = '\0';
 
-  if (this->Device)
+  if ( this->Device )
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-    strncpy(this->CommandReply, ndiCommand(this->Device, command), VTK_NDI_REPLY_LEN-1);
-    this->CommandReply[VTK_NDI_REPLY_LEN-1] = '\0';
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock( this->UpdateMutex );
+    strncpy( this->CommandReply, ndiCommand( this->Device, command ), VTK_NDI_REPLY_LEN - 1 );
+    this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
   }
   else
   {
-    char *devicename = ndiDeviceName(this->SerialPort-1);
-    this->Device = ndiOpen(devicename);
-    if (this->Device == 0) 
+    char* devicename = ndiDeviceName( this->SerialPort - 1 );
+    this->Device = ndiOpen( devicename );
+    if ( this->Device == 0 )
     {
-      LOG_ERROR(ndiErrorString(NDI_OPEN_ERROR));
+      LOG_ERROR( ndiErrorString( NDI_OPEN_ERROR ) );
     }
     else
     {
-      strncpy(this->CommandReply, ndiCommand(this->Device, command), VTK_NDI_REPLY_LEN-1);
-      this->CommandReply[VTK_NDI_REPLY_LEN-1] = '\0';
-      ndiClose(this->Device);
+      strncpy( this->CommandReply, ndiCommand( this->Device, command ), VTK_NDI_REPLY_LEN - 1 );
+      this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
+      ndiClose( this->Device );
     }
     this->Device = 0;
   }
@@ -204,51 +204,67 @@ char *vtkPlusNDITracker::Command(const char *command)
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalConnect()
-{ 
+{
   int baud = NDI_9600;
-  switch (this->BaudRate)
+  switch ( this->BaudRate )
   {
-  case 9600: baud = NDI_9600; break; 
-  case 14400: baud = NDI_14400; break; 
-  case 19200: baud = NDI_19200; break; 
-  case 38400: baud = NDI_38400; break; 
-  case 57600: baud = NDI_57600; break; 
-  case 115200: baud = NDI_115200; break;
-  case 921600: baud = NDI_921600; break;
-  case 1228739: baud = NDI_1228739; break;
+  case 9600:
+    baud = NDI_9600;
+    break;
+  case 14400:
+    baud = NDI_14400;
+    break;
+  case 19200:
+    baud = NDI_19200;
+    break;
+  case 38400:
+    baud = NDI_38400;
+    break;
+  case 57600:
+    baud = NDI_57600;
+    break;
+  case 115200:
+    baud = NDI_115200;
+    break;
+  case 921600:
+    baud = NDI_921600;
+    break;
+  case 1228739:
+    baud = NDI_1228739;
+    break;
   default:
-    LOG_ERROR("Illegal baud rate: "<<this->BaudRate<<". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
+    LOG_ERROR( "Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739" );
     return PLUS_FAIL;
   }
 
-  char *devicename = ndiDeviceName(this->SerialPort-1);
-  this->Device = ndiOpen(devicename);
-  if (this->Device == 0) 
+  char* devicename = ndiDeviceName( this->SerialPort - 1 );
+  this->Device = ndiOpen( devicename );
+  if ( this->Device == 0 )
   {
-    LOG_ERROR("Failed to open port: " << (devicename == NULL ? "unknown" : devicename) << " - " << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR( "Failed to open port: " << ( devicename == NULL ? "unknown" : devicename ) << " - " << ndiErrorString( NDI_OPEN_ERROR ) );
     return PLUS_FAIL;
   }
   // initialize Device
-  bool resetOccurred=false;
-  const char* initCommandReply=ndiCommand(this->Device,"INIT:");
-  if (initCommandReply!=NULL && strncmp(initCommandReply,"RESET",5)==0)
+  bool resetOccurred = false;
+  const char* initCommandReply = ndiCommand( this->Device, "INIT:" );
+  if ( initCommandReply != NULL && strncmp( initCommandReply, "RESET", 5 ) == 0 )
   {
     // The tracker device was left in high-speed mode after exiting debugger. When the INIT was sent at 9600 baud,
     // the device reset back to default 9600 and returned status RESET.
     // Re-issue the INIT command to avoid 'command not valid in current mode' errors.
-    resetOccurred=true;
+    resetOccurred = true;
   }
   int errnum = 0;
-  if (ndiGetError(this->Device) || resetOccurred)
+  if ( ndiGetError( this->Device ) || resetOccurred )
   {
-    ndiRESET(this->Device);
+    ndiRESET( this->Device );
     //ndiGetError(this->Device); // ignore the error
-    ndiCommand(this->Device,"INIT:");
-    errnum = ndiGetError(this->Device);
-    if (errnum) 
+    ndiCommand( this->Device, "INIT:" );
+    errnum = ndiGetError( this->Device );
+    if ( errnum )
     {
-      LOG_ERROR(ndiErrorString(errnum));
-      ndiClose(this->Device);
+      LOG_ERROR( ndiErrorString( errnum ) );
+      ndiClose( this->Device );
       this->Device = 0;
       return PLUS_FAIL;
     }
@@ -256,57 +272,57 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
 
   // set the baud rate
   // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-  ndiCommand(this->Device,"COMM:%d%03d%d",baud,NDI_8N1,NDI_NOHANDSHAKE);
-  errnum = ndiGetError(this->Device);
-  if (errnum) 
+  ndiCommand( this->Device, "COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE );
+  errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR(ndiErrorString(errnum));
-    ndiClose(this->Device);
+    LOG_ERROR( ndiErrorString( errnum ) );
+    ndiClose( this->Device );
     this->Device = 0;
     return PLUS_FAIL;
   }
 
-  if (this->MeasurementVolumeNumber!=0)
+  if ( this->MeasurementVolumeNumber != 0 )
   {
-    const char* volumeSelectCommandReply=ndiCommand(this->Device,"VSEL:%d",this->MeasurementVolumeNumber);
-    errnum = ndiGetError(this->Device);
-    if (errnum) 
+    const char* volumeSelectCommandReply = ndiCommand( this->Device, "VSEL:%d", this->MeasurementVolumeNumber );
+    errnum = ndiGetError( this->Device );
+    if ( errnum )
     {
-      LOG_ERROR("Failed to set measurement volume "<<this->MeasurementVolumeNumber<<": "<<ndiErrorString(errnum));
+      LOG_ERROR( "Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString( errnum ) );
 
       const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
-      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
-      errnum = ndiGetError(this->Device);
-      if (errnum || volumeListCommandReply==NULL)
+      const char* volumeListCommandReply = ndiCommand( this->Device, "SFLIST:%02X", MODE_GET_VOLUMES_LIST );
+      errnum = ndiGetError( this->Device );
+      if ( errnum || volumeListCommandReply == NULL )
       {
-        LOG_ERROR("Failed to retrieve list of available volumes: "<<ndiErrorString(errnum));
+        LOG_ERROR( "Failed to retrieve list of available volumes: " << ndiErrorString( errnum ) );
       }
       else
       {
-        LogVolumeList(volumeListCommandReply, 0, vtkPlusLogger::LOG_LEVEL_INFO);
+        LogVolumeList( volumeListCommandReply, 0, vtkPlusLogger::LOG_LEVEL_INFO );
       }
-      ndiClose(this->Device);
+      ndiClose( this->Device );
       this->Device = 0;
       return PLUS_FAIL;
     }
     else
     {
       const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
-      const char* volumeListCommandReply=ndiCommand(this->Device,"SFLIST:%02X",MODE_GET_VOLUMES_LIST);
-      errnum = ndiGetError(this->Device);
-      if (!errnum || volumeListCommandReply!=NULL)
+      const char* volumeListCommandReply = ndiCommand( this->Device, "SFLIST:%02X", MODE_GET_VOLUMES_LIST );
+      errnum = ndiGetError( this->Device );
+      if ( !errnum || volumeListCommandReply != NULL )
       {
-        LogVolumeList(volumeListCommandReply, this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+        LogVolumeList( volumeListCommandReply, this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG );
       }
     }
   }
 
   // get information about the device
-  this->SetVersion(ndiVER(this->Device,0));
+  this->SetVersion( ndiVER( this->Device, 0 ) );
 
-  if (this->EnableToolPorts()!=PLUS_SUCCESS)
+  if ( this->EnableToolPorts() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Failed to enable tool ports");
+    LOG_ERROR( "Failed to enable tool ports" );
     return PLUS_FAIL;
   }
 
@@ -315,22 +331,22 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalDisconnect()
-{ 
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+{
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
-    this->ClearVirtualSromInTracker(toolDescriptorIt->second);
+    this->ClearVirtualSromInTracker( toolDescriptorIt->second );
   }
 
   this->DisableToolPorts();
 
   // return to default comm settings
-  ndiCommand(this->Device,"COMM:00000");
-  int errnum = ndiGetError(this->Device);
-  if (errnum) 
+  ndiCommand( this->Device, "COMM:00000" );
+  int errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR(ndiErrorString(errnum));
+    LOG_ERROR( ndiErrorString( errnum ) );
   }
-  ndiClose(this->Device);
+  ndiClose( this->Device );
   this->Device = 0;
 
   return PLUS_SUCCESS;
@@ -340,17 +356,17 @@ PlusStatus vtkPlusNDITracker::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalStartRecording()
 {
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
     return PLUS_SUCCESS;
   }
 
-  ndiCommand(this->Device,"TSTART:");
-  int errnum = ndiGetError(this->Device);
-  if (errnum) 
+  ndiCommand( this->Device, "TSTART:" );
+  int errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum) );
-    ndiClose(this->Device);
+    LOG_ERROR( "Failed TSTART: " << ndiErrorString( errnum ) );
+    ndiClose( this->Device );
     this->Device = 0;
     return PLUS_FAIL;
   }
@@ -363,16 +379,16 @@ PlusStatus vtkPlusNDITracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalStopRecording()
 {
-  if (this->Device == 0)
+  if ( this->Device == 0 )
   {
     return PLUS_FAIL;
   }
 
-  ndiCommand(this->Device,"TSTOP:");
-  int errnum = ndiGetError(this->Device);
-  if (errnum) 
+  ndiCommand( this->Device, "TSTOP:" );
+  int errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR(ndiErrorString(errnum));
+    LOG_ERROR( ndiErrorString( errnum ) );
   }
   this->IsDeviceTracking = 0;
 
@@ -381,27 +397,27 @@ PlusStatus vtkPlusNDITracker::InternalStopRecording()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalUpdate()
-{  
-  if (!this->IsDeviceTracking)
+{
+  if ( !this->IsDeviceTracking )
   {
-    LOG_ERROR("called Update() when NDI was not tracking");
+    LOG_ERROR( "called Update() when NDI was not tracking" );
     return PLUS_FAIL;
   }
 
-  int errnum=0;
+  int errnum = 0;
 
   // get the transforms for all tools from the NDI
-  ndiCommand(this->Device,"TX:0801");
-  errnum = ndiGetError(this->Device);
-  if (errnum)
+  ndiCommand( this->Device, "TX:0801" );
+  errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    if (errnum == NDI_BAD_CRC || errnum == NDI_TIMEOUT) // common errors
+    if ( errnum == NDI_BAD_CRC || errnum == NDI_TIMEOUT ) // common errors
     {
-      LOG_WARNING(ndiErrorString(errnum));
+      LOG_WARNING( ndiErrorString( errnum ) );
     }
     else
     {
-      LOG_ERROR(ndiErrorString(errnum));
+      LOG_ERROR( ndiErrorString( errnum ) );
     }
     return PLUS_FAIL;
   }
@@ -410,47 +426,47 @@ PlusStatus vtkPlusNDITracker::InternalUpdate()
   this->LastFrameNumber++;
   int defaultToolFrameNumber = this->LastFrameNumber;
   const double toolTimestamp = vtkPlusAccurateTimer::GetSystemTime(); // unfiltered timestamp
-  vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform=vtkSmartPointer<vtkMatrix4x4>::New();
-  for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
+  vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
   {
     ToolStatus toolFlags = TOOL_OK;
     toolToTrackerTransform->Identity();
     unsigned long toolFrameNumber = defaultToolFrameNumber;
     vtkPlusDataSource* trackerTool = it->second;
-    std::string toolSourceId=trackerTool->GetSourceId();
-    NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find(toolSourceId);
-    if (ndiToolDescriptorIt==this->NdiToolDescriptors.end())
+    std::string toolSourceId = trackerTool->GetSourceId();
+    NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find( toolSourceId );
+    if ( ndiToolDescriptorIt == this->NdiToolDescriptors.end() )
     {
-      LOG_ERROR("Tool descriptor is not found for tool "<<toolSourceId);
-      this->ToolTimeStampedUpdate(trackerTool->GetSourceId(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      LOG_ERROR( "Tool descriptor is not found for tool " << toolSourceId );
+      this->ToolTimeStampedUpdate( trackerTool->GetSourceId(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp );
       continue;
     }
     int portHandle = ndiToolDescriptorIt->second.PortHandle;
-    if (portHandle <= 0)
+    if ( portHandle <= 0 )
     {
-      LOG_ERROR("Port handle is invalid for tool "<<toolSourceId);
-      this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+      LOG_ERROR( "Port handle is invalid for tool " << toolSourceId );
+      this->ToolTimeStampedUpdate( toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp );
       continue;
     }
 
-    double ndiTransform[8]={1,0,0,0,0,0,0,0};
-    int ndiToolAbsent = ndiGetTXTransform(this->Device, portHandle, ndiTransform);
-    int ndiPortStatus = ndiGetTXPortStatus(this->Device, portHandle);
-    unsigned long ndiFrameIndex = ndiGetTXFrame(this->Device, portHandle);
+    double ndiTransform[8] = {1, 0, 0, 0, 0, 0, 0, 0};
+    int ndiToolAbsent = ndiGetTXTransform( this->Device, portHandle, ndiTransform );
+    int ndiPortStatus = ndiGetTXPortStatus( this->Device, portHandle );
+    unsigned long ndiFrameIndex = ndiGetTXFrame( this->Device, portHandle );
 
     // convert status flags from NDI to Plus format
     const unsigned long ndiPortStatusValidFlags = NDI_TOOL_IN_PORT | NDI_INITIALIZED | NDI_ENABLED;
-    if ((ndiPortStatus & ndiPortStatusValidFlags) != ndiPortStatusValidFlags) 
+    if ( ( ndiPortStatus & ndiPortStatusValidFlags ) != ndiPortStatusValidFlags )
     {
       toolFlags = TOOL_MISSING;
     }
     else
     {
-      if (ndiToolAbsent)
+      if ( ndiToolAbsent )
       {
         toolFlags = TOOL_OUT_OF_VIEW;
       }
-      if (ndiPortStatus & NDI_OUT_OF_VOLUME)
+      if ( ndiPortStatus & NDI_OUT_OF_VOLUME )
       {
         toolFlags = TOOL_OUT_OF_VOLUME;
       }
@@ -460,87 +476,87 @@ PlusStatus vtkPlusNDITracker::InternalUpdate()
       //if (ndiPortStatus & NDI_SWITCH_3_ON)  { toolFlags = TOOL_SWITCH3_IS_ON; }
     }
 
-    ndiTransformToMatrixd(ndiTransform,*toolToTrackerTransform->Element);
+    ndiTransformToMatrixd( ndiTransform, *toolToTrackerTransform->Element );
     toolToTrackerTransform->Transpose();
 
     // by default (if there is no camera frame number associated with
-    // the tool transformation) the most recent timestamp is used.    
-    if (!ndiToolAbsent && ndiFrameIndex)
+    // the tool transformation) the most recent timestamp is used.
+    if ( !ndiToolAbsent && ndiFrameIndex )
     {
-      // this will create a timestamp from the frame number      
+      // this will create a timestamp from the frame number
       toolFrameNumber = ndiFrameIndex;
-      if (ndiFrameIndex>this->LastFrameNumber)
+      if ( ndiFrameIndex > this->LastFrameNumber )
       {
-        this->LastFrameNumber=ndiFrameIndex;
+        this->LastFrameNumber = ndiFrameIndex;
       }
     }
 
     // send the matrix and status to the tool's vtkPlusDataBuffer
-    this->ToolTimeStampedUpdate(toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp);
+    this->ToolTimeStampedUpdate( toolSourceId.c_str(), toolToTrackerTransform, toolFlags, toolFrameNumber, toolTimestamp );
   }
 
   // Update tool connections if a wired tool is plugged in
-  if (ndiGetTXSystemStatus(this->Device) & NDI_PORT_OCCUPIED)
-  { 
-    LOG_WARNING("A wired tool has been plugged into tracker "<<(this->GetDeviceId()?this->GetDeviceId():"(unknown NDI tracker"));
+  if ( ndiGetTXSystemStatus( this->Device ) & NDI_PORT_OCCUPIED )
+  {
+    LOG_WARNING( "A wired tool has been plugged into tracker " << ( this->GetDeviceId() ? this->GetDeviceId() : "(unknown NDI tracker" ) );
     // Make the newly connected tools available
     this->EnableToolPorts();
   }
-  
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char *filename)
+PlusStatus vtkPlusNDITracker::ReadSromFromFile( NdiToolDescriptor& toolDescriptor, const char* filename )
 {
-  FILE *file = fopen(filename,"rb");
-  if (file == NULL)
+  FILE* file = fopen( filename, "rb" );
+  if ( file == NULL )
   {
-    LOG_ERROR("couldn't find srom file " << filename);
+    LOG_ERROR( "couldn't find srom file " << filename );
     return PLUS_FAIL;
   }
 
-  if (toolDescriptor.VirtualSROM == 0)
+  if ( toolDescriptor.VirtualSROM == 0 )
   {
     toolDescriptor.VirtualSROM = new unsigned char[VIRTUAL_SROM_SIZE];
   }
 
-  memset(toolDescriptor.VirtualSROM,0,VIRTUAL_SROM_SIZE);
-  fread(toolDescriptor.VirtualSROM,1,VIRTUAL_SROM_SIZE,file);
-  fclose(file);
+  memset( toolDescriptor.VirtualSROM, 0, VIRTUAL_SROM_SIZE );
+  fread( toolDescriptor.VirtualSROM, 1, VIRTUAL_SROM_SIZE, file );
+  fclose( file );
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::EnableToolPorts()
 {
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status = PLUS_SUCCESS;
 
   // stop tracking
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
-    ndiCommand(this->Device,"TSTOP:");
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR(ndiErrorString(errnum));
-      status=PLUS_FAIL;
-    }    
+    ndiCommand( this->Device, "TSTOP:" );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( ndiErrorString( errnum ) );
+      status = PLUS_FAIL;
+    }
   }
 
   // free ports that are waiting to be freed
   {
-    ndiCommand(this->Device,"PHSR:01");
-    int ntools = ndiGetPHSRNumberOfHandles(this->Device);
-    for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
+    ndiCommand( this->Device, "PHSR:01" );
+    int ntools = ndiGetPHSRNumberOfHandles( this->Device );
+    for ( int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++ )
     {
-      int portHandle = ndiGetPHSRHandle(this->Device,ndiToolIndex);
-      ndiCommand(this->Device,"PHF:%02X",portHandle);
-      int errnum = ndiGetError(this->Device);
-      if (errnum)
-      { 
-        LOG_ERROR(ndiErrorString(errnum));
-        status=PLUS_FAIL;
+      int portHandle = ndiGetPHSRHandle( this->Device, ndiToolIndex );
+      ndiCommand( this->Device, "PHF:%02X", portHandle );
+      int errnum = ndiGetError( this->Device );
+      if ( errnum )
+      {
+        LOG_ERROR( ndiErrorString( errnum ) );
+        status = PLUS_FAIL;
       }
     }
   }
@@ -548,18 +564,18 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   // Set port handles and send SROM files to tracker
   // We need to do this before initializing and enabling
   // the ports waiting to be initialized.
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
-    if (toolDescriptorIt->second.VirtualSROM != NULL) // wireless tool (or wired tool with virtual rom)
-	{  
-      if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+    if ( toolDescriptorIt->second.VirtualSROM != NULL ) // wireless tool (or wired tool with virtual rom)
+    {
+      if ( this->UpdatePortHandle( toolDescriptorIt->second ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
+        LOG_ERROR( "Failed to determine NDI port handle for tool " << toolDescriptorIt->first );
         return PLUS_FAIL;
       }
-      if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      if ( this->SendSromToTracker( toolDescriptorIt->second ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
+        LOG_ERROR( "Failed send SROM to NDI tool " << toolDescriptorIt->first );
         return PLUS_FAIL;
       }
     }
@@ -567,53 +583,53 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
 
   // initialize ports waiting to be initialized
   {
-    int errnum=0;
-    int ntools=0;
-    do // repeat as necessary (in case multi-channel tools are used) 
+    int errnum = 0;
+    int ntools = 0;
+    do // repeat as necessary (in case multi-channel tools are used)
     {
-      ndiCommand(this->Device,"PHSR:02");
-      ntools = ndiGetPHSRNumberOfHandles(this->Device);
-      for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
+      ndiCommand( this->Device, "PHSR:02" );
+      ntools = ndiGetPHSRNumberOfHandles( this->Device );
+      for ( int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++ )
       {
-        int portHandle = ndiGetPHSRHandle(this->Device,ndiToolIndex);
-        ndiCommand(this->Device,"PINIT:%02X",portHandle);
-        errnum = ndiGetError(this->Device);
-        if (errnum)
-        { 
-          LOG_ERROR(ndiErrorString(errnum));
-          status=PLUS_FAIL;
+        int portHandle = ndiGetPHSRHandle( this->Device, ndiToolIndex );
+        ndiCommand( this->Device, "PINIT:%02X", portHandle );
+        errnum = ndiGetError( this->Device );
+        if ( errnum )
+        {
+          LOG_ERROR( ndiErrorString( errnum ) );
+          status = PLUS_FAIL;
         }
       }
     }
-    while (ntools > 0 && errnum == 0);
+    while ( ntools > 0 && errnum == 0 );
   }
 
   // enable initialized tools
   {
-    ndiCommand(this->Device,"PHSR:03");
-    int ntools = ndiGetPHSRNumberOfHandles(this->Device);
-    for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
+    ndiCommand( this->Device, "PHSR:03" );
+    int ntools = ndiGetPHSRNumberOfHandles( this->Device );
+    for ( int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++ )
     {
-      int portHandle = ndiGetPHSRHandle(this->Device,ndiToolIndex);
-      ndiCommand(this->Device,"PHINF:%02X0001",portHandle);
+      int portHandle = ndiGetPHSRHandle( this->Device, ndiToolIndex );
+      ndiCommand( this->Device, "PHINF:%02X0001", portHandle );
       char identity[34];
-      ndiGetPHINFToolInfo(this->Device,identity);
-      int mode='D'; // default
-      if (identity[1] == 0x03) // button-box
+      ndiGetPHINFToolInfo( this->Device, identity );
+      int mode = 'D'; // default
+      if ( identity[1] == 0x03 ) // button-box
       {
         mode = 'B';
       }
-      else if (identity[1] == 0x01) // reference
+      else if ( identity[1] == 0x01 ) // reference
       {
         mode = 'S';
       }
       // enable the tool
-      ndiCommand(this->Device,"PENA:%02X%c",portHandle,mode);
-      int errnum = ndiGetError(this->Device);
-      if (errnum)
+      ndiCommand( this->Device, "PENA:%02X%c", portHandle, mode );
+      int errnum = ndiGetError( this->Device );
+      if ( errnum )
       {
-        LOG_ERROR(ndiErrorString(errnum));
-        status=PLUS_FAIL;
+        LOG_ERROR( ndiErrorString( errnum ) );
+        status = PLUS_FAIL;
       }
     }
   }
@@ -621,18 +637,18 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   // Set wired port handles and send SROM files to tracker
   // We need to do this after enabling all the tools because tools on
   // splitters (two 5-DOF tools with one connector) only appear after the tool is enabled.
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
-	  if (toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == 0) //wired tool, no virtual rom
+    if ( toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == 0 ) //wired tool, no virtual rom
     {
-      if (this->UpdatePortHandle(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      if ( this->UpdatePortHandle( toolDescriptorIt->second ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed to determine NDI port handle for tool "<<toolDescriptorIt->first);
+        LOG_ERROR( "Failed to determine NDI port handle for tool " << toolDescriptorIt->first );
         return PLUS_FAIL;
       }
-      if (this->SendSromToTracker(toolDescriptorIt->second)!=PLUS_SUCCESS)
+      if ( this->SendSromToTracker( toolDescriptorIt->second ) != PLUS_SUCCESS )
       {
-        LOG_ERROR("Failed send SROM to NDI tool "<<toolDescriptorIt->first);
+        LOG_ERROR( "Failed send SROM to NDI tool " << toolDescriptorIt->first );
         return PLUS_FAIL;
       }
     }
@@ -640,72 +656,72 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
 
   // Update tool info
 
-  ndiCommand(this->Device,"PHSR:00");
+  ndiCommand( this->Device, "PHSR:00" );
 
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
     vtkPlusDataSource* trackerTool = NULL;
-    if ( this->GetTool(toolDescriptorIt->first, trackerTool) != PLUS_SUCCESS )
+    if ( this->GetTool( toolDescriptorIt->first, trackerTool ) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Failed to get NDI tool: " << toolDescriptorIt->first );
-      status=PLUS_FAIL;
-      continue; 
+      LOG_ERROR( "Failed to get NDI tool: " << toolDescriptorIt->first );
+      status = PLUS_FAIL;
+      continue;
     }
 
-    ndiCommand(this->Device,"PHINF:%02X0025",toolDescriptorIt->second.PortHandle);
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR(ndiErrorString(errnum));
-      status=PLUS_FAIL;
+    ndiCommand( this->Device, "PHINF:%02X0025", toolDescriptorIt->second.PortHandle );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( ndiErrorString( errnum ) );
+      status = PLUS_FAIL;
       continue;
     }
 
     // decompose identity string from end to front
     char identity[34];
-    ndiGetPHINFToolInfo(this->Device, identity);
+    ndiGetPHINFToolInfo( this->Device, identity );
     identity[31] = '\0';
-    std::string serialNumber(&identity[23]);
-    PlusCommon::Trim(serialNumber);
-    trackerTool->SetCustomProperty("SerialNumber", serialNumber);
+    std::string serialNumber( &identity[23] );
+    PlusCommon::Trim( serialNumber );
+    trackerTool->SetCustomProperty( "SerialNumber", serialNumber );
     identity[23] = '\0';
-    std::string toolRevision(&identity[20]);
-    PlusCommon::Trim(toolRevision);
-    trackerTool->SetCustomProperty("Revision", toolRevision);
+    std::string toolRevision( &identity[20] );
+    PlusCommon::Trim( toolRevision );
+    trackerTool->SetCustomProperty( "Revision", toolRevision );
     identity[20] = '\0';
-    std::string toolManufacturer(&identity[8]);
-    PlusCommon::Trim(toolManufacturer);
-    trackerTool->SetCustomProperty("Manufacturer", toolManufacturer);
+    std::string toolManufacturer( &identity[8] );
+    PlusCommon::Trim( toolManufacturer );
+    trackerTool->SetCustomProperty( "Manufacturer", toolManufacturer );
     identity[8] = '\0';
-    trackerTool->SetCustomProperty("NdiIdentity",PlusCommon::Trim(&identity[0]));
+    trackerTool->SetCustomProperty( "NdiIdentity", PlusCommon::Trim( &identity[0] ) );
     char partNumber[24];
-    ndiGetPHINFPartNumber(this->Device, partNumber);
+    ndiGetPHINFPartNumber( this->Device, partNumber );
     partNumber[20] = '\0';
-    std::string toolPartNumber(&partNumber[0]);
-    PlusCommon::Trim(toolPartNumber);
-    trackerTool->SetCustomProperty("PartNumber", toolPartNumber);
-    int status = ndiGetPHINFPortStatus(this->Device);
+    std::string toolPartNumber( &partNumber[0] );
+    PlusCommon::Trim( toolPartNumber );
+    trackerTool->SetCustomProperty( "PartNumber", toolPartNumber );
+    int status = ndiGetPHINFPortStatus( this->Device );
 
-    toolDescriptorIt->second.PortEnabled = ((status & NDI_ENABLED) != 0);
-    if (!toolDescriptorIt->second.PortEnabled)
+    toolDescriptorIt->second.PortEnabled = ( ( status & NDI_ENABLED ) != 0 );
+    if ( !toolDescriptorIt->second.PortEnabled )
     {
-      LOG_ERROR("Failed to enable NDI tool "<<toolDescriptorIt->first);
-      status=PLUS_FAIL;
+      LOG_ERROR( "Failed to enable NDI tool " << toolDescriptorIt->first );
+      status = PLUS_FAIL;
     }
   }
 
   // re-start the tracking
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
-    ndiCommand(this->Device,"TSTART:");
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum));
-      status=PLUS_FAIL;
+    ndiCommand( this->Device, "TSTART:" );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( "Failed TSTART: " << ndiErrorString( errnum ) );
+      status = PLUS_FAIL;
     }
   }
-  
+
   return status;
 }
 
@@ -714,66 +730,66 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
 void vtkPlusNDITracker::DisableToolPorts()
 {
   // stop tracking
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
-    ndiCommand(this->Device,"TSTOP:");
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR(ndiErrorString(errnum));
-    }    
+    ndiCommand( this->Device, "TSTOP:" );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( ndiErrorString( errnum ) );
+    }
   }
 
   // disable all enabled tools
-  ndiCommand(this->Device,"PHSR:04");
-  int ntools = ndiGetPHSRNumberOfHandles(this->Device);
-  for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
+  ndiCommand( this->Device, "PHSR:04" );
+  int ntools = ndiGetPHSRNumberOfHandles( this->Device );
+  for ( int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++ )
   {
-    int portHandle = ndiGetPHSRHandle(this->Device,ndiToolIndex);
-    ndiCommand(this->Device,"PDIS:%02X",portHandle);
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR(ndiErrorString(errnum));
-    }    
+    int portHandle = ndiGetPHSRHandle( this->Device, ndiToolIndex );
+    ndiCommand( this->Device, "PDIS:%02X", portHandle );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( ndiErrorString( errnum ) );
+    }
   }
 
   // disable the enabled ports
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
     toolDescriptorIt->second.PortEnabled = false;
   }
 
   // re-start the tracking
-  if (this->IsDeviceTracking)
+  if ( this->IsDeviceTracking )
   {
-    ndiCommand(this->Device,"TSTART:");
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    { 
-      LOG_ERROR(ndiErrorString(errnum));
+    ndiCommand( this->Device, "TSTART:" );
+    int errnum = ndiGetError( this->Device );
+    if ( errnum )
+    {
+      LOG_ERROR( ndiErrorString( errnum ) );
     }
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::Beep(int n)
+PlusStatus vtkPlusNDITracker::Beep( int n )
 {
-  if (this->Recording)
+  if ( this->Recording )
   {
-    LOG_ERROR("vtkPlusNDITracker::Beep failed: not connected to the device");
+    LOG_ERROR( "vtkPlusNDITracker::Beep failed: not connected to the device" );
     return PLUS_FAIL;
   }
-  if (n > 9)
+  if ( n > 9 )
   {
     n = 9;
   }
-  if (n < 0)
+  if ( n < 0 )
   {
     n = 0;
   }
-  ndiCommand(this->Device,"BEEP:%i",n);
-  int errnum = ndiGetError(this->Device);
+  ndiCommand( this->Device, "BEEP:%i", n );
+  int errnum = ndiGetError( this->Device );
   /*
   if (errnum && errnum != NDI_NO_TOOL)
   {
@@ -785,39 +801,45 @@ PlusStatus vtkPlusNDITracker::Beep(int n)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus  vtkPlusNDITracker::SetToolLED(const char* sourceId, int led, LedState state)
+PlusStatus  vtkPlusNDITracker::SetToolLED( const char* sourceId, int led, LedState state )
 {
-  if (!this->Recording)
+  if ( !this->Recording )
   {
-    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: not recording");
+    LOG_ERROR( "vtkPlusNDITracker::InternalSetToolLED failed: not recording" );
     return PLUS_FAIL;
   }
-  NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find(sourceId);
-  if (ndiToolDescriptorIt==this->NdiToolDescriptors.end())
+  NdiToolDescriptorsType::iterator ndiToolDescriptorIt = this->NdiToolDescriptors.find( sourceId );
+  if ( ndiToolDescriptorIt == this->NdiToolDescriptors.end() )
   {
-    LOG_ERROR("InternalSetToolLED failed: Tool descriptor is not found for tool "<<sourceId);
+    LOG_ERROR( "InternalSetToolLED failed: Tool descriptor is not found for tool " << sourceId );
     return PLUS_FAIL;
   }
-  int portHandle=ndiToolDescriptorIt->second.PortHandle;
-  if (portHandle <= 0)
+  int portHandle = ndiToolDescriptorIt->second.PortHandle;
+  if ( portHandle <= 0 )
   {
-    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: invalid port handle");
+    LOG_ERROR( "vtkPlusNDITracker::InternalSetToolLED failed: invalid port handle" );
     return PLUS_FAIL;
   }
 
   int plstate = NDI_BLANK;
-  switch (state)
+  switch ( state )
   {
-  case TR_LED_OFF: plstate = NDI_BLANK; break;
-  case TR_LED_ON: plstate = NDI_SOLID; break;
-  case TR_LED_FLASH: plstate = NDI_FLASH; break;
+  case TR_LED_OFF:
+    plstate = NDI_BLANK;
+    break;
+  case TR_LED_ON:
+    plstate = NDI_SOLID;
+    break;
+  case TR_LED_FLASH:
+    plstate = NDI_FLASH;
+    break;
   default:
-    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: "<<state);
+    LOG_ERROR( "vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state );
     return PLUS_FAIL;
   }
 
-  ndiCommand(this->Device, "LED:%02X%d%c", portHandle, led+1, plstate);
-  int errnum = ndiGetError(this->Device);
+  ndiCommand( this->Device, "LED:%02X%d%c", portHandle, led + 1, plstate );
+  int errnum = ndiGetError( this->Device );
   /*
   if (errnum && errnum != NDI_NO_TOOL)
   {
@@ -830,25 +852,25 @@ PlusStatus  vtkPlusNDITracker::SetToolLED(const char* sourceId, int led, LedStat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::UpdatePortHandle(NdiToolDescriptor& toolDescriptor)
-{  
-  if (toolDescriptor.WiredPortNumber>=0) // wired tool
+PlusStatus vtkPlusNDITracker::UpdatePortHandle( NdiToolDescriptor& toolDescriptor )
+{
+  if ( toolDescriptor.WiredPortNumber >= 0 ) // wired tool
   {
-    ndiCommand(this->Device, "PHSR:00");
-    int ntools = ndiGetPHSRNumberOfHandles(this->Device);
+    ndiCommand( this->Device, "PHSR:00" );
+    int ntools = ndiGetPHSRNumberOfHandles( this->Device );
     int ndiToolIndex = 0;
-    for (; ndiToolIndex < ntools; ndiToolIndex++)
+    for ( ; ndiToolIndex < ntools; ndiToolIndex++ )
     {
-      if (ndiGetPHSRInformation(this->Device,ndiToolIndex) & NDI_TOOL_IN_PORT)
+      if ( ndiGetPHSRInformation( this->Device, ndiToolIndex ) & NDI_TOOL_IN_PORT )
       {
-        int portHandle = ndiGetPHSRHandle(this->Device,ndiToolIndex);
-        ndiCommand(this->Device,"PHINF:%02X0021",portHandle);
+        int portHandle = ndiGetPHSRHandle( this->Device, ndiToolIndex );
+        ndiCommand( this->Device, "PHINF:%02X0021", portHandle );
         char location[14];
-        ndiGetPHINFPortLocation(this->Device,location);
-        int foundWiredPortNumber = (location[10]-'0')*10 + (location[11]-'0') - 1;
-        int foundWiredPortChannel = (location[12]-'0')*10 + (location[13]-'0'); // this is nonzero if 5-DOF tools with splitter
-        int combinedPortAndChannelNumber = foundWiredPortChannel*100 + foundWiredPortNumber;
-        if (toolDescriptor.WiredPortNumber == combinedPortAndChannelNumber)
+        ndiGetPHINFPortLocation( this->Device, location );
+        int foundWiredPortNumber = ( location[10] - '0' ) * 10 + ( location[11] - '0' ) - 1;
+        int foundWiredPortChannel = ( location[12] - '0' ) * 10 + ( location[13] - '0' ); // this is nonzero if 5-DOF tools with splitter
+        int combinedPortAndChannelNumber = foundWiredPortChannel * 100 + foundWiredPortNumber;
+        if ( toolDescriptor.WiredPortNumber == combinedPortAndChannelNumber )
         {
           // found the portHandle
           toolDescriptor.PortHandle = portHandle;
@@ -856,54 +878,54 @@ PlusStatus vtkPlusNDITracker::UpdatePortHandle(NdiToolDescriptor& toolDescriptor
         }
       }
     }
-    if (ndiToolIndex == ntools)
+    if ( ndiToolIndex == ntools )
     {
-      LOG_ERROR("Active NDI tool not found in port " << toolDescriptor.WiredPortNumber <<". Make sure the tool is plugged in.");
+      LOG_ERROR( "Active NDI tool not found in port " << toolDescriptor.WiredPortNumber << ". Make sure the tool is plugged in." );
       return PLUS_FAIL;
-    }    
+    }
   }
   else // wireless tool
   {
-    ndiCommand(this->Device, "PHRQ:*********1****");
-    int portHandle = ndiGetPHRQHandle(this->Device);
+    ndiCommand( this->Device, "PHRQ:*********1****" );
+    int portHandle = ndiGetPHRQHandle( this->Device );
     toolDescriptor.PortHandle = portHandle;
   }
 
-  int errnum = ndiGetError(this->Device);
-  if (errnum)
+  int errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR(ndiErrorString(errnum));
+    LOG_ERROR( ndiErrorString( errnum ) );
     return PLUS_FAIL;
   }
-  
+
   return PLUS_SUCCESS;
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::SendSromToTracker(const NdiToolDescriptor& toolDescriptor)
+PlusStatus vtkPlusNDITracker::SendSromToTracker( const NdiToolDescriptor& toolDescriptor )
 {
-  if (toolDescriptor.VirtualSROM == NULL)
+  if ( toolDescriptor.VirtualSROM == NULL )
   {
     // nothing to load
     return PLUS_SUCCESS;
   }
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-  const int TRANSFER_BLOCK_SIZE=64; // in bytes
-  char hexbuffer[TRANSFER_BLOCK_SIZE*2];
-  for (int i = 0; i < VIRTUAL_SROM_SIZE; i += TRANSFER_BLOCK_SIZE)
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock( this->UpdateMutex );
+  const int TRANSFER_BLOCK_SIZE = 64; // in bytes
+  char hexbuffer[TRANSFER_BLOCK_SIZE * 2];
+  for ( int i = 0; i < VIRTUAL_SROM_SIZE; i += TRANSFER_BLOCK_SIZE )
   {
-    ndiCommand(this->Device," VER 0");
-    ndiCommand(this->Device, "PVWR:%02X%04X%.128s", toolDescriptor.PortHandle, i,
-      ndiHexEncode(hexbuffer, &(toolDescriptor.VirtualSROM[i]), TRANSFER_BLOCK_SIZE));
+    ndiCommand( this->Device, " VER 0" );
+    ndiCommand( this->Device, "PVWR:%02X%04X%.128s", toolDescriptor.PortHandle, i,
+                ndiHexEncode( hexbuffer, &( toolDescriptor.VirtualSROM[i] ), TRANSFER_BLOCK_SIZE ) );
   }
 
-  int errnum = ndiGetError(this->Device);
-  if (errnum) 
+  int errnum = ndiGetError( this->Device );
+  if ( errnum )
   {
-    LOG_ERROR("Failed to send SROM to NDI tracker");
-    LOG_ERROR(ndiErrorString(errnum));
+    LOG_ERROR( "Failed to send SROM to NDI tracker" );
+    LOG_ERROR( ndiErrorString( errnum ) );
     return PLUS_FAIL;
   }
 
@@ -911,15 +933,15 @@ PlusStatus vtkPlusNDITracker::SendSromToTracker(const NdiToolDescriptor& toolDes
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::ClearVirtualSromInTracker(NdiToolDescriptor& toolDescriptor)
+PlusStatus vtkPlusNDITracker::ClearVirtualSromInTracker( NdiToolDescriptor& toolDescriptor )
 {
-  if (toolDescriptor.VirtualSROM==NULL)
+  if ( toolDescriptor.VirtualSROM == NULL )
   {
     // nothing to clear
     return PLUS_SUCCESS;
   }
 
-  ndiCommand(this->Device, "PHF:%02X", toolDescriptor.PortHandle);
+  ndiCommand( this->Device, "PHF:%02X", toolDescriptor.PortHandle );
   toolDescriptor.PortEnabled = false;
   toolDescriptor.PortHandle = 0;
 
@@ -927,143 +949,155 @@ PlusStatus vtkPlusNDITracker::ClearVirtualSromInTracker(NdiToolDescriptor& toolD
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusNDITracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
   // Clean up any previously read config data
-  for (NdiToolDescriptorsType::iterator toolDescriptorIt=this->NdiToolDescriptors.begin(); toolDescriptorIt!=this->NdiToolDescriptors.end(); ++toolDescriptorIt)
+  for ( NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt )
   {
     delete [] toolDescriptorIt->second.VirtualSROM;
     toolDescriptorIt->second.VirtualSROM = NULL;
   }
   this->NdiToolDescriptors.clear();
 
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( unsigned long, SerialPort, deviceConfig );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( unsigned long, BaudRate, deviceConfig );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int, MeasurementVolumeNumber, deviceConfig );
 
-  XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
+  XML_FIND_NESTED_ELEMENT_REQUIRED( dataSourcesElement, deviceConfig, "DataSources" );
 
   for ( int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++ )
   {
-    vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(nestedElementIndex); 
-    if ( STRCASECMP(toolDataElement->GetName(), "DataSource") != 0 )
+    vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement( nestedElementIndex );
+    if ( STRCASECMP( toolDataElement->GetName(), "DataSource" ) != 0 )
     {
       // if this is not a data source element, skip it
-      continue; 
+      continue;
     }
-    if ( toolDataElement->GetAttribute("Type") != NULL && STRCASECMP(toolDataElement->GetAttribute("Type"), "Tool") != 0 )
+    if ( toolDataElement->GetAttribute( "Type" ) != NULL && STRCASECMP( toolDataElement->GetAttribute( "Type" ), "Tool" ) != 0 )
     {
       // if this is not a Tool element, skip it
-      continue; 
+      continue;
     }
-    const char* toolId = toolDataElement->GetAttribute("Id");
-    if ( toolId==NULL)
+    const char* toolId = toolDataElement->GetAttribute( "Id" );
+    if ( toolId == NULL )
     {
-      LOG_ERROR("Failed to initialize NDI tool: DataSource Id is missing");
-      continue; 
+      LOG_ERROR( "Failed to initialize NDI tool: DataSource Id is missing" );
+      continue;
     }
-    PlusTransformName toolTransformName(toolId, this->GetToolReferenceFrameName());
-    std::string toolSourceId=toolTransformName.GetTransformName();
+    PlusTransformName toolTransformName( toolId, this->GetToolReferenceFrameName() );
+    std::string toolSourceId = toolTransformName.GetTransformName();
     vtkPlusDataSource* trackerTool = NULL;
-    if ( this->GetTool(toolSourceId, trackerTool) != PLUS_SUCCESS || trackerTool==NULL)
+    if ( this->GetTool( toolSourceId, trackerTool ) != PLUS_SUCCESS || trackerTool == NULL )
     {
-      LOG_ERROR("Failed to get NDI tool: " << toolSourceId);
-      continue; 
+      LOG_ERROR( "Failed to get NDI tool: " << toolSourceId );
+      continue;
     }
 
     int wiredPortNumber = -1;
-    if ( toolDataElement->GetAttribute("PortName") != NULL )
+    if ( toolDataElement->GetAttribute( "PortName" ) != NULL )
     {
-      if (!toolDataElement->GetScalarAttribute("PortName", wiredPortNumber))
+      if ( !toolDataElement->GetScalarAttribute( "PortName", wiredPortNumber ) )
       {
-        LOG_WARNING("NDI wired tool's PortName attribute has to be an integer >=0");
+        LOG_WARNING( "NDI wired tool's PortName attribute has to be an integer >=0" );
         continue;
       }
     }
 
     NdiToolDescriptor toolDescriptor;
-    toolDescriptor.PortEnabled=false;
-    toolDescriptor.PortHandle=0;
-    toolDescriptor.VirtualSROM=NULL;
-    toolDescriptor.WiredPortNumber=wiredPortNumber;
+    toolDescriptor.PortEnabled = false;
+    toolDescriptor.PortHandle = 0;
+    toolDescriptor.VirtualSROM = NULL;
+    toolDescriptor.WiredPortNumber = wiredPortNumber;
 
-    const char* romFileName = toolDataElement->GetAttribute("RomFile");
-    if (romFileName)
+    const char* romFileName = toolDataElement->GetAttribute( "RomFile" );
+    if ( romFileName )
     {
       // Passive (wireless) tool or wired tool with virtual rom
-      if (wiredPortNumber>=0)
+      if ( wiredPortNumber >= 0 )
       {
-        LOG_WARNING("NDI PortName and RomFile are both specified for tool "<<toolSourceId<<". Assuming broken wired rom, using virtual rom instead");
+        LOG_WARNING( "NDI PortName and RomFile are both specified for tool " << toolSourceId << ". Assuming broken wired rom, using virtual rom instead" );
       }
-      std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(romFileName);
-      this->ReadSromFromFile(toolDescriptor, romFilePath.c_str());
+      std::string romFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath( romFileName );
+      this->ReadSromFromFile( toolDescriptor, romFilePath.c_str() );
     }
 
-    this->NdiToolDescriptors[toolSourceId]=toolDescriptor;
+    this->NdiToolDescriptors[toolSourceId] = toolDescriptor;
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
+PlusStatus vtkPlusNDITracker::WriteConfiguration( vtkXMLDataElement* rootConfig )
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfig);
-  trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
-  trackerConfig->SetIntAttribute("BaudRate", this->BaudRate );
-  trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber );
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( trackerConfig, rootConfig );
+  trackerConfig->SetIntAttribute( "SerialPort", this->SerialPort );
+  trackerConfig->SetIntAttribute( "BaudRate", this->BaudRate );
+  trackerConfig->SetIntAttribute( "MeasurementVolumeNumber", this->MeasurementVolumeNumber );
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
+void vtkPlusNDITracker::LogVolumeList( const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel )
 {
-  unsigned long numberOfVolumes = ndiHexToUnsignedLong(ndiVolumeListCommandReply, 1);
-  if (selectedVolume==0)
+  unsigned long numberOfVolumes = ndiHexToUnsignedLong( ndiVolumeListCommandReply, 1 );
+  if ( selectedVolume == 0 )
   {
-    LOG_DYNAMIC("Number of available measurement volumes: "<<numberOfVolumes, logLevel);
+    LOG_DYNAMIC( "Number of available measurement volumes: " << numberOfVolumes, logLevel );
   }
-  for (int volIndex=0; volIndex<numberOfVolumes; volIndex++)
+  for ( unsigned long volIndex = 0; volIndex < numberOfVolumes; volIndex++ )
   {
-    if (selectedVolume>0 && selectedVolume!=volIndex+1)
+    if ( selectedVolume > 0 && selectedVolume != volIndex + 1 )
     {
       continue;
     }
-    LOG_DYNAMIC("Measurement volume "<<volIndex+1, logLevel);
-    const char* volDescriptor = ndiVolumeListCommandReply+1+volIndex*74;
+    LOG_DYNAMIC( "Measurement volume " << volIndex + 1, logLevel );
+    const char* volDescriptor = ndiVolumeListCommandReply + 1 + volIndex * 74;
 
     std::string shapeType;
-    switch (volDescriptor[0])
+    switch ( volDescriptor[0] )
     {
-    case '9': shapeType="Cube volume"; break;
-    case 'A': shapeType="Dome volume"; break;
-    default: shapeType="unknown";
+    case '9':
+      shapeType = "Cube volume";
+      break;
+    case 'A':
+      shapeType = "Dome volume";
+      break;
+    default:
+      shapeType = "unknown";
     }
-    LOG_DYNAMIC(" Shape type: "<<shapeType<<" ("<<volDescriptor[0]<<")", logLevel);
+    LOG_DYNAMIC( " Shape type: " << shapeType << " (" << volDescriptor[0] << ")", logLevel );
 
-    LOG_DYNAMIC(" D1 (minimum x value) = "<<ndiSignedToLong(volDescriptor+1, 7)/100, logLevel);
-    LOG_DYNAMIC(" D2 (maximum x value) = "<<ndiSignedToLong(volDescriptor+8, 7)/100, logLevel);
-    LOG_DYNAMIC(" D3 (minimum y value) = "<<ndiSignedToLong(volDescriptor+15, 7)/100, logLevel);
-    LOG_DYNAMIC(" D4 (maximum y value) = "<<ndiSignedToLong(volDescriptor+22, 7)/100, logLevel);
-    LOG_DYNAMIC(" D5 (minimum z value) = "<<ndiSignedToLong(volDescriptor+29, 7)/100, logLevel);
-    LOG_DYNAMIC(" D6 (maximum z value) = "<<ndiSignedToLong(volDescriptor+36, 7)/100, logLevel);
-    LOG_DYNAMIC(" D7 (reserved) = "<<ndiSignedToLong(volDescriptor+43, 7)/100, logLevel);
-    LOG_DYNAMIC(" D8 (reserved) = "<<ndiSignedToLong(volDescriptor+50, 7)/100, logLevel);
-    LOG_DYNAMIC(" D9 (reserved) = "<<ndiSignedToLong(volDescriptor+57, 7)/100, logLevel);
-    LOG_DYNAMIC(" D10 (reserved) = "<<ndiSignedToLong(volDescriptor+64, 7)/100, logLevel);
+    LOG_DYNAMIC( " D1 (minimum x value) = " << ndiSignedToLong( volDescriptor + 1, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D2 (maximum x value) = " << ndiSignedToLong( volDescriptor + 8, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D3 (minimum y value) = " << ndiSignedToLong( volDescriptor + 15, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D4 (maximum y value) = " << ndiSignedToLong( volDescriptor + 22, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D5 (minimum z value) = " << ndiSignedToLong( volDescriptor + 29, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D6 (maximum z value) = " << ndiSignedToLong( volDescriptor + 36, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D7 (reserved) = " << ndiSignedToLong( volDescriptor + 43, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D8 (reserved) = " << ndiSignedToLong( volDescriptor + 50, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D9 (reserved) = " << ndiSignedToLong( volDescriptor + 57, 7 ) / 100, logLevel );
+    LOG_DYNAMIC( " D10 (reserved) = " << ndiSignedToLong( volDescriptor + 64, 7 ) / 100, logLevel );
 
-    LOG_DYNAMIC(" Reserved: "<<volDescriptor[71], logLevel);
+    LOG_DYNAMIC( " Reserved: " << volDescriptor[71], logLevel );
 
     std::string metalResistant;
-    switch (volDescriptor[72])
+    switch ( volDescriptor[72] )
     {
-    case '0': metalResistant="no information"; break;
-    case '1': metalResistant="metal resistant"; break;
-    case '2': metalResistant="not metal resistant"; break;
-    default: metalResistant="unknown";
+    case '0':
+      metalResistant = "no information";
+      break;
+    case '1':
+      metalResistant = "metal resistant";
+      break;
+    case '2':
+      metalResistant = "not metal resistant";
+      break;
+    default:
+      metalResistant = "unknown";
     }
-    LOG_DYNAMIC(" Metal resistant: "<<metalResistant<<" ("<<volDescriptor[72]<<")", logLevel);
+    LOG_DYNAMIC( " Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel );
   }
 }

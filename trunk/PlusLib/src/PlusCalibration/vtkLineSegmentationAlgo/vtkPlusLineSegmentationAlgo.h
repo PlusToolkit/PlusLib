@@ -124,10 +124,10 @@ protected:
   double m_SignalTimeRangeMax;
 
   /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
-  int m_ClipRectangleOrigin[2];
+  CharImageType::IndexValueType m_ClipRectangleOrigin[2];
 
   /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
-  int m_ClipRectangleSize[2]; 
+  CharImageType::SizeValueType m_ClipRectangleSize[2]; 
 
 private:
   vtkPlusLineSegmentationAlgo(const vtkPlusLineSegmentationAlgo&);

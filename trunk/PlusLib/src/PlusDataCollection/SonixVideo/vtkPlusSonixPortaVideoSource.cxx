@@ -290,7 +290,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
   }
   vtkPlusChannel* outputChannel=this->OutputChannels[0];
 
-  int frameSize[3] = {0,0,0};
+  unsigned int frameSize[3] = {0,0,0};
   this->GetInputFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
   if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
@@ -298,13 +298,11 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
     LOG_ERROR("Unable to retrieve the video source in the SonixPorta device.");
     return PLUS_FAIL;
   }
-  int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel(); 
-  const int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel; 
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
   int numberOfBytesToSkip = 4; 
 
-  // Aligns the motor for correct acqusition of its angle
+  // Aligns the motor for correct acquisition of its angle
   if ( this->FirstCallToAddFrameToBuffer )
   {
     this->Porta->setParam( prmMotorStatus, 0 );

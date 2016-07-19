@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusProbeCalibrationAlgo_h
 #define __vtkPlusProbeCalibrationAlgo_h
@@ -18,38 +18,38 @@
 #include "vtkObject.h"
 #include "vtkPlusProbeCalibrationOptimizerAlgo.h"
 
-class PlusTrackedFrame; 
-class vtkPlusTrackedFrameList; 
+class PlusTrackedFrame;
+class vtkPlusTrackedFrameList;
 class vtkPlusTransformRepository;
-class vtkXMLDataElement; 
+class vtkXMLDataElement;
 class PlusNWire;
 
 /*!
-  \class vtkPlusProbeCalibrationAlgo 
+  \class vtkPlusProbeCalibrationAlgo
   \brief Probe calibration algorithm class
   \ingroup PlusLibCalibrationAlgorithm
 */
 class vtkPlusCalibrationExport vtkPlusProbeCalibrationAlgo : public vtkObject
 {
 public:
-  static vtkPlusProbeCalibrationAlgo *New();
-  vtkTypeMacro(vtkPlusProbeCalibrationAlgo, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
+  static vtkPlusProbeCalibrationAlgo* New();
+  vtkTypeMacro( vtkPlusProbeCalibrationAlgo, vtkObject );
+  virtual void PrintSelf( ostream& os, vtkIndent indent );
 
   /*!
     Read XML based configuration of the calibration controller
     \param aConfig Root element of device set configuration data
   */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig ); 
+  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
 
   /*! Get the image coordinate frame name */
-  vtkGetStringMacro(ImageCoordinateFrame);
+  vtkGetStringMacro( ImageCoordinateFrame );
   /*! Get the probe coordinate frame name */
-  vtkGetStringMacro(ProbeCoordinateFrame);
+  vtkGetStringMacro( ProbeCoordinateFrame );
   /*! Get the phantom coordinate frame name */
-  vtkGetStringMacro(PhantomCoordinateFrame);
+  vtkGetStringMacro( PhantomCoordinateFrame );
   /*! Get the reference coordinate frame name */
-  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro( ReferenceCoordinateFrame );
 
 
   /*!
@@ -63,7 +63,7 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire> &nWires ); 
+  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
@@ -72,15 +72,15 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, vtkPlusTrackedFrameList* calibrationTrackedFrameList, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire> &nWires ); 
+  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, vtkPlusTrackedFrameList* calibrationTrackedFrameList, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
 
   /*! Get the calibration result transformation matrix */
-  void GetImageToProbeTransformMatrix(vtkMatrix4x4* imageToProbeMatrix);
+  void GetImageToProbeTransformMatrix( vtkMatrix4x4* imageToProbeMatrix );
 
   /*! Set the calibration date and time in string format */
-  vtkSetStringMacro(CalibrationDate); 
+  vtkSetStringMacro( CalibrationDate );
   /*! Get the calibration date and time in string format */
-  vtkGetStringMacro(CalibrationDate);
+  vtkGetStringMacro( CalibrationDate );
 
   /*! Get the mean 3D out-of-plane error (OPE), computed from all calibration frames, taking into account the confidence interval. */
   double GetCalibrationReprojectionError3DMean();
@@ -91,55 +91,52 @@ public:
   double GetValidationReprojectionError3DMean();
   /*! Get the 3D out-of-plane error (OPE) standard deviation, computed from all validation frames, taking into account the confidence interval. */
   double GetValidationReprojectionError3DStdDev();
-  
-  /*! Get 2D reprojection statistics for a specified wire made from the validation or the calibration data */
-  PlusStatus GetReprojectionError2DStatistics(double &xMean, double &yMean, double &xStdDev, double &yStdDev, int wireNumber, bool isValidation);
 
-  PlusStatus GetCalibrationReport(std::vector<double> *calibError,std::vector<double> *validError,vnl_matrix_fixed<double,4,4> *imageToProbeTransformMatrix); 
-
-    /*!
-    Assembles the result string to display
-    \param precision Number of decimals printed in the string
-    \return String containing results
-  */
-  std::string GetResultString(int precision = 3);
+  PlusStatus GetCalibrationReport( std::vector<double>* calibError, std::vector<double>* validError, vnl_matrix_fixed<double, 4, 4>* imageToProbeTransformMatrix );
 
   /*!
-    Get calibration result and error report in XML format 
+  Assembles the result string to display
+  \param precision Number of decimals printed in the string
+  \return String containing results
+  */
+  std::string GetResultString( int precision = 3 );
+
+  /*!
+    Get calibration result and error report in XML format
     \param validationTrackedFrameList TrackedFrameList with segmentation results for the validation
     \param validationStartFrame First frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the first)
     \param validationEndFrame Last frame that is used from the validation tracked frame list for the validation (in case of -1 it starts with the last)
     \param calibrationTrackedFrameList TrackedFrameList with segmentation results for the calibration
     \param calibrationStartFrame First frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the first)
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
-    \param probeCalibrationResult Output XML data element 
+    \param probeCalibrationResult Output XML data element
   */
-  PlusStatus GetXMLCalibrationResultAndErrorReport(vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, 
-    int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult); 
+  PlusStatus GetXMLCalibrationResultAndErrorReport( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame,
+      int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult );
 
   vtkPlusProbeCalibrationOptimizerAlgo* GetOptimizer()
   {
     return this->Optimizer;
   };
 
-  void ComputeError2d(const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
-  void ComputeError3d(const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, double &errorMean, double &errorStDev, double &errorRms);
+  void ComputeError2d( const vnl_matrix_fixed<double, 4, 4>& imageToProbeMatrix, double& errorMean, double& errorStDev, double& errorRms );
+  void ComputeError3d( const vnl_matrix_fixed<double, 4, 4>& imageToProbeMatrix, double& errorMean, double& errorStDev, double& errorRms );
 
 protected:
 
   enum PreProcessedWirePositionIdType
   {
-    CALIBRATION_ALL=0,
+    CALIBRATION_ALL = 0,
     VALIDATION_ALL,
     CALIBRATION_NOT_OUTLIER,
     LAST_PREPROCESSED_WIRE_POS_ID // this must be the last type
   };
 
-  void ComputeError3d(std::vector<double> &reprojectionErrors, PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix);
+  void ComputeError3d( std::vector<double>& reprojectionErrors, PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double, 4, 4>& imageToProbeMatrix );
 
-  void ComputeError2d(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeMatrix, 
-    double &errorMean, double &errorStDev, double &errorRms,
-    std::vector< std::vector< vnl_vector_fixed<double,2> > >* ReprojectionError2Ds=NULL);
+  void ComputeError2d( PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double, 4, 4>& imageToProbeMatrix,
+                       double& errorMean, double& errorStDev, double& errorRms,
+                       std::vector< std::vector< vnl_vector_fixed<double, 2> > >* ReprojectionError2Ds = NULL );
 
   /*!
     Calculate and add positions of an individual image for calibration or validation
@@ -147,7 +144,7 @@ protected:
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the added data is for calibration or validation
   */
-  PlusStatus AddPositionsPerImage( PlusTrackedFrame* trackedFrame, vtkPlusTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType);
+  PlusStatus AddPositionsPerImage( PlusTrackedFrame* trackedFrame, vtkPlusTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType );
 
   /*!
     Calculate 3D reprojection errors
@@ -156,8 +153,8 @@ protected:
     \param endFrame Last frame that is used from the tracked frame list for the error computation (in case of -1 it starts with the last)
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the input tracked frame list is of calibration or validation
-  */  
-  PlusStatus ComputeReprojectionErrors3D(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
+  */
+  PlusStatus ComputeReprojectionErrors3D( PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix );
 
   /*!
     Calculate 2D reprojection errors
@@ -167,40 +164,40 @@ protected:
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the input tracked frame list is of calibration or validation
   */
-  PlusStatus ComputeReprojectionErrors2D(PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix);
+  PlusStatus ComputeReprojectionErrors2D( PreProcessedWirePositionIdType datasetType, const vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix );
 
-  /*! 
+  /*!
     Set ImageToProbe calibration result matrix and validate it. It doesn't modify the original transform to make the rotation orthogonal
     \param imageToProbeTransformMatrix the calculated image to probe matrix
-    \param transformRepository the transform repository to populate   
+    \param transformRepository the transform repository to populate
   */
-  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix, vtkPlusTransformRepository* transformRepository);
+  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix, vtkPlusTransformRepository* transformRepository );
 
-  /*! 
-    Save results and error report to XML 
+  /*!
+    Save results and error report to XML
   */
-  PlusStatus SaveCalibrationResultAndErrorReportToXML(vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame);
+  PlusStatus SaveCalibrationResultAndErrorReportToXML( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame );
 
   /*!
     \param outliers indices of the measurement points that was found to be an outlier when computing any matrix row
   */
-  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod(vnl_matrix_fixed<double,4,4> &imageToProbeTransformMatrix, std::set<int> &outliers);
+  PlusStatus ComputeImageToProbeTransformByLinearLeastSquaresMethod( vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix, std::set<int>& outliers );
 
   /*! Remove outliers from calibration data
   */
-  void UpdateNonOutlierData(const std::set<int>& outliers);
+  void UpdateNonOutlierData( const std::set<int>& outliers );
 
-  static double PointToWireDistance(const vnl_double_3 &aPoint, const vnl_double_3 &aLineEndPoint1, const vnl_double_3 &aLineEndPoint2);
+  static double PointToWireDistance( const vnl_double_3& aPoint, const vnl_double_3& aLineEndPoint1, const vnl_double_3& aLineEndPoint2 );
 
 protected:
   /*! Set the image coordinate frame name */
-  vtkSetStringMacro(ImageCoordinateFrame);
+  vtkSetStringMacro( ImageCoordinateFrame );
   /*! Set the probe coordinate frame name */
-  vtkSetStringMacro(ProbeCoordinateFrame);
+  vtkSetStringMacro( ProbeCoordinateFrame );
   /*! Set the phantom coordinate frame name */
-  vtkSetStringMacro(PhantomCoordinateFrame);
+  vtkSetStringMacro( PhantomCoordinateFrame );
   /*! Set the reference coordinate frame name */
-  vtkSetStringMacro(ReferenceCoordinateFrame);
+  vtkSetStringMacro( ReferenceCoordinateFrame );
 
 protected:
   vtkPlusProbeCalibrationAlgo();
@@ -208,7 +205,7 @@ protected:
 
 protected:
   /*! Calibration date in string format */
-  char* CalibrationDate; 
+  char* CalibrationDate;
 
   /*! Name of the image coordinate frame (eg. Image) */
   char* ImageCoordinateFrame;
@@ -223,7 +220,7 @@ protected:
   char* ReferenceCoordinateFrame;
 
   /*! The result of the calibration */
-  vnl_matrix_fixed<double,4,4> ImageToProbeTransformMatrix;
+  vnl_matrix_fixed<double, 4, 4> ImageToProbeTransformMatrix;
 
   /*! List of NWires used for calibration and error computation */
   std::vector<PlusNWire> NWires;
@@ -231,48 +228,48 @@ protected:
   /*! Stores wire intersection positions for each frame. */
   struct NWirePositionType
   {
-    /*! 
+    /*!
       Positions of segmented points in image frame - input of optimization algorithm, contains ALL the segmented points
       nwire x 3 values
     */
-    std::vector< vnl_vector_fixed<double,4> > AllWiresIntersectionPointsPos_Image;
-    /*! 
-      Positions of segmented points in probe frame - input of optimization algorithm 
+    std::vector< vnl_vector_fixed<double, 4> > AllWiresIntersectionPointsPos_Image;
+    /*!
+      Positions of segmented points in probe frame - input of optimization algorithm
       nwire values
     */
-    std::vector< vnl_vector_fixed<double,4> > MiddleWireIntersectionPointsPos_Probe;
+    std::vector< vnl_vector_fixed<double, 4> > MiddleWireIntersectionPointsPos_Probe;
 
-    /*! 
-      Vector containing all Probe to Phantom transforms 
+    /*!
+      Vector containing all Probe to Phantom transforms
     */
-    vnl_matrix_fixed<double,4,4> ProbeToPhantomTransform;
+    vnl_matrix_fixed<double, 4, 4> ProbeToPhantomTransform;
   };
 
   struct NWireErrorType
   {
-    /*! 
+    /*!
       Vector holding the 3D reprojection errors for each NWire in all validation images (outer vector is for the NWires, inner one is for the images)
       Computed as a distance between the actual segmented position of the middle wire transformed into phantom frame and the computed positions (see MiddleWirePositionsInPhantomFrame)
       indices: [wire][frame]
     */
     std::vector< std::vector<double> > ReprojectionError3Ds;
 
-    /*! 
+    /*!
       Vector holding the 2D reprojection errors for each wire in all validation images (outermost vector holds the wires, the one inside it holds the images, and the inner holds the X and Y errors)
       Computed as X and Y distances between the actual segmented position of the wires and the intersections of the wires with the image planes
       indices: [wire][frame][x/y]
     */
-    std::vector< std::vector< vnl_vector_fixed<double,2> > > ReprojectionError2Ds;
+    std::vector< std::vector< vnl_vector_fixed<double, 2> > > ReprojectionError2Ds;
 
-    /*! Mean validation 2D reprojection error for each wire (two elements, first for the X axis and the other for Y) (using confidence interval) 
+    /*! Mean validation 2D reprojection error for each wire (two elements, first for the X axis and the other for Y) (using confidence interval)
     indices: [wire][x/y]
     */
-    std::vector< vnl_vector_fixed<double,2> > ReprojectionError2DMeans;
+    std::vector< vnl_vector_fixed<double, 2> > ReprojectionError2DMeans;
 
-    /*! Standard deviation of validation 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) (using confidence interval) 
+    /*! Standard deviation of validation 2D reprojection errors for each wire (two elements, first for the X axis and the other for Y) (using confidence interval)
     indices: [wire][x/y]
     */
-    std::vector< vnl_vector_fixed<double,2> > ReprojectionError2DStdDevs;
+    std::vector< vnl_vector_fixed<double, 2> > ReprojectionError2DStdDevs;
 
     /*! Mean validation 3D reprojection error (using confidence interval) */
     double ReprojectionError3DMean;
@@ -282,13 +279,13 @@ protected:
 
     /*! Maximum 3D reprojection error (using confidence interval) */
     double ReprojectionError3DMax;
-    
+
     double RmsError2D;
 
     NWireErrorType()
-      : ReprojectionError3DMean(-1.0)
-      , ReprojectionError3DStdDev(-1.0)
-      , RmsError2D(-1.0)
+      : ReprojectionError3DMean( -1.0 )
+      , ReprojectionError3DStdDev( -1.0 )
+      , RmsError2D( -1.0 )
     {}
 
   };
@@ -297,7 +294,7 @@ protected:
   {
     std::vector<NWirePositionType> FramePositions;
     NWireErrorType NWireErrors;
-    
+
     void Clear()
     {
       FramePositions.clear();
@@ -320,8 +317,8 @@ protected:
   vtkPlusProbeCalibrationOptimizerAlgo* Optimizer;
 
 private:
-  vtkPlusProbeCalibrationAlgo(const vtkPlusProbeCalibrationAlgo&);
-  void operator=(const vtkPlusProbeCalibrationAlgo&);
+  vtkPlusProbeCalibrationAlgo( const vtkPlusProbeCalibrationAlgo& );
+  void operator=( const vtkPlusProbeCalibrationAlgo& );
 };
 
 #endif //  __vtkPlusProbeCalibrationAlgo_h

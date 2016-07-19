@@ -67,7 +67,7 @@ void CreateSliceModels(vtkPlusTrackedFrameList *trackedFrameList, vtkPlusTransfo
     vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
     tUserDefinedTransform->SetMatrix( tUserDefinedMatrix );    
 
-    int* frameSize = frame->GetFrameSize();
+    unsigned int* frameSize = frame->GetFrameSize();
 
     vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
     tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
