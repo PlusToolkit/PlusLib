@@ -903,36 +903,15 @@ IF (PLUS_USE_CAPISTRANO_VIDEO)
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${CAPISTRANO_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Capistrano
-    )          
-  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    message("using 64 bit")
-    SET ( External_Libraries_Install ${External_Libraries_Install}
-      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug}
-      ${CAPISTRANO_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-  ELSE()
-      # Make a temporary copy and rename this file so it can be found as the
-      # expected name when the executable starts.
-      SET(_usbprobe_dll_renamed ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX})
-      FILE(COPY ${CAPISTRANO_WIN32_BINARY_DIR}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
-        DESTINATION ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY})
-      FILE(RENAME
-        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/USBprobe32${CMAKE_SHARED_LIBRARY_SUFFIX}
-        ${_usbprobe_dll_renamed})
-      
-      SET ( External_Libraries_Install ${External_Libraries_Install}
-      ${_usbprobe_dll_renamed}
-      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug}
-      ${_usbprobe_dll_renamed}
-      ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
-      )
-  ENDIF()
+    )
+  SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+    ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
 
 # --------------------------------------------------------------------------
