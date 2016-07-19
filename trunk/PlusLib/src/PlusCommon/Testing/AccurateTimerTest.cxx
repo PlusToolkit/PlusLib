@@ -59,7 +59,7 @@ void* timerTestThread( vtkMultiThreader::ThreadInfo *data )
       gCritSec->Lock();
       gNumberOfDelayErrors++;
       gCritSec->Unlock();
-      LOG_ERROR("Delay error = " << delayErrorSec*1000.0 << " ms (intended delay = " << delaySec*1000.0 << ", actual delay = " << elapsedTimeSec*1000.0 << "), thread="<<data->ThreadID);
+      LOG_INFO("Delay error = " << delayErrorSec*1000.0 << " ms (intended delay = " << delaySec*1000.0 << ", actual delay = " << elapsedTimeSec*1000.0 << "), thread="<<data->ThreadID);
     }
     else
     {
