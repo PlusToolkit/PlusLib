@@ -63,7 +63,7 @@ PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrame( int frameNumber )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrameRange( unsigned int frameNumberFrom, unsigned int frameNumberTo )
 {
-  if ( frameNumberFrom < 0 || frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo )
+  if ( frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo )
   {
     LOG_WARNING( "Failed to remove tracked frame from list - invalid frame number range: (" << frameNumberFrom << ", " << frameNumberTo << ")" );
     return PLUS_FAIL;
