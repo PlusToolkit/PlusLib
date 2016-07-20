@@ -162,12 +162,11 @@ bool PlusServerLauncherMainWindow::startServer( const QString& configFilePath )
   // Un-requested log entries that are captured from the PlusServer executable are parsed and dropped from output
 #if QT_VERSION >> 16 == 4
   int logLevelToPlusServer = std::max<int>( ui.comboBox_LogLevel->itemData( ui.comboBox_LogLevel->currentIndex() ).toInt(), vtkPlusLogger::LOG_LEVEL_INFO );
-  QString cmdLine = QString( "\"%1\" --config-file=\"%2\" --verbose=%3" ).arg( plusServerExecutable.c_str() ).arg( configFilePath ).arg( logLevelToPlusServer );
-#else if QT_VERSION >> 16 == 5
+#else
   int logLevelToPlusServer = std::max<int>( ui.comboBox_LogLevel->currentData().toInt(), vtkPlusLogger::LOG_LEVEL_INFO );
-  QString cmdLine = QString( "\"%1\" --config-file=\"%2\" --verbose=%3" ).arg( plusServerExecutable.c_str() ).arg( configFilePath ).arg( logLevelToPlusServer );
 #endif
-  LOG_INFO( "Server process command line: " << cmdLine.toLatin1().constData() );
+  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(logLevelToPlusServer);
+  LOG_INFO("Server process command line: " << cmdLine.toLatin1().constData());
   m_CurrentServerInstance->start( cmdLine );
   m_CurrentServerInstance->waitForFinished( 500 );
   // During waitForFinished an error signal may be emitted, which may delete m_CurrentServerInstance,
@@ -458,7 +457,7 @@ void PlusServerLauncherMainWindow::logLevelChanged()
 {
 #if QT_VERSION >> 16 == 4
   vtkPlusLogger::Instance()->SetLogLevel( ui.comboBox_LogLevel->itemData( ui.comboBox_LogLevel->currentIndex() ).toInt() );
-#else if QT_VERSION >> 16 == 5
+#else
   vtkPlusLogger::Instance()->SetLogLevel( ui.comboBox_LogLevel->currentData().toInt() );
 #endif
 }
