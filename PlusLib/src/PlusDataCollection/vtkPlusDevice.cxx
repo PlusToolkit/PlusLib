@@ -1580,7 +1580,7 @@ int vtkPlusDevice::RequestInformation( vtkInformation* vtkNotUsed( request ),
   unsigned int* frameSize = aSource->GetOutputFrameSize();
   // TODO : determine another mechanism to see if device has data yet or not
 
-  int extent[6] = { 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2] - 1 };
+  int extent[6] = { 0, static_cast<int>(frameSize[0]) - 1, 0, static_cast<int>(frameSize[1]) - 1, 0, static_cast<int>(frameSize[2]) - 1 };
   outInfo->Set( vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent, 6 );
 
   // Set the origin and spacing. The video source provides raw pixel output,
