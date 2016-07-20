@@ -273,7 +273,7 @@ void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensi
 
   // We iterate until transmittedIntensity * intensityTransmittedFractionPerPixelTwoWay^n > MINIMUM_BEAM_INTENSITY
   // So, n = log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay)
-  unsigned int numberOfIterationsToReachMinimumBeamIntensity = 0;
+  int numberOfIterationsToReachMinimumBeamIntensity = 0;
   if ( transmittedIntensity > MINIMUM_BEAM_INTENSITY )
   {
     numberOfIterationsToReachMinimumBeamIntensity = std::min<int>( numberOfFilledPixels, floor( log( MINIMUM_BEAM_INTENSITY / transmittedIntensity ) / log( intensityTransmittedFractionPerPixelTwoWay ) ) + 1 );
