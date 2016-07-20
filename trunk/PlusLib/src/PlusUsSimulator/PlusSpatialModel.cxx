@@ -273,14 +273,13 @@ void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensi
 
   // We iterate until transmittedIntensity * intensityTransmittedFractionPerPixelTwoWay^n > MINIMUM_BEAM_INTENSITY
   // So, n = log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay)
-  int numberOfIterationsToReachMinimumBeamIntensity = 0;
+  unsigned int numberOfIterationsToReachMinimumBeamIntensity = 0;
   if ( transmittedIntensity > MINIMUM_BEAM_INTENSITY )
   {
-    numberOfIterationsToReachMinimumBeamIntensity = std::min<int>( numberOfFilledPixels, floor( log( MINIMUM_BEAM_INTENSITY / transmittedIntensity ) / log( intensityTransmittedFractionPerPixelTwoWay ) ) + 1 );
-    if ( numberOfIterationsToReachMinimumBeamIntensity < 0 ) // may happen when AttenuationCoefficientDbPerCmMhz is close to 0
-    {
-      numberOfIterationsToReachMinimumBeamIntensity = 0;
-    }
+    numberOfIterationsToReachMinimumBeamIntensity =
+      std::min<unsigned int>( numberOfFilledPixels, // value may be larger than number of pixels to fill -> clamp it to the number of pixels to fill
+      static_cast<unsigned int>( std::max<int>( 0, // value may be negative when AttenuationCoefficientDbPerCmMhz is close to 0 -> clamp it to zero
+      floor( log( MINIMUM_BEAM_INTENSITY / transmittedIntensity ) / log( intensityTransmittedFractionPerPixelTwoWay ) ) + 1 )));
     double backScatterFactor = transmittedIntensity * intensityAttenuatedFractionPerPixel * this->BackscatterDiffuseReflectionCoefficient / intensityTransmittedFractionPerPixelTwoWay;
     for( unsigned int currentPixelInFilledPixels = 0; currentPixelInFilledPixels < numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++ )
     {
