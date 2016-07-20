@@ -3,6 +3,9 @@
 ORIGPATH=$PATH
 DIRCMD=0
 
+# Prevent X server related test errors (vtkXOpenGLRenderWindow: bad X server connection)
+export DISPLAY=:0
+
 finish()
 {
   PATH=$ORIGPATH
