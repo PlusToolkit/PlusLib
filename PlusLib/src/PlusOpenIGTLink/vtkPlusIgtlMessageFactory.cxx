@@ -223,7 +223,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       if (clientInfo.TDATARequested && clientInfo.LastTDATASentTimeStamp + clientInfo.Resolution > trackedFrame.GetTimestamp())
       {
         std::map<std::string, vtkSmartPointer<vtkMatrix4x4> > transforms;
-        for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); transformNameIterator)
+        for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
         {
           PlusTransformName transformName = (*transformNameIterator);
 
