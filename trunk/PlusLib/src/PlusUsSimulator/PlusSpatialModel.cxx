@@ -287,7 +287,7 @@ void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensi
       //reflectedIntensity[currentPixelInFilledPixels] = *(attenuation++) * backScatterFactor;
       reflectedIntensity[currentPixelInFilledPixels] = this->PrecomputedAttenuations[currentPixelInFilledPixels] * backScatterFactor;
     }
-    transmittedIntensity *= pow( intensityTransmittedFractionPerPixelTwoWay, numberOfIterationsToReachMinimumBeamIntensity );
+    transmittedIntensity *= pow( intensityTransmittedFractionPerPixelTwoWay, static_cast<double>(numberOfIterationsToReachMinimumBeamIntensity) );
   }
   else
   {
