@@ -81,6 +81,18 @@ void FillHolesInVolumeElement::setupAsDistanceWeightInverse(int size, float minR
 }
 
 //----------------------------------------------------------------------------
+FillHolesInVolumeElement::~FillHolesInVolumeElement()
+{
+  switch (type) {
+  case HFTYPE_GAUSSIAN: delete[] kernel; break;
+  case HFTYPE_GAUSSIAN_ACCUMULATION: delete[] kernel; break;
+  case HFTYPE_DISTANCE_WEIGHT_INVERSE: delete[] kernel; break;
+  case HFTYPE_STICK: delete[] sticksList; break;
+  case HFTYPE_NEAREST_NEIGHBOR: break;
+  }
+}
+
+//----------------------------------------------------------------------------
 void FillHolesInVolumeElement::setupAsNearestNeighbor(int size, float minRatio)
 {
   this->type = FillHolesInVolumeElement ::HFTYPE_NEAREST_NEIGHBOR;

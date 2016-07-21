@@ -336,6 +336,7 @@ protected:
   /*! Get tracker buffer item from the closest timestamp */
   virtual ItemStatus GetStreamBufferItemFromClosestTime( double time, StreamBufferItem* bufferItem );
 
+protected:
   /*! Image frame size in pixel */
   unsigned int FrameSize[3];
 

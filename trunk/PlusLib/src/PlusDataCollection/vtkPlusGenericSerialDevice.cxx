@@ -46,7 +46,8 @@ void hex2bin( const std::string& inputHexEncoded, std::string& outputBinary )
 
 //-------------------------------------------------------------------------
 vtkPlusGenericSerialDevice::vtkPlusGenericSerialDevice()
-  : SerialPort( 1 )
+  : Serial( new SerialLine() )
+  , SerialPort( 1 )
   , BaudRate( 9600 )
   , MaximumReplyDelaySec( 0.100 )
   , MaximumReplyDurationSec( 0.300 )

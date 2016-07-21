@@ -119,8 +119,8 @@ const double vtkPlusDevice::ParamIndexKey::NO_DEPTH = -1.0;
 
 vtkPlusDevice::ParamIndexKey::ParamIndexKey()
   : Depth( NO_DEPTH )
-  , Mode( Plus_UnknownMode )
   , ProbeId( "" )
+  , Mode( Plus_UnknownMode )
 {
 
 }
@@ -129,6 +129,7 @@ vtkPlusDevice::ParamIndexKey::ParamIndexKey()
 vtkPlusDevice::vtkPlusDevice()
   : ThreadAlive( false )
   , Connected( 0 )
+  , Threader( vtkMultiThreader::New() )
   , ThreadId( -1 )
   , CurrentStreamBufferItem( new StreamBufferItem() )
   , ToolReferenceFrameName( NULL )
@@ -152,8 +153,6 @@ vtkPlusDevice::vtkPlusDevice()
   this->SetNumberOfInputPorts( 0 );
 
   this->SetToolReferenceFrameName( DEFAULT_TRACKER_REFERENCE_FRAME_NAME );
-
-  this->Threader = vtkMultiThreader::New();
 
   // For threaded capture of transformations
   this->UpdateMutex = vtkPlusRecursiveCriticalSection::New();
@@ -1580,7 +1579,7 @@ int vtkPlusDevice::RequestInformation( vtkInformation* vtkNotUsed( request ),
   unsigned int* frameSize = aSource->GetOutputFrameSize();
   // TODO : determine another mechanism to see if device has data yet or not
 
-  int extent[6] = { 0, static_cast<int>(frameSize[0]) - 1, 0, static_cast<int>(frameSize[1]) - 1, 0, static_cast<int>(frameSize[2]) - 1 };
+  int extent[6] = { 0, static_cast<int>( frameSize[0] ) - 1, 0, static_cast<int>( frameSize[1] ) - 1, 0, static_cast<int>( frameSize[2] ) - 1 };
   outInfo->Set( vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), extent, 6 );
 
   // Set the origin and spacing. The video source provides raw pixel output,

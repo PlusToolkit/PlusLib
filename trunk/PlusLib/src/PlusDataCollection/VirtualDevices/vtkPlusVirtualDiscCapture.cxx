@@ -17,7 +17,7 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusVirtualDiscCapture);
+vtkStandardNewMacro( vtkPlusVirtualDiscCapture );
 
 static const double WARNING_RECORDING_LAG_SEC = 1.0; // if the recording lags more than this then a warning message will be displayed
 static const double MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
@@ -25,29 +25,31 @@ static const unsigned int DISABLE_FRAME_BUFFER = std::numeric_limits<unsigned in
 
 //----------------------------------------------------------------------------
 vtkPlusVirtualDiscCapture::vtkPlusVirtualDiscCapture()
-: vtkPlusDevice()
-, RecordedFrames(vtkPlusTrackedFrameList::New())
-, LastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
-, NextFrameToBeRecordedTimestamp(0.0)
-, RequestedFrameRate(0.0)
-, ActualFrameRate(0.0)
-, FirstFrameIndexInThisSegment(0)
-, TimeWaited(0.0)
-, LastUpdateTime(0.0)
-, BaseFilename("TrackedImageSequence.nrrd")
-, Writer(NULL)
-, EnableFileCompression(false)
-, IsHeaderPrepared(false)
-, TotalFramesRecorded(0)
-, EnableCapturing(false)
-, EnableCapturingOnStart(false)
-, FrameBufferSize(DISABLE_FRAME_BUFFER)
-, WriterAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-, GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  : vtkPlusDevice()
+  , RecordedFrames( vtkPlusTrackedFrameList::New() )
+  , LastAlreadyRecordedFrameTimestamp( UNDEFINED_TIMESTAMP )
+  , NextFrameToBeRecordedTimestamp( 0.0 )
+  , RequestedFrameRate( 0.0 )
+  , ActualFrameRate( 0.0 )
+  , FirstFrameIndexInThisSegment( 0 )
+  , TimeWaited( 0.0 )
+  , LastUpdateTime( 0.0 )
+  , CurrentFilename( "" )
+  , BaseFilename( "TrackedImageSequence.nrrd" )
+  , Writer( NULL )
+  , EnableFileCompression( false )
+  , IsHeaderPrepared( false )
+  , TotalFramesRecorded( 0 )
+  , EnableCapturingOnStart( false )
+  , EnableCapturing( false )
+  , FrameBufferSize( DISABLE_FRAME_BUFFER )
+  , IsData3D( false )
+  , WriterAccessMutex( vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New() )
+  , GracePeriodLogLevel( vtkPlusLogger::LOG_LEVEL_DEBUG )
 {
-  this->AcquisitionRate=30.0;
-  this->MissingInputGracePeriodSec=2.0;
-  this->RecordedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP); 
+  this->AcquisitionRate = 30.0;
+  this->MissingInputGracePeriodSec = 2.0;
+  this->RecordedFrames->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP );
 
   // The data capture thread will be used to regularly read the frames and write to disk
   this->StartThreadForInternalUpdates = true;
@@ -61,7 +63,8 @@ vtkPlusVirtualDiscCapture::~vtkPlusVirtualDiscCapture()
     this->CloseFile();
   }
 
-  if (RecordedFrames != NULL) {
+  if ( RecordedFrames != NULL )
+  {
     this->RecordedFrames->Delete();
     this->RecordedFrames = NULL;
   }
@@ -74,36 +77,36 @@ vtkPlusVirtualDiscCapture::~vtkPlusVirtualDiscCapture()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVirtualDiscCapture::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusVirtualDiscCapture::PrintSelf( ostream& os, vtkIndent indent )
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusVirtualDiscCapture::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL( BaseFilename, deviceConfig );
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL( EnableFileCompression, deviceConfig );
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL( EnableCapturingOnStart, deviceConfig );
 
-  this->SetRequestedFrameRate(15.0); // default
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
+  this->SetRequestedFrameRate( 15.0 ); // default
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, RequestedFrameRate, deviceConfig );
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int, FrameBufferSize, deviceConfig );
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::WriteConfiguration( vtkXMLDataElement* rootConfig)
+PlusStatus vtkPlusVirtualDiscCapture::WriteConfiguration( vtkXMLDataElement* rootConfig )
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
-  deviceElement->SetAttribute("EnableCapturing", this->EnableCapturing ? "TRUE" : "FALSE" );
-  deviceElement->SetAttribute("EnableFileCompression", this->EnableFileCompression ? "TRUE" : "FALSE");
-  deviceElement->SetAttribute("EnableCaptureOnStart", this->EnableCapturingOnStart ? "TRUE" : "FALSE");
-  deviceElement->SetDoubleAttribute("RequestedFrameRate", this->GetRequestedFrameRate() );
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( deviceElement, rootConfig );
+  deviceElement->SetAttribute( "EnableCapturing", this->EnableCapturing ? "TRUE" : "FALSE" );
+  deviceElement->SetAttribute( "EnableFileCompression", this->EnableFileCompression ? "TRUE" : "FALSE" );
+  deviceElement->SetAttribute( "EnableCaptureOnStart", this->EnableCapturingOnStart ? "TRUE" : "FALSE" );
+  deviceElement->SetDoubleAttribute( "RequestedFrameRate", this->GetRequestedFrameRate() );
 
   return PLUS_SUCCESS;
 }
@@ -119,7 +122,7 @@ PlusStatus vtkPlusVirtualDiscCapture::InternalConnect()
 
   if( this->GetEnableCapturingOnStart() )
   {
-    this->SetEnableCapturing(true);
+    this->SetEnableCapturing( true );
   }
 
   this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
@@ -129,7 +132,7 @@ PlusStatus vtkPlusVirtualDiscCapture::InternalConnect()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualDiscCapture::InternalDisconnect()
-{ 
+{
   this->EnableCapturing = false;
 
   // If outstanding frames to be written, deal with them
@@ -137,13 +140,13 @@ PlusStatus vtkPlusVirtualDiscCapture::InternalDisconnect()
   {
     if( this->Writer->AppendImagesToHeader() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to append image data to header.");
+      LOG_ERROR( "Unable to append image data to header." );
       this->Disconnect();
       return PLUS_FAIL;
     }
     if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << this->LastAlreadyRecordedFrameTimestamp );
+      LOG_ERROR( "Unable to append images. Stopping recording at timestamp: " << this->LastAlreadyRecordedFrameTimestamp );
       this->Disconnect();
       return PLUS_FAIL;
     }
@@ -155,91 +158,91 @@ PlusStatus vtkPlusVirtualDiscCapture::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::OpenFile(const char* aFilename)
+PlusStatus vtkPlusVirtualDiscCapture::OpenFile( const char* aFilename )
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock( this->WriterAccessMutex );
 
   // Because this virtual device continually appends data to the file, we cannot do live compression
-  if( aFilename == NULL || strlen(aFilename) == 0 )
+  if( aFilename == NULL || strlen( aFilename ) == 0 )
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(this->BaseFilename);
+    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension( this->BaseFilename );
+    std::string ext = vtksys::SystemTools::GetFilenameExtension( this->BaseFilename );
     if( ext.empty() )
     {
       // default to nrrd
       ext = ".nrrd";
     }
-    else if( vtkPlusMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression() )
+    else if( vtkPlusMetaImageSequenceIO::CanWriteFile( this->BaseFilename ) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
-      this->SetEnableFileCompression(false);
+      LOG_WARNING( "Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha." );
+      this->SetEnableFileCompression( false );
     }
-    this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
+    this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime( "%Y%m%d_%H%M%S" ) + ext;
     aFilename = this->CurrentFilename.c_str();
   }
   else
   {
-    if( vtkPlusMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression() )
+    if( vtkPlusMetaImageSequenceIO::CanWriteFile( aFilename ) && this->GetEnableFileCompression() )
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
-      this->SetEnableFileCompression(false);
+      LOG_WARNING( "Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha." );
+      this->SetEnableFileCompression( false );
     }
     this->CurrentFilename = aFilename;
   }
 
-  this->Writer = vtkPlusSequenceIO::CreateSequenceHandlerForFile(aFilename);
-  this->Writer->SetUseCompression(this->EnableFileCompression);
-  this->Writer->SetTrackedFrameList(this->RecordedFrames);
+  this->Writer = vtkPlusSequenceIO::CreateSequenceHandlerForFile( aFilename );
+  this->Writer->SetUseCompression( this->EnableFileCompression );
+  this->Writer->SetTrackedFrameList( this->RecordedFrames );
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
-  this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));
+  this->Writer->SetFileName( vtkPlusConfig::GetInstance()->GetOutputPath( aFilename ) );
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::CloseFile(const char* aFilename /* = NULL */, std::string* resultFilename /* = NULL */)
+PlusStatus vtkPlusVirtualDiscCapture::CloseFile( const char* aFilename /* = NULL */, std::string* resultFilename /* = NULL */ )
 {
   // Fix the header to write the correct number of frames
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock( this->WriterAccessMutex );
 
-  if (!this->IsHeaderPrepared)
+  if ( !this->IsHeaderPrepared )
   {
     // nothing has been prepared, so nothing to finalize
     return PLUS_SUCCESS;
   }
 
-  if( aFilename != NULL && strlen(aFilename) != 0 )
+  if( aFilename != NULL && strlen( aFilename ) != 0 )
   {
     // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
-    this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));
+    this->Writer->SetFileName( vtkPlusConfig::GetInstance()->GetOutputPath( aFilename ) );
     this->CurrentFilename = aFilename;
   }
 
   // Do we have any outstanding unwritten data?
   if( this->RecordedFrames->GetNumberOfTrackedFrames() != 0 )
   {
-    this->WriteFrames(true);
+    this->WriteFrames( true );
   }
-  
-  this->Writer->GenerateFrameSizeCustomStrings(this->TotalFramesRecorded, this->GetIsData3D());
+
+  this->Writer->GenerateFrameSizeCustomStrings( this->TotalFramesRecorded, this->GetIsData3D() );
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionSizeString() );
   this->Writer->UpdateFieldInImageHeader( this->Writer->GetDimensionKindsString() );
   this->Writer->FinalizeHeader();
 
-  if (resultFilename!=NULL)
+  if ( resultFilename != NULL )
   {
-    (*resultFilename) = this->Writer->GetFileName();
+    ( *resultFilename ) = this->Writer->GetFileName();
   }
 
   this->Writer->Close();
 
-  std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(this->CurrentFilename);
-  std::string path = vtksys::SystemTools::GetFilenamePath(fullPath); 
-  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath); 
+  std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath( this->CurrentFilename );
+  std::string path = vtksys::SystemTools::GetFilenamePath( fullPath );
+  std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension( fullPath );
   std::string configFileName = path + "/" + filename + "_config.xml";
-  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  PlusCommon::PrintXML( configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() );
 
   this->IsHeaderPrepared = false;
   this->TotalFramesRecorded = 0;
@@ -257,20 +260,20 @@ PlusStatus vtkPlusVirtualDiscCapture::CloseFile(const char* aFilename /* = NULL 
 
 PlusStatus vtkPlusVirtualDiscCapture::InternalUpdate()
 {
-  if (!this->EnableCapturing)
+  if ( !this->EnableCapturing )
   {
     // Capturing is disabled
     return PLUS_SUCCESS;
   }
 
   double samplingPeriodSec = 0.1;
-  if (this->AcquisitionRate > 0)
+  if ( this->AcquisitionRate > 0 )
   {
     samplingPeriodSec = 1.0 / this->AcquisitionRate;
   }
   else
   {
-    LOG_WARNING("AcquisitionRate value is invalid " << this->AcquisitionRate << ". Use default sampling period of " << samplingPeriodSec << " sec");
+    LOG_WARNING( "AcquisitionRate value is invalid " << this->AcquisitionRate << ". Use default sampling period of " << samplingPeriodSec << " sec" );
   }
 
   if( this->LastUpdateTime == 0.0 )
@@ -295,105 +298,105 @@ PlusStatus vtkPlusVirtualDiscCapture::InternalUpdate()
 
   double maxProcessingTimeSec = samplingPeriodSec * 2.0; // put a hard limit on the max processing time to make sure the application remains responsive during recording
   double requestedFramePeriodSec = 0.1;
-  if (this->RequestedFrameRate > 0)
+  if ( this->RequestedFrameRate > 0 )
   {
     requestedFramePeriodSec = 1.0 / this->RequestedFrameRate;
   }
   else
   {
-    LOG_WARNING("RequestedFrameRate is invalid");
+    LOG_WARNING( "RequestedFrameRate is invalid" );
   }
 
   if( this->HasGracePeriodExpired() )
   {
     this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
   }
-  
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
-  if (!this->EnableCapturing)
+
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock( this->WriterAccessMutex );
+  if ( !this->EnableCapturing )
   {
     // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
     return PLUS_SUCCESS;
   }
 
   int nbFramesBefore = this->RecordedFrames->GetNumberOfTrackedFrames();
-  if ( this->GetInputTrackedFrameListSampled(this->LastAlreadyRecordedFrameTimestamp, this->NextFrameToBeRecordedTimestamp, this->RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS )
+  if ( this->GetInputTrackedFrameListSampled( this->LastAlreadyRecordedFrameTimestamp, this->NextFrameToBeRecordedTimestamp, this->RecordedFrames, requestedFramePeriodSec, maxProcessingTimeSec ) != PLUS_SUCCESS )
   {
-    LOG_ERROR("Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->NextFrameToBeRecordedTimestamp ); 
-  }  
+    LOG_ERROR( "Error while getting tracked frame list from data collector during capturing. Last recorded timestamp: " << std::fixed << this->NextFrameToBeRecordedTimestamp );
+  }
   int nbFramesAfter = this->RecordedFrames->GetNumberOfTrackedFrames();
 
   // Compute the average frame rate from the ratio of recently acquired frames
   int frame1Index = this->RecordedFrames->GetNumberOfTrackedFrames() - 1; // index of the latest frame
   int frame2Index = frame1Index - this->RequestedFrameRate * 5.0 - 1; // index of an earlier acquired frame (go back by approximately 5 seconds + one frame)
-  if (frame2Index < this->FirstFrameIndexInThisSegment)
+  if ( frame2Index < this->FirstFrameIndexInThisSegment )
   {
     // make sure we stay in the current recording segment
     frame2Index = this->FirstFrameIndexInThisSegment;
   }
-  if (frame1Index > frame2Index)
-  {   
-    PlusTrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame(frame1Index);
-    PlusTrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame(frame2Index);
-    if (frame1 != NULL && frame2 != NULL)
+  if ( frame1Index > frame2Index )
+  {
+    PlusTrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame( frame1Index );
+    PlusTrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame( frame2Index );
+    if ( frame1 != NULL && frame2 != NULL )
     {
       double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
-      if (frameTimeDiff > 0)
+      if ( frameTimeDiff > 0 )
       {
-        this->ActualFrameRate = (frame1Index - frame2Index) / frameTimeDiff;
+        this->ActualFrameRate = ( frame1Index - frame2Index ) / frameTimeDiff;
       }
       else
       {
         this->ActualFrameRate = 0;
       }
-    }    
+    }
   }
 
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Unable to write " << nbFramesAfter - nbFramesBefore << " frames.");
+    LOG_ERROR( this->GetDeviceId() << ": Unable to write " << nbFramesAfter - nbFramesBefore << " frames." );
     return PLUS_FAIL;
   }
 
   this->TotalFramesRecorded += nbFramesAfter - nbFramesBefore;
 
-  if( this->TotalFramesRecorded == 0)
+  if( this->TotalFramesRecorded == 0 )
   {
     // We haven't received any data so far
-    LOG_DYNAMIC("No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel);
+    LOG_DYNAMIC( "No input data available to capture thread. Waiting until input data arrives.", this->GracePeriodLogLevel );
   }
-  
+
   // Check whether the recording needed more time than the sampling interval
   double recordingTimeSec = vtkPlusAccurateTimer::GetSystemTime() - startTimeSec;
   double currentSystemTime = vtkPlusAccurateTimer::GetSystemTime();
   double recordingLagSec =  currentSystemTime - this->NextFrameToBeRecordedTimestamp;
 
-  if (recordingTimeSec > samplingPeriodSec)
+  if ( recordingTimeSec > samplingPeriodSec )
   {
     // Log too long recording as warning only if the recording is falling behind
-    vtkPlusLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkPlusLogger::LOG_LEVEL_WARNING : vtkPlusLogger::LOG_LEVEL_DEBUG);
-    LOG_DYNAMIC("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec, recording lags by "<<recordingLagSec<<"sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.", logLevel);
+    vtkPlusLogger::LogLevelType logLevel = ( recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkPlusLogger::LOG_LEVEL_WARNING : vtkPlusLogger::LOG_LEVEL_DEBUG );
+    LOG_DYNAMIC( "Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec, recording lags by " << recordingLagSec << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.", logLevel );
   }
 
-  if (recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC)
+  if ( recordingLagSec > MAX_ALLOWED_RECORDING_LAG_SEC )
   {
     double acquisitionLagSec = recordingLagSec;
     double latestInputTimestamp = this->NextFrameToBeRecordedTimestamp;
-    if (GetLatestInputItemTimestamp(latestInputTimestamp)==PLUS_SUCCESS)
+    if ( GetLatestInputItemTimestamp( latestInputTimestamp ) == PLUS_SUCCESS )
     {
       acquisitionLagSec = currentSystemTime - latestInputTimestamp;
     }
-    if (acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC)
+    if ( acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC )
     {
       // Frames are available (because acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC) but recording is falling behind
       // (because acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC)
-      LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
+      LOG_ERROR( "Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up." );
     }
     this->NextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
   }
-  
+
   this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
-  
+
   return PLUS_SUCCESS;
 }
 
@@ -402,26 +405,26 @@ PlusStatus vtkPlusVirtualDiscCapture::NotifyConfigured()
 {
   if( !this->OutputChannels.empty() )
   {
-    LOG_WARNING("vtkPlusVirtualDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped.");
+    LOG_WARNING( "vtkPlusVirtualDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped." );
     this->OutputChannels.clear();
   }
 
   if( this->InputChannels.empty() )
   {
-    LOG_ERROR("No input channel sent to vtkPlusVirtualDiscCapture. Unable to save anything.");
+    LOG_ERROR( "No input channel sent to vtkPlusVirtualDiscCapture. Unable to save anything." );
     return PLUS_FAIL;
   }
-  vtkPlusChannel* inputChannel=this->InputChannels[0];
+  vtkPlusChannel* inputChannel = this->InputChannels[0];
 
   if( this->InputChannels.size() > 1 )
   {
-    LOG_WARNING("vtkPlusVirtualDiscCapture is expecting one input channel and there are " << this->InputChannels.size() << " channels. First output channel will be used, all other are ignored.");
+    LOG_WARNING( "vtkPlusVirtualDiscCapture is expecting one input channel and there are " << this->InputChannels.size() << " channels. First output channel will be used, all other are ignored." );
   }
 
   // GetTrackedFrame reads from the OutputChannels
   // For now, place the input stream as an output stream so its data is read
-  this->OutputChannels.push_back(inputChannel);
-  inputChannel->Register(this); // this device uses this channel, too, se we need to update the reference count to avoid double delete in the destructor
+  this->OutputChannels.push_back( inputChannel );
+  inputChannel->Register( this ); // this device uses this channel, too, se we need to update the reference count to avoid double delete in the destructor
 
   return PLUS_SUCCESS;
 }
@@ -447,11 +450,11 @@ void vtkPlusVirtualDiscCapture::InternalWriteOutputChannels( vtkXMLDataElement* 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVirtualDiscCapture::SetEnableFileCompression(bool aFileCompression)
+void vtkPlusVirtualDiscCapture::SetEnableFileCompression( bool aFileCompression )
 {
   if( this->Writer != NULL )
   {
-    this->Writer->SetUseCompression(aFileCompression);
+    this->Writer->SetUseCompression( aFileCompression );
   }
 
   this->EnableFileCompression = aFileCompression;
@@ -462,7 +465,7 @@ void vtkPlusVirtualDiscCapture::SetEnableCapturing( bool aValue )
 {
   this->EnableCapturing = aValue;
 
-  if(this->EnableCapturing)
+  if( this->EnableCapturing )
   {
     this->LastUpdateTime = 0.0;
     this->TimeWaited = 0.0;
@@ -477,9 +480,9 @@ void vtkPlusVirtualDiscCapture::SetEnableCapturing( bool aValue )
 PlusStatus vtkPlusVirtualDiscCapture::Reset()
 {
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock( this->WriterAccessMutex );
 
-    this->SetEnableCapturing(false);
+    this->SetEnableCapturing( false );
 
     if( this->IsHeaderPrepared )
     {
@@ -494,7 +497,7 @@ PlusStatus vtkPlusVirtualDiscCapture::Reset()
 
   if( this->OpenFile() != PLUS_SUCCESS )
   {
-    LOG_ERROR("Unable to reset device " << this->GetDeviceId() << ".");
+    LOG_ERROR( "Unable to reset device " << this->GetDeviceId() << "." );
     return PLUS_FAIL;
   }
 
@@ -514,32 +517,32 @@ PlusStatus vtkPlusVirtualDiscCapture::TakeSnapshot()
 {
   if( this->EnableCapturing )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Cannot take snapshot while the device is recording.");
+    LOG_ERROR( this->GetDeviceId() << ": Cannot take snapshot while the device is recording." );
     return PLUS_FAIL;
   }
 
   PlusTrackedFrame trackedFrame;
-  if( this->GetInputTrackedFrame(trackedFrame) != PLUS_SUCCESS )
+  if( this->GetInputTrackedFrame( trackedFrame ) != PLUS_SUCCESS )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!");
+    LOG_ERROR( this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!" );
     return PLUS_FAIL;
   }
 
   // Check if there are any valid transforms
   std::vector<PlusTransformName> transformNames;
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  trackedFrame.GetCustomFrameTransformNameList( transformNames );
   bool validFrame = false;
 
-  if (transformNames.size() == 0)
+  if ( transformNames.size() == 0 )
   {
     validFrame = true;
   }
   else
   {
-    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+    for ( std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it )
     {
       TrackedFrameFieldStatus status = FIELD_INVALID;
-      trackedFrame.GetCustomFrameTransformStatus(*it, status);
+      trackedFrame.GetCustomFrameTransformStatus( *it, status );
 
       if ( status == FIELD_OK )
       {
@@ -551,21 +554,21 @@ PlusStatus vtkPlusVirtualDiscCapture::TakeSnapshot()
 
   if ( !validFrame )
   {
-    LOG_WARNING(this->GetDeviceId() << ": Unable to record tracked frame: All the tool transforms are invalid!"); 
+    LOG_WARNING( this->GetDeviceId() << ": Unable to record tracked frame: All the tool transforms are invalid!" );
     return PLUS_FAIL;
   }
 
   // Add tracked frame to the list
   // Snapshots are triggered manually, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
-  if (this->RecordedFrames->AddTrackedFrame(&trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+  if ( this->RecordedFrames->AddTrackedFrame( &trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME ) != PLUS_SUCCESS )
   {
-    LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed");
+    LOG_WARNING( this->GetDeviceId() << ": Frame could not be added because validation failed" );
     return PLUS_FAIL;
   }
-  
+
   if( this->WriteFrames() != PLUS_SUCCESS )
   {
-    LOG_ERROR(this->GetDeviceId() << ": Failed to write snapshot frame");
+    LOG_ERROR( this->GetDeviceId() << ": Failed to write snapshot frame" );
     return PLUS_FAIL;
   }
 
@@ -575,13 +578,13 @@ PlusStatus vtkPlusVirtualDiscCapture::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::WriteFrames(bool force)
+PlusStatus vtkPlusVirtualDiscCapture::WriteFrames( bool force )
 {
   if( !this->IsHeaderPrepared && this->RecordedFrames->GetNumberOfTrackedFrames() != 0 )
   {
     if( this->Writer->PrepareHeader() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to prepare header");
+      LOG_ERROR( "Unable to prepare header" );
       this->StopRecording();
       return PLUS_FAIL;
     }
@@ -593,20 +596,20 @@ PlusStatus vtkPlusVirtualDiscCapture::WriteFrames(bool force)
     return PLUS_SUCCESS;
   }
 
-  this->SetIsData3D(this->RecordedFrames->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
+  this->SetIsData3D( this->RecordedFrames->GetTrackedFrame( 0 )->GetFrameSize()[2] > 1 );
 
-  if( force || !this->IsFrameBuffered() || 
-    ( this->IsFrameBuffered() && this->RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
+  if( force || !this->IsFrameBuffered() ||
+      ( this->IsFrameBuffered() && this->RecordedFrames->GetNumberOfTrackedFrames() > this->GetFrameBufferSize() ) )
   {
     if( this->Writer->AppendImagesToHeader() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to append image data to header.");
+      LOG_ERROR( "Unable to append image data to header." );
       this->StopRecording();
       return PLUS_FAIL;
     }
     if( this->Writer->WriteImages() != PLUS_SUCCESS )
     {
-      LOG_ERROR("Unable to append images. Stopping recording at timestamp: " << LastAlreadyRecordedFrameTimestamp );
+      LOG_ERROR( "Unable to append images. Stopping recording at timestamp: " << LastAlreadyRecordedFrameTimestamp );
       this->StopRecording();
       return PLUS_FAIL;
     }
@@ -620,7 +623,7 @@ PlusStatus vtkPlusVirtualDiscCapture::WriteFrames(bool force)
 //-----------------------------------------------------------------------------
 int vtkPlusVirtualDiscCapture::OutputChannelCount() const
 {
-  // Even though we fake one output channel for easy GetTrackedFrame ability, 
+  // Even though we fake one output channel for easy GetTrackedFrame ability,
   //  we shouldn't return actual output channel size
   return 0;
 }
@@ -630,32 +633,32 @@ PlusStatus vtkPlusVirtualDiscCapture::GetInputTrackedFrame( PlusTrackedFrame& aF
 {
   if( this->OutputChannels.empty() )
   {
-    LOG_ERROR("No output channels defined" );
+    LOG_ERROR( "No output channels defined" );
     return PLUS_FAIL;
   }
 
-  return this->OutputChannels[0]->GetTrackedFrame(aFrame);
+  return this->OutputChannels[0]->GetTrackedFrame( aFrame );
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::GetInputTrackedFrameListSampled( double &lastAlreadyRecordedFrameTimestamp, double &nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec )
+PlusStatus vtkPlusVirtualDiscCapture::GetInputTrackedFrameListSampled( double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec )
 {
   if( this->OutputChannels.empty() )
   {
-    LOG_ERROR("No output channels defined" );
+    LOG_ERROR( "No output channels defined" );
     return PLUS_FAIL;
   }
 
-  return this->OutputChannels[0]->GetTrackedFrameListSampled(lastAlreadyRecordedFrameTimestamp, nextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec);
+  return this->OutputChannels[0]->GetTrackedFrameListSampled( lastAlreadyRecordedFrameTimestamp, nextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec );
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualDiscCapture::GetLatestInputItemTimestamp(double &timestamp)
+PlusStatus vtkPlusVirtualDiscCapture::GetLatestInputItemTimestamp( double& timestamp )
 {
   if( this->OutputChannels.empty() )
   {
-    LOG_ERROR("No output channels defined" );
+    LOG_ERROR( "No output channels defined" );
     return PLUS_FAIL;
   }
-  return this->OutputChannels[0]->GetLatestTimestamp(timestamp);
+  return this->OutputChannels[0]->GetLatestTimestamp( timestamp );
 }

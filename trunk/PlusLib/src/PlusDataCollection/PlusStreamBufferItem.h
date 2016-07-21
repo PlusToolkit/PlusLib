@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __StreamBufferItem_h
 #define __StreamBufferItem_h
@@ -24,13 +24,13 @@ class vtkPlusDataSource;
 class vtkPlusVirtualMixer;
 
 #ifdef _WIN32
-  typedef unsigned __int64 BufferItemUidType;
+typedef unsigned __int64 BufferItemUidType;
 #else
-  typedef unsigned long long BufferItemUidType;
+typedef unsigned long long BufferItemUidType;
 #endif
 
 /*! Flags for tool statuses */
-enum ToolStatus 
+enum ToolStatus
 {
   TOOL_OK,            /*!< Tool OK */
   TOOL_MISSING,       /*!< Tool or tool port is not available */
@@ -44,7 +44,7 @@ enum ToolStatus
 };
 
 /*!
-  \class DataBufferItem 
+  \class DataBufferItem
   \brief Stores a single video frame OR a single transform with a timestamp. This object can be stored in a timestamped buffer.
   \ingroup PlusLibDataCollection
 */
@@ -56,55 +56,55 @@ public:
   StreamBufferItem();
   virtual ~StreamBufferItem();
 
-  StreamBufferItem(const StreamBufferItem& dataItem); 
-  StreamBufferItem& operator=(StreamBufferItem const& dataItem); 
+  StreamBufferItem( const StreamBufferItem& dataItem );
+  StreamBufferItem& operator=( StreamBufferItem const& dataItem );
 
   /*! Get timestamp for the current buffer item in global time (global = local + offset) */
-  double GetTimestamp( double localTimeOffsetSec) { return this->GetFilteredTimestamp(localTimeOffsetSec); }
-  
+  double GetTimestamp( double localTimeOffsetSec ) { return this->GetFilteredTimestamp( localTimeOffsetSec ); }
+
   /*! Get filtered timestamp in global time (global = local + offset) */
-  double GetFilteredTimestamp( double localTimeOffsetSec) { return this->FilteredTimeStamp + localTimeOffsetSec; }
-  
+  double GetFilteredTimestamp( double localTimeOffsetSec ) { return this->FilteredTimeStamp + localTimeOffsetSec; }
+
   /*! Set filtered timestamp */
-  void SetFilteredTimestamp( double filteredTimestamp) { this->FilteredTimeStamp = filteredTimestamp; }
+  void SetFilteredTimestamp( double filteredTimestamp ) { this->FilteredTimeStamp = filteredTimestamp; }
 
   /*! Get unfiltered timestamp in global time (global = local + offset) */
-  double GetUnfilteredTimestamp( double localTimeOffsetSec) { return this->UnfilteredTimeStamp + localTimeOffsetSec; }
-  
+  double GetUnfilteredTimestamp( double localTimeOffsetSec ) { return this->UnfilteredTimeStamp + localTimeOffsetSec; }
+
   /*! Set unfiltered timestamp */
-  void SetUnfilteredTimestamp( double unfilteredTimestamp) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
+  void SetUnfilteredTimestamp( double unfilteredTimestamp ) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
 
   /*!
     Set/get index assigned by the data acquisition system (usually a counter)
     If frames are skipped then the counter should be increased by the number of skipped frames, therefore
     the index difference between subsequent frames be more than 1.
   */
-  unsigned long GetIndex() { return this->Index; }; 
-  void SetIndex(unsigned long index) { this->Index = index; }; 
+  unsigned long GetIndex() { return this->Index; };
+  void SetIndex( unsigned long index ) { this->Index = index; };
 
   /*! Set/get unique identifier assigned by the storage buffer */
-  BufferItemUidType GetUid() { return this->Uid; }; 
-  void SetUid(BufferItemUidType uid) { this->Uid = uid; }; 
+  BufferItemUidType GetUid() { return this->Uid; };
+  void SetUid( BufferItemUidType uid ) { this->Uid = uid; };
 
   /*! Set custom frame field */
-  void SetCustomFrameField(std::string fieldName, std::string fieldValue);
+  void SetCustomFrameField( std::string fieldName, std::string fieldValue );
 
-  /*! Get custom frame field value */ 
-  const char* GetCustomFrameField(const char* fieldName)
+  /*! Get custom frame field value */
+  const char* GetCustomFrameField( const char* fieldName )
   {
-    if (fieldName == NULL )
+    if ( fieldName == NULL )
     {
-      LOG_ERROR("Unable to get custom frame field: field name is NULL!"); 
-      return NULL; 
+      LOG_ERROR( "Unable to get custom frame field: field name is NULL!" );
+      return NULL;
     }
 
-    FieldMapType::iterator fieldIterator; 
-    fieldIterator = this->CustomFrameFields.find(fieldName); 
+    FieldMapType::iterator fieldIterator;
+    fieldIterator = this->CustomFrameFields.find( fieldName );
     if ( fieldIterator != this->CustomFrameFields.end() )
     {
-      return fieldIterator->second.c_str(); 
+      return fieldIterator->second.c_str();
     }
-    return NULL; 
+    return NULL;
   }
   /*! Get custom frame field map */
   FieldMapType& GetCustomFrameFieldMap()
@@ -116,53 +116,52 @@ public:
   {
     if ( fieldName == NULL )
     {
-      LOG_DEBUG("Failed to delete custom frame field - field name is NULL!"); 
-      return PLUS_FAIL; 
+      LOG_DEBUG( "Failed to delete custom frame field - field name is NULL!" );
+      return PLUS_FAIL;
     }
 
-    FieldMapType::iterator field = this->CustomFrameFields.find(fieldName); 
+    FieldMapType::iterator field = this->CustomFrameFields.find( fieldName );
     if ( field != this->CustomFrameFields.end() )
     {
-      this->CustomFrameFields.erase(field); 
-      return PLUS_SUCCESS; 
+      this->CustomFrameFields.erase( field );
+      return PLUS_SUCCESS;
     }
-    LOG_DEBUG("Failed to delete custom frame field - could find field " << fieldName ); 
-    return PLUS_FAIL; 
+    LOG_DEBUG( "Failed to delete custom frame field - could find field " << fieldName );
+    return PLUS_FAIL;
   }
-  
+
   /*! Copy stream buffer item */
-  PlusStatus DeepCopy(StreamBufferItem* dataItem); 
-  
+  PlusStatus DeepCopy( StreamBufferItem* dataItem );
+
   PlusVideoFrame& GetFrame() { return this->Frame; };
 
   /*! Set tracker matrix */
-  PlusStatus SetMatrix(vtkMatrix4x4* matrix); 
+  PlusStatus SetMatrix( vtkMatrix4x4* matrix );
   /*! Get tracker matrix */
-  PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
+  PlusStatus GetMatrix( vtkMatrix4x4* outputMatrix );
 
   /*! Set tracker item status */
-  void SetStatus(ToolStatus status);
+  void SetStatus( ToolStatus status );
   /*! Get tracker item status */
   ToolStatus GetStatus() const;
 
-  void SetValidTransformData(bool aValid) { ValidTransformData = aValid; }
+  void SetValidTransformData( bool aValid ) { ValidTransformData = aValid; }
   bool HasValidTransformData() const { return ValidTransformData; }
   bool HasValidFieldData() const;
-  bool HasValidVideoData() const 
-  { 
+  bool HasValidVideoData() const
+  {
     return Frame.IsImageValid();
   }
 
 protected:
-
   double FilteredTimeStamp;
   double UnfilteredTimeStamp;
 
   /*! index assigned by the data acquisition system (usually a counter) */
-  unsigned long Index; 
+  unsigned long Index;
 
   /*! unique identifier assigned by the storage buffer, it is guaranteed to increase monotonously, by one for each frame that is added to the buffer*/
-  BufferItemUidType Uid; 
+  BufferItemUidType Uid;
 
   /*! Custom frame fields */
   FieldMapType CustomFrameFields;

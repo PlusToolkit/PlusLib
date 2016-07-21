@@ -72,8 +72,8 @@ vtkStandardNewMacro( vtkPlusBuffer );
 //----------------------------------------------------------------------------
 vtkPlusBuffer::vtkPlusBuffer()
   : PixelType( VTK_UNSIGNED_CHAR )
-  , ImageType( US_IMG_BRIGHTNESS )
   , NumberOfScalarComponents( 1 )
+  , ImageType( US_IMG_BRIGHTNESS )
   , ImageOrientation( US_IMG_ORIENT_MF )
   , StreamBuffer( vtkPlusTimestampedCircularBuffer::New() )
   , MaxAllowedTimeDifference( 0.5 )
