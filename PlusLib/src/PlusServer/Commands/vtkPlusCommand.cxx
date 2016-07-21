@@ -19,9 +19,10 @@ const char* vtkPlusCommand::DEVICE_NAME_REPLY = "ACK";
 vtkPlusCommand::vtkPlusCommand()
   : CommandProcessor(NULL)
   , ClientId(0)
-  , Id(0)
-  , Name(NULL)
   , DeviceName(NULL)
+  , Id(0)
+  , RespondWithCommandMessage(true)
+  , Name(NULL)
 {
 }
 

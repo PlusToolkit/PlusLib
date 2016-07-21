@@ -13,23 +13,23 @@ See License.txt for details.
 static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
 
 #ifdef _WIN32
-  #include <Winsock2.h>
+#include <Winsock2.h>
 #endif
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
-: MessageType(NULL)
-, ServerAddress(NULL)
-, ServerPort(-1)
-, NumberOfRetryAttempts(3) // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
-, DelayBetweenRetryAttemptsSec(0.100) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
-, IgtlMessageCrcCheckEnabled(0)
-, ClientSocket(igtl::ClientSocket::New())
-, ReconnectOnReceiveTimeout(true)
-, UseReceivedTimestamps(true)
+  : MessageType( NULL )
+  , ServerAddress( NULL )
+  , ServerPort( -1 )
+  , IgtlMessageCrcCheckEnabled( 0 )
+  , NumberOfRetryAttempts( 3 ) // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
+  , DelayBetweenRetryAttemptsSec( 0.100 ) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+  , ClientSocket( igtl::ClientSocket::New() )
+  , ReconnectOnReceiveTimeout( true )
+  , UseReceivedTimestamps( true )
 {
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 30;
 }
 
@@ -44,9 +44,9 @@ vtkPlusOpenIGTLinkDevice::~vtkPlusOpenIGTLinkDevice()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkDevice::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusOpenIGTLinkDevice::PrintSelf( ostream& os, vtkIndent indent )
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf( os, indent );
   if ( this->ServerAddress )
   {
     os << indent << "Server address: " << this->ServerAddress << "\n";
@@ -61,9 +61,9 @@ void vtkPlusOpenIGTLinkDevice::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 std::string vtkPlusOpenIGTLinkDevice::GetSdkVersion()
 {
-  std::ostringstream version; 
-  version << "OpenIGTLink v" << OPENIGTLINK_VERSION; 
-  return version.str(); 
+  std::ostringstream version;
+  version << "OpenIGTLink v" << OPENIGTLINK_VERSION;
+  return version.str();
 }
 
 //----------------------------------------------------------------------------
@@ -72,11 +72,11 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalConnect()
   LOG_TRACE( "vtkPlusOpenIGTLinkDevice::InternalConnect" );
 
   // Clear buffers on connect
-  this->ClearAllBuffers();   
+  this->ClearAllBuffers();
 
   if ( this->ClientSocket->GetConnected() )
   {
-    return PLUS_SUCCESS; 
+    return PLUS_SUCCESS;
   }
 
   return ClientSocketReconnect();
@@ -85,53 +85,53 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::InternalDisconnect()
 {
-  LOG_TRACE( "vtkPlusOpenIGTLinkDevice::Disconnect" ); 
+  LOG_TRACE( "vtkPlusOpenIGTLinkDevice::Disconnect" );
 
-  this->ClientSocket->CloseSocket(); 
+  this->ClientSocket->CloseSocket();
   return this->StopRecording();
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::Probe()
 {
-  LOG_TRACE( "vtkPlusOpenIGTLinkDevice::Probe" ); 
+  LOG_TRACE( "vtkPlusOpenIGTLinkDevice::Probe" );
 
-  PlusStatus status = PLUS_FAIL; 
+  PlusStatus status = PLUS_FAIL;
   if ( this->Connect() == PLUS_SUCCESS )
   {
-    status = PLUS_SUCCESS; 
-    this->Disconnect(); 
+    status = PLUS_SUCCESS;
+    this->Disconnect();
   }
-  
-  return status; 
-} 
+
+  return status;
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
-{ 
-  LOG_DEBUG("Attempt to connect to client socket in device "<<this->GetDeviceId());
-  
+{
+  LOG_DEBUG( "Attempt to connect to client socket in device " << this->GetDeviceId() );
+
   if ( this->ClientSocket->GetConnected() )
   {
-    this->ClientSocket->CloseSocket();  
+    this->ClientSocket->CloseSocket();
   }
 
   if ( this->ServerAddress == NULL )
   {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined" ); 
-    return PLUS_FAIL; 
+    LOG_ERROR( "Unable to connect OpenIGTLink server - server address is undefined" );
+    return PLUS_FAIL;
   }
 
   if ( this->ServerPort < 0 )
   {
-    LOG_ERROR("Unable to connect OpenIGTLink server - server port is invalid: " << this->ServerPort ); 
-    return PLUS_FAIL; 
+    LOG_ERROR( "Unable to connect OpenIGTLink server - server port is invalid: " << this->ServerPort );
+    return PLUS_FAIL;
   }
 
   int errorCode = 0; // 0 means success
-  RETRY_UNTIL_TRUE( 
-    (errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ))==0,
-    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+  RETRY_UNTIL_TRUE(
+    ( errorCode = this->ClientSocket->ConnectToServer( this->ServerAddress, this->ServerPort ) ) == 0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec );
 
   if ( errorCode != 0 )
   {
@@ -143,7 +143,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout(CLIENT_SOCKET_TIMEOUT_MSEC);
+  this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC );
 
   return SendRequestedMessageTypes();
 }
@@ -157,157 +157,157 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
     return PLUS_SUCCESS;
   }
   // Send client info request to the server
-  PlusIgtlClientInfo clientInfo; 
+  PlusIgtlClientInfo clientInfo;
   // Set message type
-  clientInfo.IgtlMessageTypes.push_back(this->MessageType); 
+  clientInfo.IgtlMessageTypes.push_back( this->MessageType );
 
-  // We need the following tool names from the server 
+  // We need the following tool names from the server
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
   {
-    PlusTransformName tName( it->second->GetSourceId() ); 
-    clientInfo.TransformNames.push_back( tName ); 
+    PlusTransformName tName( it->second->GetSourceId() );
+    clientInfo.TransformNames.push_back( tName );
   }
 
-  // Pack client info message 
-  igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New(); 
-  clientInfoMsg->SetClientInfo(clientInfo); 
-  clientInfoMsg->Pack(); 
+  // Pack client info message
+  igtl::PlusClientInfoMessage::Pointer clientInfoMsg = igtl::PlusClientInfoMessage::New();
+  clientInfoMsg->SetClientInfo( clientInfo );
+  clientInfoMsg->Pack();
 
-  // Send message to server 
+  // Send message to server
   int retValue = 0;
-  RETRY_UNTIL_TRUE( 
-    (retValue = this->ClientSocket->Send( clientInfoMsg->GetBufferPointer(), clientInfoMsg->GetBufferSize() ))!=0,
-    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+  RETRY_UNTIL_TRUE(
+    ( retValue = this->ClientSocket->Send( clientInfoMsg->GetBufferPointer(), clientInfoMsg->GetBufferSize() ) ) != 0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec );
 
   if ( retValue == 0 )
   {
-    LOG_ERROR("Failed to send PlusClientInfo message to server!"); 
-    return PLUS_FAIL; 
+    LOG_ERROR( "Failed to send PlusClientInfo message to server!" );
+    return PLUS_FAIL;
   }
-  
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkDevice::OnReceiveTimeout()
 {
-  if (this->GetReconnectOnReceiveTimeout())
+  if ( this->GetReconnectOnReceiveTimeout() )
   {
-    LOG_WARNING("No OpenIGTLink message has been received in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms. Attempt to reconnect.");
+    LOG_WARNING( "No OpenIGTLink message has been received in device " << this->GetDeviceId() << ": failed to receive OpenIGTLink transforms. Attempt to reconnect." );
     ClientSocketReconnect();
   }
   else
   {
-    LOG_WARNING("No OpenIGTLink message has been received in device "<<this->GetDeviceId());
+    LOG_WARNING( "No OpenIGTLink message has been received in device " << this->GetDeviceId() );
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer &headerMsg)
+void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling( igtl::MessageHeader::Pointer& headerMsg )
 {
-  PlusStatus socketStatus = ReceiveMessageHeader(headerMsg);
-  if (socketStatus == PLUS_FAIL || !this->ClientSocket->GetConnected())
+  PlusStatus socketStatus = ReceiveMessageHeader( headerMsg );
+  if ( socketStatus == PLUS_FAIL || !this->ClientSocket->GetConnected() )
   {
     // There is a socket error
-    if (this->GetReconnectOnReceiveTimeout())
+    if ( this->GetReconnectOnReceiveTimeout() )
     {
-      LOG_ERROR("Socket error in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms. Attempt to reconnect.");
+      LOG_ERROR( "Socket error in device " << this->GetDeviceId() << ": failed to receive OpenIGTLink transforms. Attempt to reconnect." );
       ClientSocketReconnect();
     }
     else
     {
-      LOG_ERROR("Socket error in device "<<this->GetDeviceId()<<": failed to receive OpenIGTLink transforms");
+      LOG_ERROR( "Socket error in device " << this->GetDeviceId() << ": failed to receive OpenIGTLink transforms" );
     }
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::Pointer &headerMsg)
+PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader( igtl::MessageHeader::Pointer& headerMsg )
 {
   {
     igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-    headerMsg = factory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
+    headerMsg = factory->CreateHeaderMessage( IGTL_HEADER_VERSION_1 );
   }
 
   int numOfBytesReceived = 0;
   RETRY_UNTIL_TRUE(
-    (numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetBufferPointer(), headerMsg->GetBufferSize() ))!=0,
-    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+    ( numOfBytesReceived = this->ClientSocket->Receive( headerMsg->GetBufferPointer(), headerMsg->GetBufferSize() ) ) != 0,
+    this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec );
 
-  if ( numOfBytesReceived > 0)
+  if ( numOfBytesReceived > 0 )
   {
     // Data is received
     if ( numOfBytesReceived != headerMsg->GetBufferSize() )
     {
       // Received data is not as we expected
-      LOG_ERROR("Couldn't receive data from OpenIGTLink device "<<this->GetDeviceId()<<": (unexpected header size)"); 
-      headerMsg=NULL;
-      return PLUS_FAIL; 
+      LOG_ERROR( "Couldn't receive data from OpenIGTLink device " << this->GetDeviceId() << ": (unexpected header size)" );
+      headerMsg = NULL;
+      return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
-   
+
   // No data has been received
   headerMsg = NULL; // this will indicate the caller that no data has been read
 
-  bool socketError = numOfBytesReceived<0; /* -1 == SOCKET_ERROR */
+  bool socketError = numOfBytesReceived < 0; /* -1 == SOCKET_ERROR */
 #ifdef _WIN32
   // On Windows try to get some more details about the socket error
-  if (socketError)
-  {     
-    int socketErrorCode=WSAGetLastError();
-    if (socketErrorCode==WSAETIMEDOUT)
+  if ( socketError )
+  {
+    int socketErrorCode = WSAGetLastError();
+    if ( socketErrorCode == WSAETIMEDOUT )
     {
       // timeout, it just means that no data was received, no need to reconnect
-      LOG_TRACE("No data coming from OpenIGTLink device "<<this->GetDeviceId()<<": (timeout)");
-      socketError=false;
+      LOG_TRACE( "No data coming from OpenIGTLink device " << this->GetDeviceId() << ": (timeout)" );
+      socketError = false;
     }
     else
     {
       LPTSTR errorMsgPtr = 0;
-      if(FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, socketErrorCode, 0, (LPTSTR)&errorMsgPtr, 0, NULL) != 0)
+      if( FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, socketErrorCode, 0, ( LPTSTR )&errorMsgPtr, 0, NULL ) != 0 )
       {
-        LOG_DEBUG("No data coming from OpenIGTLink device "<<this->GetDeviceId()<<": (socket error: "<<errorMsgPtr<<")");
+        LOG_DEBUG( "No data coming from OpenIGTLink device " << this->GetDeviceId() << ": (socket error: " << errorMsgPtr << ")" );
       }
       else
       {
-        LOG_DEBUG("No data coming from OpenIGTLink device "<<this->GetDeviceId()<<": (unknown socket error)");
+        LOG_DEBUG( "No data coming from OpenIGTLink device " << this->GetDeviceId() << ": (unknown socket error)" );
       }
     }
   }
   else
   {
-    LOG_DEBUG("No data coming from OpenIGTLink device "<<this->GetDeviceId());
+    LOG_DEBUG( "No data coming from OpenIGTLink device " << this->GetDeviceId() );
   }
 #else
-  LOG_DEBUG("No data coming from OpenIGTLink device "<<this->GetDeviceId());
+  LOG_DEBUG( "No data coming from OpenIGTLink device " << this->GetDeviceId() );
 #endif
 
   return socketError ? PLUS_FAIL : PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);  
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);  
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseReceivedTimestamps, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconnectOnReceiveTimeout, deviceConfig);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
+  XML_READ_STRING_ATTRIBUTE_REQUIRED( ServerAddress, deviceConfig );
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, ServerPort, deviceConfig );
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL( MessageType, deviceConfig );
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL( IgtlMessageCrcCheckEnabled, deviceConfig );
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL( UseReceivedTimestamps, deviceConfig );
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL( ReconnectOnReceiveTimeout, deviceConfig );
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkDevice::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusOpenIGTLinkDevice::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  deviceConfig->SetAttribute("ServerAddress", this->ServerAddress);
-  deviceConfig->SetIntAttribute("ServerPort", this->ServerPort);
-  deviceConfig->SetAttribute("MessageType", this->MessageType);
-  deviceConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled?"true":"false");
-  deviceConfig->SetAttribute("UseReceivedTimestamps", this->UseReceivedTimestamps?"true":"false");
-  deviceConfig->SetAttribute("ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout?"true":"false");
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( deviceConfig, rootConfigElement );
+  deviceConfig->SetAttribute( "ServerAddress", this->ServerAddress );
+  deviceConfig->SetIntAttribute( "ServerPort", this->ServerPort );
+  deviceConfig->SetAttribute( "MessageType", this->MessageType );
+  deviceConfig->SetAttribute( "IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled ? "true" : "false" );
+  deviceConfig->SetAttribute( "UseReceivedTimestamps", this->UseReceivedTimestamps ? "true" : "false" );
+  deviceConfig->SetAttribute( "ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout ? "true" : "false" );
   return PLUS_SUCCESS;
 }
