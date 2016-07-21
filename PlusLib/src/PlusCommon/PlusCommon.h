@@ -221,6 +221,7 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
+#if defined(_MSC_VER) && _MSC_VER < 1600
   // This method can be used for number to string conversion
   // until std::to_string is supported by more compilers.
   static std::string ToString( int number )
@@ -229,6 +230,7 @@ namespace PlusCommon
     ss << number;
     return ss.str();
   }
+#endif
 
   static const int NO_CLIP = -1;
   vtkPlusCommonExport bool IsClippingRequested( const int clipOrigin[3], const int clipSize[3] );

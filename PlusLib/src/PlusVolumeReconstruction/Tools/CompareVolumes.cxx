@@ -225,7 +225,6 @@ int main( int argc, char** argv )
   // check to make sure extents match
   int *extentGT=groundTruth->GetExtent();
   int *extentGTAlpha=groundTruthAlpha->GetExtent();
-  int *extentTest=testingImage->GetExtent();
   int *extentTestAlpha=testingAlpha->GetExtent();
   int *extentSlicesAlpha=slicesAlpha->GetExtent();
   bool match(true);

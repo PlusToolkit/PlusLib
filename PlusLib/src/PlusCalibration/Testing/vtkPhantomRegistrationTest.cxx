@@ -212,8 +212,6 @@ int main (int argc, char* argv[])
 // return the number of differences
 PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame)
 {
-  int numberOfFailures=0;
-
   if ( baselineFileName == NULL )
   {
     LOG_ERROR("Unable to read the baseline configuration file - filename is NULL"); 

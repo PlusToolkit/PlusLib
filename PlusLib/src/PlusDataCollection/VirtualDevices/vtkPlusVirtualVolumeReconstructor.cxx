@@ -21,9 +21,6 @@ See License.txt for details.
 vtkStandardNewMacro( vtkPlusVirtualVolumeReconstructor );
 
 static const int MAX_ALLOWED_RECONSTRUCTION_LAG_SEC = 3.0; // if the reconstruction lags more than this then it'll skip frames to catch up
-static const int DISABLE_FRAME_BUFFER = -1;
-
-static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_UPDATE = 30;
 
 //----------------------------------------------------------------------------
 vtkPlusVirtualVolumeReconstructor::vtkPlusVirtualVolumeReconstructor()

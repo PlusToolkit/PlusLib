@@ -911,7 +911,6 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile( const char* filename, bool useCom
 {
   LOG_TRACE( "vtkPlusBuffer::WriteToSequenceFile" );
 
-  const int numberOfFrames = this->GetNumberOfItems();
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   PlusStatus status = PLUS_SUCCESS;
@@ -1007,6 +1006,8 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime( double time, StreamBuff
       break;
     case ITEM_NOT_AVAILABLE_ANYMORE:
       LOCAL_LOG_DEBUG( "vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time << ". Item is not available anymore." );
+      break;
+    default:
       break;
     }
     return PLUS_FAIL;
@@ -1152,6 +1153,8 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromClosestTime( double time, Strea
       break;
     case ITEM_NOT_AVAILABLE_ANYMORE:
       LOCAL_LOG_WARNING( "vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time << ". Item is not available anymore." );
+      break;
+    default:
       break;
     }
     return status;

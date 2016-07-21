@@ -13,7 +13,6 @@ See License.txt for details.
 
 static const char GET_IMAGE_META_DATA[]="GET_IMGMETA";
 static const char GET_IMAGE[]="GET_IMAGE";
-static const char GetRasName[] = "Ras";
 
 static const char DeviceNameImageIdSeparator='-';
 
@@ -132,7 +131,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
     }
 
     std::string imageIdStr(this->GetImageId()); // SLD-001
-    unsigned dashFound = imageIdStr.find_last_of(DeviceNameImageIdSeparator);
+    size_t dashFound = imageIdStr.find_last_of(DeviceNameImageIdSeparator);
     if(dashFound == std::string::npos)
     {
       outErrorString = "ImageId has to contain a dash right after the deviceId.";

@@ -19,9 +19,6 @@ See License.txt for details.
 
 #define UNDEFINED_VALUE DBL_MAX
 
-static const int MAX_NUMBER_OF_FRAMES_ADDED_PER_EXECUTE=50;
-static const double SKIPPED_PERIOD_REPORTING_THRESHOLD_SEC=0.2; // log a warning if volume reconstruction cannot keep up with the acquisition and skips more than this time period of acquired frames
-
 static const char RECONSTRUCT_PRERECORDED_CMD[]="ReconstructVolume";
 static const char START_LIVE_RECONSTRUCTION_CMD[]="StartVolumeReconstruction";
 static const char SUSPEND_LIVE_RECONSTRUCTION_CMD[]="SuspendVolumeReconstruction";

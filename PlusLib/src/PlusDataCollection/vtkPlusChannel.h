@@ -143,6 +143,7 @@ public:
 
   virtual PlusStatus Clear();
 
+  virtual void ShallowCopy(vtkDataObject*);
   virtual void ShallowCopy(const vtkPlusChannel& aChannel);
 
   virtual PlusStatus GetLatestTimestamp(double& aTimestamp) const;

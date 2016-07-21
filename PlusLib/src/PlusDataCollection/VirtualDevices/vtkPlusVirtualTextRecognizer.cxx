@@ -26,8 +26,6 @@ vtkStandardNewMacro(vtkPlusVirtualTextRecognizer);
 
 namespace
 {
-static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
-static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const char* PARAMETER_LIST_TAG_NAME = "TextFields";
 static const char* PARAMETER_TAG_NAME = "Field";
 static const char* PARAMETER_NAME_ATTRIBUTE = "Name";
@@ -100,8 +98,6 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
 
   for( ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it )
   {
-    vtkPlusChannel* channel = it->first;
-
     for( FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt )
     {
       TextFieldParameter* parameter = *fieldIt;
@@ -162,9 +158,7 @@ void vtkPlusVirtualTextRecognizer::vtkImageDataToPix(PlusTrackedFrame& frame, Te
   int extents[6];
   parameter->ScreenRegion->GetExtent(extents);
   int ySize = extents[3]-extents[2];
-  int xSize = extents[1]-extents[0];
 
-  static int someVal = 0;
   int coords[3] = {0,0,0};
   for(int y = 0; y < ySize; y++)
   {

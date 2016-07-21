@@ -34,7 +34,6 @@ static const int INPUT_TEST_VOLUME = 2;
 static const int INPUT_TEST_VOLUME_ALPHA = 3;
 static const int INPUT_SLICES_VOLUME_ALPHA = 4;
 
-static const int OUTPUT_TRUE_DIFF_VOLUME = 0;
 static const int OUTPUT_ABS_DIFF_VOLUME = 1;
 
 vtkStandardNewMacro( vtkPlusCompareVolumes );
@@ -223,17 +222,17 @@ void vtkPlusCompareVolumesExecute( vtkPlusCompareVolumes* self,
           {
             countHoles++;
             double difference = ( double )gtPtr[inIndex] - testPtr[inIndex];
-            self->incAbsoluteHistogramWithHolesAtIndex( PlusMath::Round( abs( difference ) ) );
-            absoluteDifferencesInAllHoles.push_back( abs( difference ) );
+            self->incAbsoluteHistogramWithHolesAtIndex( PlusMath::Round( fabs( difference ) ) );
+            absoluteDifferencesInAllHoles.push_back( fabs( difference ) );
             if ( testAlphaPtr[inIndex] != 0 )
             {
               countFilledHoles++;
               trueDifferences.push_back( difference );
               self->incTrueHistogramAtIndex( PlusMath::Round( difference ) );
               outPtrTru[outIndex] = difference; // cast to double to minimize precision loss
-              absoluteDifferences.push_back( abs( difference ) );
-              self->incAbsoluteHistogramAtIndex( PlusMath::Round( abs( difference ) ) );
-              outPtrAbs[outIndex] = abs( difference );
+              absoluteDifferences.push_back( fabs( difference ) );
+              self->incAbsoluteHistogramAtIndex( PlusMath::Round( fabs( difference ) ) );
+              outPtrAbs[outIndex] = fabs( difference );
             }
           }
           else // not a hole, but these may still be different
@@ -424,8 +423,6 @@ void vtkPlusCompareVolumesExecute( vtkPlusCompareVolumes* self,
   self->SetAbsoluteMeanWithHoles( absoluteMeanWithHoles );
 
   self->SetRMS( rms );
-
-  int dummy = 0;
 }
 
 void vtkPlusCompareVolumes::ThreadedRequestData (

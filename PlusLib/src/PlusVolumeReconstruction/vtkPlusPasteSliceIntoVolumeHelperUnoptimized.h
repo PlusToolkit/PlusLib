@@ -376,7 +376,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
         outPoint[3] = 1;
 
         // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-        int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
+        interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
       }
     }
   }
