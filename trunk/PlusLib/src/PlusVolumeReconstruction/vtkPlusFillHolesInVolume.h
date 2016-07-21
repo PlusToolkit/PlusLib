@@ -84,10 +84,7 @@ public:
     kernel = NULL;
     sticksList = NULL;
   }
-  ~FillHolesInVolumeElement() {switch(type) {case HFTYPE_GAUSSIAN: delete[] kernel; break;
-                                             case HFTYPE_GAUSSIAN_ACCUMULATION: delete[] kernel; break;
-                                             case HFTYPE_DISTANCE_WEIGHT_INVERSE: delete[] kernel; break;
-                                             case HFTYPE_STICK: delete[] sticksList; break;}}
+  ~FillHolesInVolumeElement();
 
   HFElementTypeIdentifier type;
 
