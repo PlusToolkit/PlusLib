@@ -615,7 +615,15 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize( unsigned int x, unsigned int y,
 
   unsigned int outputFrameSizeInPx[3] = {x, y, z};
 
-  int extents[6] = {0, x - 1, 0, y - 1, 0, z - 1};
+  if (x > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
+    y > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
+    z > static_cast<unsigned int>(std::numeric_limits<int>::max()))
+  {
+    LOG_ERROR("Unable to determine clipping details in vtkPlusDataSource::SetInputFrameSize. Cannot continue.");
+    return PLUS_FAIL;
+  }
+
+  int extents[6] = {0, static_cast<int>(x) - 1, 0, static_cast<int>(y) - 1, 0, static_cast<int>(z) - 1};
   if( PlusCommon::IsClippingRequested( this->ClipRectangleOrigin, this->ClipRectangleSize ) )
   {
     if ( PlusCommon::IsClippingWithinExtents( this->ClipRectangleOrigin, this->ClipRectangleSize, extents ) )

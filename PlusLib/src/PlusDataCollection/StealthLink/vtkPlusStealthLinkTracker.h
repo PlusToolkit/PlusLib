@@ -15,8 +15,8 @@
 class vtkPlusTransformRepository;
 
 /*!
-\class StealthServer 
-\brief Interface for the Medtronic StealthLink Server 
+\class StealthServer
+\brief Interface for the Medtronic StealthLink Server
 
 \ingroup PlusLibDataCollection
 
@@ -26,17 +26,17 @@ class vtkPlusDataCollectionExport vtkPlusStealthLinkTracker : public vtkPlusDevi
 {
 public:
 
-  static vtkPlusStealthLinkTracker *New();
-  vtkTypeMacro(vtkPlusStealthLinkTracker,vtkPlusDevice);
+  static vtkPlusStealthLinkTracker* New();
+  vtkTypeMacro( vtkPlusStealthLinkTracker, vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Hardware device SDK version. */
-  virtual PlusStatus GetSdkVersion(std::string&); 
+  virtual PlusStatus GetSdkVersion( std::string& );
 
   virtual bool IsTracker() const { return true; }
 
   /*! Return a list of items that desrcibe what image volumes stealthlink device can provide */
-  virtual PlusStatus GetImageMetaData(PlusCommon::ImageMetaDataList &imageMetaData);
+  virtual PlusStatus GetImageMetaData( PlusCommon::ImageMetaDataList& imageMetaData );
 
   /*!
     Return the volume  with the given id that this device can provide.
@@ -45,25 +45,25 @@ public:
     current image then the method will return with error).
     If imageReferenceFrameName is not "Ras" then TransformRepository must be updated using UpdateTransformRepository() right before this call.
   */
-  virtual PlusStatus GetImage(const std::string& requestedImageId,std::string& assignedImageId, const std::string& imageReferenceFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform);
+  virtual PlusStatus GetImage( const std::string& requestedImageId, std::string& assignedImageId, const std::string& imageReferenceFrameName, vtkImageData* imageData, vtkMatrix4x4* ijkToReferenceTransform );
 
   /*! Get the dicom directory where the dicom images will be saved when acquired from the server */
   std::string GetDicomImagesOutputDirectory();
 
   /*! Deep copies the transform repository from the server into the TransformRepository attribute */
-  PlusStatus UpdateTransformRepository(vtkPlusTransformRepository* sharedTransformRepository);
-  
+  PlusStatus UpdateTransformRepository( vtkPlusTransformRepository* sharedTransformRepository );
+
   /*! Set the dicom directory where the dicom images will be saved when acquired from the server */
-  void SetDicomImagesOutputDirectory(std::string dicomImagesOutputDirectory);
+  void SetDicomImagesOutputDirectory( std::string dicomImagesOutputDirectory );
 
   /*! Set the boolean for keeping the received dicom images */
-  void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
+  void SetKeepReceivedDicomFiles( bool keepReceivedDicomFiles );
 
   /*! Set StealthStation IP address */
-  void SetServerAddress(const char* serverAddress);
+  void SetServerAddress( const char* serverAddress );
 
   /*! Set StealthStation IP port number */
-  void SetServerPort(const char* serverPort);
+  void SetServerPort( const char* serverPort );
 
 protected:
   /*! Constructor */
@@ -84,42 +84,42 @@ protected:
   /*! Read StealthLinkDevice configuration and update the tracker settings accordingly */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
   /*! Write current StealthLinkDevice configuration settings to XML */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* rootConfigElement );
 
   /*! The internal function that does the grab */
-  PlusStatus InternalUpdate(); 
+  PlusStatus InternalUpdate();
 
   /*! Get image from the StealthLink into the specified folder. The Dicom images will be saved in the directory spesified by "ExamImageDirectory". */
-  PlusStatus AcquireDicomImage(std::string dicomImagesOutputDirectory, std::string& examImageDirectory);
+  PlusStatus AcquireDicomImage( std::string dicomImagesOutputDirectory, std::string& examImageDirectory );
 
   /*! For internal storage of additional variables (to minimize the number of included headers) */
   class vtkInternal;
-  vtkInternal* Internal; 
+  vtkInternal* Internal;
 
   class vtkInternalShared;
-  vtkInternalShared* InternalShared; 
+  vtkInternalShared* InternalShared;
 
   class vtkInternalUpdatePrivate;
-  vtkInternalUpdatePrivate* InternalUpdatePrivate; 
+  vtkInternalUpdatePrivate* InternalUpdatePrivate;
 
   /*! Is Tracker Connected? */
-  PlusStatus IsLocalizerConnected(bool&);
+  PlusStatus IsLocalizerConnected( bool& );
 
   /*! Make sure the PortNames defined in the config file are also defined in the server */
-  PlusStatus AreInstrumentPortNamesValid(bool& valid);
+  PlusStatus AreInstrumentPortNamesValid( bool& valid );
 
   /*! Remove the characters that cannot be used in folder name */
-  static void RemoveForbiddenCharacters(std::string& str);
- 
+  static void RemoveForbiddenCharacters( std::string& str );
+
   /*! Remove the folder after having read the dicom files */
-  PlusStatus DeleteDicomImageOutputDirectory(std::string examImageDirectory);
+  PlusStatus DeleteDicomImageOutputDirectory( std::string examImageDirectory );
 
   /*! returns the ImageMetaDatasetsCount as std::string */
   std::string GetImageMetaDatasetsCountAsString();
 
 private:
-  vtkPlusStealthLinkTracker(const vtkPlusStealthLinkTracker&);
-  void operator=(const vtkPlusStealthLinkTracker&);  
+  vtkPlusStealthLinkTracker( const vtkPlusStealthLinkTracker& );
+  void operator=( const vtkPlusStealthLinkTracker& );
 };
 
 #endif
