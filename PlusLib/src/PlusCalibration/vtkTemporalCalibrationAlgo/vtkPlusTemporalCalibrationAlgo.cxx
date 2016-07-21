@@ -62,16 +62,21 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-vtkPlusTemporalCalibrationAlgo::vtkPlusTemporalCalibrationAlgo() :
-  SamplingResolutionSec( DEFAULT_SAMPLING_RESOLUTION_SEC ),
-  MaxMovingLagSec( DEFAULT_MAX_MOVING_LAG_SEC ),
-  NeverUpdated( true ),
-  SaveIntermediateImages( false ),
-  MovingLagSec( 0.0 ),
-  CalibrationError( 0.0 ),
-  BestCorrelationNormalizationFactor( 0.0 ),
-  FixedSignalValuesNormalizationFactor( 0.0 ),
-  BestCorrelationLagIndex( -1 )
+vtkPlusTemporalCalibrationAlgo::vtkPlusTemporalCalibrationAlgo()
+  : TrackerLagUpToDate(false)
+,  NeverUpdated(true)
+, SaveIntermediateImages(false)
+, IntermediateFilesOutputDirectory(vtkPlusConfig::GetInstance()->GetOutputDirectory())
+, SamplingResolutionSec(DEFAULT_SAMPLING_RESOLUTION_SEC)
+, BestCorrelationValue(0.0)
+, BestCorrelationLagIndex(-1)
+, BestCorrelationTimeOffset(0.0)
+, MovingLagSec(0.0)
+, CalibrationError(0.0)
+, MaxCalibrationError(0.0)
+, MaxMovingLagSec(DEFAULT_MAX_MOVING_LAG_SEC)
+, BestCorrelationNormalizationFactor(0.0)
+, FixedSignalValuesNormalizationFactor(0.0)
 {
   this->FixedSignal.frameList = NULL;
   this->MovingSignal.frameList = NULL;
@@ -416,7 +421,7 @@ PlusStatus vtkPlusTemporalCalibrationAlgo::NormalizeMetricValues( std::deque<dou
   }
 
   int stopIndex = timestamps.size() - 1;
-  for( unsigned int i = timestamps.size() - 1; i >= 0; --i )
+  for( unsigned int i = timestamps.size() - 1; i != 0; --i )
   {
     double t = timestamps.at( i );
     if ( t <= stopTime )
