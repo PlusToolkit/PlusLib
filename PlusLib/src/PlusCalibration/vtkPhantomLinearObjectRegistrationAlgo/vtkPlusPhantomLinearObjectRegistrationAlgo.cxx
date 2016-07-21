@@ -332,8 +332,6 @@ PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::ComputeError()
 {
   LOG_TRACE("vtkPlusPhantomLinearObjectRegistrationAlgo::ComputeError");
 
-  double sumDistance = 0.0;
-
   //TODO: Matthew's Algorithm for error calculation-------------------------------------------------------------------------------------------------
 
   /*for (int i=0; i<this->RecordedLandmarks->GetNumberOfPoints(); ++i)

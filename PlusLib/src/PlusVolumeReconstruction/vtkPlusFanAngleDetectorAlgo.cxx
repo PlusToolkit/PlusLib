@@ -60,8 +60,6 @@ void vtkPlusFanAngleDetectorAlgo::PrintSelf( ostream& os, vtkIndent indent )
 //----------------------------------------------------------------------------
 void vtkPlusFanAngleDetectorAlgo::Update()
 {
-  double presetAngleLeft = this->MaxFanAnglesDeg[0];
-  double presetAngleRight = this->MaxFanAnglesDeg[1];
   int xOrigin = this->FanOrigin[0];
   int yOrigin = this->FanOrigin[1];
   vtkImageData* frameImage = this->Image;
@@ -103,7 +101,6 @@ void vtkPlusFanAngleDetectorAlgo::Update()
   double numberOfAveragedSamples  = this->FilterRadiusPixel * 2; // moving average filter size
   for ( std::vector<BandInfo>::iterator bandIt = bands.begin(); bandIt != bands.end(); ++bandIt )
   {
-    int j = numberOfAveragedSamples;
     int nTheta = bandIt->TestThetaRad.size();
     for ( int j = numberOfAveragedSamples; j < nTheta; j++ )
     {

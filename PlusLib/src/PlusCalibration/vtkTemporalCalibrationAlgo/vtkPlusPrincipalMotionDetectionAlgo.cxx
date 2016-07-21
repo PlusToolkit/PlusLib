@@ -145,12 +145,6 @@ PlusStatus vtkPlusPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
   meanTrackerPosition[1] = ( trackerPositionSum[1] / static_cast<double>( numberOfValidFrames ) );
   meanTrackerPosition[2] = ( trackerPositionSum[2] / static_cast<double>( numberOfValidFrames ) );
 
-  // Project the mean tracker position on the principal axis of motion
-  double meanTrackerPositionProjection = meanTrackerPosition[0] * principalAxisOfMotion[0]
-                                         + meanTrackerPosition[1] * principalAxisOfMotion[1]
-                                         + meanTrackerPosition[2] * principalAxisOfMotion[2];
-
-
   //  For each tracker position in the recorded tracker sequence, get its translation from reference.
   for ( unsigned int frame = 0; frame < m_SignalTimestamps.size(); ++frame )
   {
