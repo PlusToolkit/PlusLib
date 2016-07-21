@@ -340,7 +340,6 @@ PlusStatus vtkPlusTemporalCalibrationAlgo::NormalizeMetricValues( std::deque<dou
 
   // Calculate the signal mean
   double mu = 0;
-  double numOfSamples = 0;
   for( int i = startIndex; i <= stopIndex; ++i )
   {
     mu += signal.at( i );

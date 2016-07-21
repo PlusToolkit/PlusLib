@@ -201,8 +201,6 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
       continue;
     }
 
-    typedef float floatPixelType; //  The type of pixel used for the Hough accumulator
-
     // Get current image
     if ( trackedFrame->GetImageData()->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR )
     {
