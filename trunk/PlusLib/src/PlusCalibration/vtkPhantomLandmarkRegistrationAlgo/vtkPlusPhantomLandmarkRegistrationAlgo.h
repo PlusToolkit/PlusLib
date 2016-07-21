@@ -36,7 +36,7 @@ public:
   Performs landmark registration to determine transformation from phantom reference to phantom
   \param aTransformRepository Transform repository to save the results into
   */
-  PlusStatus Register(vtkPlusTransformRepository* aTransformRepository = NULL);
+  PlusStatus LandmarkRegister(vtkPlusTransformRepository* aTransformRepository = NULL);
 
   /*!
   Read phantom definition (landmarks)

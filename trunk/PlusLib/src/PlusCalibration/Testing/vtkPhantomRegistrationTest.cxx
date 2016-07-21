@@ -175,7 +175,7 @@ int main (int argc, char* argv[])
     vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks); 
   }
 
-  if (phantomRegistration->Register(transformRepository) != PLUS_SUCCESS)
+  if (phantomRegistration->LandmarkRegister(transformRepository) != PLUS_SUCCESS)
   {
     LOG_ERROR("Phantom registration failed!");
     exit(EXIT_FAILURE);
