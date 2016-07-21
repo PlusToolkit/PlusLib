@@ -58,7 +58,7 @@ vtkPlusPhantomLandmarkRegistrationAlgo::~vtkPlusPhantomLandmarkRegistrationAlgo(
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::Register( vtkPlusTransformRepository* aTransformRepository/* = NULL*/ )
+PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::LandmarkRegister( vtkPlusTransformRepository* aTransformRepository/* = NULL*/ )
 {
   LOG_TRACE( "vtkPlusPhantomLandmarkRegistrationAlgo::Register" );
 

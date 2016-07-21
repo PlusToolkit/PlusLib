@@ -57,7 +57,7 @@ vtkPlusPhantomLinearObjectRegistrationAlgo::~vtkPlusPhantomLinearObjectRegistrat
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::Register(vtkPlusTransformRepository* aTransformRepository/* = NULL*/)
+PlusStatus vtkPlusPhantomLinearObjectRegistrationAlgo::LinearObjectRegister(vtkPlusTransformRepository* aTransformRepository/* = NULL*/)
 {
   LOG_TRACE("vtkPlusPhantomLinearObjectRegistrationAlgo::Register"); 
 

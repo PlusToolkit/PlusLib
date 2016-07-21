@@ -454,7 +454,7 @@ int main ( int argc, char* argv[] )
 
       LOG_INFO( landmarkDetection->GetDetectedLandmarksString() );
 
-      if ( phantomRegistration->Register( transformRepository ) != PLUS_SUCCESS )
+      if ( phantomRegistration->LandmarkRegister( transformRepository ) != PLUS_SUCCESS )
       {
         LOG_ERROR( "Phantom registration failed!" );
         exit( EXIT_FAILURE );
