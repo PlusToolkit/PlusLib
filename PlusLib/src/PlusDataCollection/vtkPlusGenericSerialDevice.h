@@ -14,7 +14,7 @@ See License.txt for details.
 class SerialLine;
 
 /*!
-\class vtkPlusGenericSerialDevice 
+\class vtkPlusGenericSerialDevice
 \brief Generic interface for communicating with a serial device
 
 This class communicates with any serial (RS-232) device. It allows sending and receiving data
@@ -26,8 +26,8 @@ class vtkPlusDataCollectionExport vtkPlusGenericSerialDevice : public vtkPlusDev
 {
 public:
 
-  static vtkPlusGenericSerialDevice *New();
-  vtkTypeMacro( vtkPlusGenericSerialDevice,vtkPlusDevice );
+  static vtkPlusGenericSerialDevice* New();
+  vtkTypeMacro( vtkPlusGenericSerialDevice, vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Connect to device */
@@ -36,8 +36,8 @@ public:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-  /*! 
-  Probe to see if the tracking system is present on the specified serial port.  
+  /*!
+  Probe to see if the tracking system is present on the specified serial port.
   */
   PlusStatus Probe();
 
@@ -49,39 +49,38 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* config );
 
   virtual bool IsTracker() const { return false; }
 
-  vtkSetMacro(SerialPort, unsigned long);
-  vtkSetMacro(BaudRate, unsigned long);
-  vtkSetMacro(MaximumReplyDelaySec, double);
-  vtkSetMacro(MaximumReplyDurationSec, double);
+  vtkSetMacro( SerialPort, unsigned long );
+  vtkSetMacro( BaudRate, unsigned long );
+  vtkSetMacro( MaximumReplyDelaySec, double );
+  vtkSetMacro( MaximumReplyDurationSec, double );
 
   /*! Line ending in hex encoded form, separated by spaces (e.g., "13 10") */
-  void SetLineEnding(const char* lineEndingHex);
-  vtkGetMacro(LineEnding, std::string);
+  void SetLineEnding( const char* lineEndingHex );
+  vtkGetMacro( LineEnding, std::string );
 
   /*!
     Send text to the serial device. If a non-NULL pointer is passed as textReceived
     then the device waits for a response and returns it in textReceived.
   */
-  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived=NULL);
+  virtual PlusStatus SendText( const std::string& textToSend, std::string* textReceived = NULL );
 
   /*!
     Receive a response from the serial device.
   */
-  virtual PlusStatus ReceiveResponse(std::string& textReceived);
+  virtual PlusStatus ReceiveResponse( std::string& textReceived );
 
 protected:
-
   vtkPlusGenericSerialDevice();
   ~vtkPlusGenericSerialDevice();
 
-  /*! 
+  /*!
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
@@ -93,21 +92,16 @@ protected:
   /*! Wait until the serial device makes some data available for reading but maximum up to ReplyTImeoutSec */
   virtual bool WaitForResponse();
 
-  /*! Serial (RS232) line connection */
-  SerialLine* Serial;
-
-  /*! Mutex instance for sharing the serial line between update thread and command execution thread */ 
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
-
-private:  // Functions.
-
+private:
   vtkPlusGenericSerialDevice( const vtkPlusGenericSerialDevice& );
   void operator=( const vtkPlusGenericSerialDevice& );
 
-private:  // Variables.
+protected:
+  /*! Serial (RS232) line connection */
+  SerialLine* Serial;
 
   /*! Used COM port number for serial communication (ComPort: 1 => Port name: "COM1")*/
-  unsigned long SerialPort; 
+  unsigned long SerialPort;
 
   /*! Baud rate for serial communication. */
   unsigned long BaudRate;
@@ -124,6 +118,8 @@ private:  // Variables.
   /*! Maximum time to wait for the device to finish replying */
   double MaximumReplyDurationSec;
 
+  /*! Mutex instance for sharing the serial line between update thread and command execution thread */
+  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
 };
 
 #endif
