@@ -8,19 +8,19 @@ SET (PlusCalibration_SRCS
   PatternLocAlgo/PlusFidPatternRecognitionCommon.cxx
   PatternLocAlgo/PlusFidPatternRecognition.cxx
   PatternLocAlgo/PlusPatternLocResultFile.cxx
-  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.cxx 
+  vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationAlgo.cxx
   vtkProbeCalibrationAlgo/vtkPlusProbeCalibrationOptimizerAlgo.cxx
   vtkPivotCalibrationAlgo/vtkPlusPivotCalibrationAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusPhantomLandmarkRegistrationAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.cxx
   vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.cxx
   vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.cxx
-  vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.cxx 
+  vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.cxx
   vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.cxx
   vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.cxx
   vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.cxx
-  vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.cxx 
-  vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.cxx 
+  vtkTemporalCalibrationAlgo/vtkPlusPrincipalMotionDetectionAlgo.cxx
+  vtkLineSegmentationAlgo/vtkPlusLineSegmentationAlgo.cxx
   vtkPhantomLinearObjectRegistrationAlgo/Line.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObject.cxx
   vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.cxx
@@ -33,8 +33,8 @@ SET (PlusCalibration_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   )
 
-SET (PlusCalibration_HDRS)  
-IF (WIN32)  
+SET (PlusCalibration_HDRS)
+IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET (PlusCalibration_HDRS
     PatternLocAlgo/PlusFidSegmentation.h
     PatternLocAlgo/PlusFidLineFinder.h
@@ -49,7 +49,7 @@ IF (WIN32)
     vtkPhantomLandmarkRegistrationAlgo/vtkPlusLandmarkDetectionAlgo.h
     vtkPhantomLandmarkRegistrationAlgo/vtkPlusReadTrackedSignals.h
     vtkPhantomLinearObjectRegistrationAlgo/vtkPlusPhantomLinearObjectRegistrationAlgo.h
-    vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h 
+    vtkSpacingCalibAlgo/vtkPlusSpacingCalibAlgo.h
     vtkCenterOfRotationCalibAlgo/vtkPlusCenterOfRotationCalibAlgo.h
     vtkBrachyStepperPhantomRegistrationAlgo/vtkPlusBrachyStepperPhantomRegistrationAlgo.h
     vtkTemporalCalibrationAlgo/vtkPlusTemporalCalibrationAlgo.h
@@ -66,7 +66,7 @@ IF (WIN32)
     vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     vtkPhantomLinearObjectRegistrationAlgo/References.h
     )
-ENDIF (WIN32)
+ENDIF ()
 
 SET (PlusCalibration_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -85,7 +85,7 @@ SET (PlusCalibration_INCLUDE_DIRS
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusCalibration_LIBS 
+SET (PlusCalibration_LIBS
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   vtkPlusCommon
@@ -97,7 +97,7 @@ target_include_directories(vtkPlusCalibration PUBLIC ${PlusCalibration_INCLUDE_D
 TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
 
 # --------------------------------------------------------------------------
-# Set external MS project 
+# Set external MS project
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCalibration CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
@@ -106,7 +106,7 @@ SET(vcProj_vtkPlusCalibration vtkPlusCalibration;"${PlusLib_BINARY_DIR}/src/Plus
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE( ConvertFcsvToXml
-    Tools/ConvertFcsvToXml.cxx 
+    Tools/ConvertFcsvToXml.cxx
     )
 
   # Link the executable to the algo library.
@@ -119,7 +119,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE( ConvertXmlToFcsv
-    Tools/ConvertXmlToFcsv.cxx 
+    Tools/ConvertXmlToFcsv.cxx
     )
 
   # Link the executable to the algo library.

@@ -25,9 +25,8 @@ public:
   static const int DIMENSION = 3;
 
 public:
-
   LinearObject();
-  ~LinearObject();
+  virtual ~LinearObject();
 
   double DistanceToVector( std::vector<double> vector );
 

@@ -344,7 +344,6 @@ int vtkPlusImplicitSplineForce::CalculateDistanceDerivativeBasis(double x, doubl
 //----------------------------------------------------------------------------
 double vtkPlusImplicitSplineForce::BasisFunction3(int k, double *knot, double u, int K)
 {
-  int n=3;
   double Nu = 0;
   double tmp1, tmp2, tmp3;
 
@@ -431,7 +430,6 @@ double vtkPlusImplicitSplineForce::BasisFunction3(int k, double *knot, double u,
 // Calculate first derivative of cubic B-Spline basis function:
 double vtkPlusImplicitSplineForce::BasisFunction3DerivativeD(int k, double *knot, double u, int K)
 {
-  int n=3;
   double dNu = 0;
   double tmp1, tmp2;
   double dtmp,dtmp1,dtmp2,dtmp3;

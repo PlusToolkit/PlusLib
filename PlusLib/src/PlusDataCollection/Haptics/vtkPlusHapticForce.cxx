@@ -56,9 +56,8 @@ void vtkPlusHapticForce::InsertForceModel(unsigned int position, vtkPlusForceFee
     vtkPlusForceFeedback * copy = force;
     this->forceModel.push_back(copy);
   }
-  else if (position < forceModel.size() && position >= 0)
+  else if ( position < forceModel.size() )
   {
-    vtkPlusForceFeedback * copy = force;
     this->forceModel.insert(forceModel.begin()+position, force);
   }
   this->NumberOfFrames=forceModel.size();

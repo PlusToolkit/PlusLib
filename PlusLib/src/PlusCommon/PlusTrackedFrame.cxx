@@ -843,7 +843,7 @@ bool TrackedFrameTransformFinder::operator()( PlusTrackedFrame* newFrame )
   double positionDifference = PlusMath::GetPositionDifference( baseTransformMatrix, newTransformMatrix );
   double angleDifference = PlusMath::GetOrientationDifference( baseTransformMatrix, newTransformMatrix );
 
-  if ( abs( positionDifference ) < this->mMinRequiredTranslationDifferenceMm && abs( angleDifference ) < this->mMinRequiredAngleDifferenceDeg )
+  if ( fabs( positionDifference ) < this->mMinRequiredTranslationDifferenceMm && fabs( angleDifference ) < this->mMinRequiredAngleDifferenceDeg )
   {
     // same as the reference frame
     return true;

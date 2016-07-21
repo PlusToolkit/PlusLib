@@ -29,7 +29,7 @@ private:
 
 public:
   LinearObjectBuffer();
-  ~LinearObjectBuffer();
+  virtual ~LinearObjectBuffer();
 
   int Size() const;
   LinearObject* GetLinearObject( int index ) const;

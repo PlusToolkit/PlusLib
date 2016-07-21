@@ -272,7 +272,7 @@ PlusStatus PlusMath::RemoveOutliersFromLSQR(vnl_sparse_matrix<double> &sparseMat
   // If the difference from mean larger than thresholdMultiplier * stdev, remove it from equation 
   for ( unsigned int row = 0; row < numberOfEquations; ++row )
   {
-    if ( abs(differenceVector[row] - meanDifference) < thresholdMultiplier * stdevDifference )
+    if ( fabs(differenceVector[row] - meanDifference) < thresholdMultiplier * stdevDifference )
     { // Not an outlier 
 
       // Copy data from matrix row in a format which is good for vnl_sparse_matrix<T>::set_row function 

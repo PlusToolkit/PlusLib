@@ -646,7 +646,7 @@ int main( int argc, char** argv )
 PlusStatus TrimSequenceFile( vtkPlusTrackedFrameList* aTrackedFrameList, unsigned int aFirstFrameIndex, unsigned int aLastFrameIndex )
 {
   LOG_INFO( "Trim sequence file from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex );
-  if ( aFirstFrameIndex < 0 || aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex )
+  if ( aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex )
   {
     LOG_ERROR( "Invalid input range: (" << aFirstFrameIndex << ", " << aLastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")" );
     return PLUS_FAIL;
@@ -955,8 +955,8 @@ PlusStatus FillRectangle( vtkPlusTrackedFrameList* trackedFrameList, const std::
       LOG_ERROR( "Failed to retrieve pixel data from frame " << i << ". Fill rectangle failed." );
       continue;
     }
-    if ( fillRectOrigin[0] < 0 || fillRectOrigin[0] >= frameSize[0] ||
-         fillRectOrigin[1] < 0 || fillRectOrigin[1] >= frameSize[1] )
+    if ( fillRectOrigin[0] >= frameSize[0] ||
+         fillRectOrigin[1] >= frameSize[1] )
     {
       LOG_ERROR( "Invalid fill rectangle origin is specified (" << fillRectOrigin[0] << ", " << fillRectOrigin[1] << "). The image size is ("
                  << frameSize[0] << ", " << frameSize[1] << ")." );

@@ -256,7 +256,7 @@ double PlusFidLabeling::ComputeSlope( PlusFidLine& line )
   double x = ( x2 - x1 );
 
   double t;
-  if ( fabsf( x ) > fabsf( y ) )
+  if ( fabs( x ) > fabs( y ) )
   {
     t = vtkMath::Pi() / 2 + atan( y / x );
   }

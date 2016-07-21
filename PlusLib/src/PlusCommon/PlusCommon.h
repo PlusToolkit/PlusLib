@@ -221,15 +221,6 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-  // This method can be used for number to string conversion
-  // until std::to_string is supported by more compilers.
-  static std::string ToString( int number )
-  {
-    std::ostringstream ss;
-    ss << number;
-    return ss.str();
-  }
-
   static const int NO_CLIP = -1;
   vtkPlusCommonExport bool IsClippingRequested( const int clipOrigin[3], const int clipSize[3] );
   vtkPlusCommonExport bool IsClippingWithinExtents( const int clipOrigin[3], const int clipSize[3], const int extents[6] );
