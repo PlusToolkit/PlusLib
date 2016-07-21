@@ -23,12 +23,12 @@ class vtkPlusDataCollectionExport vtkPlusMicronTracker : public vtkPlusDevice
 {
 public:
 
-  static vtkPlusMicronTracker *New();
-  vtkTypeMacro(vtkPlusMicronTracker,vtkPlusDevice);
+  static vtkPlusMicronTracker* New();
+  vtkTypeMacro( vtkPlusMicronTracker, vtkPlusDevice );
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSdkVersion(); 
- 
+  virtual std::string GetSdkVersion();
+
   virtual bool IsTracker() const { return true; }
 
   /*!
@@ -40,21 +40,21 @@ public:
     Get an update from the tracking system and push the new transforms
     to the tools.  This should only be used within vtkTracker.cxx.
   */
-  PlusStatus InternalUpdate(); 
+  PlusStatus InternalUpdate();
 
   /*!
     Get image from the camera into VTK images. If an input arguments is NULL then that image is not retrieved.
   */
-  PlusStatus GetImage(vtkImageData* leftImage, vtkImageData* rightImage);
-  
+  PlusStatus GetImage( vtkImageData* leftImage, vtkImageData* rightImage );
+
   /*! Get the status of the MicronTracker (Tracking or not) */
-  vtkGetMacro(IsMicronTrackingInitialized, int);
- 
+  vtkGetMacro( IsMicronTrackingInitialized, int );
+
   /*! Read MicronTracker configuration and update the tracker settings accordingly */
   virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
   /*! Write current MicronTracker configuration settings to XML */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* rootConfigElement );
 
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
@@ -63,13 +63,13 @@ public:
 
   MicronTrackerInterface* GetMicronTrackerInterface() { return this->MT; };
 
-  static void LogMessageCallback(int level, const char *message, void *userdata);
+  static void LogMessageCallback( int level, const char* message, void* userdata );
 
-  vtkSetMacro(TemplateDirectory, std::string);
-  vtkGetMacro(TemplateDirectory, std::string);
+  vtkSetMacro( TemplateDirectory, std::string );
+  vtkGetMacro( TemplateDirectory, std::string );
 
-  vtkSetMacro(IniFile, std::string);
-  vtkGetMacro(IniFile, std::string);
+  vtkSetMacro( IniFile, std::string );
+  vtkGetMacro( IniFile, std::string );
 
 protected:
   vtkPlusMicronTracker();
@@ -90,7 +90,7 @@ protected:
   PlusStatus RefreshMarkerTemplates();
 
   /*! Returns the transformation matrix of the index_th marker */
-  void GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix);
+  void GetTransformMatrix( int markerIndex, vtkMatrix4x4* transformMatrix );
 
   /*! Pointer to the MicronTrackerInterface class instance */
   MicronTrackerInterface* MT;
@@ -100,7 +100,7 @@ protected:
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double LastFrameNumber;
-  
+
   unsigned int FrameNumber;
   std::string TemplateDirectory;
   std::string IniFile;
@@ -111,8 +111,8 @@ protected:
 #endif
 
 private:
-  vtkPlusMicronTracker(const vtkPlusMicronTracker&);
-  void operator=(const vtkPlusMicronTracker&);  
+  vtkPlusMicronTracker( const vtkPlusMicronTracker& );
+  void operator=( const vtkPlusMicronTracker& );
 };
 
 #endif
