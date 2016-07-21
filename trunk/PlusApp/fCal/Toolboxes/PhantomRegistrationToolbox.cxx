@@ -829,7 +829,7 @@ void PhantomRegistrationToolbox::RecordPoint()
   // If there are at least 3 acquired points then register
   if(m_CurrentLandmarkIndex >= 3)
   {
-    if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
+    if(m_PhantomLandmarkRegistration->LandmarkRegister( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
     {
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
       m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
@@ -914,7 +914,7 @@ void PhantomRegistrationToolbox::Undo()
     // If there are at least 3 acquired points then register
     if(m_CurrentLandmarkIndex >= 3)
     {
-      if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
+      if(m_PhantomLandmarkRegistration->LandmarkRegister( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
       {
         m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
         m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
@@ -1084,7 +1084,7 @@ void PhantomRegistrationToolbox::StopLinearObjectRegistration()
   disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLinearObjectRegistration() ) );
 
   //TODO:  send acquired points to algorithm [make sure to catch any errors and to replace any phantom landmark registration done prior] (logic)
-  if(m_PhantomLinearObjectRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
+  if(m_PhantomLinearObjectRegistration->LinearObjectRegister( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
   {
     LOG_WARNING("Unable to register phantom! Try again");
     ResetLinearObjectRegistration();
@@ -1164,7 +1164,7 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
   disconnect( m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), SIGNAL( timeout() ), this, SLOT( AddStylusTipTransformToLandmarkPivotingRegistration() ) );
   if(m_CurrentLandmarkIndex > 2)
   {
-    if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) != PLUS_SUCCESS)
+    if (m_PhantomLandmarkRegistration->LandmarkRegister(m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()) != PLUS_SUCCESS)
     {
       LOG_WARNING("Unable to register phantom! Try again");
       //Reset();
@@ -1270,7 +1270,7 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
       // If there are at least 3 acquired landmarks then register
       if(m_CurrentLandmarkIndex >= 3)
       {
-        if(m_PhantomLandmarkRegistration->Register( m_ParentMainWindow->GetVisualizationController()->GetTransformRepository() ) == PLUS_SUCCESS)
+        if (m_PhantomLandmarkRegistration->LandmarkRegister(m_ParentMainWindow->GetVisualizationController()->GetTransformRepository()) == PLUS_SUCCESS)
         {
           m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomModelId(), true);
           m_ParentMainWindow->GetVisualizationController()->ShowObjectById(m_ParentMainWindow->GetPhantomWiresModelId(), true);
