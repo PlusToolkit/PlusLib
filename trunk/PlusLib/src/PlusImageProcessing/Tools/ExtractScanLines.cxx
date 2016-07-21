@@ -121,13 +121,6 @@ int main(int argc, char** argv)
   int numberOfScanLines = 100;
   int numberOfSamplesPerScanLine = 200;
 
-  for ( int i = 0; i < scanConversionElement->GetNumberOfAttributes(); ++ i )
-  {
-    const char* name = scanConversionElement->GetAttributeName(i);
-    const char* val = scanConversionElement->GetAttributeValue(i);
-    int a = 0;
-  }
-
 
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, NumberOfScanLines, numberOfScanLines, scanConversionElement)
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, NumberOfSamplesPerScanLine, numberOfSamplesPerScanLine, scanConversionElement)

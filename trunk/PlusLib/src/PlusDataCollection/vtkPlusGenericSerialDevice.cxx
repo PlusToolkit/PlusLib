@@ -247,8 +247,6 @@ bool vtkPlusGenericSerialDevice::WaitForResponse()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse( std::string& textReceived )
 {
-  const int waitPeriodSec = 0.005;
-
   textReceived.clear();
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
 

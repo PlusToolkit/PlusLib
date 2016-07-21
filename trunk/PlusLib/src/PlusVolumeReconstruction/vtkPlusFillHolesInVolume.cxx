@@ -181,7 +181,7 @@ void FillHolesInVolumeElement::allocateDistanceWeightInverse()
         float zD = (z-range);
         float distance = sqrt(xD*xD+yD*yD+zD*zD); // use euclidean distance
         if (distance) { // avoid division by zero
-          float invD = abs(1.0f/distance);
+          float invD = fabsf(1.0f/distance);
           kernel[index] = invD;
         } else {
           kernel[index] = 0.0f; // center shouldn't have any weight anyway

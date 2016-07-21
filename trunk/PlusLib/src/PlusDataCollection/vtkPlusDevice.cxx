@@ -1212,7 +1212,6 @@ void* vtkPlusDevice::vtkDataCaptureThread( vtkMultiThreader::ThreadInfo* data )
   vtkPlusDevice* self = ( vtkPlusDevice* )( data->UserData );
 
   double rate = self->GetAcquisitionRate();
-  unsigned long frame = 0;
   double currtime[FRAME_RATE_AVERAGING] = {0};
   unsigned long updatecount = 0;
   self->ThreadAlive = true;
@@ -2023,7 +2022,7 @@ std::vector<vtkPlusDataSource*> vtkPlusDevice::GetVideoSources() const
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetVideoSourceByIndex( const unsigned int index, vtkPlusDataSource*& aVideoSource )
 {
-  if ( index < 0 || index > this->VideoSources.size() )
+  if ( index > this->VideoSources.size() )
   {
     LOCAL_LOG_ERROR( "Failed to get video source, index is outside of range." );
     aVideoSource = NULL;

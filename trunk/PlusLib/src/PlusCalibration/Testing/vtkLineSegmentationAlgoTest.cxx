@@ -98,7 +98,6 @@ PlusStatus ReadLineSegmentationResultsFromFile( const std::string& resultSaveFil
 
     if ( currentLineParams.lineDetected )
     {
-      double baselineLineOriginPoint_Image[2] = {0, 0};
       if ( !frameElem->GetVectorAttribute( "LineOriginPointPx", 2, currentLineParams.lineOriginPoint_Image ) )
       {
         LOG_ERROR( "Unable to find LineOriginPointPx element in LineSegmentationResults for frame " << frameIndexUint );
@@ -208,8 +207,6 @@ int CompareLineSegmentationResults( const std::vector<vtkPlusLineSegmentationAlg
 //----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  int numberOfFailures( 0 );
-
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp = false;

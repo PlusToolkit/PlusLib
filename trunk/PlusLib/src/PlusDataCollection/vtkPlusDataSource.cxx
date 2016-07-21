@@ -99,6 +99,8 @@ void vtkPlusDataSource::PrintSelf( ostream& os, vtkIndent indent )
     case DATA_SOURCE_TYPE_FIELDDATA:
       os << indent << "Type: Fields" << std::endl;
       break;
+    case DATA_SOURCE_TYPE_NONE:
+      break;
     }
   }
   if ( this->ReferenceCoordinateFrameName )

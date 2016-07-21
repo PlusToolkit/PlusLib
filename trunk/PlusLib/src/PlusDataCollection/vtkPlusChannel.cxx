@@ -453,6 +453,24 @@ PlusStatus vtkPlusChannel::GetLatestTimestamp(double& aTimestamp) const
   return aTimestamp != 0 ? PLUS_SUCCESS : PLUS_FAIL;
 }
 
+
+//----------------------------------------------------------------------------
+void vtkPlusChannel::ShallowCopy( vtkDataObject* otherObject )
+{
+  if( otherObject == NULL )
+  {
+    return;
+  }
+  
+  vtkPlusChannel* channel = dynamic_cast<vtkPlusChannel*>(otherObject);
+  if( channel == NULL )
+  {
+    return;
+  }
+  
+  return this->ShallowCopy(*channel);
+}
+
 //----------------------------------------------------------------------------
 void vtkPlusChannel::ShallowCopy( const vtkPlusChannel& aChannel )
 {
@@ -533,8 +551,6 @@ PlusStatus vtkPlusChannel::GetTrackedFrame( double timestamp, PlusTrackedFrame& 
     // Copy frame
     PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame();
     aTrackedFrame.SetImageData(frame);
-
-    int numcomp = frame.GetImage()->GetNumberOfScalarComponents();
 
     // Copy all custom fields
     StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();

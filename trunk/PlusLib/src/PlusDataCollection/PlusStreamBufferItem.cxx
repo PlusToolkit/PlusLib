@@ -17,8 +17,8 @@ StreamBufferItem::StreamBufferItem()
   , Index( 0 )
   , Uid( 0 )
   , ValidTransformData( false )
-  , Status( TOOL_OK )
   , Matrix( vtkSmartPointer<vtkMatrix4x4>::New() )
+  , Status( TOOL_OK )
 {
 }
 

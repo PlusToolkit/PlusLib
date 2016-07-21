@@ -661,9 +661,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
 
     // convert igtl matrix to vtk matrix
     vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-    for (int r = 0; r < 4; r)
+    for (int r = 0; r < 4; r++)
     {
-      for (int c = 0; c < 4; c)
+      for (int c = 0; c < 4; c++)
       {
         mat->SetElement(r, c, igtlMatrix[r][c]);
       }

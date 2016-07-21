@@ -266,7 +266,7 @@ void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensi
 
   transmittedIntensity = surfaceTransmittedBeamIntensity * intensityTransmittedFractionPerPixelTwoWay;
 
-  if ( numberOfFilledPixels > 0 && this->PrecomputedAttenuations.size() < numberOfFilledPixels || intensityTransmittedFractionPerPixelTwoWay != this->PrecomputedAttenuations[0] )
+  if ( (numberOfFilledPixels > 0 && this->PrecomputedAttenuations.size() < numberOfFilledPixels) || intensityTransmittedFractionPerPixelTwoWay != this->PrecomputedAttenuations[0] )
   {
     UpdatePrecomputedAttenuations( intensityTransmittedFractionPerPixelTwoWay, numberOfFilledPixels );
   }

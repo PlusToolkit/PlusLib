@@ -158,11 +158,10 @@ int main ( int argc, char* argv[] )
   outputFile.open( saveResultsFilename.c_str(), std::ios_base::app );
 
 
-  OperationType operation;
+  OperationType operation(NO_OPERATION);
   // Set operation
   if ( strOperation.empty() )
   {
-    operation = NO_OPERATION;
     LOG_INFO( "No modification operation has been specified (specify --operation parameter to change the input sequence)." );
   }
   else if ( STRCASECMP( strOperation.c_str(), "INCREMENTAL_FRAME_DISTANCE" ) == 0 )
@@ -351,7 +350,7 @@ PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std:
   std::sort( selectedFrames.begin(), selectedFrames.end() );
   unsigned int FirstFrameIndex = selectedFrames.at( 0 );
   unsigned int LastFrameIndex = selectedFrames.at( selectedFrames.size() - 1 );
-  if ( FirstFrameIndex < 0 || LastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || FirstFrameIndex > LastFrameIndex )
+  if ( LastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || FirstFrameIndex > LastFrameIndex )
   {
     LOG_ERROR( "Invalid input range: (" << FirstFrameIndex << ", " << LastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")" );
     return PLUS_FAIL;

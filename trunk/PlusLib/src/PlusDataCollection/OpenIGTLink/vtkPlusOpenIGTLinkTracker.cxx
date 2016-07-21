@@ -175,7 +175,6 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     // Get timestamp 
     igtl::TimeStamp::Pointer igtlTimestamp = igtl::TimeStamp::New(); 
     tdataMsg->GetTimeStamp(igtlTimestamp); 
-    double unfilteredTimestampUtc = igtlTimestamp->GetTimeStamp();  
 
     // Get igtl transform name 
     std::string igtlTransformName = tdataElem->GetName();

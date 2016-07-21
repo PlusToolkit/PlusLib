@@ -192,7 +192,6 @@ PlusStatus vtkPlusSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUid
         // retrieve timestamp from the first active tool and add all the tool matrices corresponding to that timestamp
         double nextFrameTimestamp = dataBufferItemToBeAdded.GetFilteredTimestamp(0.0);
 
-        int numOfErrors = 0;
         for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
         {
           vtkPlusDataSource* tool = it->second;
@@ -226,7 +225,6 @@ PlusStatus vtkPlusSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUid
           // Get flags
           ToolStatus toolStatus = bufferItem.GetStatus(); 
           // This device has no frame numbering, just auto increment tool frame number if new frame received
-          unsigned long frameNumber = tool->GetFrameNumber() + 1 ; 
           // send the transformation matrix and flags to the tool
           if (this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolTransMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS)
           {

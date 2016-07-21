@@ -143,7 +143,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::WriteConfiguration( vtkXMLDataEleme
   {
     // Remove processor elements
     vtkXMLDataElement* processorElement = NULL;
-    while (processorElement = deviceElement->FindNestedElementWithName(vtkPlusTrackedFrameProcessor::GetTagName()))
+    while ( (processorElement = deviceElement->FindNestedElementWithName(vtkPlusTrackedFrameProcessor::GetTagName())))
     {
       deviceElement->RemoveNestedElement(processorElement);
     }

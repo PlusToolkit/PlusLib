@@ -39,7 +39,6 @@ static const unsigned char UM6_BAD_CHECKSUM=253;
 static const unsigned char UM6_UNKNOWN_ADDRESS=254;
 static const unsigned char UM6_INVALID_BATCH_SIZE=255;
 
-static const unsigned char CONFIG_REGISTER_START_ADDRES=0;
 static const unsigned char DATA_REGISTER_START_ADDRESS=85;
 static const unsigned char COMMAND_START_ADDRESS=170;
 

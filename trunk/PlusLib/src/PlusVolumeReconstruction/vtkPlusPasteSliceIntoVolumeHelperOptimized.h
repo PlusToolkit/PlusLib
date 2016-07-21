@@ -95,8 +95,8 @@ static int intersectionLow(F *point, F *axis, int *sign,
   {
     F p = point[ai]+r*axis[ai];
 
-    if ((sign[ai] < 0 && r > inExt[0] ||
-      sign[ai] > 0 && r < inExt[1]) && 
+    if (((sign[ai] < 0 && r > inExt[0]) ||
+      (sign[ai] > 0 && r < inExt[1])) &&
       PlusMath::Round(p) < limit[ai])
     {
       r += sign[ai];
@@ -111,8 +111,8 @@ static int intersectionLow(F *point, F *axis, int *sign,
   {
     F p = point[ai]+(r-sign[ai])*axis[ai];
 
-    if ((sign[ai] > 0 && r > inExt[0] ||
-      sign[ai] < 0 && r < inExt[1]) && 
+    if (((sign[ai] > 0 && r > inExt[0]) ||
+      (sign[ai] < 0 && r < inExt[1])) &&
       PlusMath::Round(p) >= limit[ai])
     {
       r -= sign[ai];
@@ -140,8 +140,8 @@ static int intersectionHigh(F *point, F *axis, int *sign,
   {
     F p = point[ai]+r*axis[ai];
 
-    if ((sign[ai] > 0 && r > inExt[0] ||
-      sign[ai] < 0 && r < inExt[1]) &&
+    if (((sign[ai] > 0 && r > inExt[0]) ||
+      (sign[ai] < 0 && r < inExt[1])) &&
       PlusMath::Round(p) > limit[ai])
     {
       r -= sign[ai];
@@ -156,8 +156,8 @@ static int intersectionHigh(F *point, F *axis, int *sign,
   {
     F p = point[ai]+(r+sign[ai])*axis[ai];
 
-    if ((sign[ai] < 0 && r > inExt[0] ||
-      sign[ai] > 0 && r < inExt[1]) && 
+    if (((sign[ai] < 0 && r > inExt[0]) ||
+      (sign[ai] > 0 && r < inExt[1])) &&
       PlusMath::Round(p) <= limit[ai])
     {
       r += sign[ai];
@@ -410,8 +410,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
       }
 
       // line might pass through in-to-screen face
-      if (indx1[iz] < inMin[iz] && indx2[iy] < inMin[iy] ||
-        indx2[iz] < inMin[iz] && indx1[iy] < inMin[iy])
+      if ((indx1[iz] < inMin[iz] && indx2[iy] < inMin[iy]) ||
+        (indx2[iz] < inMin[iz] && indx1[iy] < inMin[iy]))
       { 
         xIntersectionPixEnd = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
         if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
@@ -421,8 +421,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
         }
       }
       // line might pass through out-of-screen face
-      else if (indx1[iz] > inMax[iz] && indx2[iy] < inMin[iy] ||
-        indx2[iz] > inMax[iz] && indx1[iy] < inMin[iy])
+      else if ((indx1[iz] > inMax[iz] && indx2[iy] < inMin[iy]) ||
+        (indx2[iz] > inMax[iz] && indx1[iy] < inMin[iy]))
       {
         xIntersectionPixEnd = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
         if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixEnd))
@@ -442,8 +442,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
     if (isBounded(point,xAxis,inMin,inMax,iy,xIntersectionPixEnd))
     {
       // line might pass through in-to-screen face
-      if (indx1[iz] < inMin[iz] && indx2[iy] > inMax[iy] ||
-        indx2[iz] < inMin[iz] && indx1[iy] > inMax[iy])
+      if ((indx1[iz] < inMin[iz] && indx2[iy] > inMax[iy]) ||
+        (indx2[iz] < inMin[iz] && indx1[iy] > inMax[iy]))
       {
         xIntersectionPixStart = intersectionLow(point,xAxis,sign,inMin,iz,inExt);
         if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
@@ -453,8 +453,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
         }
       }
       // line might pass through out-of-screen face
-      else if (indx1[iz] > inMax[iz] && indx2[iy] > inMax[iy] || 
-        indx2[iz] > inMax[iz] && indx1[iy] > inMax[iy])
+      else if ((indx1[iz] > inMax[iz] && indx2[iy] > inMax[iy]) ||
+        (indx2[iz] > inMax[iz] && indx1[iy] > inMax[iy]))
       {
         xIntersectionPixStart = intersectionHigh(point,xAxis,sign,inMax,iz,inExt);
         if (isBounded(point,xAxis,inMin,inMax,iz,xIntersectionPixStart))
@@ -1161,7 +1161,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
@@ -1185,7 +1185,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
         }
@@ -1211,7 +1211,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
           }
         }
