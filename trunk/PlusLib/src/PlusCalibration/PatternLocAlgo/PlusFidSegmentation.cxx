@@ -27,14 +27,22 @@ const int PlusFidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDAT
 
 //-----------------------------------------------------------------------------
 
-PlusFidSegmentation::PlusFidSegmentation() :
-  m_ThresholdImagePercent( -1.0 ),
-  m_MorphologicalOpeningBarSizeMm( -1.0 ),
-  m_MorphologicalOpeningCircleRadiusMm( -1.0 ),
-  m_ApproximateSpacingMmPerPixel( -1.0 ),
-  m_FiducialGeometry( CALIBRATION_PHANTOM_6_POINT ),
-  m_UseOriginalImageIntensityForDotIntensityScore( false ),
-  m_NumberOfMaximumFiducialPointCandidates( DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
+PlusFidSegmentation::PlusFidSegmentation()
+: m_UseOriginalImageIntensityForDotIntensityScore(false)
+, m_NumberOfMaximumFiducialPointCandidates(DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES)
+, m_ThresholdImagePercent(-1)
+, m_MorphologicalOpeningBarSizeMm(-1)
+, m_MorphologicalOpeningCircleRadiusMm(-1)
+, m_PossibleFiducialsImageFilename("")
+, m_FiducialGeometry( CALIBRATION_PHANTOM_6_POINT )
+, m_ApproximateSpacingMmPerPixel(-1)
+, m_DotsFound(false)
+, m_NumDots(-1.0)
+, m_Working(new PlusFidSegmentation::PixelType[1])
+, m_Dilated(new PlusFidSegmentation::PixelType[1])
+, m_Eroded(new PlusFidSegmentation::PixelType[1])
+, m_UnalteredImage(new PlusFidSegmentation::PixelType[1])
+, m_DebugOutput(false)
 {
   //Initialization of member variables
   m_FrameSize[0] = 0;
@@ -44,8 +52,6 @@ PlusFidSegmentation::PlusFidSegmentation() :
   m_RegionOfInterest[1] = 0;
   m_RegionOfInterest[2] = 0;
   m_RegionOfInterest[3] = 0;
-
-  m_PossibleFiducialsImageFilename.clear();
 
   for( int i = 0 ; i < 4 ; i++ )
   {
@@ -66,17 +72,6 @@ PlusFidSegmentation::PlusFidSegmentation() :
   {
     m_ImageToPhantomTransform[i] = -1.0;
   }
-
-  m_DotsFound = false;
-
-  m_NumDots = -1.0;
-
-  m_DebugOutput = false;
-
-  m_Dilated = new PlusFidSegmentation::PixelType;
-  m_Eroded = new PlusFidSegmentation::PixelType;
-  m_Working = new PlusFidSegmentation::PixelType;
-  m_UnalteredImage = new PlusFidSegmentation::PixelType;
 }
 
 //-----------------------------------------------------------------------------
@@ -217,12 +212,6 @@ void PlusFidSegmentation::SetFrameSize( unsigned int frameSize[3] )
 
   m_FrameSize[0] = frameSize[0];
   m_FrameSize[1] = frameSize[1];
-
-  if ( m_FrameSize[0] < 0 || m_FrameSize[1] < 0 )
-  {
-    LOG_ERROR( "Dimensions of the frame size are not positive!" );
-    return;
-  }
 
   // Create working images (after deleting them in case they were already created)
   long size = m_FrameSize[0] * m_FrameSize[1];
@@ -973,8 +962,7 @@ void PlusFidSegmentation::WritePng( PlusFidSegmentation::PixelType* modifiedImag
   //LOG_TRACE("FidSegmentation::WritePng");
 
   // output intermediate image
-  typedef unsigned char          PixelType; // define type for pixel representation
-  const unsigned int             Dimension = 2;
+  const unsigned int Dimension = 2;
 
   typedef itk::Image< PlusFidSegmentation::PixelType, Dimension > ImageType;
   ImageType::Pointer modImage = ImageType::New();
@@ -1056,7 +1044,7 @@ void PlusFidSegmentation::WritePossibleFiducialOverlayImage( const std::vector<P
   possibleFiducials->SetRegions( wholeImage );
   possibleFiducials->Allocate();
 
-  ImageType::IndexType pixelLocation = {0, 0};
+  ImageType::IndexType pixelLocation;
 
   ImageType::PixelType pixelValue;
 
@@ -1344,8 +1332,7 @@ void PlusFidSegmentation::MorphologicalOperations()
   // Constraint ROI according to the morphological bar size
   ValidateRegionOfInterest();
 
-  if ( m_RegionOfInterest[0] < 0 || m_RegionOfInterest[1] < 0 ||
-       m_RegionOfInterest[2] <= 0 || m_RegionOfInterest[3] <= 0 ||
+  if ( m_RegionOfInterest[2] == 0 || m_RegionOfInterest[3] == 0 ||
        m_RegionOfInterest[0] >= m_RegionOfInterest[2] ||
        m_RegionOfInterest[1] >= m_RegionOfInterest[3] )
   {

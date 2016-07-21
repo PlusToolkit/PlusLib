@@ -41,7 +41,8 @@ namespace
 
     int inputWidth( dims[0] );
     int inputHeight( dims[1] );
-    int inputDepth( dims[2] );
+    // TODO : when flipping of 3D data is implemented, inputDepth will be needed
+    //int inputDepth( dims[2] );
 
     int outputDims[3] = {0, 0, 0};
     outputImage->GetDimensions( outputDims );

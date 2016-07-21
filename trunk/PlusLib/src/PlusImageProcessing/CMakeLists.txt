@@ -21,44 +21,44 @@ SET (PlusImageProcessing_SRCS
     vtkPlusTrackedFrameProcessor.cxx
     vtkPlusBoneEnhancer.cxx
     vtkPlusRfToBrightnessConvert.cxx
-    vtkPlusUsScanConvert.cxx 
-    vtkPlusUsScanConvertLinear.cxx 
-    vtkPlusUsScanConvertCurvilinear.cxx 
+    vtkPlusUsScanConvert.cxx
+    vtkPlusUsScanConvertLinear.cxx
+    vtkPlusUsScanConvertCurvilinear.cxx
     vtkPlusRfProcessor.cxx
     )
 
 SET (PlusImageProcessing_HDRS)
-if (WIN32)    
+if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET (PlusImageProcessing_HDRS
     vtkPlusTrackedFrameProcessor.h
     vtkPlusBoneEnhancer.h
-    vtkPlusRfToBrightnessConvert.h 
+    vtkPlusRfToBrightnessConvert.h
     vtkPlusUsScanConvert.h
-    vtkPlusUsScanConvertLinear.h 
-    vtkPlusUsScanConvertCurvilinear.h 
+    vtkPlusUsScanConvertLinear.h
+    vtkPlusUsScanConvertCurvilinear.h
     vtkPlusRfProcessor.h
     )
-endif (WIN32)
+endif ()
 
 SET (PlusImageProcessing_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   CACHE INTERNAL "" FORCE)
 
-IF (PLUS_USE_INTEL_MKL)    
+IF (PLUS_USE_INTEL_MKL)
   SET (PlusImageProcessing_SRCS ${PlusImageProcessing_SRCS}
       vtkPlusForoughiBoneSurfaceProbability.cxx
       )
-  if (WIN32)    
+  if (WIN32)
     SET (PlusImageProcessing_HDRS ${PlusImageProcessing_HDRS}
       vtkPlusForoughiBoneSurfaceProbability.h
       )
   endif (WIN32)
   SET (PlusImageProcessing_INCLUDE_DIRS ${PlusImageProcessing_INCLUDE_DIRS}
     "${IntelComposerXEdir}/mkl/include"
-    CACHE INTERNAL "" FORCE)  
+    CACHE INTERNAL "" FORCE)
 ENDIF (PLUS_USE_INTEL_MKL)
-  
+
 # --------------------------------------------------------------------------
 # Build the library
 
@@ -134,7 +134,7 @@ IF (PLUS_USE_INTEL_MKL)
       "${REDIST_DIR}/mkl_vml_p4m3${CMAKE_SHARED_LIBRARY_SUFFIX}"
       )
   ENDIF()
-  
+
   SET (PlusImageProcessing_LIBS ${PlusImageProcessing_LIBS}
     ${MKL_LIBS}
     )
@@ -164,7 +164,7 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "X
 ELSE()
     FILE(COPY ${External_Libraries_Install}
         DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        )        
+        )
 ENDIF()
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)

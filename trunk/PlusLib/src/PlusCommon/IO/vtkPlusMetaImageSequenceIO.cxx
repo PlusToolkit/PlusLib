@@ -288,7 +288,6 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
       SetUseCompression( false );
     }
 
-    int numberOfScalarComponents = 1;
     if ( this->TrackedFrameList->GetCustomString( "ElementNumberOfChannels" ) != NULL )
     {
       // this field is optional

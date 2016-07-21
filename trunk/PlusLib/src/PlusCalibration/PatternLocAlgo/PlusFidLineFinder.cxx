@@ -16,9 +16,6 @@ See License.txt for details.
 #include "vnl/algo/vnl_qr.h"
 #include "vnl/algo/vnl_svd.h"
 
-static const double DOT_STEPS  = 4.0;
-static const double DOT_RADIUS = 6.0;
-
 //-----------------------------------------------------------------------------
 
 PlusFidLineFinder::PlusFidLineFinder()
@@ -243,12 +240,6 @@ void PlusFidLineFinder::SetFrameSize( unsigned int frameSize[3] )
 
   m_FrameSize[0] = frameSize[0];
   m_FrameSize[1] = frameSize[1];
-
-  if ( m_FrameSize[0] < 0 || m_FrameSize[1] < 0 )
-  {
-    LOG_ERROR( "Dimensions of the frame size are not positive!" );
-    return;
-  }
 }
 
 //-----------------------------------------------------------------------------

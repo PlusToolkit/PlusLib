@@ -63,17 +63,17 @@ std::vector<double> Line::GetOrthogonalNormal1()
   // Find the two axis unit vectors least parallel with the direction vector
   std::vector<double> e1( 3, 0.0 );
   std::vector<double> e2( 3, 0.0 );
-  if ( abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(0) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(0) ) )
+  if ( fabs( this->GetDirection().at(1) ) <= fabs( this->GetDirection().at(0) ) && fabs( this->GetDirection().at(2) ) <= fabs( this->GetDirection().at(0) ) )
   {
     e1.at(0) = 0; e1.at(1) = 1; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
-  if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(1) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(1) ) )
+  if ( fabs( this->GetDirection().at(0) ) <= fabs( this->GetDirection().at(1) ) && fabs( this->GetDirection().at(2) ) <= fabs( this->GetDirection().at(1) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
-  if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(2) ) && abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(2) ) )
+  if ( fabs( this->GetDirection().at(0) ) <= fabs( this->GetDirection().at(2) ) && fabs( this->GetDirection().at(1) ) <= fabs( this->GetDirection().at(2) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;
@@ -95,17 +95,17 @@ std::vector<double> Line::GetOrthogonalNormal2()
   // Find the two axis unit vectors least parallel with the direction vector
   std::vector<double> e1( 3, 0.0 );
   std::vector<double> e2( 3, 0.0 );
-  if ( abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(0) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(0) ) )
+  if ( fabs( this->GetDirection().at(1) ) <= fabs( this->GetDirection().at(0) ) && fabs( this->GetDirection().at(2) ) <= fabs( this->GetDirection().at(0) ) )
   {
     e1.at(0) = 0; e1.at(1) = 1; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
-  if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(1) ) && abs( this->GetDirection().at(2) ) <= abs( this->GetDirection().at(1) ) )
+  if ( fabs( this->GetDirection().at(0) ) <= fabs( this->GetDirection().at(1) ) && fabs( this->GetDirection().at(2) ) <= fabs( this->GetDirection().at(1) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 0; e2.at(2) = 1;
   }
-  if ( abs( this->GetDirection().at(0) ) <= abs( this->GetDirection().at(2) ) && abs( this->GetDirection().at(1) ) <= abs( this->GetDirection().at(2) ) )
+  if ( fabs( this->GetDirection().at(0) ) <= fabs( this->GetDirection().at(2) ) && fabs( this->GetDirection().at(1) ) <= fabs( this->GetDirection().at(2) ) )
   {
     e1.at(0) = 1; e1.at(1) = 0; e1.at(2) = 0;
   e2.at(0) = 0; e2.at(1) = 1; e2.at(2) = 0;

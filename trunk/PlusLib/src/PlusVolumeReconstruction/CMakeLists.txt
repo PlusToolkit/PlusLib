@@ -4,33 +4,33 @@
 # --------------------------------------------------------------------------
 # Sources
 SET (PlusVolumeReconstruction_SRCS
-  vtkPlusPasteSliceIntoVolume.cxx 
-  vtkPlusVolumeReconstructor.cxx 
+  vtkPlusPasteSliceIntoVolume.cxx
+  vtkPlusVolumeReconstructor.cxx
   vtkPlusFillHolesInVolume.cxx
   vtkPlusFanAngleDetectorAlgo.cxx
   )
 
 SET (PlusVolumeReconstruction_HDRS)
-if (WIN32)  
+if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET (PlusVolumeReconstruction_HDRS
     fixed.h
-    vtkPlusPasteSliceIntoVolume.h 
-    vtkPlusPasteSliceIntoVolumeHelperCommon.h 
-    vtkPlusPasteSliceIntoVolumeHelperOptimized.h 
-    vtkPlusPasteSliceIntoVolumeHelperUnoptimized.h 
-    vtkPlusVolumeReconstructor.h 
+    vtkPlusPasteSliceIntoVolume.h
+    vtkPlusPasteSliceIntoVolumeHelperCommon.h
+    vtkPlusPasteSliceIntoVolumeHelperOptimized.h
+    vtkPlusPasteSliceIntoVolumeHelperUnoptimized.h
+    vtkPlusVolumeReconstructor.h
     vtkPlusFillHolesInVolume.h
     vtkPlusFanAngleDetectorAlgo.h
     )
-endif (WIN32)  
+endif ()  
 
 SET (PlusVolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
 
-SET (PlusVolumeReconstruction_LIBS 
-  ${VTK_LIBRARIES}  
+SET (PlusVolumeReconstruction_LIBS
+  ${VTK_LIBRARIES}
   vtkPlusCommon
   )
 
@@ -40,7 +40,7 @@ target_include_directories(vtkPlusVolumeReconstruction PUBLIC ${PlusVolumeRecons
 TARGET_LINK_LIBRARIES(  vtkPlusVolumeReconstruction  ${PlusVolumeReconstruction_LIBS} )
 
 # --------------------------------------------------------------------------
-# Set external MS project 
+# Set external MS project
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusVolumeReconstruction CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro

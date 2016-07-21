@@ -170,8 +170,7 @@ PlusStatus vtkPlusReadTrackedSignals::ReadConfiguration( vtkXMLDataElement* aCon
 
   PlusTransformName StylusTipToStylusTransformName( ObjectPivotPointCoordinateFrame, ObjectMarkerCoordinateFrame );
   this->StylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid = false;
-  if ( transformRepositoryCalibration->GetTransform( StylusTipToStylusTransformName, this->StylusTipToStylusTransform/*, &valid*/ ) != PLUS_SUCCESS )
+  if ( transformRepositoryCalibration->GetTransform( StylusTipToStylusTransformName, this->StylusTipToStylusTransform ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Failed to read StylusTipToStylu Coordinate Definition!" );
     exit( EXIT_FAILURE );
