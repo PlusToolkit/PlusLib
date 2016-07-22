@@ -221,7 +221,7 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#if defined(_MSC_VER) && _MSC_VER < 1700
   // This method can be used for number to string conversion
   // until std::to_string is supported by more compilers.
   static std::string ToString( int number )
