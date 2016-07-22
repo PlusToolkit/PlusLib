@@ -56,7 +56,7 @@ std::string vtkPlusVersionCommand::GetDescription(const char* commandName)
 PlusStatus vtkPlusVersionCommand::Execute()
 {
   std::map<std::string, std::string> metadata;
-#if defined(_MSC_VER) && _MSC_VER < 1600
+#if defined(_MSC_VER) && _MSC_VER < 1700
   metadata["Version"] = PlusCommon::ToString(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
 #else
   metadata["Version"] = std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
