@@ -573,6 +573,18 @@ public:
     return true;
   }
 
+  /*! Get US transducer wobble rate (unit: Hz). */
+  unsigned char vtkPlusCapistranoVideoSource::vtkInternal::GetUSTransducerWobbleRate()
+  {
+    return usbProbeSpeed();
+  }
+
+  /*! Set US transducer wobble rate (unit: Hz). */
+  void vtkPlusCapistranoVideoSource::vtkInternal::SetUSTransducerWobbleRate(unsigned char wobbleSpeed)
+  {
+    usbSetProbeSpeed(wobbleSpeed);
+  }
+
 };
 
 
@@ -611,6 +623,7 @@ void vtkPlusCapistranoVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "CineBuffers: " << CineBuffers << std::endl;
   os << indent << "SampleFrequency: " << SampleFrequency << std::endl;
   os << indent << "PulseFrequency: " << PulseFrequency << std::endl;
+  os << indent << "WobbleRate: " << WobbleRate << std::endl;
   os << indent << "Interpolate: " << Interpolate << std::endl;
   os << indent << "AverageMode: " << AverageMode << std::endl;
   os << indent << "CurrentBModeViewOption: " << CurrentBModeViewOption << std::endl;
@@ -630,6 +643,7 @@ PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CineBuffers, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SampleFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, PulseFrequency, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, WobbleRate, deviceConfig);
 
   // Load US B-mode parameters -----------------------------------------------
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(Interpolate, deviceConfig);
@@ -659,6 +673,7 @@ PlusStatus vtkPlusCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetAttribute("UpdateParameters", UpdateParameters ? "TRUE" : "FALSE");
   deviceConfig->SetIntAttribute("CurrentBModeViewOption", this->CurrentBModeViewOption);
   deviceConfig->SetFloatAttribute("PulseFrequency", this->PulseFrequency);
+  deviceConfig->SetIntAttribute("WobbleRate", this->WobbleRate);
   deviceConfig->SetDoubleAttribute("LutCenter", this->LutCenter);
   deviceConfig->SetDoubleAttribute("LutWindow", this->LutWindow);
 
@@ -713,6 +728,7 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->ClockDivider                           = 2;       //1
   this->CineBuffers                            = 32;
   this->SampleFrequency                        = 40.0f;
+  this->WobbleRate                             = 5;
   this->PulseFrequency                         = 12.0f;
   this->Internal->ImagingParameters->SetProbeVoltage(30.0f);
   this->Internal->ImagingParameters->SetSoundVelocity(1532.0f);
@@ -841,6 +857,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   // Update the values of ProbeType structure -------------------------------
   Internal->USProbeParams.probetype.OversampleRate  = 2048.0f/ imageSize[1];
   Internal->USProbeParams.probetype.SampleFrequency = 80.f / usbSampleClockDivider();
+  this->WobbleRate = Internal->GetUSTransducerWobbleRate();
   Internal->USProbeParams.probetype.PivFaceSamples  =
     Internal->USProbeParams.probetype.PFDistance *
     1000.0f*Internal->USProbeParams.probetype.SampleFrequency
@@ -1156,6 +1173,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
               << ", probe sample frequency (Hz): " << this->Internal->USProbeParams.probetype.SampleFrequency,
+              << ", probe wobble rate (Hz): " << this->Internal->GetUSTransducerWobbleRate(),
               << ", probe name: " << probeName
               << ", display zoom: " << bmDisplayZoom()
               << ", probe depth scale (mm/sample):" << depthScale
@@ -1294,6 +1312,13 @@ PlusStatus vtkPlusCapistranoVideoSource::SetSampleFrequency(float sf)
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseFrequency(float pf)
 {
   this->PulseFrequency = pf;
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusCapistranoVideoSource::SetWobbleRate(unsigned char wr)
+{
+  this->Internal->SetUSTransducerWobbleRate(wr);
   return PLUS_SUCCESS;
 }
 
