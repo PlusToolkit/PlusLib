@@ -26,10 +26,10 @@ See License.txt for details.
 #ifdef PLUS_USE_OpenIGTLink
 #include "vtkPlusOpenIGTLinkTracker.h" 
 #endif
-#ifdef PLUS_USE_POLARIS
+#ifdef PLUS_USE_NDI
 #include "vtkPlusNDITracker.h"
 #endif
-#ifdef PLUS_USE_CERTUS
+#ifdef PLUS_USE_NDI_CERTUS
 #include "vtkPlusNDICertusTracker.h"
 #endif
 #ifdef PLUS_USE_MICRONTRACKER
@@ -174,11 +174,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["USDigitalEncodersTracker"]=(PointerToDevice)&vtkPlusUSDigitalEncodersTracker::New;
   DeviceTypeClassNames["USDigitalEncodersTracker"] = "vtkPlusUSDigitalEncodersTracker";
 #endif
-#ifdef PLUS_USE_CERTUS
+#ifdef PLUS_USE_NDI_CERTUS
   DeviceTypes["CertusTracker"]=(PointerToDevice)&vtkPlusNDICertusTracker::New;
   DeviceTypeClassNames["CertusTracker"] = "vtkPlusNDICertusTracker"; 
 #endif
-#ifdef PLUS_USE_POLARIS
+#ifdef PLUS_USE_NDI
   DeviceTypes["PolarisTracker"]=(PointerToDevice)&vtkPlusNDITracker::New;
   DeviceTypeClassNames["PolarisTracker"] = "vtkPlusNDITracker"; 
   DeviceTypes["AuroraTracker"]=(PointerToDevice)&vtkPlusNDITracker::New;
