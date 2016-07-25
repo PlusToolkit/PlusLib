@@ -61,6 +61,9 @@ public:
   /* Set the pulser frequency of US probe */
   PlusStatus SetPulseFrequency(float pf);
 
+  /* Set the pulser frequency of US probe */
+  PlusStatus SetWobbleRate(unsigned char wr);
+
   /* Set the pulser voltage of US probe */
   PlusStatus SetPulseVoltage(float pv);
 
@@ -207,6 +210,7 @@ protected:
   int                            CineBuffers;
   float                          SampleFrequency;
   float                          PulseFrequency;
+  int                            WobbleRate;
   bool                           Interpolate;
   bool                           AverageMode;
   unsigned int                   CurrentBModeViewOption;
