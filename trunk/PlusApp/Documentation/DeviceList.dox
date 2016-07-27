@@ -26,6 +26,7 @@
 - \subpage DevicePolaris
 - \subpage DeviceNDICertus
 - \subpage DeviceStealthLink
+- \subpage DeviceIntelRealSense
 
 \par Inertial measurement units
 - \subpage DevicePhidgetSpatial
