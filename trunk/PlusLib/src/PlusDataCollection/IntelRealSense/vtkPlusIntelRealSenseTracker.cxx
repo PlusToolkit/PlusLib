@@ -15,6 +15,25 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusDataSource.h"
+/*
+Experimental code for surface acquisition
+#include "vtkActor.h"
+#include "vtkCellArray.h"
+#include "vtkDoubleArray.h"
+#include "vtkFloatArray.h"
+#include "vtkIntArray.h"
+#include "vtkPointData.h"
+#include "vtkPoints.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include <vtkVersion.h>
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkSmartPointer.h>
+*/
+
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -160,6 +179,7 @@ vtkPlusIntelRealSenseTracker::vtkPlusIntelRealSenseTracker()
   
   this->CameraCalibrationFile="IntelRealSenseToolDefinitions/CameraCalibration-CreativeSR300.xml";
   this->DeviceName = "Intel(R) RealSense(TM) 3D Camera SR300";
+  this->TrackingMethod = TRACKING_3D;
 }
 
 //----------------------------------------------------------------------------
@@ -310,6 +330,40 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalUpdate()
     }
   }
 
+  /*
+  Experimental code for getting surface mesh
+  colorImage = sample->color;
+  depthImage = sample->depth;
+  width = 640;
+  height = 480;
+
+  PXCProjection::QueryVertices(PXCImage *depthImage, PXCPoint3DF32 *vertices);
+
+  vtkPolyData* polydata = vtkPolyData::New();
+  vtkCellArray* strips = vtkCellArray::New();
+  //need to reference hight and width of image
+  for (int col = 0; col < projection->height; col++)
+  { 
+	  strips->InsertNextCell(projection->width - 1);
+	  for (int row = 0; row < width; row++)
+	  {
+		  for (int k = 0; k < 2; k++)
+		  {
+			  strips->InsertCellPoint(Projection->Vertices[col*(projection->width) + row]);
+			  strips->InsertCellPoint(Projection->Vertices[(col + 1)*(projection->width) + row]);
+		  }
+	  }
+
+  }
+  polydata->SetStrips(strips);
+
+  vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+  writer->SetFileName("PolyDataFile.vtp");
+  writer->SetInputData(polydata);
+  writer->Write();
+  */
+
+
   this->Internal->SenseMgr->ReleaseFrame();
 
   return PLUS_SUCCESS;
@@ -328,8 +382,7 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(CameraCalibrationFile, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
-
-
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(TrackingMethod, deviceConfig, "3D", TRACKING_3D, "2D", TRACKING_2D);
 
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
@@ -360,11 +413,21 @@ PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* r
     }
     if (toolDataElement->GetAttribute("MapFile") != NULL)
     {
-      std::string mapFile = toolDataElement->GetAttribute("MapFile");
-      std::string mapFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(mapFile);
-      std::wstring mapFilePathW;
-      StringToWString(mapFilePathW, mapFilePath);
-      this->Internal->Targets.push_back(Model((pxcCHAR*)mapFilePathW.c_str(), toolSourceId));
+      std::string modelAttributeName;
+      switch (this->TrackingMethod)
+      {
+      case TRACKING_2D:
+        modelAttributeName = "MarkerImageFile"; // .png file
+        break;
+      case TRACKING_3D:
+      default:
+        modelAttributeName = "MapFile"; // .slam file
+      }
+      std::string modelFile = toolDataElement->GetAttribute(modelAttributeName.c_str());
+      std::string modelFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(modelFile);
+      std::wstring modelFilePathW;
+      StringToWString(modelFilePathW, modelFilePath);
+      this->Internal->Targets.push_back(Model((pxcCHAR*)modelFilePathW.c_str(), toolSourceId));
     }
   }
   return PLUS_SUCCESS;
@@ -376,7 +439,8 @@ PlusStatus vtkPlusIntelRealSenseTracker::WriteConfiguration(vtkXMLDataElement* r
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
   trackerConfig->SetAttribute("CameraCalibrationFile", this->CameraCalibrationFile.c_str()); 
-  trackerConfig->SetAttribute("DeviceName", this->DeviceName.c_str());  
+  trackerConfig->SetAttribute("DeviceName", this->DeviceName.c_str());
+  // TODO: write/update TrackingMethod
   return PLUS_SUCCESS;
 } 
 
@@ -461,25 +525,34 @@ PlusStatus vtkPlusIntelRealSenseTracker::InternalConnect()
   for (size_t i = 0; i < this->Internal->Targets.size(); i++)
   {
     this->Internal->Targets[i].cosIDs.clear();
-
-    
-    //case TRACKING_2D:
-    sts = this->Internal->Tracker->Set2DTrackFromFile(this->Internal->Targets[i].model_filename, cosID);
-    this->Internal->Targets[i].addCosID(cosID, L"2D Image");
-    
-
-    //case TRACKING_3D:
-    /*
-    pxcUID firstID, lastID;
-    sts = this->Internal->Tracker->Set3DTrack(this->Internal->Targets[i].model_filename, firstID, lastID);
-    while (firstID <= lastID)
+    switch (this->TrackingMethod)
     {
-      PXCTracker::TrackingValues vals;
-      this->Internal->Tracker->QueryTrackingValues(firstID, vals);
-      this->Internal->Targets[i].addCosID(firstID, vals.targetName);
-      firstID++;
+      case TRACKING_3D:
+      {
+        pxcUID firstID, lastID;
+        sts = this->Internal->Tracker->Set3DTrack(this->Internal->Targets[i].model_filename, firstID, lastID);
+        while (firstID <= lastID)
+        {
+          PXCTracker::TrackingValues vals;
+          this->Internal->Tracker->QueryTrackingValues(firstID, vals);
+          this->Internal->Targets[i].addCosID(firstID, vals.targetName);
+          firstID++;
+        }
+        break;
+      }
+      case TRACKING_2D:
+      {
+        sts = this->Internal->Tracker->Set2DTrackFromFile(this->Internal->Targets[i].model_filename, cosID);
+        this->Internal->Targets[i].addCosID(cosID, L"2D Image");
+        break;
+      }
+      default:
+      {
+        LOG_ERROR("vtkPlusIntelRealSenseTracker::InternalConnect failed: unknown tracking method " << this->TrackingMethod);
+        return PLUS_FAIL;
+      }
     }
-    */
+
     if (sts < PXC_STATUS_NO_ERROR)
     {
       LOG_ERROR("Failed to set tracking configuration");
