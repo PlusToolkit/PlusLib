@@ -23,6 +23,12 @@ class vtkPlusDataCollectionExport vtkPlusIntelRealSenseTracker : public vtkPlusD
 {
 public:
 
+  enum TRACKING_METHOD_TYPE
+  {
+    TRACKING_3D,
+    TRACKING_2D
+  };
+
   static vtkPlusIntelRealSenseTracker *New();
   vtkTypeMacro(vtkPlusIntelRealSenseTracker,vtkPlusDevice);
 
@@ -67,6 +73,9 @@ public:
   vtkSetMacro(DeviceName, std::string);
   vtkGetMacro(DeviceName, std::string);
 
+  vtkSetMacro(TrackingMethod, TRACKING_METHOD_TYPE);
+  vtkGetMacro(TrackingMethod, TRACKING_METHOD_TYPE);
+
 protected:
   vtkPlusIntelRealSenseTracker();
   ~vtkPlusIntelRealSenseTracker();
@@ -104,6 +113,7 @@ protected:
   std::string CameraCalibrationFile;
   std::string DeviceName;
 
+  TRACKING_METHOD_TYPE TrackingMethod;
 
 #ifdef USE_INTELREALSENSE_TIMESTAMPS
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
