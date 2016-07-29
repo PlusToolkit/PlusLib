@@ -166,7 +166,7 @@ class vtkPlusDataCollectionExport vtkPlusSonixPortaVideoSource : public vtkPlusD
   /*! Get the number of frames per volume */
   PlusStatus GetStepPerFrame(int& aStepPerFrame);
 
-  /*! Set field of view by adjusting the motor range (in degrees) */
+  /*! Set field of view by adjusting the motor range (in degrees). If <=0 then the motor is turned off. */
   PlusStatus SetMotorRotationRangeDeg(double fovDeg);
   /*! Get field of view by adjusting the motor range (in degrees) */
   PlusStatus GetMotorRotationRangeDeg(double& fovDeg);
