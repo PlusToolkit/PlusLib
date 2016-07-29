@@ -303,7 +303,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
   int numberOfBytesToSkip = 4; 
 
   // Aligns the motor for correct acquisition of its angle
-  if ( this->FirstCallToAddFrameToBuffer )
+  if (this->FirstCallToAddFrameToBuffer && this->MotorRotationRangeDeg>0)
   {
     this->Porta->setParam( prmMotorStatus, 0 );
     this->Porta->setParam( prmMotorStatus, 1 );
@@ -592,31 +592,36 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
 
   this->MotorRotationPerStepDeg = 0;
   this->MotorRotationStartAngleDeg = 0;
-  if(this->ProbeInformation->motorized ) 
+  if (this->ProbeInformation->motorized)
   {
-    // Compute the angle per step
-    if (this->ProbeInformation->motorSteps>0)
+    if (this->MotorRotationRangeDeg > 0)
     {
-      this->MotorRotationPerStepDeg = static_cast<double>(this->ProbeInformation->motorFov) * 0.001 / static_cast<double>(this->ProbeInformation->motorSteps);
+      // Compute the angle per step
+      if (this->ProbeInformation->motorSteps > 0)
+      {
+        this->MotorRotationPerStepDeg = static_cast<double>(this->ProbeInformation->motorFov) * 0.001 / static_cast<double>(this->ProbeInformation->motorSteps);
+      }
+
+      if (this->MotorRotationRangeDeg >= 0) { SetMotorRotationRangeDeg(this->MotorRotationRangeDeg); }
+      if (this->StepPerFrame >= 0) { SetStepPerFrame(this->StepPerFrame); }
+      if (this->FramePerVolume >= 0) { SetFramePerVolume(this->FramePerVolume); }
+      int actualFramePerVolume = 0;
+      GetFramePerVolume(actualFramePerVolume);
+      int actualStepPerFrame = 0;
+      GetStepPerFrame(actualStepPerFrame);
+      double actualMotorRotationRangeDeg = 0;
+      GetMotorRotationRangeDeg(actualMotorRotationRangeDeg);
+      this->MotorRotationStartAngleDeg = (actualFramePerVolume - 1) / 2 * actualStepPerFrame*this->MotorRotationPerStepDeg;
+      LOG_INFO("actual values in hw: FramePerVolume=" << actualFramePerVolume << "    StepPerFrame=" << actualStepPerFrame << "    MotorRotationRangeDeg=" << actualMotorRotationRangeDeg << "    MotorRotationPerStepDeg=" << this->MotorRotationPerStepDeg << "   MotorRotationStartAngleDeg=" << this->MotorRotationStartAngleDeg);
+
+      // Turn on the motor
+      this->Porta->setParam(prmMotorStatus, 1);
     }
-
-    if (this->MotorRotationRangeDeg >= 0) { SetMotorRotationRangeDeg(this->MotorRotationRangeDeg); }
-    if (this->StepPerFrame >= 0) { SetStepPerFrame(this->StepPerFrame); }
-    if (this->FramePerVolume >= 0) { SetFramePerVolume(this->FramePerVolume); }
-
+    else
     {
-    int actualFramePerVolume=0;
-    GetFramePerVolume(actualFramePerVolume);
-    int actualStepPerFrame = 0;
-    GetStepPerFrame(actualStepPerFrame);
-    double actualMotorRotationRangeDeg = 0;
-    GetMotorRotationRangeDeg(actualMotorRotationRangeDeg);    
-    this->MotorRotationStartAngleDeg = (actualFramePerVolume-1)/2*actualStepPerFrame*this->MotorRotationPerStepDeg;
-    LOG_INFO("actual values in hw: FramePerVolume="<<actualFramePerVolume<<"    StepPerFrame="<<actualStepPerFrame<<"    MotorRotationRangeDeg="<<actualMotorRotationRangeDeg<<"    MotorRotationPerStepDeg="<<this->MotorRotationPerStepDeg<<"   MotorRotationStartAngleDeg="<<this->MotorRotationStartAngleDeg);
+      // Motor is available but motor motion is disabled, so turn off the motor
+      this->Porta->setParam(prmMotorStatus, 0);
     }
-
-    // Turn on the motor
-    this->Porta->setParam( prmMotorStatus, 1 );
   }
   else
   {
