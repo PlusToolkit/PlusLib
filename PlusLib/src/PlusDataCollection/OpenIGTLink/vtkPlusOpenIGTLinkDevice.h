@@ -61,6 +61,11 @@ public:
   /*! Get OpenIGTLink server port */ 
   vtkGetMacro(ServerPort, int); 
 
+  /*! Set OpenIGTLink socket timeout */
+  vtkSetMacro(ReceiveTimeoutSec, double);
+  /*! Get OpenIGTLink socket timeout */
+  vtkGetMacro(ReceiveTimeoutSec, double);
+
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */ 
   vtkSetMacro(IgtlMessageCrcCheckEnabled, int); 
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */ 
@@ -110,6 +115,8 @@ protected:
 
   /*! OpenIGTLink server port */ 
   int ServerPort; 
+
+  double ReceiveTimeoutSec;
 
   /*! Flag for IGTL CRC check (0: disabled, 1: enabled) */ 
   int IgtlMessageCrcCheckEnabled; 

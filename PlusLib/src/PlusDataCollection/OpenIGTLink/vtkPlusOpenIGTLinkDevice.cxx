@@ -10,8 +10,6 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkDevice.h"
 
-static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
-
 #ifdef _WIN32
 #include <Winsock2.h>
 #endif
@@ -22,6 +20,7 @@ vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
   , ServerAddress( NULL )
   , ServerPort( -1 )
   , IgtlMessageCrcCheckEnabled( 0 )
+  , ReceiveTimeoutSec(0.5)
   , NumberOfRetryAttempts( 3 ) // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
   , DelayBetweenRetryAttemptsSec( 0.100 ) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
   , ClientSocket( igtl::ClientSocket::New() )
@@ -143,7 +142,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC );
+  this->ClientSocket->SetTimeout(this->ReceiveTimeoutSec*1000); // *1000 because SetTimeout expects msec
 
   return SendRequestedMessageTypes();
 }
@@ -293,6 +292,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration( vtkXMLDataElement* rootC
   XML_READ_STRING_ATTRIBUTE_REQUIRED( ServerAddress, deviceConfig );
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, ServerPort, deviceConfig );
   XML_READ_STRING_ATTRIBUTE_OPTIONAL( MessageType, deviceConfig );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, ReceiveTimeoutSec, deviceConfig );
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( IgtlMessageCrcCheckEnabled, deviceConfig );
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( UseReceivedTimestamps, deviceConfig );
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( ReconnectOnReceiveTimeout, deviceConfig );
@@ -306,6 +306,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::WriteConfiguration( vtkXMLDataElement* root
   deviceConfig->SetAttribute( "ServerAddress", this->ServerAddress );
   deviceConfig->SetIntAttribute( "ServerPort", this->ServerPort );
   deviceConfig->SetAttribute( "MessageType", this->MessageType );
+  deviceConfig->SetDoubleAttribute( "ReceiveTimeoutSec", this->ReceiveTimeoutSec );
   deviceConfig->SetAttribute( "IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled ? "true" : "false" );
   deviceConfig->SetAttribute( "UseReceivedTimestamps", this->UseReceivedTimestamps ? "true" : "false" );
   deviceConfig->SetAttribute( "ReconnectOnReceiveTimeout", this->ReconnectOnReceiveTimeout ? "true" : "false" );
