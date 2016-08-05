@@ -42,13 +42,18 @@ struct ClientData
     , Server( NULL )
   {
   }
-  /*! Unique client identifier. First valid value is 1. */
+
+  /// Unique client identifier. First valid value is 1.
   int ClientId;
 
-  /*! IGTL client socket instance */
+  /// IGTL client socket instance
   igtl::ClientSocket::Pointer ClientSocket;
 
-  // Active flag for thread (first: request, second: respond )
+  /// Client specific timeouts
+  uint32_t ClientSocketSendTimeout;
+  uint32_t ClientSocketReceiveTimeout;
+
+  /// Active flag for thread (first: request, second: respond )
   std::pair<bool, bool> DataReceiverActive;
   int DataReceiverThreadId;
 
@@ -106,6 +111,12 @@ public:
 
   vtkSetMacro( SendValidTransformsOnly, bool );
   vtkGetMacro( SendValidTransformsOnly, bool );
+
+  vtkSetMacro( DefaultClientSendTimeout, int32_t );
+  vtkGetMacro( DefaultClientSendTimeout, int32_t );
+
+  vtkSetMacro( DefaultClientReceiveTimeout, int32_t );
+  vtkGetMacro( DefaultClientReceiveTimeout, int32_t );
 
   /*! Set data collector instance */
   virtual void SetDataCollector( vtkPlusDataCollector* dataCollector );
@@ -236,8 +247,8 @@ private:
   std::pair<bool, bool> DataSenderActive;
 
   // Thread IDs
-  int  ConnectionReceiverThreadId;
-  int  DataSenderThreadId;
+  int ConnectionReceiverThreadId;
+  int DataSenderThreadId;
 
   /*! List of connected clients */
   std::list<ClientData> IgtlClients;
@@ -266,6 +277,8 @@ private:
   The default client info can be set in the devices set config file in the DefaultClientInfo element.
   */
   PlusIgtlClientInfo DefaultClientInfo;
+  int32_t DefaultClientSendTimeout;
+  int32_t DefaultClientReceiveTimeout;
 
   /*! Flag for IGTL CRC check */
   bool IgtlMessageCrcCheckEnabled;
@@ -295,6 +308,4 @@ private:
   static int ClientIdCounter;
 };
 
-
 #endif
-

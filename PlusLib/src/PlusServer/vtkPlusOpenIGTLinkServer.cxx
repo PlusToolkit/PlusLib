@@ -69,6 +69,8 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , MaxTimeSpentWithProcessingMs( 50 )
   , LastProcessingTimePerFrameMs( -1 )
   , SendValidTransformsOnly( true )
+  , DefaultClientSendTimeout( CLIENT_SOCKET_TIMEOUT_MSEC )
+  , DefaultClientReceiveTimeout( CLIENT_SOCKET_TIMEOUT_MSEC )
   , IgtlMessageCrcCheckEnabled( 0 )
   , PlusCommandProcessor( vtkSmartPointer<vtkPlusCommandProcessor>::New() )
   , MessageResponseQueueMutex( vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New() )
@@ -217,26 +219,26 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
     {
       // Lock before we change the clients list
       PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock( self->IgtlClientsMutex );
-      ClientData newClient;
-      self->IgtlClients.push_back( newClient );
+      self->IgtlClients.push_back( ClientData() );
 
-      ClientData* client = &( self->IgtlClients.back() ); // get a reference to the client data that is stored in the list
-      client->ClientId = self->ClientIdCounter;
+      ClientData& client = self->IgtlClients.back(); // get a reference to the client data that is stored in the list
+      client.ClientId = self->ClientIdCounter;
       self->ClientIdCounter++;
-      client->ClientSocket = newClientSocket;
-      client->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC );
-      client->ClientInfo = self->DefaultClientInfo;
-      client->Server = self;
+      client.ClientSocket = newClientSocket;
+      client.ClientSocket->SetSendTimeout( self->DefaultClientSendTimeout );
+      client.ClientSocket->SetReceiveTimeout( self->DefaultClientReceiveTimeout );
+      client.ClientInfo = self->DefaultClientInfo;
+      client.Server = self;
 
       int port = 0;
       std::string address = "unknown";
 #if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
-      newClientSocket->GetSocketAddressAndPort( address, port );
+      client.ClientSocket->GetSocketAddressAndPort( address, port );
 #endif
-      LOG_INFO( "Received new client connection (client " << client->ClientId << " at " << address << ":" << port << "). Number of connected clients: " << self->GetNumberOfConnectedClients() );
+      LOG_INFO( "Received new client connection (client " << client.ClientId << " at " << address << ":" << port << "). Number of connected clients: " << self->GetNumberOfConnectedClients() );
 
-      client->DataReceiverActive.first = true;
-      client->DataReceiverThreadId = self->Threader->SpawnThread( ( vtkThreadFunctionType )&DataReceiverThread, client );
+      client.DataReceiverActive.first = true;
+      client.DataReceiverThreadId = self->Threader->SpawnThread( ( vtkThreadFunctionType )&DataReceiverThread, &client );
     }
   }
 
@@ -245,6 +247,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
   {
     self->ServerSocket->CloseSocket();
   }
+
   // Close thread
   self->ConnectionReceiverThreadId = -1;
   self->ConnectionActive.second = false;
@@ -780,8 +783,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& tracked
           disconnectedClientIds.push_back( clientIterator->ClientId );
           igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
           igtlMessage->GetTimeStamp( ts );
-          LOG_DEBUG( "Client disconnected - could not send " << igtlMessage->GetMessageType() << " message to client (device name: " << igtlMessage->GetDeviceName()
-                     << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ")." );
+          LOG_INFO( "Client disconnected - could not send " << igtlMessage->GetMessageType() << " message to client (device name: " << igtlMessage->GetDeviceName()
+                    << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ")." );
           break;
         }
 
@@ -982,6 +985,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration( vtkXMLDataElement* serve
       return PLUS_FAIL;
     }
   }
+
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int32_t, DefaultClientSendTimeout, serverElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int32_t, DefaultClientReceiveTimeout, serverElement );
 
   // TODO : how come default client info isn't mandatory? send nothing?
 
