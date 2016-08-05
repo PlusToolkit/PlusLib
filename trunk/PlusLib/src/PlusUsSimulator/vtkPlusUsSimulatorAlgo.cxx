@@ -178,6 +178,17 @@ int vtkPlusUsSimulatorAlgo::RequestData( vtkInformation* request, vtkInformation
     std::string strTransformName;
     imageToReferenceTransformName.GetTransformName( strTransformName );
     LOG_ERROR( "Failed to get transform from repository: " << strTransformName );
+
+    // Prevent crash in the pipeline by initializing output image
+    vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+    if (simulatedUsImage == NULL)
+    {
+      LOG_ERROR("vtkPlusUsSimulatorAlgo output type is invalid");
+      return 0;
+    }
+    simulatedUsImage->SetDimensions(1, 1, 1);
+    simulatedUsImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
     return 0;
   }
   vtkSmartPointer<vtkMatrix4x4> referenceToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
