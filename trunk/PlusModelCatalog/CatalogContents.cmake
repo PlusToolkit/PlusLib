@@ -1,10 +1,62 @@
 MODEL_CATALOG_START()
 
-MODEL_TABLE_START("Tracking fixtures" "See below a list of fixtures that can be used for mounting tracker markers (both optical and electromagnetic) on various tools and objects.")
+MODEL_TABLE_START("Tools" "See below a list of tools for tracking, calibration, and simulation." "Tools")
+MODEL_TABLE_ROW(
+  ID "Scalpel"
+  DESCRIPTION "Generic scalpel (100mm long handle, 20mm long blade)."
+  )
+MODEL_TABLE_ROW(
+  ID "Stylus_60mm"
+  PRINTABLE_FILES "TrackingFixtures/Stylus_60mm.stl"
+  EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
+  DESCRIPTION "Pointer tool with built-in sensor holder. 60mm long, sharp tip."
+  )
+MODEL_TABLE_ROW(
+  ID "Stylus_100mm"
+  PRINTABLE_FILES "TrackingFixtures/Stylus_100mm.stl"
+  EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
+  DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, sharp tip."
+  )
+MODEL_TABLE_ROW(
+  ID "Stylus_Candycane_100mm_WithHolder"
+  PRINTABLE_FILES "TrackingFixtures/Stylus_Candycane_100mm_WithHolder.stl"
+  EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
+  DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, curved tip for ultrasound calibration."
+  )
+MODEL_TABLE_ROW(
+  ID "Stylus_Candycane_70mm_1.0"
+  PRINTABLE_FILES "TrackingFixtures/Stylus_Candycane_70mm_1.0.stl"
+  EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
+  DESCRIPTION "Pointer tool with built-in sensor holder. 70mm long, curved tip for ultrasound calibration."
+  )
+MODEL_TABLE_ROW(
+  ID "UsProbe_SPL40"
+  EDIT_LINK "${CATALOG_URL}/Tools/UsProbe_SPL40.par"
+  DESCRIPTION "Mock linear ultrasound probe (width: 40mm)"
+  )
+MODEL_TABLE_ROW(
+  ID "UsProbe_Ultrasonix_L14-5_38"
+  DESCRIPTION "Ultrasonix L14-5/38 linear ultrasound probe."
+  )
+MODEL_TABLE_ROW(
+  ID "UsProbe_Ultrasonix_C5-2_60"
+  DESCRIPTION "Ultrasonix C5-2/60 curvilinear ultrasound probe."
+  )
+MODEL_TABLE_ROW(
+  ID "UsProbe_Ultrasonix_EC9-5_10"
+  DESCRIPTION "Ultrasonix EC9-5/10 endocavity curvilinear ultrasound probe."
+  )
+# Add remaining experimental tools
+SET(EXPERIMENTAL_TOOLS
+  )
+FOREACH(MODELFILE ${EXPERIMENTAL_TOOLS})
+  MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental")
+ENDFOREACH()
+MODEL_TABLE_END()
+
+MODEL_TABLE_START("Tracking fixtures" "See below a list of fixtures that can be used for mounting tracker markers (both optical and electromagnetic) on various tools and objects." TrackingFixtures)
 MODEL_TABLE_ROW(
   ID "CauteryGrabber"
-  IMAGE_FILE "TrackingFixtures/CauteryGrabber.png"
-  PRINTABLE_FILES "TrackingFixtures/CauteryGrabber.STL"
   DESCRIPTION "New version for fixing a tracker to a cautery. For clamp tightening use hex-head cap screw, M6 thread, 30 mm long with a matching wing nut. For assembly with SensorHolder-OneHole use M4 bolt."
   )
 MODEL_TABLE_ROW(
@@ -14,30 +66,37 @@ MODEL_TABLE_ROW(
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-even_long"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-even_long.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES
+    "TrackingFixtures/MarkerHolder_120mm-even_long.stl"
+    "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-odd_long"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_long.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES
+    "TrackingFixtures/MarkerHolder_120mm-odd_long.stl"
+    "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-even_short"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-even_short.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES
+    "TrackingFixtures/MarkerHolder_120mm-even_short.stl"
+    "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
   ID "MarkerHolder_120mm-odd_short"
   DESCRIPTION "Holder for visible-light printed black&white optical tracker markers (such as MicronTracker)."
-  PRINTABLE_FILES "TrackingFixtures/MarkerHolder_120mm-odd_short.stl" "TrackingFixtures/Marker_01-04.pdf"
+  PRINTABLE_FILES
+    "TrackingFixtures/MarkerHolder_120mm-odd_short.stl"
+    "TrackingFixtures/Marker_01-04.pdf"
   )
 MODEL_TABLE_ROW(
   ID "NeedleClip-Assembly_16-20G"
   DESCRIPTION "Clamps to a needle of size 16-20 G through a sterile bag."
   )
 MODEL_TABLE_ROW(
-  ID "Telemed-MicrUs-L12-SensorHolder.STL"
-  IMAGE_FILE "TrackingFixtures/Telemed-MicrUs-L12-SensorHolder.png"
+  ID "Telemed-MicrUs-L12-SensorHolder"
   PRINTABLE_FILES
     "TrackingFixtures/TelemedHolder_L12_MarkedSide.STL"
     "TrackingFixtures/TelemedHolder-L12_UnmarkedSide.STL"
@@ -49,48 +108,27 @@ MODEL_TABLE_ROW(
   )
 MODEL_TABLE_ROW(
   ID "SensorHolder-OneHole"
-  IMAGE_FILE "TrackingFixtures/SensorHolder-OneHole.png"
-  PRINTABLE_FILES "TrackingFixtures/SensorHolder-OneHole.STL"
   DESCRIPTION "Holds a Model 800 sensor, and has a hole to fix to other printed components."
   )
 MODEL_TABLE_ROW(
-  ID "OrientationsLR-Plane"
-  IMAGE_FILE "TrackingFixtures/OrientationLR-Plane.png"
-  PRINTABLE_FILES "TrackingFixtures/OrientationLR-Plane.STL"
+  ID "OrientationLR-Plane"
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
 # Add remaining experimental tools
-FOREACH(MODELFILE MarkerHolder_120mm_Winged_1.0 MarkerHolder_120mm-Short_2.0 NeedleGrabberFlappy-Assembly_1.0 Plug-L_60mm_3.0 SensorHolder-GlueHoles-Ordered_2mm_1.0 SensorHolder-Ordered-HolesInterface_2mm_1.0)
-  MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
+SET(EXPERIMENTAL_TRACKING_FIXTURES
+  MarkerHolder_120mm_Winged_1.0
+  MarkerHolder_120mm-Short_2.0
+  NeedleGrabberFlappy-Assembly_1.0
+  Plug-L_60mm_3.0
+  SensorHolder-GlueHoles-Ordered_2mm_1.0
+  SensorHolder-Ordered-HolesInterface_2mm_1.0
+  )
+FOREACH(MODELFILE ${EXPERIMENTAL_TRACKING_FIXTURES})
+  MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental")
 ENDFOREACH()
 MODEL_TABLE_END()
 
-MODEL_TABLE_START("Tools" "See below a list of tools for tracking, calibration, and simulation.")
-MODEL_TABLE_ROW(
-  ID "Stylus_60mm"
-  DESCRIPTION "Pointer tool with built-in sensor holder. 60mm long, sharp tip."
-  )
-MODEL_TABLE_ROW(
-  ID "Stylus_100mm"
-  DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, sharp tip."
-  )
-MODEL_TABLE_ROW(
-  ID "Stylus_Candycane_100mm_WithHolder"
-  DESCRIPTION "Pointer tool with built-in sensor holder. 100mm long, curved tip for ultrasound calibration."
-  )  
-# Add remaining experimental tools
-FOREACH(MODELFILE Stylus_Candycane_70mm_1.0)
-  MODEL_TABLE_ROW(ID ${MODELFILE} DESCRIPTION "Experimental") 
-ENDFOREACH()
-MODEL_TABLE_ROW(
-  ID "SPL40-1.0"
-  PRINTABLE_FILES "SimProbeLinear/SPL40-1.0.stl"  
-  EDIT_LINK "${CATALOG_URL}/SimProbeLinear"
-  DESCRIPTION "Simulated 40mm wide linear ultrasound probe."
-  )
-MODEL_TABLE_END()
-
-MODEL_TABLE_START("Calibration phantoms" "See below a list of ultrasound calibration phantoms.")
+MODEL_TABLE_START("Calibration phantoms" "See below a list of ultrasound calibration phantoms." "fCalPhantom")
 MODEL_TABLE_ROW(
   ID "fCal-2.0"
   IMAGE_FILE "fCalPhantom/fCal_2/PhantomDefinition_fCal_2.0_Wiring_2.0.png"
@@ -116,6 +154,13 @@ MODEL_TABLE_ROW(
   EDIT_LINK "${CATALOG_URL}/fCalPhantom/fCal_3"
   DESCRIPTION "Phantom for freehand spatial ultrasound calibration for deep structures (up to 30 cm)."
   )
-MODEL_TABLE_END()  
+MODEL_TABLE_END()
+
+MODEL_TABLE_START("Anatomy" "See below a list of anatomical models for simulation and testing." "Anatomy")
+MODEL_TABLE_ROW(
+  ID "HumanSimple"
+  DESCRIPTION "Simple low-polygon human body model."
+  )
+MODEL_TABLE_END()
 
 MODEL_CATALOG_END()

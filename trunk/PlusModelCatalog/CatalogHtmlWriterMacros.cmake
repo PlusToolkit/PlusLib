@@ -1,4 +1,4 @@
-MACRO(MODEL_TABLE_START MODEL_TABLE_NAME MODEL_TABLE_DESCRIPTION)
+MACRO(MODEL_TABLE_START MODEL_TABLE_NAME MODEL_TABLE_DESCRIPTION MODEL_DIRECTORY)
   SET(PAGE_BODY "${PAGE_BODY}
     <h2>${MODEL_TABLE_NAME}</h2>
     <p>${MODEL_TABLE_DESCRIPTION}</p>
@@ -13,6 +13,7 @@ MACRO(MODEL_TABLE_START MODEL_TABLE_NAME MODEL_TABLE_DESCRIPTION)
         </tr>
       </thead>
       <tbody>")
+  SET(MODEL_DIRECTORY "${MODEL_DIRECTORY}")
 ENDMACRO(MODEL_TABLE_START)
 
 MACRO(MODEL_TABLE_ROW)
@@ -20,9 +21,9 @@ MACRO(MODEL_TABLE_ROW)
   set(oneValueArgs ID IMAGE_FILE DESCRIPTION EDIT_LINK)
   set(multiValueArgs PRINTABLE_FILES)
   cmake_parse_arguments(MODEL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-
+  
   IF(NOT MODEL_PRINTABLE_FILES)
-    SET(MODEL_PRINTABLE_FILES "TrackingFixtures/${MODEL_ID}.stl")
+    SET(MODEL_PRINTABLE_FILES "${MODEL_DIRECTORY}/${MODEL_ID}.stl")
   ENDIF()  
   IF(NOT MODEL_IMAGE_FILE)
     SET(MODEL_IMAGE_FILE "${MODEL_ID}.png")
@@ -34,7 +35,7 @@ MACRO(MODEL_TABLE_ROW)
   ENDIF()
     
   IF(NOT MODEL_EDIT_LINK)
-    SET(MODEL_EDIT_LINK "${CATALOG_URL}/TrackingFixtures")
+    SET(MODEL_EDIT_LINK "${CATALOG_URL}/${MODEL_DIRECTORY}")
   ENDIF()
   FOREACH(MODEL_PRINTABLE_FILE ${MODEL_PRINTABLE_FILES})
     FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${MODEL_PRINTABLE_FILE} DESTINATION "${HTML_OUTPUT_DIR}/printable")
@@ -44,7 +45,7 @@ MACRO(MODEL_TABLE_ROW)
   
   SET(PAGE_BODY "${PAGE_BODY}
           <tr>
-          <td><img class=\"model\" src=\"rendered/${MODEL_IMAGE_FILE_NAME}\"></td>
+          <td><a href=\"${MODEL_EDIT_LINK}\"><img class=\"model\" src=\"rendered/${MODEL_IMAGE_FILE_NAME}\"></a></td>
           <td>${MODEL_ID}<br><a href=\"${MODEL_EDIT_LINK}\"><img src=\"link.png\"></a></td>
           <td>${MODEL_DESCRIPTION}</td>  
           <td>")
@@ -102,7 +103,7 @@ MACRO (CREATE_MODEL_IMAGE INPUT_STL_FILE OUTPUT_PNG_FILE)
   GET_FILENAME_COMPONENT(BASE_FILENAME ${INPUT_STL_FILE} NAME)
   add_custom_command(
     DEPENDS ${INPUT_STL_FILE} ModelRenderer
-    COMMAND ${MODEL_RENDERER_EXE} --model-file=${INPUT_STL_FILE} --output-image-file=${OUTPUT_PNG_FILE}
+    COMMAND ${MODEL_RENDERER_EXE} --model-file=${INPUT_STL_FILE} --output-image-file=${OUTPUT_PNG_FILE} --camera-orientation 0 -20 -20
     OUTPUT ${OUTPUT_PNG_FILE}
     )
   add_custom_target(ModelRenderer-${BASE_FILENAME} DEPENDS ${OUTPUT_PNG_FILE})
