@@ -186,9 +186,13 @@ int vtkPlusUsSimulatorAlgo::RequestData( vtkInformation* request, vtkInformation
       LOG_ERROR("vtkPlusUsSimulatorAlgo output type is invalid");
       return 0;
     }
-    simulatedUsImage->SetDimensions(1, 1, 1);
-    simulatedUsImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
+#if (VTK_MAJOR_VERSION < 6)
+	simulatedUsImage->SetScalarType( VTK_UNSIGNED_CHAR );
+	simulatedUsImage->SetNumberOfScalarComponents( 1 );
+	simulatedUsImage->AllocateScalars();
+#else
+	simulatedUsImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
+#endif
     return 0;
   }
   vtkSmartPointer<vtkMatrix4x4> referenceToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
