@@ -1870,6 +1870,11 @@ PlusStatus vtkPlusDevice::GetOutputChannelByName( vtkPlusChannel*& aChannel, con
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::AddInputChannel( vtkPlusChannel* aChannel )
 {
+  if (aChannel == NULL)
+  {
+    LOCAL_LOG_ERROR("vtkPlusDevice::AddInputChannel failed: input channel is invalid");
+    return PLUS_FAIL;
+  }
   for( ChannelContainerIterator it = InputChannels.begin(); it != InputChannels.end(); ++it )
   {
     if( STRCASECMP( ( *it )->GetChannelId(), aChannel->GetChannelId() ) == 0 )
