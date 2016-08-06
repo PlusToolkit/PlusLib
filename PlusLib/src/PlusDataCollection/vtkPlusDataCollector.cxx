@@ -174,7 +174,7 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
     vtkPlusDevice* thisDevice = NULL;
     if( this->GetDevice(thisDevice, deviceElement->GetAttribute("Id")) != PLUS_SUCCESS )
     {
-      LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " doesn't exist.");
+      LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " does not exist.");
       return PLUS_FAIL;
     }
     vtkXMLDataElement* inputChannelsElement = deviceElement->FindNestedElementWithName("InputChannels");
@@ -189,16 +189,31 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration( vtkXMLDataElement* aConfig )
       if( STRCASECMP(inputChannelElement->GetName(), "InputChannel") == 0 )
       {
         // We have an input channel, lets find it
+        const char* inputChannelId = inputChannelElement->GetAttribute("Id");
+        if (inputChannelId == NULL)
+        {
+          LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " has an input channel without Id attribute.");
+          return PLUS_FAIL;
+        }
+        vtkPlusChannel* aChannel = NULL;
         for( DeviceCollectionIterator it = Devices.begin(); it != Devices.end(); ++it )
         {
           vtkPlusDevice* device = (*it);
-          vtkPlusChannel* aChannel = NULL;
-          if( device->GetOutputChannelByName(aChannel, inputChannelElement->GetAttribute("Id")) == PLUS_SUCCESS )
+          if (device->GetOutputChannelByName(aChannel, inputChannelId) == PLUS_SUCCESS)
           {
             // Found it!
-            thisDevice->AddInputChannel(aChannel);
             break;
           }
+        }
+        if (aChannel == NULL)
+        {
+          LOG_ERROR("Device " << deviceElement->GetAttribute("Id") << " is specified to use channel " << inputChannelId << " as input, but an output channel by this Id does not exist");
+          return PLUS_FAIL;
+        }
+        if (thisDevice->AddInputChannel(aChannel) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to add input channel " << inputChannelId << " to device " << deviceElement->GetAttribute("Id"));
+          return PLUS_FAIL;
         }
       }
     }
