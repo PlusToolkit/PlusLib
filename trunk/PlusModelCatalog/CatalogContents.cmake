@@ -6,10 +6,9 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Generic scalpel (100mm long handle, 20mm long blade)."
   )
 MODEL_TABLE_ROW(
-  ID "Stylus_60mm"
-  PRINTABLE_FILES "TrackingFixtures/Stylus_60mm.stl"
+  ID "Needle_BardDuaLok57"
   EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
-  DESCRIPTION "Pointer tool with built-in sensor holder. 60mm long, sharp tip."
+  DESCRIPTION "Bard DuaLok57 double-hook needle (without hooks)."
   )
 MODEL_TABLE_ROW(
   ID "Stylus_100mm"
@@ -45,6 +44,10 @@ MODEL_TABLE_ROW(
 MODEL_TABLE_ROW(
   ID "UsProbe_Ultrasonix_EC9-5_10"
   DESCRIPTION "Ultrasonix EC9-5/10 endocavity curvilinear ultrasound probe."
+  )
+MODEL_TABLE_ROW(
+  ID "UsProbe_Telemed_L12"
+  DESCRIPTION "Telemed L12 linear ultrasound probe."
   )
 # Add remaining experimental tools
 SET(EXPERIMENTAL_TOOLS
@@ -97,9 +100,10 @@ MODEL_TABLE_ROW(
   )
 MODEL_TABLE_ROW(
   ID "Telemed-MicrUs-L12-SensorHolder"
+  IMAGE_PRINTABLE_FILE "TrackingFixtures/Telemed-MicrUs-L12-SensorHolder.stl"
   PRINTABLE_FILES
-    "TrackingFixtures/TelemedHolder_L12_MarkedSide.STL"
-    "TrackingFixtures/TelemedHolder-L12_UnmarkedSide.STL"
+    "TrackingFixtures/TelemedHolder_L12_MarkedSide.stl"
+    "TrackingFixtures/TelemedHolder-L12_UnmarkedSide.stl"
   DESCRIPTION "Parts for tracking Telemed MicrUs L12 ultrasound probe"
   )
 MODEL_TABLE_ROW(
