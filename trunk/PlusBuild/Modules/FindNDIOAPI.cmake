@@ -5,6 +5,7 @@
 # NDIOAPI_BINARY_DIR, where to find the shared libraries 
 # NDIOAPI_INCLUDE_DIR, where to find the headers
 #
+# To pass your own install, set NDIOAPI_ROOT_HINT to the folder containing the Oapi-3.0.0.66 folder
 
 SET( NDIOAPI_PATH_HINTS 
     ../NDI/Oapi-3.0.0.66
@@ -12,6 +13,7 @@ SET( NDIOAPI_PATH_HINTS
     ../../PLTools/NDI/Oapi-3.0.0.66
     ../trunk/PLTools/NDI/Oapi-3.0.0.66    
     ${CMAKE_CURRENT_BINARY_DIR}/PLTools/NDI/Oapi-3.0.0.66
+    ${NDIOAPI_ROOT_HINT}
     )
 
 FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h 
