@@ -165,6 +165,13 @@ MODEL_TABLE_ROW(
   ID "HumanSimple"
   DESCRIPTION "Simple low-polygon human body model."
   )
+MODEL_TABLE_ROW(
+  ID "LumbarSpinePhantom"
+  DESCRIPTION "Printable 3D model of the lumbar spine with matching CT image. Note that lowest vertebra is moved in the printable model compared to CT."
+  PRINTABLE_FILES
+    "Anatomy/LumbarSpinePhantom.stl"
+    "Anatomy/LumbarSpinePhantom_CT.mha"
+  )
 MODEL_TABLE_END()
 
 MODEL_CATALOG_END()
