@@ -112,11 +112,11 @@ public:
   vtkSetMacro( SendValidTransformsOnly, bool );
   vtkGetMacro( SendValidTransformsOnly, bool );
 
-  vtkSetMacro( DefaultClientSendTimeout, int32_t );
-  vtkGetMacro( DefaultClientSendTimeout, int32_t );
+  vtkSetMacro( DefaultClientSendTimeoutSec, float );
+  vtkGetMacro( DefaultClientSendTimeoutSec, float );
 
-  vtkSetMacro( DefaultClientReceiveTimeout, int32_t );
-  vtkGetMacro( DefaultClientReceiveTimeout, int32_t );
+  vtkSetMacro( DefaultClientReceiveTimeoutSec, float );
+  vtkGetMacro( DefaultClientReceiveTimeoutSec, float );
 
   /*! Set data collector instance */
   virtual void SetDataCollector( vtkPlusDataCollector* dataCollector );
@@ -277,8 +277,8 @@ private:
   The default client info can be set in the devices set config file in the DefaultClientInfo element.
   */
   PlusIgtlClientInfo DefaultClientInfo;
-  int32_t DefaultClientSendTimeout;
-  int32_t DefaultClientReceiveTimeout;
+  float DefaultClientSendTimeoutSec;
+  float DefaultClientReceiveTimeoutSec;
 
   /*! Flag for IGTL CRC check */
   bool IgtlMessageCrcCheckEnabled;
@@ -306,6 +306,8 @@ private:
 
   /*! Counter to generate unique client IDs. Access to the counter is not protected, therefore all clients should be created from the same thread. */
   static int ClientIdCounter;
+
+  static const float CLIENT_SOCKET_TIMEOUT_SEC;
 };
 
 #endif
