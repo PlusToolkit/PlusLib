@@ -331,7 +331,7 @@ public:
   /*!
     Set 'From' and 'To' coordinate frame names from a combined transform name with the following format [FrameFrom]To[FrameTo].
     The combined transform name might contain only one 'To' phrase followed by a capital letter (e.g. ImageToToProbe is not allowed)
-    and the coordiante frame names should be in camel case format starting with capitalized letters.
+    and the coordinate frame names should be in camel case format starting with capitalized letters.
   */
   PlusStatus SetTransformName( const char* aTransformName );
 
@@ -351,9 +351,14 @@ public:
   /*! Check if the current transform name is valid */
   bool IsValid() const;
 
-  bool operator== ( const PlusTransformName& in ) const
+  inline bool operator== ( const PlusTransformName& in ) const
   {
     return ( in.m_From == m_From && in.m_To == m_To );
+  }
+
+  inline bool operator!= (const PlusTransformName& in) const
+  {
+    return !(in == *this);
   }
 
   friend std::ostream& operator<< ( std::ostream& os, const PlusTransformName& transformName )
@@ -363,12 +368,12 @@ public:
   }
 
 private:
-
   /*! Check if the input string is capitalized, if not capitalize it */
   void Capitalize( std::string& aString );
   std::string m_From; /*! From coordinate frame name */
   std::string m_To; /*! To coordinate frame name */
 };
+
 
 #define RETRY_UNTIL_TRUE(command_, numberOfRetryAttempts_, delayBetweenRetryAttemptsSec_) \
   { \
