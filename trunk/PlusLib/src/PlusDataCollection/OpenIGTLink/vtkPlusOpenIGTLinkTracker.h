@@ -13,17 +13,16 @@
 #include "vtkPlusIgtlMessageFactory.h"
 
 /*!
-\class vtkPlusOpenIGTLinkTracker 
-\brief OpenIGTLink tracker client  
+\class vtkPlusOpenIGTLinkTracker
+\brief OpenIGTLink tracker client
 
 \ingroup PlusLibDataCollection
 */
 class vtkPlusDataCollectionExport vtkPlusOpenIGTLinkTracker : public vtkPlusOpenIGTLinkDevice
 {
 public:
-
-  static vtkPlusOpenIGTLinkTracker *New();
-  vtkTypeMacro( vtkPlusOpenIGTLinkTracker,vtkPlusOpenIGTLinkDevice );
+  static vtkPlusOpenIGTLinkTracker* New();
+  vtkTypeMacro( vtkPlusOpenIGTLinkTracker, vtkPlusOpenIGTLinkDevice );
   virtual void PrintSelf( ostream& os, vtkIndent indent );
 
   /*! Disconnect from device */
@@ -33,20 +32,23 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config ); 
-  
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);  
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* config );
 
-  virtual bool IsTracker() const { return true; }
+  virtual bool IsTracker() const
+  {
+    return true;
+  }
 
-  /*! 
+  /*!
     Set the internal tracker coordinate system name that is send to the tracker
     when tracking start is requested using an STT_TDATA message.
-  */ 
-  vtkSetStringMacro(TrackerInternalCoordinateSystemName); 
-  /*! Get the internal tracker coordinate system name */ 
-  vtkGetStringMacro(TrackerInternalCoordinateSystemName); 
+  */
+  vtkSetStringMacro( TrackerInternalCoordinateSystemName );
+  /*! Get the internal tracker coordinate system name */
+  vtkGetStringMacro( TrackerInternalCoordinateSystemName );
 
 protected:
   vtkPlusOpenIGTLinkTracker();
@@ -60,7 +62,7 @@ protected:
   PlusStatus InternalUpdateGeneral();
 
   /*! Process a single TRANSFORM or POSITION message */
-  PlusStatus ProcessTransformMessageGeneral(bool &moreMessagesPossible);
+  PlusStatus ProcessTransformMessageGeneral( bool& moreMessagesPossible );
 
   /*! Process a TDATA message (add all the received transforms to the buffers) */
   PlusStatus InternalUpdateTData();
@@ -70,16 +72,16 @@ protected:
     If no transforms are defined then identity transform will be stored.
     If there is a transform defined already with the same timestamp then it will not be overwritten.
   */
-  PlusStatus StoreMostRecentTransformValues(double unfilteredTimestamp);
+  PlusStatus StoreMostRecentTransformValues( double unfilteredTimestamp );
 
   /*!
     Store the latest transforms again in the buffers with the provided timestamp with invalid status.
     If no transforms are defined then identity transform will be stored.
     If there is a transform defined already with the same timestamp then it will not be overwritten.
   */
-  PlusStatus StoreInvalidTransforms(double unfilteredTimestamp);
+  PlusStatus StoreInvalidTransforms( double unfilteredTimestamp );
 
-  vtkSetMacro(UseLastTransformsOnReceiveTimeout, bool);
+  vtkSetMacro( UseLastTransformsOnReceiveTimeout, bool );
 
   /*!
     Internal tracker coordinate system name that is send to the tracker when tracking start is requested
@@ -93,10 +95,9 @@ protected:
   /*! igtl Factory for message handling */
   vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
-private:  
-  
+private:
   vtkPlusOpenIGTLinkTracker( const vtkPlusOpenIGTLinkTracker& );
-  void operator=( const vtkPlusOpenIGTLinkTracker& );    
+  void operator=( const vtkPlusOpenIGTLinkTracker& );
 };
 
 #endif

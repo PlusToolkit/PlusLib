@@ -55,7 +55,10 @@ void vtkPlusOpenIGTLinkDevice::PrintSelf( ostream& os, vtkIndent indent )
   {
     os << indent << "Message type: " << this->MessageType << "\n";
   }
-
+  if ( this->ImageStream.IsValid() )
+  {
+    os << indent << "Image stream: " << this->ImageStream.GetTransformName() << "\n";
+  }
 }
 //----------------------------------------------------------------------------
 std::string vtkPlusOpenIGTLinkDevice::GetSdkVersion()
@@ -155,10 +158,21 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   {
     return PLUS_SUCCESS;
   }
+
   // Send client info request to the server
   PlusIgtlClientInfo clientInfo;
+
   // Set message type
   clientInfo.IgtlMessageTypes.push_back( this->MessageType );
+
+  // Set any requested image streams
+  if ( this->ImageStream.IsValid() )
+  {
+    PlusIgtlClientInfo::ImageStream is;
+    is.Name = this->ImageStream.From();
+    is.EmbeddedTransformToFrame = this->ImageStream.To();
+    clientInfo.ImageStreams.push_back( is );
+  }
 
   // We need the following tool names from the server
   for ( DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it )
