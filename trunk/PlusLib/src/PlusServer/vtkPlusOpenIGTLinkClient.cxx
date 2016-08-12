@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 
-static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
+const float vtkPlusOpenIGTLinkClient::CLIENT_SOCKET_TIMEOUT_SEC = 0.5;
 
 vtkStandardNewMacro( vtkPlusOpenIGTLinkClient );
 
@@ -68,7 +68,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect( double timeoutSec/*=-1*/ )
   }
   LOG_TRACE( "Client successfully connected to server." );
 
-  this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_MSEC );
+  this->ClientSocket->SetTimeout( CLIENT_SOCKET_TIMEOUT_SEC * 1000 );
 
   if ( this->DataReceiverThreadId < 0 )
   {

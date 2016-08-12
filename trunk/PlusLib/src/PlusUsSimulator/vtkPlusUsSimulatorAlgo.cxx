@@ -180,18 +180,18 @@ int vtkPlusUsSimulatorAlgo::RequestData( vtkInformation* request, vtkInformation
     LOG_ERROR( "Failed to get transform from repository: " << strTransformName );
 
     // Prevent crash in the pipeline by initializing output image
-    vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
-    if (simulatedUsImage == NULL)
+    vtkImageData* simulatedUsImage = vtkImageData::SafeDownCast( outInfo->Get( vtkDataObject::DATA_OBJECT() ) );
+    if ( simulatedUsImage == NULL )
     {
-      LOG_ERROR("vtkPlusUsSimulatorAlgo output type is invalid");
+      LOG_ERROR( "vtkPlusUsSimulatorAlgo output type is invalid" );
       return 0;
     }
 #if (VTK_MAJOR_VERSION < 6)
-	simulatedUsImage->SetScalarType( VTK_UNSIGNED_CHAR );
-	simulatedUsImage->SetNumberOfScalarComponents( 1 );
-	simulatedUsImage->AllocateScalars();
+    simulatedUsImage->SetScalarType( VTK_UNSIGNED_CHAR );
+    simulatedUsImage->SetNumberOfScalarComponents( 1 );
+    simulatedUsImage->AllocateScalars();
 #else
-	simulatedUsImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
+    simulatedUsImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
 #endif
     return 0;
   }

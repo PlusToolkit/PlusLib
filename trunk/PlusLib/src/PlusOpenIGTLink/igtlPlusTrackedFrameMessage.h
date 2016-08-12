@@ -9,19 +9,19 @@
 
 #include "vtkPlusOpenIGTLinkExport.h"
 
-#include <string>
-
-#include "igtlObject.h"
-#include "igtlutil/igtl_util.h"
-#include "igtlutil/igtl_header.h"
-#include "igtlMessageBase.h"
+#include "PlusTrackedFrame.h"
 #include "igtl_types.h"
 #include "igtl_win32header.h"
-#include "PlusTrackedFrame.h"
+#include "igtlMessageBase.h"
+#include "igtlObject.h"
+#include "igtlutil/igtl_header.h"
+#include "igtlutil/igtl_util.h"
+#include "vtkMatrix4x4.h"
+#include "vtkSmartPointer.h"
+#include <string>
 
 namespace igtl
 {
-
   // This command prevents 4-byte alignment in the struct (which enables m_FrameSize[3])
 #pragma pack(1)     /* For 1-byte boundary in memory */
 
@@ -42,7 +42,6 @@ namespace igtl
     igtlNewMacro( igtl::PlusTrackedFrameMessage );
 
   public:
-
     /*! Override clone so that we use the plus igtl factory */
     virtual igtl::MessageBase::Pointer Clone();
 
@@ -51,6 +50,12 @@ namespace igtl
 
     /*! Get Plus TrackedFrame */
     PlusTrackedFrame GetTrackedFrame();
+
+    /*! Set the embedded transform of the underlying image */
+    PlusStatus SetEmbeddedImageTransform( vtkSmartPointer<vtkMatrix4x4> matrix );
+
+    /*! Get the embedded transform of the underlying image */
+    vtkSmartPointer<vtkMatrix4x4> GetEmbeddedImageTransform();
 
   protected:
     class TrackedFrameHeader
@@ -64,17 +69,25 @@ namespace igtl
         , m_XmlDataSizeInBytes( 0 )
       {
         m_FrameSize[0] = m_FrameSize[1] = m_FrameSize[2] = 0;
+        for ( int i = 0; i < 4; ++i )
+        {
+          for ( int j = 0; j < 4; ++j )
+          {
+            m_EmbeddedImageTransform[i][j] = ( i == j ) ? 1.f : 0.f;
+          }
+        }
       }
 
       size_t GetMessageHeaderSize()
       {
         size_t headersize = 0;
-        headersize += sizeof( igtl_uint16 ); // m_ScalarType
-        headersize += sizeof( igtl_uint16 ); // m_NumberOfComponents
-        headersize += sizeof( igtl_uint16 ); // m_ImageType
-        headersize += sizeof( igtl_uint16 ) * 3; // m_FrameSize[3]
-        headersize += sizeof( igtl_uint32 ); // m_ImageDataSizeInBytes
-        headersize += sizeof( igtl_uint32 ); // m_XmlDataSizeInBytes
+        headersize += sizeof( igtl_uint16 );      // m_ScalarType
+        headersize += sizeof( igtl_uint16 );      // m_NumberOfComponents
+        headersize += sizeof( igtl_uint16 );      // m_ImageType
+        headersize += sizeof( igtl_uint16 ) * 3;  // m_FrameSize[3]
+        headersize += sizeof( igtl_uint32 );      // m_ImageDataSizeInBytes
+        headersize += sizeof( igtl_uint32 );      // m_XmlDataSizeInBytes
+        headersize += sizeof( igtl::Matrix4x4 );  // m_embeddedImageTransform[4][4]
 
         return headersize;
       }
@@ -91,15 +104,23 @@ namespace igtl
           m_FrameSize[2] = BYTE_SWAP_INT16( m_FrameSize[2] );
           m_ImageDataSizeInBytes = BYTE_SWAP_INT32( m_ImageDataSizeInBytes );
           m_XmlDataSizeInBytes = BYTE_SWAP_INT32( m_XmlDataSizeInBytes );
+          for ( int i = 0; i < 4; ++i )
+          {
+            for ( int j = 0; j < 4; ++j )
+            {
+              m_EmbeddedImageTransform[i][j] = BYTE_SWAP_INT32( ( int )m_EmbeddedImageTransform[i][j] );
+            }
+          }
         }
       }
 
-      igtl_uint16 m_ScalarType;      /* scalar type                     */
-      igtl_uint16 m_NumberOfComponents; /* number of scalar components */
-      igtl_uint16 m_ImageType;          /* image type */
-      igtl_uint16 m_FrameSize[3];    /* entire image volume size */
-      igtl_uint32 m_ImageDataSizeInBytes;
-      igtl_uint32 m_XmlDataSizeInBytes;
+      igtl_uint16     m_ScalarType;             /* scalar type                     */
+      igtl_uint16     m_NumberOfComponents;     /* number of scalar components */
+      igtl_uint16     m_ImageType;              /* image type */
+      igtl_uint16     m_FrameSize[3];           /* entire image volume size */
+      igtl_uint32     m_ImageDataSizeInBytes;   /* size of the image, in bytes */
+      igtl_uint32     m_XmlDataSizeInBytes;     /* size of the xml data, in bytes */
+      igtl::Matrix4x4 m_EmbeddedImageTransform; /* matrix representing the IJK to world transformation */
     };
 
     virtual int  CalculateContentBufferSize();

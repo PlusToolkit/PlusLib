@@ -95,7 +95,7 @@ private:
 
   std::pair<bool, bool> DataReceiverActive;
 
-  int  DataReceiverThreadId;
+  int DataReceiverThreadId;
 
   /*! vtkMultiThreader instance for controlling threads */
   vtkSmartPointer<vtkMultiThreader> Threader;
@@ -115,6 +115,8 @@ private:
 
   // IGTL protocol version of the server
   int         ServerIGTLVersion;
+
+  static const float CLIENT_SOCKET_TIMEOUT_SEC;
 };
 
 #endif

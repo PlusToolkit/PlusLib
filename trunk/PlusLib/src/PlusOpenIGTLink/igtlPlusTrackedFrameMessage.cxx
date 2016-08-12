@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "igtlPlusTrackedFrameMessage.h"
 #include "vtkImageData.h"
+#include "vtkMatrix4x4.h"
 #include "vtkPlusIgtlMessageFactory.h"
 
 namespace igtl
@@ -99,6 +100,34 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
+  PlusStatus PlusTrackedFrameMessage::SetEmbeddedImageTransform(vtkSmartPointer<vtkMatrix4x4> matrix)
+  {
+    for (int i = 0; i < 4; ++i)
+    {
+      for (int j = 0; j < 4; ++j)
+      {
+        m_MessageHeader.m_EmbeddedImageTransform[i][j] = matrix->GetElement(i, j);
+      }
+    }
+    
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  vtkSmartPointer<vtkMatrix4x4> PlusTrackedFrameMessage::GetEmbeddedImageTransform()
+  {
+    vtkSmartPointer<vtkMatrix4x4> mat(vtkSmartPointer<vtkMatrix4x4>::New());
+    for (int i = 0; i < 4; ++i)
+    {
+      for (int j = 0; j < 4; ++j)
+      {
+        mat->SetElement(i, j, m_MessageHeader.m_EmbeddedImageTransform[i][j]);
+      }
+    }
+    return mat;
+  }
+
+  //----------------------------------------------------------------------------
   int PlusTrackedFrameMessage::CalculateContentBufferSize()
   {
     return this->m_MessageHeader.GetMessageHeaderSize()
@@ -121,6 +150,7 @@ namespace igtl
     header->m_FrameSize[2] = this->m_MessageHeader.m_FrameSize[2];
     header->m_ImageDataSizeInBytes = this->m_MessageHeader.m_ImageDataSizeInBytes;
     header->m_XmlDataSizeInBytes = this->m_MessageHeader.m_XmlDataSizeInBytes;
+    memcpy( header->m_EmbeddedImageTransform, this->m_MessageHeader.m_EmbeddedImageTransform, sizeof( igtl::Matrix4x4 ) );
 
     // Copy xml data
     char* xmlData = ( char* )( this->m_Content + header->GetMessageHeaderSize() );
@@ -159,6 +189,7 @@ namespace igtl
     this->m_MessageHeader.m_FrameSize[2] = header->m_FrameSize[2];
     this->m_MessageHeader.m_ImageDataSizeInBytes = header->m_ImageDataSizeInBytes;
     this->m_MessageHeader.m_XmlDataSizeInBytes = header->m_XmlDataSizeInBytes;
+    memcpy( this->m_MessageHeader.m_EmbeddedImageTransform, header->m_EmbeddedImageTransform, sizeof( igtl::Matrix4x4 ) );
 
     // Copy xml data
     char* xmlData = ( char* )( this->m_Content + header->GetMessageHeaderSize() );

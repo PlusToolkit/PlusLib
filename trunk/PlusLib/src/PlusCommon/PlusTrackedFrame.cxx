@@ -98,6 +98,7 @@ PlusStatus PlusTrackedFrame::PrintToXML( vtkXMLDataElement* trackedFrame )
   trackedFrame->SetName( "TrackedFrame" );
   trackedFrame->SetDoubleAttribute( "Timestamp", this->Timestamp );
   trackedFrame->SetAttribute( "ImageDataValid", ( this->GetImageData()->IsImageValid() ? "true" : "false" ) );
+
   if ( this->GetImageData()->IsImageValid() )
   {
     trackedFrame->SetIntAttribute( "NumberOfBits", this->GetNumberOfBitsPerScalar() );
@@ -112,6 +113,7 @@ PlusStatus PlusTrackedFrame::PrintToXML( vtkXMLDataElement* trackedFrame )
     int frameSizeSigned[3] = { static_cast<int>( FrameSize[0] ), static_cast<int>( FrameSize[1] ), static_cast<int>( FrameSize[2] ) };
     trackedFrame->SetVectorAttribute( "FrameSize", 3, frameSizeSigned );
   }
+
   for ( FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++ )
   {
     vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -153,9 +155,11 @@ PlusStatus PlusTrackedFrame::PrintToXML( vtkXMLDataElement* trackedFrame )
       pointElement->SetVectorAttribute( "Position", 3, point );
       segmentedPoints->AddNestedElement( pointElement );
     }
+
     segmentation->AddNestedElement( segmentedPoints );
     trackedFrame->AddNestedElement( segmentation );
   }
+
   return PLUS_SUCCESS;
 }
 

@@ -275,13 +275,30 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage) )
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
-      if ( vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame) != PLUS_SUCCESS )
+
+      for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
-        LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
-        numberOfErrors++;
-        continue;
+        PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
+
+        // Set transform name to [Name]To[CoordinateFrame]
+        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
+
+        vtkSmartPointer<vtkMatrix4x4> mat(vtkSmartPointer<vtkMatrix4x4>::New());
+        bool isValid;
+        if (transformRepository->GetTransform(imageTransformName, mat, &isValid) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Unable to retrieve embedded image transform: " << imageTransformName.GetTransformName() << ".");
+          continue;
+        }
+
+        if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, mat) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
+          numberOfErrors++;
+          continue;
+        }
+        igtlMessages.push_back(trackedFrameMessage.GetPointer());
       }
-      igtlMessages.push_back(trackedFrameMessage.GetPointer());
     }
     // USMESSAGE message
     else if ( typeid(*igtlMessage) == typeid(igtl::PlusUsMessage) )

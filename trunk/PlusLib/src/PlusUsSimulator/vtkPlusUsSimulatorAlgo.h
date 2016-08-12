@@ -21,89 +21,89 @@ class vtkModifiedBSPTree;
 class vtkPlusRfProcessor;
 
 /*!
-  \class vtkPlusUsSimulatorAlgo 
+  \class vtkPlusUsSimulatorAlgo
   \brief Class that simulates ultrasound images from multiple surface models
   \ingroup PlusLibUsSimulatorAlgo
 */
 class vtkPlusUsSimulatorExport vtkPlusUsSimulatorAlgo : public vtkImageAlgorithm
 {
 public:
-  vtkTypeMacro(vtkPlusUsSimulatorAlgo,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
-  static vtkPlusUsSimulatorAlgo *New();
+  vtkTypeMacro( vtkPlusUsSimulatorAlgo, vtkImageAlgorithm );
+  void PrintSelf( ostream& os, vtkIndent indent );
+  static vtkPlusUsSimulatorAlgo* New();
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
 
 public:
 
   /*! Set transform repository */
-  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository); 
+  vtkSetObjectMacro( TransformRepository, vtkPlusTransformRepository );
   /*! Get transform repository */
-  vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository); 
+  vtkGetObjectMacro( TransformRepository, vtkPlusTransformRepository );
 
   /*! Set image frame name */
-  vtkSetStringMacro(ImageCoordinateFrame); 
+  vtkSetStringMacro( ImageCoordinateFrame );
   /*! Get image frame name */
-  vtkGetStringMacro(ImageCoordinateFrame);
+  vtkGetStringMacro( ImageCoordinateFrame );
 
   /*! Set reference frame name */
-  vtkSetStringMacro(ReferenceCoordinateFrame); 
+  vtkSetStringMacro( ReferenceCoordinateFrame );
   /*! Get reference frame name */
-  vtkGetStringMacro(ReferenceCoordinateFrame);
+  vtkGetStringMacro( ReferenceCoordinateFrame );
 
-   /*! Set US imaging frequency*/
-  vtkSetMacro(FrequencyMhz, double); 
+  /*! Set US imaging frequency*/
+  vtkSetMacro( FrequencyMhz, double );
   /*! Get US imaging frequency */
-  vtkGetMacro(FrequencyMhz, double);
+  vtkGetMacro( FrequencyMhz, double );
 
   /*! Set max intensity in mW/cm2 */
-  vtkSetMacro(IncomingIntensityMwPerCm2, double); 
+  vtkSetMacro( IncomingIntensityMwPerCm2, double );
   /*! Get max intensity in mW/cm2 */
-  vtkGetMacro(IncomingIntensityMwPerCm2, double);
+  vtkGetMacro( IncomingIntensityMwPerCm2, double );
 
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkGetMacro(BrightnessConversionGamma, double);
+  vtkGetMacro( BrightnessConversionGamma, double );
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkSetMacro(BrightnessConversionGamma, double);
+  vtkSetMacro( BrightnessConversionGamma, double );
 
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkGetMacro(BrightnessConversionOffset, double);
+  vtkGetMacro( BrightnessConversionOffset, double );
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkSetMacro(BrightnessConversionOffset, double);
+  vtkSetMacro( BrightnessConversionOffset, double );
 
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkGetMacro(BrightnessConversionScale, double);
+  vtkGetMacro( BrightnessConversionScale, double );
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
-  vtkSetMacro(BrightnessConversionScale, double);
+  vtkSetMacro( BrightnessConversionScale, double );
 
   /*! Set number of simulated scanlines */
-  vtkSetMacro(NumberOfScanlines, int); 
+  vtkSetMacro( NumberOfScanlines, int );
 
   /*! Set the length of scanlines in pixels */
-  vtkSetMacro(NumberOfSamplesPerScanline, int); 
+  vtkSetMacro( NumberOfSamplesPerScanline, int );
 
-  PlusStatus GetFrameSize(int frameSize[3]);
+  PlusStatus GetFrameSize( int frameSize[3] );
 
-  vtkSetMacro(NoiseAmplitude, double);
-  vtkSetVector3Macro(NoiseFrequency, double);
-  vtkSetVector3Macro(NoisePhase, double);
+  vtkSetMacro( NoiseAmplitude, double );
+  vtkSetVector3Macro( NoiseFrequency, double );
+  vtkSetVector3Macro( NoisePhase, double );
 
 protected:
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
-  virtual int RequestData(vtkInformation *request,
-                        vtkInformationVector** inputVector,
-                        vtkInformationVector* outputVector);
+  virtual int FillOutputPortInformation( int port, vtkInformation* info );
+  virtual int RequestData( vtkInformation* request,
+                           vtkInformationVector** inputVector,
+                           vtkInformationVector* outputVector );
 
-  void ConvertLineModelIntersectionsToSegmentDescriptor(std::deque<PlusSpatialModel::LineIntersectionInfo> &lineIntersectionsWithModels);
+  void ConvertLineModelIntersectionsToSegmentDescriptor( std::deque<PlusSpatialModel::LineIntersectionInfo>& lineIntersectionsWithModels );
 
 protected:
   vtkPlusUsSimulatorAlgo();
-  ~vtkPlusUsSimulatorAlgo(); 
+  ~vtkPlusUsSimulatorAlgo();
 
 private:
 
-  /*! Transform repository instance */ 
+  /*! Transform repository instance */
   vtkPlusTransformRepository* TransformRepository;
 
   /*! Name of the image coordinate frame */
@@ -118,10 +118,10 @@ private:
   /*! Number of samples in one scanline */
   int NumberOfSamplesPerScanline;
 
-  vtkPlusRfProcessor *RfProcessor;
+  vtkPlusRfProcessor* RfProcessor;
 
   /*! Frequency of the ultrasound image to be generated*/
-  double FrequencyMhz; 
+  double FrequencyMhz;
 
   /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
   double BrightnessConversionGamma;
@@ -131,10 +131,10 @@ private:
 
   /*! A non-linear function is used for mapping intensities to pixel values. See also BrightnessConversionGamma. */
   double BrightnessConversionScale;
-  
+
   /*! Incoming Intensity in mW/cm2 */
-  double IncomingIntensityMwPerCm2;  
-  
+  double IncomingIntensityMwPerCm2;
+
   std::vector<PlusSpatialModel> SpatialModels;
 
   /*! Contains material properties of the transducer. Used for computing the sound reflection from the transducer surface. */

@@ -20,7 +20,7 @@ vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
   , ServerAddress( NULL )
   , ServerPort( -1 )
   , IgtlMessageCrcCheckEnabled( 0 )
-  , ReceiveTimeoutSec(0.5)
+  , ReceiveTimeoutSec( 0.5 )
   , NumberOfRetryAttempts( 3 ) // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
   , DelayBetweenRetryAttemptsSec( 0.100 ) // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
   , ClientSocket( igtl::ClientSocket::New() )
@@ -142,7 +142,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     LOG_DEBUG( "Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ")."  );
   }
 
-  this->ClientSocket->SetTimeout(this->ReceiveTimeoutSec*1000); // *1000 because SetTimeout expects msec
+  this->ClientSocket->SetTimeout( this->ReceiveTimeoutSec * 1000 ); // *1000 because SetTimeout expects msec
 
   return SendRequestedMessageTypes();
 }

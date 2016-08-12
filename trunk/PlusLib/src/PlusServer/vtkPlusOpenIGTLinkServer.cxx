@@ -31,9 +31,10 @@ See License.txt for details.
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
-static const int CLIENT_SOCKET_TIMEOUT_MSEC = 500;
 static const int NUMBER_OF_RECENT_COMMAND_IDS_STORED = 10;
 static const int IGTL_EMPTY_DATA_SIZE = -1;
+
+const float vtkPlusOpenIGTLinkServer::CLIENT_SOCKET_TIMEOUT_SEC = 0.5;
 
 //----------------------------------------------------------------------------
 // If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
@@ -69,8 +70,8 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , MaxTimeSpentWithProcessingMs( 50 )
   , LastProcessingTimePerFrameMs( -1 )
   , SendValidTransformsOnly( true )
-  , DefaultClientSendTimeout( CLIENT_SOCKET_TIMEOUT_MSEC )
-  , DefaultClientReceiveTimeout( CLIENT_SOCKET_TIMEOUT_MSEC )
+  , DefaultClientSendTimeoutSec( CLIENT_SOCKET_TIMEOUT_SEC )
+  , DefaultClientReceiveTimeoutSec( CLIENT_SOCKET_TIMEOUT_SEC )
   , IgtlMessageCrcCheckEnabled( 0 )
   , PlusCommandProcessor( vtkSmartPointer<vtkPlusCommandProcessor>::New() )
   , MessageResponseQueueMutex( vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New() )
@@ -214,31 +215,32 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread( vtkMultiThreader::Thre
   // Wait for connections until we want to stop the thread
   while ( self->ConnectionActive.first )
   {
-    igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection( CLIENT_SOCKET_TIMEOUT_MSEC );
+    igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection( CLIENT_SOCKET_TIMEOUT_SEC * 1000 );
     if ( newClientSocket.IsNotNull() )
     {
       // Lock before we change the clients list
       PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock( self->IgtlClientsMutex );
-      self->IgtlClients.push_back( ClientData() );
+      ClientData newClient;
+      self->IgtlClients.push_back( newClient );
 
-      ClientData& client = self->IgtlClients.back(); // get a reference to the client data that is stored in the list
-      client.ClientId = self->ClientIdCounter;
+      ClientData* client = &( self->IgtlClients.back() ); // get a reference to the client data that is stored in the list
+      client->ClientId = self->ClientIdCounter;
       self->ClientIdCounter++;
-      client.ClientSocket = newClientSocket;
-      client.ClientSocket->SetSendTimeout( self->DefaultClientSendTimeout );
-      client.ClientSocket->SetReceiveTimeout( self->DefaultClientReceiveTimeout );
-      client.ClientInfo = self->DefaultClientInfo;
-      client.Server = self;
+      client->ClientSocket = newClientSocket;
+      client->ClientSocket->SetReceiveTimeout( self->DefaultClientReceiveTimeoutSec * 1000 );
+      client->ClientSocket->SetSendTimeout( self->DefaultClientSendTimeoutSec * 1000 );
+      client->ClientInfo = self->DefaultClientInfo;
+      client->Server = self;
 
       int port = 0;
       std::string address = "unknown";
 #if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
-      client.ClientSocket->GetSocketAddressAndPort( address, port );
+      newClientSocket->GetSocketAddressAndPort( address, port );
 #endif
-      LOG_INFO( "Received new client connection (client " << client.ClientId << " at " << address << ":" << port << "). Number of connected clients: " << self->GetNumberOfConnectedClients() );
+      LOG_INFO( "Received new client connection (client " << client->ClientId << " at " << address << ":" << port << "). Number of connected clients: " << self->GetNumberOfConnectedClients() );
 
-      client.DataReceiverActive.first = true;
-      client.DataReceiverThreadId = self->Threader->SpawnThread( ( vtkThreadFunctionType )&DataReceiverThread, &client );
+      client->DataReceiverActive.first = true;
+      client->DataReceiverThreadId = self->Threader->SpawnThread( ( vtkThreadFunctionType )&DataReceiverThread, client );
     }
   }
 
@@ -279,6 +281,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       break;
     }
   }
+
   if( aChannel == NULL )
   {
     // The requested channel ID is not found
@@ -300,6 +303,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread( vtkMultiThreader::ThreadInfo* 
       }
     }
   }
+
   // If we didn't find any channel then return
   if( aChannel == NULL )
   {
@@ -399,7 +403,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients( vtkPlusOpenIGTLi
     elapsedTimeSinceLastPacketSentSec += vtkPlusAccurateTimer::GetSystemTime() - startTimeSec;
 
     // Send keep alive packet to clients
-    if ( 1000 * elapsedTimeSinceLastPacketSentSec > ( CLIENT_SOCKET_TIMEOUT_MSEC / 2.0 ) )
+    if ( elapsedTimeSinceLastPacketSentSec > ( CLIENT_SOCKET_TIMEOUT_SEC / 2.0 ) )
     {
       self.KeepAlive();
       elapsedTimeSinceLastPacketSentSec = 0;
@@ -492,6 +496,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendCommandResponses( vtkPlusOpenIGTLinkSer
           break;
         }
       }
+
       if ( clientSocket.IsNull() )
       {
         LOG_WARNING( "Message reply cannot be sent to client " << ( *responseIt )->GetClientId() << ", probably client has been disconnected" );
@@ -520,11 +525,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread( vtkMultiThreader::ThreadInfo
 
   while ( client->DataReceiverActive.first )
   {
-    igtl::MessageHeader::Pointer headerMsg;
-    {
-      igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-      headerMsg = factory->CreateHeaderMessage( IGTL_HEADER_VERSION_1 );
-    }
+    igtl::MessageHeader::Pointer headerMsg = self->IgtlMessageFactory->CreateHeaderMessage( IGTL_HEADER_VERSION_1 );
 
     // Receive generic header from the socket
     int bytesReceived = clientSocket->Receive( headerMsg->GetPackPointer(), headerMsg->GetPackSize() );
@@ -748,7 +749,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& tracked
   trackedFrame.SetTimestamp( timestampUniversal );
 
   std::vector< int > disconnectedClientIds;
-
   {
     // Lock before we send message to the clients
     PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock( this->IgtlClientsMutex );
@@ -787,10 +787,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame( PlusTrackedFrame& tracked
                     << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ")." );
           break;
         }
-
-      } // igtlMessageIterator
-
-    } // clientIterator
+      }
+    }
   } // unlock client list
 
   // Clean up disconnected clients
@@ -986,8 +984,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration( vtkXMLDataElement* serve
     }
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int32_t, DefaultClientSendTimeout, serverElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int32_t, DefaultClientReceiveTimeout, serverElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( float, DefaultClientSendTimeoutSec, serverElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( float, DefaultClientReceiveTimeoutSec, serverElement );
 
   // TODO : how come default client info isn't mandatory? send nothing?
 
