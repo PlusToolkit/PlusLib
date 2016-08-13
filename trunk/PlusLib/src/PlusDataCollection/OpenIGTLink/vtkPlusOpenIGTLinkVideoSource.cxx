@@ -62,7 +62,6 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   PlusTrackedFrame trackedFrame;
-  vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform;
   igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage( headerMsg );
 
   if ( typeid( *bodyMsg ) == typeid( igtl::ImageMessage ) )
@@ -75,7 +74,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   }
   else if ( typeid( *bodyMsg ) == typeid( igtl::PlusTrackedFrameMessage ) )
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( bodyMsg, this->ClientSocket, trackedFrame, embeddedImageTransform, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
+    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
     {
       LOG_ERROR( "Couldn't get tracked frame from OpenIGTLink server!" );
       return PLUS_FAIL;

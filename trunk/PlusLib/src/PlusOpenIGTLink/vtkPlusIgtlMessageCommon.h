@@ -47,7 +47,7 @@ public:
   static PlusStatus PackTrackedFrameMessage( igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform );
 
   /*! Unpack tracked frame message to tracked frame */
-  static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4>& embeddedImageTransform, int crccheck );
+  static PlusStatus UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck );
 
   /*! Pack US message from tracked frame */
   static PlusStatus PackUsMessage( igtl::PlusUsMessage::Pointer usMessage, PlusTrackedFrame& trackedFrame );
