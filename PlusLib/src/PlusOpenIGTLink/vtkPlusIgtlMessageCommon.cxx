@@ -103,7 +103,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage( igtl::PlusTrackedF
 
 //----------------------------------------------------------------------------
 // static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4>& embeddedImageTransform, int crccheck )
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck )
 {
   if ( headerMsg.IsNull() )
   {
@@ -136,7 +136,12 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( igtl::MessageHea
 
   // if CRC check is OK. get tracked frame data.
   trackedFrame = trackedFrameMsg->GetTrackedFrame();
-  embeddedImageTransform = trackedFrameMsg->GetEmbeddedImageTransform();
+
+  if ( embeddedTransformName.IsValid() )
+  {
+    // Save the transform that is embedded in the TRACKEDFRAME message into the tracked frame
+    trackedFrame.SetCustomFrameTransform( embeddedTransformName, trackedFrameMsg->GetEmbeddedImageTransform() );
+  }
 
   return PLUS_SUCCESS;
 }

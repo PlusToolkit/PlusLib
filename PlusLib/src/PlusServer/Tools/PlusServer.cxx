@@ -155,7 +155,6 @@ int main( int argc, char** argv )
 
     // This is a PlusServer tag, let's create it
     vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
-    // Create Plus OpenIGTLink server.
     LOG_DEBUG( "Initializing Plus OpenIGTLink server... " );
     if ( server->Start( dataCollector, transformRepository, serverElement, configFilePath ) != PLUS_SUCCESS )
     {
@@ -176,7 +175,7 @@ int main( int argc, char** argv )
   std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> > testClientList;
   if ( !testingConfigFileName.empty() )
   {
-    // During testing, there is only one instance of PlusServer, so we can acess serverList[0] directly
+    // During testing, there is only one instance of PlusServer, so we can access serverList[0] directly
 
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
     if ( PlusXmlUtils::ReadDeviceSetConfigurationFromFile( configRootElement, testingConfigFileName.c_str() ) == PLUS_FAIL )
