@@ -1,0 +1,88 @@
+<PlusConfiguration version="2.3">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceFile="ie33_biplane_LeftCaptureDevice_compressed.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="FALSE"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MFA"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    
+    <Device
+      Id="TextRecognizerDevice" 
+      Type="VirtualTextRecognizer"
+      MissingInputGracePeriodSec="1" 
+      Language="eng" >
+      <DataSources>
+        <DataSource Type="FieldData" Id="ScreenFields"/>
+      </DataSources>
+      <TextFields>
+        <Field Channel="TrackedVideoStream" Name="patient-last-name" InputRegionOrigin="260 885" InputRegionSize="82 20" />
+        <Field Channel="TrackedVideoStream" Name="tee-temperature" InputRegionOrigin="75 185" InputRegionSize="55 20" />
+      </TextFields>
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="DataChannel">
+          <DataSource Id="ScreenFields"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="Mixer" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="DataChannel" />
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStreamData"/>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"/>
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStreamData" > 
+    <DefaultClientInfo> 
+      <MessageTypes>
+        <Message Type="STRING" />
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <StringNames>
+        <String Name="patient-last-name" />
+        <String Name="tee-temperature" />
+      </StringNames>
+      <TransformNames> 
+        <Transform Name="ProbeToReference" />
+        <Transform Name="StylusToReference" />
+        <Transform Name="ReferenceToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

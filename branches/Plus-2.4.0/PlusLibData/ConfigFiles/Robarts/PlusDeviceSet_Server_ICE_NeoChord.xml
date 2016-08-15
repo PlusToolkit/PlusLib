@@ -1,0 +1,70 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0">
+    <DeviceSet 
+      Name="PlusServer: Tracking NeoChord Nose - 5dof, Jaw - 6dof (Jaw(0), Nose(1), Stylus(2), Reference(3)"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+The computer needs to be on the same local network as Aurora SCU unit. The needle has to be plugged into the first slot"
+    />
+    <Device
+      Id="TrackerDevice" 
+      Type="AuroraTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Jaw" PortName="0" />
+        <DataSource Type="Tool" Id="Nose" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" />
+        <DataSource Type="Tool" Id="Reference" PortName="3" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Type="Tool" Id="Jaw" />
+          <DataSource Type="Tool" Id="Nose" />
+          <DataSource Type="Tool" Id="Stylus" />
+          <DataSource Type="Tool" Id="Reference" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="ndiCapture.nrrd"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+  
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1"
+       Error="0" Date="052015_132620" />
+  </CoordinateDefinitions>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes>
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusToReference" />
+        <Transform Name="JawToReference" />
+        <Transform Name="NoseToReference" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

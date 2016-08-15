@@ -1,0 +1,48 @@
+/*!
+
+\page SupportedPlatforms Included in packages
+
+\section PackageWin32 Windows 32 bits
+Generic package to be used on 32/64-bit Windows 7 and Windows 8 systems.
+Executables are 32-bit applications.
+This package supports the most hardware devices.
+
+\section PackageWin64 Windows 64 bits
+Package to be used on 64-bit, Windows 7 and Windows 8 systems.
+Executables are 64-bit applications, which allows more space for in-memory recording and volume reconstruction.
+
+\section PackageUltrasonixWin32 Ultrasonix Windows embedded 32 bits
+Package to be used on Ultrasonix systems running on Windows XP embedded 32-bit operating system.
+Executables are 32-bit applications.
+
+\section PackageInterson Interson Windows 32 bits
+Package to be used for connecting to Interson USB ultrasound probes on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires Interson USB probe drivers installed (otherwise Plus applications will fail to start).
+Executables are 32-bit applications.
+
+\section PackageTelemed Telemed Windows 32 bits
+Package to be used for connecting to Telemed USB ultrasound probes on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires Telemed drivers installed (otherwise Plus applications will fail to start).
+Executables are 32-bit applications.
+
+\section PackageBk BK Windows 32 bits
+Package to be used for connecting to BK ultrasound systems on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires BK OEM interface license.
+Executables are 32-bit applications.
+
+\section PackageStealthLink StealthLink Windows 32 bits
+Package to be used for connecting to MedTronic StealthLink navigation systems on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires StealthLink interface license.
+Executables are 32-bit applications.
+
+\section PackageThorLabs ThorLabs Windows 32 bits
+Package to be used for connecting to ThorLabs spectrometers on 32/64-bit, Windows 7 and Windows 8 systems.
+Requires ThorLabs drivers installed (otherwise Plus applications will fail to start).
+Executables are 32-bit applications.
+
+\section PackageMacOs Mac OS X
+Compatible with Mac OS X.
+
+\section PackageLinux Linux
+Compatible with Linux.
+*/

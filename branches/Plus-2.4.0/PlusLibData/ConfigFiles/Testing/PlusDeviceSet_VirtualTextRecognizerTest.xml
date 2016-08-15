@@ -1,0 +1,40 @@
+<PlusConfiguration version="2.3">
+  <DataCollection StartupDelaySec="1.0">
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceFile="ie33_biplane_LeftCaptureDevice_compressed.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      UseOriginalTimestamps="TRUE"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MFA"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+    
+    <Device
+      Id="TextRecognizerDevice" 
+      Type="VirtualTextRecognizer"
+      MissingInputGracePeriodSec="1" 
+      Language="eng" >
+      <DataSources>
+        <DataSource Type="FieldData" Id="ScreenFields"/>
+      </DataSources>
+      <TextFields>
+        <Field Channel="TrackedVideoStream" Name="patient-last-name" InputRegionOrigin="260 885" InputRegionSize="82 20" />
+        <Field Channel="TrackedVideoStream" Name="tee-temperature" InputRegionOrigin="75 185" InputRegionSize="55 20" />
+      </TextFields>
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="DataChannel">
+          <DataSource Id="ScreenFields"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+</PlusConfiguration>

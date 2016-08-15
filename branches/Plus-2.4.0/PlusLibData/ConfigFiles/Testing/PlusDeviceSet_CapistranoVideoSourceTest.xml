@@ -1,0 +1,61 @@
+<PlusConfiguration version="2.3">
+
+ <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="TEST Data collection in file mode 3 NWires + OpenIGTLink broadcasting through OpenIGTLinkServer (IMAGE and TRANSFORM messages)" 
+      Description="The SequenceMetafile names should be defined either from command line argument or from configuration file + OpenIGTLink broadcasting (IMAGE and TRANSFORM messages)" />
+    <Device
+      Id="VideoDevice"
+      Type="CapistranoVideo"
+      UpdateParameters="TRUE"    
+      BidirectionalMode="FALSE"  
+      CineBuffers="32"           
+      PluserFrequency="35.0"     
+      Interpolate="TRUE"         
+      AverageMode="FALSE"        
+      BModeViewOption="4"        
+      LutCenter="110"             
+      LutWindow="230">             
+      <UsImagingParameters>
+        <Parameter name="Voltage" value="50"/>
+        <Parameter name="SoundVelocity" value="1532"/>
+        <Parameter name="DepthMm" value="36"/>
+        <Parameter name="ImageSize" value="550 700"/>
+        <Parameter name="Intensity" value="100"/>
+        <Parameter name="Contrast" value="150"/>
+        <Parameter name="ZoomFactor" value="1.0"/>
+        <Parameter name="GainPercent" value="50 60 70"/>
+      </UsImagingParameters>
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="NU"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer  
+    ListeningPort="18944" 
+    OutputChannelId="VideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="US" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <CoordinateDefinitions>
+    <Transform From="Reference" To="US"
+      Matrix="
+        1.0 0.0 0.0 100.0
+        0.0 1.0 0.0 200.0 
+        0.0 0.0 1.0 300.0 
+        0.0 0.0 0.0 1.0"
+      Date="2016.01.06 17:57:00" />
+  </CoordinateDefinitions> 
+  
+</PlusConfiguration>

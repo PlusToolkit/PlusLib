@@ -1,0 +1,17 @@
+/*!
+\page ApplicationRfProcessor RF data processor (RfProcessor)
+
+This is a command-line tool for converting RF data to displayable brightness images (with or without scan conversion).
+Conversion parameters are read from the device set configuration file.
+
+See detailed description of conversion parameters on the \ref AlgorithmRfProcessing page.
+
+\section ApplicationRfProcessorExamples Examples
+
+    RfProcessor --config-file=PlusConfiguration_ImageProcessingAlgoTest.xml --rf-file=UltrasonixCurvilinearRfData.mha --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha
+
+\section ApplicationRfProcessorHelp Command-line parameters reference
+
+\verbinclude "RfProcessorHelp.txt"
+
+*/

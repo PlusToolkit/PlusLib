@@ -1,0 +1,17 @@
+/*!
+\page ApplicationViewSeqMetaFile Sequence metafile viewer (ViewSeqMetaFile)
+
+This is a simple tool for viewing frames of a sequence metafile interactively in 3D.
+You can browse between the slices by pressing the '+' and '-' keys and rotate the view by using the mouse.
+
+\image html ApplicationViewSeqMetaFileScreenshot.png
+
+\section ApplicationViewSeqMetaFileExamples Examples
+
+    ViewSeqMetaFile.exe --config-file=SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --image-to-reference-transform=ImageToTracker
+
+\section ApplicationViewSeqMetaFileHelp Command-line parameters reference
+
+\verbinclude "ViewSeqMetaFileHelp.txt"
+
+*/

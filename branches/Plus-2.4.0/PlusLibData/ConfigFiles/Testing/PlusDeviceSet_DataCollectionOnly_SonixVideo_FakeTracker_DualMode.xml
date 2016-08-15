@@ -1,0 +1,70 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="TEST Ultrasonix US with Fake tracker - B and Rf"
+      Description="Test mode for vtkDataCollectorTest with Ultrasonix US and Fake tracker. The Ultrasonix US device should be in research mode." />
+
+    <Device 
+      Id="TrackerDevice"
+      Type="FakeTracker"
+      AcquisitionRate="30"
+      Mode="PivotCalibration"
+      ReferenceToolName="Reference" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference"  PortName="0"/> 
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="-1" 
+      IP="130.15.7.20" >
+      <DataSources>
+        <DataSource Type="Video" Id="BModeVideo" PortName="B" PortUsImageOrientation="MF"  />
+        <DataSource Type="Video" Id="RfModeVideo" PortName="Rf" PortUsImageOrientation="FM" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="BModeVideo" />
+        <OutputChannel Id="RfModeVideoStream" VideoDataSourceId="RfModeVideo" />
+      </OutputChannels>
+    </Device>
+        
+    <Device 
+      Id="TrackedBVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="BModeVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedBModeVideoStream" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="TrackedRfVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RfModeVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedRfModeVideoStream" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <fCal
+    DefaultSelectedChannelId="TrackedBModeVideoStream" 
+    />
+    
+</PlusConfiguration>
