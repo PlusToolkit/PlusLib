@@ -67,6 +67,7 @@ namespace igtl
         , m_ImageType( 0 )
         , m_ImageDataSizeInBytes( 0 )
         , m_XmlDataSizeInBytes( 0 )
+        , m_ImageOrientation( 0 )
       {
         m_FrameSize[0] = m_FrameSize[1] = m_FrameSize[2] = 0;
         for ( int i = 0; i < 4; ++i )
@@ -87,7 +88,8 @@ namespace igtl
         headersize += sizeof( igtl_uint16 ) * 3;  // m_FrameSize[3]
         headersize += sizeof( igtl_uint32 );      // m_ImageDataSizeInBytes
         headersize += sizeof( igtl_uint32 );      // m_XmlDataSizeInBytes
-        headersize += sizeof( igtl::Matrix4x4 );  // m_embeddedImageTransform[4][4]
+        headersize += sizeof( igtl_uint16 );      // m_ImageOrientation
+        headersize += sizeof( igtl::Matrix4x4 );  // m_EmbeddedImageTransform[4][4]
 
         return headersize;
       }
@@ -104,13 +106,7 @@ namespace igtl
           m_FrameSize[2] = BYTE_SWAP_INT16( m_FrameSize[2] );
           m_ImageDataSizeInBytes = BYTE_SWAP_INT32( m_ImageDataSizeInBytes );
           m_XmlDataSizeInBytes = BYTE_SWAP_INT32( m_XmlDataSizeInBytes );
-          for ( int i = 0; i < 4; ++i )
-          {
-            for ( int j = 0; j < 4; ++j )
-            {
-              m_EmbeddedImageTransform[i][j] = BYTE_SWAP_INT32( ( int )m_EmbeddedImageTransform[i][j] );
-            }
-          }
+          m_ImageOrientation = BYTE_SWAP_INT16( m_ImageOrientation );
         }
       }
 
@@ -120,6 +116,7 @@ namespace igtl
       igtl_uint16     m_FrameSize[3];           /* entire image volume size */
       igtl_uint32     m_ImageDataSizeInBytes;   /* size of the image, in bytes */
       igtl_uint32     m_XmlDataSizeInBytes;     /* size of the xml data, in bytes */
+      igtl_uint16     m_ImageOrientation;       /* orientation of the image */
       igtl::Matrix4x4 m_EmbeddedImageTransform; /* matrix representing the IJK to world transformation */
     };
 

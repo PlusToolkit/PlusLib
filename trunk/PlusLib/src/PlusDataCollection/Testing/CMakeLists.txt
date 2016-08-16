@@ -46,7 +46,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
     --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
     )
   SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
+ENDIF()
  
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
@@ -89,7 +89,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkPlusDataCollection )
     # --verbose=2
     # )
     # SET_TESTS_PROPERTIES( vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-# ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+# ENDIF()
 
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE( ReplayRecordedDataTest ReplayRecordedDataTest.cxx )
@@ -167,9 +167,9 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
       --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
     )
     SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  ENDIF (PLUS_TEST_ULTRASONIX)
+  ENDIF()
   
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF()
 
 #***************************  vtkPhilips3DProbeVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
@@ -184,9 +184,9 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
       --verbose=3
     )
     SET_TESTS_PROPERTIES( vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  ENDIF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+  ENDIF()
   
-ENDIF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+ENDIF()
 
 #***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
@@ -224,7 +224,7 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
     vtkIntersonSDKCxxVideoSourceRfBmodeTest
     vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
   PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF ()
+ENDIF()
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
 
@@ -238,7 +238,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
       --rendering-off
       )
     SET_TESTS_PROPERTIES( vtkBkProFocusOemVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  ENDIF (PLUS_TEST_BKPROFOCUS)
+  ENDIF()
 
   #***************************  vtkBkProFocusCameraLinkVideoSourceTest.cxx ***************************
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
@@ -251,11 +251,11 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
         --rendering-off
         )
       SET_TESTS_PROPERTIES( vtkBkProFocusCameraLinkVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-    ENDIF (PLUS_TEST_BKPROFOCUS)
+    ENDIF()
 
-  ENDIF (PLUS_USE_BKPROFOCUS_CAMERALINK)
+  ENDIF()
   
-ENDIF (PLUS_USE_BKPROFOCUS_VIDEO)
+ENDIF()
 
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
 IF (PLUS_USE_ICCAPTURING_VIDEO)
@@ -266,7 +266,7 @@ ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
    # --rendering-off
   # )
   #SET_TESTS_PROPERTIES( vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ICCAPTURING_VIDEO)
+ENDIF()
 
 #***************************  vtkSonixVolumeReaderTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
@@ -279,7 +279,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   --frame-number=5 
   )
   SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF()
 
 #***************************  vtkCapistranoVideoSourceTest.cxx ***************************
 IF (PLUS_USE_CAPISTRANO_VIDEO)
@@ -290,13 +290,13 @@ IF (PLUS_USE_CAPISTRANO_VIDEO)
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CapistranoVideoSourceTest.xml
   )
-ENDIF (PLUS_USE_CAPISTRANO_VIDEO)
+ENDIF()
 
 #***************************  vtkIntersonVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSON_VIDEO)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection ) 
-ENDIF (PLUS_USE_INTERSON_VIDEO)
+ENDIF()
 
 #***************************  vtkTelemedVideoSourceTest.cxx ***************************
 IF (PLUS_USE_TELEMED_VIDEO)
@@ -309,9 +309,9 @@ IF (PLUS_USE_TELEMED_VIDEO)
       --rendering-off
       )
     SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  ENDIF (PLUS_TEST_TELEMED)
+  ENDIF()
 
-ENDIF (PLUS_USE_TELEMED_VIDEO)
+ENDIF()
 
 #***************************  vtkThorLabsVideoSourceTest.cxx ***************************
 IF (PLUS_USE_THORLABS_VIDEO)
@@ -322,7 +322,7 @@ IF (PLUS_USE_THORLABS_VIDEO)
     --rendering-off
     )
   SET_TESTS_PROPERTIES( vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_THORLABS_VIDEO)
+ENDIF()
 
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
@@ -338,20 +338,20 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
   # --rendering-off
   # )
   # SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF()
 
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
   TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection )
-ENDIF (PLUS_USE_ULTRASONIX_VIDEO)
+ENDIF()
 #Test is to be added.
 
 #***************************  vtkWin32VideoSourceTest.cxx ***************************
 IF (PLUS_USE_VFW_VIDEO)
   ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection )
-ENDIF (PLUS_USE_VFW_VIDEO)
+ENDIF()
 
 #***************************  vtkMmfVideoSourceTest.cxx ***************************
 IF (PLUS_USE_MMF_VIDEO)
@@ -364,27 +364,33 @@ IF (PLUS_USE_MMF_VIDEO)
       --rendering-off
       --frame-size 640 480
       )
-  ENDIF(PLUS_TEST_MMF_VIDEO)
+  ENDIF()
 
-ENDIF (PLUS_USE_MMF_VIDEO)
+ENDIF()
 
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
 IF (PLUS_USE_EPIPHAN)
   ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection )
-ENDIF (PLUS_USE_EPIPHAN)
+ENDIF()
 
 #*************************** MicronTrackerTest ***************************
 IF (PLUS_USE_MICRONTRACKER)
     ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
     TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon)    
-ENDIF (PLUS_USE_MICRONTRACKER) 
+ENDIF() 
 
 #*************************** IntelRealSenseTrackerTest ***************************
 IF (PLUS_USE_INTELREALSENSE)
     ADD_EXECUTABLE(vtkIntelRealSenseTrackerTest vtkIntelRealSenseTrackerTest.cxx)
     TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon)    
-ENDIF (PLUS_USE_INTELREALSENSE)
+ENDIF()
+
+#***************************  vtkNVidiaDVPVideoSourceTest.cxx ***************************
+IF (PLUS_USE_NVIDIA_DVP)
+  ADD_EXECUTABLE(vtkNVidiaDVPVideoSourceTest vtkNVidiaDVPVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkNVidiaDVPVideoSourceTest vtkPlusDataCollection )
+ENDIF()
 
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)
@@ -398,26 +404,26 @@ ADD_TEST(vtkPlusDeviceFactoryTest
 IF (PLUS_USE_NDI_CERTUS)
   ADD_EXECUTABLE(NDICertusTest NDICertusTest.cxx)
   TARGET_LINK_LIBRARIES(NDICertusTest vtkPlusDataCollection)
-ENDIF (PLUS_USE_NDI_CERTUS)
+ENDIF()
 
 #*************************** CmsBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CmsBrachyStepperTest CmsBrachyStepperTest.cxx)
     TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
-ENDIF (PLUS_USE_BRACHY_TRACKER) 
+ENDIF()
 
 #*************************** CivcoBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
     TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
-ENDIF (PLUS_USE_BRACHY_TRACKER) 
+ENDIF()
 
 #*************************** USDigitalEncoderStepperTest ***************************
 IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     ADD_EXECUTABLE(vtkUSDigitalEncodersTrackerTest vtkUSDigitalEncodersTrackerTest.cxx)
     TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
-ENDIF (PLUS_USE_USDIGITALENCODERS_TRACKER) 
-  
+ENDIF()
+
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
 TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkPlusCommon vtkPlusDataCollection)
@@ -436,7 +442,7 @@ IF( PLUS_USE_OpenIGTLink )
   ADD_EXECUTABLE(BrainLabTrackerSim BrainLabTrackerSim.cxx)
   TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
   
-ENDIF( PLUS_USE_OpenIGTLink )
+ENDIF()
 
 #*************************** vtkVirtualTextRecognizerTest ***************************
 IF (PLUS_TEST_tesseract)
@@ -449,8 +455,8 @@ IF (PLUS_TEST_tesseract)
       --device-id=TextRecognizerDevice 
       --field-value=Peters
       )
-ENDIF (PLUS_TEST_tesseract) 
-  
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Install
 #

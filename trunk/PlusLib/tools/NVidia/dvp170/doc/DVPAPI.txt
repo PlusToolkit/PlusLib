@@ -1,0 +1,1361 @@
+This document is released only under the NVIDIA NDA and is subject to revision.
+
+Name
+    GPUDirect for Video
+
+Versions
+    0.6
+
+Contributers
+    Thomas True
+    Ashley Reid
+    James Jones
+    Robert Morell
+
+Contacts
+    Ashley Reid, NVIDIA corporation (areid 'at' nvidia.com) 
+    Thomas True, NVIDIA corporation (ttrue 'at' nvidia.com)
+    James Jones, NVIDIA corporation (jajones 'at' nvidia.com)
+    
+Dependencies
+    Support for GL_ARB_sync
+    WGL_NVX_DX_interop (for DX support on windows)  
+    
+Overview
+
+    Currently, there are many vendors producing industry standard video
+    capture or display devices for uses in such applications as virtual
+    sets or video monitoring systems. A GPU is an ideal addition in such
+    situations due to the performance offered through graphics and compute
+    libraries. However, getting the video data into or out of the GPU in a low
+    latency fashion is not yet possible with currently available libraries.
+    This document outlines a user mode API that allows vendors of video
+    capture or output devices to facilitate low latency transfers of video
+    buffers into and out of GPUs for use with either DirectX, OpenGL 
+    or CUDA graphics libraries (OS restrictions apply for API compatibility).
+    The vendor's driver or SDK co-ordinates the flow of the video data from
+    there device into the libraries used by the application.
+
+    The application sits on top of the vendor's software stack to make use 
+    of the low latency transfers. The design of the API allows for minimal 
+    changes in the way the application uses the existing graphics APIs. 
+    This document follows the structure used in OpenGL extensions, but is 
+    not itself an extension to OpenGL.
+
+    The API allows for bi-directional synchronization of DMA transfers, so 
+    that the video device vendor knows when the GPU is done and the GPU knows
+    when data is ready to be transfered. With good synchronization, the 
+    latency of the data transfer from video device to GPU (or vice versa)
+    can be reduced.
+        
+    The API is only exposed to video device vendors for use in custom drivers,
+    SDKs or applications. The vendors package the desired functionality
+    to their customer through their own APIs, while the application has full 
+    access to the graphics APIs supported by the current system.
+    
+General library usage:
+    The library is used by allocating memory in system memory, which is the 
+    source or destination of data being transferred into or out of the GPU, 
+    and importing this into the DVP library. Next a graphics API buffer from one 
+    of the target APIs is imported for use with the DVP library. The association
+    of the buffer to a GPU is controlled implicitly through existing graphics
+    library definitions and interfaces. DVP memcpy calls then trigger
+    a GPU DMA operation to/from the system memory from/to the graphics API
+    buffer. The DMA operations from an external source are synchronized using
+    shared memory primitives with always increasing values (see DVP sync objects and  
+    the memcpy functions for more details). Synchronization with one of the external 
+    libraries is performed via the mapping and unmapping of previously imported 
+    graphics API buffers.
+    
+    The library allows for some forms of translation during the DMA transfer.
+    These transformations are defined by the layout of the system memory
+    described when the buffer in system memory is created and the layout of the
+    buffer in GPU memory defined by the graphics library. A straight forward copy 
+    is performed if the system memory layout is not specified.
+
+DVP sync objects:
+    The DVP sync objects defined in this API are implemented as increasing
+    semaphores with two types of operations: a release and a acquire operation. In
+    this document a semaphore refers to a shared memory primitive. A release 
+    operation on a semaphore writes a value to this memory location, while an
+    acquire operation constantly reads this memory location and returns when
+    the memory is greater than or equal to a specified value. These operations 
+    are performed during the dvpMemcpy* functions call. 
+    
+    Pseudo code for a dvpMemcpy* operation:
+      AcquireValue(srcSync->semaphoreLocation, acquireValue);
+      GPUMemcpy(dstBuffer, srcBuffer, ... );
+      ReleaseSemaphore(dstSync->semaphoreLocation, releaseValue);
+
+    The AcquireValue function denoted here may use the application callback
+    specified during sync object creation. The release and acquire operations are
+    not thread safe, as the operations are performed by devices and initiating
+    these operations from separate threads does not guarantee ordering without
+    proper synchronization.
+    
+    The acquire must use a "greater than or equal to" operation as a number
+    of sequential operations can then be queued up in a producer and 
+    consumer fashion. This allows the producer to queue up DMA transfers
+    and, when ready, the consumer can check whether the producer has passed
+    a certain point in the queue.
+
+Data Structures:
+    typedef uint64_t DVPBufferHandle;
+    typedef uint64_t DVPSyncObjectHandle;
+
+    typedef enum
+    {
+        DVP_STATUS_OK                        =  0, 
+        DVP_STATUS_INVALID_PARAMETER         =  1,
+        DVP_STATUS_UNSUPPORTED               =  2,
+        DVP_STATUS_END_ENUMERATION           =  3,
+        DVP_STATUS_INVALID_DEVICE            =  4,
+        DVP_STATUS_OUT_OF_MEMORY             =  5,
+        DVP_STATUS_INVALID_OPERATION         =  6,
+        DVP_STATUS_ERROR                     = -1, 
+    } DVPStatus;
+
+    // Pixel component formats stored in the system memory buffer
+    // analogous to those defined in the OpenGL API, except for 
+    // DVP_BUFFER, which provides an unspecified format type
+    // Note that note all paths will achieve optimal speeds due
+    // to lack of HW support for the transformation.
+    typedef enum
+    {
+        DVP_BUFFER,                   // Buffer treated as a raw buffer 
+                                      // and copied directly into GPU buffer
+                                      // without any interpretation of the
+                                      // stored bytes.
+        DVP_DEPTH_COMPONENT,
+        DVP_RGBA,
+        DVP_BGRA,
+        DVP_RED,
+        DVP_GREEN,
+        DVP_BLUE,
+        DVP_ALPHA,
+        DVP_RGB,
+        DVP_BGR,
+        DVP_LUMINANCE,
+        DVP_LUMINANCE_ALPHA,
+    } DVPBufferFormats;
+
+    // Possible pixel component storage types for system memory buffers
+    typedef enum
+    {
+        DVP_UNSIGNED_BYTE,
+        DVP_BYTE,
+        DVP_UNSIGNED_SHORT,
+        DVP_SHORT,
+        DVP_UNSIGNED_INT,
+        DVP_INT,
+        DVP_FLOAT,
+        DVP_UNSIGNED_BYTE_3_3_2,
+        DVP_UNSIGNED_BYTE_2_3_3_REV,
+        DVP_UNSIGNED_SHORT_5_6_5,
+        DVP_UNSIGNED_SHORT_5_6_5_REV,
+        DVP_UNSIGNED_SHORT_4_4_4_4,
+        DVP_UNSIGNED_SHORT_4_4_4_4_REV,
+        DVP_UNSIGNED_SHORT_5_5_5_1,
+        DVP_UNSIGNED_SHORT_1_5_5_5_REV,
+        DVP_UNSIGNED_INT_8_8_8_8,
+        DVP_UNSIGNED_INT_8_8_8_8_REV,
+        DVP_UNSIGNED_INT_10_10_10_2,
+        DVP_UNSIGNED_INT_2_10_10_10_REV,
+    } DVPBufferTypes;
+
+    // System memory descriptor describing the size and storage formats
+    // of the buffer
+    typedef struct DVPSysmemBufferDescRec {
+        uint32_t width;                     // Buffer Width
+        uint32_t height;                    // Buffer Height
+        uint32_t stride;                    // Stride
+        uint32_t size;                      // Specifies the surface size if 
+                                            // format == DVP_BUFFER
+        DVPBufferFormats format;            // see enum above
+        DVPBufferTypes type;                // see enum above
+        void *bufAddr;                      // Buffer memory address
+    } DVPSysmemBufferDesc;
+
+    // Flags specified at sync object creation:
+    // ----------------------------------------
+    // Tells the implementation to use events wherever
+    // possible instead of software spin loops. Note if HW
+    // wait operations are supported by the implementation
+    // then events will not be used in the dvpMemcpy*
+    // functions. In such a case, events may still be used
+    // in dvpSyncObjClientWait* functions.
+    #define DVP_SYNC_OBJECT_FLAGS_USE_EVENTS      0x00000001
+
+    typedef struct DVPSyncObjectDescRec {
+        uint32_t *sem;               // Location to write semaphore value
+        uint32_t  flags;             // See above DVP_SYNC_OBJECT_FLAGS_* bits
+        DVPStatus (*externalClientWaitFunc) (DVPSyncObjectHandle sync, 
+                                             uint32_t value,
+                                             bool GEQ,
+                                             uint64_t timeout);
+                                             // If non-null, externalClientWaitFunc allows the DVP library
+                                             // to call the application to wait for a sync object to be
+                                             // released. This allows the application to create events, 
+                                             // which can be triggered on device interrupts instead of
+                                             // using spin loops inside the DVP library. Upon succeeding
+                                             // the function must return DVP_STATUS_OK, non-zero for failure 
+                                             // and DVP_STATUS_TIMEOUT on timeout.
+    } DVPSyncObjectDesc;
+
+    // Time used when event timeouts should be ignored
+    #define DVP_TIMEOUT_IGNORED                   0xFFFFFFFFFFFFFFFFull
+
+    // Flags supplied to the dvpInit* functions:
+    //
+    // DVP_DEVICE_FLAGS_SHARE_APP_CONTEXT is only supported for OpenGL
+    // contexts and is the only supported flag for CUDA. It allows for 
+    // certain cases to be optimized by sharing the context 
+    // of the application for the DVP operations. This removes the
+    // need to do certain synchronizations. See issue 5 for parallel
+    // issues. When used, the app's GL context must be current for all calls 
+    // to the DVP library.
+    #define DVP_DEVICE_FLAGS_SHARE_APP_CONTEXT    0x000000001
+
+    Entry Points:
+
+    #define DVPAPI_INTERFACE  __declspec( dllexport ) DVPStatus
+
+    //------------------------------------------------------------------------
+    // Function:      dvpInit*
+    //
+    //                To be called before any DVP resources are allocated.
+    //                This call allows for specification of flags that may
+    //                change the way DVP operations are performed. See above
+    //                for the list of flags.
+    //
+    //                If OpenGL or CUDA is used, the OpenGL/CUDA context
+    //                must be current at time of call.
+    //
+    // Parameters:    flags[IN]  - Buffer description structure
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER 
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpInitGLContext(uint32_t flags);
+
+    DVPAPI_INTERFACE
+    dvpInitCUDAContext(uint32_t flags);
+
+    DVPAPI_INTERFACE
+    dvpInitD3D9Device(IDirect3DDevice9 *pD3D9Device,
+                      uint32_t flags);
+
+    DVPAPI_INTERFACE
+    dvpInitD3D10Device(ID3D11Device *pD3D11Device,
+                       uint32_t flags);
+
+    DVPAPI_INTERFACE
+    dvpInitD3D11Device(ID3D11Device *pD3D11Device,
+                       uint32_t flags);
+
+
+    //------------------------------------------------------------------------
+    // Function:      dvpClose*
+    //
+    //                Function to be called when app closes to allow freeing
+    //                of any DVP library allocated resources.
+    //
+    //                If OpenGL or CUDA is used, the OpenGL/CUDA context
+    //                must be current at time of call.
+    //
+    // Parameters:    none
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER    
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpCloseGLContext();
+
+    DVPAPI_INTERFACE
+    dvpCloseCUDAContext();
+
+    DVPAPI_INTERFACE
+    dvpCloseD3D9Device(IDirect3DDevice9 *pD3D9Device);
+
+    DVPAPI_INTERFACE
+    dvpCloseD3D10Device(ID3D11Device *pD3D11Device);
+
+    DVPAPI_INTERFACE
+    dvpCloseD3D11Device(ID3D11Device *pD3D11Device);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpBegin 
+    //
+    // Description:   dvpBegin must be called before any combination of DVP
+    //                function calls dvpMemCpy*, dvpMapBufferWaitDVP, and 
+    //                dvpMapBufferEndDVP. After the last of these functions
+    //                has been called is dvpEnd must be called. This
+    //                allows for more efficient batched DVP operations.
+    //
+    // Parameters:    none
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpBegin();
+
+    //------------------------------------------------------------------------
+    // Function:      dvpEnd
+    //
+    // Description:   dvpEnd signals the end of a batch of DVP function calls
+    //                that began with dvpBegin
+    //
+    // Parameters:    none
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpEnd();
+
+    //------------------------------------------------------------------------
+    // Function:      dvpCreateBuffer
+    //
+    // Description:   Create a DVP buffer using system memory, wrapping a user
+    //                passed pointer. The pointer and stride must be aligned 
+    //                to values returned by dvpGetRequiredAlignments*
+    //
+    // Parameters:    desc[IN]  - Buffer description structure
+    //                hBuf[OUT] - DVP Buffer handle
+    // 
+    // Returns:       DVP_STATUS_OK                
+    //                DVP_STATUS_INVALID_PARAMETER 
+    //                DVP_STATUS_ERROR           
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpCreateBuffer(DVPSysmemBufferDesc *desc,
+                    DVPBufferHandle *hBuf);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpDestroyBuffer
+    //
+    // Description:   Destroy a previously created DVP buffer.
+    //
+    // Parameters:    hBuf[IN] - DVP Buffer handle
+    // 
+    // Returns:       DVP_STATUS_OK                
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR  
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpDestroyBuffer(DVPBufferHandle  hBuf);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpBindTo*
+    //
+    // Description:   Bind a previously created system memory buffer to an 
+    //                OpenGL context, CUDA context or D3D[9,10,11] device. 
+    //                For OpenGL and CUDA the context must be current at 
+    //                the time of bind.
+    //
+    // Parameters:    hBuf[IN]      - DVP Buffer handle
+    //                device[IN]    - D3D device if used
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpBindToGLCtx(DVPBufferHandle hBuf);
+
+    DVPAPI_INTERFACE
+    dvpBindToCUDACtx(DVPBufferHandle hBuf);
+
+    DVPAPI_INTERFACE
+    dvpBindToD3D9Device(DVPBufferHandle hBuf, IDirect3DDevice9 *pD3D9Device);
+
+    DVPAPI_INTERFACE
+    dvpBindToD3D10Device(DVPBufferHandle hBuf, ID3D10Device *pD3D10Device); 
+
+    DVPAPI_INTERFACE
+    dvpBindToD3D11Device(DVPBufferHandle hBuf, ID3D11Device *pD3D11Device);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpUnbindFrom*
+    //
+    // Description:   Unbind a previously bound buffer from an API context. 
+    //                For OpenGL and CUDA the context must be current at 
+    //                the time of bind.
+    //
+    // Parameters:    hBuf[IN]   - DVP Buffer handle
+    //                device[IN] - D3D device if used
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpUnbindFromGLCtx(DVPBufferHandle hBuf);
+
+    DVPAPI_INTERFACE
+    dvpUnbindFromCUDACtx(DVPBufferHandle hBuf);
+
+    DVPAPI_INTERFACE
+    dvpUnbindFromD3D9Device(DVPBufferHandle hBuf, 
+                            IDirect3DDevice9 *pD3D9Device);
+
+    DVPAPI_INTERFACE
+    dvpUnbindFromD3D10Device(DVPBufferHandle hBuf, 
+                                ID3D10Device *pD3D10Device); 
+
+    DVPAPI_INTERFACE
+    dvpUnbindFromD3D11Device(DVPBufferHandle hBuf, 
+                                ID3D11Device *pD3D11Device);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpCreateGPU*
+    //
+    // Description:   dvpCreateGPU* creates a DVP buffer reference from a named
+    //                [buffer,texture,resource]. If OpenGL or CUDA is used, the 
+    //                OpenGL/CUDA context must be current at time of call.
+    //
+    //                For D3D resources, as soon as dvpCreateGPUD3D* is called
+    //                the resource is mapped for use by the DVP library. This 
+    //                mapping is the same as a call to dvpMapBufferEndAPI to  
+    //                signal on the DX device and dvpMapBufferWaitDVP to make
+    //                the DVP library wait for that signal. This is required as
+    //                the buffer may be used at some undetermined time before the
+    //                DX device has touched the buffer and the buffer needs correct 
+    //                initialization. dvpMapBufferWaitAPI must be called before 
+    //                the resource is used to make the DX device wait on any
+    //                previous DVP operation.
+    //
+    // Parameters:    bufferID[IN]      - [buffer,texture,resource] to import
+    //                bufferHandle[OUT] - DVP Buffer handle
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER  
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpCreateGPUBufferGL(GLuint bufferID, 
+                         DVPBufferHandle *bufferHandle);
+
+    DVPAPI_INTERFACE
+    dvpCreateGPUTextureGL(GLuint texID, 
+                          DVPBufferHandle *bufferHandle);
+
+    DVPAPI_INTERFACE
+    dvpCreateGPUCUDAArray(CUarray array, 
+                          DVPBufferHandle *bufferHandle);
+
+    DVPAPI_INTERFACE
+    dvpCreateGPUCUDADevicePtr(CUdeviceptr devPtr, 
+                              DVPBufferHandle *bufferHandle);
+
+    DVPAPI_INTERFACE
+    dvpCreateGPUD3D9Resource(IDirect3DResource9 *pD3DResource, 
+                             DVPBufferHandle *bufferHandle); 
+    DVPAPI_INTERFACE
+    dvpCreateGPUD3D10Resource(ID3D10Resource *pD3DResource, 
+                              DVPBufferHandle *bufferHandle);
+
+    DVPAPI_INTERFACE
+    dvpCreateGPUD3D11Resource(ID3D11Resource *pD3DResource,
+                              DVPBufferHandle *bufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpFreeBuffer
+    //
+    // Description:   dvpFreeBuffer frees the DVP buffer reference
+    //
+    // Parameters:    gpuBufferHandle[IN] - DVP Buffer handle
+    // 
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpFreeBuffer(DVPBufferHandle gpuBufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpGetRequiredConstants*
+    //
+    // Description:   dvpGetRequiredConstants* returns, for the associated 
+    //                API context or device:
+    //                - Alignments required for the start address and stride (pitch)
+    //                  of the buffer
+    //                - Semaphore Addr alignment
+    //                - Semaphore allocation size
+    //                - Semaphore payload offset
+    //                - Semaphore payload size in bytes
+    //
+    //                If OpenGL or CUDA is used, the OpenGL/CUDA context
+    //                must be current at time of call.
+    //
+    // Parameters:    bufferAddrAlignment[OUT]
+    //                bufferGPUStrideAlignment[OUT]
+    //                semaphoreAddrAlignment[OUT]
+    //                semaphoreAllocSize[OUT]
+    //                semaphorePayloadOffset[OUT]
+    //                semaphorePayloadSize[OUT]
+    //                device[IN] - D3D device if used
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpGetRequiredConstantsGLCtx(uint32_t *bufferAddrAlignment,
+                                 uint32_t *bufferGPUStrideAlignment,
+                                 uint32_t *semaphoreAddrAlignment,
+                                 uint32_t *semaphoreAllocSize,
+                                 uint32_t *semaphorePayloadOffset,
+                                 uint32_t *semaphorePayloadSize);
+
+    DVPAPI_INTERFACE
+    dvpGetRequiredConstantsCUDACtx(uint32_t *bufferAddrAlignment,
+                                   uint32_t *bufferGPUStrideAlignment,
+                                   uint32_t *semaphoreAddrAlignment,
+                                   uint32_t *semaphoreAllocSize,
+                                   uint32_t *semaphorePayloadOffset,
+                                   uint32_t *semaphorePayloadSize);
+
+    DVPAPI_INTERFACE
+    dvpGetRequiredConstantsD3D9Device(uint32_t *bufferAddrAlignment,
+                                      uint32_t *bufferGPUStrideAlignment,
+                                      uint32_t *semaphoreAddrAlignment,
+                                      uint32_t *semaphoreAllocSize,
+                                      uint32_t *semaphorePayloadOffset,
+                                      uint32_t *semaphorePayloadSize,
+                                      IDirect3DDevice9 *pD3D9Device);
+
+    DVPAPI_INTERFACE
+    dvpGetRequiredConstantsD3D10Device(uint32_t *bufferAddrAlignment,
+                                       uint32_t *bufferGPUStrideAlignment,
+                                       uint32_t *semaphoreAddrAlignment,
+                                       uint32_t *semaphoreAllocSize,
+                                       uint32_t *semaphorePayloadOffset,
+                                       uint32_t *semaphorePayloadSize,
+                                       ID3D10Device *pD3D10Device);
+
+    DVPAPI_INTERFACE
+    dvpGetRequiredConstantsD3D11Device(uint32_t *bufferAddrAlignment,
+                                       uint32_t *bufferGPUStrideAlignment,
+                                       uint32_t *semaphoreAddrAlignment,
+                                       uint32_t *semaphoreAllocSize,
+                                       uint32_t *semaphorePayloadOffset,
+                                       uint32_t *semaphorePayloadSize,
+                                       ID3D11Device *pD3D11Device);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMemcpy* general comments that apply to all the the 
+    //                memcpy functions.
+    //
+    //                dvpMemcpyLined acquire the srcSync and then initiates 
+    //                a DMA transfer of the given amount of lines from the 
+    //                srcBuffer to the dstBuffer at a given line. 
+    //                Upon completion of a transfer, a release operation is 
+    //                performed on dstSync. The buffer is only usable once the 
+    //                release operation is complete.
+    //
+    //                For OpenGL and CUDA sources or destinations the correct
+    //                context must be current.
+    //
+    //                When possible the implementation will use HW based 
+    //                synchronization and in these cases the timeout parameter
+    //                is not supported, as the call will return immediately and
+    //                the HW will perform the wait. When SW synchronization is 
+    //                in use, the wait will timeout after the specified time. 
+    //                The actual implementation time resolution may differ from 
+    //                the nanoseconds resolution of the parameter. To ignore
+    //                the time out use the value DVP_TIMEOUT_IGNORED.
+    //
+    //                If the timeout is hit, the corresponding copy is not 
+    //                performed.
+    //------------------------------------------------------------------------
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMemcpyLined
+    //
+    // Description:   dvpMemcpyLined provides buffer copies between a
+    //                DVP sysmem buffer and a graphics API texture (as opposed to
+    //                a buffer type). Other buffer types (such
+    //                as graphics API buffers) return DVP_STATUS_INVALID_PARAMETER.
+    //
+    //                In addition, see "dvpMemcpy* general comments" above.
+    //
+    // Parameters:    srcBuffer[IN]        - src buffer handle
+    //                srcSync[IN]          - sync to acquire on before transfer
+    //                srcAcquireValue[IN]  - value to acquire on before transfer
+    //                timeout[IN]          - time out value in nanoseconds.
+    //                dstBuffer[IN]        - src buffer handle
+    //                dstSync[IN]          - sync to release on transfer completion
+    //                dstReleaseValue[IN]  - value to release on completion
+    //                startingLine[IN]     - starting line of buffer
+    //                numberOfLines[IN]    - number of lines to copy
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //
+    // GL state effected: The following GL state may be altered by this
+    //               function (not relevant if no GL source or destination
+    //               is used):
+    //                -GL_PACK_SKIP_ROWS, GL_PACK_SKIP_PIXELS, 
+    //                 GL_PACK_ROW_LENGTH
+    //                -The buffer bound to GL_PIXEL_PACK_BUFFER
+    //                -The current bound framebuffer (GL_FRAMEBUFFER_EXT)
+    //                -GL_UNPACK_SKIP_ROWS, GL_UNPACK_SKIP_PIXELS,
+    //                 GL_UNPACK_ROW_LENGTH
+    //                -The buffer bound to GL_PIXEL_UNPACK_BUFFER
+    //                -The texture bound to GL_TEXTURE_2D
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMemcpyLined(DVPBufferHandle      srcBuffer,
+                   DVPSyncObjectHandle  srcSync,
+                   uint32_t             srcAcquireValue,
+                   uint64_t             timeout,
+                   DVPBufferHandle      dstBuffer,
+                   DVPSyncObjectHandle  dstSync,
+                   uint32_t             dstReleaseValue,
+                   uint32_t             startingLine,
+                   uint32_t             numberOfLines);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMemcpy
+    //
+    // Description:   dvpMemcpy provides buffer copies between a
+    //                DVP sysmem buffer and a graphics API pure buffer (as 
+    //                opposed to a texture type). Other buffer types (such
+    //                as graphics API textures) return 
+    //                DVP_STATUS_INVALID_PARAMETER.
+    //
+    //                The start address of the srcBuffer is given by srcOffset
+    //                and the dstBuffer start address is given by dstOffset.
+    //
+    //                In addition, see "dvpMemcpy* general comments" above.
+    //
+    // Parameters:    srcBuffer[IN]             - src buffer handle
+    //                srcSync[IN]               - sync to acquire on before transfer
+    //                srcAcquireValue[IN]       - value to acquire on before transfer
+    //                timeout[IN]               - time out value in nanoseconds.
+    //                dstBuffer[IN]             - src buffer handle
+    //                dstSync[IN]               - sync to release on completion
+    //                dstReleaseValue[IN]       - value to release on completion
+    //                uint32_t srcOffset[IN]    - byte offset of srcBuffer
+    //                uint32_t dstOffset[IN]    - byte offset of dstBuffer
+    //                uint32_t count[IN]        - number of bytes to copy
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //
+    // GL state effected: The following GL state may be altered by this
+    //               function (not relevant if no GL source or destination
+    //               is used):
+    //                 - The buffer bound to GL_COPY_WRITE_BUFFER
+    //                 - The buffer bound to GL_COPY_READ_BUFFER
+    // 
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMemcpy(DVPBufferHandle      srcBuffer,
+              DVPSyncObjectHandle  srcSync,
+              uint32_t             srcAcquireValue,
+              uint64_t             timeout,
+              DVPBufferHandle      dstBuffer,
+              DVPSyncObjectHandle  dstSync,
+              uint32_t             dstReleaseValue,
+              uint32_t             srcOffset,
+              uint32_t             dstOffset,
+              uint32_t             count);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMemcpy2D
+    //
+    // Description:   dvpMemcpy2D provides buffer copies between a
+    //                DVP sysmem buffer and a graphics API texture (as opposed
+    //                to a buffer type). Other buffer types (such
+    //                as graphics API buffers) return 
+    //                DVP_STATUS_INVALID_PARAMETER.
+    //
+    //                The start address of the copy is calculated as 
+    //                startPtr = baseAddress + pitch*startY + startX*elementSize,
+    //                where the baseAdress and pitch are taken from the src 
+    //                and dst buffer properties.
+    //
+    //                In addition, see "dvpMemcpy* general comments" above.
+    //
+    // Parameters:    srcBuffer[IN]          - src buffer handle
+    //                srcSync[IN]            - sync to acquire before transfer
+    //                srcAcquireValue[IN]    - value to acquire before transfer
+    //                timeout[IN]            - time out value in nanoseconds.
+    //                dstBuffer[IN]          - src buffer handle
+    //                dstSync[IN]            - sync to release on completion
+    //                dstReleaseValue[IN]    - value to release on completion
+    //                uint32_t startY[IN]    - Y position of src rectangle
+    //                uint32_t startX[IN]    - starting X position in bytes
+    //                uint32_t height[IN]    - height of sub rectangle
+    //                uint32_t width[IN]     - width of sub rectangle in bytes
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //
+    // GL state effected: The following GL state may be altered by this
+    //               function (not relevant if no GL source or destination
+    //               is used):
+    //                -GL_PACK_SKIP_ROWS, GL_PACK_SKIP_PIXELS, 
+    //                 GL_PACK_ROW_LENGTH
+    //                -The buffer bound to GL_PIXEL_PACK_BUFFER
+    //                -The current bound framebuffer (GL_FRAMEBUFFER_EXT)
+    //                -GL_UNPACK_SKIP_ROWS, GL_UNPACK_SKIP_PIXELS,
+    //                 GL_UNPACK_ROW_LENGTH
+    //                -The buffer bound to GL_PIXEL_UNPACK_BUFFER
+    //                -The texture bound to GL_TEXTURE_2D
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMemcpy2D(DVPBufferHandle      srcBuffer,
+                DVPSyncObjectHandle  srcSync,
+                uint32_t             srcAcquireValue,
+                uint64_t             timeout,
+                DVPBufferHandle      dstBuffer,
+                DVPSyncObjectHandle  dstSync,
+                uint32_t             dstReleaseValue,
+                uint32_t             startY,
+                uint32_t             startX,
+                uint32_t             height,
+                uint32_t             width);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMapBufferEndAPI
+    //
+    // Description:   Tells DVP to setup a signal for this buffer in the
+    //                callers API context or device. The signal follows all
+    //                previous API operations up to this point and, thus,
+    //                allows subsequent DVP calls to know when then this buffer
+    //                is ready for use within the DVP library. This function
+    //                would be followed by a call to dvpMapBufferWaitDVP to
+    //                synchronize rendering in the API stream and the DVP 
+    //                stream.
+    //
+    //                If OpenGL or CUDA is used, the OpenGL/CUDA context
+    //                must be current at time of call.
+    //
+    //                This must be called outside the dvpBegin/dvpEnd pair. In
+    //                addition, this call is not thread safe and must be called
+    //                from or fenced against the rendering thread associated with
+    //                the context or device.
+    //
+    // Parameters:    gpuBufferHandle[IN] - buffer to track
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMapBufferEndAPI(DVPBufferHandle gpuBufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMapBufferEndDVP
+    //
+    // Description:   Tells DVP to setup a signal for this buffer after
+    //                DVP operations are complete. The signal allows 
+    //                the API to know when then this buffer is 
+    //                ready for use within a API stream. This function would
+    //                be followed by a call to dvpMapBufferWaitAPI to
+    //                synchronize copies in the DVP stream and the API 
+    //                rendering stream.
+    //
+    //                This must be called inside the dvpBegin/dvpEnd pair.
+    //
+    // Parameters:    gpuBufferHandle[IN] - buffer to track
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMapBufferEndDVP(DVPBufferHandle gpuBufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMapBufferWaitAPI
+    //
+    // Description:   Tells DVP to make the current API context or device to 
+    //                wait for a previous signal triggered by a 
+    //                dvpMapBufferEndDVP call.
+    //
+    //                If OpenGL or CUDA is used, the OpenGL/CUDA context
+    //                must be current at time of call.
+    //
+    //                This must be called outside the dvpBegin/dvpEnd pair. In
+    //                addition, this call is not thread safe and must be called
+    //                from or fenced against the rendering thread associated with
+    //                the context or device.
+    //
+    // Parameters:    gpuBufferHandle[IN] - buffer to track
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMapBufferWaitAPI(DVPBufferHandle gpuBufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpMapBufferWaitDVP
+    //
+    // Description:   Tells DVP to make the DVP stream wait for a previous 
+    //                signal triggered by a dvpMapBufferEndAPI call.
+    //    
+    //                This must be called inside the dvpBegin/dvpEnd pair.
+    //
+    // Parameters:    gpuBufferHandle[IN] - buffer to track
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpMapBufferWaitDVP(DVPBufferHandle gpuBufferHandle);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpSyncObjCompletion
+    //
+    // Description:   dvpSyncObjCompletion returns the time of completion
+    //                of the last completed GPU release operation. This time is
+    //                nanoseconds from and is in the same time domain as that
+    //                defined in GL_ARB_timer_query.
+    //
+    // Parameters:    syncObject[IN] - syncObject
+    //                timeStamp[OUT] - return time in nanoseconds
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpSyncObjCompletion(DVPSyncObjectHandle syncObject,
+                         uint64_t *timeStamp);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpImportSyncObject
+    //
+    // Description:   dvpImportSyncObject creates a DVPSyncObject from the 
+    //                DVPSyncObjectDesc. Note that a sync object is not 
+    //                supported for copy operations targeting different APIs.
+    //                This means, for example, it is illegal to call dvpMemCpy*
+    //                for source or target GL texture with sync object A and 
+    //                then later use that same sync object in dvpMemCpy* 
+    //                operation for a source or target CUDA buffer. The same
+    //                semaphore memory can still be used for two different sync
+    //                objects.
+    //
+    // Parameters:    desc[IN]        - data describing the sync object
+    //                syncObject[OUT] - handle to sync object
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpImportSyncObject(DVPSyncObjectDesc *desc, 
+                        DVPSyncObjectHandle *syncObject);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpFreeSyncObject
+    //
+    // Description:   dvpFreeSyncObject waits for any outstanding releases on 
+    //                this sync object before freeing the resources allocated for
+    //                the specified sync object. The application must make sure
+    //                any outstanding acquire operations have already been
+    //                completed.
+    //
+    // Parameters:    syncObject[IN] - handle to sync object to be free'd
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+
+    DVPAPI_INTERFACE
+    dvpFreeSyncObject(DVPSyncObjectHandle syncObject);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpSyncObjClientWaitComplete
+    //
+    // Description:   dvpSyncObjClientWaitComplete blocks until the  
+    //                corresponding sync object's semaphore is greater than
+    //                or equal to the last release value issued by the 
+    //                DVP library.
+    //
+    // Parameters:    syncObject[IN] - handle to sync object
+    //                timeout[IN]    - time out value in nanoseconds.
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpSyncObjClientWaitComplete(DVPSyncObjectHandle syncObject,
+                                 uint64_t timeout);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpSyncObjClientWaitPartial
+    //
+    // Description:   dvpSyncObjClientWaitPartial blocks until the  
+    //                corresponding sync object's semaphore greater than
+    //                or equal to the supplied value.
+    //
+    // Parameters:    syncObject[IN] - handle to sync object
+    //                value[IN]      - value to wait for
+    //                timeout[IN]    - time out value in nanoseconds.
+    //
+    // Returns:       DVP_STATUS_OK
+    //                DVP_STATUS_INVALID_PARAMETER
+    //                DVP_STATUS_ERROR
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpSyncObjClientWaitPartial(DVPSyncObjectHandle syncObject,
+                                uint32_t value,
+                                uint64_t timeout);
+
+    //------------------------------------------------------------------------
+    // Function:      dvpGetLibrayVersion
+    //
+    // Description:   Returns the current version of the library
+    //
+    // Parameters:    major[OUT]     - returned major version
+    //                minor[OUT]     - returned minor version
+    //
+    // Returns:       DVP_STATUS_OK
+    //------------------------------------------------------------------------
+    DVPAPI_INTERFACE
+    dvpGetLibrayVersion(uint32_t *major,
+                        uint32_t *minor);
+
+    d. Sample Code:
+    ===============
+    This is a some sample code for a OpenGL use case. The application retrieves
+    a buffer from an input device via an SDK and uses that for rendering and then
+    sends the result to the output device.
+    
+    Application code:
+    -----------------
+        // Predefined variables:
+        // GLuint prog; - shader that will translate the data in some way
+    
+        const int bufferWidth = 1920;
+        const int bufferHeight = 1080;
+        GLuint fb;
+        
+        // Make GL current - on windows wglMakeCurrent(...); 
+        
+        EXTInitFifo(bufferWidth, bufferHeight);
+        
+        // Create GL input texture
+        GLuint glTexIn;
+        glGenTextures(1, &glTexIn);
+        glBindTexture(GL_TEXTURE_2D, glTexIn);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bufferWidth, bufferHeight, 0, 0, 0, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        unsigned int EXTTexHandleIn;
+        EXTTexHandleIn = EXTCreateGPUTextureGL(glTexIn);
+        
+        // Create GL output texture
+        GLuint glTexOut;
+        glGenTextures(1, &glTexOut);
+        glBindTexture(GL_TEXTURE_2D, glTexOut);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, bufferWidth, bufferHeight, 0, 0, 0, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        unsigned int EXTTexHandleOut;
+        EXTTexHandleOut = EXTCreateGPUTextureGL(glTexOut);
+        
+        // Ask the SDK to fetch a frame from the input device
+        EXTGetBuffer(EXTTexHandleOut);
+        
+        // The application must wait for the input texture to be ready and the output
+        // texture to be ready, so that no previous data gets overwritten. Doing this 
+        // as late as possible before the application uses the buffers allows for
+        // improved performance when using a ring buffer of input and output frames.
+        // The application can the render the next frame without having to wait for
+        // the previous frame. Note that these calls would be non blocking and would
+        // cause the API stream to be delayed at the correct times upon submission
+        // to the device.
+        EXTMapBufferWaitAPI(EXTTexHandleIn);
+        EXTMapBufferWaitAPI(EXTTexHandleOut);
+        
+        glGenFramebuffers(1, &fb);
+        glBindFramebuffer(GL_FRAMEBUFFER_EXT, fb);
+        glGenProgramsARB(1, &prog);
+
+        glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
+        glEnable(GL_FRAGMENT_PROGRAM_ARB);
+
+        //Attach 2D texture to this FBO
+        glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, glTexOut, 0);
+
+        glViewport(0, 0, width, height);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, width, 0, height, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+
+        glBindTexture(GL_TEXTURE_2D, glTexIn);
+        
+        glEnable(GL_TEXTURE_2D);
+        glBegin(GL_QUADS);
+
+        glTexCoord2f(0, 0);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); 
+        glVertex2i(0,       0);
+        
+        glTexCoord2f(0, 1.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); 
+        glVertex2i(0,       height);
+        
+        glTexCoord2f(1.0f, 1.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); 
+        glVertex2i(width,   height);
+        
+        glTexCoord2f(1.0f, 0.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f); 
+        glVertex2i(width, 0);
+        
+        glEnd();
+
+        glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+        
+        // Setup a signal in the the application stream after the previous operations
+        // are done, so that DVP can wait on this.
+        EXTMapBufferEndAPI(EXTTexHandleIn);
+        EXTMapBufferEndAPI(EXTTexHandleOut);
+        
+        EXTPutBuffer(EXTTexHandleOut);
+    
+    
+    SDK/Driver Code:
+    ----------------    
+        // Simple example with a fifo of length 1
+        
+        // Predefined helper functions for buffer tracking:
+        //  EXTCreateBuf
+        //  EXTBufSetDVPhandle
+        //  EXTBufGetSyncObject
+    
+        typedef struct syncInfoRec {
+          GLuint *sem; 
+          GLuint releaseValue; 
+          GLuint acquireValue;
+          DVPSyncObject syncObj;
+        } syncInfo;
+
+        void* sysMemBuffer;
+        DVPSysmemBufferDescription sysMemBuffersDesc;
+        DVPBufferHandle sysMemHandle;               
+        syncInfo   sysMemSyncObject;        
+        unsigned int bufferAddrAlignment, bufferGPUStrideAlignment,
+                    semaphoreAddrAlignment, semaphoreAllocSize,
+                    semaphorePayloadOffset, semaphorePayloadSize;
+        
+        //******************************************************************
+        //      EXTInitFifo
+        //******************************************************************
+        
+        EXTInitFifo(int width, int height)
+        {
+            DVPSyncObjectDesc syncObjectDesc;
+            // Assume 4 bytes per pixel and no padding
+            int bufferStride = 1080*4;
+            
+            // Inform DVP that we want to use this context
+            // this must be called before any DVP objects are
+            // created
+            dvpInitGLContext(0);
+
+            // Correct for use with GPU            
+            dvpGetRequiredConstantsGLCtx(&bufferAddrAlignment,
+                                        &bufferGPUStrideAlignment,
+                                        &semaphoreAddrAlignment,
+                                        &semaphoreAllocSize,
+                                        &semaphorePayloadOffset,
+                                        &semaphorePayloadSize);
+
+            bufferStride += bufferGPUStrideAlignment-1;
+            bufferStride &= ~(bufferGPUStrideAlignment-1);
+
+            sysMemBuffersDesc.width    = bufferWidth;
+            sysMemBuffersDesc.height   = bufferHeight;
+            sysMemBuffersDesc.stride   = bufferStride;
+            sysMemBuffersDesc.format   = DVP_RGB;
+            sysMemBuffersDesc.type     = DVP_UNSIGNED_INT_8_8_8_8;
+
+            sysMemBuffer = malloc(height*bufferStride+bufferAddrAlignment-1);
+            sysMemBuffer += bufferAddrAlignment-1;
+            sysMemBuffer &= ~(bufferAddrAlignment-1);
+            
+            sysMemSyncObject.sem = malloc(sizeof(unsigned int)+semaphoreAddrAlignment-1);
+            sysMemSyncObject.sem += semaphoreAddrAlignment-1;
+            sysMemSyncObject.sem &= ~(semaphoreAddrAlignment-1);
+            
+            sysMemBuffersDesc.bufAddr = sysMemBuffers[i];
+            
+            dvpCreateBuffer(sysMemBuffersDesc, sysMemHandle);
+            dvpBindToGLCtx(sysMemHandles[i]);
+            
+            // Create necessary sync objects
+            syncObjectDesc.sem = sysMemSyncObject.sem;
+            sysMemSyncObject.releaseValue = 0;
+            syncObjectDesc.externalClientWaitFunc = NULL;
+            
+            dvpImportSyncObject(&syncObjectDesc, &sysMemSyncObject.syncObj);
+
+        }
+        
+        //******************************************************************
+        //      EXTCreateGPUTextureGL
+        //******************************************************************
+        
+        unsigned int EXTCreateGPUTextureGL(GLuint tex)
+        {
+            DVPBufferHandle gpuBuffer;
+            syncInfo   *gpuSyncObject;
+            DVPSyncObjectDesc syncObjectDesc;
+            unsigned int EXTref = EXTCreateBuf();
+            
+            if (dvpCreateGPUTextureGL(glTex, &gpuBuffer) != DVP_STATUS_OK)
+                return 0;
+            
+            // Save handle for later reference
+            EXTBufSetDVPhandle(EXTref, gpuBuffer);            
+            // Get the sync object to fill it
+            gpuSyncObject = EXTBufGetSyncObject(EXTref);
+                  
+            memset(gpuSyncObject, 0, sizeof(gpuSyncObject));
+            gpuSyncObject->sem = malloc(sizeof(unsigned int)+semaphoreAddrAlignment-1);
+            gpuSyncObject->sem += semaphoreAddrAlignment-1;
+            gpuSyncObject->sem &= ~(semaphoreAddrAlignment-1);
+            
+            syncObjectDesc.sem = gpuSyncObject->sem;
+            gpuSyncObject->releaseValue = 0;
+            gpuSyncObject->externalClientWaitFunc = NULL;
+            
+            dvpImportSyncObject(&synObjectDesc, &gpuSyncObject->syncObj);
+            
+            return EXTref;
+        }
+        
+        //******************************************************************
+        //      EXTGetBuffer
+        //******************************************************************
+        
+        EXTGetBuffer(unsigned int handle)
+        {
+            DVPBufferHandle gpuBuffer;
+            syncInfo   *gpuSyncObject;
+            
+            // Translate handle for internal use
+            gpuBuffer = EXTBufGetDVPhandle(handle);
+            gpuSyncObject = EXTBufGetSyncObject(EXTref);
+            
+            // Begin transfer of buffer 0 from external device to GPU
+            int numLinesPerCopy = EXTBufGetheight(EXTref)/5;
+
+            int copiedLines = 0;
+
+            // Initiate all the external to system memory copies
+            while (copiedLines < height)
+            {
+                int linesToCopy = (height-copiedLines > numLinesPerCopy ? numLinesPerCopy : height-copiedLines);    
+
+                // copy from sysMemBuffer starting at copiedLines
+                EXTDevDMA(sysMemBuffer, copiedLines, linesToCopy);
+                
+                sysMemSyncObject.releaseValue++;
+                EXTDevSemRelease(sysMemSyncObject.sem, sysMemSyncObject.releaseValue);    
+
+                copiedLines += linesToCopy;
+            }
+            
+            // Begin DVP copy operations
+            dvpBegin();
+
+            // Make sure an API is finished rendering to buffer
+            dvpMapBufferWaitDVP(gpuBuffer);
+
+            // Initiate all the system memory to GPU copies
+
+            while (copiedLines < height)
+            {
+                int linesToCopy = (height-copiedLines > numLinesPerCopy ? numLinesPerCopy : height-copiedLines);        
+
+                sysMemSyncObject.acquireValue++;
+                gpuSyncObject->releaseValue++;
+                dvpLinedMemcpy(sysMemHandle,
+                               sysMemSyncObject.syncObj,
+                               sysMemSyncObject.acquireValue,
+                               gpuBuffer,
+                               gpuSyncObject->syncObj,
+                               gpuSyncObject->releaseValue,
+                               copiedLines,
+                               linesToCopy);
+
+                copiedLines += linesToCopy;
+            }
+
+            dvpMapBufferEndDVP(gpuBuffer);
+            
+            // End DVP copy operations
+            dvpEnd();
+        }
+               
+        //******************************************************************
+        //      EXTPutBuffer
+        //******************************************************************
+        
+        EXTPutBuffer(unsigned int handle)
+        {
+            DVPBufferHandle gpuBuffer;
+            syncInfo   *gpuSyncObject;
+            
+            // Translate handle for internal use
+            gpuBuffer = EXTBufGetDVPhandle(handle);
+            gpuSyncObject = EXTBufGetSyncObject(EXTref);
+         
+            // Begin transfer of one buffers from GPU to external device
+            int copiedLines = 0;
+            
+            // Reset acquire value
+            gpuSyncObject->acquireValue = gpuSyncObject->releaseValue;
+            
+            // Begin DVP copy operations
+            dvpBegin();
+            
+            // Make DVP wait for the previous API operations to finish
+            dvpMapBufferWaitDVP(gpuBuffer);
+
+            while (copiedLines < height)
+            {
+                int linesToCopy = (height-copiedLines > numLinesPerCopy ? numLinesPerCopy : height-copiedLines);    
+
+                gpuSyncObject->releaseValue++;
+                dvpLinedMemcpy(gpuBuffer,
+                               NULL,
+                               0,
+                               sysMemHandle,
+                               gpuSyncObject->syncObj,
+                               gpuSyncObject->releaseValue,
+                               copiedLines,
+                               linesToCopy);
+                
+                gpuSyncObject->acquireValue++; 
+                EXTDevSemAcquire(gpuSyncObject->sem, gpuSyncObject->acquireValue);
+                
+
+                // copy from sysMemBuffer starting at copiedLines
+                EXTDevDMA(sysMemBuffer, copiedLines, linesToCopy);
+                
+                sysMemSyncObject.releaseValue++;
+                EXTDevSemRelease(sysMemSyncObject.sem, sysMemSyncObject.releaseValue);
+
+                copiedLines += linesToCopy;
+            }
+            
+            // Setup a signal in the DVP stream to denote when this buffer is
+            // finished.
+            dvpMapBufferEndDVP(gpuBuffer);
+            
+            // End DVP copy operations
+            dvpEnd();
+        }
+        
+        //******************************************************************
+        //      EXTMapBufferEnd
+        //******************************************************************
+        
+        EXTMapBufferEndAPI(unsigned int handle) 
+        {
+            DVPBufferHandle gpuBuffer;
+            
+            // Translate handle for internal use
+            gpuBuffer = EXTBufGetDVPhandle(handle);
+            
+            dvpMapBufferEndAPI(gpuBuffer);
+        }
+        
+        //******************************************************************
+        //      EXTMapBufferWaitAPI
+        //******************************************************************
+        
+        EXTMapBufferEndAPI(unsigned int handle) 
+        {
+            DVPBufferHandle gpuBuffer;
+            
+            // Translate handle for internal use
+            gpuBuffer = EXTBufGetDVPhandle(handle);
+            
+            dvpMapBufferWaitAPI(gpuBuffer);
+        }
+    
+    
+Issues:
+    1.) What are the restrictions/allowances on the allocations?
+      The alignment of system memory allocations must be usable with both GPU and
+      external device DMA engines. Then memory needs to be pinned in place with
+      the use of OS specific functions (get_user_pages on Linux or 
+      IoAllocateMdl/MmProbeAndLockPages on Windows). These functions place 
+      additional restrictions on the allocations. The full list of restrictions
+      is under revision.
+      
+    2.) Are SLI devices/contexts supported?
+      Currently, the use of SLI is unsupported, but the API allows for use of SLI
+      devices should the implementation provide support in the future.
+      
+    3.) Can the supported API buffer types be limited or must the all graphics
+      API formats be supported?
+      The vendor can support a subset of those implemented in the graphics APIs
+      and can reject the import of such formats (e.g. with EXTCreateGPUTextureGL).
+     
+    4.) How does DVP work with multi-threading cases?
+      The DVP library calls are thread safe with the exception of dvpMapBufferEndAPI
+      and dvpMapBufferWaitAPI. These must be called from or fenced against the 
+      rendering thread associated with the context or device. It is supported to 
+      perform dvpMemcpy* operations on one buffer from different threads, but if the
+      proper synchronization (using DVP sync objects) is not carried out, there is
+      no guarantee as to which operation is completed first even if targeting
+      the same graphics API context or device.
+    
+    5.) Are dvpMemcpy* performed in parallel to API rendering?
+      The default usage (flags = 0 when call dvpInit*) will allow for DVP to optimize
+      the dvpMemcpy* in a parallel fashion. This means that the GPU will be able to
+      copy data while the graphics library is busy rendering. It is not possible to
+      copy to/from and render to/from the same buffer in parallel, so multiple
+      buffers must be used to achieve this. For maximum parallelism to be achieved,
+      dvpMapBufferEndAPI/dvpMapBufferEndDVP must be called as soon as possible after
+      the calls to the graphics/DVP library that touch a buffer are done.
+      dvpMapBufferWaitAPI/dvpMapBufferWaitDVP must be called as late possible and 
+      always before a buffer is used.
+      
+      There may be cases where it is more efficient to use the 
+      DVP_DEVICE_FLAGS_SHARE_APP_CONTEXT flag. This removes the synchronization between 
+      the rendering context and the dvpMemcpy* operation, as the copy is performed in
+      the application context. However, this flag is only supported for OpenGL. If this
+      flag is used the calls to dvpMapBuffer* are optimized out by the library.
+    
+0.1 - Initial release draft    
+0.2 - Remove array loops from sample code
+    - Added note to dvpSyncObjCompletion to make it GPU specific
+    - Improved the introduction descriptions
+0.3 - General cleanup for pre-alpha release
+0.4 - Updates after comments from Robert
+0.5 - Added dvpInit* and dvpClose* functions
+    - Added dvpBegin and dvpEnd functions to allow for tracking groups of DVP 
+      operations
+    - Split the dvpMapBuffer and dvpUnmapBuffer functions into their DVP operations
+      and API operations to allow for more efficient parallel operations.
+    - Added issue 4 on threading
+    - Minor error fixes
+    - updated the return value of the externalClientWaitFunc
+0.6 - Reworded issue 4 to more accurately reflect the problem areas 
+    - Added issue 5. "Are dvpMemcpy* performed in parallel to API rendering?"
