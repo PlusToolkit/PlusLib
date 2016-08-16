@@ -233,19 +233,8 @@ ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
 IF (PLUS_USE_NVIDIA_DVP)
-  SET(PLUS_USE_NVIDIA_DVP_MODE "GL" CACHE STRING "Choose the graphics backend to use for the DVP.")
-  set_property(CACHE PLUS_USE_NVIDIA_DVP_MODE PROPERTY STRINGS "GL" "CUDA" "D3D9" "D3D10" "D3D11")
-
-  IF( "${PLUS_USE_NVIDIA_DVP_MODE}" STREQUAL "GL" )
-    FIND_PACKAGE(OpenGL REQUIRED)
-    IF( "${OPENGL_INCLUDE_DIR}" STREQUAL "" )
-      MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR could not be populated. Please specify manually. Aborting.")
-    ELSE()
-      IF(NOT EXISTS ${OPENGL_INCLUDE_DIR}/GL/gl.h)
-        MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR: ${OPENGL_INCLUDE_DIR} does not contain GL/gl.h. Aborting.")
-      ENDIF()
-    ENDIF()
-  ENDIF()
+  FIND_PACKAGE(QuadroSDI REQUIRED)
+  FIND_PACKAGE(OpenGL REQUIRED)
 ENDIF()
 
 #-----------------------------------------------------------------------------

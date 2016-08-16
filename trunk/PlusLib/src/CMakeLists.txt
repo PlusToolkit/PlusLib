@@ -243,6 +243,7 @@ IF( ${PLUS_USE_BRACHY_TRACKER} )
 ENDIF()
 IF( ${PLUS_USE_NVIDIA_DVP} )
   LIST(APPEND PLUSLIB_DEPENDENCIES NVidiaDVP)
+  LIST(APPEND PLUSLIB_DEPENDENCIES QuadroSDI)
 ENDIF()
 
 #-----------------------------------------------------------------------------

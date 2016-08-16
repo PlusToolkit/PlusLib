@@ -22,17 +22,11 @@ Authors include:
 
 // NVidia DVP includes
 #include <DVPAPI.h>
-#if defined(NVIDIA_DVP_MODE_GL)
 #include <dvpapi_gl.h>
-#elif defined(NVIDIA_DVP_MODE_CUDA)
-#include <dvpapi_cuda.h>
-#elif defined(NVIDIA_DVP_MODE_D3D9)
-#include <dvpapi_d3d9.h>
-#elif defined(NVIDIA_DVP_MODE_D3D10)
-#include <dvpapi_d3d10.h>
-#elif defined(NVIDIA_DVP_MODE_D3D11)
-#include <dvpapi_d3d11.h>
-#endif
+
+// Quadro SDI includes
+#include <nvapi.h>
+
 
 // System includes
 
@@ -70,18 +64,6 @@ void vtkPlusNvidiaDVPVideoSource::PrintSelf( ostream& os, vtkIndent indent )
 PlusStatus vtkPlusNvidiaDVPVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusPhilips3DProbeVideoSource::InternalConnect" );
-  
-#if defined(NVIDIA_DVP_MODE_GL)
-
-#elif defined(NVIDIA_DVP_MODE_CUDA)
-
-#elif defined(NVIDIA_DVP_MODE_D3D9)
-
-#elif defined(NVIDIA_DVP_MODE_D3D10)
-
-#elif defined(NVIDIA_DVP_MODE_D3D11)
-
-#endif
 
   return PLUS_SUCCESS;
 }
@@ -90,18 +72,6 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::InternalConnect()
 PlusStatus vtkPlusNvidiaDVPVideoSource::InternalDisconnect()
 {
   LOG_TRACE( "vtkPlusNvidiaDVPVideoSource::InternalDisconnect" );
-
-#if defined(NVIDIA_DVP_MODE_GL)
-
-#elif defined(NVIDIA_DVP_MODE_CUDA)
-
-#elif defined(NVIDIA_DVP_MODE_D3D9)
-
-#elif defined(NVIDIA_DVP_MODE_D3D10)
-
-#elif defined(NVIDIA_DVP_MODE_D3D11)
-
-#endif
 
   return PLUS_SUCCESS;
 }

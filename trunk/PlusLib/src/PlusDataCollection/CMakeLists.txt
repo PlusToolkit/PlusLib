@@ -62,14 +62,10 @@ ENDIF()
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
 IF (PLUS_USE_NVIDIA_DVP)
+  FIND_PACKAGE(QuadroSDI REQUIRED)
   FIND_PACKAGE(OpenGL REQUIRED)
-  IF( "${OPENGL_INCLUDE_DIR}" STREQUAL "" )
-    MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR could not be populated. Please specify manually. Aborting.")
-  ELSE()
-    IF(NOT EXISTS ${OPENGL_INCLUDE_DIR}/GL/gl.h)
-      MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR: ${OPENGL_INCLUDE_DIR} does not contain GL/gl.h. Aborting.")
-    ENDIF()
-  ENDIF()
+  SET(OPENGL_INCLUDE_DIR ${QuadroSDI_ROOT_DIR}/include CACHE PATH "Path to the include directory for OpenGL")
+  MARK_AS_ADVANCED(OPENGL_INCLUDE_DIR)
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -1067,8 +1063,6 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Include the NVidia DVP classes
 IF(PLUS_USE_NVIDIA_DVP)
-  FIND_PACKAGE(OpenGL REQUIRED)
-
   SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
     NVidiaDVP/vtkPlusNVidiaDVPVideoSource.cxx
     )
@@ -1103,6 +1097,7 @@ IF(PLUS_USE_NVIDIA_DVP)
 
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     NVidiaDVP
+    QuadroSDI
     ${OPENGL_LIBRARIES}
     )
 ENDIF()
