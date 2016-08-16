@@ -12,6 +12,7 @@ See License.txt for details.
 
 namespace igtl
 {
+
   //----------------------------------------------------------------------------
   PlusTrackedFrameMessage::PlusTrackedFrameMessage()
     : MessageBase()
@@ -88,8 +89,6 @@ namespace igtl
     this->m_MessageHeader.m_ImageType = m_TrackedFrame.GetImageData()->GetImageType();
     // Image data size
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes();
-    // Image orientation
-    this->m_MessageHeader.m_ImageOrientation = (igtl_uint16)this->m_TrackedFrame.GetImageData()->GetImageOrientation();
 
     return PLUS_SUCCESS;
   }
@@ -151,7 +150,6 @@ namespace igtl
     header->m_FrameSize[2] = this->m_MessageHeader.m_FrameSize[2];
     header->m_ImageDataSizeInBytes = this->m_MessageHeader.m_ImageDataSizeInBytes;
     header->m_XmlDataSizeInBytes = this->m_MessageHeader.m_XmlDataSizeInBytes;
-    header->m_ImageOrientation = this->m_MessageHeader.m_ImageOrientation;
     memcpy( header->m_EmbeddedImageTransform, this->m_MessageHeader.m_EmbeddedImageTransform, sizeof( igtl::Matrix4x4 ) );
 
     // Copy xml data
@@ -191,7 +189,6 @@ namespace igtl
     this->m_MessageHeader.m_FrameSize[2] = header->m_FrameSize[2];
     this->m_MessageHeader.m_ImageDataSizeInBytes = header->m_ImageDataSizeInBytes;
     this->m_MessageHeader.m_XmlDataSizeInBytes = header->m_XmlDataSizeInBytes;
-    this->m_MessageHeader.m_ImageOrientation = header->m_ImageOrientation;
     memcpy( this->m_MessageHeader.m_EmbeddedImageTransform, header->m_EmbeddedImageTransform, sizeof( igtl::Matrix4x4 ) );
 
     // Copy xml data
@@ -225,4 +222,5 @@ namespace igtl
 
     return 1;
   }
+
 }

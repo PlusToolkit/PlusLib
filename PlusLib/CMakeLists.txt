@@ -5,7 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 # ------------------------------------------------------------------------
 # Set project version number
 SET(PLUSLIB_VERSION_MAJOR "2")
-SET(PLUSLIB_VERSION_MINOR "5")
+SET(PLUSLIB_VERSION_MINOR "3")
 SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
@@ -124,23 +124,6 @@ MARK_AS_ADVANCED(USDIGITAL_SEI_BASE_DIR
   USDIGITAL_SEI_BINARY_DIR
   USDIGITAL_SEI_LIB_DIR
   )
-
-IF( WIN32 )
-  SET( NVIDIA_DVP_BASE_DIR ${PLUSLIB_TOOLS_DIR}/NVidia/dvp170 )
-  SET( NVIDIA_DVP_INCLUDE_DIR ${NVIDIA_DVP_BASE_DIR}/include CACHE PATH "Path to the NVidia DVP include directory." FORCE )
-  IF( MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64" )
-    SET (NVIDIA_DVP_BINARY_DIR ${NVIDIA_DVP_BASE_DIR}/bin/x64 CACHE PATH "Directory containing NVidia DVP shared library file." FORCE)
-    SET (NVIDIA_DVP_LIB_DIR ${NVIDIA_DVP_BASE_DIR}/lib/x64 CACHE PATH "Directory containing NVidia DVP static library file." FORCE)
-  ELSE()
-    SET (NVIDIA_DVP_BINARY_DIR ${NVIDIA_DVP_BASE_DIR}/bin/win32 CACHE PATH "Directory containing NVidia DVP shared library file." FORCE)
-    SET (NVIDIA_DVP_LIB_DIR ${NVIDIA_DVP_BASE_DIR}/lib/win32 CACHE PATH "Directory containing NVidia DVP static library file." FORCE)
-  ENDIF()
-  MARK_AS_ADVANCED(NVIDIA_DVP_BASE_DIR
-    NVIDIA_DVP_INCLUDE_DIR
-    NVIDIA_DVP_BINARY_DIR
-    NVIDIA_DVP_LIB_DIR
-    )
-ENDIF()
 
 # --------------------------------------------------------------------------
 # Subdirs
