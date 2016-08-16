@@ -201,7 +201,6 @@ OPTION(PLUS_USE_POLARIS "Provide support for the NDI POLARIS and AURORA" OFF)
 MARK_AS_ADVANCED(PLUS_USE_POLARIS)
 OPTION(PLUS_USE_CERTUS "Provide support for the NDI Certus" OFF)
 MARK_AS_ADVANCED(PLUS_USE_CERTUS)
-
 IF(PLUS_USE_POLARIS)
   MESSAGE("PLUS_USE_POLARIS has been deprecated. Changing to PLUS_USE_NDI instead.")
   SET(PLUS_USE_POLARIS OFF CACHE BOOL "Provide support for the NDI POLARIS and AURORA" FORCE)
@@ -223,6 +222,7 @@ OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Provide support for the da Vinci Surgical System" OFF)
+
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe" OFF)
 IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
   OPTION(PLUS_TEST_PHILIPS_3D_ULTRASOUND "Enable testing of acquisition from Philips 3D ultrasound systems. Enable this only if a Philips device is accessible from this computer. " OFF)
@@ -231,8 +231,25 @@ IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
   SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
 ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
 
-# Other
+OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
+IF (PLUS_USE_NVIDIA_DVP)
+  SET(PLUS_USE_NVIDIA_DVP_MODE "GL" CACHE STRING "Choose the graphics backend to use for the DVP.")
+  set_property(CACHE PLUS_USE_NVIDIA_DVP_MODE PROPERTY STRINGS "GL" "CUDA" "D3D9" "D3D10" "D3D11")
 
+  IF( "${PLUS_USE_NVIDIA_DVP_MODE}" STREQUAL "GL" )
+    FIND_PACKAGE(OpenGL REQUIRED)
+    IF( "${OPENGL_INCLUDE_DIR}" STREQUAL "" )
+      MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR could not be populated. Please specify manually. Aborting.")
+    ELSE()
+      IF(NOT EXISTS ${OPENGL_INCLUDE_DIR}/GL/gl.h)
+        MESSAGE(FATAL_ERROR "OPENGL_INCLUDE_DIR: ${OPENGL_INCLUDE_DIR} does not contain GL/gl.h. Aborting.")
+      ENDIF()
+    ENDIF()
+  ENDIF()
+ENDIF()
+
+#-----------------------------------------------------------------------------
+# Other
 OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
 
 OPTION (PLUS_TEST_HIGH_ACCURACY_TIMING "Enable testing of high-accuracy timing. High-accuracy timing may not be available on virtual machines and so testing may be turned off to avoid false alarams." ON)
