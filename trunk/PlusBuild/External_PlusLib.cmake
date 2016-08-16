@@ -133,7 +133,7 @@ IF ( PLUS_USE_INTELREALSENSE )
   SET(PLUSBUILD_ADDITIONAL_SDK_ARGS ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
     -DINTELREALSENSE_INCLUDE_DIR:PATH=${RSSDK_INCLUDE_DIRS}
     -DINTELREALSENSE_RELEASE_LIB:PATH=${RSSDK_LIBRARY}
-	-DINTELREALSENSE_DEBUG_LIB:PATH=${RSSDK_LIBRARY_DEBUG}
+    -DINTELREALSENSE_DEBUG_LIB:PATH=${RSSDK_LIBRARY_DEBUG}
     #-DINTELREALSENSE_BINARY_DIR:PATH=${INTELREALSENSE_BINARY_DIR}
     )
 ENDIF()
@@ -159,22 +159,47 @@ IF ( PLUS_USE_MMF_VIDEO OR PLUS_USE_TELEMED_VIDEO)
     SET(WINDOWS_SDK_LIBRARY_DIRS "NOTFOUND")
     get_windowssdk_include_dirs("${_dir}" WINDOWS_SDK_INCLUDE_DIRS)
     get_windowssdk_library_dirs("${_dir}" WINDOWS_SDK_LIBRARY_DIRS)
-    if(NOT "${WINDOWS_SDK_INCLUDE_DIRS}" STREQUAL "NOTFOUND" AND NOT "${WINDOWS_SDK_LIBRARY_DIRS}" STREQUAL "NOTFOUND")
-      INCLUDE(TestWindowsSDK)
-      IF (PLUS_WINDOWS_SDK_IS_COMPATIBLE)
-        # Found a compatible Windows SDK
-        break()
-      ENDIF()
-    endif()
+
+    # Now check each version to see if it is compatible
+    IF(NOT "${WINDOWS_SDK_INCLUDE_DIRS}" STREQUAL "NOTFOUND" AND NOT "${WINDOWS_SDK_LIBRARY_DIRS}" STREQUAL "NOTFOUND")
+      # Reverse list to put latest version first
+      LIST(REVERSE WINDOWS_SDK_INCLUDE_DIRS)
+      LIST(REVERSE WINDOWS_SDK_LIBRARY_DIRS)
+      LIST(LENGTH WINDOWS_SDK_INCLUDE_DIRS _dir_list_size)
+
+      foreach(_dir_index RANGE ${_dir_list_size})
+        LIST(GET WINDOWS_SDK_INCLUDE_DIRS ${_dir_index} _WINDOWS_SDK_INCLUDE_DIR)
+        LIST(GET WINDOWS_SDK_LIBRARY_DIRS ${_dir_index} _WINDOWS_SDK_LIBARY_DIR)
+
+        # Do not allow ucrt version to be used
+        STRING(FIND ${_WINDOWS_SDK_LIBARY_DIR} "ucrt" _ucrt_found)
+        IF( NOT ${_ucrt_found} EQUAL -1 )
+          continue()
+        ENDIF()
+
+        INCLUDE(TestWindowsSDK)
+        IF (PLUS_WINDOWS_SDK_IS_COMPATIBLE)
+          # Found a compatible Windows SDK
+          break()
+        ENDIF()
+      endforeach()
+    ENDIF()
+    
+    IF (PLUS_WINDOWS_SDK_IS_COMPATIBLE)
+      # Found a compatible Windows SDK
+      break()
+    ENDIF()
   endforeach()
-  if (PLUS_WINDOWS_SDK_IS_COMPATIBLE)
+
+  IF (PLUS_WINDOWS_SDK_IS_COMPATIBLE)
     SET(PLUSBUILD_ADDITIONAL_SDK_ARGS ${PLUSBUILD_ADDITIONAL_SDK_ARGS}
-      -DWINDOWS_SDK_INCLUDE_DIRS:PATH=${WINDOWS_SDK_INCLUDE_DIRS}
-      -DWINDOWS_SDK_LIBRARY_DIRS:PATH=${WINDOWS_SDK_LIBRARY_DIRS}
+      -DWINDOWS_SDK_INCLUDE_DIRS:PATH=${_WINDOWS_SDK_INCLUDE_DIR}
+      -DWINDOWS_SDK_LIBRARY_DIRS:PATH=${_WINDOWS_SDK_LIBARY_DIR}
       )
-  else()
-    MESSAGE(WARNING "Windows SDKs found at ${WINDOWS_SDK_ROOT_DIRS} are not compatible with Plus")
-  endif()
+    MESSAGE(STATUS "Sending Windows SDK: ${_WINDOWS_SDK_LIBARY_DIR} to PlusLib.")
+  ELSE()
+    MESSAGE(FATAL_ERROR "Windows SDKs found at ${WINDOWS_SDK_ROOT_DIRS} are not compatible with Plus")
+  ENDIF()
 ENDIF()
 
 IF ( PLUS_USE_MMF_VIDEO )

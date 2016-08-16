@@ -1,5 +1,15 @@
 // Minimal test for Windows SDK compatibility
 
+// Ensure library files are available at the given link directories
+#pragma comment(lib, "Evr.lib")
+#pragma comment(lib, "Mf.lib")
+#pragma comment(lib, "Mfplat.lib")
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Mfreadwrite.lib")
+#pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "Strmiids.lib")
+
+// Ensure include files are available at the given link directories
 #include <Mfapi.h>
 
 int main()
