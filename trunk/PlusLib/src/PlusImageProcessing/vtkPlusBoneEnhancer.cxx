@@ -163,7 +163,7 @@ PlusStatus vtkPlusBoneEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusT
   
 #ifdef PLUS_USE_INTEL_MKL
   // Generate output image
-  this->CastToDouble->SetInputData_vtk5compatible(inputImage->GetImage());
+  this->CastToDouble->SetInputData(inputImage->GetImage());
   this->CastToUnsignedChar->Update();
   // Write output image
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
@@ -171,7 +171,7 @@ PlusStatus vtkPlusBoneEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusT
 #else
   // Generate output image
   //  1. threshold the image
-  this->Thresholder->SetInputData_vtk5compatible(inputImage->GetImage());
+  this->Thresholder->SetInputData(inputImage->GetImage());
   this->Thresholder->Update();
   //  2. draw scanlines on it
   if (this->ScanConverter.GetPointer()!=NULL)

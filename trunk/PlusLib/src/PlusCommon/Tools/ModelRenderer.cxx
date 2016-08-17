@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
     writer->SetFileName(outputImageFileName.c_str());
-    writer->SetInputData_vtk5compatible(windowToImageFilter->GetOutput());
+    writer->SetInputData(windowToImageFilter->GetOutput());
     writer->Write();
 
     LOG_INFO("Rendered image is written to "<<outputImageFileName);

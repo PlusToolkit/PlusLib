@@ -888,7 +888,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     uncalibratedChart->Register(UncalibratedPlotContextView);
 
     vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
-    uncalibratedTrackerMetricLine->SetInputData_vtk5compatible(UncalibratedMovingPositionMetric, 0, 1);
+    uncalibratedTrackerMetricLine->SetInputData(UncalibratedMovingPositionMetric, 0, 1);
     //vtkVariantArray* array = vtkVariantArray::New();
     //m_UncalibratedTrackerPositionMetric->GetRow(13, array);
     //array->PrintSelf(std::cout, *(vtkIndent::New()));
@@ -897,7 +897,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     uncalibratedTrackerMetricLine->SetWidth(1.0);
 
     vtkPlot *videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
-    videoPositionMetricLineU->SetInputData_vtk5compatible(FixedPositionMetric, 0, 1);
+    videoPositionMetricLineU->SetInputData(FixedPositionMetric, 0, 1);
     videoPositionMetricLineU->SetColor(0,0,1);
     videoPositionMetricLineU->SetWidth(1.0);
 
@@ -919,12 +919,12 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     calibratedChart->Register(CalibratedPlotContextView);
 
     vtkPlot *calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
-    calibratedTrackerMetricLine->SetInputData_vtk5compatible(CalibratedMovingPositionMetric, 0, 1);
+    calibratedTrackerMetricLine->SetInputData(CalibratedMovingPositionMetric, 0, 1);
     calibratedTrackerMetricLine->SetColor(0,1,0);
     calibratedTrackerMetricLine->SetWidth(1.0);
 
     vtkPlot *videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
-    videoPositionMetricLineC->SetInputData_vtk5compatible(FixedPositionMetric, 0, 1);
+    videoPositionMetricLineC->SetInputData(FixedPositionMetric, 0, 1);
     videoPositionMetricLineC->SetColor(0,0,1);
     videoPositionMetricLineC->SetWidth(1.0);
 

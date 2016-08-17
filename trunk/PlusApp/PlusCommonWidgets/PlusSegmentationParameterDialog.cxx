@@ -921,7 +921,7 @@ PlusStatus PlusSegmentationParameterDialog::InitializeVisualization()
   vtkSmartPointer<vtkSphereSource> segmentedPointSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   segmentedPointSphereSource->SetRadius( 4.0 );
 
-  segmentedPointGlyph->SetInputData_vtk5compatible( m_SegmentedPointsPolyData );
+  segmentedPointGlyph->SetInputData( m_SegmentedPointsPolyData );
   segmentedPointGlyph->SetSourceConnection( segmentedPointSphereSource->GetOutputPort() );
   segmentedPointMapper->SetInputConnection( segmentedPointGlyph->GetOutputPort() );
 
@@ -1220,12 +1220,7 @@ PlusStatus PlusSegmentationParameterDialog::WriteConfiguration()
 
   if( segmentationParameters->GetAttribute( "NumberOfMaximumFiducialPointCandidates" ) != NULL && ui.doubleSpinBox_MaxCandidates->value() == PlusFidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES )
   {
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-    PlusCommon::RemoveAttribute( segmentationParameters, "NumberOfMaximumFiducialPointCandidates" );
-#else
     segmentationParameters->RemoveAttribute( "NumberOfMaximumFiducialPointCandidates" );
-#endif
   }
   else if( segmentationParameters->GetAttribute( "NumberOfMaximumFiducialPointCandidates" ) != NULL )
   {

@@ -92,17 +92,17 @@ void SaveMetricPlot( const char* filename, vtkTable* stylusRef, vtkTable* stylus
 
   // Add the two line plots
   vtkPlot* StylusRefLine = chart->AddPlot( vtkChart::POINTS );
-  StylusRefLine->SetInputData_vtk5compatible( stylusRef, 0, 1 );
+  StylusRefLine->SetInputData( stylusRef, 0, 1 );
   StylusRefLine->SetColor( 0, 0, 1 );
   StylusRefLine->SetWidth( 0.3 );
 
   vtkPlot* StylusTipRefLine = chart->AddPlot( vtkChart::POINTS );
-  StylusTipRefLine->SetInputData_vtk5compatible( stylusTipRef, 0, 1 );
+  StylusTipRefLine->SetInputData( stylusTipRef, 0, 1 );
   StylusTipRefLine->SetColor( 0, 1, 0 );
   StylusTipRefLine->SetWidth( 0.3 );
 
   vtkPlot* StylusTipFromLandmarkLine = chart->AddPlot( vtkChart::LINE );
-  StylusTipFromLandmarkLine->SetInputData_vtk5compatible( stylusTipSpeed, 0, 1 );
+  StylusTipFromLandmarkLine->SetInputData( stylusTipSpeed, 0, 1 );
   StylusTipFromLandmarkLine->SetColor( 1, 0, 0 );
   StylusTipFromLandmarkLine->SetWidth( 1.0 );
 
@@ -122,7 +122,7 @@ void SaveMetricPlot( const char* filename, vtkTable* stylusRef, vtkTable* stylus
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
   writer->SetFileName( filename );
-  writer->SetInputData_vtk5compatible( windowToImageFilter->GetOutput() );
+  writer->SetInputData( windowToImageFilter->GetOutput() );
   writer->Write();
 }
 

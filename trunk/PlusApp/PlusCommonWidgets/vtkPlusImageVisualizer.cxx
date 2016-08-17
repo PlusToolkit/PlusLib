@@ -463,14 +463,14 @@ void vtkPlusImageVisualizer::SetInputData(vtkImageData* aImage )
 {
   LOG_TRACE("vtkPlusImageVisualizer::SetInputData");
 
-  this->GetImageActor()->SetInputData_vtk5compatible(aImage);
+  this->GetImageActor()->SetInputData(aImage);
 }
 
 //-----------------------------------------------------------------------------
 void vtkPlusImageVisualizer::SetResultPolyData(vtkPolyData* aResultPolyData )
 {
   LOG_TRACE("vtkPlusImageVisualizer::SetResultPolyData");
-  this->ResultGlyph->SetInputData_vtk5compatible(aResultPolyData);
+  this->ResultGlyph->SetInputData(aResultPolyData);
 }
 
 //-----------------------------------------------------------------------------

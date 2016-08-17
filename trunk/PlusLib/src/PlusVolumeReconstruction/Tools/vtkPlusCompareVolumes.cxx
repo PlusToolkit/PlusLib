@@ -41,31 +41,31 @@ vtkStandardNewMacro( vtkPlusCompareVolumes );
 //----------------------------------------------------------------------------
 void vtkPlusCompareVolumes::SetInputGT( vtkDataObject* input )
 {
-  this->SetInputData_vtk5compatible( 0, input );
+  this->SetInputData( 0, input );
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCompareVolumes::SetInputGTAlpha( vtkDataObject* input )
 {
-  this->SetInputData_vtk5compatible( 1, input );
+  this->SetInputData( 1, input );
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCompareVolumes::SetInputTest( vtkDataObject* input )
 {
-  this->SetInputData_vtk5compatible( 2, input );
+  this->SetInputData( 2, input );
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCompareVolumes::SetInputTestAlpha( vtkDataObject* input )
 {
-  this->SetInputData_vtk5compatible( 3, input );
+  this->SetInputData( 3, input );
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusCompareVolumes::SetInputSliceAlpha( vtkDataObject* input )
 {
-  this->SetInputData_vtk5compatible( 4, input );
+  this->SetInputData( 4, input );
 }
 
 //----------------------------------------------------------------------------

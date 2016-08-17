@@ -107,7 +107,7 @@ IF(PLUS_USE_tesseract)
 ENDIF()
 
 SET (PlusDataCollection_HDRS)
-IF (WIN32)
+IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET (PlusDataCollection_HDRS
     vtkPlusDataCollector.h 
     vtkPlusDevice.h

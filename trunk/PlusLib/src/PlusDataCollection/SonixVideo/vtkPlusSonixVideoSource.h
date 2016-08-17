@@ -41,7 +41,7 @@ enum uData;
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(udtBPost);
   sonixGrabber->Record();  
-  imageviewer->SetInputData_vtk5compatible(sonixGrabber->GetOutput());
+  imageviewer->SetInputData(sonixGrabber->GetOutput());
   See vtkPlusSonixVideoSourceTest1.cxx for more details
 
   \ingroup PlusLibDataCollection

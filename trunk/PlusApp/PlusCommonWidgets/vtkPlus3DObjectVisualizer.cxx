@@ -301,13 +301,13 @@ PlusStatus vtkPlus3DObjectVisualizer::HideAll()
 //-----------------------------------------------------------------------------
 void vtkPlus3DObjectVisualizer::SetInputPolyData(vtkPolyData* aPolyData)
 {
-  this->InputGlyph->SetInputData_vtk5compatible(aPolyData);
+  this->InputGlyph->SetInputData(aPolyData);
 }
 
 //-----------------------------------------------------------------------------
 void vtkPlus3DObjectVisualizer::SetResultPolyData(vtkPolyData* aPolyData)
 {
-  this->ResultGlyph->SetInputData_vtk5compatible(aPolyData);
+  this->ResultGlyph->SetInputData(aPolyData);
 }
 
 
@@ -329,7 +329,7 @@ PlusStatus vtkPlus3DObjectVisualizer::SetChannel(vtkPlusChannel* channel)
     if (this->SelectedChannel->GetVideoDataAvailable())
     {
       this->ImageActor->VisibilityOn();
-      this->ImageActor->SetInputData_vtk5compatible( this->SelectedChannel->GetBrightnessOutput() );
+      this->ImageActor->SetInputData( this->SelectedChannel->GetBrightnessOutput() );
     }
     else
     {

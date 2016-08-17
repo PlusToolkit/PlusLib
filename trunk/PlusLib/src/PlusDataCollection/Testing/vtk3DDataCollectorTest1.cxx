@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 
 
   vtkSmartPointer<vtkImageHistogramStatistics> stats = vtkSmartPointer<vtkImageHistogramStatistics>::New();
-  stats->SetInputData_vtk5compatible(data);
+  stats->SetInputData(data);
   stats->GenerateHistogramImageOff();
   stats->Update();
 

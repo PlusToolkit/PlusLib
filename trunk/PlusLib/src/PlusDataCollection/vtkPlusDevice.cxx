@@ -1624,14 +1624,7 @@ int vtkPlusDevice::RequestData( vtkInformation* vtkNotUsed( request ),
     unsigned int frameSize[3] = { 0, 0, 0 };
     aSource->GetOutputFrameSize( frameSize );
     data->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2] - 1 );
-
-#if (VTK_MAJOR_VERSION < 6)
-    data->SetScalarType( aSource->GetPixelType() );
-    data->SetNumberOfScalarComponents( aSource->GetNumberOfScalarComponents() );
-    data->AllocateScalars();
-#else
     data->AllocateScalars( aSource->GetPixelType(), aSource->GetNumberOfScalarComponents() );
-#endif
 
     return 1;
   }
@@ -1668,14 +1661,8 @@ int vtkPlusDevice::RequestData( vtkInformation* vtkNotUsed( request ),
   unsigned int frameSize[3] = { 0, 0, 0 };
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize( frameSize );
   data->SetExtent( 0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2] - 1 );
-
-#if (VTK_MAJOR_VERSION < 6)
-  data->SetScalarType( aSource->GetPixelType() );
-  data->SetNumberOfScalarComponents( aSource->GetNumberOfScalarComponents() );
-  data->AllocateScalars();
-#else
   data->AllocateScalars( aSource->GetPixelType(), aSource->GetNumberOfScalarComponents() );
-#endif
+
   unsigned char* outPtr = ( unsigned char* )data->GetScalarPointer();
   memcpy( outPtr, sourcePtr, bytesToCopy );
 

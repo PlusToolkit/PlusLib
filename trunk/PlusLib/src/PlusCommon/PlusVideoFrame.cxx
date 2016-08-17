@@ -444,14 +444,7 @@ PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const int imageSi
   }
 
   image->SetExtent( 0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1 );
-
-#if (VTK_MAJOR_VERSION < 6)
-  image->SetScalarType( pixType );
-  image->SetNumberOfScalarComponents( numberOfScalarComponents );
-  image->AllocateScalars();
-#else
   image->AllocateScalars( pixType, numberOfScalarComponents );
-#endif
 
   return PLUS_SUCCESS;
 }
@@ -480,14 +473,7 @@ PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const unsigned in
   }
 
   image->SetExtent( 0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1 );
-
-#if (VTK_MAJOR_VERSION < 6)
-  image->SetScalarType( pixType );
-  image->SetNumberOfScalarComponents( numberOfScalarComponents );
-  image->AllocateScalars();
-#else
   image->AllocateScalars( pixType, numberOfScalarComponents );
-#endif
 
   return PLUS_SUCCESS;
 }
@@ -1247,13 +1233,7 @@ PlusStatus PlusVideoFrame::FlipClipImage( vtkImageData* inUsImage,
   {
     // Allocate the output image, adjust for 1 based sizes to 0 based extents
     outUsOrientedImage->SetExtent( 0, finalOutputSize[0] - 1, 0, finalOutputSize[1] - 1, 0, finalOutputSize[2] - 1 );
-#if (VTK_MAJOR_VERSION < 6)
-    outUsOrientedImage->SetScalarType( inUsImage->GetScalarType() );
-    outUsOrientedImage->SetNumberOfScalarComponents( inUsImage->GetNumberOfScalarComponents() );
-    outUsOrientedImage->AllocateScalars();
-#else
     outUsOrientedImage->AllocateScalars( inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents() );
-#endif
   }
 
   int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar( inUsImage->GetScalarType() );

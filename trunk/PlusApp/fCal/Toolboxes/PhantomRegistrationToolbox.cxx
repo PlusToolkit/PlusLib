@@ -89,7 +89,7 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
   vtkSmartPointer<vtkSphereSource> requestedLandmarksSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   requestedLandmarksSphereSource->SetRadius(1.5); // mm
 
-  requestedLandmarksGlyph->SetInputData_vtk5compatible(m_RequestedLandmarkPolyData);
+  requestedLandmarksGlyph->SetInputData(m_RequestedLandmarkPolyData);
   requestedLandmarksGlyph->SetSourceConnection(requestedLandmarksSphereSource->GetOutputPort());
   requestedLandmarksMapper->SetInputConnection(requestedLandmarksGlyph->GetOutputPort());
   m_RequestedLandmarkActor->SetMapper(requestedLandmarksMapper);
@@ -288,7 +288,7 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
   }  
 
   vtkSmartPointer<vtkPolyDataMapper> stlMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  stlMapper->SetInputData_vtk5compatible(phantomDisplayableModel->GetPolyData());
+  stlMapper->SetInputData(phantomDisplayableModel->GetPolyData());
   m_PhantomActor->SetMapper(stlMapper);
   m_PhantomActor->GetProperty()->SetOpacity( phantomDisplayableModel->GetLastOpacity() );
 

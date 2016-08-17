@@ -44,13 +44,7 @@ vtkPlusChannel::vtkPlusChannel(void)
 
   // Create a blank image, it will be used as output if frames are not available
   this->BlankImage->SetExtent( 0, this->BrightnessFrameSize[0] - 1, 0, this->BrightnessFrameSize[1] - 1, 0, this->BrightnessFrameSize[2] - 1);
-#if (VTK_MAJOR_VERSION < 6)
-  this->BlankImage->SetScalarTypeToUnsignedChar();
-  this->BlankImage->SetNumberOfScalarComponents(1);
-  this->BlankImage->AllocateScalars();
-#else
   this->BlankImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-#endif
 
   unsigned long memorysize = this->BrightnessFrameSize[0] * this->BrightnessFrameSize[1] * this->BrightnessFrameSize[2] * this->BlankImage->GetScalarSize();
   memset(this->BlankImage->GetScalarPointer(), 0, memorysize);

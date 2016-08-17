@@ -930,13 +930,13 @@ void vtkPlusFillHolesInVolume::SetNumHFElements(int n) {
 //--------------------------------------------------------------------------------------
 void vtkPlusFillHolesInVolume::SetReconstructedVolume(vtkImageData *reconstructedVolume)
 {
-  SetInputData_vtk5compatible(INPUT_PORT_RECONSTRUCTED_VOLUME, reconstructedVolume);
+  SetInputData(INPUT_PORT_RECONSTRUCTED_VOLUME, reconstructedVolume);
 }
 
 //--------------------------------------------------------------------------------------
 void vtkPlusFillHolesInVolume::SetAccumulationBuffer(vtkImageData *accumulationBuffer)
 {
-  SetInputData_vtk5compatible(INPUT_PORT_ACCUMULATION_BUFFER, accumulationBuffer);
+  SetInputData(INPUT_PORT_ACCUMULATION_BUFFER, accumulationBuffer);
 }
 
 //--------------------------------------------------------------------------------------

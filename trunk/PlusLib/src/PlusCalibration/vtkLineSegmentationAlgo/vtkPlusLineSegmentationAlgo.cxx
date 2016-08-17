@@ -755,7 +755,7 @@ void vtkPlusLineSegmentationAlgo::PlotIntArray( const std::deque<int>& intensity
   view->GetScene()->AddItem( chart );
   vtkPlot* line = chart->AddPlot( vtkChart::LINE );
 
-  line->SetInputData_vtk5compatible( table, 0, 1 );
+  line->SetInputData( table, 0, 1 );
 
   line->SetColor( 0, 255, 0, 255 );
   line->SetWidth( 1.0 );
@@ -799,7 +799,7 @@ void vtkPlusLineSegmentationAlgo::PlotDoubleArray( const std::deque<double>& int
   view->GetScene()->AddItem( chart );
   vtkPlot* line = chart->AddPlot( vtkChart::LINE );
 
-  line->SetInputData_vtk5compatible( table, 0, 1 );
+  line->SetInputData( table, 0, 1 );
 
   line->SetColor( 0, 255, 0, 255 );
   line->SetWidth( 1.0 );

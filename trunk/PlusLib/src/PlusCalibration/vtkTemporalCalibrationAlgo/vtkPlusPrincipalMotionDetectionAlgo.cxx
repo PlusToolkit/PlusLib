@@ -200,7 +200,7 @@ void vtkPlusPrincipalMotionDetectionAlgo::ComputePrincipalAxis( std::deque<itk::
 
   vtkSmartPointer<vtkPCAStatistics> pcaStatistics = vtkSmartPointer<vtkPCAStatistics>::New();
 
-  pcaStatistics->SetInputData_vtk5compatible( vtkStatisticsAlgorithm::INPUT_DATA, datasetTable );
+  pcaStatistics->SetInputData( vtkStatisticsAlgorithm::INPUT_DATA, datasetTable );
 
   pcaStatistics->SetColumnStatus( "M0", 1 );
   pcaStatistics->SetColumnStatus( "M1", 1 );

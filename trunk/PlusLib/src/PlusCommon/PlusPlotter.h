@@ -44,7 +44,7 @@ public:
     view->GetScene()->AddItem( chart );
 
     vtkPlotPoints* scatterPlot = vtkPlotPoints::SafeDownCast( chart->AddPlot( vtkChart::POINTS ) );
-    scatterPlot->SetInputData_vtk5compatible( inputTable, xColumnIndex, yColumnIndex );
+    scatterPlot->SetInputData( inputTable, xColumnIndex, yColumnIndex );
     scatterPlot->SetColor( 0, 0, 1 );
     scatterPlot->SetMarkerStyle( vtkPlotPoints::CROSS );
 
@@ -69,14 +69,14 @@ public:
     if ( y1ColumnIndex >= 0 )
     {
       vtkPlotLine* linePlot = vtkPlotLine::SafeDownCast( chart->AddPlot( vtkChart::LINE ) );
-      linePlot->SetInputData_vtk5compatible( inputTable, xColumnIndex, y1ColumnIndex );
+      linePlot->SetInputData( inputTable, xColumnIndex, y1ColumnIndex );
       //linePlot->SetColor(0,0,1);
     }
 
     if ( y2ColumnIndex >= 0 )
     {
       vtkPlotLine* linePlot = vtkPlotLine::SafeDownCast( chart->AddPlot( vtkChart::LINE ) );
-      linePlot->SetInputData_vtk5compatible( inputTable, xColumnIndex, y2ColumnIndex );
+      linePlot->SetInputData( inputTable, xColumnIndex, y2ColumnIndex );
       //linePlot1->SetColor(0,0,1);
     }
 
@@ -105,7 +105,7 @@ public:
     }
 
     vtkPlotBar* barPlot = vtkPlotBar::SafeDownCast( chart->AddPlot( vtkChart::BAR ) );
-    barPlot->SetInputData_vtk5compatible( histogramTable, 0 /* x column index */, 1 /* y column index */ );
+    barPlot->SetInputData( histogramTable, 0 /* x column index */, 1 /* y column index */ );
     barPlot->SetColor( 0, 0, 1 );
 
     chart->SetShowLegend( false );
@@ -132,7 +132,7 @@ public:
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
     writer->SetFileName( outputImageFilename );
-    writer->SetInputData_vtk5compatible( windowToImageFilter->GetOutput() );
+    writer->SetInputData( windowToImageFilter->GetOutput() );
     writer->Write();
 
     return PLUS_SUCCESS;
@@ -216,7 +216,7 @@ public:
     textWriter->SetFieldDelimiter( "\t" );
     textWriter->SetUseStringDelimiter( false );
     textWriter->SetFileName( filename );
-    textWriter->SetInputData_vtk5compatible( table );
+    textWriter->SetInputData( table );
     textWriter->Update();
 
     return PLUS_SUCCESS;

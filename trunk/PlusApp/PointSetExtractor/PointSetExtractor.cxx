@@ -169,11 +169,7 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkAppendPolyData> polyDataAppend = vtkSmartPointer<vtkAppendPolyData>::New();
 
-#if (VTK_MAJOR_VERSION < 6)
-  polyDataAppend->AddInput( pointsPolyData );
-#else
   polyDataAppend->AddInputData( pointsPolyData );
-#endif
 
   if ( addSpheres )
   {
@@ -183,12 +179,9 @@ int main( int argc, char** argv )
     sphere->SetRadius( radius );
     sphere->Update();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    glyph->SetInputData_vtk5compatible( pointsPolyData );
-#if (VTK_MAJOR_VERSION < 6)
-    glyph->SetSource( sphere->GetOutput() );
-#else
+    glyph->SetInputData( pointsPolyData );
     glyph->SetSourceData( sphere->GetOutput() );
-#endif
+
     polyDataAppend->AddInputConnection( glyph->GetOutputPort() );
   }
 
@@ -213,7 +206,7 @@ int main( int argc, char** argv )
   {
     LOG_INFO( "Write points to " << outputPointsFileName );
     vtkSmartPointer<vtkPLYWriter> polyWriter = vtkSmartPointer<vtkPLYWriter>::New();
-    polyWriter->SetInputData_vtk5compatible( pointsPolyData );
+    polyWriter->SetInputData( pointsPolyData );
     polyWriter->SetFileName( outputPointsFileName.c_str() );
     polyWriter->Update();
   }
@@ -221,7 +214,7 @@ int main( int argc, char** argv )
   {
     LOG_INFO( "Write surface to " << outputSurfaceFileName );
     vtkSmartPointer<vtkSTLWriter> polyWriter = vtkSmartPointer<vtkSTLWriter>::New();
-    polyWriter->SetInputData_vtk5compatible( polyDataAppend->GetOutput() );
+    polyWriter->SetInputData( polyDataAppend->GetOutput() );
     polyWriter->SetFileName( outputSurfaceFileName.c_str() );
     polyWriter->Update();
   }

@@ -68,12 +68,12 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
 
   // Add the two line plots    
   vtkPlot *videoPositionMetricLine = chart->AddPlot(vtkChart::LINE);
-  videoPositionMetricLine->SetInputData_vtk5compatible(videoPositionMetric, 0, 1);
+  videoPositionMetricLine->SetInputData(videoPositionMetric, 0, 1);
   videoPositionMetricLine->SetColor(0,0,1);
   videoPositionMetricLine->SetWidth(1.0);
 
   vtkPlot *trackerMetricLine = chart->AddPlot(vtkChart::LINE);
-  trackerMetricLine->SetInputData_vtk5compatible(trackerPositionMetric, 0, 1);
+  trackerMetricLine->SetInputData(trackerPositionMetric, 0, 1);
   trackerMetricLine->SetColor(0,1,0);
   trackerMetricLine->SetWidth(1.0);
   chart->SetShowLegend(true);
@@ -92,7 +92,7 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
   writer->SetFileName(filename);
-  writer->SetInputData_vtk5compatible(windowToImageFilter->GetOutput());
+  writer->SetInputData(windowToImageFilter->GetOutput());
   writer->Write();
 }
 
