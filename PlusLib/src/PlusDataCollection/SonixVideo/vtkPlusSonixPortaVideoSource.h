@@ -69,7 +69,7 @@ public:
   sonixGrabber->SetBLineDensity( 128 );
   // line density effect the frame rate
   sonixGrabber->Record();
-  imageviewer->SetInputData_vtk5compatible( sonixGrabber->GetOutput() ); 
+  imageviewer->SetInputData( sonixGrabber->GetOutput() ); 
 
   \ingroup PlusLibDataCollection
 */ 

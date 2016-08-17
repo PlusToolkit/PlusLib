@@ -122,12 +122,12 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
   {
     vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
     surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
-    surfaceModelWriter->SetInputData_vtk5compatible(slicesPolyData);
+    surfaceModelWriter->SetInputData(slicesPolyData);
     surfaceModelWriter->Write(); 
   }
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData_vtk5compatible(slicesPolyData);
+  mapper->SetInputData(slicesPolyData);
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
   rendererPoly->AddActor(actor);
@@ -144,7 +144,7 @@ void ShowImage(vtkImageData* simOutput)
 
   // Display output of filter
   vtkSmartPointer<vtkImageActor> redImageActor = vtkSmartPointer<vtkImageActor>::New();
-  redImageActor->SetInputData_vtk5compatible(simOutput);
+  redImageActor->SetInputData(simOutput);
 
   // Visualize
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
     vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
     surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
-    surfaceModelWriter->SetInputData_vtk5compatible(slicesPolyData);
+    surfaceModelWriter->SetInputData(slicesPolyData);
     surfaceModelWriter->Write(); 
   }
 

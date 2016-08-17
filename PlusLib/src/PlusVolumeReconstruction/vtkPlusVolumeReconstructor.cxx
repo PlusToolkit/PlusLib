@@ -563,7 +563,7 @@ PlusStatus vtkPlusVolumeReconstructor::ExtractGrayLevels(vtkImageData* reconstru
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
 
   extract->SetComponents(0);
-  extract->SetInputData_vtk5compatible(this->ReconstructedVolume);
+  extract->SetInputData(this->ReconstructedVolume);
   extract->Update();
 
   reconstructedVolume->DeepCopy(extract->GetOutput());
@@ -583,7 +583,7 @@ PlusStatus vtkPlusVolumeReconstructor::ExtractAccumulation(vtkImageData* accumul
   vtkSmartPointer<vtkImageExtractComponents> extract = vtkSmartPointer<vtkImageExtractComponents>::New();          
 
   extract->SetComponents(0);
-  extract->SetInputData_vtk5compatible(this->Reconstructor->GetAccumulationBuffer());
+  extract->SetInputData(this->Reconstructor->GetAccumulationBuffer());
   extract->Update();
 
   accumulationBuffer->DeepCopy(extract->GetOutput());

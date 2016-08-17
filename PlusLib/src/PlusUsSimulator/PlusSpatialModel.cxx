@@ -511,7 +511,7 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
   }
 
   vtkSmartPointer<vtkPolyDataNormals> polyDataNormalsComputer = vtkSmartPointer<vtkPolyDataNormals>::New();
-  polyDataNormalsComputer->SetInputData_vtk5compatible( polyData );
+  polyDataNormalsComputer->SetInputData( polyData );
   polyDataNormalsComputer->Update();
   this->PolyData = polyDataNormalsComputer->GetOutput();
   this->PolyData->Register( NULL );

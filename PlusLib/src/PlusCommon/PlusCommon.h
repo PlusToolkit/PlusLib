@@ -269,14 +269,6 @@ namespace PlusCommon
   */
   vtkPlusCommonExport PlusStatus PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElement* elem );
 
-#if (VTK_MAJOR_VERSION < 6)
-  /*!
-    Workaround for vtkXMLDataElement::RemoveAttribute bug.
-    See details in https://www.assembla.com/spaces/plus/tickets/859
-  */
-  vtkPlusCommonExport void RemoveAttribute( vtkXMLDataElement* elem, const char* name );
-#endif
-
   vtkPlusCommonExport std::string GetPlusLibVersionString();
 };
 

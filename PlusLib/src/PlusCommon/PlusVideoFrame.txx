@@ -32,7 +32,7 @@ template<typename ScalarType> PlusStatus PlusVideoFrame::DeepCopyVtkVolumeToItkV
 
   // convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInputData_vtk5compatible(inFrame); 
+  imageExport->SetInputData(inFrame); 
   imageExport->Update(); 
 
   int extent[6]={0,0,0,0,0,0}; 
@@ -101,7 +101,7 @@ template<typename ScalarType> PlusStatus PlusVideoFrame::DeepCopyVtkVolumeToItkI
 
   // convert vtkImageData to itkImage 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New(); 
-  imageExport->SetInputData_vtk5compatible(inFrame); 
+  imageExport->SetInputData(inFrame); 
   imageExport->Update(); 
 
   double width = extent[1] - extent[0] + 1; 

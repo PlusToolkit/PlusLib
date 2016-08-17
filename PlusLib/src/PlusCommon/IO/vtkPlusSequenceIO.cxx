@@ -7,9 +7,7 @@
 #include "PlusConfigure.h"
 
 #include "vtkPlusMetaImageSequenceIO.h"
-#if VTK_MAJOR_VERSION > 5
 #include "vtkPlusNrrdSequenceIO.h"
-#endif
 #include "vtkPlusSequenceIO.h"
 #include "vtkPlusTrackedFrameList.h"
 
@@ -34,7 +32,6 @@ PlusStatus vtkPlusSequenceIO::Write(const std::string& filename, vtkPlusTrackedF
 
     return PLUS_SUCCESS;
   }
-#if VTK_MAJOR_VERSION > 5
   else if( vtkPlusNrrdSequenceIO::CanWriteFile(filename) )
   {
     if( frameList->SaveToNrrdFile(filename, orientationInFile, useCompression, enableImageDataWrite) != PLUS_SUCCESS )
@@ -45,7 +42,7 @@ PlusStatus vtkPlusSequenceIO::Write(const std::string& filename, vtkPlusTrackedF
 
     return PLUS_SUCCESS;
   }
-#endif
+
   LOG_ERROR("No writer for file: " << filename);
   return PLUS_FAIL;
 }
@@ -70,7 +67,6 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
 
     return PLUS_SUCCESS;
   }
-#if VTK_MAJOR_VERSION > 5
   // Parse sequence filename to determine if it's metafile or NRRD
   else if( vtkPlusNrrdSequenceIO::CanReadFile(filename) )
   {
@@ -83,7 +79,6 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
 
     return PLUS_SUCCESS;
   }
-#endif
 
   LOG_ERROR("No reader for file: " << filename);
   return PLUS_FAIL;
@@ -96,12 +91,10 @@ vtkPlusSequenceIOBase* vtkPlusSequenceIO::CreateSequenceHandlerForFile(const std
   {
     return vtkPlusMetaImageSequenceIO::New();
   }
-#if VTK_MAJOR_VERSION > 5
   else if( vtkPlusNrrdSequenceIO::CanWriteFile(filename) )
   {
     return vtkPlusNrrdSequenceIO::New();
   }
-#endif
 
   LOG_ERROR("No writer for file: " << filename);
   return NULL;

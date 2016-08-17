@@ -43,7 +43,7 @@ void vtkPlusRfProcessor::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusRfProcessor::SetRfFrame(vtkImageData* rfFrame, US_IMAGE_TYPE imageType)
 {
-  this->RfToBrightnessConverter->SetInputData_vtk5compatible(rfFrame);
+  this->RfToBrightnessConverter->SetInputData(rfFrame);
   this->RfToBrightnessConverter->SetImageType(imageType);
   return PLUS_SUCCESS;
 }

@@ -422,45 +422,6 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
   return PlusCommon::PrintXML(of, vtkIndent(), elem);
 }
 
-#if (VTK_MAJOR_VERSION < 6)
-//----------------------------------------------------------------------------
-// A reimplementation of the vtkXMLDataElement::RemoveAttribute method
-// using public APIs. This method works correctly, while the VTK 5.x
-// version causes memory corruption.
-// TODO: remove this method when Plus uses VTK 6.x, see more detail at
-// https://www.assembla.com/spaces/plus/tickets/859
-void PlusCommon::RemoveAttribute(vtkXMLDataElement* elem, const char *name)
-{
-  if (elem==NULL)
-  {
-    LOG_ERROR("PlusCommon::RemoveAttribute elem is invalid");
-    return;
-  }
-  if (name==NULL)
-  {
-    LOG_WARNING("PlusCommon::RemoveAttribute name is invalid");
-    return;
-  }
-  std::vector< std::string > attNames;
-  std::vector< std::string > attValues;
-  int numberOfAttributes=elem->GetNumberOfAttributes();
-  for(int i=0; i<numberOfAttributes; ++i)
-  {
-    attNames.push_back(elem->GetAttributeName(i));
-    attValues.push_back(elem->GetAttributeValue(i));
-  }
-  elem->RemoveAllAttributes();
-  for (int i=0; i<numberOfAttributes; ++i)
-  {
-    if (attNames[i].compare(name)==0)
-    {
-      continue;
-    }
-    elem->SetAttribute(attNames[i].c_str(),attValues[i].c_str());
-  }
-}
-#endif
-
 //----------------------------------------------------------------------------
 std::string PlusCommon::GetPlusLibVersionString()
 {
