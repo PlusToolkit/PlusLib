@@ -4,16 +4,16 @@ TRY_COMPILE(PLUS_WINDOWS_SDK_IS_COMPATIBLE
             "${CMAKE_BINARY_DIR}/CMakeTmp/WindowsSdkCompatibility"
             "${CMAKE_CURRENT_SOURCE_DIR}/Modules/PlusTestWindowsSdkCompatible.cxx"
             CMAKE_FLAGS
-              "-DINCLUDE_DIRECTORIES:STRING=${_WINDOWS_SDK_INCLUDE_DIR}"
-              "-DLINK_DIRECTORIES:STRING=${_WINDOWS_SDK_LIBRARY_DIR}"
-              "-DLINK_LIBRARIES:STRING=mfuuid.lib;Evr.lib;Mf.lib;Mfplat.lib;Shlwapi.lib;Mfreadwrite.lib;Strmiids.lib"
+              "-DINCLUDE_DIRECTORIES:STRING=${WINDOWS_SDK_INCLUDE_DIRS}"
+              "-DLINK_DIRECTORIES:STRING=${WINDOWS_SDK_LIBRARY_DIRS}"
+              "-DLINK_LIBRARIES:STRING=mfuuid.lib"
             OUTPUT_VARIABLE OUTPUT)
 
 IF(PLUS_WINDOWS_SDK_IS_COMPATIBLE)
   MESSAGE(STATUS "Checking if the latest Windows SDK is compatible -- yes")
   SET(PLUS_WINDOWS_SDK_IS_COMPATIBLE 1 CACHE INTERNAL "Windows SDK is compatible with Plus")
   WRITE_FILE(${CMAKE_BINARY_DIR}/CMakeFiles/CMakeOutput.log
-    "Determining if the C++ compiler supports type GUID "
+    "Determining if the C++ compiler supports type bool "
     "passed with the following output:\n"
     "${OUTPUT}\n" APPEND)
 ELSE(PLUS_WINDOWS_SDK_IS_COMPATIBLE)

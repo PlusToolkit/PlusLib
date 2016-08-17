@@ -284,8 +284,6 @@ if(_winsdk_msvc_greater_1310) # Newer than VS .NET/VS Toolkit 2003
 
     _winsdk_check_microsoft_sdks_registry(v10.0A)
 
-    #10.0.10056.0 10.0.10240.0 10.0.10586.0 10.0.14393.0
-    
     # Windows Software Development Kit (SDK) for Windows 10
     _winsdk_check_microsoft_sdks_registry(v10.0 10.0.14393.0)
     _winsdk_check_windows_kits_registry("Windows Kits 10" 10.0.14393.0 KitsRoot10)
@@ -409,11 +407,10 @@ if(_win_sdk_dirs)
   windowssdk_name_lookup("${WINDOWSSDK_LATEST_DIR}"
     WINDOWSSDK_LATEST_NAME)
   set(WINDOWSSDK_DIRS ${_win_sdk_dirs})
-  
+
   if(_WINDOWSSDK_ANNOUNCE)
     message(STATUS "FindWindowsSDK: Using ${WINDOWSSDK_LATEST_NAME}.")
   endif()
-
   # Fallback, in case no preference found.
   set(WINDOWSSDK_PREFERRED_DIR "${WINDOWSSDK_LATEST_DIR}")
   set(WINDOWSSDK_PREFERRED_NAME "${WINDOWSSDK_LATEST_NAME}")
