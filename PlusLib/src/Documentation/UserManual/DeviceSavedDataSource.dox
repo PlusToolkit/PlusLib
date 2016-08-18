@@ -27,9 +27,9 @@ For hardware-free testing and simulation purposes, any previous recording (saved
 - \xmlAtt \b RepeatEnabled  Flag to enable saved dataset looping. If it's enabled, the video source will continuously play saved data (starts playing from the beginning when the end is reached). \OptionalAtt{FALSE}
 - \xmlAtt \b UseOriginalTimestamps  Flag to read the timestamps from the file and use them in the output (instead of the current time). \OptionalAtt{FALSE}
 - \xmlAtt \b UseData Three types of data that can be used: \OptionalAtt{IMAGE}
-  - \c "IMAGE" The device provides a video stream
+  - \c "IMAGE" The device provides a video stream. Metadata stored in custom field data is ignored.
   - \c "TRANSFORM" The device provides a tracker stream
-  - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data added as fields
+  - \c "IMAGE_AND_TRANSFORM"  The device provides a video stream with tracking data and other metadata added as fields.
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
