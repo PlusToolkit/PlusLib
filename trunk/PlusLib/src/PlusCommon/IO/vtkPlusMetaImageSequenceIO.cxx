@@ -241,8 +241,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
   // Only check image related settings if dimensions are not 0 0 0
   if ( this->Dimensions[0] != 0 && this->Dimensions[1] != 0 && this->Dimensions[2] != 0 )
   {
-    std::string imgOrientStr = std::string( GetCustomString( SEQMETA_FIELD_US_IMG_ORIENT ) );
-    this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString( imgOrientStr.c_str() );
+    this->ImageOrientationInFile = PlusVideoFrame::GetUsImageOrientationFromString(GetCustomString(SEQMETA_FIELD_US_IMG_ORIENT));
 
     const char* imgTypeStr = GetCustomString( SEQMETA_FIELD_US_IMG_TYPE );
     if ( imgTypeStr == NULL )
