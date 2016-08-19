@@ -50,29 +50,14 @@ SET( QT_Resources
 
 # --------------------------------------------------------------------------
 # Qt specific commands
-IF( ${QT_VERSION_MAJOR} EQUAL 5 )
-  FIND_PACKAGE(Qt5 COMPONENTS Xml Widgets REQUIRED)
+FIND_PACKAGE(Qt5 COMPONENTS Xml Widgets REQUIRED)
 
-  SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Xml_LIBRARIES})
-  ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS} ${Qt5Xml_DEFINITIONS})
+SET(QT_LIBRARIES ${QT_LIBRARIES} ${Qt5Xml_LIBRARIES})
+ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS} ${Qt5Xml_DEFINITIONS})
 
-  IF (WIN32)
-    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t-")
-  ENDIF (WIN32)
-
-ELSE(${QT_VERSION_MAJOR} EQUAL 5)
-  FIND_PACKAGE(Qt4 REQUIRED)
-  SET(QT_USE_QTXML TRUE)
-  INCLUDE(${QT_USE_FILE})
-
-  INCLUDE_DIRECTORIES(${QT_INCLUDES})
-  ADD_DEFINITIONS(${QT_DEFINITIONS})
-  
-  # Treat wchar_t as built-in type - makes shell executes possible
-  IF (WIN32)
-    ADD_DEFINITIONS(/Zc:wchar_t-)
-  ENDIF (WIN32)
-ENDIF(${QT_VERSION_MAJOR} EQUAL 5)
+IF (WIN32)
+  SET_TARGET_PROPERTIES(${TARGET} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t-")
+ENDIF (WIN32)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
@@ -86,12 +71,6 @@ SET (PlusCommonWidgets_LIBS
     vtkPlusCalibration
     vtkPlusCommon
     )
-
-IF (${VTK_VERSION_MAJOR} LESS 6)
-  SET (PlusCommonWidgets_LIBS ${PlusCommonWidgets_LIBS}
-    QVTK
-    )
-ENDIF()
 
 ADD_LIBRARY(PlusCommonWidgets STATIC ${PlusCommonWidgets_SRCS} ${PlusCommonWidgets_UI_HDRS} ${PlusCommonWidgets_UI_SRCS} ${QT_Resources})
 TARGET_LINK_LIBRARIES(PlusCommonWidgets  ${VTK_LIBRARIES} ${PlusCommonWidgets_LIBS})

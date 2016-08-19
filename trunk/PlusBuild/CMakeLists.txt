@@ -17,6 +17,18 @@ SET(CMAKE_MODULE_PATH
 OPTION(PLUSBUILD_OFFLINE_BUILD "Build Plus without an internet connection. All libraries must be downloaded and updated manually." OFF)
 MARK_AS_ADVANCED(PLUSBUILD_OFFLINE_BUILD)
 
+# Disallow certain versions of Visual Studio
+IF( MSVC )
+  # Use generator to determine name
+  IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 9" )
+    MESSAGE(FATAL_ERROR "Visual Studio 2008 is not supported. You can download Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
+  ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 10" )
+    MESSAGE("Visual Studio 2010 is supported, but should only be used if you're compiling for the StealthLink device. If not, please consider using Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
+  ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 11" )
+    MESSAGE(FATAL_ERROR "Visual Studio 2012 is not supported. You can download Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
+  ENDIF()
+ENDIF()
+
 IF (PLUSBUILD_OFFLINE_BUILD)
 
   # Set an empty download and update command for external projects
@@ -264,47 +276,6 @@ SET (PLUS_SVN_REVISION 0 CACHE STRING "Set Plus desired SVN revision number (0 m
 SET (PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 
 #-----------------------------------------------------------------------------
-# Qt - Let's check if a valid version of Qt is available
-#-----------------------------------------------------------------------------
-SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
-IF(PLUSBUILD_BUILD_PLUSAPP AND NOT PLUSBUILD_USE_3DSlicer)
-  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql QUIET)
-
-  IF ( NOT Qt5_FOUND )
-    FIND_PACKAGE(Qt4 QUIET)
-
-    IF ( NOT Qt4_FOUND)
-      MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp but Qt was not found. Please specify QT_QMAKE_EXECUTABLE (for Qt4) or Qt5_DIR (for Qt5) or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-    ENDIF()
-
-    GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-    SET(ep_qt_args
-      -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
-      )
-  ELSE()
-    SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR})
-    SET(QT_VERSION_MINOR ${Qt5Core_VERSION_MINOR})
-    SET(QT_VERSION_PATCH ${Qt5Core_VERSION_PATCH})
-    SET(QT_VERSION ${Qt5Core_VERSION})
-    GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
-    SET(ep_qt_args
-      -DQt5_DIR:PATH=${Qt5_DIR}
-      -DQt5Widgets_DIR:PATH=${Qt5Widgets_DIR}
-      -DQt5Designer_DIR:PATH=${Qt5Designer_DIR}
-      -DQt5OpenGL_DIR:PATH=${Qt5OpenGL_DIR}
-      -DQt5Sql_DIR:PATH=${Qt5Sql_DIR}
-      )
-    # WebKitWidgets is deprecated in Qt 5.3 and removed in 5.6.0
-    find_package(Qt5 COMPONENTS WebKitWidgets QUIET)
-    if(Qt5WebKitWidgets_FOUND)
-      SET(ep_qt_args ${ep_qt_args}
-        -DQt5WebKitWidgets_DIR:PATH=${Qt5WebKitWidgets_DIR}
-        )
-    endif()
-  ENDIF()
-ENDIF()
-
-#-----------------------------------------------------------------------------
 # Specify common external project properties
 #-----------------------------------------------------------------------------
 INCLUDE(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
@@ -322,10 +293,8 @@ IF(UNIX AND NOT APPLE)
   # Allow inline namespacing to enable Qt::Orientation:: etc..
   IF(${GCC_VERSION} VERSION_GREATER 4.6)
     SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -std=c++11" CACHE STRING "Additional CXX Flags")
-  ELSEIF(${GCC_VERSION} VERSION_GREATER 4.3)
-    SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -std=c++0x" CACHE STRING "Additional CXX Flags")
   ELSE()
-    MESSAGE(FATAL_ERROR "gcc >= 4.3 required to build PLUS. gcc >= 4.7 recommended.")
+    MESSAGE(FATAL_ERROR "gcc >= 4.7 required to build PLUS.")
   ENDIF()
 ENDIF()
 MARK_AS_ADVANCED(ADDITIONAL_CXX_FLAGS)
@@ -366,8 +335,6 @@ IF ( PLUSBUILD_USE_3DSlicer )
   ENDIF()
 
   # The Slicer4 config file complains if these are set.
-  UNSET (QT_QMAKE_EXECUTABLE CACHE)
-  UNSET (QT_BINARY_DIR CACHE)
   UNSET (VTK_DIR CACHE)
   UNSET (ITK_DIR CACHE)
   UNSET (OpenIGTLink_DIR CACHE)
@@ -385,9 +352,41 @@ IF ( PLUSBUILD_USE_3DSlicer )
   IF ( NOT Slicer_FOUND )
     MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
   ENDIF()
+  
+  UNSET(QT_QMAKE_EXECUTABLE)
+  UNSET(QT_BINARY_DIR)
+ENDIF()
 
-  # Qt might have been found earlier, run find_package to reset all the QT_... CMake variables
-  FIND_PACKAGE(Qt4)
+#-----------------------------------------------------------------------------
+# Qt - Let's check if a valid version of Qt is available
+#-----------------------------------------------------------------------------
+SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
+IF(PLUSBUILD_BUILD_PLUSAPP)
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql QUIET)
+
+  IF ( NOT Qt5_FOUND )
+    MESSAGE( FATAL_ERROR "This project requires Qt5 for building PlusApp but Qt was not found. Please specify Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+  ENDIF()
+
+  SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR})
+  SET(QT_VERSION_MINOR ${Qt5Core_VERSION_MINOR})
+  SET(QT_VERSION_PATCH ${Qt5Core_VERSION_PATCH})
+  SET(QT_VERSION ${Qt5Core_VERSION})
+  GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
+  SET(ep_qt_args
+    -DQt5_DIR:PATH=${Qt5_DIR}
+    -DQt5Widgets_DIR:PATH=${Qt5Widgets_DIR}
+    -DQt5Designer_DIR:PATH=${Qt5Designer_DIR}
+    -DQt5OpenGL_DIR:PATH=${Qt5OpenGL_DIR}
+    -DQt5Sql_DIR:PATH=${Qt5Sql_DIR}
+    )
+  # WebKitWidgets is deprecated in Qt 5.3 and removed in 5.6.0
+  FIND_PACKAGE(Qt5 COMPONENTS WebKitWidgets QUIET)
+  IF(Qt5WebKitWidgets_FOUND)
+    SET(ep_qt_args ${ep_qt_args}
+      -DQt5WebKitWidgets_DIR:PATH=${Qt5WebKitWidgets_DIR}
+      )
+  ENDIF()
 ENDIF()
 
 INCLUDE(External_VTK.cmake)
@@ -566,18 +565,10 @@ IF( UNIX AND NOT APPLE )
   SET(LINUX TRUE)
 ENDIF()
 
-IF( ${VTK_GIT_TAG} MATCHES "v7" )
-  SET(VTK_BUILD_NAME "vtk7")
-ELSE()
-  SET(VTK_BUILD_NAME "vtk6")
-ENDIF()
+SET(VTK_BUILD_NAME "vtk7")
 
 IF( PLUSBUILD_BUILD_PLUSAPP )
-  IF( Qt5Core_FOUND )
-    SET(QT_BUILD_NAME "qt5")
-  ELSEIF( QT4_FOUND )
-    SET(QT_BUILD_NAME "qt4")
-  ENDIF( Qt5Core_FOUND )
+  SET(QT_BUILD_NAME "qt5")
 ENDIF( PLUSBUILD_BUILD_PLUSAPP )
 
 #Build a nice system and compiler name

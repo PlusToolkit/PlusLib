@@ -408,9 +408,6 @@ if(_win_sdk_dirs)
     WINDOWSSDK_LATEST_NAME)
   set(WINDOWSSDK_DIRS ${_win_sdk_dirs})
 
-  if(_WINDOWSSDK_ANNOUNCE)
-    message(STATUS "FindWindowsSDK: Using ${WINDOWSSDK_LATEST_NAME}.")
-  endif()
   # Fallback, in case no preference found.
   set(WINDOWSSDK_PREFERRED_DIR "${WINDOWSSDK_LATEST_DIR}")
   set(WINDOWSSDK_PREFERRED_NAME "${WINDOWSSDK_LATEST_NAME}")

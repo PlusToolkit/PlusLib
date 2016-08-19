@@ -141,25 +141,16 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 FIND_PACKAGE(Qt5 COMPONENTS Core Widgets QUIET)
 
 IF(NOT Qt5_FOUND)
-  FIND_PACKAGE(Qt4 QUIET)
-
-  IF(NOT Qt4_FOUND)
-    MESSAGE( FATAL_ERROR "This project requires Qt4 or Qt5 for building PlusApp. These components are missing. Please verify configuration by selecting QT_QMAKE_EXECUTABLE (Qt4) or CMAKE_PREFIX_PATH (Qt5) or turn off PLUSBUILD_BUILD_PLUSAPP option.")
-  ENDIF()
-
-  # These variables are populated as part of our install script
-  GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_QMAKE_EXECUTABLE} DIRECTORY)
-  GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
-  INCLUDE(${QT_USE_FILE})
-ELSE() 
-  # These variables are populated as part of our install script
-  SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR}) 
-  SET(QT_VERSION_MINOR ${Qt5Core_VERSION_MINOR})
-  SET(QT_VERSION_PATCH ${Qt5Core_VERSION_PATCH})
-  SET(QT_VERSION ${Qt5Core_VERSION})
-  GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
-  GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
+  MESSAGE( FATAL_ERROR "This project requires Qt5 for building PlusApp. These components are missing. Please verify configuration by populating Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP option.")
 ENDIF()
+
+# These variables are populated as part of our install script
+SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR}) 
+SET(QT_VERSION_MINOR ${Qt5Core_VERSION_MINOR})
+SET(QT_VERSION_PATCH ${Qt5Core_VERSION_PATCH})
+SET(QT_VERSION ${Qt5Core_VERSION})
+GET_FILENAME_COMPONENT(QT_BINARY_DIR ${QT_MOC_EXECUTABLE} DIRECTORY)
+GET_FILENAME_COMPONENT(QT_ROOT_DIR ${QT_BINARY_DIR} DIRECTORY)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
