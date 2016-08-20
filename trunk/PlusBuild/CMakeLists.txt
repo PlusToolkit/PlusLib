@@ -353,8 +353,11 @@ IF ( PLUSBUILD_USE_3DSlicer )
     MESSAGE( FATAL_ERROR "Unable to find Slicer at ${PLUSBUILD_SLICER_BIN_DIRECTORY} directory. Please verify configuration")
   ENDIF()
   
-  UNSET(QT_QMAKE_EXECUTABLE)
-  UNSET(QT_BINARY_DIR)
+  UNSET(QT_QMAKE_EXECUTABLE CACHE) # Slicer's Qt requirements and PLUS's are different
+  UNSET(QT_BINARY_DIR CACHE)
+  UNSET(OpenIGTLink_DIR CACHE) # Slicer's OpenIGTLink and PLUS's are different
+  # For some reason, UNSET(VTK_DIR CACHE) does not work
+  SET(VTK_DIR "VTK_DIR-NOTFOUND" CACHE PATH "Location of pre-built VTK" FORCE) # VTK is built against Qt, and since Slicer is Qt4 and PLUS is Qt5...
 ENDIF()
 
 #-----------------------------------------------------------------------------
@@ -656,7 +659,6 @@ INCLUDE(CTest)
 
 IF(PLUSBUILD_DOWNLOAD_PlusDATA AND NOT PLUSBUILD_OFFLINE_BUILD)
   INCLUDE(External_PlusLibData.cmake)
-  LIST(APPEND PlusLib_DEPENDENCIES PlusLibData)
 ENDIF()
 
 INCLUDE(External_PlusLib.cmake)
