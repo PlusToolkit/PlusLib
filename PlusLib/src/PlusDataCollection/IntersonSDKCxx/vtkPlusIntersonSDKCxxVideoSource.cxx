@@ -793,7 +793,7 @@ PlusStatus vtkPlusIntersonSDKCxxVideoSource::AddBmodeFrameToBuffer( BmodePixelTy
     vtkPlusUsScanConvert * scanConverter = rfProcessor->GetScanConverter();
     if( scanConverter != NULL )
       {
-      scanConverter->SetInputData_vtk5compatible( this->Internal->ConvertBModeBufferToVtkImage( buffer ) );
+      scanConverter->SetInputData( this->Internal->ConvertBModeBufferToVtkImage( buffer ) );
       scanConverter->Modified();
       scanConverter->Update();
       bufferVtkImageData = scanConverter->GetOutput();
