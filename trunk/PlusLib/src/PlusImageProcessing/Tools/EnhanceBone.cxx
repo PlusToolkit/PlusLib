@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     TrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     vtkImageData* imageData = frame->GetImageData()->GetImage();
 
-    castToDouble->SetInputData_vtk5compatible(imageData);
+    castToDouble->SetInputData(imageData);
     castToUnsignedChar->Update();
 
     // Write back the processed output to the input trackedframelist
