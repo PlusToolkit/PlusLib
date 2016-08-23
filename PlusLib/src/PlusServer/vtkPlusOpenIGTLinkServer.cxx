@@ -58,7 +58,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , IGTLProtocolVersion( OpenIGTLink_PROTOCOL_VERSION )
   , ListeningPort( -1 )
   , NumberOfRetryAttempts( 10 )
-  , DelayBetweenRetryAttemptsSec( 0.100 )
+  , DelayBetweenRetryAttemptsSec( 0.05 )
   , MaxNumberOfIgtlMessagesToSend( 100 )
   , ConnectionActive( std::make_pair( false, false ) )
   , DataSenderActive( std::make_pair( false, false ) )
@@ -965,6 +965,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration( vtkXMLDataElement* serve
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MissingInputGracePeriodSec, serverElement );
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MaxTimeSpentWithProcessingMs, serverElement );
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int, MaxNumberOfIgtlMessagesToSend, serverElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( int, NumberOfRetryAttempts, serverElement );
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, DelayBetweenRetryAttemptsSec, serverElement );
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( SendValidTransformsOnly, serverElement );
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( IgtlMessageCrcCheckEnabled, serverElement );
 
