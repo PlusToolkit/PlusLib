@@ -25,6 +25,7 @@ SET (PlusImageProcessing_SRCS
     vtkPlusUsScanConvertLinear.cxx
     vtkPlusUsScanConvertCurvilinear.cxx
     vtkPlusRfProcessor.cxx
+    vtkPlusTransverseProcessEnhancer.cxx
     )
 
 SET (PlusImageProcessing_HDRS)
@@ -37,6 +38,7 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     vtkPlusUsScanConvertLinear.h
     vtkPlusUsScanConvertCurvilinear.h
     vtkPlusRfProcessor.h
+    vtkPlusTransverseProcessEnhancer.h
     )
 endif ()
 
