@@ -8,6 +8,7 @@ See License.txt for details.
 #include "vtkPlusImageProcessorVideoSource.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusBoneEnhancer.h"
+#include "vtkPlusTransverseProcessEnhancer.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -105,16 +106,26 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
 
     // Instantiate processor corresponding to the specified type
     vtkSmartPointer<vtkPlusBoneEnhancer> boneEnhancer = vtkSmartPointer<vtkPlusBoneEnhancer>::New();
+    vtkSmartPointer<vtkPlusTransverseProcessEnhancer> TransverseProcessEnhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
     if (!(STRCASECMP(boneEnhancer->GetProcessorTypeName(), processorType))) 
     {
       boneEnhancer->SetTransformRepository(this->TransformRepository);
       boneEnhancer->ReadConfiguration(processorElement);
       this->ProcessorAlgorithm = boneEnhancer;
       this->ProcessorAlgorithm->Register(this);
+      break;                  // If only one processor is allowed per ImageProcessor class, we can break out when we find it.
+    }
+    else if(!(STRCASECMP(TransverseProcessEnhancer->GetProcessorTypeName(), processorType)))
+    {
+      TransverseProcessEnhancer->SetTransformRepository(this->TransformRepository);
+      TransverseProcessEnhancer->ReadConfiguration(processorElement);
+      this->ProcessorAlgorithm = TransverseProcessEnhancer;
+      this->ProcessorAlgorithm->Register(this);
+      break;
     }
     else
     {
-      LOG_ERROR("Unkwnon processor type: "<<processorType);
+      LOG_ERROR("Unknown processor type: "<<processorType);
       return PLUS_FAIL;
     }
   }
