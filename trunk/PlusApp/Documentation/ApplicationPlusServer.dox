@@ -66,6 +66,8 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
   - \xmlAtt MaxTimeSpentWithProcessingMs Maximum time spent with sending messages to clients at each update. \OptionalAtt{50}
   - \xmlAtt MissingInputGracePeriodSec This value defines for how long after initiating connection a the server should not report missing inputs as error. After the grace period expires, the server will report missing inputs as errors or warnings. \OptionalAtt{0}
   - \xmlAtt SendValidTransformsOnly If \c TRUE then only valid transforms will be sent. If \c FALSE then invalid messages are sent, too (if a transform is invalid then an identity matrix will be sent). \OptionalAtt{TRUE}
+  - \xmlAtt NumberOfRetryAttempts The number of retry attempts to perform when a message cannot be sent before considering them disconnected \OptionalAtt{10}
+  - \xmlAtt DelayBetweenRetryAttemptsSec The delay between each retry attempt. In combination with NumberOfRetryAttemps this determines how long to wait before considering a client disconnected. \OptionalAtt{0.05}
   - \xmlAtt DefaultClientSendTimeoutSec If set, this value is used to determine how long to wait before considering a pending send message a timeout. \OptionalAtt{0.5}
   - \xmlAtt DefaultClientReceiveTimeoutSec If set, this value is used to determine how long to wait before considering no network input as a timeout. \OptionalAtt{0.5}
   - \xmlAtt IgtlMessageCrcCheckEnabled If \c TRUE then incoming OpenIGTLink messages are only accepted if their CRC is valid. If \c FALSE then CRC is not checked. \OptionalAtt{FALSE}

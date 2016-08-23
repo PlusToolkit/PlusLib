@@ -198,6 +198,12 @@ protected:
   vtkSetMacro( MaxNumberOfIgtlMessagesToSend, int );
   vtkGetMacro( MaxNumberOfIgtlMessagesToSend, int );
 
+  vtkSetMacro( NumberOfRetryAttempts, int );
+  vtkGetMacro( NumberOfRetryAttempts, int );
+
+  vtkSetMacro( DelayBetweenRetryAttemptsSec, double );
+  vtkGetMacro( DelayBetweenRetryAttemptsSec, double );
+
   /*!
     Execute a remotely invoked command
     \param resultString String containing the reply to the command (human readable)
@@ -237,7 +243,7 @@ private:
   int NumberOfRetryAttempts;
 
   /*! Delay between retry attempts */
-  int DelayBetweenRetryAttemptsSec;
+  double DelayBetweenRetryAttemptsSec;
 
   /*! Maximum number of IGTL messages to send in one period */
   int MaxNumberOfIgtlMessagesToSend;
