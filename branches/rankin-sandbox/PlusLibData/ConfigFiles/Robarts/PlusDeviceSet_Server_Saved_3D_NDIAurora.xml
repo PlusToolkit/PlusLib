@@ -1,0 +1,72 @@
+ <PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Saved 3D with NDI Aurora Probe+Reference+Stylus"
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource" 
+      UseData="IMAGE_AND_TRANSFORM"
+      RepeatEnabled="TRUE"
+      AcquisitionRate="30"
+      LocalTimeOffsetSec="0.0" 
+      SequenceFile="F:\arankin\PlusBuild-bin\bin\Debug\Output\Recording.mha" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.nrrd"
+      EnableFileCompression="TRUE"
+      EnableCapturingOnStart="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="1.22974 -0.217859 -0.170841 30.6641 
+              0.223972 1.24008 0.0308146 -58.0717 
+              0.162745 -0.0604176 1.24851 8.75495 
+              0 0 0 1 "
+       Error="2.46123" Date="081315_131842" />
+	   <!-- stylus tip for 3d printed neochord with jaw shut -->
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        0.999594	0	-0.0284841	-0.305774
+        -0.0042307	0.988908	-0.148468	-1.59379
+        0.0281681	0.148529	0.988507	10.6115
+        0	0	0	1"
+       Error="0.287287" Date="082315_112217" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="StylusTipToReference" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>

@@ -1,0 +1,126 @@
+ <PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Epiphan bi-plane + NDI Aurora"
+      Description="Broadcasting acquired video through OpenIGTLink"
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="AuroraTracker"
+      SerialPort="3"
+      BaudRate="115200"
+      LocalTimeOffsetSec="0.0"
+      ToolReferenceFrame="Tracker">
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0" />
+        <DataSource Type="Tool" Id="Reference" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice" 
+      Type="Epiphan" >
+      <DataSources>
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="285 0 0" ClipRectangleSize="460 1050 1" />
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ClipRectangleOrigin="735 0 0" ClipRectangleSize="460 1050 1" />
+      </DataSources>      
+      <OutputChannels>
+        <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
+        <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="LeftTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="LeftVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="LeftTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device 
+      Id="RightTrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="RightVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="RightTrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+  </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="LeftImage" To="Reference"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0        
+        0 0 0 1" />
+    <Transform From="RightImage" To="Reference"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0        
+        0 0 0 1" />
+  </CoordinateDefinitions>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="LeftTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18945" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="RightTrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="ProbeToTracker" /> 
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
+      <ImageNames>
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

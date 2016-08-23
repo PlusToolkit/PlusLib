@@ -1,0 +1,53 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="TEST Ultrasonix US with Fake tracker" 
+      Description="Test mode for vtkDataCollectorTest with Ultrasonix US and Fake tracker. The Ultrasonix US device should be in research mode." />
+
+    <Device 
+      Id="TrackerDevice"
+      Type="FakeTracker"
+      AcquisitionRate="30"
+      Mode="PivotCalibration"
+      ToolReferenceFrame="Tracker" 
+      ReferenceToolName="Reference" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference"  PortName="0"/> 
+        <DataSource Type="Tool" Id="Stylus"  PortName="1" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Reference"/>
+          <DataSource Id="Stylus"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="VideoDevice"
+      Type="SonixVideo" 
+      AcquisitionRate="-1" 
+      IP="130.15.7.20" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortName="B" PortUsImageOrientation="MF" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="BModeVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+        
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="BModeVideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+</PlusConfiguration>

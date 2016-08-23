@@ -1,0 +1,228 @@
+
+<html>
+   <head>
+      <style type="text/css">
+         .sikuli-code {
+            font-size: 20px;
+            font-family: "Osaka-mono", Monospace;
+            line-height: 1.5em;
+            display:table-cell;
+            white-space: pre-wrap;       /* css-3 */
+            white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+            width: 99%;   /* remove horizontal scroll-bar when viewing in IE7 */
+         }
+         .sikuli-code img {
+            vertical-align: middle;
+            margin: 2px;
+            border: 1px solid #ccc;
+            padding: 2px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-box-shadow: 1px 1px 1px gray;
+            -webkit-box-shadow: 1px 1px 2px gray;
+         }
+         .kw {
+            color: blue;
+         }
+         .skw {
+            color: rgb(63, 127, 127);
+         }
+
+         .str {
+            color: rgb(128, 0, 0);
+         }
+
+         .dig {
+            color: rgb(128, 64, 0);
+         }
+
+         .cmt {
+            color: rgb(200, 0, 200);
+         }
+
+         h2 {
+            display: inline;
+            font-weight: normal;
+         }  
+         
+         .info {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         a {
+            color: #9D2900;
+         }
+
+         body {
+            font-family: "Trebuchet MS", Arial, Sans-Serif;
+         }
+
+      </style>
+   </head>
+<body>
+<div class="info">
+<h2>ConfigFileSaverDialogTest.sikuli\ConfigFileSaverDialogTest.sikuli</h2> <a href="ConfigFileSaverDialogTest.sikuli\ConfigFileSaverDialogTest.zip">(Download this script)</a>
+</div>
+<pre class="sikuli-code">
+<span class="kw">import</span> sys
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Assembles the application executable command properly according to the script's arguments
+</span><span class="kw">def</span> getCommandFromArguments(plusDir=<span class="str">''</span>):
+  <span class="kw">if</span> len(sys.argv) &gt; <span class="dig">1</span>:
+    exe = sys.argv[<span class="dig">1</span>]
+
+    <span class="cmt"># Concatenate the command line arguments to the executable name
+</span>    <span class="kw">for</span> argnum <span class="kw">in</span> range(<span class="dig">2</span>,len(sys.argv)):
+      exe = exe + <span class="str">' "'</span> + sys.argv[argnum] + <span class="str">'"'</span>
+  <span class="kw">else</span>:
+    <span class="cmt"># Temporary setting of the executable (for trying in Sikuli IDE)
+</span>    <span class="kw">if</span> plusDir == <span class="str">''</span>:
+      exe = <span class="str">''</span>
+
+    exe = <span class="str">'"'</span> + plusDir + <span class="str">'/bin/Release/SegmentationParameterDialogTest" "--device-set-configuration-dir='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Testing" "--input-config-file-name='</span> + plusDir + <span class="str">'/PlusLib/data/ConfigFiles/Testing/PlusConfiguration_SegmentationParameterDialog_SavedDataset_fCal_1.0_VideoOnly.xml" "--image-dir='</span> + plusDir + <span class="str">'/PlusLib/data/TestImages" --verify-saved-configuration-file'</span>
+
+  <span class="kw">return</span> exe
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="kw">from</span> os <span class="kw">import</span> getenv
+<span class="kw">from</span> shutil <span class="kw">import</span> copyfile
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="cmt"># Define function that is run when error occurs
+</span><span class="kw">def</span> captureScreenAndExit():
+  capturedFileName = <span class="skw">capture</span>(SCREEN)
+  newFileName = getenv(<span class="str">'APPDATA'</span>) + <span class="str">'/'</span> + appTitle + datetime.now().strftime(<span class="str">"_%Y%m%d_%H%M%S"</span>) + <span class="str">'.png'</span>
+  copyfile(capturedFileName, newFileName)
+  <span class="kw">print</span> <span class="str">"The screen capture of the application in time of the error was saved to: "</span> + newFileName
+  closeApp(appTitle)
+  sys.exit(<span class="dig">1</span>)
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span>
+<span class="cmt"># Tries to find application on all monitors
+</span><span class="kw">def</span> findApplicationOnAllMonitors(pattern, maxNumberOfTries=<span class="dig">20</span>):
+  <span class="kw">for</span> count <span class="kw">in</span> range (maxNumberOfTries):
+    <span class="kw">for</span> screenId <span class="kw">in</span> range(SCREEN.getNumberScreens()):
+      screen = Screen(screenId)
+
+      <span class="kw">try</span>:
+        foundRegion = screen.<span class="skw">find</span>(pattern)
+      <span class="kw">except</span> FindFailed:
+        <span class="kw">continue</span>
+
+      <span class="kw">print</span> <span class="str">"Application found on screen "</span>, screenId, <span class="str">" after "</span>, count, <span class="str">" tries"</span>
+      <span class="kw">return</span> foundRegion
+
+  <span class="kw">print</span> <span class="str">"[ERROR] Application cannot be found on any screen after "</span>, maxNumberOfTries , <span class="str">"tries!"</span>
+  captureScreenAndExit()
+
+<span class="cmt">#------------------------------------------------------------------------------
+</span><span class="cmt"># Main program
+</span>
+exe = getCommandFromArguments(<span class="str">"c:/devel/Plus/Plus-bin"</span>)
+
+appTitle = <span class="str">"SegmentationParameterDialogTest"</span>
+
+testApp = App.open(exe)
+
+connectButton = findApplicationOnAllMonitors(<img src="ConnectButton.png" />)
+
+App.focus(appTitle)
+
+<span class="cmt"># Get the region of the segmentation parameter dialog window
+</span>applicationTopLeft = connectButton.getTopLeft()
+applicationTopLeft = applicationTopLeft.left(<span class="dig">205</span>).above(<span class="dig">295</span>)
+windowRegion = Region(applicationTopLeft.x, applicationTopLeft.y, <span class="dig">495</span>, <span class="dig">355</span>)
+messageBoxRegion = Region(applicationTopLeft.x - <span class="dig">15</span>, applicationTopLeft.y - <span class="dig">195</span>, <span class="dig">510</span>, <span class="dig">550</span>)
+
+<span class="cmt"># Connect to the device set (it is already selected because of the command line arguments)
+</span><span class="skw">click</span>(connectButton)
+
+<span class="kw">try</span>:
+  increaseLinePairDistanceButton = <span class="skw">wait</span>(Pattern(<img src="LinePairDistanceParameterRow.png" />).targetOffset(<span class="dig">96</span>,-<span class="dig">3</span>), <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Segmentation parameter dialog did not appear (cannot find Line pair distance parameter)!"</span>
+  captureScreenAndExit()
+
+<span class="cmt"># Change a parameter and close the window
+</span><span class="skw">click</span>(increaseLinePairDistanceButton)
+<span class="skw">click</span>(<img src="ApplyAndCloseButton.png" />)
+
+<span class="kw">try</span>:
+  saveConfigurationButton = windowRegion.<span class="skw">wait</span>(<img src="SaveConfigurationButton.png" />, <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Main dialog did not re-appear!"</span>
+  captureScreenAndExit()
+
+<span class="skw">click</span>(saveConfigurationButton)
+<span class="skw">wait</span>(<span class="dig">2</span>)
+
+<span class="cmt"># Find device set name field (wait for it to appear)
+</span><span class="kw">try</span>:
+  deviceSetNameField = windowRegion.<span class="skw">wait</span>(Pattern(<img src="DeviceSetNameLabel.png" />).targetOffset(<span class="dig">36</span>,<span class="dig">17</span>), <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Config file saver dialog did not appear!"</span>
+  captureScreenAndExit()
+
+<span class="cmt"># Select the whole name and type its new value
+</span><span class="skw">click</span>(deviceSetNameField)
+<span class="skw">type</span>(<span class="str">'a'</span>, KeyModifier.CTRL)
+
+<span class="skw">type</span>(<span class="str">"TEST ConfigFileSaverDialogTest Result"</span>)
+
+<span class="cmt"># Find description field
+</span><span class="kw">try</span>:
+  descriptionField = windowRegion.<span class="skw">find</span>(Pattern(<img src="DescriptionLabel.png" />).targetOffset(-<span class="dig">21</span>,<span class="dig">16</span>))
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find description field!"</span>
+  captureScreenAndExit()
+
+<span class="cmt"># Select the whole description and type its new value
+</span><span class="skw">click</span>(descriptionField)
+<span class="skw">type</span>(<span class="str">'a'</span>, KeyModifier.CTRL)
+
+<span class="skw">type</span>(<span class="str">"ConfigFileSaverDialogTest result with changed line pair distance tolerance value 11.0"</span>)
+
+<span class="cmt"># Click save button, enter the new file name and save the file
+</span><span class="kw">try</span>:
+  saveButton = windowRegion.<span class="skw">wait</span>(<img src="SaveButton.png" />, <span class="dig">10</span>)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Save button in config file saver dialog cannot be found in original window boundaries!"</span>
+  captureScreenAndExit()
+
+<span class="skw">click</span>(saveButton)
+<span class="skw">wait</span>(<span class="dig">5</span>)
+<span class="skw">type</span>(<span class="str">"TEST_ConfigFileSaverDialogTest_Result"</span>)
+<span class="skw">type</span>(Key.ENTER)
+<span class="skw">wait</span>(<span class="dig">5</span>)
+
+<span class="cmt"># Check if errors occurred
+</span><span class="kw">import</span> java.awt.Robot <span class="kw">as</span> JRobot
+colorPickerRobot = JRobot()
+
+<span class="kw">try</span>:
+  statusIcon = windowRegion.<span class="skw">find</span>(<img src="GreenStatusIcon.png" />)
+<span class="kw">except</span> FindFailed:
+  <span class="kw">print</span> <span class="str">"[ERROR] Cannot find green StatusIcon!"</span>
+  captureScreenAndExit()
+
+statusIconCenter = statusIcon.getCenter()
+color = colorPickerRobot.getPixelColor(statusIconCenter.x, statusIconCenter.y)
+
+<span class="kw">if</span> color.getGreen() &lt; color.getRed() <span class="kw">or</span> color.getGreen() &lt; color.getBlue():
+  <span class="kw">print</span> <span class="str">"[ERROR] StatusIcon is not green ("</span>, color, <span class="str">")"</span>
+  captureScreenAndExit()
+
+closeApp(appTitle) <span class="cmt"># close the window - stop the process</span>
+</pre>
+</body>
+</html>

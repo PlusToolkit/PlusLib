@@ -1,0 +1,29 @@
+/*!
+\page UsImagingParameters Ultrasound imaging parameters
+
+\section UsImagingParametersDetails US imaging parameters
+
+An ultrasound imaging parameters element inside of a device tag is detected and loaded for specific devices. 
+
+\section UsImagingParametersDevices Supported devices
+
+Current devices include 
+ - \ref DeviceSonixVideo
+ - \ref DeviceInterson devices.
+
+\section UsImagingParametersConfigSettings Device configuration settings
+
+- \xmlElem \ref Device
+  - \xmlElem UsImagingParameters Imaging parameters container \RequiredAtt
+    - \xmlAtt Contrast Is the contrast of B-mode ultrasound that is used to create the LUT. \OptionalAtt{256}
+    - \xmlAtt DepthMm Depth \c [mm] of B-mode ultrasound. If not specified then the current setting is used. \OptionalAtt{ }
+    - \xmlAtt DynRangeDb DynRange \c [dB] of B-mode ultrasound. If not specified the current value is kept. \OptionalAtt{ }
+    - \xmlAtt FrequencyMhz Ultrasound transmitter frequency \c [MHz] If not specified then the current setting is used.\OptionalAtt{ }
+    - \xmlAtt GainPercent \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used.\OptionalAtt{ }
+    - \xmlAtt TimeGainCompensation Time gain compensation \c [N int values] If not specified then the current setting is used.\OptionalAtt{ }
+    - \xmlAtt Intensity Is the intensity of B-mode ultrasound that is used to create the LUT. \OptionalAtt{128}
+    - \xmlAtt Sector \c [%] of B-mode ultrasound; valid range: 0-100. If not specified the current value is kept. \OptionalAtt{ }
+    - \xmlAtt ZoomFactor Zoom \c [%] of B-mode ultrasound; valid range: 0-100. If not specified then the current setting is used. \OptionalAtt{ }
+    - \xmlAtt SoundVelocity The speed of sound \c [m/s].  The minimum and maximum allowed value is specified on the Ultrasound computer, in the Exam software directory in the \c imaging.set.xml file (the parameter is \c soundvelocity). If an out of range value is specified in the configuration file then the Ultrasound system will ignore it. If the attribute is not specified then the current setting is kept. \OptionalAtt{ }
+    - \xmlAtt Voltage \c Voltage \OptionalAtt{ }
+*/

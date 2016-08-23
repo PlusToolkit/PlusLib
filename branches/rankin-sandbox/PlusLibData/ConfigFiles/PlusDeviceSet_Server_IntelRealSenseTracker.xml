@@ -1,0 +1,49 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Intel RealSense camera tracker"
+      Description="Broadcasting tool tracking data through OpenIGTLink. (2D tracking) Tools: Reference (4 square Marker)." 
+    />
+    <Device
+      Id="TrackerDevice"
+      Type="IntelRealSenseTracker"
+      CameraCalibrationFile="IntelRealSenseToolDefinitions/CameraCalibration-CreativeSR300.xml"
+      ToolReferenceFrame="Tracker"
+      TrackingMethod="3D" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Reference" MapFile="IntelRealSenseToolDefinitions/SquaresWithCircle.slam" MarkerImageFile="IntelRealSenseToolDefinitions/SquaresWithCircle.png" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Reference"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturingOnStart="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+      </InputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    OutputChannelId="TrackerStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="ReferenceToTracker" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

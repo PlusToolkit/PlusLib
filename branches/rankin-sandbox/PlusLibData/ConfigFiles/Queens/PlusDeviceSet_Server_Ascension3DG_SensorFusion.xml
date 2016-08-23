@@ -1,0 +1,53 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="Sensor fusion tests with Ascension3DG(GPS)" 
+      Description="Ascension3DG sensors should be plugged in to the Ascension3DG DriveBay mounted on Ultrasonix US. Quality value is also recorded for the tracking." />
+    <Device
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      FilterAcWideNotch="1"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Tool1" PortName="0" 
+          QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
+        <DataSource Type="Tool" Id="Tool2" PortName="1" 
+          QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
+        <DataSource Type="Tool" Id="Tool3" PortName="2" 
+          QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
+        <DataSource Type="Tool" Id="Tool4" PortName="3" 
+          QualityErrorSlope="0" QualityErrorOffset="0" QualityErrorSensitivity="2" QualityFilterAlpha="12" />
+        <DataSource Type="Tool" Id="Quality1" PortName="quality1"  />
+        <DataSource Type="Tool" Id="Quality2" PortName="quality2"  />
+      </DataSources> 
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Tool1"/>
+          <DataSource Id="Tool2"/>
+          <DataSource Id="Tool3"/>
+          <DataSource Id="Tool4"/>
+          <DataSource Id="Quality1"/>
+          <DataSource Id="Quality2"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+  
+  <PlusOpenIGTLinkServer ListeningPort="18944" OutputChannelId="TrackerStream"> 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames> 
+        <Transform Name="Tool1ToTracker" /> 
+        <Transform Name="Tool2ToTracker" /> 
+        <Transform Name="Tool3ToTracker" /> 
+        <Transform Name="Tool4ToTracker" /> 
+        <Transform Name="Quality1ToTracker" /> 
+        <Transform Name="Quality2ToTracker" /> 
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

@@ -1,0 +1,258 @@
+==================================================
+NVIDIA GPU Direct for Video SDK v1.53 Release Notes
+==================================================
+--- Contents:
+-------------
+--- Release Highlights
+--- Documentation
+--- List of Important Files
+--- Supported NVIDIA Hardware
+--- Supported Operating Systems for:
+------ Windows
+------ Linux
+------ Max OS X
+--- Rerquired Graphics Drivers for:
+------ Windows
+------ Linux
+------ Max OS X
+--- Installation Notes
+--- Known Issues
+--- Revision History
+--- More Information
+==================================================
+
+==================================================
+Release Highlights
+==================================================
+
+NVIDIA GPU Direct for Video version 1.51 features:
+* Added file details in the properties dialog box for dvp.dll
+* Removed references to DLLMain and WndProc from dvp_static.lib
+* Fixed bug where DVP library initialization fails searching for 
+  an English string when there are no English strings on the system
+* Linking to the static library now requires the DVP_STATIC compiler flag
+
+
+NVIDIA GPU Direct for Video version 1.46 features:
+* Fixed library memory usage and memory leaks
+* Improved library error reporting. Added new return values for the following functions:
+	- dvpGetRequiredConstants*: DVP_STATUS_OUT_OF_MEMORY
+	- dvpFreeSyncObject:DVP_STATUS_SYNC_STILL_BOUND
+* Updates to the Programming Guide: More detailed guidance on DirectX, context requirements and performance caveats.
+* Updates to the SDK samples including:
+- Added moving green/red/blue test data bars to allow tearing test
+- Added display mode for tearing test, this creates a fullscreen window
+- Modified constant ring buffer sizes in the shared code
+- Added some basic tracing code
+- Added optimal handling on batches of frames   (see  extBeginFrame of extBeginFrame)
+- Added support for Tesla K10 and K20 GPUs
+
+
+NVIDIA GPU Direct for Video version 1.3.8 features:
+* Changed SDK version number to match the DVP library version
+  in DVPAPI.h.
+* Small updates to the Programming Guide.
+* The use of dvpBegin and dvpEnd is now required around calls to
+  dvpSyncObjClientWait for more efficient batched operations.
+* The library now works correctly with OpenGL SLI contexts
+
+
+NVIDIA GPU Direct for Video version 1.2.1 features:
+* The use of dvpBegin and dvpEnd is now required around calls to
+  dvpSyncObjClientWait for more efficient batched operations.
+* Fixes memory leak in dvpGetRequiredConstantsD3D9Device
+* Fixes dvpCreateGPUD3D9Resource crash when D3D9 device is created
+  with adapter ordinal of 1 or greater.
+* Fixes problem where dvpSyncObjectClientWait* was not waiting 
+  in the case of OpenGL and DirectX.
+* Fixes crash in dvpSyncObjectClientWait* on Linux.
+
+
+NVIDIA GPU Direct for Video version 1.2 features:
+* Performance optimizations
+* SDK sample fixes and cleanup: shutdown, resources deallocation, chunking
+* Updated programming guide
+* Added support for Tesla boards and Kepler Quadro boards.
+* Removed the stride alignment restriction and made it a recommendation instead.
+* Added CUDA stream synchronization API entry points.
+* Added DVP buffer format types specifically for CUDA arrays
+* All SDK samples now can demonstrate how to use buffers in addition to textures with GPU Direct for Video.  Note, in the case of DX only the D3D9 path has been verified.  In each sample, this can be enabled by uncommenting USE_BUFFERS.
+* Added DVP_HALF_FLOAT type and error checks so DVP_BUFFER types are not used with dvpMemcpy2D/dvpMemcpyLined and vice versa. 
+* Added a static library version of the DVP library
+* Combined the core linux and windows SDK files into a single module
+
+
+NVIDIA GPU Direct for Video version 1.1 features:
+* NVIDIA GPU Direct for Video Library and Header Files
+* Pseudo SDK that demonstrates GPU Direct for Video API Usage
+* OpenGL, CUDA, DirectX 9 and DirectX 11 application code examples 
+* Linux support
+
+==================================================
+Documentation
+==================================================
+Please find the NVIDIA GPU Direct for Video Programming Guide in the /doc folder of your installation.
+
+==================================================
+List of Important Files - Windows
+==================================================
+
+
+  data/
+    NVLogo_3D.png             Image file used in sample applications.
+
+  doc/
+    DVPAPI.txt                GPU Direct for Video Specification
+    PG-060007-001_v03.pdf     GPU Direct for Video Programming Guide
+    ReleaseNotes.txt          These release notes.
+
+
+  sdk/
+    common/                   Folder containing common sample source and header files
+    win/   
+    	include/
+      		DVPAPI.h                  General GPU Direct for Video header file
+		dvpapi_cuda.h             CUDA specific GPU Direct for Video header file
+	        dvpapi_d3d10.h            D3D10 specific GPU Direct for Video header file
+	        dvpapi_d3d11.h            D3D11 specific GPU Direct for Video header file
+	        dvpapi_d3d9.h             D3D9 specific GPU Direct for Video header file
+		dvpapi_gl.h               OpenGL specific GPU Direct for Video header file
+		stdint.h                  Standard int header file
+		GL/                       Folder containing OpenGL header files
+		pthread.h
+		sched.h
+		semaphore.h
+		stdint.h
+
+	lib/
+		win32/
+	      	      dvp.lib                   GPU Direct for Video library file
+  	              dvp_static.lib		GPU Direct for Video library file
+		      glew.lib                  GLEW toolkit library file
+		      pthread32.lib
+		x64/
+		      dvp.lib                   GPU Direct for Video library file
+		      dvp_static.lib            GPU Direct for Video library file
+	      	      glew64.lib                  GLEW toolkit library file
+		      pthread64.lib
+
+	bin/
+		win32/
+
+         		dvp.dll                   GPU Direct for Video shared library
+         		fifoCUDA.exe              CUDA sample application
+	        	fifoD3D9.exe              D3D9 sample application
+	                fifoD3D11.exe             D3D11 sample application
+                        fifoOpenGL.exe            OpenGL sample application
+                        glew.dll                  GLEW Toolkit shared library		
+                        pthread32.dll
+		x64/
+        		dvp.dll                   GPU Direct for Video shared library
+         		fifoCUDA.exe              CUDA sample application
+	        	fifoD3D9.exe              D3D9 sample application
+	                fifoD3D11.exe             D3D11 sample application
+                        fifoOpenGL.exe            OpenGL sample application
+                        glew64.dll                  GLEW Toolkit shared library
+                        pthread64.dll
+
+
+        samples/    
+	        fifoCUDA/                 Folder containing fifoCUDA sample source and header files
+	        fifoD3D11/                Folder containing fifoD3D11 sample source and header files
+         	fifoD3D9/                 Folder containing fifoD3D9 sample source and header files
+        	fifoOpenGL/               Folder containing fifoOpenGL sample source and header files
+
+==================================================
+List of Important Files - Linux
+==================================================
+
+   doc/
+    DVPAPI.txt                GPU Direct for Video Specification
+    GPUD4V_SDK_EULA.pdf       GPU Direct for Video SDK End User License Agreement
+    PG-060007-001_v03.pdf     GPU Direct for Video Programming Guide
+    ReleaseNotes.txt          These release notes.
+
+   sdk/  
+    common/                   Folder containing common sample source and header files
+    linux/   
+	include/             
+      		DVPAPI.h                General GPU Direct for Video header file
+      		dvpapi_cuda.h           CUDA specific GPU Direct for Video header file
+     		dvpapi_gl.h             OpenGL specific GPU Direct for Video header file
+      		GL/                     Folder containing OpenGL header files
+    	lib32/
+      		libdvp.a                32-bit GPU Direct for Video static library
+		 libdvp.so              32-bit GPU Direct for Video shared library
+    	lib64/
+      	        libdvp.a                64-bit GPU Direct for Video static library
+	        libdvp.so               64-bit GPU Direct for Video shared library                   
+        samples/
+               fifoCUDA/               Folder containing fifoCUDA sample source, header, and executable files
+               fifoOpenGL/             Folder containing fifoOpenGL sample source, header, and executable files
+
+==================================================
+Supported NVIDIA Hardware
+==================================================
+
+  http://developer.nvidia.com/nvidia-gpudirect™-video
+
+==================================================
+Supported Operating Systems
+==================================================
+------------------
+Windows
+------------------
+* Supported Operating Systems (32-bit and 64-bit)
+     -  Windows 7
+------------------
+Linux
+------------------
+* Supports all common x86 and x86_64 Linux Distributions
+------------------
+Mac OS X
+------------------
+Unsupported in this release.
+
+==================================================
+Required Graphics Drivers
+==================================================
+------------------
+Windows
+------------------
+* 311.50 or later
+------------------
+Linux
+------------------
+* 310.44 or later
+------------------
+Mac OS X
+------------------
+Unsupported in this release.
+
+==================================================
+Installation Notes
+==================================================
+
+==================================================
+Known Issues
+==================================================
+
+==================================================
+Revision History
+==================================================
+ 
+  09/2011 - Version 1.0
+  09/2011 - Version 1.1   - Added VS2008 Solution and Projects
+  12/2011 - Version 1.1   - Added Linux support.
+  04/2012 - Version 1.2   - Fixes and improvements
+  07/2012 - Version 1.2.1 - Bug fixes
+  11/2012 - Version 1.3.8 - Bug Fixes / Programming Guide Update
+  02/2013 - Version 1.4.6 - Bug Fixes / Programming Guide Update
+  04/2013 - Version 1.5.1 - Bug Fixes
+
+==================================================
+More Information
+==================================================
+
+  http://developer.nvidia.com/nvidia-gpudirect™-video
+

@@ -1,0 +1,48 @@
+/**
+
+\mainpage
+
+\section PlusAppIntro Introduction
+
+Plus (Public software Library for UltraSound) is an open-source software package for tracked ultrasound image acquisition, calibration, and processing. Plus applications include complete end-user software applications for spatial and temporal calibration (fCal) and real-time data acquisition, processing and streaming (PlusServer). For building complete image-guided therapy applications you can use the 3D Slicer and the <a href="http://www.slicerigt.org">SlicerIGT extension</a>.
+
+Overview papers and presentations:
+- <a href="http://perk.cs.queensu.ca/contents/plus-open-source-toolkit-ultrasound-guided-intervention-systems">Paper published in IEEE-TBME</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/PlusOverview.pptx">Technology overview presentation</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/SlicerIgtPlusIntro-NCIGT2013.pptx">Overview presentation with some clinical applications</a>
+- <a href="https://subversion.assembla.com/svn/plus/trunk/doc/overview/PlusArchitectureOverview.pptx">Multi-channel architecture overview presentation</a>
+
+\par How to cite
+
+Please cite the following paper when referring to Plus in your publication:
+  
+  <i><a href="http://perk.cs.queensu.ca/contents/plus-open-source-toolkit-ultrasound-guided-intervention-systems">Andras Lasso, Tamas Heffter, Adam Rankin, Csaba Pinter, Tamas Ungi, and Gabor Fichtinger, "PLUS: Open-source toolkit for ultrasound-guided intervention systems", IEEE Trans Biomed Eng. 2014 Oct;61(10):2527-37. doi: 10.1109/TBME.2014.2322864</a></i>
+  
+<pre>
+@@ARTICLE{Lasso2014a,
+  title = {PLUS: Open-source toolkit for ultrasound-guided intervention systems},
+  author = {Andras Lasso and Tamas Heffter and Adam Rankin and Csaba Pinter and Tamas Ungi and Gabor Fichtinger},
+  journal = {IEEE Transactions on Biomedical Engineering},
+  year = {2014},
+  month = {Oct},
+  number = {10},
+  pages = {2527-2537},
+  doi = {10.1109/TBME.2014.2322864},
+  pmid = {24833412},
+  url = {http://perk.cs.queensu.ca/contents/plus-open-source-toolkit-ultrasound-guided-intervention-systems}
+}
+</pre>
+
+\par License
+
+Plus has a BSD-style license, which allows any kind of use for free. See more details in&nbsp;<a href="https://www.assembla.com/code/plus/subversion/nodes/trunk/PlusLib/src/License.txt?rev=trunk">License.txt</a>
+
+\par Download
+
+<a href="https://www.assembla.com/spaces/plus/wiki/Downloads">Click here to download pre-compiled Plus applications releases</a>
+
+\par More information
+
+All information about the Plus project is publicly available at <a href="http://www.plustoolkit.org">www.plustoolkit.org</a>. Register at <a href="http://www.assembla.com">www.assembla.com</a> and <a href="https://www.assembla.com/spaces/watch/plus">join the Plus space as watcher</a> to submit messages, bug reports, feature requests, and get email notifications. Write a message to any of the <a href="https://www.assembla.com/spaces/plus/team">Owner users</a> to request write access to the repository.
+
+*/
