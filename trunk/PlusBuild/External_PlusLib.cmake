@@ -263,7 +263,7 @@ ExternalProject_Add(PlusLib
   #--Download step--------------
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
-  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusLib
+  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/${PLUSBUILD_SVN_BRANCH}/PlusLib
   ${PLUSBUILD_SVN_REVISION_ARGS}
   #--Configure step-------------
   CMAKE_ARGS

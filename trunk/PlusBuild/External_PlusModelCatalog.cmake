@@ -15,7 +15,7 @@ ExternalProject_Add(PlusModelCatalog
   #--Download step--------------
   SVN_USERNAME ${PLUSBUILD_ASSEMBLA_USERNAME}
   SVN_PASSWORD ${PLUSBUILD_ASSEMBLA_PASSWORD}
-  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/trunk/PlusModelCatalog
+  SVN_REPOSITORY https://subversion.assembla.com/svn/plus/${PLUSBUILD_SVN_BRANCH}/PlusModelCatalog
   ${PLUSBUILD_SVN_REVISION_ARGS}
   #--Configure step-------------
   CMAKE_ARGS 

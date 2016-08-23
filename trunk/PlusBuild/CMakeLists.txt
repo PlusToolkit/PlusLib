@@ -55,6 +55,16 @@ ELSE (PLUSBUILD_OFFLINE_BUILD)
     "c:/Program Files/SlikSvn/bin/"
     )
   FIND_PACKAGE(Subversion REQUIRED)
+  
+  #-----------------------------------------------------------------------------
+  # SVN - Parse current branch to send to external plusapp/pluslib
+  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} Plus)
+  STRING(FIND ${Plus_WC_URL} "/plus/" _plus_pos REVERSE)
+  MATH(EXPR _plus_pos '${_plus_pos}+6')
+  STRING(SUBSTRING ${Plus_WC_URL} ${_plus_pos} -1 _branch)
+  STRING(FIND ${_branch} "/" _plus_build_pos REVERSE)
+  STRING(SUBSTRING ${_branch} 0 ${_plus_build_pos} PLUSBUILD_SVN_BRANCH)
+  message(STATUS "Current branch of this PlusBuild is: ${PLUSBUILD_SVN_BRANCH}")
 
   #-----------------------------------------------------------------------------
   # ASSEMBLA - Set username and password for assembla
