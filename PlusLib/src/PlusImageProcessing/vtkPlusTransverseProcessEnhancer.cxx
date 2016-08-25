@@ -31,10 +31,18 @@ ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
 NumberOfScanLines(0),
 NumberOfSamplesPerScanLine(0)
 {
-  this->SetThreshold(128);
-  this->Thresholder->SetInValue(20);
-  this->Thresholder->SetOutValue(200);
+  //this->Thresholder->SetInValue(0);
+  //this->Thresholder->SetOutValue(255);
   
+  this->ThresholdingEnabled = NULL;
+  this->ThresholdInValue = NULL;
+  this->ThresholdOutValue = NULL;
+  this->LowerThreshold = NULL;
+  this->UpperThreshold = NULL;
+  
+  this->GaussianEnabled = NULL;
+  this->SetGaussianStdDev(NULL);
+  this->SetGaussianKernelSize(NULL);
   this->GaussianSmooth->SetDimensionality(2);
 
   this->LinesImage->SetExtent(0,0,0,0,0,0);
@@ -83,7 +91,7 @@ void vtkPlusTransverseProcessEnhancer::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement* processingElement)
 {
   XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Threshold, processingElement);
+  //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Threshold, processingElement);
 
   this->ScanConverter = NULL;
   vtkXMLDataElement* scanConversionElement = processingElement->FindNestedElementWithName("ScanConversion");
@@ -98,7 +106,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
     }
     else
     {
-      LOG_DEBUG("Scan converter is defined.");
+      LOG_INFO("Scan converter is defined.");
     }
 
     vtkSmartPointer<vtkPlusUsScanConvert> scanConverter;
@@ -123,38 +131,84 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
   }
   
   // Try to make image processing parameters modifiable without rebuilding
-  vtkXMLDataElement* ImageProcessingParameters = processingElement->FindNestedElementWithName("ImageProcessingParameters");
-  if (ImageProcessingParameters != NULL)
+  vtkXMLDataElement* ImageProcessingOperations = processingElement->FindNestedElementWithName("ImageProcessingOperations");
+  if (ImageProcessingOperations != NULL)                                                        // This verification might not be strictly necessary
   {
-    //this->GaussianKernelRadius = ImageProcessingParameters->GetAttribute("GaussianKernelRadius");
-    const char* PGS = ImageProcessingParameters->GetAttribute("PerformGaussianSmooth");
-     
-    if (PGS == NULL)
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(GaussianEnabled, ImageProcessingOperations);   
+    if(this->GaussianEnabled != NULL)         // Might be irellevant if set in initialization
     {
-      LOG_ERROR("PerformGaussianSmooth is not specified");
-      return PLUS_FAIL;
+      if(this->GaussianEnabled)
+      {
+        vtkXMLDataElement* GaussianParameters = ImageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, GaussianStdDev, GaussianParameters);
+        if(this->GaussianStdDev == NULL)
+        {
+          LOG_INFO("GaussianStdDev not instantiated in config file - using default value of 7");
+          this->SetGaussianStdDev(7);
+        }
+        else LOG_INFO("GaussianStdDev set to " << this->GaussianStdDev << " in config file");
+        
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, GaussianKernelSize, GaussianParameters);
+        if(this->GaussianKernelSize == NULL)
+        {
+          LOG_INFO("GaussianKernelSize not instantiate in config file - using default value of 7");
+          this->SetGaussianKernelSize(7);
+        }
+        else LOG_INFO("GaussianKernelSize set to " << this->GaussianKernelSize << "  in config file");
+      }
+      else LOG_INFO("GaussianEnabled set to false");
+      }
+    else
+    {
+      LOG_INFO("GaussianEnabled parameter not found, setting it to false");
+      this->GaussianEnabled = false;                 // Set to false in undefined case to stay out of vtkImageGaussianSmoothin()
+    }
+   
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ThresholdingEnabled, ImageProcessingOperations);
+    if(this->ThresholdingEnabled != NULL)
+    {
+      if(this->ThresholdingEnabled)
+      {
+        vtkXMLDataElement* ThresholdingParameters = ImageProcessingOperations->FindNestedElementWithName("Thresholding");
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdInValue, ThresholdingParameters);
+        if(this->ThresholdInValue == NULL) this->SetThresholdInValue(0);
+        
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, ThresholdingParameters);
+        if(this->ThresholdOutValue == NULL) this->SetThresholdOutValue(255);
+        
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, LowerThreshold, ThresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, UpperThreshold, ThresholdingParameters);
+        if(this->LowerThreshold == NULL && this->UpperThreshold == NULL)
+        {
+          LOG_INFO("Thresholding operation requesting but bounds not set - thresholding will not be performed");
+          this->ThresholdingEnabled = false;
+        }
+        else if(this->UpperThreshold == NULL)
+        {
+          LOG_INFO("Lower threshold set at " << this->LowerThreshold);
+        }
+        else if(this->LowerThreshold == NULL)
+        {
+          LOG_INFO("Upper threshold set at " << this->UpperThreshold);
+        }
+        else
+        {
+          LOG_INFO("Windowed threshold to be perfomed between " << this->LowerThreshold << " and " << this->UpperThreshold);
+        }
+      }
     }
     else
     {
-		  if (!(STRCASECMP(PGS, "true")))
-		  {
-			this->PerformGaussianSmooth = true;
-			XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, GaussianStdDev, ImageProcessingParameters);
-			XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, GaussianKernelSize, ImageProcessingParameters);
-			
-			//this->GaussianSmooth->SetRadiusFactors(int(GaussianKernelSize), int(GaussianKernelSize));
-		  }
-      else this->PerformGaussianSmooth = false;
-      LOG_DEBUG("PerformGaussianSmooth is properly specified.");
+      LOG_INFO("ThresholdingEnabled parameter not found, setting to false");
+      this->ThresholdingEnabled = false;
     }
-    // ? Use standard dev. local to pixels aligned with current kernel placement for Gaussian std. dev.?
-    
   }
   else
   {
-    LOG_ERROR("Image processing parameters not defined in processor config file.");
+    LOG_ERROR("Image processing operations not defined in processor config file.");
     return PLUS_FAIL;
   }
+  
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfScanLines, processingElement)
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfSamplesPerScanLine, processingElement)
   
@@ -425,7 +479,7 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame)
 {
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
-  PlusVideoFrame* outputImage = outputFrame->GetImageData();
+  
   
   if (this->ScanConverter.GetPointer() == NULL)
   {
@@ -446,18 +500,26 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   */
 
   // Perform Gaussian smooth on lines image
-  if(this->PerformGaussianSmooth)
+  if(this->GaussianEnabled)
   {
     this->GaussianSmooth->SetInputData(inputImage->GetImage());                 // Perform GaussianSmooth on original fan image for maximum information content
     this->GaussianSmooth->Update();
-    //this->SmoothedImage->DeepCopy(this->GaussianSmooth->GetOutput());
-    // Save the output image.
-    outputImage->DeepCopyFrom(this->GaussianSmooth->GetOutput());
+    (inputImage)->DeepCopyFrom(this->GaussianSmooth->GetOutput());
   }
-  else
+
+  if (this->ThresholdingEnabled)
   {
-    outputImage->DeepCopy(inputImage);
+    this->Thresholder->SetInputData(inputImage->GetImage());
+    this->Thresholder->Update();
+    (inputImage)->DeepCopyFrom(this->Thresholder->GetOutput());
   }
+
+  // Set final output image data
+  PlusVideoFrame* outputImage = outputFrame->GetImageData();
+  outputImage->DeepCopy(inputImage);
+  //(outputImage)->DeepCopyFrom(this->Thresholder->GetOutput());
+  
+  
   
   
   //this->ProcessLinesImage();
@@ -520,12 +582,50 @@ void vtkPlusTransverseProcessEnhancer::SetNumberOfSamplesPerScanLine(int numSamp
   this->NumberOfSamplesPerScanLine = numSamples;
 }
 
-void vtkPlusTransverseProcessEnhancer::SetGaussianStdDev(int GaussianStdDev)
+void vtkPlusTransverseProcessEnhancer::SetGaussianEnabled(bool Enabled)
 {
-  this->GaussianSmooth->SetStandardDeviation(GaussianStdDev);
+  this->GaussianEnabled = Enabled;
 }
 
-void vtkPlusTransverseProcessEnhancer::SetGaussianKernelSize(int GaussianKernelSize)
+void vtkPlusTransverseProcessEnhancer::SetGaussianStdDev(double NewGaussianStdDev)
 {
-  this->GaussianSmooth->SetRadiusFactor(GaussianKernelSize);
+  this->GaussianStdDev = NewGaussianStdDev;
+  this->GaussianSmooth->SetStandardDeviation(NewGaussianStdDev);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetGaussianKernelSize(int NewGaussianKernelSize)
+{
+  this->GaussianKernelSize = NewGaussianKernelSize;
+  this->GaussianSmooth->SetRadiusFactor(NewGaussianKernelSize);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetThresholdingEnabled(bool Enabled)
+{
+  this->ThresholdingEnabled = Enabled;
+}
+
+void vtkPlusTransverseProcessEnhancer::SetThresholdInValue(double NewThresholdInValue)
+{
+  this->ThresholdInValue = NewThresholdInValue;
+  this->Thresholder->SetInValue(NewThresholdInValue);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetThresholdOutValue(double NewThresholdOutValue)
+{
+  this->ThresholdOutValue = NewThresholdOutValue;
+  this->Thresholder->SetOutValue(NewThresholdOutValue);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetLowerThreshold(double NewLowerThreshold)
+{
+  this->LowerThreshold = NewLowerThreshold;
+  if (this->UpperThreshold != NULL) this->Thresholder->ThresholdBetween(LowerThreshold, this->UpperThreshold);
+  else this->Thresholder->ThresholdByLower(LowerThreshold);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetUpperThreshold(double NewUpperThreshold)
+{
+  this->UpperThreshold = NewUpperThreshold;
+  if (this->LowerThreshold != NULL) this->Thresholder->ThresholdBetween(this->LowerThreshold, UpperThreshold);
+  else this->Thresholder->ThresholdByUpper(UpperThreshold);
 }
