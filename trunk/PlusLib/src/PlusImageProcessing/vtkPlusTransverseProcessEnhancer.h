@@ -36,7 +36,7 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* processingElement);
   
   /*! Get the tag name of the configuration element */
-  //static const char* GetTagName() { return "UsBoneFilter"; };
+  static const char* GetTagName() { return "Processor"; };        // Unnecessary -- inherited from vtkPlusTrackedFrameProcessor
   
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
@@ -56,8 +56,15 @@ public:
   void SetNumberOfScanLines(int numScanLines);
   void SetNumberOfSamplesPerScanLine(int numSamples);
 
-  void SetGaussianStdDev(int GaussianStdDev);
+  void SetGaussianEnabled(bool Enabled);
+  void SetGaussianStdDev(double GaussianStdDev);
   void SetGaussianKernelSize(int GaussianKernelSize);
+
+  void SetThresholdingEnabled(bool Enabled);
+  void SetThresholdInValue(double NewThresholdInValue);
+  void SetThresholdOutValue(double NewThresholdOutValue);
+  void SetLowerThreshold(double LowerThreshold);
+  void SetUpperThreshold(double UpperThreshold);
 
 protected:
   vtkPlusTransverseProcessEnhancer();
@@ -93,10 +100,15 @@ protected:
   float currentFrameMin;
   
   // Image processing parameters, defined in config file
-  bool PerformGaussianSmooth;
-  int GaussianStdDev;
-  int GaussianKernelSize;
-  //int GaussianKernelRadius;
+  bool GaussianEnabled;
+  double GaussianStdDev;
+  double GaussianKernelSize;
+
+  bool ThresholdingEnabled;
+  double ThresholdInValue;
+  double ThresholdOutValue;
+  double LowerThreshold;
+  double UpperThreshold;
   
   vtkSmartPointer<vtkImageData> SmoothedImage;
 
