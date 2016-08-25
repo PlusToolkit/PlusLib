@@ -274,6 +274,10 @@ std::string PlusCommon::Trim(std::string& str)
 //-------------------------------------------------------
 std::string PlusCommon::Trim(const char* c)
 {
+  if (c==NULL)
+  {
+    return "";
+  }
   std::string str(c);
   return PlusCommon::Trim(str);
 }
