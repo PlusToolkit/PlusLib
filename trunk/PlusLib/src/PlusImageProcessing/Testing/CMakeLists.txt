@@ -1,6 +1,20 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
+# -----------------  vtkPlusTransverseProcessEnhancerTest -------------------
+ADD_EXECUTABLE(vtkPlusTransverseProcessEnhancerTest vtkPlusTransverseProcessEnhancerTest.cxx )
+TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest 
+  vtkPlusCommon 
+  vtkPlusDataCollection 
+  vtkPlusImageProcessing 
+  )
+
+ADD_TEST(vtkPlusTransverseProcessEnhancerTest 
+  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
+  # TODO Add your test parameters here
+  )
+SET_TESTS_PROPERTIES( vtkPlusTransverseProcessEnhancerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   # --------------------------------------------------------------------------
   ADD_TEST(vtkPlusRfToBrightnessConvertRunTest
