@@ -63,7 +63,7 @@ protected:
     Default Update() method calls this processing function for each frame. Typically this method should be overridden in derived classes.
     Both input and output frames are already allocated by the caller method.
   */
-  virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
+  virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame) = 0;
 
   vtkPlusTrackedFrameList* InputFrames;
   vtkPlusTransformRepository *TransformRepository;

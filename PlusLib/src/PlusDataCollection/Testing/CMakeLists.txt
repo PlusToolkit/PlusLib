@@ -1,11 +1,6 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-#--------------------------------------------------------------------------------------------
-SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
-
-#--------------------------------------------------------------------------------------------
-
 #***************************  TrackingTest ***************************
 ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
 TARGET_LINK_LIBRARIES(TrackingTest vtkPlusDataCollection vtkPlusCommon )
