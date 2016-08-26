@@ -244,8 +244,7 @@ namespace PlusCommon
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
 
   /*! Trim whitespace characters from the left and right */
-  vtkPlusCommonExport std::string Trim( std::string& str );
-  vtkPlusCommonExport std::string Trim( const char* c );
+  vtkPlusCommonExport std::string& Trim( std::string& str );
 
   /*!
     On some systems fwrite may fail if a large chunk of data is attempted to written in one piece.
