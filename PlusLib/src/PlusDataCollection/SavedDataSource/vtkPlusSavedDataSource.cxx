@@ -639,7 +639,7 @@ PlusStatus vtkPlusSavedDataSource::ReadConfiguration( vtkXMLDataElement* rootCon
   }
   else
   {
-    std::string sequenceFileStr( this->SequenceFile )
+    std::string sequenceFileStr( this->SequenceFile );
     std::string seqFileTrim = PlusCommon::Trim( sequenceFileStr );
     std::string foundAbsoluteImagePath;
     if ( vtkPlusConfig::GetInstance()->FindImagePath( seqFileTrim, foundAbsoluteImagePath ) == PLUS_SUCCESS )
