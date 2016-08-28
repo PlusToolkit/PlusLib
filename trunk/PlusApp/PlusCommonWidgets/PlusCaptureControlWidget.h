@@ -7,13 +7,17 @@ See License.txt for details.
 #ifndef __CaptureControlWidget_h
 #define __CaptureControlWidget_h
 
-#include "PlusConfigure.h"
+// Local includes
 #include "ui_PlusCaptureControlWidget.h"
-#include "vtkPlusVirtualDiscCapture.h"
+
+// PlusLib includes
+#include <PlusConfigure.h>
+#include <vtkPlusVirtualDiscCapture.h>
+
+// Qt includes
 #include <QString>
 #include <QWidget>
-
-class QTimer;
+#include <QTimer>
 
 //-----------------------------------------------------------------------------
 
@@ -26,16 +30,7 @@ class PlusCaptureControlWidget : public QWidget
   Q_OBJECT
 
 public:
-  /*!
-  * Constructor
-  * \param aParent Parent main window
-  * \param aFlags widget flag
-  */
   PlusCaptureControlWidget(QWidget* aParent);
-
-  /*!
-  * Destructor
-  */
   ~PlusCaptureControlWidget();
 
   virtual void UpdateBasedOnState();

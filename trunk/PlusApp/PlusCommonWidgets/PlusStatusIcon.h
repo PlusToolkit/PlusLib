@@ -7,8 +7,13 @@
 #ifndef STATUSICON_H
 #define STATUSICON_H
 
-#include "PlusConfigure.h"
-#include "vtkCallbackCommand.h"
+// PlusLib includes
+#include <PlusConfigure.h>
+
+// VTK includes
+#include <vtkCallbackCommand.h>
+
+// Qt includes
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>

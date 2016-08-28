@@ -1,37 +1,24 @@
-SET (DIAGDATA_LIBS
-  ${VTK_LIBRARIES}
-  vtkPlusDataCollection 
-  vtkPlusCommon
-  )
 IF (PLUS_USE_OpenIGTLink)
-  SET (DIAGDATA_LIBS ${DIAGDATA_LIBS} OpenIGTLink)
-ENDIF(PLUS_USE_OpenIGTLink)
+  SET(_IGT_LIB OpenIGTLink)
+ENDIF()
 
 ADD_EXECUTABLE(DiagPlusDataCollection DiagDataCollection.cxx)
-TARGET_LINK_LIBRARIES(DiagPlusDataCollection ${DIAGDATA_LIBS})
+TARGET_LINK_LIBRARIES(DiagPlusDataCollection PUBLIC vtkPlusDataCollection vtkPlusCommon ${_IGT_LIB})
 GENERATE_HELP_DOC(DiagPlusDataCollection)
 
 #-------------------------------------------------------------------------------------------- 
 
 IF (PLUS_USE_OpenIGTLink)
-  SET (TRACKINGDATASERVER_LIBS
-    ${VTK_LIBRARIES}
-    vtkPlusCommon
-    vtkPlusServer
-    OpenIGTLink
-    )
   ADD_EXECUTABLE(TrackingDataServer TrackingDataServer.cxx)
-  TARGET_LINK_LIBRARIES(TrackingDataServer ${TRACKINGDATASERVER_LIBS})
+  TARGET_LINK_LIBRARIES(TrackingDataServer PUBLIC vtkPlusCommon vtkPlusServer OpenIGTLink)
   GENERATE_HELP_DOC(TrackingDataServer)
-ENDIF(PLUS_USE_OpenIGTLink)
+ENDIF()
 
 #-------------------------------------------------------------------------------------------- 
 # Install
 IF(PLUSAPP_INSTALL_BIN_DIR)
-
-INSTALL(TARGETS DiagPlusDataCollection
-  DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
-  COMPONENT RuntimeLibraries
-  )
-  
-ENDIF(PLUSAPP_INSTALL_BIN_DIR)
+  INSTALL(TARGETS DiagPlusDataCollection
+    DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
+    COMPONENT RuntimeLibraries
+    )
+ENDIF()

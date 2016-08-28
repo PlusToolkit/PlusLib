@@ -261,7 +261,7 @@ ENDIF()
 
 #-----------------------------------------------------------------------------
 # Other
-OPTION (PLUSAPP_TEST_GUI "Enable Sikuli GUI tests" ON)
+OPTION (PLUSAPP_TEST_GUI "Enable GUI tests" ON)
 
 OPTION (PLUS_TEST_HIGH_ACCURACY_TIMING "Enable testing of high-accuracy timing. High-accuracy timing may not be available on virtual machines and so testing may be turned off to avoid false alarams." ON)
 MARK_AS_ADVANCED(PLUS_TEST_HIGH_ACCURACY_TIMING)
@@ -375,7 +375,7 @@ ENDIF()
 #-----------------------------------------------------------------------------
 SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
 IF(PLUSBUILD_BUILD_PLUSAPP)
-  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql QUIET)
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql Test QUIET)
 
   IF ( NOT Qt5_FOUND )
     MESSAGE( FATAL_ERROR "This project requires Qt5 for building PlusApp but Qt was not found. Please specify Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP option.")
@@ -392,6 +392,7 @@ IF(PLUSBUILD_BUILD_PLUSAPP)
     -DQt5Designer_DIR:PATH=${Qt5Designer_DIR}
     -DQt5OpenGL_DIR:PATH=${Qt5OpenGL_DIR}
     -DQt5Sql_DIR:PATH=${Qt5Sql_DIR}
+    -DQt5Test_DIR:PATH=${Qt5Test_DIR}
     )
   # WebKitWidgets is deprecated in Qt 5.3 and removed in 5.6.0
   FIND_PACKAGE(Qt5 COMPONENTS WebKitWidgets QUIET)

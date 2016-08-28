@@ -7,10 +7,13 @@ See License.txt for details.
 #ifndef DEVICESETSELECTORWIDGET_H
 #define DEVICESETSELECTORWIDGET_H
 
+// Local includes
 #include "ui_PlusDeviceSetSelectorWidget.h"
 
-#include "PlusConfigure.h"
+// PlusLib includes
+#include <PlusConfigure.h>
 
+// Qt includes
 #include <QWidget>
 #include <QString>
 #include <QAction>

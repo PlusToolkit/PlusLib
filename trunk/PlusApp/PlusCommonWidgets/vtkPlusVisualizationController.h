@@ -7,14 +7,20 @@ See License.txt for details.
 #ifndef __vtkVisualizationController_h
 #define __vtkVisualizationController_h
 
-#include "PlusCommon.h"
-#include "PlusVideoFrame.h"
-#include "vtkPlusDataCollector.h"
+// Local includes
 #include "vtkPlusImageVisualizer.h"
 #include "vtkPlus3DObjectVisualizer.h"
-#include "vtkPolyData.h"
-#include "vtkPlusTransformRepository.h"
 
+// PlusLib includes
+#include <PlusCommon.h>
+#include <PlusVideoFrame.h>
+#include <vtkPlusDataCollector.h>
+#include <vtkPlusTransformRepository.h>
+
+// VTK includes
+#include <vtkPolyData.h>
+
+// Qt includes
 #include <QObject>
 
 class vtkImageActor;

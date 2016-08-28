@@ -4,40 +4,48 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigFileSaverDialog.h"
-#include "PlusFidPatternRecognition.h"
-#include "PlusFidPatternRecognitionCommon.h"
-#include "PlusVideoFrame.h"
+// Local includes
 #include "PlusSegmentationParameterDialog.h"
-#include "PlusTrackedFrame.h"
-#include "vtkActor.h"
-#include "vtkCallbackCommand.h"
-#include "vtkCamera.h"
-#include "vtkConeSource.h"
-#include "vtkPlusDataCollector.h"
-#include "vtkGlyph3D.h"
-#include "vtkImageActor.h"
-#include "vtkImageData.h"
+#include "PlusConfigFileSaverDialog.h"
 #include "vtkPlusImageVisualizer.h"
-#include "vtkLineSource.h"
-#include "vtkMath.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDevice.h"
-#include "vtkPolyData.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPropPicker.h"
-#include "vtkProperty.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkSphereSource.h"
-#include "vtkTextActor3D.h"
-#include "vtkTextProperty.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/SystemTools.hxx"
+
+// PlusLib includes
+#include <PlusFidPatternRecognition.h>
+#include <PlusFidPatternRecognitionCommon.h>
+#include <PlusVideoFrame.h>
+#include <PlusTrackedFrame.h>
+#include <vtkPlusChannel.h>
+#include <vtkPlusDevice.h>
+#include <vtkPlusTrackedFrameList.h>
+#include <vtkPlusDataCollector.h>
+#include <vtkPlusSequenceIO.h>
+
+// VTK includes
+#include <vtkActor.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
+#include <vtkConeSource.h>
+#include <vtkGlyph3D.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkLineSource.h>
+#include <vtkMath.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPropPicker.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkSphereSource.h>
+#include <vtkTextActor3D.h>
+#include <vtkTextProperty.h>
+#include <vtkXMLDataElement.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/SystemTools.hxx>
+
+// Qt includes
 #include <QMessageBox>
+#include <QResource>
 #include <QTimer>
 
 static const int HANDLE_SIZE = 8;
@@ -160,8 +168,6 @@ protected:
     eventPosition_World[0] = ( ( double )eventPosition[0] - offsetXMonitor ) / monitorPerImageScaling;
     eventPosition_World[1] = ( ( double )canvasSize[1] - ( double )eventPosition[1] - offsetYMonitor ) / monitorPerImageScaling;
   }
-
-
 
 protected:
   //! Parent segmentation parameter dialog

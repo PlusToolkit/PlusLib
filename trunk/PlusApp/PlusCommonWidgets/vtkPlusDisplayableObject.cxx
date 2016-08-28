@@ -4,21 +4,23 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "vtkPlusDisplayableObject.h"
 
-#include "vtkActor.h"
-#include "vtkImageActor.h"
-#include "vtkPlusToolAxesActor.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkProperty.h"
-#include "vtkSTLReader.h"
-#include "vtkCylinderSource.h"
-#include "vtkConeSource.h"
-#include "vtkAppendPolyData.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkXMLUtilities.h"
-#include "vtkObjectFactory.h"
-#include "vtkPolyData.h"
+// VTK includes
+#include <vtkActor.h>
+#include <vtkImageActor.h>
+#include <vtkPlusToolAxesActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkSTLReader.h>
+#include <vtkCylinderSource.h>
+#include <vtkConeSource.h>
+#include <vtkAppendPolyData.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkXMLUtilities.h>
+#include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 
 //-----------------------------------------------------------------------------
 
@@ -53,16 +55,21 @@ vtkPlusDisplayableObject* vtkPlusDisplayableObject::New( const char* aType )
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+vtkPlusDisplayableObject* vtkPlusDisplayableObject::New()
+{
+  return NULL;
+}
+
 //-----------------------------------------------------------------------------
 
 vtkPlusDisplayableObject::vtkPlusDisplayableObject()
   : Actor( NULL )
-  , ObjectCoordinateFrame( NULL )
-  , ObjectId( NULL )
+  , ObjectCoordinateFrame( "" )
+  , ObjectId( "" )
   , LastOpacity( 1.0 )
   , Displayable( true )
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -451,13 +458,12 @@ PlusStatus vtkDisplayableModel::ReadConfiguration( vtkXMLDataElement* aConfig )
   this->Displayable = false;
 
 
-  std::string objectId = ( this->ObjectId == NULL ? "unknown" : this->ObjectId );
+  std::string objectId = ( this->ObjectId.empty() ? "unknown" : this->ObjectId );
 
   // If the tool name contains stylus or volume then we consider it a stylus - and do a few things differently
   // TODO: It would be probably better to define this explicitly in the config file rather than trying to figure it out from the tool name
   bool isVolume = ( objectId.find( "Volume" ) != std::string::npos );
-  std::string objectName( this->ObjectCoordinateFrame );
-  bool isStylus = ( objectName.find( "Stylus" ) != std::string::npos );
+  bool isStylus = ( this->ObjectCoordinateFrame.find( "Stylus" ) != std::string::npos );
 
   const char* modelFileName = aConfig->GetAttribute( "File" );
   if ( modelFileName == NULL || STRCASECMP( modelFileName, "" ) == 0 )

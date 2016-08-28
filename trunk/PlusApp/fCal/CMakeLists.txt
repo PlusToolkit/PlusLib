@@ -2,7 +2,6 @@ PROJECT(fCal)
 
 # --------------------------------------------------------------------------
 # Sources
-
 SET (fCal_SRCS
   fCalMain.cxx
   fCalMainWindow.cxx
@@ -15,12 +14,9 @@ SET (fCal_SRCS
   Toolboxes/VolumeReconstructionToolbox.cxx
   )
 
-if (WIN32)  
-  SET (fCal_SRCS
-    ${fCal_SRCS}
-    fCal.rc
-    )
-endif (WIN32)  
+IF(WIN32)  
+  LIST(APPEND fCal.rc)
+ENDIF()  
 
 SET (fCal_UI_HDRS
     fCalMainWindow.h
@@ -47,56 +43,51 @@ SET (fCal_UI_SRCS
 
 SET (fCal_QT_Resources
   fCal.qrc
-  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
   )
-  
-
-# --------------------------------------------------------------------------
-# Qt specific commands
-FIND_PACKAGE(Qt5Widgets REQUIRED)
-
-INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDES})
-ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
-
-SET(QT_LIBRARIES ${Qt5Widgets_LIBRARIES} ${Qt5Core_QTMAIN_LIBRARIES})
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes)
-include_directories(${PlusApp_BINARY_DIR}/PlusCommonWidgets)
-include_directories(${PlusApp_SOURCE_DIR}/PlusCommonWidgets)
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (fCal_LIBS 
-    ${fCal_LIBS} 
-    ${QT_LIBRARIES} 
-    PlusCommonWidgets
-    vtkPlusCommon
-    ${ITK_LIBRARIES}
-    itkvnl 
-    itkvnl_algo 
-    ${VTK_LIBRARIES}
-    vtkPlusCalibration 
-    vtkPlusDataCollection 
-    vtkPlusVolumeReconstruction
-    )
+SET(fCal_LIBS 
+  Qt5::Widgets
+  Qt5::Core
+  PlusCommonWidgets
+  vtkPlusCommon
+  itkvnl 
+  itkvnl_algo 
+  vtkPlusCalibration 
+  vtkPlusDataCollection 
+  vtkPlusVolumeReconstruction
+  )
 
 IF (PLUS_USE_OpenIGTLink)
-  SET (fCal_LIBS ${fCal_LIBS} OpenIGTLink)
-ENDIF(PLUS_USE_OpenIGTLink)
+  LIST(APPEND fCal_LIBS OpenIGTLink)
+ENDIF()
 
-ADD_EXECUTABLE( fCal MACOSX_BUNDLE ${fCal_SRCS} ${fCal_UI_HDRS} ${fCal_UI_SRCS} ${fCal_QT_Resources})
-TARGET_LINK_LIBRARIES( fCal  ${VTK_LIBRARIES} ${fCal_LIBS} )
+SET(APP_MODE MACOSX_BUNDLE)
+IF(WIN32)
+  SET(APP_MODE WIN32)
+ENDIF()
+
+ADD_EXECUTABLE( fCal ${APP_MODE} ${fCal_SRCS} 
+  ${fCal_UI_HDRS} 
+  ${fCal_UI_SRCS} 
+  ${fCal_QT_Resources}
+  )
+SET_TARGET_PROPERTIES(fCal PROPERTIES COMPILE_DEFINTIIONS ${Qt5Widgets_DEFINITIONS})
+TARGET_LINK_LIBRARIES(fCal PUBLIC ${fCal_LIBS})
+target_include_directories(fCal PUBLIC 
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes
+  ${PlusApp_BINARY_DIR}/PlusCommonWidgets
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets
+  )
 
 # --------------------------------------------------------------------------
 # Install
-#
 IF(PLUSAPP_INSTALL_BIN_DIR)
-
   INSTALL(TARGETS fCal 
     DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
     COMPONENT RuntimeLibraries
     )
-
-ENDIF(PLUSAPP_INSTALL_BIN_DIR)
+ENDIF()

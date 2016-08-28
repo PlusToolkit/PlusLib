@@ -2,51 +2,54 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtk3DObjectVisualizer_h
 #define __vtk3DObjectVisualizer_h
 
-#include "vtkActor.h"
-#include "vtkCamera.h"
+// Local includes
 #include "vtkPlusDisplayableObject.h"
-#include "vtkGlyph3D.h"
-#include "vtkImageActor.h"
-#include "vtkObject.h"
-#include "vtkPlusChannel.h"
-#include "vtkPolyData.h"
-#include "vtkRenderer.h"
-#include "vtkSmartPointer.h"
-#include "vtkPlusTransformRepository.h"
+
+// PlusLib includes
+#include <PlusConfigure.h>
+#include <vtkPlusTransformRepository.h>
+#include <vtkPlusChannel.h>
+
+// VTK includes
+#include <vtkActor.h>
+#include <vtkCamera.h>
+#include <vtkGlyph3D.h>
+#include <vtkImageActor.h>
+#include <vtkObject.h>
+#include <vtkPolyData.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 
 class vtkImageSliceMapper;
 
-/*! \class vtkPlus3DObjectVisualizer 
+/*! \class vtkPlus3DObjectVisualizer
  * \brief Class that manages the displaying of a 3D object visualization in a QT canvas element
  * \ingroup PlusAppCommonWidgets
  */
 class vtkPlus3DObjectVisualizer : public vtkObject
 {
 public:
-  /*!
-  * New
-  */
-  static vtkPlus3DObjectVisualizer *New();
+  vtkTypeMacro( vtkPlus3DObjectVisualizer, vtkObject );
+  static vtkPlus3DObjectVisualizer* New();
 
   /*!
   * Return a displayable object
   * \param aModelId Model ID of the object to return
   */
-  vtkPlusDisplayableObject* GetObjectById( const char* aModelId );
+  vtkPlusDisplayableObject* GetObjectById( const std::string& aModelId );
 
   /*!
   * Return a displayable object
   * \param aModelId Model ID of the object to return
   */
   PlusStatus AddObject( vtkPlusDisplayableObject* displayableObject );
-
 
   /*! Clear displayable object vector */
   PlusStatus ClearDisplayableObjects();
@@ -55,7 +58,7 @@ public:
   * Show or hide all displayable objects
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowAllObjects(bool aOn);
+  PlusStatus ShowAllObjects( bool aOn );
 
   /* Return the actor of the volume actor */
   vtkActor* GetVolumeActor();
@@ -66,12 +69,10 @@ public:
   */
   PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
 
-  PlusStatus SetDataCollector();
-
   /*! Set the slice number
   * \param sliceNumber the slice number to display
   */
-  PlusStatus SetSliceNumber(int number);
+  PlusStatus SetSliceNumber( int number );
 
   /*!
   * Set the volume actor color
@@ -86,25 +87,25 @@ public:
   * \param aModelId Model ID of the object to work on
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowObjectById( const char* aModelId, bool aOn );
+  PlusStatus ShowObjectById( const std::string& aModelId, bool aOn );
 
   /*!
   * Show or hide input points
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowInput(bool aOn);
+  PlusStatus ShowInput( bool aOn );
 
   /*!
   * Set the actor color of the input polydata
   * \param r g b
   */
-  PlusStatus SetInputColor(double r, double g, double b);
+  PlusStatus SetInputColor( double r, double g, double b );
 
   /*!
   * Show or hide result points
   * \param aOn Show if true, else hide
   */
-  PlusStatus ShowResult(bool aOn);
+  PlusStatus ShowResult( bool aOn );
 
   /*!
   * Hide all tools, other models and the image from main canvas
@@ -114,7 +115,7 @@ public:
   /*!
   * Read the active configuration file to create displayable objects
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aXMLElement);
+  PlusStatus ReadConfiguration( vtkXMLDataElement* aXMLElement );
 
   /*!
   * Update the displayable objects
@@ -122,79 +123,80 @@ public:
   PlusStatus Update();
 
   // Set/Get macros for member variables
-  vtkGetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkGetObjectMacro(ImageActor, vtkImageActor);
-  vtkSetObjectMacro(CanvasRenderer, vtkRenderer);
-  vtkGetStringMacro(WorldCoordinateFrame);
-  vtkSetStringMacro(WorldCoordinateFrame);
-  vtkGetStringMacro(VolumeID);  
+  vtkSetMacro( CanvasRenderer, vtkSmartPointer<vtkRenderer> );
+  vtkGetMacro( CanvasRenderer, vtkSmartPointer<vtkRenderer> );
 
-  void SetInputPolyData(vtkPolyData* aPolyData);
-  void SetResultPolyData(vtkPolyData* aPolyData);
+  vtkGetMacro( ImageActor, vtkSmartPointer<vtkImageActor> );
 
-  PlusStatus SetChannel(vtkPlusChannel* channel);
+  vtkSetMacro( WorldCoordinateFrame, std::string );
+  vtkGetMacro( WorldCoordinateFrame, std::string );
 
-  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  vtkGetMacro( VolumeID, std::string );
 
-protected:
-  vtkSetObjectMacro(ImageActor, vtkImageActor);
-  vtkSetObjectMacro(InputActor, vtkActor);
-  vtkSetObjectMacro(ResultActor, vtkActor);
-  vtkSetObjectMacro(ResultGlyph, vtkGlyph3D);
-  vtkSetObjectMacro(InputGlyph, vtkGlyph3D);
-  vtkGetObjectMacro(ResultGlyph, vtkGlyph3D);
-  vtkGetObjectMacro(InputGlyph, vtkGlyph3D);
-  vtkSetStringMacro(VolumeID);
-  vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);
+  void SetInputPolyData( vtkPolyData* aPolyData );
+  void SetResultPolyData( vtkPolyData* aPolyData );
+
+  PlusStatus SetChannel( vtkPlusChannel* channel );
+
+  vtkSetMacro( TransformRepository, vtkSmartPointer<vtkPlusTransformRepository> );
 
 protected:
-  /*!
-  * Constructor
-  */
-  vtkPlus3DObjectVisualizer();
+  vtkSetMacro( ImageActor, vtkSmartPointer<vtkImageActor> );
 
-  /*!
-  * Destructor
-  */
-  virtual ~vtkPlus3DObjectVisualizer();
+  vtkSetMacro( InputActor, vtkSmartPointer<vtkActor> );
+
+  vtkSetMacro( ResultActor, vtkSmartPointer<vtkActor> );
+
+  vtkSetMacro( ResultGlyph, vtkSmartPointer<vtkGlyph3D> );
+  vtkGetMacro( ResultGlyph, vtkSmartPointer<vtkGlyph3D> );
+
+  vtkSetMacro( InputGlyph, vtkSmartPointer<vtkGlyph3D> );
+  vtkGetMacro( InputGlyph, vtkSmartPointer<vtkGlyph3D> );
+
+  vtkSetMacro( VolumeID, std::string );
+
+  vtkSetMacro( SelectedChannel, vtkSmartPointer<vtkPlusChannel> );
 
 protected:
-
   /*! List of displayable objects */
   std::vector<vtkPlusDisplayableObject*> DisplayableObjects;
 
   /*! Renderer for the canvas */
-  vtkRenderer* CanvasRenderer; 
+  vtkSmartPointer<vtkRenderer> CanvasRenderer;
 
   /*! Canvas image actor */
-  vtkImageActor* ImageActor;
+  vtkSmartPointer<vtkImageActor> ImageActor;
 
   /*! Actor for displaying the input points in 3D */
-  vtkActor* InputActor;
+  vtkSmartPointer<vtkActor> InputActor;
 
   /*! Slice mapper to enable slice selection */
-  vtkImageSliceMapper* ImageMapper;
+  vtkSmartPointer<vtkImageSliceMapper> ImageMapper;
 
   /*! Glyph producer for result */
-  vtkGlyph3D* InputGlyph;
+  vtkSmartPointer<vtkGlyph3D> InputGlyph;
 
   /*! Actor for displaying the result points (eg. stylus tip, segmented points) */
-  vtkActor* ResultActor;
+  vtkSmartPointer<vtkActor> ResultActor;
 
   /*! Glyph producer for result */
-  vtkGlyph3D* ResultGlyph;
+  vtkSmartPointer<vtkGlyph3D> ResultGlyph;
 
   /*! Name of the rendering world coordinate frame */
-  char* WorldCoordinateFrame;
+  std::string WorldCoordinateFrame;
 
   /*! Name of the volume object ID */
-  char* VolumeID;
+  std::string VolumeID;
 
   /*! Reference to Transform repository that stores and handles all transforms */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository;
 
   /*! Channel to visualize */
-  vtkPlusChannel* SelectedChannel;
+  vtkSmartPointer<vtkPlusChannel> SelectedChannel;
+
+protected:
+  vtkPlus3DObjectVisualizer();
+  virtual ~vtkPlus3DObjectVisualizer();
 };
 
 #endif  //__vtk3DObjectVisualizer_h

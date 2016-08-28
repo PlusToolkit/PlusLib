@@ -7,21 +7,24 @@ See License.txt for details.
 #ifndef __vtkImageVisualizer_h
 #define __vtkImageVisualizer_h
 
-#include "PlusConfigure.h"
-#include "PlusVideoFrame.h"
-#include "vtkActor.h"
-#include "vtkAssembly.h"
-#include "vtkCamera.h"
-#include "vtkGlyph3D.h"
-#include "vtkImageActor.h"
-#include "vtkImageData.h"
-#include "vtkObject.h"
-#include "vtkPlusChannel.h"
-#include "vtkPolyData.h"
-#include "vtkProp3DCollection.h"
-#include "vtkRenderer.h"
-#include "vtkSmartPointer.h"
-#include "vtkTextActor3D.h"
+// PlusLib includes
+#include <PlusConfigure.h>
+#include <PlusVideoFrame.h>
+#include <vtkPlusChannel.h>
+
+// VTK includes
+#include <vtkActor.h>
+#include <vtkAssembly.h>
+#include <vtkCamera.h>
+#include <vtkGlyph3D.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkObject.h>
+#include <vtkPolyData.h>
+#include <vtkProp3DCollection.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+#include <vtkTextActor3D.h>
 
 class vtkXMLDataElement;
 class vtkLineSource;
@@ -37,10 +40,8 @@ class vtkPlusImageVisualizer : public vtkObject
 {
 
 public:
-  /*!
-  * New
-  */
   static vtkPlusImageVisualizer *New();
+  vtkTypeMacro(vtkPlusImageVisualizer, vtkObject);
 
   /*! Publicly available color for ROI */
   static double ROI_COLOR[3];
@@ -64,12 +65,6 @@ public:
   * \param aEnable Show/Hide
   */
   PlusStatus ShowOrientationMarkers( bool aShow );
-
-  /*!
-  * Show or hide input points
-  * \param aOn Show if true, else hide
-  */
-  PlusStatus ShowInput(bool aOn);
 
   /*!
   * Set the input source
@@ -161,14 +156,7 @@ public:
   PlusStatus SetResultOpacity(double aOpacity);
 
 protected:
-  /*!
-  * Constructor
-  */
   vtkPlusImageVisualizer();
-
-  /*!
-  * Destructor
-  */
   ~vtkPlusImageVisualizer();
 
   vtkSetObjectMacro(SelectedChannel, vtkPlusChannel);

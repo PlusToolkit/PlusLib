@@ -4,14 +4,17 @@
   See License.txt for details.
 =========================================================Plus=header=end*/ 
 
+// Local includes
 #include "PlusConfigFileSaverDialog.h"
 
-#include <QFileDialog>
-#include <QString>
-#include <QSettings>
+// VTK includes
+#include <vtkXMLUtilities.h>
+#include <vtkXMLDataElement.h>
 
-#include "vtkXMLUtilities.h"
-#include "vtkXMLDataElement.h"
+// Qt includes
+#include <QFileDialog>
+#include <QSettings>
+#include <QString>
 
 //-----------------------------------------------------------------------------
 
@@ -114,7 +117,6 @@ PlusStatus PlusConfigFileSaverDialog::ReadConfiguration()
 
 void PlusConfigFileSaverDialog::SaveClicked()
 {
-
   LOG_TRACE("PlusConfigFileSaverDialog::SaveClicked");
 
   // Get root element

@@ -7,10 +7,13 @@
 #ifndef CONFIGFILESAVERDIALOG_H
 #define CONFIGFILESAVERDIALOG_H
 
+// Local includes
 #include "ui_PlusConfigFileSaverDialog.h"
 
-#include "PlusConfigure.h"
+// PlusLib includes
+#include <PlusConfigure.h>
 
+// Qt includes
 #include <QDialog>
 
 class vtkXMLDataElement;
