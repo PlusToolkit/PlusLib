@@ -2,52 +2,51 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
-#include "vtksys/CommandLineArguments.hxx" 
+#include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 
 #include <QApplication>
 #include "ToolStateDisplayWidgetTest.h"
 
-int main(int argc, char *argv[])
+int main( int argc, char* argv[] )
 {
-  if (argc > 1)
+  if ( argc > 1 )
   {
-	  std::string deviceSetConfigurationDirectoryPath;
-	  std::string inputConfigFileName;
+    std::string deviceSetConfigurationDirectoryPath;
+    std::string inputConfigFileName;
 
-	  int verboseLevel = -1;
+    int verboseLevel = -1;
 
-	  vtksys::CommandLineArguments cmdargs;
-	  cmdargs.Initialize(argc, argv);
+    vtksys::CommandLineArguments cmdargs;
+    cmdargs.Initialize( argc, argv );
 
-	  cmdargs.AddArgument("--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
-	  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+    cmdargs.AddArgument( "--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path" );
+    cmdargs.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name" );
+    cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)" );
 
-	  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");	
-
-	  if ( !cmdargs.Parse() )
-	  {
-		  std::cerr << "Problem parsing arguments" << std::endl;
-		  std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-		  exit(EXIT_FAILURE);
-	  }
-
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(deviceSetConfigurationDirectoryPath.c_str());
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(inputConfigFileName.c_str());
-
-    if (verboseLevel > -1)
+    if ( !cmdargs.Parse() )
     {
-  	  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+      std::cerr << "Problem parsing arguments" << std::endl;
+      std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
+      exit( EXIT_FAILURE );
+    }
+
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory( deviceSetConfigurationDirectoryPath.c_str() );
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName( inputConfigFileName.c_str() );
+
+    if ( verboseLevel > -1 )
+    {
+      vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
     }
   }
 
   // Start the application
-  QApplication app(argc, argv);
+  QApplication app( argc, argv );
 
-	ToolStateDisplayWidgetTest toolStateDisplayWidgetTest;
-	toolStateDisplayWidgetTest.show();
+  ToolStateDisplayWidgetTest toolStateDisplayWidgetTest;
+  toolStateDisplayWidgetTest.show();
 
   return app.exec();
 }

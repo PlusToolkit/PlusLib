@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusDeviceSetSelectorWidget.h"
 #include "PlusToolStateDisplayWidget.h"
@@ -15,147 +15,159 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest(QWidget *parent, Qt::WindowFlags flags)
-: QDialog(parent, flags)
-, m_DeviceSetSelectorWidget(NULL)
-, m_DataCollector(NULL)
-, m_SelectedChannel(NULL)
+ToolStateDisplayWidgetTest::ToolStateDisplayWidgetTest( QWidget* parent, Qt::WindowFlags flags )
+  : QDialog( parent, flags )
+  , m_DeviceSetSelectorWidget( NULL )
+  , m_DataCollector( NULL )
+  , m_SelectedChannel( NULL )
 {
-  this->setMinimumSize(480, 300);
-  this->setMaximumSize(480, 300);
+  this->setMinimumSize( 480, 300 );
+  this->setMaximumSize( 480, 300 );
 
   // Create device set selector widget
-  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(this);
-  m_DeviceSetSelectorWidget->setMinimumWidth(472);
-  m_DeviceSetSelectorWidget->setMaximumHeight(220);
-  m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked(std::string) ), this, SLOT( ConnectToDevicesByConfigFile(std::string) ) );
+  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget( this );
+  m_DeviceSetSelectorWidget->setMinimumWidth( 472 );
+  m_DeviceSetSelectorWidget->setMaximumHeight( 220 );
+  m_DeviceSetSelectorWidget->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Fixed );
+  connect( m_DeviceSetSelectorWidget, SIGNAL( ConnectToDevicesByConfigFileInvoked( std::string ) ), this, SLOT( ConnectToDevicesByConfigFile( std::string ) ) );
 
-  m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget(this);
-  m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  m_ToolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight() + 40);
-  m_ToolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+  m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget( this );
+  m_ToolStateDisplayWidget->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::MinimumExpanding );
+  m_ToolStateDisplayWidget->setMinimumHeight( m_ToolStateDisplayWidget->GetDesiredHeight() + 40 );
+  m_ToolStateDisplayWidget->setMaximumHeight( m_ToolStateDisplayWidget->GetDesiredHeight() );
 
   // Insert widgets into placeholders
-  QGridLayout* mainGrid = new QGridLayout(this);
-  mainGrid->setMargin(4);
-  mainGrid->setSpacing(4);
-  mainGrid->addWidget(m_DeviceSetSelectorWidget, 0, 0, 1, 2, Qt::AlignHCenter);
-  mainGrid->addWidget(m_ToolStateDisplayWidget, 1, 0, 1, 2, Qt::AlignHCenter | Qt::AlignVCenter);
-  this->setLayout(mainGrid);
+  QGridLayout* mainGrid = new QGridLayout( this );
+  mainGrid->setMargin( 4 );
+  mainGrid->setSpacing( 4 );
+  mainGrid->addWidget( m_DeviceSetSelectorWidget, 0, 0, 1, 2, Qt::AlignHCenter );
+  mainGrid->addWidget( m_ToolStateDisplayWidget, 1, 0, 1, 2, Qt::AlignHCenter | Qt::AlignVCenter );
+  this->setLayout( mainGrid );
 
   // Set up timer for refreshing UI
-  QTimer* refreshTimer = new QTimer(this);
-  connect(refreshTimer, SIGNAL(timeout()), this, SLOT(RefreshToolDisplay()));
-  refreshTimer->start(50);
+  QTimer* refreshTimer = new QTimer( this );
+  connect( refreshTimer, SIGNAL( timeout() ), this, SLOT( RefreshToolDisplay() ) );
+  refreshTimer->start( 50 );
 }
 
 //-----------------------------------------------------------------------------
 
 ToolStateDisplayWidgetTest::~ToolStateDisplayWidgetTest()
 {
-  if (m_DataCollector != NULL) {
+  if ( m_DataCollector != NULL )
+  {
     m_DataCollector->Stop();
   }
-  DELETE_IF_NOT_NULL(m_DataCollector);
+  DELETE_IF_NOT_NULL( m_DataCollector );
 }
 
 //-----------------------------------------------------------------------------
 
 void ToolStateDisplayWidgetTest::RefreshToolDisplay()
 {
-  //LOG_TRACE("ToolStateDisplayWidgetTest::RefreshToolDisplay"); 
+  //LOG_TRACE("ToolStateDisplayWidgetTest::RefreshToolDisplay");
 
-  if (m_ToolStateDisplayWidget->IsInitialized()) {
+  if ( m_ToolStateDisplayWidget->IsInitialized() )
+  {
     m_ToolStateDisplayWidget->Update();
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfigFile)
+void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile( std::string aConfigFile )
 {
-  LOG_TRACE("ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile");
+  LOG_TRACE( "ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile" );
 
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  QApplication::setOverrideCursor( QCursor( Qt::BusyCursor ) );
 
   // If not empty, then try to connect; empty parameter string means disconnect
-  if (STRCASECMP(aConfigFile.c_str(), "") != 0) {
+  if ( STRCASECMP( aConfigFile.c_str(), "" ) != 0 )
+  {
     // Read configuration
     vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(
-      vtkXMLUtilities::ReadElementFromFile(aConfigFile.c_str()));  
-    if (configRootElement == NULL) {	
-      LOG_ERROR("Unable to read configuration from file " << aConfigFile); 
+          vtkXMLUtilities::ReadElementFromFile( aConfigFile.c_str() ) );
+    if ( configRootElement == NULL )
+    {
+      LOG_ERROR( "Unable to read configuration from file " << aConfigFile );
       return;
     }
 
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement); 
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configRootElement );
 
     // If connection has been successfully created then this action should disconnect
-    if (! m_DeviceSetSelectorWidget->GetConnectionSuccessful()) {
-      LOG_INFO("Connect to devices"); 
+    if ( ! m_DeviceSetSelectorWidget->GetConnectionSuccessful() )
+    {
+      LOG_INFO( "Connect to devices" );
 
       // Disable main window
-      this->setEnabled(false);
+      this->setEnabled( false );
 
       // Create dialog
-      QDialog* connectDialog = new QDialog(this, Qt::Dialog);
-      connectDialog->setMinimumSize(QSize(360,80));
-      connectDialog->setWindowTitle(tr("fCal"));
-      connectDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
+      QDialog* connectDialog = new QDialog( this, Qt::Dialog );
+      connectDialog->setMinimumSize( QSize( 360, 80 ) );
+      connectDialog->setWindowTitle( tr( "fCal" ) );
+      connectDialog->setStyleSheet( "QDialog { background-color: rgb(224, 224, 224); }" );
 
-      QLabel* connectLabel = new QLabel(QString("Connecting to devices, please wait..."), connectDialog);
-      connectLabel->setFont(QFont("SansSerif", 16));
+      QLabel* connectLabel = new QLabel( QString( "Connecting to devices, please wait..." ), connectDialog );
+      connectLabel->setFont( QFont( "SansSerif", 16 ) );
 
       QHBoxLayout* layout = new QHBoxLayout();
-      layout->addWidget(connectLabel);
+      layout->addWidget( connectLabel );
 
-      connectDialog->setLayout(layout);
+      connectDialog->setLayout( layout );
       connectDialog->show();
 
       QApplication::processEvents();
 
       // Connect to devices
-      if (this->StartDataCollection() != PLUS_SUCCESS) {
-        LOG_ERROR("Unable to start collecting data!");
-        m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-        m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+      if ( this->StartDataCollection() != PLUS_SUCCESS )
+      {
+        LOG_ERROR( "Unable to start collecting data!" );
+        m_DeviceSetSelectorWidget->SetConnectionSuccessful( false );
+        m_ToolStateDisplayWidget->InitializeTools( NULL, false );
 
-      } else {
+      }
+      else
+      {
         // Successful connection
-        m_DeviceSetSelectorWidget->SetConnectionSuccessful(true);
+        m_DeviceSetSelectorWidget->SetConnectionSuccessful( true );
 
         vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
-        if( this->SelectChannel(m_SelectedChannel) != PLUS_SUCCESS )
+        if( this->SelectChannel( m_SelectedChannel ) != PLUS_SUCCESS )
         {
-          LOG_ERROR("Unable to select channel in ToolStateDisplayWidgetTest");
+          LOG_ERROR( "Unable to select channel in ToolStateDisplayWidgetTest" );
           return;
         }
 
-        if (m_ToolStateDisplayWidget->InitializeTools(m_SelectedChannel, true)) {
-          m_ToolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight() + 40);
-          m_ToolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+        if ( m_ToolStateDisplayWidget->InitializeTools( m_SelectedChannel, true ) )
+        {
+          m_ToolStateDisplayWidget->setMinimumHeight( m_ToolStateDisplayWidget->GetDesiredHeight() + 40 );
+          m_ToolStateDisplayWidget->setMaximumHeight( m_ToolStateDisplayWidget->GetDesiredHeight() );
         }
       }
 
       // Close dialog
-      connectDialog->done(0);
+      connectDialog->done( 0 );
       connectDialog->hide();
       delete connectDialog;
 
       // Re-enable main window
-      this->setEnabled(true);
+      this->setEnabled( true );
     }
 
-  } else { // Disconnect
-    if ((m_DataCollector != NULL) && (m_DataCollector->GetConnected())) {
+  }
+  else
+  {
+    if ( ( m_DataCollector != NULL ) && ( m_DataCollector->GetConnected() ) )
+    {
 
       m_DataCollector->Stop();
       m_DataCollector->Disconnect();
 
-      m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
-      m_ToolStateDisplayWidget->InitializeTools(NULL, false);
+      m_DeviceSetSelectorWidget->SetConnectionSuccessful( false );
+      m_ToolStateDisplayWidget->InitializeTools( NULL, false );
     }
   }
 
@@ -166,55 +178,63 @@ void ToolStateDisplayWidgetTest::ConnectToDevicesByConfigFile(std::string aConfi
 
 PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 {
-  LOG_TRACE("ToolStateDisplayWidgetTest::StartDataCollection"); 
+  LOG_TRACE( "ToolStateDisplayWidgetTest::StartDataCollection" );
 
   // Stop data collection if already started
-  if (m_DataCollector != NULL) {
+  if ( m_DataCollector != NULL )
+  {
     m_DataCollector->Stop();
-  } else {
+  }
+  else
+  {
     m_DataCollector = vtkPlusDataCollector::New();
   }
 
   // Initialize data collector and read configuration
-  if (m_DataCollector->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS) {
+  if ( m_DataCollector->ReadConfiguration( vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData() ) != PLUS_SUCCESS )
+  {
     return PLUS_FAIL;
   }
 
-  if (m_DataCollector->Connect() != PLUS_SUCCESS) {
+  if ( m_DataCollector->Connect() != PLUS_SUCCESS )
+  {
     return PLUS_FAIL;
   }
 
-  if (m_DataCollector->Start() != PLUS_SUCCESS) {
+  if ( m_DataCollector->Start() != PLUS_SUCCESS )
+  {
     return PLUS_FAIL;
   }
 
-  vtkPlusDevice* aDevice(NULL);
-  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDevice* aDevice( NULL );
+  vtkPlusChannel* aChannel( NULL );
   DeviceCollection aCollection;
-  if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+  if( m_DataCollector->GetDevices( aCollection ) == PLUS_SUCCESS && aCollection.size() > 0 )
   {
     aDevice = aCollection[0];
   }
   else
   {
-    LOG_ERROR("No devices in tool state display widget test. Nothing to show!");
+    LOG_ERROR( "No devices in tool state display widget test. Nothing to show!" );
     return PLUS_FAIL;
   }
 
   if( aDevice->OutputChannelCount() == 0 )
   {
-    LOG_ERROR("No output channels to acquire data from.");
+    LOG_ERROR( "No output channels to acquire data from." );
     return PLUS_FAIL;
   }
 
-  aChannel = *(aDevice->GetOutputChannelsStart());
+  aChannel = *( aDevice->GetOutputChannelsStart() );
 
-  if (aChannel->GetTrackingDataAvailable() == false) {
-    LOG_INFO("Tracking is not initialized"); 
+  if ( aChannel->GetTrackingDataAvailable() == false )
+  {
+    LOG_INFO( "Tracking is not initialized" );
   }
 
-  if ( !m_DataCollector->GetConnected()) {
-    LOG_ERROR("Unable to initialize DataCollector!"); 
+  if ( !m_DataCollector->GetConnected() )
+  {
+    LOG_ERROR( "Unable to initialize DataCollector!" );
     return PLUS_FAIL;
   }
 
@@ -223,28 +243,28 @@ PlusStatus ToolStateDisplayWidgetTest::StartDataCollection()
 
 //-----------------------------------------------------------------------------
 
-PlusStatus ToolStateDisplayWidgetTest::SelectChannel(vtkPlusChannel*& aChannel)
+PlusStatus ToolStateDisplayWidgetTest::SelectChannel( vtkPlusChannel*& aChannel )
 {
-  vtkPlusDevice* aDevice(NULL);
+  vtkPlusDevice* aDevice( NULL );
 
   DeviceCollection aCollection;
-  if( m_DataCollector->GetDevices(aCollection) == PLUS_SUCCESS && aCollection.size() > 0 )
+  if( m_DataCollector->GetDevices( aCollection ) == PLUS_SUCCESS && aCollection.size() > 0 )
   {
     aDevice = aCollection[0];
   }
   else
   {
-    LOG_ERROR("No default selected device defined and no devices to fall back on. Please check configuration.");
+    LOG_ERROR( "No default selected device defined and no devices to fall back on. Please check configuration." );
     return PLUS_FAIL;
   }
 
   if( aDevice->GetOutputChannelsStart() != aDevice->GetOutputChannelsEnd() )
   {
-    aChannel = *(aDevice->GetOutputChannelsStart());
+    aChannel = *( aDevice->GetOutputChannelsStart() );
   }
   else
   {
-    LOG_ERROR("Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << ".");
+    LOG_ERROR( "Unable to set selected channel to default selected channel when connecting. device id: " << aDevice->GetDeviceId() << "." );
     return PLUS_FAIL;
   }
 

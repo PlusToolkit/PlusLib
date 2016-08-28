@@ -30,27 +30,24 @@ vtkStandardNewMacro( vtkPlus3DObjectVisualizer );
 //-----------------------------------------------------------------------------
 
 vtkPlus3DObjectVisualizer::vtkPlus3DObjectVisualizer()
-  : CanvasRenderer( NULL )
-  , ImageActor( NULL )
-  , InputActor( NULL )
-  , InputGlyph( NULL )
-  , ResultActor( NULL )
-  , ResultGlyph( NULL )
+  : CanvasRenderer( vtkSmartPointer<vtkRenderer>::New() )
+  , ImageActor( vtkSmartPointer<vtkImageActor>::New() )
+  , InputActor( vtkSmartPointer<vtkActor>::New() )
+  , InputGlyph( vtkSmartPointer<vtkGlyph3D>::New() )
+  , ResultActor( vtkSmartPointer<vtkActor>::New() )
+  , ResultGlyph( vtkSmartPointer<vtkGlyph3D>::New() )
   , TransformRepository( NULL )
-  , WorldCoordinateFrame( NULL )
-  , VolumeID( NULL )
+  , WorldCoordinateFrame( "" )
+  , VolumeID( "" )
   , SelectedChannel( NULL )
 {
   // Set up canvas renderer
-  this->CanvasRenderer = vtkSmartPointer<vtkRenderer>::New();
   this->CanvasRenderer->SetBackground( 0.1, 0.1, 0.1 );
   this->CanvasRenderer->SetBackground2( 0.4, 0.4, 0.4 );
   this->CanvasRenderer->SetGradientBackground( true );
 
   // Input points actor
-  this->InputActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> inputMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->InputGlyph = vtkSmartPointer<vtkGlyph3D>::New();
   vtkSmartPointer<vtkSphereSource> inputSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   inputSphereSource->SetRadius( 2.0 ); // mm
 
@@ -61,9 +58,7 @@ vtkPlus3DObjectVisualizer::vtkPlus3DObjectVisualizer()
   this->InputActor->GetProperty()->SetColor( 0.0, 0.7, 1.0 );
 
   // Result points actor
-  this->ResultActor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkPolyDataMapper> resultMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->ResultGlyph = vtkSmartPointer<vtkGlyph3D>::New();
   vtkSmartPointer<vtkSphereSource> resultSphereSource = vtkSmartPointer<vtkSphereSource>::New();
   resultSphereSource->SetRadius( 1.0 ); // mm
 
@@ -74,8 +69,6 @@ vtkPlus3DObjectVisualizer::vtkPlus3DObjectVisualizer()
   this->ResultActor->GetProperty()->SetColor( 0.0, 0.8, 0.0 );
 
   // Create image actor
-  this->ImageActor = vtkSmartPointer<vtkImageActor>::New();
-
   this->ImageMapper = vtkImageSliceMapper::SafeDownCast( this->ImageActor->GetMapper() );
 
   this->CanvasRenderer->AddActor( this->InputActor );
