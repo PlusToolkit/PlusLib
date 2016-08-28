@@ -70,10 +70,6 @@ ELSE()
 ENDIF()
 
 # --------------------------------------------------------------------------
-# Sikuli binary directory path.
-SET(SIKULI_BIN_DIR ${PLUSLIB_TOOLS_DIR}/Sikuli/ CACHE PATH "Path to the Sikuli binary directory." FORCE)
-
-# --------------------------------------------------------------------------
 # The project library directories.
 SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
