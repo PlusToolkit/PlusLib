@@ -3,7 +3,7 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_TEST(SpatialSensorFusionTest
-  ${EXECUTABLE_OUTPUT_PATH}/SpatialSensorFusion
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}}/SpatialSensorFusion
   --ahrs-algo=MADGWICK_IMU
   --ahrs-algo-gain 1.5 
   --initial-gain 1

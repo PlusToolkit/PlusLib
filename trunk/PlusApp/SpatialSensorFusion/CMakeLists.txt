@@ -11,7 +11,7 @@ IF(PLUSAPP_INSTALL_BIN_DIR)
     DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
     COMPONENT RuntimeLibraries
     )
-ENDIF(PLUSAPP_INSTALL_BIN_DIR)
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Testing

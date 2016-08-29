@@ -5,18 +5,14 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 # SegmentationParameterDialogTest
 SET (SegmentationParameterDialogTest_LIBS 
   Qt5::Widgets
+  Qt5::Test
   PlusCommonWidgets
   vtkPlusCommon
   vtkPlusCalibration
   vtkPlusDataCollection
   )
 
-ADD_EXECUTABLE(
-  SegmentationParameterDialogTest
-  SegmentationParameterDialogTestMain.cxx
-  SegmentationParameterDialogTest.cxx
-  SegmentationParameterDialogTest.h
-  )
+ADD_EXECUTABLE(SegmentationParameterDialogTest SegmentationParameterDialogTest.cxx)
 
 SET_TARGET_PROPERTIES(SegmentationParameterDialogTest PROPERTIES 
   COMPILE_DEFINTIIONS 
@@ -42,17 +38,14 @@ ENDIF()
 SET (ToolStateDisplayWidgetTest_LIBS 
   Qt5::Widgets
   Qt5::Core
+  Qt5::Test
   PlusCommonWidgets
   vtkPlusCommon
   vtkPlusDataCollection
   )
   
-ADD_EXECUTABLE(
-  ToolStateDisplayWidgetTest
-  ToolStateDisplayWidgetTestMain.cxx
-  ToolStateDisplayWidgetTest.cxx
-  ToolStateDisplayWidgetTest.h
-  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
+ADD_EXECUTABLE(ToolStateDisplayWidgetTest ToolStateDisplayWidgetTest.cxx 
+  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc 
   )
 SET_TARGET_PROPERTIES(ToolStateDisplayWidgetTest PROPERTIES 
   COMPILE_DEFINTIIONS 
@@ -62,53 +55,28 @@ target_include_directories(ToolStateDisplayWidgetTest PRIVATE
   ${PlusApp_BINARY_DIR}/PlusCommonWidgets
   ${PlusApp_SOURCE_DIR}/PlusCommonWidgets
   )
-TARGET_LINK_LIBRARIES(ToolStateDisplayWidgetTest PRIVATE ${ToolStateDisplayWidgetTest_LIBS})
+TARGET_LINK_LIBRARIES( ToolStateDisplayWidgetTest PRIVATE ${ToolStateDisplayWidgetTest_LIBS} )
 
 #--------------------------------------------------------------------------------------------
 
-ADD_TEST(DeviceSetSelectorWidgetTest
-  ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-  --device-set-configuration-dir=${ConfigFilesDir}/Testing
-  --image-dir=${TestDataDir}
-  )
+ADD_TEST(DeviceSetSelectorWidgetTest ${PLUS_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest)
 SET_TESTS_PROPERTIES( DeviceSetSelectorWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 
-ADD_TEST(StatusIconTest
-  ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-  --device-set-configuration-dir=${ConfigFilesDir}/Testing
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_fCal_SonixTouch_L14-5_Ascension3DG_1.0.xml
-  --image-dir=${TestDataDir}
-  )
+ADD_TEST(StatusIconTest ${PLUS_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest)
 SET_TESTS_PROPERTIES( StatusIconTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 
-ADD_TEST(SegmentationParameterDialogTest
-  ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-  --device-set-configuration-dir=${ConfigFilesDir}/Testing
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SegmentationParameterDialog_SavedDataset_1.0.xml
-  --image-dir=${TestDataDir}
-  )
+ADD_TEST(SegmentationParameterDialogTest ${PLUS_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest)
 SET_TESTS_PROPERTIES( SegmentationParameterDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
 
-ADD_TEST(ConfigFileSaverDialogTest
-  ${TEST_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest
-  --device-set-configuration-dir=${ConfigFilesDir}/Testing
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SegmentationParameterDialog_SavedDataset_1.0.xml
-  --image-dir=${TestDataDir}
-  --verify-saved-configuration-file
-  )
+ADD_TEST(ConfigFileSaverDialogTest ${PLUS_EXECUTABLE_OUTPUT_PATH}/SegmentationParameterDialogTest)
 SET_TESTS_PROPERTIES( ConfigFileSaverDialogTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #--------------------------------------------------------------------------------------------
-
-ADD_TEST(ToolStateDisplayWidgetTest
-  ${TEST_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest
-  --device-set-configuration-dir=${ConfigFilesDir}/Testing
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_FakeTracker_ToolState.xml
-  )
+ADD_TEST(ToolStateDisplayWidgetTest ${PLUS_EXECUTABLE_OUTPUT_PATH}/ToolStateDisplayWidgetTest)
 SET_TESTS_PROPERTIES( ToolStateDisplayWidgetTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
