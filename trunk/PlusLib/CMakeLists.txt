@@ -11,8 +11,8 @@ SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_
 
 MESSAGE(STATUS "Configuring PLUS toolkit version ${PLUSLIB_VERSION}.")
 
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
-  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+IF ( MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+  IF( ${CMAKE_GENERATOR} MATCHES "Win64" )
     SET(PLUSLIB_PLATFORM "Win64" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ELSE()
     SET(PLUSLIB_PLATFORM "Win32" CACHE STRING "Name of the platform this instance of PlusLib is built on")
