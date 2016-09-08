@@ -19,6 +19,10 @@ See License.txt for details.
 class vtkImageData;
 class vtkImageThreshold;
 class vtkImageGaussianSmooth;
+class vtkImageSobel2D;
+class vtkImageIslandRemoval2D;
+//class vtkImageCast;
+//class vtkImageShiftScale;
 class vtkPlusUsScanConvert;
 
 /*!
@@ -53,6 +57,10 @@ public:
   /*! Set optional output file name for processed sub-sampled image sequence */
   void SetProcessedLinesImageFileName(const std::string& fileName );
 
+  vtkSetMacro(ConvertToLinesImage, bool);
+  vtkGetMacro(ConvertToLinesImage, bool);
+  vtkBooleanMacro(ConvertToLinesImage, bool);
+
   vtkSetMacro(NumberOfScanLines, int);
   vtkGetMacro(NumberOfScanLines, int);
   
@@ -75,6 +83,21 @@ public:
   void SetLowerThreshold( double LowerThreshold );
   void SetUpperThreshold( double UpperThreshold );
 
+  vtkSetMacro(EdgeDetectorEnabled, bool);
+  vtkGetMacro(EdgeDetectorEnabled, bool);
+  vtkBooleanMacro(EdgeDetectorEnabled, bool);
+
+  vtkSetMacro(IslandRemovalEnabled, bool);
+  vtkGetMacro(IslandRemovalEnabled, bool);
+  vtkBooleanMacro(IslandRemovalEnabled, bool);
+
+  void SetPixelArea(int PixelArea);
+
+  vtkSetMacro(ReturnToFanImage, bool);
+  vtkGetMacro(ReturnToFanImage, bool);
+  vtkBooleanMacro(ReturnToFanImage, bool);
+  
+
 protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
@@ -87,7 +110,7 @@ protected:
 
   void FillLinesImage( vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData );
   void ProcessLinesImage();
-  //void GaussianBlur();
+  void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
   void FillShadowValues();
 
   void ComputeHistogram( vtkImageData* imageData );
@@ -98,8 +121,17 @@ protected:
   //vtkSmartPointer<vtkImageAlgorithm> Image
   vtkSmartPointer<vtkImageGaussianSmooth> GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
 
+  vtkSmartPointer<vtkImageSobel2D> EdgeDetector;
+
+  vtkSmartPointer<vtkImageIslandRemoval2D> IslandRemover;
+
+  //vtkSmartPointer<vtkImageCast> DoubleToUchar;
+  //vtkSmartPointer<vtkImageShiftScale> ImageDataConverter;
+
+  bool ConvertToLinesImage;
   int NumberOfScanLines;
   int NumberOfSamplesPerScanLine;
+  bool ReturnToFanImage;
 
   // Descriptive statistics of current image intensity.
   double CurrentFrameMean;
@@ -110,7 +142,7 @@ protected:
   // Image processing parameters, defined in config file
   bool GaussianEnabled;
   double GaussianStdDev;
-  double GaussianKernelSize;
+  int GaussianKernelSize;
 
   bool ThresholdingEnabled;
   double ThresholdInValue;
@@ -118,7 +150,11 @@ protected:
   double LowerThreshold;
   double UpperThreshold;
 
-  vtkSmartPointer<vtkImageData> SmoothedImage;
+  bool EdgeDetectorEnabled;
+  //vtkSmartPointer<vtkImageData> SmoothedImage;
+  vtkSmartPointer<vtkImageData> ConversionImage;
+
+  bool IslandRemovalEnabled;
 
   std::string LinesImageFileName;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
