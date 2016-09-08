@@ -40,17 +40,23 @@
           TransducerName="Ultrasonix_C5-2"
           TransducerGeometry="CURVILINEAR"
           RadiusStartMm="50.0"
-          RadiusStopMm="100.0"
-          ThetaStartDeg="-24.0"
-          ThetaStopDeg="24.0"
+          RadiusStopMm="120.0"
+          ThetaStartDeg="-24"
+          ThetaStopDeg="24"
           OutputImageSizePixel="820 616"
-          TransducerCenterPixel="410 130"
+          TransducerCenterPixel="410 110"
           OutputImageSpacingMmPerPixel="0.1526 0.1526"
-          NumberOfScanLines="200"
           NumberOfSamplesPerScanLine="210"/>
-        <ImageProcessingOperations GaussianEnabled="true" ThresholdingEnabled="true">
-          <GaussianSmoothing GaussianStdDev="5" GaussianKernelSize="7"/>
-          <Thresholding ThresholdInValue="150" ThresholdOutValue="200" LowerThreshold="0"/>
+        <ImageProcessingOperations
+          ConvertToLinesImage="True"
+          ThresholdingEnabled="True"
+          GaussianEnabled="True"
+          EdgeDetectorEnabled="True"
+          IslandRemovalEnabled="True"
+          ReturnToFanImage="True">
+          <GaussianSmoothing GaussianStdDev="1" GaussianKernelSize="7"/>
+          <Thresholding ThresholdInValue="125" ThresholdOutValue="0" LowerThreshold="20" UpperThreshold="255"/>
+          <IslandRemoval PixelArea="30000"/>
         </ImageProcessingOperations>
     </Processor>
   </Device>
