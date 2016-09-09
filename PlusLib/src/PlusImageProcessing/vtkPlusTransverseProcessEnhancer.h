@@ -50,53 +50,53 @@ public:
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
   /*! Set optional output file name for sub-sampled input image sequence */
-  void SetLinesImageFileName(const std::string& fileName );
+  void SetLinesImageFileName( const std::string& fileName );
 
-  void SetIntermediateImageFileName(const std::string& fileName );
+  void SetIntermediateImageFileName( const std::string& fileName );
 
   /*! Set optional output file name for processed sub-sampled image sequence */
-  void SetProcessedLinesImageFileName(const std::string& fileName );
+  void SetProcessedLinesImageFileName( const std::string& fileName );
 
-  vtkSetMacro(ConvertToLinesImage, bool);
-  vtkGetMacro(ConvertToLinesImage, bool);
-  vtkBooleanMacro(ConvertToLinesImage, bool);
+  vtkSetMacro( ConvertToLinesImage, bool );
+  vtkGetMacro( ConvertToLinesImage, bool );
+  vtkBooleanMacro( ConvertToLinesImage, bool );
 
-  vtkSetMacro(NumberOfScanLines, int);
-  vtkGetMacro(NumberOfScanLines, int);
-  
-  vtkSetMacro(NumberOfSamplesPerScanLine, int);
-  vtkGetMacro(NumberOfSamplesPerScanLine, int);
+  vtkSetMacro( NumberOfScanLines, int );
+  vtkGetMacro( NumberOfScanLines, int );
 
-  vtkSetMacro(GaussianEnabled, bool);
-  vtkGetMacro(GaussianEnabled, bool);
-  vtkBooleanMacro(GaussianEnabled, bool);
+  vtkSetMacro( NumberOfSamplesPerScanLine, int );
+  vtkGetMacro( NumberOfSamplesPerScanLine, int );
+
+  vtkSetMacro( GaussianEnabled, bool );
+  vtkGetMacro( GaussianEnabled, bool );
+  vtkBooleanMacro( GaussianEnabled, bool );
 
   void SetGaussianStdDev( double GaussianStdDev );
   void SetGaussianKernelSize( int GaussianKernelSize );
 
-  vtkSetMacro(ThresholdingEnabled, bool);
-  vtkGetMacro(ThresholdingEnabled, bool);
-  vtkBooleanMacro(ThresholdingEnabled, bool);
+  vtkSetMacro( ThresholdingEnabled, bool );
+  vtkGetMacro( ThresholdingEnabled, bool );
+  vtkBooleanMacro( ThresholdingEnabled, bool );
 
   void SetThresholdInValue( double NewThresholdInValue );
   void SetThresholdOutValue( double NewThresholdOutValue );
   void SetLowerThreshold( double LowerThreshold );
   void SetUpperThreshold( double UpperThreshold );
 
-  vtkSetMacro(EdgeDetectorEnabled, bool);
-  vtkGetMacro(EdgeDetectorEnabled, bool);
-  vtkBooleanMacro(EdgeDetectorEnabled, bool);
+  vtkSetMacro( EdgeDetectorEnabled, bool );
+  vtkGetMacro( EdgeDetectorEnabled, bool );
+  vtkBooleanMacro( EdgeDetectorEnabled, bool );
 
-  vtkSetMacro(IslandRemovalEnabled, bool);
-  vtkGetMacro(IslandRemovalEnabled, bool);
-  vtkBooleanMacro(IslandRemovalEnabled, bool);
+  vtkSetMacro( IslandRemovalEnabled, bool );
+  vtkGetMacro( IslandRemovalEnabled, bool );
+  vtkBooleanMacro( IslandRemovalEnabled, bool );
 
-  void SetPixelArea(int PixelArea);
+  void SetPixelArea( int pixelArea );
 
-  vtkSetMacro(ReturnToFanImage, bool);
-  vtkGetMacro(ReturnToFanImage, bool);
-  vtkBooleanMacro(ReturnToFanImage, bool);
-  
+  vtkSetMacro( ReturnToFanImage, bool );
+  vtkGetMacro( ReturnToFanImage, bool );
+  vtkBooleanMacro( ReturnToFanImage, bool );
+
 
 protected:
   vtkPlusTransverseProcessEnhancer();
@@ -110,7 +110,7 @@ protected:
 
   void FillLinesImage( vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData );
   void ProcessLinesImage();
-  void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
+  void VectorImageToUchar( vtkImageData* inputImage, vtkImageData* ConversionImage );
   void FillShadowValues();
 
   void ComputeHistogram( vtkImageData* imageData );
@@ -155,10 +155,11 @@ protected:
   vtkSmartPointer<vtkImageData> ConversionImage;
 
   bool IslandRemovalEnabled;
+  int PixelArea;
 
   std::string LinesImageFileName;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-  vtkSmartPointer<vtkPlusTrackedFrameList> linesImageList;
+  vtkSmartPointer<vtkPlusTrackedFrameList> LinesImageList;
 
   std::string IntermediateImageFileName;
   vtkSmartPointer<vtkImageData> ShadowValues; // Pixels (float) store probability of belonging to shadow
