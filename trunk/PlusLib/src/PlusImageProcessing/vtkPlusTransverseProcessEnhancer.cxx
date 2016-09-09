@@ -4,24 +4,24 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "PlusTrackedFrame.h"
 #include "PlusVideoFrame.h"
-#include "vtkImageAccumulate.h"
-#include "vtkImageCast.h"
-#include "vtkImageGaussianSmooth.h"
-#include "vtkImageThreshold.h"
-#include "vtkImageSobel2D.h"
-//#include "vtkImageCast.h"
-//#include "vtkImageShiftScale.h"
-#include "vtkimageIslandRemoval2D.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusTransverseProcessEnhancer.h"
 #include "vtkPlusUsScanConvertCurvilinear.h"
 #include "vtkPlusUsScanConvertLinear.h"
-#include <cmath>
+
+// VTK includes
+#include <vtkImageAccumulate.h>
+#include <vtkImageCast.h>
+#include <vtkImageGaussianSmooth.h>
+#include <vtkImageIslandRemoval2D.h>
+#include <vtkImageSobel2D.h>
+#include <vtkImageThreshold.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 
