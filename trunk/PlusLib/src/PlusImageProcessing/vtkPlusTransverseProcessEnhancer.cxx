@@ -32,44 +32,43 @@ vtkStandardNewMacro( vtkPlusTransverseProcessEnhancer );
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : Thresholder( vtkSmartPointer<vtkImageThreshold>::New() ),
     GaussianSmooth( vtkSmartPointer<vtkImageGaussianSmooth>::New() ),
-    EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
-    IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
+    EdgeDetector( vtkSmartPointer<vtkImageSobel2D>::New() ),
+    IslandRemover( vtkSmartPointer<vtkImageIslandRemoval2D>::New() ),
     //DoubleToUchar(vtkSmartPointer<vtkImageCast>::New()),
     //ImageDataConverter(vtkSmartPointer<vtkImageShiftScale>::New()),
-    LinesImage( vtkSmartPointer<vtkImageData>::New() ),
-    ConversionImage(vtkSmartPointer<vtkImageData>::New() ),
-    //SmoothedImage( vtkSmartPointer<vtkImageData>::New() ),
-    ShadowValues( vtkSmartPointer<vtkImageData>::New() ),
-    ProcessedLinesImage( vtkSmartPointer<vtkImageData>::New() ),
-    linesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
-    IntermediateImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
-    ProcessedLinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
+    ConvertToLinesImage( false ),
     NumberOfScanLines( 0 ),
     NumberOfSamplesPerScanLine( 0 ),
+    ReturnToFanImage( false ),
     CurrentFrameMean( 0.0 ),
     CurrentFrameStDev( 0.0 ),
     CurrentFrameMax( 0.0 ),
     CurrentFrameMin( 255.0 ),
-    ConvertToLinesImage(false),
     GaussianEnabled( false ),
     ThresholdingEnabled( false ),
-    EdgeDetectorEnabled(false),
-    IslandRemovalEnabled(false),
-    ReturnToFanImage(false),
     ThresholdInValue( 0.0 ),
     ThresholdOutValue( 255.0 ),
     LowerThreshold( 0.0 ),
-    UpperThreshold( 0.0 )
+    UpperThreshold( 0.0 ),
+    EdgeDetectorEnabled( false ),
+    ConversionImage( vtkSmartPointer<vtkImageData>::New() ),
+    IslandRemovalEnabled( false ),
+    PixelArea( -1 ),
+    LinesImage( vtkSmartPointer<vtkImageData>::New() ),
+    LinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
+    //SmoothedImage( vtkSmartPointer<vtkImageData>::New() ),
+    ShadowValues( vtkSmartPointer<vtkImageData>::New() ),
+    IntermediateImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
+    ProcessedLinesImage( vtkSmartPointer<vtkImageData>::New() ),
+    ProcessedLinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() )
 {
-  //this->Thresholder->SetInValue(0);
-  //this->Thresholder->SetOutValue(255);
   this->SetGaussianStdDev( 7.0 );
   this->SetGaussianKernelSize( 7.0 );
   this->GaussianSmooth->SetDimensionality( 2 );
 
-  this->ConversionImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->ConversionImage->SetExtent( 0, 0, 0, 0, 0, 0 );
 
-  this->IslandRemover->SetIslandValue(1000);
+  this->IslandRemover->SetIslandValue( 1000 );
 
   this->LinesImage->SetExtent( 0, 0, 0, 0, 0, 0 );
   this->ShadowValues->SetExtent( 0, 0, 0, 0, 0, 0 );
@@ -86,7 +85,7 @@ vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
   if ( ! this->LinesImageFileName.empty() )
   {
     LOG_INFO( "Writing lines image sequence" );
-    this->linesImageList->SaveToSequenceMetafile( this->LinesImageFileName, US_IMG_ORIENT_MF, false );
+    this->LinesImageList->SaveToSequenceMetafile( this->LinesImageFileName, US_IMG_ORIENT_MF, false );
   }
 
   if ( !this->IntermediateImageFileName.empty() )
@@ -153,67 +152,67 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
 
   // Try to make image processing parameters modifiable without rebuilding
   vtkXMLDataElement* imageProcessingOperations = processingElement->FindNestedElementWithName( "ImageProcessingOperations" );
-  if (imageProcessingOperations != NULL)
+  if ( imageProcessingOperations != NULL )
   {
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ConvertToLinesImage, imageProcessingOperations);
-    if (this->ConvertToLinesImage)
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( ConvertToLinesImage, imageProcessingOperations );
+    if ( this->ConvertToLinesImage )
     {
-          // ScanConverter parameters
+      // ScanConverter parameters
     }
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReturnToFanImage, imageProcessingOperations);
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(GaussianEnabled, imageProcessingOperations);
-    if (this->GaussianEnabled)
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( ReturnToFanImage, imageProcessingOperations );
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( GaussianEnabled, imageProcessingOperations );
+    if ( this->GaussianEnabled )
     {
-      vtkXMLDataElement* gaussianParameters = imageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
-      if (gaussianParameters == NULL)
+      vtkXMLDataElement* gaussianParameters = imageProcessingOperations->FindNestedElementWithName( "GaussianSmoothing" );
+      if ( gaussianParameters == NULL )
       {
-        LOG_WARNING("Unable to locate GaussianSmoothing parameters element. Using default values.");
+        LOG_WARNING( "Unable to locate GaussianSmoothing parameters element. Using default values." );
       }
       else
       {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianStdDev, gaussianParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, GaussianStdDev, gaussianParameters );
 
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, GaussianKernelSize, gaussianParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, GaussianKernelSize, gaussianParameters );
       }
     }
 
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ThresholdingEnabled, imageProcessingOperations);
-    if (this->ThresholdingEnabled)
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( ThresholdingEnabled, imageProcessingOperations );
+    if ( this->ThresholdingEnabled )
     {
-      vtkXMLDataElement* thresholdingParameters = imageProcessingOperations->FindNestedElementWithName("Thresholding");
-      if (thresholdingParameters == NULL)
+      vtkXMLDataElement* thresholdingParameters = imageProcessingOperations->FindNestedElementWithName( "Thresholding" );
+      if ( thresholdingParameters == NULL )
       {
-        LOG_WARNING("Unable to locate Thresholding parameters element. Using default values.");
+        LOG_WARNING( "Unable to locate Thresholding parameters element. Using default values." );
       }
       else
       {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, ThresholdInValue, thresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, ThresholdInValue, thresholdingParameters );
 
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, ThresholdOutValue, thresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, ThresholdOutValue, thresholdingParameters );
 
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, LowerThreshold, thresholdingParameters);
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, UpperThreshold, thresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, LowerThreshold, thresholdingParameters );
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, UpperThreshold, thresholdingParameters );
       }
     }
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EdgeDetectorEnabled, imageProcessingOperations);       // No other parameters to set?
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( EdgeDetectorEnabled, imageProcessingOperations );     // No other parameters to set?
 
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IslandRemovalEnabled, imageProcessingOperations);
-    if (this->IslandRemovalEnabled)
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL( IslandRemovalEnabled, imageProcessingOperations );
+    if ( this->IslandRemovalEnabled )
     {
-      vtkXMLDataElement* IslandRemovalParameters = imageProcessingOperations->FindNestedElementWithName("IslandRemoval");
-      if (IslandRemovalParameters == NULL)
+      vtkXMLDataElement* islandRemovalParameters = imageProcessingOperations->FindNestedElementWithName( "IslandRemoval" );
+      if ( islandRemovalParameters == NULL )
       {
-        LOG_WARNING("Unable to locate IslandRemoval parameters element. Using default values.");
+        LOG_WARNING( "Unable to locate IslandRemoval parameters element. Using default values." );
       }
       else
       {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, PixelArea, IslandRemovalParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, PixelArea, islandRemovalParameters );
       }
     }
   }
   else
   {
-    LOG_INFO("ImageProcessingOperations section not found in config file!");
+    LOG_INFO( "ImageProcessingOperations section not found in config file!" );
   }
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, NumberOfScanLines, processingElement )
@@ -227,9 +226,9 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
 
   // This one said LOG_DEBUG
   LOG_INFO( "Lines image extent: "
-             << linesImageExtent[0] << ", " << linesImageExtent[1]
-             << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
-             << ", " << linesImageExtent[4] << ", " << linesImageExtent[5] );
+            << linesImageExtent[0] << ", " << linesImageExtent[1]
+            << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
+            << ", " << linesImageExtent[4] << ", " << linesImageExtent[5] );
 
   this->LinesImage->SetExtent( linesImageExtent );
   this->LinesImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
@@ -242,7 +241,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
 
   // Lines image list is only for debugging and testing ideas.
 
-  this->linesImageList->Clear();
+  this->LinesImageList->Clear();
   this->IntermediateImageList->Clear();
   this->ProcessedLinesImageList->Clear();
 
@@ -254,21 +253,32 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration( vtkXMLDataEleme
 {
   XML_VERIFY_ELEMENT( processingElement, this->GetTagName() );
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
-  if (this->GaussianEnabled)
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( imageProcessingOperations, processingElement, "ImageProcessingOperations" );
+  if ( this->GaussianEnabled )
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, processingElement, "GaussianSmoothing");
-    gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
-    gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
+    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( gaussianParameters, processingElement, "GaussianSmoothing" );
+    gaussianParameters->SetDoubleAttribute( "GaussianStdDev", this->GaussianStdDev );
+    gaussianParameters->SetDoubleAttribute( "GaussianKernelSize", this->GaussianKernelSize );
   }
 
-  if (this->ThresholdingEnabled)
+  if ( this->ThresholdingEnabled )
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, processingElement, "Thresholding");
-    thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
-    thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
-    thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
-    thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
+    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( thresholdingParameters, processingElement, "Thresholding" );
+    thresholdingParameters->SetDoubleAttribute( "ThresholdInValue", ThresholdInValue );
+    thresholdingParameters->SetDoubleAttribute( "ThresholdOutValue", ThresholdOutValue );
+    thresholdingParameters->SetDoubleAttribute( "LowerThreshold", LowerThreshold );
+    thresholdingParameters->SetDoubleAttribute( "UpperThreshold", UpperThreshold );
+  }
+
+  if ( this->EdgeDetectorEnabled )
+  {
+    processingElement->SetAttribute( "EdgeDetectorEnabled", "TRUE" );
+  }
+
+  if ( this->IslandRemovalEnabled )
+  {
+    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( islandRemovalParameters, processingElement, "IslandRemoval" );
+    islandRemovalParameters->SetIntAttribute( "PixelArea", PixelArea );
   }
 
   return PLUS_SUCCESS;
@@ -393,14 +403,14 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
 
   double dThreshold = this->CurrentFrameMean + thresholdSdFactor * this->CurrentFrameStDev;
   unsigned char threshold = 255;
-  if ( dThreshold < 255 ) threshold = (unsigned char)dThreshold;
+  if ( dThreshold < 255 ) { threshold = ( unsigned char )dThreshold; }
 
   // Compute mapping factor for values above threshold (T).
   // Mapping [T,255] to [25%,100%], that is [64,255].
-   //Output = delta x 191 / (255 - T ) + 64
+  //Output = delta x 191 / (255 - T ) + 64
   // where delta = PixelValue - T
 
-  float mappingFactor = 191.0 / (255.0 - threshold);
+  float mappingFactor = 191.0 / ( 255.0 - threshold );
   float mappingShift = 64.0;
 
   // Define threshold and factor for pixel locations close to transducer.
@@ -426,16 +436,16 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
   shadowVideoFrame.DeepCopyFrom( this->ShadowValues );
   PlusTrackedFrame shadowTrackedFrame;
   shadowTrackedFrame.SetImageData( shadowVideoFrame );
-  this->IntermediateImageList->AddTrackedFrame(&shadowTrackedFrame);
+  this->IntermediateImageList->AddTrackedFrame( &shadowTrackedFrame );
 
-  for (int y = 0; y < dims[1]; y++)
+  for ( int y = 0; y < dims[1]; y++ )
   {
     // Initialize variables for a new scan line.
 
-    for (int x = dims[0] - 1; x >= 0; x--) // Go towards transducer
+    for ( int x = dims[0] - 1; x >= 0; x-- ) // Go towards transducer
     {
-      vInput = static_cast<unsigned char*>( this->LinesImage->GetScalarPointer(x, y, 0 ) );
-      vOutput = static_cast<unsigned char*>( this->ProcessedLinesImage->GetScalarPointer(x, y, 0 ) );
+      vInput = static_cast<unsigned char*>( this->LinesImage->GetScalarPointer( x, y, 0 ) );
+      vOutput = static_cast<unsigned char*>( this->ProcessedLinesImage->GetScalarPointer( x, y, 0 ) );
       output = ( *vInput );
       if( output > 255 ) { ( *vOutput ) = 255; }
       else if( output < 0 ) { ( *vOutput ) = 0; }
@@ -487,7 +497,7 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage)
+void vtkPlusTransverseProcessEnhancer::VectorImageToUchar( vtkImageData* inputImage, vtkImageData* ConversionImage )
 {
   unsigned char* vInput = 0;
   unsigned char* vOutput = 0;
@@ -496,23 +506,23 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkImageData* inputIma
   float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
 
   int dims[3] = { 0, 0, 0 };
-  this->LinesImage->GetDimensions(dims);
-  this->ConversionImage->SetExtent(this->LinesImage->GetExtent());
-  this->ConversionImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  for (int y = 0; y < dims[1]; y++)
+  this->LinesImage->GetDimensions( dims );
+  this->ConversionImage->SetExtent( this->LinesImage->GetExtent() );
+  this->ConversionImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
+  for ( int y = 0; y < dims[1]; y++ )
   {
     // Initialize variables for a new scan line.
 
-    for (int x = dims[0] - 1; x >= 0; x--) // Go towards transducer
+    for ( int x = dims[0] - 1; x >= 0; x-- ) // Go towards transducer
     {
-      EdgeDetectorOutput0 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 0));
-      EdgeDetectorOutput1 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 1));
-      vOutput = static_cast<unsigned char*>(this->ConversionImage->GetScalarPointer(x, y, 0));
-      output = (EdgeDetectorOutput0 + EdgeDetectorOutput1) / 2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
+      EdgeDetectorOutput0 = static_cast<unsigned char>( inputImage->GetScalarComponentAsFloat( x, y, 0, 0 ) );
+      EdgeDetectorOutput1 = static_cast<unsigned char>( inputImage->GetScalarComponentAsFloat( x, y, 0, 1 ) );
+      vOutput = static_cast<unsigned char*>( this->ConversionImage->GetScalarPointer( x, y, 0 ) );
+      output = ( EdgeDetectorOutput0 + EdgeDetectorOutput1 ) / 2;                                       // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
       //this->ConversionImage->SetScalarComponentFromDouble(x, y, 0, 0, output);
-      if (output > 255) { (*vOutput) = 255; }
-      else if (output < 0) { (*vOutput) = 0; }
-      else { (*vOutput) = (unsigned char)output; }
+      if ( output > 255 ) { ( *vOutput ) = 255; }
+      else if ( output < 0 ) { ( *vOutput ) = 0; }
+      else { ( *vOutput ) = ( unsigned char )output; }
     }
   }
   //inputImage->Modified();
@@ -525,18 +535,18 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
 
 
-  if(this->ScanConverter.GetPointer() == NULL)
+  if( this->ScanConverter.GetPointer() == NULL )
   {
     return PLUS_FAIL;
   }
 
-  if (this->ConvertToLinesImage)
+  if ( this->ConvertToLinesImage )
   {
-    this->ScanConverter->SetInputData(inputImage->GetImage());
+    this->ScanConverter->SetInputData( inputImage->GetImage() );
     this->ScanConverter->Update();
     //inputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
     // Generate lines image.
-    this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
+    this->FillLinesImage( this->ScanConverter, inputImage->GetImage() );
     //this->ProcessLinesImage();
     // Save lines image for debugging.
     //this->linesImageList->AddTrackedFrame(inputFrame); // TODO: How to create a new tracked frame in PLUS?
@@ -544,35 +554,35 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
     //PlusTrackedFrame* linesFrame = this->linesImageList->GetTrackedFrame(this->linesImageList->GetNumberOfTrackedFrames() - 1);
     //linesFrame->GetImageData()->DeepCopyFrom(this->LinesImage);
 
-    inputImage->DeepCopyFrom(this->LinesImage);
+    inputImage->DeepCopyFrom( this->LinesImage );
   }
 
-  if(this->ThresholdingEnabled)
+  if( this->ThresholdingEnabled )
   {
-    this->Thresholder->SetInputData(inputImage->GetImage());
+    this->Thresholder->SetInputData( inputImage->GetImage() );
     this->Thresholder->Update();
-    inputImage->DeepCopyFrom(this->Thresholder->GetOutput());
+    inputImage->DeepCopyFrom( this->Thresholder->GetOutput() );
   }
 
-  if(this->GaussianEnabled )
+  if( this->GaussianEnabled )
   {
     this->GaussianSmooth->SetInputData( inputImage->GetImage() );               // Perform GaussianSmooth on original fan image for maximum information content
     this->GaussianSmooth->Update();
     inputImage->DeepCopyFrom( this->GaussianSmooth->GetOutput() );
   }
 
-  if (this->EdgeDetectorEnabled)
+  if ( this->EdgeDetectorEnabled )
   {
-    
+
     //this->ImageDataConverter->SetInputData(inputImage->GetImage
     //this->ImageDataConverter->SetOutputScalarTypeToDouble();
     //this->ImageDataConverter->Update();
-    
-    this->EdgeDetector->SetInputData(inputImage->GetImage());
+
+    this->EdgeDetector->SetInputData( inputImage->GetImage() );
     this->EdgeDetector->Update();
     //inputImage->DeepCopyFrom(this->EdgeDetector->GetOutput());
-    this->VectorImageToUchar(this->EdgeDetector->GetOutput(), this->ConversionImage);
-    inputImage->DeepCopyFrom(this->ConversionImage);
+    this->VectorImageToUchar( this->EdgeDetector->GetOutput(), this->ConversionImage );
+    inputImage->DeepCopyFrom( this->ConversionImage );
     //this->ImageDataConverter->SetInputData(inputImage->GetImage());
     //this->ImageDataConverter->SetOutputScalarTypeToUnsignedChar();
     //this->ImageDataConverter->SetScale(1);
@@ -580,11 +590,11 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
     //inputImage->DeepCopyFrom(this->ImageDataConverter->GetOutput());
     //this->LinesImage->DeepCopy(inputImage->GetImage());
     //this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
-   // this->ProcessLinesImage();
-    
+    // this->ProcessLinesImage();
+
     //this->LinesImage->DeepCopy(this->ImageDataConverter->GetOutput());
 
-    //this->LinesImage->DeepCopy(inputImage->GetImage());                         // So we may interate through 2-component pixels, and make them 
+    //this->LinesImage->DeepCopy(inputImage->GetImage());                         // So we may interate through 2-component pixels, and make them
     //this->ProcessLinesImage();
     //inputImage->DeepCopyFrom(this->LinesImage);
     //this->DoubleToUchar->SetInputData(this->EdgeDetector->GetOutput());
@@ -592,24 +602,24 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
     //this->DoubleToUchar->Update
   }
 
-  if (this->IslandRemovalEnabled)
+  if ( this->IslandRemovalEnabled )
   {
-    this->IslandRemover->SetInputData(inputImage->GetImage());
+    this->IslandRemover->SetInputData( inputImage->GetImage() );
     this->IslandRemover->Update();
-    inputImage->DeepCopyFrom(this->IslandRemover->GetOutput());
+    inputImage->DeepCopyFrom( this->IslandRemover->GetOutput() );
   }
 
-  if (this->ReturnToFanImage)
+  if ( this->ReturnToFanImage )
   {
-    this->ScanConverter->SetInputData(inputImage->GetImage());
+    this->ScanConverter->SetInputData( inputImage->GetImage() );
     this->ScanConverter->Update();
-    inputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
+    inputImage->DeepCopyFrom( this->ScanConverter->GetOutput() );
   }
 
-    PlusVideoFrame* outputImage = outputFrame->GetImageData();
-    outputImage->DeepCopyFrom(inputImage->GetImage());
+  PlusVideoFrame* outputImage = outputFrame->GetImageData();
+  outputImage->DeepCopyFrom( inputImage->GetImage() );
   // Set final output image data
-  
+
   //(outputImage)->DeepCopyFrom(this->Thresholder->GetOutput
 
   //PlusTrackedFrame* processedLinesFrame = this->ProcessedLinesImageList->GetTrackedFrame(this->ProcessedLinesImageList->GetNumberOfTrackedFrames() - 1);
@@ -637,13 +647,13 @@ void vtkPlusTransverseProcessEnhancer::ComputeHistogram( vtkImageData* imageData
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetLinesImageFileName(const std::string& fileName )
+void vtkPlusTransverseProcessEnhancer::SetLinesImageFileName( const std::string& fileName )
 {
   this->LinesImageFileName = fileName;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetIntermediateImageFileName(const std::string& fileName )
+void vtkPlusTransverseProcessEnhancer::SetIntermediateImageFileName( const std::string& fileName )
 {
   this->IntermediateImageFileName = fileName;
 }
@@ -711,14 +721,22 @@ void vtkPlusTransverseProcessEnhancer::SetUpperThreshold( double upperThreshold 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetPixelArea(int PixelArea)
+void vtkPlusTransverseProcessEnhancer::SetPixelArea( int pixelArea )
 {
-  int Boundaries[3] = {0,0,0};
-  this->LinesImage->GetDimensions(Boundaries);
-  if (PixelArea < 0) this->IslandRemover->SetIslandValue(0);
-  else if (PixelArea > (Boundaries[0]*Boundaries[1]))
+  this->PixelArea = pixelArea;
+  int boundaries[3] = {0, 0, 0};
+  this->LinesImage->GetDimensions( boundaries );
+
+  if ( pixelArea < 0 )
   {
-    this->IslandRemover->SetIslandValue(Boundaries[0] * Boundaries[1]);
+    this->IslandRemover->SetIslandValue( 0 );
   }
-  else this->IslandRemover->SetIslandValue(PixelArea);
+  else if ( pixelArea > ( boundaries[0]*boundaries[1] ) )
+  {
+    this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
+  }
+  else
+  {
+    this->IslandRemover->SetIslandValue( pixelArea );
+  }
 }
