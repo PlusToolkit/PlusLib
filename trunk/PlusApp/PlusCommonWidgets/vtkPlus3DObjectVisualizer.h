@@ -123,9 +123,8 @@ public:
   PlusStatus Update();
 
   // Set/Get for member variables
-  void SetCanvasRenderer( vtkSmartPointer<vtkRenderer> renderer );
-  vtkSmartPointer<vtkRenderer> GetCanvasRenderer() const;
-  vtkSmartPointer<vtkImageActor> GetImageActor() const;
+  vtkRenderer* GetCanvasRenderer() const;
+  vtkImageActor* GetImageActor() const;
   vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
 
   vtkSetMacro( WorldCoordinateFrame, std::string );
@@ -139,6 +138,7 @@ public:
   PlusStatus SetChannel( vtkPlusChannel* channel );
 
 protected:
+  void SetCanvasRenderer(vtkSmartPointer<vtkRenderer> renderer);
   void SetImageActor( vtkSmartPointer<vtkImageActor> imageActor );
   void SetInputActor( vtkSmartPointer<vtkActor> inputActor );
   void SetResultActor( vtkSmartPointer<vtkActor> resultActor );

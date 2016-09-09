@@ -205,13 +205,13 @@ void vtkPlus3DObjectVisualizer::SetCanvasRenderer( vtkSmartPointer<vtkRenderer> 
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkRenderer> vtkPlus3DObjectVisualizer::GetCanvasRenderer() const
+vtkRenderer* vtkPlus3DObjectVisualizer::GetCanvasRenderer() const
 {
   return this->CanvasRenderer;
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkImageActor> vtkPlus3DObjectVisualizer::GetImageActor() const
+vtkImageActor* vtkPlus3DObjectVisualizer::GetImageActor() const
 {
   return this->ImageActor;
 }
