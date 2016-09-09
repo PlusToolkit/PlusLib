@@ -122,11 +122,11 @@ public:
   */
   PlusStatus Update();
 
-  // Set/Get macros for member variables
-  vtkSetObjectMacro( CanvasRenderer, vtkRenderer );
-  vtkGetObjectMacro( CanvasRenderer, vtkRenderer );
-
-  vtkGetObjectMacro( ImageActor, vtkImageActor );
+  // Set/Get for member variables
+  void SetCanvasRenderer( vtkSmartPointer<vtkRenderer> renderer );
+  vtkSmartPointer<vtkRenderer> GetCanvasRenderer() const;
+  vtkSmartPointer<vtkImageActor> GetImageActor() const;
+  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
 
   vtkSetMacro( WorldCoordinateFrame, std::string );
   vtkGetMacro( WorldCoordinateFrame, std::string );
@@ -138,23 +138,18 @@ public:
 
   PlusStatus SetChannel( vtkPlusChannel* channel );
 
-  vtkSetObjectMacro( TransformRepository, vtkPlusTransformRepository );
-
 protected:
-  vtkSetObjectMacro( ImageActor, vtkImageActor );
+  void SetImageActor( vtkSmartPointer<vtkImageActor> imageActor );
+  void SetInputActor( vtkSmartPointer<vtkActor> inputActor );
+  void SetResultActor( vtkSmartPointer<vtkActor> resultActor );
 
-  vtkSetObjectMacro( InputActor, vtkActor );
+  void SetResultGlyph( vtkSmartPointer<vtkGlyph3D> glyph );
+  vtkSmartPointer<vtkGlyph3D> GetResultGlyph() const;
 
-  vtkSetObjectMacro( ResultActor, vtkActor );
-
-  vtkSetObjectMacro( ResultGlyph, vtkGlyph3D );
-  vtkGetObjectMacro( ResultGlyph, vtkGlyph3D );
-
-  vtkSetObjectMacro( InputGlyph, vtkGlyph3D );
-  vtkGetObjectMacro( InputGlyph, vtkGlyph3D );
+  void SetInputGlyph( vtkSmartPointer<vtkGlyph3D> glyph );
+  vtkSmartPointer<vtkGlyph3D> GetInputGlyph() const;
 
   vtkSetMacro( VolumeID, std::string );
-
   vtkSetObjectMacro( SelectedChannel, vtkPlusChannel );
 
 protected:
@@ -162,25 +157,25 @@ protected:
   std::vector<vtkPlusDisplayableObject*> DisplayableObjects;
 
   /*! Renderer for the canvas */
-  vtkRenderer* CanvasRenderer;
+  vtkSmartPointer<vtkRenderer> CanvasRenderer;
 
   /*! Canvas image actor */
-  vtkImageActor* ImageActor;
+  vtkSmartPointer<vtkImageActor> ImageActor;
 
   /*! Actor for displaying the input points in 3D */
-  vtkActor* InputActor;
+  vtkSmartPointer<vtkActor> InputActor;
 
   /*! Slice mapper to enable slice selection */
-  vtkImageSliceMapper* ImageMapper;
+  vtkSmartPointer<vtkImageSliceMapper> ImageMapper;
 
   /*! Glyph producer for result */
-  vtkGlyph3D* InputGlyph;
+  vtkSmartPointer<vtkGlyph3D> InputGlyph;
 
   /*! Actor for displaying the result points (eg. stylus tip, segmented points) */
-  vtkActor* ResultActor;
+  vtkSmartPointer<vtkActor> ResultActor;
 
   /*! Glyph producer for result */
-  vtkGlyph3D* ResultGlyph;
+  vtkSmartPointer<vtkGlyph3D> ResultGlyph;
 
   /*! Name of the rendering world coordinate frame */
   std::string WorldCoordinateFrame;

@@ -68,7 +68,6 @@ vtkPlus3DObjectVisualizer::vtkPlus3DObjectVisualizer()
   this->ResultActor->SetMapper( resultMapper );
   this->ResultActor->GetProperty()->SetColor( 0.0, 0.8, 0.0 );
 
-  // Create image actor
   this->ImageMapper = vtkImageSliceMapper::SafeDownCast( this->ImageActor->GetMapper() );
 
   this->CanvasRenderer->AddActor( this->InputActor );
@@ -85,7 +84,6 @@ vtkPlus3DObjectVisualizer::~vtkPlus3DObjectVisualizer()
   this->SetCanvasRenderer( NULL );
   this->SetImageActor( NULL );
   this->SetInputActor( NULL );
-  this->SetWorldCoordinateFrame( NULL );
   this->SetTransformRepository( NULL );
 }
 
@@ -198,6 +196,66 @@ PlusStatus vtkPlus3DObjectVisualizer::Update()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetCanvasRenderer( vtkSmartPointer<vtkRenderer> renderer )
+{
+  this->CanvasRenderer = renderer;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkRenderer> vtkPlus3DObjectVisualizer::GetCanvasRenderer() const
+{
+  return this->CanvasRenderer;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkImageActor> vtkPlus3DObjectVisualizer::GetImageActor() const
+{
+  return this->ImageActor;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetImageActor( vtkSmartPointer<vtkImageActor> imageActor )
+{
+  this->ImageActor = imageActor;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetInputActor( vtkSmartPointer<vtkActor> inputActor )
+{
+  this->InputActor = inputActor;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetResultActor( vtkSmartPointer<vtkActor> resultActor )
+{
+  this->ResultActor = resultActor;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetResultGlyph( vtkSmartPointer<vtkGlyph3D> glyph )
+{
+  this->ResultGlyph = glyph;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkGlyph3D> vtkPlus3DObjectVisualizer::GetResultGlyph() const
+{
+  return this->ResultGlyph;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlus3DObjectVisualizer::SetInputGlyph( vtkSmartPointer<vtkGlyph3D> glyph )
+{
+  this->InputGlyph = glyph;
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkGlyph3D> vtkPlus3DObjectVisualizer::GetInputGlyph() const
+{
+  return this->InputGlyph;
 }
 
 //-----------------------------------------------------------------------------

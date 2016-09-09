@@ -77,7 +77,6 @@ vtkPlusDisplayableObject::vtkPlusDisplayableObject()
 vtkPlusDisplayableObject::~vtkPlusDisplayableObject()
 {
   this->SetActor( NULL );
-  this->SetObjectId( NULL );
 }
 
 //-----------------------------------------------------------------------------
