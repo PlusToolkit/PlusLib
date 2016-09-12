@@ -212,13 +212,13 @@ public:
   PlusStatus GetFirstVideoSource( vtkPlusDataSource*& anImage );
 
   /*! Get the beginning of the image iterator */
-  DataSourceContainerConstIterator GetVideoIteratorBegin() const;
+  DataSourceContainerConstIterator GetVideoSourceIteratorBegin() const;
 
   /*! Get the end of the image iterator */
-  DataSourceContainerConstIterator GetVideoIteratorEnd() const;
+  DataSourceContainerConstIterator GetVideoSourceIteratorEnd() const;
 
   /*! Add image to the device */
-  PlusStatus AddVideo( vtkPlusDataSource* anImage );
+  PlusStatus AddVideoSource( vtkPlusDataSource* anImage );
 
   /*! Get number of images */
   int GetNumberOfVideoSources() const;

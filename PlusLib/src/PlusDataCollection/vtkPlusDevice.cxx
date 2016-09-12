@@ -928,7 +928,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration( vtkXMLDataElement* rootXMLElement )
       {
         aDataSource->ReadConfiguration( dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId() );
 
-        if ( this->AddVideo( aDataSource ) != PLUS_SUCCESS )
+        if ( this->AddVideoSource( aDataSource ) != PLUS_SUCCESS )
         {
           LOCAL_LOG_ERROR( "Failed to add video source '" << ( aDataSource->GetSourceId() ? aDataSource->GetSourceId() : "(unspecified)" ) << "' to device." );
         }
@@ -1346,7 +1346,7 @@ PlusStatus vtkPlusDevice::SetBufferSize( vtkPlusChannel& aChannel, int FrameBuff
 //----------------------------------------------------------------------------
 void vtkPlusDevice::SetStartTime( double startTime )
 {
-  for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it )
+  for ( DataSourceContainerConstIterator it = this->GetVideoSourceIteratorBegin(); it != this->GetVideoSourceIteratorEnd(); ++it )
   {
     it->second->SetStartTime( startTime );
   }
@@ -1369,7 +1369,7 @@ double vtkPlusDevice::GetStartTime()
   //        simply be included in the average
   double sumStartTime = 0.0;
   double numberOfBuffers( 0 );
-  for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it )
+  for ( DataSourceContainerConstIterator it = this->GetVideoSourceIteratorBegin(); it != this->GetVideoSourceIteratorEnd(); ++it )
   {
     sumStartTime += it->second->GetStartTime();
     numberOfBuffers++;
@@ -1411,7 +1411,7 @@ PlusStatus vtkPlusDevice::Probe()
 //-----------------------------------------------------------------------------
 void vtkPlusDevice::ClearAllBuffers()
 {
-  for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it )
+  for ( DataSourceContainerConstIterator it = this->GetVideoSourceIteratorBegin(); it != this->GetVideoSourceIteratorEnd(); ++it )
   {
     it->second->Clear();
   }
@@ -1910,13 +1910,13 @@ void vtkPlusDevice::InternalWriteInputChannels( vtkXMLDataElement* rootXMLElemen
 }
 
 //----------------------------------------------------------------------------
-DataSourceContainerConstIterator vtkPlusDevice::GetVideoIteratorBegin() const
+DataSourceContainerConstIterator vtkPlusDevice::GetVideoSourceIteratorBegin() const
 {
   return this->VideoSources.begin();
 }
 
 //----------------------------------------------------------------------------
-DataSourceContainerConstIterator vtkPlusDevice::GetVideoIteratorEnd() const
+DataSourceContainerConstIterator vtkPlusDevice::GetVideoSourceIteratorEnd() const
 {
   return this->VideoSources.end();
 }
@@ -1928,7 +1928,7 @@ int vtkPlusDevice::GetNumberOfVideoSources() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideo( vtkPlusDataSource* aVideo )
+PlusStatus vtkPlusDevice::AddVideoSource( vtkPlusDataSource* aVideo )
 {
   if ( aVideo == NULL )
   {
@@ -1942,10 +1942,10 @@ PlusStatus vtkPlusDevice::AddVideo( vtkPlusDataSource* aVideo )
     return PLUS_FAIL;
   }
 
-  if ( this->VideoSources.find( aVideo->GetSourceId() ) == this->GetVideoIteratorEnd() )
+  if ( this->VideoSources.find( aVideo->GetSourceId() ) == this->GetVideoSourceIteratorEnd() )
   {
     // Check image port names, it should be unique too
-    for ( DataSourceContainerConstIterator it = this->GetVideoIteratorBegin(); it != this->GetVideoIteratorEnd(); ++it )
+    for ( DataSourceContainerConstIterator it = this->GetVideoSourceIteratorBegin(); it != this->GetVideoSourceIteratorEnd(); ++it )
     {
       if ( STRCASECMP( aVideo->GetSourceId(), it->second->GetSourceId() ) == 0 )
       {
@@ -2279,7 +2279,7 @@ PlusStatus vtkPlusDevice::CreateDefaultOutputChannel( bool addSource/*=true*/ )
     {
       return PLUS_FAIL;
     }
-    if( this->AddVideo( aDataSource ) != PLUS_SUCCESS )
+    if( this->AddVideoSource( aDataSource ) != PLUS_SUCCESS )
     {
       return PLUS_FAIL;
     }

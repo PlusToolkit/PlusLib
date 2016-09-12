@@ -121,7 +121,7 @@ PlusStatus vtkPlusVirtualMixer::NotifyConfigured()
     if( anInputChannel->HasVideoSource() && anInputChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
     {
       outputChannel->SetVideoSource(aSource);
-      this->AddVideo(aSource);
+      this->AddVideoSource(aSource);
     }
 
     for( DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter )
