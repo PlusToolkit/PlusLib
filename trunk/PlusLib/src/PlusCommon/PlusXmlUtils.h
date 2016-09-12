@@ -245,6 +245,21 @@ public:
     } \
   }
 
+// Read a numeric attribute and save it to a class member variable. If not found then return with error.
+#define XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_REQUIRED(varType, attributeName, var, xmlElementVar)  \
+  { \
+    varType tmpValue; \
+    if ( xmlElementVar->GetScalarAttribute(#attributeName, tmpValue) )  \
+    { \
+      var = tmpValue; \
+    } \
+    else  \
+    { \
+      LOG_ERROR("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") << " element in device set configuration");  \
+      return PLUS_FAIL; \
+    } \
+  }
+
 // Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
 #define XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
@@ -316,6 +331,20 @@ public:
     if ( xmlElementVar->GetVectorAttribute(#attributeName, vectorSize, tmpValue) )  \
     { \
       memcpy(var, tmpValue, sizeof(varType)*vectorSize); \
+    } \
+  }
+
+// Read a vector of numeric attributes and save it to a variable
+#define XML_READ_VECTOR_ATTRIBUTE_NONMEMBER_REQUIRED(varType, vectorSize, attributeName, var, xmlElementVar)  \
+  { \
+    varType tmpValue[vectorSize]; \
+    if ( xmlElementVar->GetVectorAttribute(#attributeName, vectorSize, tmpValue) )  \
+    { \
+      memcpy(var, tmpValue, sizeof(varType)*vectorSize); \
+    } \
+    else \
+    { \
+      LOG_WARNING("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") << " element in device set configuration");  \
     } \
   }
 

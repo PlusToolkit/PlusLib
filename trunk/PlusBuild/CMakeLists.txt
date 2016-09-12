@@ -244,14 +244,18 @@ OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial
 OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Provide support for the da Vinci Surgical System" OFF)
+OPTION(PLUS_USE_OvrvisionPro "Provide support for the OvrvisionPro Stereo Camera" OFF)
+IF(PLUS_USE_OvrvisionPro)
+  OPTION(PLUS_TEST_OvrvisionPro "Enable testing of acquisition of stereo images from the OvrvisionPro" OFF)
+ENDIF()
 
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe" OFF)
 IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
   OPTION(PLUS_TEST_PHILIPS_3D_ULTRASOUND "Enable testing of acquisition from Philips 3D ultrasound systems. Enable this only if a Philips device is accessible from this computer. " OFF)
-ENDIF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
-IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
-  SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
-ENDIF(PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+  IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
+    SET (PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS "129.100.44.8" CACHE STRING "IP address of the Philips scanner that is used during testing")
+  ENDIF()
+ENDIF()
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
 IF (PLUS_USE_NVIDIA_DVP)
@@ -417,6 +421,13 @@ IF ( PLUS_USE_OPTITRACK )
   INCLUDE(External_BiiGOptitrack.cmake)
 ENDIF()
 
+IF( PLUS_USE_OvrvisionPro )
+  FIND_PACKAGE(OpenGL REQUIRED)
+  FIND_PACKAGE(OpenCL REQUIRED)
+  INCLUDE(External_OpenCV.cmake)
+  INCLUDE(External_OvrvisionPro.cmake)
+ENDIF()
+
 IF ( PLUS_USE_OPTIMET_CONOPROBE )
   FIND_PACKAGE (OPTIMETSMART32SDK)
   IF ( NOT OPTIMETSMART32SDK_FOUND)
@@ -528,13 +539,13 @@ ENDIF()
 #------------------------------------------------------------------------------
 SET(PlusLib_DEPENDENCIES)
 
-IF ( NOT VTK_DIR )
+IF( NOT VTK_DIR )
   # VTK_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
   SET(VTK_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES vtk)
 ENDIF()
 
-IF ( NOT ITK_DIR )
+IF( NOT ITK_DIR )
   # ITK_DIR is not supplied, so it is built inside Plus, therefore we need to specify dependencies to make sure it is built early enough
   SET(ITK_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES itk)
@@ -546,7 +557,7 @@ IF(PLUSBUILD_USE_OpenIGTLink AND NOT OpenIGTLink_DIR)
   LIST(APPEND PlusLib_DEPENDENCIES OpenIGTLink)
 ENDIF()
 
-IF ( PLUS_USE_BKPROFOCUS_VIDEO )
+IF( PLUS_USE_BKPROFOCUS_VIDEO )
   SET(GrabbieLib_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES GrabbieLib)
 ENDIF()
@@ -557,9 +568,13 @@ IF( PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR )
   INCLUDE(External_IntersonSDKCxx.cmake)
 ENDIF()
 
-IF ( PLUS_USE_OPTITRACK AND PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR )
+IF( PLUS_USE_OPTITRACK AND PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR )
   SET(BiiGOptitrack_DEPENDENCIES itk OpenIGTLink)
   LIST(APPEND PlusLib_DEPENDENCIES BiiGOptitrack)
+ENDIF()
+
+IF( PLUS_USE_OvrvisionPro AND NOT OvrvisionPro_DIR )
+  LIST(APPEND PlusLib_DEPENDENCIES OvrvisionPro)
 ENDIF()
 
 SET(PlusApp_DEPENDENCIES PlusLib)
@@ -578,12 +593,6 @@ SET(BUILD_ARCHITECTURE "x64")
 IF( UNIX AND NOT APPLE )
   SET(LINUX TRUE)
 ENDIF()
-
-SET(VTK_BUILD_NAME "vtk7")
-
-IF( PLUSBUILD_BUILD_PLUSAPP )
-  SET(QT_BUILD_NAME "qt5")
-ENDIF( PLUSBUILD_BUILD_PLUSAPP )
 
 #Build a nice system and compiler name
 IF( LINUX )
@@ -654,10 +663,10 @@ ENDIF()
 
 SET(PLUSBUILD_BUILDNAME_POSTFIX "" CACHE STRING "Postfix that will be appended to the build name on the dashboard. If defined then BUILDNAME variable is always overwritten.")
 MARK_AS_ADVANCED(PLUSBUILD_BUILDNAME_POSTFIX)
-SET(GENERATED_BUILDNAME "${COMPILER_NAME}${BUILD_ARCHITECTURE}-${SYSTEM_NAME}-${VTK_BUILD_NAME}-${QT_BUILD_NAME}")
+SET(GENERATED_BUILDNAME "${COMPILER_NAME}${BUILD_ARCHITECTURE}-${SYSTEM_NAME}")
 
 IF ("${PLUSBUILD_BUILDNAME_POSTFIX}" STREQUAL "")
-  SET(BUILDNAME "${GENERATED_BUILDNAME}" CACHE STRING "Name of the build on the dashboard")
+  SET(BUILDNAME "${GENERATED_BUILDNAME}" CACHE STRING "Name of the build on the dashboard" FORCE)
 ELSE()
   SET(BUILDNAME "${GENERATED_BUILDNAME}-${PLUSBUILD_BUILDNAME_POSTFIX}" CACHE STRING "Name of the build on the dashboard. Value is generated automatically from build options and PLUSBUILD_BUILDNAME_POSTFIX." FORCE)
 ENDIF()
