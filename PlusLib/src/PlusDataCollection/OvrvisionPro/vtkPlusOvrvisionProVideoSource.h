@@ -39,11 +39,17 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   vtkGetMacro( DirectShowFilterID, int );
-  vtkGetMacro( USB3, bool );
+  vtkGetStringMacro( LeftEyeDataSourceName );
+  vtkGetStringMacro( RightEyeDataSourceName );
+  vtkGetVector2Macro( Resolution, int );
+  vtkGetMacro( Framerate, int );
 
 protected:
   vtkSetMacro( DirectShowFilterID, int );
-  vtkSetMacro( USB3, bool );
+  vtkSetStringMacro( LeftEyeDataSourceName );
+  vtkSetStringMacro( RightEyeDataSourceName );
+  vtkSetVector2Macro( Resolution, int );
+  vtkSetMacro( Framerate, int );
 
   /// Device-specific connect
   virtual PlusStatus InternalConnect();
@@ -52,7 +58,7 @@ protected:
   virtual PlusStatus InternalDisconnect();
 
   /// Given a requested resolution and framerate
-  bool ConfigureRequestedFormat(int resolution[2], int fps);
+  bool ConfigureRequestedFormat( int resolution[2], int fps );
 
 protected:
   vtkPlusOvrvisionProVideoSource();
@@ -69,6 +75,17 @@ protected:
 
   // Requested capture format
   OVR::Camprop RequestedFormat;
+
+  // Cache variables from the config file
+  int Resolution[2];
+  int Framerate;
+
+  // Record which data source corresponds to which eye
+  char* LeftEyeDataSourceName;
+  char* RightEyeDataSourceName;
+
+  vtkPlusDataSource* LeftEyeDataSource;
+  vtkPlusDataSource* RightEyeDataSource;
 
 private:
   vtkPlusOvrvisionProVideoSource( const vtkPlusOvrvisionProVideoSource& ); // Not implemented.
