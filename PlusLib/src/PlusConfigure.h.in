@@ -85,6 +85,7 @@
 #cmakedefine PLUS_TEST_tesseract
 #cmakedefine PLUS_USE_USDIGITALENCODERS_TRACKER
 #cmakedefine PLUS_USE_NVIDIA_DVP
+#cmakedefine PLUS_USE_OvrvisionPro
 
 #cmakedefine PLUS_USE_SIMPLE_TIMER
 #cmakedefine PLUS_TEST_HIGH_ACCURACY_TIMING

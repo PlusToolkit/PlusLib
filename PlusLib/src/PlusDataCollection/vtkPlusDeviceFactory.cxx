@@ -136,6 +136,14 @@ See License.txt for details.
 #include "Capistrano\vtkPlusCapistranoVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_NVIDIA_DVP
+#include "vtkPlusNVidiaDVPVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_OvrvisionPro
+#include "vtkPlusOvrvisionProVideoSource.h"
+#endif
+
 //---------------------------------------------------------------------------
 // Virtual devices
 #ifdef PLUS_USE_tesseract
@@ -296,6 +304,15 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
 #ifdef PLUS_USE_tesseract
   DeviceTypes["VirtualTextRecognizer"]=(PointerToDevice)&vtkPlusVirtualTextRecognizer::New;
   DeviceTypeClassNames["VirtualTextRecognizer"] = "vtkPlusVirtualTextRecognizer";
+#endif
+#ifdef PLUS_USE_NVIDIA_DVP
+  DeviceTypes["NvidiaDVP"] = (PointerToDevice)&vtkPlusNvidiaDVPVideoSource::New;
+  DeviceTypeClassNames["NvidiaDVP"] = "vtkPlusNVidiaDVPVideoSource";
+#endif
+
+#ifdef PLUS_USE_OvrvisionPro
+  DeviceTypes["OvrvisionPro"] = (PointerToDevice)&vtkPlusOvrvisionProVideoSource::New;
+  DeviceTypeClassNames["OvrvisionPro"] = "vtkPlusOvrvisionProVideoSource";
 #endif
 
   // Virtual Devices

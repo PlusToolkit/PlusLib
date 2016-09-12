@@ -16,6 +16,8 @@ See License.txt for details.
 
 vtkStandardNewMacro( vtkPlusOvrvisionProVideoSource );
 
+vtkPlusOvrvisionProVideoSource* vtkPlusOvrvisionProVideoSource::ActiveDevice = NULL;
+
 //----------------------------------------------------------------------------
 vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   : DirectShowFilterID( 0 )
@@ -26,6 +28,12 @@ vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   , RightEyeDataSource( NULL )
 {
   this->RequireImageOrientationInConfiguration = true;
+
+  if ( vtkPlusOvrvisionProVideoSource::ActiveDevice != NULL )
+  {
+    LOG_WARNING( "There is already an active vtkPlusOvrvisionProVideoSource device. OvrvisionPro SDK only supports one connection at a time, so the existing device is now deactivated and the newly created class is activated instead." );
+  }
+  vtkPlusOvrvisionProVideoSource::ActiveDevice = this;
 }
 
 //----------------------------------------------------------------------------
@@ -35,14 +43,47 @@ vtkPlusOvrvisionProVideoSource::~vtkPlusOvrvisionProVideoSource()
   {
     this->Disconnect();
   }
+
+  vtkPlusOvrvisionProVideoSource::ActiveDevice = NULL;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusOvrvisionProVideoSource::OnNewFrameAvailable()
 {
-  //aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber)
-  //LeftEyeDataSource->
-  //OvrvisionProHandle.GetStereoImageBGRA()
+  ActiveDevice->GrabLatestStereoFrame();
+  ActiveDevice->FrameNumber++;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusOvrvisionProVideoSource::GrabLatestStereoFrame()
+{
+  // Query the SDK for the latest frames
+  OvrvisionProHandle.GetStereoImageBGRA( LeftFrameBGRA, RightFrameBGRA, RegionOfInterest );
+
+  // Add them to our local buffers
+  if ( LeftEyeDataSource->AddItem( LeftFrameBGRA,
+                                   LeftEyeDataSource->GetInputImageOrientation(),
+                                   LeftEyeDataSource->GetInputFrameSize(),
+                                   VTK_UNSIGNED_CHAR,
+                                   4,
+                                   US_IMG_BRIGHTNESS,
+                                   0,
+                                   this->FrameNumber ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR( "Unable to add left eye image to data source." );
+  }
+
+  if ( RightEyeDataSource->AddItem( RightFrameBGRA,
+                                    RightEyeDataSource->GetInputImageOrientation(),
+                                    RightEyeDataSource->GetInputFrameSize(),
+                                    VTK_UNSIGNED_CHAR,
+                                    4,
+                                    US_IMG_BRIGHTNESS,
+                                    0,
+                                    this->FrameNumber ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR( "Unable to add right eye image to data source." );
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -51,6 +92,10 @@ void vtkPlusOvrvisionProVideoSource::PrintSelf( ostream& os, vtkIndent indent )
   this->Superclass::PrintSelf( os, indent );
 
   os << indent << "DirectShowFilterID: " << DirectShowFilterID << std::endl;
+  os << indent << "Resolution: " << Resolution[0] << ", " << Resolution[1] << std::endl;
+  os << indent << "Framerate: " << Framerate << std::endl;
+  os << indent << "LeftEyeDataSourceName: " << LeftEyeDataSourceName << std::endl;
+  os << indent << "RightEyeDataSourceName: " << RightEyeDataSourceName << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -59,8 +104,13 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
   LOG_TRACE( "vtkPlusOvrvisionProVideoSource::InternalConnect" );
 
   int frameSize[3] = { Resolution[0], Resolution[1], 1 };
-  LeftEyeDataSource->SetInputFrameSize(frameSize);
-  RightEyeDataSource->SetInputFrameSize(frameSize);
+  LeftEyeDataSource->SetInputFrameSize( frameSize );
+  LeftEyeDataSource->SetNumberOfScalarComponents( 4 ); //BGRA
+  RightEyeDataSource->SetInputFrameSize( frameSize );
+  RightEyeDataSource->SetNumberOfScalarComponents( 4 ); //BGRA
+
+  LeftFrameBGRA = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * 4];
+  RightFrameBGRA = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * 4];
 
   if ( !OvrvisionProHandle.Open( DirectShowFilterID, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
@@ -68,7 +118,7 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  OvrvisionProHandle.SetCallbackImageFunction( &this->OnNewFrameAvailable );
+  OvrvisionProHandle.SetCallbackImageFunction( vtkPlusOvrvisionProVideoSource::OnNewFrameAvailable );
 
   return PLUS_SUCCESS;
 }
@@ -78,12 +128,15 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalDisconnect()
 {
   LOG_DEBUG( "vtkPlusOvrvisionProVideoSource::InternalDisconnect" );
 
+  delete[] LeftFrameBGRA;
+  LeftFrameBGRA = NULL;
+  delete[] RightFrameBGRA;
+  RightFrameBGRA = NULL;
+
   if ( OvrvisionProHandle.isOpen() )
   {
     OvrvisionProHandle.Close();
   }
-
-  OvrvisionProHandle.SetCallbackImageFunction( NULL );
 
   return PLUS_SUCCESS;
 }
@@ -91,6 +144,11 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalDisconnect()
 //----------------------------------------------------------------------------
 bool vtkPlusOvrvisionProVideoSource::ConfigureRequestedFormat( int resolution[2], int fps )
 {
+  RegionOfInterest.offsetX = 0;
+  RegionOfInterest.offsetY = 0;
+  RegionOfInterest.width = resolution[0];
+  RegionOfInterest.height = resolution[1];
+
   switch ( fps )
   {
   case 15:
@@ -185,7 +243,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration( vtkXMLDataElement
   deviceConfig->SetIntAttribute( "DirectShowFilterID", DirectShowFilterID );
 
   int resolution[2];
-  int fps;
   switch ( RequestedFormat )
   {
   case OVR::OV_CAM5MP_FULL:
