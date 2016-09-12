@@ -381,10 +381,16 @@ IF (PLUS_USE_INTELREALSENSE)
     TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon)    
 ENDIF()
 
-#***************************  vtkNVidiaDVPVideoSourceTest.cxx ***************************
+#***************************  vtkNVidiaDVPVideoSourceTest ***************************
 IF (PLUS_USE_NVIDIA_DVP)
   ADD_EXECUTABLE(vtkNVidiaDVPVideoSourceTest vtkNVidiaDVPVideoSourceTest.cxx )
   TARGET_LINK_LIBRARIES(vtkNVidiaDVPVideoSourceTest vtkPlusDataCollection )
+ENDIF()
+
+#***************************  vtkOvrvisionProVideoSourceTest ***************************
+IF (PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
+  ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
+  TARGET_LINK_LIBRARIES(vtkOvrvisionProVideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
 #*************************** vtkPlusDeviceFactoryTest ***************************

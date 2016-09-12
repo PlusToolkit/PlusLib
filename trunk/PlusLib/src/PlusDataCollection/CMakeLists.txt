@@ -1125,15 +1125,11 @@ IF (PLUS_USE_OvrvisionPro)
 
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${OvrvisionPro_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/OvrvisionPro
     )
 
-  GET_PROPERTY(_ovrvisionpro_release_lib TARGET OvrvisionPro PROPERTY IMPORTED_LOCATION_RELEASE)
-  GET_PROPERTY(_ovrvisionpro_debug_lib TARGET OvrvisionPro PROPERTY IMPORTED_LOCATION_DEBUG)
-  SET ( External_Libraries_Install ${External_Libraries_Install}
-    ${_ovrvisionpro_release_lib}
-    )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug}
-    ${_ovrvisionpro_debug_lib}
+  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+    OvrvisionPro
     )
 ENDIF()
 

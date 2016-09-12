@@ -65,7 +65,8 @@ protected:
   ~vtkPlusOvrvisionProVideoSource();
 
   // Callback when the SDK tells us a new frame is available
-  void OnNewFrameAvailable();
+  static void OnNewFrameAvailable();
+  void GrabLatestStereoFrame();
 
 protected:
   OVR::OvrvisionPro OvrvisionProHandle;
@@ -75,6 +76,7 @@ protected:
 
   // Requested capture format
   OVR::Camprop RequestedFormat;
+  OVR::ROI RegionOfInterest;
 
   // Cache variables from the config file
   int Resolution[2];
@@ -87,7 +89,12 @@ protected:
   vtkPlusDataSource* LeftEyeDataSource;
   vtkPlusDataSource* RightEyeDataSource;
 
+  // Memory to hold left and right eye images requested from the SDK
+  unsigned char* LeftFrameBGRA;
+  unsigned char* RightFrameBGRA;
+
 private:
+  static vtkPlusOvrvisionProVideoSource* ActiveDevice;
   vtkPlusOvrvisionProVideoSource( const vtkPlusOvrvisionProVideoSource& ); // Not implemented.
   void operator=( const vtkPlusOvrvisionProVideoSource& ); // Not implemented.
 };
