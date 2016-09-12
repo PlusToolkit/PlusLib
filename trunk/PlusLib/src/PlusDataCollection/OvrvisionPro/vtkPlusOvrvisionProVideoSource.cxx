@@ -20,6 +20,10 @@ vtkStandardNewMacro( vtkPlusOvrvisionProVideoSource );
 vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   : DirectShowFilterID( 0 )
   , RequestedFormat( OVR::OV_CAM20VR_VGA )
+  , LeftEyeDataSourceName( NULL )
+  , RightEyeDataSourceName( NULL )
+  , LeftEyeDataSource( NULL )
+  , RightEyeDataSource( NULL )
 {
   this->RequireImageOrientationInConfiguration = true;
 }
@@ -37,6 +41,8 @@ vtkPlusOvrvisionProVideoSource::~vtkPlusOvrvisionProVideoSource()
 void vtkPlusOvrvisionProVideoSource::OnNewFrameAvailable()
 {
   //aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber)
+  //LeftEyeDataSource->
+  //OvrvisionProHandle.GetStereoImageBGRA()
 }
 
 //----------------------------------------------------------------------------
@@ -51,6 +57,10 @@ void vtkPlusOvrvisionProVideoSource::PrintSelf( ostream& os, vtkIndent indent )
 PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusOvrvisionProVideoSource::InternalConnect" );
+
+  int frameSize[3] = { Resolution[0], Resolution[1], 1 };
+  LeftEyeDataSource->SetInputFrameSize(frameSize);
+  RightEyeDataSource->SetInputFrameSize(frameSize);
 
   if ( !OvrvisionProHandle.Open( DirectShowFilterID, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
@@ -142,7 +152,6 @@ bool vtkPlusOvrvisionProVideoSource::ConfigureRequestedFormat( int resolution[2]
     return false;
   default:
     LOG_ERROR( "Unsupported framerate requested." );
-    return true;
   }
 
   return false;
@@ -155,12 +164,15 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration( vtkXMLDataElement*
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, DirectShowFilterID, deviceConfig );
 
-  int resolution[2];
-  XML_READ_VECTOR_ATTRIBUTE_NONMEMBER_REQUIRED( int, 2, "Resolution", resolution, deviceConfig );
-  int fps;
-  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_REQUIRED( int, "Framerate", fps, deviceConfig );
+  XML_READ_VECTOR_ATTRIBUTE_REQUIRED( int, 2, Resolution, deviceConfig );
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, Framerate, deviceConfig );
+  XML_READ_STRING_ATTRIBUTE_REQUIRED( LeftEyeDataSourceName, deviceConfig );
+  XML_READ_STRING_ATTRIBUTE_REQUIRED( RightEyeDataSourceName, deviceConfig );
 
-  ConfigureRequestedFormat( resolution, fps );
+  if ( !ConfigureRequestedFormat( Resolution, Framerate ) )
+  {
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -248,6 +260,23 @@ PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration( vtkXMLDataElement
 PlusStatus vtkPlusOvrvisionProVideoSource::NotifyConfigured()
 {
   // OvrvisionSDK requires two data sources, left eye and right eye
+  if ( this->GetDataSource( LeftEyeDataSourceName, LeftEyeDataSource ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR( "Unable to locate data source for left eye labelled: " << LeftEyeDataSourceName );
+    return PLUS_FAIL;
+  }
+
+  if ( this->GetDataSource( RightEyeDataSourceName, RightEyeDataSource ) != PLUS_SUCCESS )
+  {
+    LOG_ERROR( "Unable to locate data source for right eye labelled: " << RightEyeDataSourceName );
+    return PLUS_FAIL;
+  }
+
+  if ( this->OutputChannels.size() != 2 )
+  {
+    LOG_ERROR( "OvrvisionPro device requires exactly 2 output channels. One for each eye." );
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
