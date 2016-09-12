@@ -1,0 +1,43 @@
+/*!
+\page DeviceOvrvisionPro OvrvisionPro stereo camera
+
+\section OvrvisionProSupportedHwDevices Supported hardware devices
+
+- Support for the <http://ovrvision.com/entop/>Ovrvision Pro USB3.0 Stereo Camera</a>.
+
+\section OvrvisionProSupportedPlatforms Included in packages
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageUltrasonixWin32
+- \ref PackageMacOs
+- \ref PackageLinux
+
+The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
+
+\section OvrvisionProInstallation Installation
+
+Need to install the drivers and software from <a href="http://www.epiphan.com/products/frame-grabbers/vga2usb-lr/download/"> VGA2USB-LR download</a>.
+
+
+\section OvrvisionProConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "OvrvisionPro" \RequiredAtt
+
+- \xmlAtt \b DirectShowFilterID defines the filter ID that corresponds to this device. Windows Only.
+- \xmlAtt \b Resolution and \b Framerate define the requested capture format of the camera. Supported values are 
+
+- \xmlElem \ref DataSources Exactly two \c DataSource child elements are required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+    - \xmlAtt \ref ImageType. Color image acquisition is supported by setting the imaging device's common attribute \c ImageType="RGB_COLOR" as shown in the Epiphan Color Video Capture example. \OptionalAtt{BRIGHTNESS}
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+    - \xmlAtt \ref ClipRectangleOrigin Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}
+    - \xmlAtt \ref ClipRectangleSize Software clipping, applied on top of the hardware clipping region. \OptionalAtt{0 0 0}    
+
+\section OvrvisionProExampleConfigFile Example configuration file PlusDeviceSet_Server_OvrvisionProVideoCapture.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_OvrvisionProVideoCapture.xml"
+
+*/>
