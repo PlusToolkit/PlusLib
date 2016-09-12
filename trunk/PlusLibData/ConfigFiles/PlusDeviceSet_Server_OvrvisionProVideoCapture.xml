@@ -11,12 +11,14 @@
       DirectShowFilterID="0"
       Resolution="960 950"
       Framerate="60"
+      CameraSync="TRUE"
+      ProcessingMode="OV_CAMQT_NONE"
       LeftEyeDataSourceName="LeftVideo"
       RightEyeDataSourceName="RightVideo" >
       <DataSources>
-        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF"  />
-        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF"  />
-      </DataSources>      
+        <DataSource Type="Video" Id="LeftVideo" PortUsImageOrientation="MF" ImageType="RGB_COLOR" />
+        <DataSource Type="Video" Id="RightVideo" PortUsImageOrientation="MF" ImageType="RGB_COLOR" />
+      </DataSources>
       <OutputChannels>
         <OutputChannel Id="LeftVideoStream" VideoDataSourceId="LeftVideo" />
         <OutputChannel Id="RightVideoStream" VideoDataSourceId="RightVideo" />
@@ -25,7 +27,13 @@
   </DataCollection>
 
   <CoordinateDefinitions>
-    <Transform From="Image" To="Reference"
+    <Transform From="LeftImage" To="Reference"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1" />
+    <Transform From="RightImage" To="Reference"
       Matrix="
         1 0 0 0
         0 1 0 0
@@ -44,7 +52,7 @@
         <Message Type="IMAGE" />
       </MessageTypes>
       <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+        <Image Name="LeftImage" EmbeddedTransformToFrame="Reference" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
@@ -60,7 +68,7 @@
         <Message Type="IMAGE" />
       </MessageTypes>
       <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+        <Image Name="RightImage" EmbeddedTransformToFrame="Reference" />
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>

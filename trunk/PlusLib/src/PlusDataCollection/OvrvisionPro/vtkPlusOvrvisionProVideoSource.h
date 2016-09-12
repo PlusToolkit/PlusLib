@@ -43,13 +43,17 @@ public:
   vtkGetStringMacro( RightEyeDataSourceName );
   vtkGetVector2Macro( Resolution, int );
   vtkGetMacro( Framerate, int );
+  vtkGetMacro( CameraSync, bool );
+  vtkGetStringMacro( ProcessingModeName );
 
 protected:
   vtkSetMacro( DirectShowFilterID, int );
   vtkSetStringMacro( LeftEyeDataSourceName );
   vtkSetStringMacro( RightEyeDataSourceName );
   vtkSetVector2Macro( Resolution, int );
+  vtkSetStringMacro( ProcessingModeName );
   vtkSetMacro( Framerate, int );
+  vtkSetMacro( CameraSync, bool );
 
   /// Device-specific connect
   virtual PlusStatus InternalConnect();
@@ -57,30 +61,32 @@ protected:
   /// Device-specific disconnect
   virtual PlusStatus InternalDisconnect();
 
-  /// Given a requested resolution and framerate
-  bool ConfigureRequestedFormat( int resolution[2], int fps );
+  /// Device-specific on-update function
+  virtual PlusStatus InternalUpdate();
+
+  bool ConfigureRequestedFormat();
+  void ConfigureProcessingMode();
 
 protected:
   vtkPlusOvrvisionProVideoSource();
   ~vtkPlusOvrvisionProVideoSource();
 
-  // Callback when the SDK tells us a new frame is available
-  static void OnNewFrameAvailable();
-  void GrabLatestStereoFrame();
-
 protected:
+
+  // Requested capture format
   OVR::OvrvisionPro OvrvisionProHandle;
+  OVR::Camprop RequestedFormat;
+  OVR::ROI RegionOfInterest;
+  OVR::Camqt ProcessingMode;
+  bool CameraSync;
 
   // The filter ID to pass to the SDK
   int DirectShowFilterID;
 
-  // Requested capture format
-  OVR::Camprop RequestedFormat;
-  OVR::ROI RegionOfInterest;
-
   // Cache variables from the config file
   int Resolution[2];
   int Framerate;
+  char* ProcessingModeName;
 
   // Record which data source corresponds to which eye
   char* LeftEyeDataSourceName;
@@ -90,8 +96,9 @@ protected:
   vtkPlusDataSource* RightEyeDataSource;
 
   // Memory to hold left and right eye images requested from the SDK
-  unsigned char* LeftFrameBGRA;
-  unsigned char* RightFrameBGRA;
+  // in RGBA format, instead of BGRA as provided by the SDK
+  unsigned char* LeftFrameRGB;
+  unsigned char* RightFrameRGB;
 
 private:
   static vtkPlusOvrvisionProVideoSource* ActiveDevice;
