@@ -1069,20 +1069,55 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Include the NVidia DVP classes
 IF(PLUS_USE_NVIDIA_DVP)
-  SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS} 
-    NVidiaDVP/vtkPlusNVidiaDVPVideoSource.cxx
+  SET(NVidiaDVP_SRCS)
+  SET(NVidiaDVP_HDRS)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+      NVidiaDVP/vtkPlusNVidiaDVPVideoSourceWin32.cxx
+      )
+
+    IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+      SET (NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
+        NVidiaDVP/vtkPlusNVidiaDVPVideoSourceWin32.h
+        )
+    ENDIF()
+  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+      NVidiaDVP/vtkPlusNVidiaDVPVideoSourceLinux.cxx
+      )
+  ENDIF()
+  
+  SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+    NVidiaDVP/glExtensions.cpp
+    NVidiaDVP/nvGPUutil.cpp
+    NVidiaDVP/nvSDIin.cpp
+    NVidiaDVP/nvSDIout.cpp
+    NVidiaDVP/nvSDIutil.cpp
+    NVidiaDVP/nvCommon.cpp
     )
 
   IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
-      NVidiaDVP/vtkPlusNVidiaDVPVideoSource.h
+    SET (NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
+      NVidiaDVP/nvGPUutil.h
+      NVidiaDVP/nvSDIin.h
+      NVidiaDVP/nvSDIout.h
+      NVidiaDVP/glExtensions.h
+      NVidiaDVP/nvSDIutil.h
+      NVidiaDVP/nvCommon.h
       )
   ENDIF()
+  
+  SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+    ${NVidiaDVP_HDRS}
+    )
+
+  SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+    ${NVidiaDVP_SRCS}
+    )
 
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
-    ${NVIDIA_DVP_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/NVidiaDVP
-    ${OPENGL_INCLUDE_DIR}
     )
 
   SET ( External_Libraries_Install ${External_Libraries_Install}
@@ -1097,6 +1132,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     ADD_LIBRARY(NVidiaDVP SHARED IMPORTED)
     SET_PROPERTY(TARGET NVidiaDVP PROPERTY IMPORTED_IMPLIB ${NVIDIA_DVP_LIB_DIR}/dvp${CMAKE_STATIC_LIBRARY_SUFFIX})
     SET_PROPERTY(TARGET NVidiaDVP PROPERTY IMPORTED_LOCATION ${NVIDIA_DVP_BINARY_DIR}/dvp${CMAKE_SHARED_LIBRARY_SUFFIX})
+    SET_PROPERTY(TARGET NVidiaDVP PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NVIDIA_DVP_INCLUDE_DIR};${OPENGL_INCLUDE_DIR};${PlusCommon_INCLUDE_DIRS}")
   ELSE()
 
   ENDIF()
@@ -1159,6 +1195,10 @@ IF(MSVC)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(vtkPlusDataCollection ${PlusDataCollection_LIBS})
+
+# --------------------------------------------------------------------------
+# Source groups
+source_group("NVidiaDVP" FILES ${NVidiaDVP_HDRS} ${NVidiaDVP_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
