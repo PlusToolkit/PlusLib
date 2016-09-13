@@ -24,10 +24,15 @@ Authors include:
 #include <DVPAPI.h>
 #include <dvpapi_gl.h>
 
-// Quadro SDI includes
+#if WIN32
+// NV-API device control API
 #include <nvapi.h>
+#elif __linux__
+#include <NVCtrlLib.h>
+#include <NVCtrl.h>
+#elif __APPLE__
 
-
+#endif
 // System includes
 
 
@@ -55,6 +60,21 @@ vtkPlusNvidiaDVPVideoSource::~vtkPlusNvidiaDVPVideoSource()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusNvidiaDVPVideoSource::InitDeviceControl()
+{
+#if WIN32
+  // Initialize NVAPI
+  if ( NvAPI_Initialize() != NVAPI_OK )
+  {
+    LOG_ERROR( "Error Initializing NVAPI." );
+    return PLUS_FAIL;
+  }
+#elif __linux__
+
+#endif
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusNvidiaDVPVideoSource::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
@@ -65,6 +85,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusPhilips3DProbeVideoSource::InternalConnect" );
 
+  DVPStatus status = dvpInitGLContext();
   return PLUS_SUCCESS;
 }
 
