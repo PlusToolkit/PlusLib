@@ -198,6 +198,7 @@ ELSE(VTK_DIR)
         -DVTK_SMP_IMPLEMENTATION_TYPE:STRING="OpenMP"
         -DVTK_QT_VERSION:STRING=${QT_VERSION_MAJOR}
         -DVTK_WRAP_PYTHON:BOOL=OFF
+        -DVTK_RENDERING_BACKEND=${PLUSBUILD_VTK_RENDERING_BACKEND}
     #--Build step-----------------
     BUILD_ALWAYS 1
     #--Install step-----------------
