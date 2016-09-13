@@ -43,6 +43,8 @@ protected:
   vtkPlusNvidiaDVPVideoSource();
   virtual ~vtkPlusNvidiaDVPVideoSource();
 
+  PlusStatus InitDeviceControl();
+
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
   virtual PlusStatus InternalUpdate();
