@@ -21,7 +21,6 @@ vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   : RequestedFormat( OVR::OV_CAM20VR_VGA )
   , ProcessingMode( OVR::OV_CAMQT_NONE )
   , CameraSync( false )
-  , DirectShowFilterID( 0 )
   , Framerate( -1 )
   , ProcessingModeName( NULL )
   , LeftEyeDataSourceName( NULL )
@@ -49,7 +48,6 @@ void vtkPlusOvrvisionProVideoSource::PrintSelf( ostream& os, vtkIndent indent )
 {
   this->Superclass::PrintSelf( os, indent );
 
-  os << indent << "DirectShowFilterID: " << DirectShowFilterID << std::endl;
   os << indent << "Resolution: " << Resolution[0] << ", " << Resolution[1] << std::endl;
   os << indent << "Framerate: " << Framerate << std::endl;
   os << indent << "CameraSync: " << CameraSync << std::endl;
@@ -72,7 +70,7 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
   LeftFrameRGB = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * sizeof( unsigned char ) * 3];
   RightFrameRGB = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * sizeof( unsigned char ) * 3];
 
-  if ( !OvrvisionProHandle.Open( DirectShowFilterID, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
+  if ( !OvrvisionProHandle.Open( 0, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
     LOG_ERROR( "Unable to connect to OvrvisionPro device." );
     return PLUS_FAIL;
@@ -108,25 +106,34 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
 
   // Query the SDK for the latest frames
   OvrvisionProHandle.PreStoreCamData( OVR::OV_CAMQT_NONE );
-  unsigned char* leftFrameBGRA = OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_LEFT ); // 960 * 950 * 4
+  unsigned char* leftFrameBGRA = OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_LEFT );
   unsigned char* rightFrameBGRA = OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_RIGHT );
 
   unsigned int frameSize[3];
   LeftEyeDataSource->GetInputFrameSize( frameSize ); // Left and right eye have identical image sizes
 
-  unsigned int targetStride = sizeof( unsigned char ) * frameSize[0] * 3;
-  unsigned int sourceStride = sizeof( unsigned char ) * frameSize[0] * 4;
+  unsigned char* leftTargetPixel = LeftFrameRGB;
+  unsigned char* leftSourcePixel = leftFrameBGRA;
+  unsigned char* rightTargetPixel = RightFrameRGB;
+  unsigned char* rightSourcePixel = rightFrameBGRA;
+  const unsigned int targetPixelStride = 3 * sizeof( unsigned char );
+  const unsigned int sourcePixelStride = 4 * sizeof( unsigned char );
   for ( unsigned int y = 0; y < frameSize[1]; ++y )
   {
     for ( unsigned int x = 0; x < frameSize[0]; ++x )
     {
-      LeftFrameRGB[x + targetStride * y + 2]   = leftFrameBGRA[x + sourceStride * y]; // blue
-      LeftFrameRGB[x + targetStride * y + 1]   = leftFrameBGRA[x + sourceStride * y + 1]; // green
-      LeftFrameRGB[x + targetStride * y ]      = leftFrameBGRA[x + sourceStride * y + 2]; // red
+      leftTargetPixel[2] = leftSourcePixel[0]; // blue
+      leftTargetPixel[1] = leftSourcePixel[1]; // green
+      leftTargetPixel[0] = leftSourcePixel[2]; // red
 
-      RightFrameRGB[x + targetStride * y + 2]  = rightFrameBGRA[x + sourceStride * y]; // blue
-      RightFrameRGB[x + targetStride * y + 1]  = rightFrameBGRA[x + sourceStride * y + 1]; // green
-      RightFrameRGB[x + targetStride * y]      = rightFrameBGRA[x + sourceStride * y + 2]; // red
+      rightTargetPixel[2] = rightSourcePixel[0]; // blue
+      rightTargetPixel[1] = rightSourcePixel[1]; // green
+      rightTargetPixel[0] = rightSourcePixel[2]; // red
+
+      leftTargetPixel += targetPixelStride;
+      rightTargetPixel += targetPixelStride;
+      leftSourcePixel += sourcePixelStride;
+      rightSourcePixel += sourcePixelStride;
     }
   }
 
@@ -259,8 +266,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration( vtkXMLDataElement*
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
 
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, DirectShowFilterID, deviceConfig );
-
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED( int, 2, Resolution, deviceConfig );
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, Framerate, deviceConfig );
   XML_READ_STRING_ATTRIBUTE_REQUIRED( LeftEyeDataSourceName, deviceConfig );
@@ -286,8 +291,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration( vtkXMLDataElement*
 PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( deviceConfig, rootConfigElement );
-
-  deviceConfig->SetIntAttribute( "DirectShowFilterID", DirectShowFilterID );
 
   int resolution[2];
   switch ( RequestedFormat )

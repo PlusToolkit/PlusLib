@@ -38,7 +38,6 @@ public:
   /// Perform any completion tasks once configured
   virtual PlusStatus NotifyConfigured();
 
-  vtkGetMacro( DirectShowFilterID, int );
   vtkGetStringMacro( LeftEyeDataSourceName );
   vtkGetStringMacro( RightEyeDataSourceName );
   vtkGetVector2Macro( Resolution, int );
@@ -47,7 +46,6 @@ public:
   vtkGetStringMacro( ProcessingModeName );
 
 protected:
-  vtkSetMacro( DirectShowFilterID, int );
   vtkSetStringMacro( LeftEyeDataSourceName );
   vtkSetStringMacro( RightEyeDataSourceName );
   vtkSetVector2Macro( Resolution, int );
@@ -79,9 +77,6 @@ protected:
   OVR::ROI RegionOfInterest;
   OVR::Camqt ProcessingMode;
   bool CameraSync;
-
-  // The filter ID to pass to the SDK
-  int DirectShowFilterID;
 
   // Cache variables from the config file
   int Resolution[2];
