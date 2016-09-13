@@ -2,13 +2,13 @@
 
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet 
-      Name="PlusServer sending tracked frames from a saved data set." 
+      Name="PlusServer: Sending TRACKEDFRAME messages from a saved data set." 
       Description="Read data from file and stream it through OpenIGTLink. Can be used to test commands, such as start/stop recording and reconstruct volume" />
       
     <Device
       Id="TrackedVideoDevice"
       Type="SavedDataSource"
-      SequenceFile="NwirePhantomFreehand.mha"
+      SequenceFile="FacetInPlaneInsertion.mha"
       UseData="IMAGE_AND_TRANSFORM"
       UseOriginalTimestamps="FALSE"
       AcquisitionRate="3.0"
@@ -56,6 +56,7 @@
     MaxTimeSpentWithProcessingMs="50"
     ListeningPort="18944"
     SendValidTransformsOnly="true" 
+    NumberOfRetryAttempts="20"
     DefaultClientSendTimeoutSec="1.0"
     DefaultClientReceiveTimeoutSec="1.0"
     OutputChannelId="TrackedVideoStream" > 
