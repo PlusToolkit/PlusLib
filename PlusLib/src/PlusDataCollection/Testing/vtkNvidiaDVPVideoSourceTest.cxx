@@ -6,7 +6,11 @@
 
 #include "PlusConfigure.h"
 #include "vtkCallbackCommand.h"
-#include "vtkPlusNvidiaDVPVideoSource.h"
+#if WIN32
+#include "vtkPlusNvidiaDVPVideoSourceWin32.h"
+#elif __linux__
+#include "vtkPlusNvidiaDVPVideoSourceLinux.h"
+#endif
 #include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 
