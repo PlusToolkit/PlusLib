@@ -702,11 +702,6 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration( vtkXMLDataElement* ro
   {
     NvOptions.sampling = NVVIOCOMPONENTSAMPLING_4444;
   }
-  else
-  {
-    LOG_WARNING( "Unknown sampling requested. Defaulting to NVVIOCOMPONENTSAMPLING_422" );
-    NvOptions.sampling = NVVIOCOMPONENTSAMPLING_422;
-  }
 
   // Bits per component
   int bitsPerComponent;
@@ -808,8 +803,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::WriteConfiguration( vtkXMLDataElement* r
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusNvidiaDVPVideoSource::NotifyConfigured()
 {
-  if ( this->OutputChannels.size() != 1 && this->EnableGPUCPUCopy ||
-       this->OutputChannels.size() > 0 && !this->EnableGPUCPUCopy )
+  if ( this->OutputChannels.size() != 1 && this->EnableGPUCPUCopy  )
   {
     LOG_ERROR( "Incorrect configuration. GPU/CPU copy and OutputChannel configuration are incompatible." );
     this->SetCorrectlyConfigured( false );

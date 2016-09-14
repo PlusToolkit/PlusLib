@@ -312,8 +312,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory( void )
   DeviceTypeClassNames["VirtualTextRecognizer"] = "vtkPlusVirtualTextRecognizer";
 #endif
 #ifdef PLUS_USE_NVIDIA_DVP
-  DeviceTypes["NvidiaDVP"] = ( PointerToDevice )&vtkPlusNvidiaDVPVideoSource::New;
-  DeviceTypeClassNames["NvidiaDVP"] = "vtkPlusNVidiaDVPVideoSource";
+  DeviceTypes["NVidiaDVP"] = ( PointerToDevice )&vtkPlusNvidiaDVPVideoSource::New;
+  DeviceTypeClassNames["NVidiaDVP"] = "vtkPlusNVidiaDVPVideoSource";
 #endif
 
 #ifdef PLUS_USE_OvrvisionPro

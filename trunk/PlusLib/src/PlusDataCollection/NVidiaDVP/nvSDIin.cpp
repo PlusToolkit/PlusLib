@@ -73,7 +73,6 @@ CNvSDIinTopology::~CNvSDIinTopology()
 CNvSDIinTopology& CNvSDIinTopology::Instance()
 {
   static CNvSDIinTopology instance;
-  instance.Init();
   return instance;
 }
 
@@ -163,8 +162,8 @@ bool CNvSDIinTopology::Init()
     l_vioCaps.version = NVVIOCAPS_VER;
     if ( NvAPI_VIO_GetCapabilities( l_vioTopos.vioTarget[i].hVioHandle, &l_vioCaps ) != NVAPI_OK )
     {
-      LOG_ERROR( "Video I/O Unsupported." );
-      return false;
+      ++i;
+      continue;
     }
 
     // If video input device found, set flag.
