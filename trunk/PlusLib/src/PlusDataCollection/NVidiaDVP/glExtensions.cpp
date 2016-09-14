@@ -1,120 +1,157 @@
+/***************************************************************************\
+|*                                                                           *|
+|*      Copyright 2007 NVIDIA Corporation.  All rights reserved.             *|
+|*                                                                           *|
+|*   NOTICE TO USER:                                                         *|
+|*                                                                           *|
+|*   This source code is subject to NVIDIA ownership rights under U.S.       *|
+|*   and international Copyright laws.  Users and possessors of this         *|
+|*   source code are hereby granted a nonexclusive, royalty-free             *|
+|*   license to use this code in individual and commercial software.         *|
+|*                                                                           *|
+|*   NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE     *|
+|*   CODE FOR ANY PURPOSE. IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR         *|
+|*   IMPLIED WARRANTY OF ANY KIND. NVIDIA DISCLAIMS ALL WARRANTIES WITH      *|
+|*   REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF         *|
+|*   MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR          *|
+|*   PURPOSE. IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL,            *|
+|*   INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES          *|
+|*   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN      *|
+|*   AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING     *|
+|*   OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOURCE      *|
+|*   CODE.                                                                   *|
+|*                                                                           *|
+|*   U.S. Government End Users. This source code is a "commercial item"      *|
+|*   as that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting       *|
+|*   of "commercial computer  software" and "commercial computer software    *|
+|*   documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995)   *|
+|*   and is provided to the U.S. Government only as a commercial end item.   *|
+|*   Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through        *|
+|*   227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the       *|
+|*   source code with only those rights set forth herein.                    *|
+|*                                                                           *|
+|*   Any use of this source code in individual and commercial software must  *|
+|*   include, in the user documentation and internal comments to the code,   *|
+|*   the above Disclaimer and U.S. Government End Users Notice.              *|
+|*                                                                           *|
+|*                                                                           *|
+\***************************************************************************/
+
 #if WIN32
 #include <windows.h>
 #endif
 
-#include <gl\gl.h>
+#include "nvConfigure.h"
 #include <gl\glu.h>
-#include <gl\wglext.h>
-#include <gl\glext.h>
 #include <stdio.h>
 
 // GL_EXT_framebuffer_object
-PFNGLISRENDERBUFFEREXTPROC              glIsRenderbufferEXT = NULL;
-PFNGLBINDRENDERBUFFEREXTPROC            glBindRenderbufferEXT = NULL;
-PFNGLDELETERENDERBUFFERSEXTPROC         glDeleteRenderbuffersEXT = NULL;
-PFNGLGENRENDERBUFFERSEXTPROC            glGenRenderbuffersEXT = NULL;
-PFNGLRENDERBUFFERSTORAGEEXTPROC         glRenderbufferStorageEXT = NULL;
-PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC  glGetRenderbufferParameterivEXT = NULL;
-PFNGLISFRAMEBUFFEREXTPROC               glIsFramebufferEXT = NULL;
-PFNGLBINDFRAMEBUFFEREXTPROC             glBindFramebufferEXT = NULL;
-PFNGLDELETEFRAMEBUFFERSEXTPROC          glDeleteFramebuffersEXT = NULL;
-PFNGLGENFRAMEBUFFERSEXTPROC             glGenFramebuffersEXT = NULL;
-PFNGLBLITFRAMEBUFFEREXTPROC             glBlitFramebufferEXT = NULL;
-PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC      glCheckFramebufferStatusEXT = NULL;
-PFNGLFRAMEBUFFERTEXTURE1DEXTPROC        glFramebufferTexture1DEXT = NULL;
-PFNGLFRAMEBUFFERTEXTURE2DEXTPROC        glFramebufferTexture2DEXT = NULL;
-PFNGLFRAMEBUFFERTEXTURE3DEXTPROC        glFramebufferTexture3DEXT = NULL;
-PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC     glFramebufferRenderbufferEXT = NULL;
-PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParameterivEXT = NULL;
-PFNGLGENERATEMIPMAPEXTPROC              glGenerateMipmapEXT = NULL;
+PFNGLISRENDERBUFFEREXTPROC                              glIsRenderbufferEXT = NULL;
+PFNGLBINDRENDERBUFFEREXTPROC                            glBindRenderbufferEXT = NULL;
+PFNGLDELETERENDERBUFFERSEXTPROC                         glDeleteRenderbuffersEXT = NULL;
+PFNGLGENRENDERBUFFERSEXTPROC                            glGenRenderbuffersEXT = NULL;
+PFNGLRENDERBUFFERSTORAGEEXTPROC                         glRenderbufferStorageEXT = NULL;
+PFNGLGETRENDERBUFFERPARAMETERIVEXTPROC                  glGetRenderbufferParameterivEXT = NULL;
+PFNGLISFRAMEBUFFEREXTPROC                               glIsFramebufferEXT = NULL;
+PFNGLBINDFRAMEBUFFEREXTPROC                             glBindFramebufferEXT = NULL;
+PFNGLDELETEFRAMEBUFFERSEXTPROC                          glDeleteFramebuffersEXT = NULL;
+PFNGLGENFRAMEBUFFERSEXTPROC                             glGenFramebuffersEXT = NULL;
+PFNGLBLITFRAMEBUFFEREXTPROC                             glBlitFramebufferEXT = NULL;
+PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC                      glCheckFramebufferStatusEXT = NULL;
+PFNGLFRAMEBUFFERTEXTURE1DEXTPROC                        glFramebufferTexture1DEXT = NULL;
+PFNGLFRAMEBUFFERTEXTURE2DEXTPROC                        glFramebufferTexture2DEXT = NULL;
+PFNGLFRAMEBUFFERTEXTURE3DEXTPROC                        glFramebufferTexture3DEXT = NULL;
+PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC                     glFramebufferRenderbufferEXT = NULL;
+PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC         glGetFramebufferAttachmentParameterivEXT = NULL;
+PFNGLGENERATEMIPMAPEXTPROC                              glGenerateMipmapEXT = NULL;
 
 //GL_EXT_timer_query
-PFNGLGENQUERIESPROC glGenQueries = NULL;
-PFNGLDELETEQUERIESPROC glDeleteQueries = NULL;
-PFNGLBEGINQUERYPROC glBeginQuery = NULL;
-PFNGLENDQUERYPROC glEndQuery = NULL;
-PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64vEXT = NULL;
-PFNGLGETINTEGER64VPROC glGetInteger64v = NULL;
-PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuiv = NULL;
+PFNGLGENQUERIESPROC                                     glGenQueries = NULL;
+PFNGLDELETEQUERIESPROC                                  glDeleteQueries = NULL;
+PFNGLBEGINQUERYPROC                                     glBeginQuery = NULL;
+PFNGLENDQUERYPROC                                       glEndQuery = NULL;
+PFNGLGETQUERYOBJECTUI64VEXTPROC                         glGetQueryObjectui64vEXT = NULL;
+PFNGLGETINTEGER64VPROC                                  glGetInteger64v = NULL;
+PFNGLGETQUERYOBJECTUIVPROC                              glGetQueryObjectuiv = NULL;
 // WGL_gpu_affinity
-PFNWGLENUMGPUSNVPROC                wglEnumGpusNV = NULL;
-PFNWGLENUMGPUDEVICESNVPROC          wglEnumGpuDevicesNV = NULL;
-PFNWGLCREATEAFFINITYDCNVPROC        wglCreateAffinityDCNV = NULL;
-PFNWGLDELETEDCNVPROC                wglDeleteDCNV = NULL;
-PFNWGLENUMGPUSFROMAFFINITYDCNVPROC  wglEnumGpusFromAffinityDCNV = NULL;
+PFNWGLENUMGPUSNVPROC                                    wglEnumGpusNV = NULL;
+PFNWGLENUMGPUDEVICESNVPROC                              wglEnumGpuDevicesNV = NULL;
+PFNWGLCREATEAFFINITYDCNVPROC                            wglCreateAffinityDCNV = NULL;
+PFNWGLDELETEDCNVPROC                                    wglDeleteDCNV = NULL;
+PFNWGLENUMGPUSFROMAFFINITYDCNVPROC                      wglEnumGpusFromAffinityDCNV = NULL;
 
 // WGL_Swap_Interval
-PFNWGLSWAPINTERVALEXTPROC           wglSwapIntervalEXT = NULL;
+PFNWGLSWAPINTERVALEXTPROC                               wglSwapIntervalEXT = NULL;
 
 //WGL_ARB_pixel_format
-PFNWGLCHOOSEPIXELFORMATARBPROC    wglChoosePixelFormat = NULL;
+PFNWGLCHOOSEPIXELFORMATARBPROC                          wglChoosePixelFormat = NULL;
 
 // WGL_NV_Copy_image
-PFNWGLCOPYIMAGESUBDATANVPROC        wglCopyImageSubDataNV = NULL;
+PFNWGLCOPYIMAGESUBDATANVPROC                            wglCopyImageSubDataNV = NULL;
 
 //GL_ARB_copy_buffer
-PFNGLCOPYBUFFERSUBDATAPROC          glCopyBufferSubData = NULL;
+PFNGLCOPYBUFFERSUBDATAPROC                              glCopyBufferSubData = NULL;
 
 // GL_ARB_vertex_buffer_object
-PFNGLBINDBUFFERARBPROC              glBindBuffer = NULL;
-PFNGLBUFFERDATAARBPROC              glBufferData = NULL;
-PFNGLBUFFERSUBDATAARBPROC           glBufferSubData = NULL;
-PFNGLDELETEBUFFERSARBPROC           glDeleteBuffers = NULL;
-PFNGLGENBUFFERSARBPROC              glGenBuffers = NULL;
-PFNGLMAPBUFFERPROC                  glMapBuffer = NULL;
-PFNGLUNMAPBUFFERPROC                glUnmapBuffer = NULL;
-PFNGLMAPBUFFERRANGEPROC             glMapBufferRange = NULL;
-PFNGLGETBUFFERSUBDATAPROC     glGetBufferSubData = NULL;
+PFNGLBINDBUFFERARBPROC                                  glBindBuffer = NULL;
+PFNGLBUFFERDATAARBPROC                                  glBufferData = NULL;
+PFNGLBUFFERSUBDATAARBPROC                               glBufferSubData = NULL;
+PFNGLDELETEBUFFERSARBPROC                               glDeleteBuffers = NULL;
+PFNGLGENBUFFERSARBPROC                                  glGenBuffers = NULL;
+PFNGLMAPBUFFERPROC                                      glMapBuffer = NULL;
+PFNGLUNMAPBUFFERPROC                                    glUnmapBuffer = NULL;
+PFNGLMAPBUFFERRANGEPROC                                 glMapBufferRange = NULL;
+PFNGLGETBUFFERSUBDATAPROC                               glGetBufferSubData = NULL;
 
 //NV_present_video
-PFNWGLENUMERATEVIDEODEVICESNVPROC wglEnumerateVideoDevicesNV = NULL;
-PFNWGLBINDVIDEODEVICENVPROC wglBindVideoDeviceNV = NULL;
-PFNGLPRESENTFRAMEKEYEDNVPROC glPresentFrameKeyedNV = NULL;
-PFNGLPRESENTFRAMEDUALFILLNVPROC glPresentFrameDualFillNV = NULL;
-PFNGLGETVIDEOIVNVPROC glGetVideoivNV = NULL;
-PFNGLGETVIDEOUIVNVPROC glGetVideouivNV = NULL;
-PFNGLGETVIDEOI64VNVPROC glGetVideoi64vNV = NULL;
-PFNGLGETVIDEOUI64VNVPROC glGetVideoui64vNV = NULL;
+PFNWGLENUMERATEVIDEODEVICESNVPROC                       wglEnumerateVideoDevicesNV = NULL;
+PFNWGLBINDVIDEODEVICENVPROC                             wglBindVideoDeviceNV = NULL;
+PFNGLPRESENTFRAMEKEYEDNVPROC                            glPresentFrameKeyedNV = NULL;
+PFNGLPRESENTFRAMEDUALFILLNVPROC                         glPresentFrameDualFillNV = NULL;
+PFNGLGETVIDEOIVNVPROC                                   glGetVideoivNV = NULL;
+PFNGLGETVIDEOUIVNVPROC                                  glGetVideouivNV = NULL;
+PFNGLGETVIDEOI64VNVPROC                                 glGetVideoi64vNV = NULL;
+PFNGLGETVIDEOUI64VNVPROC                                glGetVideoui64vNV = NULL;
 
 //NV_Video_Capture
-PFNWGLENUMERATEVIDEOCAPTUREDEVICESNVPROC wglEnumerateVideoCaptureDevicesNV = NULL;
-PFNWGLBINDVIDEOCAPTUREDEVICENVPROC wglBindVideoCaptureDeviceNV = NULL;
-PFNWGLRELEASEVIDEOCAPTUREDEVICENVPROC wglReleaseVideoCaptureDeviceNV = NULL;
-PFNWGLLOCKVIDEOCAPTUREDEVICENVPROC wglLockVideoCaptureDeviceNV = NULL;
-PFNWGLQUERYVIDEOCAPTUREDEVICENVPROC wglQueryVideoCaptureDeviceNV = NULL;
-PFNWGLQUERYCURRENTCONTEXTNVPROC wglQueryCurrentContextNV = NULL;
-PFNGLVIDEOCAPTURESTREAMPARAMETERIVNVPROC glVideoCaptureStreamParameterivNV = NULL;
-PFNGLVIDEOCAPTURESTREAMPARAMETERFVNVPROC glVideoCaptureStreamParameterfvNV = NULL;
-PFNGLGETVIDEOCAPTURESTREAMIVNVPROC glGetVideoCaptureStreamivNV = NULL;
-PFNGLBINDVIDEOCAPTURESTREAMBUFFERNVPROC glBindVideoCaptureStreamBufferNV = NULL;
-PFNGLBINDVIDEOCAPTURESTREAMTEXTURENVPROC glBindVideoCaptureStreamTextureNV = NULL;
-PFNGLBEGINVIDEOCAPTURENVPROC glBeginVideoCaptureNV = NULL;
-PFNGLENDVIDEOCAPTURENVPROC glEndVideoCaptureNV = NULL;
-PFNGLVIDEOCAPTURENVPROC glVideoCaptureNV = NULL;
+PFNWGLENUMERATEVIDEOCAPTUREDEVICESNVPROC                wglEnumerateVideoCaptureDevicesNV = NULL;
+PFNWGLBINDVIDEOCAPTUREDEVICENVPROC                      wglBindVideoCaptureDeviceNV = NULL;
+PFNWGLRELEASEVIDEOCAPTUREDEVICENVPROC                   wglReleaseVideoCaptureDeviceNV = NULL;
+PFNWGLLOCKVIDEOCAPTUREDEVICENVPROC                      wglLockVideoCaptureDeviceNV = NULL;
+PFNWGLQUERYVIDEOCAPTUREDEVICENVPROC                     wglQueryVideoCaptureDeviceNV = NULL;
+PFNWGLQUERYCURRENTCONTEXTNVPROC                         wglQueryCurrentContextNV = NULL;
+PFNGLVIDEOCAPTURESTREAMPARAMETERIVNVPROC                glVideoCaptureStreamParameterivNV = NULL;
+PFNGLVIDEOCAPTURESTREAMPARAMETERFVNVPROC                glVideoCaptureStreamParameterfvNV = NULL;
+PFNGLGETVIDEOCAPTURESTREAMIVNVPROC                      glGetVideoCaptureStreamivNV = NULL;
+PFNGLBINDVIDEOCAPTURESTREAMBUFFERNVPROC                 glBindVideoCaptureStreamBufferNV = NULL;
+PFNGLBINDVIDEOCAPTURESTREAMTEXTURENVPROC                glBindVideoCaptureStreamTextureNV = NULL;
+PFNGLBEGINVIDEOCAPTURENVPROC                            glBeginVideoCaptureNV = NULL;
+PFNGLENDVIDEOCAPTURENVPROC                              glEndVideoCaptureNV = NULL;
+PFNGLVIDEOCAPTURENVPROC                                 glVideoCaptureNV = NULL;
 
-PFNGLSHADERSOURCEARBPROC  glShaderSource = NULL;
-PFNGLCOMPILESHADERARBPROC    glCompileShader = NULL;
-PFNGLGETSHADERIVPROC glGetShaderiv = NULL;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = NULL;
-PFNGLUSEPROGRAMPROC glUseProgram = NULL;
-PFNGLCREATESHADERPROC glCreateShader = NULL;
-PFNGLDELETESHADERPROC glDeleteShader = NULL;
-PFNGLDELETEPROGRAMPROC glDeleteProgram = NULL;
-PFNGLCREATEPROGRAMPROC glCreateProgram = NULL;
-PFNGLATTACHSHADERPROC glAttachShader = NULL;
-PFNGLDETACHSHADERPROC glDetachShader = NULL;
-PFNGLLINKPROGRAMPROC glLinkProgram = NULL;
-PFNGLGETPROGRAMIVPROC glGetProgramiv = NULL;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = NULL;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = NULL;
-PFNGLUNIFORM2IVARBPROC glUniform2iv = NULL;
+PFNGLSHADERSOURCEARBPROC                                glShaderSource = NULL;
+PFNGLCOMPILESHADERARBPROC                               glCompileShader = NULL;
+PFNGLGETSHADERIVPROC                                    glGetShaderiv = NULL;
+PFNGLGETSHADERINFOLOGPROC                               glGetShaderInfoLog = NULL;
+PFNGLUSEPROGRAMPROC                                     glUseProgram = NULL;
+PFNGLCREATESHADERPROC                                   glCreateShader = NULL;
+PFNGLDELETESHADERPROC                                   glDeleteShader = NULL;
+PFNGLDELETEPROGRAMPROC                                  glDeleteProgram = NULL;
+PFNGLCREATEPROGRAMPROC                                  glCreateProgram = NULL;
+PFNGLATTACHSHADERPROC                                   glAttachShader = NULL;
+PFNGLDETACHSHADERPROC                                   glDetachShader = NULL;
+PFNGLLINKPROGRAMPROC                                    glLinkProgram = NULL;
+PFNGLGETPROGRAMIVPROC                                   glGetProgramiv = NULL;
+PFNGLGETPROGRAMINFOLOGPROC                              glGetProgramInfoLog = NULL;
+PFNGLGETUNIFORMLOCATIONPROC                             glGetUniformLocation = NULL;
+PFNGLUNIFORM2IVARBPROC                                  glUniform2iv = NULL;
 
-PFNGLFENCESYNCPROC glFenceSync = NULL;                                   ///< ext function
-PFNGLISSYNCPROC glIsSync = NULL;                                         ///< ext function
-PFNGLDELETESYNCPROC glDeleteSync = NULL;                                 ///< ext function
-PFNGLCLIENTWAITSYNCPROC glClientWaitSync = NULL;                         ///< ext function
-PFNGLWAITSYNCPROC glWaitSync = NULL;                                     ///< ext function
-PFNGLGETSYNCIVPROC glGetSynciv = NULL;                                   ///< ext function
+PFNGLFENCESYNCPROC                                      glFenceSync = NULL;           ///< ext function
+PFNGLISSYNCPROC                                         glIsSync = NULL;              ///< ext function
+PFNGLDELETESYNCPROC                                     glDeleteSync = NULL;          ///< ext function
+PFNGLCLIENTWAITSYNCPROC                                 glClientWaitSync = NULL;      ///< ext function
+PFNGLWAITSYNCPROC                                       glWaitSync = NULL;            ///< ext function
+PFNGLGETSYNCIVPROC                                      glGetSynciv = NULL;           ///< ext function
 
 //---------------------------------------------------------------------------
 bool loadCopyImageExtension()

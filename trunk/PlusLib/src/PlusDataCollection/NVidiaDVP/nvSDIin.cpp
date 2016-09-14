@@ -134,15 +134,9 @@ bool CNvSDIinTopology::init()
 
   NVVIOCAPS l_vioCaps;
   NVVIOTOPOLOGY l_vioTopos;
-
-  unsigned int i, j;
-  NVVIOSTATUS l_vioStatus;
   NvAPI_Status ret = NVAPI_OK;
 
-  //
   // NVAPI Initialization of Video Capture Device.
-  //
-  // Initialize NVAPI.
   if ( NvAPI_Initialize() != NVAPI_OK )
   {
     LOG_ERROR( "Error Initializing NVAPI." );
@@ -160,7 +154,7 @@ bool CNvSDIinTopology::init()
 
   // Cycle through all SDI topologies looking for the first
   // available SDI input device.
-  i = 0;
+  unsigned int i = 0;
   m_nDevice = 0;
   while ( i < l_vioTopos.vioTotalDeviceCount )
   {
@@ -696,7 +690,6 @@ HRESULT CNvSDIin::BindDevice( GLuint videoSlot, HDC hDC )
     return E_FAIL;
   }
 
-  HVIDEOINPUTDEVICENV captureDevice;
   // find a device that matches the m_vioID that we got from nvapi and lock it
   for ( UINT i = 0; i < numDevices; ++i )
   {
@@ -925,7 +918,7 @@ HRESULT CNvSDIin::BindVideoObjects()
 */
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::BindVideoTexture( const GLuint videoTexture, int stream )
+HRESULT CNvSDIin::BindVideoTexture( const GLuint videoTexture, unsigned int stream )
 {
   if( stream >= 0 && stream < m_numStreams )
   {
@@ -936,7 +929,7 @@ HRESULT CNvSDIin::BindVideoTexture( const GLuint videoTexture, int stream )
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::UnbindVideoTexture( int stream )
+HRESULT CNvSDIin::UnbindVideoTexture( unsigned int stream )
 {
   if( stream >= 0 && stream < m_numStreams )
   {
@@ -947,7 +940,7 @@ HRESULT CNvSDIin::UnbindVideoTexture( int stream )
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::BindVideoFrameBuffer( GLuint videoBuffer, GLint videoBufferFormat, int stream )
+HRESULT CNvSDIin::BindVideoFrameBuffer( GLuint videoBuffer, GLint videoBufferFormat, unsigned int stream )
 {
   if( stream >= 0 && stream < m_numStreams )
   {
@@ -966,7 +959,7 @@ HRESULT CNvSDIin::BindVideoFrameBuffer( GLuint videoBuffer, GLint videoBufferFor
 }
 
 //----------------------------------------------------------------------------
-int CNvSDIin::GetBufferObjectPitch( int streamIndex )
+int CNvSDIin::GetBufferObjectPitch( unsigned int streamIndex )
 {
   GLint bufferPitch = 0;
   if( streamIndex >= 0 && streamIndex < m_numStreams )
@@ -992,7 +985,7 @@ NVVIOSIGNALFORMAT CNvSDIin::GetSignalFormat()
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::UnbindVideoFrameBuffer( int stream )
+HRESULT CNvSDIin::UnbindVideoFrameBuffer( unsigned int stream )
 {
   return S_OK;
 }

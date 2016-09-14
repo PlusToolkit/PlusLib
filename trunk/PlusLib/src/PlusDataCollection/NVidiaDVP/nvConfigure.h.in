@@ -1,0 +1,14 @@
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
+
+#ifndef __nvConfigure_h
+#define __nvConfigure_h
+
+#include <${QuadroSDI_INCLUDE_DIRS}/gl/gl.h>
+#include <${QuadroSDI_INCLUDE_DIRS}/gl/glext.h>
+#include <${QuadroSDI_INCLUDE_DIRS}/gl/wglext.h>
+
+#endif
