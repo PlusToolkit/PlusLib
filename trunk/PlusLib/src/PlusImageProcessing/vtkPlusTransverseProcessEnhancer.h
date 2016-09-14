@@ -91,7 +91,7 @@ public:
   vtkGetMacro( IslandRemovalEnabled, bool );
   vtkBooleanMacro( IslandRemovalEnabled, bool );
 
-  void SetPixelArea( int pixelArea );
+  void SetIslandAreaThreshold(int islandAreaThreshold);
 
   vtkSetMacro( ReturnToFanImage, bool );
   vtkGetMacro( ReturnToFanImage, bool );
@@ -123,6 +123,8 @@ protected:
 
   vtkSmartPointer<vtkImageSobel2D> EdgeDetector;
 
+  vtkSmartPointer<vtkImageThreshold> ImageBinarizer;
+  vtkSmartPointer<vtkImageData> BinaryImageForIslandRemoval;
   vtkSmartPointer<vtkImageIslandRemoval2D> IslandRemover;
 
   //vtkSmartPointer<vtkImageCast> DoubleToUchar;
@@ -155,7 +157,7 @@ protected:
   vtkSmartPointer<vtkImageData> ConversionImage;
 
   bool IslandRemovalEnabled;
-  int PixelArea;
+  int IslandAreaThreshold;
 
   std::string LinesImageFileName;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
