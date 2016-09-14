@@ -305,9 +305,9 @@ bool loadPresentVideoExtension()
   glGetVideoui64vNV = ( PFNGLGETVIDEOUI64VNVPROC ) wglGetProcAddress( "glGetVideoui64vNV" );
 
   bool loadOK = ( glPresentFrameKeyedNV != NULL ) && ( glPresentFrameDualFillNV != NULL ) &&
-           ( wglEnumerateVideoDevicesNV != NULL ) && ( wglBindVideoDeviceNV != NULL ) &&
-           ( glGetVideoivNV != NULL ) && ( glGetVideouivNV != NULL ) &&
-           ( glGetVideoi64vNV != NULL ) && ( glGetVideoui64vNV != NULL );
+                ( wglEnumerateVideoDevicesNV != NULL ) && ( wglBindVideoDeviceNV != NULL ) &&
+                ( glGetVideoivNV != NULL ) && ( glGetVideouivNV != NULL ) &&
+                ( glGetVideoi64vNV != NULL ) && ( glGetVideoui64vNV != NULL );
   return loadOK;
 }
 
@@ -328,8 +328,8 @@ bool loadCaptureVideoExtension()
   glBeginVideoCaptureNV = ( PFNGLBEGINVIDEOCAPTURENVPROC )wglGetProcAddress( "glBeginVideoCaptureNV" );
   glEndVideoCaptureNV = ( PFNGLENDVIDEOCAPTURENVPROC )wglGetProcAddress( "glEndVideoCaptureNV" );
   glVideoCaptureNV = ( PFNGLVIDEOCAPTURENVPROC )wglGetProcAddress( "glVideoCaptureNV" );
-  
-  bool loadOK(true);
+
+  bool loadOK( true );
   if ( !wglBindVideoCaptureDeviceNV || !wglQueryVideoCaptureDeviceNV ||
        !glVideoCaptureStreamParameterivNV ||
        !glVideoCaptureStreamParameterfvNV || !glGetVideoCaptureStreamivNV ||

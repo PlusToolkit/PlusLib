@@ -61,7 +61,7 @@ public:
   CNvGpu();
   virtual ~CNvGpu();
 
-  bool init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay );
+  bool Init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay );
   bool isPrimary();
   bool isDisplay();
   HGPUNV getAffinityHandle();
@@ -76,16 +76,16 @@ protected:
 typedef class CNvGpuTopology
 {
 public:
-  static CNvGpuTopology& instance();
-  virtual CNvGpu* getGpu( int index );
-  virtual CNvGpu* getPrimaryGpu();
-  int getNumGpu();
-  int getPrimaryGpuIndex();
+  static CNvGpuTopology& Instance();
+  virtual CNvGpu* GetGpu( int index );
+  virtual CNvGpu* GetPrimaryGpu();
+  int GetNumGpu();
+  int GetPrimaryGpuIndex();
 
 protected:
   CNvGpuTopology();
   virtual ~CNvGpuTopology();
-  bool init();
+  bool Init();
 
 protected:
   CNvGpu* m_lGpu[MAX_GPUS];

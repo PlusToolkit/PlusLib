@@ -59,7 +59,7 @@ HRESULT CNvSDIout::Init( nvOptions* options, CNvSDIoutGpu* SDIoutGpu )
 {
   NvAPI_Status l_ret;
 
-  if( SDIoutGpu == NULL || SDIoutGpu->isSDIoutput() != true )
+  if( SDIoutGpu == NULL || SDIoutGpu->IsSDIoutput() != true )
   {
     //If the application didn't scan the system topology and selected a
     // gpu for output the the scanning has to be done here.
@@ -123,7 +123,7 @@ HRESULT CNvSDIout::Init( nvOptions* options, CNvSDIoutGpu* SDIoutGpu )
   }
   else
   {
-    m_vioHandle = SDIoutGpu->getVioHandle();
+    m_vioHandle = SDIoutGpu->GetVioHandle();
   }
   // Open the SDI device
   if ( NvAPI_VIO_Open( m_vioHandle, NVVIOCLASS_SDI, NVVIOOWNERTYPE_APPLICATION ) != NVAPI_OK )
@@ -406,6 +406,24 @@ HRESULT CNvSDIout::Cleanup()
   m_vioHandle = NULL;
 
   return S_OK;
+}
+
+//----------------------------------------------------------------------------
+NvVioHandle CNvSDIout::GetHandle()
+{
+  return m_vioHandle;
+}
+
+//----------------------------------------------------------------------------
+unsigned int CNvSDIout::GetWidth()
+{
+  return m_videoWidth;
+}
+
+//----------------------------------------------------------------------------
+unsigned int CNvSDIout::GetHeight()
+{
+  return m_videoHeight;
 }
 
 //----------------------------------------------------------------------------
@@ -862,6 +880,18 @@ HRESULT CNvSDIout::GetFrameRate( float* rate )
 }
 
 //----------------------------------------------------------------------------
+float CNvSDIout::GetFrameRate()
+{
+  return m_frameRate;
+}
+
+//----------------------------------------------------------------------------
+BOOL CNvSDIout::IsInterlaced()
+{
+  return m_bInterlaced;
+}
+
+//----------------------------------------------------------------------------
 HRESULT CNvSDIout::SetCSC( NVVIOCOLORCONVERSION* csc, bool enable )
 {
   NVVIOCONFIG_V1 l_vioConfig;
@@ -1024,7 +1054,7 @@ CNvSDIoutGpuTopology::CNvSDIoutGpuTopology()
 {
   m_bInitialized = false;
   m_nGpu = 0;
-  if( init() )
+  if( Init() )
   {
     m_bInitialized = true;
   }
@@ -1045,7 +1075,7 @@ CNvSDIoutGpuTopology::~CNvSDIoutGpuTopology()
 }
 
 //----------------------------------------------------------------------------
-bool CNvSDIoutGpuTopology::init()
+bool CNvSDIoutGpuTopology::Init()
 {
   if( m_bInitialized )
   {
@@ -1143,7 +1173,9 @@ bool CNvSDIoutGpuTopology::init()
       NvAPI_Status status;
       status = NvAPI_GetAssociatedNvidiaDisplayHandle( gpuDevice.DeviceName, &hNvDisplay );
       if( status != NVAPI_OK )
-      { break; }
+      {
+        break;
+      }
 
       NvU32 count = 0;
       NvPhysicalGpuHandle hNvPhysicalGPU;
@@ -1208,7 +1240,7 @@ bool CNvSDIoutGpuTopology::init()
       }
     }
     CNvSDIoutGpu* gpu = new CNvSDIoutGpu();
-    gpu->init( hGPU, bPrimary, bDisplay, bSDIoutput, hVioHandle );
+    gpu->Init( hGPU, bPrimary, bDisplay, bSDIoutput, hVioHandle );
 
     m_lGpu[GPUIdx] = gpu;
 
@@ -1231,15 +1263,15 @@ bool CNvSDIoutGpuTopology::init()
 }
 
 //----------------------------------------------------------------------------
-CNvSDIoutGpuTopology& CNvSDIoutGpuTopology::instance()
+CNvSDIoutGpuTopology& CNvSDIoutGpuTopology::Instance()
 {
   static CNvSDIoutGpuTopology instance;
-  instance.init();
+  instance.Init();
   return instance;
 }
 
 //----------------------------------------------------------------------------
-CNvSDIoutGpu* CNvSDIoutGpuTopology::getGpu( int index )
+CNvSDIoutGpu* CNvSDIoutGpuTopology::GetGpu( int index )
 {
   if( index >= 0 && index < m_nGpu )
   {
@@ -1249,7 +1281,7 @@ CNvSDIoutGpu* CNvSDIoutGpuTopology::getGpu( int index )
 }
 
 //----------------------------------------------------------------------------
-CNvSDIoutGpu* CNvSDIoutGpuTopology::getPrimaryGpu()
+CNvSDIoutGpu* CNvSDIoutGpuTopology::GetPrimaryGpu()
 {
   for( int i = 0; i < m_nGpu; i++ )
   {
@@ -1274,22 +1306,22 @@ CNvSDIoutGpu::~CNvSDIoutGpu()
 }
 
 //----------------------------------------------------------------------------
-bool CNvSDIoutGpu::init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay, bool bSDIoutput, NvVioHandle hVioHandle )
+bool CNvSDIoutGpu::Init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay, bool bSDIoutput, NvVioHandle hVioHandle )
 {
-  CNvGpu::init( gpuAffinityHandle, bPrimary, bDisplay );
+  CNvGpu::Init( gpuAffinityHandle, bPrimary, bDisplay );
   m_bSDIoutput = bSDIoutput;
   m_hVioHandle = hVioHandle;
   return true;
 }
 
 //----------------------------------------------------------------------------
-bool CNvSDIoutGpu::isSDIoutput()
+bool CNvSDIoutGpu::IsSDIoutput()
 {
   return m_bSDIoutput;
 }
 
 //----------------------------------------------------------------------------
-NvVioHandle CNvSDIoutGpu::getVioHandle()
+NvVioHandle CNvSDIoutGpu::GetVioHandle()
 {
   return m_hVioHandle;
 }
