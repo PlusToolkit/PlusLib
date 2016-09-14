@@ -539,6 +539,37 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar( vtkImageData* inputIm
   //inputImage->Modified();
 }
 //----------------------------------------------------------------------------
+// If a pixel in MaskImage is > 0, the corresponding pixel in InputImage will remain unchanged, otherwise it will be set to 0
+void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkImageData * InputImage, vtkImageData * MaskImage)
+{
+  // Images must be of the same dimension, an should already be, I should check this though
+  unsigned char * InputPixelPointer = 0;
+  unsigned char * MaskImagePixel = 0;
+
+  int dims[3] = { 0, 0, 0 };
+  this->LinesImage->GetDimensions(dims);      // This will be the same as InputImage, as long as InputImage is converted to linesImage previously
+
+  for (int y = 0; y < dims[1]; y++)
+  {
+    // Initialize variables for a new scan line.
+
+    for (int x = dims[0] - 1; x >= 0; x--) // Go towards transducer
+    {
+      if (static_cast<unsigned char>(MaskImage->GetScalarComponentAsFloat(x, y, 0, 0)) > 0)
+      {
+        // Do nothing
+      }
+      else
+      {
+        InputPixelPointer = static_cast<unsigned char *>(InputImage->GetScalarPointer(x, y, 0));
+        *InputPixelPointer = 0;
+      }
+    }
+  }
+}
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame )
@@ -597,7 +628,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
     this->BinaryImageForIslandRemoval->DeepCopy(this->ImageBinarizer->GetOutput());
     this->IslandRemover->SetInputData( this->BinaryImageForIslandRemoval );
     this->IslandRemover->Update();
-    inputImage->DeepCopyFrom( this->IslandRemover->GetOutput() );
+    this->BinaryImageForIslandRemoval->DeepCopy(this->IslandRemover->GetOutput());
+    // Perform "image conjunction"
+    this->ImageConjunction(inputImage->GetImage(), this->BinaryImageForIslandRemoval);
+    //inputImage->DeepCopyFrom( this->IslandRemover->GetOutput() );
   }
 
   if ( this->ReturnToFanImage )
