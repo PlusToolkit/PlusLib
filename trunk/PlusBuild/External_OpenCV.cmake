@@ -1,6 +1,6 @@
 IF(OpenCV_DIR)
   FIND_PACKAGE(OpenCV 3.1.0 REQUIRED NO_MODULE)
-  
+
   SET(PLUS_OpenCV_DIR ${OpenCV_DIR} CACHE INTERNAL "Path to store OpenCV binaries")
 ELSE()
   # No OpenCV is specified, so download and build

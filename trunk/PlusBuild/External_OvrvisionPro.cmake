@@ -3,7 +3,12 @@ IF(OvrvisionPro_DIR)
   
   SET(PLUS_OvrvisionPro_DIR ${OvrvisionPro_DIR} CACHE INTERNAL "Path to store OvrvisionPro binaries")
 ELSE()
-  SET(OvrvisionPro_DEPENDENCIES OpenCV) # OvrvisionPro requires that the aformentioned targets are built and ready
+  IF(NOT OpenCV_FOUND)
+    # We are building our own OpenCV, make sure the dependency order is set
+    SET(OvrvisionPro_DEPENDENCIES OpenCV)
+  ELSE()
+    SET(OvrvisionPro_DEPENDENCIES)
+  ENDIF()
 
   SET(OvrvisionPro_REPOSITORY https://github.com/PLUSToolkit/OvrvisionProCMake.git)
 
