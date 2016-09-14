@@ -4,14 +4,6 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-/*=========================================================================
-The following copyright notice is applicable to parts of this file:
-Copyright (c) 2014, Robarts Research Institute, The University of Western Ontario, London, Ontario, Canada
-All rights reserved.
-Authors include:
-* Adam Rankin (Robarts Research Institute and The University of Western Ontario)
-=========================================================================*/
-
 // Plus includes
 #include "PlusConfigure.h"
 #include "vtkPlusNvidiaDVPVideoSourceWin32.h"

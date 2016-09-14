@@ -64,8 +64,6 @@ OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipelin
 IF (PLUS_USE_NVIDIA_DVP)
   FIND_PACKAGE(QuadroSDI REQUIRED)
   FIND_PACKAGE(OpenGL REQUIRED)
-  SET(OPENGL_INCLUDE_DIR ${QuadroSDI_ROOT_DIR}/include CACHE PATH "Path to the include directory for OpenGL")
-  MARK_AS_ADVANCED(OPENGL_INCLUDE_DIR)
 ENDIF()
 
 OPTION(PLUS_USE_OvrvisionPro "Provide support for the OvrvisionPro Stereo Camera" OFF)
@@ -1069,8 +1067,13 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Include the NVidia DVP classes
 IF(PLUS_USE_NVIDIA_DVP)
+  CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/NVidiaDVP/nvConfigure.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/nvConfigure.h
+    )
+
   SET(NVidiaDVP_SRCS)
-  SET(NVidiaDVP_HDRS)
+  SET(NVidiaDVP_HDRS ${CMAKE_CURRENT_BINARY_DIR}/nvConfigure.h)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
@@ -1094,7 +1097,6 @@ IF(PLUS_USE_NVIDIA_DVP)
     NVidiaDVP/nvSDIin.cpp
     NVidiaDVP/nvSDIout.cpp
     NVidiaDVP/nvSDIutil.cpp
-    NVidiaDVP/nvCommon.cpp
     )
 
   IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
@@ -1134,7 +1136,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     SET_PROPERTY(TARGET NVidiaDVP PROPERTY IMPORTED_LOCATION ${NVIDIA_DVP_BINARY_DIR}/dvp${CMAKE_SHARED_LIBRARY_SUFFIX})
     SET_PROPERTY(TARGET NVidiaDVP PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${NVIDIA_DVP_INCLUDE_DIR};${OPENGL_INCLUDE_DIR};${PlusCommon_INCLUDE_DIRS}")
   ELSE()
-
+    # What to do here?
   ENDIF()
 
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}

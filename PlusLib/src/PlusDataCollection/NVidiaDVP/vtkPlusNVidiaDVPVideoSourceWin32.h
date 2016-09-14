@@ -12,9 +12,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "nvCommon.h"
 #include "nvSDIin.h"
-
-// OpenGL includes
-#include <gl/gl.h>
+#include "nvConfigure.h"
 
 class CNvGpu;
 
