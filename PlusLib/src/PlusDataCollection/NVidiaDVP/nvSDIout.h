@@ -61,9 +61,9 @@ public:
   CNvSDIoutGpu();
   virtual ~CNvSDIoutGpu();
 
-  bool init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay, bool bSDIOutput, NvVioHandle hVioHandle );
-  bool isSDIoutput();
-  NvVioHandle getVioHandle();
+  bool Init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay, bool bSDIOutput, NvVioHandle hVioHandle );
+  bool IsSDIoutput();
+  NvVioHandle GetVioHandle();
 
 protected:
   bool m_bSDIoutput;
@@ -74,15 +74,15 @@ protected:
 typedef class CNvSDIoutGpuTopology : public virtual CNvGpuTopology
 {
 public:
-  static CNvSDIoutGpuTopology& instance();
-  virtual CNvSDIoutGpu* getGpu( int index );
-  virtual CNvSDIoutGpu* getPrimaryGpu();
+  static CNvSDIoutGpuTopology& Instance();
+  virtual CNvSDIoutGpu* GetGpu( int index );
+  virtual CNvSDIoutGpu* GetPrimaryGpu();
 
 protected:
   CNvSDIoutGpuTopology();
   virtual ~CNvSDIoutGpuTopology();
 
-  bool init();
+  bool Init();
 } CNvSDIoutGpuTopology;
 
 //----------------------------------------------------------------------------
@@ -95,14 +95,14 @@ public:
   HRESULT Init( nvOptions* options, CNvSDIoutGpu* SdiOutGpu = NULL );
   HRESULT Cleanup();
 
-  inline NvVioHandle getHandle() {return m_vioHandle; };
+  NvVioHandle GetHandle();
 
-  inline unsigned int GetWidth() {return m_videoWidth; };
-  inline unsigned int GetHeight() {return m_videoHeight; };
+  unsigned int GetWidth();
+  unsigned int GetHeight();
 
-  inline float GetFrameRate() {return m_frameRate; };
+  float GetFrameRate();
 
-  inline BOOL IsInterlaced() {return m_bInterlaced; };
+  BOOL IsInterlaced();
 
   HRESULT DisplayVideoStatus();
   HRESULT DisplaySignalFormatInfo();

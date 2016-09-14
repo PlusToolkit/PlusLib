@@ -55,7 +55,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusPhilips3DProbeVideoSource::InternalConnect" );
 
-  NvGPU = CNvGpuTopology::instance().getGpu( NvOptions.captureGPU );
+  NvGPU = CNvGpuTopology::Instance().GetGpu( NvOptions.captureGPU );
   if ( NvGPU == nullptr )
   {
     LOG_ERROR( "Unable to retrieve NvGPU." );
@@ -129,7 +129,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration( vtkXMLDataElement* ro
 
   int numGPUs;
   // Note, this function enumerates GPUs which are both CUDA & GLAffinity capable (i.e. newer Quadros)
-  numGPUs = CNvGpuTopology::instance().getNumGpu();
+  numGPUs = CNvGpuTopology::Instance().GetNumGpu();
 
   if ( numGPUs <= 0 )
   {
@@ -137,7 +137,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration( vtkXMLDataElement* ro
     return PLUS_FAIL;
   }
 
-  int numCaptureDevices = CNvSDIinTopology::instance().getNumDevice();
+  int numCaptureDevices = CNvSDIinTopology::Instance().GetNumDevice();
 
   if ( numCaptureDevices <= 0 )
   {
@@ -151,7 +151,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration( vtkXMLDataElement* ro
   NvOptions.sampling = NVVIOCOMPONENTSAMPLING_422;
   NvOptions.bitsPerComponent = 8;
   NvOptions.captureDevice = 0;
-  NvOptions.captureGPU = CNvGpuTopology::instance().getPrimaryGpuIndex();
+  NvOptions.captureGPU = CNvGpuTopology::Instance().GetPrimaryGpuIndex();
   NvOptions.console = false;
   NvOptions.numFrames = 0;
   NvOptions.log = false;
@@ -482,7 +482,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration( vtkXMLDataElement* ro
   }
   else
   {
-    LOG_WARNING("Invalid video format in configuration file.");
+    LOG_WARNING( "Invalid video format in configuration file." );
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_NONE;
   }
 
@@ -870,7 +870,7 @@ HRESULT vtkPlusNvidiaDVPVideoSource::SetupSDIinDevices()
   NvSDIin.Init( &NvOptions );
 
   // Initialize the video capture device.
-  if ( NvSDIin.SetupDevice( true, NvOptions.captureDevice ) != S_OK )
+  if ( NvSDIin.SetupDevice( NvOptions.captureDevice ) != S_OK )
   {
     return E_FAIL;
   }
@@ -979,7 +979,6 @@ GLenum vtkPlusNvidiaDVPVideoSource::CaptureVideo()
   GLenum ret;
   static int numFails = 0;
   static int numTries = 0;
-  static bool bShowMessageBox = true;
 
   if ( numFails < 100 )
   {
@@ -1020,18 +1019,17 @@ GLenum vtkPlusNvidiaDVPVideoSource::CaptureVideo()
       CleanupGL();
     }
     // Initialize the video capture device.
-    if ( NvSDIin.SetupDevice( bShowMessageBox, NvOptions.captureDevice ) != S_OK )
+    if ( NvSDIin.SetupDevice( NvOptions.captureDevice ) != S_OK )
     {
-      bShowMessageBox = false;
       numTries++;
       return GL_FAILURE_NV;
     }
+
     // Reinitialize OpenGL.
     SetupGL();
     StartSDIPipeline();
     numFails = 0;
     numTries = 0;
-    bShowMessageBox = true;
     return GL_FAILURE_NV;
   }
   return ret;

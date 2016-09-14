@@ -49,7 +49,7 @@ CNvSDIinTopology::CNvSDIinTopology()
 {
   m_bInitialized = false;
   m_nDevice = 0;
-  if( init() )
+  if( Init() )
   {
     m_bInitialized = true;
   }
@@ -70,21 +70,21 @@ CNvSDIinTopology::~CNvSDIinTopology()
 }
 
 //----------------------------------------------------------------------------
-CNvSDIinTopology& CNvSDIinTopology::instance()
+CNvSDIinTopology& CNvSDIinTopology::Instance()
 {
   static CNvSDIinTopology instance;
-  instance.init();
+  instance.Init();
   return instance;
 }
 
 //----------------------------------------------------------------------------
-int CNvSDIinTopology::getNumDevice()
+int CNvSDIinTopology::GetNumDevice()
 {
   return m_nDevice;
 }
 
 //----------------------------------------------------------------------------
-NVVIOTOPOLOGYTARGET* CNvSDIinTopology::getDevice( int index )
+NVVIOTOPOLOGYTARGET* CNvSDIinTopology::GetDevice( int index )
 {
   if( index >= 0 && index < m_nDevice )
   {
@@ -94,7 +94,7 @@ NVVIOTOPOLOGYTARGET* CNvSDIinTopology::getDevice( int index )
 }
 
 //----------------------------------------------------------------------------
-bool CNvSDIinTopology::init()
+bool CNvSDIinTopology::Init()
 {
   if( m_bInitialized )
   {
@@ -317,7 +317,7 @@ HRESULT CNvSDIin::Init( nvOptions* options )
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::getVideoInState( NVVIOCONFIG_V1* vioConfig, NVVIOSTATUS* vioStatus )
+HRESULT CNvSDIin::GetVideoInState( NVVIOCONFIG_V1* vioConfig, NVVIOSTATUS* vioStatus )
 {
   NvAPI_Status ret = NVAPI_OK;
 
@@ -363,12 +363,12 @@ HRESULT CNvSDIin::getVideoInState( NVVIOCONFIG_V1* vioConfig, NVVIOSTATUS* vioSt
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::setVideoConfig( bool bShowMessageBox )
+HRESULT CNvSDIin::SetVideoConfig()
 {
   NVVIOCONFIG_V1 l_vioConfig;
   NVVIOSTATUS l_vioStatus;
   // Get initial device state.
-  getVideoInState( &l_vioConfig, &l_vioStatus );
+  GetVideoInState( &l_vioConfig, &l_vioStatus );
 
   // Calculate the number of active streams.  For now, this is the
   // number of streams that we will draw.  3G formats can have upto
@@ -386,10 +386,7 @@ HRESULT CNvSDIin::setVideoConfig( bool bShowMessageBox )
   // Return an error if there are no active streams detected.
   if ( m_numStreams == 0 )
   {
-    if( bShowMessageBox )
-    {
-      LOG_ERROR( "No active video input input streams detected." );
-    }
+    LOG_ERROR( "No active video input input streams detected." );
     return E_FAIL;
   }
 
@@ -530,10 +527,7 @@ HRESULT CNvSDIin::setVideoConfig( bool bShowMessageBox )
       break;
     case 0:
     default:
-      if( bShowMessageBox )
-      {
-        LOG_ERROR( "Cannot configure streams, no active inputs detected." );
-      }
+      LOG_ERROR( "Cannot configure streams, no active inputs detected." );
       return E_FAIL;
       break;
     } // switch
@@ -544,19 +538,13 @@ HRESULT CNvSDIin::setVideoConfig( bool bShowMessageBox )
   stat = NvAPI_VIO_SetConfig( m_vioHandle, ( NVVIOCONFIG* )&l_vioConfig );
   if ( stat != NVAPI_OK )
   {
-    if( bShowMessageBox )
-    {
-      LOG_ERROR( "Cannot set configuration of SDI input device." );
-    }
+    LOG_ERROR( "Cannot set configuration of SDI input device." );
     return E_FAIL;
   }
 
   if ( ( NvAPI_VIO_GetConfig( m_vioHandle, ( NVVIOCONFIG* )&l_vioConfig ) != NVAPI_OK ) )
   {
-    if( bShowMessageBox )
-    {
-      LOG_ERROR( "Cannot get configuration of SDI input device." );
-    }
+    LOG_ERROR( "Cannot get configuration of SDI input device." );
     return E_FAIL;
   }
 
@@ -564,28 +552,22 @@ HRESULT CNvSDIin::setVideoConfig( bool bShowMessageBox )
 }
 
 //----------------------------------------------------------------------------
-HRESULT CNvSDIin::SetupDevice( bool bShowMessageBox, int deviceNumber )
+HRESULT CNvSDIin::SetupDevice( int deviceNumber )
 {
   NVVIOCONFIG_V1 l_vioConfig;
   NVVIOSTATUS l_vioStatus;
   NvAPI_Status ret = NVAPI_OK;
 
-  if( CNvSDIinTopology::instance().getNumDevice() == 0 ) //just in case the app failed to scan the topology
+  if( CNvSDIinTopology::Instance().GetNumDevice() == 0 ) //just in case the app failed to scan the topology
   {
-    if( bShowMessageBox )
-    {
-      LOG_ERROR( "No SDI video input devices found." );
-    }
+    LOG_ERROR( "No SDI video input devices found." );
     return E_FAIL;
   }
   m_deviceNumber = deviceNumber;
-  NVVIOTOPOLOGYTARGET* device = CNvSDIinTopology::instance().getDevice( deviceNumber );
+  NVVIOTOPOLOGYTARGET* device = CNvSDIinTopology::Instance().GetDevice( deviceNumber );
   if( device == NULL )
   {
-    if( bShowMessageBox )
-    {
-      LOG_ERROR( "Unable to set the selected device." );
-    }
+    LOG_ERROR( "Unable to set the selected device." );
     return E_FAIL;
   }
 
@@ -593,7 +575,7 @@ HRESULT CNvSDIin::SetupDevice( bool bShowMessageBox, int deviceNumber )
   m_vioHandle = device->hVioHandle;
 
   // Get initial device state.
-  if FAILED( setVideoConfig( bShowMessageBox ) )
+  if FAILED( SetVideoConfig() )
   {
     return E_FAIL;
   }
@@ -602,7 +584,7 @@ HRESULT CNvSDIin::SetupDevice( bool bShowMessageBox, int deviceNumber )
   // all ports are configured for the same signal format.  SDI capture cannot
   // succeed if all input ports are not configured and detecting the same
   // signal format.
-  getVideoInState( &l_vioConfig, &l_vioStatus );
+  GetVideoInState( &l_vioConfig, &l_vioStatus );
 
   // Get width and height of video signal format.  Long term this
   // may be queried from OpenGL, but for now, need to get this from
@@ -1084,7 +1066,6 @@ HRESULT CNvSDIin::UnbindDevice()
     m_hDC = NULL;
   }
   return S_OK;
-
 }
 
 //----------------------------------------------------------------------------

@@ -61,15 +61,15 @@ struct nvOptions;
 typedef class CNvSDIinTopology
 {
 public:
-  static CNvSDIinTopology& instance();
-  NVVIOTOPOLOGYTARGET* getDevice( int index );
-  int getNumDevice();
+  static CNvSDIinTopology& Instance();
+  NVVIOTOPOLOGYTARGET* GetDevice( int index );
+  int GetNumDevice();
 
 protected:
   CNvSDIinTopology();
   virtual ~CNvSDIinTopology();
 
-  bool init();
+  bool Init();
 
 protected:
   NVVIOTOPOLOGYTARGET* m_lDevice[NVAPI_MAX_VIO_DEVICES];
@@ -90,7 +90,7 @@ public:
 
   HRESULT Init( nvOptions* options = NULL );
 
-  HRESULT SetupDevice( bool bShowMessageBox = true, int deviceNumber = 0 ); //sets up a particular capture device
+  HRESULT SetupDevice( int deviceNumber = 0 ); //sets up a particular capture device
   //it is up to the developer to make sure that the same video slot is not used twice for two different capture devices
   //on one context. Later this accounting can be made transparent to the user and done in the class
   HRESULT BindDevice( GLuint videoSlot, HDC hDC );
@@ -121,8 +121,8 @@ public:
 
 protected:
   // Get video input state
-  HRESULT getVideoInState( NVVIOCONFIG_V1* vioConfig, NVVIOSTATUS* vioStatus );
-  HRESULT setVideoConfig( bool bShowMessageBox );
+  HRESULT GetVideoInState( NVVIOCONFIG_V1* vioConfig, NVVIOSTATUS* vioStatus );
+  HRESULT SetVideoConfig();
   void DumpChannelStatus( NVVIOCHANNELSTATUS jack );
   void DumpStreamStatus( NVVIOSTREAM stream );
 

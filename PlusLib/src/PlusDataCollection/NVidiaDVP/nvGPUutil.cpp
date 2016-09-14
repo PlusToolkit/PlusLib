@@ -138,7 +138,7 @@ CNvGpuTopology::CNvGpuTopology()
 {
   m_bInitialized = false;
   m_nGpu = 0;
-  if( init() )
+  if( Init() )
   {
     m_bInitialized = true;
   }
@@ -159,7 +159,7 @@ CNvGpuTopology::~CNvGpuTopology()
 }
 
 //----------------------------------------------------------------------------
-bool CNvGpuTopology::init()
+bool CNvGpuTopology::Init()
 {
   if( m_bInitialized )
   {
@@ -231,7 +231,7 @@ bool CNvGpuTopology::init()
 
     }
     CNvGpu* gpu = new CNvGpu();
-    gpu->init( hGPU, bPrimary, bDisplay );
+    gpu->Init( hGPU, bPrimary, bDisplay );
 
     m_lGpu[GPUIdx] = gpu;
 
@@ -255,21 +255,21 @@ bool CNvGpuTopology::init()
 }
 
 //----------------------------------------------------------------------------
-CNvGpuTopology& CNvGpuTopology::instance()
+CNvGpuTopology& CNvGpuTopology::Instance()
 {
   static CNvGpuTopology instance;
-  instance.init();
+  instance.Init();
   return instance;
 }
 
 //----------------------------------------------------------------------------
-int CNvGpuTopology::getNumGpu()
+int CNvGpuTopology::GetNumGpu()
 {
   return m_nGpu;
 }
 
 //----------------------------------------------------------------------------
-CNvGpu* CNvGpuTopology::getGpu( int index )
+CNvGpu* CNvGpuTopology::GetGpu( int index )
 {
   if( index >= 0 && index < m_nGpu )
   {
@@ -279,7 +279,7 @@ CNvGpu* CNvGpuTopology::getGpu( int index )
 }
 
 //----------------------------------------------------------------------------
-int CNvGpuTopology::getPrimaryGpuIndex()
+int CNvGpuTopology::GetPrimaryGpuIndex()
 {
   for( int i = 0; i < m_nGpu; i++ )
   {
@@ -292,7 +292,7 @@ int CNvGpuTopology::getPrimaryGpuIndex()
 }
 
 //----------------------------------------------------------------------------
-CNvGpu* CNvGpuTopology::getPrimaryGpu()
+CNvGpu* CNvGpuTopology::GetPrimaryGpu()
 {
   for( int i = 0; i < m_nGpu; i++ )
   {
@@ -317,7 +317,7 @@ CNvGpu::~CNvGpu()
 }
 
 //----------------------------------------------------------------------------
-bool CNvGpu::init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay )
+bool CNvGpu::Init( HGPUNV gpuAffinityHandle, bool bPrimary, bool bDisplay )
 {
   m_hGpu = gpuAffinityHandle;
   m_bPrimary = bPrimary;
