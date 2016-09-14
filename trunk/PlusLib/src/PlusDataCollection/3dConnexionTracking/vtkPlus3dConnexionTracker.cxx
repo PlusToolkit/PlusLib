@@ -24,10 +24,12 @@ See License.txt for details.
 #  define vtkGetWindowLong GetWindowLongPtr
 #  define vtkSetWindowLong SetWindowLongPtr
 #  define vtkGWL_USERDATA GWLP_USERDATA
+#  define GWL_USERDATA_TYPE LONG_PTR
 #else // regular Visual studio 
 #  define vtkGetWindowLong GetWindowLong
 #  define vtkSetWindowLong SetWindowLong
 #  define vtkGWL_USERDATA GWL_USERDATA
+#  define GWL_USERDATA_TYPE LONG;
 #endif // 
 
 
@@ -344,7 +346,7 @@ PlusStatus vtkPlus3dConnexionTracker::CreateCaptureWindow()
   }
 
   // set the user data to 'this'
-  vtkSetWindowLong( this->CaptureWindowHandle, vtkGWL_USERDATA, ( LONG )this );
+  vtkSetWindowLong( this->CaptureWindowHandle, vtkGWL_USERDATA, (GWL_USERDATA_TYPE)this );
 
   return PLUS_SUCCESS;
 }
