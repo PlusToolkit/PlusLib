@@ -33,8 +33,6 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : Thresholder( vtkSmartPointer<vtkImageThreshold>::New() ),
     GaussianSmooth( vtkSmartPointer<vtkImageGaussianSmooth>::New() ),
     EdgeDetector( vtkSmartPointer<vtkImageSobel2D>::New() ),
-    ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
-    BinaryImageForIslandRemoval(vtkSmartPointer<vtkImageData>::New()),
     IslandRemover( vtkSmartPointer<vtkImageIslandRemoval2D>::New() ),
     //DoubleToUchar(vtkSmartPointer<vtkImageCast>::New()),
     //ImageDataConverter(vtkSmartPointer<vtkImageShiftScale>::New()),
@@ -55,7 +53,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
     EdgeDetectorEnabled( false ),
     ConversionImage( vtkSmartPointer<vtkImageData>::New() ),
     IslandRemovalEnabled( false ),
-    IslandAreaThreshold( -1 ),
+    PixelArea( -1 ),
     LinesImage( vtkSmartPointer<vtkImageData>::New() ),
     LinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
     //SmoothedImage( vtkSmartPointer<vtkImageData>::New() ),
@@ -70,12 +68,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->ConversionImage->SetExtent( 0, 0, 0, 0, 0, 0 );
 
-  this->ImageBinarizer->SetInValue(255);
-  this->ImageBinarizer->SetOutValue(0);
-  this->ImageBinarizer->ThresholdBetween(30, 255);
-  this->IslandRemover->SetIslandValue( 255 );
-  this->IslandRemover->SetReplaceValue(0);
-  this->IslandRemover->SetAreaThreshold(0);
+  this->IslandRemover->SetIslandValue( 1000 );
 
   this->LinesImage->SetExtent( 0, 0, 0, 0, 0, 0 );
   this->ShadowValues->SetExtent( 0, 0, 0, 0, 0, 0 );
@@ -193,13 +186,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
       }
       else
       {
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, ThresholdInValue, thresholdingParameters );
 
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, ThresholdInValue, thresholdingParameters )
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, ThresholdOutValue, thresholdingParameters );
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, ThresholdOutValue, thresholdingParameters );
 
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, LowerThreshold, thresholdingParameters );
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED( double, UpperThreshold, thresholdingParameters );
-
       }
     }
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL( EdgeDetectorEnabled, imageProcessingOperations );     // No other parameters to set?
@@ -214,7 +206,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
       }
       else
       {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, IslandAreaThreshold, islandRemovalParameters );
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, PixelArea, islandRemovalParameters );
       }
     }
   }
@@ -237,9 +229,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
             << linesImageExtent[0] << ", " << linesImageExtent[1]
             << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
             << ", " << linesImageExtent[4] << ", " << linesImageExtent[5] );
-
-  this->BinaryImageForIslandRemoval->SetExtent(linesImageExtent);
-  this->BinaryImageForIslandRemoval->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   this->LinesImage->SetExtent( linesImageExtent );
   this->LinesImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
@@ -289,7 +278,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration( vtkXMLDataEleme
   if ( this->IslandRemovalEnabled )
   {
     XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( islandRemovalParameters, processingElement, "IslandRemoval" );
-    islandRemovalParameters->SetIntAttribute( "PixelArea", IslandAreaThreshold );
+    islandRemovalParameters->SetIntAttribute( "PixelArea", PixelArea );
   }
 
   return PLUS_SUCCESS;
@@ -584,18 +573,38 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
 
   if ( this->EdgeDetectorEnabled )
   {
+
+    //this->ImageDataConverter->SetInputData(inputImage->GetImage
+    //this->ImageDataConverter->SetOutputScalarTypeToDouble();
+    //this->ImageDataConverter->Update();
+
     this->EdgeDetector->SetInputData( inputImage->GetImage() );
     this->EdgeDetector->Update();
+    //inputImage->DeepCopyFrom(this->EdgeDetector->GetOutput());
     this->VectorImageToUchar( this->EdgeDetector->GetOutput(), this->ConversionImage );
     inputImage->DeepCopyFrom( this->ConversionImage );
+    //this->ImageDataConverter->SetInputData(inputImage->GetImage());
+    //this->ImageDataConverter->SetOutputScalarTypeToUnsignedChar();
+    //this->ImageDataConverter->SetScale(1);
+    //this->ImageDataConverter->Update();
+    //inputImage->DeepCopyFrom(this->ImageDataConverter->GetOutput());
+    //this->LinesImage->DeepCopy(inputImage->GetImage());
+    //this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
+    // this->ProcessLinesImage();
+
+    //this->LinesImage->DeepCopy(this->ImageDataConverter->GetOutput());
+
+    //this->LinesImage->DeepCopy(inputImage->GetImage());                         // So we may interate through 2-component pixels, and make them
+    //this->ProcessLinesImage();
+    //inputImage->DeepCopyFrom(this->LinesImage);
+    //this->DoubleToUchar->SetInputData(this->EdgeDetector->GetOutput());
+    //this->DoubleToUchar->SetOutputScalarTypeToUnsignedChar();
+    //this->DoubleToUchar->Update
   }
 
   if ( this->IslandRemovalEnabled )
   {
-    this->ImageBinarizer->SetInputData(inputImage->GetImage());
-    this->ImageBinarizer->Update();
-    this->BinaryImageForIslandRemoval->DeepCopy(this->ImageBinarizer->GetOutput());
-    this->IslandRemover->SetInputData( this->BinaryImageForIslandRemoval );
+    this->IslandRemover->SetInputData( inputImage->GetImage() );
     this->IslandRemover->Update();
     inputImage->DeepCopyFrom( this->IslandRemover->GetOutput() );
   }
@@ -712,23 +721,22 @@ void vtkPlusTransverseProcessEnhancer::SetUpperThreshold( double upperThreshold 
 }
 
 //----------------------------------------------------------------------------
-
-void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThreshold)
+void vtkPlusTransverseProcessEnhancer::SetPixelArea( int pixelArea )
 {
-  this->IslandAreaThreshold = islandAreaThreshold;
-  if (islandAreaThreshold < 0)
+  this->PixelArea = pixelArea;
+  int boundaries[3] = {0, 0, 0};
+  this->LinesImage->GetDimensions( boundaries );
+
+  if ( pixelArea < 0 )
   {
-    this->IslandRemover->SetAreaThreshold(0);
+    this->IslandRemover->SetIslandValue( 0 );
   }
-  // Aparently, below statement always evaluates to true, nullifying the island removal process
-  /*
-  else if ( islandAreaThreshold > ( boundaries[0]*boundaries[1] ) )
+  else if ( pixelArea > ( boundaries[0]*boundaries[1] ) )
   {
     this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
   }
-  */
   else
   {
-    this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
+    this->IslandRemover->SetIslandValue( pixelArea );
   }
 }
