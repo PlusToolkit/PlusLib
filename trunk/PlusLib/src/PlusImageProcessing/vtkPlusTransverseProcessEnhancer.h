@@ -126,6 +126,7 @@ protected:
   vtkSmartPointer<vtkImageThreshold> ImageBinarizer;
   vtkSmartPointer<vtkImageData> BinaryImageForIslandRemoval;
   vtkSmartPointer<vtkImageIslandRemoval2D> IslandRemover;
+  void ImageConjunction(vtkImageData * InputImage, vtkImageData * MaskImage);
 
   //vtkSmartPointer<vtkImageCast> DoubleToUchar;
   //vtkSmartPointer<vtkImageShiftScale> ImageDataConverter;

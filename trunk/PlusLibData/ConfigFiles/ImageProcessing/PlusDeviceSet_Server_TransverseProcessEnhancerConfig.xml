@@ -52,9 +52,9 @@
             GaussianEnabled="True"
             EdgeDetectorEnabled="True"
             IslandRemovalEnabled="True"
-            ReturnToFanImage="False">
-            <GaussianSmoothing GaussianStdDev="1" GaussianKernelSize="7"/>
-            <Thresholding ThresholdInValue="125" ThresholdOutValue="0" LowerThreshold="20" UpperThreshold="255"/>
+            ReturnToFanImage="True">
+            <GaussianSmoothing GaussianStdDev="3" GaussianKernelSize="3"/>
+            <Thresholding ThresholdOutValue="0" LowerThreshold="10" UpperThreshold="255"/>
             <IslandRemoval IslandAreaThreshold="1000"/>
           </ImageProcessingOperations>
       </Processor>
