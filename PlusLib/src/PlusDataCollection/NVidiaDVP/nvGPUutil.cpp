@@ -258,7 +258,6 @@ bool CNvGpuTopology::Init()
 CNvGpuTopology& CNvGpuTopology::Instance()
 {
   static CNvGpuTopology instance;
-  instance.Init();
   return instance;
 }
 
