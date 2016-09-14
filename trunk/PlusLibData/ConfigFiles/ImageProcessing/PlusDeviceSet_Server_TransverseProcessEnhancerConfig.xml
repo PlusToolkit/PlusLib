@@ -52,10 +52,10 @@
             GaussianEnabled="True"
             EdgeDetectorEnabled="True"
             IslandRemovalEnabled="True"
-            ReturnToFanImage="True">
+            ReturnToFanImage="False">
             <GaussianSmoothing GaussianStdDev="1" GaussianKernelSize="7"/>
             <Thresholding ThresholdInValue="125" ThresholdOutValue="0" LowerThreshold="20" UpperThreshold="255"/>
-            <IslandRemoval PixelArea="30000"/>
+            <IslandRemoval IslandAreaThreshold="1000"/>
           </ImageProcessingOperations>
       </Processor>
     </Device>
