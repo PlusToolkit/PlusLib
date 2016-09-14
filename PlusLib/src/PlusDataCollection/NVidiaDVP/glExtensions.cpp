@@ -4,8 +4,8 @@
 
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include "gl\wglext.h"
-#include "gl\glext.h"
+#include <gl\wglext.h>
+#include <gl\glext.h>
 #include <stdio.h>
 
 // GL_EXT_framebuffer_object

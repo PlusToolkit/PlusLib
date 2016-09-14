@@ -145,7 +145,6 @@ bool ParseCommandLine( char* szCmdLine[], nvOptions* op )
         return false;
       }
 
-
       // Get video format - default is 1080i.
     }
     else if ( !_stricmp( "-vf", szBuffer ) )
@@ -198,7 +197,6 @@ bool ParseCommandLine( char* szCmdLine[], nvOptions* op )
       else if ( !_stricmp( "1035i6000_260", szBuffer ) )
       {
         op->videoFormat = NVVIOSIGNALFORMAT_1035I_60_00_SMPTE260;
-
       }
       else if ( !_stricmp( "1080i4796_274", szBuffer ) )
       {

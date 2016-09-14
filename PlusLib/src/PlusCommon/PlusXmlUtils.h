@@ -182,14 +182,13 @@ public:
     } \
   }
 
-// Read a string attribute (with the same name as the class member variable) and save it to a variable.
+// Read a string attribute and save it to a variable.
 #define XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
   { \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#varName);  \
     if (destinationXmlElementVar != NULL)  \
     { \
-      delete [] var; \
-      var = strcpy(destinationXmlElementVar); \
+      var = std::string(destinationXmlElementVar); \
     } \
   }
 

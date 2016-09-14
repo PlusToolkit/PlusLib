@@ -26,14 +26,14 @@ class CNvGpu;
 class vtkPlusDataCollectionExport vtkPlusNvidiaDVPVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro(vtkPlusNvidiaDVPVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  vtkTypeMacro( vtkPlusNvidiaDVPVideoSource, vtkPlusDevice );
+  void PrintSelf( ostream& os, vtkIndent indent );
   static vtkPlusNvidiaDVPVideoSource* New();
 
   /// Read configuration from XML data
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
   /// Write configuration to XML data
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* config );
 
   /// Respond to the query if this is a tracker or not
   virtual bool IsTracker() const;
@@ -42,11 +42,12 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   /// Get the field that determines if the frames are copied from the GPU to the CPU to be used downstream
-  vtkGetMacro(EnableGPUCPUCopy, bool);
-  /// Set the field that determines if the frames are copied from the GPU to the CPU to be used downstream
-  vtkSetMacro(EnableGPUCPUCopy, bool);
+  vtkGetMacro( EnableGPUCPUCopy, bool );
 
 protected:
+  /// Set the field that determines if the frames are copied from the GPU to the CPU to be used downstream
+  vtkSetMacro( EnableGPUCPUCopy, bool );
+
   vtkPlusNvidiaDVPVideoSource();
   virtual ~vtkPlusNvidiaDVPVideoSource();
 
@@ -71,7 +72,7 @@ protected:
 
 protected:
   CNvGpu* NvGPU;
-  
+
   /// Windows device context
   HDC HandleDC;
 
@@ -104,8 +105,8 @@ protected:
   vtkPlusDataSource* OutputDataSource;
 
 private:
-  vtkPlusNvidiaDVPVideoSource(const vtkPlusNvidiaDVPVideoSource&);  // Not implemented.
-  void operator=(const vtkPlusNvidiaDVPVideoSource&);  // Not implemented.
+  vtkPlusNvidiaDVPVideoSource( const vtkPlusNvidiaDVPVideoSource& ); // Not implemented.
+  void operator=( const vtkPlusNvidiaDVPVideoSource& ); // Not implemented.
 };
 
 #endif
