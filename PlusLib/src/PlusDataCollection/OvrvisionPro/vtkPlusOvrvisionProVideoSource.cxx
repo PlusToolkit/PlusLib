@@ -12,6 +12,10 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtksys/SystemTools.hxx"
 
+// OpenCV includes
+#include <cv.h>
+#include <opencv2/imgproc.hpp>
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro( vtkPlusOvrvisionProVideoSource );
@@ -61,20 +65,31 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusOvrvisionProVideoSource::InternalConnect" );
 
-  int frameSize[3] = { Resolution[0], Resolution[1], 1 };
-  LeftEyeDataSource->SetInputFrameSize( frameSize );
-  LeftEyeDataSource->SetNumberOfScalarComponents( 3 );
-  RightEyeDataSource->SetInputFrameSize( frameSize );
-  RightEyeDataSource->SetNumberOfScalarComponents( 3 );
-
-  LeftFrameRGB = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * sizeof( unsigned char ) * 3];
-  RightFrameRGB = new unsigned char[frameSize[0] * frameSize[1] * frameSize[2] * sizeof( unsigned char ) * 3];
-
   if ( !OvrvisionProHandle.Open( 0, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
     LOG_ERROR( "Unable to connect to OvrvisionPro device." );
     return PLUS_FAIL;
   }
+
+  if ( OvrvisionProHandle.GetCamWidth() != Resolution[0] )
+  {
+    LOG_ERROR( "Improperly configured device. Cannot connect. Width (cam)" << OvrvisionProHandle.GetCamWidth() << " != (config)" << Resolution[0] );
+    OvrvisionProHandle.Close();
+    return PLUS_FAIL;
+  }
+
+  if ( OvrvisionProHandle.GetCamHeight() != Resolution[1] )
+  {
+    LOG_ERROR( "Improperly configured device. Cannot connect. Height (cam)" << OvrvisionProHandle.GetCamHeight() << " != (config)" << Resolution[1] );
+    OvrvisionProHandle.Close();
+    return PLUS_FAIL;
+  }
+
+  int frameSize[3] = { Resolution[0], Resolution[1], 1 };
+  LeftEyeDataSource->SetInputFrameSize( frameSize );
+  LeftEyeDataSource->SetNumberOfScalarComponents( 3 );
+  RightEyeDataSource->SetInputFrameSize( frameSize );
+  RightEyeDataSource->SetNumberOfScalarComponents( 3 );
 
   OvrvisionProHandle.SetCameraSyncMode( CameraSync );
 
@@ -85,11 +100,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 PlusStatus vtkPlusOvrvisionProVideoSource::InternalDisconnect()
 {
   LOG_DEBUG( "vtkPlusOvrvisionProVideoSource::InternalDisconnect" );
-
-  delete[] LeftFrameRGB;
-  LeftFrameRGB = NULL;
-  delete[] RightFrameRGB;
-  RightFrameRGB = NULL;
 
   if ( OvrvisionProHandle.isOpen() )
   {
@@ -105,45 +115,38 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
   int numErrors( 0 );
 
   // Query the SDK for the latest frames
-  OvrvisionProHandle.PreStoreCamData( OVR::OV_CAMQT_NONE );
-  unsigned char* leftFrameBGRA = OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_LEFT );
-  unsigned char* rightFrameBGRA = OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_RIGHT );
-
-  unsigned int frameSize[3];
-  LeftEyeDataSource->GetInputFrameSize( frameSize ); // Left and right eye have identical image sizes
-
-  unsigned char* leftTargetPixel = LeftFrameRGB;
-  unsigned char* leftSourcePixel = leftFrameBGRA;
-  unsigned char* rightTargetPixel = RightFrameRGB;
-  unsigned char* rightSourcePixel = rightFrameBGRA;
-  const unsigned int targetPixelStride = 3 * sizeof( unsigned char );
-  const unsigned int sourcePixelStride = 4 * sizeof( unsigned char );
-  for ( unsigned int y = 0; y < frameSize[1]; ++y )
+  if ( this->IsCapturingRGB )
   {
-    for ( unsigned int x = 0; x < frameSize[0]; ++x )
-    {
-      leftTargetPixel[2] = leftSourcePixel[0]; // blue
-      leftTargetPixel[1] = leftSourcePixel[1]; // green
-      leftTargetPixel[0] = leftSourcePixel[2]; // red
+    OvrvisionProHandle.PreStoreCamData( OVR::OV_CAMQT_DMSRMP );
+  }
+  else
+  {
+    OvrvisionProHandle.PreStoreCamData( OVR::OV_CAMQT_NONE );
+  }
 
-      rightTargetPixel[2] = rightSourcePixel[0]; // blue
-      rightTargetPixel[1] = rightSourcePixel[1]; // green
-      rightTargetPixel[0] = rightSourcePixel[2]; // red
+  // Greyscale simply means r = g = b = a (see PreStoreCamData source)
+  cv::Mat matLeft( OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_LEFT ) );
+  cv::Mat matRight( OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA( OVR::OV_CAMEYE_RIGHT ) );
 
-      leftTargetPixel += targetPixelStride;
-      rightTargetPixel += targetPixelStride;
-      leftSourcePixel += sourcePixelStride;
-      rightSourcePixel += sourcePixelStride;
-    }
+  if ( this->IsCapturingRGB )
+  {
+    // Convert From BGRA to RGB
+    cv::cvtColor( matLeft, matLeft, cv::COLOR_BGRA2RGB );
+    cv::cvtColor( matRight, matRight, cv::COLOR_BGRA2RGB );
+  }
+  else
+  {
+    cv::cvtColor( matLeft, matLeft, cv::COLOR_BGRA2GRAY );
+    cv::cvtColor( matRight, matRight, cv::COLOR_BGRA2GRAY );
   }
 
   // Add them to our local buffers
-  if ( LeftEyeDataSource->AddItem( LeftFrameRGB,
+  if ( LeftEyeDataSource->AddItem( matLeft.data,
                                    LeftEyeDataSource->GetInputImageOrientation(),
                                    LeftEyeDataSource->GetInputFrameSize(),
                                    VTK_UNSIGNED_CHAR,
-                                   3,
-                                   US_IMG_RGB_COLOR,
+                                   matLeft.channels(),
+                                   matLeft.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                    0,
                                    this->FrameNumber ) != PLUS_SUCCESS )
   {
@@ -151,12 +154,12 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
     numErrors++;
   }
 
-  if ( RightEyeDataSource->AddItem( RightFrameRGB,
+  if ( RightEyeDataSource->AddItem( matRight.data,
                                     RightEyeDataSource->GetInputImageOrientation(),
                                     RightEyeDataSource->GetInputFrameSize(),
                                     VTK_UNSIGNED_CHAR,
-                                    3,
-                                    US_IMG_RGB_COLOR,
+                                    matRight.channels(),
+                                    matRight.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                     0,
                                     this->FrameNumber ) != PLUS_SUCCESS )
   {
@@ -391,16 +394,21 @@ PlusStatus vtkPlusOvrvisionProVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
-  if ( LeftEyeDataSource->GetImageType() != US_IMG_RGB_COLOR )
-  {
-    LOG_ERROR( "Left eye data source must be configured for image type US_IMG_RGB_COLOR. Aborting." );
-    return PLUS_FAIL;
-  }
-
   if ( this->GetDataSource( RightEyeDataSourceName, RightEyeDataSource ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Unable to locate data source for right eye labelled: " << RightEyeDataSourceName );
     return PLUS_FAIL;
+  }
+
+  if ( LeftEyeDataSource->GetImageType() != RightEyeDataSource->GetImageType() )
+  {
+    LOG_ERROR( "Mistmatch between left and right eye data source image types." );
+    return PLUS_FAIL;
+  }
+
+  if ( LeftEyeDataSource->GetImageType() == US_IMG_RGB_COLOR )
+  {
+    this->IsCapturingRGB = true;
   }
 
   if ( RightEyeDataSource->GetImageType() != US_IMG_RGB_COLOR )
