@@ -279,7 +279,10 @@ PlusStatus vtkPlusBuffer::AddItem( const PlusVideoFrame* frame,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::AddItem( const PlusTrackedFrame::FieldMapType& fields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/ )
+PlusStatus vtkPlusBuffer::AddItem( const PlusTrackedFrame::FieldMapType& fields,
+                                   long frameNumber,
+                                   double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
+                                   double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/ )
 {
   if( fields.empty() )
   {
@@ -344,7 +347,19 @@ PlusStatus vtkPlusBuffer::AddItem( const PlusTrackedFrame::FieldMapType& fields,
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::AddItem( void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const unsigned int inputFrameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, const int clipRectangleOrigin[3], const int clipRectangleSize[3], double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL */ )
+PlusStatus vtkPlusBuffer::AddItem( void* imageDataPtr,
+                                   US_IMAGE_ORIENTATION usImageOrientation,
+                                   const unsigned int inputFrameSizeInPx[3],
+                                   PlusCommon::VTKScalarPixelType pixelType,
+                                   unsigned int numberOfScalarComponents,
+                                   US_IMAGE_TYPE imageType,
+                                   int numberOfBytesToSkip,
+                                   long frameNumber,
+                                   const int clipRectangleOrigin[3],
+                                   const int clipRectangleSize[3],
+                                   double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
+                                   double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
+                                   const PlusTrackedFrame::FieldMapType* customFields /*= NULL */ )
 {
   if ( unfilteredTimestamp == UNDEFINED_TIMESTAMP )
   {

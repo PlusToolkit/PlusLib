@@ -70,7 +70,6 @@ protected:
   ~vtkPlusOvrvisionProVideoSource();
 
 protected:
-
   // Requested capture format
   OVR::OvrvisionPro OvrvisionProHandle;
   OVR::Camprop RequestedFormat;
@@ -82,6 +81,7 @@ protected:
   int Resolution[2];
   int Framerate;
   char* ProcessingModeName;
+  bool IsCapturingRGB;
 
   // Record which data source corresponds to which eye
   char* LeftEyeDataSourceName;
@@ -89,11 +89,6 @@ protected:
 
   vtkPlusDataSource* LeftEyeDataSource;
   vtkPlusDataSource* RightEyeDataSource;
-
-  // Memory to hold left and right eye images requested from the SDK
-  // in RGBA format, instead of BGRA as provided by the SDK
-  unsigned char* LeftFrameRGB;
-  unsigned char* RightFrameRGB;
 
 private:
   static vtkPlusOvrvisionProVideoSource* ActiveDevice;
