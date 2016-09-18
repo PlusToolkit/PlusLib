@@ -18,6 +18,25 @@ ELSE()
       LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=OFF)
     ENDIF()
   ENDIF()
+
+  IF(CUDA_FOUND)
+    SET(_generations "Fermi" "Kepler")
+    IF(NOT CMAKE_CROSSCOMPILING)
+      LIST(APPEND _generations "Auto")
+    ENDIF()
+
+    SET(PLUSBUILD_OpenCV_CUDA_GENERATION "" CACHE STRING "Build CUDA device code only for specific GPU architecture. Leave empty to build for all architectures.")
+    set_property( CACHE PLUSBUILD_OpenCV_CUDA_GENERATION PROPERTY STRINGS "" ${_generations} )
+
+    IF(PLUSBUILD_OpenCV_CUDA_GENERATION)
+      IF(NOT ";${_generations};" MATCHES ";${PLUSBUILD_OpenCV_CUDA_GENERATION};")
+        STRING(REPLACE ";" ", " _generations "${_generations}")
+        MESSAGE(FATAL_ERROR "ERROR: Only CUDA ${_generations} generations are supported.")
+      ENDIF()
+    ENDIF()
+    
+    LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DCUDA_GENERATION:STRING=${PLUSBUILD_OpenCV_CUDA_GENERATION})
+  ENDIF()
   
   IF(Qt5_FOUND)
     LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_QT:BOOL=ON -DQt5_DIR:PATH=${Qt5_DIR})
