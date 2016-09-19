@@ -22,57 +22,54 @@ The "videoInput" library has been adapted to fit within a namespace.
 #include <Mfidl.h>
 #include <Mfobjects.h>
 
-//----------------------------------------------------------------------------
-
 namespace
 {
-  template <class T> void SafeRelease(T **ppT)
+  //----------------------------------------------------------------------------
+  template <class T> void SafeRelease( T** ppT )
   {
-    if (*ppT)
+    if ( *ppT )
     {
-      (*ppT)->Release();
+      ( *ppT )->Release();
       *ppT = NULL;
     }
   }
 }
 
-//----------------------------------------------------------------------------
-
 namespace MfVideoCapture
 {
-  MediaFoundationVideoDevices::MediaFoundationVideoDevices(void): count(0)
+  //----------------------------------------------------------------------------
+  MediaFoundationVideoDevices::MediaFoundationVideoDevices( void ): count( 0 )
   {
   }
 
   //----------------------------------------------------------------------------
-
   void MediaFoundationVideoDevices::ClearDevices()
   {
-    std::vector<MediaFoundationVideoDevice *>::iterator i = Devices.begin();
+    std::vector<MediaFoundationVideoDevice*>::iterator i = Devices.begin();
 
-    for(; i != Devices.end(); ++i)
-      delete (*i);
+    for( ; i != Devices.end(); ++i )
+    {
+      delete ( *i );
+    }
 
     Devices.clear();
   }
 
   //----------------------------------------------------------------------------
-
-  MediaFoundationVideoDevices::~MediaFoundationVideoDevices(void)
-  {  
+  MediaFoundationVideoDevices::~MediaFoundationVideoDevices( void )
+  {
     ClearDevices();
   }
 
   //----------------------------------------------------------------------------
-
-  MediaFoundationVideoDevice * MediaFoundationVideoDevices::GetDevice(unsigned int i)
+  MediaFoundationVideoDevice* MediaFoundationVideoDevices::GetDevice( unsigned int i )
   {
-    if(i >= Devices.size())
+    if( i >= Devices.size() )
     {
       return NULL;
     }
 
-    if(i < 0)
+    if( i < 0 )
     {
       return NULL;
     }
@@ -81,53 +78,54 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-
-  long MediaFoundationVideoDevices::InitDevices(IMFAttributes *pAttributes)
+  long MediaFoundationVideoDevices::InitDevices( IMFAttributes* pAttributes )
   {
     HRESULT hr = S_OK;
 
-    IMFActivate **ppDevices = NULL;
+    IMFActivate** ppDevices = NULL;
 
     ClearDevices();
 
-    hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
+    hr = MFEnumDeviceSources( pAttributes, &ppDevices, &count );
 
-    if (SUCCEEDED(hr))
+    if ( SUCCEEDED( hr ) )
     {
-      if(count > 0)
+      if( count > 0 )
       {
-        for(UINT32 i = 0; i < count; i++)
+        for( UINT32 i = 0; i < count; i++ )
         {
-          MediaFoundationVideoDevice *vd = new MediaFoundationVideoDevice;
-          if (SUCCEEDED(vd->ReadDeviceInfo(ppDevices[i], i)))
-            Devices.push_back(vd);
+          MediaFoundationVideoDevice* vd = new MediaFoundationVideoDevice;
+          if ( SUCCEEDED( vd->ReadDeviceInfo( ppDevices[i], i ) ) )
+          {
+            Devices.push_back( vd );
+          }
 
-          SafeRelease(&ppDevices[i]);
+          SafeRelease( &ppDevices[i] );
         }
 
-        SafeRelease(ppDevices);
+        SafeRelease( ppDevices );
       }
       else
+      {
         hr = -1;
+      }
     }
     else
     {
-      LOG_ERROR("VIDEODEVICES: The instances of the videoDevice class cannot be created.");
+      LOG_ERROR( "VIDEODEVICES: The instances of the videoDevice class cannot be created." );
     }
 
     return hr;
   }
 
   //----------------------------------------------------------------------------
-
-  unsigned int MediaFoundationVideoDevices::GetCount()
+  DeviceList::size_type MediaFoundationVideoDevices::GetCount()
   {
     return Devices.size();
   }
 
   //----------------------------------------------------------------------------
-
-  MediaFoundationVideoDevices& MediaFoundationVideoDevices::GetInstance() 
+  MediaFoundationVideoDevices& MediaFoundationVideoDevices::GetInstance()
   {
     static MediaFoundationVideoDevices instance;
 

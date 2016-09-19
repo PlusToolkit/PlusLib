@@ -70,6 +70,11 @@ namespace MfVideoCapture
     void Clear();
   };
 
+  typedef std::vector<MediaType> FormatList;
+  typedef std::vector<FormatList> StreamList;
+  typedef StreamList::size_type stream_sizet;
+  typedef FormatList::size_type format_sizet;
+
   // Structure for collecting info about one parameter of current video device
   class Parameter
   {
@@ -152,7 +157,7 @@ namespace MfVideoCapture
     void GetDeviceNames( std::vector< std::wstring >& deviceNames );
 
     // Getting numbers of formats, which are supported by videodevice with deviceID
-    unsigned int GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex );
+    MfVideoCapture::format_sizet GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex );
 
     // Get active format for the given device
     unsigned int GetDeviceActiveFormat( unsigned int deviceID );
@@ -176,7 +181,7 @@ namespace MfVideoCapture
     MediaType GetFormat( unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex );
 
     // Getting number of streams provided by videodevice with deviceID
-    int GetNumberOfStreams( unsigned int deviceID );
+    MfVideoCapture::stream_sizet GetNumberOfStreams( unsigned int deviceID );
 
     // Checking of existence of the suitable video devices
     bool AreDevicesAccessible() const;

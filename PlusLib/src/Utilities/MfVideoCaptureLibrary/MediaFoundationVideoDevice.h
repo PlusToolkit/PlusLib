@@ -43,11 +43,6 @@ namespace MfVideoCapture
   */
   class MediaFoundationVideoDevice
   {
-    typedef std::vector<MediaType> FormatList;
-    typedef std::vector<FormatList> StreamList;
-    typedef StreamList::size_type stream_sizet;
-    typedef FormatList::size_type format_sizet;
-
     enum TypeLock
     {
       MediaSourceLock,
@@ -67,12 +62,12 @@ namespace MfVideoCapture
     wchar_t* GetName();
     bool Start();
     bool Stop();
-    format_sizet GetNumberOfFormats( unsigned int streamIndex ) const;
+    MfVideoCapture::format_sizet GetNumberOfFormats( unsigned int streamIndex ) const;
     unsigned int GetWidth() const;
     unsigned int GetHeight() const;
     unsigned int GetFrameRate() const;
     MediaType GetFormat( unsigned int streamIndex, unsigned int id ) const;
-    stream_sizet GetNumberOfStreams() const;
+    MfVideoCapture::stream_sizet GetNumberOfStreams() const;
     unsigned int GetActiveType() const;
     bool SetupDevice( unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate = 0, GUID subtype = MFVideoFormat_YUY2 );
     bool SetupDevice( unsigned int streamIndex, unsigned int formatIndex );

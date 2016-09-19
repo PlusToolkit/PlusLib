@@ -304,7 +304,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevice::stream_sizet MediaFoundationVideoDevice::GetNumberOfStreams() const
+  MfVideoCapture::stream_sizet MediaFoundationVideoDevice::GetNumberOfStreams() const
   {
     return this->CurrentStreamFormats.size();
   }
@@ -324,7 +324,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevice::format_sizet MediaFoundationVideoDevice::GetNumberOfFormats( unsigned int streamIndex ) const
+  MfVideoCapture::format_sizet MediaFoundationVideoDevice::GetNumberOfFormats( unsigned int streamIndex ) const
   {
     if( streamIndex >= this->CurrentStreamFormats.size() )
     {

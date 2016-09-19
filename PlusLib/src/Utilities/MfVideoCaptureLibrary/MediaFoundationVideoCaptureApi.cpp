@@ -180,7 +180,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  int MediaFoundationVideoCaptureApi::GetNumberOfStreams( unsigned int deviceID )
+  MfVideoCapture::stream_sizet MediaFoundationVideoCaptureApi::GetNumberOfStreams( unsigned int deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetNumberOfStreams", 0 );
     return videoDevice->GetNumberOfStreams();
@@ -208,7 +208,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex )
+  MfVideoCapture::format_sizet MediaFoundationVideoCaptureApi::GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFormatCount", false );
     return videoDevice->GetNumberOfFormats( streamIndex );
