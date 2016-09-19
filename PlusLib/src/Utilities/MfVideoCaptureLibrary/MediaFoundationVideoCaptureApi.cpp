@@ -217,8 +217,8 @@ namespace MfVideoCapture
   //----------------------------------------------------------------------------
   void MediaFoundationVideoCaptureApi::CloseAllDevices()
   {
-    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
-    for( unsigned int i = 0; i < numberOfDevices; i++ )
+    DeviceList::size_type numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for( DeviceList::size_type i = 0; i < numberOfDevices; i++ )
     {
       CloseDevice( i );
     }
@@ -283,8 +283,8 @@ namespace MfVideoCapture
       LOG_ERROR( "MediaFoundationVideoCaptureApi::ListDevices failed: no devices found" );
       return 0;
     }
-    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
-    for( unsigned int i = 0; i < numberOfDevices; i++ )
+    DeviceList::size_type numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for( DeviceList::size_type i = 0; i < numberOfDevices; i++ )
     {
       LOG_INFO( "Device " << i << ": " << GetCaptureDeviceName( i ) );
     }
@@ -300,8 +300,8 @@ namespace MfVideoCapture
       LOG_ERROR( "MediaFoundationVideoCaptureApi::GetDeviceNames failed: no devices found" );
       return;
     }
-    unsigned int numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
-    for( unsigned int i = 0; i < numberOfDevices; i++ )
+    DeviceList::size_type numberOfDevices = MediaFoundationVideoDevices::GetInstance().GetCount();
+    for( DeviceList::size_type i = 0; i < numberOfDevices; i++ )
     {
       std::wstring deviceName = GetCaptureDeviceName( i );
       deviceNames.push_back( deviceName );
@@ -332,7 +332,7 @@ namespace MfVideoCapture
   //----------------------------------------------------------------------------
   unsigned int MediaFoundationVideoCaptureApi::GetDeviceActiveFormat( unsigned int deviceID )
   {
-    GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetDeviceActiveFormat", UINT_MAX);
+    GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetDeviceActiveFormat", UINT_MAX );
     return videoDevice->GetActiveType();
   }
 
