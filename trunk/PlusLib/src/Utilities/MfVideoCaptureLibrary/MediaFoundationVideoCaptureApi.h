@@ -19,6 +19,8 @@ The "videoInput" library has been adapted to fit within a namespace.
 #ifndef __MediaFoundationVideoCaptureApi_h
 #define __MediaFoundationVideoCaptureApi_h
 
+#include "MediaFoundationVideoDevices.h"
+
 #include <guiddef.h>
 #include <mfapi.h>
 #include <string>
@@ -130,55 +132,55 @@ namespace MfVideoCapture
     static MediaFoundationVideoCaptureApi& GetInstance();
 
     // Closing video device with deviceID
-    bool CloseDevice( unsigned int deviceID );
+    bool CloseDevice( DeviceList::size_type deviceID );
 
     // Setting callback function for emergency events(for example: removing video device with deviceID) with userData
-    bool SetEmergencyStopEvent( unsigned int deviceID, void* userData, void( *func )( int, void* ) );
+    bool SetEmergencyStopEvent( DeviceList::size_type deviceID, void* userData, void( *func )( int, void* ) );
 
     // Closing all devices
     void CloseAllDevices();
 
     // Tell a device to start recording
-    bool StartRecording( unsigned int deviceID );
+    bool StartRecording( DeviceList::size_type deviceID );
 
     // Tell a device to stop recording
-    bool StopRecording( unsigned int deviceID );
+    bool StopRecording( DeviceList::size_type deviceID );
 
     // Getting of parametrs of video device with deviceID
-    CaptureDeviceParameters GetParameters( unsigned int deviceID );
+    CaptureDeviceParameters GetParameters( DeviceList::size_type deviceID );
 
     // Setting of parametrs of video device with deviceID
-    bool SetParameters( unsigned int deviceID, CaptureDeviceParameters parametrs );
+    bool SetParameters( DeviceList::size_type deviceID, CaptureDeviceParameters parametrs );
 
     // List any existing capture devices
-    unsigned int ListDevices();
+    DeviceList::size_type ListDevices();
 
     // Get a list of existing capture device names
     void GetDeviceNames( std::vector< std::wstring >& deviceNames );
 
     // Getting numbers of formats, which are supported by videodevice with deviceID
-    MfVideoCapture::format_sizet GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex );
+    MfVideoCapture::format_sizet GetNumberOfFormats( DeviceList::size_type deviceID, unsigned int streamIndex );
 
     // Get active format for the given device
-    unsigned int GetDeviceActiveFormat( unsigned int deviceID );
+    unsigned int GetDeviceActiveFormat( DeviceList::size_type deviceID );
 
     // Getting width of image, which is getting from videodevice with deviceID
-    unsigned int GetWidth( unsigned int deviceID );
+    unsigned int GetWidth( DeviceList::size_type deviceID );
 
     // Getting height of image, which is getting from videodevice with deviceID
-    unsigned int GetHeight( unsigned int deviceID );
+    unsigned int GetHeight( DeviceList::size_type deviceID );
 
     // Getting the current frame rate of the videodevice with deviceID
-    unsigned int GetFrameRate( unsigned int deviceID );
+    unsigned int GetFrameRate( DeviceList::size_type deviceID );
 
     // Getting name of videodevice with deviceID
-    wchar_t* GetCaptureDeviceName( unsigned int deviceID );
+    wchar_t* GetCaptureDeviceName( DeviceList::size_type deviceID );
 
     // Getting interface MediaSource for Media Foundation from videodevice with deviceID
-    IMFMediaSource* GetMediaSource( unsigned int deviceID );
+    IMFMediaSource* GetMediaSource( DeviceList::size_type deviceID );
 
     // Getting format with id, which is supported by videodevice with deviceID
-    MediaType GetFormat( unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex );
+    MediaType GetFormat( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int formatIndex );
 
     // Getting number of streams provided by videodevice with deviceID
     MfVideoCapture::stream_sizet GetNumberOfStreams( unsigned int deviceID );
@@ -187,19 +189,19 @@ namespace MfVideoCapture
     bool AreDevicesAccessible() const;
 
     // Checking of using the videodevice with deviceID
-    bool IsDeviceSetup( unsigned int deviceID );
+    bool IsDeviceSetup( DeviceList::size_type deviceID );
 
     // Checking of using MediaSource from videodevice with deviceID
-    bool IsDeviceMediaSource( unsigned int deviceID );
+    bool IsDeviceMediaSource( DeviceList::size_type deviceID );
 
     // Checking of using Raw Data of pixels from video device with deviceID
-    bool IsDeviceRawDataSource( unsigned int deviceID );
+    bool IsDeviceRawDataSource( DeviceList::size_type deviceID );
 
     // Initialization of video device with deviceID by media type with id
-    bool SetupDevice( unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex = 0 );
+    bool SetupDevice( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int formatIndex = 0 );
 
     // Initialization of video device with deviceID by width w, height h, fps idealFramerate and subtype
-    bool SetupDevice( unsigned int deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate = 30, GUID subtype = MFVideoFormat_YUY2 );
+    bool SetupDevice( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate = 30, GUID subtype = MFVideoFormat_YUY2 );
 
   protected:
     MediaFoundationVideoCaptureApi( void );
