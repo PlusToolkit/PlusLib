@@ -25,7 +25,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 struct IMFMediaType;
 
 /*!
-\class FormatReader 
+\class FormatReader
 \brief Class for parsing info from IMFMediaType into the local format
 
 \ingroup PlusLibDataCollection
@@ -35,12 +35,12 @@ namespace MfVideoCapture
   class FormatReader
   {
   public:
-    static MediaType Read(IMFMediaType *pType);
-    static std::wstring StringFromGUID(const GUID& aGuid);
-    static GUID GUIDFromString(const std::wstring& aString);
+    static MediaType Read( IMFMediaType* pType );
+    static std::wstring StringFromGUID( const GUID& aGuid );
+    static GUID GUIDFromString( const std::wstring& aString );
   private:
-    FormatReader(void);
-    ~FormatReader(void);
+    FormatReader( void );
+    ~FormatReader( void );
   };
 }
 #endif
