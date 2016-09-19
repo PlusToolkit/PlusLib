@@ -27,23 +27,24 @@ struct IMFAttributes;
 namespace MfVideoCapture
 {
   class MediaFoundationVideoDevice;
+  typedef std::vector<MediaFoundationVideoDevice*> DeviceList;
 
   /// Class for managing of list of video devices
   class MediaFoundationVideoDevices
   {
   public:
-    long InitDevices(IMFAttributes *pAttributes);
+    long InitDevices( IMFAttributes* pAttributes );
     static MediaFoundationVideoDevices& GetInstance();
-    MediaFoundationVideoDevice *GetDevice(unsigned int i);
-    unsigned int GetCount();
+    MediaFoundationVideoDevice* GetDevice( unsigned int i );
+    DeviceList::size_type GetCount();
     void ClearDevices();
 
   private:
-    MediaFoundationVideoDevices(void);
-    ~MediaFoundationVideoDevices(void);
+    MediaFoundationVideoDevices( void );
+    ~MediaFoundationVideoDevices( void );
 
     unsigned int count;
-    std::vector<MediaFoundationVideoDevice *> Devices;
+    DeviceList Devices;
   };
 
 }
