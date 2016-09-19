@@ -196,6 +196,10 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
   )
 CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in
+  ${CMAKE_BINARY_DIR}/PlusConfigure.h
+  )
+CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
   )
