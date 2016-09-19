@@ -369,7 +369,7 @@ namespace MfVideoCapture
       return false;
     }
 
-    IMFPresentationDescriptor* pPD( NULL );
+    IMFPresentationDescriptor* pPD = NULL;
     HRESULT hr = this->Source->CreatePresentationDescriptor( &pPD );
 
     if ( SUCCEEDED( hr ) )
@@ -508,10 +508,10 @@ namespace MfVideoCapture
   //----------------------------------------------------------------------------
   long MediaFoundationVideoDevice::SetDeviceFormat( IMFMediaSource* pSource, DWORD streamIndex, DWORD dwFormatIndex )
   {
-    IMFPresentationDescriptor* pPD( NULL );
-    IMFStreamDescriptor* pSD( NULL );
-    IMFMediaTypeHandler* pHandler( NULL );
-    IMFMediaType* pType( NULL );
+    IMFPresentationDescriptor* pPD = NULL;
+    IMFStreamDescriptor* pSD = NULL;
+    IMFMediaTypeHandler* pHandler = NULL;
+    IMFMediaType* pType = NULL;
 
     HRESULT hr = pSource->CreatePresentationDescriptor( &pPD );
     if ( FAILED( hr ) )
@@ -639,9 +639,9 @@ done:
   //----------------------------------------------------------------------------
   long MediaFoundationVideoDevice::EnumerateCaptureFormats( IMFMediaSource* pSource )
   {
-    IMFPresentationDescriptor* pPD( NULL );
-    IMFStreamDescriptor* pSD( NULL );
-    IMFMediaTypeHandler* pHandler( NULL );
+    IMFPresentationDescriptor* pPD = NULL;
+    IMFStreamDescriptor* pSD = NULL;
+    IMFMediaTypeHandler* pHandler = NULL;
 
     HRESULT hr( -1 );
     if ( pSource == NULL )
