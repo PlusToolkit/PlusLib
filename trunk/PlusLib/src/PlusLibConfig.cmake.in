@@ -17,6 +17,15 @@
 #  PlusLib_DATA_DIR - directory containing data collector configuration files, sample images, and 3d models
 #-----------------------------------------------------------------------------
 
+SET(VTK_DIR @VTK_DIR@)
+FIND_PACKAGE(VTK REQUIRED NO_MODULE)
+
+IF(@ITK_FOUND@)
+  SET(ITK_DIR @ITK_DIR@)
+  FIND_PACKAGE(ITK REQUIRED NO_MODULE)
+  INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
+ENDIF()
+
 SET(PlusLib_TARGETS_FILE @CMAKE_BINARY_DIR@/PlusLibTargets.cmake)
 INCLUDE(${PlusLib_TARGETS_FILE})
 
