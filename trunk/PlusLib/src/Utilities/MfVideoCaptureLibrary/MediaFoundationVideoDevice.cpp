@@ -207,7 +207,7 @@ namespace MfVideoCapture
     HRESULT hr = S_OK;
     *pDevice = NULL;
 
-    IMFActivate** ppDevices( NULL );
+    IMFActivate** ppDevices = NULL;
     UINT32 count = 0;
     if ( SUCCEEDED( hr ) )
     {
@@ -267,8 +267,8 @@ namespace MfVideoCapture
   long MediaFoundationVideoDevice::InitDevice()
   {
     HRESULT hr = S_OK;
-    IMFAttributes* pAttributes( NULL );
-    IMFActivate* vd_pActivate( NULL );
+    IMFAttributes* pAttributes = NULL;
+    IMFActivate* vd_pActivate = NULL;
     CoInitialize( NULL );
 
     if ( SUCCEEDED( hr ) )
