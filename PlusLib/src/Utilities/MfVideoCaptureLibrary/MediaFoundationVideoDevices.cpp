@@ -62,7 +62,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevice* MediaFoundationVideoDevices::GetDevice( unsigned int i )
+  MediaFoundationVideoDevice* MediaFoundationVideoDevices::GetDevice( DeviceList::size_type i )
   {
     if( i >= Devices.size() )
     {

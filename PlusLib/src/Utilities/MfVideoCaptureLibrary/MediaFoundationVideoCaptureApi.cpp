@@ -137,7 +137,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  IMFMediaSource* MediaFoundationVideoCaptureApi::GetMediaSource( unsigned int deviceID )
+  IMFMediaSource* MediaFoundationVideoCaptureApi::GetMediaSource( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetMediaSource", NULL );
     IMFMediaSource* out = videoDevice->GetMediaSource();
@@ -149,7 +149,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::SetupDevice( unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex )
+  bool MediaFoundationVideoCaptureApi::SetupDevice( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int formatIndex )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetupDevice", NULL );
     bool out = videoDevice->SetupDevice( streamIndex, formatIndex );
@@ -161,7 +161,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::SetupDevice( unsigned int deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype )
+  bool MediaFoundationVideoCaptureApi::SetupDevice( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int w, unsigned int h, unsigned int idealFramerate, GUID subtype )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetupDevice", NULL );
     bool out = videoDevice->SetupDevice( streamIndex, w, h, idealFramerate, subtype );
@@ -173,7 +173,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  MediaType MediaFoundationVideoCaptureApi::GetFormat( unsigned int deviceID, unsigned int streamIndex, unsigned int formatIndex )
+  MediaType MediaFoundationVideoCaptureApi::GetFormat( DeviceList::size_type deviceID, unsigned int streamIndex, unsigned int formatIndex )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFormat", MediaType() );
     return videoDevice->GetFormat( streamIndex, formatIndex );
@@ -187,28 +187,28 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::IsDeviceSetup( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::IsDeviceSetup( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceSetup", false );
     return videoDevice->IsDeviceSetup();
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::IsDeviceMediaSource( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::IsDeviceMediaSource( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceMediaSource", false );
     return videoDevice->IsDeviceMediaSource();
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::IsDeviceRawDataSource( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::IsDeviceRawDataSource( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::IsDeviceRawDataSource", false );
     return videoDevice->IsDeviceRawDataSource();
   }
 
   //----------------------------------------------------------------------------
-  MfVideoCapture::format_sizet MediaFoundationVideoCaptureApi::GetNumberOfFormats( unsigned int deviceID, unsigned int streamIndex )
+  MfVideoCapture::format_sizet MediaFoundationVideoCaptureApi::GetNumberOfFormats( DeviceList::size_type deviceID, unsigned int streamIndex )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFormatCount", false );
     return videoDevice->GetNumberOfFormats( streamIndex );
@@ -225,7 +225,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::SetParameters( unsigned int deviceID, CaptureDeviceParameters parameters )
+  bool MediaFoundationVideoCaptureApi::SetParameters( DeviceList::size_type deviceID, CaptureDeviceParameters parameters )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetParameters", false );
     videoDevice->SetParameters( parameters );
@@ -233,14 +233,14 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  CaptureDeviceParameters MediaFoundationVideoCaptureApi::GetParameters( unsigned int deviceID )
+  CaptureDeviceParameters MediaFoundationVideoCaptureApi::GetParameters( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetParameters", CaptureDeviceParameters() );
     return videoDevice->GetParameters();
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::CloseDevice( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::CloseDevice( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::CloseDevice", false );
     videoDevice->CloseDevice();
@@ -248,35 +248,35 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::GetWidth( unsigned int deviceID )
+  unsigned int MediaFoundationVideoCaptureApi::GetWidth( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetWidth", 0 );
     return videoDevice->GetWidth();
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::GetHeight( unsigned int deviceID )
+  unsigned int MediaFoundationVideoCaptureApi::GetHeight( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetHeight", 0 );
     return videoDevice->GetHeight();
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::GetFrameRate( unsigned int deviceID )
+  unsigned int MediaFoundationVideoCaptureApi::GetFrameRate( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetFrameRate", 0 );
     return videoDevice->GetFrameRate();
   }
 
   //----------------------------------------------------------------------------
-  wchar_t* MediaFoundationVideoCaptureApi::GetCaptureDeviceName( unsigned int deviceID )
+  wchar_t* MediaFoundationVideoCaptureApi::GetCaptureDeviceName( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetCaptureDeviceName", L"Empty" );
     return videoDevice->GetName();
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::ListDevices()
+  DeviceList::size_type MediaFoundationVideoCaptureApi::ListDevices()
   {
     if ( !this->AccessToDevices )
     {
@@ -322,7 +322,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::SetEmergencyStopEvent( unsigned int deviceID, void* userData, void( *func )( int, void* ) )
+  bool MediaFoundationVideoCaptureApi::SetEmergencyStopEvent( DeviceList::size_type deviceID, void* userData, void( *func )( int, void* ) )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::SetEmergencyStopEvent", false );
     videoDevice->SetEmergencyStopEvent( userData, func );
@@ -330,21 +330,21 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  unsigned int MediaFoundationVideoCaptureApi::GetDeviceActiveFormat( unsigned int deviceID )
+  unsigned int MediaFoundationVideoCaptureApi::GetDeviceActiveFormat( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::GetDeviceActiveFormat", UINT_MAX );
     return videoDevice->GetActiveType();
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::StartRecording( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::StartRecording( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::StartRecording", false );
     return videoDevice->Start();
   }
 
   //----------------------------------------------------------------------------
-  bool MediaFoundationVideoCaptureApi::StopRecording( unsigned int deviceID )
+  bool MediaFoundationVideoCaptureApi::StopRecording( DeviceList::size_type deviceID )
   {
     GET_VIDEO_DEVICE_RETURN_IF_FAILED( videoDevice, deviceId, "MediaFoundationVideoCaptureApi::StopRecording", false );
     return videoDevice->Stop();
