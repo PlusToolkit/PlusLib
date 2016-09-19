@@ -19,6 +19,7 @@
 
 SET(VTK_DIR @VTK_DIR@)
 FIND_PACKAGE(VTK REQUIRED NO_MODULE)
+INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
 
 IF(@ITK_FOUND@)
   SET(ITK_DIR @ITK_DIR@)
