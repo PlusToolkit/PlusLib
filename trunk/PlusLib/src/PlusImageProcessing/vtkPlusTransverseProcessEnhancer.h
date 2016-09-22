@@ -21,6 +21,7 @@ class vtkImageThreshold;
 class vtkImageGaussianSmooth;
 class vtkImageSobel2D;
 class vtkImageIslandRemoval2D;
+class vtkImageDilateErode3D;
 //class vtkImageCast;
 //class vtkImageShiftScale;
 class vtkPlusUsScanConvert;
@@ -93,6 +94,22 @@ public:
 
   void SetIslandAreaThreshold(int islandAreaThreshold);
 
+  vtkSetMacro(ErosionEnabled, bool);
+  vtkGetMacro(ErosionEnabled, bool);
+  vtkBooleanMacro(ErosionEnabled, bool);
+
+  void SetErosionKernelSize(int KernelSize[2]);
+
+  vtkSetMacro(DilationEnabled, bool);
+  vtkGetMacro(DilationEnabled, bool);
+  vtkBooleanMacro(DilationEnabled, bool);
+
+  void SetDilationKernelSize(int KernelSize[2]);
+
+  vtkSetMacro(ReconvertBinaryToGreyscale, bool);
+  vtkGetMacro(ReconvertBinaryToGreyscale, bool);
+  vtkBooleanMacro(ReconvertBinaryToGreyscale, bool);
+
   vtkSetMacro( ReturnToFanImage, bool );
   vtkGetMacro( ReturnToFanImage, bool );
   vtkBooleanMacro( ReturnToFanImage, bool );
@@ -124,9 +141,12 @@ protected:
   vtkSmartPointer<vtkImageSobel2D> EdgeDetector;
 
   vtkSmartPointer<vtkImageThreshold> ImageBinarizer;
-  vtkSmartPointer<vtkImageData> BinaryImageForIslandRemoval;
+  vtkSmartPointer<vtkImageData> BinaryImageForMorphology;
   vtkSmartPointer<vtkImageIslandRemoval2D> IslandRemover;
   void ImageConjunction(vtkImageData * InputImage, vtkImageData * MaskImage);
+
+  vtkSmartPointer<vtkImageDilateErode3D> ImageEroder;
+  //vtkSmartPointer<vtkImageDilateErode3D> ImageDilater;
 
   //vtkSmartPointer<vtkImageCast> DoubleToUchar;
   //vtkSmartPointer<vtkImageShiftScale> ImageDataConverter;
@@ -160,9 +180,19 @@ protected:
   bool IslandRemovalEnabled;
   int IslandAreaThreshold;
 
+  bool ErosionEnabled;
+  int ErosionKernelSize[2];
+
+  bool DilationEnabled;
+  int DilationKernelSize[2];
+
+  bool ReconvertBinaryToGreyscale;
+
   std::string LinesImageFileName;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
   vtkSmartPointer<vtkPlusTrackedFrameList> LinesImageList;
+
+  vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
 
   std::string IntermediateImageFileName;
   vtkSmartPointer<vtkImageData> ShadowValues; // Pixels (float) store probability of belonging to shadow

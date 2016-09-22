@@ -47,15 +47,20 @@
             OutputImageSpacingMmPerPixel="0.1526 0.1526"
             NumberOfSamplesPerScanLine="210"/>
           <ImageProcessingOperations
-            ConvertToLinesImage="True"
+            ConvertToLinesImage="True"          
             ThresholdingEnabled="True"
             GaussianEnabled="True"
             EdgeDetectorEnabled="True"
-            IslandRemovalEnabled="True"
+            IslandRemovalEnabled="False"
+            ErosionEnabled="True"
+            DilationEnabled="True"
+            ReconvertBinaryToGreyscale="True"
             ReturnToFanImage="True">
-            <GaussianSmoothing GaussianStdDev="3" GaussianKernelSize="3"/>
-            <Thresholding ThresholdOutValue="0" LowerThreshold="10" UpperThreshold="255"/>
-            <IslandRemoval IslandAreaThreshold="1000"/>
+            <GaussianSmoothing GaussianStdDev="3" GaussianKernelSize="5"/>
+            <Thresholding ThresholdOutValue="0" LowerThreshold="30" UpperThreshold="255"/>
+            <IslandRemoval IslandAreaThreshold="700"/>
+            <Erosion ErosionKernelSize="5 5"/>
+            <Dilation DilationKernelSize="15 5"/>
           </ImageProcessingOperations>
       </Processor>
     </Device>

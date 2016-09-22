@@ -17,6 +17,7 @@ See License.txt for details.
 // VTK includes
 #include <vtkImageAccumulate.h>
 #include <vtkImageCast.h>
+#include <vtkImageDilateErode3D.h>
 #include <vtkImageGaussianSmooth.h>
 #include <vtkImageIslandRemoval2D.h>
 #include <vtkImageSobel2D.h>
@@ -34,8 +35,9 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
     GaussianSmooth( vtkSmartPointer<vtkImageGaussianSmooth>::New() ),
     EdgeDetector( vtkSmartPointer<vtkImageSobel2D>::New() ),
     ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
-    BinaryImageForIslandRemoval(vtkSmartPointer<vtkImageData>::New()),
     IslandRemover( vtkSmartPointer<vtkImageIslandRemoval2D>::New() ),
+    ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+    //ImageDilater(vtkSmartPointer<vtkImageDilateErode3D>::New()) ,
     //DoubleToUchar(vtkSmartPointer<vtkImageCast>::New()),
     //ImageDataConverter(vtkSmartPointer<vtkImageShiftScale>::New()),
     ConvertToLinesImage( false ),
@@ -53,10 +55,17 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
     LowerThreshold( 0.0 ),
     UpperThreshold( 0.0 ),
     EdgeDetectorEnabled( false ),
+    IslandRemovalEnabled(false),
+    IslandAreaThreshold(-1),
+    ErosionEnabled(false),
+    ErosionKernelSize(),                              // Only way to initialize a vector?
+    DilationEnabled(false),
+    DilationKernelSize(),
+    ReconvertBinaryToGreyscale(false),
     ConversionImage( vtkSmartPointer<vtkImageData>::New() ),
-    IslandRemovalEnabled( false ),
-    IslandAreaThreshold( -1 ),
+    UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
     LinesImage( vtkSmartPointer<vtkImageData>::New() ),
+    BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
     LinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
     //SmoothedImage( vtkSmartPointer<vtkImageData>::New() ),
     ShadowValues( vtkSmartPointer<vtkImageData>::New() ),
@@ -70,12 +79,20 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->ConversionImage->SetExtent( 0, 0, 0, 0, 0, 0 );
 
+  this->BinaryImageForMorphology->SetExtent(0, 0, 0, 0, 0, 0);
+
   this->ImageBinarizer->SetInValue(255);
   this->ImageBinarizer->SetOutValue(0);
-  this->ImageBinarizer->ThresholdBetween(30, 255);
+  this->ImageBinarizer->ThresholdBetween(10, 255);
   this->IslandRemover->SetIslandValue( 255 );
   this->IslandRemover->SetReplaceValue(0);
   this->IslandRemover->SetAreaThreshold(0);
+
+  this->ImageEroder->SetKernelSize(5, 5, 1);
+  this->ImageEroder->SetErodeValue(100);        // 100, so that it will do nothing on binary image with values 0 and 255, until resepcified
+  this->ImageEroder->SetDilateValue(100);
+  //this->ImageDilater->SetKernelSize(5, 5, 1);
+  //this->ImageDilater->SetDilateValue(255);
 
   this->LinesImage->SetExtent( 0, 0, 0, 0, 0, 0 );
   this->ShadowValues->SetExtent( 0, 0, 0, 0, 0, 0 );
@@ -217,6 +234,33 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, IslandAreaThreshold, islandRemovalParameters );
       }
     }
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ErosionEnabled, imageProcessingOperations);
+    if (this->ErosionEnabled)
+    {
+      vtkXMLDataElement * erosionParameters = imageProcessingOperations->FindNestedElementWithName("Erosion");
+      if (erosionParameters == NULL)
+      {
+        LOG_WARNING("Unable to locate Erosion paramters element. Using default values.");
+      }
+      else
+      {
+        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, ErosionKernelSize, erosionParameters);
+      }
+    }
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DilationEnabled, imageProcessingOperations);
+    if (this->DilationEnabled)
+    {
+      vtkXMLDataElement * dilationParameters = imageProcessingOperations->FindNestedElementWithName("Dilation");
+      if (dilationParameters == NULL)
+      {
+        LOG_WARNING("Unable to locate Dilation parameters element. Using default values.");
+      }
+      else
+      {
+        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
+      }
+    }
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconvertBinaryToGreyscale, imageProcessingOperations);
   }
   else
   {
@@ -238,8 +282,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration( vtkXMLDataElemen
             << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
             << ", " << linesImageExtent[4] << ", " << linesImageExtent[5] );
 
-  this->BinaryImageForIslandRemoval->SetExtent(linesImageExtent);
-  this->BinaryImageForIslandRemoval->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  this->BinaryImageForMorphology->SetExtent(linesImageExtent);
+  this->BinaryImageForMorphology->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   this->LinesImage->SetExtent( linesImageExtent );
   this->LinesImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
@@ -289,7 +333,19 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration( vtkXMLDataEleme
   if ( this->IslandRemovalEnabled )
   {
     XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( islandRemovalParameters, processingElement, "IslandRemoval" );
-    islandRemovalParameters->SetIntAttribute( "PixelArea", IslandAreaThreshold );
+    islandRemovalParameters->SetIntAttribute( "IslandAreaThreshold", IslandAreaThreshold );
+  }
+
+  if (this->ErosionEnabled)
+  {
+    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, processingElement, "Erosion");
+    erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);                 // Not sure how to write vector attributes
+  }
+
+  if (this->DilationEnabled)
+  {
+    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, processingElement, "Dilation");
+    dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);              // 3rd aargument is supposed to be a pointer?
   }
 
   return PLUS_SUCCESS;
@@ -596,53 +652,97 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame( PlusTrackedFrame* inp
     //PlusTrackedFrame* linesFrame = this->linesImageList->GetTrackedFrame(this->linesImageList->GetNumberOfTrackedFrames() - 1);
     //linesFrame->GetImageData()->DeepCopyFrom(this->LinesImage);
 
-    inputImage->DeepCopyFrom( this->LinesImage );
+    //inputImage->DeepCopyFrom( this->LinesImage );
   }
 
   if( this->ThresholdingEnabled )
   {
-    this->Thresholder->SetInputData( inputImage->GetImage() );
+    this->Thresholder->SetInputData( this->LinesImage );
     this->Thresholder->Update();
-    inputImage->DeepCopyFrom( this->Thresholder->GetOutput() );
+    //inputImage->DeepCopyFrom( this->Thresholder->GetOutput() );
+    this->LinesImage->DeepCopy(this->Thresholder->GetOutput());
   }
 
   if( this->GaussianEnabled )
   {
-    this->GaussianSmooth->SetInputData( inputImage->GetImage() );               // Perform GaussianSmooth on original fan image for maximum information content
+    this->GaussianSmooth->SetInputData( this->LinesImage);    
     this->GaussianSmooth->Update();
-    inputImage->DeepCopyFrom( this->GaussianSmooth->GetOutput() );
+    //inputImage->DeepCopyFrom( this->GaussianSmooth->GetOutput() );
+    this->LinesImage->DeepCopy(this->GaussianSmooth->GetOutput());
   }
+
+  this->UnprocessedLinesImage->DeepCopy(this->LinesImage);
 
   if ( this->EdgeDetectorEnabled )
   {
-    this->EdgeDetector->SetInputData( inputImage->GetImage() );
+    this->EdgeDetector->SetInputData( this->LinesImage );
     this->EdgeDetector->Update();
     this->VectorImageToUchar( this->EdgeDetector->GetOutput(), this->ConversionImage );
-    inputImage->DeepCopyFrom( this->ConversionImage );
+    this->LinesImage->DeepCopy(this->ConversionImage);
+    //inputImage->DeepCopyFrom( this->ConversionImage );
   }
 
-  if ( this->IslandRemovalEnabled )
+  // If we are to perform any morphological operations, we must binarize the image
+  if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled)
   {
-    this->ImageBinarizer->SetInputData(inputImage->GetImage());
+    this->ImageBinarizer->SetInputData(this->LinesImage);
     this->ImageBinarizer->Update();
-    this->BinaryImageForIslandRemoval->DeepCopy(this->ImageBinarizer->GetOutput());
-    this->IslandRemover->SetInputData( this->BinaryImageForIslandRemoval );
-    this->IslandRemover->Update();
-    this->BinaryImageForIslandRemoval->DeepCopy(this->IslandRemover->GetOutput());
-    // Perform "image conjunction"
-    this->ImageConjunction(inputImage->GetImage(), this->BinaryImageForIslandRemoval);
-    //inputImage->DeepCopyFrom( this->IslandRemover->GetOutput() );
-  }
+    this->BinaryImageForMorphology->DeepCopy(this->ImageBinarizer->GetOutput());
 
-  if ( this->ReturnToFanImage )
-  {
-    this->ScanConverter->SetInputData( inputImage->GetImage() );
-    this->ScanConverter->Update();
-    inputImage->DeepCopyFrom( this->ScanConverter->GetOutput() );
+    if (this->IslandRemovalEnabled)
+    {
+      this->IslandRemover->SetInputData(this->BinaryImageForMorphology);
+      this->IslandRemover->Update();
+      this->BinaryImageForMorphology->DeepCopy(this->IslandRemover->GetOutput());
+    }
+    if (this->ErosionEnabled)
+    {
+      this->ImageEroder->SetErodeValue(255);
+      this->ImageEroder->SetDilateValue(0);             // We must dilate that which isn't eroded, for erosion to be possible
+      this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0],this->ErosionKernelSize[1], 1);
+      this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
+      this->ImageEroder->Update();
+      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
+      this->ImageEroder->SetErodeValue(100);
+      this->ImageEroder->SetDilateValue(100);
+    }
+    if (this->DilationEnabled)
+    {
+      this->ImageEroder->SetDilateValue(255);
+      this->ImageEroder->SetErodeValue(0);
+      this->ImageEroder->SetKernelSize(this->DilationKernelSize[0],this -> DilationKernelSize[1], 1);
+      this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
+      this->ImageEroder->Update();
+      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
+      this->ImageEroder->SetDilateValue(100);
+      this->ImageEroder->SetErodeValue(100);
+    }
+    if (this->ReconvertBinaryToGreyscale)
+    {
+      ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
+      this->LinesImage->DeepCopy(this->UnprocessedLinesImage);
+    }
+    else
+    {
+      this->LinesImage->DeepCopy(this->BinaryImageForMorphology);
+      //inputImage->DeepCopyFrom(this->BinaryImageForMorphology);
+    }
   }
 
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
-  outputImage->DeepCopyFrom( inputImage->GetImage() );
+  if ( this->ReturnToFanImage )
+  {
+    this->ScanConverter->SetInputData( this->LinesImage );
+    this->ScanConverter->Update();
+    outputImage->DeepCopyFrom( this->ScanConverter->GetOutput() );
+  }
+  else
+  {
+    outputImage->DeepCopyFrom(this->LinesImage);
+  }
+
+  
+  //outputImage->DeepCopyFrom( inputImage->GetImage() );
   // Set final output image data
 
   //(outputImage)->DeepCopyFrom(this->Thresholder->GetOutput
@@ -765,4 +865,20 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   {
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
   }
+}
+
+
+// Functions are still redundant, artifact of trying to seperate erosion and dilation vtkObjects, leaving incase I revert to that
+void vtkPlusTransverseProcessEnhancer::SetErosionKernelSize(int KernelSize[2])
+{
+  this->ErosionKernelSize[0] = KernelSize[0];
+  this->ErosionKernelSize[1] = KernelSize[1];
+  this->ImageEroder->SetKernelSize(KernelSize[0], KernelSize[1], 1);
+}
+
+void vtkPlusTransverseProcessEnhancer::SetDilationKernelSize(int KernelSize[2])
+{
+  this->DilationKernelSize[0] = KernelSize[0];
+  this->DilationKernelSize[1] = KernelSize[1];
+  this->ImageEroder->SetKernelSize(KernelSize[0], KernelSize[1], 1);
 }
