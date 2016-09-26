@@ -55,16 +55,24 @@ ELSE (PLUSBUILD_OFFLINE_BUILD)
     "c:/Program Files/SlikSvn/bin/"
     )
   FIND_PACKAGE(Subversion REQUIRED)
-  
+
   #-----------------------------------------------------------------------------
   # SVN - Parse current branch to send to external plusapp/pluslib
-  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} Plus)
-  STRING(FIND ${Plus_WC_URL} "/plus/" _plus_pos REVERSE)
-  MATH(EXPR _plus_pos '${_plus_pos}+6')
-  STRING(SUBSTRING ${Plus_WC_URL} ${_plus_pos} -1 _branch)
-  STRING(FIND ${_branch} "/" _plus_build_pos REVERSE)
-  STRING(SUBSTRING ${_branch} 0 ${_plus_build_pos} PLUSBUILD_SVN_BRANCH)
-  message(STATUS "Current branch of this PlusBuild is: ${PLUSBUILD_SVN_BRANCH}")
+  IF( NOT PLUSBUILD_NOT_WORKING_COPY )
+    Subversion_WC_INFO(${PROJECT_SOURCE_DIR} Plus)
+  ENDIF()
+
+  IF( NOT PLUSBUILD_NOT_WORKING_COPY AND NOT Subversion_svn_info_error )
+    STRING(FIND ${Plus_WC_URL} "/plus/" _plus_pos REVERSE)
+    MATH(EXPR _plus_pos '${_plus_pos}+6')
+    STRING(SUBSTRING ${Plus_WC_URL} ${_plus_pos} -1 _branch)
+    STRING(FIND ${_branch} "/" _plus_build_pos REVERSE)
+    STRING(SUBSTRING ${_branch} 0 ${_plus_build_pos} PLUSBUILD_SVN_BRANCH)
+    MESSAGE(STATUS "Current branch of this PlusBuild is: ${PLUSBUILD_SVN_BRANCH}")
+  ELSEIF( NOT PLUSBUILD_NOT_WORKING_COPY )
+    SET(PLUSBUILD_NOT_WORKING_COPY ON CACHE INTERNAL "Var to keep track that PlusBuild is not a working copy.")
+    MESSAGE(STATUS "PlusBuild folder is not a working copy. Disregard above error.")
+  ENDIF()
 
   #-----------------------------------------------------------------------------
   # ASSEMBLA - Set username and password for assembla
