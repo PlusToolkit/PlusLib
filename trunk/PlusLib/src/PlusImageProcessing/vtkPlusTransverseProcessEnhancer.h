@@ -92,23 +92,23 @@ public:
   vtkGetMacro( IslandRemovalEnabled, bool );
   vtkBooleanMacro( IslandRemovalEnabled, bool );
 
-  void SetIslandAreaThreshold(int islandAreaThreshold);
+  void SetIslandAreaThreshold( int islandAreaThreshold );
 
-  vtkSetMacro(ErosionEnabled, bool);
-  vtkGetMacro(ErosionEnabled, bool);
-  vtkBooleanMacro(ErosionEnabled, bool);
+  vtkSetMacro( ErosionEnabled, bool );
+  vtkGetMacro( ErosionEnabled, bool );
+  vtkBooleanMacro( ErosionEnabled, bool );
 
-  void SetErosionKernelSize(int KernelSize[2]);
+  void SetErosionKernelSize( int KernelSize[2] );
 
-  vtkSetMacro(DilationEnabled, bool);
-  vtkGetMacro(DilationEnabled, bool);
-  vtkBooleanMacro(DilationEnabled, bool);
+  vtkSetMacro( DilationEnabled, bool );
+  vtkGetMacro( DilationEnabled, bool );
+  vtkBooleanMacro( DilationEnabled, bool );
 
-  void SetDilationKernelSize(int KernelSize[2]);
+  void SetDilationKernelSize( int KernelSize[2] );
 
-  vtkSetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkGetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkBooleanMacro(ReconvertBinaryToGreyscale, bool);
+  vtkSetMacro( ReconvertBinaryToGreyscale, bool );
+  vtkGetMacro( ReconvertBinaryToGreyscale, bool );
+  vtkBooleanMacro( ReconvertBinaryToGreyscale, bool );
 
   vtkSetMacro( ReturnToFanImage, bool );
   vtkGetMacro( ReturnToFanImage, bool );
@@ -132,24 +132,17 @@ protected:
 
   void ComputeHistogram( vtkImageData* imageData );
 
-  vtkSmartPointer<vtkPlusUsScanConvert> ScanConverter;
-  vtkSmartPointer<vtkImageThreshold> Thresholder;
+  void ImageConjunction( vtkImageData* InputImage, vtkImageData* MaskImage );
 
-  //vtkSmartPointer<vtkImageAlgorithm> Image
-  vtkSmartPointer<vtkImageGaussianSmooth> GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
-
-  vtkSmartPointer<vtkImageSobel2D> EdgeDetector;
-
-  vtkSmartPointer<vtkImageThreshold> ImageBinarizer;
-  vtkSmartPointer<vtkImageData> BinaryImageForMorphology;
-  vtkSmartPointer<vtkImageIslandRemoval2D> IslandRemover;
-  void ImageConjunction(vtkImageData * InputImage, vtkImageData * MaskImage);
-
-  vtkSmartPointer<vtkImageDilateErode3D> ImageEroder;
-  //vtkSmartPointer<vtkImageDilateErode3D> ImageDilater;
-
-  //vtkSmartPointer<vtkImageCast> DoubleToUchar;
-  //vtkSmartPointer<vtkImageShiftScale> ImageDataConverter;
+protected:
+  vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
+  vtkSmartPointer<vtkImageThreshold>        Thresholder;
+  vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
+  vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
+  vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
+  vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
+  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
+  vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
 
   bool ConvertToLinesImage;
   int NumberOfScanLines;
@@ -174,7 +167,6 @@ protected:
   double UpperThreshold;
 
   bool EdgeDetectorEnabled;
-  //vtkSmartPointer<vtkImageData> SmoothedImage;
   vtkSmartPointer<vtkImageData> ConversionImage;
 
   bool IslandRemovalEnabled;
