@@ -165,8 +165,8 @@ bool PlusServerLauncherMainWindow::startServer( const QString& configFilePath )
 #else
   int logLevelToPlusServer = std::max<int>( ui.comboBox_LogLevel->currentData().toInt(), vtkPlusLogger::LOG_LEVEL_INFO );
 #endif
-  QString cmdLine = QString("\"%1\" --config-file=\"%2\" --verbose=%3").arg(plusServerExecutable.c_str()).arg(configFilePath).arg(logLevelToPlusServer);
-  LOG_INFO("Server process command line: " << cmdLine.toLatin1().constData());
+  QString cmdLine = QString( "\"%1\" --config-file=\"%2\" --verbose=%3" ).arg( plusServerExecutable.c_str() ).arg( configFilePath ).arg( logLevelToPlusServer );
+  LOG_INFO( "Server process command line: " << cmdLine.toLatin1().constData() );
   m_CurrentServerInstance->start( cmdLine );
   m_CurrentServerInstance->waitForFinished( 500 );
   // During waitForFinished an error signal may be emitted, which may delete m_CurrentServerInstance,
@@ -194,7 +194,7 @@ bool PlusServerLauncherMainWindow::stopServer()
   }
   disconnect( m_CurrentServerInstance, SIGNAL( readyReadStandardOutput() ), this, SLOT( stdOutMsgReceived() ) );
   disconnect( m_CurrentServerInstance, SIGNAL( readyReadStandardError() ), this, SLOT( stdErrMsgReceived() ) );
-  disconnect( m_CurrentServerInstance, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( errorReceived() ) );
+  disconnect( m_CurrentServerInstance, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( errorReceived( QProcess::ProcessError ) ) );
   disconnect( m_CurrentServerInstance, SIGNAL( finished( int, QProcess::ExitStatus ) ), this, SLOT( serverExecutableFinished( int, QProcess::ExitStatus ) ) );
   bool forcedShutdown = false;
   if( m_CurrentServerInstance->state() == QProcess::Running )
@@ -363,22 +363,25 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger( const QByteArray& s
         it = tokens.begin();
       }
     }
-    for ( unsigned int index = 0; index < tokens.size(); index += 4 )
+    for ( unsigned int index = 0; index < tokens.size(); ++index )
     {
-      vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::GetLogLevelType( tokens[index] );
-      std::string timeStamp = tokens[index + 1];
-      std::string message = tokens[index + 2];
-      std::string location = tokens[index + 3];
+      if ( vtkPlusLogger::GetLogLevelType( tokens[index] ) != vtkPlusLogger::LOG_LEVEL_UNDEFINED )
+      {
+        vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::GetLogLevelType( tokens[index++] );
+        std::string timeStamp = tokens[index++];
+        std::string message = tokens[index++];
+        std::string location = tokens[index++];
 
-      std::string file = location.substr( 4, location.find_last_of( '(' ) - 4 );
-      int lineNumber( 0 );
-      std::stringstream lineNumberStr( location.substr( location.find_last_of( '(' ) + 1, location.find_last_of( ')' ) - location.find_last_of( '(' ) - 1 ) );
-      lineNumberStr >> lineNumber;
+        std::string file = location.substr( 4, location.find_last_of( '(' ) - 4 );
+        int lineNumber( 0 );
+        std::stringstream lineNumberStr( location.substr( location.find_last_of( '(' ) + 1, location.find_last_of( ')' ) - location.find_last_of( '(' ) - 1 ) );
+        lineNumberStr >> lineNumber;
 
-      // Only parse for content if the line was successfully parsed for logging
-      this->ParseContent( message );
+        // Only parse for content if the line was successfully parsed for logging
+        this->ParseContent( message );
 
-      vtkPlusLogger::Instance()->LogMessage( logLevel, message.c_str(), file.c_str(), lineNumber, "SERVER" );
+        vtkPlusLogger::Instance()->LogMessage( logLevel, message.c_str(), file.c_str(), lineNumber, "SERVER" );
+      }
     }
   }
   else
