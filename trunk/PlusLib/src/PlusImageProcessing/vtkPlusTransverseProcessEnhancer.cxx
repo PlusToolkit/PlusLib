@@ -58,9 +58,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
     IslandRemovalEnabled( false ),
     IslandAreaThreshold( -1 ),
     ErosionEnabled( false ),
-    ErosionKernelSize{ 0, 0 },
     DilationEnabled( false ),
-    DilationKernelSize{ 0, 0 },
     ReconvertBinaryToGreyscale( false ),
     LinesImage( vtkSmartPointer<vtkImageData>::New() ),
     LinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() ),
@@ -70,6 +68,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
     ProcessedLinesImage( vtkSmartPointer<vtkImageData>::New() ),
     ProcessedLinesImageList( vtkSmartPointer<vtkPlusTrackedFrameList>::New() )
 {
+  this->SetDilationKernelSize(0, 0);
+  this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev( 7.0 );
   this->SetGaussianKernelSize( 7.0 );
   this->GaussianSmooth->SetDimensionality( 2 );
@@ -85,7 +85,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->IslandRemover->SetReplaceValue( 0 );
   this->IslandRemover->SetAreaThreshold( 0 );
 
-  this->ImageEroder->SetKernelSize( 5, 5, 1 );
+  this->ImageEroder->SetKernelSize( this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1 );
   this->ImageEroder->SetErodeValue( 100 );      // 100, so that it will do nothing on binary image with values 0 and 255, until respecified
   this->ImageEroder->SetDilateValue( 100 );
   //this->ImageDilater->SetKernelSize(5, 5, 1);
@@ -848,21 +848,4 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold( int islandAreaThr
   {
     this->IslandRemover->SetAreaThreshold( islandAreaThreshold );
   }
-}
-
-//----------------------------------------------------------------------------
-// Functions are still redundant, artifact of trying to separate erosion and dilation vtkObjects, leaving in case I revert to that
-void vtkPlusTransverseProcessEnhancer::SetErosionKernelSize( int KernelSize[2] )
-{
-  this->ErosionKernelSize[0] = KernelSize[0];
-  this->ErosionKernelSize[1] = KernelSize[1];
-  this->ImageEroder->SetKernelSize( KernelSize[0], KernelSize[1], 1 );
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetDilationKernelSize( int KernelSize[2] )
-{
-  this->DilationKernelSize[0] = KernelSize[0];
-  this->DilationKernelSize[1] = KernelSize[1];
-  this->ImageEroder->SetKernelSize( KernelSize[0], KernelSize[1], 1 );
 }
