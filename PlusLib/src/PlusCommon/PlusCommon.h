@@ -7,14 +7,18 @@
 #ifndef __PlusCommon_h
 #define __PlusCommon_h
 
+// PLUS includes
 #include "vtkPlusCommonExport.h"
-
 #include "itkImageIOBase.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
 #include "vtkPlusRecursiveCriticalSection.h"
-#include "vtksys/SystemTools.hxx"
 
+// VTK includes
+#include <vtkImageData.h>
+#include <vtksys/SystemTools.hxx>
+
+// std includes
 #include <float.h> // for DBL_MAX
 #include <sstream>
 #include <list>
@@ -221,6 +225,37 @@ namespace PlusCommon
     return PLUS_SUCCESS;
   }
 
+  //----------------------------------------------------------------------------
+  enum LINE_STYLE
+  {
+    LINE_STYLE_SOLID,
+    LINE_STYLE_DOTS,
+  };
+
+  enum ALPHA_BEHAVIOR
+  {
+    ALPHA_BEHAVIOR_SOURCE,
+    ALPHA_BEHAVIOR_OPAQUE
+  };
+
+  //----------------------------------------------------------------------------
+  static void DrawLine( vtkImageData& imageData,
+                        float colour[3],
+                        LINE_STYLE style,
+                        unsigned int startPixel[3],
+                        unsigned int endPixel[3],
+                        unsigned int numberOfPoints,
+                        ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE );
+
+  //----------------------------------------------------------------------------
+  static void DrawLine( vtkImageData& imageData,
+                        float greyValue,
+                        LINE_STYLE style,
+                        unsigned int* startPixel,
+                        unsigned int* endPixel,
+                        unsigned int numberOfPoints,
+                        ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE );
+
 #if defined(_MSC_VER) && _MSC_VER < 1700
   // This method can be used for number to string conversion
   // until std::to_string is supported by more compilers.
@@ -347,9 +382,9 @@ public:
     return ( in.m_From == m_From && in.m_To == m_To );
   }
 
-  inline bool operator!= (const PlusTransformName& in) const
+  inline bool operator!= ( const PlusTransformName& in ) const
   {
-    return !(in == *this);
+    return !( in == *this );
   }
 
   friend std::ostream& operator<< ( std::ostream& os, const PlusTransformName& transformName )

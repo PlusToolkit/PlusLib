@@ -482,6 +482,84 @@ vtkPlusCommonExport void PlusCommon::JoinTokensIntoString( const std::vector<std
   }
 }
 
+//----------------------------------------------------------------------------
+void PlusCommon::DrawLine( vtkImageData& imageData, float colour[3], LINE_STYLE style, unsigned int startPixel[3], unsigned int endPixel[3], unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */ )
+{
+  auto checkRange( []( unsigned int startPixel, unsigned int endPixel ) -> bool
+  {
+    if ( endPixel > startPixel )
+    {
+      auto temp = startPixel;
+      startPixel = endPixel;
+      endPixel = temp;
+    }
+
+    if ( endPixel - startPixel > static_cast<unsigned int>( std::numeric_limits<int>::max() ) )
+    {
+      return false;
+    }
+
+    return true;
+  } );
+
+  if ( !checkRange( startPixel[0], endPixel[0] ) )
+  {
+    LOG_ERROR( "Cannot express horizontal slope. Value exceeds int limits." );
+    return;
+  }
+
+  if ( !checkRange( startPixel[1], endPixel[1] ) )
+  {
+    LOG_ERROR( "Cannot express vertical slope. Value exceeds int limits." );
+    return;
+  }
+
+  if ( !checkRange( startPixel[2], endPixel[2] ) )
+  {
+    LOG_ERROR( "Cannot express depth slope. Value exceeds int limits." );
+    return;
+  }
+
+  int startPixelInt[3] = { static_cast<int>( startPixel[0] ), static_cast<int>( startPixel[1] ), static_cast<int>( startPixel[2] ) };
+  int endPixelInt[3] = { static_cast<int>( endPixel[0] ), static_cast<int>( endPixel[1] ), static_cast<int>( endPixel[2] ) };
+  if ( style == LINE_STYLE_SOLID )
+  {
+    numberOfPoints = std::max( endPixelInt[0] - startPixelInt[0], endPixelInt[1] - startPixelInt[1] ) + 1;
+  }
+  else if ( numberOfPoints < 2 )
+  {
+    LOG_ERROR( "Unable to draw a line with less than 1 point!" );
+    return;
+  }
+
+  double directionVectorX = static_cast<double>( endPixel[0] - startPixel[0] ) / ( numberOfPoints - 1 );
+  double directionVectorY = static_cast<double>( endPixel[1] - startPixel[1] ) / ( numberOfPoints - 1 );
+  double directionVectorZ = static_cast<double>( endPixel[2] - startPixel[2] ) / ( numberOfPoints - 1 );
+  for ( unsigned int point = 0; point < numberOfPoints; ++point )
+  {
+    unsigned int pixelCoordX = startPixel[0] + directionVectorX * point;
+    unsigned int pixelCoordY = startPixel[1] + directionVectorY * point;
+    unsigned int pixelCoordZ = startPixel[2] + directionVectorZ * point;
+
+    for ( int component = 0; component < std::min( imageData.GetNumberOfScalarComponents(), 3 ); ++component )
+    {
+      imageData.SetScalarComponentFromFloat( pixelCoordX, pixelCoordY, pixelCoordZ, component, colour[component] );
+    }
+    if ( imageData.GetNumberOfScalarComponents() > 3 && alphaBehavior == ALPHA_BEHAVIOR_OPAQUE )
+    {
+      // TODO : is a component value from [0,1]?
+      imageData.SetScalarComponentFromFloat( pixelCoordX, pixelCoordY, pixelCoordZ, 3, 1.f );
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void PlusCommon::DrawLine( vtkImageData& imageData, float greyValue, LINE_STYLE style, unsigned int* startPixel, unsigned int* endPixel, unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */ )
+{
+  float colour[3] = { greyValue, greyValue, greyValue };
+  PlusCommon::DrawLine( imageData, colour, style, startPixel, endPixel, numberOfPoints, alphaBehavior );
+}
+
 //-------------------------------------------------------
 bool PlusCommon::IsClippingRequested( const int clipOrigin[3], const int clipSize[3] )
 {
