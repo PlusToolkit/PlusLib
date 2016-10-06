@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef RECORDPHANTOMPOINTSTOOLBOX_H
 #define RECORDPHANTOMPOINTSTOOLBOX_H
@@ -42,7 +42,7 @@ enum LandmarkPivotingState
 };
 //-----------------------------------------------------------------------------
 
-/*! \class PhantomRegistrationToolbox 
+/*! \class PhantomRegistrationToolbox
 * \brief Phantom registration toolbox class
 * \ingroup PlusAppFCal
 */
@@ -56,7 +56,7 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
+  PhantomRegistrationToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
 
   /*! Destructor */
   ~PhantomRegistrationToolbox();
@@ -73,7 +73,7 @@ public:
   * Read stylus calibration configuration for fCal
   * \param aConfig Root element of the input device set configuration XML data
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
 
   /*!
   * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
@@ -102,7 +102,7 @@ public:
   /*!
   * Sets the state of the linear object registration
   */
-  void SetLinearObjectRegistrationState(LinearObjectRegistrationState state);
+  void SetLinearObjectRegistrationState( LinearObjectRegistrationState state );
   /*!
   * Return state of the linear object registration
   */
@@ -111,7 +111,7 @@ public:
   /*!
   * Sets the state of the landmark pivoting detection
   */
-  void SetLandmarkPivotingState(LandmarkPivotingState state);
+  void SetLandmarkPivotingState( LandmarkPivotingState state );
   /*!
   * Return state of the landmark pivoting detection
   */
@@ -133,61 +133,61 @@ protected:
   /*! Get message telling the state of the calibration */
   QString GetCalibrationStateMessage();
 
-  protected slots:
-    /*!
-    * Slot handling open stylus calibration button click
-    */
-    void OpenStylusCalibration();
+protected slots:
+  /*!
+  * Slot handling open stylus calibration button click
+  */
+  void OpenStylusCalibration();
 
-    /*!
-    * Slot handling record button for the landmark registration click
-    */
-    void RecordPoint();
+  /*!
+  * Slot handling record button for the landmark registration click
+  */
+  void RecordPoint();
 
-    /*!
-    * Slot handling undo button for the landmark registration click
-    */
-    void Undo();
+  /*!
+  * Slot handling undo button for the landmark registration click
+  */
+  void Undo();
 
-    /*!
-    * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
-    */
-    void Reset();
+  /*!
+  * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
+  */
+  void Reset();
 
-    /*!
-    Slot handling start button for the linear object registration click
-    */
-    void StartLinearObjectRegistration();
+  /*!
+  Slot handling start button for the linear object registration click
+  */
+  void StartLinearObjectRegistration();
 
-    /*!
-    Slot handling stop button for the linear object registration click
-    */
-    void StopLinearObjectRegistration();
+  /*!
+  Slot handling stop button for the linear object registration click
+  */
+  void StopLinearObjectRegistration();
 
-    /*!
-    Slot handling reset button for the linear object registration click
-    */
-    void ResetLinearObjectRegistration();
+  /*!
+  Slot handling reset button for the linear object registration click
+  */
+  void ResetLinearObjectRegistration();
 
-    /*!
-    Slot handling Start Landmark Detection button to activate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
-    */
-    void StartLandmarkDetectionRegistration();
+  /*!
+  Slot handling Start Landmark Detection button to activate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
+  */
+  void StartLandmarkDetectionRegistration();
 
-    /*!
-    Slot handling Stop landmark detection button to deactivate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
-    */
-    void StopLandmarkPivotingRegistration();
+  /*!
+  Slot handling Stop landmark detection button to deactivate the automatic Landmark detection for landmark registration, 큣ivoting instead of pressing the record button
+  */
+  void StopLandmarkPivotingRegistration();
 
-    /*!
-    Slot handling the continuous point acquisition during the linear object registration
-    */
-    void AddStylusTipTransformToLinearObjectRegistration();
+  /*!
+  Slot handling the continuous point acquisition during the linear object registration
+  */
+  void AddStylusTipTransformToLinearObjectRegistration();
 
-    /*!
-    Slot handling the continuous point acquisition during the linear object registration
-    */
-    void AddStylusTipTransformToLandmarkPivotingRegistration();
+  /*!
+  Slot handling the continuous point acquisition during the linear object registration
+  */
+  void AddStylusTipTransformToLandmarkPivotingRegistration();
 
 protected:
   /*! Phantom landmark registration algorithm */

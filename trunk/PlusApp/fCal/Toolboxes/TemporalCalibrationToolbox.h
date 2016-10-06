@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef TEMPORALCALIBRATIONTOOLBOX_H
 #define TEMPORALCALIBRATIONTOOLBOX_H
@@ -11,7 +11,9 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "ui_TemporalCalibrationToolbox.h"
 #include "vtkPlusTemporalCalibrationAlgo.h"
+#include <QTimer>
 #include <QWidget>
+
 class vtkContextView;
 class vtkPlusChannel;
 class vtkTable;
@@ -19,7 +21,7 @@ class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
-/*! \class TemporalCalibrationToolbox 
+/*! \class TemporalCalibrationToolbox
 * \brief Temporal calibration toolbox class
 * \ingroup PlusAppFCal
 */
@@ -65,118 +67,98 @@ protected:
   * \param ev event
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
-  bool eventFilter(QObject *obj, QEvent *ev);
+  bool eventFilter(QObject* obj, QEvent* ev);
 
   /*! Prints a time value in sec as a string in msec */
   static std::string GetTimeAsString(double timeSec);
 
-  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
+  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec) {FreeHandStartupDelaySec = freeHandStartupDelaySec;};
 
-  protected slots:
+protected slots:
+  /*! Start the delay startup timer*/
+  void StartDelayTimer();
 
-    /*! Start the delay startup timer*/
-    void StartDelayTimer();
+  /*! Delay before startup calibration*/
+  void DelayStartup();
 
-    /*! Delay before startup calibration*/
-    void DelayStartup();
+  /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
+  void DoCalibration();
 
-    /*! Acquire tracked frames for temporal calibration and calls the algorithm when done */
-    void DoCalibration();
+  /*! Show/hide popup window with the plots in it when toggling the Show Plots button */
+  void ShowPlotsToggled(bool aOn);
 
-    /*! Show/hide popup window with the plots in it when toggling the Show Plots button */
-    void ShowPlotsToggled(bool aOn);
+  /*! Slot handling start temporal calibration button click */
+  void StartCalibration();
 
-    /*! Slot handling start temporal calibration button click */
-    void StartCalibration();
+  /*! Slot handling cancel calibration event (button click or explicit call) */
+  void CancelCalibration();
 
-    /*! Slot handling cancel calibration event (button click or explicit call) */
-    void CancelCalibration();
+  /*! Compute calibration results from the collected data and display the results */
+  void ComputeCalibrationResults();
 
-    /*! Compute calibration results from the collected data and display the results */
-    void ComputeCalibrationResults();
+  /*! A signal combo box was changed */
+  void FixedSignalChanged(int newIndex);
+  void MovingSignalChanged(int newIndex);
 
-    /*! A signal combo box was changed */
-    void FixedSignalChanged(int newIndex);
-
-    void MovingSignalChanged(int newIndex);
-
-    void FixedSourceChanged(int newIndex);
-
-    void MovingSourceChanged(int newIndex);
+  /*! A source combo box was changed */
+  void FixedSourceChanged(int newIndex);
+  void MovingSourceChanged(int newIndex);
 
 protected:
-
   /*! Tracked frame for tracking data for temporal calibration */
-  vtkPlusTrackedFrameList* TemporalCalibrationFixedData;
-
+  vtkSmartPointer<vtkPlusTrackedFrameList> TemporalCalibrationFixedData;
   /*! Tracked frame for video data for temporal calibration */
-  vtkPlusTrackedFrameList* TemporalCalibrationMovingData;
-
+  vtkSmartPointer<vtkPlusTrackedFrameList> TemporalCalibrationMovingData;
   /*! Delay time before start acquisition [s] */
-  int                        m_FreeHandStartupDelaySec;
-
+  int                       FreeHandStartupDelaySec;
   /*! Current time delayed before the acquisition [s] */
-  int                        m_StartupDelayRemainingTimeSec;
-
+  int                       StartupDelayRemainingTimeSec;
   /*! Timer before start acquisition*/
-  QTimer*                    m_StartupDelayTimer;
-
+  QTimer                    StartupDelayTimer;
   /*! Flag if cancel is requested */
-  bool CancelRequest;
-
+  bool                      CancelRequest;
   /*! Duration of the temporal calibration process in seconds */
-  int TemporalCalibrationDurationSec;
-
+  int                       TemporalCalibrationDurationSec;
   /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
-  double LastRecordedFixedItemTimestamp;
-
+  double                    LastRecordedFixedItemTimestamp;
   /*! Timestamp of last recorded tracker item (items acquired since this timestamp will be recorded) */
-  double LastRecordedMovingItemTimestamp;
-
+  double                    LastRecordedMovingItemTimestamp;
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
-  int RecordingIntervalMs;
-
+  int                       RecordingIntervalMs;
   /*! Time of starting temporal calibration */
-  double StartTimeSec;
-
+  double                    StartTimeSec;
   /*! Saved tracker offset in case the temporal calibration is canceled or unsuccessful */
-  double PreviousFixedOffset;
-
+  double                    PreviousFixedOffset;
   /*! Saved video offset in case the temporal calibration is canceled or unsuccessful */
-  double PreviousMovingOffset;
-
+  double                    PreviousMovingOffset;
   /*! Metric table of video positions for temporal calibration */
-  vtkTable* FixedPositionMetric;
-
+  vtkSmartPointer<vtkTable> FixedPositionMetric;
   /*! Metric table of uncalibrated tracker positions for temporal calibration */
-  vtkTable* UncalibratedMovingPositionMetric;
-
+  vtkSmartPointer<vtkTable> UncalibratedMovingPositionMetric;
   /*! Metric table of calibrated tracker positions for temporal calibration */
-  vtkTable* CalibratedMovingPositionMetric;
-
+  vtkSmartPointer<vtkTable> CalibratedMovingPositionMetric;
   /*! Window that is created/deleted when Show Plots button is toggled */
-  QWidget* TemporalCalibrationPlotsWindow;
-
+  QWidget*                  TemporalCalibrationPlotsWindow;
   /*! Chart view for the uncalibrated plot */
-  vtkContextView* UncalibratedPlotContextView;
-
+  vtkContextView*           UncalibratedPlotContextView;
   /*! Chart view for the calibrated plot */
-  vtkContextView* CalibratedPlotContextView;
+  vtkContextView*           CalibratedPlotContextView;
 
-  vtkPlusChannel* FixedChannel;
-  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE FixedType;
-  vtkPlusChannel* MovingChannel;
-  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE MovingType;
+  vtkPlusChannel*                                 FixedChannel;
+  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE      FixedType;
+  vtkPlusChannel*                                 MovingChannel;
+  vtkPlusTemporalCalibrationAlgo::FRAME_TYPE      MovingType;
 
-  PlusTransformName FixedValidationTransformName;
-  PlusTransformName MovingValidationTransformName;
+  PlusTransformName                               FixedValidationTransformName;
+  PlusTransformName                               MovingValidationTransformName;
 
-  vtkPlusTemporalCalibrationAlgo* TemporalCalibrationAlgo;
+  vtkSmartPointer<vtkPlusTemporalCalibrationAlgo> TemporalCalibrationAlgo;
 
-  std::string RequestedFixedChannel;
-  std::string RequestedMovingChannel;
-  std::string RequestedFixedSource;
-  std::string RequestedMovingSource;
+
+  std::string                                     RequestedFixedChannel;
+  std::string                                     RequestedMovingChannel;
+  std::string                                     RequestedFixedSource;
+  std::string                                     RequestedMovingSource;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;

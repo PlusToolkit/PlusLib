@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef CAPTURINGTOOLBOX_H
 #define CAPTURINGTOOLBOX_H
@@ -23,7 +23,7 @@ class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
-/*! \class CapturingToolbox 
+/*! \class CapturingToolbox
 * \brief Tracked frame capturing class
 * \ingroup PlusAppFCal
 */
@@ -37,7 +37,7 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
+  CapturingToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
 
   /*!
   * Destructor
@@ -68,7 +68,7 @@ protected:
   * \param aOutput Output file
   * \return Success flag
   */
-  PlusStatus SaveToMetafile(std::string aOutput);
+  PlusStatus SaveToMetafile( std::string aOutput );
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
@@ -83,14 +83,14 @@ protected:
   /*!
   * Save data to file
   */
-  void WriteToFile(const QString& aFilename);
+  void WriteToFile( const QString& aFilename );
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
 
   /// Initialize the scroll area and any capture widgets
   void InitCaptureDeviceScrollArea();
-  
+
 protected slots:
   /*!
   * Take snapshot (record the current frame only)
@@ -141,7 +141,7 @@ protected slots:
   * Slot handling value change of sampling rate slider
   * \param aValue Tick index (rightmost means record every frame, and each one to the left halves it)
   */
-  void SamplingRateChanged(int aValue);
+  void SamplingRateChanged( int aValue );
 
   /*!
   * Record tracked frames (the recording timer calls it)
@@ -151,7 +151,7 @@ protected slots:
   /*!
   * Handle status message from any sub capture widgets
   */
-  void HandleStatusMessage(const std::string& aMessage);
+  void HandleStatusMessage( const std::string& aMessage );
 
 protected:
   /*! Recorded tracked frame list */
@@ -174,7 +174,7 @@ protected:
 
   /*! Actual frame rate (frames per second) */
   double m_ActualFrameRate;
-  
+
   /*!
     Frame index of the first frame that is recorded in this segment (since pressed the record button).
     It is used when estimating the actual frame rate: frames that are acquired before this frame index (i.e.,

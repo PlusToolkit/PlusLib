@@ -5,6 +5,9 @@ PROJECT(fCal)
 SET (fCal_SRCS
   fCalMain.cxx
   fCalMainWindow.cxx
+  )
+
+SET(fCal_Toolbox_SRCS
   Toolboxes/ConfigurationToolbox.cxx
   Toolboxes/CapturingToolbox.cxx
   Toolboxes/SpatialCalibrationToolbox.cxx
@@ -20,14 +23,17 @@ ENDIF()
 
 SET (fCal_UI_HDRS
     fCalMainWindow.h
-    Toolboxes/AbstractToolbox.h
-    Toolboxes/ConfigurationToolbox.h
-    Toolboxes/CapturingToolbox.h
-    Toolboxes/SpatialCalibrationToolbox.h
-    Toolboxes/TemporalCalibrationToolbox.h
-    Toolboxes/StylusCalibrationToolbox.h
-    Toolboxes/PhantomRegistrationToolbox.h
-    Toolboxes/VolumeReconstructionToolbox.h
+  )
+
+SET (fCal_Toolbox_UI_HDRS
+  Toolboxes/AbstractToolbox.h
+  Toolboxes/ConfigurationToolbox.h
+  Toolboxes/CapturingToolbox.h
+  Toolboxes/SpatialCalibrationToolbox.h
+  Toolboxes/TemporalCalibrationToolbox.h
+  Toolboxes/StylusCalibrationToolbox.h
+  Toolboxes/PhantomRegistrationToolbox.h
+  Toolboxes/VolumeReconstructionToolbox.h
   )
 
 SET (fCal_UI_SRCS
@@ -68,8 +74,11 @@ IF(WIN32)
   SET(APP_MODE WIN32)
 ENDIF()
 
-ADD_EXECUTABLE( fCal ${APP_MODE} ${fCal_SRCS} 
+ADD_EXECUTABLE( fCal ${APP_MODE} 
+  ${fCal_SRCS} 
+  ${fCal_Toolbox_SRCS}
   ${fCal_UI_HDRS} 
+  ${fCal_Toolbox_UI_HDRS}
   ${fCal_UI_SRCS} 
   ${fCal_QT_Resources}
   )
@@ -82,6 +91,8 @@ target_include_directories(fCal PUBLIC
   ${PlusApp_BINARY_DIR}/PlusCommonWidgets
   ${PlusApp_SOURCE_DIR}/PlusCommonWidgets
   )
+source_group(Toolboxes FILES ${fCal_Toolbox_SRCS} ${fCal_Toolbox_UI_HDRS})
+source_group("UI Files" FILES ${fCal_UI_SRCS})
 
 # --------------------------------------------------------------------------
 # Install

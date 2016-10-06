@@ -2,14 +2,10 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkVisualizationController_h
 #define __vtkVisualizationController_h
-
-// Local includes
-#include "vtkPlusImageVisualizer.h"
-#include "vtkPlus3DObjectVisualizer.h"
 
 // PlusLib includes
 #include <PlusCommon.h>
@@ -17,33 +13,37 @@ See License.txt for details.
 #include <vtkPlusDataCollector.h>
 #include <vtkPlusTransformRepository.h>
 
-// VTK includes
-#include <vtkPolyData.h>
-
 // Qt includes
 #include <QObject>
+#include <QTimer>
+
+// VTK includes
+#include <QVTKWidget.h>
+
+class vtkPlusImageVisualizer;
+class vtkPlus3DObjectVisualizer;
+class vtkPlusDisplayableObject;
 
 class vtkImageActor;
 class vtkMatrix4x4;
+class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkSTLReader;
 class vtkTransform;
 class vtkXMLDataElement;
 
-class QTimer;
 class QResizeEvent;
-class QVTKWidget;
 
 //-----------------------------------------------------------------------------
 
 /*! \class vtkPlusVisualizationController
 \brief Class that is responsible for managing a connection with tracked data and managing the visualization of said data
 
-Usage: Instantiate, set the QVTKCanvas that is to be managed by this visualizer the call Initialize function. Updating the visualization is done by attaching Update() to a QTimer (self-managed). 
+Usage: Instantiate, set the QVTKCanvas that is to be managed by this visualizer the call Initialize function. Updating the visualization is done by attaching Update() to a QTimer (self-managed).
 Before calling this, force the data collector to provide new data by calling GetDataCollector()->Modified() function.
 
-It has three modes, DISPLAY_MODE_2D, DISPLAY_MODE_3D and DISPLAY_MODE_NONE. In DISPLAY_MODE_2D it shows only the video input in the whole window. In DISPLAY_MODE_3D, all the devices and 
+It has three modes, DISPLAY_MODE_2D, DISPLAY_MODE_3D and DISPLAY_MODE_NONE. In DISPLAY_MODE_2D it shows only the video input in the whole window. In DISPLAY_MODE_3D, all the devices and
 the image is visible (that are defined in the device set configuration file's Rendering element). In DISPLAY_MODE_NONE the canvas is hidden and all renderers are detached.
 
 Devices and objects can be shown and hidden (HideAll(), ShowAllObjects(), ShowObjectsByCoordinateFrame(), ShowInput(), ShowResult()). Internally, this class forwards these requests to the underlying visualization classes.
@@ -55,14 +55,15 @@ class vtkPlusVisualizationController : public QObject, public vtkObject
   Q_OBJECT
 
 public:
-  enum DISPLAY_MODE {
+  enum DISPLAY_MODE
+  {
     DISPLAY_MODE_2D,
     DISPLAY_MODE_3D,
     DISPLAY_MODE_NONE
   };
 
   /*! New */
-  static vtkPlusVisualizationController *New();
+  static vtkPlusVisualizationController* New();
 
   /*! Start data collection */
   PlusStatus StartDataCollection();
@@ -107,13 +108,13 @@ public:
   * Forward the GetObjectById request to the 3D visualizer
   * \param aModelId Model ID to operate on
   */
-  vtkPlusDisplayableObject* GetObjectById( const char* aId );
+  vtkPlusDisplayableObject* GetObjectById(const char* aId);
 
   /*!
   * Forward the ShowAllObjects request to the 3D visualizer
   * \param aShow Show if true, else hide
   */
-  PlusStatus ShowAllObjects( bool aShow );
+  PlusStatus ShowAllObjects(bool aShow);
 
   /*!
   * Enable/disable image mode
@@ -125,7 +126,7 @@ public:
   * Show or hide the MF orientation markers
   * \param aEnable Show/Hide
   */
-  PlusStatus ShowOrientationMarkers( bool aShow );
+  PlusStatus ShowOrientationMarkers(bool aShow);
 
   /*!
   * Dump video and tracker buffers to a given directory
@@ -137,20 +138,20 @@ public:
   * Return acquisition timer (to be able to connect actions to it)
   * \return Acquisition timer object
   */
-  QTimer* GetAcquisitionTimer() { return this->AcquisitionTimer; };
+  QTimer& GetAcquisitionTimer() { return this->AcquisitionTimer; };
 
   /*!
   Acquire transform matrix from tracking and provide string containing the translation part
   /param aTransformTranslationString Out parameter for the position string
   /param aValid True if the transform is valid, false otherwise (optional parameter)
   */
-  PlusStatus GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string &aTransformTranslationString, bool* aValid = NULL);
+  PlusStatus GetTransformTranslationString(const char* aTransformFrom, const char* aTransformTo, std::string& aTransformTranslationString, bool* aValid = NULL);
   /*!
   Acquire transform matrix from tracking and provide string containing the translation part
   /param aTransformTranslationString Out parameter for the position string
   /param aValid True if the transform is valid, false otherwise (optional parameter)
   */
-  PlusStatus GetTransformTranslationString(PlusTransformName aTransform, std::string &aTransformTranslationString, bool* aValid = NULL);
+  PlusStatus GetTransformTranslationString(PlusTransformName aTransform, std::string& aTransformTranslationString, bool* aValid = NULL);
 
   /*!
   Acquire transform matrix from tracking
@@ -172,7 +173,7 @@ public:
   PlusStatus IsExistingTransform(const char* aTransformFrom, const char* aTransformTo, bool aUseLatestTrackedFrame = true);
 
   /*! Function to handle resize events */
-  void resizeEvent( QResizeEvent* aEvent );
+  void resizeEvent(QResizeEvent* aEvent);
 
   /*!
   * Set MF orientation in 2D mode
@@ -224,13 +225,13 @@ public:
   * Enable or disable the volume actor in 3D mode
   * \param aEnable enable/disable flag
   */
-  PlusStatus EnableVolumeActor( bool aEnable );
+  PlusStatus EnableVolumeActor(bool aEnable);
 
   /*!
   * Set the volume actor mapper
   * \param aContourMapper new mapper to use
   */
-  PlusStatus SetVolumeMapper( vtkPolyDataMapper* aContourMapper );
+  PlusStatus SetVolumeMapper(vtkPolyDataMapper* aContourMapper);
 
   /*!
   * Set the volume actor color
@@ -238,7 +239,7 @@ public:
   * \param g green value
   * \param b blue value
   */
-  PlusStatus SetVolumeColor( double r, double g, double b );
+  PlusStatus SetVolumeColor(double r, double g, double b);
 
   /*!
   * Set the input actor color
@@ -246,7 +247,7 @@ public:
   * \param g green value
   * \param b blue value
   */
-  PlusStatus SetInputColor( double r, double g, double b );
+  PlusStatus SetInputColor(double r, double g, double b);
 
   /*! Disconnect the image input */
   PlusStatus DisconnectInput();
@@ -262,9 +263,28 @@ public:
 
   /*! Set the selected channel */
   void SetSelectedChannel(vtkPlusChannel* aChannel);
+  vtkPlusChannel* GetSelectedChannel();
 
   /*! Set the slice number in the image visualizer */
   void SetSliceNumber(int number);
+
+  /*! Set the location of the line actor for the line segmentation result */
+  void SetLineSegmentationPoints(double startPoint_Image[2], double endPoint_Image[2]);
+
+  /*! toggle visibility of the line actor for the line segmentation result */
+  void SetLineSegmentationVisible(bool _arg);
+
+  void SetCanvas(QVTKWidget* canvas);
+
+  void ClearResultPolyData();
+  void ClearInputPolyData();
+
+  PlusStatus ResetCamera();
+
+  void SetResultPolyDataPoints(vtkPoints* points);
+  void SetInputPolyDataPoints(vtkPoints* points);
+  vtkPoints* GetResultPolyDataPoints();
+  vtkPoints* GetInputPolyDataPoints();
 
 protected slots:
   /*!
@@ -274,10 +294,9 @@ protected slots:
 
 public:
   // Set/Get macros for member variables
-  PlusStatus SetAcquisitionFrameRate(int aFrameRate); 
-  vtkGetMacro(AcquisitionFrameRate, int); 
-  vtkGetObjectMacro(InputPolyData, vtkPolyData);
-  vtkGetObjectMacro(ResultPolyData, vtkPolyData);
+  PlusStatus SetAcquisitionFrameRate(int aFrameRate);
+  vtkGetMacro(AcquisitionFrameRate, int);
+
   vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository);
   vtkGetObjectMacro(DataCollector, vtkPlusDataCollector);
 
@@ -286,23 +305,15 @@ public:
   bool Is2DMode();
   bool Is3DMode();
 
-  void SetCanvas(QVTKWidget* aCanvas);
-
-  void SetInputData( vtkImageData * input );
+  void SetInputData(vtkImageData* input);
 
 protected:
-  vtkGetObjectMacro(ImageVisualizer, vtkPlusImageVisualizer);
-  vtkGetObjectMacro(PerspectiveVisualizer, vtkPlus3DObjectVisualizer);
-  vtkSetObjectMacro(ImageVisualizer, vtkPlusImageVisualizer);
-  vtkSetObjectMacro(PerspectiveVisualizer, vtkPlus3DObjectVisualizer);
-  vtkSetObjectMacro(InputPolyData, vtkPolyData);
-  vtkSetObjectMacro(ResultPolyData, vtkPolyData);
   vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
   vtkSetObjectMacro(DataCollector, vtkPlusDataCollector);
 
   vtkImageActor* GetImageActor();
 
-  QVTKWidget* GetCanvas() const { return Canvas; }
+  QVTKWidget* GetCanvas() { return Canvas; }
 
 protected:
   /*!
@@ -313,41 +324,30 @@ protected:
   /*!
   * Destructor
   */
-  virtual ~vtkPlusVisualizationController();	
+  virtual ~vtkPlusVisualizationController();
 
 protected:
   /*! 2D visualizer */
-  vtkPlusImageVisualizer* ImageVisualizer;
-
+  vtkSmartPointer<vtkPlusImageVisualizer>     ImageVisualizer;
   /*! 3D visualizer */
-  vtkPlus3DObjectVisualizer* PerspectiveVisualizer;
-
-  /*! Reference to the canvas */
-  QVTKWidget* Canvas;
-
+  vtkSmartPointer<vtkPlus3DObjectVisualizer>  PerspectiveVisualizer;
   /*! Renderer to use when there is nothing to show */
-  vtkRenderer* BlankRenderer;
-
+  vtkSmartPointer<vtkRenderer>                BlankRenderer;
   /*! Timer for acquisition */
-  QTimer*	AcquisitionTimer;
-
+  QTimer                                      AcquisitionTimer;
   /*! Polydata holding the result points (eg. stylus tip, segmented points) */
-  vtkPolyData* ResultPolyData;
-
+  vtkSmartPointer<vtkPolyData>                ResultPolyData;
   /*! Polydata holding the input points */
-  vtkPolyData* InputPolyData;
-
+  vtkSmartPointer<vtkPolyData>                InputPolyData;
   /*! Flag indicating if the visualization is in image mode (show only the image and interactions are off) or device display mode (show all tools and the image and interactions are on) or none */
-  DISPLAY_MODE CurrentMode;
-
+  DISPLAY_MODE                                CurrentMode;
   /*! Desired frame rate of synchronized recording */
-  int AcquisitionFrameRate;
-
-  /*! Transform repository to store and handle all transforms */
-  vtkPlusTransformRepository* TransformRepository;
-
-  vtkPlusChannel* SelectedChannel;
-  vtkPlusDataCollector* DataCollector;
+  int                                         AcquisitionFrameRate;
+  /// Cached variables from other systems
+  QVTKWidget*                                 Canvas;
+  vtkPlusTransformRepository*                 TransformRepository;
+  vtkPlusChannel*                             SelectedChannel;
+  vtkPlusDataCollector*                       DataCollector;
 };
 
 #endif  // __vtkVisualizationController_h

@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __AbstractToolbox_h
 #define __AbstractToolbox_h
@@ -25,7 +25,7 @@ enum ToolboxState
 
 //-----------------------------------------------------------------------------
 
-/*! \class AbstractToolbox 
+/*! \class AbstractToolbox
  * \brief This class is the super class of all the toolboxes for standard handling
  * \ingroup PlusAppFCal
  */
@@ -33,7 +33,7 @@ class AbstractToolbox
 {
 public:
   /*! \brief Constructor */
-  AbstractToolbox(fCalMainWindow* aParentMainWindow)
+  AbstractToolbox( fCalMainWindow* aParentMainWindow )
   {
     m_BusyCursorSet = false;
     m_ParentMainWindow = aParentMainWindow;
@@ -51,12 +51,12 @@ public:
 
   /*! \brief Close session data when the toolbox is deactivated - pure virtual function */
   virtual void OnDeactivated() = 0;
-  
+
 
   /*! \brief Reset toolbox to initial state - virtual function */
   virtual void Reset()
   {
-    SetState(ToolboxState_Idle);
+    SetState( ToolboxState_Idle );
   };
 
   /*! \brief Sets display mode (visibility of actors) according to the current state - pure virtual function */
@@ -66,7 +66,7 @@ public:
   * \brief Properly sets new toolbox state
   * \param aState New state of the toolbox
   */
-  void SetState(ToolboxState aState)
+  void SetState( ToolboxState aState )
   {
     m_State = aState;
     SetDisplayAccordingToState();
@@ -78,16 +78,16 @@ public:
   */
   ToolboxState GetState() { return m_State; };
 
-  void SetBusyCursor(bool busy)
+  void SetBusyCursor( bool busy )
   {
-    if (!busy && m_BusyCursorSet)
+    if ( !busy && m_BusyCursorSet )
     {
       QApplication::restoreOverrideCursor();
       m_BusyCursorSet = false;
     }
-    else if (busy && !m_BusyCursorSet)
+    else if ( busy && !m_BusyCursorSet )
     {
-      QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+      QApplication::setOverrideCursor( QCursor( Qt::BusyCursor ) );
       m_BusyCursorSet = true;
     }
   }

@@ -2,116 +2,103 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
+// Local includes
 #include "TemporalCalibrationToolbox.h"
-#include "PlusTrackedFrame.h"
 #include "fCalMainWindow.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDataSource.h"
-#include "vtkPlusTemporalCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusVisualizationController.h"
+
+// Qt includes
 #include <QFileDialog>
-#include <QTimer>
+
+// PlusLib includes
+#include <PlusTrackedFrame.h>
+#include <vtkPlusChannel.h>
+#include <vtkPlusDataSource.h>
+#include <vtkPlusLineSegmentationAlgo.h>
+#include <vtkPlusTemporalCalibrationAlgo.h>
+#include <vtkPlusTrackedFrameList.h>
+
+// VTK includes
+#include <vtkAbstractArray.h>
+#include <vtkBox.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkPlot.h>
 #include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkXMLUtilities.h>
 
 //-----------------------------------------------------------------------------
+
 namespace
 {
   const double INVALID_OFFSET = std::numeric_limits<double>::infinity();
-  const double NEGLIGIBLE_OFFSET_DIFFERENCE_SEC=0.0001;
+  const double NEGLIGIBLE_OFFSET_DIFFERENCE_SEC = 0.0001;
 }
 
 //-----------------------------------------------------------------------------
-
 TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-: AbstractToolbox(aParentMainWindow)
-, QWidget(aParentMainWindow, aFlags)
-, CancelRequest(false)
-, LastRecordedFixedItemTimestamp(UNDEFINED_TIMESTAMP)
-, m_FreeHandStartupDelaySec(5)
-, m_StartupDelayRemainingTimeSec(0)
-, m_StartupDelayTimer(NULL)
-, LastRecordedMovingItemTimestamp(0.0)
-, RecordingIntervalMs(200)
-, TemporalCalibrationDurationSec(10)
-, StartTimeSec(0.0)
-, PreviousFixedOffset(INVALID_OFFSET)
-, PreviousMovingOffset(INVALID_OFFSET)
-, TemporalCalibrationPlotsWindow(NULL)
-, UncalibratedPlotContextView(NULL)
-, CalibratedPlotContextView(NULL)
-, FixedChannel(NULL)
-, FixedType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
-, MovingChannel(NULL)
-, MovingType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
-, TemporalCalibrationAlgo(vtkPlusTemporalCalibrationAlgo::New())
-, RequestedFixedChannel("")
-, RequestedMovingChannel("")
+  : AbstractToolbox(aParentMainWindow)
+  , QWidget(aParentMainWindow, aFlags)
+  , TemporalCalibrationFixedData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  , TemporalCalibrationMovingData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  , FreeHandStartupDelaySec(5)
+  , StartupDelayRemainingTimeSec(0)
+  , CancelRequest(false)
+  , TemporalCalibrationDurationSec(10)
+  , LastRecordedFixedItemTimestamp(UNDEFINED_TIMESTAMP)
+  , LastRecordedMovingItemTimestamp(0.0)
+  , RecordingIntervalMs(200)
+  , StartTimeSec(0.0)
+  , PreviousFixedOffset(INVALID_OFFSET)
+  , PreviousMovingOffset(INVALID_OFFSET)
+  , FixedPositionMetric(vtkSmartPointer<vtkTable>::New())
+  , UncalibratedMovingPositionMetric(vtkSmartPointer<vtkTable>::New())
+  , CalibratedMovingPositionMetric(vtkSmartPointer<vtkTable>::New())
+  , TemporalCalibrationPlotsWindow(NULL)
+  , UncalibratedPlotContextView(NULL)
+  , CalibratedPlotContextView(NULL)
+  , FixedChannel(NULL)
+  , FixedType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
+  , MovingChannel(NULL)
+  , MovingType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE)
+  , TemporalCalibrationAlgo(vtkSmartPointer<vtkPlusTemporalCalibrationAlgo>::New())
+  , RequestedFixedChannel("")
+  , RequestedMovingChannel("")
 {
   ui.setupUi(this);
 
-  // Create tracked frame lists
-  TemporalCalibrationFixedData = vtkPlusTrackedFrameList::New();
-  TemporalCalibrationMovingData = vtkPlusTrackedFrameList::New();
-
-  // Set up timer to wait before acquisition
-  m_StartupDelayTimer = new QTimer(this);
-
-  // Create temporal calibration metric tables
-  FixedPositionMetric = vtkTable::New();
-  UncalibratedMovingPositionMetric = vtkTable::New();
-  CalibratedMovingPositionMetric = vtkTable::New();
-
   // Connect events
-  connect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ) );
-  connect( m_StartupDelayTimer, SIGNAL(timeout()),this , SLOT(DelayStartup()));
-  connect( ui.pushButton_ShowPlots, SIGNAL( toggled(bool) ), this, SLOT( ShowPlotsToggled(bool) ) );
-
-
-  connect( ui.comboBox_FixedChannelValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( FixedSignalChanged(int) ) );
-  connect( ui.comboBox_MovingChannelValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( MovingSignalChanged(int) ) );
-
-  connect( ui.comboBox_FixedSourceValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( FixedSourceChanged(int) ) );
-  connect( ui.comboBox_MovingSourceValue, SIGNAL( currentIndexChanged(int) ), this, SLOT( MovingSourceChanged(int) ) );
+  connect(ui.pushButton_StartCancelTemporal, &QPushButton::clicked, this, &TemporalCalibrationToolbox::StartDelayTimer);
+  connect(&StartupDelayTimer, &QTimer::timeout, this, &TemporalCalibrationToolbox::DelayStartup);
+  connect(ui.pushButton_ShowPlots, &QPushButton::toggled, this, &TemporalCalibrationToolbox::ShowPlotsToggled);
+  connect(ui.comboBox_FixedChannelValue, SIGNAL(currentIndexChanged(int)), this, SLOT(FixedSignalChanged(int)));
+  connect(ui.comboBox_MovingChannelValue, SIGNAL(currentIndexChanged(int)), this, SLOT(MovingSignalChanged(int)));
+  connect(ui.comboBox_FixedSourceValue, SIGNAL(currentIndexChanged(int)), this, SLOT(FixedSourceChanged(int)));
+  connect(ui.comboBox_MovingSourceValue, SIGNAL(currentIndexChanged(int)), this, SLOT(MovingSourceChanged(int)));
 }
 
 //-----------------------------------------------------------------------------
-
 TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
 {
-  DELETE_IF_NOT_NULL(TemporalCalibrationFixedData);
-  DELETE_IF_NOT_NULL(TemporalCalibrationMovingData);
-  DELETE_IF_NOT_NULL(FixedPositionMetric);
-  DELETE_IF_NOT_NULL(UncalibratedMovingPositionMetric);
-  DELETE_IF_NOT_NULL(CalibratedMovingPositionMetric);
-  if( TemporalCalibrationPlotsWindow != NULL )
+  if (TemporalCalibrationPlotsWindow != NULL)
   {
     delete TemporalCalibrationPlotsWindow;
   }
   DELETE_IF_NOT_NULL(UncalibratedPlotContextView);
   DELETE_IF_NOT_NULL(CalibratedPlotContextView);
-  DELETE_IF_NOT_NULL(TemporalCalibrationAlgo);
-  if (m_StartupDelayTimer != NULL)
+
+  if (StartupDelayTimer.isActive())
   {
-    if(m_StartupDelayTimer->isActive())
-    {
-      m_StartupDelayTimer->stop();
-    }
-    delete m_StartupDelayTimer;
-    m_StartupDelayTimer = NULL;
+    StartupDelayTimer.stop();
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::OnActivated()
 {
   LOG_TRACE("TemporalCalibrationToolbox::OnActivated");
@@ -122,8 +109,8 @@ void TemporalCalibrationToolbox::OnActivated()
     return;
   }
 
-  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
+  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+      && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
     // Read temporal calibration configuration
     if (this->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
@@ -134,7 +121,7 @@ void TemporalCalibrationToolbox::OnActivated()
 
     // Retrieve channels from devices
     DeviceCollection aCollection;
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS)
     {
       ui.label_InstructionsTemporal->setText(tr("Unable to retrieve devices! See log."));
       SetState(ToolboxState_Error);
@@ -148,17 +135,17 @@ void TemporalCalibrationToolbox::OnActivated()
     int requestedFixedIndex(0);
     int requestedMovingIndex(0);
     int index(0);
-    for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+    for (DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it)
     {
-      if( !(*it)->IsVirtual() )
+      if (!(*it)->IsVirtual())
       {
-        for( ChannelContainerIterator chanIt = (*it)->GetOutputChannelsStart(); chanIt != (*it)->GetOutputChannelsEnd(); ++chanIt )
+        for (ChannelContainerIterator chanIt = (*it)->GetOutputChannelsStart(); chanIt != (*it)->GetOutputChannelsEnd(); ++chanIt)
         {
-          if( !this->RequestedFixedChannel.empty() && STRCASECMP((*chanIt)->GetChannelId(), this->RequestedFixedChannel.c_str()) == 0 )
+          if (!this->RequestedFixedChannel.empty() && STRCASECMP((*chanIt)->GetChannelId(), this->RequestedFixedChannel.c_str()) == 0)
           {
             requestedFixedIndex = index;
           }
-          if( !this->RequestedMovingChannel.empty() && STRCASECMP((*chanIt)->GetChannelId(), this->RequestedMovingChannel.c_str()) == 0 )
+          if (!this->RequestedMovingChannel.empty() && STRCASECMP((*chanIt)->GetChannelId(), this->RequestedMovingChannel.c_str()) == 0)
           {
             requestedMovingIndex = index;
           }
@@ -171,10 +158,10 @@ void TemporalCalibrationToolbox::OnActivated()
 
     ui.comboBox_FixedChannelValue->setCurrentIndex(requestedFixedIndex);
     this->FixedSignalChanged(requestedFixedIndex);
-    if( !this->RequestedFixedSource.empty() )
+    if (!this->RequestedFixedSource.empty())
     {
       int index = ui.comboBox_FixedSourceValue->findText(QString(this->RequestedFixedSource.c_str()));
-      if( index >= 0 )
+      if (index >= 0)
       {
         ui.comboBox_FixedSourceValue->setCurrentIndex(index);
       }
@@ -186,10 +173,10 @@ void TemporalCalibrationToolbox::OnActivated()
 
     ui.comboBox_MovingChannelValue->setCurrentIndex(requestedMovingIndex);
     this->MovingSignalChanged(requestedMovingIndex);
-    if( !this->RequestedMovingSource.empty() )
+    if (!this->RequestedMovingSource.empty())
     {
       int index = ui.comboBox_MovingSourceValue->findText(QString(this->RequestedMovingSource.c_str()));
-      if( index >= 0 )
+      if (index >= 0)
       {
         ui.comboBox_MovingSourceValue->setCurrentIndex(index);
       }
@@ -217,28 +204,27 @@ void TemporalCalibrationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("TemporalCalibrationToolbox::ReadConfiguration");
 
   if (aConfig == NULL)
   {
-    LOG_ERROR("Unable to read configuration"); 
-    return PLUS_FAIL; 
+    LOG_ERROR("Unable to read configuration");
+    return PLUS_FAIL;
   }
 
   vtkXMLDataElement* fCalElement = aConfig->FindNestedElementWithName("fCal");
 
   if (fCalElement == NULL)
   {
-    LOG_ERROR("Unable to find fCal element in XML tree!"); 
-    return PLUS_FAIL;     
+    LOG_ERROR("Unable to find fCal element in XML tree!");
+    return PLUS_FAIL;
   }
 
   // Recording interval and processing time
-  int recordingIntervalMs = 0; 
-  if ( fCalElement->GetScalarAttribute("RecordingIntervalMs", recordingIntervalMs ) )
+  int recordingIntervalMs = 0;
+  if (fCalElement->GetScalarAttribute("RecordingIntervalMs", recordingIntervalMs))
   {
     RecordingIntervalMs = recordingIntervalMs;
   }
@@ -248,8 +234,8 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
   }
 
   // Duration of temporal calibration
-  int temporalCalibrationDurationSec = 0; 
-  if ( fCalElement->GetScalarAttribute("TemporalCalibrationDurationSec", temporalCalibrationDurationSec ) )
+  int temporalCalibrationDurationSec = 0;
+  if (fCalElement->GetScalarAttribute("TemporalCalibrationDurationSec", temporalCalibrationDurationSec))
   {
     TemporalCalibrationDurationSec = temporalCalibrationDurationSec;
   }
@@ -258,25 +244,25 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     LOG_WARNING("Unable to read TemporalCalibrationDurationSec attribute from fCal element of the device set configuration, default value '" << TemporalCalibrationDurationSec << "' will be used");
   }
 
-  if( this->TemporalCalibrationAlgo->ReadConfiguration(aConfig) != PLUS_SUCCESS )
+  if (this->TemporalCalibrationAlgo->ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to configure temporal calibration algorithm.");
     this->SetState(ToolboxState_Error);
   }
 
-  if( fCalElement->GetAttribute("FixedChannelId") != NULL )
+  if (fCalElement->GetAttribute("FixedChannelId") != NULL)
   {
     this->RequestedFixedChannel = fCalElement->GetAttribute("FixedChannelId");
   }
-  if( fCalElement->GetAttribute("MovingChannelId") != NULL )
+  if (fCalElement->GetAttribute("MovingChannelId") != NULL)
   {
     this->RequestedMovingChannel = fCalElement->GetAttribute("MovingChannelId");
   }
-  if( fCalElement->GetAttribute("FixedSourceId") != NULL )
+  if (fCalElement->GetAttribute("FixedSourceId") != NULL)
   {
     this->RequestedFixedSource = fCalElement->GetAttribute("FixedSourceId");
   }
-  if( fCalElement->GetAttribute("MovingSourceId") != NULL )
+  if (fCalElement->GetAttribute("MovingSourceId") != NULL)
   {
     this->RequestedMovingSource = fCalElement->GetAttribute("MovingSourceId");
   }
@@ -287,23 +273,21 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::RefreshContent()
 {
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("TemporalCalibrationToolbox::SetDisplayAccordingToState");
 
   // If connected
-  if ( (m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
-    && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()) )
+  if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL)
+      && (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
   {
     // If the force show devices isn't enabled, set it to 2D
-    if( !m_ParentMainWindow->IsForceShowDevicesEnabled() )
+    if (!m_ParentMainWindow->IsForceShowDevicesEnabled())
     {
       m_ParentMainWindow->GetVisualizationController()->HideAll();
       // 2D mode auto-turns back on the image
@@ -311,46 +295,46 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
     }
 
     // Enable or disable the image manipulation menu
-    m_ParentMainWindow->SetImageManipulationMenuEnabled( m_ParentMainWindow->GetVisualizationController()->Is2DMode() );
+    m_ParentMainWindow->SetImageManipulationMenuEnabled(m_ParentMainWindow->GetVisualizationController()->Is2DMode());
 
-    if (( m_State == ToolboxState_Idle || m_State == ToolboxState_Done )
-      && this->MovingChannel != NULL && this->FixedChannel != NULL )
+    if ((m_State == ToolboxState_Idle || m_State == ToolboxState_Done)
+        && this->MovingChannel != NULL && this->FixedChannel != NULL)
     {
-      double timeOffsetDiff = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()-this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();      
+      double timeOffsetDiff = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec() - this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
       // Update state message and fixed/moving offset labels
       std::string stateMsg;
-      if (fabs(timeOffsetDiff)<NEGLIGIBLE_OFFSET_DIFFERENCE_SEC)
+      if (fabs(timeOffsetDiff) < NEGLIGIBLE_OFFSET_DIFFERENCE_SEC)
       {
-        stateMsg += std::string("No time offset difference between ") + this->FixedChannel->GetOwnerDevice()->GetDeviceId() 
-          + " and " + this->MovingChannel->GetOwnerDevice()->GetDeviceId() + "."
-          + "\n\nProbably temporal calibration has not been performed yet.";
+        stateMsg += std::string("No time offset difference between ") + this->FixedChannel->GetOwnerDevice()->GetDeviceId()
+                    + " and " + this->MovingChannel->GetOwnerDevice()->GetDeviceId() + "."
+                    + "\n\nProbably temporal calibration has not been performed yet.";
       }
-      else if (timeOffsetDiff>0)
+      else if (timeOffsetDiff > 0)
       {
         stateMsg += std::string(this->FixedChannel->GetOwnerDevice()->GetDeviceId()) + " lags compared to "
-          + this->MovingChannel->GetOwnerDevice()->GetDeviceId()
-          + " by " + GetTimeAsString(timeOffsetDiff)+".";
+                    + this->MovingChannel->GetOwnerDevice()->GetDeviceId()
+                    + " by " + GetTimeAsString(timeOffsetDiff) + ".";
       }
       else
       {
         stateMsg += std::string(this->MovingChannel->GetOwnerDevice()->GetDeviceId()) + " lags compared to "
-          + this->FixedChannel->GetOwnerDevice()->GetDeviceId()
-          + " by " + GetTimeAsString(-timeOffsetDiff)+".";
+                    + this->FixedChannel->GetOwnerDevice()->GetDeviceId()
+                    + " by " + GetTimeAsString(-timeOffsetDiff) + ".";
       }
       if (this->PreviousFixedOffset != INVALID_OFFSET && this->PreviousMovingOffset != INVALID_OFFSET)
       {
-        double previousTimeOffsetDiff = this->PreviousMovingOffset-this->PreviousFixedOffset;
-        if (previousTimeOffsetDiff!=timeOffsetDiff) // don't print the difference if it's exactly the same (means that the new offset has not been computed)
+        double previousTimeOffsetDiff = this->PreviousMovingOffset - this->PreviousFixedOffset;
+        if (previousTimeOffsetDiff != timeOffsetDiff)   // don't print the difference if it's exactly the same (means that the new offset has not been computed)
         {
-          stateMsg += "\n\nDifference compared to previous temporal calibration: "+GetTimeAsString(fabs(timeOffsetDiff-previousTimeOffsetDiff))+".";
+          stateMsg += "\n\nDifference compared to previous temporal calibration: " + GetTimeAsString(fabs(timeOffsetDiff - previousTimeOffsetDiff)) + ".";
         }
       }
       ui.label_State->setText(tr(stateMsg.c_str()));
       // Fixed label
-      std::string fixedLabel = "Fixed (" + GetTimeAsString(this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec())+"):";
+      std::string fixedLabel = "Fixed (" + GetTimeAsString(this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()) + "):";
       ui.label_FixedSeries->setText(tr(fixedLabel.c_str()));
       // Moving label
-      std::string movingLabel = "Moving (" + GetTimeAsString(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec())+"):";
+      std::string movingLabel = "Moving (" + GetTimeAsString(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()) + "):";
       ui.label_MovingSeries->setText(tr(movingLabel.c_str()));
     }
     else
@@ -378,7 +362,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
   {
     bool result = QString::compare(ui.comboBox_FixedChannelValue->currentText(), ui.comboBox_MovingChannelValue->currentText(), Qt::CaseInsensitive) == 0;
     result = result && QString::compare(ui.comboBox_FixedSourceValue->currentText(), ui.comboBox_MovingSourceValue->currentText(), Qt::CaseInsensitive) == 0;
-    if( result )
+    if (result)
     {
       ui.label_InstructionsTemporal->setText(tr("Please select different fixed and moving signal sources."));
     }
@@ -394,8 +378,8 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.comboBox_FixedChannelValue->setEnabled(true);
     ui.comboBox_MovingChannelValue->setEnabled(true);
-    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0 );
-    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0 );
+    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0);
+    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0);
 
     QApplication::restoreOverrideCursor();
   }
@@ -411,8 +395,8 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.comboBox_FixedChannelValue->setEnabled(true);
     ui.comboBox_MovingChannelValue->setEnabled(true);
-    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0 );
-    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0 );
+    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0);
+    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0);
   }
   else if (m_State == ToolboxState_InProgress)
   {
@@ -431,7 +415,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
   {
     bool result = QString::compare(ui.comboBox_FixedChannelValue->currentText(), ui.comboBox_MovingChannelValue->currentText(), Qt::CaseInsensitive) == 0;
     result = result && QString::compare(ui.comboBox_FixedSourceValue->currentText(), ui.comboBox_MovingSourceValue->currentText(), Qt::CaseInsensitive) == 0;
-    if( result )
+    if (result)
     {
       ui.label_InstructionsTemporal->setText(tr("Please select different fixed and moving signal sources."));
     }
@@ -447,8 +431,8 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 
     ui.comboBox_FixedChannelValue->setEnabled(true);
     ui.comboBox_MovingChannelValue->setEnabled(true);
-    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0 );
-    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0 );
+    ui.comboBox_FixedSourceValue->setEnabled(ui.comboBox_FixedSourceValue->count() > 0);
+    ui.comboBox_MovingSourceValue->setEnabled(ui.comboBox_MovingSourceValue->count() > 0);
 
     QApplication::restoreOverrideCursor();
   }
@@ -471,46 +455,43 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::StartDelayTimer()
 {
-  LOG_INFO("Delay start up "<< m_StartupDelayRemainingTimeSec );
+  LOG_INFO("Delay start up " << StartupDelayRemainingTimeSec);
 
-  disconnect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
-  connect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
+  disconnect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(StartDelayTimer()));
+  connect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(CancelCalibration()));
   ui.pushButton_StartCancelTemporal->setText(tr("Cancel"));
 
-  if( m_State != ToolboxState_InProgress)
+  if (m_State != ToolboxState_InProgress)
   {
-    LOG_INFO("set current Delay start up"<<m_FreeHandStartupDelaySec);
-    m_StartupDelayRemainingTimeSec=m_FreeHandStartupDelaySec;
-    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+    LOG_INFO("set current Delay start up" << FreeHandStartupDelaySec);
+    StartupDelayRemainingTimeSec = FreeHandStartupDelaySec;
+    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(StartupDelayRemainingTimeSec--));
     SetState(ToolboxState_StartupDelay);
     // Start timer every 1000 ms
-    m_StartupDelayTimer->start(1000);
+    StartupDelayTimer.start(1000);
   }
 }
 
 //-----------------------------------------------------------------------------
-
-void  TemporalCalibrationToolbox::DelayStartup()
+void TemporalCalibrationToolbox::DelayStartup()
 {
-  if(m_StartupDelayRemainingTimeSec>0)
+  if (StartupDelayRemainingTimeSec > 0)
   {
-    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(m_StartupDelayRemainingTimeSec--));
+    ui.label_InstructionsTemporal->setText(QString("Temporal calibration will start in %1").arg(StartupDelayRemainingTimeSec--));
   }
   else
   {
-    if(m_StartupDelayTimer->isActive())
+    if (StartupDelayTimer.isActive())
     {
-      m_StartupDelayTimer->stop();
+      StartupDelayTimer.stop();
     }
     StartCalibration();
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::StartCalibration()
 {
   LOG_INFO("Temporal calibration started");
@@ -519,17 +500,17 @@ void TemporalCalibrationToolbox::StartCalibration()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  if( this->FixedChannel == NULL || this->MovingChannel == NULL )
+  if (this->FixedChannel == NULL || this->MovingChannel == NULL)
   {
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->MovingChannel, 
-      std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1())) != PLUS_SUCCESS )
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->MovingChannel,
+        std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1())) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve device " << std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1()));
       return;
     }
 
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->FixedChannel, 
-      std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1())) != PLUS_SUCCESS )
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->FixedChannel,
+        std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1())) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve device " << std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1()));
       return;
@@ -541,34 +522,34 @@ void TemporalCalibrationToolbox::StartCalibration()
   QString curFixedType = ui.comboBox_FixedSourceValue->itemData(ui.comboBox_FixedSourceValue->currentIndex()).toString();
   this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-  if( QString::compare(curFixedType, QString("Video")) != 0 )
+  if (QString::compare(curFixedType, QString("Video")) != 0)
   {
     this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
-    this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
+    this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     this->FixedValidationTransformName.SetTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationFixedData->SetFrameTransformNameForValidation(this->FixedValidationTransformName);
-    LOG_DEBUG("Temporal calibration fixed signal: "<<this->FixedValidationTransformName.GetTransformName()<<" transform in channel "<<(this->FixedChannel->GetChannelId()?this->FixedChannel->GetChannelId():"(undefined)"));
+    LOG_DEBUG("Temporal calibration fixed signal: " << this->FixedValidationTransformName.GetTransformName() << " transform in channel " << (this->FixedChannel->GetChannelId() ? this->FixedChannel->GetChannelId() : "(undefined)"));
   }
   else
   {
-    LOG_DEBUG("Temporal calibration fixed signal: Video in channel "<<(this->FixedChannel->GetChannelId()?this->FixedChannel->GetChannelId():"(undefined)"));
+    LOG_DEBUG("Temporal calibration fixed signal: Video in channel " << (this->FixedChannel->GetChannelId() ? this->FixedChannel->GetChannelId() : "(undefined)"));
   }
   this->PreviousFixedOffset = this->FixedChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
   QString curMovingType = ui.comboBox_MovingSourceValue->itemData(ui.comboBox_MovingSourceValue->currentIndex()).toString();
   this->MovingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
-  if( QString::compare(curMovingType, QString("Video")) != 0 )
+  if (QString::compare(curMovingType, QString("Video")) != 0)
   {
     this->MovingType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
-    this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
+    this->TemporalCalibrationMovingData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
     this->MovingValidationTransformName.SetTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()).c_str());
     this->TemporalCalibrationMovingData->SetFrameTransformNameForValidation(this->MovingValidationTransformName);
-    LOG_DEBUG("Temporal calibration moving signal: "<<this->MovingValidationTransformName.GetTransformName()<<" transform in channel "<<(this->MovingChannel->GetChannelId()?this->MovingChannel->GetChannelId():"(undefined)"));
+    LOG_DEBUG("Temporal calibration moving signal: " << this->MovingValidationTransformName.GetTransformName() << " transform in channel " << (this->MovingChannel->GetChannelId() ? this->MovingChannel->GetChannelId() : "(undefined)"));
   }
   else
   {
-    LOG_DEBUG("Temporal calibration moving signal: Video in channel "<<(this->MovingChannel->GetChannelId()?this->MovingChannel->GetChannelId():"(undefined)"));
+    LOG_DEBUG("Temporal calibration moving signal: Video in channel " << (this->MovingChannel->GetChannelId() ? this->MovingChannel->GetChannelId() : "(undefined)"));
   }
   this->PreviousMovingOffset = this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec();
 
@@ -593,7 +574,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 {
   // Create dialog
   QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
-  temporalCalibrationDialog->setMinimumSize(QSize(360,80));
+  temporalCalibrationDialog->setMinimumSize(QSize(360, 80));
   temporalCalibrationDialog->setWindowTitle(tr("fCal"));
   temporalCalibrationDialog->setStyleSheet("QDialog { background-color: rgb(224, 224, 224); }");
 
@@ -612,12 +593,12 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   QApplication::processEvents();
 
   this->TemporalCalibrationAlgo->SetFixedFrames(TemporalCalibrationFixedData, this->FixedType);
-  if( this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
+  if (this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER)
   {
     this->TemporalCalibrationAlgo->SetFixedProbeToReferenceTransformName(std::string(ui.comboBox_FixedSourceValue->currentText().toLatin1()));
   }
   this->TemporalCalibrationAlgo->SetMovingFrames(TemporalCalibrationMovingData, this->MovingType);
-  if( this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER )
+  if (this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER)
   {
     this->TemporalCalibrationAlgo->SetMovingProbeToReferenceTransformName(std::string(ui.comboBox_MovingSourceValue->currentText().toLatin1()));
   }
@@ -632,7 +613,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   {
     switch (error)
     {
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD: 
+    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD:
       double correlation;
       this->TemporalCalibrationAlgo->GetBestCorrelation(correlation);
 
@@ -676,7 +657,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
     QPalette palette;
     palette.setColor(ui.label_State->foregroundRole(), QColor::fromRgb(255, 0, 0));
     ui.label_State->setPalette(palette);
-    ui.label_State->setText( QString(errorStr.c_str()) );
+    ui.label_State->setText(QString(errorStr.c_str()));
 
     temporalCalibrationDialog->done(0);
     temporalCalibrationDialog->hide();
@@ -687,7 +668,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   // Get result
   double movingLagSec = 0;
-  if (this->TemporalCalibrationAlgo->GetMovingLagSec(movingLagSec)!=PLUS_SUCCESS)
+  if (this->TemporalCalibrationAlgo->GetMovingLagSec(movingLagSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Cannot determine time lag, temporal calibration failed");
     CancelCalibration();
@@ -701,9 +682,9 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   LOG_INFO("Temporal calibration result: moving stream lags by " << movingLagSec << "s");
 
-  if( this->MovingChannel )
+  if (this->MovingChannel)
   {
-    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec()-movingLagSec);
+    this->MovingChannel->GetOwnerDevice()->SetLocalTimeOffsetSec(this->MovingChannel->GetOwnerDevice()->GetLocalTimeOffsetSec() - movingLagSec);
   }
 
   // Update state message
@@ -725,8 +706,8 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 
   SetState(ToolboxState_Done);
 
-  disconnect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
-  connect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  disconnect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(CancelCalibration()));
+  connect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(StartDelayTimer()));
   ui.pushButton_StartCancelTemporal->setText(tr("Start"));
 
   m_ParentMainWindow->SetToolboxesEnabled(true);
@@ -737,9 +718,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
   delete temporalCalibrationDialog;
 }
 
-
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::DoCalibration()
 {
   LOG_TRACE("TemporalCalibrationToolbox::DoCalibration");
@@ -753,6 +732,7 @@ void TemporalCalibrationToolbox::DoCalibration()
     m_ParentMainWindow->SetStatusBarProgress(100);
 
     // The prescribed data collection time is up
+    m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
     ComputeCalibrationResults();
     return;
   }
@@ -768,11 +748,58 @@ void TemporalCalibrationToolbox::DoCalibration()
   int numberOfFixedFramesBeforeRecording = TemporalCalibrationFixedData->GetNumberOfTrackedFrames();
   int numberOfMovingFramesBeforeRecording = TemporalCalibrationMovingData->GetNumberOfTrackedFrames();
 
-  if( this->FixedChannel != NULL )
+  vtkPlusDataSource* selectedChannelVideoSource;
+  m_ParentMainWindow->GetVisualizationController()->GetSelectedChannel()->GetVideoSource(selectedChannelVideoSource);
+  if (this->FixedChannel != NULL)
   {
-    if( this->FixedChannel->GetTrackedFrameList(this->LastRecordedFixedItemTimestamp, this->TemporalCalibrationFixedData, 50) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkPlusTrackedFrameList> frameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    if (this->FixedChannel->GetTrackedFrameList(this->LastRecordedFixedItemTimestamp, frameList, 50) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to add data to fixed frame list.");
+    }
+    this->TemporalCalibrationFixedData->AddTrackedFrameList(frameList, vtkPlusTrackedFrameList::ADD_INVALID_FRAME);
+
+    vtkPlusDataSource* fixedVideoSource;
+    this->FixedChannel->GetVideoSource(fixedVideoSource);
+    if (this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO  &&
+        fixedVideoSource != nullptr &&
+        fixedVideoSource == selectedChannelVideoSource
+       )
+    {
+      // Try segmenting the line from the last image
+      frameList->RemoveTrackedFrameRange(0, frameList->GetNumberOfTrackedFrames() - 2);
+      auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
+      lineSegmenter->SetTrackedFrameList(frameList);
+      lineSegmenter->SetSaveIntermediateImages(false);
+      if (lineSegmenter->Update() == PLUS_SUCCESS)
+      {
+        std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
+        lineSegmenter->GetDetectedLineParameters(parameters);
+        if (parameters[0].lineDetected)
+        {
+          auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
+          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100'000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] - 100'000 * parameters[0].lineDirectionVector_Image[1],
+                           0.0
+                         };
+          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100'000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] + 100'000 * parameters[0].lineDirectionVector_Image[1] ,
+                           0.0
+                         };
+          double r1[3], r2[3];
+          double t1, t2;
+          int plane1, plane2;
+          double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
+          vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
+
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(true);
+        }
+        else
+        {
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
+        }
+      }
     }
   }
   else
@@ -781,11 +808,56 @@ void TemporalCalibrationToolbox::DoCalibration()
     CancelCalibration();
     return;
   }
-  if( this->MovingChannel != NULL )
+  if (this->MovingChannel != NULL)
   {
-    if( this->MovingChannel->GetTrackedFrameList(this->LastRecordedMovingItemTimestamp, this->TemporalCalibrationMovingData, 50) != PLUS_SUCCESS )
+    vtkSmartPointer<vtkPlusTrackedFrameList> frameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    if (this->MovingChannel->GetTrackedFrameList(this->LastRecordedMovingItemTimestamp, frameList, 50) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to add data to moving frame list.");
+    }
+    this->TemporalCalibrationMovingData->AddTrackedFrameList(frameList, vtkPlusTrackedFrameList::ADD_INVALID_FRAME);
+
+    vtkPlusDataSource* movingVideoSource;
+    this->MovingChannel->GetVideoSource(movingVideoSource);
+    if (this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO  &&
+        movingVideoSource != nullptr &&
+        movingVideoSource == selectedChannelVideoSource
+       )
+    {
+      // Try segmenting the line from the last image
+      frameList->RemoveTrackedFrameRange(0, frameList->GetNumberOfTrackedFrames() - 2);
+      auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
+      lineSegmenter->SetTrackedFrameList(frameList);
+      lineSegmenter->SetSaveIntermediateImages(false);
+      if (lineSegmenter->Update() == PLUS_SUCCESS)
+      {
+        std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
+        lineSegmenter->GetDetectedLineParameters(parameters);
+        if (parameters[0].lineDetected)
+        {
+          auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
+          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100'000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] - 100'000 * parameters[0].lineDirectionVector_Image[1],
+                           0.0
+                         };
+          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100'000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] + 100'000 * parameters[0].lineDirectionVector_Image[1] ,
+                           0.0
+                         };
+          double r1[3], r2[3];
+          double t1, t2;
+          int plane1, plane2;
+          double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
+          vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
+
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(true);
+        }
+        else
+        {
+          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
+        }
+      }
     }
   }
   else
@@ -800,26 +872,26 @@ void TemporalCalibrationToolbox::DoCalibration()
   m_ParentMainWindow->SetStatusBarProgress(progressPercent);
   LOG_DEBUG("Number of tracked frames in the calibration dataset: Fixed: " << std::setw(3) << numberOfFixedFramesBeforeRecording << " => " << TemporalCalibrationFixedData->GetNumberOfTrackedFrames() << "; Moving: " << numberOfMovingFramesBeforeRecording << " => " << TemporalCalibrationMovingData->GetNumberOfTrackedFrames());
 
-  QTimer::singleShot(RecordingIntervalMs, this, SLOT(DoCalibration())); 
+  QTimer::singleShot(RecordingIntervalMs, this, SLOT(DoCalibration()));
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Temporal calibration cancelled.");
 
-  disconnect( ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( CancelCalibration() ) );
-  connect(ui.pushButton_StartCancelTemporal, SIGNAL( clicked() ), this, SLOT( StartDelayTimer() ));
+  disconnect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(CancelCalibration()));
+  connect(ui.pushButton_StartCancelTemporal, SIGNAL(clicked()), this, SLOT(StartDelayTimer()));
   ui.pushButton_StartCancelTemporal->setText(tr("Start"));
 
-  if(m_State==ToolboxState_StartupDelay)
+  if (m_State == ToolboxState_StartupDelay)
   {
-    if(m_StartupDelayTimer->isActive())
+    if (StartupDelayTimer.isActive())
     {
-      m_StartupDelayTimer->stop();
+      StartupDelayTimer.stop();
     }
-    LOG_TRACE("TemporalCalibrationToolbox::CancelCalibration before calibration delay timer finished");   }
+    LOG_TRACE("TemporalCalibrationToolbox::CancelCalibration before calibration delay timer finished");
+  }
   else
   {
     CancelRequest = true;
@@ -841,7 +913,6 @@ void TemporalCalibrationToolbox::CancelCalibration()
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 {
   // Delete objects if toggled off, make sure they are deleted when toggled on
@@ -849,19 +920,19 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
   {
     delete TemporalCalibrationPlotsWindow;
     TemporalCalibrationPlotsWindow = NULL;
-  } 
+  }
 
   if (UncalibratedPlotContextView != NULL)
   {
     UncalibratedPlotContextView->Delete();
     UncalibratedPlotContextView = NULL;
-  } 
+  }
 
   if (CalibratedPlotContextView != NULL)
   {
     CalibratedPlotContextView->Delete();
     CalibratedPlotContextView = NULL;
-  } 
+  }
 
   if (aOn)
   {
@@ -887,25 +958,25 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     vtkSmartPointer<vtkChartXY> uncalibratedChart = vtkSmartPointer<vtkChartXY>::New();
     uncalibratedChart->Register(UncalibratedPlotContextView);
 
-    vtkPlot *uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
+    vtkPlot* uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
     uncalibratedTrackerMetricLine->SetInputData(UncalibratedMovingPositionMetric, 0, 1);
     //vtkVariantArray* array = vtkVariantArray::New();
     //m_UncalibratedTrackerPositionMetric->GetRow(13, array);
     //array->PrintSelf(std::cout, *(vtkIndent::New()));
     //std::cout << array->GetValue(0) << "::" << array->GetValue(1) << std::endl;
-    uncalibratedTrackerMetricLine->SetColor(1,0,0);
+    uncalibratedTrackerMetricLine->SetColor(1, 0, 0);
     uncalibratedTrackerMetricLine->SetWidth(1.0);
 
-    vtkPlot *videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
+    vtkPlot* videoPositionMetricLineU = uncalibratedChart->AddPlot(vtkChart::LINE);
     videoPositionMetricLineU->SetInputData(FixedPositionMetric, 0, 1);
-    videoPositionMetricLineU->SetColor(0,0,1);
+    videoPositionMetricLineU->SetColor(0, 0, 1);
     videoPositionMetricLineU->SetWidth(1.0);
 
     uncalibratedChart->SetShowLegend(true);
     UncalibratedPlotContextView->GetScene()->AddItem(uncalibratedChart);
 
     uncalibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(UncalibratedPlotContextView->GetRenderer());
-    uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
+    uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800, 600);
 
     gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
 
@@ -918,45 +989,44 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     vtkSmartPointer<vtkChartXY> calibratedChart = vtkSmartPointer<vtkChartXY>::New();
     calibratedChart->Register(CalibratedPlotContextView);
 
-    vtkPlot *calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
+    vtkPlot* calibratedTrackerMetricLine = calibratedChart->AddPlot(vtkChart::LINE);
     calibratedTrackerMetricLine->SetInputData(CalibratedMovingPositionMetric, 0, 1);
-    calibratedTrackerMetricLine->SetColor(0,1,0);
+    calibratedTrackerMetricLine->SetColor(0, 1, 0);
     calibratedTrackerMetricLine->SetWidth(1.0);
 
-    vtkPlot *videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
+    vtkPlot* videoPositionMetricLineC = calibratedChart->AddPlot(vtkChart::LINE);
     videoPositionMetricLineC->SetInputData(FixedPositionMetric, 0, 1);
-    videoPositionMetricLineC->SetColor(0,0,1);
+    videoPositionMetricLineC->SetColor(0, 0, 1);
     videoPositionMetricLineC->SetWidth(1.0);
 
     calibratedChart->SetShowLegend(true);
     CalibratedPlotContextView->GetScene()->AddItem(calibratedChart);
 
     calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(CalibratedPlotContextView->GetRenderer());
-    calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800,600);
+    calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800, 600);
 
     gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
 
     // Position and show window
     TemporalCalibrationPlotsWindow->setLayout(gridPlotWindow);
-    TemporalCalibrationPlotsWindow->move( mapToGlobal( QPoint( ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20 ) ) );
+    TemporalCalibrationPlotsWindow->move(mapToGlobal(QPoint(ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20)));
     TemporalCalibrationPlotsWindow->show();
   }
 }
 
 //-----------------------------------------------------------------------------
-
-bool TemporalCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
+bool TemporalCalibrationToolbox::eventFilter(QObject* obj, QEvent* ev)
 {
-  if ( obj == TemporalCalibrationPlotsWindow )
+  if (obj == TemporalCalibrationPlotsWindow)
   {
-    if ( ev->type() == QEvent::Close )
+    if (ev->type() == QEvent::Close)
     {
       ui.pushButton_ShowPlots->setChecked(false);
     }
     else
     {
       // Pass the event on to the parent class
-      return QWidget::eventFilter( obj, ev );
+      return QWidget::eventFilter(obj, ev);
     }
   }
 
@@ -964,7 +1034,6 @@ bool TemporalCalibrationToolbox::eventFilter(QObject *obj, QEvent *ev)
 }
 
 //-----------------------------------------------------------------------------
-
 void TemporalCalibrationToolbox::OnDeactivated()
 {
   // The channels may get deleted (e.g., by a disconnect/connect), so make sure they are not reused
@@ -973,15 +1042,14 @@ void TemporalCalibrationToolbox::OnDeactivated()
 }
 
 //-----------------------------------------------------------------------------
-
-void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
+void TemporalCalibrationToolbox::FixedSignalChanged(int newIndex)
 {
   ui.comboBox_FixedSourceValue->clear();
 
-  if( ui.comboBox_FixedChannelValue->currentIndex() != -1 )
+  if (ui.comboBox_FixedChannelValue->currentIndex() != -1)
   {
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->FixedChannel, 
-      std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1())) != PLUS_SUCCESS )
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->FixedChannel,
+        std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1())) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve device " << std::string(ui.comboBox_FixedChannelValue->currentText().toLatin1()));
       return;
@@ -989,15 +1057,15 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
 
     // Determine data types, populate
     vtkPlusDataSource* aSource(NULL);
-    if( this->FixedChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+    if (this->FixedChannel->GetVideoSource(aSource) == PLUS_SUCCESS)
     {
       QVariant strVar = QVariant::fromValue(QString("Video"));
       ui.comboBox_FixedSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
     PlusTrackedFrame frame;
-    if( this->FixedChannel->GetTrackedFrame(frame) != PLUS_SUCCESS )
+    if (this->FixedChannel->GetTrackedFrame(frame) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->FixedChannel->GetChannelId() );
+      LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->FixedChannel->GetChannelId());
       return;
     }
     vtkPlusTransformRepository* repo = vtkPlusTransformRepository::New();
@@ -1007,14 +1075,14 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
     frame.GetCustomFrameTransformNameList(nameList);
     std::vector<std::string> fromList;
     std::vector<std::string> toList;
-    for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it )
+    for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it)
     {
-      if( std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end() )
+      if (std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end())
       {
         fromList.push_back(it->From());
         toList.push_back(it->From());
       }
-      if( std::find(toList.begin(), toList.end(), it->To()) == toList.end() )
+      if (std::find(toList.begin(), toList.end(), it->To()) == toList.end())
       {
         fromList.push_back(it->To());
         toList.push_back(it->To());
@@ -1022,11 +1090,11 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
     }
 
     // build exhaustive list of all possible transforms
-    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt )
+    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt)
     {
-      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt )
+      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt)
       {
-        if( fromIt->compare(*toIt) == 0 )
+        if (fromIt->compare(*toIt) == 0)
         {
           continue;
         }
@@ -1036,7 +1104,7 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
         ss << (*fromIt) << "To" << (*toIt);
         trans.SetTransformName(ss.str().c_str());
 
-        if( trans.IsValid() && repo->IsExistingTransform(trans) )
+        if (trans.IsValid() && repo->IsExistingTransform(trans))
         {
           QVariant strVar = QVariant::fromValue(QString("Transform"));
           ui.comboBox_FixedSourceValue->addItem(QString(ss.str().c_str()), strVar);
@@ -1051,15 +1119,14 @@ void TemporalCalibrationToolbox::FixedSignalChanged( int newIndex )
 }
 
 //-----------------------------------------------------------------------------
-
-void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
+void TemporalCalibrationToolbox::MovingSignalChanged(int newIndex)
 {
   ui.comboBox_MovingSourceValue->clear();
 
-  if( ui.comboBox_MovingChannelValue->currentIndex() != -1 )
+  if (ui.comboBox_MovingChannelValue->currentIndex() != -1)
   {
-    if( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->MovingChannel, 
-      std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1())) != PLUS_SUCCESS )
+    if (m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetChannel(this->MovingChannel,
+        std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1())) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve device " << std::string(ui.comboBox_MovingChannelValue->currentText().toLatin1()));
       return;
@@ -1067,15 +1134,15 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
 
     // Determine data types, populate
     vtkPlusDataSource* aSource(NULL);
-    if( this->MovingChannel->GetVideoSource(aSource) == PLUS_SUCCESS )
+    if (this->MovingChannel->GetVideoSource(aSource) == PLUS_SUCCESS)
     {
       QVariant strVar = QVariant::fromValue(QString("Video"));
       ui.comboBox_MovingSourceValue->addItem(aSource->GetSourceId(), strVar);
     }
     PlusTrackedFrame frame;
-    if( this->MovingChannel->GetTrackedFrame(frame) != PLUS_SUCCESS )
+    if (this->MovingChannel->GetTrackedFrame(frame) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->MovingChannel->GetChannelId() );
+      LOG_ERROR("Unable to retrieve tracked frame from channel: " << this->MovingChannel->GetChannelId());
       return;
     }
     vtkPlusTransformRepository* repo = vtkPlusTransformRepository::New();
@@ -1085,14 +1152,14 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
     frame.GetCustomFrameTransformNameList(nameList);
     std::vector<std::string> fromList;
     std::vector<std::string> toList;
-    for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it )
+    for (std::vector<PlusTransformName>::iterator it = nameList.begin(); it != nameList.end(); ++it)
     {
-      if( std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end() )
+      if (std::find(fromList.begin(), fromList.end(), it->From()) == fromList.end())
       {
         fromList.push_back(it->From());
         toList.push_back(it->From());
       }
-      if( std::find(toList.begin(), toList.end(), it->To()) == toList.end() )
+      if (std::find(toList.begin(), toList.end(), it->To()) == toList.end())
       {
         fromList.push_back(it->To());
         toList.push_back(it->To());
@@ -1100,11 +1167,11 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
     }
 
     // build exhaustive list of all possible transforms
-    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt )
+    for (std::vector<std::string>::iterator fromIt = fromList.begin(); fromIt != fromList.end(); ++fromIt)
     {
-      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt )
+      for (std::vector<std::string>::iterator toIt = toList.begin(); toIt != toList.end(); ++toIt)
       {
-        if( fromIt->compare(*toIt) == 0 )
+        if (fromIt->compare(*toIt) == 0)
         {
           continue;
         }
@@ -1114,7 +1181,7 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
         ss << (*fromIt) << "To" << (*toIt);
         trans.SetTransformName(ss.str().c_str());
 
-        if( trans.IsValid() && repo->IsExistingTransform(trans) )
+        if (trans.IsValid() && repo->IsExistingTransform(trans))
         {
           QVariant strVar = QVariant::fromValue(QString("Transform"));
           ui.comboBox_MovingSourceValue->addItem(QString(ss.str().c_str()), strVar);
@@ -1129,24 +1196,21 @@ void TemporalCalibrationToolbox::MovingSignalChanged( int newIndex )
 }
 
 //-----------------------------------------------------------------------------
-
-void TemporalCalibrationToolbox::FixedSourceChanged( int newIndex )
+void TemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
-
-void TemporalCalibrationToolbox::MovingSourceChanged( int newIndex )
+void TemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
 }
 
 //-----------------------------------------------------------------------------
-
 std::string TemporalCalibrationToolbox::GetTimeAsString(double timeSec)
 {
   std::stringstream ss;
-  ss << std::fixed << std::setprecision(1) << 1000.0*timeSec << "ms";
+  ss << std::fixed << std::setprecision(1) << 1000.0 * timeSec << "ms";
   return ss.str();
 }

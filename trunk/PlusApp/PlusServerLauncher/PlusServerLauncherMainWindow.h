@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __PlusServerLauncherMainWindow_h
 #define __PlusServerLauncherMainWindow_h
@@ -11,19 +11,19 @@
 #include "ui_PlusServerLauncherMainWindow.h"
 
 #include <QMainWindow>
-#include <QProcess>
 
 class PlusDeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
 class vtkPlusDataCollector;
 class vtkPlusTransformRepository;
 class QComboBox;
+class QProcess;
 class QWidget;
 
 //-----------------------------------------------------------------------------
 
 /*!
-  \class PlusServerLauncherMainWindow 
+  \class PlusServerLauncherMainWindow
   \brief GUI application for starting an OpenIGTLink server with the selected device configuration file
   \ingroup PlusAppPlusServerLauncher
  */
@@ -37,7 +37,7 @@ public:
     \param aParent parent
     \param aFlags widget flag
   */
-  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0, bool autoConnect=false);
+  PlusServerLauncherMainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false);
 
   /*! Destructor */
   ~PlusServerLauncherMainWindow();
@@ -50,21 +50,21 @@ protected slots:
   void connectToDevicesByConfigFile(std::string);
 
   /*! Called whenever a key is pressed while the windows is active, used for intercepting the ESC key */
-  void keyPressEvent(QKeyEvent *e);
+  void keyPressEvent(QKeyEvent* e);
 
   void stdOutMsgReceived();
 
   void stdErrMsgReceived();
 
-  void errorReceived(QProcess::ProcessError);
+  void errorReceived(int);
 
-  void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
+  void serverExecutableFinished(int returnCode, int status);
 
   void logLevelChanged();
 
 protected:
   /*! Receive standard output or error and send it to the log */
-  void sendServerOutputToLogger(const QByteArray &strData);
+  void sendServerOutputToLogger(const QByteArray& strData);
 
   /*! Start server process, connect outputs to logger. Returns with true on success. */
   bool startServer(const QString& configFilePath);

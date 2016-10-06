@@ -4,21 +4,26 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "SpatialCalibrationToolbox.h"
-
+// Local includes
 #include "PlusFidPatternRecognition.h"
 #include "PlusSegmentationParameterDialog.h"
 #include "PlusTrackedFrame.h"
+#include "SpatialCalibrationToolbox.h"
 #include "fCalMainWindow.h"
-
 #include "vtkPlusDevice.h"
+#include "vtkPlusDisplayableObject.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusVisualizationController.h"
 
+// VTK includes
+#include <vtkTransform.h>
+#include <vtkXMLUtilities.h>
+
+// Qt includes
 #include <QFileDialog>
 #include <QTimer>
-#include <vtkXMLUtilities.h>
+#include "vtkPoints.h"
 
 //-----------------------------------------------------------------------------
 
@@ -118,10 +123,7 @@ void SpatialCalibrationToolbox::OnActivated()
   }
 
   // Clear results polydata
-  if( m_ParentMainWindow->GetVisualizationController()->GetResultPolyData() != NULL )
-  {
-    m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->Initialize();
-  }
+  m_ParentMainWindow->GetVisualizationController()->ClearResultPolyData();
 
   if ( ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector() != NULL )
        && ( m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected() ) )
@@ -985,7 +987,7 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints( bool enable )
     trackedFrameListToUse = m_SpatialCalibrationData;
   }
 
-  // Display found wire interesections in the most recent frame
+  // Display found wire intersections in the most recent frame
   vtkPoints* segmentedPoints = NULL;
   if ( trackedFrameListToUse->GetNumberOfTrackedFrames() > 0 && enable )
   {
@@ -1000,7 +1002,7 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints( bool enable )
   {
     m_ParentMainWindow->GetVisualizationController()->ShowResult( false );
   }
-  m_ParentMainWindow->GetVisualizationController()->GetResultPolyData()->SetPoints( segmentedPoints );
+  m_ParentMainWindow->GetVisualizationController()->SetResultPolyDataPoints( segmentedPoints );
   m_ParentMainWindow->GetVisualizationController()->SetWireLabelPositions( segmentedPoints );
 }
 

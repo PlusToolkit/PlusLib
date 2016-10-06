@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef SPATIALCALIBRATIONTOOLBOX_H
 #define SPATIALCALIBRATIONTOOLBOX_H
@@ -22,7 +22,7 @@ class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
-/*! \class SpatialCalibrationToolbox 
+/*! \class SpatialCalibrationToolbox
 * \brief Spatial calibration toolbox class
 * \ingroup PlusAppFCal
 */
@@ -36,7 +36,7 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
+  SpatialCalibrationToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
 
   /*! Destructor */
   ~SpatialCalibrationToolbox();
@@ -56,7 +56,7 @@ public:
   * Read freehand calibration configuration for fCal
   * \param aConfig Root element of the input device set configuration XML data
   */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
 
   /*! Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void RefreshContent();
@@ -75,12 +75,12 @@ protected:
     Prepares and shows the last segmented points from the current acquisition.
     If enable is false then segmented points are hidden (even if they were available).
   */
-  void DisplaySegmentedPoints(bool enable);
+  void DisplaySegmentedPoints( bool enable );
 
   /*! Set and save calibration results */
   PlusStatus SetAndSaveResults();
 
-    void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec){m_FreeHandStartupDelaySec=freeHandStartupDelaySec;};
+  void SetFreeHandStartupDelaySec( int freeHandStartupDelaySec ) {m_FreeHandStartupDelaySec = freeHandStartupDelaySec;};
 
 protected slots:
 
