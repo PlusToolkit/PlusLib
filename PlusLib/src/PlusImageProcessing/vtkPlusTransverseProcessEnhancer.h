@@ -98,13 +98,15 @@ public:
   vtkGetMacro( ErosionEnabled, bool );
   vtkBooleanMacro( ErosionEnabled, bool );
 
-  void SetErosionKernelSize( int KernelSize[2] );
+  vtkSetVector2Macro(ErosionKernelSize, int);
+  vtkGetVector2Macro(ErosionKernelSize, int);
 
   vtkSetMacro( DilationEnabled, bool );
   vtkGetMacro( DilationEnabled, bool );
   vtkBooleanMacro( DilationEnabled, bool );
 
-  void SetDilationKernelSize( int KernelSize[2] );
+  vtkSetVector2Macro(DilationKernelSize, int);
+  vtkGetVector2Macro(DilationKernelSize, int);
 
   vtkSetMacro( ReconvertBinaryToGreyscale, bool );
   vtkGetMacro( ReconvertBinaryToGreyscale, bool );
