@@ -275,6 +275,83 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 //-----------------------------------------------------------------------------
 void TemporalCalibrationToolbox::RefreshContent()
 {
+  if (m_ParentMainWindow->GetVisualizationController() == nullptr ||
+      this->m_ParentMainWindow->GetVisualizationController()->GetSelectedChannel() == nullptr)
+  {
+    return;
+  }
+
+  vtkPlusDataSource* selectedChannelVideoSource;
+  m_ParentMainWindow->GetVisualizationController()->GetSelectedChannel()->GetVideoSource(selectedChannelVideoSource);
+  if (this->FixedChannel != NULL && this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO)
+  {
+    PlusTrackedFrame frame;
+    if (this->FixedChannel->GetTrackedFrame(frame) == PLUS_SUCCESS)
+    {
+      vtkPlusDataSource* fixedVideoSource;
+      this->FixedChannel->GetVideoSource(fixedVideoSource);
+      if (fixedVideoSource != nullptr &&
+          fixedVideoSource == selectedChannelVideoSource
+         )
+      {
+        SegmentAndDisplayLine(frame);
+      }
+    }
+  }
+
+  if (this->MovingChannel != NULL && this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO)
+  {
+    PlusTrackedFrame frame;
+    if (this->MovingChannel->GetTrackedFrame(frame) == PLUS_SUCCESS)
+    {
+      vtkPlusDataSource* movingVideoSource;
+      this->MovingChannel->GetVideoSource(movingVideoSource);
+      if (movingVideoSource != nullptr &&
+          movingVideoSource == selectedChannelVideoSource
+         )
+      {
+        SegmentAndDisplayLine(frame);
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void TemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
+{
+  // Try segmenting the line from the image
+  auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
+  lineSegmenter->SetTrackedFrame(frame);
+  lineSegmenter->SetSaveIntermediateImages(false);
+  if (lineSegmenter->Update() == PLUS_SUCCESS)
+  {
+    std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
+    lineSegmenter->GetDetectedLineParameters(parameters);
+    if (parameters[0].lineDetected)
+    {
+      auto dimensions = frame.GetImageData()->GetImage()->GetDimensions();
+      double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100000 * parameters[0].lineDirectionVector_Image[0],
+                       parameters[0].lineOriginPoint_Image[1] - 100000 * parameters[0].lineDirectionVector_Image[1],
+                       0.0
+                     };
+      double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
+                       parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
+                       0.0
+                     };
+      double r1[3], r2[3];
+      double t1, t2;
+      int plane1, plane2;
+      double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
+      vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
+
+      m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);
+      m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(true);
+    }
+    else
+    {
+      m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -519,7 +596,7 @@ void TemporalCalibrationToolbox::StartCalibration()
 
   // Set validation transform names for tracked frame list
   // Set the local time offset to 0 before synchronization
-  QString curFixedType = ui.comboBox_FixedSourceValue->itemData(ui.comboBox_FixedSourceValue->currentIndex()).toString();
+  QString curFixedType = ui.comboBox_FixedSourceValue->currentData().toString();
   this->FixedType = vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO;
   this->TemporalCalibrationFixedData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP);
   if (QString::compare(curFixedType, QString("Video")) != 0)
@@ -758,49 +835,6 @@ void TemporalCalibrationToolbox::DoCalibration()
       LOG_ERROR("Failed to add data to fixed frame list.");
     }
     this->TemporalCalibrationFixedData->AddTrackedFrameList(frameList, vtkPlusTrackedFrameList::ADD_INVALID_FRAME);
-
-    vtkPlusDataSource* fixedVideoSource;
-    this->FixedChannel->GetVideoSource(fixedVideoSource);
-    if (this->FixedType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO  &&
-        fixedVideoSource != nullptr &&
-        fixedVideoSource == selectedChannelVideoSource
-       )
-    {
-      // Try segmenting the line from the last image
-      frameList->RemoveTrackedFrameRange(0, frameList->GetNumberOfTrackedFrames() - 2);
-      auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
-      lineSegmenter->SetTrackedFrameList(frameList);
-      lineSegmenter->SetSaveIntermediateImages(false);
-      if (lineSegmenter->Update() == PLUS_SUCCESS)
-      {
-        std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
-        lineSegmenter->GetDetectedLineParameters(parameters);
-        if (parameters[0].lineDetected)
-        {
-          auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
-          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] - 100000 * parameters[0].lineDirectionVector_Image[1],
-                           0.0
-                         };
-          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
-                           0.0
-                         };
-          double r1[3], r2[3];
-          double t1, t2;
-          int plane1, plane2;
-          double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
-          vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
-
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(true);
-        }
-        else
-        {
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
-        }
-      }
-    }
   }
   else
   {
@@ -816,49 +850,6 @@ void TemporalCalibrationToolbox::DoCalibration()
       LOG_ERROR("Failed to add data to moving frame list.");
     }
     this->TemporalCalibrationMovingData->AddTrackedFrameList(frameList, vtkPlusTrackedFrameList::ADD_INVALID_FRAME);
-
-    vtkPlusDataSource* movingVideoSource;
-    this->MovingChannel->GetVideoSource(movingVideoSource);
-    if (this->MovingType == vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO  &&
-        movingVideoSource != nullptr &&
-        movingVideoSource == selectedChannelVideoSource
-       )
-    {
-      // Try segmenting the line from the last image
-      frameList->RemoveTrackedFrameRange(0, frameList->GetNumberOfTrackedFrames() - 2);
-      auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
-      lineSegmenter->SetTrackedFrameList(frameList);
-      lineSegmenter->SetSaveIntermediateImages(false);
-      if (lineSegmenter->Update() == PLUS_SUCCESS)
-      {
-        std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
-        lineSegmenter->GetDetectedLineParameters(parameters);
-        if (parameters[0].lineDetected)
-        {
-          auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
-          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] - 100000 * parameters[0].lineDirectionVector_Image[1],
-                           0.0
-                         };
-          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
-                           0.0
-                         };
-          double r1[3], r2[3];
-          double t1, t2;
-          int plane1, plane2;
-          double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
-          vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
-
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(true);
-        }
-        else
-        {
-          m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
-        }
-      }
-    }
   }
   else
   {
@@ -1199,12 +1190,16 @@ void TemporalCalibrationToolbox::MovingSignalChanged(int newIndex)
 void TemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
+  this->FixedType = this->ui.comboBox_FixedSourceValue->currentData().toString().compare("Video") == 0
+    ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
 }
 
 //-----------------------------------------------------------------------------
 void TemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
+  this->MovingType = this->ui.comboBox_MovingSourceValue->currentData().toString().compare("Video") == 0
+    ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
 }
 
 //-----------------------------------------------------------------------------

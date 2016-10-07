@@ -594,7 +594,7 @@ PlusStatus vtkPlusTemporalCalibrationAlgo::ComputePositionSignalValues( SignalTy
   case FRAME_TYPE_VIDEO:
   {
     vtkSmartPointer<vtkPlusLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
-    lineSegmenter->SetTrackedFrameList( signal.frameList );
+    lineSegmenter->SetTrackedFrameList( *signal.frameList );
     lineSegmenter->SetClipRectangle( this->LineSegmentationClipRectangleOrigin, this->LineSegmentationClipRectangleSize );
     lineSegmenter->SetSignalTimeRange( signal.signalTimeRangeMin, signal.signalTimeRangeMax );
     lineSegmenter->SetSaveIntermediateImages( this->SaveIntermediateImages );

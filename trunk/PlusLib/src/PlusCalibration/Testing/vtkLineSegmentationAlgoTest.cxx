@@ -271,7 +271,7 @@ int main( int argc, char** argv )
     lineSegmenter->SetClipRectangle( origin, size );
   }
 
-  lineSegmenter->SetTrackedFrameList( trackedFrameList );
+  lineSegmenter->SetTrackedFrameList( *trackedFrameList );
   lineSegmenter->SetSaveIntermediateImages( saveImages );
   lineSegmenter->SetIntermediateFilesOutputDirectory( vtkPlusConfig::GetInstance()->GetOutputDirectory() );
 

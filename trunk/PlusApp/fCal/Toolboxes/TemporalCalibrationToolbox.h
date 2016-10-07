@@ -73,6 +73,7 @@ protected:
   static std::string GetTimeAsString(double timeSec);
 
   void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec) {FreeHandStartupDelaySec = freeHandStartupDelaySec;};
+  void SegmentAndDisplayLine(PlusTrackedFrame& frame);
 
 protected slots:
   /*! Start the delay startup timer*/

@@ -4,34 +4,40 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
-#include "PlaneParametersEstimator.h"
-#include "RANSAC.h"
 #include "PlusTrackedFrame.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkImageDuplicator.h"
-#include "itkImageFileWriter.h"
-#include "itkImageRegionIterator.h"
-#include "itkLineIterator.h"
-#include "itkOtsuThresholdImageFilter.h"
-#include "itkRGBPixel.h"
-#include "itkResampleImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "vtkChartXY.h"
-#include "vtkContextScene.h"
-#include "vtkContextView.h"
-#include "vtkDoubleArray.h"
-#include "vtkIntArray.h"
-#include "vtkPlusLineSegmentationAlgo.h"
-#include "vtkObjectFactory.h"
-#include "vtkPen.h"
-#include "vtkPlot.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkTable.h"
 #include "vtkPlusTrackedFrameList.h"
+
+// Utility includes
+#include <PlaneParametersEstimator.h>
+#include <RANSAC.h>
+
+// ITK includes
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkImageDuplicator.h>
+#include <itkImageFileWriter.h>
+#include <itkImageRegionIterator.h>
+#include <itkLineIterator.h>
+#include <itkOtsuThresholdImageFilter.h>
+#include <itkRGBPixel.h>
+#include <itkResampleImageFilter.h>
+#include <itkRescaleIntensityImageFilter.h>
+
+// VTK includes
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+#include <vtkObjectFactory.h>
+#include <vtkPen.h>
+#include <vtkPlot.h>
+#include <vtkPlusLineSegmentationAlgo.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
+#include <vtkTable.h>
 
 static const double INTESNITY_THRESHOLD_PERCENTAGE_OF_PEAK = 0.5; // threshold (as the percentage of the peak intensity along a scanline) for COG
 static const double MAX_CONSECUTIVE_INVALID_VIDEO_FRAMES = 10; // the maximum number of consecutive invalid frames before warning message issued
@@ -59,7 +65,7 @@ void vtkPlusLineSegmentationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 vtkPlusLineSegmentationAlgo::vtkPlusLineSegmentationAlgo()
-  : m_TrackedFrameList(NULL)
+  : m_TrackedFrameList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
   , m_SaveIntermediateImages(false)
   , IntermediateFilesOutputDirectory("")
   , PlotIntensityProfile(false)
@@ -78,9 +84,17 @@ vtkPlusLineSegmentationAlgo::~vtkPlusLineSegmentationAlgo()
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusLineSegmentationAlgo::SetTrackedFrameList(vtkPlusTrackedFrameList* aTrackedFrameList)
+void vtkPlusLineSegmentationAlgo::SetTrackedFrameList(vtkPlusTrackedFrameList& aTrackedFrameList)
 {
-  m_TrackedFrameList = aTrackedFrameList;
+  m_TrackedFrameList->Clear();
+  m_TrackedFrameList->AddTrackedFrameList(&aTrackedFrameList);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusLineSegmentationAlgo::SetTrackedFrame(PlusTrackedFrame& aTrackedFrame)
+{
+  m_TrackedFrameList->Clear();
+  m_TrackedFrameList->AddTrackedFrame(&aTrackedFrame);
 }
 
 //-----------------------------------------------------------------------------
@@ -105,13 +119,6 @@ void vtkPlusLineSegmentationAlgo::SetIntermediateFilesOutputDirectory(const std:
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusLineSegmentationAlgo::VerifyVideoInput()
 {
-  // Check if video frames have been assigned
-  if (m_TrackedFrameList == NULL)
-  {
-    LOG_ERROR("vtkPlusLineSegmentationAlgo video input data verification failed: no video data is set");
-    return PLUS_FAIL;
-  }
-
   // Make sure video frame list is not empty
   if (m_TrackedFrameList->GetNumberOfTrackedFrames() == 0)
   {
@@ -127,7 +134,6 @@ PlusStatus vtkPlusLineSegmentationAlgo::VerifyVideoInput()
   }
 
   // Check if there are enough valid consecutive video frames
-
   int totalNumberOfInvalidVideoFrames = 0;
   int greatestNumberOfConsecutiveInvalidVideoFrames = 0;
   int currentNumberOfConsecutiveInvalidVideoFrames = 0;
