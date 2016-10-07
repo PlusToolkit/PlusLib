@@ -778,12 +778,12 @@ void TemporalCalibrationToolbox::DoCalibration()
         if (parameters[0].lineDetected)
         {
           auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
-          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100'000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] - 100'000 * parameters[0].lineDirectionVector_Image[1],
+          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] - 100000 * parameters[0].lineDirectionVector_Image[1],
                            0.0
                          };
-          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100'000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] + 100'000 * parameters[0].lineDirectionVector_Image[1] ,
+          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
                            0.0
                          };
           double r1[3], r2[3];
@@ -836,12 +836,12 @@ void TemporalCalibrationToolbox::DoCalibration()
         if (parameters[0].lineDetected)
         {
           auto dimensions = frameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
-          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100'000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] - 100'000 * parameters[0].lineDirectionVector_Image[1],
+          double p1[3] = { parameters[0].lineOriginPoint_Image[0] - 100000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] - 100000 * parameters[0].lineDirectionVector_Image[1],
                            0.0
                          };
-          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100'000 * parameters[0].lineDirectionVector_Image[0],
-                           parameters[0].lineOriginPoint_Image[1] + 100'000 * parameters[0].lineDirectionVector_Image[1] ,
+          double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
+                           parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
                            0.0
                          };
           double r1[3], r2[3];
