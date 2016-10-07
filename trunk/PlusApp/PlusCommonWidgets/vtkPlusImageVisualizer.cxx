@@ -56,11 +56,14 @@ vtkPlusImageVisualizer::vtkPlusImageVisualizer()
   , TopLineSource(vtkSmartPointer<vtkLineSource>::New())
   , RightLineSource(vtkSmartPointer<vtkLineSource>::New())
   , BottomLineSource(vtkSmartPointer<vtkLineSource>::New())
-  , RegionOfInterest{ -1, -1, -1, -1 }
   , SelectedChannel(NULL)
   , LineSegmentationLineSource(vtkSmartPointer<vtkLineSource>::New())
   , LineSegmentationActor(vtkSmartPointer<vtkActor>::New())
 {
+  this->RegionOfInterest[0] = -1;
+  this->RegionOfInterest[1] = -1;
+  this->RegionOfInterest[2] = -1;
+  this->RegionOfInterest[3] = -1;
   // Set up canvas renderer
   this->CanvasRenderer->SetBackground(0.1, 0.1, 0.1);
   this->CanvasRenderer->SetBackground2(0.4, 0.4, 0.4);
