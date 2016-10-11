@@ -48,18 +48,22 @@ SET(vcProj_vtkPlusVolumeReconstruction vtkPlusVolumeReconstruction;"${PlusLib_BI
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(VolumeReconstructor Tools/VolumeReconstructor.cxx )
+  SET_TARGET_PROPERTIES(VolumeReconstructor PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(VolumeReconstructor vtkPlusVolumeReconstruction )
   GENERATE_HELP_DOC(VolumeReconstructor)
 
-  ADD_EXECUTABLE( CreateSliceModels Tools/CreateSliceModels.cxx )
+  ADD_EXECUTABLE(CreateSliceModels Tools/CreateSliceModels.cxx )
+  SET_TARGET_PROPERTIES(CreateSliceModels PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES( CreateSliceModels vtkPlusCommon vtkPlusVolumeReconstruction )
   GENERATE_HELP_DOC(CreateSliceModels)
 
-  ADD_EXECUTABLE( CompareVolumes Tools/CompareVolumes.cxx Tools/vtkPlusCompareVolumes.cxx )
+  ADD_EXECUTABLE(CompareVolumes Tools/CompareVolumes.cxx Tools/vtkPlusCompareVolumes.cxx )
+  SET_TARGET_PROPERTIES(CompareVolumes PROPERTIES FOLDER Tools)
   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/Tools)
   TARGET_LINK_LIBRARIES( CompareVolumes vtkPlusCommon )
 
-  ADD_EXECUTABLE( DrawClipRegion Tools/DrawClipRegion.cxx )
+  ADD_EXECUTABLE(DrawClipRegion Tools/DrawClipRegion.cxx )
+  SET_TARGET_PROPERTIES(DrawClipRegion PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES( DrawClipRegion vtkPlusCommon vtkPlusVolumeReconstruction)
   GENERATE_HELP_DOC(DrawClipRegion)
 

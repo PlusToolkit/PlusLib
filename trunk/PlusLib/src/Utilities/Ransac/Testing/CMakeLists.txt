@@ -1,9 +1,18 @@
 ADD_EXECUTABLE(planeEstimationTest PlaneParametersEstimatorTest.cxx)
-TARGET_LINK_LIBRARIES(planeEstimationTest ${LINK_LIBRARIES})
+SET_TARGET_PROPERTIES(planeEstimationTest PROPERTIES FOLDER Tests)
+TARGET_LINK_LIBRARIES(planeEstimationTest PUBLIC 
+  ITKCommon
+  itkvnl
+  itkvnl_algo
+  )
 
 ADD_EXECUTABLE(sphereEstimationTest SphereParametersEstimatorTest.cxx)
-TARGET_LINK_LIBRARIES(sphereEstimationTest ${LINK_LIBRARIES})
-
+SET_TARGET_PROPERTIES(sphereEstimationTest PROPERTIES FOLDER Tests)
+TARGET_LINK_LIBRARIES(sphereEstimationTest PUBLIC 
+  ITKCommon
+  itkvnl
+  itkvnl_algo
+  )
 
 ADD_TEST(PlaneEstimationTest planeEstimationTest)
 ADD_TEST(SphereEstimationTest sphereEstimationTest)

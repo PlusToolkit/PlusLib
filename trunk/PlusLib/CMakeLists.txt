@@ -9,6 +9,13 @@ SET(PLUSLIB_VERSION_MINOR "5")
 SET(PLUSLIB_VERSION_PATCH "0")
 SET(PLUSLIB_VERSION ${PLUSLIB_VERSION_MAJOR}.${PLUSLIB_VERSION_MINOR}.${PLUSLIB_VERSION_PATCH})
 
+# Use solution folders.
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+  SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
+  SET_PROPERTY(GLOBAL PROPERTY AUTOGEN_TARGETS_FOLDER "AutoGen (Qt) Targets")
+ENDIF()
+
 MESSAGE(STATUS "Configuring PLUS toolkit version ${PLUSLIB_VERSION}.")
 
 IF ( MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
@@ -69,6 +76,15 @@ ELSE(PLUS_OFFLINE_BUILD)
 ENDIF(PLUS_OFFLINE_BUILD)
 
 INCLUDE(CTest)
+
+# Clean up the IDE folder name for CTest dashboard targets
+IF(BUILD_TESTING)
+  FOREACH(mode Experimental Nightly Continuous NightlyMemoryCheck)
+    IF(TARGET ${mode})
+      SET_PROPERTY(TARGET ${mode} PROPERTY FOLDER "CTest Targets")
+    ENDIF()
+  ENDFOREACH()
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Set up paths for data and SDKs

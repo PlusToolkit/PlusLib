@@ -77,9 +77,11 @@ SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtk
 # Executables built by PlusServer project
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE( PlusServer Tools/PlusServer.cxx )
+  SET_TARGET_PROPERTIES( PlusServer PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkPlusDataCollection ${VTK_LIBRARIES} )
 
   ADD_EXECUTABLE( PlusServerRemoteControl Tools/PlusServerRemoteControl.cxx )
+  SET_TARGET_PROPERTIES( PlusServerRemoteControl PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusServer )
 ENDIF()
 

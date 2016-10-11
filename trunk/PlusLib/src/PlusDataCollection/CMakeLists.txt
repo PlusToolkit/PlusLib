@@ -1577,12 +1577,21 @@ ENDIF()
 # Tools
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(ViewSequenceFile Tools/ViewSequenceFile.cxx )
+  SET_TARGET_PROPERTIES(ViewSequenceFile PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ViewSequenceFile vtkPlusDataCollection )
   GENERATE_HELP_DOC(ViewSequenceFile)
 
   ADD_EXECUTABLE(PlusVersion Tools/PlusVersion.cxx )
+  SET_TARGET_PROPERTIES(PlusVersion PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(PlusVersion vtkPlusCommon vtkPlusDataCollection)
   GENERATE_HELP_DOC(PlusVersion)
+  
+  # OpenIGTLink 
+  IF( PLUS_USE_OpenIGTLink )
+    ADD_EXECUTABLE(BrainLabTrackerSim Tools/BrainLabTrackerSim.cxx)
+    SET_TARGET_PROPERTIES(BrainLabTrackerSim PROPERTIES FOLDER Tools)
+    TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
+  ENDIF()
   
   INSTALL(TARGETS PlusVersion ViewSequenceFile
     RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
