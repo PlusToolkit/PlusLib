@@ -53,4 +53,4 @@ target_include_directories(vtkPlusMicronTrackerInterface PUBLIC ${vtkPlusMicronT
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusMicronTrackerInterface CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusMicronTrackerInterface vtkPlusMicronTrackerInterface;"${PlusLib_BINARY_DIR}/src/Utilities/MicronTrackerInterface/vtkPlusMicronTrackerInterface.vcproj" CACHE INTERNAL "" FORCE) 
+SET(vcProj_vtkPlusMicronTrackerInterface vtkPlusMicronTrackerInterface;"${PlusLib_BINARY_DIR}/src/Utilities/MicronTrackerInterface/vtkPlusMicronTrackerInterface.vcxproj" CACHE INTERNAL "" FORCE) 
