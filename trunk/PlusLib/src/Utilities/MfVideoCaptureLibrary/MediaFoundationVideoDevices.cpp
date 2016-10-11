@@ -25,11 +25,11 @@ The "videoInput" library has been adapted to fit within a namespace.
 namespace
 {
   //----------------------------------------------------------------------------
-  template <class T> void SafeRelease( T** ppT )
+  template <class T> void SafeRelease(T** ppT)
   {
-    if ( *ppT )
+    if (*ppT)
     {
-      ( *ppT )->Release();
+      (*ppT)->Release();
       *ppT = NULL;
     }
   }
@@ -38,7 +38,7 @@ namespace
 namespace MfVideoCapture
 {
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevices::MediaFoundationVideoDevices( void ): count( 0 )
+  MediaFoundationVideoDevices::MediaFoundationVideoDevices(void): count(0)
   {
   }
 
@@ -47,29 +47,29 @@ namespace MfVideoCapture
   {
     std::vector<MediaFoundationVideoDevice*>::iterator i = Devices.begin();
 
-    for( ; i != Devices.end(); ++i )
+    for (; i != Devices.end(); ++i)
     {
-      delete ( *i );
+      delete(*i);
     }
 
     Devices.clear();
   }
 
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevices::~MediaFoundationVideoDevices( void )
+  MediaFoundationVideoDevices::~MediaFoundationVideoDevices(void)
   {
     ClearDevices();
   }
 
   //----------------------------------------------------------------------------
-  MediaFoundationVideoDevice* MediaFoundationVideoDevices::GetDevice( DeviceList::size_type i )
+  MediaFoundationVideoDevice* MediaFoundationVideoDevices::GetDevice(DeviceList::size_type i)
   {
-    if( i >= Devices.size() )
+    if (i >= Devices.size())
     {
       return NULL;
     }
 
-    if( i < 0 )
+    if (i < 0)
     {
       return NULL;
     }
@@ -78,7 +78,7 @@ namespace MfVideoCapture
   }
 
   //----------------------------------------------------------------------------
-  long MediaFoundationVideoDevices::InitDevices( IMFAttributes* pAttributes )
+  long MediaFoundationVideoDevices::InitDevices(IMFAttributes* pAttributes)
   {
     HRESULT hr = S_OK;
 
@@ -86,24 +86,24 @@ namespace MfVideoCapture
 
     ClearDevices();
 
-    hr = MFEnumDeviceSources( pAttributes, &ppDevices, &count );
+    hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
 
-    if ( SUCCEEDED( hr ) )
+    if (SUCCEEDED(hr))
     {
-      if( count > 0 )
+      if (count > 0)
       {
-        for( UINT32 i = 0; i < count; i++ )
+        for (UINT32 i = 0; i < count; i++)
         {
           MediaFoundationVideoDevice* vd = new MediaFoundationVideoDevice;
-          if ( SUCCEEDED( vd->ReadDeviceInfo( ppDevices[i], i ) ) )
+          if (SUCCEEDED(vd->ReadDeviceInfo(ppDevices[i], i)))
           {
-            Devices.push_back( vd );
+            Devices.push_back(vd);
           }
 
-          SafeRelease( &ppDevices[i] );
+          SafeRelease(&ppDevices[i]);
         }
 
-        SafeRelease( ppDevices );
+        SafeRelease(ppDevices);
       }
       else
       {
@@ -112,7 +112,7 @@ namespace MfVideoCapture
     }
     else
     {
-      LOG_ERROR( "VIDEODEVICES: The instances of the videoDevice class cannot be created." );
+      LOG_ERROR("VIDEODEVICES: The instances of the videoDevice class cannot be created.");
     }
 
     return hr;
