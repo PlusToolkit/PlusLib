@@ -4,7 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "ConfigurationToolbox.h"
+#include "QConfigurationToolbox.h"
 #include "PlusDeviceSetSelectorWidget.h"
 #include "PlusFidPatternRecognition.h"
 #include "PlusToolStateDisplayWidget.h"
@@ -25,8 +25,8 @@ See License.txt for details.
 const char PHANTOM_WIRES_MODEL_ID[] = "PhantomWiresModel";
 
 //-----------------------------------------------------------------------------
-ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QConfigurationToolbox::QConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_ToolStatePopOutWindow(NULL)
   , m_IsToolDisplayDetached(false)
@@ -80,12 +80,12 @@ ConfigurationToolbox::ConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt
 }
 
 //-----------------------------------------------------------------------------
-ConfigurationToolbox::~ConfigurationToolbox()
+QConfigurationToolbox::~QConfigurationToolbox()
 {
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::OnActivated()
+void QConfigurationToolbox::OnActivated()
 {
   LOG_TRACE("ConfigurationToolbox::OnActivated");
 
@@ -93,7 +93,7 @@ void ConfigurationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::RefreshContent()
+void QConfigurationToolbox::RefreshContent()
 {
   //LOG_TRACE("ConfigurationToolbox::RefreshToolboxContent");
 
@@ -104,7 +104,7 @@ void ConfigurationToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::RefreshToolDisplayIfDetached()
+void QConfigurationToolbox::RefreshToolDisplayIfDetached()
 {
   //LOG_TRACE("ConfigurationToolbox::RefreshToolDisplayIfDetached");
 
@@ -115,7 +115,7 @@ void ConfigurationToolbox::RefreshToolDisplayIfDetached()
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::SetDisplayAccordingToState()
+void QConfigurationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("ConfigurationToolbox::SetDisplayAccordingToState");
 
@@ -127,7 +127,7 @@ void ConfigurationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
+void QConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
   LOG_TRACE("ConfigurationToolbox::ConnectToDevicesByConfigFile");
 
@@ -264,7 +264,7 @@ void ConfigurationToolbox::ConnectToDevicesByConfigFile(std::string aConfigFile)
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::PopOutToggled(bool aOn)
+void QConfigurationToolbox::PopOutToggled(bool aOn)
 {
   LOG_TRACE("ConfigurationToolbox::PopOutToggled");
 
@@ -324,7 +324,7 @@ void ConfigurationToolbox::PopOutToggled(bool aOn)
 
 //-----------------------------------------------------------------------------
 
-bool ConfigurationToolbox::eventFilter(QObject* obj, QEvent* ev)
+bool QConfigurationToolbox::eventFilter(QObject* obj, QEvent* ev)
 {
   if (obj == m_ToolStatePopOutWindow)
   {
@@ -343,7 +343,7 @@ bool ConfigurationToolbox::eventFilter(QObject* obj, QEvent* ev)
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::LogLevelChanged(int aLevel)
+void QConfigurationToolbox::LogLevelChanged(int aLevel)
 {
   LOG_TRACE("ConfigurationToolbox::LogLevelChanged");
 
@@ -355,7 +355,7 @@ void ConfigurationToolbox::LogLevelChanged(int aLevel)
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::SelectImageDirectory()
+void QConfigurationToolbox::SelectImageDirectory()
 {
   LOG_TRACE("ConfigurationToolbox::SelectImageDirectory");
 
@@ -376,7 +376,7 @@ void ConfigurationToolbox::SelectImageDirectory()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus QConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("ConfigurationToolbox::ReadConfiguration");
 
@@ -504,7 +504,7 @@ PlusStatus ConfigurationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
+PlusStatus QConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 {
   LOG_TRACE("ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization");
   m_ParentMainWindow->EnableShowPhantomWiresModelToggle(false);
@@ -580,7 +580,7 @@ PlusStatus ConfigurationToolbox::ReadAndAddPhantomWiresToVisualization()
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::ResetTracker()
+void QConfigurationToolbox::ResetTracker()
 {
   if (m_DeviceSetSelectorWidget->GetConnectionSuccessful())
   {
@@ -599,7 +599,7 @@ void ConfigurationToolbox::ResetTracker()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement)
+PlusStatus QConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement)
 {
   const char* selectedChannelId(NULL);
   if (fCalElement != NULL)
@@ -664,7 +664,7 @@ PlusStatus ConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXML
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::ChannelChanged(vtkPlusChannel& aChannel)
+void QConfigurationToolbox::ChannelChanged(vtkPlusChannel& aChannel)
 {
   if (m_ToolStateDisplayWidget->InitializeTools(&aChannel, true))
   {
@@ -676,7 +676,7 @@ void ConfigurationToolbox::ChannelChanged(vtkPlusChannel& aChannel)
 }
 
 //-----------------------------------------------------------------------------
-void ConfigurationToolbox::OnDeactivated()
+void QConfigurationToolbox::OnDeactivated()
 {
 
 }

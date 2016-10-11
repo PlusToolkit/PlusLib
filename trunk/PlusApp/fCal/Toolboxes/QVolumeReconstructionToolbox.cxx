@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "CapturingToolbox.h"
-#include "VolumeReconstructionToolbox.h"
+#include "QCapturingToolbox.h"
+#include "QVolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusVisualizationController.h"
 
@@ -25,8 +25,8 @@ See License.txt for details.
 #include <QFileDialog>
 
 //-----------------------------------------------------------------------------
-VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QVolumeReconstructionToolbox::QVolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_VolumeReconstructor(NULL)
   , m_ReconstructedVolume(NULL)
@@ -51,7 +51,7 @@ VolumeReconstructionToolbox::VolumeReconstructionToolbox(fCalMainWindow* aParent
 }
 
 //-----------------------------------------------------------------------------
-VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
+QVolumeReconstructionToolbox::~QVolumeReconstructionToolbox()
 {
   if (m_VolumeReconstructor != NULL)
   {
@@ -67,7 +67,7 @@ VolumeReconstructionToolbox::~VolumeReconstructionToolbox()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::OnActivated()
+void QVolumeReconstructionToolbox::OnActivated()
 {
   LOG_TRACE("VolumeReconstructionToolbox::OnActivated");
 
@@ -99,7 +99,7 @@ void VolumeReconstructionToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::RefreshContent()
+void QVolumeReconstructionToolbox::RefreshContent()
 {
   //LOG_TRACE("VolumeReconstructionToolbox::RefreshContent");
 
@@ -113,7 +113,7 @@ void VolumeReconstructionToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::SetDisplayAccordingToState()
+void QVolumeReconstructionToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("VolumeReconstructionToolbox::SetDisplayAccordingToState");
 
@@ -254,7 +254,7 @@ void VolumeReconstructionToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
+void QVolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 {
   LOG_TRACE("VolumeReconstructionToolbox::OpenVolumeReconstructionConfig");
 
@@ -292,7 +292,7 @@ void VolumeReconstructionToolbox::OpenVolumeReconstructionConfig()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::OpenInputImage()
+void QVolumeReconstructionToolbox::OpenInputImage()
 {
   LOG_TRACE("VolumeReconstructionToolbox::OpenInputImage");
 
@@ -317,7 +317,7 @@ void VolumeReconstructionToolbox::OpenInputImage()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::Reconstruct()
+void QVolumeReconstructionToolbox::Reconstruct()
 {
   LOG_TRACE("VolumeReconstructionToolbox::Reconstruct");
 
@@ -335,7 +335,7 @@ void VolumeReconstructionToolbox::Reconstruct()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::Save()
+void QVolumeReconstructionToolbox::Save()
 {
   LOG_TRACE("VolumeReconstructionToolbox::Save");
 
@@ -358,7 +358,7 @@ void VolumeReconstructionToolbox::Save()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
+PlusStatus QVolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 {
   LOG_TRACE("VolumeReconstructionToolbox::ReconstructVolumeFromInputImage");
 
@@ -373,7 +373,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 
   if (ui.comboBox_InputImage->currentText().left(1) == "<" && ui.comboBox_InputImage->currentText().right(1) == ">")       // If unsaved image is selected
   {
-    CapturingToolbox* capturingToolbox = dynamic_cast<CapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
+    QCapturingToolbox* capturingToolbox = dynamic_cast<QCapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
     if ((capturingToolbox == NULL) || ((trackedFrameList = capturingToolbox->GetRecordedFrames()) == NULL))
     {
       LOG_ERROR("Unable to get recorded frame list from Capturing toolbox!");
@@ -462,7 +462,7 @@ PlusStatus VolumeReconstructionToolbox::ReconstructVolumeFromInputImage()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::DisplayReconstructedVolume()
+void QVolumeReconstructionToolbox::DisplayReconstructedVolume()
 {
   LOG_TRACE("VolumeReconstructionToolbox::DisplayReconstructedVolume");
 
@@ -481,7 +481,7 @@ void VolumeReconstructionToolbox::DisplayReconstructedVolume()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
+PlusStatus QVolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 {
   LOG_TRACE("VolumeReconstructionToolbox::SaveVolumeToFile(" << aOutput.toLatin1().constData() << ")");
 
@@ -505,7 +505,7 @@ PlusStatus VolumeReconstructionToolbox::SaveVolumeToFile(QString aOutput)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
+void QVolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
 {
   LOG_TRACE("VolumeReconstructionToolbox::AddImageFileName(" << aImageFileName.toLatin1().constData() << ")");
 
@@ -513,7 +513,7 @@ void VolumeReconstructionToolbox::AddImageFileName(QString aImageFileName)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::PopulateImageComboBox()
+void QVolumeReconstructionToolbox::PopulateImageComboBox()
 {
   LOG_TRACE("VolumeReconstructionToolbox::PopulateImageComboBox");
 
@@ -528,7 +528,7 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
 
   // Get recorded tracked frame list from Capturing toolbox
   vtkPlusTrackedFrameList* recordedFrames = NULL;
-  CapturingToolbox* capturingToolbox = dynamic_cast<CapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
+  QCapturingToolbox* capturingToolbox = dynamic_cast<QCapturingToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_Capturing));
   if ((capturingToolbox == NULL) || ((recordedFrames = capturingToolbox->GetRecordedFrames()) == NULL))
   {
     LOG_ERROR("Capturing toolbox not found!");
@@ -565,7 +565,7 @@ void VolumeReconstructionToolbox::PopulateImageComboBox()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::InputImageChanged(int aItemIndex)
+void QVolumeReconstructionToolbox::InputImageChanged(int aItemIndex)
 {
   LOG_TRACE("VolumeReconstructionToolbox::InputImageChanged(" << aItemIndex << ")");
 
@@ -573,7 +573,7 @@ void VolumeReconstructionToolbox::InputImageChanged(int aItemIndex)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aValue)
+void QVolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aValue)
 {
   LOG_TRACE("VolumeReconstructionToolbox::UpdateContourThresholdLabel(" << aValue << ")");
 
@@ -585,9 +585,9 @@ void VolumeReconstructionToolbox::RecomputeContourFromReconstructedVolume(int aV
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::Reset()
+void QVolumeReconstructionToolbox::Reset()
 {
-  AbstractToolbox::Reset();
+  QAbstractToolbox::Reset();
 
   m_VolumeReconstructionComplete = false;
 
@@ -606,7 +606,7 @@ void VolumeReconstructionToolbox::Reset()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeReconstructionToolbox::OnDeactivated()
+void QVolumeReconstructionToolbox::OnDeactivated()
 {
 
 }

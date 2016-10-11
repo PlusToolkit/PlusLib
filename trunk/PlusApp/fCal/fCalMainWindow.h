@@ -11,7 +11,7 @@ See License.txt for details.
 #include "ui_fCalMainWindow.h"
 #include <QMainWindow>
 
-class AbstractToolbox;
+class QAbstractToolbox;
 class QCustomAction;
 class QLabel;
 class QProgressBar;
@@ -68,10 +68,7 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkPlusVisualizationController* GetVisualizationController()
-  {
-    return m_VisualizationController;
-  };
+  vtkPlusVisualizationController* GetVisualizationController();;
 
   /*!
   * Set status bar text
@@ -118,123 +115,60 @@ public:
   * \param aType Toolbox type identifier
   * \return Toolbox object
   */
-  AbstractToolbox* GetToolbox(ToolboxType aType)
-  {
-    return m_ToolboxList[aType];
-  };
+  QAbstractToolbox* GetToolbox(ToolboxType aType);;
 
   /*! Get image coordinate frame name */
-  std::string GetImageCoordinateFrame()
-  {
-    return m_ImageCoordinateFrame;
-  };
+  std::string GetImageCoordinateFrame();;
   /*! Set image coordinate frame name */
-  void SetImageCoordinateFrame(const char* aImageCoordinateFrame)
-  {
-    m_ImageCoordinateFrame = aImageCoordinateFrame;
-  };
+  void SetImageCoordinateFrame(const char* aImageCoordinateFrame);;
 
   /*! Get probe coordinate frame name */
-  std::string GetProbeCoordinateFrame()
-  {
-    return m_ProbeCoordinateFrame;
-  };
+  std::string GetProbeCoordinateFrame();;
   /*! Set probe coordinate frame name */
-  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame)
-  {
-    m_ProbeCoordinateFrame = aProbeCoordinateFrame;
-  };
+  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame);;
 
   /*! Get reference coordinate frame name */
-  std::string GetReferenceCoordinateFrame()
-  {
-    return m_ReferenceCoordinateFrame;
-  };
+  std::string GetReferenceCoordinateFrame();;
   /*! Set reference coordinate frame name */
-  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame)
-  {
-    m_ReferenceCoordinateFrame = aReferenceCoordinateFrame;
-  };
+  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame);;
 
   /*! Get transducer origin coordinate frame name */
-  std::string GetTransducerOriginCoordinateFrame()
-  {
-    return m_TransducerOriginCoordinateFrame;
-  };
+  std::string GetTransducerOriginCoordinateFrame();;
   /*! Set transducer origin coordinate frame name */
-  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame)
-  {
-    m_TransducerOriginCoordinateFrame = aTransducerOriginCoordinateFrame;
-  };
+  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame);;
 
   /*! Get transducer origin pixel coordinate frame name */
-  std::string GetTransducerOriginPixelCoordinateFrame()
-  {
-    return m_TransducerOriginPixelCoordinateFrame;
-  };
+  std::string GetTransducerOriginPixelCoordinateFrame();;
   /*! Set transducer origin pixel coordinate frame name */
-  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame)
-  {
-    m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame;
-  };
+  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame);;
 
   /*! Get phantom model id */
-  const char* GetPhantomModelId()
-  {
-    return m_PhantomModelId.c_str();
-  };
+  const char* GetPhantomModelId();;
   /*! Set phantom model id */
-  void SetPhantomModelId(const char* aObjectId)
-  {
-    m_PhantomModelId = aObjectId ? aObjectId : "";
-  };
+  void SetPhantomModelId(const char* aObjectId);;
   /*! Enable/disable the show phantom model action */
   void EnableShowPhantomModelToggle(bool aEnable);
   /*! Get phantom wires model id */
-  const char* GetPhantomWiresModelId()
-  {
-    return m_PhantomWiresModelId.c_str();
-  };
+  const char* GetPhantomWiresModelId();;
   /*! Set phantom wires model id */
-  void SetPhantomWiresModelId(const char* aObjectId)
-  {
-    m_PhantomWiresModelId = aObjectId ? aObjectId : "";
-  };
+  void SetPhantomWiresModelId(const char* aObjectId);;
   /*! Enable/disable the show phantom wires action */
   void EnableShowPhantomWiresModelToggle(bool aEnable);
 
   /*! Get stylus model id */
-  const char* GetStylusModelId()
-  {
-    return m_StylusModelId.c_str();
-  };
+  const char* GetStylusModelId();;
   /*! Set stylus model id */
-  void SetStylusModelId(const char* aObjectId)
-  {
-    m_StylusModelId = aObjectId;
-  };
+  void SetStylusModelId(const char* aObjectId);;
 
   /*! Get probe object id */
-  const char* GetTransducerModelId()
-  {
-    return m_TransducerModelId.c_str();
-  };
+  const char* GetTransducerModelId();;
   /*! Set probe object id */
-  void SetTransducerModelId(const char* aObjectId)
-  {
-    m_TransducerModelId = aObjectId;
-  };
+  void SetTransducerModelId(const char* aObjectId);;
 
   /*! Get image object id */
-  const char* GetImageObjectId()
-  {
-    return m_ImageObjectId.c_str();
-  };
+  const char* GetImageObjectId();;
   /*! Set image object id */
-  void SetImageObjectId(const char* aObjectId)
-  {
-    m_ImageObjectId = aObjectId;
-  };
+  void SetImageObjectId(const char* aObjectId);;
 
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();
@@ -247,10 +181,7 @@ public:
 
   /*! Accessors for selected channel functionality */
   void SetSelectedChannel(vtkPlusChannel* aChannel);
-  vtkPlusChannel* GetSelectedChannel()
-  {
-    return m_SelectedChannel;
-  }
+  vtkPlusChannel* GetSelectedChannel();
 
   /* Control the behaviour of the status icon */
   void SetStatusIconMaxMessageCount(int count);
@@ -349,88 +280,88 @@ protected slots:
 
 protected:
   /*! Object visualizer */
-  vtkPlusVisualizationController*  m_VisualizationController;
+  vtkPlusVisualizationController*     m_VisualizationController;
 
   /*! Label on the left of the statusbar */
-  QLabel*             m_StatusBarLabel;
+  QLabel*                             m_StatusBarLabel;
 
   /*! Progress bar on the right of the statusbar */
-  QProgressBar*       m_StatusBarProgress;
+  QProgressBar*                       m_StatusBarProgress;
 
   /*! Index of locked (current) tab if tabbing is disabled */
-  int                 m_LockedTabIndex;
+  int                                 m_LockedTabIndex;
 
   /*! Active toolbox identifier */
-  ToolboxType         m_ActiveToolbox;
+  ToolboxType                         m_ActiveToolbox;
 
   /*! Timer that refreshes the UI */
-  QTimer*             m_UiRefreshTimer;
+  QTimer*                             m_UiRefreshTimer;
 
   /*! Status icon instance */
-  PlusStatusIcon*         m_StatusIcon;
+  PlusStatusIcon*                     m_StatusIcon;
 
   /*! List of toolbox objects (the indices are the type identifiers) */
-  std::vector<AbstractToolbox*> m_ToolboxList;
+  std::vector<QAbstractToolbox*>       m_ToolboxList;
 
   /*! Image coordinate frame name for Volume reconstruction */
-  std::string m_ImageCoordinateFrame;
+  std::string                         m_ImageCoordinateFrame;
 
   /*! Probe coordinate frame name for Capturing */
-  std::string m_ProbeCoordinateFrame;
+  std::string                         m_ProbeCoordinateFrame;
 
   /*! Reference coordinate frame name for Capturing */
-  std::string m_ReferenceCoordinateFrame;
+  std::string                         m_ReferenceCoordinateFrame;
 
   /*! Transducer origin (mm) coordinate frame name for Rendering */
-  std::string m_TransducerOriginCoordinateFrame;
+  std::string                         m_TransducerOriginCoordinateFrame;
 
   /*! Transducer origin (pixel) coordinate frame name for Rendering */
-  std::string m_TransducerOriginPixelCoordinateFrame;
+  std::string                         m_TransducerOriginPixelCoordinateFrame;
 
   /*! phantom frame object ID for Rendering */
-  std::string m_PhantomModelId;
+  std::string                         m_PhantomModelId;
 
   /*! phantom wires object ID for Rendering */
-  std::string m_PhantomWiresModelId;
+  std::string                         m_PhantomWiresModelId;
 
   /*! stylus object ID for Rendering */
-  std::string m_StylusModelId;
+  std::string                         m_StylusModelId;
 
   /*! transducer object ID for Rendering */
-  std::string m_TransducerModelId;
+  std::string                         m_TransducerModelId;
 
   /*! image object ID for Rendering */
-  std::string m_ImageObjectId;
+  std::string                         m_ImageObjectId;
 
   /*! Turn on/off showing input and result points in 3D canvas when show devices is on */
-  bool m_ShowPoints;
+  bool                                m_ShowPoints;
 
   /*! Force display mode from toolbox default to show all devices */
-  bool m_ForceShowAllDevicesIn3D;
+  bool                                m_ForceShowAllDevicesIn3D;
 
   /*! Keep a reference to this action because we'll need to reference its state */
-  QCustomAction* m_ShowOrientationMarkerAction;
+  QCustomAction*                      m_ShowOrientationMarkerAction;
 
   /*! Keep a reference to this action because we'll need to reference its state */
-  QCustomAction* m_ShowROIAction;
+  QCustomAction*                      m_ShowROIAction;
 
   /*! Reference to all actions that will show up in ROI list */
-  std::vector<QCustomAction*> m_ImageManipulationActionList;
+  std::vector<QCustomAction*>         m_ImageManipulationActionList;
 
   /*! Reference to the switch mode button */
-  QCustomAction* m_Show3DObjectsAction;
+  QCustomAction*                      m_Show3DObjectsAction;
 
   /*! Reference to the show phantom action */
-  QCustomAction* m_ShowPhantomModelAction;
+  QCustomAction*                      m_ShowPhantomModelAction;
 
   /*! Reference to the show phantom wires action */
-  QCustomAction* m_ShowPhantomWiresModelAction;
+  QCustomAction*                      m_ShowPhantomWiresModelAction;
 
   /*! Reference to all actions that will show up in ROI list */
-  std::vector<QCustomAction*> m_3DActionList;
+  std::vector<QCustomAction*>         m_3DActionList;
 
   /*! Selected channel */
-  vtkPlusChannel* m_SelectedChannel;
+  vtkPlusChannel*                     m_SelectedChannel;
 
 private:
   Ui::fCalMainWindow ui;

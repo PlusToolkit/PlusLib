@@ -7,9 +7,9 @@ See License.txt for details.
 #ifndef RECORDPHANTOMPOINTSTOOLBOX_H
 #define RECORDPHANTOMPOINTSTOOLBOX_H
 
-#include "ui_PhantomRegistrationToolbox.h"
+#include "ui_QPhantomRegistrationToolbox.h"
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
 
 #include <QWidget>
@@ -46,7 +46,7 @@ enum LandmarkPivotingState
 * \brief Phantom registration toolbox class
 * \ingroup PlusAppFCal
 */
-class PhantomRegistrationToolbox : public QWidget, public AbstractToolbox
+class QPhantomRegistrationToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -56,10 +56,10 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  PhantomRegistrationToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
+  QPhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*! Destructor */
-  ~PhantomRegistrationToolbox();
+  ~QPhantomRegistrationToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void OnActivated();
@@ -73,7 +73,7 @@ public:
   * Read stylus calibration configuration for fCal
   * \param aConfig Root element of the input device set configuration XML data
   */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
   * Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function
@@ -102,7 +102,7 @@ public:
   /*!
   * Sets the state of the linear object registration
   */
-  void SetLinearObjectRegistrationState( LinearObjectRegistrationState state );
+  void SetLinearObjectRegistrationState(LinearObjectRegistrationState state);
   /*!
   * Return state of the linear object registration
   */
@@ -111,7 +111,7 @@ public:
   /*!
   * Sets the state of the landmark pivoting detection
   */
-  void SetLandmarkPivotingState( LandmarkPivotingState state );
+  void SetLandmarkPivotingState(LandmarkPivotingState state);
   /*!
   * Return state of the landmark pivoting detection
   */
@@ -150,7 +150,7 @@ protected slots:
   void Undo();
 
   /*!
-  * Slot handling reset button for the landmark registration click (and also is an overridden method of AbstractToolbox which is called when disconnecting from the device set)
+  * Slot handling reset button for the landmark registration click (and also is an overridden method of QAbstractToolbox which is called when disconnecting from the device set)
   */
   void Reset();
 

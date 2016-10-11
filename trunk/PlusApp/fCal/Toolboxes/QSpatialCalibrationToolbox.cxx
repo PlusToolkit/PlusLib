@@ -8,7 +8,7 @@ See License.txt for details.
 #include "PlusFidPatternRecognition.h"
 #include "PlusSegmentationParameterDialog.h"
 #include "PlusTrackedFrame.h"
-#include "SpatialCalibrationToolbox.h"
+#include "QSpatialCalibrationToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDisplayableObject.h"
@@ -26,8 +26,8 @@ See License.txt for details.
 #include "vtkPoints.h"
 
 //-----------------------------------------------------------------------------
-SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QSpatialCalibrationToolbox::QSpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_CancelRequest(false)
   , m_LastRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
@@ -71,7 +71,7 @@ SpatialCalibrationToolbox::SpatialCalibrationToolbox(fCalMainWindow* aParentMain
 }
 
 //-----------------------------------------------------------------------------
-SpatialCalibrationToolbox::~SpatialCalibrationToolbox()
+QSpatialCalibrationToolbox::~QSpatialCalibrationToolbox()
 {
   if (m_Calibration != NULL)
   {
@@ -109,7 +109,7 @@ SpatialCalibrationToolbox::~SpatialCalibrationToolbox()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::OnActivated()
+void QSpatialCalibrationToolbox::OnActivated()
 {
   LOG_TRACE("SpatialCalibrationToolbox::OnActivated");
 
@@ -155,7 +155,7 @@ void SpatialCalibrationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus SpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus QSpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("SpatialCalibrationToolbox::ReadConfiguration");
 
@@ -221,12 +221,12 @@ PlusStatus SpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConf
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::RefreshContent()
+void QSpatialCalibrationToolbox::RefreshContent()
 {
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::SetDisplayAccordingToState()
+void QSpatialCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("SpatialCalibrationToolbox::SetDisplayAccordingToState");
 
@@ -454,7 +454,7 @@ void SpatialCalibrationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::OpenPhantomRegistration()
+void QSpatialCalibrationToolbox::OpenPhantomRegistration()
 {
   LOG_TRACE("SpatialCalibrationToolbox::OpenPhantomRegistrationClicked");
 
@@ -517,7 +517,7 @@ void SpatialCalibrationToolbox::OpenPhantomRegistration()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::OpenSegmentationParameters()
+void QSpatialCalibrationToolbox::OpenSegmentationParameters()
 {
   LOG_TRACE("SpatialCalibrationToolbox::OpenSegmentationParameters");
 
@@ -554,7 +554,7 @@ void SpatialCalibrationToolbox::OpenSegmentationParameters()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::EditSegmentationParameters()
+void QSpatialCalibrationToolbox::EditSegmentationParameters()
 {
   LOG_INFO("Edit segmentation parameters started");
 
@@ -592,7 +592,7 @@ void SpatialCalibrationToolbox::EditSegmentationParameters()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::StartDelayTimer()
+void QSpatialCalibrationToolbox::StartDelayTimer()
 {
   LOG_INFO("Delay start up " << m_StartupDelayRemainingTimeSec);
 
@@ -612,7 +612,7 @@ void SpatialCalibrationToolbox::StartDelayTimer()
 }
 
 //-----------------------------------------------------------------------------
-void  SpatialCalibrationToolbox::DelayStartup()
+void  QSpatialCalibrationToolbox::DelayStartup()
 {
   if (m_StartupDelayRemainingTimeSec > 0)
   {
@@ -629,7 +629,7 @@ void  SpatialCalibrationToolbox::DelayStartup()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::StartCalibration()
+void QSpatialCalibrationToolbox::StartCalibration()
 {
   LOG_INFO("Spatial calibration started");
 
@@ -674,7 +674,7 @@ void SpatialCalibrationToolbox::StartCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::DoCalibration()
+void QSpatialCalibrationToolbox::DoCalibration()
 {
   LOG_TRACE("SpatialCalibrationToolbox::DoSpatialCalibration");
 
@@ -847,7 +847,7 @@ void SpatialCalibrationToolbox::DoCalibration()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
+PlusStatus QSpatialCalibrationToolbox::SetAndSaveResults()
 {
   LOG_TRACE("SpatialCalibrationToolbox::SetAndSaveResults");
 
@@ -898,7 +898,7 @@ PlusStatus SpatialCalibrationToolbox::SetAndSaveResults()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::CancelCalibration()
+void QSpatialCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Calibration cancelled");
 
@@ -927,7 +927,7 @@ void SpatialCalibrationToolbox::CancelCalibration()
 }
 
 //-----------------------------------------------------------------------------
-bool SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration()
+bool QSpatialCalibrationToolbox::IsReadyToStartSpatialCalibration()
 {
   LOG_TRACE("SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration");
 
@@ -954,7 +954,7 @@ bool SpatialCalibrationToolbox::IsReadyToStartSpatialCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
+void QSpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
 {
   LOG_TRACE("SpatialCalibrationToolbox::DisplaySegmentedPoints");
 
@@ -989,9 +989,9 @@ void SpatialCalibrationToolbox::DisplaySegmentedPoints(bool enable)
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::Reset()
+void QSpatialCalibrationToolbox::Reset()
 {
-  AbstractToolbox::Reset();
+  QAbstractToolbox::Reset();
 
   if (m_Calibration != NULL)
   {
@@ -1033,7 +1033,7 @@ void SpatialCalibrationToolbox::Reset()
 }
 
 //-----------------------------------------------------------------------------
-void SpatialCalibrationToolbox::OnDeactivated()
+void QSpatialCalibrationToolbox::OnDeactivated()
 {
 
 }

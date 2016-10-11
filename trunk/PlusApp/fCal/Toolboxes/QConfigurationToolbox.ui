@@ -2,24 +2,10 @@
 <ui version="4.0">
  <class>ConfigurationToolbox</class>
  <widget class="QWidget" name="ConfigurationToolbox">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>230</width>
-    <height>345</height>
-   </rect>
-  </property>
   <property name="minimumSize">
    <size>
     <width>230</width>
     <height>320</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>230</width>
-    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -43,22 +29,10 @@
    </property>
    <item>
     <widget class="QWidget" name="deviceSetSelectionWidget" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>48</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>208</height>
+       <height>150</height>
       </size>
      </property>
     </widget>
@@ -87,7 +61,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_ToolWidget">
      <property name="spacing">
       <number>4</number>
      </property>
@@ -112,12 +86,6 @@
          <height>23</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Pop out (or back) tool state window</string>
        </property>
@@ -125,7 +93,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_PopOut.png</normaloff>:/icons/Resources/icon_PopOut.png</iconset>
        </property>
        <property name="checkable">
@@ -169,7 +137,7 @@
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_logLevel">
      <item>
       <widget class="QLabel" name="labelLogLevel">
        <property name="sizePolicy">
@@ -182,6 +150,19 @@
         <string>Log level:</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QComboBox" name="comboBox_LogLevel">
@@ -237,7 +218,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_ImageDirectory">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -245,7 +226,7 @@
       <widget class="QLineEdit" name="lineEdit_ImageDirectory">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
+         <horstretch>9</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -259,19 +240,7 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_SelectImageDirectory">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="minimumSize">
-        <size>
-         <width>23</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
         <size>
          <width>23</width>
          <height>23</height>
@@ -287,7 +256,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
        <property name="iconSize">
@@ -303,7 +272,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../CommonWidgets/CommonWidgets.qrc"/>
+  <include location="../../PlusCommonWidgets/PlusCommonWidgets.qrc"/>
  </resources>
  <connections/>
 </ui>

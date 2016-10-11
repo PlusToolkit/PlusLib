@@ -4,27 +4,39 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "CapturingToolbox.h"
-#include "PlusConfigFileSaverDialog.h"
-#include "ConfigurationToolbox.h"
-#include "PhantomRegistrationToolbox.h"
-#include "QCustomAction.h"
-#include "SpatialCalibrationToolbox.h"
-#include "PlusStatusIcon.h"
-#include "StylusCalibrationToolbox.h"
-#include "TemporalCalibrationToolbox.h"
-#include "VolumeReconstructionToolbox.h"
+// Local includes
 #include "fCalMainWindow.h"
-#include "vtkPlusDataSource.h"
+
+// Toolbox includes
+#include "QCapturingToolbox.h"
+#include "QConfigurationToolbox.h"
+#include "QPhantomRegistrationToolbox.h"
+#include "QSpatialCalibrationToolbox.h"
+#include "QStylusCalibrationToolbox.h"
+#include "QTemporalCalibrationToolbox.h"
+#include "QVolumeReconstructionToolbox.h"
+
+// PlusLib includes
+#include <vtkPlusDataSource.h>
+#include <vtkPlusVirtualDiscCapture.h>
+#include <vtkPlusVirtualMixer.h>
+
+// PlusCommonWidget includes
+#include <PlusConfigFileSaverDialog.h>
+#include <PlusStatusIcon.h>
+#include <QCustomAction.h>
+#include <vtkPlusVisualizationController.h>
+
+// vtk includes
 #include "vtkRenderWindow.h"
-#include "vtkPlusVirtualDiscCapture.h"
-#include "vtkPlusVirtualMixer.h"
-#include "vtkPlusVisualizationController.h"
+
+// Qt includes
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
 #include <QProgressBar>
 #include <QTimer>
+
 
 //-----------------------------------------------------------------------------
 fCalMainWindow::fCalMainWindow(QWidget* parent, Qt::WindowFlags flags)
@@ -169,6 +181,12 @@ void fCalMainWindow::Initialize()
   m_UiRefreshTimer->start(50);
 }
 
+//----------------------------------------------------------------------------
+vtkPlusVisualizationController* fCalMainWindow::GetVisualizationController()
+{
+  return m_VisualizationController;
+}
+
 //-----------------------------------------------------------------------------
 void fCalMainWindow::CreateToolboxes()
 {
@@ -178,75 +196,67 @@ void fCalMainWindow::CreateToolboxes()
   m_ToolboxList.resize(ToolboxType_Count);
 
   // Configuration widget
-  ConfigurationToolbox* configurationToolbox = new ConfigurationToolbox(this);
+  QConfigurationToolbox* configurationToolbox = new QConfigurationToolbox(this);
   if (configurationToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_Configuration);
     grid->addWidget(configurationToolbox);
-    ui.toolbox_Configuration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_Configuration] = configurationToolbox;
 
   // Capturing widget
-  CapturingToolbox* capturingToolbox = new CapturingToolbox(this);
+  QCapturingToolbox* capturingToolbox = new QCapturingToolbox(this);
   if (capturingToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing);
     grid->setRowStretch(1, 1);
     grid->setVerticalSpacing(0);
-    grid->setMargin(3);
     grid->addWidget(capturingToolbox);
-    ui.toolbox_Capturing->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_Capturing] = capturingToolbox;
 
   // Stylus calibration widget
-  StylusCalibrationToolbox* stylusCalibrationToolbox = new StylusCalibrationToolbox(this);
+  QStylusCalibrationToolbox* stylusCalibrationToolbox = new QStylusCalibrationToolbox(this);
   if (stylusCalibrationToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_StylusCalibration);
     grid->addWidget(stylusCalibrationToolbox);
-    ui.toolbox_StylusCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_StylusCalibration] = stylusCalibrationToolbox;
 
   // Phantom registration widget
-  PhantomRegistrationToolbox* phantomRegistrationToolbox = new PhantomRegistrationToolbox(this);
+  QPhantomRegistrationToolbox* phantomRegistrationToolbox = new QPhantomRegistrationToolbox(this);
   if (phantomRegistrationToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_PhantomRegistration);
     grid->addWidget(phantomRegistrationToolbox);
-    ui.toolbox_PhantomRegistration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_PhantomRegistration] = phantomRegistrationToolbox;
 
   // Temporal calibration widget
-  TemporalCalibrationToolbox* temporalCalibrationToolbox = new TemporalCalibrationToolbox(this);
+  QTemporalCalibrationToolbox* temporalCalibrationToolbox = new QTemporalCalibrationToolbox(this);
   if (temporalCalibrationToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_TemporalCalibration);
     grid->addWidget(temporalCalibrationToolbox);
-    ui.toolbox_TemporalCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_TemporalCalibration] = temporalCalibrationToolbox;
 
   // Spatial calibration widget
-  SpatialCalibrationToolbox* spatialCalibrationToolbox = new SpatialCalibrationToolbox(this);
+  QSpatialCalibrationToolbox* spatialCalibrationToolbox = new QSpatialCalibrationToolbox(this);
   if (spatialCalibrationToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_SpatialCalibration);
     grid->addWidget(spatialCalibrationToolbox);
-    ui.toolbox_SpatialCalibration->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_SpatialCalibration] = spatialCalibrationToolbox;
 
   // Volume reconstruction widget
-  VolumeReconstructionToolbox* volumeReconstructionToolbox = new VolumeReconstructionToolbox(this);
+  QVolumeReconstructionToolbox* volumeReconstructionToolbox = new QVolumeReconstructionToolbox(this);
   if (volumeReconstructionToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_VolumeReconstruction);
     grid->addWidget(volumeReconstructionToolbox);
-    ui.toolbox_VolumeReconstruction->setLayout(grid);
   }
   m_ToolboxList[ToolboxType_VolumeReconstruction] = volumeReconstructionToolbox;
 }
@@ -402,7 +412,7 @@ void fCalMainWindow::UpdateGUI()
   // Refresh tool state display if detached
   if (m_ActiveToolbox != ToolboxType_Configuration)
   {
-    ConfigurationToolbox* configurationToolbox = dynamic_cast<ConfigurationToolbox*>(m_ToolboxList[ToolboxType_Configuration]);
+    QConfigurationToolbox* configurationToolbox = dynamic_cast<QConfigurationToolbox*>(m_ToolboxList[ToolboxType_Configuration]);
     if (configurationToolbox)
     {
       configurationToolbox->RefreshToolDisplayIfDetached();
@@ -430,13 +440,19 @@ void fCalMainWindow::ResetAllToolboxes()
 
   m_VisualizationController->HideAll();
 
-  for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
+  for (std::vector<QAbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
   {
     if (((*it) != NULL) && ((*it)->GetState() > ToolboxState_Idle))
     {
       (*it)->Reset();
     }
   }
+}
+
+//----------------------------------------------------------------------------
+QAbstractToolbox* fCalMainWindow::GetToolbox(ToolboxType aType)
+{
+  return m_ToolboxList[aType];
 }
 
 //-----------------------------------------------------------------------------
@@ -714,6 +730,36 @@ bool fCalMainWindow::IsOrientationMarkersEnabled()
   return m_ShowOrientationMarkerAction->isChecked();
 }
 
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetStylusModelId(const char* aObjectId)
+{
+  m_StylusModelId = aObjectId;
+}
+
+//----------------------------------------------------------------------------
+const char* fCalMainWindow::GetTransducerModelId()
+{
+  return m_TransducerModelId.c_str();
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetTransducerModelId(const char* aObjectId)
+{
+  m_TransducerModelId = aObjectId;
+}
+
+//----------------------------------------------------------------------------
+const char* fCalMainWindow::GetImageObjectId()
+{
+  return m_ImageObjectId.c_str();
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetImageObjectId(const char* aObjectId)
+{
+  m_ImageObjectId = aObjectId;
+}
+
 //-----------------------------------------------------------------------------
 bool fCalMainWindow::IsForceShowDevicesEnabled()
 {
@@ -726,16 +772,106 @@ void fCalMainWindow::ResetShowDevices()
   ui.pushButton_ShowDevices->setChecked(false);
 }
 
+//----------------------------------------------------------------------------
+std::string fCalMainWindow::GetImageCoordinateFrame()
+{
+  return m_ImageCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetImageCoordinateFrame(const char* aImageCoordinateFrame)
+{
+  m_ImageCoordinateFrame = aImageCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+std::string fCalMainWindow::GetProbeCoordinateFrame()
+{
+  return m_ProbeCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetProbeCoordinateFrame(const char* aProbeCoordinateFrame)
+{
+  m_ProbeCoordinateFrame = aProbeCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+std::string fCalMainWindow::GetReferenceCoordinateFrame()
+{
+  return m_ReferenceCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame)
+{
+  m_ReferenceCoordinateFrame = aReferenceCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+std::string fCalMainWindow::GetTransducerOriginCoordinateFrame()
+{
+  return m_TransducerOriginCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame)
+{
+  m_TransducerOriginCoordinateFrame = aTransducerOriginCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+std::string fCalMainWindow::GetTransducerOriginPixelCoordinateFrame()
+{
+  return m_TransducerOriginPixelCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame)
+{
+  m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+const char* fCalMainWindow::GetPhantomModelId()
+{
+  return m_PhantomModelId.c_str();
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetPhantomModelId(const char* aObjectId)
+{
+  m_PhantomModelId = aObjectId ? aObjectId : "";
+}
+
 //-----------------------------------------------------------------------------
 void fCalMainWindow::EnableShowPhantomModelToggle(bool aEnable)
 {
   m_ShowPhantomModelAction->setDisabled(!aEnable);
 }
 
+//----------------------------------------------------------------------------
+const char* fCalMainWindow::GetPhantomWiresModelId()
+{
+  return m_PhantomWiresModelId.c_str();
+}
+
+//----------------------------------------------------------------------------
+void fCalMainWindow::SetPhantomWiresModelId(const char* aObjectId)
+{
+  m_PhantomWiresModelId = aObjectId ? aObjectId : "";
+}
+
 //-----------------------------------------------------------------------------
 void fCalMainWindow::EnableShowPhantomWiresModelToggle(bool aEnable)
 {
   m_ShowPhantomWiresModelAction->setDisabled(!aEnable);
+}
+
+//----------------------------------------------------------------------------
+const char* fCalMainWindow::GetStylusModelId()
+{
+  return m_StylusModelId.c_str();
 }
 
 //-----------------------------------------------------------------------------
@@ -858,7 +994,7 @@ void fCalMainWindow::ChannelSelected(vtkPlusChannel* aChannel)
 
   this->BuildChannelMenu();
 
-  ConfigurationToolbox* aToolbox = dynamic_cast<ConfigurationToolbox*>(this->m_ToolboxList[ToolboxType_Configuration]);
+  QConfigurationToolbox* aToolbox = dynamic_cast<QConfigurationToolbox*>(this->m_ToolboxList[ToolboxType_Configuration]);
   if (aToolbox != NULL)
   {
     aToolbox->ChannelChanged(*aChannel);
@@ -882,6 +1018,12 @@ void fCalMainWindow::SetSelectedChannel(vtkPlusChannel* aChannel)
   this->m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
 
   this->UpdateSliceNumberUI();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusChannel* fCalMainWindow::GetSelectedChannel()
+{
+  return m_SelectedChannel;
 }
 
 //-----------------------------------------------------------------------------

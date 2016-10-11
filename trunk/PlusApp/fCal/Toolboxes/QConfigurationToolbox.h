@@ -7,9 +7,9 @@ See License.txt for details.
 #ifndef CONFIGURATIONTOOLBOX_H
 #define CONFIGURATIONTOOLBOX_H
 
-#include "ui_ConfigurationToolbox.h"
+#include "ui_QConfigurationToolbox.h"
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
 
 #include <QWidget>
@@ -24,7 +24,7 @@ class vtkPlusChannel;
 * \brief Configuration toolbox that handles device sets and common preferences of fCal
 * \ingroup PlusAppFCal
 */
-class ConfigurationToolbox : public QWidget, public AbstractToolbox
+class QConfigurationToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -34,12 +34,12 @@ public:
   * \param aParentWindow Parent main window
   * \param aFlags widget flag
   */
-  ConfigurationToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
+  QConfigurationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
   */
-  ~ConfigurationToolbox();
+  ~QConfigurationToolbox();
 
   /*!
   * Initialize toolbox
@@ -67,14 +67,14 @@ public:
   void SetDisplayAccordingToState();
 
   /*! Update the toolstate display widget because the channel changed */
-  void ChannelChanged( vtkPlusChannel& aChannel );
+  void ChannelChanged(vtkPlusChannel& aChannel);
 
 protected:
   /*!
   * Read fCal configuration
   * \param aConfig Root element of the configuration XML data element
   */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Read wire pattern and add it to visualization */
   PlusStatus ReadAndAddPhantomWiresToVisualization();
@@ -85,36 +85,36 @@ protected:
   * \param ev event
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
-  bool eventFilter( QObject* obj, QEvent* ev );
+  bool eventFilter(QObject* obj, QEvent* ev);
 
   /*! Select the channel */
-  PlusStatus SelectChannel( vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement );
+  PlusStatus SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement);
 
 signals:
   /*!
   * Executes operations needed after stopping the process
   * \param Enable/disable flag
   */
-  void SetToolboxesEnabled( bool );
+  void SetToolboxesEnabled(bool);
 
 protected slots:
   /*!
   * Connect to devices described in the argument configuration file in response by clicking on the Connect button
   * \param aConfigFile DeviceSet configuration file path and name
   */
-  void ConnectToDevicesByConfigFile( std::string aConfigFile );
+  void ConnectToDevicesByConfigFile(std::string aConfigFile);
 
   /*!
   * Slot handling pop out toggle button state change
   * \param aOn True if toggled, false otherwise
   */
-  void PopOutToggled( bool aOn );
+  void PopOutToggled(bool aOn);
 
   /*!
   * Slot handling log level combobox item change
   * \param aLevel New log level
   */
-  void LogLevelChanged( int aLevel );
+  void LogLevelChanged(int aLevel);
 
   /*!
   * Pops up open directory dialog and saves the selected one as image directory. It is the directory that contains the usually used input images (to act as home for relative paths in device set configuration files)

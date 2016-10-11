@@ -5,9 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusCaptureControlWidget.h"
-#include "CapturingToolbox.h"
+#include "QCapturingToolbox.h"
 #include "PlusTrackedFrame.h"
-#include "VolumeReconstructionToolbox.h"
+#include "QVolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
 #include "vtkPlusSequenceIO.h"
@@ -24,8 +24,8 @@ See License.txt for details.
 static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
 
 //-----------------------------------------------------------------------------
-CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QCapturingToolbox::QCapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_RecordedFrames(NULL)
   , m_RecordingTimer(NULL)
@@ -67,7 +67,7 @@ CapturingToolbox::CapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::Window
 }
 
 //-----------------------------------------------------------------------------
-CapturingToolbox::~CapturingToolbox()
+QCapturingToolbox::~QCapturingToolbox()
 {
   if (m_RecordedFrames != NULL)
   {
@@ -77,7 +77,7 @@ CapturingToolbox::~CapturingToolbox()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::OnActivated()
+void QCapturingToolbox::OnActivated()
 {
   LOG_TRACE("CapturingToolbox::OnActivated");
 
@@ -103,7 +103,7 @@ void CapturingToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::RefreshContent()
+void QCapturingToolbox::RefreshContent()
 {
   //LOG_TRACE("CapturingToolbox::RefreshContent");
 
@@ -135,7 +135,7 @@ void CapturingToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::SetDisplayAccordingToState()
+void QCapturingToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("CapturingToolbox::SetDisplayAccordingToState");
 
@@ -313,7 +313,7 @@ void CapturingToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::TakeSnapshot()
+void QCapturingToolbox::TakeSnapshot()
 {
   LOG_TRACE("CapturingToolbox::TakeSnapshot");
 
@@ -368,7 +368,7 @@ void CapturingToolbox::TakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::Record()
+void QCapturingToolbox::Record()
 {
   LOG_INFO("Capturing started");
 
@@ -390,7 +390,7 @@ void CapturingToolbox::Record()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::Capture()
+void QCapturingToolbox::Capture()
 {
   //LOG_TRACE("CapturingToolbox::Capture");
 
@@ -462,7 +462,7 @@ void CapturingToolbox::Capture()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::Stop()
+void QCapturingToolbox::Stop()
 {
   LOG_INFO("Capturing stopped");
 
@@ -473,7 +473,7 @@ void CapturingToolbox::Stop()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::Save()
+void QCapturingToolbox::Save()
 {
   LOG_TRACE("CapturingToolbox::Save");
 
@@ -485,7 +485,7 @@ void CapturingToolbox::Save()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::SaveAs()
+void QCapturingToolbox::SaveAs()
 {
   LOG_TRACE("CapturingToolbox::SaveAs");
 
@@ -501,7 +501,7 @@ void CapturingToolbox::SaveAs()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::WriteToFile(const QString& aFilename)
+void QCapturingToolbox::WriteToFile(const QString& aFilename)
 {
   if (aFilename.isEmpty())
   {
@@ -523,7 +523,7 @@ void CapturingToolbox::WriteToFile(const QString& aFilename)
   ui.plainTextEdit_saveResult->insertPlainText(result);
 
   // Add file name to image list in Volume reconstruction toolbox
-  VolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<VolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
+  QVolumeReconstructionToolbox* volumeReconstructionToolbox = dynamic_cast<QVolumeReconstructionToolbox*>(m_ParentMainWindow->GetToolbox(ToolboxType_VolumeReconstruction));
   if (volumeReconstructionToolbox != NULL)
   {
     volumeReconstructionToolbox->AddImageFileName(aFilename);
@@ -547,7 +547,7 @@ void CapturingToolbox::WriteToFile(const QString& aFilename)
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::ClearRecordedFrames()
+void QCapturingToolbox::ClearRecordedFrames()
 {
   LOG_TRACE("CapturingToolbox::ClearRecordedFrames");
 
@@ -562,7 +562,7 @@ void CapturingToolbox::ClearRecordedFrames()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::SamplingRateChanged(int aValue)
+void QCapturingToolbox::SamplingRateChanged(int aValue)
 {
   LOG_TRACE("CapturingToolbox::RecordingFrameRateChanged(" << aValue << ")");
 
@@ -586,7 +586,7 @@ void CapturingToolbox::SamplingRateChanged(int aValue)
 }
 
 //-----------------------------------------------------------------------------
-double CapturingToolbox::GetMaximumFrameRate()
+double QCapturingToolbox::GetMaximumFrameRate()
 {
   LOG_TRACE("CapturingToolbox::GetMaximumFrameRate");
 
@@ -600,15 +600,15 @@ double CapturingToolbox::GetMaximumFrameRate()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::Reset()
+void QCapturingToolbox::Reset()
 {
-  AbstractToolbox::Reset();
+  QAbstractToolbox::Reset();
 
   this->ClearRecordedFramesInternal();
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::ClearRecordedFramesInternal()
+void QCapturingToolbox::ClearRecordedFramesInternal()
 {
   m_RecordedFrames->Clear();
 
@@ -616,7 +616,7 @@ void CapturingToolbox::ClearRecordedFramesInternal()
 }
 
 //-----------------------------------------------------------------------------
-double CapturingToolbox::GetSamplingPeriodSec()
+double QCapturingToolbox::GetSamplingPeriodSec()
 {
   double samplingPeriodSec = 0.1;
   if (m_SamplingFrameRate > 0)
@@ -631,7 +631,7 @@ double CapturingToolbox::GetSamplingPeriodSec()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::HandleStatusMessage(const std::string& aMessage)
+void QCapturingToolbox::HandleStatusMessage(const std::string& aMessage)
 {
   ui.plainTextEdit_saveResult->clear();
   QString message(aMessage.c_str());
@@ -639,7 +639,7 @@ void CapturingToolbox::HandleStatusMessage(const std::string& aMessage)
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::StartStopAll()
+void QCapturingToolbox::StartStopAll()
 {
   QString text = ui.pushButton_StartStopAll->text();
   bool enable(true);
@@ -663,7 +663,7 @@ void CapturingToolbox::StartStopAll()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::ClearAll()
+void QCapturingToolbox::ClearAll()
 {
   for (std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it)
   {
@@ -673,7 +673,7 @@ void CapturingToolbox::ClearAll()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::SaveAll()
+void QCapturingToolbox::SaveAll()
 {
   for (std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it)
   {
@@ -683,7 +683,7 @@ void CapturingToolbox::SaveAll()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::OnDeactivated()
+void QCapturingToolbox::OnDeactivated()
 {
   for (std::vector<PlusCaptureControlWidget*>::iterator it = m_CaptureWidgets.begin(); it != m_CaptureWidgets.end(); ++it)
   {
@@ -707,7 +707,7 @@ void CapturingToolbox::OnDeactivated()
 }
 
 //-----------------------------------------------------------------------------
-void CapturingToolbox::InitCaptureDeviceScrollArea()
+void QCapturingToolbox::InitCaptureDeviceScrollArea()
 {
   m_GridWidget = new QWidget(this);
   m_GridWidget->setObjectName(QString::fromUtf8("gridWidget"));

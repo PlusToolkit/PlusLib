@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "TemporalCalibrationToolbox.h"
+#include "QTemporalCalibrationToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusVisualizationController.h"
 
@@ -41,8 +41,8 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QTemporalCalibrationToolbox::QTemporalCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , TemporalCalibrationFixedData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
   , TemporalCalibrationMovingData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
@@ -73,9 +73,9 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
   ui.setupUi(this);
 
   // Connect events
-  connect(ui.pushButton_StartCancelTemporal, &QPushButton::clicked, this, &TemporalCalibrationToolbox::StartDelayTimer);
-  connect(&StartupDelayTimer, &QTimer::timeout, this, &TemporalCalibrationToolbox::DelayStartup);
-  connect(ui.pushButton_ShowPlots, &QPushButton::toggled, this, &TemporalCalibrationToolbox::ShowPlotsToggled);
+  connect(ui.pushButton_StartCancelTemporal, &QPushButton::clicked, this, &QTemporalCalibrationToolbox::StartDelayTimer);
+  connect(&StartupDelayTimer, &QTimer::timeout, this, &QTemporalCalibrationToolbox::DelayStartup);
+  connect(ui.pushButton_ShowPlots, &QPushButton::toggled, this, &QTemporalCalibrationToolbox::ShowPlotsToggled);
   connect(ui.comboBox_FixedChannelValue, SIGNAL(currentIndexChanged(int)), this, SLOT(FixedSignalChanged(int)));
   connect(ui.comboBox_MovingChannelValue, SIGNAL(currentIndexChanged(int)), this, SLOT(MovingSignalChanged(int)));
   connect(ui.comboBox_FixedSourceValue, SIGNAL(currentIndexChanged(int)), this, SLOT(FixedSourceChanged(int)));
@@ -83,7 +83,7 @@ TemporalCalibrationToolbox::TemporalCalibrationToolbox(fCalMainWindow* aParentMa
 }
 
 //-----------------------------------------------------------------------------
-TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
+QTemporalCalibrationToolbox::~QTemporalCalibrationToolbox()
 {
   if (TemporalCalibrationPlotsWindow != NULL)
   {
@@ -99,7 +99,7 @@ TemporalCalibrationToolbox::~TemporalCalibrationToolbox()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::OnActivated()
+void QTemporalCalibrationToolbox::OnActivated()
 {
   LOG_TRACE("TemporalCalibrationToolbox::OnActivated");
 
@@ -204,7 +204,7 @@ void TemporalCalibrationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus QTemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("TemporalCalibrationToolbox::ReadConfiguration");
 
@@ -273,7 +273,7 @@ PlusStatus TemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::RefreshContent()
+void QTemporalCalibrationToolbox::RefreshContent()
 {
   if (m_ParentMainWindow->GetVisualizationController() == nullptr ||
       this->m_ParentMainWindow->GetVisualizationController()->GetSelectedChannel() == nullptr)
@@ -317,7 +317,7 @@ void TemporalCalibrationToolbox::RefreshContent()
 }
 
 //----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
+void QTemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
 {
   // Try segmenting the line from the image
   auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
@@ -355,7 +355,7 @@ void TemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::SetDisplayAccordingToState()
+void QTemporalCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("TemporalCalibrationToolbox::SetDisplayAccordingToState");
 
@@ -532,7 +532,7 @@ void TemporalCalibrationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::StartDelayTimer()
+void QTemporalCalibrationToolbox::StartDelayTimer()
 {
   LOG_INFO("Delay start up " << StartupDelayRemainingTimeSec);
 
@@ -552,7 +552,7 @@ void TemporalCalibrationToolbox::StartDelayTimer()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::DelayStartup()
+void QTemporalCalibrationToolbox::DelayStartup()
 {
   if (StartupDelayRemainingTimeSec > 0)
   {
@@ -569,7 +569,7 @@ void TemporalCalibrationToolbox::DelayStartup()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::StartCalibration()
+void QTemporalCalibrationToolbox::StartCalibration()
 {
   LOG_INFO("Temporal calibration started");
 
@@ -647,7 +647,7 @@ void TemporalCalibrationToolbox::StartCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::ComputeCalibrationResults()
+void QTemporalCalibrationToolbox::ComputeCalibrationResults()
 {
   // Create dialog
   QDialog* temporalCalibrationDialog = new QDialog(this, Qt::Dialog);
@@ -796,7 +796,7 @@ void TemporalCalibrationToolbox::ComputeCalibrationResults()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::DoCalibration()
+void QTemporalCalibrationToolbox::DoCalibration()
 {
   LOG_TRACE("TemporalCalibrationToolbox::DoCalibration");
 
@@ -867,7 +867,7 @@ void TemporalCalibrationToolbox::DoCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::CancelCalibration()
+void QTemporalCalibrationToolbox::CancelCalibration()
 {
   LOG_INFO("Temporal calibration cancelled.");
 
@@ -904,7 +904,7 @@ void TemporalCalibrationToolbox::CancelCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
+void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 {
   // Delete objects if toggled off, make sure they are deleted when toggled on
   if (TemporalCalibrationPlotsWindow != NULL)
@@ -1006,7 +1006,7 @@ void TemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 }
 
 //-----------------------------------------------------------------------------
-bool TemporalCalibrationToolbox::eventFilter(QObject* obj, QEvent* ev)
+bool QTemporalCalibrationToolbox::eventFilter(QObject* obj, QEvent* ev)
 {
   if (obj == TemporalCalibrationPlotsWindow)
   {
@@ -1025,7 +1025,7 @@ bool TemporalCalibrationToolbox::eventFilter(QObject* obj, QEvent* ev)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::OnDeactivated()
+void QTemporalCalibrationToolbox::OnDeactivated()
 {
   // The channels may get deleted (e.g., by a disconnect/connect), so make sure they are not reused
   this->FixedChannel = NULL;
@@ -1033,7 +1033,7 @@ void TemporalCalibrationToolbox::OnDeactivated()
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::FixedSignalChanged(int newIndex)
+void QTemporalCalibrationToolbox::FixedSignalChanged(int newIndex)
 {
   ui.comboBox_FixedSourceValue->clear();
 
@@ -1110,7 +1110,7 @@ void TemporalCalibrationToolbox::FixedSignalChanged(int newIndex)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::MovingSignalChanged(int newIndex)
+void QTemporalCalibrationToolbox::MovingSignalChanged(int newIndex)
 {
   ui.comboBox_MovingSourceValue->clear();
 
@@ -1187,7 +1187,7 @@ void TemporalCalibrationToolbox::MovingSignalChanged(int newIndex)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
+void QTemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
   this->FixedType = this->ui.comboBox_FixedSourceValue->currentData().toString().compare("Video") == 0
@@ -1195,7 +1195,7 @@ void TemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
 }
 
 //-----------------------------------------------------------------------------
-void TemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
+void QTemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
   this->MovingType = this->ui.comboBox_MovingSourceValue->currentData().toString().compare("Video") == 0
@@ -1203,7 +1203,7 @@ void TemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
 }
 
 //-----------------------------------------------------------------------------
-std::string TemporalCalibrationToolbox::GetTimeAsString(double timeSec)
+std::string QTemporalCalibrationToolbox::GetTimeAsString(double timeSec)
 {
   std::stringstream ss;
   ss << std::fixed << std::setprecision(1) << 1000.0 * timeSec << "ms";

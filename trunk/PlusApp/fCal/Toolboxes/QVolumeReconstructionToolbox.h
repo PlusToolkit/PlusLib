@@ -7,9 +7,9 @@
 #ifndef VOLUMERECONSTRUCTIONTOOLBOX_H
 #define VOLUMERECONSTRUCTIONTOOLBOX_H
 
-#include "ui_VolumeReconstructionToolbox.h"
+#include "ui_QVolumeReconstructionToolbox.h"
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
 
 #include <QWidget>
@@ -23,7 +23,7 @@ class vtkImageData;
  * \brief Volume reconstruction toolbox view class
  * \ingroup PlusAppFCal
  */
-class VolumeReconstructionToolbox : public QWidget, public AbstractToolbox
+class QVolumeReconstructionToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -33,10 +33,10 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  VolumeReconstructionToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
+  QVolumeReconstructionToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*! Destructor */
-  ~VolumeReconstructionToolbox();
+  ~QVolumeReconstructionToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void OnActivated();
@@ -63,7 +63,7 @@ public:
   * Add image file name to the list (usually when one is saved in Capturing toolbox)
   * \param aImageFileName Path and filename of the image
   */
-  void AddImageFileName( QString aImageFileName );
+  void AddImageFileName(QString aImageFileName);
 
 protected:
   /*!
@@ -77,7 +77,7 @@ protected:
   * \param aOutput Output file
   * \return Success flag
   */
-  PlusStatus SaveVolumeToFile( QString aOutput );
+  PlusStatus SaveVolumeToFile(QString aOutput);
 
   /*! Display reconstructed volume in canvas */
   void DisplayReconstructedVolume();
@@ -92,7 +92,7 @@ protected slots:
   void OpenVolumeReconstructionConfig();
 
   /*! Called when input image selection has been changed */
-  void InputImageChanged( int aItemIndex );
+  void InputImageChanged(int aItemIndex);
 
   /*! Slot handling open input image button click */
   void OpenInputImage();
@@ -104,7 +104,7 @@ protected slots:
   void Save();
 
   /*! Recompute the surface that is shown from the reconstructed volume when slider is moved */
-  void RecomputeContourFromReconstructedVolume( int aValue );
+  void RecomputeContourFromReconstructedVolume(int aValue);
 
 protected:
   /*! Volume reconstructor instance */

@@ -7,6 +7,12 @@ See License.txt for details.
 // Local includes
 #include "PlusDeviceSetSelectorWidget.h"
 
+// PlusLib includes
+#include <vtkPlusTransformRepository.h>
+
+// std includes
+#include <chrono>
+
 // Qt includes
 #include <QAction>
 #include <QDesktopServices>
@@ -35,7 +41,7 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
   , m_ConnectionSuccessful(false)
   , m_EditMenu(NULL)
   , m_EditorSelectAction(NULL)
-  , DeviceSetComboBoxMaximumSizeRatio(-1)
+  , m_DeviceSetComboBoxMaximumSizeRatio(-1)
 {
   ui.setupUi(this);
 
@@ -62,7 +68,7 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
 //----------------------------------------------------------------------------
 void PlusDeviceSetSelectorWidget::SetDeviceSetComboBoxMaximumSizeRatio(double ratio)
 {
-  this->DeviceSetComboBoxMaximumSizeRatio = ratio;
+  this->m_DeviceSetComboBoxMaximumSizeRatio = ratio;
 }
 
 //-----------------------------------------------------------------------------
@@ -290,7 +296,6 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 
   while (filesIterator.hasNext())
   {
-
     QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
     if (extension.compare(QString(".xml")) != 0)
@@ -314,7 +319,7 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       QDomElement docElem = doc.documentElement();
 
       // Check if the root element is PlusConfiguration and contains a DataCollection child
-      if (! docElem.tagName().compare("PlusConfiguration"))
+      if (!docElem.tagName().compare("PlusConfiguration"))
       {
         QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
@@ -341,6 +346,37 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
         continue;
       }
 
+      // Detect previous calibrations and if so, display details
+      QString calibDetails;
+      vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toLatin1()));
+      if (configRootElement != NULL)
+      {
+        auto tr = vtkSmartPointer<vtkPlusTransformRepository>::New();
+        if (tr->ReadConfiguration(configRootElement) == PLUS_SUCCESS)
+        {
+          QString pivotString;
+          pivotString = FindCalibrationDetails(doc, tr, "vtkPlusPivotCalibrationAlgo", "Pivot calibration: ", "ObjectPivotPointCoordinateFrame", "ObjectMarkerCoordinateFrame");
+          if (!pivotString.isEmpty())
+          {
+            calibDetails += pivotString;
+          }
+
+          QString phantomString;
+          phantomString = FindCalibrationDetails(doc, tr, "vtkPlusPhantomLandmarkRegistrationAlgo", "Phantom calibration: ", "PhantomCoordinateFrame", "ReferenceCoordinateFrame");
+          if (!phantomString.isEmpty())
+          {
+            calibDetails += phantomString;
+          }
+
+          QString probeString;
+          probeString = FindCalibrationDetails(doc, tr, "vtkPlusProbeCalibrationAlgo", "Probe calibration: ", "ImageCoordinateFrame", "ProbeCoordinateFrame");
+          if (!probeString.isEmpty())
+          {
+            calibDetails += probeString;
+          }
+        }
+      }
+
       QDomElement elem = list.at(0).toElement();
 
       QString name(elem.attribute("Name"));
@@ -349,6 +385,12 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       {
         LOG_WARNING("Name field is empty in device set configuration file '" << fileName.toLatin1().constData() << "', it is not added to the list");
         continue;
+      }
+
+      if (!calibDetails.isEmpty())
+      {
+        description += "\n\n";
+        description += calibDetails;
       }
 
       // Check if the same name already exists, add a version number if it does.
@@ -377,7 +419,6 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
       name.prepend("<p>");
       name.append("</p> <p>" + fileInfo.fileName().toLatin1() + "</p> <p>" + description.toLatin1() + "</p>");
       ui.comboBox_DeviceSet->setItemData(currentIndex, name, Qt::ToolTipRole);
-
     }
     else
     {
@@ -408,15 +449,86 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
 }
 
 //----------------------------------------------------------------------------
+QString PlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& doc,
+    vtkSmartPointer<vtkPlusTransformRepository> tr,
+    const QString& tagName,
+    const QString& outputPrefix,
+    const QString& firstFrame,
+    const QString& secondFrame)
+{
+  QDomNodeList list(doc.elementsByTagName(tagName));
+  if (list.count() > 0)
+  {
+    auto elem = list.at(0).toElement();
+    QString firstFrame(elem.attribute(firstFrame));
+    QString secondFrame(elem.attribute(secondFrame));
+    if (!firstFrame.isEmpty() && !secondFrame.isEmpty())
+    {
+      PlusTransformName tName(firstFrame.toStdString(), secondFrame.toStdString());
+      std::string date;
+      double error;
+      if (tr->GetTransformDate(tName, date) == PLUS_SUCCESS &&
+          tr->GetTransformError(tName, error) == PLUS_SUCCESS)
+      {
+        bool valid(false);
+        std::tm tm = {};
+        std::stringstream ss(date);
+        ss >> std::get_time(&tm, "%Y.%m.%d %H:%M:%S");
+        if (tm.tm_hour == 0 || tm.tm_mday == 0 || tm.tm_mon == 0 || tm.tm_year == 0)
+        {
+          if (date.length() == 13)
+          {
+            // %m%d%y_%H%M%S doesn't parse with std::get_time, reformat it manually
+            std::string month(date.substr(0, 2));
+            std::string day(date.substr(2, 2));
+            std::string year(date.substr(4, 2));
+            std::string hour(date.substr(7, 2));
+            std::string minute(date.substr(9, 2));
+            std::string second(date.substr(11, 2));
+            std::stringstream ss;
+            ss << month << " " << day << " " << year << "_" << hour << " " << minute << " " << second;
+            ss >> std::get_time(&tm, "%m %d %y_%H %M %S");
+
+            if (!(tm.tm_hour == 0 || tm.tm_mday == 0 || tm.tm_mon == 0 || tm.tm_year == 0))
+            {
+              valid = true;
+            }
+          }
+        }
+        else
+        {
+          valid = true;
+        }
+
+        QString output = outputPrefix;
+        if (valid)
+        {
+          std::stringstream ss;
+          ss << std::put_time(&tm, "%b %d %Y - %H:%M");
+          output += QString::fromStdString(ss.str());
+        }
+        else
+        {
+          output += QString::fromStdString(date);
+        }
+        return output + ", error: " + QString::number(error, 'g', 2) + "\n";
+      }
+    }
+  }
+
+  return "";
+}
+
+//----------------------------------------------------------------------------
 void PlusDeviceSetSelectorWidget::resizeEvent(QResizeEvent* event)
 {
   QWidget::resizeEvent(event);
 
-  if (DeviceSetComboBoxMaximumSizeRatio != -1)
+  if (m_DeviceSetComboBoxMaximumSizeRatio != -1)
   {
     QDesktopWidget desktop;
     int screenWidth = desktop.screenGeometry(desktop.screenNumber(this)).width();
-    ui.comboBox_DeviceSet->setMaximumWidth(screenWidth * DeviceSetComboBoxMaximumSizeRatio);
+    ui.comboBox_DeviceSet->setMaximumWidth(screenWidth * m_DeviceSetComboBoxMaximumSizeRatio);
   }
 }
 

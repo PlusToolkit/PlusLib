@@ -2,24 +2,10 @@
 <ui version="4.0">
  <class>TemporalCalibrationToolbox</class>
  <widget class="QWidget" name="TemporalCalibrationToolbox">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>230</width>
-    <height>437</height>
-   </rect>
-  </property>
   <property name="minimumSize">
    <size>
     <width>230</width>
     <height>150</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>230</width>
-    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle">

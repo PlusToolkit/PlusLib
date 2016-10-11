@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PhantomRegistrationToolbox.h"
+#include "QPhantomRegistrationToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDisplayableObject.h"
 #include "vtkPlusVisualizationController.h"
@@ -35,8 +35,8 @@ See License.txt for details.
 #include <vtkXMLUtilities.h>
 
 //-----------------------------------------------------------------------------
-PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QPhantomRegistrationToolbox::QPhantomRegistrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_PhantomActor(NULL)
   , m_RequestedLandmarkActor(NULL)
@@ -118,7 +118,7 @@ PhantomRegistrationToolbox::PhantomRegistrationToolbox(fCalMainWindow* aParentMa
 }
 
 //-----------------------------------------------------------------------------
-PhantomRegistrationToolbox::~PhantomRegistrationToolbox()
+QPhantomRegistrationToolbox::~QPhantomRegistrationToolbox()
 {
   if (m_PhantomLandmarkRegistration != NULL)
   {
@@ -189,7 +189,7 @@ PlusStatus SetCameraViewAndHighlightNextLandmark(vtkCamera* activeCamera, vtkPlu
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::OnActivated()
+void QPhantomRegistrationToolbox::OnActivated()
 {
   LOG_TRACE("PhantomRegistrationToolbox::OnActivated");
 
@@ -258,7 +258,7 @@ void PhantomRegistrationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus QPhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("PhantomRegistrationToolbox::ReadConfiguration");
 
@@ -272,7 +272,7 @@ PlusStatus PhantomRegistrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
+PlusStatus QPhantomRegistrationToolbox::LoadPhantomModel()
 {
   LOG_TRACE("PhantomRegistrationToolbox::InitializeVisualization");
 
@@ -309,7 +309,7 @@ PlusStatus PhantomRegistrationToolbox::LoadPhantomModel()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::RefreshContent()
+void QPhantomRegistrationToolbox::RefreshContent()
 {
   //LOG_TRACE("PhantomRegistrationToolbox::RefreshContent");
 
@@ -409,7 +409,7 @@ void PhantomRegistrationToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::SetDisplayAccordingToState()
+void QPhantomRegistrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("PhantomRegistrationToolbox::SetDisplayAccordingToState");
 
@@ -626,7 +626,7 @@ void PhantomRegistrationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PhantomRegistrationToolbox::Start()
+PlusStatus QPhantomRegistrationToolbox::Start()
 {
   LOG_TRACE("PhantomRegistrationToolbox::Start");
 
@@ -690,7 +690,7 @@ PlusStatus PhantomRegistrationToolbox::Start()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::OpenStylusCalibration()
+void QPhantomRegistrationToolbox::OpenStylusCalibration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::OpenStylusCalibration");
 
@@ -764,7 +764,7 @@ void PhantomRegistrationToolbox::OpenStylusCalibration()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::RecordPoint()
+void QPhantomRegistrationToolbox::RecordPoint()
 {
   LOG_TRACE("PhantomRegistrationToolbox::RecordPoint");
 
@@ -876,7 +876,7 @@ void PhantomRegistrationToolbox::RecordPoint()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::Undo()
+void QPhantomRegistrationToolbox::Undo()
 {
   LOG_TRACE("PhantomRegistrationToolbox::Undo");
 
@@ -961,7 +961,7 @@ void PhantomRegistrationToolbox::Undo()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::Reset()
+void QPhantomRegistrationToolbox::Reset()
 {
   LOG_TRACE("PhantomRegistrationToolbox::Reset");
 
@@ -1023,13 +1023,13 @@ void PhantomRegistrationToolbox::Reset()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::OnDeactivated()
+void QPhantomRegistrationToolbox::OnDeactivated()
 {
   StopLandmarkPivotingRegistration();
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::StartLinearObjectRegistration()
+void QPhantomRegistrationToolbox::StartLinearObjectRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::StartLinearObjectRegistration");
 
@@ -1063,7 +1063,7 @@ void PhantomRegistrationToolbox::StartLinearObjectRegistration()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::StopLinearObjectRegistration()
+void QPhantomRegistrationToolbox::StopLinearObjectRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::StopLinearObjectRegistration");
 
@@ -1092,7 +1092,7 @@ void PhantomRegistrationToolbox::StopLinearObjectRegistration()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::ResetLinearObjectRegistration()
+void QPhantomRegistrationToolbox::ResetLinearObjectRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::ResetLinearObjectRegistration");
 
@@ -1107,7 +1107,7 @@ void PhantomRegistrationToolbox::ResetLinearObjectRegistration()
 
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::StartLandmarkDetectionRegistration()
+void QPhantomRegistrationToolbox::StartLandmarkDetectionRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::StartLandmarkPivotingRegistration");
 
@@ -1146,7 +1146,7 @@ void PhantomRegistrationToolbox::StartLandmarkDetectionRegistration()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
+void QPhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::StopLandmarkPivotingRegistration");
 
@@ -1184,7 +1184,7 @@ void PhantomRegistrationToolbox::StopLandmarkPivotingRegistration()
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistration()
+void QPhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::AddStylusTipPositionToLandmarkPivotingRegistration");
 
@@ -1320,7 +1320,7 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLandmarkPivotingRegistra
 }
 
 //-----------------------------------------------------------------------------
-void PhantomRegistrationToolbox::AddStylusTipTransformToLinearObjectRegistration()
+void QPhantomRegistrationToolbox::AddStylusTipTransformToLinearObjectRegistration()
 {
   LOG_TRACE("PhantomRegistrationToolbox::AddStylusTipPositionToLinearObjectRegistration");
 
@@ -1400,20 +1400,20 @@ void PhantomRegistrationToolbox::AddStylusTipTransformToLinearObjectRegistration
 
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::SetLinearObjectRegistrationState(LinearObjectRegistrationState state)
+void QPhantomRegistrationToolbox::SetLinearObjectRegistrationState(LinearObjectRegistrationState state)
 {
   m_LinearObjectRegistrationState = state;
 }
 
 //-----------------------------------------------------------------------------
 
-LinearObjectRegistrationState PhantomRegistrationToolbox::GetLinearObjectRegistrationState()
+LinearObjectRegistrationState QPhantomRegistrationToolbox::GetLinearObjectRegistrationState()
 {
   return m_LinearObjectRegistrationState;
 }
 //-----------------------------------------------------------------------------
 
-void PhantomRegistrationToolbox::SetLandmarkPivotingState(LandmarkPivotingState state)
+void QPhantomRegistrationToolbox::SetLandmarkPivotingState(LandmarkPivotingState state)
 {
   m_LandmarkPivotingState = state;
   SetDisplayAccordingToState();
@@ -1421,7 +1421,7 @@ void PhantomRegistrationToolbox::SetLandmarkPivotingState(LandmarkPivotingState 
 
 //-----------------------------------------------------------------------------
 
-LandmarkPivotingState PhantomRegistrationToolbox::GetLandmarkPivotingState()
+LandmarkPivotingState QPhantomRegistrationToolbox::GetLandmarkPivotingState()
 {
   return m_LandmarkPivotingState;
 }
@@ -1429,14 +1429,14 @@ LandmarkPivotingState PhantomRegistrationToolbox::GetLandmarkPivotingState()
 
 //-----------------------------------------------------------------------------
 
-vtkPlusPhantomLandmarkRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLandmarkRegistrationAlgo()
+vtkPlusPhantomLandmarkRegistrationAlgo* QPhantomRegistrationToolbox::GetPhantomLandmarkRegistrationAlgo()
 {
   return m_PhantomLandmarkRegistration;
 }
 
 //-----------------------------------------------------------------------------
 
-vtkPlusPhantomLinearObjectRegistrationAlgo* PhantomRegistrationToolbox::GetPhantomLinearObjectRegistrationAlgo()
+vtkPlusPhantomLinearObjectRegistrationAlgo* QPhantomRegistrationToolbox::GetPhantomLinearObjectRegistrationAlgo()
 {
   return m_PhantomLinearObjectRegistration;
 }

@@ -2,21 +2,7 @@
 <ui version="4.0">
  <class>CapturingToolbox</class>
  <widget class="QWidget" name="CapturingToolbox">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>230</width>
-    <height>720</height>
-   </rect>
-  </property>
   <property name="minimumSize">
-   <size>
-    <width>230</width>
-    <height>720</height>
-   </size>
-  </property>
-  <property name="maximumSize">
    <size>
     <width>230</width>
     <height>720</height>
@@ -93,7 +79,7 @@
         <string>Record</string>
        </property>
        <property name="icon">
-        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
        </property>
       </widget>
@@ -122,7 +108,7 @@
         <string>Snapshot</string>
        </property>
        <property name="icon">
-        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
        </property>
       </widget>
@@ -458,7 +444,7 @@
         <string>Record All</string>
        </property>
        <property name="icon">
-        <iconset resource="../../CommonWidgets/CommonWidgets.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
        </property>
       </widget>
@@ -518,7 +504,7 @@
  </widget>
  <resources>
   <include location="../fCal.qrc"/>
-  <include location="../../CommonWidgets/CommonWidgets.qrc"/>
+  <include location="../../PlusCommonWidgets/PlusCommonWidgets.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "StylusCalibrationToolbox.h"
+#include "QStylusCalibrationToolbox.h"
 #include "fCalMainWindow.h"
 #include "PlusMath.h"
 #include "vtkPlusPivotCalibrationAlgo.h"
@@ -21,8 +21,8 @@ See License.txt for details.
 #include <vtkRenderer.h>
 
 //-----------------------------------------------------------------------------
-StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
-  : AbstractToolbox(aParentMainWindow)
+QStylusCalibrationToolbox::QStylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
+  : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
   , m_NumberOfPoints(200)
   , m_FreeHandStartupDelaySec(5)
@@ -50,7 +50,7 @@ StylusCalibrationToolbox::StylusCalibrationToolbox(fCalMainWindow* aParentMainWi
 }
 
 //-----------------------------------------------------------------------------
-StylusCalibrationToolbox::~StylusCalibrationToolbox()
+QStylusCalibrationToolbox::~QStylusCalibrationToolbox()
 {
   if (m_PivotCalibration != NULL)
   {
@@ -66,7 +66,7 @@ StylusCalibrationToolbox::~StylusCalibrationToolbox()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::OnActivated()
+void QStylusCalibrationToolbox::OnActivated()
 {
   LOG_TRACE("StylusCalibrationToolbox::OnActivated");
 
@@ -113,7 +113,7 @@ void StylusCalibrationToolbox::OnActivated()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::OnDeactivated()
+void QStylusCalibrationToolbox::OnDeactivated()
 {
   if (m_State == ToolboxState_StartupDelay || m_State == ToolboxState_InProgress)
   {
@@ -122,7 +122,7 @@ void StylusCalibrationToolbox::OnDeactivated()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus QStylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("StylusCalibrationToolbox::ReadConfiguration");
 
@@ -157,7 +157,7 @@ PlusStatus StylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConfi
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::RefreshContent()
+void QStylusCalibrationToolbox::RefreshContent()
 {
   //LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content");
 
@@ -207,7 +207,7 @@ void StylusCalibrationToolbox::RefreshContent()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::SetDisplayAccordingToState()
+void QStylusCalibrationToolbox::SetDisplayAccordingToState()
 {
   LOG_TRACE("StylusCalibrationToolbox::SetDisplayAccordingToState");
 
@@ -293,7 +293,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(false);
     m_ParentMainWindow->SetToolboxesEnabled(true);
-    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(0).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(tr("N/A"));
@@ -312,7 +312,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(false);
     m_ParentMainWindow->SetToolboxesEnabled(true);
-    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_CalibrationError->setText(tr("N/A"));
     ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
@@ -333,7 +333,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(true);
     m_ParentMainWindow->SetToolboxesEnabled(false);
-    connect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    connect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_CalibrationError->setText(tr("N/A"));
     ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
@@ -351,7 +351,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(true);
     m_ParentMainWindow->SetToolboxesEnabled(false);
-    connect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    connect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_NumberOfPoints->setText(QString("%1 / %2").arg(m_CurrentPointNumber).arg(m_NumberOfPoints));
     ui.label_CalibrationError->setText(tr("N/A"));
@@ -373,7 +373,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(false);
     m_ParentMainWindow->SetToolboxesEnabled(true);
-    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_Instructions->setText(tr("Calibration transform is ready to save"));
 
@@ -399,7 +399,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
   {
     SetBusyCursor(false);
     m_ParentMainWindow->SetToolboxesEnabled(true);
-    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &StylusCalibrationToolbox::OnDataAcquired);
+    disconnect(&m_ParentMainWindow->GetVisualizationController()->GetAcquisitionTimer(), &QTimer::timeout, this, &QStylusCalibrationToolbox::OnDataAcquired);
 
     ui.label_Instructions->setText(tr(""));
 
@@ -418,7 +418,7 @@ void StylusCalibrationToolbox::SetDisplayAccordingToState()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::Start()
+void QStylusCalibrationToolbox::Start()
 {
   LOG_TRACE("StylusCalibrationToolbox::Start");
 
@@ -450,7 +450,7 @@ void StylusCalibrationToolbox::Start()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::Stop()
+void QStylusCalibrationToolbox::Stop()
 {
   LOG_TRACE("StylusCalibrationToolbox::Stop");
 
@@ -495,7 +495,7 @@ void StylusCalibrationToolbox::Stop()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::OnStartStop()
+void QStylusCalibrationToolbox::OnStartStop()
 {
   if (m_State == ToolboxState_StartupDelay || m_State == ToolboxState_InProgress)
   {
@@ -508,14 +508,14 @@ void StylusCalibrationToolbox::OnStartStop()
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints)
+void QStylusCalibrationToolbox::NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints)
 {
   LOG_TRACE("StylusCalibrationToolbox::NumberOfStylusCalibrationPointsChanged");
   m_NumberOfPoints = aNumberOfPoints;
 }
 
 //-----------------------------------------------------------------------------
-void StylusCalibrationToolbox::OnDataAcquired()
+void QStylusCalibrationToolbox::OnDataAcquired()
 {
   LOG_TRACE("StylusCalibrationToolbox::OnDataAcquired");
 

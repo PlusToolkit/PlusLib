@@ -7,9 +7,9 @@ See License.txt for details.
 #ifndef TEMPORALCALIBRATIONTOOLBOX_H
 #define TEMPORALCALIBRATIONTOOLBOX_H
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
-#include "ui_TemporalCalibrationToolbox.h"
+#include "ui_QTemporalCalibrationToolbox.h"
 #include "vtkPlusTemporalCalibrationAlgo.h"
 #include <QTimer>
 #include <QWidget>
@@ -25,7 +25,7 @@ class vtkPlusTrackedFrameList;
 * \brief Temporal calibration toolbox class
 * \ingroup PlusAppFCal
 */
-class TemporalCalibrationToolbox : public QWidget, public AbstractToolbox
+class QTemporalCalibrationToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -35,10 +35,10 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  TemporalCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
+  QTemporalCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*! Destructor */
-  ~TemporalCalibrationToolbox();
+  ~QTemporalCalibrationToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void OnActivated();

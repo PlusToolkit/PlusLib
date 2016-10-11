@@ -12,12 +12,17 @@ See License.txt for details.
 
 // PlusLib includes
 #include <PlusConfigure.h>
+#include <vtkPlusTransformRepository.h>
 
 // Qt includes
-#include <QWidget>
-#include <QString>
 #include <QAction>
+#include <QDomDocument>
 #include <QMenu>
+#include <QString>
+#include <QWidget>
+
+// vtk includes
+#include <vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 
@@ -100,13 +105,13 @@ public:
 
 signals:
   /*!
-  * Emmitted when configuration directory is changed (notifies application)
+  * Emitted when configuration directory is changed (notifies application)
   * \param Configuration directory path
   */
   void ConfigurationDirectoryChanged(std::string);
 
   /*!
-  * Emmitted when device set selected (notifies application)
+  * Emitted when device set selected (notifies application)
   * \param Configuration file path
   */
   void DeviceSetSelected(std::string);
@@ -132,6 +137,13 @@ protected:
   PlusStatus ParseDirectory(QString aDirectory);
 
   virtual void resizeEvent(QResizeEvent* event);
+
+  QString FindCalibrationDetails(const QDomDocument& doc,
+                                 vtkSmartPointer<vtkPlusTransformRepository> tr,
+                                 const QString& tagName,
+                                 const QString& outputPrefix,
+                                 const QString& firstFrame,
+                                 const QString& secondFrame);
 
 protected slots:
   /*!
@@ -181,26 +193,26 @@ protected slots:
 
 protected:
   /*! Configuration directory path */
-  QString m_ConfigurationDirectory;
+  QString       m_ConfigurationDirectory;
 
   /*! Action triggered when button right-clicked */
-  QAction* m_EditorSelectAction;
-  QMenu* m_EditMenu;
+  QAction*      m_EditorSelectAction;
+  QMenu*        m_EditMenu;
 
   /*! Flag telling whether connection has been successful */
-  bool    m_ConnectionSuccessful;
+  bool          m_ConnectionSuccessful;
 
   /*! If not -1, define the maximum size of the device set combobox relative to the current screen size */
-  double DeviceSetComboBoxMaximumSizeRatio;
+  double        m_DeviceSetComboBoxMaximumSizeRatio;
 
   /*! Prefix to the description in the main text box */
-  QString m_DescriptionPrefix;
+  QString       m_DescriptionPrefix;
 
   /*! Description in the main text box */
-  QString m_DescriptionBody;
+  QString       m_DescriptionBody;
 
   /*! Suffix to the description in the main text box */
-  QString m_DescriptionSuffix;
+  QString       m_DescriptionSuffix;
 
 protected:
   Ui::DeviceSetSelectorWidget ui;

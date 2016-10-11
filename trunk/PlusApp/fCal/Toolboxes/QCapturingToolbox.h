@@ -7,9 +7,9 @@ See License.txt for details.
 #ifndef CAPTURINGTOOLBOX_H
 #define CAPTURINGTOOLBOX_H
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
-#include "ui_CapturingToolbox.h"
+#include "ui_QCapturingToolbox.h"
 
 #include <QString>
 #include <QWidget>
@@ -23,11 +23,11 @@ class vtkPlusTrackedFrameList;
 
 //-----------------------------------------------------------------------------
 
-/*! \class CapturingToolbox
+/*! \class QCapturingToolbox
 * \brief Tracked frame capturing class
 * \ingroup PlusAppFCal
 */
-class CapturingToolbox : public QWidget, public AbstractToolbox
+class QCapturingToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -37,12 +37,12 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags widget flag
   */
-  CapturingToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
+  QCapturingToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
   */
-  ~CapturingToolbox();
+  ~QCapturingToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void OnActivated();
@@ -71,7 +71,7 @@ protected:
   * \param aOutput Output file
   * \return Success flag
   */
-  PlusStatus SaveToMetafile( std::string aOutput );
+  PlusStatus SaveToMetafile(std::string aOutput);
 
   /*!
   * Get the maximum frame rate from the video source. If there is none then the tracker
@@ -86,7 +86,7 @@ protected:
   /*!
   * Save data to file
   */
-  void WriteToFile( const QString& aFilename );
+  void WriteToFile(const QString& aFilename);
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
@@ -144,7 +144,7 @@ protected slots:
   * Slot handling value change of sampling rate slider
   * \param aValue Tick index (rightmost means record every frame, and each one to the left halves it)
   */
-  void SamplingRateChanged( int aValue );
+  void SamplingRateChanged(int aValue);
 
   /*!
   * Record tracked frames (the recording timer calls it)
@@ -154,7 +154,7 @@ protected slots:
   /*!
   * Handle status message from any sub capture widgets
   */
-  void HandleStatusMessage( const std::string& aMessage );
+  void HandleStatusMessage(const std::string& aMessage);
 
 protected:
   /*! Recorded tracked frame list */

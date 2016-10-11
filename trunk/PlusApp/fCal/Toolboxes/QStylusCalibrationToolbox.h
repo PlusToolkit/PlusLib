@@ -7,9 +7,9 @@ See License.txt for details.
 #ifndef __StylusCalibrationToolbox_h
 #define __StylusCalibrationToolbox_h
 
-#include "ui_StylusCalibrationToolbox.h"
+#include "ui_QStylusCalibrationToolbox.h"
 
-#include "AbstractToolbox.h"
+#include "QAbstractToolbox.h"
 #include "PlusConfigure.h"
 
 #include <QWidget>
@@ -24,7 +24,7 @@ class vtkMatrix4x4;
 * \brief Stylus calibration toolbox view class
 * \ingroup PlusAppFCal
 */
-class StylusCalibrationToolbox : public QWidget, public AbstractToolbox
+class QStylusCalibrationToolbox : public QWidget, public QAbstractToolbox
 {
   Q_OBJECT
 
@@ -34,10 +34,10 @@ public:
   * \param aParentMainWindow Parent main window
   * \param aFlags Widget flags
   */
-  StylusCalibrationToolbox( fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0 );
+  QStylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags = 0);
 
   /*! Destructor */
-  ~StylusCalibrationToolbox();
+  ~QStylusCalibrationToolbox();
 
   /*! \brief Refresh contents (e.g. GUI elements) of toolbox according to the state in the toolbox controller - implementation of a pure virtual function */
   virtual void OnActivated();
@@ -51,7 +51,7 @@ public:
     Read stylus calibration configuration for fCal
     \param aConfig Root element of the input device set configuration XML data
   */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*!
     Refresh contents (e.g. GUI elements) of toolbox according to the state
@@ -85,7 +85,7 @@ protected slots:
   * Slot handling change of stylus calibration number of points
   * \param aLevel New number of points
   */
-  void NumberOfStylusCalibrationPointsChanged( int aNumberOfPoints );
+  void NumberOfStylusCalibrationPointsChanged(int aNumberOfPoints);
 
   /*!
   * Acquire stylus position and add it to the algorithm (called by the acquisition timer in object visualizer)
@@ -97,7 +97,7 @@ protected:
   /*! Start calibration */
   void Start();
 
-  void SetFreeHandStartupDelaySec( int freeHandStartupDelaySec ) {m_FreeHandStartupDelaySec = freeHandStartupDelaySec;};
+  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec) {m_FreeHandStartupDelaySec = freeHandStartupDelaySec;};
 
   /*! Pivot calibration algorithm */
   vtkPlusPivotCalibrationAlgo*   m_PivotCalibration;

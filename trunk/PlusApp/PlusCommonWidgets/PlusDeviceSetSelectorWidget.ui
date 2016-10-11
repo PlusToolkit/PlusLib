@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>DeviceSetSelectorWidget</class>
  <widget class="QWidget" name="DeviceSetSelectorWidget">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>321</width>
-    <height>403</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Plus Device Set Selector</string>
   </property>
@@ -26,7 +18,10 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <property name="spacing">
+   <property name="horizontalSpacing">
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing">
     <number>4</number>
    </property>
    <item row="0" column="0">
@@ -43,6 +38,12 @@
      </property>
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -102,7 +103,10 @@
     </spacer>
    </item>
    <item row="7" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_Buttons">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
@@ -151,12 +155,6 @@
    </item>
    <item row="5" column="0">
     <widget class="QTextEdit" name="textEdit_Description">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>
      </property>
@@ -166,15 +164,15 @@
     </widget>
    </item>
    <item row="3" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_DeviceSetContainer">
      <property name="spacing">
-      <number>1</number>
+      <number>0</number>
      </property>
      <item>
       <widget class="QComboBox" name="comboBox_DeviceSet">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>9</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -185,6 +183,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_EditConfiguration">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="toolTip">
         <string>Edit configuration file</string>
        </property>

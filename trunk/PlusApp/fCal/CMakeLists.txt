@@ -8,13 +8,13 @@ SET (fCal_SRCS
   )
 
 SET(fCal_Toolbox_SRCS
-  Toolboxes/ConfigurationToolbox.cxx
-  Toolboxes/CapturingToolbox.cxx
-  Toolboxes/SpatialCalibrationToolbox.cxx
-  Toolboxes/TemporalCalibrationToolbox.cxx
-  Toolboxes/StylusCalibrationToolbox.cxx
-  Toolboxes/PhantomRegistrationToolbox.cxx
-  Toolboxes/VolumeReconstructionToolbox.cxx
+  Toolboxes/QConfigurationToolbox.cxx
+  Toolboxes/QCapturingToolbox.cxx
+  Toolboxes/QSpatialCalibrationToolbox.cxx
+  Toolboxes/QTemporalCalibrationToolbox.cxx
+  Toolboxes/QStylusCalibrationToolbox.cxx
+  Toolboxes/QPhantomRegistrationToolbox.cxx
+  Toolboxes/QVolumeReconstructionToolbox.cxx
   )
 
 IF(WIN32)  
@@ -26,25 +26,25 @@ SET (fCal_UI_HDRS
   )
 
 SET (fCal_Toolbox_UI_HDRS
-  Toolboxes/AbstractToolbox.h
-  Toolboxes/ConfigurationToolbox.h
-  Toolboxes/CapturingToolbox.h
-  Toolboxes/SpatialCalibrationToolbox.h
-  Toolboxes/TemporalCalibrationToolbox.h
-  Toolboxes/StylusCalibrationToolbox.h
-  Toolboxes/PhantomRegistrationToolbox.h
-  Toolboxes/VolumeReconstructionToolbox.h
+  Toolboxes/QAbstractToolbox.h
+  Toolboxes/QConfigurationToolbox.h
+  Toolboxes/QCapturingToolbox.h
+  Toolboxes/QSpatialCalibrationToolbox.h
+  Toolboxes/QTemporalCalibrationToolbox.h
+  Toolboxes/QStylusCalibrationToolbox.h
+  Toolboxes/QPhantomRegistrationToolbox.h
+  Toolboxes/QVolumeReconstructionToolbox.h
   )
 
 SET (fCal_UI_SRCS
   fCalMainWindow.ui 
-  Toolboxes/ConfigurationToolbox.ui
-  Toolboxes/CapturingToolbox.ui
-  Toolboxes/SpatialCalibrationToolbox.ui
-  Toolboxes/TemporalCalibrationToolbox.ui
-  Toolboxes/StylusCalibrationToolbox.ui
-  Toolboxes/PhantomRegistrationToolbox.ui
-  Toolboxes/VolumeReconstructionToolbox.ui
+  Toolboxes/QConfigurationToolbox.ui
+  Toolboxes/QCapturingToolbox.ui
+  Toolboxes/QSpatialCalibrationToolbox.ui
+  Toolboxes/QTemporalCalibrationToolbox.ui
+  Toolboxes/QStylusCalibrationToolbox.ui
+  Toolboxes/QPhantomRegistrationToolbox.ui
+  Toolboxes/QVolumeReconstructionToolbox.ui
   )
 
 SET (fCal_QT_Resources
