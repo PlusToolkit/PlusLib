@@ -152,7 +152,7 @@ TARGET_LINK_LIBRARIES(vtkPlusImageProcessing ${PlusImageProcessing_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusImageProcessing vtkPlusImageProcessing;"${PlusLib_BINARY_DIR}/src/PlusImageProcessing/vtkPlusImageProcessing.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusImageProcessing vtkPlusImageProcessing;"${PlusLib_BINARY_DIR}/src/PlusImageProcessing/vtkPlusImageProcessing.vcxproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
