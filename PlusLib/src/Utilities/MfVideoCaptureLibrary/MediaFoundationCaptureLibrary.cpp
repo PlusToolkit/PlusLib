@@ -28,7 +28,7 @@ The "videoInput" library has been adapted to fit within a namespace.
 
 namespace
 {
-  template <class T> void SafeRelease(T **ppT)
+  template <class T> void SafeRelease(T** ppT)
   {
     if (*ppT)
     {
@@ -48,7 +48,7 @@ namespace MfVideoCapture
   {
     HRESULT hr = MFStartup(MF_VERSION);
 
-    if(!SUCCEEDED(hr))
+    if (!SUCCEEDED(hr))
     {
       LOG_ERROR("MEDIA FOUNDATION: Unable to start up the media foundation framework.");
     }
@@ -58,9 +58,9 @@ namespace MfVideoCapture
 
   MediaFoundationCaptureLibrary::~MediaFoundationCaptureLibrary(void)
   {
-    HRESULT hr = MFShutdown();  
+    HRESULT hr = MFShutdown();
 
-    if(!SUCCEEDED(hr))
+    if (!SUCCEEDED(hr))
     {
       LOG_ERROR("MEDIA FOUNDATION: Resources cannot be released.");
     }
@@ -69,10 +69,10 @@ namespace MfVideoCapture
   //----------------------------------------------------------------------------
 
   bool MediaFoundationCaptureLibrary::BuildListOfDevices()
-  {	
+  {
     HRESULT hr = S_OK;
 
-    IMFAttributes *pAttributes = NULL;
+    IMFAttributes* pAttributes = NULL;
 
     CoInitialize(NULL);
 
@@ -81,15 +81,15 @@ namespace MfVideoCapture
     if (SUCCEEDED(hr))
     {
       hr = pAttributes->SetGUID(
-        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
-        );
-    }	
+             MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+             MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
+           );
+    }
 
     if (SUCCEEDED(hr))
     {
       hr = MediaFoundationVideoDevices::GetInstance().InitDevices(pAttributes);
-    }	
+    }
     else
     {
       LOG_ERROR("MEDIA FOUNDATION: The access to the video cameras denied.");
@@ -102,7 +102,7 @@ namespace MfVideoCapture
 
   //----------------------------------------------------------------------------
 
-  MediaFoundationCaptureLibrary& MediaFoundationCaptureLibrary::GetInstance() 
+  MediaFoundationCaptureLibrary& MediaFoundationCaptureLibrary::GetInstance()
   {
     static MediaFoundationCaptureLibrary instance;
 
