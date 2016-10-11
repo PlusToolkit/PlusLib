@@ -3,6 +3,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # -----------------  vtkPlusTransverseProcessEnhancerTest -------------------
 ADD_EXECUTABLE(vtkPlusTransverseProcessEnhancerTest vtkPlusTransverseProcessEnhancerTest.cxx )
+SET_TARGET_PROPERTIES(vtkPlusTransverseProcessEnhancerTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest 
   vtkPlusCommon 
   vtkPlusDataCollection 

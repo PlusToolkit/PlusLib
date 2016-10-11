@@ -3,11 +3,15 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #***************************  TrackingTest ***************************
 ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
+SET_TARGET_PROPERTIES(TrackingTest PROPERTIES FOLDER Tests)
+SET_TARGET_PROPERTIES(TrackingTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(TrackingTest vtkPlusDataCollection vtkPlusCommon )
 GENERATE_HELP_DOC(TrackingTest)
 
 #***************************  TimestampFilteringTest ***************************
 ADD_EXECUTABLE(TimestampFilteringTest TimestampFilteringTest.cxx )
+SET_TARGET_PROPERTIES(TimestampFilteringTest PROPERTIES FOLDER Tests)
+SET_TARGET_PROPERTIES(TimestampFilteringTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkPlusDataCollection )
 
 ADD_TEST(TimestampFilteringTest 
@@ -22,6 +26,7 @@ SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 
 #***************************  vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
+SET_TARGET_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection )
 
 ADD_TEST(vtkDataCollectorTest1 
@@ -45,6 +50,7 @@ ENDIF()
  
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest2 vtkDataCollectorTest2.cxx)
+SET_TARGET_PROPERTIES(vtkDataCollectorTest2 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkPlusDataCollection )
 ADD_TEST(vtkDataCollectorTest2 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
@@ -58,6 +64,7 @@ SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "
 
 #***************************  vtk3DDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtk3DDataCollectorTest1 vtk3DDataCollectorTest1.cxx)
+SET_TARGET_PROPERTIES(vtk3DDataCollectorTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtk3DDataCollectorTest1 vtkPlusDataCollection )
 ADD_TEST(vtk3DDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtk3DDataCollectorTest1
@@ -76,6 +83,7 @@ SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION
 
 #***************************  vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
+SET_TARGET_PROPERTIES(vtkDataCollectorVideoAcqTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkPlusDataCollection )
 # IF (PLUS_USE_ULTRASONIX_VIDEO)
   # ADD_TEST(vtkDataCollectorVideoAcqTest 
@@ -88,6 +96,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkPlusDataCollection )
 
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE( ReplayRecordedDataTest ReplayRecordedDataTest.cxx )
+SET_TARGET_PROPERTIES( ReplayRecordedDataTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkPlusDataCollection ${VTK_LIBRARIES} )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
@@ -97,6 +106,7 @@ SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 
 #***************************  vtkDataCollectorFileTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
+SET_TARGET_PROPERTIES(vtkDataCollectorFileTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorFileTest vtkPlusDataCollection )
 ADD_TEST(vtkDataCollectorFileTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorFileTest
@@ -113,6 +123,7 @@ ENDIF()
 
 #***************************  vtkMetaImageSequenceIOTest  ***************************
 ADD_EXECUTABLE(vtkMetaImageSequenceIOTest vtkMetaImageSequenceIOTest.cxx )
+SET_TARGET_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkPlusDataCollection )
 ADD_TEST(vtkMetaImageSequenceIOTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
@@ -135,6 +146,7 @@ ENDIF()
 
 #***************************  itkFcsvReaderTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
+SET_TARGET_PROPERTIES(itkFcsvReaderTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(itkFcsvReaderTest1 vtkPlusDataCollection )
 ADD_TEST(itkFcsvReaderTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvReaderTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv 
@@ -143,6 +155,7 @@ SET_TESTS_PROPERTIES( itkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 
 #***************************  itkFcsvWriterTest1.cxx ***************************
 ADD_EXECUTABLE(itkFcsvWriterTest1 itkFcsvWriterTest1.cxx )
+SET_TARGET_PROPERTIES(itkFcsvWriterTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(itkFcsvWriterTest1 vtkPlusDataCollection )
 ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
@@ -152,6 +165,7 @@ SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
+SET_TARGET_PROPERTIES(vtkSonixVideoSourceTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon)
   
   IF (PLUS_TEST_ULTRASONIX)
@@ -169,6 +183,7 @@ ENDIF()
 #***************************  vtkPhilips3DProbeVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
   ADD_EXECUTABLE(vtkPhilips3DProbeVideoSourceTest1 vtkPhilips3DProbeVideoSourceTest1.cxx )
+SET_TARGET_PROPERTIES(vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkPhilips3DProbeVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon)
   
   IF (PLUS_TEST_PHILIPS_3D_ULTRASOUND)
@@ -186,6 +201,7 @@ ENDIF()
 #***************************  vtkIntersonSDKCxxVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
   ADD_EXECUTABLE(vtkIntersonSDKCxxVideoSourceTest vtkintersonSDKCxxVideoSourceTest.cxx)
+SET_TARGET_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkIntersonSDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon)
   ADD_TEST(NAME vtkIntersonSDKCxxVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkIntersonSDKCxxVideoSourceTest>
@@ -225,6 +241,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
 
   #***************************  vtkBkProFocusOemVideoSourceTest.cxx ***************************
   ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkBkProFocusOemVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkBkProFocusOemVideoSourceTest vtkPlusDataCollection vtkPlusCommon)
 
   IF (PLUS_TEST_BKPROFOCUS)
@@ -238,6 +255,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
   #***************************  vtkBkProFocusCameraLinkVideoSourceTest.cxx ***************************
   IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
     ADD_EXECUTABLE(vtkBkProFocusCameraLinkVideoSourceTest vtkBkProFocusCameraLinkVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkBkProFocusCameraLinkVideoSourceTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(vtkBkProFocusCameraLinkVideoSourceTest vtkPlusDataCollection vtkPlusCommon)
 
     IF (PLUS_TEST_BKPROFOCUS)
@@ -255,6 +273,7 @@ ENDIF()
 #***************************  vtkICCapturingSourceTest1.cxx ***************************
 IF (PLUS_USE_ICCAPTURING_VIDEO)
 ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
+SET_TARGET_PROPERTIES(vtkICCapturingSourceTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection )
   # ADD_TEST(vtkICCapturingSourceTest1 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
@@ -266,6 +285,7 @@ ENDIF()
 #***************************  vtkSonixVolumeReaderTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVolumeReaderTest1 vtkSonixVolumeReaderTest1.cxx )
+SET_TARGET_PROPERTIES(vtkSonixVolumeReaderTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkSonixVolumeReaderTest1 vtkPlusDataCollection )
   ADD_TEST(vtkSonixVolumeReaderTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkSonixVolumeReaderTest1
@@ -279,6 +299,7 @@ ENDIF()
 #***************************  vtkCapistranoVideoSourceTest.cxx ***************************
 IF (PLUS_USE_CAPISTRANO_VIDEO)
   ADD_EXECUTABLE(vtkCapistranoVideoSourceTest vtkCapistranoVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkCapistranoVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkCapistranoVideoSourceTest vtkPlusDataCollection ) 
   ADD_TEST(NAME vtkCapistranoVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkCapistranoVideoSourceTest>
@@ -290,12 +311,14 @@ ENDIF()
 #***************************  vtkIntersonVideoSourceTest.cxx ***************************
 IF (PLUS_USE_INTERSON_VIDEO)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkIntersonVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkIntersonVideoSourceTest vtkPlusDataCollection ) 
 ENDIF()
 
 #***************************  vtkTelemedVideoSourceTest.cxx ***************************
 IF (PLUS_USE_TELEMED_VIDEO)
   ADD_EXECUTABLE(vtkTelemedVideoSourceTest vtkTelemedVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkTelemedVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection )
 
   IF (PLUS_TEST_TELEMED)
@@ -311,6 +334,7 @@ ENDIF()
 #***************************  vtkThorLabsVideoSourceTest.cxx ***************************
 IF (PLUS_USE_THORLABS_VIDEO)
   ADD_EXECUTABLE(vtkThorLabsVideoSourceTest vtkThorLabsVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkThorLabsVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkThorLabsVideoSourceTest vtkPlusDataCollection )
   ADD_TEST(vtkThorLabsVideoSourceTest
     ${EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
@@ -322,6 +346,7 @@ ENDIF()
 #************************  vtkSonixPortaVideoSourceTest.cxx ************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkSonixPortaVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon)
   # ADD_TEST(vtkSonixPortaVideoSourceTest 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
@@ -338,6 +363,7 @@ ENDIF()
 #***************************  vtkURFSavedVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
+SET_TARGET_PROPERTIES(vtkURFSavedVideoSourceTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection )
 ENDIF()
 #Test is to be added.
@@ -345,12 +371,14 @@ ENDIF()
 #***************************  vtkWin32VideoSourceTest.cxx ***************************
 IF (PLUS_USE_VFW_VIDEO)
   ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkWin32VideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
 #***************************  vtkMmfVideoSourceTest.cxx ***************************
 IF (PLUS_USE_MMF_VIDEO)
   ADD_EXECUTABLE(vtkMmfVideoSourceTest vtkMmfVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkMmfVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection )
 
   IF (PLUS_TEST_MMF_VIDEO)
@@ -366,35 +394,41 @@ ENDIF()
 #***************************  vtkEpiphanVideoSourceTest.cxx ***************************
 IF (PLUS_USE_EPIPHAN)
   ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkEpiphanVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
 #*************************** MicronTrackerTest ***************************
 IF (PLUS_USE_MICRONTRACKER)
     ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
+SET_TARGET_PROPERTIES(vtkMicronTrackerTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon)    
 ENDIF() 
 
 #*************************** IntelRealSenseTrackerTest ***************************
 IF (PLUS_USE_INTELREALSENSE)
     ADD_EXECUTABLE(vtkIntelRealSenseTrackerTest vtkIntelRealSenseTrackerTest.cxx)
+SET_TARGET_PROPERTIES(vtkIntelRealSenseTrackerTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon)    
 ENDIF()
 
 #***************************  vtkNVidiaDVPVideoSourceTest ***************************
 IF (PLUS_USE_NVIDIA_DVP)
   ADD_EXECUTABLE(vtkNVidiaDVPVideoSourceTest vtkNVidiaDVPVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkNVidiaDVPVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkNVidiaDVPVideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
 #***************************  vtkOvrvisionProVideoSourceTest ***************************
 IF (PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
+SET_TARGET_PROPERTIES(vtkOvrvisionProVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkOvrvisionProVideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
 #*************************** vtkPlusDeviceFactoryTest ***************************
 ADD_EXECUTABLE(vtkPlusDeviceFactoryTest vtkPlusDeviceFactoryTest.cxx)
+SET_TARGET_PROPERTIES(vtkPlusDeviceFactoryTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkPlusDeviceFactoryTest vtkPlusDataCollection vtkPlusCommon)
 ADD_TEST(vtkPlusDeviceFactoryTest 
   ${EXECUTABLE_OUTPUT_PATH}/vtkPlusDeviceFactoryTest
@@ -404,29 +438,34 @@ ADD_TEST(vtkPlusDeviceFactoryTest
 #*************************** NDICertusTest ***************************
 IF (PLUS_USE_NDI_CERTUS)
   ADD_EXECUTABLE(NDICertusTest NDICertusTest.cxx)
+SET_TARGET_PROPERTIES(NDICertusTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(NDICertusTest vtkPlusDataCollection)
 ENDIF()
 
 #*************************** CmsBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CmsBrachyStepperTest CmsBrachyStepperTest.cxx)
+SET_TARGET_PROPERTIES(CmsBrachyStepperTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF()
 
 #*************************** CivcoBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
+SET_TARGET_PROPERTIES(CivcoBrachyStepperTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF()
 
 #*************************** USDigitalEncoderStepperTest ***************************
 IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     ADD_EXECUTABLE(vtkUSDigitalEncodersTrackerTest vtkUSDigitalEncodersTrackerTest.cxx)
+SET_TARGET_PROPERTIES(vtkUSDigitalEncodersTrackerTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
 ENDIF()
 
 #*************************** TransformInterpolationTest ***************************
 ADD_EXECUTABLE(TransformInterpolationTest TransformInterpolationTest.cxx)
+SET_TARGET_PROPERTIES(TransformInterpolationTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkPlusCommon vtkPlusDataCollection)
 
 ADD_TEST(TransformInterpolationTest 
@@ -437,17 +476,10 @@ ADD_TEST(TransformInterpolationTest
   --max-translation-difference=0.5
   )
 
-# OpenIGTLink 
-IF( PLUS_USE_OpenIGTLink )
-
-  ADD_EXECUTABLE(BrainLabTrackerSim BrainLabTrackerSim.cxx)
-  TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
-  
-ENDIF()
-
 #*************************** vtkVirtualTextRecognizerTest ***************************
 IF (PLUS_TEST_tesseract)
     ADD_EXECUTABLE(vtkVirtualTextRecognizerTest vtkVirtualTextRecognizerTest.cxx)
+SET_TARGET_PROPERTIES(vtkVirtualTextRecognizerTest PROPERTIES FOLDER Tests)
     TARGET_LINK_LIBRARIES(vtkVirtualTextRecognizerTest vtkPlusDataCollection vtkPlusCommon)
     
     ADD_TEST(vtkVirtualTextRecognizerTest 

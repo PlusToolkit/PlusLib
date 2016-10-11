@@ -1,8 +1,3 @@
-SET(CMAKE_MODULE_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR}/Modules
-  ${CMAKE_MODULE_PATH}
-  )
-
 PROJECT(MfVideoCaptureLibrary)
 
 SET (MfVideoCaptureLibrary_INCLUDE_DIRS
@@ -52,6 +47,7 @@ foreach(_lib ${MfVideoCaptureLibraryLibNames})
 endforeach()
 
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
+SET_TARGET_PROPERTIES(MfVideoCaptureLibrary PROPERTIES FOLDER Utilities)
 TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary ${MfVideoCaptureLibrary_LIBS})
 target_include_directories(MfVideoCaptureLibrary PUBLIC ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS})
 

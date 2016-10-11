@@ -9,13 +9,8 @@ SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS}
 #
 # Find ITK
 #
-FIND_PACKAGE(ITK)
-IF(ITK_FOUND)
-  INCLUDE(${ITK_USE_FILE})
-ELSE(ITK_FOUND)
-  MESSAGE(FATAL_ERROR "Cannot find ITK.  Please set ITK_DIR.")
-ENDIF(ITK_FOUND)
-
+FIND_PACKAGE(ITK REQUIRED NO_MODULE)
+INCLUDE(${ITK_USE_FILE})
 
 SET (RANSAC_INCLUDE_DIRS
   ${RANSAC_SOURCE_DIR}
@@ -23,57 +18,59 @@ SET (RANSAC_INCLUDE_DIRS
 )
 
 SET(RANSAC_HDRS
-    RANSAC.h
-    RANSAC.txx
-    ParametersEstimator.h
-    ParametersEstimator.txx
-    )
+  RANSAC.h
+  RANSAC.txx
+  ParametersEstimator.h
+  ParametersEstimator.txx
+  )
 
 SET(EXAMPLES_DIRECTORY
-    ${RANSAC_SOURCE_DIR}/Examples
-    )
-
-LINK_LIBRARIES (
-  ITKCommon
-  itkvnl
-  itkvnl_algo
-)
+  ${RANSAC_SOURCE_DIR}/Examples
+  )
 
 #
 # First example program showing the use of RANSAC for plane fitting
 #
 SET(PLANE_ESTIMATION_HDRS
-    ${RANSAC_HDRS}
-    PlaneParametersEstimator.h
-    PlaneParametersEstimator.txx
-    )
+  ${RANSAC_HDRS}
+  PlaneParametersEstimator.h
+  PlaneParametersEstimator.txx
+  )
 
 SET(PLANE_ESTIMATION_SRCS
-    ${EXAMPLES_DIRECTORY}/planeEstimation.cxx
-    )
+  ${EXAMPLES_DIRECTORY}/planeEstimation.cxx
+  )
 
 ADD_EXECUTABLE(planeEstimation ${PLANE_ESTIMATION_HDRS} ${PLANE_ESTIMATION_SRCS})
+SET_TARGET_PROPERTIES(planeEstimation PROPERTIES FOLDER Utilities)
 target_include_directories(planeEstimation PUBLIC ${RANSAC_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(planeEstimation ${LINK_LIBRARIES})
-
+TARGET_LINK_LIBRARIES(planeEstimation PUBLIC 
+  ITKCommon
+  itkvnl
+  itkvnl_algo
+  )
 
 #
 # Second example program showing the use of RANSAC for sphere fitting
 #
 SET(SPHERE_ESTIMATION_HDRS
-    ${RANSAC_HDRS}
-    SphereParametersEstimator.h
-    SphereParametersEstimator.txx
-    )
+  ${RANSAC_HDRS}
+  SphereParametersEstimator.h
+  SphereParametersEstimator.txx
+  )
 
 SET(SPHERE_ESTIMATION_SRCS
-    ${EXAMPLES_DIRECTORY}/sphereEstimation.cxx
+  ${EXAMPLES_DIRECTORY}/sphereEstimation.cxx
 )
 
 ADD_EXECUTABLE(sphereEstimation ${SPHERE_ESTIMATION_HDRS} ${SPHERE_ESTIMATION_SRCS})
+SET_TARGET_PROPERTIES(sphereEstimation PROPERTIES FOLDER Utilities)
 target_include_directories(sphereEstimation PUBLIC ${RANSAC_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(sphereEstimation ${LINK_LIBRARIES})
-
+TARGET_LINK_LIBRARIES(sphereEstimation PUBLIC 
+  ITKCommon
+  itkvnl
+  itkvnl_algo
+  )
 
 #
 # Optional testing of the plane and sphere estimation code

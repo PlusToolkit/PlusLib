@@ -172,27 +172,32 @@ ENDIF()
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(RfProcessor Tools/RfProcessor.cxx )
+  SET_TARGET_PROPERTIES(RfProcessor PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(RfProcessor vtkPlusImageProcessing ${VTK_LIBRARIES} )
   GENERATE_HELP_DOC(RfProcessor)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(DrawScanLines Tools/DrawScanLines.cxx )
+  SET_TARGET_PROPERTIES(DrawScanLines PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(DrawScanLines vtkPlusImageProcessing )
   GENERATE_HELP_DOC(DrawScanLines)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(ExtractScanLines Tools/ExtractScanLines.cxx)
+  SET_TARGET_PROPERTIES(ExtractScanLines PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ExtractScanLines vtkPlusImageProcessing)
   GENERATE_HELP_DOC(ExtractScanLines)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(ScanConvert Tools/ScanConvert.cxx)
+  SET_TARGET_PROPERTIES(ScanConvert PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ScanConvert vtkPlusImageProcessing)
   GENERATE_HELP_DOC(ScanConvert)
 
   #---------------------------------------------------------------------------
   IF (PLUS_USE_INTEL_MKL)
     ADD_EXECUTABLE(EnhanceBone Tools/EnhanceBone.cxx )
+  SET_TARGET_PROPERTIES(EnhanceBone PROPERTIES FOLDER Tools)
     TARGET_LINK_LIBRARIES(EnhanceBone vtkPlusImageProcessing )
     GENERATE_HELP_DOC(EnhanceBone)
   ENDIF (PLUS_USE_INTEL_MKL)

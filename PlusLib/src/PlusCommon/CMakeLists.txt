@@ -86,11 +86,13 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtk
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(EditSequenceFile Tools/EditSequenceFile.cxx )
+  SET_TARGET_PROPERTIES(EditSequenceFile PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon )
   GENERATE_HELP_DOC(EditSequenceFile)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
+  SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
 
   INSTALL(TARGETS EditSequenceFile ModelRenderer

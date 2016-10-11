@@ -108,7 +108,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE( ConvertFcsvToXml
     Tools/ConvertFcsvToXml.cxx
     )
-
+  SET_TARGET_PROPERTIES(ConvertFcsvToXml PROPERTIES FOLDER Tools)
   # Link the executable to the algo library.
   TARGET_LINK_LIBRARIES( ConvertFcsvToXml
     vtkPlusCalibration
@@ -121,7 +121,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE( ConvertXmlToFcsv
     Tools/ConvertXmlToFcsv.cxx
     )
-
+  SET_TARGET_PROPERTIES(ConvertXmlToFcsv PROPERTIES FOLDER Tools)
   # Link the executable to the algo library.
   TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
     vtkPlusCalibration
@@ -132,11 +132,13 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(TemporalCalibration Tools/TemporalCalibration.cxx)
+  SET_TARGET_PROPERTIES(TemporalCalibration PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES} vtkPlusDataCollection)
   GENERATE_HELP_DOC(TemporalCalibration)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ProbeCalibration Tools/ProbeCalibration.cxx)
+  SET_TARGET_PROPERTIES(ProbeCalibration PROPERTIES FOLDER Tools)
   TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
   GENERATE_HELP_DOC(ProbeCalibration)
 
