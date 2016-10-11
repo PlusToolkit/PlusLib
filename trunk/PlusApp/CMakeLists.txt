@@ -17,6 +17,13 @@ SET(PLUSAPP_VERSION_PATCH ${PLUSLIB_VERSION_PATCH})
 SET(PLUSAPP_VERSION ${PLUSAPP_VERSION_MAJOR}.${PLUSAPP_VERSION_MINOR}.${PLUSAPP_VERSION_PATCH})
 SET(PLUSAPP_REVISION ${PLUSLIB_REVISION})
 
+# Use solution folders.
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+  SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
+  SET_PROPERTY(GLOBAL PROPERTY AUTOGEN_TARGETS_FOLDER "AutoGen (Qt) Targets")
+ENDIF()
+
 SET(PLUSAPP_PACKAGE_EDITION "" CACHE STRING "Specifies a name that refers to the combination of hardware devices the created install package supports. The name is added to the package filename.")
 
 MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
@@ -31,6 +38,15 @@ OPTION(BUILD_TESTING
        ON)
 
 INCLUDE(CTest)
+
+# Clean up the IDE folder name for CTest dashboard targets
+IF(BUILD_TESTING)
+  FOREACH(mode Experimental Nightly Continuous NightlyMemoryCheck)
+    IF(TARGET ${mode})
+      SET_PROPERTY(TARGET ${mode} PROPERTY FOLDER "CTest Targets")
+    ENDIF()
+  ENDFOREACH()
+ENDIF()
 
 # Setup file for setting custom ctest vars (for ignoring certain warnings, etc.)
 CONFIGURE_FILE(
@@ -167,7 +183,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 IF (PLUSAPP_BUILD_DiagnosticTools)
   ADD_SUBDIRECTORY(DiagnosticTools)
-  ADD_DEPENDENCIES(DiagPlusDataCollection ${PLUSLIB_DEPENDENCIES})
+  ADD_DEPENDENCIES(DiagDataCollection ${PLUSLIB_DEPENDENCIES})
 ENDIF()
 
 # --------------------------------------------------------------------------

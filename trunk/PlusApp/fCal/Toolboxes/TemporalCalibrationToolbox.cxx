@@ -1191,7 +1191,7 @@ void TemporalCalibrationToolbox::FixedSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
   this->FixedType = this->ui.comboBox_FixedSourceValue->currentData().toString().compare("Video") == 0
-    ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+                    ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
 }
 
 //-----------------------------------------------------------------------------
@@ -1199,7 +1199,7 @@ void TemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
 {
   this->SetDisplayAccordingToState();
   this->MovingType = this->ui.comboBox_MovingSourceValue->currentData().toString().compare("Video") == 0
-    ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+                     ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
 }
 
 //-----------------------------------------------------------------------------

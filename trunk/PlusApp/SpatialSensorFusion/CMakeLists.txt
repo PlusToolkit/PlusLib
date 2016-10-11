@@ -1,6 +1,7 @@
 # --------------------------------------------------------------------------
 # SpatialSensorFusion
 ADD_EXECUTABLE(SpatialSensorFusion SpatialSensorFusion.cxx)
+SET_TARGET_PROPERTIES(SpatialSensorFusion PROPERTIES FOLDER Utilities)
 TARGET_LINK_LIBRARIES(SpatialSensorFusion PUBLIC vtkxio vtkPlusCommon)
 GENERATE_HELP_DOC(SpatialSensorFusion)
 

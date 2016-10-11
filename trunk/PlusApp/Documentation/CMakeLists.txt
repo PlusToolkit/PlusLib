@@ -67,7 +67,10 @@ ENDIF( DOXYGEN_FOUND )
 # Build the list of dox files for convenient editing
 FILE(GLOB PlusAppDocumentation_DOXS ${CMAKE_CURRENT_SOURCE_DIR}/*.dox)
 FILE(GLOB PlusLibDocumentation_DOXS ${PLUSLIB_SOURCE_DIR}/src/Documentation/UserManual/*.dox)
-ADD_CUSTOM_TARGET(Documentation-PlusApp-${TARGET_NAME} DEPENDS ${DOC_OUTPUT_FILE} SOURCES ${PlusLibDocumentation_DOXS} ${PlusAppDocumentation_DOXS})
+ADD_CUSTOM_TARGET(Documentation-PlusApp-${TARGET_NAME} 
+  DEPENDS ${DOC_OUTPUT_FILE} 
+  SOURCES ${PlusLibDocumentation_DOXS} ${PlusAppDocumentation_DOXS})
+SET_TARGET_PROPERTIES(Documentation-PlusApp-${TARGET_NAME} PROPERTIES FOLDER Documentation)
 
 IF( BUILD_DOCUMENTATION )
   SET_TARGET_PROPERTIES(Documentation-PlusApp-${TARGET_NAME} PROPERTIES LABELS Documentation)

@@ -37,7 +37,7 @@ typedef struct
 int main(int argc, char* argv[])
 {
   bool printHelp(false);
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   int port = 18944;
 
   vtksys::CommandLineArguments args;
@@ -47,14 +47,14 @@ int main(int argc, char* argv[])
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &port, "Server port number");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  if ( printHelp )
+  if (printHelp)
   {
     std::cout << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
       //------------------------------------------------------------
       // loop
-      while(true)
+      while (true)
       {
         // Receive generic header from the socket
         int rs = socket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
@@ -123,11 +123,11 @@ int main(int argc, char* argv[])
 
         // Check data type and receive data body
         igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
-        if( bodyMsg.IsNull() )
+        if (bodyMsg.IsNull())
         {
           continue;
         }
-        if ( typeid(*bodyMsg) == typeid(igtl::StartTrackingDataMessage) )
+        if (typeid(*bodyMsg) == typeid(igtl::StartTrackingDataMessage))
         {
           std::cerr << "Received a STT_TDATA message." << std::endl;
 
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
             threadID    = threader->SpawnThread((igtl::ThreadFunctionType) &ThreadFunction, &td);
           }
         }
-        else if ( typeid(*bodyMsg) == typeid(igtl::StopTrackingDataMessage) )
+        else if (typeid(*bodyMsg) == typeid(igtl::StopTrackingDataMessage))
         {
           socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           std::cerr << "Received a STP_TDATA message." << std::endl;
@@ -294,10 +294,10 @@ void GetRandomTestMatrix(igtl::Matrix4x4& matrix, float phi, float theta)
   phi = phi + 0.2;
 
   // random orientation
-  orientation[0]=0.0;
-  orientation[1]=0.6666666666*cos(theta);
-  orientation[2]=0.577350269189626;
-  orientation[3]=0.6666666666*sin(theta);
+  orientation[0] = 0.0;
+  orientation[1] = 0.6666666666 * cos(theta);
+  orientation[2] = 0.577350269189626;
+  orientation[3] = 0.6666666666 * sin(theta);
   theta = theta + 0.1;
 
   //igtl::Matrix4x4 matrix;

@@ -952,14 +952,12 @@ PlusStatus vtkPlusImageVisualizer::SetWireLabelPositions(vtkPoints* aPointList)
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkPlusImageVisualizer::Reset()
 {
   return this->ClearWireLabelVisualization();
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus vtkPlusImageVisualizer::ClearWireLabelVisualization()
 {
   for (auto it = this->WireActors.begin(); it != this->WireActors.end(); ++it)

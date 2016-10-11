@@ -44,7 +44,7 @@ public:
   * \param aParent Parent object
   * \param aDataCollector Data collector (needed for the image output)
   */
-  PlusSegmentationParameterDialog( QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel );
+  PlusSegmentationParameterDialog(QWidget* aParent, vtkPlusDataCollector* aCollector, vtkPlusChannel* aChannel);
 
   /*!
   * Destructor
@@ -65,19 +65,19 @@ public:
   * \param Output array for image dimensions
   * \return Success flag
   */
-  PlusStatus GetFrameSize( int aImageDimensions[3] );
+  PlusStatus GetFrameSize(int aImageDimensions[3]);
 
   /*!
   * Set ROI values to spinBoxes (if a values is -1, it is not set - because usually only 2 values change at a time)
   * \return Success flag
   */
-  PlusStatus SetROI( unsigned int aXMin, unsigned int aYMin, unsigned int aXMax, unsigned int aYMax );
+  PlusStatus SetROI(unsigned int aXMin, unsigned int aYMin, unsigned int aXMax, unsigned int aYMax);
 
   /*!
   * Get ROI values from spinBoxes
   * \return Success flag
   */
-  PlusStatus GetROI( unsigned int& aXMin, unsigned int& aYMin, unsigned int& aXMax, unsigned int& aYMax );
+  PlusStatus GetROI(unsigned int& aXMin, unsigned int& aYMin, unsigned int& aXMax, unsigned int& aYMax);
 
   /*!
   * Compute and set spacing according to summed measured length (got from the mode handler)
@@ -158,19 +158,19 @@ protected slots:
   * Slot handling ROI groupbox toggle
   * \param aOn True if checked, false if unchecked
   */
-  void GroupBoxROIToggled( bool aOn );
+  void GroupBoxROIToggled(bool aOn);
 
   /*!
   * Slot handling spacing groupbox toggle
   * \param aOn True if checked, false if unchecked
   */
-  void GroupBoxSpacingToggled( bool aOn );
+  void GroupBoxSpacingToggled(bool aOn);
 
   /*!
   * Resize event handler
   * \param aEvent Resize event
   */
-  virtual void resizeEvent( QResizeEvent* aEvent );
+  virtual void resizeEvent(QResizeEvent* aEvent);
 
   /*!
   * Slot catching refresh timer events and refreshing the canvas
@@ -181,7 +181,7 @@ protected slots:
   * Freeze / Unfreeze image
   * \param aOn True if checked (freeze), false if unchecked (unfreeze)
   */
-  void FreezeImage( bool aOn );
+  void FreezeImage(bool aOn);
 
   /*!
   * Export frozen image into a single-frame metafile
@@ -192,109 +192,109 @@ protected slots:
   * Slot handling ROI XMin value change
   * \param aValue New value
   */
-  void ROIXMinChanged( int aValue );
+  void ROIXMinChanged(int aValue);
 
   /*!
   * Slot handling ROI YMin value change
   * \param aValue New value
   */
-  void ROIYMinChanged( int aValue );
+  void ROIYMinChanged(int aValue);
 
   /*!
   * Slot handling ROI XMax value change
   * \param aValue New value
   */
-  void ROIXMaxChanged( int aValue );
+  void ROIXMaxChanged(int aValue);
 
   /*!
   * Slot handling ROI YMax value change
   * \param aValue New value
   */
-  void ROIYMaxChanged( int aValue );
+  void ROIYMaxChanged(int aValue);
 
   /*!
   * Slot handling reference width value change
   * \param aValue New value
   */
-  void ReferenceWidthChanged( int aValue );
+  void ReferenceWidthChanged(int aValue);
 
   /*!
   * Slot handling reference height value change
   * \param aValue New value
   */
-  void ReferenceHeightChanged( int aValue );
+  void ReferenceHeightChanged(int aValue);
 
   /*!
   * Slot handling opening circle radius value change
   * \param aValue New value
   */
-  void OpeningCircleRadiusChanged( double aValue );
+  void OpeningCircleRadiusChanged(double aValue);
 
   /*!
   * Slot handling opening bar size value change
   * \param aValue New value
   */
-  void OpeningBarSizeChanged( double aValue );
+  void OpeningBarSizeChanged(double aValue);
 
   /*!
   * Slot handling line pair distance error value change
   * \param aValue New value
   */
-  void LinePairDistanceErrorChanged( double aValue );
+  void LinePairDistanceErrorChanged(double aValue);
 
   /*!
   * Slot handling angle difference value change
   * \param aValue New value
   */
-  void AngleDifferenceChanged( double aValue );
+  void AngleDifferenceChanged(double aValue);
 
   /*!
   * Slot handling minimum theta value change
   * \param aValue New value
   */
-  void MinThetaChanged( double aValue );
+  void MinThetaChanged(double aValue);
 
   /*!
   * Slot handling maximum theta value change
   * \param aValue New value
   */
-  void MaxThetaChanged( double aValue );
+  void MaxThetaChanged(double aValue);
 
   /*!
   * Slot handling angle tolerance value change
   * \param aValue New value
   */
-  void AngleToleranceChanged( double aValue );
+  void AngleToleranceChanged(double aValue);
 
   /*!
   * Slot handling line 3rd point distance value change
   * \param aValue New value
   */
-  void CollinearPointsMaxDistanceFromLineChanged( double aValue );
+  void CollinearPointsMaxDistanceFromLineChanged(double aValue);
 
   /*!
   * Slot handling image threshold value change
   * \param aValue New value
   */
-  void ImageThresholdChanged( double aValue );
+  void ImageThresholdChanged(double aValue);
 
   /*!
   * Slot handling max line shift value change
   * \param aValue New value
   */
-  void MaxLineShiftMmChanged( double aValue );
+  void MaxLineShiftMmChanged(double aValue);
 
   /*!
   * Slot handling max candidates change
   * \param aValue New value
   */
-  void MaxCandidatesChanged( double aValue );
+  void MaxCandidatesChanged(double aValue);
 
   /*!
   * Slot handling original intensity for dots chechbox toggle
   * \param aOn New state
   */
-  void OriginalIntensityForDotsToggled( bool aOn );
+  void OriginalIntensityForDotsToggled(bool aOn);
 
 protected:
   /*! Data collector */

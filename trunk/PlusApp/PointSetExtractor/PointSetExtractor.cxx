@@ -43,7 +43,7 @@
 #include "vtkXMLUtilities.h"
 #include <vtksys/CommandLineArguments.hxx>
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
 
   // Parse command-line arguments
@@ -59,87 +59,87 @@ int main( int argc, char** argv )
   bool addSpheres = false;
   double radius = 1;
 
-  std::string stylusName( "Stylus" );
-  std::string referenceName( "Reference" );
+  std::string stylusName("Stylus");
+  std::string referenceName("Reference");
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
-  args.Initialize( argc, argv );
+  args.Initialize(argc, argv);
 
-  args.AddArgument( "--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help." );
-  args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file" );
-  args.AddArgument( "--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data" );
-  args.AddArgument( "--stylus-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusName, "Name of the stylus tool (Default: Stylus)" );
-  args.AddArgument( "--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)" );
-  args.AddArgument( "--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputPointsFileName, "Filename of the output pointset file in PLY format (optional)" );
-  args.AddArgument( "--display", vtksys::CommandLineArguments::NO_ARGUMENT, &display, "Show the points on the screen (optional)" );
-  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
-  args.AddArgument( "--output-surface-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output sruface file in STL format (required if spheres or tube added)" );
-  args.AddArgument( "--add-spheres", vtksys::CommandLineArguments::NO_ARGUMENT, &addSpheres, "Add a sphere at each point position (optional)" );
-  args.AddArgument( "--add-tube", vtksys::CommandLineArguments::NO_ARGUMENT, &addTube, "Add a tube connecting the point positions (optional)" );
-  args.AddArgument( "--radius", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &radius, "Radius of the tube or speheres (default: 5)" );
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file");
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSequenceFileName, "Name of the input sequence metafile that contains the tracking data");
+  args.AddArgument("--stylus-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &stylusName, "Name of the stylus tool (Default: Stylus)");
+  args.AddArgument("--reference-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &referenceName, "Name of the reference tool (Default: Reference)");
+  args.AddArgument("--output-pointset-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputPointsFileName, "Filename of the output pointset file in PLY format (optional)");
+  args.AddArgument("--display", vtksys::CommandLineArguments::NO_ARGUMENT, &display, "Show the points on the screen (optional)");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
+  args.AddArgument("--output-surface-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputSurfaceFileName, "Filename of the output sruface file in STL format (required if spheres or tube added)");
+  args.AddArgument("--add-spheres", vtksys::CommandLineArguments::NO_ARGUMENT, &addSpheres, "Add a sphere at each point position (optional)");
+  args.AddArgument("--add-tube", vtksys::CommandLineArguments::NO_ARGUMENT, &addTube, "Add a tube connecting the point positions (optional)");
+  args.AddArgument("--radius", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &radius, "Radius of the tube or speheres (default: 5)");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
-  if ( printHelp )
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  if (printHelp)
   {
     std::cout << "Help: " << args.GetHelp() << std::endl;
-    exit( EXIT_SUCCESS );
+    exit(EXIT_SUCCESS);
 
   }
-  if ( inputSequenceFileName.empty() )
+  if (inputSequenceFileName.empty())
   {
     std::cerr << "input-seq-file-name is required" << std::endl;
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
 
   // Read the file and do the conversion
   ///////////////
 
-  LOG_INFO( "Read input file..." );
+  LOG_INFO("Read input file...");
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read( inputSequenceFileName, trackedFrameList ) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Read(inputSequenceFileName, trackedFrameList) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to read tracked pose sequence metafile: " << inputSequenceFileName );
+    LOG_ERROR("Failed to read tracked pose sequence metafile: " << inputSequenceFileName);
     return EXIT_FAILURE;
   }
 
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   // Read config file
-  if ( !inputConfigFileName.empty() )
+  if (!inputConfigFileName.empty())
   {
-    LOG_DEBUG( "Reading config file..." )
-    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take( ::vtkXMLUtilities::ReadElementFromFile( inputConfigFileName.c_str() ) );
-    transformRepository->ReadConfiguration( configRead );
-    LOG_DEBUG( "Reading config file finished." );
+    LOG_DEBUG("Reading config file...")
+    vtkSmartPointer<vtkXMLDataElement> configRead = vtkSmartPointer<vtkXMLDataElement>::Take(::vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+    transformRepository->ReadConfiguration(configRead);
+    LOG_DEBUG("Reading config file finished.");
   }
 
-  PlusTransformName stylusToReferenceTransformName( stylusName, referenceName );
-  if ( !stylusToReferenceTransformName.IsValid() )
+  PlusTransformName stylusToReferenceTransformName(stylusName, referenceName);
+  if (!stylusToReferenceTransformName.IsValid())
   {
-    LOG_ERROR( "The tool names (" << stylusName << ", " << referenceName << ") are invalid" );
+    LOG_ERROR("The tool names (" << stylusName << ", " << referenceName << ") are invalid");
     return EXIT_FAILURE;
   }
 
   //  Get StylusTip positions in the reference coordinate frame
-  LOG_INFO( "Extract points..." );
+  LOG_INFO("Extract points...");
   vtkSmartPointer<vtkPoints> surfacePoints = vtkSmartPointer<vtkPoints>::New();
   double stylusTipPositionInReferenceFrame[4] = {0, 0, 0, 1};
-  for ( unsigned int frame = 0; frame < trackedFrameList->GetNumberOfTrackedFrames(); ++frame )
+  for (unsigned int frame = 0; frame < trackedFrameList->GetNumberOfTrackedFrames(); ++frame)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame( frame );
-    transformRepository->SetTransforms( *trackedFrame );
+    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(frame);
+    transformRepository->SetTransforms(*trackedFrame);
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     bool valid = false;
-    transformRepository->GetTransform( stylusToReferenceTransformName, stylusToReferenceTransform, &valid );
-    if ( !valid )
+    transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceTransform, &valid);
+    if (!valid)
     {
       // There is no available transform for this frame; skip that frame
       continue;
@@ -148,97 +148,97 @@ int main( int argc, char** argv )
     stylusTipPositionInReferenceFrame[1] = stylusToReferenceTransform->Element[1][3];
     stylusTipPositionInReferenceFrame[2] = stylusToReferenceTransform->Element[2][3];
 
-    LOG_DEBUG( "Stylus tip position: "
-               << stylusTipPositionInReferenceFrame[0] << ",   "
-               << stylusTipPositionInReferenceFrame[1] << ",   "
-               << stylusTipPositionInReferenceFrame[2] );
-    surfacePoints->InsertNextPoint( stylusTipPositionInReferenceFrame );
+    LOG_DEBUG("Stylus tip position: "
+              << stylusTipPositionInReferenceFrame[0] << ",   "
+              << stylusTipPositionInReferenceFrame[1] << ",   "
+              << stylusTipPositionInReferenceFrame[2]);
+    surfacePoints->InsertNextPoint(stylusTipPositionInReferenceFrame);
   }
   int numberOfPoints = surfacePoints->GetNumberOfPoints();
-  LOG_INFO( "Number of points: " << numberOfPoints );
+  LOG_INFO("Number of points: " << numberOfPoints);
 
   // Create a polydata, with a vertex at each point
   vtkSmartPointer<vtkCellArray> polyDataCells = vtkSmartPointer<vtkCellArray>::New();
-  for ( vtkIdType ptIndex = 0; ptIndex < numberOfPoints; ptIndex++ )
+  for (vtkIdType ptIndex = 0; ptIndex < numberOfPoints; ptIndex++)
   {
-    polyDataCells->InsertNextCell( vtkIdType( 1 ), &ptIndex );
+    polyDataCells->InsertNextCell(vtkIdType(1), &ptIndex);
   }
   vtkSmartPointer<vtkPolyData> pointsPolyData = vtkSmartPointer<vtkPolyData>::New();
-  pointsPolyData->SetPoints( surfacePoints );
-  pointsPolyData->SetVerts( polyDataCells );
+  pointsPolyData->SetPoints(surfacePoints);
+  pointsPolyData->SetVerts(polyDataCells);
 
   vtkSmartPointer<vtkAppendPolyData> polyDataAppend = vtkSmartPointer<vtkAppendPolyData>::New();
 
-  polyDataAppend->AddInputData( pointsPolyData );
+  polyDataAppend->AddInputData(pointsPolyData);
 
-  if ( addSpheres )
+  if (addSpheres)
   {
     vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-    sphere->SetThetaResolution( 16 );
-    sphere->SetPhiResolution( 16 );
-    sphere->SetRadius( radius );
+    sphere->SetThetaResolution(16);
+    sphere->SetPhiResolution(16);
+    sphere->SetRadius(radius);
     sphere->Update();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    glyph->SetInputData( pointsPolyData );
-    glyph->SetSourceData( sphere->GetOutput() );
+    glyph->SetInputData(pointsPolyData);
+    glyph->SetSourceData(sphere->GetOutput());
 
-    polyDataAppend->AddInputConnection( glyph->GetOutputPort() );
+    polyDataAppend->AddInputConnection(glyph->GetOutputPort());
   }
 
-  if ( addTube )
+  if (addTube)
   {
     vtkSmartPointer<vtkLineSource> line = vtkSmartPointer<vtkLineSource>::New();
-    line->SetPoints( surfacePoints );
+    line->SetPoints(surfacePoints);
     vtkSmartPointer<vtkTubeFilter> tube = vtkSmartPointer<vtkTubeFilter>::New();
-    tube->SetInputConnection( line->GetOutputPort() );
-    tube->SetNumberOfSides( 32 );
-    tube->SetRadius( radius );
+    tube->SetInputConnection(line->GetOutputPort());
+    tube->SetNumberOfSides(32);
+    tube->SetRadius(radius);
     tube->CappingOn();
     vtkSmartPointer<vtkTriangleFilter> triangulator = vtkSmartPointer<vtkTriangleFilter>::New();
-    triangulator->SetInputConnection( tube->GetOutputPort() )    ;
-    polyDataAppend->AddInputConnection( triangulator->GetOutputPort() );
+    triangulator->SetInputConnection(tube->GetOutputPort())    ;
+    polyDataAppend->AddInputConnection(triangulator->GetOutputPort());
   }
 
   polyDataAppend->Update();
 
   // Write to output file
-  if ( !outputPointsFileName.empty() )
+  if (!outputPointsFileName.empty())
   {
-    LOG_INFO( "Write points to " << outputPointsFileName );
+    LOG_INFO("Write points to " << outputPointsFileName);
     vtkSmartPointer<vtkPLYWriter> polyWriter = vtkSmartPointer<vtkPLYWriter>::New();
-    polyWriter->SetInputData( pointsPolyData );
-    polyWriter->SetFileName( outputPointsFileName.c_str() );
+    polyWriter->SetInputData(pointsPolyData);
+    polyWriter->SetFileName(outputPointsFileName.c_str());
     polyWriter->Update();
   }
-  if ( !outputSurfaceFileName.empty() )
+  if (!outputSurfaceFileName.empty())
   {
-    LOG_INFO( "Write surface to " << outputSurfaceFileName );
+    LOG_INFO("Write surface to " << outputSurfaceFileName);
     vtkSmartPointer<vtkSTLWriter> polyWriter = vtkSmartPointer<vtkSTLWriter>::New();
-    polyWriter->SetInputData( polyDataAppend->GetOutput() );
-    polyWriter->SetFileName( outputSurfaceFileName.c_str() );
+    polyWriter->SetInputData(polyDataAppend->GetOutput());
+    polyWriter->SetFileName(outputSurfaceFileName.c_str());
     polyWriter->Update();
   }
 
   // Display points in 3D renderer
-  if ( display )
+  if (display)
   {
-    LOG_INFO( "Visualize..." );
+    LOG_INFO("Visualize...");
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
-    renWin->AddRenderer( renderer );
+    renWin->AddRenderer(renderer);
 
     vtkSmartPointer<vtkPolyDataNormals> polyDataWithNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
-    polyDataWithNormals->SetInputConnection( polyDataAppend->GetOutputPort() );
+    polyDataWithNormals->SetInputConnection(polyDataAppend->GetOutputPort());
 
     vtkSmartPointer<vtkPolyDataMapper> pointsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    pointsMapper->SetInputConnection( polyDataWithNormals->GetOutputPort() );
+    pointsMapper->SetInputConnection(polyDataWithNormals->GetOutputPort());
     vtkSmartPointer<vtkActor> pointsActor = vtkSmartPointer<vtkActor>::New();
-    pointsActor->SetMapper( pointsMapper );
-    renderer->AddActor( pointsActor );
+    pointsActor->SetMapper(pointsMapper);
+    renderer->AddActor(pointsActor);
 
     vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    iren->SetRenderWindow( renWin );
+    iren->SetRenderWindow(renWin);
     renWin->Render();
     iren->Start();
   }

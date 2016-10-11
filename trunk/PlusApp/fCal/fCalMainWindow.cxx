@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "CapturingToolbox.h"
 #include "PlusConfigFileSaverDialog.h"
@@ -27,23 +27,22 @@ See License.txt for details.
 #include <QTimer>
 
 //-----------------------------------------------------------------------------
-
-fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WindowFlags flags)
-: QMainWindow(parent, flags)
-, m_StatusBarLabel(NULL)
-, m_StatusBarProgress(NULL)
-, m_LockedTabIndex(-1)
-, m_ActiveToolbox(ToolboxType_Undefined)
-, m_VisualizationController(NULL)
-, m_StatusIcon(NULL)
-, m_ShowPoints(false)
-, m_ForceShowAllDevicesIn3D(false)
-, m_ShowOrientationMarkerAction(NULL)
-, m_ShowROIAction(NULL)
-, m_Show3DObjectsAction(NULL)
-, m_ShowPhantomModelAction(NULL)
-, m_ShowPhantomWiresModelAction(NULL)
-, m_SelectedChannel(NULL)
+fCalMainWindow::fCalMainWindow(QWidget* parent, Qt::WindowFlags flags)
+  : QMainWindow(parent, flags)
+  , m_StatusBarLabel(NULL)
+  , m_StatusBarProgress(NULL)
+  , m_LockedTabIndex(-1)
+  , m_ActiveToolbox(ToolboxType_Undefined)
+  , m_VisualizationController(NULL)
+  , m_StatusIcon(NULL)
+  , m_ShowPoints(false)
+  , m_ForceShowAllDevicesIn3D(false)
+  , m_ShowOrientationMarkerAction(NULL)
+  , m_ShowROIAction(NULL)
+  , m_Show3DObjectsAction(NULL)
+  , m_ShowPhantomModelAction(NULL)
+  , m_ShowPhantomWiresModelAction(NULL)
+  , m_SelectedChannel(NULL)
 {
   // Set up UI
   ui.setupUi(this);
@@ -56,7 +55,6 @@ fCalMainWindow::fCalMainWindow(QWidget *parent, Qt::WindowFlags flags)
 }
 
 //-----------------------------------------------------------------------------
-
 fCalMainWindow::~fCalMainWindow()
 {
   if (m_VisualizationController != NULL)
@@ -78,7 +76,7 @@ fCalMainWindow::~fCalMainWindow()
     m_UiRefreshTimer = NULL;
   }
 
-  if( m_ShowOrientationMarkerAction != NULL )
+  if (m_ShowOrientationMarkerAction != NULL)
   {
     delete m_ShowOrientationMarkerAction;
     m_ShowOrientationMarkerAction = NULL;
@@ -88,7 +86,6 @@ fCalMainWindow::~fCalMainWindow()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::Initialize()
 {
   LOG_TRACE("fCalMainWindow::Initialize");
@@ -156,11 +153,11 @@ void fCalMainWindow::Initialize()
   SetupStatusBar();
 
   // Make connections
-  connect( ui.toolbox, SIGNAL( currentChanged(int) ), this, SLOT( CurrentToolboxChanged(int) ) );
-  connect( ui.pushButton_SaveConfiguration, SIGNAL( clicked() ), this, SLOT( SaveDeviceSetConfiguration() ) );
-  connect( m_UiRefreshTimer, SIGNAL( timeout() ), this, SLOT( UpdateGUI() ) );
-  connect( ui.horizontalSlider_SliceNumber, SIGNAL( valueChanged(int) ), this, SLOT(SliceNumberSliderChanged(int) ) );
-  connect( ui.spinBox_SliceNumber, SIGNAL( valueChanged(int) ), this, SLOT(SliceNumberSpinBoxChanged(int) ) );
+  connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)));
+  connect(ui.pushButton_SaveConfiguration, SIGNAL(clicked()), this, SLOT(SaveDeviceSetConfiguration()));
+  connect(m_UiRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateGUI()));
+  connect(ui.horizontalSlider_SliceNumber, SIGNAL(valueChanged(int)), this, SLOT(SliceNumberSliderChanged(int)));
+  connect(ui.spinBox_SliceNumber, SIGNAL(valueChanged(int)), this, SLOT(SliceNumberSpinBoxChanged(int)));
 
   // Tell the object visualizer to show orientation markers
   m_ShowOrientationMarkerAction->setChecked(true);
@@ -173,7 +170,6 @@ void fCalMainWindow::Initialize()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::CreateToolboxes()
 {
   LOG_TRACE("fCalMainWindow::CreateToolboxes");
@@ -196,7 +192,7 @@ void fCalMainWindow::CreateToolboxes()
   if (capturingToolbox != NULL)
   {
     QGridLayout* grid = new QGridLayout(ui.toolbox_Capturing);
-    grid->setRowStretch(1,1);
+    grid->setRowStretch(1, 1);
     grid->setVerticalSpacing(0);
     grid->setMargin(3);
     grid->addWidget(capturingToolbox);
@@ -256,7 +252,6 @@ void fCalMainWindow::CreateToolboxes()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetupStatusBar()
 {
   LOG_TRACE("fCalMainWindow::SetupStatusBar");
@@ -279,18 +274,17 @@ void fCalMainWindow::SetupStatusBar()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
 {
   LOG_TRACE("fCalMainWindow::CurrentToolboxChanged(" << aToolboxIndex << ")");
 
-  if( m_ActiveToolbox >= 0 )
+  if (m_ActiveToolbox >= 0)
   {
     m_ToolboxList[m_ActiveToolbox]->OnDeactivated();
   }
 
   // Initialize new toolbox
-  QString currentToolboxText = ui.toolbox->itemText( aToolboxIndex );
+  QString currentToolboxText = ui.toolbox->itemText(aToolboxIndex);
   if (currentToolboxText == QString("Configuration"))
   {
     m_ActiveToolbox = ToolboxType_Configuration;
@@ -332,33 +326,33 @@ void fCalMainWindow::CurrentToolboxChanged(int aToolboxIndex)
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetToolboxesEnabled(bool aEnabled)
 {
-  LOG_TRACE("fCalMainWindow::SetToolboxesEnabled(" << (aEnabled?"true":"false") << ")");
+  LOG_TRACE("fCalMainWindow::SetToolboxesEnabled(" << (aEnabled ? "true" : "false") << ")");
 
-  if (aEnabled) {
+  if (aEnabled)
+  {
     m_LockedTabIndex = -1;
-    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)) );
-    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)) );
-  } else {
+    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)));
+    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)));
+  }
+  else
+  {
     m_LockedTabIndex = ui.toolbox->currentIndex();
-    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)) );
-    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)) );
+    disconnect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(CurrentToolboxChanged(int)));
+    connect(ui.toolbox, SIGNAL(currentChanged(int)), this, SLOT(ChangeBackToolbox(int)));
   }
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::SetImageManipulationMenuEnabled( bool aEnabled )
+void fCalMainWindow::SetImageManipulationMenuEnabled(bool aEnabled)
 {
-  LOG_TRACE("fCalMainWindow::SetImageManipulationEnabled(" << (aEnabled?"true":"false") << ")");
+  LOG_TRACE("fCalMainWindow::SetImageManipulationEnabled(" << (aEnabled ? "true" : "false") << ")");
 
   ui.pushButton_ImageOrientation->setEnabled(aEnabled);
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ChangeBackToolbox(int aTabIndex)
 {
   LOG_TRACE("fCalMainWindow::ChangeBackToolbox(" << aTabIndex << ")");
@@ -369,33 +363,33 @@ void fCalMainWindow::ChangeBackToolbox(int aTabIndex)
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetStatusBarText(QString aText)
 {
-  //LOG_TRACE("fCalMainWindow::SetStatusBarText");
+  LOG_TRACE("fCalMainWindow::SetStatusBarText");
 
   m_StatusBarLabel->setText(aText);
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetStatusBarProgress(int aPercent)
 {
-  //LOG_TRACE("fCalMainWindow::SetStatusBarText");
+  LOG_TRACE("fCalMainWindow::SetStatusBarText");
 
-  if (aPercent == -1) {
+  if (aPercent == -1)
+  {
     m_StatusBarProgress->setVisible(false);
-  } else {
+  }
+  else
+  {
     m_StatusBarProgress->setValue(aPercent);
     m_StatusBarProgress->setVisible(true);
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::UpdateGUI()
 {
-  //LOG_TRACE("fCalMainWindow::UpdateGUI");
+  LOG_TRACE("fCalMainWindow::UpdateGUI");
 
   // We do not update the gui when a mouse button is pressed
   if (QApplication::mouseButtons() != Qt::NoButton)
@@ -419,19 +413,17 @@ void fCalMainWindow::UpdateGUI()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::resizeEvent(QResizeEvent* aEvent)
 {
   LOG_TRACE("fCalMainWindow::resizeEvent");
 
-  if( m_VisualizationController != NULL )
+  if (m_VisualizationController != NULL)
   {
     m_VisualizationController->resizeEvent(aEvent);
   }
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ResetAllToolboxes()
 {
   LOG_TRACE("fCalMainWindow::ResetAllToolboxes");
@@ -440,7 +432,7 @@ void fCalMainWindow::ResetAllToolboxes()
 
   for (std::vector<AbstractToolbox*>::iterator it = m_ToolboxList.begin(); it != m_ToolboxList.end(); ++it)
   {
-    if ( ((*it) != NULL) && ((*it)->GetState() > ToolboxState_Idle) )
+    if (((*it) != NULL) && ((*it)->GetState() > ToolboxState_Idle))
     {
       (*it)->Reset();
     }
@@ -448,20 +440,20 @@ void fCalMainWindow::ResetAllToolboxes()
 }
 
 //-----------------------------------------------------------------------------
-
-bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
+bool fCalMainWindow::eventFilter(QObject* obj, QEvent* ev)
 {
-  //LOG_TRACE("fCalMainWindow::eventFilter"); 
+  LOG_TRACE("fCalMainWindow::eventFilter");
+
   if (ev->type() == QEvent::MouseButtonRelease)
   {
-    QPushButton *button = static_cast<QPushButton*>(obj);
-    QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(ev);
-    if ( mouseEvent->button() == Qt::LeftButton )
+    QPushButton* button = static_cast<QPushButton*>(obj);
+    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(ev);
+    if (mouseEvent->button() == Qt::LeftButton)
     {
       QMenu* menu = NULL;
       if (obj == ui.pushButton_Tools)
       {
-        if( !ui.pushButton_Tools->isEnabled() )
+        if (!ui.pushButton_Tools->isEnabled())
         {
           return true;
         }
@@ -469,20 +461,20 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
         {
           menu = new QMenu(tr("Options"), ui.pushButton_Tools);
           menu->addActions(ui.pushButton_Tools->actions());
-          menu->move( QPoint( ui.pushButton_Tools->x() + 10, ui.pushButton_Tools->y() + 33 ) );
+          menu->move(QPoint(ui.pushButton_Tools->x() + 10, ui.pushButton_Tools->y() + 33));
         }
       }
-      else if( obj == ui.pushButton_ImageOrientation )
+      else if (obj == ui.pushButton_ImageOrientation)
       {
-        if( !ui.pushButton_ImageOrientation->isEnabled() )
+        if (!ui.pushButton_ImageOrientation->isEnabled())
         {
           return true;
         }
         menu = new QMenu(tr("Orientations"), ui.pushButton_ImageOrientation);
-        for( std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it )
+        for (std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it)
         {
           QCustomAction* action = (*it);
-          if( action->IsSeparator() )
+          if (action->IsSeparator())
           {
             menu->addSeparator();
           }
@@ -491,20 +483,20 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ImageOrientation->x() + 10, ui.pushButton_ImageOrientation->y() + 33 ) );
+        menu->move(QPoint(ui.pushButton_ImageOrientation->x() + 10, ui.pushButton_ImageOrientation->y() + 33));
       }
       else
       {
-        if( !ui.pushButton_ShowDevices->isEnabled() )
+        if (!ui.pushButton_ShowDevices->isEnabled())
         {
           return true;
         }
         menu = new QMenu(tr("Devices"), ui.pushButton_ShowDevices);
 
-        for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
+        for (std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
         {
           QCustomAction* action = (*it);
-          if( action->IsSeparator() )
+          if (action->IsSeparator())
           {
             menu->addSeparator();
           }
@@ -513,7 +505,7 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
             menu->addAction(action);
           }
         }
-        menu->move( QPoint( ui.pushButton_ShowDevices->x() + 10, ui.pushButton_ShowDevices->y() + 33 ) );
+        menu->move(QPoint(ui.pushButton_ShowDevices->x() + 10, ui.pushButton_ShowDevices->y() + 33));
       }
 
       menu->exec();
@@ -526,26 +518,25 @@ bool fCalMainWindow::eventFilter(QObject *obj, QEvent *ev)
   }
 
   // Pass the event on to the parent class
-  return QWidget::eventFilter( obj, ev );
+  return QWidget::eventFilter(obj, ev);
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::DumpBuffers()
 {
   LOG_TRACE("fCalMainWindow::DumpBuffers");
 
-  // Directory open dialog for selecting directory to save the buffers into 
-  QString dirName = QFileDialog::getExistingDirectory(NULL, QString( tr( "Open output directory for buffer dump files" ) ), 
-    vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
+  // Directory open dialog for selecting directory to save the buffers into
+  QString dirName = QFileDialog::getExistingDirectory(NULL, QString(tr("Open output directory for buffer dump files")),
+                    vtkPlusConfig::GetInstance()->GetOutputDirectory().c_str());
 
-  if( dirName == "" )
+  if (dirName == "")
   {
     // Cancel button hit, just cancel gracefully
     return;
   }
 
-  if ( (dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toLatin1().constData()) != PLUS_SUCCESS) )
+  if ((dirName.isNull()) || (m_VisualizationController->DumpBuffersToDirectory(dirName.toLatin1().constData()) != PLUS_SUCCESS))
   {
     LOG_ERROR("Writing raw buffers into files failed (output directory: " << dirName.toLatin1().constData() << ")!");
   }
@@ -554,7 +545,6 @@ void fCalMainWindow::DumpBuffers()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetOrientationMRightFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightUp");
@@ -563,7 +553,6 @@ void fCalMainWindow::SetOrientationMRightFUp()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetOrientationMLeftFUp()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftUp");
@@ -572,7 +561,6 @@ void fCalMainWindow::SetOrientationMLeftFUp()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetOrientationMRightFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFRightDown");
@@ -581,7 +569,6 @@ void fCalMainWindow::SetOrientationMRightFDown()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SetOrientationMLeftFDown()
 {
   LOG_TRACE("fCalMainWindow::SetOrientationMFLeftDown");
@@ -590,20 +577,20 @@ void fCalMainWindow::SetOrientationMLeftFDown()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::EnableOrientationMarkers()
 {
   LOG_TRACE("fCalMainWindow::EnableOrientationMarkers");
-  if( m_ShowOrientationMarkerAction->isChecked() )
+
+  if (m_ShowOrientationMarkerAction->isChecked())
   {
-    if( this->GetVisualizationController()->ShowOrientationMarkers(true) != PLUS_SUCCESS )
+    if (this->GetVisualizationController()->ShowOrientationMarkers(true) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to enable orientation markers in vtkObjectVisualiser.");
     }
   }
   else
   {
-    if( this->GetVisualizationController()->ShowOrientationMarkers(false) != PLUS_SUCCESS )
+    if (this->GetVisualizationController()->ShowOrientationMarkers(false) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to disable orientation markers in vtkObjectVisualiser.");
     }
@@ -611,20 +598,20 @@ void fCalMainWindow::EnableOrientationMarkers()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::EnableROI()
 {
   LOG_TRACE("fCalMainWindow::EnableROI()");
-  if( m_ShowROIAction->isChecked() )
+
+  if (m_ShowROIAction->isChecked())
   {
-    if( this->GetVisualizationController()->EnableROI(true) != PLUS_SUCCESS )
+    if (this->GetVisualizationController()->EnableROI(true) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to enable region of interest in vtkObjectVisualiser.");
     }
   }
   else
   {
-    if( this->GetVisualizationController()->EnableROI(false) != PLUS_SUCCESS )
+    if (this->GetVisualizationController()->EnableROI(false) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to disable region of interest in vtkObjectVisualiser.");
     }
@@ -632,7 +619,6 @@ void fCalMainWindow::EnableROI()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::SaveDeviceSetConfiguration()
 {
   LOG_TRACE("fCalMainWindow::SaveDeviceSetConfiguration");
@@ -653,16 +639,15 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ShowDevicesToggled()
 {
   bool aOn = m_Show3DObjectsAction->isChecked();
 
-  LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn?"true":"false") << ")"); 
+  LOG_TRACE("fCalMainWindow::ShowDevicesToggled(" << (aOn ? "true" : "false") << ")");
 
   m_ForceShowAllDevicesIn3D = aOn;
 
-  if( aOn )
+  if (aOn)
   {
     // Force override, show 3D and ALLLLLL devices
     m_VisualizationController->SetVisualizationMode(vtkPlusVisualizationController::DISPLAY_MODE_3D);
@@ -688,21 +673,19 @@ void fCalMainWindow::ShowDevicesToggled()
     m_ToolboxList[m_ActiveToolbox]->SetDisplayAccordingToState();
   }
 
-  LOG_INFO("Show devices " << (aOn?"enabled":"disabled"));
+  LOG_INFO("Show devices " << (aOn ? "enabled" : "disabled"));
 }
 
-
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ShowPhantomModelToggled()
 {
   bool aOn = m_ShowPhantomModelAction->isChecked();
 
-  LOG_TRACE("fCalMainWindow::ShowPhantomModelToggled(" << (aOn?"true":"false") << ")"); 
+  LOG_TRACE("fCalMainWindow::ShowPhantomModelToggled(" << (aOn ? "true" : "false") << ")");
 
-  if(!m_PhantomModelId.empty())
+  if (!m_PhantomModelId.empty())
   {
-    if( m_VisualizationController->ShowObjectById(m_PhantomModelId.c_str(), aOn) != PLUS_SUCCESS )
+    if (m_VisualizationController->ShowObjectById(m_PhantomModelId.c_str(), aOn) != PLUS_SUCCESS)
     {
       LOG_WARNING("Unable to hide/show the phantom model: " << m_PhantomModelId);
     }
@@ -710,72 +693,63 @@ void fCalMainWindow::ShowPhantomModelToggled()
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ShowPhantomWiresModelToggled()
 {
   bool aOn = m_ShowPhantomWiresModelAction->isChecked();
 
-  LOG_TRACE("fCalMainWindow::ShowPhantomWiresModelToggled(" << (aOn?"true":"false") << ")"); 
+  LOG_TRACE("fCalMainWindow::ShowPhantomWiresModelToggled(" << (aOn ? "true" : "false") << ")");
 
-  if(!m_PhantomWiresModelId.empty())
+  if (!m_PhantomWiresModelId.empty())
   {
-    if( m_VisualizationController->ShowObjectById(m_PhantomWiresModelId.c_str(), aOn) != PLUS_SUCCESS )
+    if (m_VisualizationController->ShowObjectById(m_PhantomWiresModelId.c_str(), aOn) != PLUS_SUCCESS)
     {
       LOG_WARNING("Unable to hide/show the phantom wires object: " << m_PhantomWiresModelId);
     }
   }
 }
 
-
 //-----------------------------------------------------------------------------
-
 bool fCalMainWindow::IsOrientationMarkersEnabled()
 {
   return m_ShowOrientationMarkerAction->isChecked();
 }
 
 //-----------------------------------------------------------------------------
-
 bool fCalMainWindow::IsForceShowDevicesEnabled()
 {
   return m_ForceShowAllDevicesIn3D;
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::ResetShowDevices()
 {
   ui.pushButton_ShowDevices->setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::EnableShowPhantomModelToggle( bool aEnable )
+void fCalMainWindow::EnableShowPhantomModelToggle(bool aEnable)
 {
   m_ShowPhantomModelAction->setDisabled(!aEnable);
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::EnableShowPhantomWiresModelToggle( bool aEnable )
+void fCalMainWindow::EnableShowPhantomWiresModelToggle(bool aEnable)
 {
   m_ShowPhantomWiresModelAction->setDisabled(!aEnable);
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::Set3DManipulationMenuEnabled( bool aEnable)
+void fCalMainWindow::Set3DManipulationMenuEnabled(bool aEnable)
 {
-  LOG_TRACE("fCalMainWindow::Set3DManipulationMenuEnabled(" << (aEnable?"true":"false") << ")");
+  LOG_TRACE("fCalMainWindow::Set3DManipulationMenuEnabled(" << (aEnable ? "true" : "false") << ")");
 
   ui.pushButton_ShowDevices->setEnabled(aEnable);
 }
 
 //-----------------------------------------------------------------------------
-
 void fCalMainWindow::BuildChannelMenu()
 {
-  for( std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it )
+  for (std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
   {
     QCustomAction* action = *it;
     disconnect(action, SIGNAL(triggered()));
@@ -796,7 +770,7 @@ void fCalMainWindow::BuildChannelMenu()
   connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomModelToggled()));
   m_ShowPhantomModelAction->setCheckable(true);
   m_ShowPhantomModelAction->setChecked(true);
-  m_3DActionList.push_back(m_ShowPhantomModelAction);  
+  m_3DActionList.push_back(m_ShowPhantomModelAction);
 
   m_ShowPhantomWiresModelAction = new QCustomAction("Show phantom wires", ui.pushButton_ShowDevices);
   connect(m_ShowPhantomWiresModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomWiresModelToggled()));
@@ -805,8 +779,8 @@ void fCalMainWindow::BuildChannelMenu()
   m_3DActionList.push_back(m_ShowPhantomWiresModelAction);
 
   DeviceCollection aCollection;
-  if( this->GetVisualizationController() == NULL || this->GetVisualizationController()->GetDataCollector() == NULL || 
-    !this->GetVisualizationController()->GetDataCollector()->GetConnected() || this->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS )
+  if (this->GetVisualizationController() == NULL || this->GetVisualizationController()->GetDataCollector() == NULL ||
+      !this->GetVisualizationController()->GetDataCollector()->GetConnected() || this->GetVisualizationController()->GetDataCollector()->GetDevices(aCollection) != PLUS_SUCCESS)
   {
     // Data collector might be disconnected
     return;
@@ -817,21 +791,21 @@ void fCalMainWindow::BuildChannelMenu()
 
   // Determine total number of output channels
   int numChannels(0);
-  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  for (DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it)
   {
     vtkPlusDevice* device = *it;
     numChannels += device->OutputChannelCount();
   }
 
   // now add an entry for each device
-  for( DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it )
+  for (DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it)
   {
     vtkPlusDevice* device = *it;
-    if( dynamic_cast<vtkPlusVirtualDiscCapture*>(device) != NULL )
+    if (dynamic_cast<vtkPlusVirtualDiscCapture*>(device) != NULL)
     {
       continue;
     }
-    for( ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter )
+    for (ChannelContainerIterator channelIter = device->GetOutputChannelsStart(); channelIter != device->GetOutputChannelsEnd(); ++channelIter)
     {
       vtkPlusChannel* aChannel = *channelIter;
       std::stringstream ss;
@@ -849,28 +823,27 @@ void fCalMainWindow::BuildChannelMenu()
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
+void fCalMainWindow::ChannelSelected(vtkPlusChannel* aChannel)
 {
   LOG_TRACE("fCalMainWindow::ChannelSelected(channel: " << aChannel->GetChannelId() << ")");
 
-  if( aChannel == this->GetSelectedChannel() )
+  if (aChannel == this->GetSelectedChannel())
   {
     this->BuildChannelMenu();
     return;
   }
 
-  if( this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL )
+  if (this->GetVisualizationController() != NULL && this->GetVisualizationController()->GetDataCollector() != NULL)
   {
     this->SetSelectedChannel(aChannel);
   }
-  if( aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL )
+  if (aChannel->GetVideoDataAvailable() && aChannel->GetBrightnessOutput() != NULL)
   {
-    this->GetVisualizationController()->SetInputData( aChannel->GetBrightnessOutput() );
+    this->GetVisualizationController()->SetInputData(aChannel->GetBrightnessOutput());
   }
   else
   {
-    if( !aChannel->GetVideoDataAvailable() )
+    if (!aChannel->GetVideoDataAvailable())
     {
       LOG_ERROR("Unable to visualize video data due to missing data.");
     }
@@ -886,9 +859,9 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
   this->BuildChannelMenu();
 
   ConfigurationToolbox* aToolbox = dynamic_cast<ConfigurationToolbox*>(this->m_ToolboxList[ToolboxType_Configuration]);
-  if( aToolbox != NULL )
+  if (aToolbox != NULL)
   {
-    aToolbox->ChannelChanged(*aChannel); 
+    aToolbox->ChannelChanged(*aChannel);
   }
   else
   {
@@ -900,8 +873,7 @@ void fCalMainWindow::ChannelSelected( vtkPlusChannel* aChannel )
 }
 
 //-----------------------------------------------------------------------------
-
-void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
+void fCalMainWindow::SetSelectedChannel(vtkPlusChannel* aChannel)
 {
   m_SelectedChannel = aChannel;
 
@@ -913,7 +885,7 @@ void fCalMainWindow::SetSelectedChannel( vtkPlusChannel* aChannel )
 }
 
 //-----------------------------------------------------------------------------
-void fCalMainWindow::SetStatusIconMaxMessageCount( int count )
+void fCalMainWindow::SetStatusIconMaxMessageCount(int count)
 {
   this->m_StatusIcon->SetMaxMessageCount(count);
 }
@@ -935,7 +907,7 @@ void fCalMainWindow::SliceNumberSpinBoxChanged(int number)
 //-----------------------------------------------------------------------------
 void fCalMainWindow::UpdateSliceNumberUI()
 {
-  if( this->GetSelectedChannel() && this->GetSelectedChannel()->IsVideoSource3D() && this->GetVisualizationController() )
+  if (this->GetSelectedChannel() && this->GetSelectedChannel()->IsVideoSource3D() && this->GetVisualizationController())
   {
     this->ui.label_SliceNumber->setEnabled(true);
     this->ui.label_SliceNumber->setVisible(true);
@@ -946,19 +918,19 @@ void fCalMainWindow::UpdateSliceNumberUI()
 
     vtkPlusDataSource* source;
     this->GetSelectedChannel()->GetVideoSource(source);
-    if( source->GetNumberOfItems() > 0 )
+    if (source->GetNumberOfItems() > 0)
     {
-      int dims[3] = {0,0,0};
+      int dims[3] = {0, 0, 0};
       StreamBufferItem item;
       source->GetLatestStreamBufferItem(&item);
       item.GetFrame().GetImage()->GetDimensions(dims);
       this->ui.spinBox_SliceNumber->setValue(0);
       this->ui.spinBox_SliceNumber->setMinimum(0);
-      this->ui.spinBox_SliceNumber->setMaximum(dims[2]-1);
+      this->ui.spinBox_SliceNumber->setMaximum(dims[2] - 1);
       this->ui.spinBox_SliceNumber->setSingleStep(1);
       this->ui.horizontalSlider_SliceNumber->setValue(0);
       this->ui.horizontalSlider_SliceNumber->setMinimum(0);
-      this->ui.horizontalSlider_SliceNumber->setMaximum(dims[2]-1);
+      this->ui.horizontalSlider_SliceNumber->setMaximum(dims[2] - 1);
       this->ui.horizontalSlider_SliceNumber->setTickInterval(1);
       this->GetVisualizationController()->SetSliceNumber(0);
     }

@@ -33,7 +33,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  PlusToolStateDisplayWidget( QWidget* aParent = 0, Qt::WindowFlags aFlags = 0 );
+  PlusToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
@@ -46,7 +46,7 @@ public:
   * \param aConnectionSuccessful Flag if connection was successful (sets to uninitialized if not and displays default appearance)
   * \return Success flag
   */
-  PlusStatus InitializeTools( vtkPlusChannel* aChannel, bool aConnectionSuccessful );
+  PlusStatus InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful);
 
   /*!
   * Get tool statuses and display them

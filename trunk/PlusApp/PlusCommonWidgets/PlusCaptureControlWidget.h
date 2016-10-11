@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __CaptureControlWidget_h
 #define __CaptureControlWidget_h
@@ -21,7 +21,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-/*! \class PlusCaptureControlWidget 
+/*! \class PlusCaptureControlWidget
 * \brief Control vtkPlusVirtualDiscCapture devices
 * \ingroup PlusAppCaptureClient
 */
@@ -39,7 +39,10 @@ public:
 
   virtual void SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice);
 
-  virtual vtkPlusVirtualDiscCapture* GetCaptureDevice(){ return m_Device; }
+  virtual vtkPlusVirtualDiscCapture* GetCaptureDevice()
+  {
+    return m_Device;
+  }
 
   virtual void SetEnableCapturing(bool aCapturing);
 

@@ -7,14 +7,16 @@ See License.txt for details.
 // Local includes
 #include "QCustomAction.h"
 
-QCustomAction::QCustomAction( const QString& text, QObject* parent, bool aIsSeparator, vtkPlusChannel* ownerChannel )
-  : QAction( text, parent )
-  , m_IsSeparator( aIsSeparator )
-  , m_OwnerChannel( ownerChannel )
+//-----------------------------------------------------------------------------
+QCustomAction::QCustomAction(const QString& text, QObject* parent, bool aIsSeparator, vtkPlusChannel* ownerChannel)
+  : QAction(text, parent)
+  , m_IsSeparator(aIsSeparator)
+  , m_OwnerChannel(ownerChannel)
 {
 }
 
+//-----------------------------------------------------------------------------
 void QCustomAction::activated()
 {
-  emit channelSelected( m_OwnerChannel );
+  emit channelSelected(m_OwnerChannel);
 }

@@ -35,8 +35,6 @@ class vtkXMLDataElement;
 
 class QResizeEvent;
 
-//-----------------------------------------------------------------------------
-
 /*! \class vtkPlusVisualizationController
 \brief Class that is responsible for managing a connection with tracked data and managing the visualization of said data
 

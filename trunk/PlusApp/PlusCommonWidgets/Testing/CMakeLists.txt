@@ -13,10 +13,9 @@ SET (SegmentationParameterDialogTest_LIBS
   )
 
 ADD_EXECUTABLE(SegmentationParameterDialogTest SegmentationParameterDialogTest.cxx)
-
 SET_TARGET_PROPERTIES(SegmentationParameterDialogTest PROPERTIES 
-  COMPILE_DEFINTIIONS 
-    ${Qt5Widgets_COMPILE_DEFINITIONS}
+  COMPILE_DEFINTIIONS ${Qt5Widgets_COMPILE_DEFINITIONS}
+  FOLDER Tests
   )
 target_include_directories(SegmentationParameterDialogTest PRIVATE 
   ${PlusApp_BINARY_DIR}/PlusCommonWidgets
@@ -48,8 +47,8 @@ ADD_EXECUTABLE(ToolStateDisplayWidgetTest ToolStateDisplayWidgetTest.cxx
   ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc 
   )
 SET_TARGET_PROPERTIES(ToolStateDisplayWidgetTest PROPERTIES 
-  COMPILE_DEFINTIIONS 
-    ${Qt5Widgets_COMPILE_DEFINITIONS}
+  COMPILE_DEFINTIIONS ${Qt5Widgets_COMPILE_DEFINITIONS}
+  FOLDER Tests
   )
 target_include_directories(ToolStateDisplayWidgetTest PRIVATE 
   ${PlusApp_BINARY_DIR}/PlusCommonWidgets

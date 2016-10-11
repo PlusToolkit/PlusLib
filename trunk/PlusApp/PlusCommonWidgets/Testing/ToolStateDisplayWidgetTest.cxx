@@ -13,7 +13,7 @@ class ToolStateDisplayWidgetTest : public QObject
 private slots:
   void t1()
   {
-    QVERIFY( true );
+    QVERIFY(true);
   }
 };
 

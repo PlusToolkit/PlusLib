@@ -1,6 +1,7 @@
 # --------------------------------------------------------------------------
 # PointSetExtractor
 ADD_EXECUTABLE(PointSetExtractor PointSetExtractor.cxx)
+SET_TARGET_PROPERTIES(PointSetExtractor PROPERTIES FOLDER Utilities)
 TARGET_LINK_LIBRARIES(PointSetExtractor PUBLIC vtkPlusCommon)
 GENERATE_HELP_DOC(PointSetExtractor)
 

@@ -13,9 +13,9 @@ class SegmentationParameterDialogTest : public QObject
 private slots:
   void t1()
   {
-    QVERIFY( true );
+    QVERIFY(true);
   }
 };
 
-QTEST_MAIN( SegmentationParameterDialogTest )
+QTEST_MAIN(SegmentationParameterDialogTest)
 #include "SegmentationParameterDialogTest.moc"

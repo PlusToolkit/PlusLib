@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef STATUSICON_H
 #define STATUSICON_H
@@ -23,7 +23,7 @@
 
 //-----------------------------------------------------------------------------
 
-/*! \class vtkDisplayMessageCallback 
+/*! \class vtkDisplayMessageCallback
  * \brief Callback command class that catches the log message event and adds it to the text field of the status icon
  * \ingroup PlusAppCommonWidgets
  */
@@ -32,9 +32,9 @@ class vtkDisplayMessageCallback : public QObject, public vtkCallbackCommand
   Q_OBJECT
 
 public:
-  static vtkDisplayMessageCallback *New()
+  static vtkDisplayMessageCallback* New()
   {
-    vtkDisplayMessageCallback *cb = new vtkDisplayMessageCallback();
+    vtkDisplayMessageCallback* cb = new vtkDisplayMessageCallback();
     return cb;
   }
 
@@ -42,15 +42,15 @@ public:
     : QObject()
   { }
 
-  virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData);
+  virtual void Execute(vtkObject* caller, unsigned long eventId, void* callData);
 
 signals:
   void AddMessage(QString);
 };
- 
+
 //-----------------------------------------------------------------------------
 
-/*! \class PlusStatusIcon 
+/*! \class PlusStatusIcon
  *
  * Widget that shows the current status of the application and displays all log messages occurred
  *
@@ -83,7 +83,7 @@ protected:
   * \param ev event
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
-  bool eventFilter(QObject *obj, QEvent *ev);
+  bool eventFilter(QObject* obj, QEvent* ev);
 
   /*!
   * Creates message frame and fills up message field with the massages
@@ -99,7 +99,7 @@ protected:
   /*!
   * Parse a message and add it to the text edit
   */
-  void ParseMessage(QString &aInputString);
+  void ParseMessage(QString& aInputString);
 
   /*!
   * Filter the text in the message box with the text in the line edit
@@ -122,7 +122,7 @@ protected slots:
   */
   void ClearFilterButtonClicked();
 
-  /*! 
+  /*!
   * Detect changes in the line edit text
   */
   void FilterLineEditEdited(const QString&);

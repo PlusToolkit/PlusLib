@@ -76,7 +76,10 @@ public:
   * \brief Get toolbox state
   * \return Current state
   */
-  ToolboxState GetState() { return m_State; };
+  ToolboxState GetState()
+  {
+    return m_State;
+  };
 
   void SetBusyCursor( bool busy )
   {

@@ -68,7 +68,10 @@ public:
   * Return pivot calibration algorithm object
   * \return Pivot calibration algo
   */
-  vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo() { return m_PivotCalibration; };
+  vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo()
+  {
+    return m_PivotCalibration;
+  };
 
 protected slots:
 

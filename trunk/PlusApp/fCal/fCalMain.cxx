@@ -2,20 +2,20 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "fCalMainWindow.h"
 #include <QApplication>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	QApplication app(argc, argv);
+  QApplication app(argc, argv);
   Q_INIT_RESOURCE(PlusCommonWidgets);
 
-	fCalMainWindow mainWindow;
-	mainWindow.show();
+  fCalMainWindow mainWindow;
+  mainWindow.show();
 
-	mainWindow.Initialize();
+  mainWindow.Initialize();
 
-	return app.exec();
+  return app.exec();
 }

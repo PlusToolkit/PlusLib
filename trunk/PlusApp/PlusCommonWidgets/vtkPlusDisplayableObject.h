@@ -28,14 +28,14 @@ class vtkPolyDataMapper;
 class vtkPlusDisplayableObject : public vtkObject
 {
 public:
-  vtkTypeMacro( vtkPlusDisplayableObject, vtkObject );
+  vtkTypeMacro(vtkPlusDisplayableObject, vtkObject);
   static vtkPlusDisplayableObject* New();
 
   /*!
   * New function that gets the type and instantiates the proper displayable object class
   * \param aType Type that is read from the DisplayabelObject element of the configuration (eg. "Model")
   */
-  static vtkPlusDisplayableObject* New( const char* aType );
+  static vtkPlusDisplayableObject* New(const char* aType);
 
   /*! Returns displayable status */
   virtual bool IsDisplayable() = 0;
@@ -44,25 +44,25 @@ public:
   * Read displayable object configuration
   * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
   */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
 public:
-  vtkSetMacro( ObjectCoordinateFrame, std::string );
-  vtkGetMacro( ObjectCoordinateFrame, std::string );
+  vtkSetMacro(ObjectCoordinateFrame, std::string);
+  vtkGetMacro(ObjectCoordinateFrame, std::string);
 
-  void SetActor( vtkProp3D* );
-  vtkGetObjectMacro( Actor, vtkProp3D );
+  void SetActor(vtkProp3D*);
+  vtkGetObjectMacro(Actor, vtkProp3D);
 
-  vtkSetMacro( Displayable, bool );
-  vtkBooleanMacro( Displayable, bool );
+  vtkSetMacro(Displayable, bool);
+  vtkBooleanMacro(Displayable, bool);
 
-  vtkSetMacro( LastOpacity, double );
-  vtkGetMacro( LastOpacity, double );
+  vtkSetMacro(LastOpacity, double);
+  vtkGetMacro(LastOpacity, double);
 
-  vtkSetMacro( ObjectId, std::string );
-  vtkGetMacro( ObjectId, std::string );
+  vtkSetMacro(ObjectId, std::string);
+  vtkGetMacro(ObjectId, std::string);
 
-  virtual void SetOpacity( double aOpacity ) = 0;
+  virtual void SetOpacity(double aOpacity) = 0;
   virtual double GetOpacity() = 0;
 
 protected:
@@ -95,7 +95,7 @@ protected:
 class vtkDisplayableImage : public vtkPlusDisplayableObject
 {
 public:
-  vtkTypeMacro( vtkDisplayableImage, vtkPlusDisplayableObject );
+  vtkTypeMacro(vtkDisplayableImage, vtkPlusDisplayableObject);
   static vtkDisplayableImage* New();
 
   /*! Returns displayable status (true if displayable flag is on) */
@@ -103,7 +103,7 @@ public:
 
 public:
   /*! Set opacity */
-  void SetOpacity( double aOpacity );
+  void SetOpacity(double aOpacity);
   /*! Get opacity */
   double GetOpacity();
 
@@ -121,18 +121,18 @@ protected:
 class vtkDisplayableAxes : public vtkPlusDisplayableObject
 {
 public:
-  vtkTypeMacro( vtkDisplayableAxes, vtkPlusDisplayableObject );
+  vtkTypeMacro(vtkDisplayableAxes, vtkPlusDisplayableObject);
   static vtkDisplayableAxes* New();
 
   /*! Returns displayable status (true if displayable flag is on) */
   bool IsDisplayable();
 
   /*! Overridden set function for object coordinate frame that sets the axes name */
-  virtual void SetObjectCoordinateFrame( const char* objectCoordinateFrame );
+  virtual void SetObjectCoordinateFrame(const char* objectCoordinateFrame);
 
 public:
   /*! Set opacity */
-  void SetOpacity( double aOpacity );
+  void SetOpacity(double aOpacity);
   /*! Get opacity */
   double GetOpacity();
 
@@ -150,30 +150,30 @@ protected:
 class vtkDisplayablePolyData : public vtkPlusDisplayableObject
 {
 public:
-  vtkTypeMacro( vtkDisplayablePolyData, vtkPlusDisplayableObject );
+  vtkTypeMacro(vtkDisplayablePolyData, vtkPlusDisplayableObject);
   static vtkDisplayablePolyData* New();
 
   /*! Returns displayable status (true if displayable flag is on and valid actor is present) */
   bool IsDisplayable();
 
   /*! Set color */
-  void SetColor( double aR, double aG, double aB );
+  void SetColor(double aR, double aG, double aB);
 
   /* Get poly data */
-  vtkGetObjectMacro( PolyData, vtkPolyData );
+  vtkGetObjectMacro(PolyData, vtkPolyData);
 
   /* Set poly data */
-  virtual void SetPolyData( vtkPolyData* polyData );
+  virtual void SetPolyData(vtkPolyData* polyData);
 
   /* Set poly data mapper */
-  virtual void SetPolyDataMapper( vtkPolyDataMapper* aPolyDataMapper );
+  virtual void SetPolyDataMapper(vtkPolyDataMapper* aPolyDataMapper);
 
   /*! Appends a polydata to the already existing one */
-  PlusStatus AppendPolyData( vtkPolyData* aPolyData );
+  PlusStatus AppendPolyData(vtkPolyData* aPolyData);
 
 public:
   /*! Set opacity */
-  void SetOpacity( double aOpacity );
+  void SetOpacity(double aOpacity);
   /*! Get opacity */
   double GetOpacity();
 
@@ -195,27 +195,27 @@ protected:
 class vtkDisplayableModel : public vtkDisplayablePolyData
 {
 public:
-  vtkTypeMacro( vtkDisplayableModel, vtkDisplayablePolyData );
+  vtkTypeMacro(vtkDisplayableModel, vtkDisplayablePolyData);
   static vtkDisplayableModel* New();
 
   /*!
   * Read displayable object configuration
   * \param aConfig DisplayableObject element from the input device set configuration (not the root as usually!)
   */
-  PlusStatus ReadConfiguration( vtkXMLDataElement* aConfig );
+  PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
 public:
   /*! Set STL model file name */
-  vtkSetStringMacro( STLModelFileName );
+  vtkSetStringMacro(STLModelFileName);
   /*! Get STL model file name */
-  vtkGetStringMacro( STLModelFileName );
+  vtkGetStringMacro(STLModelFileName);
 
   /*! Get model to tool transform */
-  vtkGetObjectMacro( ModelToObjectTransform, vtkTransform );
+  vtkGetObjectMacro(ModelToObjectTransform, vtkTransform);
 
 protected:
   /*! Set model to tool transform */
-  vtkSetObjectMacro( ModelToObjectTransform, vtkTransform );
+  vtkSetObjectMacro(ModelToObjectTransform, vtkTransform);
 
   /*! Assemble and set default stylus model for stylus tool actor */
   PlusStatus SetDefaultStylusModel();

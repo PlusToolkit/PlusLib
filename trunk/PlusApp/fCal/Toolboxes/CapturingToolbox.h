@@ -60,7 +60,10 @@ public:
   void SetDisplayAccordingToState();
 
   /*! Get recorded tracked frame list */
-  vtkPlusTrackedFrameList* GetRecordedFrames() { return m_RecordedFrames; };
+  vtkPlusTrackedFrameList* GetRecordedFrames()
+  {
+    return m_RecordedFrames;
+  };
 
 protected:
   /*!

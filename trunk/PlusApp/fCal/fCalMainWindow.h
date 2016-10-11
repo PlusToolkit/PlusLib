@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __fCalMainWindow_h
 #define __fCalMainWindow_h
@@ -38,7 +38,7 @@ enum ToolboxType
 
 //-----------------------------------------------------------------------------
 
-/*! \class fCalMainWindow 
+/*! \class fCalMainWindow
 * \brief Main window of the fCal application
 * \ingroup PlusAppFCal
 */
@@ -52,7 +52,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  fCalMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+  fCalMainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0);
 
   /*!
   * Destructor
@@ -68,7 +68,10 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkPlusVisualizationController* GetVisualizationController() { return m_VisualizationController; };
+  vtkPlusVisualizationController* GetVisualizationController()
+  {
+    return m_VisualizationController;
+  };
 
   /*!
   * Set status bar text
@@ -100,8 +103,8 @@ public:
   */
   void Set3DManipulationMenuEnabled(bool);
 
-  /*! 
-  * Accessor to query the state of the check box 
+  /*!
+  * Accessor to query the state of the check box
   */
   bool IsOrientationMarkersEnabled();
 
@@ -115,60 +118,123 @@ public:
   * \param aType Toolbox type identifier
   * \return Toolbox object
   */
-  AbstractToolbox* GetToolbox(ToolboxType aType) { return m_ToolboxList[aType]; };
+  AbstractToolbox* GetToolbox(ToolboxType aType)
+  {
+    return m_ToolboxList[aType];
+  };
 
   /*! Get image coordinate frame name */
-  std::string GetImageCoordinateFrame() { return m_ImageCoordinateFrame; };
+  std::string GetImageCoordinateFrame()
+  {
+    return m_ImageCoordinateFrame;
+  };
   /*! Set image coordinate frame name */
-  void SetImageCoordinateFrame(const char* aImageCoordinateFrame) { m_ImageCoordinateFrame = aImageCoordinateFrame; };
+  void SetImageCoordinateFrame(const char* aImageCoordinateFrame)
+  {
+    m_ImageCoordinateFrame = aImageCoordinateFrame;
+  };
 
   /*! Get probe coordinate frame name */
-  std::string GetProbeCoordinateFrame() { return m_ProbeCoordinateFrame; };
+  std::string GetProbeCoordinateFrame()
+  {
+    return m_ProbeCoordinateFrame;
+  };
   /*! Set probe coordinate frame name */
-  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame) { m_ProbeCoordinateFrame = aProbeCoordinateFrame; };
+  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame)
+  {
+    m_ProbeCoordinateFrame = aProbeCoordinateFrame;
+  };
 
   /*! Get reference coordinate frame name */
-  std::string GetReferenceCoordinateFrame() { return m_ReferenceCoordinateFrame; };
+  std::string GetReferenceCoordinateFrame()
+  {
+    return m_ReferenceCoordinateFrame;
+  };
   /*! Set reference coordinate frame name */
-  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame) { m_ReferenceCoordinateFrame = aReferenceCoordinateFrame; };
+  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame)
+  {
+    m_ReferenceCoordinateFrame = aReferenceCoordinateFrame;
+  };
 
   /*! Get transducer origin coordinate frame name */
-  std::string GetTransducerOriginCoordinateFrame() { return m_TransducerOriginCoordinateFrame; };
+  std::string GetTransducerOriginCoordinateFrame()
+  {
+    return m_TransducerOriginCoordinateFrame;
+  };
   /*! Set transducer origin coordinate frame name */
-  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame) { m_TransducerOriginCoordinateFrame = aTransducerOriginCoordinateFrame; };
+  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame)
+  {
+    m_TransducerOriginCoordinateFrame = aTransducerOriginCoordinateFrame;
+  };
 
   /*! Get transducer origin pixel coordinate frame name */
-  std::string GetTransducerOriginPixelCoordinateFrame() { return m_TransducerOriginPixelCoordinateFrame; };
+  std::string GetTransducerOriginPixelCoordinateFrame()
+  {
+    return m_TransducerOriginPixelCoordinateFrame;
+  };
   /*! Set transducer origin pixel coordinate frame name */
-  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame) { m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame; };
+  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame)
+  {
+    m_TransducerOriginPixelCoordinateFrame = aTransducerOriginPixelCoordinateFrame;
+  };
 
   /*! Get phantom model id */
-  const char * GetPhantomModelId() { return m_PhantomModelId.c_str(); };
+  const char* GetPhantomModelId()
+  {
+    return m_PhantomModelId.c_str();
+  };
   /*! Set phantom model id */
-  void SetPhantomModelId(const char* aObjectId) { m_PhantomModelId = aObjectId?aObjectId:""; };
+  void SetPhantomModelId(const char* aObjectId)
+  {
+    m_PhantomModelId = aObjectId ? aObjectId : "";
+  };
   /*! Enable/disable the show phantom model action */
   void EnableShowPhantomModelToggle(bool aEnable);
   /*! Get phantom wires model id */
-  const char * GetPhantomWiresModelId() { return m_PhantomWiresModelId.c_str(); };
+  const char* GetPhantomWiresModelId()
+  {
+    return m_PhantomWiresModelId.c_str();
+  };
   /*! Set phantom wires model id */
-  void SetPhantomWiresModelId(const char* aObjectId) { m_PhantomWiresModelId = aObjectId?aObjectId:""; };
+  void SetPhantomWiresModelId(const char* aObjectId)
+  {
+    m_PhantomWiresModelId = aObjectId ? aObjectId : "";
+  };
   /*! Enable/disable the show phantom wires action */
-  void EnableShowPhantomWiresModelToggle( bool aEnable );
+  void EnableShowPhantomWiresModelToggle(bool aEnable);
 
   /*! Get stylus model id */
-  const char * GetStylusModelId() { return m_StylusModelId.c_str(); };
+  const char* GetStylusModelId()
+  {
+    return m_StylusModelId.c_str();
+  };
   /*! Set stylus model id */
-  void SetStylusModelId(const char* aObjectId) { m_StylusModelId = aObjectId; };
+  void SetStylusModelId(const char* aObjectId)
+  {
+    m_StylusModelId = aObjectId;
+  };
 
   /*! Get probe object id */
-  const char * GetTransducerModelId() { return m_TransducerModelId.c_str(); };
+  const char* GetTransducerModelId()
+  {
+    return m_TransducerModelId.c_str();
+  };
   /*! Set probe object id */
-  void SetTransducerModelId(const char* aObjectId) { m_TransducerModelId = aObjectId; };
+  void SetTransducerModelId(const char* aObjectId)
+  {
+    m_TransducerModelId = aObjectId;
+  };
 
   /*! Get image object id */
-  const char * GetImageObjectId() { return m_ImageObjectId.c_str(); };
+  const char* GetImageObjectId()
+  {
+    return m_ImageObjectId.c_str();
+  };
   /*! Set image object id */
-  void SetImageObjectId(const char* aObjectId) { m_ImageObjectId = aObjectId; };
+  void SetImageObjectId(const char* aObjectId)
+  {
+    m_ImageObjectId = aObjectId;
+  };
 
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();
@@ -181,7 +247,10 @@ public:
 
   /*! Accessors for selected channel functionality */
   void SetSelectedChannel(vtkPlusChannel* aChannel);
-  vtkPlusChannel* GetSelectedChannel(){ return m_SelectedChannel; }
+  vtkPlusChannel* GetSelectedChannel()
+  {
+    return m_SelectedChannel;
+  }
 
   /* Control the behaviour of the status icon */
   void SetStatusIconMaxMessageCount(int count);
@@ -203,96 +272,96 @@ protected:
   * \param ev event
   * \return if you want to filter the event out, i.e. stop it being handled further, return true; otherwise return false
   */
-  bool eventFilter(QObject *obj, QEvent *ev);
+  bool eventFilter(QObject* obj, QEvent* ev);
 
-  protected slots:
-    /*!
-    * Handle tab change
-    * \param aToolboxIndex Index of the currently active toolbox
-    */
-    void CurrentToolboxChanged(int aToolboxIndex);
+protected slots:
+  /*!
+  * Handle tab change
+  * \param aToolboxIndex Index of the currently active toolbox
+  */
+  void CurrentToolboxChanged(int aToolboxIndex);
 
-    /*!
-    * Changes tab back to the locked one if tabbing is disabled
-    * \param Mandatory but unused argument to match the signal
-    */
-    void ChangeBackToolbox(int);
+  /*!
+  * Changes tab back to the locked one if tabbing is disabled
+  * \param Mandatory but unused argument to match the signal
+  */
+  void ChangeBackToolbox(int);
 
-    /*!
-    * Updates every part of the GUI (called by ui refresh timer)
-    */
-    void UpdateGUI();
+  /*!
+  * Updates every part of the GUI (called by ui refresh timer)
+  */
+  void UpdateGUI();
 
-    /*!
-    * Update the slicer number UI based on channel data
-    */
-    void UpdateSliceNumberUI();
+  /*!
+  * Update the slicer number UI based on channel data
+  */
+  void UpdateSliceNumberUI();
 
-    /*!
-    * Slot handling show devices combobox state change
-    */
-    void ShowDevicesToggled();
+  /*!
+  * Slot handling show devices combobox state change
+  */
+  void ShowDevicesToggled();
 
-    /*!
-    * Slot handling show phantom
-    */
-    void ShowPhantomModelToggled();
+  /*!
+  * Slot handling show phantom
+  */
+  void ShowPhantomModelToggled();
 
-    /*!
-    * Slot handling show phantom wires
-    */
-    void ShowPhantomWiresModelToggled();
+  /*!
+  * Slot handling show phantom wires
+  */
+  void ShowPhantomWiresModelToggled();
 
-    /*!
-    * Activate a certain device
-    */
-    void ChannelSelected(vtkPlusChannel* aChannel);
+  /*!
+  * Activate a certain device
+  */
+  void ChannelSelected(vtkPlusChannel* aChannel);
 
-    /*!
-    * Update the requested slice number
-    */
-    void SliceNumberSliderChanged(int number);
+  /*!
+  * Update the requested slice number
+  */
+  void SliceNumberSliderChanged(int number);
 
-    /*!
-    * Update the requested slice number
-    */
-    void SliceNumberSpinBoxChanged(int number);
+  /*!
+  * Update the requested slice number
+  */
+  void SliceNumberSpinBoxChanged(int number);
 
-    /*!
-    * Resize event handler
-    * \param aEvent Resize event
-    */
-    virtual void resizeEvent(QResizeEvent* aEvent);
+  /*!
+  * Resize event handler
+  * \param aEvent Resize event
+  */
+  virtual void resizeEvent(QResizeEvent* aEvent);
 
-    /*! Save buffers into files */
-    void DumpBuffers();
+  /*! Save buffers into files */
+  void DumpBuffers();
 
-    /*! Save current device set configuration */
-    void SaveDeviceSetConfiguration();
+  /*! Save current device set configuration */
+  void SaveDeviceSetConfiguration();
 
-    /*! Functions to set orientation of the 2D image */
-    void SetOrientationMRightFUp();
-    void SetOrientationMLeftFUp();
-    void SetOrientationMRightFDown();
-    void SetOrientationMLeftFDown();
-    void EnableOrientationMarkers();
-    void EnableROI();
+  /*! Functions to set orientation of the 2D image */
+  void SetOrientationMRightFUp();
+  void SetOrientationMLeftFUp();
+  void SetOrientationMRightFDown();
+  void SetOrientationMLeftFDown();
+  void EnableOrientationMarkers();
+  void EnableROI();
 
 protected:
   /*! Object visualizer */
   vtkPlusVisualizationController*  m_VisualizationController;
 
   /*! Label on the left of the statusbar */
-  QLabel*					    m_StatusBarLabel;
+  QLabel*             m_StatusBarLabel;
 
   /*! Progress bar on the right of the statusbar */
-  QProgressBar*		    m_StatusBarProgress;
+  QProgressBar*       m_StatusBarProgress;
 
   /*! Index of locked (current) tab if tabbing is disabled */
-  int							    m_LockedTabIndex;
+  int                 m_LockedTabIndex;
 
   /*! Active toolbox identifier */
-  ToolboxType			    m_ActiveToolbox;
+  ToolboxType         m_ActiveToolbox;
 
   /*! Timer that refreshes the UI */
   QTimer*             m_UiRefreshTimer;
@@ -364,7 +433,7 @@ protected:
   vtkPlusChannel* m_SelectedChannel;
 
 private:
-  Ui::fCalMainWindow	ui;
+  Ui::fCalMainWindow ui;
 };
 
 #endif // FCALMAINWINDOW_H

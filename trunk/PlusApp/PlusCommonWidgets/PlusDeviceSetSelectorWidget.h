@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef DEVICESETSELECTORWIDGET_H
 #define DEVICESETSELECTORWIDGET_H
@@ -21,7 +21,7 @@ See License.txt for details.
 
 //-----------------------------------------------------------------------------
 
-/*! \class DeviceSetSelectorWidget 
+/*! \class DeviceSetSelectorWidget
 * \brief Data selector widget class
 * \ingroup PlusAppCommonWidgets
 */
@@ -68,7 +68,7 @@ public:
   bool GetConnectionSuccessful();
 
   /*!
-  * Return currently selected device set description 
+  * Return currently selected device set description
   */
   std::string GetSelectedDeviceSetDescription();
 
@@ -92,7 +92,7 @@ public:
   */
   void ClearDescriptionSuffix();
 
-  /*! 
+  /*!
   * Fill the description text box with prefix + body + suffix
   * Newline separated if prefix or suffix is not empty
   */
@@ -133,62 +133,62 @@ protected:
 
   virtual void resizeEvent(QResizeEvent* event);
 
-  protected slots:
-    /*!
-    * Pops up open directory dialog and saves the selected one into application
-    */
-    void OpenConfigurationDirectory();
+protected slots:
+  /*!
+  * Pops up open directory dialog and saves the selected one into application
+  */
+  void OpenConfigurationDirectory();
 
-    /*!
-    * Called when device set selection has been changed
-    */
-    void DeviceSetSelected(int);
+  /*!
+  * Called when device set selection has been changed
+  */
+  void DeviceSetSelected(int);
 
-    /*!
-    * Called when Connect button is pushed - connects to devices
-    */
-    void InvokeConnect();
+  /*!
+  * Called when Connect button is pushed - connects to devices
+  */
+  void InvokeConnect();
 
-    /*!
-    * Called when Disconnect button is pushed - disconnects from devices
-    */
-    void InvokeDisconnect();
+  /*!
+  * Called when Disconnect button is pushed - disconnects from devices
+  */
+  void InvokeDisconnect();
 
-    /*!
-    * Called when Refresh folder button is clicked - refreshes device set list
-    */
-    void RefreshFolder();
+  /*!
+  * Called when Refresh folder button is clicked - refreshes device set list
+  */
+  void RefreshFolder();
 
-    /*!
-    * Called when Edit configuration button is left-clicked - opens currently selected configuration in editor application
-    */
-    void EditConfiguration();
+  /*!
+  * Called when Edit configuration button is left-clicked - opens currently selected configuration in editor application
+  */
+  void EditConfiguration();
 
-    /*!
-    * Called when the context menu is requested on the edit button
-    */
-    void ShowEditContextMenu(QPoint);
+  /*!
+  * Called when the context menu is requested on the edit button
+  */
+  void ShowEditContextMenu(QPoint);
 
-    /*!
-    * Called when the select editor menu item is called
-    */
-    void SelectEditor();
+  /*!
+  * Called when the select editor menu item is called
+  */
+  void SelectEditor();
 
-    /*
-    * Reset tracker button has been pushed
-    */
-    void ResetTrackerButtonClicked();
+  /*
+  * Reset tracker button has been pushed
+  */
+  void ResetTrackerButtonClicked();
 
 protected:
   /*! Configuration directory path */
-  QString	m_ConfigurationDirectory;
+  QString m_ConfigurationDirectory;
 
   /*! Action triggered when button right-clicked */
   QAction* m_EditorSelectAction;
   QMenu* m_EditMenu;
 
   /*! Flag telling whether connection has been successful */
-  bool	  m_ConnectionSuccessful;
+  bool    m_ConnectionSuccessful;
 
   /*! If not -1, define the maximum size of the device set combobox relative to the current screen size */
   double DeviceSetComboBoxMaximumSizeRatio;
@@ -206,4 +206,4 @@ protected:
   Ui::DeviceSetSelectorWidget ui;
 };
 
-#endif 
+#endif
