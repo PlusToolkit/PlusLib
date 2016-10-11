@@ -43,7 +43,7 @@ TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink ${PlusOpenIGTLink_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusOpenIGTLink CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusOpenIGTLink vtkPlusOpenIGTLink;"${PlusLib_BINARY_DIR}/src/PlusOpenIGTLink/vtkPlusOpenIGTLink.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusOpenIGTLink vtkPlusOpenIGTLink;"${PlusLib_BINARY_DIR}/src/PlusOpenIGTLink/vtkPlusOpenIGTLink.vcxproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install

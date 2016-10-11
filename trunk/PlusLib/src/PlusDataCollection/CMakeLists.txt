@@ -1531,7 +1531,7 @@ source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusDataCollection CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusDataCollection vtkPlusDataCollection;"${PlusLib_BINARY_DIR}/src/PlusDataCollection/vtkPlusDataCollection.vcproj";vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusDataCollection vtkPlusDataCollection;"${PlusLib_BINARY_DIR}/src/PlusDataCollection/vtkPlusDataCollection.vcxproj";vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH

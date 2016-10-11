@@ -32,7 +32,7 @@ TARGET_LINK_LIBRARIES(vtkPlusUsSimulator ${PlusUsSimulator_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusUsSimulator CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusUsSimulator vtkPlusUsSimulator;"${PlusLib_BINARY_DIR}/src/PlusUsSimulator/vtkPlusUsSimulator.vcproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusUsSimulator vtkPlusUsSimulator;"${PlusLib_BINARY_DIR}/src/PlusUsSimulator/vtkPlusUsSimulator.vcxproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 IF (BUILD_TESTING)
