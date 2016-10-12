@@ -311,10 +311,10 @@ IF(UNIX AND NOT APPLE)
   LIST(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
 
   # Allow inline namespacing to enable Qt::Orientation:: etc..
-  IF(${GCC_VERSION} VERSION_GREATER 4.7)
+  IF(${GCC_VERSION} VERSION_GREATER 5.0)
     SET(ADDITIONAL_CXX_FLAGS "${ADDITIONAL_CXX_FLAGS} -std=c++11" CACHE STRING "Additional CXX Flags")
   ELSE()
-    MESSAGE(FATAL_ERROR "gcc >= 4.8 required to build PLUS.")
+    MESSAGE(FATAL_ERROR "gcc >= 5.0 required to build PLUS.")
   ENDIF()
 ENDIF()
 MARK_AS_ADVANCED(ADDITIONAL_CXX_FLAGS)
