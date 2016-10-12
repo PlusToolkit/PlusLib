@@ -2,12 +2,6 @@
 <ui version="4.0">
  <class>ConfigurationToolbox</class>
  <widget class="QWidget" name="ConfigurationToolbox">
-  <property name="minimumSize">
-   <size>
-    <width>230</width>
-    <height>320</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Configuration</string>
   </property>
@@ -32,7 +26,7 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>150</height>
+       <height>48</height>
       </size>
      </property>
     </widget>
@@ -61,7 +55,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_ToolWidget">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>4</number>
      </property>
@@ -225,7 +219,7 @@
      <item>
       <widget class="QLineEdit" name="lineEdit_ImageDirectory">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>9</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -240,6 +234,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_SelectImageDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>23</width>

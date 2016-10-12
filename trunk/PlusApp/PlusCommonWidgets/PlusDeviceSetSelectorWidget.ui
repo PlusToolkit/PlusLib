@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>DeviceSetSelectorWidget</class>
  <widget class="QWidget" name="DeviceSetSelectorWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>258</width>
+    <height>328</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Plus Device Set Selector</string>
   </property>
@@ -38,12 +46,6 @@
      </property>
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -171,8 +173,8 @@
      <item>
       <widget class="QComboBox" name="comboBox_DeviceSet">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>9</horstretch>
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -183,12 +185,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_EditConfiguration">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="toolTip">
         <string>Edit configuration file</string>
        </property>

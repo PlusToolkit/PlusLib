@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>fCalMainWindow</class>
  <widget class="QMainWindow" name="fCalMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>540</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>fCal</string>
   </property>
@@ -94,12 +102,6 @@
           </property>
           <item>
            <widget class="QPushButton" name="pushButton_SaveConfiguration">
-            <property name="minimumSize">
-             <size>
-              <width>23</width>
-              <height>23</height>
-             </size>
-            </property>
             <property name="focusPolicy">
              <enum>Qt::ClickFocus</enum>
             </property>
@@ -111,7 +113,7 @@
             </property>
             <property name="icon">
              <iconset resource="fCal.qrc">
-              <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
+              <normaloff>:/icons/PlusCommonWidgets/Resources/icon_Save.png</normaloff>:/icons/PlusCommonWidgets/Resources/icon_Save.png</iconset>
             </property>
            </widget>
           </item>
@@ -133,12 +135,6 @@
             <property name="enabled">
              <bool>false</bool>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>23</width>
-              <height>23</height>
-             </size>
-            </property>
             <property name="focusPolicy">
              <enum>Qt::ClickFocus</enum>
             </property>
@@ -159,12 +155,6 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_ShowDevices">
-            <property name="minimumSize">
-             <size>
-              <width>23</width>
-              <height>23</height>
-             </size>
-            </property>
             <property name="focusPolicy">
              <enum>Qt::ClickFocus</enum>
             </property>
@@ -185,12 +175,6 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_Tools">
-            <property name="minimumSize">
-             <size>
-              <width>23</width>
-              <height>23</height>
-             </size>
-            </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
@@ -211,18 +195,6 @@
        </item>
        <item>
         <widget class="QToolBox" name="toolbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>260</width>
-           <height>200</height>
-          </size>
-         </property>
          <property name="frameShape">
           <enum>QFrame::Panel</enum>
          </property>
@@ -237,7 +209,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -250,7 +222,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -263,7 +235,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -276,7 +248,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -289,7 +261,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -302,7 +274,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>
@@ -315,7 +287,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
+            <width>178</width>
             <height>299</height>
            </rect>
           </property>

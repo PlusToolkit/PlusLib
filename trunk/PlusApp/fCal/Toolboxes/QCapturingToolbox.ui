@@ -2,12 +2,6 @@
 <ui version="4.0">
  <class>CapturingToolbox</class>
  <widget class="QWidget" name="CapturingToolbox">
-  <property name="minimumSize">
-   <size>
-    <width>230</width>
-    <height>720</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Capturing</string>
   </property>
@@ -55,6 +49,22 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QPushButton" name="pushButton_Record">
        <property name="sizePolicy">
@@ -64,12 +74,6 @@
         </sizepolicy>
        </property>
        <property name="minimumSize">
-        <size>
-         <width>80</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
         <size>
          <width>80</width>
          <height>23</height>
@@ -85,6 +89,19 @@
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_Snapshot">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -98,12 +115,6 @@
          <height>23</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>90</width>
-         <height>23</height>
-        </size>
-       </property>
        <property name="text">
         <string>Snapshot</string>
        </property>
@@ -112,6 +123,19 @@
          <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -316,7 +340,23 @@
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_Actions">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer_6">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QPushButton" name="pushButton_Save">
        <property name="minimumSize">
@@ -325,39 +365,34 @@
          <height>0</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="text">
         <string>Save</string>
        </property>
        <property name="icon">
-        <iconset resource="../fCal.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_ClearRecordedFrames">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_ClearRecordedFrames">
        <property name="minimumSize">
         <size>
          <width>55</width>
          <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>55</width>
-         <height>16777215</height>
         </size>
        </property>
        <property name="text">
@@ -366,20 +401,21 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_SaveAs">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="minimumSize">
+       <property name="sizeHint" stdset="0">
         <size>
-         <width>90</width>
-         <height>23</height>
+         <width>40</width>
+         <height>20</height>
         </size>
        </property>
-       <property name="maximumSize">
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_SaveAs">
+       <property name="minimumSize">
         <size>
          <width>90</width>
          <height>23</height>
@@ -389,55 +425,57 @@
         <string>Save As...</string>
        </property>
        <property name="icon">
-        <iconset resource="../fCal.qrc">
+        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_7">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
    <item>
     <widget class="QPlainTextEdit" name="plainTextEdit_saveResult">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>70</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>70</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
      <property name="readOnly">
       <bool>true</bool>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_AllActions">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <spacer name="horizontalSpacer_8">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QPushButton" name="pushButton_StartStopAll">
        <property name="minimumSize">
         <size>
          <width>80</width>
          <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>80</width>
-         <height>16777215</height>
         </size>
        </property>
        <property name="text">
@@ -450,17 +488,24 @@
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer_9">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_SaveAll">
        <property name="minimumSize">
         <size>
          <width>75</width>
          <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>75</width>
-         <height>16777215</height>
         </size>
        </property>
        <property name="text">
@@ -473,17 +518,37 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_ClearAll">
-       <property name="maximumSize">
+      <spacer name="horizontalSpacer_10">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
         <size>
-         <width>60</width>
-         <height>16777215</height>
+         <width>40</width>
+         <height>20</height>
         </size>
        </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_ClearAll">
        <property name="text">
         <string>Clear All</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_11">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
