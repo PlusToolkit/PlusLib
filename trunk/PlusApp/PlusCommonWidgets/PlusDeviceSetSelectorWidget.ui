@@ -2,18 +2,10 @@
 <ui version="4.0">
  <class>DeviceSetSelectorWidget</class>
  <widget class="QWidget" name="DeviceSetSelectorWidget">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>258</width>
-    <height>328</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Plus Device Set Selector</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -26,26 +18,26 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <property name="horizontalSpacing">
-    <number>0</number>
-   </property>
-   <property name="verticalSpacing">
-    <number>4</number>
-   </property>
-   <item row="0" column="0">
+   <item>
     <widget class="QLabel" name="label_ConfigurationDirectory">
      <property name="text">
       <string>Device set configuration directory:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>0</number>
      </property>
      <item>
       <widget class="QLineEdit" name="lineEdit_ConfigurationDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>8</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -53,6 +45,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_OpenConfigurationDirectory">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="toolTip">
         <string>Select other device set configuration directory</string>
        </property>
@@ -67,6 +65,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_RefreshFolder">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="toolTip">
         <string>Refresh device set list from currently selected configuration directory</string>
        </property>
@@ -81,14 +85,64 @@
      </item>
     </layout>
    </item>
-   <item row="2" column="0">
+   <item>
     <widget class="QLabel" name="label_DeviceSet">
      <property name="text">
       <string>Device set:</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_DeviceSetContainer">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QComboBox" name="comboBox_DeviceSet">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>9</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maxVisibleItems">
+        <number>35</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_EditConfiguration">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Edit configuration file</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="PlusCommonWidgets.qrc">
+         <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="textEdit_Description">
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -104,7 +158,7 @@
      </property>
     </spacer>
    </item>
-   <item row="7" column="0">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_Buttons">
      <property name="spacing">
       <number>0</number>
@@ -150,50 +204,6 @@
       <widget class="QPushButton" name="pushButton_ResetTracker">
        <property name="text">
         <string>Reset Tracker</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="5" column="0">
-    <widget class="QTextEdit" name="textEdit_Description">
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_DeviceSetContainer">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QComboBox" name="comboBox_DeviceSet">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maxVisibleItems">
-        <number>35</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_EditConfiguration">
-       <property name="toolTip">
-        <string>Edit configuration file</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="PlusCommonWidgets.qrc">
-         <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
        </property>
       </widget>
      </item>
