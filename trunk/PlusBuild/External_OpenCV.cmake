@@ -20,7 +20,7 @@ ELSE()
   ENDIF()
 
   IF(CUDA_FOUND)
-    SET(_generations "Fermi" "Kepler")
+    SET(_generations "Fermi" "Kepler" "Maxwell" "Pascal")
     IF(NOT CMAKE_CROSSCOMPILING)
       LIST(APPEND _generations "Auto")
     ENDIF()
