@@ -4,54 +4,65 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "frmgrab.h"
-#include "vtkPlusEpiphanVideoSource.h"
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
+#include "PixelCodec.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "PixelCodec.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusEpiphanVideoSource.h"
+
+// Epiphan includes
+#include <frmgrab.h>
+
+// vtk includes
+#include <vtkImageData.h>
+#include <vtkObjectFactory.h>
+#include <vtksys/SystemTools.hxx>
+
+//----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusEpiphanVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusEpiphanVideoSource::vtkPlusEpiphanVideoSource()
-: GrabberLocation(NULL)
-, CropRectangle(NULL)
+  : GrabberLocation(NULL)
+  , CropRectangle(NULL)
+  , ScaleMode(NULL)
+  , RotationMode(NULL)
+  , Rotation(V2URotationNone)
+  , Scale(V2UScaleNone)
 {
-  this->ClipRectangleOrigin[0]=0;
-  this->ClipRectangleOrigin[1]=0;
-  this->ClipRectangleSize[0]=0;
-  this->ClipRectangleSize[1]=0;
+  this->ClipRectangleOrigin[0] = 0;
+  this->ClipRectangleOrigin[1] = 0;
+  this->ClipRectangleSize[0] = 0;
+  this->ClipRectangleSize[1] = 0;
 
-  this->FrameSize[0]=0;
-  this->FrameSize[1]=0;
-  this->FrameSize[2]=1;
+  this->FrameSize[0] = 0;
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 1;
 
   this->RequireImageOrientationInConfiguration = true;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 30;
 }
 
 //----------------------------------------------------------------------------
 vtkPlusEpiphanVideoSource::~vtkPlusEpiphanVideoSource()
-{ 
-  if( !this->Connected )
+{
+  if (!this->Connected)
   {
     this->Disconnect();
   }
 
-  if ( this->FrameGrabber != NULL) 
+  if (this->FrameGrabber != NULL)
   {
     FrmGrab_Deinit();
     this->FrameGrabber = NULL;
   }
 
-  if( this->CropRectangle != NULL )
+  if (this->CropRectangle != NULL)
   {
     delete this->CropRectangle;
     this->CropRectangle = NULL;
@@ -61,41 +72,46 @@ vtkPlusEpiphanVideoSource::~vtkPlusEpiphanVideoSource()
 //----------------------------------------------------------------------------
 void vtkPlusEpiphanVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
+}
 
+//----------------------------------------------------------------------------
+bool vtkPlusEpiphanVideoSource::IsTracker() const
+{
+  return false;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
 {
-  LOG_TRACE( "vtkPlusEpiphanVideoSource::InternalConnect" );
+  LOG_TRACE("vtkPlusEpiphanVideoSource::InternalConnect");
 
   // Initialize frmgrab library
   FrmGrabNet_Init();
 
-  if ( this->GrabberLocation != NULL )
+  if (this->GrabberLocation != NULL)
   {
-    if ( (this->FrameGrabber = FrmGrab_Open( this->GrabberLocation )) == NULL ) 
-    {      
-      if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
+    if ((this->FrameGrabber = FrmGrab_Open(this->GrabberLocation)) == NULL)
+    {
+      if ((this->FrameGrabber = FrmGrabLocal_Open()) == NULL)
       {
         LOG_ERROR("Epiphan Device found");
         return PLUS_FAIL;
       }
-      const char UNKNOWN_DEVICE[]="UNKNOWN";
-      const char* connectedTo=FrmGrab_GetLocation((FrmGrabber*)this->FrameGrabber);      
-      if (connectedTo==NULL)
+      const char UNKNOWN_DEVICE[] = "UNKNOWN";
+      const char* connectedTo = FrmGrab_GetLocation((FrmGrabber*)this->FrameGrabber);
+      if (connectedTo == NULL)
       {
-        connectedTo=UNKNOWN_DEVICE;
+        connectedTo = UNKNOWN_DEVICE;
       }
 
-      LOG_WARNING("Epiphan Device with the requested location '"<<this->GrabberLocation<<"' not found. Connected to " << connectedTo << " device instead.");
+      LOG_WARNING("Epiphan Device with the requested location '" << this->GrabberLocation << "' not found. Connected to " << connectedTo << " device instead.");
     }
   }
   else
   {
     LOG_DEBUG("Serial Number not specified. Looking for any available device");
-    if ( (this->FrameGrabber = FrmGrabLocal_Open()) == NULL )
+    if ((this->FrameGrabber = FrmGrabLocal_Open()) == NULL)
     {
       LOG_ERROR("Epiphan Device Not found");
       return PLUS_FAIL;
@@ -103,45 +119,45 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
   }
 
   V2U_VideoMode vm;
-  if (!FrmGrab_DetectVideoMode((FrmGrabber*)this->FrameGrabber,&vm)) 
+  if (!FrmGrab_DetectVideoMode((FrmGrabber*)this->FrameGrabber, &vm))
   {
     LOG_ERROR("No signal detected");
     return PLUS_FAIL;
   }
 
-  double maxPossibleAcquisitionRate=vm.vfreq/1000;
-  if (this->GetAcquisitionRate()>maxPossibleAcquisitionRate)
+  double maxPossibleAcquisitionRate = vm.vfreq / 1000;
+  if (this->GetAcquisitionRate() > maxPossibleAcquisitionRate)
   {
     this->SetAcquisitionRate(maxPossibleAcquisitionRate);
   }
-  if (vm.width==0 || vm.height==0)
+  if (vm.width == 0 || vm.height == 0)
   {
-    LOG_ERROR("No valid signal detected. Invalid frame size is received from the framegrabber: "<<vm.width<<"x"<<vm.height);
+    LOG_ERROR("No valid signal detected. Invalid frame size is received from the framegrabber: " << vm.width << "x" << vm.height);
     return PLUS_FAIL;
   }
   this->FrameSize[0] = vm.width;
-  this->FrameSize[1] = vm.height;  
+  this->FrameSize[1] = vm.height;
 
-  if( (this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0) )
+  if ((this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0))
   {
-    if (this->ClipRectangleSize[0]%4!=0)
+    if (this->ClipRectangleSize[0] % 4 != 0)
     {
       LOG_WARNING("ClipRectangleSize[0] is not a multiple of 4. Acquired image may be skewed.");
     }
-    if (this->ClipRectangleOrigin[0]+this->ClipRectangleSize[0]>vm.width || this->ClipRectangleOrigin[1]+this->ClipRectangleSize[1]>vm.height)
+    if (this->ClipRectangleOrigin[0] + this->ClipRectangleSize[0] > vm.width || this->ClipRectangleOrigin[1] + this->ClipRectangleSize[1] > vm.height)
     {
-      LOG_ERROR("Invalid clip rectangle: rectangle does not fit into the image. Clip rectangle origin: ("<<this->ClipRectangleOrigin[0]<<","<<this->ClipRectangleOrigin[1]
-      <<"), size: "<<this->ClipRectangleSize[0]<<","<<this->ClipRectangleSize[1]<<". Image size: "<<vm.width<<"x"<<vm.height);
+      LOG_ERROR("Invalid clip rectangle: rectangle does not fit into the image. Clip rectangle origin: (" << this->ClipRectangleOrigin[0] << "," << this->ClipRectangleOrigin[1]
+                << "), size: " << this->ClipRectangleSize[0] << "," << this->ClipRectangleSize[1] << ". Image size: " << vm.width << "x" << vm.height);
       return PLUS_FAIL;
     }
     this->FrameSize[0] = this->ClipRectangleSize[0];
     this->FrameSize[1] = this->ClipRectangleSize[1];
   }
 
-  if( this->GetNumberOfVideoSources() == 1 )
+  if (this->GetNumberOfVideoSources() == 1)
   {
     vtkPlusDataSource* aSource(NULL);
-    if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
+    if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
@@ -158,9 +174,9 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
   {
     // Can only be 1 or 2, so we must have two video sources, most likely for biplane configuration
     vtkPlusDataSource* aSource(NULL);
-    for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+    for (int i = 0; i < this->GetNumberOfVideoSources(); ++i)
     {
-      if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
+      if (this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
         return PLUS_FAIL;
@@ -176,21 +192,21 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
   return PLUS_SUCCESS;
 }
 
-
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusEpiphanVideoSource::InternalDisconnect()
 {
-  LOG_DEBUG( "vtkPlusEpiphanVideoSource::InternalDisconnect" );
+  LOG_DEBUG("vtkPlusEpiphanVideoSource::InternalDisconnect");
 
-  if( this->Recording )
+  if (this->Recording)
   {
-    if( this->StopRecording() != PLUS_SUCCESS )
+    if (this->StopRecording() != PLUS_SUCCESS)
     {
       LOG_WARNING(this->GetDeviceId() << ": Unable to stop recording.");
     }
   }
 
-  if (this->FrameGrabber != NULL) {
+  if (this->FrameGrabber != NULL)
+  {
     FrmGrab_Close((FrmGrabber*)this->FrameGrabber);
   }
   this->FrameGrabber = NULL;
@@ -201,7 +217,7 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusEpiphanVideoSource::InternalStartRecording()
 {
-  if( !FrmGrab_Start((FrmGrabber*)this->FrameGrabber) )
+  if (!FrmGrab_Start((FrmGrabber*)this->FrameGrabber))
   {
     LOG_ERROR(this->GetDeviceId() << ": Unable to frame grabber.");
     return PLUS_FAIL;
@@ -226,15 +242,16 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  V2U_GrabFrame2 * frame = NULL;
-
+  V2U_GrabFrame2* frame = NULL;
 
   // If someone ever wants RGB8 or YUY2 (etc...) this line will have to be changed
   // to support any future video format choices
   // ReadConfiguration will probably need a new flag to tell this line what to do
   V2U_UINT32 videoFormat = (this->CaptureImageType == US_IMG_RGB_COLOR ? V2U_GRABFRAME_FORMAT_RGB24 : V2U_GRABFRAME_FORMAT_Y8);
+  videoFormat |= V2U_SCALE_MODE_TO_FLAGS(Scale);
+  videoFormat |= V2U_ROTATION_MODE_TO_FLAGS(Rotation);
 
-  frame = FrmGrab_Frame( (FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle );
+  frame = FrmGrab_Frame((FrmGrabber*)this->FrameGrabber, videoFormat, this->CropRectangle);
 
   if (frame == NULL)
   {
@@ -242,30 +259,30 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  if ( frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
+  if (frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
   {
     LOG_ERROR("Image size received from Epiphan (" << frame->crop.width << "x" << frame->crop.height << ") does not match the clip rectangle size (" <<
-      this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
-    FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
+              this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
+    FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
     return PLUS_FAIL;
   }
 
   vtkPlusDataSource* aSource(NULL);
-  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+  for (int i = 0; i < this->GetNumberOfVideoSources(); ++i)
   {
-    if( this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS )
+    if (this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
     int numberOfScalarComponents(1);
-    if( aSource->GetImageType() == US_IMG_RGB_COLOR )
+    if (aSource->GetImageType() == US_IMG_RGB_COLOR)
     {
       numberOfScalarComponents = 3;
     }
-    if( aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS )
+    if (aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId() );
+      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
     else
@@ -274,7 +291,7 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalUpdate()
     }
   }
 
-  FrmGrab_Release( (FrmGrabber*)this->FrameGrabber, frame );
+  FrmGrab_Release((FrmGrabber*)this->FrameGrabber, frame);
 
   this->FrameNumber++;
 
@@ -290,13 +307,13 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   // GrabberLocation attribute.
   const char* grabberLocation = deviceConfig->GetAttribute("GrabberLocation");
   const char* serialNumber = deviceConfig->GetAttribute("SerialNumber");
-  if (grabberLocation!=NULL)
+  if (grabberLocation != NULL)
   {
     SetGrabberLocation(grabberLocation);
   }
-  else if( serialNumber !=NULL)
+  else if (serialNumber != NULL)
   {
-    std::string grabberLocationString=std::string("sn:")+serialNumber;
+    std::string grabberLocationString = std::string("sn:") + serialNumber;
     SetGrabberLocation(grabberLocationString.c_str());
     LOG_WARNING("Epiphan SerialNumber is specified. This attribute is deprecated, please use GrabberLocation=\"sn:SERIAL\" attribute instead.");
   }
@@ -305,12 +322,89 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     LOG_DEBUG("Epiphan device location is not specified in the configuration");
   }
 
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
+  if (this->RotationMode != NULL)
+  {
+    if (STRCASECMP(this->RotationMode, "None") == 0)
+    {
+      this->Rotation = V2URotationNone;
+    }
+    else if (STRCASECMP(this->RotationMode, "Left90") == 0)
+    {
+      this->Rotation = V2URotationLeft90;
+    }
+    else if (STRCASECMP(this->RotationMode, "Right90") == 0)
+    {
+      this->Rotation = V2URotationRight90;
+    }
+    else if (STRCASECMP(this->RotationMode, "180") == 0)
+    {
+      this->Rotation = V2URotation180;
+    }
+  }
+
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
+  if (this->ScaleMode != NULL)
+  {
+    if (STRCASECMP(this->ScaleMode, "NearestNeighbor") == 0)
+    {
+      this->Scale = V2UScaleModeNearestNeighbor;
+    }
+    else if (STRCASECMP(this->ScaleMode, "WeightedAverage") == 0)
+    {
+      this->Scale = V2UScaleModeWeightedAverage;
+    }
+    else if (STRCASECMP(this->ScaleMode, "FastBilinear") == 0)
+    {
+      this->Scale = V2UScaleModeFastBilinear;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Bilinear") == 0)
+    {
+      this->Scale = V2UScaleModeBilinear;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Bicubic") == 0)
+    {
+      this->Scale = V2UScaleModeBicubic;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Experimental") == 0)
+    {
+      this->Scale = V2UScaleModeExperimental;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Point") == 0)
+    {
+      this->Scale = V2UScaleModePoint;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Area") == 0)
+    {
+      this->Scale = V2UScaleModeArea;
+    }
+    else if (STRCASECMP(this->ScaleMode, "BicubLin") == 0)
+    {
+      this->Scale = V2UScaleModeBicubLin;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Sinc") == 0)
+    {
+      this->Scale = V2UScaleModeSinc;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Lanczos") == 0)
+    {
+      this->Scale = V2UScaleModeLanczos;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Spline") == 0)
+    {
+      this->Scale = V2UScaleModeSpline;
+    }
+    else if (STRCASECMP(this->ScaleMode, "Hardware") == 0)
+    {
+      this->Scale = V2UScaleModeHardware;
+    }
+  }
+
   // Epiphan hardware clipping parameters
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
-
 }
 
 //-----------------------------------------------------------------------------
@@ -334,26 +428,26 @@ PlusStatus vtkPlusEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* root
 PlusStatus vtkPlusEpiphanVideoSource::NotifyConfigured()
 {
   vtkPlusDataSource* videoSource(NULL);
-  if( this->OutputChannels.size() == 1 && this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
+  if (this->OutputChannels.size() == 1 && this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data source.");
     return PLUS_FAIL;
   }
-  else if( this->OutputChannels.size() == 2 && this->GetVideoSourceByIndex(0, videoSource) != PLUS_SUCCESS && this->GetVideoSourceByIndex(1, videoSource) != PLUS_SUCCESS )
+  else if (this->OutputChannels.size() == 2 && this->GetVideoSourceByIndex(0, videoSource) != PLUS_SUCCESS && this->GetVideoSourceByIndex(1, videoSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Epiphan is incorrectly configured. Unable to access video data sources.");
     return PLUS_FAIL;
   }
 
   this->CaptureImageType = videoSource->GetImageType();
-  for( int i = 0; i < this->GetNumberOfVideoSources(); ++i )
+  for (int i = 0; i < this->GetNumberOfVideoSources(); ++i)
   {
-    if( this->GetVideoSourceByIndex(i, videoSource) != PLUS_SUCCESS )
+    if (this->GetVideoSourceByIndex(i, videoSource) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to retrieve the video source in the Epiphan device on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
-    if( videoSource->GetImageType() != this->CaptureImageType )
+    if (videoSource->GetImageType() != this->CaptureImageType)
     {
       LOG_ERROR("Conflicting image types in data sources. Please confirm matching image types.");
       return PLUS_FAIL;
