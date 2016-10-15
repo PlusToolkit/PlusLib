@@ -76,22 +76,25 @@ typedef V2U_INT64  V2U_TIME;
 #define V2U_TRUE  1
 #define V2U_FALSE 0
 
-typedef struct v2u_size {
-    V2U_INT32 width;
-    V2U_INT32 height;
+typedef struct v2u_size
+{
+  V2U_INT32 width;
+  V2U_INT32 height;
 } V2U_PACKED V2USize;
 
-typedef struct v2u_rect {
-    V2U_INT32 x;
-    V2U_INT32 y;
-    V2U_INT32 width;
-    V2U_INT32 height;
+typedef struct v2u_rect
+{
+  V2U_INT32 x;
+  V2U_INT32 y;
+  V2U_INT32 width;
+  V2U_INT32 height;
 } V2U_PACKED V2URect;
 
-typedef struct v2u_str_ucs2 {
-    V2U_UCS2* buffer;       /* not necessarily NULL-terminated */
-    V2U_UINT32 len;         /* string length, in characters */
-    V2U_UINT32 maxlen;      /* buffer size, in characters */
+typedef struct v2u_str_ucs2
+{
+  V2U_UCS2* buffer;       /* not necessarily NULL-terminated */
+  V2U_UINT32 len;         /* string length, in characters */
+  V2U_UINT32 maxlen;      /* buffer size, in characters */
 } V2U_PACKED V2UStrUcs2;
 
 /*
@@ -99,16 +102,17 @@ typedef struct v2u_str_ucs2 {
  *
  * Video mode descriptor.
  *
- * Note that the vertical refresh rate is measured in milliHertz. 
+ * Note that the vertical refresh rate is measured in milliHertz.
  * That is, the number 59900 represents 59.9 Hz.
  */
-typedef struct ioctl_videomode {
-    V2U_INT32  width;       /* screen width, pixels */
-    V2U_INT32  height;      /* screen height, pixels */
-    V2U_INT32  vfreq;       /* vertical refresh rate, mHz */
+typedef struct ioctl_videomode
+{
+  V2U_INT32  width;       /* screen width, pixels */
+  V2U_INT32  height;      /* screen height, pixels */
+  V2U_INT32  vfreq;       /* vertical refresh rate, mHz */
 } V2U_PACKED V2U_VideoMode;
 
-/* 
+/*
  * V2U_GrabParameters
  *
  * VGA capture parameters.
@@ -116,30 +120,31 @@ typedef struct ioctl_videomode {
  * Gain = Contrast
  * Offset =  Brightness
  */
-typedef struct ioctl_setparams {
-    V2U_UINT32 flags;       /* Validity flags for fields below             */
-                            /* When any of the fields below is used,       */
-                            /* corresponding V2U_FLAG_VALID_* flag  is set */
-                            /* otherwise the field is ignored              */
-    V2U_INT32  hshift;      /* Shifts image left (<0) or right(>0).        */
-                            /* Valid range depends on the video mode.      */
-                            /* Invalid values are rounded to the nearest   */
-                            /* valid value                                 */
-    V2U_UINT8  phase;       /* Pixel sampling phase, [0,31]                */
-    V2U_UINT8  gain_r;      /* Gain for the red channel, [0,255]           */
-    V2U_UINT8  gain_g;      /* Gain for the green channel, [0,255]         */
-    V2U_UINT8  gain_b;      /* Gain for the blue channel, [0,255]          */
-    V2U_UINT8  offset_r;    /* Offset for the red channel, [0,63]          */
-    V2U_UINT8  offset_g;    /* Offset for the green channel, [0,63]        */
-    V2U_UINT8  offset_b;    /* Offset for the blue channel, [0,63]         */
-    V2U_UINT8  reserved;    /* added for alignment, don't use              */
-    V2U_INT32  vshift;      /* Shifts image up or down                     */
-                            /* Valid range depends on the video mode.      */
-                            /* Invalid values are rounded to the nearest   */
-                            /* valid value                                 */
-    V2U_INT32  pllshift;    /* Adjusts the PLL value                       */
-    V2U_UINT32 grab_flags;  /* Sets grab_flags V2U_GRAB_*                  */
-    V2U_UINT32 grab_flags_mask; /* Marks which bits from grab_flags are used */
+typedef struct ioctl_setparams
+{
+  V2U_UINT32 flags;       /* Validity flags for fields below             */
+  /* When any of the fields below is used,       */
+  /* corresponding V2U_FLAG_VALID_* flag  is set */
+  /* otherwise the field is ignored              */
+  V2U_INT32  hshift;      /* Shifts image left (<0) or right(>0).        */
+  /* Valid range depends on the video mode.      */
+  /* Invalid values are rounded to the nearest   */
+  /* valid value                                 */
+  V2U_UINT8  phase;       /* Pixel sampling phase, [0,31]                */
+  V2U_UINT8  gain_r;      /* Gain for the red channel, [0,255]           */
+  V2U_UINT8  gain_g;      /* Gain for the green channel, [0,255]         */
+  V2U_UINT8  gain_b;      /* Gain for the blue channel, [0,255]          */
+  V2U_UINT8  offset_r;    /* Offset for the red channel, [0,63]          */
+  V2U_UINT8  offset_g;    /* Offset for the green channel, [0,63]        */
+  V2U_UINT8  offset_b;    /* Offset for the blue channel, [0,63]         */
+  V2U_UINT8  reserved;    /* added for alignment, don't use              */
+  V2U_INT32  vshift;      /* Shifts image up or down                     */
+  /* Valid range depends on the video mode.      */
+  /* Invalid values are rounded to the nearest   */
+  /* valid value                                 */
+  V2U_INT32  pllshift;    /* Adjusts the PLL value                       */
+  V2U_UINT32 grab_flags;  /* Sets grab_flags V2U_GRAB_*                  */
+  V2U_UINT32 grab_flags_mask; /* Marks which bits from grab_flags are used */
 } V2U_PACKED V2U_GrabParameters;
 
 /* Indicates that hshift field is used */
@@ -158,11 +163,11 @@ typedef struct ioctl_setparams {
 /* Flags allowed in grab_flags and grab_flags_mask fields */
 /* Grab image upside-down */
 #define V2U_GRAB_BMP_BOTTOM_UP      0x10000
-/* Sometimes 4:3 and wide modes with the same height are indistinguishable, 
+/* Sometimes 4:3 and wide modes with the same height are indistinguishable,
  * so this flag can force choosing wide mode */
 #define V2U_GRAB_PREFER_WIDE_MODE   0x20000
 
-/* 
+/*
  * The ranges below are obsolete. They depend on the frame grabber model
  * as well as the video mode. Use V2UKey_AdjustmentsRange property to get
  * the ranges that are valid for the parcular frame grabber and current
@@ -175,21 +180,22 @@ typedef struct ioctl_setparams {
 #define V2U_MIN_OFFSET    0
 #define V2U_MAX_OFFSET    63
 
-/* 
+/*
  * V2U_SendPS2
  *
  * PS/2 packet descriptor.
  */
-typedef struct ioctl_sendps2 {
-    short addr;
-    short len;
-    unsigned char buf[64];
+typedef struct ioctl_sendps2
+{
+  short addr;
+  short len;
+  unsigned char buf[64];
 } V2U_PACKED V2U_SendPS2;
 
 #define V2U_PS2ADDR_KEYBOARD        0x01
 #define V2U_PS2ADDR_MOUSE           0x02
 
-/* 
+/*
  * V2U_GetSN
  *
  * Serial number.
@@ -197,35 +203,37 @@ typedef struct ioctl_sendps2 {
 
 #define V2U_SN_BUFSIZ 32
 
-typedef struct ioctl_getsn {
-    char sn[V2U_SN_BUFSIZ]; /* OUT serial number string */
+typedef struct ioctl_getsn
+{
+  char sn[V2U_SN_BUFSIZ]; /* OUT serial number string */
 } V2U_PACKED V2U_GetSN;
 
-typedef enum v2u_product_type {
-    V2UProductOther,
-    V2UProductVGA2USB,
-    V2UProductKVM2USB,
-    V2UProductDVI2USB,
-    V2UProductVGA2USBPro,
-    V2UProductVGA2USBLR,
-    V2UProductDVI2USBSolo,
-    V2UProductDVI2USBDuo,
-    V2UProductKVM2USBPro,
-    V2UProductKVM2USBLR,
-    V2UProductDVI2USBRespin,
-    V2UProductVGA2USBHR,
-    V2UProductVGA2USBLRRespin,
-    V2UProductVGA2USBHRRespin,
-    V2UProductVGA2USBProRespin,
-    V2UProductVGA2FIFO,
-    V2UProductKVM2FIFO,
-    V2UProductDVI2FIFO,
-    V2UProductDVI2Davinci1,
-    V2UProductVGA2PCI,
-    V2UProductGioconda,
-    V2UProductDVI2PCI,
-    V2UProductKVM2USBLRRespin,
-    V2UProductCount                 /* Number of known product types */
+typedef enum v2u_product_type
+{
+  V2UProductOther,
+  V2UProductVGA2USB,
+  V2UProductKVM2USB,
+  V2UProductDVI2USB,
+  V2UProductVGA2USBPro,
+  V2UProductVGA2USBLR,
+  V2UProductDVI2USBSolo,
+  V2UProductDVI2USBDuo,
+  V2UProductKVM2USBPro,
+  V2UProductKVM2USBLR,
+  V2UProductDVI2USBRespin,
+  V2UProductVGA2USBHR,
+  V2UProductVGA2USBLRRespin,
+  V2UProductVGA2USBHRRespin,
+  V2UProductVGA2USBProRespin,
+  V2UProductVGA2FIFO,
+  V2UProductKVM2FIFO,
+  V2UProductDVI2FIFO,
+  V2UProductDVI2Davinci1,
+  V2UProductVGA2PCI,
+  V2UProductGioconda,
+  V2UProductDVI2PCI,
+  V2UProductKVM2USBLRRespin,
+  V2UProductCount                 /* Number of known product types */
 } V2UProductType;
 
 /*
@@ -233,22 +241,23 @@ typedef enum v2u_product_type {
  * currently only works for RGB24 capture. For all other pixel formats
  * it defaults to V2UScaleModeNearestNeighbor.
  */
-typedef enum v2u_scale_mode {
-    V2UScaleNone,                   /* No scaling */
-    V2UScaleModeNearestNeighbor,    /* Nearest neighbor algorithm */
-    V2UScaleModeWeightedAverage,    /* Weighted average algorithm */
-    V2UScaleModeFastBilinear,       /* Fast bilinear */
-    V2UScaleModeBilinear,           /* Bilinear */
-    V2UScaleModeBicubic,            /* Bicubic */
-    V2UScaleModeExperimental,       /* Experimental */
-    V2UScaleModePoint,              /* Nearest neighbour# 2 */
-    V2UScaleModeArea,               /* Weighted average */
-    V2UScaleModeBicubLin,           /* Luma bicubic, chroma bilinear */
-    V2UScaleModeSinc,               /* Sinc */
-    V2UScaleModeLanczos,            /* Lanczos */
-    V2UScaleModeSpline,             /* Natural bicubic spline */
-    V2UScaleModeHardware,           /* Scale in hardware, if supported */
-    V2UScaleModeCount               /* Number of valid modes */
+typedef enum v2u_scale_mode
+{
+  V2UScaleNone,                   /* No scaling */
+  V2UScaleModeNearestNeighbor,    /* Nearest neighbor algorithm */
+  V2UScaleModeWeightedAverage,    /* Weighted average algorithm */
+  V2UScaleModeFastBilinear,       /* Fast bilinear */
+  V2UScaleModeBilinear,           /* Bilinear */
+  V2UScaleModeBicubic,            /* Bicubic */
+  V2UScaleModeExperimental,       /* Experimental */
+  V2UScaleModePoint,              /* Nearest neighbour# 2 */
+  V2UScaleModeArea,               /* Weighted average */
+  V2UScaleModeBicubLin,           /* Luma bicubic, chroma bilinear */
+  V2UScaleModeSinc,               /* Sinc */
+  V2UScaleModeLanczos,            /* Lanczos */
+  V2UScaleModeSpline,             /* Natural bicubic spline */
+  V2UScaleModeHardware,           /* Scale in hardware, if supported */
+  V2UScaleModeCount               /* Number of valid modes */
 } V2UScaleMode;
 
 /* Macros to translate V2UScaleMode to capture flags and back */
@@ -257,12 +266,13 @@ typedef enum v2u_scale_mode {
 #define V2U_SCALE_FLAGS_TO_MODE(_f) \
     ((V2UScaleMode)(((_f) & V2U_GRABFRAME_SCALE_MASK) >> 16))
 
-typedef enum v2u_rotation_mode {
-    V2URotationNone,                /* V2U_GRABFRAME_ROTATION_NONE */
-    V2URotationLeft90,              /* V2U_GRABFRAME_ROTATION_LEFT90 */
-    V2URotationRight90,             /* V2U_GRABFRAME_ROTATION_RIGHT90 */
-    V2URotation180,                 /* V2U_GRABFRAME_ROTATION_180 */
-    V2URotationCount                /* Number of valid rotation types */
+typedef enum v2u_rotation_mode
+{
+  V2URotationNone,                /* V2U_GRABFRAME_ROTATION_NONE */
+  V2URotationLeft90,              /* V2U_GRABFRAME_ROTATION_LEFT90 */
+  V2URotationRight90,             /* V2U_GRABFRAME_ROTATION_RIGHT90 */
+  V2URotation180,                 /* V2U_GRABFRAME_ROTATION_180 */
+  V2URotationCount                /* Number of valid rotation types */
 } V2URotationMode;
 
 /* Macros to translate V2URotationMode to capture flags and back */
@@ -271,35 +281,37 @@ typedef enum v2u_rotation_mode {
 #define V2U_ROTATION_FLAGS_TO_MODE(_f) \
     ((V2URotationMode)(((_f) & V2U_GRABFRAME_ROTATION_MASK) >> 20))
 
-typedef struct v2u_adjustment_range {
-    V2U_UINT32 flags;
-    V2U_UINT32 valid_flags;
-    V2U_INT16 hshift_min;
-    V2U_INT16 hshift_max;
-    V2U_INT16 phase_min;
-    V2U_INT16 phase_max;
-    V2U_INT16 offset_min;
-    V2U_INT16 offset_max;
-    V2U_INT16 gain_min;
-    V2U_INT16 gain_max;
-    V2U_INT16 vshift_min;
-    V2U_INT16 vshift_max;
-    V2U_INT16 pll_min;
-    V2U_INT16 pll_max;
+typedef struct v2u_adjustment_range
+{
+  V2U_UINT32 flags;
+  V2U_UINT32 valid_flags;
+  V2U_INT16 hshift_min;
+  V2U_INT16 hshift_max;
+  V2U_INT16 phase_min;
+  V2U_INT16 phase_max;
+  V2U_INT16 offset_min;
+  V2U_INT16 offset_max;
+  V2U_INT16 gain_min;
+  V2U_INT16 gain_max;
+  V2U_INT16 vshift_min;
+  V2U_INT16 vshift_max;
+  V2U_INT16 pll_min;
+  V2U_INT16 pll_max;
 } V2U_PACKED V2UAdjRange;
 
 /* Video mode descriptor */
-typedef struct vesa_videomode {
-    V2U_UINT32 VerFrequency;        /* mHz */
-    V2U_UINT16 HorAddrTime;         /* pixels */
-    V2U_UINT16 HorFrontPorch;       /* pixels */
-    V2U_UINT16 HorSyncTime;         /* pixels */
-    V2U_UINT16 HorBackPorch;        /* pixels */
-    V2U_UINT16 VerAddrTime;         /* lines */
-    V2U_UINT16 VerFrontPorch;       /* lines */
-    V2U_UINT16 VerSyncTime;         /* lines */
-    V2U_UINT16 VerBackPorch;        /* lines */
-    V2U_UINT32 Type;                /* flags, see below */
+typedef struct vesa_videomode
+{
+  V2U_UINT32 VerFrequency;        /* mHz */
+  V2U_UINT16 HorAddrTime;         /* pixels */
+  V2U_UINT16 HorFrontPorch;       /* pixels */
+  V2U_UINT16 HorSyncTime;         /* pixels */
+  V2U_UINT16 HorBackPorch;        /* pixels */
+  V2U_UINT16 VerAddrTime;         /* lines */
+  V2U_UINT16 VerFrontPorch;       /* lines */
+  V2U_UINT16 VerSyncTime;         /* lines */
+  V2U_UINT16 VerBackPorch;        /* lines */
+  V2U_UINT32 Type;                /* flags, see below */
 
 #define VIDEOMODE_TYPE_VALID            0x01
 #define VIDEOMODE_TYPE_ENABLED          0x02
@@ -322,19 +334,21 @@ typedef const V2UVideoModeDescr* V2UVideoModeDescrCPtr;
  * are reserved for custom video modes. The remaining entries are standard
  * video modes.
  */
-typedef struct custom_videomode {
-    V2U_INT32 idx;
-    V2UVideoModeDescr vesa_mode;
+typedef struct custom_videomode
+{
+  V2U_INT32 idx;
+  V2UVideoModeDescr vesa_mode;
 } V2U_PACKED V2UVGAMode;
 
-typedef struct v2u_version {
-    V2U_INT32 major;
-    V2U_INT32 minor;
-    V2U_INT32 micro;
-    V2U_INT32 nano;
+typedef struct v2u_version
+{
+  V2U_INT32 major;
+  V2U_INT32 minor;
+  V2U_INT32 micro;
+  V2U_INT32 nano;
 } V2U_PACKED V2UVersion;
 
-/* 
+/*
  * Property keys and types
  */
 
@@ -351,30 +365,33 @@ typedef struct v2u_version {
 #define V2U_INPUT_COMPOSITE         0x08
 
 /* V2UKey_DigitalModeDetect */
-typedef enum v2u_digital_mode_detect {
-    V2UDigitalMode_AutoDetect,      /* Automatic detection (default) */
-    V2UDigitalMode_SingleLink,      /* Force single link */
-    V2UDigitalMode_DualLink,        /* Force dual link */
-    V2UDigitalMode_Count            /* Not a valid value */
+typedef enum v2u_digital_mode_detect
+{
+  V2UDigitalMode_AutoDetect,      /* Automatic detection (default) */
+  V2UDigitalMode_SingleLink,      /* Force single link */
+  V2UDigitalMode_DualLink,        /* Force dual link */
+  V2UDigitalMode_Count            /* Not a valid value */
 } V2UDigitalModeDetect;
 
 /* V2UKey_NoiseFilter */
-typedef enum v2u_noise_filter {
-    V2UNoiseFilter_Auto,            /* Automatic configuration (default) */
-    V2UNoiseFilter_None,            /* Disable noise filter */
-    V2UNoiseFilter_Low,             /* Good for Apple */
-    V2UNoiseFilter_Moderate,
-    V2UNoiseFilter_High,
-    V2UNoiseFilter_Extreme,         /* Good for black and white */
-    V2UNoiseFilter_Count            /* Not a valid value */
+typedef enum v2u_noise_filter
+{
+  V2UNoiseFilter_Auto,            /* Automatic configuration (default) */
+  V2UNoiseFilter_None,            /* Disable noise filter */
+  V2UNoiseFilter_Low,             /* Good for Apple */
+  V2UNoiseFilter_Moderate,
+  V2UNoiseFilter_High,
+  V2UNoiseFilter_Extreme,         /* Good for black and white */
+  V2UNoiseFilter_Count            /* Not a valid value */
 } V2UNoiseFilter;
 
 /* V2UKey_BusType */
-typedef enum v2u_bus_type {
-    V2UBusType_Other,               /* Doesn't fall into any known category */
-    V2UBusType_USB,                 /* USB bus */
-    V2UBusType_PCI,                 /* PCI (Express) bus */
-    V2UBusType_Count                /* Not a valid value */
+typedef enum v2u_bus_type
+{
+  V2UBusType_Other,               /* Doesn't fall into any known category */
+  V2UBusType_USB,                 /* USB bus */
+  V2UBusType_PCI,                 /* PCI (Express) bus */
+  V2UBusType_Count                /* Not a valid value */
 } V2UBusType;
 
 /* H/VSync threshold values */
@@ -401,38 +418,40 @@ typedef enum v2u_bus_type {
 #define V2U_CAPS_HW_SCALE           0x0080  /* Hardware scale */
 #define V2U_CAPS_SIGNATURE          0x0100  /* Signed hardware */
 
-typedef enum v2u_property_access {
-    V2UPropAccess_NO,               /* unaccesible */
-    V2UPropAccess_RO,               /* Read only */
-    V2UPropAccess_RW,               /* Read/Write */
-    V2UPropAccess_WO,               /* Write only */
+typedef enum v2u_property_access
+{
+  V2UPropAccess_NO,               /* unaccesible */
+  V2UPropAccess_RO,               /* Read only */
+  V2UPropAccess_RW,               /* Read/Write */
+  V2UPropAccess_WO,               /* Write only */
 } V2UPropertyAccess;
 
-typedef enum v2u_property_type {
-    V2UPropType_Invalid = -1,       /* Not a valid type */
-    V2UPropType_Int8,               /* int8 - First valid type (zero) */
-    V2UPropType_Int16,              /* int16        */
-    V2UPropType_Int32,              /* int32 - Also used for enums */
-    V2UPropType_Boolean,            /* boolean      */
-    V2UPropType_Size,               /* size         */
-    V2UPropType_Rect,               /* rect         */
-    V2UPropType_Version,            /* version      */
-    V2UPropType_Binary,             /* blob         */
-    V2UPropType_EDID,               /* edid         */
-    V2UPropType_AdjustRange,        /* adj_range    */
-    V2UPropType_VGAMode,            /* vgamode      */
-    V2UPropType_String,             /* str          */
-    V2UPropType_StrUcs2,            /* wstr         */
-    V2UPropType_Uint8,              /* uint8        */
-    V2UPropType_Uint16,             /* uint16       */
-    V2UPropType_Uint32,             /* uint32       */
-    V2UPropType_Reserved,           /* not being used */
-    V2UPropType_UserData,           /* userdata     */
-    V2UPropType_Int64,              /* int64        */
-    V2UPropType_Uint64,             /* uint64       */
-    V2UPropType_VESAMode,           /* vesa_mode    */
-    V2UPropType_String2,            /* str2         */
-    V2UPropType_Count               /* Number of valid types */
+typedef enum v2u_property_type
+{
+  V2UPropType_Invalid = -1,       /* Not a valid type */
+  V2UPropType_Int8,               /* int8 - First valid type (zero) */
+  V2UPropType_Int16,              /* int16        */
+  V2UPropType_Int32,              /* int32 - Also used for enums */
+  V2UPropType_Boolean,            /* boolean      */
+  V2UPropType_Size,               /* size         */
+  V2UPropType_Rect,               /* rect         */
+  V2UPropType_Version,            /* version      */
+  V2UPropType_Binary,             /* blob         */
+  V2UPropType_EDID,               /* edid         */
+  V2UPropType_AdjustRange,        /* adj_range    */
+  V2UPropType_VGAMode,            /* vgamode      */
+  V2UPropType_String,             /* str          */
+  V2UPropType_StrUcs2,            /* wstr         */
+  V2UPropType_Uint8,              /* uint8        */
+  V2UPropType_Uint16,             /* uint16       */
+  V2UPropType_Uint32,             /* uint32       */
+  V2UPropType_Reserved,           /* not being used */
+  V2UPropType_UserData,           /* userdata     */
+  V2UPropType_Int64,              /* int64        */
+  V2UPropType_Uint64,             /* uint64       */
+  V2UPropType_VESAMode,           /* vesa_mode    */
+  V2UPropType_String2,            /* str2         */
+  V2UPropType_Count               /* Number of valid types */
 } V2UPropertyType;
 
 #define V2UPropType_Enum    V2UPropType_Int32
@@ -560,61 +579,66 @@ typedef enum v2u_property_type {
               V2UPropAccess_RO)             \
 
 /* Define V2UPropertyKey enum */
-typedef enum v2u_property_key {
+typedef enum v2u_property_key
+{
 #define V2U_PROPERTY_KEY_ENUM(key,name,type,access) key,
-    V2U_PROPERTY_LIST(V2U_PROPERTY_KEY_ENUM)
+  V2U_PROPERTY_LIST(V2U_PROPERTY_KEY_ENUM)
 #undef V2U_PROPERTY_KEY_ENUM
-    V2UKey_Count        /* Number of known properties */
+  V2UKey_Count        /* Number of known properties */
 } V2UPropertyKey;
 
 #define V2U_USERDATA_LEN    8
 
-typedef union v2u_property_value {
-    V2U_INT8        int8;
-    V2U_UINT8       uint8;
-    V2U_INT16       int16;
-    V2U_UINT16      uint16;
-    V2U_INT32       int32;
-    V2U_UINT32      uint32;
-    V2U_INT64       int64;
-    V2U_UINT64      uint64;
-    V2U_BOOL        boolean;
-    V2UProductType  product_type;
-    V2USize         size;
-    V2URect         rect;
-    V2UStrUcs2      wstr;
-    V2UAdjRange     adj_range;
-    V2UVersion      version;
-    V2UVGAMode      vgamode;
-    V2UVideoModeDescr vesa_mode;
-    char            str[256];
-    V2U_UCS2        str2[128];
-    V2U_UINT8       edid[128];
-    V2U_UINT8       blob[256];
-    V2U_UINT8       userdata[V2U_USERDATA_LEN];
+typedef union v2u_property_value
+{
+  V2U_INT8        int8;
+  V2U_UINT8       uint8;
+  V2U_INT16       int16;
+  V2U_UINT16      uint16;
+  V2U_INT32       int32;
+  V2U_UINT32      uint32;
+  V2U_INT64       int64;
+  V2U_UINT64      uint64;
+  V2U_BOOL        boolean;
+  V2UProductType  product_type;
+  V2USize         size;
+  V2URect         rect;
+  V2UStrUcs2      wstr;
+  V2UAdjRange     adj_range;
+  V2UVersion      version;
+  V2UVGAMode      vgamode;
+  V2UVideoModeDescr vesa_mode;
+  char            str[256];
+  V2U_UCS2        str2[128];
+  V2U_UINT8       edid[128];
+  V2U_UINT8       blob[256];
+  V2U_UINT8       userdata[V2U_USERDATA_LEN];
 } V2UPropertyValue;
 
-typedef struct v2u_ioctl_property {
-    V2UPropertyKey key;             /* IN      property key */
-    V2UPropertyValue value;         /* IN/OUT  property value */
+typedef struct v2u_ioctl_property
+{
+  V2UPropertyKey key;             /* IN      property key */
+  V2UPropertyValue value;         /* IN/OUT  property value */
 } V2U_PACKED V2U_Property;
 
-/* 
+/*
  * V2U_GrabFrame
  *
  * Frame buffer.
  */
-typedef struct ioctl_grabframe {
+typedef struct ioctl_grabframe
+{
 #define V2U_GrabFrame_Fields(pointer) \
     pointer     pixbuf;     /* IN  should be filled by user process */\
     V2U_UINT32  pixbuflen;  /* IN  should be filled by user process */\
     V2U_INT32   width;      /* OUT width in pixels */\
     V2U_INT32   height;     /* OUT height in pixels */\
     V2U_UINT32  bpp;        /* IN  pixel format */
-    V2U_GrabFrame_Fields(void*)
+  V2U_GrabFrame_Fields(void*)
 } V2U_PACKED V2U_GrabFrame;
 
-typedef struct ioctl_grabframe2 {
+typedef struct ioctl_grabframe2
+{
 #define V2U_GrabFrame2_Fields(pointer) \
     pointer     pixbuf;     /* IN  should be filled by user process */\
     V2U_UINT32  pixbuflen;  /* IN  should be filled by user process */\
@@ -623,7 +647,7 @@ typedef struct ioctl_grabframe2 {
     V2U_VideoMode mode;     /* OUT VGA mode */\
     V2U_UINT32  imagelen;   /* OUT size of the image stored in pixbuf */\
     V2U_INT32   retcode;    /* OUT return/error code */
-    V2U_GrabFrame2_Fields(void*)
+  V2U_GrabFrame2_Fields(void*)
 } V2U_PACKED V2U_GrabFrame2;
 
 /*
@@ -660,20 +684,20 @@ typedef struct ioctl_grabframe2 {
 
 /*
  * Image rotation mode
- * 
+ *
  * V2U_GRABFRAME_ROTATION_NONE
  * No rotation, image is grabbed in its original orientation.
  *
  * V2U_GRABFRAME_ROTATION_LEFT90
- * Grab the image rotated 90 degrees to the left with respect 
+ * Grab the image rotated 90 degrees to the left with respect
  * to its original orientation.
  *
  * V2U_GRABFRAME_ROTATION_RIGHT90
- * Grab the image rotated 90 degrees to the right with respect 
+ * Grab the image rotated 90 degrees to the right with respect
  * to its original orientation.
  *
  * V2U_GRABFRAME_ROTATION_180
- * Grab the image rotated 180 degrees with respect to its 
+ * Grab the image rotated 180 degrees with respect to its
  * original orientation.
  */
 #define V2U_GRABFRAME_ROTATION_MASK     0x00300000 /* Bits reserved for mode */
@@ -682,7 +706,7 @@ typedef struct ioctl_grabframe2 {
 #define V2U_GRABFRAME_ROTATION_RIGHT90  0x00200000 /* 90 degrees to the right */
 #define V2U_GRABFRAME_ROTATION_180      0x00300000 /* Rotation 180 degrees */
 
-/* If a valid algoruthm code is set, the image will be scaled image to
+/* If a valid algorithm code is set, the image will be scaled to
  * width/height in V2U_GrabFrame or crop.width/crop.height in V2U_GrabFrame2.
  * If no bits in V2U_GRABFRAME_SCALE_MASK are set, no scaling is performed.
  * If an unknown algorithm code is specified, a default one will be used.
@@ -744,7 +768,7 @@ typedef struct ioctl_grabframe2 {
 #define V2U_GRABFRAME_FORMAT_NV12       0x00000C00
 #define V2U_GRABFRAME_FORMAT_C2VUY      0x00000D00 /* Compressed 2VUY */
 
-/* Old flag names, defined here for backward compatibility */ 
+/* Old flag names, defined here for backward compatibility */
 #define V2U_GRABFRAME_PALETTE_MASK      V2U_GRABFRAME_FORMAT_MASK
 #define V2U_GRABFRAME_PALETTE_RGB_MASK  V2U_GRABFRAME_FORMAT_RGB_MASK
 #define V2U_GRABFRAME_PALETTE_RGB4      V2U_GRABFRAME_FORMAT_RGB4
