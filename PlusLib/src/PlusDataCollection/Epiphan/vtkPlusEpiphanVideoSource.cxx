@@ -325,11 +325,7 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
   if (this->RotationMode != NULL)
   {
-    if (STRCASECMP(this->RotationMode, "None") == 0)
-    {
-      this->Rotation = V2URotationNone;
-    }
-    else if (STRCASECMP(this->RotationMode, "Left90") == 0)
+    if (STRCASECMP(this->RotationMode, "Left90") == 0)
     {
       this->Rotation = V2URotationLeft90;
     }
