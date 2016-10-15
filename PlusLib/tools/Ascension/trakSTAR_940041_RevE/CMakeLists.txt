@@ -1,0 +1,10 @@
+PROJECT(AscensionIDE)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
+
+SET(Ascension3DGInterface_SRCS
+  inc/ATC3DG.h
+  )
+
+ADD_CUSTOM_TARGET(AscensionIDE SOURCES ${Ascension3DGInterface_SRCS})
+SET_PROPERTY(TARGET AscensionIDE PROPERTY FOLDER Interfaces)

@@ -1,0 +1,10 @@
+PROJECT(PhidgetIDE)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
+
+SET(PhidgetInterface_SRCS
+  phidget21.h
+  )
+
+ADD_CUSTOM_TARGET(PhidgetIDE SOURCES ${PhidgetInterface_SRCS})
+SET_PROPERTY(TARGET PhidgetIDE PROPERTY FOLDER Interfaces)
