@@ -85,6 +85,8 @@ protected:
   */
   bool eventFilter(QObject* obj, QEvent* ev);
 
+  void resizeEvent(QResizeEvent* event);
+
   /*!
   * Creates message frame and fills up message field with the massages
   * \return Success flag
