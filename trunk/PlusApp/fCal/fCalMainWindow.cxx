@@ -59,9 +59,6 @@ fCalMainWindow::fCalMainWindow(QWidget* parent, Qt::WindowFlags flags)
   // Set up UI
   ui.setupUi(this);
 
-  // Maximize window
-  this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
-
   this->Set3DManipulationMenuEnabled(false);
   this->SetImageManipulationMenuEnabled(false);
 }

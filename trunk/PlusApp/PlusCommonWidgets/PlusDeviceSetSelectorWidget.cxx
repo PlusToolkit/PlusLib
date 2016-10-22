@@ -467,8 +467,8 @@ QString PlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& 
       PlusTransformName tName(firstFrame.toStdString(), secondFrame.toStdString());
       std::string date;
       double error;
-      if (tr->GetTransformDate(tName, date) == PLUS_SUCCESS &&
-          tr->GetTransformError(tName, error) == PLUS_SUCCESS)
+      if (tr->GetTransformDate(tName, date, true) == PLUS_SUCCESS &&
+          tr->GetTransformError(tName, error, true) == PLUS_SUCCESS)
       {
         bool valid(false);
         std::tm tm = {};

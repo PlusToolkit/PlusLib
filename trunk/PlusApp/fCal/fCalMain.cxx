@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   Q_INIT_RESOURCE(PlusCommonWidgets);
 
   fCalMainWindow mainWindow;
-  mainWindow.show();
+  mainWindow.showMaximized();
 
   mainWindow.Initialize();
 

@@ -37,21 +37,20 @@ PlusStatusIcon::PlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   , m_DisplayMessageCallbackTag(0)
   , m_MaxMessageCount(vtkPlusLogger::UnlimitedLogMessages())
 {
-  this->setMinimumSize(18, 16);
-  this->setMaximumSize(18, 16);
-  this->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+  this->setMinimumSize(18, 18);
+  this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding));
 
   // Set up layout and create dot label
   QGridLayout* grid = new QGridLayout();
   grid->setSpacing(0);
-  grid->setContentsMargins(0, 0, 2, 0);
+  grid->setContentsMargins(0, 0, 0, 0);
 
   m_DotLabel = new QLabel(this);
   grid->addWidget(m_DotLabel);
   this->setLayout(grid);
 
   auto pix = QPixmap(":/icons/Resources/icon_DotGreen.png");
-  m_DotLabel->setPixmap(pix.scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+  m_DotLabel->setPixmap(pix.scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 
   if (m_DotLabel == NULL)
   {
@@ -122,7 +121,7 @@ void PlusStatusIcon::ParseMessage(QString& aInputString)
     if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR)
     {
       m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
-      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
     }
     message = ERROR_HTML;
     break;
@@ -130,7 +129,7 @@ void PlusStatusIcon::ParseMessage(QString& aInputString)
     if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING)
     {
       m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
-      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
     }
     message = WARNING_HTML;
     break;
@@ -276,7 +275,7 @@ bool PlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
         if ((m_MessageListFrame == NULL) || (! m_MessageListFrame->isVisible()))
         {
           m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-          m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+          m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 
           QTextCursor cursor(m_MessageTextEdit->textCursor());
           cursor.movePosition(QTextCursor::End);
@@ -300,7 +299,7 @@ bool PlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
   else if ((obj == m_MessageListFrame) && (ev->type() == QEvent::Close))
   {
     m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-    m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+    m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
   }
 
   // Pass the event on to the parent class
@@ -385,7 +384,7 @@ void PlusStatusIcon::ApplyFilter()
 void PlusStatusIcon::ResetIconState()
 {
   m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-  m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+  m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 }
 
 //-----------------------------------------------------------------------------
