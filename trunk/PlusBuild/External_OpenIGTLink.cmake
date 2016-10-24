@@ -1,7 +1,10 @@
 IF(OpenIGTLink_DIR)
 
   # OpenIGTLink has been built already
-  FIND_PACKAGE(OpenIGTLink REQUIRED PATHS ${OpenIGTLink_DIR} NO_DEFAULT_PATH)
+  FIND_PACKAGE(OpenIGTLink REQUIRED NO_MODULE)
+  IF(${OpenIGTLink_PROTOCOL_VERSION} LESS 3)
+    MESSAGE(FATAL_ERROR "PLUS requires a build of OpenIGTLink with v3 support enabled. Please point OpenIGTLink_DIR to an implementation with v3 support.")
+  ENDIF()
 
   MESSAGE(STATUS "Using OpenIGTLink available at: ${OpenIGTLink_DIR}")
   
@@ -26,7 +29,7 @@ IF(OpenIGTLink_DIR)
   ENDIF()
   SET (PLUS_OpenIGTLink_DIR "${OpenIGTLink_DIR}" CACHE INTERNAL "Path to store OpenIGTLink binaries")
   
-ELSE(OpenIGTLink_DIR)
+ELSE()
 
   # OpenIGTLink has not been built yet, so download and build it as an external project
   MESSAGE(STATUS "Downloading OpenIGTLink from ${GIT_PROTOCOL}://github.com/IGSIO/OpenIGTLink.git.")
@@ -59,4 +62,4 @@ ELSE(OpenIGTLink_DIR)
     DEPENDS ${OpenIGTLink_DEPENDENCIES}
     )  
     
-ENDIF(OpenIGTLink_DIR)
+ENDIF()
