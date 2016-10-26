@@ -134,7 +134,7 @@ protected:
   * \param aDirectory The directory to search in
   * \param Success flag
   */
-  PlusStatus ParseDirectory(QString aDirectory);
+  PlusStatus ParseDirectory(const QString& aDirectory);
 
   virtual void resizeEvent(QResizeEvent* event);
 
@@ -144,6 +144,8 @@ protected:
                                  const QString& outputPrefix,
                                  const QString& firstFrame,
                                  const QString& secondFrame);
+
+  void FixComboBoxDropDownListSizeAdjustemnt(QComboBox* cb);
 
 protected slots:
   /*!

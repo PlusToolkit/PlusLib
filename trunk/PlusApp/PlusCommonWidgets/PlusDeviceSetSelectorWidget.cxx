@@ -272,7 +272,7 @@ bool PlusDeviceSetSelectorWidget::GetConnectionSuccessful()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
+PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirectory)
 {
   LOG_TRACE("DeviceSetSelectorWidget::ParseDirectory(" << aDirectory.toLatin1().constData() << ")");
 
@@ -441,9 +441,11 @@ PlusStatus PlusDeviceSetSelectorWidget::ParseDirectory(QString aDirectory)
   // Unblock signals after we add items
   ui.comboBox_DeviceSet->blockSignals(false);
 
-  // Restore the  saved selection
+  // Restore the saved selection
   int lastSelectedDeviceSetIndex = ui.comboBox_DeviceSet->findData(QDir::toNativeSeparators(QString(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str())));
   ui.comboBox_DeviceSet->setCurrentIndex(lastSelectedDeviceSetIndex);
+
+  this->FixComboBoxDropDownListSizeAdjustemnt(ui.comboBox_DeviceSet);
 
   return PLUS_SUCCESS;
 }
@@ -517,6 +519,23 @@ QString PlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& 
   }
 
   return "";
+}
+
+//----------------------------------------------------------------------------
+void PlusDeviceSetSelectorWidget::FixComboBoxDropDownListSizeAdjustemnt(QComboBox* cb)
+{
+  int scroll = cb->count() <= cb->maxVisibleItems() ? 0 :
+               QApplication::style()->pixelMetric(QStyle::PixelMetric::PM_ScrollBarExtent);
+
+  int max = 0;
+
+  for (int i = 0; i < cb->count(); i++)
+  {
+    int width = cb->view()->fontMetrics().width(cb->itemText(i));
+    if (max < width) { max = width; }
+  }
+
+  cb->view()->setMinimumWidth(scroll + max);
 }
 
 //----------------------------------------------------------------------------

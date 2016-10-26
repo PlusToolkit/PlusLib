@@ -13,7 +13,4 @@
     <file>../PlusCommonWidgets/Resources/icon_OpenFile.png</file>
     <file>../PlusCommonWidgets/Resources/icon_Edit.png</file>
   </qresource>
-  <qresource prefix="styles">
-    <file>Resources/style_DeviceSetComboBox.qss</file>
-  </qresource>
 </RCC>

@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>DeviceSetSelectorWidget</class>
  <widget class="QWidget" name="DeviceSetSelectorWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>456</width>
+    <height>533</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Plus Device Set Selector</string>
   </property>

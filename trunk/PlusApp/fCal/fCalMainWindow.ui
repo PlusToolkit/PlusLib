@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>950</width>
-    <height>669</height>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -198,7 +198,7 @@
             <x>0</x>
             <y>0</y>
             <width>308</width>
-            <height>166</height>
+            <height>174</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -216,8 +216,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -235,8 +235,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -254,8 +254,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -273,8 +273,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -292,8 +292,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -311,8 +311,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>166</height>
+            <width>230</width>
+            <height>28</height>
            </rect>
           </property>
           <property name="minimumSize">
