@@ -7,10 +7,14 @@ See License.txt for details.
 #ifndef TEMPORALCALIBRATIONTOOLBOX_H
 #define TEMPORALCALIBRATIONTOOLBOX_H
 
+// Local includes
 #include "QAbstractToolbox.h"
-#include "PlusConfigure.h"
 #include "ui_QTemporalCalibrationToolbox.h"
-#include "vtkPlusTemporalCalibrationAlgo.h"
+// PlusLib includes
+#include <PlusConfigure.h>
+#include <vtkPlusTemporalCalibrationAlgo.h>
+
+// Qt includes
 #include <QTimer>
 #include <QWidget>
 
@@ -105,45 +109,48 @@ protected slots:
   void FixedSourceChanged(int newIndex);
   void MovingSourceChanged(int newIndex);
 
+  /*! When the user requests to save the calibration plots */
+  void OnSavePlotsRequested();
+
 protected:
   /*! Tracked frame for tracking data for temporal calibration */
-  vtkSmartPointer<vtkPlusTrackedFrameList> TemporalCalibrationFixedData;
+  vtkSmartPointer<vtkPlusTrackedFrameList>        TemporalCalibrationFixedData;
   /*! Tracked frame for video data for temporal calibration */
-  vtkSmartPointer<vtkPlusTrackedFrameList> TemporalCalibrationMovingData;
+  vtkSmartPointer<vtkPlusTrackedFrameList>        TemporalCalibrationMovingData;
   /*! Delay time before start acquisition [s] */
-  int                       FreeHandStartupDelaySec;
+  int                                             FreeHandStartupDelaySec;
   /*! Current time delayed before the acquisition [s] */
-  int                       StartupDelayRemainingTimeSec;
+  int                                             StartupDelayRemainingTimeSec;
   /*! Timer before start acquisition*/
-  QTimer                    StartupDelayTimer;
+  QTimer                                          StartupDelayTimer;
   /*! Flag if cancel is requested */
-  bool                      CancelRequest;
+  bool                                            CancelRequest;
   /*! Duration of the temporal calibration process in seconds */
-  int                       TemporalCalibrationDurationSec;
-  /*! Timestamp of last recorded video item (items acquired since this timestamp will be recorded) */
-  double                    LastRecordedFixedItemTimestamp;
+  int                                             TemporalCalibrationDurationSec;
+  /*! Timestamp of last recorded video item(items acquired since this timestamp will be recorded) */
+  double                                          LastRecordedFixedItemTimestamp;
   /*! Timestamp of last recorded tracker item (items acquired since this timestamp will be recorded) */
-  double                    LastRecordedMovingItemTimestamp;
+  double                                          LastRecordedMovingItemTimestamp;
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
-  int                       RecordingIntervalMs;
-  /*! Time of starting temporal calibration */
-  double                    StartTimeSec;
+  int                                             RecordingIntervalMs;
+  /*! Time of starting temporal calibration*/
+  double                                          StartTimeSec;
   /*! Saved tracker offset in case the temporal calibration is canceled or unsuccessful */
-  double                    PreviousFixedOffset;
+  double                                          PreviousFixedOffset;
   /*! Saved video offset in case the temporal calibration is canceled or unsuccessful */
-  double                    PreviousMovingOffset;
+  double                                          PreviousMovingOffset;
   /*! Metric table of video positions for temporal calibration */
-  vtkSmartPointer<vtkTable> FixedPositionMetric;
+  vtkSmartPointer<vtkTable>                       FixedPositionMetric;
   /*! Metric table of uncalibrated tracker positions for temporal calibration */
-  vtkSmartPointer<vtkTable> UncalibratedMovingPositionMetric;
+  vtkSmartPointer<vtkTable>                       UncalibratedMovingPositionMetric;
   /*! Metric table of calibrated tracker positions for temporal calibration */
-  vtkSmartPointer<vtkTable> CalibratedMovingPositionMetric;
+  vtkSmartPointer<vtkTable>                       CalibratedMovingPositionMetric;
   /*! Window that is created/deleted when Show Plots button is toggled */
-  QWidget*                  TemporalCalibrationPlotsWindow;
+  QWidget*                                        TemporalCalibrationPlotsWindow;
   /*! Chart view for the uncalibrated plot */
-  vtkContextView*           UncalibratedPlotContextView;
+  vtkContextView*                                 UncalibratedPlotContextView;
   /*! Chart view for the calibrated plot */
-  vtkContextView*           CalibratedPlotContextView;
+  vtkContextView*                                 CalibratedPlotContextView;
 
   vtkPlusChannel*                                 FixedChannel;
   vtkPlusTemporalCalibrationAlgo::FRAME_TYPE      FixedType;
@@ -155,11 +162,13 @@ protected:
 
   vtkSmartPointer<vtkPlusTemporalCalibrationAlgo> TemporalCalibrationAlgo;
 
-
   std::string                                     RequestedFixedChannel;
   std::string                                     RequestedMovingChannel;
   std::string                                     RequestedFixedSource;
   std::string                                     RequestedMovingSource;
+
+  std::string                                     LastSaveDirectory;
+  QPushButton*                                    SaveFileButton = nullptr;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;

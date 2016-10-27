@@ -2,6 +2,8 @@ PROJECT(PlusLib)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 
+SET(CMAKE_CXX_STANDARD 11)
+
 # ------------------------------------------------------------------------
 # Set project version number
 SET(PLUSLIB_VERSION_MAJOR "2")

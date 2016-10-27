@@ -4,23 +4,31 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "QConfigurationToolbox.h"
+// Local includes
 #include "PlusDeviceSetSelectorWidget.h"
-#include "PlusFidPatternRecognition.h"
 #include "PlusToolStateDisplayWidget.h"
+#include "QConfigurationToolbox.h"
 #include "fCalMainWindow.h"
-#include "vtkLineSource.h"
-#include "vtkPlusChannel.h"
-#include "vtkPlusDevice.h"
 #include "vtkPlusDisplayableObject.h"
-#include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusVisualizationController.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/SystemTools.hxx"
+
+// PlusLib includes
+#include <PlusFidPatternRecognition.h>
+#include <vtkPlusChannel.h>
+#include <vtkPlusDevice.h>
+#include <vtkPlusPhantomLandmarkRegistrationAlgo.h>
+
+// VTK includes
+#include <vtkLineSource.h>
+#include <vtkXMLDataElement.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/SystemTools.hxx>
+
+// Qt includes
 #include <QDialog>
 #include <QFile>
 #include <QFileDialog>
+#include <QTimer>
 
 const char PHANTOM_WIRES_MODEL_ID[] = "PhantomWiresModel";
 
@@ -38,7 +46,7 @@ QConfigurationToolbox::QConfigurationToolbox(fCalMainWindow* aParentMainWindow, 
 
   // Create tool box state widget
   m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget(this);
-  m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+  m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
   // Make connections
   connect(m_DeviceSetSelectorWidget, SIGNAL(ConnectToDevicesByConfigFileInvoked(std::string)), this, SLOT(ConnectToDevicesByConfigFile(std::string)));
@@ -52,7 +60,6 @@ QConfigurationToolbox::QConfigurationToolbox(fCalMainWindow* aParentMainWindow, 
   gridDeviceSetSelection->setMargin(0);
   gridDeviceSetSelection->setSpacing(4);
   gridDeviceSetSelection->addWidget(m_DeviceSetSelectorWidget);
-  ui.deviceSetSelectionWidget->setMinimumHeight(196);
   ui.deviceSetSelectionWidget->setLayout(gridDeviceSetSelection);
 
   QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
@@ -60,8 +67,6 @@ QConfigurationToolbox::QConfigurationToolbox(fCalMainWindow* aParentMainWindow, 
   gridToolStateDisplay->setSpacing(4);
   gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
   ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
-  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
 
   // Set application configuration
   ui.comboBox_LogLevel->blockSignals(true);
@@ -266,14 +271,12 @@ void QConfigurationToolbox::PopOutToggled(bool aOn)
   {
     // Create pop out window
     m_ToolStatePopOutWindow = new QWidget(this, Qt::Tool);
-    m_ToolStatePopOutWindow->setMinimumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
-    m_ToolStatePopOutWindow->setMaximumSize(QSize(180, m_ToolStateDisplayWidget->GetDesiredHeight()));
+    m_ToolStatePopOutWindow->setMinimumSize(m_ToolStateDisplayWidget->layout()->totalSizeHint());
+    m_ToolStatePopOutWindow->setMaximumSize(m_ToolStateDisplayWidget->layout()->totalSizeHint());
     m_ToolStatePopOutWindow->setWindowTitle(tr("Tool state display"));
     m_ToolStatePopOutWindow->setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }");
 
     QGridLayout* gridToolStateDisplay = new QGridLayout(m_ToolStatePopOutWindow);
-    gridToolStateDisplay->setColumnStretch(1, 1);
-    gridToolStateDisplay->setRowStretch(1, 1);
     gridToolStateDisplay->setMargin(0);
     gridToolStateDisplay->setSpacing(4);
     gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
@@ -294,15 +297,13 @@ void QConfigurationToolbox::PopOutToggled(bool aOn)
   else
   {
     // Insert tool state display back in toolbox
-    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
     QGridLayout* gridToolStateDisplay = new QGridLayout(ui.toolStateDisplayWidget);
-    gridToolStateDisplay->setColumnStretch(1, 1);
-    gridToolStateDisplay->setRowStretch(1, 1);
     gridToolStateDisplay->setMargin(0);
     gridToolStateDisplay->setSpacing(4);
     gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
     ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
+    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
 
     // Delete pop out window
     if (m_ToolStatePopOutWindow)
@@ -662,8 +663,11 @@ void QConfigurationToolbox::ChannelChanged(vtkPlusChannel& aChannel)
 {
   if (m_ToolStateDisplayWidget->InitializeTools(&aChannel, true))
   {
-    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
-    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->GetDesiredHeight());
+    QTimer::singleShot(30, [this]()
+    {
+      ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+      ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+    });
   }
 
   m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel.GetOwnerDevice()->IsResettable());

@@ -11,6 +11,9 @@ See License.txt for details.
 
 // Qt includes
 #include <QFileDialog>
+#include <QMainWindow>
+#include <QMenuBar>
+#include <QStandardPaths>
 
 // PlusLib includes
 #include <PlusTrackedFrame.h>
@@ -26,10 +29,13 @@ See License.txt for details.
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
+#include <vtkPNGWriter.h>
 #include <vtkPlot.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkTable.h>
+#include <vtkWindowToImageFilter.h>
 #include <vtkXMLUtilities.h>
 
 //-----------------------------------------------------------------------------
@@ -909,6 +915,8 @@ void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
   // Delete objects if toggled off, make sure they are deleted when toggled on
   if (TemporalCalibrationPlotsWindow != NULL)
   {
+    disconnect(this->SaveFileButton, &QPushButton::clicked, this, &QTemporalCalibrationToolbox::OnSavePlotsRequested);
+    this->SaveFileButton = nullptr;
     delete TemporalCalibrationPlotsWindow;
     TemporalCalibrationPlotsWindow = NULL;
   }
@@ -930,15 +938,14 @@ void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     // Create window and layout
     TemporalCalibrationPlotsWindow = new QWidget(this, Qt::Tool);
     TemporalCalibrationPlotsWindow->setMinimumSize(QSize(800, 600));
-    TemporalCalibrationPlotsWindow->setWindowTitle(tr("Temporal calibration report"));
-    TemporalCalibrationPlotsWindow->setStyleSheet("QWidget { background-color: rgb(255, 255, 255); }");
+    TemporalCalibrationPlotsWindow->setWindowTitle(tr("Temporal Calibration Report"));
 
     // Install event filter that is called on closing the window
     TemporalCalibrationPlotsWindow->installEventFilter(this);
 
-    QGridLayout* gridPlotWindow = new QGridLayout(TemporalCalibrationPlotsWindow);
-    gridPlotWindow->setMargin(0);
-    gridPlotWindow->setSpacing(4);
+    QGridLayout* gridPlotLayout = new QGridLayout(TemporalCalibrationPlotsWindow);
+    gridPlotLayout->setMargin(0);
+    gridPlotLayout->setSpacing(4);
 
     // Uncalibrated chart view
     QVTKWidget* uncalibratedPlotVtkWidget = new QVTKWidget(TemporalCalibrationPlotsWindow);
@@ -951,10 +958,6 @@ void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
 
     vtkPlot* uncalibratedTrackerMetricLine = uncalibratedChart->AddPlot(vtkChart::LINE);
     uncalibratedTrackerMetricLine->SetInputData(UncalibratedMovingPositionMetric, 0, 1);
-    //vtkVariantArray* array = vtkVariantArray::New();
-    //m_UncalibratedTrackerPositionMetric->GetRow(13, array);
-    //array->PrintSelf(std::cout, *(vtkIndent::New()));
-    //std::cout << array->GetValue(0) << "::" << array->GetValue(1) << std::endl;
     uncalibratedTrackerMetricLine->SetColor(1, 0, 0);
     uncalibratedTrackerMetricLine->SetWidth(1.0);
 
@@ -969,7 +972,7 @@ void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     uncalibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(UncalibratedPlotContextView->GetRenderer());
     uncalibratedPlotVtkWidget->GetRenderWindow()->SetSize(800, 600);
 
-    gridPlotWindow->addWidget(uncalibratedPlotVtkWidget, 0, 0);
+    gridPlotLayout->addWidget(uncalibratedPlotVtkWidget, 0, 0);
 
     // Calibrated chart view
     QVTKWidget* calibratedPlotVtkWidget = new QVTKWidget(TemporalCalibrationPlotsWindow);
@@ -996,10 +999,22 @@ void QTemporalCalibrationToolbox::ShowPlotsToggled(bool aOn)
     calibratedPlotVtkWidget->GetRenderWindow()->AddRenderer(CalibratedPlotContextView->GetRenderer());
     calibratedPlotVtkWidget->GetRenderWindow()->SetSize(800, 600);
 
-    gridPlotWindow->addWidget(calibratedPlotVtkWidget, 1, 0);
+    gridPlotLayout->addWidget(calibratedPlotVtkWidget, 1, 0);
+
+    QWidget* actionBar = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(actionBar);
+    layout->setMargin(4);
+    layout->setSpacing(0);
+    layout->addSpacerItem(new QSpacerItem(5, 5, QSizePolicy::MinimumExpanding, QSizePolicy::Fixed));
+    this->SaveFileButton = new QPushButton(tr("Save..."));
+    layout->addWidget(this->SaveFileButton);
+    actionBar->setLayout(layout);
+    connect(this->SaveFileButton, &QPushButton::clicked, this, &QTemporalCalibrationToolbox::OnSavePlotsRequested);
+
+    gridPlotLayout->addWidget(actionBar, 2, 0);
 
     // Position and show window
-    TemporalCalibrationPlotsWindow->setLayout(gridPlotWindow);
+    TemporalCalibrationPlotsWindow->setLayout(gridPlotLayout);
     TemporalCalibrationPlotsWindow->move(mapToGlobal(QPoint(ui.pushButton_ShowPlots->x() + ui.pushButton_ShowPlots->width(), 20)));
     TemporalCalibrationPlotsWindow->show();
   }
@@ -1200,6 +1215,78 @@ void QTemporalCalibrationToolbox::MovingSourceChanged(int newIndex)
   this->SetDisplayAccordingToState();
   this->MovingType = this->ui.comboBox_MovingSourceValue->currentData().toString().compare("Video") == 0
                      ? vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_VIDEO : vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_TRACKER;
+}
+
+//----------------------------------------------------------------------------
+void QTemporalCalibrationToolbox::OnSavePlotsRequested()
+{
+  QString dir(this->LastSaveDirectory.empty() ?
+              QStandardPaths::writableLocation(QStandardPaths::HomeLocation) :
+              QString::fromStdString(this->LastSaveDirectory));
+  QString fileName(QFileDialog::getSaveFileName(this, tr("Save Plots to File"), dir, tr("Images (*.png)")));
+
+  if (fileName.isEmpty())
+  {
+    return;
+  }
+
+  QFile file(fileName);
+  QFileInfo fileInfo(file);
+
+  this->LastSaveDirectory = fileInfo.absolutePath().toStdString();
+
+  // Render plot and save it to file
+  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(this->UncalibratedPlotContextView->GetRenderer());
+  renderWindow->SetSize(1600, 1200);
+  renderWindow->OffScreenRenderingOn();
+
+  vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImageFilter->SetInput(renderWindow);
+  windowToImageFilter->Update();
+
+  vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+  writer->SetFileName((fileInfo.absolutePath() + QDir::separator() + fileInfo.completeBaseName() + tr("_uncalibrated.png")).toStdString().c_str());
+  writer->SetInputData(windowToImageFilter->GetOutput());
+  writer->Write();
+
+  // Restore render window parenting
+  QLayoutItem* item = this->TemporalCalibrationPlotsWindow->layout()->itemAt(0);
+  QWidget* widget = item->widget();
+  if (widget != nullptr)
+  {
+    QVTKWidget* vtkWidget = dynamic_cast<QVTKWidget*>(widget);
+    if (vtkWidget)
+    {
+      vtkWidget->GetRenderWindow()->AddRenderer(this->UncalibratedPlotContextView->GetRenderer());
+    }
+  }
+
+  renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer(this->CalibratedPlotContextView->GetRenderer());
+  renderWindow->SetSize(1600, 1200);
+  renderWindow->OffScreenRenderingOn();
+
+  windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImageFilter->SetInput(renderWindow);
+  windowToImageFilter->Update();
+
+  writer = vtkSmartPointer<vtkPNGWriter>::New();
+  writer->SetFileName((fileInfo.absolutePath() + QDir::separator() + fileInfo.completeBaseName() + tr("_calibrated.png")).toStdString().c_str());
+  writer->SetInputData(windowToImageFilter->GetOutput());
+  writer->Write();
+
+  // Restore render window parenting
+  item = this->TemporalCalibrationPlotsWindow->layout()->itemAt(1);
+  widget = item->widget();
+  if (widget != nullptr)
+  {
+    QVTKWidget* vtkWidget = dynamic_cast<QVTKWidget*>(widget);
+    if (vtkWidget)
+    {
+      vtkWidget->GetRenderWindow()->AddRenderer(this->CalibratedPlotContextView->GetRenderer());
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

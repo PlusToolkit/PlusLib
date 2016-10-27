@@ -66,11 +66,9 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
   m_ToolStateLabels.clear();
 
   // If connection was unsuccessful, create default appearance
-  if (! aConnectionSuccessful)
+  if (!aConnectionSuccessful)
   {
     QGridLayout* grid = new QGridLayout(this);
-    grid->setColumnStretch(1, 1);
-    grid->setRowStretch(1, 1);
     grid->setMargin(0);
     grid->setSpacing(0);
     QLabel* uninitializedLabel = new QLabel(tr("Tool state display is unavailable until connected to a device set."), this);
@@ -102,7 +100,6 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
   // Set up layout
   QGridLayout* grid = new QGridLayout(this);
   grid->setColumnStretch(transformNames.size(), 1);
-  grid->setRowStretch(2, 1);
   grid->setSpacing(2);
   grid->setVerticalSpacing(4);
   grid->setContentsMargins(4, 4, 4, 4);
@@ -122,6 +119,7 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
     QSizePolicy sizePolicyNameLabel(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
     sizePolicyNameLabel.setHorizontalStretch(2);
     toolNameLabel->setSizePolicy(sizePolicyNameLabel);
+    toolNameLabel->setMinimumHeight(24);
     grid->addWidget(toolNameLabel, i, 0, Qt::AlignLeft);
     m_ToolNameLabels.push_back(toolNameLabel);
 
@@ -135,7 +133,8 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
     toolStateLabel->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     toolStateLabel->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     toolStateLabel->setAlignment(Qt::AlignRight);
-    QSizePolicy sizePolicyStateLabel(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    toolStateLabel->setMinimumHeight(24);
+    QSizePolicy sizePolicyStateLabel(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
     sizePolicyStateLabel.setHorizontalStretch(1);
     toolStateLabel->setSizePolicy(sizePolicyStateLabel);
     grid->addWidget(toolStateLabel, i, 1, Qt::AlignRight);
@@ -153,27 +152,6 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
 bool PlusToolStateDisplayWidget::IsInitialized()
 {
   return m_Initialized;
-}
-
-//-----------------------------------------------------------------------------
-int PlusToolStateDisplayWidget::GetDesiredHeight()
-{
-  LOG_TRACE("PlusToolStateDisplayWidget::GetDesiredHeight");
-
-  if (m_SelectedChannel == NULL)
-  {
-    return 23;
-  }
-
-  // Get transforms
-  std::vector<PlusTransformName> transformNames;
-  PlusTrackedFrame trackedFrame;
-  m_SelectedChannel->GetTrackedFrame(trackedFrame);
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
-
-  int numberOfTools = transformNames.size();
-
-  return ((numberOfTools > 0) ? (numberOfTools * 23) : 23);
 }
 
 //-----------------------------------------------------------------------------

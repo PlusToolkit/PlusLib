@@ -15,30 +15,30 @@ PlusTransformName::~PlusTransformName()
 }
 
 //-------------------------------------------------------
-PlusTransformName::PlusTransformName( std::string aFrom, std::string aTo )
+PlusTransformName::PlusTransformName(std::string aFrom, std::string aTo)
 {
-  this->Capitalize( aFrom );
+  this->Capitalize(aFrom);
   this->m_From = aFrom;
 
-  this->Capitalize( aTo );
+  this->Capitalize(aTo);
   this->m_To = aTo;
 }
 
 //-------------------------------------------------------
-PlusTransformName::PlusTransformName( const std::string& transformName )
+PlusTransformName::PlusTransformName(const std::string& transformName)
 {
-  this->SetTransformName( transformName.c_str() );
+  this->SetTransformName(transformName.c_str());
 }
 
 //-------------------------------------------------------
 bool PlusTransformName::IsValid() const
 {
-  if ( this->m_From.empty() )
+  if (this->m_From.empty())
   {
     return false;
   }
 
-  if ( this->m_To.empty() )
+  if (this->m_To.empty())
   {
     return false;
   }
@@ -47,18 +47,18 @@ bool PlusTransformName::IsValid() const
 }
 
 //-------------------------------------------------------
-PlusStatus PlusTransformName::SetTransformName( const char* aTransformName )
+PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
 {
   this->m_From.clear();
   this->m_To.clear();
 
-  if ( aTransformName == NULL )
+  if (aTransformName == NULL)
   {
-    LOG_ERROR( "Failed to set transform name if it's NULL" );
+    LOG_ERROR("Failed to set transform name if it's NULL");
     return PLUS_FAIL;
   }
 
-  std::string transformNameStr( aTransformName );
+  std::string transformNameStr(aTransformName);
   size_t posTo = std::string::npos;
 
   // Check if the string has only one valid 'To' phrase
@@ -66,83 +66,83 @@ PlusStatus PlusTransformName::SetTransformName( const char* aTransformName )
   std::string subString = transformNameStr;
   size_t posToTested = std::string::npos;
   size_t numberOfRemovedChars = 0;
-  while ( ( ( posToTested = subString.find( "To" ) ) != std::string::npos ) && ( subString.length() > posToTested + 2 ) )
+  while (((posToTested = subString.find("To")) != std::string::npos) && (subString.length() > posToTested + 2))
   {
-    if ( toupper( subString[posToTested + 2] ) == subString[posToTested + 2] )
+    if (toupper(subString[posToTested + 2]) == subString[posToTested + 2])
     {
       // there is a "To", and after that the next letter is uppercase, so it's really a match (e.g., the first To in TestToolToTracker would not be a real match)
       numOfMatch++;
       posTo = numberOfRemovedChars + posToTested;
     }
     // search in the rest of the string
-    subString = subString.substr( posToTested + 2 );
+    subString = subString.substr(posToTested + 2);
     numberOfRemovedChars += posToTested + 2;
   }
 
-  if ( numOfMatch != 1 )
+  if (numOfMatch != 1)
   {
-    LOG_ERROR( "Unable to parse transform name, there are " << numOfMatch
-               << " matching 'To' phrases in the transform name '" << aTransformName << "', while exactly one allowed." );
+    LOG_ERROR("Unable to parse transform name, there are " << numOfMatch
+              << " matching 'To' phrases in the transform name '" << aTransformName << "', while exactly one allowed.");
     return PLUS_FAIL;
   }
 
   // Find <FrameFrom>To<FrameTo> matches
-  if ( posTo == std::string::npos )
+  if (posTo == std::string::npos)
   {
-    LOG_ERROR( "Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!" );
+    LOG_ERROR("Failed to set transform name - unable to find 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL;
   }
-  else if ( posTo == 0 )
+  else if (posTo == 0)
   {
-    LOG_ERROR( "Failed to set transform name - no coordinate frame name before 'To' in '" << aTransformName << "'!" );
+    LOG_ERROR("Failed to set transform name - no coordinate frame name before 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL;
   }
-  else if ( posTo == transformNameStr.length() - 2 )
+  else if (posTo == transformNameStr.length() - 2)
   {
-    LOG_ERROR( "Failed to set transform name - no coordinate frame name after 'To' in '" << aTransformName << "'!" );
+    LOG_ERROR("Failed to set transform name - no coordinate frame name after 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL;
   }
 
   // Set From coordinate frame name
-  this->m_From = transformNameStr.substr( 0, posTo );
+  this->m_From = transformNameStr.substr(0, posTo);
 
   // Allow handling of To coordinate frame containing "Transform"
-  std::string postFrom( transformNameStr.substr( posTo + 2 ) );
-  if( postFrom.find( "Transform" ) != std::string::npos )
+  std::string postFrom(transformNameStr.substr(posTo + 2));
+  if (postFrom.find("Transform") != std::string::npos)
   {
-    postFrom = postFrom.substr( 0, postFrom.find( "Transform" ) );
+    postFrom = postFrom.substr(0, postFrom.find("Transform"));
   }
 
   this->m_To = postFrom;
-  this->Capitalize( this->m_From );
-  this->Capitalize( this->m_To );
+  this->Capitalize(this->m_From);
+  this->Capitalize(this->m_To);
 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------
-PlusStatus PlusTransformName::GetTransformName( std::string& aTransformName ) const
+PlusStatus PlusTransformName::GetTransformName(std::string& aTransformName) const
 {
-  if ( this->m_From.empty() )
+  if (this->m_From.empty())
   {
-    LOG_ERROR( "Failed to get transform name - 'From' transform name is empty" );
+    LOG_ERROR("Failed to get transform name - 'From' transform name is empty");
     return PLUS_FAIL;
   }
 
-  if ( this->m_To.empty() )
+  if (this->m_To.empty())
   {
-    LOG_ERROR( "Failed to get transform name - 'To' transform name is empty" );
+    LOG_ERROR("Failed to get transform name - 'To' transform name is empty");
     return PLUS_FAIL;
   }
 
-  aTransformName = ( this->m_From + std::string( "To" ) + this->m_To );
+  aTransformName = (this->m_From + std::string("To") + this->m_To);
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------
 std::string PlusTransformName::GetTransformName() const
 {
-  return ( this->m_From + std::string( "To" ) + this->m_To );
+  return (this->m_From + std::string("To") + this->m_To);
 }
 
 //-------------------------------------------------------
@@ -158,14 +158,14 @@ std::string PlusTransformName::To() const
 }
 
 //-------------------------------------------------------
-void PlusTransformName::Capitalize( std::string& aString )
+void PlusTransformName::Capitalize(std::string& aString)
 {
   // Change first character to uppercase
-  if ( aString.length() < 1 )
+  if (aString.length() < 1)
   {
     return;
   }
-  aString[0] = toupper( aString[0] );
+  aString[0] = toupper(aString[0]);
 }
 
 //-------------------------------------------------------
@@ -176,12 +176,12 @@ void PlusTransformName::Clear()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory )
+PlusStatus PlusCommon::CreateTemporaryFilename(std::string& aString, const std::string& anOutputDirectory)
 {
   aString = "";
   int maxRetryCount = 50;
   int tryCount = 0;
-  while( tryCount < maxRetryCount )
+  while (tryCount < maxRetryCount)
   {
     tryCount++;
 
@@ -189,35 +189,35 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     // Get output directory
     char candidateFilename[MAX_PATH] = "";
     std::string path;
-    if( !anOutputDirectory.empty() )
+    if (!anOutputDirectory.empty())
     {
-      path = vtksys::SystemTools::GetRealPath( anOutputDirectory.c_str() );
+      path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str());
     }
     else
     {
       char tempPath[MAX_PATH] = "";
-      if( GetTempPath( MAX_PATH, tempPath ) == 0 )
+      if (GetTempPath(MAX_PATH, tempPath) == 0)
       {
-        LOG_ERROR( "Unable to retrieve temp path: " << GetLastError() );
+        LOG_ERROR("Unable to retrieve temp path: " << GetLastError());
         return PLUS_FAIL;
       }
       path = tempPath;
     }
 
     // Get full output file path
-    UINT uRetVal = GetTempFileName( path.c_str(), "tmp", 0, candidateFilename ); // buffer for name
-    if( uRetVal == ERROR_BUFFER_OVERFLOW )
+    UINT uRetVal = GetTempFileName(path.c_str(), "tmp", 0, candidateFilename);   // buffer for name
+    if (uRetVal == ERROR_BUFFER_OVERFLOW)
     {
-      if( vtksys::SystemTools::FileExists( candidateFilename ) )
+      if (vtksys::SystemTools::FileExists(candidateFilename))
       {
-        vtksys::SystemTools::RemoveFile( candidateFilename );
+        vtksys::SystemTools::RemoveFile(candidateFilename);
       }
-      LOG_ERROR( "Path too long to generate temporary filename (" << path << "). Consider moving output directory to shorter path." );
+      LOG_ERROR("Path too long to generate temporary filename (" << path << "). Consider moving output directory to shorter path.");
       continue;
     }
-    else if ( uRetVal == 0 )
+    else if (uRetVal == 0)
     {
-      LOG_ERROR( "Failed to generate temporary filename. Error code:" << GetLastError() );
+      LOG_ERROR("Failed to generate temporary filename. Error code:" << GetLastError());
       continue;
     }
 
@@ -225,48 +225,48 @@ PlusStatus PlusCommon::CreateTemporaryFilename( std::string& aString, const std:
     return PLUS_SUCCESS;
 #else
     std::string path;
-    if( !anOutputDirectory.empty() )
+    if (!anOutputDirectory.empty())
     {
-      path = vtksys::SystemTools::GetRealPath( anOutputDirectory.c_str() );
+      path = vtksys::SystemTools::GetRealPath(anOutputDirectory.c_str());
     }
     else
     {
-      path = std::string( P_tmpdir );
+      path = std::string(P_tmpdir);
     }
 
     char candidateFilenameBuffer[PATH_MAX];
-    memset( candidateFilenameBuffer, 0, PATH_MAX );
-    strncpy( candidateFilenameBuffer, path.c_str(), path.length() );
-    strcat( candidateFilenameBuffer, "/plusTmpFile-XXXXXX" );
-    char* candidateFilename = mktemp( candidateFilenameBuffer );
+    memset(candidateFilenameBuffer, 0, PATH_MAX);
+    strncpy(candidateFilenameBuffer, path.c_str(), path.length());
+    strcat(candidateFilenameBuffer, "/plusTmpFile-XXXXXX");
+    char* candidateFilename = mktemp(candidateFilenameBuffer);
 
-    if( vtksys::SystemTools::FileExists( candidateFilename ) )
+    if (vtksys::SystemTools::FileExists(candidateFilename))
     {
       continue;
     }
-    ofstream aFile( candidateFilename );
-    if( !aFile.is_open() )
+    ofstream aFile(candidateFilename);
+    if (!aFile.is_open())
     {
-      LOG_WARNING( "Cannot write to temp file " << candidateFilename << " check write permissions of output directory." );
+      LOG_WARNING("Cannot write to temp file " << candidateFilename << " check write permissions of output directory.");
       continue;
     }
 
     aFile.close();
-    vtksys::SystemTools::RemoveFile( candidateFilename );
+    vtksys::SystemTools::RemoveFile(candidateFilename);
     aString = candidateFilename;
     return PLUS_SUCCESS;
 #endif
   }
 
-  LOG_ERROR( "PlusCommon::CreateTemporaryFilename failed to generate a temporary file name" );
+  LOG_ERROR("PlusCommon::CreateTemporaryFilename failed to generate a temporary file name");
   return PLUS_FAIL;
 }
 
 //-------------------------------------------------------
-std::string& PlusCommon::Trim( std::string& str )
+std::string& PlusCommon::Trim(std::string& str)
 {
-  str.erase( str.find_last_not_of( " \t\r\n" ) + 1 );
-  str.erase( 0, str.find_first_not_of( " \t\r\n" ) );
+  str.erase(str.find_last_not_of(" \t\r\n") + 1);
+  str.erase(0, str.find_first_not_of(" \t\r\n"));
 
   return str;
 }
@@ -274,11 +274,11 @@ std::string& PlusCommon::Trim( std::string& str )
 //----------------------------------------------------------------------------
 // print out data while replacing XML special characters <, >, &, ", ' with
 // &lt;, &gt;, &amp;, &quot;, &apos;, respectively.
-void PrintWithEscapedData( ostream& os, const char* data )
+void PrintWithEscapedData(ostream& os, const char* data)
 {
-  for( size_t i = 0; i < strlen( data ); i++ )
+  for (size_t i = 0; i < strlen(data); i++)
   {
-    switch( data[i] )
+    switch (data[i])
     {
     case '&':
       os << "&amp;";
@@ -302,11 +302,11 @@ void PrintWithEscapedData( ostream& os, const char* data )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElement* elem )
+PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem)
 {
-  if ( elem == NULL )
+  if (elem == NULL)
   {
-    LOG_ERROR( "PlusCommon::PrintXML failed, input element is invalid" );
+    LOG_ERROR("PlusCommon::PrintXML failed, input element is invalid");
     return PLUS_FAIL;
   }
   vtkIndent nextIndent = indent.GetNextIndent();
@@ -316,24 +316,24 @@ PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElemen
   // If there are many attributes then print each of them in separate lines to improve readability
   bool printEachAttributeInNewLine = elem->GetNumberOfAttributes() > 5;
 
-  for( int i = 0; i < elem->GetNumberOfAttributes(); ++i )
+  for (int i = 0; i < elem->GetNumberOfAttributes(); ++i)
   {
-    std::string attName = elem->GetAttributeName( i );
+    std::string attName = elem->GetAttributeName(i);
 
     // Find out if it's a matrix element, because we format them somewhat differently
     bool matrixElement = false;
     const int MATRIX_ELEM_COUNT = 16;
     double matrixValues[MATRIX_ELEM_COUNT] = {0};
-    if ( attName.find( "Matrix" ) != std::string::npos || attName.find( "Transform" ) != std::string::npos )
+    if (attName.find("Matrix") != std::string::npos || attName.find("Transform") != std::string::npos)
     {
-      if ( elem->GetVectorAttribute( attName.c_str(), MATRIX_ELEM_COUNT, matrixValues ) == MATRIX_ELEM_COUNT )
+      if (elem->GetVectorAttribute(attName.c_str(), MATRIX_ELEM_COUNT, matrixValues) == MATRIX_ELEM_COUNT)
       {
         // This seems to be a vector
         matrixElement = true;
       }
     }
 
-    if ( matrixElement )
+    if (matrixElement)
     {
       os << std::endl;
       os << nextIndent << attName << "=\"" << std::endl;
@@ -345,15 +345,15 @@ PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElemen
       // Prevent writing additional attributes right after the last line of the matrix
       // If this is the last attribute then we don't have to start a new line, just append the closing to the matrix line.
       // If each attribute is written to a separate line anyway then we don't have to start a new line, it'll be added before adding the next element.
-      bool isLastAttribute = ( i + 1 == elem->GetNumberOfAttributes() );
-      if ( !isLastAttribute && !printEachAttributeInNewLine )
+      bool isLastAttribute = (i + 1 == elem->GetNumberOfAttributes());
+      if (!isLastAttribute && !printEachAttributeInNewLine)
       {
         os << std::endl << nextIndent;
       }
     }
     else
     {
-      if ( printEachAttributeInNewLine )
+      if (printEachAttributeInNewLine)
       {
         os << std::endl << nextIndent;
       }
@@ -362,7 +362,7 @@ PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElemen
         os << " ";
       }
       os << attName << "=\"";
-      PrintWithEscapedData( os, elem->GetAttributeValue( i ) );
+      PrintWithEscapedData(os, elem->GetAttributeValue(i));
       os << "\"";
     }
   }
@@ -370,25 +370,25 @@ PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElemen
   // nested elements or inline data are present.
   std::string charData;
   char* charDataPtr = elem->GetCharacterData();
-  if ( charDataPtr != NULL )
+  if (charDataPtr != NULL)
   {
     charData = charDataPtr;
-    Trim( charData );
+    Trim(charData);
   }
 
-  if ( elem->GetNumberOfNestedElements() > 0 || !charData.empty() )
+  if (elem->GetNumberOfNestedElements() > 0 || !charData.empty())
   {
     os << ">\n";
     // nested elements
-    for( int i = 0; i < elem->GetNumberOfNestedElements(); ++i )
+    for (int i = 0; i < elem->GetNumberOfNestedElements(); ++i)
     {
-      PrintXML( os, nextIndent, elem->GetNestedElement( i ) );
+      PrintXML(os, nextIndent, elem->GetNestedElement(i));
     }
     // inline data
-    if ( !charData.empty() )
+    if (!charData.empty())
     {
       os << nextIndent;
-      PrintWithEscapedData( os, charData.c_str() );
+      PrintWithEscapedData(os, charData.c_str());
       os << endl;
     }
     // close tag
@@ -403,22 +403,22 @@ PlusStatus PlusCommon::PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElemen
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML( const char* fname, vtkXMLDataElement* elem )
+PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
 {
-  ofstream of( fname );
-  if ( !of.is_open() )
+  ofstream of(fname);
+  if (!of.is_open())
   {
-    LOG_ERROR( "Failed to open " << fname << " for writing" );
+    LOG_ERROR("Failed to open " << fname << " for writing");
     return PLUS_FAIL;
   }
-  of.imbue( std::locale::classic() );
-  return PlusCommon::PrintXML( of, vtkIndent(), elem );
+  of.imbue(std::locale::classic());
+  return PlusCommon::PrintXML(of, vtkIndent(), elem);
 }
 
 //----------------------------------------------------------------------------
 std::string PlusCommon::GetPlusLibVersionString()
 {
-  std::string plusLibVersion = std::string( "Plus-" ) + std::string( PLUSLIB_VERSION ) + "." + std::string( PLUSLIB_REVISION );
+  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION);
 #ifdef _DEBUG
   plusLibVersion += " (debug build)";
 #endif
@@ -435,47 +435,47 @@ std::string PlusCommon::GetPlusLibVersionString()
 }
 
 //-------------------------------------------------------
-void PlusCommon::SplitStringIntoTokens( const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts )
+void PlusCommon::SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts)
 {
-  std::istringstream ss( s );
+  std::istringstream ss(s);
   std::string item;
-  while ( std::getline( ss, item, delim ) )
+  while (std::getline(ss, item, delim))
   {
-    if( keepEmptyParts || !item.empty() )
+    if (keepEmptyParts || !item.empty())
     {
-      elems.push_back( item );
+      elems.push_back(item);
     }
   }
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens( const std::string& s, char delim, bool keepEmptyParts/*=true*/ )
+vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts/*=true*/)
 {
   std::vector<std::string> tokens;
-  PlusCommon::SplitStringIntoTokens( s, delim, tokens, keepEmptyParts );
+  PlusCommon::SplitStringIntoTokens(s, delim, tokens, keepEmptyParts);
   return tokens;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString( const std::vector<std::string>& elems, std::string& output )
+vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output)
 {
   typedef std::vector<std::string> StringList;
 
-  for( StringList::const_iterator it = elems.begin(); it != elems.end(); ++it )
+  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
   {
     output += *it;
   }
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString( const std::vector<std::string>& elems, std::string& output, char separator )
+vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator)
 {
   typedef std::vector<std::string> StringList;
 
-  for( StringList::const_iterator it = elems.begin(); it != elems.end(); ++it )
+  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
   {
     output += *it;
-    if( it != elems.end() - 1 )
+    if (it != elems.end() - 1)
     {
       output += separator;
     }
@@ -483,85 +483,85 @@ vtkPlusCommonExport void PlusCommon::JoinTokensIntoString( const std::vector<std
 }
 
 //----------------------------------------------------------------------------
-void PlusCommon::DrawLine( vtkImageData& imageData, float colour[3], LINE_STYLE style, unsigned int startPixel[3], unsigned int endPixel[3], unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */ )
+void PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_STYLE style, unsigned int startPixel[3], unsigned int endPixel[3], unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
 {
-  auto checkRange( []( unsigned int startPixel, unsigned int endPixel ) -> bool
+  auto checkRange([](unsigned int startPixel, unsigned int endPixel) -> bool
   {
-    if ( endPixel > startPixel )
+    if (endPixel > startPixel)
     {
       auto temp = startPixel;
       startPixel = endPixel;
       endPixel = temp;
     }
 
-    if ( endPixel - startPixel > static_cast<unsigned int>( std::numeric_limits<int>::max() ) )
+    if (endPixel - startPixel > static_cast<unsigned int>(std::numeric_limits<int>::max()))
     {
       return false;
     }
 
     return true;
-  } );
+  });
 
-  if ( !checkRange( startPixel[0], endPixel[0] ) )
+  if (!checkRange(startPixel[0], endPixel[0]))
   {
-    LOG_ERROR( "Cannot express horizontal slope. Value exceeds int limits." );
+    LOG_ERROR("Cannot express horizontal slope. Value exceeds int limits.");
     return;
   }
 
-  if ( !checkRange( startPixel[1], endPixel[1] ) )
+  if (!checkRange(startPixel[1], endPixel[1]))
   {
-    LOG_ERROR( "Cannot express vertical slope. Value exceeds int limits." );
+    LOG_ERROR("Cannot express vertical slope. Value exceeds int limits.");
     return;
   }
 
-  if ( !checkRange( startPixel[2], endPixel[2] ) )
+  if (!checkRange(startPixel[2], endPixel[2]))
   {
-    LOG_ERROR( "Cannot express depth slope. Value exceeds int limits." );
+    LOG_ERROR("Cannot express depth slope. Value exceeds int limits.");
     return;
   }
 
-  int startPixelInt[3] = { static_cast<int>( startPixel[0] ), static_cast<int>( startPixel[1] ), static_cast<int>( startPixel[2] ) };
-  int endPixelInt[3] = { static_cast<int>( endPixel[0] ), static_cast<int>( endPixel[1] ), static_cast<int>( endPixel[2] ) };
-  if ( style == LINE_STYLE_SOLID )
+  int startPixelInt[3] = { static_cast<int>(startPixel[0]), static_cast<int>(startPixel[1]), static_cast<int>(startPixel[2]) };
+  int endPixelInt[3] = { static_cast<int>(endPixel[0]), static_cast<int>(endPixel[1]), static_cast<int>(endPixel[2]) };
+  if (style == LINE_STYLE_SOLID)
   {
-    numberOfPoints = std::max( endPixelInt[0] - startPixelInt[0], endPixelInt[1] - startPixelInt[1] ) + 1;
+    numberOfPoints = std::max(endPixelInt[0] - startPixelInt[0], endPixelInt[1] - startPixelInt[1]) + 1;
   }
-  else if ( numberOfPoints < 2 )
+  else if (numberOfPoints < 2)
   {
-    LOG_ERROR( "Unable to draw a line with less than 1 point!" );
+    LOG_ERROR("Unable to draw a line with less than 1 point!");
     return;
   }
 
-  double directionVectorX = static_cast<double>( endPixel[0] - startPixel[0] ) / ( numberOfPoints - 1 );
-  double directionVectorY = static_cast<double>( endPixel[1] - startPixel[1] ) / ( numberOfPoints - 1 );
-  double directionVectorZ = static_cast<double>( endPixel[2] - startPixel[2] ) / ( numberOfPoints - 1 );
-  for ( unsigned int point = 0; point < numberOfPoints; ++point )
+  double directionVectorX = static_cast<double>(endPixel[0] - startPixel[0]) / (numberOfPoints - 1);
+  double directionVectorY = static_cast<double>(endPixel[1] - startPixel[1]) / (numberOfPoints - 1);
+  double directionVectorZ = static_cast<double>(endPixel[2] - startPixel[2]) / (numberOfPoints - 1);
+  for (unsigned int point = 0; point < numberOfPoints; ++point)
   {
     unsigned int pixelCoordX = startPixel[0] + directionVectorX * point;
     unsigned int pixelCoordY = startPixel[1] + directionVectorY * point;
     unsigned int pixelCoordZ = startPixel[2] + directionVectorZ * point;
 
-    for ( int component = 0; component < std::min( imageData.GetNumberOfScalarComponents(), 3 ); ++component )
+    for (int component = 0; component < std::min(imageData.GetNumberOfScalarComponents(), 3); ++component)
     {
-      imageData.SetScalarComponentFromFloat( pixelCoordX, pixelCoordY, pixelCoordZ, component, colour[component] );
+      imageData.SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, pixelCoordZ, component, colour[component]);
     }
-    if ( imageData.GetNumberOfScalarComponents() > 3 && alphaBehavior == ALPHA_BEHAVIOR_OPAQUE )
+    if (imageData.GetNumberOfScalarComponents() > 3 && alphaBehavior == ALPHA_BEHAVIOR_OPAQUE)
     {
       // TODO : is a component value from [0,1]?
-      imageData.SetScalarComponentFromFloat( pixelCoordX, pixelCoordY, pixelCoordZ, 3, 1.f );
+      imageData.SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, pixelCoordZ, 3, 1.f);
     }
   }
 }
 
 //----------------------------------------------------------------------------
-void PlusCommon::DrawLine( vtkImageData& imageData, float greyValue, LINE_STYLE style, unsigned int* startPixel, unsigned int* endPixel, unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */ )
+void PlusCommon::DrawLine(vtkImageData& imageData, float greyValue, LINE_STYLE style, unsigned int* startPixel, unsigned int* endPixel, unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
 {
   float colour[3] = { greyValue, greyValue, greyValue };
-  PlusCommon::DrawLine( imageData, colour, style, startPixel, endPixel, numberOfPoints, alphaBehavior );
+  PlusCommon::DrawLine(imageData, colour, style, startPixel, endPixel, numberOfPoints, alphaBehavior);
 }
 
 //-------------------------------------------------------
-bool PlusCommon::IsClippingRequested( const int clipOrigin[3], const int clipSize[3] )
+bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
 {
   return (
            clipOrigin[0] != PlusCommon::NO_CLIP &&
@@ -574,30 +574,30 @@ bool PlusCommon::IsClippingRequested( const int clipOrigin[3], const int clipSiz
 }
 
 //-------------------------------------------------------
-bool PlusCommon::IsClippingWithinExtents( const int clipOrigin[3], const int clipSize[3], const int extents[6] )
+bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6])
 {
-  return ( clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1] ) &&
-         ( clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3] ) && // Verify that the origin is within the image
-         ( clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5] ) &&
+  return (clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1]) &&
+         (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&   // Verify that the origin is within the image
+         (clipOrigin[2] >= extents[4] && clipOrigin[2] <= extents[5]) &&
 
-         ( clipOrigin[0] + clipSize[0] - 1 <= extents[1] ) &&
-         ( clipOrigin[1] + clipSize[1] - 1 <= extents[3] ) && // Verify that the extent of the clipping falls within the image
-         ( clipOrigin[2] + clipSize[2] - 1 <= extents[5] );
+         (clipOrigin[0] + clipSize[0] - 1 <= extents[1]) &&
+         (clipOrigin[1] + clipSize[1] - 1 <= extents[3]) &&   // Verify that the extent of the clipping falls within the image
+         (clipOrigin[2] + clipSize[2] - 1 <= extents[5]);
 }
 
 //-------------------------------------------------------
-PlusStatus PlusCommon::RobustFwrite( FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize )
+PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize)
 {
   // on some systems fwrite cannot write all data in one chunk, therefore we have to write
   // chunks until all bytes are written or failed to write any bytes
-  unsigned char* writePointer = static_cast<unsigned char*>( data );
+  unsigned char* writePointer = static_cast<unsigned char*>(data);
   size_t remainingBytes = dataSize;
   size_t writtenBytesForCurrentBlock = 0;
-  while( ( writtenBytesForCurrentBlock = fwrite( writePointer, 1, remainingBytes, fileHandle ) ) > 0 && !ferror( fileHandle ) )
+  while ((writtenBytesForCurrentBlock = fwrite(writePointer, 1, remainingBytes, fileHandle)) > 0 && !ferror(fileHandle))
   {
     remainingBytes -= writtenBytesForCurrentBlock;
     writePointer += writtenBytesForCurrentBlock;
-    if ( remainingBytes == 0 )
+    if (remainingBytes == 0)
     {
       // completed
       break;
@@ -605,9 +605,9 @@ PlusStatus PlusCommon::RobustFwrite( FILE* fileHandle, void* data, size_t dataSi
   }
 
   writtenSize = dataSize - remainingBytes;
-  if ( remainingBytes > 0 )
+  if (remainingBytes > 0)
   {
-    LOG_ERROR( "Filed to write data to file. Data size: " << dataSize << ", successfully written: " << writtenSize << " bytes" );
+    LOG_ERROR("Filed to write data to file. Data size: " << dataSize << ", successfully written: " << writtenSize << " bytes");
     return PLUS_FAIL;
   }
 

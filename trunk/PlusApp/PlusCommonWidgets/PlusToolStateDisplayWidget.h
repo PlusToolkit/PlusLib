@@ -59,24 +59,11 @@ public:
   */
   bool IsInitialized();
 
-  /*!
-  * Get desired height
-  * \return Desired widget height in pixels (according to the number of active tools)
-  */
-  int GetDesiredHeight();
-
 protected:
-  /*! Data source */
-  vtkPlusChannel*   m_SelectedChannel;
-
-  /*! List of tool name labels */
-  std::vector<QLabel*>  m_ToolNameLabels;
-
-  /*! List of tool status labels */
-  std::vector<QTextEdit*> m_ToolStateLabels;
-
-  /*! Flag showing if the widget is initialized (the tools are loaded) */
-  bool          m_Initialized;
+  vtkPlusChannel*           m_SelectedChannel;
+  std::vector<QLabel*>      m_ToolNameLabels;
+  std::vector<QTextEdit*>   m_ToolStateLabels;
+  bool                      m_Initialized;
 };
 
 #endif
