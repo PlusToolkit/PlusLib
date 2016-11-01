@@ -90,6 +90,9 @@ protected:
   /*! Select the channel */
   PlusStatus SelectChannel(vtkPlusChannel*& aChannel, vtkXMLDataElement* fCalElement);
 
+  /*! Update the size of the tool state display widget because its contents have changed */
+  void ToolStateWidgetResize();
+
 signals:
   /*!
   * Executes operations needed after stopping the process

@@ -302,8 +302,7 @@ void QConfigurationToolbox::PopOutToggled(bool aOn)
     gridToolStateDisplay->setSpacing(4);
     gridToolStateDisplay->addWidget(m_ToolStateDisplayWidget);
     ui.toolStateDisplayWidget->setLayout(gridToolStateDisplay);
-    ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
-    ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+    ToolStateWidgetResize();
 
     // Delete pop out window
     if (m_ToolStatePopOutWindow)
@@ -658,16 +657,20 @@ PlusStatus QConfigurationToolbox::SelectChannel(vtkPlusChannel*& aChannel, vtkXM
   return PLUS_FAIL;
 }
 
+
+//----------------------------------------------------------------------------
+void QConfigurationToolbox::ToolStateWidgetResize()
+{
+  ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+  ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
+}
+
 //-----------------------------------------------------------------------------
 void QConfigurationToolbox::ChannelChanged(vtkPlusChannel& aChannel)
 {
   if (m_ToolStateDisplayWidget->InitializeTools(&aChannel, true))
   {
-    QTimer::singleShot(30, [this]()
-    {
-      ui.toolStateDisplayWidget->setMinimumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
-      ui.toolStateDisplayWidget->setMaximumHeight(m_ToolStateDisplayWidget->layout()->totalSizeHint().height());
-    });
+    QTimer::singleShot(30, this, &QConfigurationToolbox::ToolStateWidgetResize);
   }
 
   m_DeviceSetSelectorWidget->ShowResetTrackerButton(aChannel.GetOwnerDevice()->IsResettable());

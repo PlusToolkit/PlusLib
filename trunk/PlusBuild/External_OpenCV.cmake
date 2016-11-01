@@ -9,18 +9,31 @@ ELSE()
   FIND_PACKAGE(CUDA QUIET)
   
   SET(OpenCV_PLATFORM_SPECIFIC_ARGS)
-  IF(MSVC AND NOT ${CMAKE_GENERATOR} MATCHES "Win64")
-    LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=OFF)
-  ELSE()
-    IF(CUDA_FOUND)
-      LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=ON)
-    ELSE()
-      LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=OFF)
-    ENDIF()
-  ENDIF()
-
+  SET(_cuda OFF)
   IF(CUDA_FOUND)
-    SET(_generations "Fermi" "Kepler" "Maxwell" "Pascal")
+    IF(MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "Win64")
+      # CUDA 32 bit is only available on versions <= 6.5
+      IF(NOT ${CUDA_VERSION} VERSION_GREATER "6.5")
+        SET(_cuda ON)
+        LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS
+          -DCUDA_TOOLKIT_ROOT_DIR:PATH=${CUDA_TOOLKIT_ROOT_DIR}
+          )
+      ENDIF()
+    ELSE()
+      SET(_cuda ON)
+      LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS
+        -DCUDA_TOOLKIT_ROOT_DIR:PATH=${CUDA_TOOLKIT_ROOT_DIR}
+        )
+    ENDIF()
+    
+    IF(_cuda)
+      LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=ON)
+    ENDIF()
+    
+    SET(_generations "Fermi" "Kepler" "Maxwell")
+    IF(${CUDA_VERSION} VERSION_GREATER 7)
+      LIST(APPEND _generations "Pascal")
+    ENDIF()
     IF(NOT CMAKE_CROSSCOMPILING)
       LIST(APPEND _generations "Auto")
     ENDIF()
@@ -36,6 +49,12 @@ ELSE()
     ENDIF()
     
     LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DCUDA_GENERATION:STRING=${PLUSBUILD_OpenCV_CUDA_GENERATION})
+  ELSE()
+    LIST(APPEND OpenCV_PLATFORM_SPECIFIC_ARGS -DWITH_CUDA:BOOL=OFF)
+  ENDIF()
+  
+  IF(CUDA_FOUND)
+    
   ENDIF()
   
   IF(Qt5_FOUND)
@@ -54,19 +73,23 @@ ELSE()
       BINARY_DIR "${PLUS_OpenCV_DIR}"
       #--Download step--------------
       GIT_REPOSITORY ${OpenCV_REPOSITORY}
-      GIT_TAG 3.1.0
+      GIT_TAG 6c12533160bc5e6de1f09847d9cd6dd548667a55 # 3.1.0 with many fixes
       #--Configure step-------------
       CMAKE_ARGS
           ${ep_common_args}
           ${OpenCV_PLATFORM_SPECIFIC_ARGS}
           -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
           -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+          #-DVTK_DIR:PATH=${PLUS_VTK_DIR} re-enable OpenCV-VTK7 support
+          -DWITH_VTK:BOOL=OFF
+          -DBUILD_TESTS:BOOL=OFF
+          -DBUILD_PERF_TESTS:BOOL=OFF
           -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
       #--Build step-----------------
       BUILD_ALWAYS 1
       #--Install step-----------------
       INSTALL_COMMAND "" # Do not install, we have access to ${PLUS_OpenCV_DIR}/OpenCVConfig.cmake
       #--Dependencies-----------------
-      DEPENDS ${OpenCV_DEPENDENCIES}
+      #DEPENDS vtk RE-ADD with OpenCV-VTK7 support
       )
 ENDIF()
