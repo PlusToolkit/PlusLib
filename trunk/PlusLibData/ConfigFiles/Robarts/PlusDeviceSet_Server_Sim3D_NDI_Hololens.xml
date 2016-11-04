@@ -1,0 +1,114 @@
+<PlusConfiguration version="2.1">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Replay fCal 3d data with NDI Aurora tracking"
+      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of image and tool tracking data." />
+    <Device
+      Id="TrackedVideoDevice"
+      Type="SavedDataSource"
+      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="TrackerDevice" 
+      Type="AuroraTracker"
+      SerialPort="3"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Phantom" PortName="0" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream">
+          <DataSource Id="Phantom" />
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+    
+    <Device 
+      Id="TrackedVideoDevice" 
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>      
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+    
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRACKEDFRAME" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+  
+  <CoordinateDefinitions>
+    <Transform From="RedSphere1" To="Phantom"
+      Matrix="
+        0.416691	0	-0.909048	-59.9177
+        0.904379	-0.101226	0.414551	27.3241
+        -0.0920191	-0.994863	-0.0421799	-2.78019
+        0	0	0	1"
+       Error="0.145111" Date="110416_153801" />
+
+    <Transform From="RedSphere2" To="Phantom"
+      Matrix="
+        0.849402	0	0.527746	35.0441
+        -0.526922	-0.0558457	0.848077	56.3151
+        0.0294724	-0.998439	-0.0474355	-3.14987
+        0	0	0	1"
+       Error="0.157855" Date="110416_154133" />
+
+    <Transform From="RedSphere3" To="Phantom"
+      Matrix="
+        0.644295	0	0.764777	49.1072
+        0.761387	-0.0940615	-0.641438	-41.1874
+        0.0719361	0.995566	-0.0606034	-3.89141
+        0	0	0	1"
+       Error="0.116668" Date="110416_154238" />
+
+    <Transform From="RedSphere4" To="Phantom"
+      Matrix="
+        0.984961	0	-0.172779	-10.8621
+        -0.172489	-0.0579092	-0.983308	-61.8176
+        -0.0100055	0.998322	-0.0570383	-3.58583
+        0	0	0	1"
+       Error="0.16439" Date="110416_154342" />
+
+    <Transform From="RedSphere5" To="Phantom"
+      Matrix="
+        0.679845	0	-0.733356	-46.7787
+        -0.454707	0.784573	-0.421529	-26.8881
+        0.575371	0.620037	0.533388	34.0233
+        0	0	0	1"
+       Error="0.254549" Date="110416_154544" />
+
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+  </CoordinateDefinitions> 
+</PlusConfiguration>
