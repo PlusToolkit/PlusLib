@@ -19,13 +19,18 @@ SET (PlusUsSimulator_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BI
 
 SET (PlusUsSimulator_LIBS
   vtkPlusCommon
+  vtkPlusRendering
   vtkPlusImageProcessing
-  )     
+  vtkFiltersSources
+  vtkFiltersFlowPaths
+  vtkIOGeometry
+  vtkIOXML
+  )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusUsSimulator)
 ADD_LIBRARY(vtkPlusUsSimulator ${PlusUsSimulator_SRCS} ${PlusUsSimulator_HDRS})
 target_include_directories(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_INCLUDE_DIRS} )
-TARGET_LINK_LIBRARIES(vtkPlusUsSimulator ${PlusUsSimulator_LIBS})
+TARGET_LINK_LIBRARIES(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

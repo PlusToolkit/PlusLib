@@ -60,7 +60,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(CompareVolumes Tools/CompareVolumes.cxx Tools/vtkPlusCompareVolumes.cxx )
   SET_TARGET_PROPERTIES(CompareVolumes PROPERTIES FOLDER Tools)
   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/Tools)
-  TARGET_LINK_LIBRARIES( CompareVolumes vtkPlusCommon )
+  TARGET_LINK_LIBRARIES(CompareVolumes vtkPlusCommon vtkIOLegacy vtkImagingMath vtkImagingStatistics)
 
   ADD_EXECUTABLE(DrawClipRegion Tools/DrawClipRegion.cxx )
   SET_TARGET_PROPERTIES(DrawClipRegion PROPERTIES FOLDER Tools)
