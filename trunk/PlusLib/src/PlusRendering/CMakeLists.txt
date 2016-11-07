@@ -33,14 +33,26 @@ SET (PlusRendering_LIBS
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusRendering)
 ADD_LIBRARY(vtkPlusRendering ${PlusRendering_SRCS} ${PlusRendering_HDRS})
 target_include_directories(vtkPlusRendering PUBLIC ${PlusRendering_INCLUDE_DIRS} )
-TARGET_LINK_LIBRARIES(vtkPlusRendering ${PlusRendering_LIBS} )
+TARGET_LINK_LIBRARIES(vtkPlusRendering PUBLIC ${PlusRendering_LIBS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusRendering CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusCommon vtkPlusRendering;"${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusRendering vtkPlusRendering;"${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj" CACHE INTERNAL "" FORCE)
+
+#--------------------------------------------------------------------------------------------
+IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
+  #--------------------------------------------------------------------------------------------
+  ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
+  SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
+  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtkPlusRendering vtkIOGeometry)
+
+  INSTALL(TARGETS ModelRenderer
+    RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeExecutables
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Install

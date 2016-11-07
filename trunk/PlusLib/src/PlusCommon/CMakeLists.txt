@@ -117,12 +117,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon )
   GENERATE_HELP_DOC(EditSequenceFile)
 
-  #--------------------------------------------------------------------------------------------
-  ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
-  SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon )
-
-  INSTALL(TARGETS EditSequenceFile ModelRenderer
+  INSTALL(TARGETS EditSequenceFile
     RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeExecutables
     )
 ENDIF()

@@ -68,6 +68,9 @@ SET (External_Libraries_Install)
 
 SET (PlusImageProcessing_LIBS
   vtkPlusCommon
+  vtkImagingStatistics
+  vtkImagingGeneral
+  vtkImagingMorphological
   )
 
 IF (PLUS_USE_INTEL_MKL)
