@@ -17,7 +17,6 @@ SET (PlusCommon_SRCS
   IO/vtkPlusSequenceIOBase.cxx
   IO/vtkPlusSequenceIO.cxx
   vtkPlusRecursiveCriticalSection.cxx
-  vtkPlusToolAxesActor.cxx
   )
 
 SET (PlusCommon_HDRS)
@@ -37,11 +36,10 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     PlusVideoFrame.h
     PlusVideoFrame.txx
     IO/vtkPlusMetaImageSequenceIO.h
-	IO/vtkPlusNrrdSequenceIO.h
+    IO/vtkPlusNrrdSequenceIO.h
     IO/vtkPlusSequenceIO.h
     IO/vtkPlusSequenceIOBase.h
     vtkPlusRecursiveCriticalSection.h
-    vtkPlusToolAxesActor.h
     PixelCodec.h
     )
 endif ()
@@ -55,7 +53,36 @@ SET (PlusCommon_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusCommon_LIBS ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${PlusCommon_LIBS} )
+SET (PlusCommon_LIBS 
+  ${PlusCommon_LIBS}
+  vtkCommonCore
+  vtkCommonDataModel
+  vtkImagingCore
+  vtkIOXMLParser
+  vtkIOImage
+  vtkzlib
+  vtksys
+  itksys
+  itkzlib
+  ITKIONIFTI
+  ITKIONRRD
+  ITKIOGIPL
+  ITKIOHDF5
+  ITKIOJPEG
+  ITKIOGDCM
+  ITKIOBMP
+  ITKIOLSM
+  ITKIOTIFF
+  ITKIOPNG
+  ITKIOVTK
+  ITKIOGE
+  ITKIOMRC
+  ITKIOBioRad
+  ITKIOStimulate
+  ITKIOMeta
+  itkvnl
+  itkvnl_algo
+  )
 
 if (WIN32)
   SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
