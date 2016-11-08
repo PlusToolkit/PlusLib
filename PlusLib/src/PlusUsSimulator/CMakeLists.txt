@@ -5,18 +5,17 @@ SET (PlusUsSimulator_SRCS
     )
 
 SET (PlusUsSimulator_HDRS)
-if (WIN32)    
+if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode") 
   SET (PlusUsSimulator_HDRS
     vtkPlusUsSimulatorAlgo.h
     PlusSpatialModel.h
   )
-endif (WIN32)
+endif ()
 
 SET (PlusUsSimulator_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (PlusUsSimulator_LIBS
   vtkPlusCommon
   vtkPlusRendering
@@ -43,13 +42,15 @@ SET(vcProj_vtkPlusUsSimulator vtkPlusUsSimulator;"${PlusLib_BINARY_DIR}/src/Plus
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)
-# --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
 # Install
 #
-
 INSTALL(TARGETS vtkPlusUsSimulator
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+  )
+INSTALL(FILES ${PlusUsSimulator_HDRS}
+  DESTINATION include
   )

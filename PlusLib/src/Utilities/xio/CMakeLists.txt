@@ -1,14 +1,17 @@
 PROJECT(vtkxio)
 
-SET(SRCS
-  AhrsAlgo.h
+SET(vtkxio_SRCS
   MadgwickAhrsAlgo.cxx
-  MadgwickAhrsAlgo.h
   MahonyAhrsAlgo.cxx
+  )
+
+SET(vtkxio_HDRS
+  AhrsAlgo.h
+  MadgwickAhrsAlgo.h
   MahonyAhrsAlgo.h 
   )
 
-ADD_LIBRARY(vtkxio STATIC ${SRCS})
+ADD_LIBRARY(vtkxio STATIC ${vtkxio_SRCS} ${vtkxio_HDRS})
 SET_TARGET_PROPERTIES(vtkxio PROPERTIES FOLDER Utilities)
 target_include_directories(vtkxio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 TARGET_LINK_LIBRARIES( vtkxio )
@@ -25,3 +28,6 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_vtkxio vtkxio;"${PlusLib_BINARY_DIR}/src/Utilities/xio/vtkxio.vcxproj" CACHE INTERNAL "" FORCE)
 
 INSTALL_TARGETS(/lib vtkxio)
+INSTALL(FILES ${vtkxio_HDRS}
+  DESTINATION include
+  )

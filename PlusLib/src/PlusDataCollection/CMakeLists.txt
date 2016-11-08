@@ -1609,7 +1609,10 @@ INSTALL(TARGETS vtkPlusDataCollection
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
-  
+INSTALL(FILES ${PlusDataCollection_HDRS}
+  DESTINATION include
+  )
+
 # --------------------------------------------------------------------------
 # Testing
 IF (BUILD_TESTING)

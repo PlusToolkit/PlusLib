@@ -58,7 +58,6 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     vtkPhantomLinearObjectRegistrationAlgo/Line.h
     vtkPhantomLinearObjectRegistrationAlgo/LinearObject.h
     vtkPhantomLinearObjectRegistrationAlgo/LinearObjectBuffer.h
-    vtkPhantomLinearObjectRegistrationAlgo/Point.cxx
     vtkPhantomLinearObjectRegistrationAlgo/Plane.h
     vtkPhantomLinearObjectRegistrationAlgo/Planes.h
     vtkPhantomLinearObjectRegistrationAlgo/PointObservation.h
@@ -84,7 +83,6 @@ SET (PlusCalibration_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (PlusCalibration_LIBS
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
@@ -156,17 +154,18 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-
 INSTALL(TARGETS vtkPlusCalibration
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
-
+INSTALL(FILES ${PlusCalibration_HDRS}
+  DESTINATION include
+  )
+  
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)

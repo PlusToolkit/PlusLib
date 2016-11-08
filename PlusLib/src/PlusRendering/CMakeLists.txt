@@ -62,6 +62,9 @@ INSTALL(TARGETS vtkPlusRendering
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
+INSTALL(FILES ${PlusRendering_HDRS}
+  DESTINATION include
+  )
 
 # --------------------------------------------------------------------------
 # Testing

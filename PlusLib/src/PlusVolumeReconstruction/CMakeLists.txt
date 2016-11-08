@@ -86,6 +86,9 @@ INSTALL(TARGETS vtkPlusVolumeReconstruction
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
+INSTALL(FILES ${PlusVolumeReconstruction_HDRS}
+  DESTINATION include
+  )
 
 # --------------------------------------------------------------------------
 # Testing

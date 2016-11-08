@@ -121,7 +121,7 @@ template <typename T>
 class PlusLockGuard
 {
 public:
-  PlusLockGuard( T* lockableObject )
+  PlusLockGuard(T* lockableObject)
   {
     m_LockableObject = lockableObject;
     m_LockableObject->Lock();
@@ -132,8 +132,8 @@ public:
     m_LockableObject = NULL;
   }
 private:
-  PlusLockGuard( PlusLockGuard& );
-  void operator=( PlusLockGuard& );
+  PlusLockGuard(PlusLockGuard&);
+  void operator=(PlusLockGuard&);
 
   T* m_LockableObject;
 };
@@ -161,15 +161,15 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  PlusStatus StringToInt( const char* strPtr, T& result )
+  PlusStatus StringToInt(const char* strPtr, T& result)
   {
-    if ( strPtr == NULL || strlen( strPtr ) == 0 )
+    if (strPtr == NULL || strlen(strPtr) == 0)
     {
       return PLUS_FAIL;
     }
     char* pEnd = NULL;
-    result = static_cast<int>( strtol( strPtr, &pEnd, 10 ) );
-    if ( pEnd != strPtr + strlen( strPtr ) )
+    result = static_cast<int>(strtol(strPtr, &pEnd, 10));
+    if (pEnd != strPtr + strlen(strPtr))
     {
       return PLUS_FAIL;
     }
@@ -179,15 +179,15 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to double conversion */
   template<class T>
-  PlusStatus StringToDouble( const char* strPtr, T& result )
+  PlusStatus StringToDouble(const char* strPtr, T& result)
   {
-    if ( strPtr == NULL || strlen( strPtr ) == 0 )
+    if (strPtr == NULL || strlen(strPtr) == 0)
     {
       return PLUS_FAIL;
     }
     char* pEnd = NULL;
-    result = strtod( strPtr, &pEnd );
-    if ( pEnd != strPtr + strlen( strPtr ) )
+    result = strtod(strPtr, &pEnd);
+    if (pEnd != strPtr + strlen(strPtr))
     {
       return PLUS_FAIL;
     }
@@ -210,15 +210,15 @@ namespace PlusCommon
   //----------------------------------------------------------------------------
   /*! Quick and robust string to int conversion */
   template<class T>
-  PlusStatus StringToLong( const char* strPtr, T& result )
+  PlusStatus StringToLong(const char* strPtr, T& result)
   {
-    if ( strPtr == NULL || strlen( strPtr ) == 0 )
+    if (strPtr == NULL || strlen(strPtr) == 0)
     {
       return PLUS_FAIL;
     }
     char* pEnd = NULL;
-    result = strtol( strPtr, &pEnd, 10 );
-    if ( pEnd != strPtr + strlen( strPtr ) )
+    result = strtol(strPtr, &pEnd, 10);
+    if (pEnd != strPtr + strlen(strPtr))
     {
       return PLUS_FAIL;
     }
@@ -239,27 +239,27 @@ namespace PlusCommon
   };
 
   //----------------------------------------------------------------------------
-  static void DrawLine( vtkImageData& imageData,
-                        float colour[3],
-                        LINE_STYLE style,
-                        unsigned int startPixel[3],
-                        unsigned int endPixel[3],
-                        unsigned int numberOfPoints,
-                        ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE );
+  static void DrawLine(vtkImageData& imageData,
+                       float colour[3],
+                       LINE_STYLE style,
+                       unsigned int startPixel[3],
+                       unsigned int endPixel[3],
+                       unsigned int numberOfPoints,
+                       ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
 
   //----------------------------------------------------------------------------
-  static void DrawLine( vtkImageData& imageData,
-                        float greyValue,
-                        LINE_STYLE style,
-                        unsigned int* startPixel,
-                        unsigned int* endPixel,
-                        unsigned int numberOfPoints,
-                        ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE );
+  static void DrawLine(vtkImageData& imageData,
+                       float greyValue,
+                       LINE_STYLE style,
+                       unsigned int* startPixel,
+                       unsigned int* endPixel,
+                       unsigned int numberOfPoints,
+                       ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
 
 #if defined(_MSC_VER) && _MSC_VER < 1700
   // This method can be used for number to string conversion
   // until std::to_string is supported by more compilers.
-  static std::string ToString( int number )
+  static std::string ToString(int number)
   {
     std::ostringstream ss;
     ss << number;
@@ -268,25 +268,25 @@ namespace PlusCommon
 #endif
 
   static const int NO_CLIP = -1;
-  vtkPlusCommonExport bool IsClippingRequested( const int clipOrigin[3], const int clipSize[3] );
-  vtkPlusCommonExport bool IsClippingWithinExtents( const int clipOrigin[3], const int clipSize[3], const int extents[6] );
+  vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
+  vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
-  vtkPlusCommonExport void SplitStringIntoTokens( const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts = true );
-  vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens( const std::string& s, char delim, bool keepEmptyParts = true );
-  vtkPlusCommonExport void JoinTokensIntoString( const std::vector<std::string>& elems, std::string& output );
-  vtkPlusCommonExport void JoinTokensIntoString( const std::vector<std::string>& elems, std::string& output, char separator );
+  vtkPlusCommonExport void SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts = true);
+  vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts = true);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
 
-  vtkPlusCommonExport PlusStatus CreateTemporaryFilename( std::string& aString, const std::string& anOutputDirectory );
+  vtkPlusCommonExport PlusStatus CreateTemporaryFilename(std::string& aString, const std::string& anOutputDirectory);
 
   /*! Trim whitespace characters from the left and right */
-  vtkPlusCommonExport std::string& Trim( std::string& str );
+  vtkPlusCommonExport std::string& Trim(std::string& str);
 
   /*!
     On some systems fwrite may fail if a large chunk of data is attempted to written in one piece.
     This method writes the data in smaller chunks as long as all data is written or no data
     can be written anymore.
   */
-  vtkPlusCommonExport PlusStatus RobustFwrite( FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize );
+  vtkPlusCommonExport PlusStatus RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize);
 
   /*!
     Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
@@ -294,14 +294,14 @@ namespace PlusCommon
     matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
     are printed in 4 lines.
   */
-  vtkPlusCommonExport PlusStatus PrintXML( const char* fname, vtkXMLDataElement* elem );
+  vtkPlusCommonExport PlusStatus PrintXML(const char* fname, vtkXMLDataElement* elem);
   /*!
     Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
     there are no extra lines, if there are many attributes then each of them is printed on separate line, and
     matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
     are printed in 4 lines.
   */
-  vtkPlusCommonExport PlusStatus PrintXML( ostream& os, vtkIndent indent, vtkXMLDataElement* elem );
+  vtkPlusCommonExport PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
 
   vtkPlusCommonExport std::string GetPlusLibVersionString();
 };
@@ -351,18 +351,18 @@ class vtkPlusCommonExport PlusTransformName
 public:
   PlusTransformName();
   ~PlusTransformName();
-  PlusTransformName( std::string aFrom, std::string aTo );
-  PlusTransformName( const std::string& transformName );
+  PlusTransformName(std::string aFrom, std::string aTo);
+  PlusTransformName(const std::string& transformName);
 
   /*!
     Set 'From' and 'To' coordinate frame names from a combined transform name with the following format [FrameFrom]To[FrameTo].
     The combined transform name might contain only one 'To' phrase followed by a capital letter (e.g. ImageToToProbe is not allowed)
     and the coordinate frame names should be in camel case format starting with capitalized letters.
   */
-  PlusStatus SetTransformName( const char* aTransformName );
+  PlusStatus SetTransformName(const char* aTransformName);
 
   /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
-  PlusStatus GetTransformName( std::string& aTransformName ) const;
+  PlusStatus GetTransformName(std::string& aTransformName) const;
   std::string GetTransformName() const;
 
   /*! Return 'From' coordinate frame name, give a warning if it's not capitalized and capitalize it*/
@@ -377,17 +377,17 @@ public:
   /*! Check if the current transform name is valid */
   bool IsValid() const;
 
-  inline bool operator== ( const PlusTransformName& in ) const
+  inline bool operator== (const PlusTransformName& in) const
   {
-    return ( in.m_From == m_From && in.m_To == m_To );
+    return (in.m_From == m_From && in.m_To == m_To);
   }
 
-  inline bool operator!= ( const PlusTransformName& in ) const
+  inline bool operator!= (const PlusTransformName& in) const
   {
-    return !( in == *this );
+    return !(in == *this);
   }
 
-  friend std::ostream& operator<< ( std::ostream& os, const PlusTransformName& transformName )
+  friend std::ostream& operator<< (std::ostream& os, const PlusTransformName& transformName)
   {
     os << transformName.GetTransformName();
     return os;
@@ -395,7 +395,7 @@ public:
 
 private:
   /*! Check if the input string is capitalized, if not capitalize it */
-  void Capitalize( std::string& aString );
+  void Capitalize(std::string& aString);
   std::string m_From; /*! From coordinate frame name */
   std::string m_To; /*! To coordinate frame name */
 };

@@ -112,6 +112,10 @@ MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
     ${PlusLib_SOURCE_DIR}/src/PlusExport.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
     )
+  INSTALL(FILES 
+    ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
+    DESTINATION include
+    )
 ENDMACRO(GENERATE_EXPORT_DIRECTIVE_FILE)
 
 # --------------------------------------------------------------------------
@@ -208,6 +212,12 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
   )
 
+INSTALL(FILES 
+  ${CMAKE_BINARY_DIR}/PlusConfigure.h
+  ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
+  DESTINATION include
+  )
+
 # --------------------------------------------------------------------------
 # Create Plus target list
 
@@ -282,11 +292,17 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "X
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
     )
+  INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
+    DESTINATION share
+    )
 ELSE()
   # PlusConfig.xml generation for other OS (only one build type is supported)
   CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+    )
+  INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
+    DESTINATION share
     )
 ENDIF()
 

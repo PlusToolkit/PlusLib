@@ -41,6 +41,7 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     IO/vtkPlusSequenceIOBase.h
     vtkPlusRecursiveCriticalSection.h
     PixelCodec.h
+    PlusXmlUtils.h
     )
 endif ()
 
@@ -125,17 +126,18 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-
 INSTALL(TARGETS vtkPlusCommon
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
+INSTALL(FILES ${PlusCommon_HDRS}
+  DESTINATION include
+  )
 
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)
