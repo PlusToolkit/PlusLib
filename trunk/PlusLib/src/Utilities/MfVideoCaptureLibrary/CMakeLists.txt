@@ -14,15 +14,17 @@ SET(MfVideoCaptureLibrary_SRCS
   MfVideoCaptureLogger.cpp
   )
 
-SET (MfVideoCaptureLibrary_HDRS ${MfVideoCaptureLibrary_HDRS}
-  FormatReader.h
-  MediaFoundationVideoCaptureApi.h
-  MediaFoundationVideoDevice.h
-  MediaFoundationVideoDevices.h
-  MediaFoundationCaptureLibrary.h
-  MfVideoCaptureLogger.h
-  MfVideoCaptureLoggerMacros.h
-  )
+if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET (MfVideoCaptureLibrary_HDRS
+    FormatReader.h
+    MediaFoundationVideoCaptureApi.h
+    MediaFoundationVideoDevice.h
+    MediaFoundationVideoDevices.h
+    MediaFoundationCaptureLibrary.h
+    MfVideoCaptureLogger.h
+    MfVideoCaptureLoggerMacros.h
+    )
+endif()
 
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
 
@@ -59,3 +61,6 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_MfVideoCaptureLibrary MfVideoCaptureLibrary;"${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCaptureLibrary/MfVideoCaptureLibrary.vcxproj" CACHE INTERNAL "" FORCE)
 
 INSTALL_TARGETS(/lib MfVideoCaptureLibrary)
+INSTALL(FILES ${MfVideoCaptureLibrary_HDRS}
+  DESTINATION include
+  )

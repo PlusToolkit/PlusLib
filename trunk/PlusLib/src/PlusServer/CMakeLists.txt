@@ -54,7 +54,6 @@ SET (PlusServer_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (PlusServer_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
@@ -64,7 +63,7 @@ SET (PlusServer_LIBS
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
 target_include_directories(vtkPlusServer PUBLIC ${PlusServer_INCLUDE_DIRS} )
-TARGET_LINK_LIBRARIES(vtkPlusServer ${PlusServer_LIBS})
+TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
@@ -93,6 +92,9 @@ INSTALL(TARGETS vtkPlusServer
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
+INSTALL(FILES ${PlusServer_HDRS}
+  DESTINATION include
+  )
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   INSTALL(TARGETS PlusServer PlusServerRemoteControl
@@ -103,7 +105,6 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)

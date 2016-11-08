@@ -35,7 +35,6 @@ SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${VTKNDICAPI_INCLUDE_DIRS}
 
 ADD_LIBRARY(vtkndicapi STATIC ${common_SRCS} ${common_HDRS})
 SET_TARGET_PROPERTIES(vtkndicapi PROPERTIES FOLDER Utilities)
-TARGET_LINK_LIBRARIES( vtkndicapi )
 IF(NOT WIN32)
   SET_TARGET_PROPERTIES( vtkndicapi PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF()
@@ -49,3 +48,6 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_vtkndicapi vtkndicapi;"${PlusLib_BINARY_DIR}/src/Utilities/ndicapi/vtkndicapi.vcxproj" CACHE INTERNAL "" FORCE)
 
 INSTALL_TARGETS(/lib vtkndicapi)
+INSTALL(FILES ${common_HDRS}
+  DESTINATION include
+  )

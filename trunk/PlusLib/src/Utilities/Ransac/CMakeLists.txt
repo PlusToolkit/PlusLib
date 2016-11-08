@@ -72,6 +72,10 @@ TARGET_LINK_LIBRARIES(sphereEstimation PUBLIC
   itkvnl_algo
   )
 
+INSTALL(FILES ${RANSAC_HDRS}
+  DESTINATION include
+  )
+
 #
 # Optional testing of the plane and sphere estimation code
 #

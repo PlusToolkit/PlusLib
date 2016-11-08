@@ -229,13 +229,15 @@ ENDIF()
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF (BUILD_TESTING)
-# --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
 # Install
 #
-
 INSTALL(TARGETS vtkPlusImageProcessing
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+  )
+INSTALL(FILES ${PlusImageProcessing_HDRS}
+  DESTINATION include
   )

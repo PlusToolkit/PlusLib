@@ -23,8 +23,8 @@
 class vtkPlusDataCollectionExport vtkPlusOpenIGTLinkDevice : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro( vtkPlusOpenIGTLinkDevice, vtkPlusDevice );
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro(vtkPlusOpenIGTLinkDevice, vtkPlusDevice);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! OpenIGTLink version. */
   virtual std::string GetSdkVersion();
@@ -39,44 +39,47 @@ public:
   virtual PlusStatus Probe();
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* config );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* config );
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
+  /*! Send a message to the connected server */
+  bool SendMessage(igtl::MessageBase::Pointer packedMessage);
 
   /*! Set OpenIGTLink message type */
-  vtkSetStringMacro( MessageType );
+  vtkSetStringMacro(MessageType);
   /*! Get OpenIGTLink message type */
-  vtkGetStringMacro( MessageType );
+  vtkGetStringMacro(MessageType);
 
   /*! Set image streams to be sent when message type is a type that sends an image */
-  vtkSetMacro( ImageStream, PlusTransformName );
+  vtkSetMacro(ImageStream, PlusTransformName);
 
   /*! Get image streams to be sent when message type is a type that sends an image */
-  vtkGetMacro( ImageStream, PlusTransformName );
+  vtkGetMacro(ImageStream, PlusTransformName);
 
   /*! Set OpenIGTLink server address */
-  vtkSetStringMacro( ServerAddress );
+  vtkSetStringMacro(ServerAddress);
   /*! Get OpenIGTLink server address */
-  vtkGetStringMacro( ServerAddress );
+  vtkGetStringMacro(ServerAddress);
 
   /*! Set OpenIGTLink server port */
-  vtkSetMacro( ServerPort, int );
+  vtkSetMacro(ServerPort, int);
   /*! Get OpenIGTLink server port */
-  vtkGetMacro( ServerPort, int );
+  vtkGetMacro(ServerPort, int);
 
   /*! Set OpenIGTLink socket timeout */
-  vtkSetMacro( ReceiveTimeoutSec, double );
+  vtkSetMacro(ReceiveTimeoutSec, double);
   /*! Get OpenIGTLink socket timeout */
-  vtkGetMacro( ReceiveTimeoutSec, double );
+  vtkGetMacro(ReceiveTimeoutSec, double);
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */
-  vtkSetMacro( IgtlMessageCrcCheckEnabled, int );
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, int);
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */
-  vtkGetMacro( IgtlMessageCrcCheckEnabled, int );
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, int);
 
   /*! Get the ReconnectOnNoData flag */
-  vtkGetMacro( ReconnectOnReceiveTimeout, bool );
+  vtkGetMacro(ReconnectOnReceiveTimeout, bool);
 
 protected:
   vtkPlusOpenIGTLinkDevice();
@@ -97,19 +100,19 @@ protected:
   /*!
     Calls ReceiveMessageHeader and logs the error and/or reconnect as needed.
   */
-  void ReceiveMessageHeaderWithErrorHandling( igtl::MessageHeader::Pointer& headerMsg );
+  void ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer& headerMsg);
 
   /*!
     Receive an OpenITGLink message header.
     Returns PLUS_FAIL if there was a socket error.
     The headerMsg is NULL is no data is received.
   */
-  virtual PlusStatus ReceiveMessageHeader( igtl::MessageHeader::Pointer& headerMsg );
+  virtual PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer& headerMsg);
 
   /*! Set the ReconnectOnNoData flag */
-  vtkSetMacro( ReconnectOnReceiveTimeout, bool );
+  vtkSetMacro(ReconnectOnReceiveTimeout, bool);
 
-  vtkSetMacro( UseReceivedTimestamps, bool );
+  vtkSetMacro(UseReceivedTimestamps, bool);
 
   /*! OpenIGTLink message type */
   char* MessageType;
@@ -134,6 +137,9 @@ protected:
   /*! Delay between retry attempts */
   double DelayBetweenRetryAttemptsSec;
 
+  /*! Control access to the socket */
+  vtkSmartPointer<vtkPlusRecursiveCriticalSection> SocketMutex;
+
   /*! OpenIGTLink client socket */
   igtl::ClientSocket::Pointer ClientSocket;
 
@@ -147,8 +153,8 @@ protected:
   bool UseReceivedTimestamps;
 
 private:
-  vtkPlusOpenIGTLinkDevice( const vtkPlusOpenIGTLinkDevice& ); // Not implemented.
-  void operator=( const vtkPlusOpenIGTLinkDevice& ); // Not implemented.
+  vtkPlusOpenIGTLinkDevice(const vtkPlusOpenIGTLinkDevice&);   // Not implemented.
+  void operator=(const vtkPlusOpenIGTLinkDevice&);   // Not implemented.
 };
 
 #endif

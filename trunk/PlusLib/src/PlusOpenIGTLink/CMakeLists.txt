@@ -36,7 +36,7 @@ SET (PlusOpenIGTLink_LIBS
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
 ADD_LIBRARY(vtkPlusOpenIGTLink ${PlusOpenIGTLink_SRCS} ${PlusOpenIGTLink_HDRS})
 target_include_directories(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_INCLUDE_DIRS} )
-TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink ${PlusOpenIGTLink_LIBS})
+TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
@@ -52,6 +52,9 @@ INSTALL(TARGETS vtkPlusOpenIGTLink
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+  )
+INSTALL(FILES ${PlusOpenIGTLink_HDRS}
+  DESTINATION include
   )
 
 # --------------------------------------------------------------------------
