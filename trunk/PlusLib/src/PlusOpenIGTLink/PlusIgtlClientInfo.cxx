@@ -56,6 +56,11 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
     clientInfo.TDATARequested = STRCASECMP(xmldata->GetAttribute("TDATARequested"), "TRUE") == 0;
   }
 
+  if (xmldata->GetAttribute("Resolution") != NULL)
+  {
+    xmldata->GetScalarAttribute("Resolution", clientInfo.Resolution);
+  }
+
   // Get message types
   vtkXMLDataElement* messageTypes = xmldata->FindNestedElementWithName("MessageTypes");
   if (messageTypes != NULL)

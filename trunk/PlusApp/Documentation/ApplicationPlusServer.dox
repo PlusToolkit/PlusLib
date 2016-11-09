@@ -72,6 +72,8 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
   - \xmlAtt DefaultClientReceiveTimeoutSec If set, this value is used to determine how long to wait before considering no network input as a timeout. \OptionalAtt{0.5}
   - \xmlAtt IgtlMessageCrcCheckEnabled If \c TRUE then incoming OpenIGTLink messages are only accepted if their CRC is valid. If \c FALSE then CRC is not checked. \OptionalAtt{FALSE}
   - \xmlElem \b DefaultClientInfo
+    - \xmlAtt TDATARequested For clients that have the TDATA message type requested, this parameter can control default sending of data on startup. \OptionalAtt{FALSE}
+    - \xmlAtt Resolution For TDATA messages, the minimum time between two frames. Use 0 for as fast as possible. If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. \OptionalAtt{0}
     - \xmlElem \b MessageTypes
       - \xmlElem \b Message
         - \xmlAtt Type
