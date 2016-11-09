@@ -39,13 +39,13 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
   PlusIgtlClientInfo();
 
   /*! Deserialize client info data from string xml data */
-  PlusStatus SetClientInfoFromXmlData( const char* strXmlData );
+  PlusStatus SetClientInfoFromXmlData(const char* strXmlData);
 
   /*! Deserialize client info data from xml data */
-  PlusStatus SetClientInfoFromXmlData( vtkXMLDataElement* xmldata );
+  PlusStatus SetClientInfoFromXmlData(vtkXMLDataElement* xmldata);
 
   /*! Serialize client info data to xml data and return in string */
-  void GetClientInfoInXmlData( std::string& strXmlData );
+  void GetClientInfoInXmlData(std::string& strXmlData);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 

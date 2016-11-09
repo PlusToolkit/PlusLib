@@ -52,7 +52,7 @@ vtkPlusIgtlMessageFactory::~vtkPlusIgtlMessageFactory()
 //----------------------------------------------------------------------------
 void vtkPlusIgtlMessageFactory::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
   this->PrintAvailableMessageTypes(os, indent);
 }
 
@@ -68,7 +68,7 @@ void vtkPlusIgtlMessageFactory::PrintAvailableMessageTypes(ostream& os, vtkInden
   os << indent << "Supported OpenIGTLink message types: " << std::endl;
   std::vector<std::string> types;
   this->IgtlFactory->GetAvailableMessageTypes(types);
-  for ( std::vector<std::string>::iterator it = types.begin(); it != types.end(); ++it)
+  for (std::vector<std::string>::iterator it = types.begin(); it != types.end(); ++it)
   {
     os << indent.GetNextIndent() << "- " << *it << std::endl;
   }
@@ -83,7 +83,7 @@ igtl::MessageHeader::Pointer vtkPlusIgtlMessageFactory::CreateHeaderMessage(int 
 //----------------------------------------------------------------------------
 igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const igtl::MessageHeader::Pointer aIgtlMessageHdr) const
 {
-  if( aIgtlMessageHdr.IsNull() )
+  if (aIgtlMessageHdr.IsNull())
   {
     LOG_ERROR("Null header sent to factory. Unable to produce a message.");
     return NULL;
@@ -100,7 +100,7 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
     return NULL;
   }
 
-  if( aMessageBase.IsNull() )
+  if (aMessageBase.IsNull())
   {
     LOG_ERROR("IGTL factory unable to produce message of type:" << aIgtlMessageHdr->GetMessageType());
     return NULL;
@@ -132,12 +132,12 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
   int numberOfErrors = 0;
   igtlMessages.clear();
 
-  if ( transformRepository != NULL )
+  if (transformRepository != NULL)
   {
     transformRepository->SetTransforms(trackedFrame);
   }
 
-  for ( std::vector<std::string>::const_iterator messageTypeIterator = clientInfo.IgtlMessageTypes.begin(); messageTypeIterator != clientInfo.IgtlMessageTypes.end(); ++ messageTypeIterator )
+  for (std::vector<std::string>::const_iterator messageTypeIterator = clientInfo.IgtlMessageTypes.begin(); messageTypeIterator != clientInfo.IgtlMessageTypes.end(); ++ messageTypeIterator)
   {
     std::string messageType = (*messageTypeIterator);
     igtl::MessageBase::Pointer igtlMessage;
@@ -151,17 +151,17 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       continue;
     }
 
-    if ( igtlMessage.IsNull() )
+    if (igtlMessage.IsNull())
     {
-      LOG_ERROR("Failed to pack IGT messages - unable to create instance from message type: " << messageType );
+      LOG_ERROR("Failed to pack IGT messages - unable to create instance from message type: " << messageType);
       numberOfErrors++;
       continue;
     }
 
     // Image message
-    if ( typeid(*igtlMessage) == typeid(igtl::ImageMessage) )
+    if (typeid(*igtlMessage) == typeid(igtl::ImageMessage))
     {
-      for ( std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
+      for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
         PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
 
@@ -178,24 +178,24 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
 
         igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
-        if( trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME) )
+        if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
         {
           // Allow overriding of device name with something human readable
           // The transform name is passed in the metadata
           deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str());
-        if ( vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS )
+        if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
           numberOfErrors++;
           continue;
         }
-        igtlMessages.push_back( imageMessage.GetPointer() );
+        igtlMessages.push_back(imageMessage.GetPointer());
       }
     }
     // Transform message
-    else if ( typeid(*igtlMessage) == typeid(igtl::TransformMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::TransformMessage))
     {
       for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
@@ -248,9 +248,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // Position message
-    else if ( typeid(*igtlMessage) == typeid(igtl::PositionMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::PositionMessage))
     {
-      for ( std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
+      for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
       {
         /*
           Advantage of using position message type:
@@ -262,17 +262,17 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         igtl::Matrix4x4 igtlMatrix;
         vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
-        float position[3]= {igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
-        float quaternion[4]= {0,0,0,1};
-        igtl::MatrixToQuaternion( igtlMatrix, quaternion );
+        float position[3] = {igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
+        float quaternion[4] = {0, 0, 0, 1};
+        igtl::MatrixToQuaternion(igtlMatrix, quaternion);
 
         igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackPositionMessage( positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( positionMessage.GetPointer() );
+        vtkPlusIgtlMessageCommon::PackPositionMessage(positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp());
+        igtlMessages.push_back(positionMessage.GetPointer());
       }
     }
     // TRACKEDFRAME message
-    else if ( typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage))
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
 
@@ -301,10 +301,10 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       }
     }
     // USMESSAGE message
-    else if ( typeid(*igtlMessage) == typeid(igtl::PlusUsMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::PlusUsMessage))
     {
       igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage->Clone().GetPointer());
-      if ( vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS )
+      if (vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to pack IGT messages - unable to pack US message");
         numberOfErrors++;
@@ -313,9 +313,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       igtlMessages.push_back(usMessage.GetPointer());
     }
     // String message
-    else if ( typeid(*igtlMessage) == typeid(igtl::StringMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::StringMessage))
     {
-      for ( std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
+      for (std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
       {
         const char* stringName = stringNameIterator->c_str();
         const char* stringValue = trackedFrame.GetCustomFrameField(stringName);
@@ -325,23 +325,23 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
         igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackStringMessage( stringMessage, stringName, stringValue, trackedFrame.GetTimestamp() );
-        igtlMessages.push_back( stringMessage.GetPointer() );
+        vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, stringName, stringValue, trackedFrame.GetTimestamp());
+        igtlMessages.push_back(stringMessage.GetPointer());
       }
     }
-    else if ( typeid(*igtlMessage) == typeid(igtl::CommandMessage) )
+    else if (typeid(*igtlMessage) == typeid(igtl::CommandMessage))
     {
       // Is there any use case for the server sending commands to the client?
       igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->Clone().GetPointer());
       //vtkPlusIgtlMessageCommon::PackCommandMessage( commandMessage );
-      igtlMessages.push_back( commandMessage.GetPointer() );
+      igtlMessages.push_back(commandMessage.GetPointer());
     }
     else
     {
-      LOG_WARNING("This message type (" << messageType << ") is not supported!" );
+      LOG_WARNING("This message type (" << messageType << ") is not supported!");
     }
   }
 
-  return ( numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL );
+  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
 }
 
