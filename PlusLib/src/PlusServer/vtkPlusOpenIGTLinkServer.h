@@ -35,11 +35,11 @@ class vtkPlusTransformRepository;
 struct ClientData
 {
   ClientData()
-    : ClientId( -1 )
-    , ClientSocket( NULL )
-    , DataReceiverActive( std::make_pair( false, false ) )
-    , DataReceiverThreadId( -1 )
-    , Server( NULL )
+    : ClientId(-1)
+    , ClientSocket(NULL)
+    , DataReceiverActive(std::make_pair(false, false))
+    , DataReceiverThreadId(-1)
+    , Server(NULL)
   {
   }
 
@@ -83,47 +83,47 @@ class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 
 public:
   static vtkPlusOpenIGTLinkServer* New();
-  vtkTypeMacro( vtkPlusOpenIGTLinkServer, vtkObject );
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro(vtkPlusOpenIGTLinkServer, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
-  PlusStatus Start( vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath );
+  PlusStatus Start(vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
 
   /*! Configures and starts the server from the provided device set configuration file */
   PlusStatus Stop();
 
 
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* serverElement, const char* aFilename );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* serverElement, const char* aFilename);
 
   /*! Set server listening port */
-  vtkSetMacro( ListeningPort, int );
+  vtkSetMacro(ListeningPort, int);
   /*! Get server listening port */
-  vtkGetMacro( ListeningPort, int );
+  vtkGetMacro(ListeningPort, int);
 
-  vtkGetStringMacro( OutputChannelId );
+  vtkGetStringMacro(OutputChannelId);
 
-  vtkSetMacro( MissingInputGracePeriodSec, double );
-  vtkGetMacro( MissingInputGracePeriodSec, double );
+  vtkSetMacro(MissingInputGracePeriodSec, double);
+  vtkGetMacro(MissingInputGracePeriodSec, double);
 
-  vtkSetMacro( MaxTimeSpentWithProcessingMs, double );
-  vtkGetMacro( MaxTimeSpentWithProcessingMs, double );
+  vtkSetMacro(MaxTimeSpentWithProcessingMs, double);
+  vtkGetMacro(MaxTimeSpentWithProcessingMs, double);
 
-  vtkSetMacro( SendValidTransformsOnly, bool );
-  vtkGetMacro( SendValidTransformsOnly, bool );
+  vtkSetMacro(SendValidTransformsOnly, bool);
+  vtkGetMacro(SendValidTransformsOnly, bool);
 
-  vtkSetMacro( DefaultClientSendTimeoutSec, float );
-  vtkGetMacro( DefaultClientSendTimeoutSec, float );
+  vtkSetMacro(DefaultClientSendTimeoutSec, float);
+  vtkGetMacro(DefaultClientSendTimeoutSec, float);
 
-  vtkSetMacro( DefaultClientReceiveTimeoutSec, float );
-  vtkGetMacro( DefaultClientReceiveTimeoutSec, float );
+  vtkSetMacro(DefaultClientReceiveTimeoutSec, float);
+  vtkGetMacro(DefaultClientReceiveTimeoutSec, float);
 
   /*! Set data collector instance */
-  virtual void SetDataCollector( vtkPlusDataCollector* dataCollector );
+  virtual void SetDataCollector(vtkPlusDataCollector* dataCollector);
   virtual vtkPlusDataCollector* GetDataCollector();
 
   /*! Set transform repository instance */
-  virtual void SetTransformRepository( vtkPlusTransformRepository* transformRepository );
+  virtual void SetTransformRepository(vtkPlusTransformRepository* transformRepository);
   virtual vtkPlusTransformRepository* GetTransformRepository();
 
   /*! Get number of connected clients */
@@ -132,7 +132,7 @@ public:
   /*! Retrieve a COPY of client info for a given clientId
     Locks access to the client info for the duration of the function
     */
-  virtual PlusStatus GetClientInfo( unsigned int clientId, PlusIgtlClientInfo& outClientInfo ) const;
+  virtual PlusStatus GetClientInfo(unsigned int clientId, PlusIgtlClientInfo& outClientInfo) const;
 
   /*! Start server */
   PlusStatus StartOpenIGTLinkService();
@@ -140,9 +140,9 @@ public:
   /*! Stop server */
   PlusStatus StopOpenIGTLinkService();
 
-  vtkGetStringMacro( ConfigFilename );
+  vtkGetStringMacro(ConfigFilename);
 
-  vtkGetMacro( IGTLProtocolVersion, int );
+  vtkGetMacro(IGTLProtocolVersion, int);
 
   /*!
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread)
@@ -155,71 +155,71 @@ protected:
   virtual ~vtkPlusOpenIGTLinkServer();
 
   /*! Add a response to the queue for sending to the client */
-  PlusStatus QueueMessageReponseForClient( int clientId, igtl::MessageBase::Pointer message );
+  PlusStatus QueueMessageReponseForClient(int clientId, igtl::MessageBase::Pointer message);
 
   /*! Thread for client connection handling */
-  static void* ConnectionReceiverThread( vtkMultiThreader::ThreadInfo* data );
+  static void* ConnectionReceiverThread(vtkMultiThreader::ThreadInfo* data);
 
   /*! Thread for sending data to clients */
-  static void* DataSenderThread( vtkMultiThreader::ThreadInfo* data );
+  static void* DataSenderThread(vtkMultiThreader::ThreadInfo* data);
 
   /*! Attempt to send any unsent frames to clients, if unsuccessful, accumulate an elapsed time */
-  static PlusStatus SendLatestFramesToClients( vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec );
+  static PlusStatus SendLatestFramesToClients(vtkPlusOpenIGTLinkServer& self, double& elapsedTimeSinceLastPacketSentSec);
 
   /*! Process the message replies queue and send messages */
-  static PlusStatus SendMessageResponses( vtkPlusOpenIGTLinkServer& self );
+  static PlusStatus SendMessageResponses(vtkPlusOpenIGTLinkServer& self);
 
   /*! Process the command replies queue and send messages */
-  static PlusStatus SendCommandResponses( vtkPlusOpenIGTLinkServer& self );
+  static PlusStatus SendCommandResponses(vtkPlusOpenIGTLinkServer& self);
 
   /*! Analyze an incoming command and queue for processing */
-  static PlusStatus ProcessIncomingCommand( igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t>& previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self );
+  static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t>& previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);
 
   /*! Thread for receiving control data from clients */
-  static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
+  static void* DataReceiverThread(vtkMultiThreader::ThreadInfo* data);
 
   /*! Tracked frame interface, sends the selected message type and data to all clients */
-  virtual PlusStatus SendTrackedFrame( PlusTrackedFrame& trackedFrame );
+  virtual PlusStatus SendTrackedFrame(PlusTrackedFrame& trackedFrame);
 
   /*! Converts a command response to an OpenIGTLink message that can be sent to the client */
-  igtl::MessageBase::Pointer CreateIgtlMessageFromCommandResponse( vtkPlusCommandResponse* response );
+  igtl::MessageBase::Pointer CreateIgtlMessageFromCommandResponse(vtkPlusCommandResponse* response);
 
   /*! Send status message to clients to keep alive the connection */
   virtual void KeepAlive();
 
   /*! Stops client's data receiving thread, closes the socket, and removes the client from the client list */
-  void DisconnectClient( int clientId );
+  void DisconnectClient(int clientId);
 
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */
-  vtkSetMacro( IgtlMessageCrcCheckEnabled, bool );
+  vtkSetMacro(IgtlMessageCrcCheckEnabled, bool);
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */
-  vtkGetMacro( IgtlMessageCrcCheckEnabled, bool );
+  vtkGetMacro(IgtlMessageCrcCheckEnabled, bool);
 
-  vtkSetMacro( MaxNumberOfIgtlMessagesToSend, int );
-  vtkGetMacro( MaxNumberOfIgtlMessagesToSend, int );
+  vtkSetMacro(MaxNumberOfIgtlMessagesToSend, int);
+  vtkGetMacro(MaxNumberOfIgtlMessagesToSend, int);
 
-  vtkSetMacro( NumberOfRetryAttempts, int );
-  vtkGetMacro( NumberOfRetryAttempts, int );
+  vtkSetMacro(NumberOfRetryAttempts, int);
+  vtkGetMacro(NumberOfRetryAttempts, int);
 
-  vtkSetMacro( DelayBetweenRetryAttemptsSec, double );
-  vtkGetMacro( DelayBetweenRetryAttemptsSec, double );
+  vtkSetMacro(DelayBetweenRetryAttemptsSec, double);
+  vtkGetMacro(DelayBetweenRetryAttemptsSec, double);
 
   /*!
     Execute a remotely invoked command
     \param resultString String containing the reply to the command (human readable)
     \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
   */
-  int ExecuteCommand( const char* commandString, std::string& resultString );
+  int ExecuteCommand(const char* commandString, std::string& resultString);
 
-  vtkSetStringMacro( OutputChannelId );
+  vtkSetStringMacro(OutputChannelId);
 
-  vtkSetStringMacro( ConfigFilename );
+  vtkSetStringMacro(ConfigFilename);
 
   bool HasGracePeriodExpired();
 
 private:
-  vtkPlusOpenIGTLinkServer( const vtkPlusOpenIGTLinkServer& );
-  void operator=( const vtkPlusOpenIGTLinkServer& );
+  vtkPlusOpenIGTLinkServer(const vtkPlusOpenIGTLinkServer&);
+  void operator=(const vtkPlusOpenIGTLinkServer&);
 
   /*! IGTL server socket */
   igtl::ServerSocket::Pointer ServerSocket;
