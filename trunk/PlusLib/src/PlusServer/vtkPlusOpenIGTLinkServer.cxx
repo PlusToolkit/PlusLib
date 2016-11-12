@@ -792,6 +792,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
                    << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
           break;
         }
+
+        // Update the tdata timestamp, even if tdata isn't sent (cheaper than checking for existing tdata message type)
+        clientIterator->ClientInfo.LastTDATASentTimeStamp = trackedFrame.GetTimestamp();
       }
     }
   } // unlock client list
