@@ -144,7 +144,6 @@ vtkPlusDevice::vtkPlusDevice()
   , FrameTimeStamp(0)
   , OutputNeedsInitialization(1)
   , CorrectlyConfigured(true)
-  , UnitConversionScale(1.0)
   , StartThreadForInternalUpdates(false)
   , LocalTimeOffsetSec(0.0)
   , MissingInputGracePeriodSec(0.0)
@@ -1001,8 +1000,6 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOCAL_LOG_DEBUG("Local time offset was not defined in device configuration");
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, UnitConversionScale, deviceXMLElement);
-
   return PLUS_SUCCESS;
 }
 
@@ -1450,6 +1447,35 @@ PlusStatus vtkPlusDevice::ForceUpdate()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields /* = NULL */)
+{
+  if (aToolSourceId == NULL)
+  {
+    LOCAL_LOG_ERROR("Failed to update tool - tool source ID is NULL!");
+    return PLUS_FAIL;
+  }
+
+  vtkPlusDataSource* tool = NULL;
+  if (this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS)
+  {
+    if (this->ReportedUnknownTools.find(aToolSourceId) == this->ReportedUnknownTools.end())
+    {
+      // We have not reported yet that this tool is unknown
+      LOCAL_LOG_ERROR("Failed to update tool - unable to find tool: " << aToolSourceId);
+      this->ReportedUnknownTools.insert(std::string(aToolSourceId));
+    }
+    return PLUS_FAIL;
+  }
+
+  // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
+  unsigned long frameNumber = tool->GetFrameNumber() + 1 ;
+  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp, customFields);
+  tool->SetFrameNumber(frameNumber);
+
+  return bufferStatus;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
@@ -1513,46 +1539,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const char* aToolSourceId, vtkMa
     return PLUS_FAIL;
   }
 
-  // Scale the translation component to account for unit scale
-  matrix->SetElement(0, 3, matrix->GetElement(0, 3) * this->UnitConversionScale);
-  matrix->SetElement(1, 3, matrix->GetElement(1, 3) * this->UnitConversionScale);
-  matrix->SetElement(2, 3, matrix->GetElement(2, 3) * this->UnitConversionScale);
-
   PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, UNDEFINED_TIMESTAMP, customFields);
-  tool->SetFrameNumber(frameNumber);
-
-  return bufferStatus;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields /* = NULL */)
-{
-  if (aToolSourceId == NULL)
-  {
-    LOCAL_LOG_ERROR("Failed to update tool - tool source ID is NULL!");
-    return PLUS_FAIL;
-  }
-
-  vtkPlusDataSource* tool = NULL;
-  if (this->GetTool(aToolSourceId, tool) != PLUS_SUCCESS)
-  {
-    if (this->ReportedUnknownTools.find(aToolSourceId) == this->ReportedUnknownTools.end())
-    {
-      // We have not reported yet that this tool is unknown
-      LOCAL_LOG_ERROR("Failed to update tool - unable to find tool: " << aToolSourceId);
-      this->ReportedUnknownTools.insert(std::string(aToolSourceId));
-    }
-    return PLUS_FAIL;
-  }
-
-  // Scale the translation component to account for unit scale
-  matrix->SetElement(0, 3, matrix->GetElement(0, 3) * this->UnitConversionScale);
-  matrix->SetElement(1, 3, matrix->GetElement(1, 3) * this->UnitConversionScale);
-  matrix->SetElement(2, 3, matrix->GetElement(2, 3) * this->UnitConversionScale);
-
-  // This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
-  unsigned long frameNumber = tool->GetFrameNumber() + 1;
-  PlusStatus bufferStatus = tool->AddTimeStampedItem(matrix, status, frameNumber, unfilteredtimestamp, filteredtimestamp, customFields);
   tool->SetFrameNumber(frameNumber);
 
   return bufferStatus;
