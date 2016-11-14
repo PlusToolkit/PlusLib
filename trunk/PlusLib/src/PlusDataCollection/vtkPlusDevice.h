@@ -534,9 +534,6 @@ protected:
   vtkSetMacro(RecordingStartTime, double);
   vtkGetMacro(RecordingStartTime, double);
 
-  vtkSetMacro(UnitConversionScale, double);
-  vtkGetMacro(UnitConversionScale, double);
-
   virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
 
   bool HasGracePeriodExpired();
@@ -597,9 +594,6 @@ protected:
   /*! Is this device correctly configured? */
   bool CorrectlyConfigured;
 
-  /*! If it's a tracker, scale the acquired poses by this factor*/
-  double UnitConversionScale;
-
   /*!
   If enabled, then a data capture thread is created when the device is connected that regularly calls InternalUpdate.
   This update mechanism is useful for devices that don't provide callback functions but require polling.
@@ -630,7 +624,7 @@ protected:
   bool RequirePortNameInDeviceSetConfiguration;
 
 private:
-  vtkPlusDevice(const vtkPlusDevice&);    // Not implemented.
+  vtkPlusDevice(const vtkPlusDevice&);   // Not implemented.
   void operator=(const vtkPlusDevice&);   // Not implemented.
 };
 
