@@ -92,7 +92,14 @@
         0     0     0.001 0
         0     0     0     1"
       Error="0.0" Date="012712_152030" />
-    <Transform From="RedSphere1" To="Phantom"
+    <Transform From="PhantomMm" To="Phantom"
+      Matrix="
+        0.001 0     0     0
+        0     0.001 0     0
+        0     0     0.001 0
+        0     0     0     1"
+      Error="0.0" Date="012712_152030" />
+    <Transform From="RedSphere1" To="PhantomMm"
       Matrix="
         0.416691	0	-0.909048	-59.9177
         0.904379	-0.101226	0.414551	27.3241
@@ -100,7 +107,7 @@
         0	0	0	1"
        Error="0.145111" Date="110416_153801" />
 
-    <Transform From="RedSphere2" To="Phantom"
+    <Transform From="RedSphere2" To="PhantomMm"
       Matrix="
         0.849402	0	0.527746	35.0441
         -0.526922	-0.0558457	0.848077	56.3151
@@ -108,7 +115,7 @@
         0	0	0	1"
        Error="0.157855" Date="110416_154133" />
 
-    <Transform From="RedSphere3" To="Phantom"
+    <Transform From="RedSphere3" To="PhantomMm"
       Matrix="
         0.644295	0	0.764777	49.1072
         0.761387	-0.0940615	-0.641438	-41.1874
@@ -116,7 +123,7 @@
         0	0	0	1"
        Error="0.116668" Date="110416_154238" />
 
-    <Transform From="RedSphere4" To="Phantom"
+    <Transform From="RedSphere4" To="PhantomMm"
       Matrix="
         0.984961	0	-0.172779	-10.8621
         -0.172489	-0.0579092	-0.983308	-61.8176
@@ -124,7 +131,7 @@
         0	0	0	1"
        Error="0.16439" Date="110416_154342" />
 
-    <Transform From="RedSphere5" To="Phantom"
+    <Transform From="RedSphere5" To="PhantomMm"
       Matrix="
         0.679845	0	-0.733356	-46.7787
         -0.454707	0.784573	-0.421529	-26.8881
