@@ -1,14 +1,13 @@
 <PlusConfiguration version="2.1">
-
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet 
-      Name="PlusServer: Replay fCal 3d data with NDI Aurora tracking"
-      Description="Free-hand probe motion, imaging 3 NWires, after spatial calibration. OpenIGTLink broadcasting through PlusServer of image and tool tracking data." />
+      Name="PlusServer: HoloLens - Replay fCal 3d data with live NDI Aurora tracking"
+      Description="Replay of saved imaging data with live tracking data for help with developing the HoloLens project." />
     <Device
-      Id="TrackedVideoDevice"
+      Id="VideoDevice"
       Type="SavedDataSource"
       SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
-      UseData="IMAGE_AND_TRANSFORM"
+      UseData="IMAGE"
       RepeatEnabled="TRUE" >
       <DataSources>
         <DataSource Type="Video" Id="Video" />
@@ -21,14 +20,18 @@
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
-      SerialPort="3"
-      ToolReferenceFrame="Tracker" >
+      SerialPort="5"
+      ToolReferenceFrame="ReferenceMm" >
       <DataSources>
         <DataSource Type="Tool" Id="Phantom" PortName="0" />
+        <DataSource Type="Tool" Id="Probe" PortName="1" />
+        <DataSource Type="Tool" Id="Stylus" PortName="2" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Phantom" />
+          <DataSource Id="Probe" />
+          <DataSource Id="Stylus" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -39,7 +42,7 @@
       <InputChannels>
         <InputChannel Id="TrackerStream" />
         <InputChannel Id="VideoStream" />
-      </InputChannels>      
+      </InputChannels>
       <OutputChannels>
         <OutputChannel Id="TrackedVideoStream"/>
       </OutputChannels>
@@ -49,6 +52,7 @@
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
+    DefaultClientSendTimeoutSec="0"
     ListeningPort="18944" 
     SendValidTransformsOnly="true" 
     OutputChannelId="TrackedVideoStream" > 
@@ -56,6 +60,17 @@
       <MessageTypes> 
         <Message Type="TRACKEDFRAME" />
       </MessageTypes>
+      <TransformNames>
+        <Transform Name="ImageToProbe"/>
+        <Transform Name="StylusToReference"/>
+        <Transform Name="ProbeToReference"/>
+        <Transform Name="PhantomToReference"/>
+        <Transform Name="RedSphere1ToPhantom"/>
+        <Transform Name="RedSphere2ToPhantom"/>
+        <Transform Name="RedSphere3ToPhantom"/>
+        <Transform Name="RedSphere4ToPhantom"/>
+        <Transform Name="RedSphere5ToPhantom"/>
+      </TransformNames>
       <ImageNames>
         <Image Name="Image" EmbeddedTransformToFrame="Reference" />
       </ImageNames>
@@ -63,6 +78,20 @@
   </PlusOpenIGTLinkServer>
   
   <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+    <Transform From="ReferenceMm" To="Reference"
+      Matrix="
+        0.001 0     0     0
+        0     0.001 0     0
+        0     0     0.001 0
+        0     0     0     1"
+      Error="0.0" Date="012712_152030" />
     <Transform From="RedSphere1" To="Phantom"
       Matrix="
         0.416691	0	-0.909048	-59.9177
@@ -102,13 +131,5 @@
         0.575371	0.620037	0.533388	34.0233
         0	0	0	1"
        Error="0.254549" Date="110416_154544" />
-
-    <Transform From="Image" To="Probe"
-      Matrix="
-        1     0    0     0
-        0     1    0     0
-        0     0    1     0
-        0     0    0     1"
-      Error="0.0" Date="012712_152030" />
   </CoordinateDefinitions> 
 </PlusConfiguration>

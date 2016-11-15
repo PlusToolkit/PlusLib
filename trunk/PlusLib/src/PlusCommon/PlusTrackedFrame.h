@@ -129,11 +129,13 @@ public:
   /*! Write image with image to tracker transform to file */
   PlusStatus WriteToFile(const std::string& filename, vtkMatrix4x4* imageToTracker);
 
-  /*! Print tracked frame human readable serialization data to XML data */
-  PlusStatus PrintToXML(vtkXMLDataElement* xmlData);
+  /*! Print tracked frame human readable serialization data to XML data
+      If requestedTransforms is empty, all stored CustomFrameFields are sent
+  */
+  PlusStatus PrintToXML(vtkXMLDataElement* xmlData, const std::vector<PlusTransformName>& requestedTransforms);
 
   /*! Serialize Tracked frame human readable data to xml data and return in string */
-  PlusStatus GetTrackedFrameInXmlData(std::string& strXmlData);
+  PlusStatus GetTrackedFrameInXmlData(std::string& strXmlData, const std::vector<PlusTransformName>& requestedTransforms);
 
   /*! Deserialize TrackedFrame human readable data from xml data string */
   PlusStatus SetTrackedFrameFromXmlData(const char* strXmlData);

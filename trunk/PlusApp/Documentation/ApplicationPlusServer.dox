@@ -80,7 +80,7 @@ Launch the command-line-only version of PlusServer (no graphical user interface)
           - \c IMAGE: standard OpenIGTLink message type, stores 3D image data (can be a single slice, includes position and orientation)
           - \c TRANSFORM:  standard OpenIGTLink message type, stores 3D pose (position and orientation) data
           - \c POSITION:  standard OpenIGTLink message type, stores 3D position data
-          - \c TRACKEDFRAME: Plus tracked ultrasound frame, stores all frame fields (tool transforms, statuses, etc.)
+          - \c TRACKEDFRAME: Plus tracked ultrasound frame, stores all frame fields (tool transforms, statuses, etc). Optionally, sent transforms can be customized using the \c TransformNames list.
           - \c USMESSAGE: <a href="https://musiic.lcsr.jhu.edu/Main_Page">MUSiiC</a> tracked ultrasound frame, stores additional imaging information, such as transmit and sampling frequency, line density, steering angle
           - \c STRING: standard OpenIGTLink message type, stores a simple character string
     - \xmlElem \b TransformNames

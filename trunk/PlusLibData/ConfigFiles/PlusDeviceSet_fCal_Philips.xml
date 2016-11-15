@@ -6,13 +6,13 @@
       Description="Philips ie33 + NDI Aurora data capture" 
     />
 
-	<Device
+    <Device
       Id="TrackerDevice"
       Type="AuroraTracker"
-      SerialPort="6"
+      SerialPort="5"
       BaudRate="115200"
       LocalTimeOffsetSec="0.0"
-	  ToolReferenceFrame="Tracker" >
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Probe" PortName="0" />
         <DataSource Type="Tool" Id="Reference" PortName="1" />
@@ -30,8 +30,8 @@
     <Device
       Id="VideoDevice" 
       Type="iE33Video" 
-	  IP="129.100.44.8"
-	  Port="4013" >
+      IP="129.100.44.8"
+      Port="4013" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="MF"  />
       </DataSources>      

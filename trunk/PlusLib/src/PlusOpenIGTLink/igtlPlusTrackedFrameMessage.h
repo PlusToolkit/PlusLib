@@ -38,21 +38,21 @@ namespace igtl
     typedef SmartPointer<Self>              Pointer;
     typedef SmartPointer<const Self>        ConstPointer;
 
-    igtlTypeMacro( igtl::PlusTrackedFrameMessage, igtl::MessageBase );
-    igtlNewMacro( igtl::PlusTrackedFrameMessage );
+    igtlTypeMacro(igtl::PlusTrackedFrameMessage, igtl::MessageBase);
+    igtlNewMacro(igtl::PlusTrackedFrameMessage);
 
   public:
     /*! Override clone so that we use the plus igtl factory */
     virtual igtl::MessageBase::Pointer Clone();
 
     /*! Set Plus TrackedFrame */
-    PlusStatus SetTrackedFrame( const PlusTrackedFrame& trackedFrame );
+    PlusStatus SetTrackedFrame(const PlusTrackedFrame& trackedFrame, const std::vector<PlusTransformName>& requestedTransforms);
 
     /*! Get Plus TrackedFrame */
     PlusTrackedFrame GetTrackedFrame();
 
     /*! Set the embedded transform of the underlying image */
-    PlusStatus SetEmbeddedImageTransform( vtkSmartPointer<vtkMatrix4x4> matrix );
+    PlusStatus SetEmbeddedImageTransform(vtkSmartPointer<vtkMatrix4x4> matrix);
 
     /*! Get the embedded transform of the underlying image */
     vtkSmartPointer<vtkMatrix4x4> GetEmbeddedImageTransform();
@@ -63,18 +63,18 @@ namespace igtl
     public:
       TrackedFrameHeader()
         : m_ScalarType()
-        , m_NumberOfComponents( 0 )
-        , m_ImageType( 0 )
-        , m_ImageDataSizeInBytes( 0 )
-        , m_XmlDataSizeInBytes( 0 )
-        , m_ImageOrientation( 0 )
+        , m_NumberOfComponents(0)
+        , m_ImageType(0)
+        , m_ImageDataSizeInBytes(0)
+        , m_XmlDataSizeInBytes(0)
+        , m_ImageOrientation(0)
       {
         m_FrameSize[0] = m_FrameSize[1] = m_FrameSize[2] = 0;
-        for ( int i = 0; i < 4; ++i )
+        for (int i = 0; i < 4; ++i)
         {
-          for ( int j = 0; j < 4; ++j )
+          for (int j = 0; j < 4; ++j)
           {
-            m_EmbeddedImageTransform[i][j] = ( i == j ) ? 1.f : 0.f;
+            m_EmbeddedImageTransform[i][j] = (i == j) ? 1.f : 0.f;
           }
         }
       }
@@ -82,31 +82,31 @@ namespace igtl
       size_t GetMessageHeaderSize()
       {
         size_t headersize = 0;
-        headersize += sizeof( igtl_uint16 );      // m_ScalarType
-        headersize += sizeof( igtl_uint16 );      // m_NumberOfComponents
-        headersize += sizeof( igtl_uint16 );      // m_ImageType
-        headersize += sizeof( igtl_uint16 ) * 3;  // m_FrameSize[3]
-        headersize += sizeof( igtl_uint32 );      // m_ImageDataSizeInBytes
-        headersize += sizeof( igtl_uint32 );      // m_XmlDataSizeInBytes
-        headersize += sizeof( igtl_uint16 );      // m_ImageOrientation
-        headersize += sizeof( igtl::Matrix4x4 );  // m_EmbeddedImageTransform[4][4]
+        headersize += sizeof(igtl_uint16);        // m_ScalarType
+        headersize += sizeof(igtl_uint16);        // m_NumberOfComponents
+        headersize += sizeof(igtl_uint16);        // m_ImageType
+        headersize += sizeof(igtl_uint16) * 3;    // m_FrameSize[3]
+        headersize += sizeof(igtl_uint32);        // m_ImageDataSizeInBytes
+        headersize += sizeof(igtl_uint32);        // m_XmlDataSizeInBytes
+        headersize += sizeof(igtl_uint16);        // m_ImageOrientation
+        headersize += sizeof(igtl::Matrix4x4);    // m_EmbeddedImageTransform[4][4]
 
         return headersize;
       }
 
       void ConvertEndianness()
       {
-        if ( igtl_is_little_endian() )
+        if (igtl_is_little_endian())
         {
-          m_ScalarType = BYTE_SWAP_INT16( m_ScalarType );
-          m_NumberOfComponents = BYTE_SWAP_INT16( m_NumberOfComponents );
-          m_ImageType = BYTE_SWAP_INT16( m_ImageType );
-          m_FrameSize[0] = BYTE_SWAP_INT16( m_FrameSize[0] );
-          m_FrameSize[1] = BYTE_SWAP_INT16( m_FrameSize[1] );
-          m_FrameSize[2] = BYTE_SWAP_INT16( m_FrameSize[2] );
-          m_ImageDataSizeInBytes = BYTE_SWAP_INT32( m_ImageDataSizeInBytes );
-          m_XmlDataSizeInBytes = BYTE_SWAP_INT32( m_XmlDataSizeInBytes );
-          m_ImageOrientation = BYTE_SWAP_INT16( m_ImageOrientation );
+          m_ScalarType = BYTE_SWAP_INT16(m_ScalarType);
+          m_NumberOfComponents = BYTE_SWAP_INT16(m_NumberOfComponents);
+          m_ImageType = BYTE_SWAP_INT16(m_ImageType);
+          m_FrameSize[0] = BYTE_SWAP_INT16(m_FrameSize[0]);
+          m_FrameSize[1] = BYTE_SWAP_INT16(m_FrameSize[1]);
+          m_FrameSize[2] = BYTE_SWAP_INT16(m_FrameSize[2]);
+          m_ImageDataSizeInBytes = BYTE_SWAP_INT32(m_ImageDataSizeInBytes);
+          m_XmlDataSizeInBytes = BYTE_SWAP_INT32(m_XmlDataSizeInBytes);
+          m_ImageOrientation = BYTE_SWAP_INT16(m_ImageOrientation);
         }
       }
 
