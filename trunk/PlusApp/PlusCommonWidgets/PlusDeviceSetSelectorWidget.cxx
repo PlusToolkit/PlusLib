@@ -10,9 +10,6 @@ See License.txt for details.
 // PlusLib includes
 #include <vtkPlusTransformRepository.h>
 
-// std includes
-#include <chrono>
-
 // Qt includes
 #include <QAction>
 #include <QDesktopServices>
