@@ -73,10 +73,10 @@ PlusTrackedFrame& PlusTrackedFrame::operator=(PlusTrackedFrame const& trackedFra
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusTrackedFrame::GetTrackedFrameInXmlData(std::string& strXmlData)
+PlusStatus PlusTrackedFrame::GetTrackedFrameInXmlData(std::string& strXmlData, const std::vector<PlusTransformName>& requestedTransforms)
 {
   vtkSmartPointer<vtkXMLDataElement> xmlData = vtkSmartPointer<vtkXMLDataElement>::New();
-  PlusStatus status = this->PrintToXML(xmlData);
+  PlusStatus status = this->PrintToXML(xmlData, requestedTransforms);
 
   std::ostringstream os;
   PlusCommon::PrintXML(os, vtkIndent(0), xmlData);
@@ -87,7 +87,7 @@ PlusStatus PlusTrackedFrame::GetTrackedFrameInXmlData(std::string& strXmlData)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
+PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame, const std::vector<PlusTransformName>& requestedTransforms)
 {
   if (trackedFrame == NULL)
   {
@@ -114,12 +114,32 @@ PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame)
     trackedFrame->SetVectorAttribute("FrameSize", 3, frameSizeSigned);
   }
 
-  for (FieldMapType::const_iterator it = this->CustomFrameFields.begin(); it != this->CustomFrameFields.end(); it++)
+  for (auto& field : CustomFrameFields)
   {
+    // Only use requested transforms mechanism if the vector is not empty
+    if (!requestedTransforms.empty() && (IsTransform(field.first) || IsTransformStatus(field.first)))
+    {
+      if (IsTransformStatus(field.first))
+      {
+        continue;
+      }
+      if (std::find(requestedTransforms.begin(), requestedTransforms.end(), PlusTransformName(field.first)) == requestedTransforms.end())
+      {
+        continue;
+      }
+      auto statusName = field.first;
+      statusName = statusName.substr(0, field.first.length() - TransformPostfix.length());
+      statusName = statusName.append(TransformStatusPostfix);
+      vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New();
+      customField->SetName("CustomFrameField");
+      customField->SetAttribute("Name", statusName.c_str());
+      customField->SetAttribute("Value", CustomFrameFields[statusName].c_str());
+      trackedFrame->AddNestedElement(customField);
+    }
     vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New();
     customField->SetName("CustomFrameField");
-    customField->SetAttribute("Name", it->first.c_str());
-    customField->SetAttribute("Value", it->second.c_str());
+    customField->SetAttribute("Name", field.first.c_str());
+    customField->SetAttribute("Value", field.second.c_str());
     trackedFrame->AddNestedElement(customField);
   }
 
