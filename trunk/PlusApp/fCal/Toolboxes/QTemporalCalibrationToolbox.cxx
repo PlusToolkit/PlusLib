@@ -75,6 +75,7 @@ QTemporalCalibrationToolbox::QTemporalCalibrationToolbox(fCalMainWindow* aParent
   , TemporalCalibrationAlgo(vtkSmartPointer<vtkPlusTemporalCalibrationAlgo>::New())
   , RequestedFixedChannel("")
   , RequestedMovingChannel("")
+  , SaveFileButton(nullptr)
 {
   ui.setupUi(this);
 

@@ -168,7 +168,7 @@ protected:
   std::string                                     RequestedMovingSource;
 
   std::string                                     LastSaveDirectory;
-  QPushButton*                                    SaveFileButton = nullptr;
+  QPushButton*                                    SaveFileButton;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;
