@@ -114,21 +114,21 @@ PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame, const s
     trackedFrame->SetVectorAttribute("FrameSize", 3, frameSizeSigned);
   }
 
-  for (auto& field : CustomFrameFields)
+  for (auto fieldIter = CustomFrameFields.begin(); fieldIter != CustomFrameFields.end(); ++fieldIter)
   {
     // Only use requested transforms mechanism if the vector is not empty
-    if (!requestedTransforms.empty() && (IsTransform(field.first) || IsTransformStatus(field.first)))
+    if (!requestedTransforms.empty() && (IsTransform(fieldIter->first) || IsTransformStatus(fieldIter->first)))
     {
-      if (IsTransformStatus(field.first))
+      if (IsTransformStatus(fieldIter->first))
       {
         continue;
       }
-      if (std::find(requestedTransforms.begin(), requestedTransforms.end(), PlusTransformName(field.first)) == requestedTransforms.end())
+      if (std::find(requestedTransforms.begin(), requestedTransforms.end(), PlusTransformName(fieldIter->first)) == requestedTransforms.end())
       {
         continue;
       }
-      auto statusName = field.first;
-      statusName = statusName.substr(0, field.first.length() - TransformPostfix.length());
+      auto statusName = fieldIter->first;
+      statusName = statusName.substr(0, fieldIter->first.length() - TransformPostfix.length());
       statusName = statusName.append(TransformStatusPostfix);
       vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New();
       customField->SetName("CustomFrameField");
@@ -138,8 +138,8 @@ PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame, const s
     }
     vtkSmartPointer<vtkXMLDataElement> customField = vtkSmartPointer<vtkXMLDataElement>::New();
     customField->SetName("CustomFrameField");
-    customField->SetAttribute("Name", field.first.c_str());
-    customField->SetAttribute("Value", field.second.c_str());
+    customField->SetAttribute("Name", fieldIter->first.c_str());
+    customField->SetAttribute("Value", fieldIter->second.c_str());
     trackedFrame->AddNestedElement(customField);
   }
 

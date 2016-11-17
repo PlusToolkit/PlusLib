@@ -276,10 +276,10 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
 
-      for (auto& imageStream : clientInfo.ImageStreams)
+      for (auto streamIter = clientInfo.ImageStreams.begin(); streamIter != clientInfo.ImageStreams.end(); ++streamIter)
       {
         // Set transform name to [Name]To[CoordinateFrame]
-        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
+        PlusTransformName imageTransformName = PlusTransformName(streamIter->Name, streamIter->EmbeddedTransformToFrame);
 
         vtkSmartPointer<vtkMatrix4x4> mat(vtkSmartPointer<vtkMatrix4x4>::New());
         bool isValid;
@@ -289,12 +289,12 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
 
-        for (auto& name : clientInfo.TransformNames)
+        for (auto& nameIter = clientInfo.TransformNames.begin(); nameIter != clientInfo.TransformNames.end(); ++nameIter)
         {
           vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
-          transformRepository->GetTransform(name, matrix, &isValid);
-          trackedFrame.SetCustomFrameTransform(name, matrix);
-          trackedFrame.SetCustomFrameTransformStatus(name, isValid ? FIELD_OK : FIELD_INVALID);
+          transformRepository->GetTransform(*nameIter, matrix, &isValid);
+          trackedFrame.SetCustomFrameTransform(*nameIter, matrix);
+          trackedFrame.SetCustomFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
         }
 
         if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, mat, clientInfo.TransformNames) != PLUS_SUCCESS)
