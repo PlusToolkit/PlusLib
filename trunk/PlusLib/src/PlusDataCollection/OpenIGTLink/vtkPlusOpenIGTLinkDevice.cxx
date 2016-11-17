@@ -23,6 +23,7 @@ vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
   , ReceiveTimeoutSec(0.5)
   , NumberOfRetryAttempts(3)   // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
   , DelayBetweenRetryAttemptsSec(0.100)   // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+  , SocketMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
   , ClientSocket(igtl::ClientSocket::New())
   , ReconnectOnReceiveTimeout(true)
   , UseReceivedTimestamps(true)
