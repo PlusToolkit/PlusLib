@@ -22,7 +22,8 @@ There are commercial systems that provide tracking video and image data through 
   - \c TRUE Timestamp in the OpenIGTLink message header is used as acquisition time for the item. If the remote server is on a different computer then the clocks of the remote server computer and the computer that runs PlusServer must be accurately synchronized (e.g., using NTP). 
   - \c FALSE Time of receiving the message is used as timestamp. Variable network delays may cause jitter in the timestamps.
 - \xmlAtt \b ReconnectOnReceiveTimeout If this option is enabled and the server becomes unresponsive then the device tries to reconnect repeatedly ( \c TRUE or \c FALSE). It is usually desirable, because it makes the connection more robust, however in cases where server reconnection requires user approval it may be more convenient to turn this feature off. \OptionalAtt{TRUE}
-- \xmlAtt \b ReceiveTimeoutSec Time to allow for the server to send a message, in seconds. \OptionalAtt{0.5}
+- \xmlAtt \b ReceiveTimeoutSec Time to allow for the device to receive a message, in seconds. \OptionalAtt{0.5}
+- \xmlAtt \b SendTimeoutSec Time to allow for the device to send a message, in seconds. \OptionalAtt{0.5}
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" The device checks for new available messages on the remove server at this rate.\OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
