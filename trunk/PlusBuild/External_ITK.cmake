@@ -47,7 +47,7 @@ ELSE(ITK_DIR)
   
   SET(itk_common_cxx_flags "${ep_common_cxx_flags}")
   IF(MSVC)
-    SET(itk_common_cxx_flags "${itk_common_cxx_flags} /MP")
+    SET(itk_common_cxx_flags "${itk_common_cxx_flags} /MP ")
   ENDIF()
 
   SET (PLUS_ITK_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/itk")
@@ -70,6 +70,8 @@ ELSE(ITK_DIR)
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
+      -DCMAKE_CXX_STANDARD:STRING=11
+      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON
       -DCMAKE_CXX_FLAGS:STRING=${itk_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
