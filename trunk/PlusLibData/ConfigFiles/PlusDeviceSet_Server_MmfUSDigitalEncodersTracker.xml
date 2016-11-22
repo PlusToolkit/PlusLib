@@ -1,0 +1,110 @@
+<PlusConfiguration version="2.3">
+
+ <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet
+      Name="Spatially tracked webcam frames"
+      Description="Acquire spatially tracked webcam frames with multiple encoders" />
+    <Device
+      Id="WebCamDevice"
+      Type="MmfVideo"
+      FrameSize="640 480"
+      VideoFormat="YUY2"
+      CaptureDeviceId="0" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" PortUsImageOrientation="UN" ImageType="RGB_COLOR" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="VideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="TrackerDevice"
+      Type="USDigitalEncodersTracker"
+      ToolReferenceFrame="Reference" >
+      <DataSources>
+        <DataSource Type="Tool" Id="XAxis" PortName="XAxis"
+                    From="Reference" To="XAxis"
+                    Persistent="FALSE"
+                    PreTMatrix="
+                     1.0    0.0    0.0    0.0
+                     0.0    1.0    0.0    0.0
+                     0.0    0.0    1.0    0.0
+                     0.0    0.0    0.0    1.0"
+                    SN="10001"
+                    MotionType="Linear" PulseSpacing="0.001"
+                    LocalAxis= "1.0    0.0    0.0"
+                    Mode ="4" Resolution = "3600"/>
+        <DataSource Type="Tool" Id="XZAxis" PortName="XZAxis"
+                    From="XAxis" To="XZAxis"
+                    Persistent="FALSE"
+                    PreTMatrix="
+                     1.0    0.0    0.0    0.0
+                     0.0    1.0    0.0    0.0
+                     0.0    0.0    1.0    0.0
+                     0.0    0.0    0.0    1.0"
+                    SN="10002"
+                    MotionType="Linear" PulseSpacing="0.001"
+                    LocalAxis= "0.0    0.0    1.0"
+                    Mode ="4" Resolution = "3600" />
+
+        <DataSource Type="Tool" Id="USCalibration" PortName="USCalibration"
+                     From="XZAxis" To="USImage"
+                     Persistent="TRUE"
+                     PreTMatrix="
+                     1.0    0.0    0.0    0.0
+                     0.0    1.0    0.0    0.0
+                     0.0    0.0    1.0    0.0
+                     0.0    0.0    0.0    1.0"/>
+
+         <DataSource Type="Tool" Id="USImage" PortName="USImage"
+                    From="USImage" To="Reference"
+                    Persistent="FALSE"/>
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="USImage"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="TrackedVideoDevice"
+      Type="VirtualMixer" >
+      <InputChannels>
+        <InputChannel Id="TrackerStream" />
+        <InputChannel Id="VideoStream" />
+      </InputChannels>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream"/>
+      </OutputChannels>
+    </Device>
+
+    <Device
+      Id="CaptureDevice"
+      Type="VirtualDiscCapture"
+      BaseFilename="RecordingTest.mha"
+      EnableCapturing="FALSE" >
+      <InputChannels>
+        <InputChannel Id="TrackedVideoStream" />
+      </InputChannels>
+    </Device>
+
+  </DataCollection>
+    <PlusOpenIGTLinkServer
+    ListeningPort="18944"
+    OutputChannelId="TrackedVideoStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <ImageNames>
+        <Image Name="USImage" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+      <TransformNames>
+        <Transform Name="ReferenceToUSImage" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+</PlusConfiguration>
