@@ -143,15 +143,16 @@ protected:
 
  
 private:  // Variables.
+  bool                                            coreXY;
   long                                            NumberOfEncoders; // Number of connected A2 Encoders
   long                                            COMPort;
   long                                            BaudRate;
 
   class                                           vtkPlusEncoderTrackingInfo;
   class                                           vtkPlusUSDigitalEncoderInfo;
-  vtkSmartPointer<vtkPlusTransformRepository>         USDigitalEncoderTransformRepository;
+  vtkSmartPointer<vtkPlusTransformRepository>     USDigitalEncoderTransformRepository;
 
-  typedef std::map<long, vtkPlusUSDigitalEncoderInfo> EncoderInfoMapType;
+  typedef std::map<long, vtkPlusUSDigitalEncoderInfo *> EncoderInfoMapType;
   EncoderInfoMapType                              USDigitalEncoderInfoList;
 
   typedef std::vector<vtkPlusEncoderTrackingInfo>     EncoderTrackingInfoVectorType;        
