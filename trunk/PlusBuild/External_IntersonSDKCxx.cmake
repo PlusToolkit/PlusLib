@@ -1,3 +1,11 @@
+# Check for path to IntersonSDK and raise an error during configure step
+FIND_PATH(IntersonSDK_DIR 
+  NAMES Libraries/Interson.dll
+  PATHS C:/IntersonSDK )
+IF( NOT IntersonSDK_DIR )
+  MESSAGE( FATAL_ERROR "Please specify the path to the IntersonSDK in  IntersonSDK_DIR" )
+ENDIF()
+
 IF(IntersonSDKCxx_DIR)
   # IntersonSDKCxx has been built already
   FIND_PACKAGE(IntersonSDKCxx REQUIRED PATHS ${IntersonSDKCxx_DIR} NO_DEFAULT_PATH)
