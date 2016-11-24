@@ -5,16 +5,19 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusFidPatternRecognition.h"
 #include "PlusSegmentationParameterDialog.h"
-#include "PlusTrackedFrame.h"
 #include "QSpatialCalibrationToolbox.h"
 #include "fCalMainWindow.h"
-#include "vtkPlusDevice.h"
 #include "vtkPlusDisplayableObject.h"
+#include "vtkPlusVisualizationController.h"
+
+// PlusLib includes
+#include "PlusConfigure.h"
+#include "PlusFidPatternRecognition.h"
+#include "PlusTrackedFrame.h"
+#include "vtkPlusDevice.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusVisualizationController.h"
 
 // VTK includes
 #include <vtkTransform.h>
