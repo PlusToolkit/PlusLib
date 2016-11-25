@@ -565,7 +565,7 @@ bool vtkPlusNrrdSequenceIO::CanWriteFile( const std::string& filename )
 //----------------------------------------------------------------------------
 /** Writes the spacing and dimensions of the image.
 * Assumes SetFileName has been called with a valid file name. */
-PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
+PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
 {
   if( this->TrackedFrameList->GetNumberOfTrackedFrames() == 0 )
   {
@@ -575,7 +575,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
 
   // First, is this 2D or 3D?
   bool isData3D = ( this->TrackedFrameList->GetTrackedFrame( 0 )->GetFrameSize()[2] > 1 );
-  bool isDataTimeSeries = this->TrackedFrameList->GetNumberOfTrackedFrames() > 1;
+  bool isDataTimeSeries = this->IsDataTimeSeries; // don't compute it from the number of frames because we may still have only one frame but acquire more frames later
   this->NumberOfScalarComponents = this->TrackedFrameList->GetTrackedFrame( 0 )->GetNumberOfScalarComponents();
 
   // Override fields
@@ -589,21 +589,10 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
     this->NumberOfDimensions++;
   }
 
-  {
-    std::stringstream ss;
-    ss << this->NumberOfDimensions;
-    SetCustomString( "dimension", ss.str() );
-  }
+  SetCustomString("dimension", this->NumberOfDimensions);
 
   // CompressedData
-  if ( GetUseCompression() )
-  {
-    SetCustomString( "encoding", "gz" );
-  }
-  else
-  {
-    SetCustomString( "encoding", "raw" );
-  }
+  SetCustomString("encoding", GetUseCompression() ? "gz" : "raw");
 
   unsigned int frameSize[3] = {0, 0, 0};
   if( this->EnableImageDataWrite )
@@ -645,7 +634,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   SetCustomString( "endian", "little" );
 
   // Update sizes field in header
-  this->GenerateFrameSizeCustomStrings( this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D );
+  this->UpdateDimensionsCustomStrings( this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D );
 
   // PixelType
   if ( this->TrackedFrameList->IsContainingValidImageData() )
@@ -667,12 +656,7 @@ PlusStatus vtkPlusNrrdSequenceIO::OpenImageHeader()
   // "This (or "space dimension") has to precede the other orientation-related fields, because it determines
   // how many components there are in the vectors of the space origin, space directions, and measurement frame fields."
   int numSpaceDimensions = isData3D ? 3 : 2;
-
-  {
-    std::stringstream ss;
-    ss << numSpaceDimensions;
-    SetCustomString( "space dimension", ss.str() );
-  }
+  SetCustomString("space dimension", numSpaceDimensions);
 
   // Generate the origin string, such as (0,0) or (0,0,0)
   std::stringstream originStr;
@@ -1225,16 +1209,15 @@ PlusStatus vtkPlusNrrdSequenceIO::UpdateFieldInImageHeader( const char* fieldNam
       newLineStr << name << ":" << ( isKeyValue ? "=" : " " ) << GetCustomString( name.c_str() );
 
       // need to add padding whitespace characters to fully replace the old line
-      int paddingCharactersNeeded = SEQUENCE_FIELD_PADDED_LINE_LENGTH - newLineStr.str().size();
+      int paddingCharactersNeeded = line.length() - newLineStr.str().size();
+      if (paddingCharactersNeeded < 0)
+      {
+        LOG_ERROR("Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')");
+        return PLUS_FAIL;
+      }
       for ( int i = 0; i < paddingCharactersNeeded; i++ )
       {
         newLineStr << " ";
-      }
-
-      if ( newLineStr.str().length() != line.length() )
-      {
-        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
-        return PLUS_FAIL;
       }
 
       // rewind to file pointer the first character of the line
@@ -1314,7 +1297,7 @@ PlusStatus vtkPlusNrrdSequenceIO::SetFileName( const std::string& aFilename )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusNrrdSequenceIO::GenerateFrameSizeCustomStrings( int numberOfFrames, bool isData3D )
+PlusStatus vtkPlusNrrdSequenceIO::UpdateDimensionsCustomStrings(int numberOfFrames, bool isData3D)
 {
   if ( this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() )
   {

@@ -581,7 +581,7 @@ bool vtkPlusMetaImageSequenceIO::CanWriteFile( const std::string& filename )
 //----------------------------------------------------------------------------
 /** Writes the spacing and dimensions of the image.
 * Assumes SetFileName has been called with a valid file name. */
-PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
+PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
 {
   if( this->TrackedFrameList->GetNumberOfTrackedFrames() == 0 )
   {
@@ -591,7 +591,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
 
   // First, is this 2D or 3D?
   bool isData3D = ( this->TrackedFrameList->GetTrackedFrame( 0 )->GetFrameSize()[2] > 1 );
-  bool isDataTimeSeries = this->TrackedFrameList->GetNumberOfTrackedFrames() > 1;
+  bool isDataTimeSeries = this->IsDataTimeSeries; // don't compute it from the number of frames because we may still have only one frame but acquire more frames later
 
   // Override fields
   this->NumberOfDimensions = isData3D ? 3 : 2;
@@ -603,12 +603,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
   {
     this->NumberOfDimensions++;
   }
-
-  {
-    std::stringstream ss;
-    ss << this->NumberOfDimensions;
-    SetCustomString( "NDims", ss.str() );
-  }
+  SetCustomString("NDims", this->NumberOfDimensions);
 
   SetCustomString( "BinaryData", "True" );
   SetCustomString( "BinaryDataByteOrderMSB", "False" );
@@ -628,7 +623,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
   else
   {
     SetCustomString( "CompressedData", "False" );
-    SetCustomString( SEQMETA_FIELD_COMPRESSED_DATA_SIZE, NULL );
+    SetCustomString( SEQMETA_FIELD_COMPRESSED_DATA_SIZE, (const char*)(NULL) );
   }
 
   unsigned int frameSize[3] = {0, 0, 0};
@@ -668,7 +663,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
   }
 
   // Update NDims and Dims fields in header
-  this->GenerateFrameSizeCustomStrings( this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D );
+  this->UpdateDimensionsCustomStrings( this->TrackedFrameList->GetNumberOfTrackedFrames(), isData3D );
 
   // PixelType
   if ( this->TrackedFrameList->IsContainingValidImageData() )
@@ -691,9 +686,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::OpenImageHeader()
     {
       this->NumberOfScalarComponents = this->TrackedFrameList->GetNumberOfScalarComponents();
     }
-    std::ostringstream ss;
-    ss << this->NumberOfScalarComponents;
-    SetCustomString( "ElementNumberOfChannels", ss.str().c_str() );
+    SetCustomString("ElementNumberOfChannels", this->NumberOfScalarComponents);
   }
 
   SetCustomString( SEQMETA_FIELD_US_IMG_ORIENT, PlusVideoFrame::GetStringFromUsImageOrientation( US_IMG_ORIENT_MF ) );
@@ -860,10 +853,10 @@ PlusStatus vtkPlusMetaImageSequenceIO::AppendImagesToHeader()
   }
 
   // Write frame fields (Seq_Frame0000_... = ...)
-  for ( unsigned int frameNumber = CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + CurrentFrameOffset; frameNumber++ )
+  for ( unsigned int frameNumber = this->CurrentFrameOffset; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames() + this->CurrentFrameOffset; frameNumber++ )
   {
     LOG_DEBUG( "Writing frame " << frameNumber );
-    unsigned int adjustedFrameNumber = frameNumber - CurrentFrameOffset;
+    unsigned int adjustedFrameNumber = frameNumber - this->CurrentFrameOffset;
     PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame( adjustedFrameNumber );
 
     std::ostringstream frameIndexStr;
@@ -1261,16 +1254,15 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader( const char* fie
       newLineStr << name << " = " << GetCustomString( name.c_str() );
 
       // need to add padding whitespace characters to fully replace the old line
-      int paddingCharactersNeeded = SEQMETA_FIELD_PADDED_LINE_LENGTH - newLineStr.str().size();
+      int paddingCharactersNeeded = line.length() - newLineStr.str().size();
+      if (paddingCharactersNeeded < 0)
+      {
+        LOG_ERROR("Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')");
+        return PLUS_FAIL;
+      }
       for ( int i = 0; i < paddingCharactersNeeded; i++ )
       {
         newLineStr << " ";
-      }
-
-      if ( newLineStr.str().length() != line.length() )
-      {
-        LOG_ERROR( "Cannot update line in image header (the new string '" << newLineStr.str() << "' is longer than the current string '" << line << "')" );
-        return PLUS_FAIL;
       }
 
       // rewind to file pointer the first character of the line
@@ -1386,7 +1378,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::SetFileName( const std::string& aFilename
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusMetaImageSequenceIO::GenerateFrameSizeCustomStrings( int numberOfFrames, bool isData3D )
+PlusStatus vtkPlusMetaImageSequenceIO::UpdateDimensionsCustomStrings( int numberOfFrames, bool isData3D )
 {
   if ( this->EnableImageDataWrite && this->TrackedFrameList->IsContainingValidImageData() )
   {
