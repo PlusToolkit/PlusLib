@@ -102,6 +102,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(inputConfigFileName);
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   // Print configuration file contents for debugging purposes
