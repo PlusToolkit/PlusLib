@@ -16,6 +16,7 @@
 - \subpage DeviceICCapturing
 - \subpage DeviceMicrosoftMediaFoundation
 - \subpage DeviceVideoForWindows
+- \subpage DeviceOvrvisionPro
 
 \par Other imaging devices
 - \subpage DeviceOpenIGTLinkVideo
@@ -49,6 +50,7 @@
 - \subpage DeviceVirtualVolumeReconstructor
 - \subpage DeviceVirtualMixer
 - \subpage DeviceVirtualSwitcher
+- \subpage DeviceVirtualTextRecognizer
 
 \par Other data acquisition and control devices
 - \subpage DeviceThorLabs
