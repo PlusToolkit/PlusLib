@@ -844,6 +844,15 @@ PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::stri
   }
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
+  // Check file relative to the device set configuration file
+  std::string configurationFileDirectory = vtksys::SystemTools::GetFilenamePath(GetDeviceSetConfigurationFileName());
+  aFoundAbsolutePath = GetAbsolutePath(aImagePath, GetAbsolutePath(configurationFileDirectory, this->ProgramDirectory));
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {
+    return PLUS_SUCCESS;
+  }
+  LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
+
   // Check file relative to the device set configuration directory
   aFoundAbsolutePath = GetDeviceSetConfigurationPath(aImagePath);
   if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
@@ -861,6 +870,7 @@ PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::stri
 
   aFoundAbsolutePath = "";
   LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory ("<<GetImageDirectory()<<")"
+    <<" nor relative to device set configuration file directory ("<<configurationFileDirectory<<")"<<")"
     <<" nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")"
     <<" nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
   return PLUS_FAIL;
@@ -879,6 +889,15 @@ PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::stri
     return PLUS_SUCCESS;
   }
   LOG_DEBUG("Absolute path not found at: " << aModelPath);
+
+  // Check file relative to the device set configuration file
+  std::string configurationFileDirectory = vtksys::SystemTools::GetFilenamePath(GetDeviceSetConfigurationFileName());
+  aFoundAbsolutePath = GetAbsolutePath(aModelPath, GetAbsolutePath(configurationFileDirectory, this->ProgramDirectory));
+  if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
+  {
+    return PLUS_SUCCESS;
+  }
+  LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
   // Check recursively in the model directory
   std::string absoluteModelDirectoryPath = GetModelPath(".");
@@ -910,8 +929,9 @@ PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::stri
 
   aFoundAbsolutePath = "";
   LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<")"
-    <<" nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")"
-    <<" nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
+    << " nor relative to device set configuration file directory (" << configurationFileDirectory << ")" << ")"
+    << " nor to device set configuration directory (" << GetDeviceSetConfigurationDirectory() << ")"
+    << " nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
   return PLUS_FAIL;
 }
 
