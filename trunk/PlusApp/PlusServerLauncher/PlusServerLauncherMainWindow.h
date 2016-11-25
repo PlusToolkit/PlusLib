@@ -11,6 +11,12 @@
 #include "ui_PlusServerLauncherMainWindow.h"
 
 #include <QMainWindow>
+#include <QProcess>
+
+#ifdef PLUS_USE_OpenIGTLinkIO
+#include "vtkIGTLIOLogic.h"
+#include "vtkIGTLIOConnector.h"
+#endif
 
 class PlusDeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
@@ -32,15 +38,24 @@ class PlusServerLauncherMainWindow : public QMainWindow
   Q_OBJECT
 
 public:
+
+  enum
+  {
+    RemoteControlServerPortDisable = -1,
+    RemoteControlServerPortUseDefault = 0
+  };
+
   /*!
     Constructor
     \param aParent parent
     \param aFlags widget flag
+    \param remoteControlServerPort port number where launcher listens for remote control OpenIGTLink commands. 0 means use default port, -1 means do not start a remote control server.
   */
-  PlusServerLauncherMainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false);
-
+  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false, int remoteControlServerPort = RemoteControlServerPortUseDefault);
   /*! Destructor */
   ~PlusServerLauncherMainWindow();
+
+  int defaultRemoteControlServerPort() { return 18904; }
 
 protected slots:
   /*!
@@ -56,11 +71,13 @@ protected slots:
 
   void stdErrMsgReceived();
 
-  void errorReceived(int);
+  void errorReceived(QProcess::ProcessError);
 
-  void serverExecutableFinished(int returnCode, int status);
+  void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
 
   void logLevelChanged();
+
+  static void onRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void *calldata);
 
 protected:
   /*! Receive standard output or error and send it to the log */
@@ -84,6 +101,14 @@ protected:
 
   /*! List of active ports for PlusServers */
   std::vector<int> PortList;
+
+  /*! OpenIGTLink server that allows remote control of launcher (start/stop a PlusServer process, etc) */
+  int m_RemoteControlServerPort;
+  vtkSmartPointer<vtkCallbackCommand> m_RemoteControlServerCallbackCommand;
+#ifdef PLUS_USE_OpenIGTLinkIO
+  vtkIGTLIOLogicPointer m_RemoteControlServerLogic;
+  vtkIGTLIOConnectorPointer m_RemoteControlServerConnector;
+#endif
 
 private:
   Ui::PlusServerLauncherMainWindow ui;

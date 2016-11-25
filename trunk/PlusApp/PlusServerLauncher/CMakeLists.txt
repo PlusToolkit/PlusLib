@@ -37,6 +37,13 @@ SET (PlusServerLauncher_LIBS
   vtkPlusServer
   )
 
+IF(PLUS_USE_OpenIGTLinkIO)
+  find_package(OpenIGTLinkIO REQUIRED)
+  SET (PlusServerLauncher_LIBS ${PlusServerLauncher_LIBS}
+    igtlioLogic
+    )
+ENDIF()
+
 SET (APP_MODE MACOSX_BUNDLE)
 IF(WIN32)
   # Create a windowed application (do not show a console)

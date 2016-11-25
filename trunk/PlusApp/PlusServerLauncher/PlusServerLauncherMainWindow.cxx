@@ -46,11 +46,16 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent, Qt::WindowFlags flags, bool autoConnect)
+PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent /*=0*/, Qt::WindowFlags flags/*=0*/, bool autoConnect /*=false*/, int remoteControlServerPort/*=RemoteControlServerPortUseDefault*/)
   : QMainWindow(parent, flags | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint)
   , m_DeviceSetSelectorWidget(NULL)
   , m_CurrentServerInstance(NULL)
+  , m_RemoteControlServerPort(remoteControlServerPort)
 {
+  m_RemoteControlServerCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
+  m_RemoteControlServerCallbackCommand->SetCallback(PlusServerLauncherMainWindow::onRemoteControlServerEventReceived);
+  m_RemoteControlServerCallbackCommand->SetClientData(this);
+
   // Set up UI
   ui.setupUi(this);
 
@@ -137,12 +142,34 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent, Qt::
   }
 
   LOG_INFO("Server IP addresses: " << ipAddresses.toLatin1().constData());
+
+  if (m_RemoteControlServerPort != PlusServerLauncherMainWindow::RemoteControlServerPortDisable)
+  {
+#ifdef PLUS_USE_OpenIGTLinkIO
+    LOG_INFO("Start remote control server at port: " << m_RemoteControlServerPort);
+    m_RemoteControlServerLogic = vtkIGTLIOLogicPointer::New();
+    m_RemoteControlServerLogic->AddObserver(vtkIGTLIOLogic::CommandQueryReceivedEvent, m_RemoteControlServerCallbackCommand);
+    m_RemoteControlServerLogic->AddObserver(vtkIGTLIOLogic::CommandResponseReceivedEvent, m_RemoteControlServerCallbackCommand);
+    m_RemoteControlServerConnector = m_RemoteControlServerLogic->CreateConnector();
+    m_RemoteControlServerConnector->SetTypeServer(m_RemoteControlServerPort);
+    m_RemoteControlServerConnector->Start();
+#else
+    LOG_ERROR("Remote control server mode is not supported");
+#endif
+  }
 }
 
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 {
   stopServer(); // deletes m_CurrentServerInstance
+
+#ifdef PLUS_USE_OpenIGTLinkIO
+  if (m_RemoteControlServerLogic)
+  {
+    m_RemoteControlServerLogic->RemoveObserver(m_RemoteControlServerCallbackCommand);
+  }
+#endif
 
   if (m_DeviceSetSelectorWidget != NULL)
   {
@@ -421,7 +448,7 @@ void PlusServerLauncherMainWindow::stdErrMsgReceived()
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::errorReceived(int errorCode)
+void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCode)
 {
   const char* errorString = "unknown";
   switch ((QProcess::ProcessError)errorCode)
@@ -450,7 +477,7 @@ void PlusServerLauncherMainWindow::errorReceived(int errorCode)
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, int status)
+void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QProcess::ExitStatus status)
 {
   if (returnCode == 0)
   {
@@ -469,4 +496,16 @@ void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, int 
 void PlusServerLauncherMainWindow::logLevelChanged()
 {
   vtkPlusLogger::Instance()->SetLogLevel(ui.comboBox_LogLevel->currentData().toInt());
+}
+
+//---------------------------------------------------------------------------
+void PlusServerLauncherMainWindow::onRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void *calldata)
+{
+#ifdef PLUS_USE_OpenIGTLinkIO
+  PlusServerLauncherMainWindow* self = reinterpret_cast<PlusServerLauncherMainWindow*>(clientdata);
+  std::cout << "-------------------- LogicFixture=" << self << ", onReceivedEventFunc " << eid << std::endl;
+
+  //self->LastReceivedEvent = eid;
+  //  logic->InvokeEvent(vtkIGTLIOLogic::NewDeviceEvent, calldata);
+#endif
 }
