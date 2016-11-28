@@ -44,6 +44,8 @@ public:
   vtkGetMacro( Framerate, int );
   vtkGetMacro( CameraSync, bool );
   vtkGetStringMacro( ProcessingModeName );
+  vtkGetStringMacro(Vendor);
+  vtkSetMacro(Exposure, int);
 
 protected:
   vtkSetStringMacro( LeftEyeDataSourceName );
@@ -52,6 +54,8 @@ protected:
   vtkSetStringMacro( ProcessingModeName );
   vtkSetMacro( Framerate, int );
   vtkSetMacro( CameraSync, bool );
+  vtkSetStringMacro(Vendor);
+  vtkGetMacro(Exposure, int);
 
   /// Device-specific connect
   virtual PlusStatus InternalConnect();
@@ -82,6 +86,8 @@ protected:
   int Framerate;
   char* ProcessingModeName;
   bool IsCapturingRGB;
+  char* Vendor;
+  int Exposure;
 
   // Record which data source corresponds to which eye
   char* LeftEyeDataSourceName;

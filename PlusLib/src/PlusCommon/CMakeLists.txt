@@ -61,6 +61,7 @@ SET (PlusCommon_LIBS
   vtkImagingCore
   vtkIOXMLParser
   vtkIOImage
+  vtkCommonSystem
   vtkzlib
   vtksys
   itksys

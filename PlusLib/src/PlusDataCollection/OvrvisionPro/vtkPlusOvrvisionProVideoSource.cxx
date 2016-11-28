@@ -27,6 +27,8 @@ vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   , CameraSync( false )
   , Framerate( -1 )
   , ProcessingModeName( NULL )
+  , Vendor(NULL)
+  , Exposure(7808)
   , LeftEyeDataSourceName( NULL )
   , RightEyeDataSourceName( NULL )
   , LeftEyeDataSource( NULL )
@@ -58,6 +60,7 @@ void vtkPlusOvrvisionProVideoSource::PrintSelf( ostream& os, vtkIndent indent )
   os << indent << "ProcessingMode: " << ProcessingModeName << std::endl;
   os << indent << "LeftEyeDataSourceName: " << LeftEyeDataSourceName << std::endl;
   os << indent << "RightEyeDataSourceName: " << RightEyeDataSourceName << std::endl;
+  os << indent << "Vendor: " << Vendor << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -65,7 +68,7 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 {
   LOG_TRACE( "vtkPlusOvrvisionProVideoSource::InternalConnect" );
 
-  if ( !OvrvisionProHandle.Open( 0, RequestedFormat ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
+  if ( !OvrvisionProHandle.Open( 0, RequestedFormat, Vendor ) ) // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
     LOG_ERROR( "Unable to connect to OvrvisionPro device." );
     return PLUS_FAIL;
@@ -92,6 +95,7 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
   RightEyeDataSource->SetNumberOfScalarComponents( 3 );
 
   OvrvisionProHandle.SetCameraSyncMode( CameraSync );
+  OvrvisionProHandle.SetCameraExposure(Exposure);
 
   return PLUS_SUCCESS;
 }
@@ -273,6 +277,8 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration( vtkXMLDataElement*
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, Framerate, deviceConfig );
   XML_READ_STRING_ATTRIBUTE_REQUIRED( LeftEyeDataSourceName, deviceConfig );
   XML_READ_STRING_ATTRIBUTE_REQUIRED( RightEyeDataSourceName, deviceConfig );
+  XML_READ_STRING_ATTRIBUTE_REQUIRED( Vendor, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Exposure, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( CameraSync, deviceConfig );
   XML_READ_STRING_ATTRIBUTE_OPTIONAL( ProcessingModeName, deviceConfig );

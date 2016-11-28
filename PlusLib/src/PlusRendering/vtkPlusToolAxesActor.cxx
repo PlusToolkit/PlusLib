@@ -321,14 +321,14 @@ double *vtkPlusToolAxesActor::GetBounds()
 }
 
 //----------------------------------------------------------------------------
-unsigned long int vtkPlusToolAxesActor::GetMTime()
+vtkMTimeType vtkPlusToolAxesActor::GetMTime()
 {
   unsigned long mTime = this->Superclass::GetMTime();
   return mTime;
 }
 
 //----------------------------------------------------------------------------
-unsigned long int vtkPlusToolAxesActor::GetRedrawMTime()
+vtkMTimeType vtkPlusToolAxesActor::GetRedrawMTime()
 {
   unsigned long mTime = this->GetMTime();
   return mTime;

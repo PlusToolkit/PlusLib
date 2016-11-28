@@ -116,8 +116,7 @@ IF(@PLUS_USE_OpenIGTLink@)
   ENDIF()
 ENDIF()
 
-
-IF(PLUS_USE_OvrvisionPro)
+IF(@PLUS_USE_OvrvisionPro@)
   SET(OvrvisionPro_DIR @OvrvisionPro_DIR@)
   FIND_PACKAGE(OvrvisionPro REQUIRED NO_MODULE)
 ENDIF()

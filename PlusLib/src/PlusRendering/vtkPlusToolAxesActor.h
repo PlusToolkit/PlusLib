@@ -69,7 +69,7 @@ public:
   double* GetBounds();
 
   /*! Get the actors mtime plus consider its properties and texture if set. */
-  unsigned long int GetMTime();
+  vtkMTimeType GetMTime();
 
   /*!
     Return the mtime of anything that would cause the rendered image to
@@ -77,7 +77,7 @@ public:
     prop plus anything else it depends on such as properties, textures
     etc.
   */
-  virtual unsigned long GetRedrawMTime();
+  vtkMTimeType GetRedrawMTime();
 
   /*!
     Set the name of the coordinate frame that is displayed as a label
