@@ -7,7 +7,11 @@ See License.txt for details.
 #ifndef __vtkPlusToolAxesActor_h
 #define __vtkPlusToolAxesActor_h
 
+// Local includes
 #include "vtkPlusRenderingExport.h"
+
+// PlusLib includes
+#include <PlusConfigure.h>
 
 // VTK includes
 #include <vtkSetGet.h>

@@ -22,11 +22,11 @@
 #define _SCL_SECURE_NO_WARNINGS
 
 #if defined(_WIN32) && !defined(VTKSLICER_STATIC)
-  #pragma warning ( disable : 4275 )
+#pragma warning ( disable : 4275 )
 #endif
 
 #if defined(_MSC_VER)
-  #pragma warning ( disable : 4786 )
+#pragma warning ( disable : 4786 )
 #endif
 
 #cmakedefine PLUS_USE_OpenIGTLink
@@ -34,8 +34,14 @@
 #cmakedefine BUILD_SHARED_LIBS
 
 #ifndef BUILD_SHARED_LIBS
-  #define VTKSLICER_STATIC
-  #define PlusLib_STATIC
+#define VTKSLICER_STATIC
+#define PlusLib_STATIC
+#endif
+
+#include <vtkType.h>
+
+#ifndef VTK_HAS_MTIME_TYPE
+typedef unsigned long int vtkMTimeType;
 #endif
 
 #define PLUSLIB_VERSION "@PLUSLIB_VERSION@"
@@ -115,5 +121,5 @@
 #include "PlusCommon.h"
 #include "vtkPlusLogger.h"
 #include "vtkPlusConfig.h"
- 
+
 #endif // __PlusConfigure_h
