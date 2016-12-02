@@ -45,7 +45,7 @@ ELSE(ITK_DIR)
   SET (ITKv4_REPOSITORY ${GIT_PROTOCOL}://itk.org/ITK.git)
   SET (ITKv4_GIT_TAG v4.10.0)
   
-  SET(itk_common_cxx_flags "${ep_common_cxx_flags}")
+  SET(itk_common_cxx_flags "${ep_common_cxx_flags} -std=c++11")
   IF(MSVC)
     SET(itk_common_cxx_flags "${itk_common_cxx_flags} /MP ")
   ENDIF()
@@ -70,8 +70,6 @@ ELSE(ITK_DIR)
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
-      -DCMAKE_CXX_STANDARD:STRING=11
-      -DCMAKE_CXX_STANDARD_REQUIRED:BOOL=ON
       -DCMAKE_CXX_FLAGS:STRING=${itk_common_cxx_flags}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
