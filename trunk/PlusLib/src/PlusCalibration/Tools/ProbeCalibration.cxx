@@ -55,8 +55,8 @@ int main (int argc, char* argv[])
   double inputTranslationErrorThreshold(LINUXTOLERANCE*2); // *PE* methods on linux can have up to about 0.7mm translation error
   double inputRotationErrorThreshold(LINUXTOLERANCE);
 #else
-  double inputTranslationErrorThreshold(0);
-  double inputRotationErrorThreshold(0);
+  double inputTranslationErrorThreshold(1e-10);
+  double inputRotationErrorThreshold(1e-10);
 #endif
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
