@@ -43,8 +43,8 @@ int main (int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
   std::string inputProbeToReferenceTransformName("ProbeToReference"); 
-  double inputTranslationErrorThreshold(0); 
-  double inputRotationErrorThreshold(0); 
+  double inputTranslationErrorThreshold(1e-10); 
+  double inputRotationErrorThreshold(1e-10); 
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
