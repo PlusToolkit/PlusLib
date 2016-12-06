@@ -31,7 +31,7 @@
 ///////////////////////////////////////////////////////////////////
 const double ERROR_THRESHOLD = 0.05; // error threshold is 5% 
 
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold); 
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, double translationErrorThreshold, double rotationErrorThreshold); 
 
 int main (int argc, char* argv[])
 { 
@@ -226,7 +226,7 @@ int main (int argc, char* argv[])
 //----------------------------------------------------------------------------
 
 // return the number of differences
-int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, int translationErrorThreshold, int rotationErrorThreshold)
+int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, double translationErrorThreshold, double rotationErrorThreshold)
 {
   int numberOfFailures=0;
 
