@@ -6,6 +6,10 @@ MODEL_TABLE_ROW(
   DESCRIPTION "Generic scalpel (100mm long handle, 20mm long blade)."
   )
 MODEL_TABLE_ROW(
+  ID "Cautery"
+  DESCRIPTION "Generic cautery (95mm long handle, 20mm long blade)."
+  )
+MODEL_TABLE_ROW(
   ID "Needle_BardDuaLok57"
   EDIT_LINK "${CATALOG_URL}/TrackingFixtures"
   DESCRIPTION "Bard DuaLok57 double-hook needle (without hooks)."
