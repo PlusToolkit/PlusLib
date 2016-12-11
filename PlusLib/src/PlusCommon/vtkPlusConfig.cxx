@@ -18,19 +18,19 @@
 #include "vtkObjectFactory.h"
 
 #if _WIN32
-  #include <stdlib.h>
-  #include <shlobj.h>
+#include <stdlib.h>
+#include <shlobj.h>
 #elif defined(unix) || defined(__unix__) || defined(__unix)
-  #include "unistd.h"
+#include "unistd.h"
 #elif defined(__APPLE__)
-  #include <unistd.h>
-  #include <mach-o/dyld.h>
+#include <unistd.h>
+#include <mach-o/dyld.h>
 #endif
 
 static const char APPLICATION_CONFIGURATION_FILE_NAME[] = "PlusConfig.xml";
 
 
-vtkPlusConfig *vtkPlusConfig::Instance = NULL;
+vtkPlusConfig* vtkPlusConfig::Instance = NULL;
 
 //-----------------------------------------------------------------------------
 class vtkPlusConfigCleanup
@@ -42,7 +42,7 @@ public:
 
   ~vtkPlusConfigCleanup()
   {
-    if( vtkPlusConfig::GetInstance() )
+    if (vtkPlusConfig::GetInstance())
     {
       vtkPlusConfig::SetInstance(NULL);
     }
@@ -64,11 +64,11 @@ vtkPlusConfig* vtkPlusConfig::New()
 //-----------------------------------------------------------------------------
 vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
-  if(!vtkPlusConfig::Instance)
+  if (!vtkPlusConfig::Instance)
   {
     PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
 
-    if( vtkPlusConfig::Instance != NULL )
+    if (vtkPlusConfig::Instance != NULL)
     {
       return vtkPlusConfig::Instance;
     }
@@ -80,7 +80,7 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
     // Without this we would get a "Deleting unknown object" VTK warning on application exit
     // (in debug mode, with debug leak checking enabled).
     vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPlusConfig");
-    if(ret)
+    if (ret)
     {
       vtkPlusConfig::Instance = static_cast<vtkPlusConfig*>(ret);
     }
@@ -97,7 +97,7 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
 //-----------------------------------------------------------------------------
 void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
 {
-  if (vtkPlusConfig::Instance==instance)
+  if (vtkPlusConfig::Instance == instance)
   {
     return;
   }
@@ -109,7 +109,7 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
   vtkPlusConfig::Instance = instance;
 
   // user will call ->Delete() after setting instance
-  if( instance != NULL )
+  if (instance != NULL)
   {
     instance->Register(NULL);
   }
@@ -117,8 +117,8 @@ void vtkPlusConfig::SetInstance(vtkPlusConfig* instance)
 
 //-----------------------------------------------------------------------------
 vtkPlusConfig::vtkPlusConfig()
-: DeviceSetConfigurationData(NULL)
-, ApplicationConfigurationData(NULL)
+  : DeviceSetConfigurationData(NULL)
+  , ApplicationConfigurationData(NULL)
 {
   this->ApplicationStartTimestamp = vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString();
 
@@ -140,50 +140,50 @@ vtkPlusConfig::~vtkPlusConfig()
 void vtkPlusConfig::SetProgramDirectory()
 {
 #ifdef _WIN32
-  char cProgramPath[2048]={'\0'};
-  GetModuleFileName ( NULL, cProgramPath, 2048 );
-  this->ProgramDirectory=vtksys::SystemTools::GetProgramPath(cProgramPath);
+  char cProgramPath[2048] = {'\0'};
+  GetModuleFileName(NULL, cProgramPath, 2048);
+  this->ProgramDirectory = vtksys::SystemTools::GetProgramPath(cProgramPath);
 #elif defined(__linux__)
-  const unsigned int cProgramPathSize=2048;
-  char cProgramPath[cProgramPathSize+1];
-  cProgramPath[cProgramPathSize]=0;
+  const unsigned int cProgramPathSize = 2048;
+  char cProgramPath[cProgramPathSize + 1];
+  cProgramPath[cProgramPathSize] = 0;
   // linux
-  if (readlink ("/proc/self/exe", cProgramPath, cProgramPathSize) != -1)
+  if (readlink("/proc/self/exe", cProgramPath, cProgramPathSize) != -1)
   {
     // linux
-    std::string path=vtksys::SystemTools::CollapseFullPath(cProgramPath);
+    std::string path = vtksys::SystemTools::CollapseFullPath(cProgramPath);
     std::string dirName;
     std::string fileName;
     vtksys::SystemTools::SplitProgramPath(path.c_str(), dirName, fileName);
-    this->ProgramDirectory=dirName;
+    this->ProgramDirectory = dirName;
   }
   else
   {
     // non-linux systems
     // currently simply the working directory is used instead of the executable path
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe
-    std::string path=vtksys::SystemTools::CollapseFullPath("./");
-    LOG_WARNING("Cannot get program path. PlusConfig.xml will be read from  "<<path);
-    this->ProgramDirectory=path;
+    std::string path = vtksys::SystemTools::CollapseFullPath("./");
+    LOG_WARNING("Cannot get program path. PlusConfig.xml will be read from  " << path);
+    this->ProgramDirectory = path;
   }
 #elif defined(__APPLE__)
   char cProgramPath[2048];
   uint32_t size = sizeof(cProgramPath);
   if (_NSGetExecutablePath(cProgramPath, &size) == 0)
   {
-    std::string path=vtksys::SystemTools::CollapseFullPath(cProgramPath);
+    std::string path = vtksys::SystemTools::CollapseFullPath(cProgramPath);
     std::string dirName;
     std::string fileName;
     vtksys::SystemTools::SplitProgramPath(path.c_str(), dirName, fileName);
-    this->ProgramDirectory=dirName;
+    this->ProgramDirectory = dirName;
   }
   else
   {
-    std::string path=vtksys::SystemTools::CollapseFullPath("./");
-    LOG_WARNING("Cannot get program path. PlusConfig.xml will be read from  "<<path);
-    this->ProgramDirectory=path;
+    std::string path = vtksys::SystemTools::CollapseFullPath("./");
+    LOG_WARNING("Cannot get program path. PlusConfig.xml will be read from  " << path);
+    this->ProgramDirectory = path;
   }
-  #endif
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void vtkPlusConfig::SetOutputDirectory(const std::string& aDir)
   this->OutputDirectory = aDir;
 
   // Set log file name and path to the output directory
-  std::string logfilename=std::string(this->ApplicationStartTimestamp)+"_PlusLog.txt";
+  std::string logfilename = std::string(this->ApplicationStartTimestamp) + "_PlusLog.txt";
   vtkPlusLogger::Instance()->SetLogFileName(GetOutputPath(logfilename).c_str());
 }
 
@@ -253,7 +253,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
 
   // Read log level
   int logLevel = 0;
-  if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel) )
+  if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel))
   {
     vtkPlusLogger::Instance()->SetLogLevel(logLevel);
   }
@@ -306,10 +306,10 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
 #if _WIN32
     // Try to find Notepad++ in Program Files, if not found then use notepad.
     char pf[MAX_PATH];
-    SHGetFolderPath(NULL,CSIDL_PROGRAM_FILES,NULL,0,pf );
+    SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES, NULL, 0, pf);
     std::string fullPath = std::string(pf) + "\\Notepad++\\notepad++.exe";
     std::string application = "notepad.exe";
-    if( vtksys::SystemTools::FileExists(fullPath.c_str()) )
+    if (vtksys::SystemTools::FileExists(fullPath.c_str()))
     {
       application = fullPath;
     }
@@ -359,12 +359,12 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   const char* modelDirectory = applicationConfigurationRoot->GetAttribute("ModelDirectory");
   if ((modelDirectory != NULL) && (STRCASECMP(modelDirectory, "") != 0))
   {
-    this->ModelDirectory=modelDirectory;
+    this->ModelDirectory = modelDirectory;
   }
   else
   {
     LOG_INFO("Model directory is not set - default '../config' will be used");
-    this->ModelDirectory="../config";
+    this->ModelDirectory = "../config";
     saveNeeded = true;
   }
 
@@ -372,12 +372,12 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   const char* scriptsDirectory = applicationConfigurationRoot->GetAttribute("ScriptsDirectory");
   if ((scriptsDirectory != NULL) && (STRCASECMP(scriptsDirectory, "") != 0))
   {
-    this->ScriptsDirectory=scriptsDirectory;
+    this->ScriptsDirectory = scriptsDirectory;
   }
   else
   {
     LOG_INFO("Scripts directory is not set - default '../scripts' will be used");
-    this->ScriptsDirectory="../scripts";
+    this->ScriptsDirectory = "../scripts";
     saveNeeded = true;
   }
 
@@ -401,13 +401,13 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
     vtkSmartPointer<vtkXMLDataElement> newApplicationConfigurationRoot = vtkSmartPointer<vtkXMLDataElement>::New();
     newApplicationConfigurationRoot->SetName("PlusConfig");
     this->SetApplicationConfigurationData(newApplicationConfigurationRoot);
-    applicationConfigurationRoot=newApplicationConfigurationRoot;
+    applicationConfigurationRoot = newApplicationConfigurationRoot;
   }
 
   // Verify root element name
   if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != 0)
   {
-    LOG_ERROR("Invalid application configuration file (root XML element should be 'PlusConfig' found '"<<applicationConfigurationRoot->GetName()<<"' instead)");
+    LOG_ERROR("Invalid application configuration file (root XML element should be 'PlusConfig' found '" << applicationConfigurationRoot->GetName() << "' instead)");
     return PLUS_FAIL;
   }
 
@@ -498,24 +498,30 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+std::string vtkPlusConfig::GetApplicationConfigurationFilePath() const
+{
+  return vtksys::SystemTools::CollapseFullPath(APPLICATION_CONFIGURATION_FILE_NAME, this->ProgramDirectory.c_str());
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFromCoordinateFrame, const char* aToCoordinateFrame, vtkMatrix4x4* aMatrix, double aError/*=-1*/, const char* aDate/*=NULL*/)
 {
   LOG_TRACE("vtkPlusConfig::WriteTransformToCoordinateDefinition(" << aFromCoordinateFrame << ", " << aToCoordinateFrame << ")");
 
-  if ( aFromCoordinateFrame == NULL )
+  if (aFromCoordinateFrame == NULL)
   {
     LOG_ERROR("Failed to write transform to CoordinateDefinitions - 'From' coordinate frame name is NULL");
     return PLUS_FAIL;
   }
 
-  if ( aToCoordinateFrame == NULL )
+  if (aToCoordinateFrame == NULL)
   {
     LOG_ERROR("Failed to write transform to CoordinateDefinitions - 'To' coordinate frame name is NULL");
     return PLUS_FAIL;
   }
 
-  if ( aMatrix == NULL )
+  if (aMatrix == NULL)
   {
     LOG_ERROR("Failed to write transform to CoordinateDefinitions - matrix is NULL");
     return PLUS_FAIL;
@@ -523,64 +529,64 @@ PlusStatus vtkPlusConfig::WriteTransformToCoordinateDefinition(const char* aFrom
 
 
   vtkXMLDataElement* deviceSetConfigRootElement = GetDeviceSetConfigurationData();
-  if ( deviceSetConfigRootElement == NULL )
+  if (deviceSetConfigRootElement == NULL)
   {
     LOG_ERROR("Failed to write transform to CoordinateDefinitions - config root element is NULL");
     return PLUS_FAIL;
   }
 
   vtkXMLDataElement* coordinateDefinitions = deviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
-  if ( coordinateDefinitions == NULL )
+  if (coordinateDefinitions == NULL)
   {
     vtkSmartPointer<vtkXMLDataElement> newCoordinateDefinitions = vtkSmartPointer<vtkXMLDataElement>::New();
     newCoordinateDefinitions->SetName("CoordinateDefinitions");
     deviceSetConfigRootElement->AddNestedElement(newCoordinateDefinitions);
-    coordinateDefinitions=newCoordinateDefinitions;
+    coordinateDefinitions = newCoordinateDefinitions;
   }
 
   // Check if we already have this entry in the config file
-  vtkXMLDataElement* transformElement=NULL;
+  vtkXMLDataElement* transformElement = NULL;
   int nestedElementIndex(0);
-  while ( nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements() && transformElement == NULL )
+  while (nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements() && transformElement == NULL)
   {
     vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex);
     const char* fromAttribute = nestedElement->GetAttribute("From");
     const char* toAttribute = nestedElement->GetAttribute("To");
 
-    if ( fromAttribute && toAttribute
-      && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
-      && STRCASECMP(toAttribute, aToCoordinateFrame) == 0 )
+    if (fromAttribute && toAttribute
+        && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
+        && STRCASECMP(toAttribute, aToCoordinateFrame) == 0)
     {
       transformElement = nestedElement;
     }
   }
 
-  if ( transformElement == NULL )
+  if (transformElement == NULL)
   {
-    vtkSmartPointer<vtkXMLDataElement> newElement=vtkSmartPointer<vtkXMLDataElement>::New();
+    vtkSmartPointer<vtkXMLDataElement> newElement = vtkSmartPointer<vtkXMLDataElement>::New();
     newElement->SetName("Transform");
     newElement->SetAttribute("From", aFromCoordinateFrame);
     newElement->SetAttribute("To", aToCoordinateFrame);
     coordinateDefinitions->AddNestedElement(newElement);
-    transformElement=newElement;
+    transformElement = newElement;
   }
 
-  double vectorMatrix[16]={0};
-  vtkMatrix4x4::DeepCopy(vectorMatrix,aMatrix);
+  double vectorMatrix[16] = {0};
+  vtkMatrix4x4::DeepCopy(vectorMatrix, aMatrix);
   transformElement->SetVectorAttribute("Matrix", 16, vectorMatrix);
 
-  if ( aError > 0 )
+  if (aError > 0)
   {
     transformElement->SetDoubleAttribute("Error", aError);
   }
 
-  if ( aDate != NULL )
+  if (aDate != NULL)
   {
     transformElement->SetAttribute("Date", aDate);
   }
   else // Add current date if it was not explicitly specified
   {
-    transformElement->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str() );
+    transformElement->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
   }
 
   return PLUS_SUCCESS;
@@ -600,41 +606,41 @@ PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement*
 {
   LOG_TRACE("vtkPlusConfig::ReadTransformToCoordinateDefinition(" << aFromCoordinateFrame << ", " << aToCoordinateFrame << ")");
 
-  if ( aDeviceSetConfigRootElement == NULL )
+  if (aDeviceSetConfigRootElement == NULL)
   {
     LOG_ERROR("Failed read transform from CoordinateDefinitions - config root element is NULL");
     return PLUS_FAIL;
   }
 
-  if ( aFromCoordinateFrame == NULL )
+  if (aFromCoordinateFrame == NULL)
   {
     LOG_ERROR("Failed to read transform from CoordinateDefinitions - 'From' coordinate frame name is NULL");
     return PLUS_FAIL;
   }
 
-  if ( aToCoordinateFrame == NULL )
+  if (aToCoordinateFrame == NULL)
   {
     LOG_ERROR("Failed to read transform from CoordinateDefinitions - 'To' coordinate frame name is NULL");
     return PLUS_FAIL;
   }
 
-  if ( aMatrix == NULL )
+  if (aMatrix == NULL)
   {
     LOG_ERROR("Failed to read transform from CoordinateDefinitions - matrix is NULL");
     return PLUS_FAIL;
   }
 
   vtkXMLDataElement* coordinateDefinitions = aDeviceSetConfigRootElement->FindNestedElementWithName("CoordinateDefinitions");
-  if ( coordinateDefinitions == NULL )
+  if (coordinateDefinitions == NULL)
   {
     LOG_ERROR("Failed read transform from CoordinateDefinitions - CoordinateDefinitions element not found");
     return PLUS_FAIL;
   }
 
-  for ( int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex )
+  for (int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex)
   {
     vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex);
-    if ( STRCASECMP(nestedElement->GetName(), "Transform" ) != 0 )
+    if (STRCASECMP(nestedElement->GetName(), "Transform") != 0)
     {
       // Not a transform element, skip it
       continue;
@@ -643,12 +649,12 @@ PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement*
     const char* fromAttribute = nestedElement->GetAttribute("From");
     const char* toAttribute = nestedElement->GetAttribute("To");
 
-    if ( fromAttribute && toAttribute
-      && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
-      && STRCASECMP(toAttribute, aToCoordinateFrame) == 0 )
+    if (fromAttribute && toAttribute
+        && STRCASECMP(fromAttribute, aFromCoordinateFrame) == 0
+        && STRCASECMP(toAttribute, aToCoordinateFrame) == 0)
     {
-      double vectorMatrix[16]={0};
-      if ( nestedElement->GetVectorAttribute("Matrix", 16, vectorMatrix) )
+      double vectorMatrix[16] = {0};
+      if (nestedElement->GetVectorAttribute("Matrix", 16, vectorMatrix))
       {
         aMatrix->DeepCopy(vectorMatrix);
       }
@@ -658,10 +664,10 @@ PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement*
         return PLUS_FAIL;
       }
 
-      if ( aError != NULL )
+      if (aError != NULL)
       {
         double error(0);
-        if ( nestedElement->GetScalarAttribute("Error", error) )
+        if (nestedElement->GetScalarAttribute("Error", error))
         {
           *aError = error;
         }
@@ -671,10 +677,10 @@ PlusStatus vtkPlusConfig::ReadTransformToCoordinateDefinition(vtkXMLDataElement*
         }
       }
 
-      if ( aDate != NULL )
+      if (aDate != NULL)
       {
         const char* date =  nestedElement->GetAttribute("Date");
-        if ( date != NULL )
+        if (date != NULL)
         {
           *aDate = date;
         }
@@ -714,7 +720,7 @@ PlusStatus vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(const char* aEl
   {
     // Re-add deleted element if there was one
     if (orginalElement != NULL)
-  {
+    {
       deviceSetConfigRootElement->AddNestedElement(orginalElement);
     }
     LOG_ERROR("No element with the name '" << aElementName << "' can be found in the given XML data element!");
@@ -727,7 +733,7 @@ PlusStatus vtkPlusConfig::ReplaceElementInDeviceSetConfiguration(const char* aEl
 //-----------------------------------------------------------------------------
 vtkXMLDataElement* vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(vtkXMLDataElement* aConfig, const char* aElementName, const char* aChildName, const char* aChildAttributeName, const char* aChildAttributeValue)
 {
-  LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName==NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue==NULL ? "" : aChildAttributeValue) << ")");
+  LOG_TRACE("vtkPlusConfig::LookupElementWithNameContainingChildWithNameAndAttribute(" << aElementName << ", " << aChildName << ", " << (aChildAttributeName == NULL ? "" : aChildAttributeName) << ", " << (aChildAttributeValue == NULL ? "" : aChildAttributeValue) << ")");
 
   if (aConfig == NULL)
   {
@@ -802,7 +808,7 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
     vtkSmartPointer<vtkDirectory> dir = vtkSmartPointer<vtkDirectory>::New();
     if (dir->Open(aDirectory))
     {
-      for (int i=0; i<dir->GetNumberOfFiles(); ++i)
+      for (int i = 0; i < dir->GetNumberOfFiles(); ++i)
       {
         const char* fileOrDirectory = dir->GetFile(i);
         if ((! dir->FileIsDirectory(fileOrDirectory)) || (STRCASECMP(".", fileOrDirectory) == 0) || (STRCASECMP("..", fileOrDirectory) == 0))
@@ -832,7 +838,7 @@ std::string vtkPlusConfig::FindFileRecursivelyInDirectory(const char* aFileName,
 };
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::string &aFoundAbsolutePath)
+PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::string& aFoundAbsolutePath)
 {
   LOG_TRACE("vtkPlusConfig::FindImagePath(" << aImagePath << ")");
 
@@ -862,22 +868,22 @@ PlusStatus vtkPlusConfig::FindImagePath(const std::string& aImagePath, std::stri
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
   // Check file relative to the current working directory
-  aFoundAbsolutePath=vtksys::SystemTools::CollapseFullPath(aImagePath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
+  aFoundAbsolutePath = vtksys::SystemTools::CollapseFullPath(aImagePath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
   if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
   {
     return PLUS_SUCCESS;
   }
 
   aFoundAbsolutePath = "";
-  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory ("<<GetImageDirectory()<<")"
-    <<" nor relative to device set configuration file directory ("<<configurationFileDirectory<<")"<<")"
-    <<" nor to device set configuration directory ("<<GetDeviceSetConfigurationDirectory()<<")"
-    <<" nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
+  LOG_ERROR("Image with relative path '" << aImagePath << "' cannot be found neither relative to image directory (" << GetImageDirectory() << ")"
+            << " nor relative to device set configuration file directory (" << configurationFileDirectory << ")" << ")"
+            << " nor to device set configuration directory (" << GetDeviceSetConfigurationDirectory() << ")"
+            << " nor the current working directory directory (" << vtksys::SystemTools::GetCurrentWorkingDirectory() << ")");
   return PLUS_FAIL;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::string &aFoundAbsolutePath)
+PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::string& aFoundAbsolutePath)
 {
   LOG_TRACE("vtkPlusConfig::FindModelPath(" << aModelPath << ")");
 
@@ -885,7 +891,7 @@ PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::stri
   if (vtksys::SystemTools::FileExists(aModelPath.c_str()))
   {
     // found
-    aFoundAbsolutePath=aModelPath;
+    aFoundAbsolutePath = aModelPath;
     return PLUS_SUCCESS;
   }
   LOG_DEBUG("Absolute path not found at: " << aModelPath);
@@ -921,17 +927,17 @@ PlusStatus vtkPlusConfig::FindModelPath(const std::string& aModelPath, std::stri
   LOG_DEBUG("Absolute path not found at: " << aFoundAbsolutePath);
 
   // Check file relative to the current working directory
-  aFoundAbsolutePath=vtksys::SystemTools::CollapseFullPath(aModelPath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
+  aFoundAbsolutePath = vtksys::SystemTools::CollapseFullPath(aModelPath.c_str(), vtksys::SystemTools::GetCurrentWorkingDirectory().c_str());
   if (vtksys::SystemTools::FileExists(aFoundAbsolutePath.c_str()))
   {
     return PLUS_SUCCESS;
   }
 
   aFoundAbsolutePath = "";
-  LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory ("<<absoluteModelDirectoryPath<<")"
-    << " nor relative to device set configuration file directory (" << configurationFileDirectory << ")" << ")"
-    << " nor to device set configuration directory (" << GetDeviceSetConfigurationDirectory() << ")"
-    << " nor the current working directory directory ("<<vtksys::SystemTools::GetCurrentWorkingDirectory()<<")");
+  LOG_ERROR("Model with relative path '" << aModelPath << "' cannot be found neither within the model directory (" << absoluteModelDirectoryPath << ")"
+            << " nor relative to device set configuration file directory (" << configurationFileDirectory << ")" << ")"
+            << " nor to device set configuration directory (" << GetDeviceSetConfigurationDirectory() << ")"
+            << " nor the current working directory directory (" << vtksys::SystemTools::GetCurrentWorkingDirectory() << ")");
   return PLUS_FAIL;
 }
 
@@ -943,33 +949,33 @@ std::string vtkPlusConfig::GetAbsolutePath(const std::string& aPath, const std::
     // empty
     return aBasePath;
   }
-  if( vtksys::SystemTools::FileIsFullPath(aPath.c_str()) )
+  if (vtksys::SystemTools::FileIsFullPath(aPath.c_str()))
   {
     // already absolute
     return aPath;
   }
 
   // relative to the ProgramDirectory
-  std::string absolutePath=vtksys::SystemTools::CollapseFullPath(aPath.c_str(), aBasePath.c_str());
+  std::string absolutePath = vtksys::SystemTools::CollapseFullPath(aPath.c_str(), aBasePath.c_str());
   return absolutePath;
 }
 
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetModelPath(const std::string& subPath)
 {
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->ModelDirectory, this->ProgramDirectory) );
+  return GetAbsolutePath(subPath, GetAbsolutePath(this->ModelDirectory, this->ProgramDirectory));
 }
 
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetDeviceSetConfigurationPath(const std::string& subPath)
 {
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->DeviceSetConfigurationDirectory, this->ProgramDirectory) );
+  return GetAbsolutePath(subPath, GetAbsolutePath(this->DeviceSetConfigurationDirectory, this->ProgramDirectory));
 }
 
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetOutputPath(const std::string& subPath)
 {
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->OutputDirectory, this->ProgramDirectory) );
+  return GetAbsolutePath(subPath, GetAbsolutePath(this->OutputDirectory, this->ProgramDirectory));
 }
 
 //-----------------------------------------------------------------------------
@@ -993,13 +999,13 @@ std::string vtkPlusConfig::GetImageDirectory()
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetImagePath(const std::string& subPath)
 {
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->ImageDirectory, this->ProgramDirectory) );
+  return GetAbsolutePath(subPath, GetAbsolutePath(this->ImageDirectory, this->ProgramDirectory));
 }
 
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetScriptPath(const std::string& subPath)
 {
-  return GetAbsolutePath(subPath, GetAbsolutePath(this->ScriptsDirectory, this->ProgramDirectory) );
+  return GetAbsolutePath(subPath, GetAbsolutePath(this->ScriptsDirectory, this->ProgramDirectory));
 }
 
 //-----------------------------------------------------------------------------
@@ -1017,10 +1023,10 @@ std::string vtkPlusConfig::GetApplicationStartTimestamp()
 //-----------------------------------------------------------------------------
 void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData)
 {
-  vtkSetObjectBodyMacro(DeviceSetConfigurationData,vtkXMLDataElement,deviceSetConfigurationData);
+  vtkSetObjectBodyMacro(DeviceSetConfigurationData, vtkXMLDataElement, deviceSetConfigurationData);
   if (this->DeviceSetConfigurationData != NULL)
   {
-    std::string plusLibVersion=PlusCommon::GetPlusLibVersionString();
+    std::string plusLibVersion = PlusCommon::GetPlusLibVersionString();
     this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());
   }
 }
@@ -1040,9 +1046,9 @@ void vtkPlusConfig::SetEditorApplicationExecutable(const std::string& _arg)
 //-----------------------------------------------------------------------------
 std::string vtkPlusConfig::GetPlusExecutablePath(const std::string& executableName)
 {
-  std::string processNameWithExtension=executableName;
+  std::string processNameWithExtension = executableName;
 #ifdef _WIN32
-  processNameWithExtension+=".exe";
+  processNameWithExtension += ".exe";
 #endif
   return GetAbsolutePath(processNameWithExtension, this->ProgramDirectory);
 }
