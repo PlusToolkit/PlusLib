@@ -68,7 +68,7 @@ public:
   * Get object visualizer object
   * \return Object visualizer
   */
-  vtkPlusVisualizationController* GetVisualizationController();;
+  vtkPlusVisualizationController* GetVisualizationController();
 
   /*!
   * Set status bar text
@@ -115,60 +115,60 @@ public:
   * \param aType Toolbox type identifier
   * \return Toolbox object
   */
-  QAbstractToolbox* GetToolbox(ToolboxType aType);;
+  QAbstractToolbox* GetToolbox(ToolboxType aType);
 
   /*! Get image coordinate frame name */
-  std::string GetImageCoordinateFrame();;
+  std::string GetImageCoordinateFrame();
   /*! Set image coordinate frame name */
-  void SetImageCoordinateFrame(const char* aImageCoordinateFrame);;
+  void SetImageCoordinateFrame(const char* aImageCoordinateFrame);
 
   /*! Get probe coordinate frame name */
-  std::string GetProbeCoordinateFrame();;
+  std::string GetProbeCoordinateFrame();
   /*! Set probe coordinate frame name */
-  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame);;
+  void SetProbeCoordinateFrame(const char* aProbeCoordinateFrame);
 
   /*! Get reference coordinate frame name */
-  std::string GetReferenceCoordinateFrame();;
+  std::string GetReferenceCoordinateFrame();
   /*! Set reference coordinate frame name */
-  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame);;
+  void SetReferenceCoordinateFrame(const char* aReferenceCoordinateFrame);
 
   /*! Get transducer origin coordinate frame name */
-  std::string GetTransducerOriginCoordinateFrame();;
+  std::string GetTransducerOriginCoordinateFrame();
   /*! Set transducer origin coordinate frame name */
-  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame);;
+  void SetTransducerOriginCoordinateFrame(const char* aTransducerOriginCoordinateFrame);
 
   /*! Get transducer origin pixel coordinate frame name */
-  std::string GetTransducerOriginPixelCoordinateFrame();;
+  std::string GetTransducerOriginPixelCoordinateFrame();
   /*! Set transducer origin pixel coordinate frame name */
-  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame);;
+  void SetTransducerOriginPixelCoordinateFrame(const char* aTransducerOriginPixelCoordinateFrame);
 
   /*! Get phantom model id */
-  const char* GetPhantomModelId();;
+  const char* GetPhantomModelId();
   /*! Set phantom model id */
-  void SetPhantomModelId(const char* aObjectId);;
+  void SetPhantomModelId(const char* aObjectId);
   /*! Enable/disable the show phantom model action */
   void EnableShowPhantomModelToggle(bool aEnable);
   /*! Get phantom wires model id */
-  const char* GetPhantomWiresModelId();;
+  const char* GetPhantomWiresModelId();
   /*! Set phantom wires model id */
-  void SetPhantomWiresModelId(const char* aObjectId);;
+  void SetPhantomWiresModelId(const char* aObjectId);
   /*! Enable/disable the show phantom wires action */
   void EnableShowPhantomWiresModelToggle(bool aEnable);
 
   /*! Get stylus model id */
-  const char* GetStylusModelId();;
+  const char* GetStylusModelId();
   /*! Set stylus model id */
-  void SetStylusModelId(const char* aObjectId);;
+  void SetStylusModelId(const char* aObjectId);
 
   /*! Get probe object id */
-  const char* GetTransducerModelId();;
+  const char* GetTransducerModelId();
   /*! Set probe object id */
-  void SetTransducerModelId(const char* aObjectId);;
+  void SetTransducerModelId(const char* aObjectId);
 
   /*! Get image object id */
-  const char* GetImageObjectId();;
+  const char* GetImageObjectId();
   /*! Set image object id */
-  void SetImageObjectId(const char* aObjectId);;
+  void SetImageObjectId(const char* aObjectId);
 
   /*! Get force show devices status */
   bool IsForceShowDevicesEnabled();

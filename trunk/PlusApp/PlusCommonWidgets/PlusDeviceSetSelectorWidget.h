@@ -188,6 +188,11 @@ protected slots:
   */
   void SelectEditor();
 
+  /*!
+  * Called when the edit application config file is called
+  */
+  void EditAppConfig();
+
   /*
   * Reset tracker button has been pushed
   */
@@ -199,6 +204,7 @@ protected:
 
   /*! Action triggered when button right-clicked */
   QAction*      m_EditorSelectAction;
+  QAction*      m_EditApplicationConfigFileAction;
   QMenu*        m_EditMenu;
 
   /*! Flag telling whether connection has been successful */

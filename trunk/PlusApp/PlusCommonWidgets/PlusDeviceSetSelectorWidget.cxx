@@ -38,6 +38,7 @@ PlusDeviceSetSelectorWidget::PlusDeviceSetSelectorWidget(QWidget* aParent)
   , m_ConnectionSuccessful(false)
   , m_EditMenu(NULL)
   , m_EditorSelectAction(NULL)
+  , m_EditApplicationConfigFileAction(NULL)
   , m_DeviceSetComboBoxMaximumSizeRatio(-1)
 {
   ui.setupUi(this);
@@ -78,8 +79,15 @@ PlusDeviceSetSelectorWidget::~PlusDeviceSetSelectorWidget()
   }
   if (this->m_EditorSelectAction)
   {
+    disconnect(m_EditorSelectAction, &QAction::triggered, this, &PlusDeviceSetSelectorWidget::SelectEditor);
     delete this->m_EditorSelectAction;
     m_EditorSelectAction = NULL;
+  }
+  if (this->m_EditApplicationConfigFileAction)
+  {
+    disconnect(m_EditApplicationConfigFileAction, &QAction::triggered, this, &PlusDeviceSetSelectorWidget::EditAppConfig);
+    delete this->m_EditApplicationConfigFileAction;
+    m_EditApplicationConfigFileAction = NULL;
   }
 }
 
@@ -619,13 +627,21 @@ void PlusDeviceSetSelectorWidget::ShowEditContextMenu(QPoint point)
   {
     m_EditorSelectAction = new QAction(this);
     m_EditorSelectAction->setText("Select Editor");
-    connect(m_EditorSelectAction, SIGNAL(triggered()), this, SLOT(SelectEditor()));
+    connect(m_EditorSelectAction, &QAction::triggered, this, &PlusDeviceSetSelectorWidget::SelectEditor);
+  }
+
+  if (m_EditApplicationConfigFileAction == NULL)
+  {
+    m_EditApplicationConfigFileAction = new QAction(this);
+    m_EditApplicationConfigFileAction->setText("Edit App Config");
+    connect(m_EditApplicationConfigFileAction, &QAction::triggered, this, &PlusDeviceSetSelectorWidget::EditAppConfig);
   }
 
   if (m_EditMenu == NULL)
   {
     m_EditMenu = new QMenu(this);
     m_EditMenu->addAction(m_EditorSelectAction);
+    m_EditMenu->addAction(m_EditApplicationConfigFileAction);
   }
   m_EditMenu->exec(ui.pushButton_EditConfiguration->mapToGlobal(point));
 }
@@ -643,6 +659,30 @@ void PlusDeviceSetSelectorWidget::SelectEditor()
 
   vtkPlusConfig::GetInstance()->SetEditorApplicationExecutable(std::string(fileName.toLatin1().constData()));
   vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+}
+
+//----------------------------------------------------------------------------
+void PlusDeviceSetSelectorWidget::EditAppConfig()
+{
+  LOG_TRACE("DeviceSetSelectorWidget::EditConfiguration");
+
+  QString configurationFilePath = QString::fromStdString(vtkPlusConfig::GetInstance()->GetApplicationConfigurationFilePath());
+  QString editorApplicationExecutable(vtkPlusConfig::GetInstance()->GetEditorApplicationExecutable().c_str());
+
+  if (!editorApplicationExecutable.isEmpty())
+  {
+    QFileInfo fileInfo(QDir::toNativeSeparators(configurationFilePath));
+    QString file = fileInfo.absoluteFilePath();
+
+    QProcess::startDetached(editorApplicationExecutable, QStringList() << file);
+    return;
+  }
+
+  // No editor application defined, try using the system default
+  if (!QDesktopServices::openUrl(QUrl("file:///" + configurationFilePath, QUrl::TolerantMode)))
+  {
+    LOG_ERROR("Failed to open file in default application: " << configurationFilePath.toLatin1().constData());
+  }
 }
 
 //-----------------------------------------------------------------------------

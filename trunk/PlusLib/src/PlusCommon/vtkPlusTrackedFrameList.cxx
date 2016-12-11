@@ -22,12 +22,12 @@
 //----------------------------------------------------------------------------
 // ************************* vtkPlusTrackedFrameList *****************************
 //----------------------------------------------------------------------------
-vtkStandardNewMacro( vtkPlusTrackedFrameList );
+vtkStandardNewMacro(vtkPlusTrackedFrameList);
 
 //----------------------------------------------------------------------------
 vtkPlusTrackedFrameList::vtkPlusTrackedFrameList()
 {
-  this->SetNumberOfUniqueFrames( 5 );
+  this->SetNumberOfUniqueFrames(5);
 
   this->MinRequiredTranslationDifferenceMm = 0.0;
   this->MinRequiredAngleDifferenceDeg = 0.0;
@@ -44,35 +44,35 @@ vtkPlusTrackedFrameList::~vtkPlusTrackedFrameList()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrame( int frameNumber )
+PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrame(int frameNumber)
 {
-  if ( frameNumber < 0 || ( unsigned int )frameNumber >= this->GetNumberOfTrackedFrames() )
+  if (frameNumber < 0 || (unsigned int)frameNumber >= this->GetNumberOfTrackedFrames())
   {
-    LOG_WARNING( "Failed to remove tracked frame from list - invalid frame number: " << frameNumber );
+    LOG_WARNING("Failed to remove tracked frame from list - invalid frame number: " << frameNumber);
     return PLUS_FAIL;
   }
 
   delete this->TrackedFrameList[frameNumber];
-  this->TrackedFrameList.erase( this->TrackedFrameList.begin() + frameNumber );
+  this->TrackedFrameList.erase(this->TrackedFrameList.begin() + frameNumber);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrameRange( unsigned int frameNumberFrom, unsigned int frameNumberTo )
+PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrameRange(unsigned int frameNumberFrom, unsigned int frameNumberTo)
 {
-  if ( frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo )
+  if (frameNumberTo >= this->GetNumberOfTrackedFrames() || frameNumberFrom > frameNumberTo)
   {
-    LOG_WARNING( "Failed to remove tracked frame from list - invalid frame number range: (" << frameNumberFrom << ", " << frameNumberTo << ")" );
+    LOG_WARNING("Failed to remove tracked frame from list - invalid frame number range: (" << frameNumberFrom << ", " << frameNumberTo << ")");
     return PLUS_FAIL;
   }
 
-  for ( unsigned int i = frameNumberFrom; i <= frameNumberTo; ++i )
+  for (unsigned int i = frameNumberFrom; i <= frameNumberTo; ++i)
   {
     delete this->TrackedFrameList[i];
   }
 
-  this->TrackedFrameList.erase( this->TrackedFrameList.begin() + frameNumberFrom, this->TrackedFrameList.begin() + frameNumberTo + 1 );
+  this->TrackedFrameList.erase(this->TrackedFrameList.begin() + frameNumberFrom, this->TrackedFrameList.begin() + frameNumberTo + 1);
 
   return PLUS_SUCCESS;
 }
@@ -80,9 +80,9 @@ PlusStatus vtkPlusTrackedFrameList::RemoveTrackedFrameRange( unsigned int frameN
 //----------------------------------------------------------------------------
 void vtkPlusTrackedFrameList::Clear()
 {
-  for ( unsigned int i = 0; i < this->TrackedFrameList.size(); i++ )
+  for (unsigned int i = 0; i < this->TrackedFrameList.size(); i++)
   {
-    if ( this->TrackedFrameList[i] != NULL )
+    if (this->TrackedFrameList[i] != NULL)
     {
       delete this->TrackedFrameList[i];
       this->TrackedFrameList[i] = NULL;
@@ -92,23 +92,23 @@ void vtkPlusTrackedFrameList::Clear()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTrackedFrameList::PrintSelf( std::ostream& os, vtkIndent indent )
+void vtkPlusTrackedFrameList::PrintSelf(std::ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
 
   os << indent << "Number of frames = " << GetNumberOfTrackedFrames();
-  for ( FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++ )
+  for (FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++)
   {
     os << indent << it->first << " = " << it->second << std::endl;
   }
 }
 
 //----------------------------------------------------------------------------
-PlusTrackedFrame* vtkPlusTrackedFrameList::GetTrackedFrame( int frameNumber )
+PlusTrackedFrame* vtkPlusTrackedFrameList::GetTrackedFrame(int frameNumber)
 {
-  if ( ( unsigned int )frameNumber >= this->GetNumberOfTrackedFrames() )
+  if ((unsigned int)frameNumber >= this->GetNumberOfTrackedFrames())
   {
-    LOG_ERROR( "vtkPlusTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber=" << frameNumber );
+    LOG_ERROR("vtkPlusTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber=" << frameNumber);
     return NULL;
   }
   return this->TrackedFrameList[frameNumber];
@@ -116,25 +116,25 @@ PlusTrackedFrame* vtkPlusTrackedFrameList::GetTrackedFrame( int frameNumber )
 
 
 //----------------------------------------------------------------------------
-PlusTrackedFrame* vtkPlusTrackedFrameList::GetTrackedFrame( unsigned int frameNumber )
+PlusTrackedFrame* vtkPlusTrackedFrameList::GetTrackedFrame(unsigned int frameNumber)
 {
-  if ( frameNumber >= this->GetNumberOfTrackedFrames() )
+  if (frameNumber >= this->GetNumberOfTrackedFrames())
   {
-    LOG_ERROR( "vtkPlusTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber=" << frameNumber );
+    LOG_ERROR("vtkPlusTrackedFrameList::GetTrackedFrame requested a non-existing frame (framenumber=" << frameNumber);
     return NULL;
   }
   return this->TrackedFrameList[frameNumber];
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::AddTrackedFrameList( vtkPlusTrackedFrameList* inTrackedFrameList, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+PlusStatus vtkPlusTrackedFrameList::AddTrackedFrameList(vtkPlusTrackedFrameList* inTrackedFrameList, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/)
 {
   PlusStatus status = PLUS_SUCCESS;
-  for ( unsigned int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < inTrackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->AddTrackedFrame( inTrackedFrameList->GetTrackedFrame( i ), action ) != PLUS_SUCCESS )
+    if (this->AddTrackedFrame(inTrackedFrameList->GetTrackedFrame(i), action) != PLUS_SUCCESS)
     {
-      LOG_ERROR( "Failed to add tracked frame to the list!" );
+      LOG_ERROR("Failed to add tracked frame to the list!");
       status = PLUS_FAIL;
       continue;
     }
@@ -144,125 +144,125 @@ PlusStatus vtkPlusTrackedFrameList::AddTrackedFrameList( vtkPlusTrackedFrameList
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::AddTrackedFrame( PlusTrackedFrame* trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+PlusStatus vtkPlusTrackedFrameList::AddTrackedFrame(PlusTrackedFrame* trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/)
 {
   bool isFrameValid = true;
-  if ( action != ADD_INVALID_FRAME )
+  if (action != ADD_INVALID_FRAME)
   {
-    isFrameValid = this->ValidateData( trackedFrame );
+    isFrameValid = this->ValidateData(trackedFrame);
   }
 
-  if ( !isFrameValid )
+  if (!isFrameValid)
   {
-    switch( action )
+    switch (action)
     {
     case ADD_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR( "Validation failed on frame, the frame is added to the list anyway" );
+      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
       break;
     case ADD_INVALID_FRAME:
-      LOG_DEBUG( "Validation failed on frame, the frame is added to the list anyway" );
+      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
       break;
     case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR( "Validation failed on frame, the frame is ignored" );
+      LOG_ERROR("Validation failed on frame, the frame is ignored");
       return PLUS_FAIL;
     case SKIP_INVALID_FRAME:
-      LOG_DEBUG( "Validation failed on frame, the frame is ignored" );
+      LOG_DEBUG("Validation failed on frame, the frame is ignored");
       return PLUS_SUCCESS;
     }
   }
 
   // Make a copy and add frame to the list
-  PlusTrackedFrame* pTrackedFrame = new PlusTrackedFrame( *trackedFrame );
-  this->TrackedFrameList.push_back( pTrackedFrame );
+  PlusTrackedFrame* pTrackedFrame = new PlusTrackedFrame(*trackedFrame);
+  this->TrackedFrameList.push_back(pTrackedFrame);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::TakeTrackedFrame( PlusTrackedFrame* trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/ )
+PlusStatus vtkPlusTrackedFrameList::TakeTrackedFrame(PlusTrackedFrame* trackedFrame, InvalidFrameAction action /*=ADD_INVALID_FRAME_AND_REPORT_ERROR*/)
 {
   bool isFrameValid = true;
-  if ( action != ADD_INVALID_FRAME )
+  if (action != ADD_INVALID_FRAME)
   {
-    isFrameValid = this->ValidateData( trackedFrame );
+    isFrameValid = this->ValidateData(trackedFrame);
   }
-  if ( !isFrameValid )
+  if (!isFrameValid)
   {
-    switch( action )
+    switch (action)
     {
     case ADD_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR( "Validation failed on frame, the frame is added to the list anyway" );
+      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
       break;
     case ADD_INVALID_FRAME:
-      LOG_DEBUG( "Validation failed on frame, the frame is added to the list anyway" );
+      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
       break;
     case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR( "Validation failed on frame, the frame is ignored" );
+      LOG_ERROR("Validation failed on frame, the frame is ignored");
       delete trackedFrame;
       return PLUS_FAIL;
     case SKIP_INVALID_FRAME:
-      LOG_DEBUG( "Validation failed on frame, the frame is ignored" );
+      LOG_DEBUG("Validation failed on frame, the frame is ignored");
       delete trackedFrame;
       return PLUS_SUCCESS;
     }
   }
 
   // Make a copy and add frame to the list
-  this->TrackedFrameList.push_back( trackedFrame );
+  this->TrackedFrameList.push_back(trackedFrame);
   return PLUS_SUCCESS;
 }
 
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateData( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateData(PlusTrackedFrame* trackedFrame)
 {
-  if ( this->ValidationRequirements == 0 )
+  if (this->ValidationRequirements == 0)
   {
     // If we don't want to validate return immediately
     return true;
   }
 
-  if ( this->ValidationRequirements & REQUIRE_UNIQUE_TIMESTAMP )
+  if (this->ValidationRequirements & REQUIRE_UNIQUE_TIMESTAMP)
   {
-    if ( ! this->ValidateTimestamp( trackedFrame ) )
+    if (! this->ValidateTimestamp(trackedFrame))
     {
-      LOG_DEBUG( "Validation failed - timestamp is not unique: " << trackedFrame->GetTimestamp() );
+      LOG_DEBUG("Validation failed - timestamp is not unique: " << trackedFrame->GetTimestamp());
       return false;
     }
   }
 
-  if ( this->ValidationRequirements & REQUIRE_TRACKING_OK )
+  if (this->ValidationRequirements & REQUIRE_TRACKING_OK)
   {
-    if ( ! this->ValidateStatus( trackedFrame ) )
+    if (! this->ValidateStatus(trackedFrame))
     {
-      LOG_DEBUG( "Validation failed - tracking status in not OK" );
+      LOG_DEBUG("Validation failed - tracking status in not OK");
       return false;
     }
   }
 
-  if ( this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM )
+  if (this->ValidationRequirements & REQUIRE_CHANGED_TRANSFORM)
   {
-    if ( ! this->ValidateTransform( trackedFrame ) )
+    if (! this->ValidateTransform(trackedFrame))
     {
-      LOG_DEBUG( "Validation failed - transform is not changed" );
+      LOG_DEBUG("Validation failed - transform is not changed");
       return false;
     }
   }
 
-  if ( this->ValidationRequirements & REQUIRE_CHANGED_ENCODER_POSITION )
+  if (this->ValidationRequirements & REQUIRE_CHANGED_ENCODER_POSITION)
   {
-    if ( ! this->ValidateEncoderPosition( trackedFrame ) )
+    if (! this->ValidateEncoderPosition(trackedFrame))
     {
-      LOG_DEBUG( "Validation failed - encoder position is not changed" );
+      LOG_DEBUG("Validation failed - encoder position is not changed");
       return false;
     }
   }
 
 
-  if ( this->ValidationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD )
+  if (this->ValidationRequirements & REQUIRE_SPEED_BELOW_THRESHOLD)
   {
-    if ( ! this->ValidateSpeed( trackedFrame ) )
+    if (! this->ValidateSpeed(trackedFrame))
     {
-      LOG_DEBUG( "Validation failed - speed is higher than threshold" );
+      LOG_DEBUG("Validation failed - speed is higher than threshold");
       return false;
     }
   }
@@ -271,24 +271,24 @@ bool vtkPlusTrackedFrameList::ValidateData( PlusTrackedFrame* trackedFrame )
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateTimestamp( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateTimestamp(PlusTrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() == 0 )
+  if (this->TrackedFrameList.size() == 0)
   {
     // the existing list is empty, so any frame has unique timestamp and therefore valid
     return true;
   }
-  const bool isTimestampUnique = std::find_if( this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder( trackedFrame ) ) == this->TrackedFrameList.end();
+  const bool isTimestampUnique = std::find_if(this->TrackedFrameList.begin(), this->TrackedFrameList.end(), TrackedFrameTimestampFinder(trackedFrame)) == this->TrackedFrameList.end();
   // validation passed if the timestamp is unique
   return isTimestampUnique;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateEncoderPosition( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateEncoderPosition(PlusTrackedFrame* trackedFrame)
 {
   TrackedFrameListType::iterator searchIndex;
   const int containerSize = this->TrackedFrameList.size();
-  if ( containerSize < this->NumberOfUniqueFrames )
+  if (containerSize < this->NumberOfUniqueFrames)
   {
     searchIndex = this->TrackedFrameList.begin();
   }
@@ -297,22 +297,22 @@ bool vtkPlusTrackedFrameList::ValidateEncoderPosition( PlusTrackedFrame* tracked
     searchIndex = this->TrackedFrameList.end() - this->NumberOfUniqueFrames;
   }
 
-  if ( std::find_if( searchIndex, this->TrackedFrameList.end(), PlusTrackedFrameEncoderPositionFinder( trackedFrame,
-                     this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg ) ) != this->TrackedFrameList.end() )
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), PlusTrackedFrameEncoderPositionFinder(trackedFrame,
+                   this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg)) != this->TrackedFrameList.end())
   {
     // We've already inserted this frame
-    LOG_DEBUG( "Tracked frame encoder position validation result: we've already inserted this frame to container!" );
+    LOG_DEBUG("Tracked frame encoder position validation result: we've already inserted this frame to container!");
     return false;
   }
   return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateTransform( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateTransform(PlusTrackedFrame* trackedFrame)
 {
   TrackedFrameListType::iterator searchIndex;
   const int containerSize = this->TrackedFrameList.size();
-  if ( containerSize < this->NumberOfUniqueFrames )
+  if (containerSize < this->NumberOfUniqueFrames)
   {
     searchIndex = this->TrackedFrameList.begin();
   }
@@ -321,11 +321,11 @@ bool vtkPlusTrackedFrameList::ValidateTransform( PlusTrackedFrame* trackedFrame 
     searchIndex = this->TrackedFrameList.end() - this->NumberOfUniqueFrames;
   }
 
-  if ( std::find_if( searchIndex, this->TrackedFrameList.end(), TrackedFrameTransformFinder( trackedFrame, this->FrameTransformNameForValidation,
-                     this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg ) ) != this->TrackedFrameList.end() )
+  if (std::find_if(searchIndex, this->TrackedFrameList.end(), TrackedFrameTransformFinder(trackedFrame, this->FrameTransformNameForValidation,
+                   this->MinRequiredTranslationDifferenceMm, this->MinRequiredAngleDifferenceDeg)) != this->TrackedFrameList.end())
   {
     // We've already inserted this frame
-    LOG_DEBUG( "Tracked frame transform validation result: we've already inserted this frame to container!" );
+    LOG_DEBUG("Tracked frame transform validation result: we've already inserted this frame to container!");
     return false;
   }
 
@@ -333,14 +333,14 @@ bool vtkPlusTrackedFrameList::ValidateTransform( PlusTrackedFrame* trackedFrame 
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateStatus( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateStatus(PlusTrackedFrame* trackedFrame)
 {
   vtkPlusTransformRepository* repo = vtkPlusTransformRepository::New();
-  repo->SetTransforms( *trackedFrame );
-  bool isValid( false );
-  if( repo->GetTransformValid( this->FrameTransformNameForValidation, isValid ) != PLUS_SUCCESS )
+  repo->SetTransforms(*trackedFrame);
+  bool isValid(false);
+  if (repo->GetTransformValid(this->FrameTransformNameForValidation, isValid) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to retrieve transform \'" << this->FrameTransformNameForValidation.GetTransformName() << "\'." );
+    LOG_ERROR("Unable to retrieve transform \'" << this->FrameTransformNameForValidation.GetTransformName() << "\'.");
   }
   repo->Delete();
 
@@ -348,9 +348,9 @@ bool vtkPlusTrackedFrameList::ValidateStatus( PlusTrackedFrame* trackedFrame )
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusTrackedFrameList::ValidateSpeed( PlusTrackedFrame* trackedFrame )
+bool vtkPlusTrackedFrameList::ValidateSpeed(PlusTrackedFrame* trackedFrame)
 {
-  if ( this->TrackedFrameList.size() < 1 )
+  if (this->TrackedFrameList.size() < 1)
   {
     return true;
   }
@@ -358,8 +358,8 @@ bool vtkPlusTrackedFrameList::ValidateSpeed( PlusTrackedFrame* trackedFrame )
   TrackedFrameListType::iterator latestFrameInList = this->TrackedFrameList.end() - 1;
 
   // Compute difference between the last two timestamps
-  double diffTimeSec = fabs( trackedFrame->GetTimestamp() - ( *latestFrameInList )->GetTimestamp() );
-  if ( diffTimeSec < 0.0001 )
+  double diffTimeSec = fabs(trackedFrame->GetTimestamp() - (*latestFrameInList)->GetTimestamp());
+  if (diffTimeSec < 0.0001)
   {
     // the frames are almost acquired at the same time, cannot compute speed reliably
     // better to invalidate the frame
@@ -368,50 +368,50 @@ bool vtkPlusTrackedFrameList::ValidateSpeed( PlusTrackedFrame* trackedFrame )
 
   vtkSmartPointer<vtkMatrix4x4> inputTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double inputTransformVector[16] = {0};
-  if ( trackedFrame->GetCustomFrameTransform( this->FrameTransformNameForValidation, inputTransformVector ) )
+  if (trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector))
   {
-    inputTransformMatrix->DeepCopy( inputTransformVector );
+    inputTransformMatrix->DeepCopy(inputTransformVector);
   }
   else
   {
     std::string strFrameTransformName;
-    this->FrameTransformNameForValidation.GetTransformName( strFrameTransformName );
-    LOG_ERROR( "Unable to get frame transform '" << strFrameTransformName << "' from input tracked frame!" );
+    this->FrameTransformNameForValidation.GetTransformName(strFrameTransformName);
+    LOG_ERROR("Unable to get frame transform '" << strFrameTransformName << "' from input tracked frame!");
     return false;
   }
 
   vtkSmartPointer<vtkMatrix4x4> latestTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double latestTransformVector[16] = {0};
-  if ( ( *latestFrameInList )->GetCustomFrameTransform( this->FrameTransformNameForValidation, latestTransformVector ) )
+  if ((*latestFrameInList)->GetCustomFrameTransform(this->FrameTransformNameForValidation, latestTransformVector))
   {
-    latestTransformMatrix->DeepCopy( latestTransformVector );
+    latestTransformMatrix->DeepCopy(latestTransformVector);
   }
   else
   {
-    LOG_ERROR( "Unable to get default frame transform for latest frame!" );
+    LOG_ERROR("Unable to get default frame transform for latest frame!");
     return false;
   }
 
-  if ( this->MaxAllowedTranslationSpeedMmPerSec > 0 )
+  if (this->MaxAllowedTranslationSpeedMmPerSec > 0)
   {
     // Compute difference between the last two positions
-    double diffPosition = PlusMath::GetPositionDifference( inputTransformMatrix, latestTransformMatrix );
-    double velocityPositionMmPerSec = fabs( diffPosition / diffTimeSec );
-    if ( velocityPositionMmPerSec > this->MaxAllowedTranslationSpeedMmPerSec )
+    double diffPosition = PlusMath::GetPositionDifference(inputTransformMatrix, latestTransformMatrix);
+    double velocityPositionMmPerSec = fabs(diffPosition / diffTimeSec);
+    if (velocityPositionMmPerSec > this->MaxAllowedTranslationSpeedMmPerSec)
     {
-      LOG_DEBUG( "Tracked frame speed validation result: tracked frame position change too fast (VelocityPosition = " << velocityPositionMmPerSec << ">" << this->MaxAllowedTranslationSpeedMmPerSec << " mm/sec)" );
+      LOG_DEBUG("Tracked frame speed validation result: tracked frame position change too fast (VelocityPosition = " << velocityPositionMmPerSec << ">" << this->MaxAllowedTranslationSpeedMmPerSec << " mm/sec)");
       return false;
     }
   }
 
-  if ( this->MaxAllowedRotationSpeedDegPerSec > 0 )
+  if (this->MaxAllowedRotationSpeedDegPerSec > 0)
   {
     // Compute difference between the last two orientations
-    double diffOrientationDeg = PlusMath::GetOrientationDifference( inputTransformMatrix, latestTransformMatrix );
-    double velocityOrientationDegPerSec = fabs( diffOrientationDeg / diffTimeSec );
-    if ( velocityOrientationDegPerSec > this->MaxAllowedRotationSpeedDegPerSec )
+    double diffOrientationDeg = PlusMath::GetOrientationDifference(inputTransformMatrix, latestTransformMatrix);
+    double velocityOrientationDegPerSec = fabs(diffOrientationDeg / diffTimeSec);
+    if (velocityOrientationDegPerSec > this->MaxAllowedRotationSpeedDegPerSec)
     {
-      LOG_DEBUG( "Tracked frame speed validation result: tracked frame angle change too fast VelocityOrientation = " << velocityOrientationDegPerSec << ">" << this->MaxAllowedRotationSpeedDegPerSec << " deg/sec)" );
+      LOG_DEBUG("Tracked frame speed validation result: tracked frame angle change too fast VelocityOrientation = " << velocityOrientationDegPerSec << ">" << this->MaxAllowedRotationSpeedDegPerSec << " deg/sec)");
       return false;
     }
   }
@@ -423,13 +423,13 @@ bool vtkPlusTrackedFrameList::ValidateSpeed( PlusTrackedFrame* trackedFrame )
 int vtkPlusTrackedFrameList::GetNumberOfBitsPerScalar()
 {
   int numberOfBitsPerScalar = 0;
-  if ( this->GetNumberOfTrackedFrames() > 0 )
+  if (this->GetNumberOfTrackedFrames() > 0)
   {
-    numberOfBitsPerScalar = this->GetTrackedFrame( 0 )->GetNumberOfBitsPerScalar();
+    numberOfBitsPerScalar = this->GetTrackedFrame(0)->GetNumberOfBitsPerScalar();
   }
   else
   {
-    LOG_WARNING( "Unable to get bits per scalar: there is no frame in the tracked frame list!" );
+    LOG_WARNING("Unable to get bits per scalar: there is no frame in the tracked frame list!");
   }
 
   return numberOfBitsPerScalar;
@@ -439,60 +439,60 @@ int vtkPlusTrackedFrameList::GetNumberOfBitsPerScalar()
 int vtkPlusTrackedFrameList::GetNumberOfBitsPerPixel()
 {
   int numberOfBitsPerPixel = 0;
-  if ( this->GetNumberOfTrackedFrames() > 0 )
+  if (this->GetNumberOfTrackedFrames() > 0)
   {
-    numberOfBitsPerPixel = this->GetTrackedFrame( 0 )->GetNumberOfBitsPerPixel();
+    numberOfBitsPerPixel = this->GetTrackedFrame(0)->GetNumberOfBitsPerPixel();
   }
   else
   {
-    LOG_WARNING( "Unable to get bits per pixel: there is no frame in the tracked frame list!" );
+    LOG_WARNING("Unable to get bits per pixel: there is no frame in the tracked frame list!");
   }
 
   return numberOfBitsPerPixel;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::SaveToSequenceMetafile( const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*=true*/, bool enableImageDataWrite /*=true*/ )
+PlusStatus vtkPlusTrackedFrameList::SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*=true*/, bool enableImageDataWrite /*=true*/)
 {
   vtkSmartPointer<vtkPlusMetaImageSequenceIO> writer = vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();
-  writer->SetUseCompression( useCompression );
-  writer->SetFileName( filename );
-  writer->SetImageOrientationInFile( orientationInFile );
-  writer->SetTrackedFrameList( this );
-  writer->SetEnableImageDataWrite( enableImageDataWrite );
+  writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetImageOrientationInFile(orientationInFile);
+  writer->SetTrackedFrameList(this);
+  writer->SetEnableImageDataWrite(enableImageDataWrite);
   if (this->GetNumberOfTrackedFrames() == 1)
   {
     writer->IsDataTimeSeriesOff();
   }
-  if ( writer->Write() != PLUS_SUCCESS )
+  if (writer->Write() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Couldn't write sequence metafile: " <<  filename );
+    LOG_ERROR("Couldn't write sequence metafile: " <<  filename);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::ReadFromSequenceMetafile( const std::string& trackedSequenceDataFileName )
+PlusStatus vtkPlusTrackedFrameList::ReadFromSequenceMetafile(const std::string& trackedSequenceDataFileName)
 {
   std::string trackedSequenceDataFilePath = trackedSequenceDataFileName;
 
   // If file is not found in the current directory then try to find it in the image directory, too
-  if ( !vtksys::SystemTools::FileExists( trackedSequenceDataFilePath.c_str(), true ) )
+  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
   {
-    if ( vtkPlusConfig::GetInstance()->FindImagePath( trackedSequenceDataFileName, trackedSequenceDataFilePath ) == PLUS_FAIL )
+    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath) == PLUS_FAIL)
     {
-      LOG_ERROR( "Cannot find sequence metafile: " << trackedSequenceDataFileName );
+      LOG_ERROR("Cannot find sequence metafile: " << trackedSequenceDataFileName);
       return PLUS_FAIL;
     }
   }
 
   vtkSmartPointer<vtkPlusMetaImageSequenceIO> reader = vtkSmartPointer<vtkPlusMetaImageSequenceIO>::New();
-  reader->SetFileName( trackedSequenceDataFilePath.c_str() );
-  reader->SetTrackedFrameList( this );
-  if ( reader->Read() != PLUS_SUCCESS )
+  reader->SetFileName(trackedSequenceDataFilePath.c_str());
+  reader->SetTrackedFrameList(this);
+  if (reader->Read() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Couldn't read sequence metafile: " <<  trackedSequenceDataFileName );
+    LOG_ERROR("Couldn't read sequence metafile: " <<  trackedSequenceDataFileName);
     return PLUS_FAIL;
   }
 
@@ -500,47 +500,47 @@ PlusStatus vtkPlusTrackedFrameList::ReadFromSequenceMetafile( const std::string&
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::SaveToNrrdFile( const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/ )
+PlusStatus vtkPlusTrackedFrameList::SaveToNrrdFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/)
 {
   vtkSmartPointer<vtkPlusNrrdSequenceIO> writer = vtkSmartPointer<vtkPlusNrrdSequenceIO>::New();
-  writer->SetUseCompression( useCompression );
-  writer->SetFileName( filename );
-  writer->SetImageOrientationInFile( orientationInFile );
-  writer->SetTrackedFrameList( this );
-  writer->SetEnableImageDataWrite( enableImageDataWrite );
+  writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetImageOrientationInFile(orientationInFile);
+  writer->SetTrackedFrameList(this);
+  writer->SetEnableImageDataWrite(enableImageDataWrite);
   if (this->GetNumberOfTrackedFrames() == 1)
   {
     writer->IsDataTimeSeriesOff();
   }
-  if ( writer->Write() != PLUS_SUCCESS )
+  if (writer->Write() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Couldn't write Nrrd file: " <<  filename );
+    LOG_ERROR("Couldn't write Nrrd file: " <<  filename);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::ReadFromNrrdFile( const std::string& trackedSequenceDataFileName )
+PlusStatus vtkPlusTrackedFrameList::ReadFromNrrdFile(const std::string& trackedSequenceDataFileName)
 {
-  std::string trackedSequenceDataFilePath( trackedSequenceDataFileName );
+  std::string trackedSequenceDataFilePath(trackedSequenceDataFileName);
 
   // If file is not found in the current directory then try to find it in the image directory, too
-  if ( !vtksys::SystemTools::FileExists( trackedSequenceDataFilePath.c_str(), true ) )
+  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
   {
-    if ( vtkPlusConfig::GetInstance()->FindImagePath( trackedSequenceDataFileName, trackedSequenceDataFilePath ) == PLUS_FAIL )
+    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath) == PLUS_FAIL)
     {
-      LOG_ERROR( "Cannot find Nrrd file: " << trackedSequenceDataFileName );
+      LOG_ERROR("Cannot find Nrrd file: " << trackedSequenceDataFileName);
       return PLUS_FAIL;
     }
   }
 
   vtkSmartPointer<vtkPlusNrrdSequenceIO> reader = vtkSmartPointer<vtkPlusNrrdSequenceIO>::New();
-  reader->SetFileName( trackedSequenceDataFilePath.c_str() );
-  reader->SetTrackedFrameList( this );
-  if ( reader->Read() != PLUS_SUCCESS )
+  reader->SetFileName(trackedSequenceDataFilePath.c_str());
+  reader->SetTrackedFrameList(this);
+  if (reader->Read() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Couldn't read Nrrd file: " <<  trackedSequenceDataFileName );
+    LOG_ERROR("Couldn't read Nrrd file: " <<  trackedSequenceDataFileName);
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -549,84 +549,84 @@ PlusStatus vtkPlusTrackedFrameList::ReadFromNrrdFile( const std::string& tracked
 //-----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType vtkPlusTrackedFrameList::GetPixelType()
 {
-  if ( this->GetNumberOfTrackedFrames() < 1 )
+  if (this->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR( "Unable to get pixel type size: there is no frame in the tracked frame list!" );
+    LOG_ERROR("Unable to get pixel type size: there is no frame in the tracked frame list!");
     return VTK_VOID;
   }
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame( i )->GetImageData()->GetVTKScalarPixelType();
+      return this->GetTrackedFrame(i)->GetImageData()->GetVTKScalarPixelType();
     }
   }
 
-  LOG_WARNING( "There are no valid images in the tracked frame list." );
+  LOG_WARNING("There are no valid images in the tracked frame list.");
   return VTK_VOID;
 }
 
 //-----------------------------------------------------------------------------
 int vtkPlusTrackedFrameList::GetNumberOfScalarComponents()
 {
-  if ( this->GetNumberOfTrackedFrames() < 1 )
+  if (this->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR( "Unable to get number of scalar components: there is no frame in the tracked frame list!" );
+    LOG_ERROR("Unable to get number of scalar components: there is no frame in the tracked frame list!");
     return 1;
   }
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame( i )->GetImageData()->GetImage()->GetNumberOfScalarComponents();
+      return this->GetTrackedFrame(i)->GetImageData()->GetImage()->GetNumberOfScalarComponents();
     }
   }
 
-  LOG_WARNING( "There are no valid images in the tracked frame list." );
+  LOG_WARNING("There are no valid images in the tracked frame list.");
   return 1;
 }
 
 //-----------------------------------------------------------------------------
 US_IMAGE_ORIENTATION vtkPlusTrackedFrameList::GetImageOrientation()
 {
-  if ( this->GetNumberOfTrackedFrames() < 1 )
+  if (this->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR( "Unable to get image orientation: there is no frame in the tracked frame list!" );
+    LOG_ERROR("Unable to get image orientation: there is no frame in the tracked frame list!");
     return US_IMG_ORIENT_XX;
   }
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame( i )->GetImageData()->GetImageOrientation();
+      return this->GetTrackedFrame(i)->GetImageData()->GetImageOrientation();
     }
   }
 
-  LOG_WARNING( "There are no valid images in the tracked frame list." );
+  LOG_WARNING("There are no valid images in the tracked frame list.");
   return US_IMG_ORIENT_XX;
 }
 
 //-----------------------------------------------------------------------------
 US_IMAGE_TYPE vtkPlusTrackedFrameList::GetImageType()
 {
-  if ( this->GetNumberOfTrackedFrames() < 1 )
+  if (this->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR( "Unable to get image type: there is no frame in the tracked frame list!" );
+    LOG_ERROR("Unable to get image type: there is no frame in the tracked frame list!");
     return US_IMG_TYPE_XX;
   }
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame( i )->GetImageData()->GetImageType();
+      return this->GetTrackedFrame(i)->GetImageData()->GetImageType();
     }
   }
 
-  LOG_WARNING( "There are no valid images in the tracked frame list." );
+  LOG_WARNING("There are no valid images in the tracked frame list.");
   return US_IMG_TYPE_XX;
 }
 
@@ -634,30 +634,30 @@ US_IMAGE_TYPE vtkPlusTrackedFrameList::GetImageType()
 //----------------------------------------------------------------------------
 unsigned int* vtkPlusTrackedFrameList::GetFrameSize()
 {
-  if ( this->GetNumberOfTrackedFrames() < 1 )
+  if (this->GetNumberOfTrackedFrames() < 1)
   {
-    LOG_ERROR( "Unable to get image type: there are no frames in the tracked frame list!" );
+    LOG_ERROR("Unable to get image type: there are no frames in the tracked frame list!");
     return NULL;
   }
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData() && this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData() && this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame( i )->GetFrameSize();
+      return this->GetTrackedFrame(i)->GetFrameSize();
     }
   }
 
-  LOG_WARNING( "There are no valid images in the tracked frame list." );
+  LOG_WARNING("There are no valid images in the tracked frame list.");
   return NULL;
 }
 
 //----------------------------------------------------------------------------
-const char* vtkPlusTrackedFrameList::GetCustomString( const char* fieldName )
+const char* vtkPlusTrackedFrameList::GetCustomString(const char* fieldName)
 {
   FieldMapType::iterator fieldIterator;
-  fieldIterator = this->CustomFields.find( fieldName );
-  if ( fieldIterator != this->CustomFields.end() )
+  fieldIterator = this->CustomFields.find(fieldName);
+  if (fieldIterator != this->CustomFields.end())
   {
     return fieldIterator->second.c_str();
   }
@@ -666,45 +666,45 @@ const char* vtkPlusTrackedFrameList::GetCustomString( const char* fieldName )
 
 
 //----------------------------------------------------------------------------
-std::string vtkPlusTrackedFrameList::GetCustomString( const std::string& fieldName ) const
+std::string vtkPlusTrackedFrameList::GetCustomString(const std::string& fieldName) const
 {
-  FieldMapType::const_iterator fieldIterator = this->CustomFields.find( fieldName );
-  if ( fieldIterator != this->CustomFields.end() )
+  FieldMapType::const_iterator fieldIterator = this->CustomFields.find(fieldName);
+  if (fieldIterator != this->CustomFields.end())
   {
     return fieldIterator->second;
   }
-  return std::string( "" );
+  return std::string("");
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::GetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+PlusStatus vtkPlusTrackedFrameList::GetCustomTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix)
 {
   double transform[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
-  const PlusStatus retValue = this->GetCustomTransform( frameTransformName, transform );
-  transformMatrix->DeepCopy( transform );
+  const PlusStatus retValue = this->GetCustomTransform(frameTransformName, transform);
+  transformMatrix->DeepCopy(transform);
 
   return retValue;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::GetCustomTransform( const char* frameTransformName, double* transformMatrix )
+PlusStatus vtkPlusTrackedFrameList::GetCustomTransform(const char* frameTransformName, double* transformMatrix)
 {
-  if ( frameTransformName == NULL )
+  if (frameTransformName == NULL)
   {
-    LOG_ERROR( "Invalid frame transform name" );
+    LOG_ERROR("Invalid frame transform name");
     return PLUS_FAIL;
   }
-  const char* customString = this->GetCustomString( frameTransformName );
-  if ( customString == NULL )
+  const char* customString = this->GetCustomString(frameTransformName);
+  if (customString == NULL)
   {
-    LOG_ERROR( "Cannot find frame transform " << frameTransformName );
+    LOG_ERROR("Cannot find frame transform " << frameTransformName);
     return PLUS_FAIL;
   }
 
-  std::istringstream transformFieldValue( customString );
+  std::istringstream transformFieldValue(customString);
   double item;
   int i = 0;
-  while ( transformFieldValue >> item )
+  while (transformFieldValue >> item)
   {
     transformMatrix[i++] = item;
   }
@@ -713,22 +713,22 @@ PlusStatus vtkPlusTrackedFrameList::GetCustomTransform( const char* frameTransfo
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTrackedFrameList::SetCustomTransform( const char* frameTransformName, vtkMatrix4x4* transformMatrix )
+void vtkPlusTrackedFrameList::SetCustomTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix)
 {
   double transform[16];
-  for ( int i = 0; i < 4; i++ )
+  for (int i = 0; i < 4; i++)
   {
-    for ( int j = 0; j < 4; j++ )
+    for (int j = 0; j < 4; j++)
     {
-      transform[i * 4 + j] = transformMatrix->GetElement( i, j );
+      transform[i * 4 + j] = transformMatrix->GetElement(i, j);
     }
   }
 
-  this->SetCustomTransform( frameTransformName, transform );
+  this->SetCustomTransform(frameTransformName, transform);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTrackedFrameList::SetCustomTransform( const char* frameTransformName, double* transformMatrix )
+void vtkPlusTrackedFrameList::SetCustomTransform(const char* frameTransformName, double* transformMatrix)
 {
   std::ostringstream transform;
 
@@ -737,20 +737,20 @@ void vtkPlusTrackedFrameList::SetCustomTransform( const char* frameTransformName
              << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " "
              << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " ";
 
-  this->SetCustomString( frameTransformName, transform.str().c_str() );
+  this->SetCustomString(frameTransformName, transform.str().c_str());
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::SetCustomString( const char* fieldName, const char* fieldValue )
+PlusStatus vtkPlusTrackedFrameList::SetCustomString(const char* fieldName, const char* fieldValue)
 {
-  if ( fieldName == NULL )
+  if (fieldName == NULL)
   {
-    LOG_ERROR( "Field name is invalid" );
+    LOG_ERROR("Field name is invalid");
     return PLUS_FAIL;
   }
-  if ( fieldValue == NULL )
+  if (fieldValue == NULL)
   {
-    this->CustomFields.erase( fieldName );
+    this->CustomFields.erase(fieldName);
     return PLUS_SUCCESS;
   }
   this->CustomFields[fieldName] = fieldValue;
@@ -758,16 +758,16 @@ PlusStatus vtkPlusTrackedFrameList::SetCustomString( const char* fieldName, cons
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::SetCustomString( const std::string& fieldName, const std::string& fieldValue )
+PlusStatus vtkPlusTrackedFrameList::SetCustomString(const std::string& fieldName, const std::string& fieldValue)
 {
-  if ( fieldName.empty() )
+  if (fieldName.empty())
   {
-    LOG_ERROR( "Field name is invalid" );
+    LOG_ERROR("Field name is invalid");
     return PLUS_FAIL;
   }
-  if ( fieldValue.empty() )
+  if (fieldValue.empty())
   {
-    this->CustomFields.erase( fieldName );
+    this->CustomFields.erase(fieldName);
     return PLUS_SUCCESS;
   }
   this->CustomFields[fieldName] = fieldValue;
@@ -775,28 +775,28 @@ PlusStatus vtkPlusTrackedFrameList::SetCustomString( const std::string& fieldNam
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTrackedFrameList::GetCustomFieldNameList( std::vector<std::string>& fieldNames )
+void vtkPlusTrackedFrameList::GetCustomFieldNameList(std::vector<std::string>& fieldNames)
 {
   fieldNames.clear();
-  for ( FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++ )
+  for (FieldMapType::const_iterator it = this->CustomFields.begin(); it != this->CustomFields.end(); it++)
   {
-    fieldNames.push_back( it->first );
+    fieldNames.push_back(it->first);
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::GetGlobalTransform( vtkMatrix4x4* globalTransform )
+PlusStatus vtkPlusTrackedFrameList::GetGlobalTransform(vtkMatrix4x4* globalTransform)
 {
-  const char* offsetStr = GetCustomString( "Offset" );
-  if ( offsetStr == NULL )
+  const char* offsetStr = GetCustomString("Offset");
+  if (offsetStr == NULL)
   {
-    LOG_ERROR( "Cannot determine global transform, Offset is undefined" );
+    LOG_ERROR("Cannot determine global transform, Offset is undefined");
     return PLUS_FAIL;
   }
-  const char* transformStr = GetCustomString( "TransformMatrix" );
-  if ( transformStr == NULL )
+  const char* transformStr = GetCustomString("TransformMatrix");
+  if (transformStr == NULL)
   {
-    LOG_ERROR( "Cannot determine global transform, TransformMatrix is undefined" );
+    LOG_ERROR("Cannot determine global transform, TransformMatrix is undefined");
     return PLUS_FAIL;
   }
 
@@ -805,89 +805,89 @@ PlusStatus vtkPlusTrackedFrameList::GetGlobalTransform( vtkMatrix4x4* globalTran
 
   const int offsetLen = 3;
   double offset[offsetLen];
-  std::istringstream offsetFieldValue( offsetStr );
-  for ( i = 0; offsetFieldValue >> item && i < offsetLen; i++ )
+  std::istringstream offsetFieldValue(offsetStr);
+  for (i = 0; offsetFieldValue >> item && i < offsetLen; i++)
   {
     offset[i] = item;
   }
-  if ( i < offsetLen )
+  if (i < offsetLen)
   {
-    LOG_ERROR( "Not enough elements in the Offset field (expected " << offsetLen << ", found " << i << ")" );
+    LOG_ERROR("Not enough elements in the Offset field (expected " << offsetLen << ", found " << i << ")");
     return PLUS_FAIL;
   }
 
   const int transformLen = 9;
   double transform[transformLen];
-  std::istringstream transformFieldValue( transformStr );
-  for ( i = 0; transformFieldValue >> item && i < transformLen; i++ )
+  std::istringstream transformFieldValue(transformStr);
+  for (i = 0; transformFieldValue >> item && i < transformLen; i++)
   {
     transform[i] = item;
   }
-  if ( i < transformLen )
+  if (i < transformLen)
   {
-    LOG_ERROR( "Not enough elements in the TransformMatrix field (expected " << transformLen << ", found " << i << ")" );
+    LOG_ERROR("Not enough elements in the TransformMatrix field (expected " << transformLen << ", found " << i << ")");
     return PLUS_FAIL;
   }
 
   globalTransform->Identity();
 
-  globalTransform->SetElement( 0, 3, offset[0] );
-  globalTransform->SetElement( 1, 3, offset[1] );
-  globalTransform->SetElement( 2, 3, offset[2] );
+  globalTransform->SetElement(0, 3, offset[0]);
+  globalTransform->SetElement(1, 3, offset[1]);
+  globalTransform->SetElement(2, 3, offset[2]);
 
-  globalTransform->SetElement( 0, 0, transform[0] );
-  globalTransform->SetElement( 0, 1, transform[1] );
-  globalTransform->SetElement( 0, 2, transform[2] );
-  globalTransform->SetElement( 1, 0, transform[3] );
-  globalTransform->SetElement( 1, 1, transform[4] );
-  globalTransform->SetElement( 1, 2, transform[5] );
-  globalTransform->SetElement( 2, 0, transform[6] );
-  globalTransform->SetElement( 2, 1, transform[7] );
-  globalTransform->SetElement( 2, 2, transform[8] );
+  globalTransform->SetElement(0, 0, transform[0]);
+  globalTransform->SetElement(0, 1, transform[1]);
+  globalTransform->SetElement(0, 2, transform[2]);
+  globalTransform->SetElement(1, 0, transform[3]);
+  globalTransform->SetElement(1, 1, transform[4]);
+  globalTransform->SetElement(1, 2, transform[5]);
+  globalTransform->SetElement(2, 0, transform[6]);
+  globalTransform->SetElement(2, 1, transform[7]);
+  globalTransform->SetElement(2, 2, transform[8]);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::SetGlobalTransform( vtkMatrix4x4* globalTransform )
+PlusStatus vtkPlusTrackedFrameList::SetGlobalTransform(vtkMatrix4x4* globalTransform)
 {
   std::ostringstream strOffset;
-  strOffset << globalTransform->GetElement( 0, 3 )
-            << " " << globalTransform->GetElement( 1, 3 )
-            << " " << globalTransform->GetElement( 2, 3 );
-  SetCustomString( "Offset", strOffset.str().c_str() );
+  strOffset << globalTransform->GetElement(0, 3)
+            << " " << globalTransform->GetElement(1, 3)
+            << " " << globalTransform->GetElement(2, 3);
+  SetCustomString("Offset", strOffset.str().c_str());
 
   std::ostringstream strTransform;
-  strTransform << globalTransform->GetElement( 0, 0 ) << " " << globalTransform->GetElement( 0, 1 ) << " " << globalTransform->GetElement( 0, 2 ) << " ";
-  strTransform << globalTransform->GetElement( 1, 0 ) << " " << globalTransform->GetElement( 1, 1 ) << " " << globalTransform->GetElement( 1, 2 ) << " ";
-  strTransform << globalTransform->GetElement( 2, 0 ) << " " << globalTransform->GetElement( 2, 1 ) << " " << globalTransform->GetElement( 2, 2 );
-  SetCustomString( "TransformMatrix", strTransform.str().c_str() );
+  strTransform << globalTransform->GetElement(0, 0) << " " << globalTransform->GetElement(0, 1) << " " << globalTransform->GetElement(0, 2) << " ";
+  strTransform << globalTransform->GetElement(1, 0) << " " << globalTransform->GetElement(1, 1) << " " << globalTransform->GetElement(1, 2) << " ";
+  strTransform << globalTransform->GetElement(2, 0) << " " << globalTransform->GetElement(2, 1) << " " << globalTransform->GetElement(2, 2);
+  SetCustomString("TransformMatrix", strTransform.str().c_str());
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::VerifyProperties( vtkPlusTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType )
+PlusStatus vtkPlusTrackedFrameList::VerifyProperties(vtkPlusTrackedFrameList* trackedFrameList, US_IMAGE_ORIENTATION expectedOrientation, US_IMAGE_TYPE expectedType)
 {
-  if ( trackedFrameList == NULL )
+  if (trackedFrameList == NULL)
   {
-    LOG_ERROR( "vtkPlusTrackedFrameList::VerifyProperties failed: tracked frame list is NULL!" );
+    LOG_ERROR("vtkPlusTrackedFrameList::VerifyProperties failed: tracked frame list is NULL!");
     return PLUS_FAIL;
   }
-  if ( trackedFrameList->GetImageOrientation() != expectedOrientation )
+  if (trackedFrameList->GetImageOrientation() != expectedOrientation)
   {
-    LOG_ERROR( "vtkPlusTrackedFrameList::VerifyProperties failed: expected image orientation is "
-               << PlusVideoFrame::GetStringFromUsImageOrientation( expectedOrientation )
-               << ", actual orientation is "
-               << PlusVideoFrame::GetStringFromUsImageOrientation( trackedFrameList->GetImageOrientation() )  );
+    LOG_ERROR("vtkPlusTrackedFrameList::VerifyProperties failed: expected image orientation is "
+              << PlusVideoFrame::GetStringFromUsImageOrientation(expectedOrientation)
+              << ", actual orientation is "
+              << PlusVideoFrame::GetStringFromUsImageOrientation(trackedFrameList->GetImageOrientation()));
     return PLUS_FAIL;
   }
-  if ( trackedFrameList->GetImageType() != expectedType )
+  if (trackedFrameList->GetImageType() != expectedType)
   {
-    LOG_ERROR( "vtkPlusTrackedFrameList::VerifyProperties failed: expected image type is "
-               << PlusVideoFrame::GetStringFromUsImageType( expectedType )
-               << ", actual type is "
-               << PlusVideoFrame::GetStringFromUsImageType( trackedFrameList->GetImageType() )  );
+    LOG_ERROR("vtkPlusTrackedFrameList::VerifyProperties failed: expected image type is "
+              << PlusVideoFrame::GetStringFromUsImageType(expectedType)
+              << ", actual type is "
+              << PlusVideoFrame::GetStringFromUsImageType(trackedFrameList->GetImageType()));
     return PLUS_FAIL;
   }
 
@@ -899,11 +899,11 @@ double vtkPlusTrackedFrameList::GetMostRecentTimestamp()
 {
   double mostRecentTimestamp = 0.0;
 
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetTimestamp() > mostRecentTimestamp )
+    if (this->GetTrackedFrame(i)->GetTimestamp() > mostRecentTimestamp)
     {
-      mostRecentTimestamp = this->GetTrackedFrame( i )->GetTimestamp();
+      mostRecentTimestamp = this->GetTrackedFrame(i)->GetTimestamp();
     }
   }
 
@@ -913,9 +913,9 @@ double vtkPlusTrackedFrameList::GetMostRecentTimestamp()
 //-----------------------------------------------------------------------------
 bool vtkPlusTrackedFrameList::IsContainingValidImageData()
 {
-  for ( unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i )
+  for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
-    if ( this->GetTrackedFrame( i )->GetImageData()->IsImageValid() )
+    if (this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
       // found a valid image
       return true;
@@ -923,4 +923,52 @@ bool vtkPlusTrackedFrameList::IsContainingValidImageData()
   }
   // no valid images found
   return false;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::iterator vtkPlusTrackedFrameList::begin()
+{
+  return TrackedFrameList.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator vtkPlusTrackedFrameList::begin() const
+{
+  return TrackedFrameList.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::iterator vtkPlusTrackedFrameList::end()
+{
+  return TrackedFrameList.end();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator vtkPlusTrackedFrameList::end() const
+{
+  return TrackedFrameList.end();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::iterator begin(vtkPlusTrackedFrameList& list)
+{
+  return list.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator begin(const vtkPlusTrackedFrameList& list)
+{
+  return list.begin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::iterator end(vtkPlusTrackedFrameList& list)
+{
+  return list.end();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator end(const vtkPlusTrackedFrameList& list)
+{
+  return list.end();
 }
