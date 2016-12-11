@@ -152,7 +152,10 @@ public:
   /*! Is this device a tracker */
   virtual bool IsTracker() const;
 
-  virtual bool IsVirtual() const { return false; }
+  virtual bool IsVirtual() const
+  {
+    return false;
+  }
   /*!
   Reset the device. The actual reset action is defined in subclasses. A reset is typically performed on the users request
   while the device is connected. A reset can be used for zeroing sensors, canceling an operation in progress, etc.
@@ -281,7 +284,10 @@ public:
   need to communicate with the device from outside of InternalUpdate().
   A call to this->UpdateMutex->Unlock() will resume the thread.
   */
-  virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalUpdate()
+  {
+    return PLUS_SUCCESS;
+  };
 
   //BTX
   // These are used by static functions in vtkPlusDevice.cxx, and since
@@ -298,10 +304,16 @@ public:
   PlusStatus SetAcquisitionRate(double aRate);
 
   /*! Get whether recording is underway */
-  bool IsRecording() const { return (this->Recording != 0); }
+  bool IsRecording() const
+  {
+    return (this->Recording != 0);
+  }
 
   /* Return the id of the device */
-  virtual char* GetDeviceId() const { return this->DeviceId; }
+  virtual char* GetDeviceId() const
+  {
+    return this->DeviceId;
+  }
   // Set the device Id
   vtkSetStringMacro(DeviceId);
 
@@ -319,7 +331,10 @@ public:
   otherwise it is the timestamp for the most recent frame, which is not
   necessarily the output
   */
-  virtual double GetFrameTimeStamp() { return this->FrameTimeStamp; };
+  virtual double GetFrameTimeStamp()
+  {
+    return this->FrameTimeStamp;
+  };
 
   /*!
   The result of GetOutput() will be the frame closest to DesiredTimestamp
@@ -364,7 +379,10 @@ public:
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int dim[3]) { return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]); };
+  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int dim[3])
+  {
+    return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]);
+  };
 
   /*! Get the full-frame size */
   virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z);
@@ -393,8 +411,12 @@ public:
 
   /*! Access the available output channels */
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char* aChannelId);
+  PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const std::string& aChannelId);
 
-  virtual int OutputChannelCount() const { return OutputChannels.size(); }
+  virtual int OutputChannelCount() const
+  {
+    return OutputChannels.size();
+  }
 
   ChannelContainerConstIterator GetOutputChannelsStart() const;
   ChannelContainerConstIterator GetOutputChannelsEnd() const;
@@ -407,7 +429,10 @@ public:
   /*!
   Perform any completion tasks once configured
   */
-  virtual PlusStatus NotifyConfigured() { return PLUS_SUCCESS; }
+  virtual PlusStatus NotifyConfigured()
+  {
+    return PLUS_SUCCESS;
+  }
 
   /*!
   Return the latest or desired image frame. This method can be overridden in subclasses
@@ -457,22 +482,34 @@ protected:
   PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output);
 
   /*! Should be overridden to connect to the hardware */
-  virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }
+  virtual PlusStatus InternalConnect()
+  {
+    return PLUS_SUCCESS;
+  }
 
   /*! Release the video driver. Should be overridden to disconnect from the hardware. */
-  virtual PlusStatus InternalDisconnect() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalDisconnect()
+  {
+    return PLUS_SUCCESS;
+  };
 
   /*!
   Called at the end of StartRecording to allow hardware-specific
   actions for starting the recording
   */
-  virtual PlusStatus InternalStartRecording() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalStartRecording()
+  {
+    return PLUS_SUCCESS;
+  };
 
   /*!
   Called at the beginning of StopRecording to allow hardware-specific
   actions for stopping the recording
   */
-  virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalStopRecording()
+  {
+    return PLUS_SUCCESS;
+  };
 
   /*!
   This function can be called to add a video item to the specified video data sources
@@ -534,7 +571,10 @@ protected:
   vtkSetMacro(RecordingStartTime, double);
   vtkGetMacro(RecordingStartTime, double);
 
-  virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
+  virtual vtkPlusDataCollector* GetDataCollector()
+  {
+    return this->DataCollector;
+  }
 
   bool HasGracePeriodExpired();
 

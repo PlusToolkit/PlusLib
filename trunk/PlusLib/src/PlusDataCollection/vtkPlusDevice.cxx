@@ -1855,6 +1855,12 @@ PlusStatus vtkPlusDevice::GetOutputChannelByName(vtkPlusChannel*& aChannel, cons
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetOutputChannelByName(vtkPlusChannel*& aChannel, const std::string& aChannelId)
+{
+  return GetOutputChannelByName(aChannel, aChannelId.c_str());
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::AddInputChannel(vtkPlusChannel* aChannel)
 {
   if (aChannel == NULL)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>456</width>
-    <height>533</height>
+    <width>317</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -142,6 +142,12 @@
    </item>
    <item>
     <widget class="QTextEdit" name="textEdit_Description">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>
      </property>
