@@ -16,22 +16,24 @@ See License.txt for details.
 #include "vtkPlusMmfVideoSource.h"
 #include "vtksys/CommandLineArguments.hxx"
 
-void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata); 
+void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata);
 
 class vtkMyCallback : public vtkCommand
 {
 public:
-  static vtkMyCallback *New()
-  {return new vtkMyCallback;}
-  virtual void Execute(vtkObject *caller, unsigned long, void*)
+  static vtkMyCallback* New()
+  {
+    return new vtkMyCallback;
+  }
+  virtual void Execute(vtkObject* caller, unsigned long, void*)
   {
     viewer->Render();
 
     //update the timer so it will trigger again
     iren->CreateTimer(VTKI_TIMER_UPDATE);
   }
-  vtkImageViewer2 *viewer;
-  vtkRenderWindowInteractor *iren;
+  vtkImageViewer2* viewer;
+  vtkRenderWindowInteractor* iren;
 protected:
   vtkMyCallback()
   {
@@ -40,17 +42,17 @@ protected:
   }
 };
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  bool printHelp(false); 
+  bool printHelp(false);
   bool renderingOff(false);
   bool showDialogs(false);
   std::vector<int> frameSize;
-  int deviceId=0;
-  int streamIndex=0;
+  int deviceId = 0;
+  int streamIndex = 0;
   std::string pixelFormatName;
-  bool listDevices=false;
-  bool listVideoFormats=false;
+  bool listDevices = false;
+  bool listVideoFormats = false;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -58,16 +60,16 @@ int main(int argc, char **argv)
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices and exit");
-  args.AddArgument("--list-video-formats", vtksys::CommandLineArguments::NO_ARGUMENT, &listVideoFormats, "Show the list of supported video formats for the selected device and exit");  
+  args.AddArgument("--list-video-formats", vtksys::CommandLineArguments::NO_ARGUMENT, &listVideoFormats, "Show the list of supported video formats for the selected device and exit");
   args.AddArgument("--device-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "Capture device ID (default: 0)");
   args.AddArgument("--stream-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &streamIndex, "Stream index (default=0; see --list-devices for available streams");
   args.AddArgument("--frame-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &frameSize, "Requested frame size from the capture device");
   args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &pixelFormatName, "Requested video format (YUY2, ...)");
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
-  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
-  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "\n\nvtkPlusMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
@@ -76,13 +78,13 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if ( printHelp ) 
+  if (printHelp)
   {
     std::cout << "\n\nvtkPlusMmfVideoSourceTest help:" << args.GetHelp() << std::endl;
     exit(EXIT_SUCCESS);
   }
 
-  vtkSmartPointer<vtkPlusMmfVideoSource> frameGrabber = vtkSmartPointer<vtkPlusMmfVideoSource>::New();  
+  vtkSmartPointer<vtkPlusMmfVideoSource> frameGrabber = vtkSmartPointer<vtkPlusMmfVideoSource>::New();
 
   if (listDevices)
   {
@@ -98,59 +100,60 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS);
   }
 
+  std::wstring pixelFormatNameW(pixelFormatName.begin(), pixelFormatName.end());
   if (!pixelFormatName.empty())
   {
-    frameGrabber->SetRequestedVideoFormat(pixelFormatName);
+    frameGrabber->SetRequestedVideoFormat(pixelFormatNameW);
   }
 
   frameGrabber->SetRequestedStreamIndex(streamIndex);
 
   if (!frameSize.empty())
   {
-    if (frameSize.size()!=2)
+    if (frameSize.size() != 2)
     {
       LOG_ERROR("Frame size shall contain two numbers, separated by a space");
       return EXIT_FAILURE;
     }
-    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));   
+    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));
   }
- 
+
   frameGrabber->CreateDefaultOutputChannel();
-  LOG_INFO("Initialize..."); 
+  LOG_INFO("Initialize...");
   frameGrabber->Connect();
 
-  if ( frameGrabber->GetConnected() )
+  if (frameGrabber->GetConnected())
   {
-    LOG_INFO("Start recording..."); 
-    frameGrabber->StartRecording(); 
+    LOG_INFO("Start recording...");
+    frameGrabber->StartRecording();
   }
   else
   {
     frameGrabber->Disconnect();
-    LOG_ERROR( "Unable to disconnect from media foundation capture device."); 
-    exit(EXIT_FAILURE); 
+    LOG_ERROR("Unable to disconnect from media foundation capture device.");
+    exit(EXIT_FAILURE);
   }
 
 
   if (renderingOff)
   {
-    LOG_INFO("No need for rendering, stop the device..."); 
+    LOG_INFO("No need for rendering, stop the device...");
     frameGrabber->Disconnect();
-    LOG_INFO("Exit successfully"); 
-    exit(EXIT_SUCCESS); 
+    LOG_INFO("Exit successfully");
+    exit(EXIT_SUCCESS);
   }
 
   vtkSmartPointer<vtkImageViewer2> viewer = vtkSmartPointer<vtkImageViewer2>::New();
 
   viewer->SetColorWindow(255);
   viewer->SetColorLevel(100.5);
-  vtkPlusDataSource* videoSource=NULL;
-  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* videoSource = NULL;
+  if (frameGrabber->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source.");
     exit(EXIT_FAILURE);
   }
-  viewer->SetSize(videoSource->GetOutputFrameSize()[0], videoSource->GetOutputFrameSize()[1]); 
+  viewer->SetSize(videoSource->GetOutputFrameSize()[0], videoSource->GetOutputFrameSize()[1]);
 
   viewer->SetInputConnection(frameGrabber->GetOutputPort());
 
@@ -159,12 +162,12 @@ int main(int argc, char **argv)
   iren->SetRenderWindow(viewer->GetRenderWindow());
   viewer->SetupInteractor(iren);
 
-  viewer->Render(); 
+  viewer->Render();
 
   //establish timer event and create timer
   vtkSmartPointer<vtkMyCallback> call = vtkSmartPointer<vtkMyCallback>::New();
-  call->iren=iren;
-  call->viewer=viewer;
+  call->iren = iren;
+  call->viewer = viewer;
   iren->AddObserver(vtkCommand::TimerEvent, call);
   iren->CreateTimer(VTKI_TIMER_FIRST);    //VTKI_TIMER_FIRST = 0
 
@@ -172,7 +175,7 @@ int main(int argc, char **argv)
   iren->Initialize();
   iren->Start();
 
-  LOG_INFO("Exit successfully"); 
-  return EXIT_SUCCESS; 
+  LOG_INFO("Exit successfully");
+  return EXIT_SUCCESS;
 
 }
