@@ -69,7 +69,7 @@ IF(TARGET vtkRenderingGL2PS${VTK_RENDERING_BACKEND})
   LIST(APPEND fCal_LIBS
     vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
     )
-ELSE()
+ELSEIF(TARGET vtkRenderingGL2PS)
   LIST(APPEND fCal_LIBS
     vtkRenderingGL2PS
     )
