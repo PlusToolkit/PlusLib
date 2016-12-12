@@ -33,6 +33,8 @@ SET (PlusServerLauncher_LIBS
   Qt5::Widgets
   Qt5::Network
   vtkPlusCommon
+  vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
+  vtkGUISupportQt
   PlusCommonWidgets
   vtkPlusServer
   )

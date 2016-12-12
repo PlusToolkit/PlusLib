@@ -4,17 +4,19 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
 #include "PlusPlotter.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusHTMLGenerator.h"
 #include "vtkPlusTrackedFrameList.h"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 

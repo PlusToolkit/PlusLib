@@ -3,7 +3,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(vtkPlusUsSimulatorTest vtkUsSimulatorAlgoTest.cxx )
 SET_TARGET_PROPERTIES(vtkPlusUsSimulatorTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkPlusUsSimulatorTest vtkPlusUsSimulator ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES(vtkPlusUsSimulatorTest vtkPlusUsSimulator vtkFiltersGeneral)
 
 ADD_TEST(vtkPlusUsSimulatorRunTestLinear
   ${EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest

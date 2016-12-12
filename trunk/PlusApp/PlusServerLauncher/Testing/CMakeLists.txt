@@ -75,10 +75,10 @@ SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtk
 # --------------------------------------------------------------------------
 # Executables built by PlusServer project
 ADD_EXECUTABLE( PlusServer PlusServer.cxx )
-TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkPlusDataCollection ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES( PlusServer vtkPlusServer vtkPlusDataCollection)
 
 ADD_EXECUTABLE( PlusServerRemoteControl PlusServerRemoteControl.cxx )
-TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusServer )
+TARGET_LINK_LIBRARIES( PlusServerRemoteControl vtkPlusDataCollection vtkPlusServer)
   
 # --------------------------------------------------------------------------
 # Install

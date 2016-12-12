@@ -63,6 +63,8 @@ SET(fCal_LIBS
   vtkPlusCalibration 
   vtkPlusDataCollection 
   vtkPlusVolumeReconstruction
+  vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
+  vtkGUISupportQt
   )
 
 IF (PLUS_USE_OpenIGTLink)

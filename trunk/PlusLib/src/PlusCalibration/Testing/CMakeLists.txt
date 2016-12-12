@@ -5,7 +5,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 IF (PLUS_USE_BRACHY_TRACKER)
   ADD_EXECUTABLE(vtkTRUSCalibrationTest vtkTRUSCalibrationTest.cxx)
   SET_TARGET_PROPERTIES(vtkTRUSCalibrationTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkTRUSCalibrationTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkTRUSCalibrationTest itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
 
   ADD_TEST(vtkTRUSCalibrationTest
     ${EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
@@ -43,7 +43,7 @@ ENDIF ()
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
 SET_TARGET_PROPERTIES(vtkStylusCalibrationTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkStylusCalibrationTest itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
 
 ADD_TEST(vtkStylusCalibrationTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkStylusCalibrationTest
@@ -56,7 +56,7 @@ SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSIO
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
 SET_TARGET_PROPERTIES(vtkPhantomRegistrationTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationTest itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
 
 ADD_TEST(vtkPhantomRegistrationTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationTest
@@ -68,7 +68,7 @@ SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESS
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationLandmarkDetectionTest vtkPhantomRegistrationLandmarkDetectionTest.cxx)
 SET_TARGET_PROPERTIES(vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkPhantomRegistrationLandmarkDetectionTest itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkPhantomRegistrationLandmarkDetectionTest itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
 
 ADD_TEST(vtkPhantomRegistrationLandmarkDetectionTest
   ${EXECUTABLE_OUTPUT_PATH}/vtkPhantomRegistrationLandmarkDetectionTest
@@ -82,7 +82,7 @@ SET_TESTS_PROPERTIES( vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAI
 
 ADD_EXECUTABLE(vtkFreehandCalibrationStatisticalEvaluation vtkFreehandCalibrationStatisticalEvaluation.cxx)
 SET_TARGET_PROPERTIES(vtkFreehandCalibrationStatisticalEvaluation PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkFreehandCalibrationStatisticalEvaluation itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkFreehandCalibrationStatisticalEvaluation itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkFreehandCalibration3NWiresTest
@@ -201,7 +201,7 @@ SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRE
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
 SET_TARGET_PROPERTIES(vtkLineSegmentationAlgoTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES})
+TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkPlusCalibration)
 
 ADD_TEST(vtkLineSegmentationAlgoTest1
   ${EXECUTABLE_OUTPUT_PATH}/vtkLineSegmentationAlgoTest
@@ -251,7 +251,6 @@ INCLUDE_DIRECTORIES( ${PlusLib_SOURCE_DIR}/src/PlusCalibration )
 # Link the executable to the algo library.
 TARGET_LINK_LIBRARIES( PatternLocTest
   ITKCommon
-  ${VTK_LIBRARIES}
   vtkPlusDataCollection
   vtkPlusCalibration  
   vtkPlusDataCollection
@@ -332,6 +331,5 @@ SET_TARGET_PROPERTIES(vtkSegmentedWiresPositionsTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
   vtkPlusCalibration
   ITKCommon
-  ${VTK_LIBRARIES}
   vtkPlusDataCollection
   ) 

@@ -26,9 +26,7 @@ SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BI
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (PlusOpenIGTLink_LIBS
-  ${VTK_LIBRARIES}
   vtkPlusCommon
   OpenIGTLink
   )
@@ -60,7 +58,6 @@ INSTALL(FILES ${PlusOpenIGTLink_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)
