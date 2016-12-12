@@ -33,11 +33,19 @@ SET (PlusServerLauncher_LIBS
   Qt5::Widgets
   Qt5::Network
   vtkPlusCommon
-  vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
   vtkGUISupportQt
   PlusCommonWidgets
   vtkPlusServer
   )
+IF(TARGET vtkRenderingGL2PS${VTK_RENDERING_BACKEND})
+  LIST(APPEND PlusServerLauncher_LIBS
+    vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
+    )
+ELSE()
+  LIST(APPEND PlusServerLauncher_LIBS
+    vtkRenderingGL2PS
+    )
+ENDIF()
 
 IF(PLUS_USE_OpenIGTLinkIO)
   find_package(OpenIGTLinkIO REQUIRED)
