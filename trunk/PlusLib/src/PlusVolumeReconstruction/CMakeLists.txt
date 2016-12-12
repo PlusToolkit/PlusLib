@@ -33,6 +33,7 @@ SET (PlusVolumeReconstruction_LIBS
   vtkInteractionStyle
   vtkRenderingFreeType
   vtkRendering${VTK_RENDERING_BACKEND}
+  vtkRenderingVolume${VTK_RENDERING_BACKEND}
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
