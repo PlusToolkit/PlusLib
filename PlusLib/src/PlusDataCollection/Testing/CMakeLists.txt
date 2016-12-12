@@ -273,7 +273,7 @@ ENDIF()
 IF (PLUS_USE_ICCAPTURING_VIDEO)
 ADD_EXECUTABLE(vtkICCapturingSourceTest1 vtkICCapturingSourceTest1.cxx )
 SET_TARGET_PROPERTIES(vtkICCapturingSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkICCapturingSourceTest1 vtkPlusDataCollection vtkInteractionImage)
   # ADD_TEST(vtkICCapturingSourceTest1 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
    # --rendering-off
@@ -394,7 +394,7 @@ ENDIF()
 IF (PLUS_USE_EPIPHAN)
   ADD_EXECUTABLE(vtkEpiphanVideoSourceTest vtkEpiphanVideoSourceTest.cxx )
 SET_TARGET_PROPERTIES(vtkEpiphanVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkEpiphanVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 ENDIF()
 
 #*************************** MicronTrackerTest ***************************
