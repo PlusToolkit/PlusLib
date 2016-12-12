@@ -45,7 +45,7 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
     unsigned int StreamIndex;
     unsigned int FormatIndex = std::numeric_limits<unsigned int>::max();
     int FrameSize[2];
-    std::string PixelFormatName; // e.g., YUY2
+    std::wstring PixelFormatName; // e.g., YUY2 or MFVideoFormat_YUY2
   };
 
 public:
@@ -54,16 +54,17 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void SetRequestedDeviceId(unsigned int deviceId);
-  virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
+  virtual void SetRequestedVideoFormat(const std::wstring& pixelFormatName);
   virtual void SetRequestedStreamIndex(unsigned int streamIndex);
   virtual void SetRequestedFormatIndex(unsigned int formatIndex);
   virtual void SetRequestedFrameSize(int frameSize[2]);
+  virtual void SetRequestedFrameSize(int width, int height);
 
-  std::string GetRequestedDeviceName();
-  std::string GetActiveDeviceName();
-  void GetListOfCaptureVideoFormats(std::vector< std::string >& videoModes, unsigned int deviceId);
+  std::wstring GetRequestedDeviceName();
+  std::wstring GetActiveDeviceName();
+  void GetListOfCaptureVideoFormats(std::vector<std::wstring>& videoModes, unsigned int deviceId);
   void LogListOfCaptureVideoFormats(unsigned int deviceId);
-  void GetListOfCaptureDevices(std::vector< std::string >& deviceNames);
+  void GetListOfCaptureDevices(std::vector<std::wstring>& deviceNames);
   void LogListOfCaptureDevices();
 
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* xmlElement);
@@ -96,7 +97,7 @@ protected:
 
   PlusStatus AddFrame(unsigned char* bufferData, DWORD bufferSize);
 
-  std::string GetCaptureDeviceName(unsigned int deviceId);
+  std::wstring GetCaptureDeviceName(unsigned int deviceId);
 
   int FrameIndex;
 

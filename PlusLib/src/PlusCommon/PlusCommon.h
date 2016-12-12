@@ -100,6 +100,51 @@ enum PlusImagingMode
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
 
+#define LOG_ERROR_W(msg) \
+  { \
+  std::wostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_ERROR, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+#define LOG_WARNING_W(msg) \
+  { \
+  std::wostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_WARNING, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+#define LOG_INFO_W(msg) \
+  { \
+  std::wostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_INFO, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+#define LOG_DEBUG_W(msg) \
+  { \
+  std::wostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_DEBUG, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+#define LOG_TRACE_W(msg) \
+  { \
+    if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE) \
+    { \
+      std::wostringstream msgStream; \
+      msgStream << msg << std::ends; \
+      vtkPlusLogger::Instance()->LogMessage(vtkPlusLogger::LOG_LEVEL_TRACE, msgStream.str(), __FILE__, __LINE__); \
+    } \
+  }
+
+#define LOG_DYNAMIC_W(msg, logLevel) \
+{ \
+  std::wostringstream msgStream; \
+  msgStream << msg << std::ends; \
+  vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
+  }
+
 ///////////////////////////////////////////////////////////////////
 
 /*!

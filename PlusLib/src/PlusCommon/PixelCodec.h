@@ -26,8 +26,8 @@ See License.txt for details.
 #define GET_V_FROM_RGB(r, g, b) UNFIX((FIX(0.500, FIXNUM)*(r) + FIX(-0.419, FIXNUM)*(g) + FIX(-0.081, FIXNUM)*(b)), FIXNUM)
 
 // VFW compressed formats are listed at http://www.webartz.com/fourcc/
-static const long VTK_BI_UYVY=0x59565955;
-static const long VTK_BI_YUY2=0x32595559;
+static const long VTK_BI_UYVY = 0x59565955;
+static const long VTK_BI_YUY2 = 0x32595559;
 
 /*!
 \class PixelCodec
@@ -58,10 +58,13 @@ public:
   static bool IsConvertToGraySupported(int inputCompression)
   {
     switch (inputCompression)
-    {  
-    case VTK_BI_YUY2: return true;
-    case BI_RGB: return true;
-    case BI_JPEG: return true;
+    {
+    case VTK_BI_YUY2:
+      return true;
+    case BI_RGB:
+      return true;
+    case BI_JPEG:
+      return true;
     default:
       return false;
     }
@@ -71,12 +74,17 @@ public:
   static bool IsConvertToGraySupported(PixelEncoding inputCompression)
   {
     switch (inputCompression)
-    {  
-    case PixelEncoding_RGB24: return true;
-    case PixelEncoding_BGR24: return true;
-    case PixelEncoding_RGBA32: return true;
-    case PixelEncoding_YUY2: return true;
-    case PixelEncoding_MJPG: return true;
+    {
+    case PixelEncoding_RGB24:
+      return true;
+    case PixelEncoding_BGR24:
+      return true;
+    case PixelEncoding_RGBA32:
+      return true;
+    case PixelEncoding_YUY2:
+      return true;
+    case PixelEncoding_MJPG:
+      return true;
     default:
       return false;
     }
@@ -84,26 +92,26 @@ public:
 
   //----------------------------------------------------------------------------
   static std::string GetCompressionModeAsString(int inputCompression)
-  {    
-    char fourccHex[16]={0};
-    sprintf_s(fourccHex,"0x%08x",inputCompression);
-    std::string fourcc="????";
+  {
+    char fourccHex[16] = {0};
+    sprintf_s(fourccHex, "0x%08x", inputCompression);
+    std::string fourcc = "????";
     for (int i = 0; i < 4; i++)
     {
-      fourcc[i] = (unsigned char)(inputCompression >> (8*i)) & 0xff;
+      fourcc[i] = (unsigned char)(inputCompression >> (8 * i)) & 0xff;
       if (!isprint(fourcc[i]))
       {
         fourcc[i] = '?';
       }
     }
-    std::string output=fourcc+"("+std::string(fourccHex)+")";
+    std::string output = fourcc + "(" + std::string(fourccHex) + ")";
     return output;
   }
 
   //----------------------------------------------------------------------------
   static std::string GetCompressionModeAsString(PixelEncoding inputCompression)
-  {    
-    switch(inputCompression)
+  {
+    switch (inputCompression)
     {
     case PixelEncoding_RGB24:
       return "RGB24";
@@ -127,7 +135,7 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  static inline PlusStatus ConvertToGray(int inputCompression, int width, int height, unsigned char *s,unsigned char *d)
+  static inline PlusStatus ConvertToGray(int inputCompression, int width, int height, unsigned char* s, unsigned char* d)
   {
     switch (inputCompression)
     {
@@ -143,14 +151,14 @@ public:
       // TODO
       break;
     default:
-      LOG_ERROR("Unknown compression type: "<<inputCompression);
+      LOG_ERROR("Unknown compression type: " << inputCompression);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
 
   //----------------------------------------------------------------------------
-  static inline PlusStatus ConvertToGray(PixelEncoding inputCompression, int width, int height, unsigned char *s,unsigned char *d)
+  static inline PlusStatus ConvertToGray(PixelEncoding inputCompression, int width, int height, unsigned char* s, unsigned char* d)
   {
     switch (inputCompression)
     {
@@ -171,22 +179,22 @@ public:
       LOG_ERROR("MJPG to grayscale conversion is not yet supported");
       break;
     default:
-      LOG_ERROR("Unknown compression type: "<<inputCompression);
+      LOG_ERROR("Unknown compression type: " << inputCompression);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
 
   //----------------------------------------------------------------------------
-  static inline PlusStatus ConvertToBmp24(ComponentOrdering outputOrdering, PixelEncoding inputCompression, int width, int height, unsigned char *s, unsigned char *d)
+  static inline PlusStatus ConvertToBmp24(ComponentOrdering outputOrdering, PixelEncoding inputCompression, int width, int height, unsigned char* s, unsigned char* d)
   {
     switch (inputCompression)
     {
     case PixelEncoding_RGB24:
-      if (outputOrdering==ComponentOrder_RGB)
+      if (outputOrdering == ComponentOrder_RGB)
       {
         // Nothing to do, copy out
-        memcpy(d, s, width*height*3);
+        memcpy(d, s, width * height * 3);
       }
       else
       {
@@ -194,10 +202,10 @@ public:
       }
       break;
     case PixelEncoding_BGR24:
-      if (outputOrdering==ComponentOrder_BGR)
+      if (outputOrdering == ComponentOrder_BGR)
       {
         // Nothing to do, copy out
-        memcpy(d, s, width*height*3);
+        memcpy(d, s, width * height * 3);
       }
       else
       {
@@ -205,7 +213,7 @@ public:
       }
       break;
     case PixelEncoding_RGBA32:
-      if (outputOrdering==ComponentOrder_RGBA)
+      if (outputOrdering == ComponentOrder_RGBA)
       {
         Rgba32ToRgb24(width, height, s, d);
       }
@@ -229,43 +237,43 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  static inline void RgbBgrSwap(int width, int height, unsigned char *s,unsigned char *d)
+  static inline void RgbBgrSwap(int width, int height, unsigned char* s, unsigned char* d)
   {
-    int totalLen=width*height;
-    for (int i=0; i<totalLen; i++)
+    int totalLen = width * height;
+    for (int i = 0; i < totalLen; i++)
     {
-      *(d++)=s[2];
-      *(d++)=s[1];
-      *(d++)=s[0];
-      s+=3;
+      *(d++) = s[2];
+      *(d++) = s[1];
+      *(d++) = s[0];
+      s += 3;
     }
   }
-  
+
   //----------------------------------------------------------------------------
-  static inline void Rgba32ToBgr24(int width, int height, unsigned char *s,unsigned char *d)
+  static inline void Rgba32ToBgr24(int width, int height, unsigned char* s, unsigned char* d)
   {
-    int totalLen=width*height;
-    for (int i=0; i<totalLen; i++)
+    int totalLen = width * height;
+    for (int i = 0; i < totalLen; i++)
     {
-      *(d++)=s[2];
-      *(d++)=s[1];
-      *(d++)=s[0];
-      s+=4; // ignore alpha channel
+      *(d++) = s[2];
+      *(d++) = s[1];
+      *(d++) = s[0];
+      s += 4; // ignore alpha channel
     }
   }
-  
+
   //----------------------------------------------------------------------------
-  static inline void Rgba32ToRgb24(int width, int height, unsigned char *s,unsigned char *d)
+  static inline void Rgba32ToRgb24(int width, int height, unsigned char* s, unsigned char* d)
   {
-    int totalLen=width*height;
-    for (int i=0; i<totalLen; i++)
+    int totalLen = width * height;
+    for (int i = 0; i < totalLen; i++)
     {
-      *(d++)=*(s++);
-      *(d++)=*(s++);
-      *(d++)=*(s++);
+      *(d++) = *(s++);
+      *(d++) = *(s++);
+      *(d++) = *(s++);
       s++; // ignore alpha channel
     }
-  }  
+  }
 
   //----------------------------------------------------------------------------
   /*!
@@ -273,16 +281,16 @@ public:
   Note that this method computes the intensity (simple averaging of the RGB components).
   This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
   */
-  static inline void Rgb24ToGray(int width, int height, unsigned char *s,unsigned char *d)
+  static inline void Rgb24ToGray(int width, int height, unsigned char* s, unsigned char* d)
   {
-    int totalLen=width*height;
-    for (int i=0; i<totalLen; i++)
+    int totalLen = width * height;
+    for (int i = 0; i < totalLen; i++)
     {
-      *d=((unsigned short)(s[0])+s[1]+s[2])/3;
+      *d = ((unsigned short)(s[0]) + s[1] + s[2]) / 3;
       d++;
-      s+=3;
+      s += 3;
     }
-  } 
+  }
 
   //----------------------------------------------------------------------------
   /*!
@@ -290,14 +298,14 @@ public:
   Note that this method computes the intensity (simple averaging of the RGB components).
   This is not equivalent with the perceived luminance of color images (e.g., 0.21R + 0.72G + 0.07B or 0.30R + 0.59G + 0.11B)
   */
-  static inline void Rgba32ToGray(int width, int height, unsigned char *s,unsigned char *d)
+  static inline void Rgba32ToGray(int width, int height, unsigned char* s, unsigned char* d)
   {
-    int totalLen=width*height;
-    for (int i=0; i<totalLen; i++)
+    int totalLen = width * height;
+    for (int i = 0; i < totalLen; i++)
     {
-      *d=((unsigned short)(s[0])+s[1]+s[2])/3;
+      *d = ((unsigned short)(s[0]) + s[1] + s[2]) / 3;
       d++;
-      s+=4;
+      s += 4;
     }
   }
 
@@ -313,15 +321,15 @@ public:
   int G = 1.164*Y - 0.813*V - 0.391*U + 0.5;
   int B = 1.164*Y           + 2.018*U + 0.5;
   */
-  static inline void YuvToRgbPixel(ComponentOrdering outputOrdering, unsigned char *yuv, unsigned char *rgb)
-  {   
-    int Y = (yuv[0] - 16)*76284;
+  static inline void YuvToRgbPixel(ComponentOrdering outputOrdering, unsigned char* yuv, unsigned char* rgb)
+  {
+    int Y = (yuv[0] - 16) * 76284;
     int U = yuv[1] - 128;
     int V = yuv[2] - 128;
 
-    int R = Y + 104595*V           ;
-    int G = Y -  53281*V -  25625*U;
-    int B = Y            + 132252*U;
+    int R = Y + 104595 * V           ;
+    int G = Y -  53281 * V -  25625 * U;
+    int B = Y            + 132252 * U;
 
     // round
     R += 32768;
@@ -349,7 +357,7 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  static PlusStatus MjpgToRgb24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
+  static PlusStatus MjpgToRgb24(ComponentOrdering outputOrdering, int width, int height, unsigned char* s, unsigned char* d)
   {
     LOG_ERROR("MJPEG is not supported yet");
     return PLUS_FAIL;
@@ -361,9 +369,9 @@ public:
   YUY2 coding is typically used for webcams
   source: http://sundararajana.blogspot.ca/2007/12/yuy2-to-rgb24-conversion.html
   */
-  static PlusStatus Yuv422pToBmp24(ComponentOrdering outputOrdering, int width, int height, unsigned char *s,unsigned char *d)
+  static PlusStatus Yuv422pToBmp24(ComponentOrdering outputOrdering, int width, int height, unsigned char* s, unsigned char* d)
   {
-    unsigned char *p_dest;
+    unsigned char* p_dest;
     unsigned char y1, u, y2, v;
     int Y1, Y2, U, V;
     unsigned char r, g, b;
@@ -376,12 +384,12 @@ public:
 
     if (outputOrdering == ComponentOrder_BGR)
     {
-      for(int i = 0 ; i < size ; i++)
+      for (int i = 0 ; i < size ; i++)
       {
         y1 = s[srcIndex];
-        u = s[srcIndex+ 1];
-        y2 = s[srcIndex+ 2];
-        v = s[srcIndex+ 3];
+        u = s[srcIndex + 1];
+        y2 = s[srcIndex + 2];
+        v = s[srcIndex + 3];
 
         Y1 = ICCIRY(y1);
         U = ICCIRUV(u - 128);
@@ -412,12 +420,12 @@ public:
     }
     else
     {
-      for(int i = 0 ; i < size ; i++)
+      for (int i = 0 ; i < size ; i++)
       {
         y1 = s[srcIndex];
-        u = s[srcIndex+ 1];
-        y2 = s[srcIndex+ 2];
-        v = s[srcIndex+ 3];
+        u = s[srcIndex + 1];
+        y2 = s[srcIndex + 2];
+        v = s[srcIndex + 3];
 
         Y1 = ICCIRY(y1);
         U = ICCIRUV(u - 128);
@@ -456,10 +464,10 @@ public:
   YUY2 coding is typically used for webcams
   source: http://sundararajana.blogspot.ca/2007/12/yuy2-to-rgb24-conversion.html
   */
-  static void Yuv422pToGray(int width, int height, unsigned char *s,unsigned char *d)
+  static void Yuv422pToGray(int width, int height, unsigned char* s, unsigned char* d)
   {
     int i;
-    unsigned char *p_dest;
+    unsigned char* p_dest;
     unsigned char y1, u, y2, v;
     int Y1, Y2, U, V;
     unsigned char r, g, b;
@@ -470,12 +478,12 @@ public:
     unsigned long srcIndex = 0;
     unsigned long dstIndex = 0;
 
-    for(i = 0 ; i < size ; i++)
+    for (i = 0 ; i < size ; i++)
     {
       y1 = s[srcIndex];
-      u = s[srcIndex+ 1];
-      y2 = s[srcIndex+ 2];
-      v = s[srcIndex+ 3];
+      u = s[srcIndex + 1];
+      y2 = s[srcIndex + 2];
+      v = s[srcIndex + 3];
 
       Y1 = ICCIRY(y1);
       U = ICCIRUV(u - 128);
@@ -486,19 +494,19 @@ public:
       g = CLIP(GET_G_FROM_YUV(Y1, U, V));
       b = CLIP(GET_B_FROM_YUV(Y1, U, V));
 
-      p_dest[dstIndex] = (int(b)+g+r)/3;
+      p_dest[dstIndex] = (int(b) + g + r) / 3;
       dstIndex ++;
 
       r = CLIP(GET_R_FROM_YUV(Y2, U, V));
       g = CLIP(GET_G_FROM_YUV(Y2, U, V));
       b = CLIP(GET_B_FROM_YUV(Y2, U, V));
 
-      p_dest[dstIndex] = (int(b)+g+r)/3;
+      p_dest[dstIndex] = (int(b) + g + r) / 3;
 
       dstIndex ++;
       srcIndex += 4;
     }
-  }  
+  }
 
 private:
   PixelCodec(); // prevent instantiation
