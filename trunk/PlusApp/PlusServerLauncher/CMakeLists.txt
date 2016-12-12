@@ -41,7 +41,7 @@ IF(TARGET vtkRenderingGL2PS${VTK_RENDERING_BACKEND})
   LIST(APPEND PlusServerLauncher_LIBS
     vtkRenderingGL2PS${VTK_RENDERING_BACKEND}
     )
-ELSE()
+ELSEIF(TARGET vtkRenderingGL2PS)
   LIST(APPEND PlusServerLauncher_LIBS
     vtkRenderingGL2PS
     )
