@@ -63,7 +63,6 @@ ENDIF (PLUS_USE_INTEL_MKL)
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (External_Libraries_Install)
 
 SET (PlusImageProcessing_LIBS
@@ -176,7 +175,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(RfProcessor Tools/RfProcessor.cxx )
   SET_TARGET_PROPERTIES(RfProcessor PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(RfProcessor vtkPlusImageProcessing ${VTK_LIBRARIES} )
+  TARGET_LINK_LIBRARIES(RfProcessor vtkPlusImageProcessing )
   GENERATE_HELP_DOC(RfProcessor)
 
   #---------------------------------------------------------------------------

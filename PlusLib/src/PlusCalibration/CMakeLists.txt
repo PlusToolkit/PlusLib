@@ -84,8 +84,18 @@ SET (PlusCalibration_INCLUDE_DIRS
 # --------------------------------------------------------------------------
 # Build the library
 SET (PlusCalibration_LIBS
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
+  ITKCommon
+  ITKIOImageBase
+  ITKOptimizers
+  ITKTransform
+  vtkChartsCore
+  vtkInteractionStyle
+  vtkRenderingFreeType
+  vtkViewsContext2D
+  vtkIOCore
+  vtkFiltersStatistics
+  vtkRendering${VTK_RENDERING_BACKEND}
+  vtkRenderingContext${VTK_RENDERING_BACKEND}
   vtkPlusCommon
   )
 
@@ -111,7 +121,6 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   TARGET_LINK_LIBRARIES( ConvertFcsvToXml
     vtkPlusCalibration
     ITKCommon
-    ${VTK_LIBRARIES}
     vtkPlusDataCollection
     )
 
@@ -124,20 +133,19 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
     vtkPlusCalibration
     ITKCommon
-    ${VTK_LIBRARIES}
     vtkPlusDataCollection
     )
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(TemporalCalibration Tools/TemporalCalibration.cxx)
   SET_TARGET_PROPERTIES(TemporalCalibration PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration ${VTK_LIBRARIES} vtkPlusDataCollection)
+  TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection)
   GENERATE_HELP_DOC(TemporalCalibration)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ProbeCalibration Tools/ProbeCalibration.cxx)
   SET_TARGET_PROPERTIES(ProbeCalibration PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo ${VTK_LIBRARIES} vtkPlusCalibration vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
   GENERATE_HELP_DOC(ProbeCalibration)
 
   INSTALL(

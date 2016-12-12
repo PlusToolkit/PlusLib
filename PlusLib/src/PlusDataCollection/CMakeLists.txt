@@ -99,8 +99,8 @@ SET(Common_SRCS
   PlusStreamBufferItem.cxx
   vtkPlusGenericSerialDevice.cxx
   PlusSerialLine.cxx
-  itkFcsvReader.cxx
-  itkFcsvWriter.cxx
+  vtkFcsvReader.cxx
+  vtkFcsvWriter.cxx
   vtkPlusBuffer.cxx 
   vtkPlusUsImagingParameters.cxx
   )
@@ -140,8 +140,8 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     PlusStreamBufferItem.h
     vtkPlusGenericSerialDevice.h
     PlusSerialLine.h
-    itkFcsvReader.h
-    itkFcsvWriter.h
+    vtkFcsvReader.h
+    vtkFcsvWriter.h
     vtkPlusBuffer.h 
     vtkPlusUsImagingParameters.h
     )
@@ -737,7 +737,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
     SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    LIST (APPEND PlusDataCollection_LIBS
       optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
       debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
       )
@@ -754,7 +754,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
     SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+    LIST (APPEND PlusDataCollection_LIBS
       ${ULTERIUS_LIB_DIR}/ulterius.lib
       )
     SET ( Ultrasonix_External_Libs 
@@ -778,28 +778,32 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     ENDIF()
     SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)
 
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    LIST (APPEND PlusDataCollection_LIBS
       ${PORTA_LIB_DIR}/porta.lib
       )
     IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
-
       IF (PLUS_ULTRASONIX_SDK_MINOR_VERSION EQUAL 0)
         MESSAGE( FATAL_ERROR "Plus does not support Ultrasonix SDK version 6.0.x")
       ENDIF()
 
-      SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
+      LIST (APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
     ELSE()
-      SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} ${ULTERIUS_LIB_DIR}/ulterius.lib)
+      LIST (APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius.lib)
     ENDIF()
 
-    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES 
+      "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
     SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
     SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
   ENDIF()
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
-    ${ULTERIUS_INCLUDE_DIR}        
+  LIST (APPEND PlusDataCollection_LIBS
+    ITKCommon
+    ITKIOImageBase
+    )
+  LIST (APPEND PlusDataCollection_INCLUDE_DIRS
+    ${ULTERIUS_INCLUDE_DIR}
     ${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
     )
@@ -1465,10 +1469,11 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
-  ${VTK_LIBRARIES}
+LIST (APPEND PlusDataCollection_LIBS
+  vtkChartsCore
+  vtkRenderingContext${VTK_RENDERING_BACKEND}
+  vtkViewsContext2D
   vtkPlusCommon  
-  ${ITK_LIBRARIES}
   vtkPlusUsSimulator
   vtkPlusVolumeReconstruction
   vtkPlusImageProcessing

@@ -28,10 +28,11 @@ SET (PlusVolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_C
 
 # --------------------------------------------------------------------------
 # Build the library
-
 SET (PlusVolumeReconstruction_LIBS
-  ${VTK_LIBRARIES}
   vtkPlusCommon
+  vtkInteractionStyle
+  vtkRenderingFreeType
+  vtkRendering${VTK_RENDERING_BACKEND}
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
@@ -54,7 +55,13 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   ADD_EXECUTABLE(CreateSliceModels Tools/CreateSliceModels.cxx )
   SET_TARGET_PROPERTIES(CreateSliceModels PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES( CreateSliceModels vtkPlusCommon vtkPlusVolumeReconstruction )
+  TARGET_LINK_LIBRARIES( CreateSliceModels 
+    vtkPlusCommon 
+    vtkPlusVolumeReconstruction 
+    vtkFiltersSources 
+    vtkFiltersGeneral
+    vtkIOLegacy
+    )
   GENERATE_HELP_DOC(CreateSliceModels)
 
   ADD_EXECUTABLE(CompareVolumes Tools/CompareVolumes.cxx Tools/vtkPlusCompareVolumes.cxx )
@@ -80,7 +87,6 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-
 INSTALL(TARGETS vtkPlusVolumeReconstruction
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
@@ -93,7 +99,6 @@ INSTALL(FILES ${PlusVolumeReconstruction_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-
 IF (BUILD_TESTING)
   SUBDIRS (Testing)
 ENDIF (BUILD_TESTING)

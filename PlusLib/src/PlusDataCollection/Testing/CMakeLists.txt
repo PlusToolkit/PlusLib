@@ -27,7 +27,7 @@ SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION 
 #***************************  vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 SET_TARGET_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection vtkInteractionImage)
 
 ADD_TEST(vtkDataCollectorTest1 
   ${EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
@@ -97,7 +97,7 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkPlusDataCollection )
 #***************************  vtkDataCollectorTest2 ***************************
 ADD_EXECUTABLE( ReplayRecordedDataTest ReplayRecordedDataTest.cxx )
 SET_TARGET_PROPERTIES( ReplayRecordedDataTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkPlusDataCollection ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES( ReplayRecordedDataTest vtkPlusDataCollection )
 ADD_TEST( ReplayRecordedDataTest
   ${EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
@@ -144,23 +144,23 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF()
 
-#***************************  itkFcsvReaderTest1.cxx ***************************
-ADD_EXECUTABLE(itkFcsvReaderTest1 itkFcsvReaderTest1.cxx )
-SET_TARGET_PROPERTIES(itkFcsvReaderTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(itkFcsvReaderTest1 vtkPlusDataCollection )
-ADD_TEST(itkFcsvReaderTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvReaderTest1
+#***************************  vtkFcsvReaderTest1.cxx ***************************
+ADD_EXECUTABLE(vtkFcsvReaderTest1 vtkFcsvReaderTest1.cxx )
+SET_TARGET_PROPERTIES(vtkFcsvReaderTest1 PROPERTIES FOLDER Tests)
+TARGET_LINK_LIBRARIES(vtkFcsvReaderTest1 vtkPlusDataCollection )
+ADD_TEST(vtkFcsvReaderTest1 ${EXECUTABLE_OUTPUT_PATH}/vtkFcsvReaderTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv 
   )
-SET_TESTS_PROPERTIES( itkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-#***************************  itkFcsvWriterTest1.cxx ***************************
-ADD_EXECUTABLE(itkFcsvWriterTest1 itkFcsvWriterTest1.cxx )
-SET_TARGET_PROPERTIES(itkFcsvWriterTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(itkFcsvWriterTest1 vtkPlusDataCollection )
-ADD_TEST(itkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/itkFcsvWriterTest1
+#***************************  vtkFcsvWriterTest1.cxx ***************************
+ADD_EXECUTABLE(vtkFcsvWriterTest1 vtkFcsvWriterTest1.cxx )
+SET_TARGET_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FOLDER Tests)
+TARGET_LINK_LIBRARIES(vtkFcsvWriterTest1 vtkPlusDataCollection )
+ADD_TEST(vtkFcsvWriterTest1 ${EXECUTABLE_OUTPUT_PATH}/vtkFcsvWriterTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
   )
-SET_TESTS_PROPERTIES( itkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
 #***************************  vtkSonixVideoSourceTest1.cxx ***************************
 IF (PLUS_USE_ULTRASONIX_VIDEO)
@@ -238,7 +238,6 @@ SET_TARGET_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
 ENDIF()
 
 IF (PLUS_USE_BKPROFOCUS_VIDEO)
-
   #***************************  vtkBkProFocusOemVideoSourceTest.cxx ***************************
   ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )
 SET_TARGET_PROPERTIES(vtkBkProFocusOemVideoSourceTest PROPERTIES FOLDER Tests)
@@ -370,16 +369,16 @@ ENDIF()
 
 #***************************  vtkWin32VideoSourceTest.cxx ***************************
 IF (PLUS_USE_VFW_VIDEO)
-  ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx )
+  ADD_EXECUTABLE(vtkWin32VideoSourceTest vtkWin32VideoSourceTest.cxx)
 SET_TARGET_PROPERTIES(vtkWin32VideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkWin32VideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 ENDIF()
 
 #***************************  vtkMmfVideoSourceTest.cxx ***************************
 IF (PLUS_USE_MMF_VIDEO)
   ADD_EXECUTABLE(vtkMmfVideoSourceTest vtkMmfVideoSourceTest.cxx )
 SET_TARGET_PROPERTIES(vtkMmfVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 
   IF (PLUS_TEST_MMF_VIDEO)
     ADD_TEST(MmfVideoSourceTest 
@@ -446,21 +445,21 @@ ENDIF()
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CmsBrachyStepperTest CmsBrachyStepperTest.cxx)
 SET_TARGET_PROPERTIES(CmsBrachyStepperTest PROPERTIES FOLDER Tests)
-    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CmsBrachyStepperTest vtkPlusDataCollection vtkPlusCommon)
 ENDIF()
 
 #*************************** CivcoBrachyStepperTest ***************************
 IF (PLUS_USE_BRACHY_TRACKER)
     ADD_EXECUTABLE(CivcoBrachyStepperTest CivcoBrachyStepperTest.cxx)
 SET_TARGET_PROPERTIES(CivcoBrachyStepperTest PROPERTIES FOLDER Tests)
-    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(CivcoBrachyStepperTest vtkPlusDataCollection vtkPlusCommon)
 ENDIF()
 
 #*************************** USDigitalEncoderStepperTest ***************************
 IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     ADD_EXECUTABLE(vtkUSDigitalEncodersTrackerTest vtkUSDigitalEncodersTrackerTest.cxx)
 SET_TARGET_PROPERTIES(vtkUSDigitalEncodersTrackerTest PROPERTIES FOLDER Tests)
-    TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkPlusDataCollection ${VTK_LIBRARIES} vtkPlusCommon)
+    TARGET_LINK_LIBRARIES(vtkUSDigitalEncodersTrackerTest vtkPlusDataCollection vtkPlusCommon)
 ENDIF()
 
 #*************************** TransformInterpolationTest ***************************
