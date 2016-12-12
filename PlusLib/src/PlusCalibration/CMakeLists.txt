@@ -95,6 +95,7 @@ SET (PlusCalibration_LIBS
   vtkIOCore
   vtkFiltersStatistics
   vtkRendering${VTK_RENDERING_BACKEND}
+  vtkRenderingVolume${VTK_RENDERING_BACKEND}
   vtkRenderingContext${VTK_RENDERING_BACKEND}
   vtkPlusCommon
   )
