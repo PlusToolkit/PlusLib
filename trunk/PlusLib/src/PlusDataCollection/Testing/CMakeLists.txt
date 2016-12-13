@@ -166,7 +166,7 @@ SET_TESTS_PROPERTIES( vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERR
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
 SET_TARGET_PROPERTIES(vtkSonixVideoSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon)
+  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
   
   IF (PLUS_TEST_ULTRASONIX)
     ADD_TEST(vtkSonixVideoSourceTest1 
@@ -346,7 +346,7 @@ ENDIF()
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixPortaVideoSourceTest vtkSonixPortaVideoSourceTest.cxx )
 SET_TARGET_PROPERTIES(vtkSonixPortaVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon)
+  TARGET_LINK_LIBRARIES(vtkSonixPortaVideoSourceTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
   # ADD_TEST(vtkSonixPortaVideoSourceTest 
   # ${EXECUTABLE_OUTPUT_PATH}/vtkSonixPortaVideoSourceTest
   # To be added if the 3D probe is attached to the machine
@@ -363,7 +363,7 @@ ENDIF()
 IF (PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkURFSavedVideoSourceTest1 vtkURFSavedVideoSourceTest1.cxx )
 SET_TARGET_PROPERTIES(vtkURFSavedVideoSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkURFSavedVideoSourceTest1 vtkPlusDataCollection vtkInteractionImage)
 ENDIF()
 #Test is to be added.
 
