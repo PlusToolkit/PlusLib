@@ -195,14 +195,6 @@ ADD_SUBDIRECTORY(src)
 #-----------------------------------------------------------------------------
 # Generate convenience files for automatic build, test, and packaging
 #
-
-STRING(TOUPPER ${CMAKE_MAKE_PROGRAM} MAKE_PROGRAM_UPPERCASE)
-IF (${MAKE_PROGRAM_UPPERCASE} MATCHES "MSBUILD")
-  SET(IS_MAKE_PROGRAM_MSBUILD TRUE)
-ELSE()
-  SET(IS_MAKE_PROGRAM_MSBUILD FALSE)
-ENDIF()
-
 IF(WIN32)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
