@@ -753,7 +753,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
   double timestampUniversal = vtkPlusAccurateTimer::GetUniversalTimeFromSystemTime(timestampSystem);
   trackedFrame.SetTimestamp(timestampUniversal);
 
-  std::vector< int > disconnectedClientIds;
+  std::vector<int> disconnectedClientIds;
   {
     // Lock before we send message to the clients
     PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
@@ -761,7 +761,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
     {
       igtl::ClientSocket::Pointer clientSocket = (*clientIterator).ClientSocket;
 
-      // Create igt messages
+      // Create IGT messages
       std::vector<igtl::MessageBase::Pointer> igtlMessages;
       std::vector<igtl::MessageBase::Pointer>::iterator igtlMessageIterator;
 
@@ -780,24 +780,22 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
         }
 
         int retValue = 0;
-        RETRY_UNTIL_TRUE(
-          (retValue = clientSocket->Send(igtlMessage->GetBufferPointer(), igtlMessage->GetBufferSize())) != 0,
-          this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
+        RETRY_UNTIL_TRUE((retValue = clientSocket->Send(igtlMessage->GetBufferPointer(), igtlMessage->GetBufferSize())) != 0, this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
         if (retValue == 0)
         {
           disconnectedClientIds.push_back(clientIterator->ClientId);
           igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
           igtlMessage->GetTimeStamp(ts);
           LOG_INFO("Client disconnected - could not send " << igtlMessage->GetMessageType() << " message to client (device name: " << igtlMessage->GetDeviceName()
-                   << "  Timestamp: " << std::fixed <<  ts->GetTimeStamp() << ").");
+                   << "  Timestamp: " << std::fixed << ts->GetTimeStamp() << ").");
           break;
         }
 
-        // Update the tdata timestamp, even if tdata isn't sent (cheaper than checking for existing tdata message type)
+        // Update the TDATA timestamp, even if TDATA isn't sent (cheaper than checking for existing TDATA message type)
         clientIterator->ClientInfo.LastTDATASentTimeStamp = trackedFrame.GetTimestamp();
       }
     }
-  } // unlock client list
+  }
 
   // Clean up disconnected clients
   for (std::vector< int >::iterator it = disconnectedClientIds.begin(); it != disconnectedClientIds.end(); ++it)
@@ -1173,7 +1171,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
 
       for (std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it)
       {
-        igtlMessage->AddMetaDataElement(it->first, 3, it->second);
+        igtlMessage->AddMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
       }
 
       LOG_DEBUG("Command response: " << replyStr.str());
