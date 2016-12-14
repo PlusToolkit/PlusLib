@@ -23,11 +23,11 @@ class vtkPlusDataCollectionExport vtkPlusPhilips3DProbeVideoSource : public vtkP
 {
 public:
   vtkTypeMacro(vtkPlusPhilips3DProbeVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  void PrintSelf(ostream& os, vtkIndent indent);
   static vtkPlusPhilips3DProbeVideoSource* New();
 
   /*! Read configuration from XML data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to XML data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
@@ -67,7 +67,6 @@ public:
   vtkSetMacro(LatAndElevSmoothingIndex, int);
   vtkGetMacro(LatAndElevSmoothingIndex, int);
 
-
 protected:
   /*! Constructor */
   vtkPlusPhilips3DProbeVideoSource();
@@ -89,6 +88,8 @@ protected:
    This function checks for long delays between frames and attempts to regain the connection if it detects a timeout.
    */
   virtual PlusStatus InternalUpdate();
+
+protected:
 
   /*! Class for receiving streaming 3D Data */
   vtkPlusIEEListener* Listener;
@@ -123,7 +124,7 @@ private:
   vtkPlusPhilips3DProbeVideoSource(const vtkPlusPhilips3DProbeVideoSource&);  // Not implemented.
   void operator=(const vtkPlusPhilips3DProbeVideoSource&);  // Not implemented.
   static vtkPlusPhilips3DProbeVideoSource* ActiveDevice;
-  static bool StreamCallback(_int64 id, SClient3DArray *ed, SClient3DArray *cd);
+  static bool StreamCallback(_int64 id, SClient3DArray* ed, SClient3DArray* cd);
 };
 
 #endif

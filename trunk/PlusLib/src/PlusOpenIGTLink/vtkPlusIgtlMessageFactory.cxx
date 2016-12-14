@@ -129,7 +129,7 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const st
 PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, PlusTrackedFrame& trackedFrame,
     bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository/*=NULL*/)
 {
-  int numberOfErrors = 0;
+  int numberOfErrors(0);
   igtlMessages.clear();
 
   if (transformRepository != NULL)

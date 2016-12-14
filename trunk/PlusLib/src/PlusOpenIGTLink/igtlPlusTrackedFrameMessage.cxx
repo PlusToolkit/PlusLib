@@ -44,12 +44,6 @@ namespace igtl
       msg->CopyBody(this);
     }
 
-#if OpenIGTLink_HEADER_VERSION >= 2
-    msg->m_MetaDataHeaderEntries = this->m_MetaDataHeaderEntries;
-    msg->m_MetaDataMap = this->m_MetaDataMap;
-    msg->m_IsExtendedHeaderUnpacked = this->m_IsExtendedHeaderUnpacked;
-#endif
-
     return clone;
   }
 
@@ -74,21 +68,14 @@ namespace igtl
       return PLUS_FAIL;
     }
 
-    // Frame size
     this->m_MessageHeader.m_FrameSize[0] = frameSize[0];
     this->m_MessageHeader.m_FrameSize[1] = frameSize[1];
     this->m_MessageHeader.m_FrameSize[2] = frameSize[2];
-    // XML data size
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size();
-    // Pixel type
     this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType());
-    // Number of scalar components
     this->m_MessageHeader.m_NumberOfComponents = m_TrackedFrame.GetImageData()->GetNumberOfScalarComponents();
-    // Image type
     this->m_MessageHeader.m_ImageType = m_TrackedFrame.GetImageData()->GetImageType();
-    // Image data size
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes();
-    // Image orientation
     this->m_MessageHeader.m_ImageOrientation = (igtl_uint16)this->m_TrackedFrame.GetImageData()->GetImageOrientation();
 
     return PLUS_SUCCESS;

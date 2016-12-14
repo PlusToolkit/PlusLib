@@ -11,13 +11,16 @@ All rights reserved.
 Authors include:
 * Elvis Chen (Robarts Research Institute and The University of Western Ontario)
 * Adam Rankin (Robarts Research Institute and The University of Western Ontario)
-=========================================================================*/  
+=========================================================================*/
 
 // Plus includes
 #include "PlusConfigure.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusPhilips3DProbeVideoSource.h"
 #include "vtkPlusDataSource.h"
+
+// STL includes
+#include <future>
 
 // Philips API includes
 #include "StreamMgr.h"
@@ -29,7 +32,7 @@ Authors include:
 #include <WS2tcpip.h>
 #else
 #include <arpa/inet.h>
-#endif 
+#endif
 
 //----------------------------------------------------------------------------
 
@@ -48,9 +51,9 @@ namespace
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray *ed, SClient3DArray *cd)
+bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray* ed, SClient3DArray* cd)
 {
-  if( vtkPlusPhilips3DProbeVideoSource::ActiveDevice == NULL )
+  if (vtkPlusPhilips3DProbeVideoSource::ActiveDevice == NULL)
   {
     LOG_ERROR("No Philips device has been created, but the callback was still called.");
     return false;
@@ -64,7 +67,7 @@ bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray 
   *
   * 112 x 48 x 112
   */
-  if( streamedImageData == NULL )
+  if (streamedImageData == NULL)
   {
     // let the calibration matrix handle the spacing and orientation of the volume in 3-space
     double spacing[3] = {1.0, 1.0, 1.0};
@@ -72,7 +75,7 @@ bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray 
 
     streamedImageData = vtkImageData::New();
     streamedImageData->SetSpacing(spacing);
-    streamedImageData->SetExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
+    streamedImageData->SetExtent(0, dimensions[0] - 1, 0, dimensions[1] - 1, 0, dimensions[2] - 1);
     streamedImageData->SetOrigin(origin);
 #if VTK_MAJOR_VERSION > 5
     streamedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
@@ -90,19 +93,19 @@ bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray 
   }
   else
   {
-    int streamedDimensions[3] = {0,0,0};
+    int streamedDimensions[3] = {0, 0, 0};
     streamedImageData->GetDimensions(streamedDimensions);
 
-    if( dimensions[0] != streamedDimensions[0] || dimensions[1] != streamedDimensions[1] || dimensions[2] != streamedDimensions[2] )
+    if (dimensions[0] != streamedDimensions[0] || dimensions[1] != streamedDimensions[1] || dimensions[2] != streamedDimensions[2])
     {
       LOG_ERROR("Dimensions of new frame do not match dimensions of previous frames. Cannot add frame to buffer.");
       return false;
     }
   }
 
-  size_t size = dimensions[0]*dimensions[1]*dimensions[2];
-  unsigned char *src = ed->pData;
-  unsigned char *dst = (unsigned char*)streamedImageData->GetScalarPointer();
+  size_t size = dimensions[0] * dimensions[1] * dimensions[2];
+  unsigned char* src = ed->pData;
+  unsigned char* dst = (unsigned char*)streamedImageData->GetScalarPointer();
 
   memcpy((void*)dst, (void*)src, size);
 
@@ -119,26 +122,25 @@ vtkStandardNewMacro(vtkPlusPhilips3DProbeVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusPhilips3DProbeVideoSource::vtkPlusPhilips3DProbeVideoSource()
-: Listener(NULL)
-, FrameNumber(0)
-, IPAddress(NULL)
-, Port(-1)
-, ForceZQuantize(false)
-, ResolutionFactor(2.5)
-, IntegerZ(true)
-, Isotropic(false)
-, QuantizeDim(true)
-, ZDecimation(2)
-, Set4PtFIR(true)
-, LatAndElevSmoothingIndex(4)
+  : Listener(NULL)
+  , FrameNumber(0)
+  , IPAddress(NULL)
+  , Port(-1)
+  , ForceZQuantize(false)
+  , ResolutionFactor(2.5)
+  , IntegerZ(true)
+  , Isotropic(false)
+  , QuantizeDim(true)
+  , ZDecimation(2)
+  , Set4PtFIR(true)
+  , LatAndElevSmoothingIndex(4)
 {
-  // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 10;
 
-  // This effectively forces only one philips 3d source at a time, but it paves the way
+  // This effectively forces only one Philips 3D source at a time, but it paves the way
   // for a non-singleton architecture when the SDK supports it
-  if( vtkPlusPhilips3DProbeVideoSource::ActiveDevice != NULL )
+  if (vtkPlusPhilips3DProbeVideoSource::ActiveDevice != NULL)
   {
     LOG_WARNING("There is already an active vtkPlusPhilips3DProbeVideoSource device. Philips API only supports one connection at a time, so the existing device is now deactivated and the newly created class is activated instead.");
   }
@@ -148,13 +150,13 @@ vtkPlusPhilips3DProbeVideoSource::vtkPlusPhilips3DProbeVideoSource()
 
 //----------------------------------------------------------------------------
 vtkPlusPhilips3DProbeVideoSource::~vtkPlusPhilips3DProbeVideoSource()
-{ 
-  if ( this->Connected )
+{
+  if (this->Connected)
   {
     this->Disconnect();
   }
 
-  if( this->Listener )
+  if (this->Listener)
   {
     this->Listener->Delete();
     this->Listener = NULL;
@@ -166,9 +168,9 @@ vtkPlusPhilips3DProbeVideoSource::~vtkPlusPhilips3DProbeVideoSource()
 //----------------------------------------------------------------------------
 void vtkPlusPhilips3DProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
 
-  if( this->Listener )
+  if (this->Listener)
   {
     this->Listener->PrintSelf(os, indent);
   }
@@ -182,7 +184,7 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalConnect()
   this->Listener = vtkPlusIEEListener::New(this->ForceZQuantize, this->ResolutionFactor, this->IntegerZ, this->Isotropic, this->QuantizeDim, this->ZDecimation, this->Set4PtFIR, this->LatAndElevSmoothingIndex);
   this->Listener->SetMachineName(this->IPAddress);
   this->Listener->SetPortNumber(this->Port);
-  if( this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback) == PLUS_FAIL )
+  if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to connect to Philips device.");
     return PLUS_FAIL;
@@ -198,7 +200,7 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalDisconnect()
 
   this->Listener->Disconnect();
 
-  if( streamedImageData != NULL )
+  if (streamedImageData != NULL)
   {
     streamedImageData->Delete();
     streamedImageData = NULL;
@@ -210,10 +212,10 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalDisconnect()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalUpdate()
 {
-  if( this->Listener->IsConnected() )
+  if (this->Listener->IsConnected())
   {
     // Listener thinks it's connected, let's check for timeouts
-    if( vtkPlusAccurateTimer::GetSystemTime() - LastValidTimestamp >= TIMEOUT )
+    if (vtkPlusAccurateTimer::GetSystemTime() - LastValidTimestamp >= TIMEOUT)
     {
       LOG_INFO("Philips iE33: 3D mode timeout disconnected. Did you switch to another mode?");
       // Don't call a full disconnect because that stops the InternalUpdate loop
@@ -222,12 +224,12 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalUpdate()
       LastRetryTime = vtkPlusAccurateTimer::GetSystemTime();
     }
   }
-  else if( vtkPlusAccurateTimer::GetSystemTime() - LastRetryTime >= RETRY_TIMER )
+  else if (vtkPlusAccurateTimer::GetSystemTime() - LastRetryTime >= RETRY_TIMER)
   {
     LOG_INFO("Philips iE33: Retrying connection to 3D mode.");
     // Retry connection if it's time
     LastRetryTime = vtkPlusAccurateTimer::GetSystemTime();
-    if( this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkPlusLogger::LOG_LEVEL_WARNING) )
+    if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkPlusLogger::LOG_LEVEL_WARNING))
     {
       LOG_INFO("Philips iE33: Connection successfully re-established.");
       LastValidTimestamp = vtkPlusAccurateTimer::GetSystemTime();
@@ -251,8 +253,8 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::ReadConfiguration(vtkXMLDataElement
 #else
   struct sockaddr_in address;
   int result = inet_pton(AF_INET, this->IPAddress, &(address.sin_addr));
-#endif 
-  if( result != 1 )
+#endif
+  if (result != 1)
   {
     LOG_ERROR("Improperly formatted IPAddress. Please confirm formatting in config file.");
     return PLUS_FAIL;
@@ -293,29 +295,29 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::WriteConfiguration(vtkXMLDataElemen
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusPhilips3DProbeVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("vtkPlusPhilips3DProbeVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusPhilips3DProbeVideoSource. Cannot proceed." );
+    LOG_ERROR("No output channels defined for vtkPlusPhilips3DProbeVideoSource. Cannot proceed.");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
   vtkPlusDataSource* videoSource(NULL);
-  if( this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
+  if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to find video source. Device needs a video buffer to put new frames into.");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
-  if( STRCASECMP(this->IPAddress, "") == 0 || this->Port <= 0 )
+  if (STRCASECMP(this->IPAddress, "") == 0 || this->Port <= 0)
   {
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
@@ -334,15 +336,52 @@ bool vtkPlusPhilips3DProbeVideoSource::IsTracker() const
 void vtkPlusPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
 {
   vtkPlusDataSource* videoSource(NULL);
-  if( this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS )
+  if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to find video source. Cannot add new frame.");
     return;
   }
-  if( videoSource->AddItem(imageData, videoSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS )
+
+  std::future<void> addTask = std::async(std::launch::async, [ = ]()
   {
-    LOG_ERROR("Unable to add item to buffer.");
-    return;
-  }
+    if (videoSource->AddItem(imageData, videoSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to add item to buffer.");
+      return;
+    }
+  });
+  std::future<uint8_t> maxPixelTask = std::async(std::launch::async, [ = ]()
+  {
+    int extent[6];
+    imageData->GetExtent(extent);
+    uint8_t* pixelPtr = (uint8_t*)imageData->GetScalarPointer();
+    auto numComponents = imageData->GetNumberOfScalarComponents();
+
+    uint8_t maxPixelValue(0);
+    for (int z = 0; z < extent[5] - extent[4]; ++z)
+    {
+      for (int y = 0; y < extent[3] - extent[2]; ++y)
+      {
+        for (int x = 0; x < extent[1] - extent[0]; ++x)
+        {
+          if (*pixelPtr > maxPixelValue)
+          {
+            maxPixelValue = *pixelPtr;
+          }
+          pixelPtr += numComponents;
+        }
+      }
+    }
+
+    return maxPixelValue;
+  });
+
+  addTask.wait();
+  uint8_t maxPixelValue = maxPixelTask.get();
+
+  std::stringstream ss;
+  ss << maxPixelValue;
+  videoSource->ModifyBufferItemFrameField(videoSource->GetLatestItemUidInBuffer(), "MaximumPixelValue", ss.str());
+
   this->FrameNumber++;
 }
