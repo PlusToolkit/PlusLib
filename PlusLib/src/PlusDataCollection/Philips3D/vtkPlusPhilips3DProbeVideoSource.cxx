@@ -377,7 +377,7 @@ void vtkPlusPhilips3DProbeVideoSource::CallbackAddFrame(vtkImageData* imageData)
   });
 
   addTask.wait();
-  uint8_t maxPixelValue = maxPixelTask.get();
+  unsigned int maxPixelValue = static_cast<unsigned int>(maxPixelTask.get());
 
   std::stringstream ss;
   ss << maxPixelValue;
