@@ -401,7 +401,7 @@ ENDIF()
 IF (PLUS_USE_MICRONTRACKER)
     ADD_EXECUTABLE(vtkMicronTrackerTest vtkMicronTrackerTest.cxx)
 SET_TARGET_PROPERTIES(vtkMicronTrackerTest PROPERTIES FOLDER Tests)
-    TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon)    
+    TARGET_LINK_LIBRARIES(vtkMicronTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)    
 ENDIF() 
 
 #*************************** IntelRealSenseTrackerTest ***************************
