@@ -462,6 +462,10 @@ PlusStatus vtkPlusTrackedFrameList::SaveToSequenceMetafile( const std::string& f
   writer->SetImageOrientationInFile( orientationInFile );
   writer->SetTrackedFrameList( this );
   writer->SetEnableImageDataWrite( enableImageDataWrite );
+  if (this->GetNumberOfTrackedFrames() == 1)
+  {
+    writer->IsDataTimeSeriesOff();
+  }
   if ( writer->Write() != PLUS_SUCCESS )
   {
     LOG_ERROR( "Couldn't write sequence metafile: " <<  filename );
@@ -507,6 +511,10 @@ PlusStatus vtkPlusTrackedFrameList::SaveToNrrdFile( const std::string& filename,
   writer->SetImageOrientationInFile( orientationInFile );
   writer->SetTrackedFrameList( this );
   writer->SetEnableImageDataWrite( enableImageDataWrite );
+  if (this->GetNumberOfTrackedFrames() == 1)
+  {
+    writer->IsDataTimeSeriesOff();
+  }
   if ( writer->Write() != PLUS_SUCCESS )
   {
     LOG_ERROR( "Couldn't write Nrrd file: " <<  filename );

@@ -39,7 +39,7 @@ public:
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
-  virtual PlusStatus GenerateFrameSizeCustomStrings(int numberOfFrames, bool isData3D);
+  virtual PlusStatus UpdateDimensionsCustomStrings(int numberOfFrames, bool isData3D);
 
   /*! 
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
@@ -88,7 +88,7 @@ protected:
   virtual PlusStatus PrepareImageFile();
 
   /*! Write all the fields to the metaimage file header */
-  virtual PlusStatus OpenImageHeader();
+  virtual PlusStatus WriteInitialImageHeader();
 
   /*! 
     Writes the compressed pixel data directly into file. 
