@@ -85,7 +85,7 @@ public:
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
-  virtual PlusStatus GenerateFrameSizeCustomStrings( int numberOfFrames, bool isData3D ) = 0;
+  virtual PlusStatus UpdateDimensionsCustomStrings( int numberOfFrames, bool isData3D ) = 0;
 
   /*! Update a field in the image header with its current value */
   virtual PlusStatus UpdateFieldInImageHeader( const char* fieldName ) = 0;
@@ -120,6 +120,13 @@ public:
   /*! Flag to enable/disable compression of image data */
   vtkBooleanMacro( UseCompression, bool );
 
+  /*! Flag to indicate that there is a time dimension */
+  vtkGetMacro(IsDataTimeSeries, bool);
+  /*! Flag to indicate that there is a time dimension */
+  vtkSetMacro(IsDataTimeSeries, bool);
+  /*! Flag to indicate that there is a time dimension */
+  vtkBooleanMacro(IsDataTimeSeries, bool);
+
   /*! Return the dimensions of the sequence */
   vtkGetVector4Macro( Dimensions, unsigned int );
 
@@ -138,7 +145,7 @@ protected:
   virtual PlusStatus ReadImagePixels() = 0;
 
   /*! Write all the fields to the sequence file header */
-  virtual PlusStatus OpenImageHeader() = 0;
+  virtual PlusStatus WriteInitialImageHeader() = 0;
 
   /*! Prepare the image file for writing */
   virtual PlusStatus PrepareImageFile() = 0;
@@ -174,6 +181,7 @@ protected:
   /*! Get a custom string field value for a specific frame */
   bool SetCustomString( const char* fieldName, const char* fieldValue );
   bool SetCustomString( const std::string& fieldName, const std::string& fieldValue );
+  bool SetCustomString(const std::string& fieldName, int fieldValue);
 
   /*! Get a custom string field value (global, not for a specific frame) */
   const char* GetCustomString( const char* fieldName );
@@ -213,6 +221,8 @@ protected:
   PlusCommon::VTKScalarPixelType PixelType;
   /*! Number of components (or channels) */
   int NumberOfScalarComponents;
+  /*! True if there is a time dimension */
+  bool IsDataTimeSeries;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) or 4 (sequence of volumes) are supported. */
   int NumberOfDimensions;
   /*! Frame size (first three elements) and number of frames (last element) */

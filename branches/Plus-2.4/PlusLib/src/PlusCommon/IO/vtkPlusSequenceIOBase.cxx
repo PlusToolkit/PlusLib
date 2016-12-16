@@ -33,6 +33,7 @@ vtkPlusSequenceIOBase::vtkPlusSequenceIOBase()
   , EnableImageDataWrite( true )
   , PixelType( VTK_VOID )
   , NumberOfScalarComponents( 1 )
+  , IsDataTimeSeries(true)
   , NumberOfDimensions( 4 )
   , CurrentFrameOffset( 0 )
   , TotalBytesWritten( 0 )
@@ -140,6 +141,20 @@ bool vtkPlusSequenceIOBase::SetCustomString( const std::string& fieldName, const
 }
 
 //----------------------------------------------------------------------------
+bool vtkPlusSequenceIOBase::SetCustomString(const std::string& fieldName, int fieldValue)
+{
+  if (fieldName.empty())
+  {
+    LOG_ERROR("Invalid field name");
+    return PLUS_FAIL;
+  }
+  std::stringstream ss;
+  ss << fieldValue;
+  this->TrackedFrameList->SetCustomString(fieldName, ss.str());
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 const char* vtkPlusSequenceIOBase::GetCustomString( const char* fieldName )
 {
   if ( fieldName == NULL )
@@ -223,7 +238,7 @@ PlusStatus vtkPlusSequenceIOBase::PrepareHeader()
     this->TempImageFileName = tempFilename;
   }
 
-  if ( this->OpenImageHeader() != PLUS_SUCCESS )
+  if ( this->WriteInitialImageHeader() != PLUS_SUCCESS )
   {
     return PLUS_FAIL;
   }
@@ -293,9 +308,9 @@ PlusStatus vtkPlusSequenceIOBase::Close()
   this->TempHeaderFileName.clear();
   this->TempImageFileName.clear();
 
-  CurrentFrameOffset = 0;
-  TotalBytesWritten = 0;
-  CompressedBytesWritten = 0;
+  this->CurrentFrameOffset = 0;
+  this->TotalBytesWritten = 0;
+  this->CompressedBytesWritten = 0;
 
   return PLUS_SUCCESS;
 }
@@ -372,7 +387,7 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
 
   if( result == PLUS_SUCCESS )
   {
-    CurrentFrameOffset += TrackedFrameList->GetNumberOfTrackedFrames();
+    this->CurrentFrameOffset += this->TrackedFrameList->GetNumberOfTrackedFrames();
   }
   return result;
 }
@@ -444,8 +459,8 @@ PlusStatus vtkPlusSequenceIOBase::Discard()
   this->TempHeaderFileName.clear();
   this->TempImageFileName.clear();
 
-  CurrentFrameOffset = 0;
-  TotalBytesWritten = 0;
+  this->CurrentFrameOffset = 0;
+  this->TotalBytesWritten = 0;
 
   return PLUS_SUCCESS;
 }
