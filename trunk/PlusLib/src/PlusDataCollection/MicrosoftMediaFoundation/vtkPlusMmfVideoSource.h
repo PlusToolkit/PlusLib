@@ -41,9 +41,11 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
 
   struct VideoFormat
   {
+	VideoFormat()
+		: FormatIndex(std::numeric_limits<unsigned int>::max()){}
     unsigned int DeviceId;
     unsigned int StreamIndex;
-    unsigned int FormatIndex = std::numeric_limits<unsigned int>::max();
+    unsigned int FormatIndex;
     int FrameSize[2];
     std::wstring PixelFormatName; // e.g., YUY2 or MFVideoFormat_YUY2
   };
