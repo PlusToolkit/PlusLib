@@ -732,9 +732,9 @@ void vtkPlusMmfVideoSource::LogListOfCaptureVideoFormats(unsigned int deviceId)
   LOG_INFO_W(L"Supported video formats for Device Id " << deviceId << L" (" << GetCaptureDeviceName(deviceId) << L")");
   std::vector<std::wstring> videoModes;
   GetListOfCaptureVideoFormats(videoModes, deviceId);
-  for (auto& videoMode : videoModes)
+  for (auto videoModeIt = videoModes.begin(); videoModeIt != videoModes.end(); ++videoModeIt)
   {
-    LOG_INFO_W(L"  " << videoMode);
+    LOG_INFO_W(L"  " << *videoModeIt);
   }
 }
 
@@ -745,9 +745,9 @@ void vtkPlusMmfVideoSource::LogListOfCaptureDevices()
   std::vector<std::wstring> deviceNames;
   GetListOfCaptureDevices(deviceNames);
   int id = 0;
-  for (auto& deviceName : deviceNames)
+  for (auto deviceNameIt = deviceNames.begin(); deviceNameIt != deviceNames.end(); ++deviceNameIt)
   {
-    LOG_INFO_W(L"  " << id << L": " << deviceName);
+    LOG_INFO_W(L"  " << id << L": " << *deviceNameIt);
   }
 }
 
