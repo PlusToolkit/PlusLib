@@ -44,6 +44,7 @@ SET(QT_Resources PlusCommonWidgets.qrc)
 SET (PlusCommonWidgets_LIBS 
   Qt5::Xml
   Qt5::Widgets
+  vtkGUISupportQt
   vtkPlusCalibration
   vtkPlusCommon
   vtkPlusDataCollection
