@@ -70,7 +70,7 @@ namespace
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro( vtkPlusNDITracker );
+vtkStandardNewMacro(vtkPlusNDITracker);
 
 //----------------------------------------------------------------------------
 vtkPlusNDITracker::vtkPlusNDITracker()
