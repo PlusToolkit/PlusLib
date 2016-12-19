@@ -39,41 +39,50 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "ndicapi.h"
-#include "ndicapi_math.h"
-#include "vtkCharArray.h"
-#include "vtkMath.h"
-#include "vtkMatrix4x4.h"
-#include "vtkPlusNDITracker.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusRecursiveCriticalSection.h"
-#include "vtkSocketCommunicator.h"
-#include "vtkTimerLog.h"
 #include "vtkPlusDataSource.h"
-#include "vtkTransform.h"
+#include "vtkPlusNDITracker.h"
+
+// NDI includes
+#include <ndicapi.h>
+#include <ndicapi_math.h>
+
+// VTK includes
+#include <vtkCharArray.h>
+#include <vtkMath.h>
+#include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
+#include <vtkSocketCommunicator.h>
+#include <vtkTimerLog.h>
+#include <vtkTransform.h>
+
+// System includes
 #include <ctype.h>
 #include <float.h>
-#include <limits.h>
 #include <math.h>
-#include <string.h>
 
-vtkStandardNewMacro(vtkPlusNDITracker);
+namespace
+{
+  const int VIRTUAL_SROM_SIZE = 1024;
+}
 
-const int VIRTUAL_SROM_SIZE = 1024;
+//----------------------------------------------------------------------------
+
+vtkStandardNewMacro( vtkPlusNDITracker );
 
 //----------------------------------------------------------------------------
 vtkPlusNDITracker::vtkPlusNDITracker()
+  : LastFrameNumber(0)
+  , Device(nullptr)
+  , Version(nullptr)
+  , SerialDevice(nullptr)
+  , SerialPort(-1)
+  , BaudRate(9600)
+  , IsDeviceTracking(0)
+  , MeasurementVolumeNumber(0)
 {
-  this->Device = 0;
-  this->Version = NULL;
-  this->IsDeviceTracking = 0;
-  this->SerialPort = -1; // default is to probe
-  this->BaudRate = 9600;
-  this->MeasurementVolumeNumber = 0; // keep default volume
-
-  this->LastFrameNumber = 0;
-
   memset(this->CommandReply, 0, VTK_NDI_REPLY_LEN);
 
   // PortName for data source is not required if RomFile is specified, so we don't need to enable this->RequirePortNameInDeviceSetConfiguration
