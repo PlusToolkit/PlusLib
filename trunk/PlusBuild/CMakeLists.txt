@@ -28,7 +28,7 @@ IF( MSVC )
   ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 10" )
     MESSAGE("Visual Studio 2010 is supported, but should only be used if you're compiling for the StealthLink device. If not, please consider using Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
   ELSEIF( ${CMAKE_GENERATOR} MATCHES "Visual Studio 11" )
-    MESSAGE(FATAL_ERROR "Visual Studio 2012 is not supported. You can download Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
+    MESSAGE("Visual Studio 2012 is not recommended. You should download Visual Studio 2013 or 2015 Community from https://www.visualstudio.com/downloads/download-visual-studio-vs.")
   ENDIF()
 ENDIF()
 
