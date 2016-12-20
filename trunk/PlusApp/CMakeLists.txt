@@ -56,12 +56,6 @@ CONFIGURE_FILE(
   )
 
 # Documentation generator
-STRING(TOUPPER ${CMAKE_MAKE_PROGRAM} MAKE_PROGRAM_UPPERCASE)
-IF (${MAKE_PROGRAM_UPPERCASE} MATCHES "MSBUILD")
-  SET(IS_MAKE_PROGRAM_MSBUILD TRUE)
-ELSE()
-  SET(IS_MAKE_PROGRAM_MSBUILD FALSE)
-ENDIF()
 CONFIGURE_FILE(
   CreateUserManual.bat.in
   ${CMAKE_CURRENT_BINARY_DIR}/CreateUserManual.bat
@@ -200,18 +194,25 @@ ENDIF()
 OPTION(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." ${PLUSLIB_BUILD_DOCUMENTATION})
 MARK_AS_ADVANCED(BUILD_DOCUMENTATION)
 
-IF (BUILD_DOCUMENTATION AND NOT PLUSLIB_BUILD_DOCUMENTATION)
+IF(NOT EXISTS ${DOXYGEN_DOT_EXECUTABLE})
+  SET(PROGWIN64 "PROGRAMFILES")
+  SET(PROGWIN32 "PROGRAMFILES(X86)")
+
   # Try to detect GraphViz path (CMake's Doxygen package finder only tries some obsolete paths on Windows)
   FIND_PROGRAM(DOXYGEN_DOT_EXECUTABLE
-      NAMES dot
-      PATHS
-        "$ENV{ProgramFiles}/Graphviz2.38/bin"
-        "$ENV{ProgramFiles(x86)}/Graphviz2.38/bin"
-        "$ENV{ProgramFiles}/Graphviz2.34/bin"
-        "$ENV{ProgramFiles(x86)}/Graphviz2.34/bin"
-      DOC "Graphviz Dot tool for using Doxygen"
-      NO_SYSTEM_ENVIRONMENT_PATH
-    )
+    NAMES dot
+    PATHS
+      "$ENV{${PROGWIN32}}/Graphviz2.38/bin"
+      "$ENV{${PROGWIN64}}/Graphviz2.38/bin"
+      "$ENV{${PROGWIN32}}/Graphviz2.34/bin"
+      "$ENV{${PROGWIN64}}/Graphviz2.34/bin"
+    DOC "Graphviz Dot tool for using Doxygen"
+    NO_SYSTEM_ENVIRONMENT_PATH
+  )
+
+  IF(WIN32)
+    SET(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
+  ENDIF(WIN32)
 ENDIF()
 
 ADD_SUBDIRECTORY(Documentation)

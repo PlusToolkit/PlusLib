@@ -13,17 +13,8 @@ if "%1" == "" goto cleansuccess
 if "%1" == "-E" goto cleansuccess
 
 ECHO Clean...
-rem IS_MAKE_PROGRAM_MSBUILD?
-if ${IS_MAKE_PROGRAM_MSBUILD}==TRUE goto CleanUsingMsBuild
-rem ---------------- msdev clean -----------------------
-"${CMAKE_MAKE_PROGRAM}" PlusApp.sln /clean %BUILD_TYPE% /project ALL_BUILD
-IF ERRORLEVEL 1 GOTO buildfail
-goto cleansuccess
-rem ---------------- msbuild build -----------------------
-:CleanUsingMsBuild
 "${CMAKE_MAKE_PROGRAM}" ALL_BUILD.vcxproj /p:Configuration=Release /target:clean
 IF ERRORLEVEL 1 GOTO buildfail
-goto cleansuccess
 
 :cleansuccess
 
