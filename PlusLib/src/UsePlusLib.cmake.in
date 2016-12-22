@@ -11,60 +11,61 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   CMAKE_POLICY(SET CMP0012 NEW) # if() recognizes numbers and boolean constants
 
   ## Set Plus binary dir path
-  SET(PLUSLIB_DIR "@PlusLib_BINARY_DIR@" )
+  SET(PLUSLIB_DIR "@PlusLib_BINARY_DIR@")
 
   ## Set Plus source dir path
-  SET(PLUSLIB_SOURCE_DIR "@PlusLib_SOURCE_DIR@" )
+  SET(PLUSLIB_SOURCE_DIR "@PlusLib_SOURCE_DIR@")
 
   ## Set Plus data dir path
-  SET(PLUSLIB_DATA_DIR "@PLUSLIB_DATA_DIR@" )
+  SET(PLUSLIB_DATA_DIR "@PLUSLIB_DATA_DIR@")
 
   ## Set Plus executable output path
-  SET(PLUS_EXECUTABLE_OUTPUT_PATH "@PLUS_EXECUTABLE_OUTPUT_PATH@" )
+  SET(PLUS_EXECUTABLE_OUTPUT_PATH "@PLUS_EXECUTABLE_OUTPUT_PATH@")
 
   ## Set Plus scripts folder path
-  SET(PLUSLIB_SCRIPTS_DIR "@PLUSLIB_SCRIPTS_DIR@" )
+  SET(PLUSLIB_SCRIPTS_DIR "@PLUSLIB_SCRIPTS_DIR@")
 
   ## Find ITK
   FIND_PACKAGE(ITK PATHS "@ITK_DIR@" NO_DEFAULT_PATH)
-  IF (ITK_FOUND)
+  IF(ITK_FOUND)
     INCLUDE("@ITK_USE_FILE@")
-  ELSE (ITK_FOUND)
+  ELSE()
     MESSAGE(FATAL_ERROR "ITK not found in UsePlusLib.cmake. Please report this to the developers at https://app.assembla.com/spaces/plus/wiki.")
-  ENDIF (ITK_FOUND)
+  ENDIF()
 
   ## Find VTK
   FIND_PACKAGE(VTK PATHS "@VTK_DIR@" NO_DEFAULT_PATH)
   IF (VTK_FOUND)
     INCLUDE("@VTK_USE_FILE@")
-  ELSE (VTK_FOUND)
+  ELSE()
     MESSAGE(FATAL_ERROR "VTK not found in UsePlusLib.cmake. Please report this to the developers at https://app.assembla.com/spaces/plus/wiki.")
-  ENDIF (VTK_FOUND)
+  ENDIF()
 
   SET(PLUS_USE_OpenIGTLink @PLUS_USE_OpenIGTLink@)
   IF(PLUS_USE_OpenIGTLink)
-    SET (OpenIGTLink_DIR "@OpenIGTLink_DIR@")
-    FIND_PACKAGE(OpenIGTLink PATHS "@OpenIGTLink_DIR@" NO_DEFAULT_PATH)
-    IF (OpenIGTLink_USE_FILE)
+    SET(OpenIGTLink_DIR "@OpenIGTLink_DIR@")
+    FIND_PACKAGE(OpenIGTLink PATHS "@OpenIGTLink_DIR@" NO_MODULE)
+    IF(OpenIGTLink_USE_FILE)
       INCLUDE ("@OpenIGTLink_USE_FILE@")
-    ELSE (OpenIGTLink_USE_FILE)
+    ELSE()
       MESSAGE( FATAL_ERROR "Please set OpenIGTLink.")
-    ENDIF (OpenIGTLink_USE_FILE)
+    ENDIF()
+
     IF(PLUS_USE_OpenIGTLinkIO)
       FIND_PACKAGE(OpenIGTLinkIO PATHS "@OpenIGTLinkIO_DIR@" NO_DEFAULT_PATH)
-    ENDIF(PLUS_USE_OpenIGTLinkIO)
-  ENDIF(PLUS_USE_OpenIGTLink)
+    ENDIF()
+  ENDIF()
 
   SET(PLUS_USE_tesseract @PLUS_USE_tesseract@)
   IF(PLUS_USE_tesseract)
     SET(tesseract_DIR "@tesseract_DIR@")
-    FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
-  ENDIF(PLUS_USE_tesseract)
+    FIND_PACKAGE(tesseract NO_MODULE)
+  ENDIF()
 
   SET(PLUS_USE_SLICER @PLUS_USE_SLICER@)
   IF(PLUS_USE_SLICER)
     SET(SLICER_BIN_DIRECTORY "@SLICER_BIN_DIRECTORY@")
-  ENDIF(PLUS_USE_SLICER)
+  ENDIF()
 
   # Add include directories needed to use PlusLib library
   # Use a temporary CMake variable to store the list of directory paths
@@ -87,10 +88,10 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   SET(PLUSLIB_BUILD_SHARED_LIBS @BUILD_SHARED_LIBS@)
 
   ## Find SVN
-  SET (SVN_FOUND @Subversion_FOUND@)
-  IF ( SVN_FOUND )
-    SET( Subversion_SVN_EXECUTABLE "@PLUSLIB_SVN_EXECUTABLE@" CACHE INTERNAL "")
-  ENDIF (SVN_FOUND)
+  SET(SVN_FOUND @Subversion_FOUND@)
+  IF(SVN_FOUND)
+    SET(Subversion_SVN_EXECUTABLE "@PLUSLIB_SVN_EXECUTABLE@" CACHE INTERNAL "")
+  ENDIF()
 
   ## Set Plus version
   SET(PLUSLIB_VERSION "@PLUSLIB_VERSION@")
