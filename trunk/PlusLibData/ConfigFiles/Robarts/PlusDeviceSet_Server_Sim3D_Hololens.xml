@@ -1,0 +1,99 @@
+<PlusConfiguration version="2.1">
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: HoloLens - Replay fCal 3d data"
+      Description="Replay of saved imaging+transform data for help with developing the HoloLens project." />
+    <Device
+      Id="VideoDevice"
+      Type="SavedDataSource"
+      AcquisitionRate="20"
+      SequenceFile="ie33_NDIAurora_Probe_Stylus_compressed.mha"
+      UseData="IMAGE_AND_TRANSFORM"
+      RepeatEnabled="TRUE" >
+      <DataSources>
+        <DataSource Type="Video" Id="Video" />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackedVideoStream" VideoDataSourceId="Video" />
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer 
+    MaxNumberOfIgtlMessagesToSend="1" 
+    MaxTimeSpentWithProcessingMs="50" 
+    DefaultClientSendTimeoutSec="0"
+    ListeningPort="18944" 
+    SendValidTransformsOnly="true" 
+    OutputChannelId="TrackedVideoStream" > 
+    <DefaultClientInfo> 
+      <MessageTypes> 
+        <Message Type="TRACKEDFRAME" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="ImageToReference"/>
+        <Transform Name="StylusToReference"/>
+        <Transform Name="ProbeToReference"/>
+        <Transform Name="PhantomToReference"/>
+        <Transform Name="RedSphere1ToPhantom"/>
+        <Transform Name="RedSphere2ToPhantom"/>
+        <Transform Name="RedSphere3ToPhantom"/>
+        <Transform Name="RedSphere4ToPhantom"/>
+        <Transform Name="RedSphere5ToPhantom"/>
+      </TransformNames>
+      <ImageNames>
+        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
+      </ImageNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+  <CoordinateDefinitions>
+    <Transform From="Image" To="Probe"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+
+    <Transform From="RedSphere1" To="Phantom"
+      Matrix="
+        0.9089	0	0.417014	39.1541
+        0.416435	-0.0526467	-0.90764	-85.2199
+        0.0219544	0.998613	-0.0478506	-4.49278
+        0	0	0	1"
+       Error="0.705186" Date="122216_115653" />
+
+    <Transform From="RedSphere2" To="Phantom"
+      Matrix="
+        0.770838	0	-0.637031	-23.6374
+        0.632016	-0.125243	0.764768	28.3772
+        -0.0797834	-0.992126	-0.0965417	-3.58223
+        0	0	0	1"
+       Error="0.531791" Date="122216_115908" />
+
+    <Transform From="RedSphere3" To="Phantom"
+      Matrix="
+        0.979309	0	0.202369	20.0147
+        -0.19034	0.339632	0.921097	91.098
+        -0.0687312	-0.940558	0.332605	32.8952
+        0	0	0	1"
+       Error="0.465206" Date="122216_115952" />
+
+    <Transform From="RedSphere4" To="Phantom"
+      Matrix="
+        0.815525	0	-0.578722	-65.4222
+        0.374361	-0.762596	0.527543	59.6366
+        -0.441331	-0.646875	-0.621916	-70.3051
+        0	0	0	1"
+       Error="0.338208" Date="122216_120054" />
+       
+    <Transform From="RedSphere5" To="Phantom"
+      Matrix="
+        0.749948	0	-0.661497	-78.6934
+        0.613145	0.375295	0.695131	82.6946
+        0.248256	-0.926905	0.281452	33.4822
+        0	0	0	1"
+       Error="0.424483" Date="122216_120128" />
+  </CoordinateDefinitions> 
+</PlusConfiguration>
