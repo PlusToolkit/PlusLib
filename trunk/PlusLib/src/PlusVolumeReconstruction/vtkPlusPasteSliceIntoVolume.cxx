@@ -243,9 +243,9 @@ PlusStatus vtkPlusPasteSliceIntoVolume::ResetOutput()
   }
   else
   {
-    memset( accPtr, 0, ( ( accExtent[1] - accExtent[0] + 1 ) *
-                         ( accExtent[3] - accExtent[2] + 1 ) *
-                         ( accExtent[5] - accExtent[4] + 1 )*
+    memset( accPtr, 0, ( size_t( accExtent[1] - accExtent[0] + 1 ) *
+                         size_t( accExtent[3] - accExtent[2] + 1 ) *
+                         size_t( accExtent[5] - accExtent[4] + 1 ) *
                          accData->GetScalarSize()*accData->GetNumberOfScalarComponents() ) );
   }
   // Allocate memory for the reconstructed image and set all pixels to 0
@@ -271,9 +271,9 @@ PlusStatus vtkPlusPasteSliceIntoVolume::ResetOutput()
   }
   else
   {
-    memset( outPtr, 0, ( ( outExtent[1] - outExtent[0] + 1 ) *
-                         ( outExtent[3] - outExtent[2] + 1 ) *
-                         ( outExtent[5] - outExtent[4] + 1 )*
+    memset( outPtr, 0, ( size_t( outExtent[1] - outExtent[0] + 1 ) *
+                         size_t( outExtent[3] - outExtent[2] + 1 ) *
+                         size_t( outExtent[5] - outExtent[4] + 1 ) *
                          outData->GetScalarSize()*outData->GetNumberOfScalarComponents() ) );
   }
 
