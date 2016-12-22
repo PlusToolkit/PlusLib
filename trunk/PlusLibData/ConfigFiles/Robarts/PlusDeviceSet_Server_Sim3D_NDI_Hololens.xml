@@ -21,17 +21,19 @@
       Id="TrackerDevice" 
       Type="AuroraTracker"
       SerialPort="5"
-      ToolReferenceFrame="ReferenceMm" >
+      ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Phantom" PortName="0" />
         <DataSource Type="Tool" Id="Probe" PortName="1" />
         <DataSource Type="Tool" Id="Stylus" PortName="2" />
+        <DataSource Type="Tool" Id="Reference" PortName="3" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Phantom" />
           <DataSource Id="Probe" />
           <DataSource Id="Stylus" />
+          <DataSource Id="Reference" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -48,7 +50,7 @@
       </OutputChannels>
     </Device>
   </DataCollection>
-    
+
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
     MaxTimeSpentWithProcessingMs="50" 
@@ -61,7 +63,7 @@
         <Message Type="TRACKEDFRAME" />
       </MessageTypes>
       <TransformNames>
-        <Transform Name="ImageToProbe"/>
+        <Transform Name="ImageToReference"/>
         <Transform Name="StylusToReference"/>
         <Transform Name="ProbeToReference"/>
         <Transform Name="PhantomToReference"/>
@@ -76,7 +78,7 @@
       </ImageNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
-  
+
   <CoordinateDefinitions>
     <Transform From="Image" To="Probe"
       Matrix="
@@ -85,58 +87,44 @@
         0     0    1     0
         0     0    0     1"
       Error="0.0" Date="012712_152030" />
-    <Transform From="ReferenceMm" To="Reference"
+    <Transform From="RedSphere1" To="Phantom"
       Matrix="
-        0.001 0     0     0
-        0     0.001 0     0
-        0     0     0.001 0
-        0     0     0     1"
-      Error="0.0" Date="012712_152030" />
-    <Transform From="PhantomMm" To="Phantom"
-      Matrix="
-        0.001 0     0     0
-        0     0.001 0     0
-        0     0     0.001 0
-        0     0     0     1"
-      Error="0.0" Date="012712_152030" />
-    <Transform From="RedSphere1" To="PhantomMm"
-      Matrix="
-        0.416691	0	-0.909048	-59.9177
-        0.904379	-0.101226	0.414551	27.3241
-        -0.0920191	-0.994863	-0.0421799	-2.78019
+        0.9089	0	0.417014	39.1541
+        0.416435	-0.0526467	-0.90764	-85.2199
+        0.0219544	0.998613	-0.0478506	-4.49278
         0	0	0	1"
-       Error="0.145111" Date="110416_153801" />
+       Error="0.705186" Date="122216_115653" />
 
-    <Transform From="RedSphere2" To="PhantomMm"
+    <Transform From="RedSphere2" To="Phantom"
       Matrix="
-        0.849402	0	0.527746	35.0441
-        -0.526922	-0.0558457	0.848077	56.3151
-        0.0294724	-0.998439	-0.0474355	-3.14987
+        0.770838	0	-0.637031	-23.6374
+        0.632016	-0.125243	0.764768	28.3772
+        -0.0797834	-0.992126	-0.0965417	-3.58223
         0	0	0	1"
-       Error="0.157855" Date="110416_154133" />
+       Error="0.531791" Date="122216_115908" />
 
-    <Transform From="RedSphere3" To="PhantomMm"
+    <Transform From="RedSphere3" To="Phantom"
       Matrix="
-        0.644295	0	0.764777	49.1072
-        0.761387	-0.0940615	-0.641438	-41.1874
-        0.0719361	0.995566	-0.0606034	-3.89141
+        0.979309	0	0.202369	20.0147
+        -0.19034	0.339632	0.921097	91.098
+        -0.0687312	-0.940558	0.332605	32.8952
         0	0	0	1"
-       Error="0.116668" Date="110416_154238" />
+       Error="0.465206" Date="122216_115952" />
 
-    <Transform From="RedSphere4" To="PhantomMm"
+    <Transform From="RedSphere4" To="Phantom"
       Matrix="
-        0.984961	0	-0.172779	-10.8621
-        -0.172489	-0.0579092	-0.983308	-61.8176
-        -0.0100055	0.998322	-0.0570383	-3.58583
+        0.815525	0	-0.578722	-65.4222
+        0.374361	-0.762596	0.527543	59.6366
+        -0.441331	-0.646875	-0.621916	-70.3051
         0	0	0	1"
-       Error="0.16439" Date="110416_154342" />
-
-    <Transform From="RedSphere5" To="PhantomMm"
+       Error="0.338208" Date="122216_120054" />
+       
+    <Transform From="RedSphere5" To="Phantom"
       Matrix="
-        0.679845	0	-0.733356	-46.7787
-        -0.454707	0.784573	-0.421529	-26.8881
-        0.575371	0.620037	0.533388	34.0233
+        0.749948	0	-0.661497	-78.6934
+        0.613145	0.375295	0.695131	82.6946
+        0.248256	-0.926905	0.281452	33.4822
         0	0	0	1"
-       Error="0.254549" Date="110416_154544" />
+       Error="0.424483" Date="122216_120128" />
   </CoordinateDefinitions> 
 </PlusConfiguration>
