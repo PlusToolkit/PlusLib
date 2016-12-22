@@ -405,9 +405,9 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
   // Set the output extent from the current min and max values, using the user-defined image resolution.
   int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
   double* outputSpacing = this->Reconstructor->GetOutputSpacing();
-  outputExtent[ 1 ] = int((extent_Ref[1] - extent_Ref[0]) / outputSpacing[ 0 ]);
-  outputExtent[ 3 ] = int((extent_Ref[3] - extent_Ref[2]) / outputSpacing[ 1 ]);
-  outputExtent[ 5 ] = int((extent_Ref[5] - extent_Ref[4]) / outputSpacing[ 2 ]);
+  outputExtent[ 1 ] = int(std::ceil((extent_Ref[1] - extent_Ref[0]) / outputSpacing[ 0 ]));
+  outputExtent[ 3 ] = int(std::ceil((extent_Ref[3] - extent_Ref[2]) / outputSpacing[ 1 ]));
+  outputExtent[ 5 ] = int(std::ceil((extent_Ref[5] - extent_Ref[4]) / outputSpacing[ 2 ]));
 
   this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetScalarType());
   this->Reconstructor->SetOutputExtent(outputExtent);
