@@ -51,8 +51,14 @@ public:
 //------ File local content ---------------------------------------------------
 namespace
 {
-  vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
-  vtkPlusSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+  // Ensure creation order to prevent crashing during ~vtkPlusConfigCleanup()
+  // ConfigCreationCriticalSection must be destroyed AFTER vtkPlusConfigCleanupGlobal
+  struct StaticVariables
+  {
+    vtkPlusSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+    vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
+  };
+  StaticVariables staticVariables;
 }
 
 //-----------------------------------------------------------------------------
@@ -66,14 +72,14 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
   if (!vtkPlusConfig::Instance)
   {
-    PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&ConfigCreationCriticalSection);
+    PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&(staticVariables.ConfigCreationCriticalSection));
 
     if (vtkPlusConfig::Instance != NULL)
     {
       return vtkPlusConfig::Instance;
     }
 
-    vtkPlusConfigCleanupGlobal.Use();
+    staticVariables.vtkPlusConfigCleanupGlobal.Use();
 
     // Need to call vtkObjectFactory::CreateInstance method because this
     // registers the class in the vtkDebugLeaks::MemoryTable.
