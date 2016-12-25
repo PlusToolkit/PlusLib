@@ -229,18 +229,18 @@ std::string vtkPlusLogger::GetLogLevelString()
 {
   switch (m_LogLevel)
   {
-  case LOG_LEVEL_ERROR:
-    return "ERROR";
-  case LOG_LEVEL_WARNING:
-    return "WARNING";
-  case LOG_LEVEL_INFO:
-    return "INFO";
-  case LOG_LEVEL_DEBUG:
-    return "DEBUG";
-  case LOG_LEVEL_TRACE:
-    return "TRACE";
-  default:
-    return "UNDEFINED";
+    case LOG_LEVEL_ERROR:
+      return "ERROR";
+    case LOG_LEVEL_WARNING:
+      return "WARNING";
+    case LOG_LEVEL_INFO:
+      return "INFO";
+    case LOG_LEVEL_DEBUG:
+      return "DEBUG";
+    case LOG_LEVEL_TRACE:
+      return "TRACE";
+    default:
+      return "UNDEFINED";
   }
 }
 
@@ -307,24 +307,24 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char* msg, const char* 
   std::ostringstream log;
   switch (level)
   {
-  case LOG_LEVEL_ERROR:
-    log << "|ERROR";
-    break;
-  case LOG_LEVEL_WARNING:
-    log << "|WARNING";
-    break;
-  case LOG_LEVEL_INFO:
-    log << "|INFO";
-    break;
-  case LOG_LEVEL_DEBUG:
-    log << "|DEBUG";
-    break;
-  case LOG_LEVEL_TRACE:
-    log << "|TRACE";
-    break;
-  default:
-    log << "|UNKNOWN";
-    break;
+    case LOG_LEVEL_ERROR:
+      log << "|ERROR";
+      break;
+    case LOG_LEVEL_WARNING:
+      log << "|WARNING";
+      break;
+    case LOG_LEVEL_INFO:
+      log << "|INFO";
+      break;
+    case LOG_LEVEL_DEBUG:
+      log << "|DEBUG";
+      break;
+    case LOG_LEVEL_TRACE:
+      log << "|TRACE";
+      break;
+    default:
+      log << "|UNKNOWN";
+      break;
   }
 
   // Add timestamp to the log message
@@ -360,24 +360,24 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char* msg, const char* 
       // Set the text color to highlight error and warning messages (supported only on windows)
       switch (level)
       {
-      case LOG_LEVEL_ERROR:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
-      }
-      break;
-      case LOG_LEVEL_WARNING:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-      }
-      break;
-      default:
-      {
-        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-      }
-      break;
+        case LOG_LEVEL_ERROR:
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+        }
+        break;
+        case LOG_LEVEL_WARNING:
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+        }
+        break;
+        default:
+        {
+          HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        }
+        break;
       }
 #endif
 
@@ -450,24 +450,24 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const wchar_t* msg, const cha
   std::wostringstream log;
   switch (level)
   {
-  case LOG_LEVEL_ERROR:
-    log << L"|ERROR";
-    break;
-  case LOG_LEVEL_WARNING:
-    log << L"|WARNING";
-    break;
-  case LOG_LEVEL_INFO:
-    log << L"|INFO";
-    break;
-  case LOG_LEVEL_DEBUG:
-    log << L"|DEBUG";
-    break;
-  case LOG_LEVEL_TRACE:
-    log << L"|TRACE";
-    break;
-  default:
-    log << L"|UNKNOWN";
-    break;
+    case LOG_LEVEL_ERROR:
+      log << L"|ERROR";
+      break;
+    case LOG_LEVEL_WARNING:
+      log << L"|WARNING";
+      break;
+    case LOG_LEVEL_INFO:
+      log << L"|INFO";
+      break;
+    case LOG_LEVEL_DEBUG:
+      log << L"|DEBUG";
+      break;
+    case LOG_LEVEL_TRACE:
+      log << L"|TRACE";
+      break;
+    default:
+      log << L"|UNKNOWN";
+      break;
   }
 
   // Add timestamp to the log message
@@ -501,24 +501,24 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const wchar_t* msg, const cha
       // Set the text color to highlight error and warning messages (supported only on windows)
       switch (level)
       {
-      case LOG_LEVEL_ERROR:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
-      }
-      break;
-      case LOG_LEVEL_WARNING:
-      {
-        HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-      }
-      break;
-      default:
-      {
-        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-      }
-      break;
+        case LOG_LEVEL_ERROR:
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+        }
+        break;
+        case LOG_LEVEL_WARNING:
+        {
+          HANDLE hStdout = GetStdHandle(STD_ERROR_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+        }
+        break;
+        default:
+        {
+          HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+          SetConsoleTextAttribute(hStdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        }
+        break;
       }
 #endif
 

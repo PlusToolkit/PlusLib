@@ -25,7 +25,7 @@ class vtkPlusDataCollectionExport vtkPlusThorLabsVideoSource : public vtkPlusDev
 public:
   static vtkPlusThorLabsVideoSource *New();
   vtkTypeMacro(vtkPlusThorLabsVideoSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();

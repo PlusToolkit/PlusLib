@@ -19,8 +19,7 @@ class vtkPlusHapticsExport vtkPlusPolydataForce : public vtkPlusForceFeedback
 public:
   static vtkPlusPolydataForce *New();
   vtkTypeMacro(vtkPlusPolydataForce, vtkPlusForceFeedback);
-
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   int GenerateForce(vtkMatrix4x4 * transformMatrix, double force[3]);
   int SetGamma(double gamma);

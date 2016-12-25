@@ -47,7 +47,7 @@ public:
 
   static vtkPlusBuffer* New();
   vtkTypeMacro(vtkPlusBuffer, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Set the size of the buffer, i.e. the maximum number of

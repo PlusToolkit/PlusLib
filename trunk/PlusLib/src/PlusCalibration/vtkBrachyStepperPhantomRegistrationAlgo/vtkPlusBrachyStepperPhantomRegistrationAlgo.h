@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusBrachyStepperPhantomRegistrationAlgo_h
 #define __vtkPlusBrachyStepperPhantomRegistrationAlgo_h
@@ -18,8 +18,8 @@ class vtkMatrix4x4;
 class vtkPlusTransformRepository;
 
 /*!
-  \class vtkPlusBrachyStepperPhantomRegistrationAlgo 
-  \brief Phantom registration algorithm for image to probe calibration with brachy stepper 
+  \class vtkPlusBrachyStepperPhantomRegistrationAlgo
+  \brief Phantom registration algorithm for image to probe calibration with brachy stepper
 
   This algorithm determines the phantom to reference transform (the spatial relationship
   between the phantom and the stepper coordinate system).
@@ -27,24 +27,24 @@ class vtkPlusTransformRepository;
   (the fiducial point coordinates shall be computed) before calling this algorithm.
 
   \ingroup PlusLibCalibrationAlgorithm
-*/ 
+*/
 class vtkPlusCalibrationExport vtkPlusBrachyStepperPhantomRegistrationAlgo : public vtkObject
 {
 public:
 
-  static vtkPlusBrachyStepperPhantomRegistrationAlgo *New();
+  static vtkPlusBrachyStepperPhantomRegistrationAlgo* New();
   vtkTypeMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo , vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Set all algorithm inputs.
-    \param trackedFrameList Tracked frames with segmentation results 
+    \param trackedFrameList Tracked frames with segmentation results
     \param spacing Image spacing (mm/px)
     \param centerOfRotationPx Ultrasound image rotation center in px
-    \param transformRepository Transform repositoyr to set the result into
-    \param nWires Phantom definition structure 
+    \param transformRepository Transform repository to set the result into
+    \param nWires Phantom definition structure
   */
-  virtual void SetInputs( vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires ); 
+  virtual void SetInputs(vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires);
 
   /*!
     Read phantom definition (landmarks)
@@ -53,32 +53,32 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get phantom to reference transform */
-  virtual PlusStatus GetPhantomToReferenceTransformMatrix( vtkMatrix4x4* phantomToReferenceTransform);
+  virtual PlusStatus GetPhantomToReferenceTransformMatrix(vtkMatrix4x4* phantomToReferenceTransform);
 
   /*! Get phantom coordinate frame */
   vtkGetStringMacro(PhantomCoordinateFrame);
 
   /*! Get reference coordinate frame */
   vtkGetStringMacro(ReferenceCoordinateFrame);
-  
+
 protected:
   vtkPlusBrachyStepperPhantomRegistrationAlgo();
-  virtual ~vtkPlusBrachyStepperPhantomRegistrationAlgo(); 
+  virtual ~vtkPlusBrachyStepperPhantomRegistrationAlgo();
 
   /*! Bring this algorithm's outputs up-to-date. */
   virtual PlusStatus Update();
 
   /*! Set the input tracked frame list */
-  vtkSetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList); 
+  vtkSetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
 
   /*! Get the input tracked frame list */
-  vtkGetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList); 
+  vtkGetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
 
   /*! Set spacing */
-  vtkSetVector2Macro(Spacing, double); 
+  vtkSetVector2Macro(Spacing, double);
 
   /*! Set center of rotation in px */
-  vtkSetVector2Macro(CenterOfRotationPx, double); 
+  vtkSetVector2Macro(CenterOfRotationPx, double);
 
   /*! Set phantom coordinate frame */
   vtkSetStringMacro(PhantomCoordinateFrame);
@@ -94,19 +94,19 @@ protected:
   double Spacing[2];
 
   /*! Rotation center position of the image in px */
-  double CenterOfRotationPx[2]; 
+  double CenterOfRotationPx[2];
 
   /*! Tracked frame list with segmentation results */
-  vtkPlusTrackedFrameList* TrackedFrameList; 
+  vtkPlusTrackedFrameList* TrackedFrameList;
 
   /*! Phantom definition structure */
-  std::vector<PlusNWire> NWires; 
+  std::vector<PlusNWire> NWires;
 
   /*! Phantom to Reference transform */
   vtkMatrix4x4* PhantomToReferenceTransformMatrix;
-  
+
   /*! When the results were computed. The result is recomputed only if the inputs changed more recently than UpdateTime. */
-  vtkTimeStamp UpdateTime;  
+  vtkTimeStamp UpdateTime;
 
   /*! Transform repository object into that the result is set */
   vtkPlusTransformRepository* TransformRepository;
@@ -116,6 +116,6 @@ protected:
 
   /*! Name of the reference coordinate frame (eg. Reference) */
   char*                     ReferenceCoordinateFrame;
-}; 
+};
 
 #endif

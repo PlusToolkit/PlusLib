@@ -38,16 +38,16 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 
   PlusIgtlClientInfo();
 
-  /*! Deserialize client info data from string xml data */
+  /*! De-serialize client info data from string xml data */
   PlusStatus SetClientInfoFromXmlData(const char* strXmlData);
 
-  /*! Deserialize client info data from xml data */
+  /*! De-serialize client info data from xml data */
   PlusStatus SetClientInfoFromXmlData(vtkXMLDataElement* xmldata);
 
   /*! Serialize client info data to xml data and return in string */
   void GetClientInfoInXmlData(std::string& strXmlData);
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   int GetClientHeaderVersion() const;
 
@@ -59,13 +59,13 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
   /*! Message types that client expects from the server */
   std::vector<std::string> IgtlMessageTypes;
 
-  /*! Transform names to send with igt transform, position message */
+  /*! Transform names to send with IGT transform, position message */
   std::vector<PlusTransformName> TransformNames;
 
-  /*! String field names to send with igt STRING message */
+  /*! String field names to send with IGT STRING message */
   std::vector< std::string > StringNames;
 
-  /*! Transform names to send with igt image message */
+  /*! Transform names to send with IGT image message */
   std::vector<ImageStream> ImageStreams;
 
   /*! A new TDATA is only sent if the time elapsed is at least the resolution

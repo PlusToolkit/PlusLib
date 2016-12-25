@@ -29,11 +29,9 @@ class vtkPlusUsImagingParameters;
 class vtkPlusDataCollectionExport vtkPlusTelemedVideoSource : public vtkPlusDevice
 {
 public:
-
   static vtkPlusTelemedVideoSource *New();
   vtkTypeMacro(vtkPlusTelemedVideoSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
-
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
   PlusStatus ReadConfiguration(vtkXMLDataElement* config);

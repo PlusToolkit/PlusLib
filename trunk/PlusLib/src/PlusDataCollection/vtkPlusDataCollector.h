@@ -32,7 +32,7 @@ class vtkPlusDataCollectionExport vtkPlusDataCollector : public vtkObject
 public:
   static vtkPlusDataCollector* New();
   vtkTypeMacro(vtkPlusDataCollector, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
   Read main configuration from xml data

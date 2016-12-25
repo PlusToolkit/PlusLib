@@ -24,7 +24,7 @@ class vtkPlusImageProcessingExport vtkPlusUsScanConvertLinear : public vtkPlusUs
 public:
   static vtkPlusUsScanConvertLinear *New();
   vtkTypeMacro(vtkPlusUsScanConvertLinear,vtkPlusUsScanConvert);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual const char* GetTransducerGeometry() { return "LINEAR"; }
   

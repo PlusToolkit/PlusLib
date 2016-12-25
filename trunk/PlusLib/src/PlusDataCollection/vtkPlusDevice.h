@@ -71,7 +71,7 @@ public:
 public:
   static vtkPlusDevice* New();
   vtkTypeMacro(vtkPlusDevice, vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   static const char* BMODE_PORT_NAME;
   static const char* DEFAULT_TRACKER_REFERENCE_FRAME_NAME;

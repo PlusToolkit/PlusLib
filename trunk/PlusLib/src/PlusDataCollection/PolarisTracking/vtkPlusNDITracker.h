@@ -102,7 +102,6 @@ struct ndicapi;
 class vtkPlusDataCollectionExport vtkPlusNDITracker : public vtkPlusDevice
 {
 public:
-
   static vtkPlusNDITracker *New();
   vtkTypeMacro(vtkPlusNDITracker,vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);

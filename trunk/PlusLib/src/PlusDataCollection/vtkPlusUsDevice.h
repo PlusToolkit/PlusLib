@@ -30,7 +30,7 @@ class vtkPlusDataCollectionExport vtkPlusUsDevice : public vtkPlusDevice
 public:
   static vtkPlusUsDevice* New();
   vtkTypeMacro(vtkPlusUsDevice, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);

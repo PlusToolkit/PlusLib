@@ -24,7 +24,7 @@ class vtkPlusDataCollectionExport vtkPlusOpenIGTLinkDevice : public vtkPlusDevic
 {
 public:
   vtkTypeMacro(vtkPlusOpenIGTLinkDevice, vtkPlusDevice);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! OpenIGTLink version. */
   virtual std::string GetSdkVersion();

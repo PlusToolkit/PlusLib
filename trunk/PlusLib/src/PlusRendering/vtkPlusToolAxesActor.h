@@ -35,7 +35,7 @@ class vtkPlusRenderingExport vtkPlusToolAxesActor : public vtkProp3D
 public:
   static vtkPlusToolAxesActor* New();
   vtkTypeMacro(vtkPlusToolAxesActor, vtkProp3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     For some exporters and other other operations we must be

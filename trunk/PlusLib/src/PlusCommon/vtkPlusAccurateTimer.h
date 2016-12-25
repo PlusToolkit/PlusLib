@@ -13,7 +13,7 @@
 
 //----------------------------------------------------------------------------
 /*!
-  \class vtkPlusAccurateTimerCleanup 
+  \class vtkPlusAccurateTimerCleanup
   \brief Does the cleanup needed for the singleton class
   \ingroup PlusLibCommon
 */
@@ -27,19 +27,19 @@ public:
   /*! Destructor */
   ~vtkPlusAccurateTimerCleanup();
 };
-//ETX 
+//ETX
 
 //----------------------------------------------------------------------------
 /*!
-  \class vtkPlusAccurateTimer 
+  \class vtkPlusAccurateTimer
   \brief This singleton class is used for accurately measuring elapsed time and getting formatted date strings
   \ingroup PlusLibCommon
 */
 class vtkPlusCommonExport vtkPlusAccurateTimer : public vtkObject
 {
-public: 
-  vtkTypeMacro(vtkPlusAccurateTimer,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent); 
+public:
+  vtkTypeMacro(vtkPlusAccurateTimer, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     This is a singleton pattern New.  There will only be ONE
@@ -49,18 +49,18 @@ public:
     the program exits.
   */
   static vtkPlusAccurateTimer* New();
-  
+
   /*! Return the singleton instance with no reference counting */
   static vtkPlusAccurateTimer* GetInstance();
-  
+
   /*!
     Supply a user defined instance. Call Delete() on the supplied
-    instance after setting it to fix the reference count. 
+    instance after setting it to fix the reference count.
   */
-  static void SetInstance(vtkPlusAccurateTimer *instance); 
+  static void SetInstance(vtkPlusAccurateTimer* instance);
 
   /*! Wait until specified time in seconds */
-  static void Delay(double sec); 
+  static void Delay(double sec);
 
   /*!
     Wait until specified time in seconds. Pending events are processed while waiting.
@@ -73,18 +73,18 @@ public:
     Get system time (elapsed time since last reboot)
     \return Internal system time in seconds
   */
-  static double GetInternalSystemTime(); 
-  
+  static double GetInternalSystemTime();
+
   /*!
     Get the elapsed time since class instantiation
     \return System time in seconds
    */
-  static double GetSystemTime(); 
-  
-   /*!
-    Get the universal (UTC) time
-    \return UTC time in seconds
-   */
+  static double GetSystemTime();
+
+  /*!
+   Get the universal (UTC) time
+   \return UTC time in seconds
+  */
   static double GetUniversalTime();
 
   /*!
@@ -100,37 +100,37 @@ public:
     \return system time in seconds
   */
   static double GetSystemTimeFromUniversalTime(double utcTime);
-  
+
   /*!
-    Get current date in string 
+    Get current date in string
     \return Format: MMDDYY
    */
-  static std::string GetDateString(); 
+  static std::string GetDateString();
 
   /*!
-    Get current time in string 
+    Get current time in string
     \return Format: HHMMSS
    */
-  static std::string GetTimeString(); 
+  static std::string GetTimeString();
 
   /*!
-    Get current date with time in string 
+    Get current date with time in string
     \return Format: MMDDYY_HHMMSS
    */
-  static std::string GetDateAndTimeString(); 
+  static std::string GetDateAndTimeString();
 
   /*!
-    Get current date with time ans ms in string 
+    Get current date with time ans ms in string
     \return Format: MMDDYY_HHMMSS.MS
    */
-  static std::string GetDateAndTimeMSecString(); 
+  static std::string GetDateAndTimeMSecString();
 
 protected:
   /*! Constructor */
   vtkPlusAccurateTimer();
 
   /*! Destructor */
-  virtual ~vtkPlusAccurateTimer(); 
+  virtual ~vtkPlusAccurateTimer();
 
 private:
   /*! Copy constructor - Not implemented */
@@ -140,17 +140,17 @@ private:
   void operator=(const vtkPlusAccurateTimer&);
 
   /*! Internal system time at the time of class instantiation, in seconds */
-  static double SystemStartTime; 
+  static double SystemStartTime;
 
   /*! Universal time (time elapsed since 00:00:00 January 1, 1970, UTC) at the time of class instantiation, in seconds */
-  static double UniversalStartTime; 
+  static double UniversalStartTime;
 
   /*! The singleton instance */
   static vtkPlusAccurateTimer* Instance;
 
   /*! The singleton cleanup instance */
   static vtkPlusAccurateTimerCleanup Cleanup;
-  
+
   enum CurrentDateTimeFormat
   {
     DTF_DATE,
@@ -158,8 +158,8 @@ private:
     DTF_DATE_TIME,
     DTF_DATE_TIME_MSEC
   };
-  
-  static std::string GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded, double currentTime); 
-}; 
+
+  static std::string GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded, double currentTime);
+};
 
 #endif

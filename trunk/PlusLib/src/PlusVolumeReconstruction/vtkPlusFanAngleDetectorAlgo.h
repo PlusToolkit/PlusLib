@@ -27,7 +27,7 @@ public:
 
   static vtkPlusFanAngleDetectorAlgo *New();
   vtkTypeMacro(vtkPlusFanAngleDetectorAlgo, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
     /*! Set input image */
   vtkSetObjectMacro(Image, vtkImageData); 

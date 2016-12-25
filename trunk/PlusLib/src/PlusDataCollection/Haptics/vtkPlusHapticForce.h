@@ -19,10 +19,9 @@ class vtkPlusHapticsExport vtkPlusHapticForce : public vtkObject
 {
 public:
   static vtkPlusHapticForce *New();
-
   vtkTypeMacro(vtkPlusHapticForce,vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  void PrintSelf(ostream& os, vtkIndent indent);
   void AddForceModel(vtkPlusForceFeedback * force);
   void InsertForceModel(unsigned int position, vtkPlusForceFeedback * force);
   vtkPlusForceFeedback * GetForceModel(int position);

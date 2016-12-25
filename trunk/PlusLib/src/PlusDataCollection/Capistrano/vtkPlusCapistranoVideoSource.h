@@ -26,7 +26,7 @@ public:
   /*! Constructor for a smart pointer of this class*/
   static vtkPlusCapistranoVideoSource * New();
   vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Specify the device connected to this class */
   virtual bool IsTracker() const { return false; }

@@ -30,8 +30,7 @@ class vtkPlusHapticsExport vtkPlusImplicitSplineForce : public vtkPlusForceFeedb
 public:
   static vtkPlusImplicitSplineForce *New();
   vtkTypeMacro(vtkPlusImplicitSplineForce,vtkPlusForceFeedback);
-
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   void SetInput(int splineId);
   void SetInput(char * controlPnt);

@@ -11,7 +11,7 @@
 
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
-#endif 
+#endif
 
 #include "vtkPlusSequenceIOBase.h"
 #include "itk_zlib.h"
@@ -26,24 +26,24 @@ class vtkPlusTrackedFrameList;
 class vtkPlusCommonExport vtkPlusMetaImageSequenceIO : public vtkPlusSequenceIOBase
 {
 public:
-  static vtkPlusMetaImageSequenceIO *New();
+  static vtkPlusMetaImageSequenceIO* New();
   vtkTypeMacro(vtkPlusMetaImageSequenceIO, vtkPlusSequenceIOBase);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Accessors to control 2D Dims output */
   vtkSetMacro(Output2DDataWithZDimensionIncluded, bool);
   vtkGetMacro(Output2DDataWithZDimensionIncluded, bool);
 
-  /*! Update the number of frames in the header 
+  /*! Update the number of frames in the header
       This is used primarily by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
   virtual PlusStatus UpdateDimensionsCustomStrings(int numberOfFrames, bool isData3D);
 
-  /*! 
+  /*!
     Append the frames in tracked frame list to the header, if the onlyTrackerData flag is true it will not save
-    in the header the image data related fields. 
+    in the header the image data related fields.
   */
   virtual PlusStatus AppendImagesToHeader();
 
@@ -65,7 +65,7 @@ public:
   /*! Return the string that represents the dimensional sizes */
   virtual const char* GetDimensionSizeString();
 
-    /*! Return the string that represents the dimensional kinds */
+  /*! Return the string that represents the dimensional kinds */
   virtual const char* GetDimensionKindsString();
 
   /*!
@@ -90,18 +90,18 @@ protected:
   /*! Write all the fields to the metaimage file header */
   virtual PlusStatus WriteInitialImageHeader();
 
-  /*! 
-    Writes the compressed pixel data directly into file. 
+  /*!
+    Writes the compressed pixel data directly into file.
     The compression is performed in chunks, so no excessive memory is used for the compression.
     \param aFilename the file where the compressed pixel data will be written to
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
-  virtual PlusStatus WriteCompressedImagePixelsToFile(int &compressedDataSize);
+  virtual PlusStatus WriteCompressedImagePixelsToFile(int& compressedDataSize);
 
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertMetaElementTypeToVtkPixelType(const std::string &elementTypeStr, PlusCommon::VTKScalarPixelType &vtkPixelType);
+  PlusStatus ConvertMetaElementTypeToVtkPixelType(const std::string& elementTypeStr, PlusCommon::VTKScalarPixelType& vtkPixelType);
   /*! Conversion between ITK and METAIO pixel types */
-  PlusStatus ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string &elementTypeStr);
+  PlusStatus ConvertVtkPixelTypeToMetaElementType(PlusCommon::VTKScalarPixelType vtkPixelType, std::string& elementTypeStr);
 
 private:
   /*! ASCII or binary */

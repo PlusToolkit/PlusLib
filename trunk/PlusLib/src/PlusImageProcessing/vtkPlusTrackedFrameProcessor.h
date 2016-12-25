@@ -22,7 +22,7 @@ class vtkPlusImageProcessingExport vtkPlusTrackedFrameProcessor : public vtkObje
 {
 public:
   vtkTypeMacro(vtkPlusTrackedFrameProcessor , vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Set the input tracked frame data
     \param frame frame containing image (and optional tracking or other metadata)

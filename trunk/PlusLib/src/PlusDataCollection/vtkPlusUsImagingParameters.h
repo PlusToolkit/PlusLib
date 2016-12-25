@@ -182,7 +182,7 @@ public:
   ParameterNameMapConstIterator end() const;
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   enum ImagingMode
   {

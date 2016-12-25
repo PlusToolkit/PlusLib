@@ -19,7 +19,7 @@ class vtkPlusImageProcessingExport vtkPlusUsScanConvert : public vtkThreadedImag
 {
 public:
   vtkTypeMacro(vtkPlusUsScanConvert,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   
   virtual const char* GetTransducerGeometry()=0;
 

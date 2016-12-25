@@ -84,7 +84,7 @@ class vtkPlusServerExport vtkPlusOpenIGTLinkServer: public vtkObject
 public:
   static vtkPlusOpenIGTLinkServer* New();
   vtkTypeMacro(vtkPlusOpenIGTLinkServer, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
   PlusStatus Start(vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);

@@ -24,7 +24,7 @@ class vtkPlusDataCollectionExport vtkPlusVirtualMixer : public vtkPlusDevice
 public:
   static vtkPlusVirtualMixer *New();
   vtkTypeMacro(vtkPlusVirtualMixer,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Answer if device is a tracker */
   virtual bool IsTracker() const;

@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusPrincipalMotionDetectionAlgo_h
 #define __vtkPlusPrincipalMotionDetectionAlgo_h
@@ -22,30 +22,30 @@ class vtkPlusPrincipalMotionDetectionAlgo: public vtkObject
 public:
   static vtkPlusPrincipalMotionDetectionAlgo* New();
   vtkTypeMacro(vtkPlusPrincipalMotionDetectionAlgo, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
- 
-  /*! Sets the input US video frames */  
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+
+  /*! Sets the input US video frames */
   void SetTrackerFrames(vtkPlusTrackedFrameList* trackerFrames);
 
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
 
-  /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */  
+  /*! Sets the name of the transform to be used for tracking data. Default is "ProbeToReference" */
   void SetProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
 
   /*!
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
   */
-  PlusStatus Update(); 
+  PlusStatus Update();
 
   /*! Get the timestamps of the frames where a line was successfully detected*/
-  void GetDetectedTimestamps(std::deque<double> &timestamps);
+  void GetDetectedTimestamps(std::deque<double>& timestamps);
 
   /*! Get the line positions on the frames where a line was successfully detected*/
-  void GetDetectedPositions(std::deque<double> &positions); 
+  void GetDetectedPositions(std::deque<double>& positions);
 
-  void ComputePrincipalAxis(std::deque<itk::Point<double, 3> > &trackerPositions, itk::Point<double,3> &principalAxisOfMotion, int numValidFrames);
+  void ComputePrincipalAxis(std::deque<itk::Point<double, 3> >& trackerPositions, itk::Point<double, 3>& principalAxisOfMotion, int numValidFrames);
 
 protected:
   vtkPlusPrincipalMotionDetectionAlgo();
@@ -57,8 +57,8 @@ protected:
   vtkPlusTrackedFrameList* m_TrackerFrames;
   std::string m_ProbeToReferenceTransformName;
 
-  std::deque<double> m_SignalValues; 
-  std::deque<double> m_SignalTimestamps; 
+  std::deque<double> m_SignalValues;
+  std::deque<double> m_SignalTimestamps;
 
   double m_SignalTimeRangeMin;
   double m_SignalTimeRangeMax;

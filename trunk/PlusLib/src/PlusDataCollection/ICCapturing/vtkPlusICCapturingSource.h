@@ -35,7 +35,7 @@ class vtkPlusDataCollectionExport vtkPlusICCapturingSource : public vtkPlusDevic
 {
 public:
   vtkTypeMacro(vtkPlusICCapturingSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   /*! This is a singleton pattern New.  There will only be ONE
   reference to a vtkOutputWindow object per process.  Clients that
   call this must call Delete on the object so that the reference

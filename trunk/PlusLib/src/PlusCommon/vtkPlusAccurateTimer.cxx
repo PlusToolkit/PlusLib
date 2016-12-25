@@ -18,8 +18,8 @@ WindowsAccurateTimer WindowsAccurateTimer::m_Instance;
 #endif
 #include "PlusCommon.h"
 
-double vtkPlusAccurateTimer::SystemStartTime=0;
-double vtkPlusAccurateTimer::UniversalStartTime=0;
+double vtkPlusAccurateTimer::SystemStartTime = 0;
+double vtkPlusAccurateTimer::UniversalStartTime = 0;
 
 //----------------------------------------------------------------------------
 vtkInstantiatorNewMacro(vtkPlusAccurateTimer);
@@ -28,9 +28,9 @@ vtkInstantiatorNewMacro(vtkPlusAccurateTimer);
 // The singleton, and the singleton cleanup
 
 vtkPlusAccurateTimer* vtkPlusAccurateTimer::Instance = NULL;
-vtkPlusAccurateTimerCleanup vtkPlusAccurateTimer::Cleanup; 
+vtkPlusAccurateTimerCleanup vtkPlusAccurateTimer::Cleanup;
 
-vtkPlusAccurateTimerCleanup::vtkPlusAccurateTimerCleanup(){}
+vtkPlusAccurateTimerCleanup::vtkPlusAccurateTimerCleanup() {}
 
 vtkPlusAccurateTimerCleanup::~vtkPlusAccurateTimerCleanup()
 {
@@ -43,16 +43,16 @@ vtkPlusAccurateTimer* vtkPlusAccurateTimer::GetInstance()
 {
   if (!vtkPlusAccurateTimer::Instance)
   {
-    vtkPlusAccurateTimer::Instance = static_cast<vtkPlusAccurateTimer *>(
-      vtkObjectFactory::CreateInstance("vtkPlusAccurateTimer"));
+    vtkPlusAccurateTimer::Instance = static_cast<vtkPlusAccurateTimer*>(
+                                       vtkObjectFactory::CreateInstance("vtkPlusAccurateTimer"));
     if (!vtkPlusAccurateTimer::Instance)
     {
       vtkPlusAccurateTimer::Instance = new vtkPlusAccurateTimer;
     }
     vtkPlusAccurateTimer::Instance->SystemStartTime = vtkPlusAccurateTimer::Instance->GetInternalSystemTime();
     LOG_INFO("System start timestamp: " << vtkPlusAccurateTimer::Instance->SystemStartTime);
-    vtkPlusAccurateTimer::Instance->UniversalStartTime = vtkTimerLog::GetUniversalTime(); 
-    LOG_DEBUG("AccurateTimer universal start time: "<<GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkPlusAccurateTimer::UniversalStartTime));
+    vtkPlusAccurateTimer::Instance->UniversalStartTime = vtkTimerLog::GetUniversalTime();
+    LOG_DEBUG("AccurateTimer universal start time: " << GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkPlusAccurateTimer::UniversalStartTime));
   }
   return vtkPlusAccurateTimer::Instance;
 }
@@ -86,7 +86,7 @@ vtkPlusAccurateTimer* vtkPlusAccurateTimer::New()
   vtkPlusAccurateTimer* ret = vtkPlusAccurateTimer::GetInstance();
   ret->Register(NULL);
   return ret;
-} 
+}
 
 //----------------------------------------------------------------------------
 vtkPlusAccurateTimer::vtkPlusAccurateTimer()
@@ -103,7 +103,7 @@ vtkPlusAccurateTimer::~vtkPlusAccurateTimer()
 //----------------------------------------------------------------------------
 void vtkPlusAccurateTimer::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
@@ -113,13 +113,13 @@ void vtkPlusAccurateTimer::Delay(double sec)
   // Use accurate timer
 #ifdef _WIN32
   WindowsAccurateTimer* timer = WindowsAccurateTimer::Instance();
-  timer->Wait( sec * 1000 ); 
+  timer->Wait(sec * 1000);
 #else
-  vtksys::SystemTools::Delay( sec * 1000 );
+  vtksys::SystemTools::Delay(sec * 1000);
 #endif
 #else // PLUS_USE_SIMPLE_TIMER
   // Use simple timer
-  vtksys::SystemTools::Delay( sec * 1000 );
+  vtksys::SystemTools::Delay(sec * 1000);
   return;
 #endif
 }
@@ -127,8 +127,8 @@ void vtkPlusAccurateTimer::Delay(double sec)
 void vtkPlusAccurateTimer::DelayWithEventProcessing(double waitTimeSec)
 {
 #ifdef _WIN32
-  double waitStartTime=vtkPlusAccurateTimer::GetSystemTime();
-  const double commandQueuePollIntervalSec=0.010;
+  double waitStartTime = vtkPlusAccurateTimer::GetSystemTime();
+  const double commandQueuePollIntervalSec = 0.010;
   do
   {
     // Need to process messages because some devices (such as the vtkPlusWin32VideoSource2) require event processing
@@ -138,10 +138,11 @@ void vtkPlusAccurateTimer::DelayWithEventProcessing(double waitTimeSec)
       TranslateMessage(&Msg);
       DispatchMessage(&Msg);
     }
-    Sleep(commandQueuePollIntervalSec*1000); // give a chance to other threads to get CPU time now
-  } while (vtkPlusAccurateTimer::GetSystemTime()-waitStartTime<waitTimeSec);
+    Sleep(commandQueuePollIntervalSec * 1000); // give a chance to other threads to get CPU time now
+  }
+  while (vtkPlusAccurateTimer::GetSystemTime() - waitStartTime < waitTimeSec);
 #else
-    usleep(waitTimeSec * 1000000);
+  usleep(waitTimeSec * 1000000);
 #endif
 }
 
@@ -149,7 +150,7 @@ void vtkPlusAccurateTimer::DelayWithEventProcessing(double waitTimeSec)
 double vtkPlusAccurateTimer::GetInternalSystemTime()
 {
 #ifdef _WIN32
-  return WindowsAccurateTimer::GetSystemTime(); 
+  return WindowsAccurateTimer::GetSystemTime();
 #else
   return vtkTimerLog::GetUniversalTime();
 #endif
@@ -158,26 +159,26 @@ double vtkPlusAccurateTimer::GetInternalSystemTime()
 //----------------------------------------------------------------------------
 double vtkPlusAccurateTimer::GetSystemTime()
 {
-  return (vtkPlusAccurateTimer::GetInternalSystemTime() - vtkPlusAccurateTimer::SystemStartTime); 
+  return (vtkPlusAccurateTimer::GetInternalSystemTime() - vtkPlusAccurateTimer::SystemStartTime);
 }
 
 //----------------------------------------------------------------------------
 double vtkPlusAccurateTimer::GetUniversalTime()
 {
-  return vtkPlusAccurateTimer::UniversalStartTime+(vtkPlusAccurateTimer::GetInternalSystemTime() - vtkPlusAccurateTimer::SystemStartTime); 
+  return vtkPlusAccurateTimer::UniversalStartTime + (vtkPlusAccurateTimer::GetInternalSystemTime() - vtkPlusAccurateTimer::SystemStartTime);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat detailsNeeded, double currentTime)
 {
-  time_t timeSec = floor(currentTime);   
+  time_t timeSec = floor(currentTime);
   // Obtain the time of day, and convert it to a tm struct.
-#ifdef _WIN32    
+#ifdef _WIN32
   struct tm tmstruct;
-  struct tm* ptm=&tmstruct;
-  localtime_s( ptm, &timeSec );           
+  struct tm* ptm = &tmstruct;
+  localtime_s(ptm, &timeSec);
 #else
-  struct tm *ptm = localtime (&timeSec);
+  struct tm* ptm = localtime(&timeSec);
 #endif
 
   // Format the date and time, down to a single second.
@@ -185,26 +186,26 @@ std::string vtkPlusAccurateTimer::GetDateAndTimeString(CurrentDateTimeFormat det
   switch (detailsNeeded)
   {
     case DTF_DATE:
-      strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y", ptm);
+      strftime(timeStrSec, sizeof(timeStrSec), "%m%d%y", ptm);
       break;
     case DTF_TIME:
-      strftime (timeStrSec, sizeof (timeStrSec), "%H%M%S", ptm);
+      strftime(timeStrSec, sizeof(timeStrSec), "%H%M%S", ptm);
       break;
     case DTF_DATE_TIME:
     case DTF_DATE_TIME_MSEC:
-      strftime (timeStrSec, sizeof (timeStrSec), "%m%d%y_%H%M%S", ptm);
+      strftime(timeStrSec, sizeof(timeStrSec), "%m%d%y_%H%M%S", ptm);
       break;
     default:
       return "";
   }
-  if (detailsNeeded!=DTF_DATE_TIME_MSEC)
+  if (detailsNeeded != DTF_DATE_TIME_MSEC)
   {
     return timeStrSec;
   }
   // Get millisecond as well
-  long milliseconds = floor((currentTime-floor(currentTime))*1000.0);  
-          
-  std::ostringstream mSecStream; 
+  long milliseconds = floor((currentTime - floor(currentTime)) * 1000.0);
+
+  std::ostringstream mSecStream;
   mSecStream << timeStrSec << "." << std::setw(3) << std::setfill('0') << milliseconds;
 
   return mSecStream.str();
@@ -219,7 +220,7 @@ std::string vtkPlusAccurateTimer::GetDateString()
 //----------------------------------------------------------------------------
 std::string vtkPlusAccurateTimer::GetTimeString()
 {
-  return GetDateAndTimeString(DTF_TIME, vtkPlusAccurateTimer::GetUniversalTime());  
+  return GetDateAndTimeString(DTF_TIME, vtkPlusAccurateTimer::GetUniversalTime());
 }
 
 //----------------------------------------------------------------------------
@@ -237,11 +238,11 @@ std::string vtkPlusAccurateTimer::GetDateAndTimeMSecString()
 //----------------------------------------------------------------------------
 double vtkPlusAccurateTimer::GetUniversalTimeFromSystemTime(double systemTime)
 {
-  return vtkPlusAccurateTimer::UniversalStartTime+systemTime; 
+  return vtkPlusAccurateTimer::UniversalStartTime + systemTime;
 }
 
 //----------------------------------------------------------------------------
 double vtkPlusAccurateTimer::GetSystemTimeFromUniversalTime(double utcTime)
 {
-  return utcTime-vtkPlusAccurateTimer::UniversalStartTime; 
+  return utcTime - vtkPlusAccurateTimer::UniversalStartTime;
 }

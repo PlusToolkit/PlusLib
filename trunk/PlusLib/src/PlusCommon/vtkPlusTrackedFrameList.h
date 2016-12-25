@@ -42,7 +42,7 @@ public:
 
   static vtkPlusTrackedFrameList* New();
   vtkTypeMacro(vtkPlusTrackedFrameList, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Action performed after AddTrackedFrame got invalid frame.
