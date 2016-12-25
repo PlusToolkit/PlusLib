@@ -24,7 +24,7 @@ class vtkPlusImageProcessingExport vtkPlusRfProcessor : public vtkObject
 public:
   static vtkPlusRfProcessor *New();
   vtkTypeMacro(vtkPlusRfProcessor , vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Set the input RF data
     \param rfFrame frame containing RF data (may be B-mode data but always without scan conversion)

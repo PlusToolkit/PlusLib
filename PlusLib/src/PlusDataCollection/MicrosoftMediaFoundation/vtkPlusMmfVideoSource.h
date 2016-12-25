@@ -50,7 +50,7 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
 public:
   static vtkPlusMmfVideoSource *New();
   vtkTypeMacro(vtkPlusMmfVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual void SetRequestedDeviceId(unsigned int deviceId);  
   virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);

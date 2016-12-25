@@ -16,7 +16,7 @@ class vtkPlusDataCollectionExport vtkPlusIEEListener : public vtkObject
 {
 public:
   vtkTypeMacro(vtkPlusIEEListener, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   static vtkPlusIEEListener* New();
   static vtkPlusIEEListener* New(bool forceZQuantize, double resolutionFactor, bool integerZ, bool isotropic, bool quantizeDim, int zDecimation, bool set4PtFIR, int latAndElevSmoothingIndex);
 

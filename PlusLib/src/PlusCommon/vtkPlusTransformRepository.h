@@ -50,7 +50,7 @@ class vtkPlusCommonExport vtkPlusTransformRepository : public vtkObject
 public:
   static vtkPlusTransformRepository* New();
   vtkTypeMacro(vtkPlusTransformRepository, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Set a transform matrix between two coordinate frames. The method fails if the transform

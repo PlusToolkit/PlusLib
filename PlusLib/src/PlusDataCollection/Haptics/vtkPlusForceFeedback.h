@@ -21,7 +21,7 @@ public:
 
   vtkTypeMacro(vtkPlusForceFeedback,vtkObject);
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual int GenerateForce(vtkMatrix4x4 * hapticPosition, double force[3]);
   ~vtkPlusForceFeedback();

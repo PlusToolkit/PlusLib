@@ -66,7 +66,7 @@ private:
 public:
   static vtkPlusSonixVideoSource* New();
   vtkTypeMacro(vtkPlusSonixVideoSource,vtkPlusUsDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion(); 

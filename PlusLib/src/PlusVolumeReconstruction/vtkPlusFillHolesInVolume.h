@@ -196,7 +196,7 @@ class vtkPlusVolumeReconstructionExport vtkPlusFillHolesInVolume : public vtkThr
 public:
   static vtkPlusFillHolesInVolume *New();
   vtkTypeMacro(vtkPlusFillHolesInVolume,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
     
   /*! Get current compounding setting */
   vtkGetMacro(Compounding,int);

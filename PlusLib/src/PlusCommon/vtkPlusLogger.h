@@ -49,8 +49,7 @@ class vtkPlusLoggerOutputWindow : public vtkOutputWindow
 public:
   vtkTypeMacro(vtkPlusLoggerOutputWindow, vtkOutputWindow);
   static vtkPlusLoggerOutputWindow* New();
-
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Display VTK message as Plus LOG_INFO text */
   virtual void DisplayText(const char* text);

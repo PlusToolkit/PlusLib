@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusLineSegmentationAlgo_h
 #define __vtkPlusLineSegmentationAlgo_h
@@ -22,7 +22,7 @@ class vtkPlusTrackedFrameList;
 */
 class vtkPlusCalibrationExport vtkPlusLineSegmentationAlgo : public vtkObject
 {
-public:  
+public:
   struct LineParameters /*!< Line parameters is defined in the Image coordinate system (orientation is MF, origin is in the image corner, unit is pixel) */
   {
     bool lineDetected;
@@ -37,15 +37,15 @@ public:
 
   static vtkPlusLineSegmentationAlgo* New();
   vtkTypeMacro(vtkPlusLineSegmentationAlgo, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
- 
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+
   /*!
     Read XML based configuration for the segmentation
     \param aConfig Root element of device set configuration data
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
-  /*! Sets the input US video frames */  
+  /*! Sets the input US video frames */
   void SetTrackedFrameList(vtkPlusTrackedFrameList& aTrackedFrameList);
   void SetTrackedFrame(PlusTrackedFrame& aTrackedFrame);
 
@@ -59,25 +59,25 @@ public:
     Run the line detection algorithm on the input video frames
     \param errorDetail if the algorithm fails then the details of the problem are returned in this string
   */
-  PlusStatus Update(); 
+  PlusStatus Update();
 
   /*! Get the timestamps of the frames where a line was successfully detected. Frames where the line detection was failed are skipped. */
-  void GetDetectedTimestamps(std::deque<double> &timestamps);
+  void GetDetectedTimestamps(std::deque<double>& timestamps);
 
   /*! Get the line positions on the frames where a line was successfully detected. Frames where the line detection was failed are skipped. */
-  void GetDetectedPositions(std::deque<double> &positions); 
+  void GetDetectedPositions(std::deque<double>& positions);
 
   /*! Get the parameters of the plane where a line was successfully detected. No frames are skipped, the size of the vector matches the number of input tracked frames. If line detection failed on an image then the lineDetected parameter of the item is set to false. */
   void GetDetectedLineParameters(std::vector<LineParameters>& parameters);
 
   /*! Enable/disable saving of intermediate images for debugging */
   void SetSaveIntermediateImages(bool saveIntermediateImages);
-  
-  void SetIntermediateFilesOutputDirectory(const std::string &outputDirectory);
+
+  void SetIntermediateFilesOutputDirectory(const std::string& outputDirectory);
 
   PlusStatus Reset();
 
-  /*! Plot intensity profile for each scanline. Enable for debugging. */  
+  /*! Plot intensity profile for each scanline. Enable for debugging. */
   vtkGetMacro(PlotIntensityProfile, bool);
   vtkSetMacro(PlotIntensityProfile, bool);
 
@@ -89,27 +89,27 @@ protected:
 
   PlusStatus ComputeVideoPositionMetric();
 
-  PlusStatus FindPeakStart(std::deque<int> &intensityProfile,int maxFromLargestArea, int startOfMaxArea, double &startOfPeak);
+  PlusStatus FindPeakStart(std::deque<int>& intensityProfile, int maxFromLargestArea, int startOfMaxArea, double& startOfPeak);
 
-  PlusStatus FindLargestPeak(std::deque<int> &intensityProfile,int &maxFromLargestArea, int &maxFromLargestAreaIndex, int &startOfMaxArea);
+  PlusStatus FindLargestPeak(std::deque<int>& intensityProfile, int& maxFromLargestArea, int& maxFromLargestAreaIndex, int& startOfMaxArea);
 
-  PlusStatus ComputeCenterOfGravity(std::deque<int> &intensityProfile, int startOfMaxArea, double &centerOfGravity);
+  PlusStatus ComputeCenterOfGravity(std::deque<int>& intensityProfile, int startOfMaxArea, double& centerOfGravity);
 
-  void ComputeLineParameters(std::vector<itk::Point<double,2> > &data, LineParameters& outputParameters );
+  void ComputeLineParameters(std::vector<itk::Point<double, 2> >& data, LineParameters& outputParameters);
 
-  void PlotIntArray(const std::deque<int> &intensityValues);
+  void PlotIntArray(const std::deque<int>& intensityValues);
 
-  void PlotDoubleArray(const std::deque<double> &intensityValues);
+  void PlotDoubleArray(const std::deque<double>& intensityValues);
 
-  void SaveIntermediateImage(int frameNumber, CharImageType::Pointer scanlineImage, double x_0, double y_0, double r_x, double r_y, int numOfValidScanlines, const std::vector<itk::Point<double,2> > &intensityPeakPositions);  
+  void SaveIntermediateImage(int frameNumber, CharImageType::Pointer scanlineImage, double x_0, double y_0, double r_x, double r_y, int numOfValidScanlines, const std::vector<itk::Point<double, 2> >& intensityPeakPositions);
 
   /*! Update passed region to fit within the frame size. */
   void LimitToClipRegion(CharImageType::RegionType& region);
 
 protected:
-  vtkSmartPointer<vtkPlusTrackedFrameList> m_TrackedFrameList; 
+  vtkSmartPointer<vtkPlusTrackedFrameList> m_TrackedFrameList;
 
-  std::deque<double> m_SignalValues; 
+  std::deque<double> m_SignalValues;
   std::deque<double> m_SignalTimestamps;
   std::vector<LineParameters> m_LineParameters;
 
@@ -118,7 +118,7 @@ protected:
 
   /*! Directory where the intermediate files are written to */
   std::string IntermediateFilesOutputDirectory;
-  
+
   /*! Plot intensity profile for each scanline. Enable for debugging. */
   bool PlotIntensityProfile;
 
@@ -129,7 +129,7 @@ protected:
   CharImageType::IndexValueType m_ClipRectangleOrigin[2];
 
   /*! Clip rectangle origin for the processing (in pixels). Everything outside the rectangle is ignored. */
-  CharImageType::SizeValueType m_ClipRectangleSize[2]; 
+  CharImageType::SizeValueType m_ClipRectangleSize[2];
 
 private:
   vtkPlusLineSegmentationAlgo(const vtkPlusLineSegmentationAlgo&);

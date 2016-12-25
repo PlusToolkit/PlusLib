@@ -156,18 +156,18 @@ PlusStatus vtkPlusTrackedFrameList::AddTrackedFrame(PlusTrackedFrame* trackedFra
   {
     switch (action)
     {
-    case ADD_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
-      break;
-    case ADD_INVALID_FRAME:
-      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
-      break;
-    case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR("Validation failed on frame, the frame is ignored");
-      return PLUS_FAIL;
-    case SKIP_INVALID_FRAME:
-      LOG_DEBUG("Validation failed on frame, the frame is ignored");
-      return PLUS_SUCCESS;
+      case ADD_INVALID_FRAME_AND_REPORT_ERROR:
+        LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
+        break;
+      case ADD_INVALID_FRAME:
+        LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
+        break;
+      case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
+        LOG_ERROR("Validation failed on frame, the frame is ignored");
+        return PLUS_FAIL;
+      case SKIP_INVALID_FRAME:
+        LOG_DEBUG("Validation failed on frame, the frame is ignored");
+        return PLUS_SUCCESS;
     }
   }
 
@@ -189,20 +189,20 @@ PlusStatus vtkPlusTrackedFrameList::TakeTrackedFrame(PlusTrackedFrame* trackedFr
   {
     switch (action)
     {
-    case ADD_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
-      break;
-    case ADD_INVALID_FRAME:
-      LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
-      break;
-    case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
-      LOG_ERROR("Validation failed on frame, the frame is ignored");
-      delete trackedFrame;
-      return PLUS_FAIL;
-    case SKIP_INVALID_FRAME:
-      LOG_DEBUG("Validation failed on frame, the frame is ignored");
-      delete trackedFrame;
-      return PLUS_SUCCESS;
+      case ADD_INVALID_FRAME_AND_REPORT_ERROR:
+        LOG_ERROR("Validation failed on frame, the frame is added to the list anyway");
+        break;
+      case ADD_INVALID_FRAME:
+        LOG_DEBUG("Validation failed on frame, the frame is added to the list anyway");
+        break;
+      case SKIP_INVALID_FRAME_AND_REPORT_ERROR:
+        LOG_ERROR("Validation failed on frame, the frame is ignored");
+        delete trackedFrame;
+        return PLUS_FAIL;
+      case SKIP_INVALID_FRAME:
+        LOG_DEBUG("Validation failed on frame, the frame is ignored");
+        delete trackedFrame;
+        return PLUS_SUCCESS;
     }
   }
 

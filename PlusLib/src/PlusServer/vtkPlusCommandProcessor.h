@@ -31,10 +31,9 @@ class vtkMatrix4x4;
 class vtkPlusServerExport vtkPlusCommandProcessor : public vtkObject
 {
 public:
-
   static vtkPlusCommandProcessor *New();
   vtkTypeMacro(vtkPlusCommandProcessor, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! 
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread) 

@@ -26,7 +26,7 @@ class vtkPlusDataCollectionExport vtkFcsvWriter : public vtkObject
 public:
   static vtkFcsvWriter* New();
   vtkTypeMacro(vtkFcsvWriter, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /* Load an FCSV file */
   void Update(void);

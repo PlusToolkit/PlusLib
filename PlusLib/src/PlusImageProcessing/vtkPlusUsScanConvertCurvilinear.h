@@ -20,7 +20,7 @@ class vtkPlusImageProcessingExport vtkPlusUsScanConvertCurvilinear : public vtkP
 public:
   static vtkPlusUsScanConvertCurvilinear* New();
   vtkTypeMacro(vtkPlusUsScanConvertCurvilinear,vtkPlusUsScanConvert);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual const char* GetTransducerGeometry()
   {

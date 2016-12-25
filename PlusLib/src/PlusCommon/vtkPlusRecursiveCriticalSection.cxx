@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 /*=========================================================================
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
@@ -18,7 +18,7 @@
 vtkStandardNewMacro(vtkPlusRecursiveCriticalSection);
 
 // New for the SimpleRecursiveCriticalSection
-vtkPlusSimpleRecursiveCriticalSection *vtkPlusSimpleRecursiveCriticalSection::New()
+vtkPlusSimpleRecursiveCriticalSection* vtkPlusSimpleRecursiveCriticalSection::New()
 {
   return new vtkPlusSimpleRecursiveCriticalSection;
 }
@@ -26,9 +26,9 @@ vtkPlusSimpleRecursiveCriticalSection *vtkPlusSimpleRecursiveCriticalSection::Ne
 void vtkPlusSimpleRecursiveCriticalSection::Init()
 {
 #ifdef VTK_USE_SPROC
-  init_lock( &this->CritSec );
+  init_lock(&this->CritSec);
 #endif
-  
+
 #ifdef VTK_USE_WIN32_THREADS
   InitializeCriticalSection(&this->CritSec);
 #endif
@@ -37,8 +37,8 @@ void vtkPlusSimpleRecursiveCriticalSection::Init()
   pthread_mutexattr_t recursiveAttr;
   pthread_mutexattr_init(&recursiveAttr);
   pthread_mutexattr_settype(&recursiveAttr, PTHREAD_MUTEX_RECURSIVE);
-  pthread_mutex_init(&(this->CritSec), &recursiveAttr);  
-  pthread_mutexattr_destroy(&recursiveAttr); 
+  pthread_mutex_init(&(this->CritSec), &recursiveAttr);
+  pthread_mutexattr_destroy(&recursiveAttr);
 #endif
 }
 
@@ -51,7 +51,7 @@ vtkPlusSimpleRecursiveCriticalSection::~vtkPlusSimpleRecursiveCriticalSection()
 #endif
 
 #ifdef VTK_USE_PTHREADS
-  pthread_mutex_destroy( &this->CritSec);
+  pthread_mutex_destroy(&this->CritSec);
 #endif
 }
 
@@ -59,7 +59,7 @@ vtkPlusSimpleRecursiveCriticalSection::~vtkPlusSimpleRecursiveCriticalSection()
 void vtkPlusSimpleRecursiveCriticalSection::Lock()
 {
 #ifdef VTK_USE_SPROC
-  spin_lock( &this->CritSec );
+  spin_lock(&this->CritSec);
 #endif
 
 #ifdef VTK_USE_WIN32_THREADS
@@ -68,7 +68,7 @@ void vtkPlusSimpleRecursiveCriticalSection::Lock()
 #endif
 
 #ifdef VTK_USE_PTHREADS
-  pthread_mutex_lock( &this->CritSec);
+  pthread_mutex_lock(&this->CritSec);
 #endif
 }
 
@@ -76,7 +76,7 @@ void vtkPlusSimpleRecursiveCriticalSection::Lock()
 void vtkPlusSimpleRecursiveCriticalSection::Unlock()
 {
 #ifdef VTK_USE_SPROC
-  release_lock( &this->CritSec );
+  release_lock(&this->CritSec);
 #endif
 
 #ifdef VTK_USE_WIN32_THREADS
@@ -84,7 +84,7 @@ void vtkPlusSimpleRecursiveCriticalSection::Unlock()
 #endif
 
 #ifdef VTK_USE_PTHREADS
-  pthread_mutex_unlock( &this->CritSec);
+  pthread_mutex_unlock(&this->CritSec);
 #endif
 }
 

@@ -26,11 +26,9 @@ class vtkPlusOpenIGTLinkExport vtkPlusIGTLMessageQueue
 : public vtkObject
 {
 public:
-
   static vtkPlusIGTLMessageQueue *New();
   vtkTypeMacro( vtkPlusIGTLMessageQueue,vtkObject );
-
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   void PushMessage( igtl::MessageBase* message );
   igtl::MessageBase* PullMessage();

@@ -26,9 +26,11 @@
 #include "vnl/vnl_cross.h"
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro( vtkPlusBrachyStepperPhantomRegistrationAlgo );
 
-vtkCxxSetObjectMacro( vtkPlusBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkPlusTransformRepository );
+vtkStandardNewMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo);
+vtkCxxSetObjectMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkPlusTransformRepository);
+
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 vtkPlusBrachyStepperPhantomRegistrationAlgo::vtkPlusBrachyStepperPhantomRegistrationAlgo()
@@ -36,8 +38,8 @@ vtkPlusBrachyStepperPhantomRegistrationAlgo::vtkPlusBrachyStepperPhantomRegistra
   this->TrackedFrameList = NULL;
   this->PhantomToReferenceTransformMatrix = NULL;
   this->TransformRepository = NULL;
-  this->SetSpacing( 0, 0 );
-  this->SetCenterOfRotationPx( 0, 0 );
+  this->SetSpacing(0, 0);
+  this->SetCenterOfRotationPx(0, 0);
 
   this->PhantomCoordinateFrame = NULL;
   this->ReferenceCoordinateFrame = NULL;
@@ -49,10 +51,10 @@ vtkPlusBrachyStepperPhantomRegistrationAlgo::vtkPlusBrachyStepperPhantomRegistra
 vtkPlusBrachyStepperPhantomRegistrationAlgo::~vtkPlusBrachyStepperPhantomRegistrationAlgo()
 {
   // remove references to objects avoid memory leaks
-  this->SetTrackedFrameList( NULL );
-  this->SetTransformRepository( NULL );
+  this->SetTrackedFrameList(NULL);
+  this->SetTransformRepository(NULL);
   // delete member variables
-  if ( this->PhantomToReferenceTransformMatrix != NULL )
+  if (this->PhantomToReferenceTransformMatrix != NULL)
   {
     this->PhantomToReferenceTransformMatrix->Delete();
     this->PhantomToReferenceTransformMatrix = NULL;
@@ -60,72 +62,72 @@ vtkPlusBrachyStepperPhantomRegistrationAlgo::~vtkPlusBrachyStepperPhantomRegistr
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusBrachyStepperPhantomRegistrationAlgo::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusBrachyStepperPhantomRegistrationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 {
   os << std::endl;
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
   os << indent << "Update time: " << UpdateTime.GetMTime() << std::endl;
   os << indent << "Spacing: " << this->Spacing[0] << "  " << this->Spacing[1] << std::endl;
   os << indent << "Center of rotation (px): " << this->CenterOfRotationPx[0] << "  " << this->CenterOfRotationPx[1] << std::endl;
 
-  if ( this->PhantomToReferenceTransformMatrix != NULL )
+  if (this->PhantomToReferenceTransformMatrix != NULL)
   {
     os << indent << "Phantom to reference transform: " << std::endl;
-    this->PhantomToReferenceTransformMatrix->PrintSelf( os, indent );
+    this->PhantomToReferenceTransformMatrix->PrintSelf(os, indent);
   }
 
-  if ( this->TrackedFrameList != NULL )
+  if (this->TrackedFrameList != NULL)
   {
     os << indent << "TrackedFrameList:" << std::endl;
-    this->TrackedFrameList->PrintSelf( os, indent );
+    this->TrackedFrameList->PrintSelf(os, indent);
   }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs( vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires )
+void vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires)
 {
-  LOG_TRACE( "vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs" );
-  this->SetTrackedFrameList( trackedFrameList );
-  this->SetSpacing( spacing );
-  this->SetCenterOfRotationPx( centerOfRotationPx );
-  this->SetTransformRepository( transformRepository );
+  LOG_TRACE("vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs");
+  this->SetTrackedFrameList(trackedFrameList);
+  this->SetSpacing(spacing);
+  this->SetCenterOfRotationPx(centerOfRotationPx);
+  this->SetTransformRepository(transformRepository);
   this->NWires = nWires;
   this->Modified();
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::GetPhantomToReferenceTransformMatrix( vtkMatrix4x4* phantomToReferenceTransformMatrix )
+PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::GetPhantomToReferenceTransformMatrix(vtkMatrix4x4* phantomToReferenceTransformMatrix)
 {
-  LOG_TRACE( "vtkPlusBrachyStepperPhantomRegistrationAlgo::GetRotationEncoderScale" );
+  LOG_TRACE("vtkPlusBrachyStepperPhantomRegistrationAlgo::GetRotationEncoderScale");
   // Update result
   PlusStatus status = this->Update();
 
-  if ( this->PhantomToReferenceTransformMatrix == NULL )
+  if (this->PhantomToReferenceTransformMatrix == NULL)
   {
     this->PhantomToReferenceTransformMatrix = vtkMatrix4x4::New();
   }
 
-  phantomToReferenceTransformMatrix->DeepCopy( this->PhantomToReferenceTransformMatrix );
+  phantomToReferenceTransformMatrix->DeepCopy(this->PhantomToReferenceTransformMatrix);
   return status;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
 {
-  LOG_TRACE( "vtkPlusBrachyStepperPhantomRegistrationAlgo::Update" );
+  LOG_TRACE("vtkPlusBrachyStepperPhantomRegistrationAlgo::Update");
 
-  if ( this->GetMTime() < this->UpdateTime.GetMTime() )
+  if (this->GetMTime() < this->UpdateTime.GetMTime())
   {
-    LOG_DEBUG( "Rotation encoder calibration result is up-to-date!" );
+    LOG_DEBUG("Rotation encoder calibration result is up-to-date!");
     return PLUS_SUCCESS;
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if ( vtkPlusTrackedFrameList::VerifyProperties( this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS ) != PLUS_SUCCESS )
+  if (vtkPlusTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to perform calibration - tracked frame list is invalid" );
+    LOG_ERROR("Failed to perform calibration - tracked frame list is invalid");
     return PLUS_FAIL;
   }
 
@@ -140,70 +142,70 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
   // ==================================================================================
 
   std::vector<vtkSmartPointer<vtkPoints> > vectorOfWirePoints;
-  for ( unsigned int index = 0; index < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++index )
+  for (unsigned int index = 0; index < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++index)
   {
     // Get tracked frame from list
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame( index );
+    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(index);
 
-    if ( trackedFrame->GetFiducialPointsCoordinatePx() == NULL )
+    if (trackedFrame->GetFiducialPointsCoordinatePx() == NULL)
     {
-      LOG_ERROR( "Unable to get segmented fiducial points from tracked frame - FiducialPointsCoordinatePx is NULL, frame is not yet segmented (position in the list: " << index << ")!" );
+      LOG_ERROR("Unable to get segmented fiducial points from tracked frame - FiducialPointsCoordinatePx is NULL, frame is not yet segmented (position in the list: " << index << ")!");
       continue;
     }
 
-    if ( trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0 )
+    if (trackedFrame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0)
     {
-      LOG_DEBUG( "Unable to get segmented fiducial points from tracked frame - couldn't segment image (position in the list: " << index << ")!" );
+      LOG_DEBUG("Unable to get segmented fiducial points from tracked frame - couldn't segment image (position in the list: " << index << ")!");
       continue;
     }
 
     // Add wire #4 (point A) wire #6 (point B) and wire #3 (point C) pixel coordinates to phantom to probe distance point set
     vtkSmartPointer<vtkPoints> pointset = vtkSmartPointer<vtkPoints>::New();
     pointset->SetDataTypeToDouble();
-    pointset->InsertNextPoint( trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint( 3 ) );
-    pointset->InsertNextPoint( trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint( 5 ) );
-    pointset->InsertNextPoint( trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint( 2 ) );
-    vectorOfWirePoints.push_back( pointset );
+    pointset->InsertNextPoint(trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint(3));
+    pointset->InsertNextPoint(trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint(5));
+    pointset->InsertNextPoint(trackedFrame->GetFiducialPointsCoordinatePx()->GetPoint(2));
+    vectorOfWirePoints.push_back(pointset);
   }
 
 
-  vnl_vector<double> rotationCenter3x1InMm( 3, 0 );
-  rotationCenter3x1InMm.put( 0, this->CenterOfRotationPx[0] * this->Spacing[0] );
-  rotationCenter3x1InMm.put( 1, this->CenterOfRotationPx[1] * this->Spacing[1] );
-  rotationCenter3x1InMm.put( 2, 0 );
+  vnl_vector<double> rotationCenter3x1InMm(3, 0);
+  rotationCenter3x1InMm.put(0, this->CenterOfRotationPx[0] * this->Spacing[0]);
+  rotationCenter3x1InMm.put(1, this->CenterOfRotationPx[1] * this->Spacing[1]);
+  rotationCenter3x1InMm.put(2, 0);
 
   // Total number images used for this computation
   const int totalNumberOfImages2ComputePtLnDist = vectorOfWirePoints.size();
 
-  if ( totalNumberOfImages2ComputePtLnDist == 0 )
+  if (totalNumberOfImages2ComputePtLnDist == 0)
   {
-    LOG_ERROR( "Failed to register phantom to reference. Probe distance calculation data is empty!" );
+    LOG_ERROR("Failed to register phantom to reference. Probe distance calculation data is empty!");
     return PLUS_FAIL;
   }
 
   // This will keep a trace on all the calculated distance
-  vnl_vector<double> listOfPhantomToProbeVerticalDistanceInMm( totalNumberOfImages2ComputePtLnDist, 0 );
-  vnl_vector<double> listOfPhantomToProbeHorizontalDistanceInMm( totalNumberOfImages2ComputePtLnDist, 0 );
+  vnl_vector<double> listOfPhantomToProbeVerticalDistanceInMm(totalNumberOfImages2ComputePtLnDist, 0);
+  vnl_vector<double> listOfPhantomToProbeHorizontalDistanceInMm(totalNumberOfImages2ComputePtLnDist, 0);
 
-  for ( int i = 0; i < totalNumberOfImages2ComputePtLnDist; i++ )
+  for (int i = 0; i < totalNumberOfImages2ComputePtLnDist; i++)
   {
     // Extract point A
-    vnl_vector<double> pointAInMm( 3, 0 );
-    pointAInMm.put( 0, vectorOfWirePoints[i]->GetPoint( 0 )[0] * this->Spacing[0] );
-    pointAInMm.put( 1, vectorOfWirePoints[i]->GetPoint( 0 )[1] * this->Spacing[1] );
-    pointAInMm.put( 2, 0 );
+    vnl_vector<double> pointAInMm(3, 0);
+    pointAInMm.put(0, vectorOfWirePoints[i]->GetPoint(0)[0] * this->Spacing[0]);
+    pointAInMm.put(1, vectorOfWirePoints[i]->GetPoint(0)[1] * this->Spacing[1]);
+    pointAInMm.put(2, 0);
 
     // Extract point B
-    vnl_vector<double> pointBInMm( 3, 0 );
-    pointBInMm.put( 0, vectorOfWirePoints[i]->GetPoint( 1 )[0] * this->Spacing[0] );
-    pointBInMm.put( 1, vectorOfWirePoints[i]->GetPoint( 1 )[1] * this->Spacing[1] );
-    pointBInMm.put( 2, 0 );
+    vnl_vector<double> pointBInMm(3, 0);
+    pointBInMm.put(0, vectorOfWirePoints[i]->GetPoint(1)[0] * this->Spacing[0]);
+    pointBInMm.put(1, vectorOfWirePoints[i]->GetPoint(1)[1] * this->Spacing[1]);
+    pointBInMm.put(2, 0);
 
     // Extract point C
-    vnl_vector<double> pointCInMm( 3, 0 );
-    pointCInMm.put( 0, vectorOfWirePoints[i]->GetPoint( 2 )[0] * this->Spacing[0] );
-    pointCInMm.put( 1, vectorOfWirePoints[i]->GetPoint( 2 )[1] * this->Spacing[1] );
-    pointCInMm.put( 2, 0 );
+    vnl_vector<double> pointCInMm(3, 0);
+    pointCInMm.put(0, vectorOfWirePoints[i]->GetPoint(2)[0] * this->Spacing[0]);
+    pointCInMm.put(1, vectorOfWirePoints[i]->GetPoint(2)[1] * this->Spacing[1]);
+    pointCInMm.put(2, 0);
 
     // Construct vectors among rotation center, point A, and point B.
     const vnl_vector<double> vectorRotationCenterToPointAInMm = pointAInMm - rotationCenter3x1InMm;
@@ -214,41 +216,41 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
 
     // Compute the point-line distance from probe to the line passing through A and B points, based on the
     // standard vector theory. FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
-    const double thisPhantomToProbeVerticalDistanceInMm = vnl_cross_3d( vectorRotationCenterToPointAInMm, vectorRotationCenterToPointBInMm ).magnitude() / vectorPointAToPointBInMm.magnitude();
+    const double thisPhantomToProbeVerticalDistanceInMm = vnl_cross_3d(vectorRotationCenterToPointAInMm, vectorRotationCenterToPointBInMm).magnitude() / vectorPointAToPointBInMm.magnitude();
 
     // Compute the point-line distance from probe to the line passing through B and C points, based on the
     // standard vector theory. FORMULA: D_O2AB = norm( cross(OA,OB) ) / norm(A-B)
-    const double thisPhantomToProbeHorizontalDistanceInMm = vnl_cross_3d( vectorRotationCenterToPointBInMm, vectorRotationCenterToPointCInMm ).magnitude() / vectorPointBToPointCInMm.magnitude();
+    const double thisPhantomToProbeHorizontalDistanceInMm = vnl_cross_3d(vectorRotationCenterToPointBInMm, vectorRotationCenterToPointCInMm).magnitude() / vectorPointBToPointCInMm.magnitude();
 
     // Populate the data container
-    listOfPhantomToProbeVerticalDistanceInMm.put( i, thisPhantomToProbeVerticalDistanceInMm );
-    listOfPhantomToProbeHorizontalDistanceInMm.put( i, thisPhantomToProbeHorizontalDistanceInMm );
+    listOfPhantomToProbeVerticalDistanceInMm.put(i, thisPhantomToProbeVerticalDistanceInMm);
+    listOfPhantomToProbeHorizontalDistanceInMm.put(i, thisPhantomToProbeHorizontalDistanceInMm);
   }
 
   double wire6ToProbeDistanceInMm[2] = { listOfPhantomToProbeHorizontalDistanceInMm.mean(), listOfPhantomToProbeVerticalDistanceInMm.mean() };
   double phantomToReferenceDistanceInMm[3] = { this->NWires[1].GetWires()[2].EndPointFront[0] + wire6ToProbeDistanceInMm[0], this->NWires[1].GetWires()[2].EndPointFront[1] + wire6ToProbeDistanceInMm[1], 0 };
 
-  LOG_INFO( "Phantom to probe distance (mm): " << phantomToReferenceDistanceInMm[0] << "   " << phantomToReferenceDistanceInMm[1] );
+  LOG_INFO("Phantom to probe distance (mm): " << phantomToReferenceDistanceInMm[0] << "   " << phantomToReferenceDistanceInMm[1]);
 
   vtkSmartPointer<vtkTransform> phantomToReferenceTransform = vtkSmartPointer<vtkTransform>::New();
   phantomToReferenceTransform->Identity();
-  phantomToReferenceTransform->Translate( phantomToReferenceDistanceInMm );
+  phantomToReferenceTransform->Translate(phantomToReferenceDistanceInMm);
   phantomToReferenceTransform->Inverse();
 
-  this->PhantomToReferenceTransformMatrix->DeepCopy( phantomToReferenceTransform->GetMatrix() );
+  this->PhantomToReferenceTransformMatrix->DeepCopy(phantomToReferenceTransform->GetMatrix());
 
   // Save result
-  if ( this->TransformRepository )
+  if (this->TransformRepository)
   {
-    PlusTransformName phantomToReferenceTransformName( this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame );
-    this->TransformRepository->SetTransform( phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix );
-    this->TransformRepository->SetTransformPersistent( phantomToReferenceTransformName, true );
-    this->TransformRepository->SetTransformDate( phantomToReferenceTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str() );
-    this->TransformRepository->SetTransformError( phantomToReferenceTransformName, -1 ); //TODO
+    PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+    this->TransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix);
+    this->TransformRepository->SetTransformPersistent(phantomToReferenceTransformName, true);
+    this->TransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+    this->TransformRepository->SetTransformError(phantomToReferenceTransformName, -1);   //TODO
   }
   else
   {
-    LOG_INFO( "Transform repository object is NULL, cannot save results into it" );
+    LOG_INFO("Transform repository object is NULL, cannot save results into it");
   }
 
   this->UpdateTime.Modified();
@@ -257,14 +259,14 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::ReadConfiguration( vtkXMLDataElement* aConfig )
+PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  LOG_TRACE( "vtkPlusBrachyStepperPhantomRegistrationAlgo::ReadConfiguration" );
+  LOG_TRACE("vtkPlusBrachyStepperPhantomRegistrationAlgo::ReadConfiguration");
 
-  XML_FIND_NESTED_ELEMENT_REQUIRED( phantomRegistrationElement, aConfig, "vtkPlusBrachyStepperPhantomRegistrationAlgo" );
+  XML_FIND_NESTED_ELEMENT_REQUIRED(phantomRegistrationElement, aConfig, "vtkPlusBrachyStepperPhantomRegistrationAlgo");
 
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( PhantomCoordinateFrame, phantomRegistrationElement );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ReferenceCoordinateFrame, phantomRegistrationElement );
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(PhantomCoordinateFrame, phantomRegistrationElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, phantomRegistrationElement);
 
   return PLUS_SUCCESS;
 }

@@ -24,9 +24,9 @@ class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource;
 class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro(vtkPlusUsSimulatorVideoSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
   static vtkPlusUsSimulatorVideoSource* New();
+  vtkTypeMacro(vtkPlusUsSimulatorVideoSource,vtkPlusDevice);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 

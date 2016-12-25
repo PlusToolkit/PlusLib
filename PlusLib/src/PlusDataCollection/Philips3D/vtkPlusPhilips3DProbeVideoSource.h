@@ -22,9 +22,9 @@ class vtkPlusIEEListener;
 class vtkPlusDataCollectionExport vtkPlusPhilips3DProbeVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro(vtkPlusPhilips3DProbeVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
   static vtkPlusPhilips3DProbeVideoSource* New();
+  vtkTypeMacro(vtkPlusPhilips3DProbeVideoSource, vtkPlusDevice);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from XML data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);

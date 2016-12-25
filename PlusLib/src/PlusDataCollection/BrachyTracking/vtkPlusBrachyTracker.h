@@ -46,7 +46,7 @@ public:
 
   static vtkPlusBrachyTracker *New();
   vtkTypeMacro(vtkPlusBrachyTracker,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Connect to device */
   PlusStatus InternalConnect();

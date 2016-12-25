@@ -102,7 +102,7 @@ public:
 
   static vtkPlusPasteSliceIntoVolume *New();
   vtkTypeMacro(vtkPlusPasteSliceIntoVolume, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Set spacing of the output data in Reference coordinate system.

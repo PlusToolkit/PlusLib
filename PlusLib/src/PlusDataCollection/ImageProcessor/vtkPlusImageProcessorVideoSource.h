@@ -26,7 +26,7 @@ class vtkPlusDataCollectionExport vtkPlusImageProcessorVideoSource : public vtkP
 public:
   static vtkPlusImageProcessorVideoSource *New();
   vtkTypeMacro(vtkPlusImageProcessorVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read main configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);

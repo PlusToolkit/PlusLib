@@ -64,7 +64,7 @@ public:
 public:
   static vtkPlusVirtualTextRecognizer *New();
   vtkTypeMacro(vtkPlusVirtualTextRecognizer, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Prepare the device for recognition */
   virtual PlusStatus InternalConnect();

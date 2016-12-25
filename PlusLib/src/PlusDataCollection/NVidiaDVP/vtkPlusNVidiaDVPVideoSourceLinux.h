@@ -19,9 +19,9 @@ See License.txt for details.
 class vtkPlusDataCollectionExport vtkPlusNvidiaDVPVideoSource : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro(vtkPlusNvidiaDVPVideoSource, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
   static vtkPlusNvidiaDVPVideoSource* New();
+  vtkTypeMacro(vtkPlusNvidiaDVPVideoSource, vtkPlusDevice);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Read configuration from XML data
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 

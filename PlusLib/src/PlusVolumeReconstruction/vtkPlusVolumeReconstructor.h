@@ -49,7 +49,7 @@ public:
 
   static vtkPlusVolumeReconstructor* New();
   vtkTypeMacro(vtkPlusVolumeReconstructor, vtkImageAlgorithm);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   vtkGetMacro(SkipInterval, int);
   vtkSetMacro(SkipInterval, int);

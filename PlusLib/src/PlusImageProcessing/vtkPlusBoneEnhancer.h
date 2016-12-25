@@ -30,7 +30,7 @@ class vtkPlusImageProcessingExport vtkPlusBoneEnhancer : public vtkPlusTrackedFr
 public:
   static vtkPlusBoneEnhancer *New();
   vtkTypeMacro(vtkPlusBoneEnhancer , vtkPlusTrackedFrameProcessor);
-  virtual void PrintSelf(ostream& os, vtkIndent indent); 
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
    /*! Update output frame from input frame */
   virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);

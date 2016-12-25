@@ -23,7 +23,7 @@ class vtkPlusDataCollectionExport vtkPlusVirtualSwitcher : public vtkPlusDevice
 public:
   static vtkPlusVirtualSwitcher *New();
   vtkTypeMacro(vtkPlusVirtualSwitcher, vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
     Virtual channel switchers output only one channel

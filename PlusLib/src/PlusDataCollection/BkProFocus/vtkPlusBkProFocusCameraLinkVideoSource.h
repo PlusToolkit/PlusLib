@@ -45,7 +45,7 @@ public:
   };
 
   vtkTypeMacro(vtkPlusBkProFocusCameraLinkVideoSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   static vtkPlusBkProFocusCameraLinkVideoSource* New();
 

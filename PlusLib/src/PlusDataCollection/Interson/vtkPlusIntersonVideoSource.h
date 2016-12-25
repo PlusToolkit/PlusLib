@@ -24,7 +24,7 @@ class vtkPlusDataCollectionExport vtkPlusIntersonVideoSource : public vtkPlusUsD
 public:
   static vtkPlusIntersonVideoSource *New();
   vtkTypeMacro(vtkPlusIntersonVideoSource,vtkPlusUsDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual bool IsTracker() const { return false; }
 

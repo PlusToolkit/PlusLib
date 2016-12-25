@@ -27,7 +27,7 @@ class vtkPlusDataCollectionExport vtkPlusBkProFocusOemVideoSource : public vtkPl
 public:
   static vtkPlusBkProFocusOemVideoSource *New();
   vtkTypeMacro(vtkPlusBkProFocusOemVideoSource,vtkPlusDevice);
-  void PrintSelf(ostream& os, vtkIndent indent);   
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual bool IsTracker() const { return false; }
 

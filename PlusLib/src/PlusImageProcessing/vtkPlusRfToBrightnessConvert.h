@@ -39,7 +39,7 @@ class vtkPlusImageProcessingExport vtkPlusRfToBrightnessConvert : public vtkThre
 public:
   static vtkPlusRfToBrightnessConvert *New();
   vtkTypeMacro(vtkPlusRfToBrightnessConvert,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   
   /*! Read configuration from xml data. The rfToBrightnessElement is typically in DataCollction/ImageAcquisition/RfProcessing. */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* rfToBrightnessElement); 

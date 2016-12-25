@@ -41,7 +41,7 @@ class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageCommon: public vtkObject
 public:
   static vtkPlusIgtlMessageCommon* New();
   vtkTypeMacro(vtkPlusIgtlMessageCommon, vtkObject);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Pack tracked frame message from tracked frame */
   static PlusStatus PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform, const std::vector<PlusTransformName>& requestedTransforms);
