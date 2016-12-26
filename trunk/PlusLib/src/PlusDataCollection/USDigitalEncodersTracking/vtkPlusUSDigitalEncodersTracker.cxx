@@ -381,12 +381,11 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     long Encoder_Value;
     vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
 
-    time_t t = time(NULL);
     // Read encoder positions and transform it into XY position in mm
-    Encoder_Value = t % 100000; //::A2GetPosition(encoders.Encoder_Addr, &Encoder_Value);
+    Encoder_Value = ::A2GetPosition(encoders.Encoder_Addr, &Encoder_Value);
     double firstEnc = Encoder_Value * encoders.Encoder_PulseSpacing;
 
-    Encoder_Value = 1000 * (t % 60); //::A2GetPosition(encoders.Encoder_Addr2, &Encoder_Value);
+    Encoder_Value = ::A2GetPosition(encoders.Encoder_Addr2, &Encoder_Value);
     double secondEnc = Encoder_Value * encoders.Encoder_PulseSpacing2;
 
     double firstAxis = firstEnc + secondEnc;
