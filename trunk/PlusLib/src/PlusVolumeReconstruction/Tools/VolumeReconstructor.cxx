@@ -34,6 +34,8 @@ int main (int argc, char* argv[])
 
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
+  bool disableCompression = false;
+
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
 
@@ -44,6 +46,7 @@ int main (int argc, char* argv[])
   cmdargs.AddArgument("--output-volume-accumulation-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputVolumeAccumulationFileName, "Output file name of the accumulation of the reconstructed volume (.mha/.nrrd)" );
   cmdargs.AddArgument("--output-frame-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFrameFileName, "A filename that will be used for storing the tracked image frames. Each frame will be exported individually, with the proper position and orientation in the reference coordinate system");
   cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
+  cmdargs.AddArgument("--disable-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &disableCompression, "Do not compress output image files.");
   cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");  
 
   // Deprecated arguments (2013-07-29, #800)
@@ -236,11 +239,11 @@ int main (int argc, char* argv[])
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames ); 
 
   LOG_INFO("Saving volume to file...");
-  reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName.c_str());
+  reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName.c_str(), false, !disableCompression);
   
   if (!outputVolumeAccumulationFileName.empty())
   {
-    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAccumulationFileName.c_str(), true);
+    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAccumulationFileName.c_str(), true, !disableCompression);
   }
 
   return EXIT_SUCCESS; 
