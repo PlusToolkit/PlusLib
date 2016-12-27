@@ -230,8 +230,8 @@ protected:
   vtkMTimeType ReconstructedVolumeUpdatedTime;
 
   /*!
-    If EnableFanAngleAutoDetect is enabled then actually used fan angles will be computed from each frame (these angles define the maximum range.
-    If EnableFanAngleAutoDetect is disabled then these values will be used as fan angles.
+    If EnableFanAnglesAutoDetect is enabled then actually used fan angles will be computed from each frame (these angles define the maximum range.
+    If EnableFanAnglesAutoDetect is disabled then these values will be used as fan angles.
   */
   double FanAnglesDeg[2];
 
