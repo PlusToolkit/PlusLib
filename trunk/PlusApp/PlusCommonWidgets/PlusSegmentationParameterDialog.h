@@ -216,13 +216,13 @@ protected slots:
   * Slot handling reference width value change
   * \param aValue New value
   */
-  void ReferenceWidthChanged(int aValue);
+  void ReferenceWidthChanged(double aValue);
 
   /*!
   * Slot handling reference height value change
   * \param aValue New value
   */
-  void ReferenceHeightChanged(int aValue);
+  void ReferenceHeightChanged(double aValue);
 
   /*!
   * Slot handling opening circle radius value change
@@ -291,7 +291,7 @@ protected slots:
   void MaxCandidatesChanged(double aValue);
 
   /*!
-  * Slot handling original intensity for dots chechbox toggle
+  * Slot handling original intensity for dots checkbox toggle
   * \param aOn New state
   */
   void OriginalIntensityForDotsToggled(bool aOn);
@@ -299,42 +299,42 @@ protected slots:
 protected:
   /*! Data collector */
   vtkPlusDataCollector*         m_DataCollector;
-  vtkPlusChannel*           m_SelectedChannel;
+  vtkPlusChannel*               m_SelectedChannel;
 
   /*! Actor for displaying segmented points */
-  vtkActor*                 m_SegmentedPointsActor;
+  vtkActor*                     m_SegmentedPointsActor;
 
   /*! Poly data for holding the segmented points */
-  vtkPolyData*              m_SegmentedPointsPolyData;
+  vtkPolyData*                  m_SegmentedPointsPolyData;
 
   /*! Poly data for holding the fiducial candidates */
-  vtkPolyData*              m_CandidatesPolyData;
+  vtkPolyData*                  m_CandidatesPolyData;
 
   /*! ROI mode handler callback command instance */
-  vtkROIModeHandler*        m_ROIModeHandler;
+  vtkROIModeHandler*            m_ROIModeHandler;
 
   /*! Spacing mode handler callback command instance */
-  vtkSpacingModeHandler*    m_SpacingModeHandler;
+  vtkSpacingModeHandler*        m_SpacingModeHandler;
 
   /*! Renderer for the canvas */
-  vtkRenderer*              m_CanvasRenderer;
+  vtkRenderer*                  m_CanvasRenderer;
 
   /*! 2D Image Visualization */
   vtkPlusImageVisualizer*       m_ImageVisualizer;
 
   /*! Timer for refreshing the canvas */
-  QTimer*                   m_CanvasRefreshTimer;
+  QTimer*                       m_CanvasRefreshTimer;
 
   /*! Original mm per pixel spacing (from input configuration) */
-  double                    m_ApproximateSpacingMmPerPixel;
+  double                        m_ApproximateSpacingMmPerPixel;
 
   /*! Pattern recognition object for segmenting the images */
   PlusFidPatternRecognition*    m_PatternRecognition;
 
   /*! Flag indicating if image is frozen (using Freeze button) */
-  bool                      m_ImageFrozen;
+  bool                          m_ImageFrozen;
 
-  /*! Tracked frame to hold the desired image to proces*/
+  /*! Tracked frame to hold the desired image to process */
   PlusTrackedFrame              m_Frame;
 
 protected:

@@ -23,27 +23,30 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
     <widget class="QFrame" name="leftFrame">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
+       <horstretch>3</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="minimumSize">
       <size>
        <width>225</width>
-       <height>480</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>210</width>
-       <height>16777215</height>
+       <height>0</height>
       </size>
      </property>
      <property name="frameShape">
@@ -56,7 +59,16 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <item>
@@ -185,7 +197,16 @@
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
           <number>4</number>
          </property>
          <property name="spacing">
@@ -360,7 +381,16 @@
          <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
           <number>4</number>
          </property>
          <property name="spacing">
@@ -489,7 +519,16 @@
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
           <number>4</number>
          </property>
          <property name="spacing">
@@ -626,7 +665,16 @@
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
           <number>4</number>
          </property>
          <property name="spacing">
@@ -1003,20 +1051,14 @@
     <widget class="QVTKWidget" name="canvas" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>3</horstretch>
+       <horstretch>7</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="minimumSize">
       <size>
        <width>773</width>
-       <height>580</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
+       <height>0</height>
       </size>
      </property>
      <property name="sizeIncrement">

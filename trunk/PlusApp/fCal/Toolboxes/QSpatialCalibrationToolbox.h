@@ -110,52 +110,52 @@ protected slots:
 
 protected:
   /*! Calibration algorithm */
-  vtkPlusProbeCalibrationAlgo* m_Calibration;
+  vtkSmartPointer<vtkPlusProbeCalibrationAlgo>  m_Calibration;
 
   /*! Pattern recognition algorithm */
-  PlusFidPatternRecognition* m_PatternRecognition;
+  PlusFidPatternRecognition*                    m_PatternRecognition;
 
   /*! Tracked frame data for spatial calibration */
-  vtkPlusTrackedFrameList* m_SpatialCalibrationData;
+  vtkSmartPointer<vtkPlusTrackedFrameList>      m_SpatialCalibrationData;
 
   /*! Tracked frame data for validation of spatial calibration */
-  vtkPlusTrackedFrameList* m_SpatialValidationData;
+  vtkSmartPointer<vtkPlusTrackedFrameList>      m_SpatialValidationData;
 
   /*! Delay time before start acquisition [s] */
-  int                        m_FreeHandStartupDelaySec;
+  int                           m_FreeHandStartupDelaySec;
 
   /*! Current time delayed before the acquisition [s] */
-  int                        m_StartupDelayRemainingTimeSec;
+  int                           m_StartupDelayRemainingTimeSec;
 
   /*! Timer before start acquisition*/
-  QTimer*                    m_StartupDelayTimer;
+  QTimer*                       m_StartupDelayTimer;
 
   /*! Timestamp of last recorded frame (the tracked frames acquired since this timestamp will be recorded) */
-  double m_LastRecordedFrameTimestamp;
+  double                        m_LastRecordedFrameTimestamp;
 
   /*! Flag if cancel is requested */
-  bool m_CancelRequest;
+  bool                          m_CancelRequest;
 
   /*! Number of needed calibration images */
-  int m_NumberOfCalibrationImagesToAcquire;
+  int                           m_NumberOfCalibrationImagesToAcquire;
 
   /*! Number of needed validation images */
-  int m_NumberOfValidationImagesToAcquire;
+  int                           m_NumberOfValidationImagesToAcquire;
 
   /*! Number of segmented calibration images */
-  int m_NumberOfSegmentedCalibrationImages;
+  int                           m_NumberOfSegmentedCalibrationImages;
 
   /*! Number of segmented validation images */
-  int m_NumberOfSegmentedValidationImages;
+  int                           m_NumberOfSegmentedValidationImages;
 
   /*! Time interval between recording (sampling) cycles (in milliseconds) */
-  int m_RecordingIntervalMs;
+  int                           m_RecordingIntervalMs;
 
   /*! Maximum time spent with processing (getting tracked frames, segmentation) per second (in milliseconds) */
-  int m_MaxTimeSpentWithProcessingMs;
+  int                           m_MaxTimeSpentWithProcessingMs;
 
   /*! Time needed to process one frame in the latest recording round (in milliseconds) */
-  int m_LastProcessingTimePerFrameMs;
+  int                           m_LastProcessingTimePerFrameMs;
 
 protected:
   Ui::SpatialCalibrationToolbox ui;

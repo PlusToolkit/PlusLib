@@ -32,6 +32,10 @@ See License.txt for details.
 QSpatialCalibrationToolbox::QSpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
   : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
+  , m_Calibration(vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New())
+  , m_PatternRecognition(new PlusFidPatternRecognition())
+  , m_SpatialCalibrationData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  , m_SpatialValidationData(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
   , m_CancelRequest(false)
   , m_LastRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
   , m_FreeHandStartupDelaySec(5)
@@ -47,16 +51,7 @@ QSpatialCalibrationToolbox::QSpatialCalibrationToolbox(fCalMainWindow* aParentMa
 {
   ui.setupUi(this);
 
-  // Create algorithms
-  m_Calibration = vtkPlusProbeCalibrationAlgo::New();
-
-  m_PatternRecognition = new PlusFidPatternRecognition();
-
-  // Create tracked frame lists
-  m_SpatialCalibrationData = vtkPlusTrackedFrameList::New();
   m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
-
-  m_SpatialValidationData = vtkPlusTrackedFrameList::New();
   m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
 
   // Change result display properties
@@ -76,28 +71,10 @@ QSpatialCalibrationToolbox::QSpatialCalibrationToolbox(fCalMainWindow* aParentMa
 //-----------------------------------------------------------------------------
 QSpatialCalibrationToolbox::~QSpatialCalibrationToolbox()
 {
-  if (m_Calibration != NULL)
-  {
-    m_Calibration->Delete();
-    m_Calibration = NULL;
-  }
-
   if (m_PatternRecognition != NULL)
   {
     delete m_PatternRecognition;
     m_PatternRecognition = NULL;
-  }
-
-  if (m_SpatialCalibrationData != NULL)
-  {
-    m_SpatialCalibrationData->Delete();
-    m_SpatialCalibrationData = NULL;
-  }
-
-  if (m_SpatialValidationData != NULL)
-  {
-    m_SpatialValidationData->Delete();
-    m_SpatialValidationData = NULL;
   }
 
   if (m_StartupDelayTimer != NULL)
@@ -218,9 +195,9 @@ PlusStatus QSpatialCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCon
     LOG_WARNING("Unable to read MaxTimeSpentWithProcessingMs attribute from fCal element of the device set configuration, default value '" << m_MaxTimeSpentWithProcessingMs << "' will be used");
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec , fCalElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec, fCalElement);
 
-  return PLUS_SUCCESS;
+  return m_PatternRecognition->ReadConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 }
 
 //-----------------------------------------------------------------------------
@@ -996,39 +973,21 @@ void QSpatialCalibrationToolbox::Reset()
 {
   QAbstractToolbox::Reset();
 
-  if (m_Calibration != NULL)
-  {
-    m_Calibration->Delete();
-    m_Calibration = NULL;
-  }
-
   if (m_PatternRecognition != NULL)
   {
     delete m_PatternRecognition;
     m_PatternRecognition = NULL;
   }
 
-  if (m_SpatialCalibrationData != NULL)
-  {
-    m_SpatialCalibrationData->Delete();
-    m_SpatialCalibrationData = NULL;
-  }
-
-  if (m_SpatialValidationData != NULL)
-  {
-    m_SpatialValidationData->Delete();
-    m_SpatialValidationData = NULL;
-  }
-
   // Create algorithms
-  m_Calibration = vtkPlusProbeCalibrationAlgo::New();
+  m_Calibration = vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New();
   m_PatternRecognition = new PlusFidPatternRecognition();
 
   // Create tracked frame lists
-  m_SpatialCalibrationData = vtkPlusTrackedFrameList::New();
+  m_SpatialCalibrationData = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   m_SpatialCalibrationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
 
-  m_SpatialValidationData = vtkPlusTrackedFrameList::New();
+  m_SpatialValidationData = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   m_SpatialValidationData->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
 
   // Restore calibration and pattern recognition algorithm details

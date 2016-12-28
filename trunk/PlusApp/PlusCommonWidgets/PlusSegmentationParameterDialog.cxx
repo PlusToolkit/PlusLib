@@ -48,6 +48,9 @@ See License.txt for details.
 #include <QResource>
 #include <QTimer>
 
+// STL includes
+#include <array>
+
 //-----------------------------------------------------------------------------
 
 static const int HANDLE_SIZE = 8;
@@ -117,14 +120,13 @@ public:
 protected:
   //----------------------------------------------------------------------
   vtkSegmentationParameterDialogModeHandlerBase()
-  {
-    m_ActorCollection = vtkSmartPointer<vtkActorCollection>::New();
-    m_ParentDialog = NULL;
-  }
+    : m_ParentDialog(nullptr)
+    , m_ActorCollection(vtkSmartPointer<vtkActorCollection>::New()) {}
 
   //----------------------------------------------------------------------
   virtual ~vtkSegmentationParameterDialogModeHandlerBase()
   {
+    QApplication::restoreOverrideCursor();
   }
 
   /*!
@@ -137,11 +139,13 @@ protected:
   */
   virtual PlusStatus ColorActors() = 0;
 
-  // Compute world coordinates from screen coordinates
+  /*!
+  * \brief Compute world coordinates from screen coordinates
+  */
   virtual void GetEventPositionWorld(int* eventPosition, double* eventPosition_World)
   {
     int* canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-    int imageDimensions[3] = {0, 0, 1};
+    int imageDimensions[3] = { 0, 0, 1 };
     m_ParentDialog->GetFrameSize(imageDimensions);
 
     double offsetXMonitor = 0.0;
@@ -163,14 +167,9 @@ protected:
   }
 
 protected:
-  //! Parent segmentation parameter dialog
-  PlusSegmentationParameterDialog*  m_ParentDialog;
-
-  //! Actor collection for the current mode
+  PlusSegmentationParameterDialog*    m_ParentDialog;
   vtkSmartPointer<vtkActorCollection> m_ActorCollection;
-
-  /*! Pair to store the offset of the click from the center of the desired source */
-  double m_ClickOffsetFromCenterOfSource[2];
+  std::array<double, 2>               m_ClickOffsetFromCenterOfSource;
 };
 
 /*! \class vtkROIModeHandler
@@ -195,7 +194,9 @@ public:
   {
     LOG_TRACE("vtkROIModeHandler::Execute");
 
-    if (!(vtkCommand::LeftButtonPressEvent == eventId || vtkCommand::MouseMoveEvent == eventId || vtkCommand::LeftButtonReleaseEvent == eventId))
+    if (!(vtkCommand::LeftButtonPressEvent == eventId ||
+          vtkCommand::MouseMoveEvent == eventId ||
+          vtkCommand::LeftButtonReleaseEvent == eventId))
     {
       return;
     }
@@ -203,9 +204,9 @@ public:
     vtkRenderWindowInteractor* interactor = dynamic_cast<vtkRenderWindowInteractor*>(caller);
     if (interactor && m_ParentDialog)
     {
-      int eventPosition[2] = {0};
+      int eventPosition[2] = { 0 };
       interactor->GetEventPosition(eventPosition);
-      double eventPosition_World[2] = {0};
+      double eventPosition_World[2] = { 0 };
       GetEventPositionWorld(eventPosition, eventPosition_World);
 
       // Handle events
@@ -220,12 +221,14 @@ public:
         {
           if (picker->GetActor() == m_TopLeftHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_TopLeftHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_TopLeftHandleSource->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_TopLeftHandleSource->GetCenter()[1] - eventPosition_World[1];
           }
           else if (picker->GetActor() == m_BottomRightHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_BottomRightHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_BottomRightHandleActor->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_BottomRightHandleActor->GetCenter()[1] - eventPosition_World[1];
@@ -237,32 +240,51 @@ public:
           }
         }
       }
-      else if ((vtkCommand::MouseMoveEvent == eventId) && (m_TopLeftHandlePicked || m_BottomRightHandlePicked))
+      else if (vtkCommand::MouseMoveEvent == eventId)
       {
         LOG_DEBUG("Move - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
-        int newXMin = 0;
-        int newYMin = 0;
-        int newXMax = 0;
-        int newYMax = 0;
-
-        if (m_TopLeftHandlePicked)
+        if (!(m_TopLeftHandlePicked || m_BottomRightHandlePicked))
         {
-          newXMin = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
-          newYMin = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
-        }
-        else if (m_BottomRightHandlePicked)
-        {
-          newXMax = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
-          newYMax = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
-        }
+          vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
+          vtkPropPicker* picker = dynamic_cast<vtkPropPicker*>(renderer->GetRenderWindow()->GetInteractor()->GetPicker());
 
-        m_ParentDialog->SetROI(newXMin, newYMin, newXMax, newYMax);
+          if (picker && picker->Pick(eventPosition[0], eventPosition[1], 0.0, renderer) > 0 &&
+              (picker->GetActor() == m_TopLeftHandleActor || picker->GetActor() == m_BottomRightHandleActor))
+          {
+            QApplication::setOverrideCursor(Qt::OpenHandCursor);
+          }
+          else
+          {
+            QApplication::restoreOverrideCursor();
+          }
+        }
+        else
+        {
+          int newXMin = 0;
+          int newYMin = 0;
+          int newXMax = 0;
+          int newYMax = 0;
+
+          if (m_TopLeftHandlePicked)
+          {
+            newXMin = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
+            newYMin = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
+          }
+          else if (m_BottomRightHandlePicked)
+          {
+            newXMax = (int)(eventPosition_World[0] + 0.5 + m_ClickOffsetFromCenterOfSource[0]);
+            newYMax = (int)(eventPosition_World[1] + 0.5 + m_ClickOffsetFromCenterOfSource[1]);
+          }
+
+          m_ParentDialog->SetROI(newXMin, newYMin, newXMax, newYMax);
+        }
       }
       else if (vtkCommand::LeftButtonReleaseEvent == eventId)
       {
         LOG_DEBUG("Release - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
+        QApplication::restoreOverrideCursor();
         m_TopLeftHandlePicked = false;
         m_BottomRightHandlePicked = false;
 
@@ -295,9 +317,6 @@ public:
   }
 
 private:
-  /*!
-  * \brief Constructor
-  */
   vtkROIModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
   {
@@ -309,12 +328,7 @@ private:
     m_BottomRightHandlePicked = false;
   }
 
-  /*!
-  * \brief Destructor
-  */
-  virtual ~vtkROIModeHandler()
-  {
-  }
+  virtual ~vtkROIModeHandler() {}
 
 protected:
   /*!
@@ -325,11 +339,11 @@ protected:
     LOG_TRACE("vtkROIModeHandler::InitializeVisualization");
 
     // Create actors
-    SetupHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0],  vtkPlusImageVisualizer::ROI_COLOR[1], vtkPlusImageVisualizer:: ROI_COLOR[2]);
+    SetupHandleActor(m_TopLeftHandleActor, m_TopLeftHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0], vtkPlusImageVisualizer::ROI_COLOR[1], vtkPlusImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_TopLeftHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_TopLeftHandleActor);
 
-    SetupHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0],  vtkPlusImageVisualizer::ROI_COLOR[1],  vtkPlusImageVisualizer::ROI_COLOR[2]);
+    SetupHandleActor(m_BottomRightHandleActor, m_BottomRightHandleSource, vtkPlusImageVisualizer::ROI_COLOR[0], vtkPlusImageVisualizer::ROI_COLOR[1], vtkPlusImageVisualizer::ROI_COLOR[2]);
     m_ActorCollection->AddItem(m_BottomRightHandleActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_BottomRightHandleActor);
 
@@ -351,23 +365,12 @@ protected:
   }
 
 private:
-  //! Actor of top left corner handle
-  vtkSmartPointer<vtkActor> m_TopLeftHandleActor;
-
-  //! Actor of bottom right corner handle
-  vtkSmartPointer<vtkActor> m_BottomRightHandleActor;
-
-  //! Sphere source of the top left corner handle (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_TopLeftHandleSource;
-
-  //! Sphere source of the bottom right corner handle (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_BottomRightHandleSource;
-
-  //! Flag indicating if top left corner handle is picked
-  bool m_TopLeftHandlePicked;
-
-  //! Flag indicating if bottom right corner handle is picked
-  bool m_BottomRightHandlePicked;
+  vtkSmartPointer<vtkActor>         m_TopLeftHandleActor;
+  vtkSmartPointer<vtkActor>         m_BottomRightHandleActor;
+  vtkSmartPointer<vtkSphereSource>  m_TopLeftHandleSource;
+  vtkSmartPointer<vtkSphereSource>  m_BottomRightHandleSource;
+  bool                              m_TopLeftHandlePicked;
+  bool                              m_BottomRightHandlePicked;
 };
 
 /*! \class vtkSpacingModeHandler
@@ -380,7 +383,6 @@ private:
 class vtkSpacingModeHandler : public vtkSegmentationParameterDialogModeHandlerBase
 {
 public:
-  //! Creator function
   static vtkSpacingModeHandler* New()
   {
     vtkSpacingModeHandler* cb = new vtkSpacingModeHandler();
@@ -392,7 +394,7 @@ public:
   */
   virtual void Execute(vtkObject* caller, unsigned long eventId, void* vtkNotUsed(callData))
   {
-    //LOG_TRACE("vtkSpacingModeHandler::Execute");
+    LOG_TRACE("vtkSpacingModeHandler::Execute");
 
     if (!(vtkCommand::LeftButtonPressEvent == eventId || vtkCommand::MouseMoveEvent == eventId || vtkCommand::LeftButtonReleaseEvent == eventId))
     {
@@ -402,9 +404,9 @@ public:
     vtkRenderWindowInteractor* interactor = dynamic_cast<vtkRenderWindowInteractor*>(caller);
     if (interactor && m_ParentDialog)
     {
-      int eventPosition[2] = {0};
+      int eventPosition[2] = { 0 };
       interactor->GetEventPosition(eventPosition);
-      double eventPosition_World[2] = {0};
+      double eventPosition_World[2] = { 0 };
       GetEventPositionWorld(eventPosition, eventPosition_World);
 
       // Handle events
@@ -419,24 +421,28 @@ public:
         {
           if (picker->GetActor() == m_HorizontalLeftHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_HorizontalLeftHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_HorizontalLeftHandleSource->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_HorizontalLeftHandleSource->GetCenter()[1] - eventPosition_World[1];
           }
           else if (picker->GetActor() == m_HorizontalRightHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_HorizontalRightHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_HorizontalRightHandleSource->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_HorizontalRightHandleSource->GetCenter()[1] - eventPosition_World[1];
           }
           else if (picker->GetActor() == m_VerticalTopHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_VerticalTopHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_VerticalTopHandleSource->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_VerticalTopHandleSource->GetCenter()[1] - eventPosition_World[1];
           }
           else if (picker->GetActor() == m_VerticalBottomHandleActor)
           {
+            QApplication::setOverrideCursor(Qt::ClosedHandCursor);
             m_VerticalBottomHandlePicked = true;
             m_ClickOffsetFromCenterOfSource[0] = m_VerticalBottomHandleSource->GetCenter()[0] - eventPosition_World[0];
             m_ClickOffsetFromCenterOfSource[1] = m_VerticalBottomHandleSource->GetCenter()[1] - eventPosition_World[1];
@@ -448,77 +454,96 @@ public:
           }
         }
       }
-      else if ((vtkCommand::MouseMoveEvent == eventId) && (m_HorizontalLeftHandlePicked || m_HorizontalRightHandlePicked || m_VerticalTopHandlePicked || m_VerticalBottomHandlePicked))
+      else if (vtkCommand::MouseMoveEvent == eventId)
       {
         LOG_DEBUG("Move - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
-        // Get the positions of all handles
-        double horizontalLeftPosition[3] = {0, 0, 0};
-        m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
-        double horizontalRightPosition[3] = {0, 0, 0};
-        m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
-        double verticalTopPosition[3] = {0, 0, 0};
-        m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
-        double verticalBottomPosition[3] = {0, 0, 0};
-        m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
-
-        double xWorldWithOffset = eventPosition_World[0] + m_ClickOffsetFromCenterOfSource[0];
-        double yWorldWithOffset = eventPosition_World[1] + m_ClickOffsetFromCenterOfSource[1];
-
-        // Change position of the picked handle
-        if (m_HorizontalLeftHandlePicked)
+        if (!(m_HorizontalLeftHandlePicked || m_HorizontalRightHandlePicked || m_VerticalTopHandlePicked || m_VerticalBottomHandlePicked))
         {
-          if (eventPosition_World[0] < horizontalRightPosition[0] - 10.0)
+          vtkRenderer* renderer = m_ParentDialog->GetCanvasRenderer();
+          vtkPropPicker* picker = dynamic_cast<vtkPropPicker*>(renderer->GetRenderWindow()->GetInteractor()->GetPicker());
+
+          if (picker && picker->Pick(eventPosition[0], eventPosition[1], 0.0, renderer) > 0 &&
+              (picker->GetActor() == m_HorizontalRightHandleActor || picker->GetActor() == m_HorizontalLeftHandleActor ||
+               picker->GetActor() == m_VerticalBottomHandleActor || picker->GetActor() == m_VerticalTopHandleActor))
           {
-            m_HorizontalLeftHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
-            m_HorizontalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
+            QApplication::setOverrideCursor(Qt::OpenHandCursor);
           }
+          else
+          {
+            QApplication::restoreOverrideCursor();
+          }
+        }
+        else
+        {
+          // Get the positions of all handles
+          double horizontalLeftPosition[3] = { 0, 0, 0 };
           m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
-        }
-        else if (m_HorizontalRightHandlePicked)
-        {
-          if (eventPosition_World[0] > horizontalLeftPosition[0] + 10.0)
-          {
-            m_HorizontalRightHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
-            m_HorizontalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
-          }
+          double horizontalRightPosition[3] = { 0, 0, 0 };
           m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
-        }
-        else if (m_VerticalTopHandlePicked)
-        {
-          if (eventPosition_World[1] < verticalBottomPosition[1] - 10.0)
-          {
-            m_VerticalTopHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
-            m_VerticalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
-          }
+          double verticalTopPosition[3] = { 0, 0, 0 };
           m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
-        }
-        else if (m_VerticalBottomHandlePicked)
-        {
-          if (eventPosition_World[1] > verticalTopPosition[1] + 10.0)
-          {
-            m_VerticalBottomHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
-            m_VerticalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
-          }
+          double verticalBottomPosition[3] = { 0, 0, 0 };
           m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
+
+          double xWorldWithOffset = eventPosition_World[0] + m_ClickOffsetFromCenterOfSource[0];
+          double yWorldWithOffset = eventPosition_World[1] + m_ClickOffsetFromCenterOfSource[1];
+
+          // Change position of the picked handle
+          if (m_HorizontalLeftHandlePicked)
+          {
+            if (eventPosition_World[0] < horizontalRightPosition[0] - 10.0)
+            {
+              m_HorizontalLeftHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+              m_HorizontalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
+            }
+            m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
+          }
+          else if (m_HorizontalRightHandlePicked)
+          {
+            if (eventPosition_World[0] > horizontalLeftPosition[0] + 10.0)
+            {
+              m_HorizontalRightHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+              m_HorizontalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
+            }
+            m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
+          }
+          else if (m_VerticalTopHandlePicked)
+          {
+            if (eventPosition_World[1] < verticalBottomPosition[1] - 10.0)
+            {
+              m_VerticalTopHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+              m_VerticalLineSource->SetPoint1(xWorldWithOffset, yWorldWithOffset, -0.5);
+            }
+            m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
+          }
+          else if (m_VerticalBottomHandlePicked)
+          {
+            if (eventPosition_World[1] > verticalTopPosition[1] + 10.0)
+            {
+              m_VerticalBottomHandleSource->SetCenter(xWorldWithOffset, yWorldWithOffset, -0.5);
+              m_VerticalLineSource->SetPoint2(xWorldWithOffset, yWorldWithOffset, -0.5);
+            }
+            m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
+          }
+
+          // Compute and set spacing
+          double horizontalLength = sqrt(vtkMath::Distance2BetweenPoints(horizontalLeftPosition, horizontalRightPosition));
+          double verticalLength = sqrt(vtkMath::Distance2BetweenPoints(verticalTopPosition, verticalBottomPosition));
+
+          m_LineLengthSumImagePixel = horizontalLength + verticalLength;
+
+          if (horizontalLength > 0 && verticalLength > 0)
+          {
+            m_ParentDialog->ComputeSpacingFromMeasuredLengthSum();
+          }
         }
-
-        // Compute and set spacing
-        double horizontalLength = sqrt(vtkMath::Distance2BetweenPoints(horizontalLeftPosition, horizontalRightPosition));
-        double verticalLength = sqrt(vtkMath::Distance2BetweenPoints(verticalTopPosition, verticalBottomPosition));
-
-        m_LineLengthSumImagePixel = horizontalLength + verticalLength;
-
-        if (horizontalLength > 0 && verticalLength > 0)
-        {
-          m_ParentDialog->ComputeSpacingFromMeasuredLengthSum();
-        }
-
       }
       else if (vtkCommand::LeftButtonReleaseEvent == eventId)
       {
         LOG_DEBUG("Release - pixel: (" << eventPosition[0] << ", " << eventPosition[1] << "), world: (" << eventPosition_World[0] << ", " << eventPosition_World[1] << ")");
 
+        QApplication::restoreOverrideCursor();
         m_HorizontalLeftHandlePicked = false;
         m_HorizontalRightHandlePicked = false;
         m_VerticalTopHandlePicked = false;
@@ -541,37 +566,27 @@ public:
   }
 
 private:
-  /*!
-  * \brief Constructor
-  */
   vtkSpacingModeHandler()
     : vtkSegmentationParameterDialogModeHandlerBase()
-  {
-    m_HorizontalLeftHandleActor = vtkSmartPointer<vtkActor>::New();
-    m_HorizontalRightHandleActor = vtkSmartPointer<vtkActor>::New();
-    m_VerticalTopHandleActor = vtkSmartPointer<vtkActor>::New();
-    m_VerticalBottomHandleActor = vtkSmartPointer<vtkActor>::New();
-    m_HorizontalLineActor = vtkSmartPointer<vtkActor>::New();
-    m_VerticalLineActor = vtkSmartPointer<vtkActor>::New();
-    m_HorizontalLeftHandleSource = vtkSmartPointer<vtkSphereSource>::New();
-    m_HorizontalRightHandleSource = vtkSmartPointer<vtkSphereSource>::New();
-    m_VerticalTopHandleSource = vtkSmartPointer<vtkSphereSource>::New();
-    m_VerticalBottomHandleSource = vtkSmartPointer<vtkSphereSource>::New();
-    m_HorizontalLeftHandlePicked = false;
-    m_HorizontalRightHandlePicked = false;
-    m_VerticalTopHandlePicked = false;
-    m_VerticalBottomHandlePicked = false;
-    m_HorizontalLineSource = vtkSmartPointer<vtkLineSource>::New();
-    m_VerticalLineSource = vtkSmartPointer<vtkLineSource>::New();
-    m_LineLengthSumImagePixel = 0.0;
-  }
+    , m_HorizontalLeftHandleActor(vtkSmartPointer<vtkActor>::New())
+    , m_HorizontalRightHandleActor(vtkSmartPointer<vtkActor>::New())
+    , m_VerticalTopHandleActor(vtkSmartPointer<vtkActor>::New())
+    , m_HorizontalLineActor(vtkSmartPointer<vtkActor>::New())
+    , m_VerticalLineActor(vtkSmartPointer<vtkActor>::New())
+    , m_VerticalBottomHandleActor(vtkSmartPointer<vtkActor>::New())
+    , m_HorizontalLeftHandleSource(vtkSmartPointer<vtkSphereSource>::New())
+    , m_HorizontalRightHandleSource(vtkSmartPointer<vtkSphereSource>::New())
+    , m_VerticalTopHandleSource(vtkSmartPointer<vtkSphereSource>::New())
+    , m_VerticalBottomHandleSource(vtkSmartPointer<vtkSphereSource>::New())
+    , m_HorizontalLineSource(vtkSmartPointer<vtkLineSource>::New())
+    , m_VerticalLineSource(vtkSmartPointer<vtkLineSource>::New())
+    , m_HorizontalLeftHandlePicked(false)
+    , m_HorizontalRightHandlePicked(false)
+    , m_VerticalTopHandlePicked(false)
+    , m_VerticalBottomHandlePicked(false)
+    , m_LineLengthSumImagePixel(0.0) {}
 
-  /*!
-  * \brief Destructor
-  */
-  virtual ~vtkSpacingModeHandler()
-  {
-  }
+  virtual ~vtkSpacingModeHandler() {}
 
 protected:
   /*!
@@ -582,20 +597,20 @@ protected:
     LOG_TRACE("vtkSpacingModeHandler::InitializeVisualization");
 
     // Create actors
-    m_ActorCollection = vtkActorCollection::New();
+    m_ActorCollection = vtkSmartPointer<vtkActorCollection>::New();
 
-    m_HorizontalLineActor = vtkActor::New();
+    m_HorizontalLineActor = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkPolyDataMapper> horizontalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_HorizontalLineSource = vtkLineSource::New();
+    m_HorizontalLineSource = vtkSmartPointer<vtkLineSource>::New();
     horizontalLineMapper->SetInputConnection(m_HorizontalLineSource->GetOutputPort());
     m_HorizontalLineActor->SetMapper(horizontalLineMapper);
     m_HorizontalLineActor->GetProperty()->SetColor(0.0, 0.7, 0.0);
     m_ActorCollection->AddItem(m_HorizontalLineActor);
     m_ParentDialog->GetCanvasRenderer()->AddActor(m_HorizontalLineActor);
 
-    m_VerticalLineActor = vtkActor::New();
+    m_VerticalLineActor = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkPolyDataMapper> verticalLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_VerticalLineSource = vtkLineSource::New();
+    m_VerticalLineSource = vtkSmartPointer<vtkLineSource>::New();
     verticalLineMapper->SetInputConnection(m_VerticalLineSource->GetOutputPort());
     m_VerticalLineActor->SetMapper(verticalLineMapper);
     m_VerticalLineActor->GetProperty()->SetColor(0.0, 0.0, 0.8);
@@ -621,7 +636,7 @@ protected:
     // Get offsets (distance between the canvas edge and the image) and reference lengths
     int* canvasSize;
     canvasSize = m_ParentDialog->GetCanvasRenderer()->GetRenderWindow()->GetSize();
-    int imageDimensions[3] = {0, 0, 1};
+    int imageDimensions[3] = { 0, 0, 1 };
     m_ParentDialog->GetFrameSize(imageDimensions);
 
     double offsetXImage = 0.0;
@@ -661,6 +676,22 @@ protected:
     m_VerticalLineSource->SetPoint1(verticalTopX, verticalTopY, -0.5);
     m_VerticalLineSource->SetPoint2(verticalBottomX, verticalBottomY, -0.5);
 
+    // Calculate initial line value
+    // Get the positions of all handles
+    double horizontalLeftPosition[3] = { 0, 0, 0 };
+    m_HorizontalLeftHandleSource->GetCenter(horizontalLeftPosition);
+    double horizontalRightPosition[3] = { 0, 0, 0 };
+    m_HorizontalRightHandleSource->GetCenter(horizontalRightPosition);
+    double verticalTopPosition[3] = { 0, 0, 0 };
+    m_VerticalTopHandleSource->GetCenter(verticalTopPosition);
+    double verticalBottomPosition[3] = { 0, 0, 0 };
+    m_VerticalBottomHandleSource->GetCenter(verticalBottomPosition);
+
+    // Compute and set spacing
+    double horizontalLength = sqrt(vtkMath::Distance2BetweenPoints(horizontalLeftPosition, horizontalRightPosition));
+    double verticalLength = sqrt(vtkMath::Distance2BetweenPoints(verticalTopPosition, verticalBottomPosition));
+
+    m_LineLengthSumImagePixel = horizontalLength + verticalLength;
     return PLUS_SUCCESS;
   }
 
@@ -682,56 +713,23 @@ protected:
   }
 
 private:
-  //! Actor of left handle of the horizontal line
-  vtkSmartPointer<vtkActor> m_HorizontalLeftHandleActor;
-
-  //! Actor of right handle of the horizontal line
-  vtkSmartPointer<vtkActor> m_HorizontalRightHandleActor;
-
-  //! Actor of left handle of the vertical line
-  vtkSmartPointer<vtkActor> m_VerticalTopHandleActor;
-
-  //! Actor of the horizontal line
-  vtkSmartPointer<vtkActor> m_HorizontalLineActor;
-
-  //! Actor of the vertical line
-  vtkSmartPointer<vtkActor> m_VerticalLineActor;
-
-  //! Actor of right handle of the vertical line
-  vtkSmartPointer<vtkActor> m_VerticalBottomHandleActor;
-
-  //! Cube source of the left handle of the horizontal line (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_HorizontalLeftHandleSource;
-
-  //! Cube source of the right handle of the horizontal line (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_HorizontalRightHandleSource;
-
-  //! Cube source of the left handle of the vertical line (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_VerticalTopHandleSource;
-
-  //! Cube source of the right handle of the vertical line (direct access needed to move it around)
-  vtkSmartPointer<vtkSphereSource> m_VerticalBottomHandleSource;
-
-  //! Line source of horizontal line
-  vtkSmartPointer<vtkLineSource> m_HorizontalLineSource;
-
-  //! Line source of vertical line
-  vtkSmartPointer<vtkLineSource> m_VerticalLineSource;
-
-  //! Flag indicating if horizontal left handle is picked
-  bool m_HorizontalLeftHandlePicked;
-
-  //! Flag indicating if horizontal right handle is picked
-  bool m_HorizontalRightHandlePicked;
-
-  //! Flag indicating if vertical left handle is picked
-  bool m_VerticalTopHandlePicked;
-
-  //! Flag indicating if vertical right handle is picked
-  bool m_VerticalBottomHandlePicked;
-
-  //! Summed line length in pixel value
-  double m_LineLengthSumImagePixel;
+  vtkSmartPointer<vtkActor>         m_HorizontalLeftHandleActor;
+  vtkSmartPointer<vtkActor>         m_HorizontalRightHandleActor;
+  vtkSmartPointer<vtkActor>         m_VerticalTopHandleActor;
+  vtkSmartPointer<vtkActor>         m_HorizontalLineActor;
+  vtkSmartPointer<vtkActor>         m_VerticalLineActor;
+  vtkSmartPointer<vtkActor>         m_VerticalBottomHandleActor;
+  vtkSmartPointer<vtkSphereSource>  m_HorizontalLeftHandleSource;
+  vtkSmartPointer<vtkSphereSource>  m_HorizontalRightHandleSource;
+  vtkSmartPointer<vtkSphereSource>  m_VerticalTopHandleSource;
+  vtkSmartPointer<vtkSphereSource>  m_VerticalBottomHandleSource;
+  vtkSmartPointer<vtkLineSource>    m_HorizontalLineSource;
+  vtkSmartPointer<vtkLineSource>    m_VerticalLineSource;
+  bool                              m_HorizontalLeftHandlePicked;
+  bool                              m_HorizontalRightHandlePicked;
+  bool                              m_VerticalTopHandlePicked;
+  bool                              m_VerticalBottomHandlePicked;
+  double                            m_LineLengthSumImagePixel;
 };
 
 //-----------------------------------------------------------------------------
@@ -761,8 +759,8 @@ PlusSegmentationParameterDialog::PlusSegmentationParameterDialog(QWidget* aParen
   connect(ui.spinBox_YMin, SIGNAL(valueChanged(int)), this, SLOT(ROIYMinChanged(int)));
   connect(ui.spinBox_XMax, SIGNAL(valueChanged(int)), this, SLOT(ROIXMaxChanged(int)));
   connect(ui.spinBox_YMax, SIGNAL(valueChanged(int)), this, SLOT(ROIYMaxChanged(int)));
-  connect(ui.doubleSpinBox_ReferenceWidth, SIGNAL(valueChanged(int)), this, SLOT(ReferenceWidthChanged(int)));
-  connect(ui.doubleSpinBox_ReferenceHeight, SIGNAL(valueChanged(int)), this, SLOT(ReferenceHeightChanged(int)));
+  connect(ui.doubleSpinBox_ReferenceWidth, SIGNAL(valueChanged(double)), this, SLOT(ReferenceWidthChanged(double)));
+  connect(ui.doubleSpinBox_ReferenceHeight, SIGNAL(valueChanged(double)), this, SLOT(ReferenceHeightChanged(double)));
   connect(ui.doubleSpinBox_OpeningCircleRadius, SIGNAL(valueChanged(double)), this, SLOT(OpeningCircleRadiusChanged(double)));
   connect(ui.doubleSpinBox_OpeningBarSize, SIGNAL(valueChanged(double)), this, SLOT(OpeningBarSizeChanged(double)));
   connect(ui.doubleSpinBox_LinePairDistanceError, SIGNAL(valueChanged(double)), this, SLOT(LinePairDistanceErrorChanged(double)));
@@ -858,6 +856,32 @@ PlusSegmentationParameterDialog::~PlusSegmentationParameterDialog()
     m_ImageVisualizer->Delete();
     m_ImageVisualizer = NULL;
   }
+
+  disconnect(ui.groupBox_ROI, SIGNAL(toggled(bool)), this, SLOT(GroupBoxROIToggled(bool)));
+  disconnect(ui.groupBox_Spacing, SIGNAL(toggled(bool)), this, SLOT(GroupBoxSpacingToggled(bool)));
+  disconnect(ui.pushButton_FreezeImage, SIGNAL(toggled(bool)), this, SLOT(FreezeImage(bool)));
+  disconnect(ui.pushButton_Export, SIGNAL(clicked()), this, SLOT(ExportImage()));
+  disconnect(ui.pushButton_ApplyAndClose, SIGNAL(clicked()), this, SLOT(ApplyAndCloseClicked()));
+  disconnect(ui.pushButton_SaveAndClose, SIGNAL(clicked()), this, SLOT(SaveAndCloseClicked()));
+  disconnect(ui.spinBox_XMin, SIGNAL(valueChanged(int)), this, SLOT(ROIXMinChanged(int)));
+  disconnect(ui.spinBox_YMin, SIGNAL(valueChanged(int)), this, SLOT(ROIYMinChanged(int)));
+  disconnect(ui.spinBox_XMax, SIGNAL(valueChanged(int)), this, SLOT(ROIXMaxChanged(int)));
+  disconnect(ui.spinBox_YMax, SIGNAL(valueChanged(int)), this, SLOT(ROIYMaxChanged(int)));
+  disconnect(ui.doubleSpinBox_ReferenceWidth, SIGNAL(valueChanged(double)), this, SLOT(ReferenceWidthChanged(double)));
+  disconnect(ui.doubleSpinBox_ReferenceHeight, SIGNAL(valueChanged(double)), this, SLOT(ReferenceHeightChanged(double)));
+  disconnect(ui.doubleSpinBox_OpeningCircleRadius, SIGNAL(valueChanged(double)), this, SLOT(OpeningCircleRadiusChanged(double)));
+  disconnect(ui.doubleSpinBox_OpeningBarSize, SIGNAL(valueChanged(double)), this, SLOT(OpeningBarSizeChanged(double)));
+  disconnect(ui.doubleSpinBox_LinePairDistanceError, SIGNAL(valueChanged(double)), this, SLOT(LinePairDistanceErrorChanged(double)));
+  disconnect(ui.doubleSpinBox_AngleDifference, SIGNAL(valueChanged(double)), this, SLOT(AngleDifferenceChanged(double)));
+  disconnect(ui.doubleSpinBox_MinTheta, SIGNAL(valueChanged(double)), this, SLOT(MinThetaChanged(double)));
+  disconnect(ui.doubleSpinBox_MaxTheta, SIGNAL(valueChanged(double)), this, SLOT(MaxThetaChanged(double)));
+  disconnect(ui.doubleSpinBox_AngleTolerance, SIGNAL(valueChanged(double)), this, SLOT(AngleToleranceChanged(double)));
+  disconnect(ui.doubleSpinBox_CollinearPointsMaxDistanceFromLine, SIGNAL(valueChanged(double)), this, SLOT(CollinearPointsMaxDistanceFromLineChanged(double)));
+  disconnect(ui.doubleSpinBox_ImageThreshold, SIGNAL(valueChanged(double)), this, SLOT(ImageThresholdChanged(double)));
+  disconnect(ui.doubleSpinBox_MaxLineShiftMm, SIGNAL(valueChanged(double)), this, SLOT(MaxLineShiftMmChanged(double)));
+  disconnect(ui.checkBox_OriginalIntensityForDots, SIGNAL(toggled(bool)), this, SLOT(OriginalIntensityForDotsToggled(bool)));
+  disconnect(ui.doubleSpinBox_MaxCandidates, SIGNAL(valueChanged(double)), this, SLOT(MaxCandidatesChanged(double)));
+  disconnect(m_CanvasRefreshTimer, SIGNAL(timeout()), this, SLOT(UpdateCanvas()));
 }
 
 //-----------------------------------------------------------------------------
@@ -981,8 +1005,8 @@ PlusStatus PlusSegmentationParameterDialog::ReadConfiguration()
     LOG_WARNING("Could not read MorphologicalOpeningBarSizeMm from configuration");
   }
 
-  int clipOrigin[2] = {0};
-  int clipSize[2] = {0};
+  int clipOrigin[2] = { 0 };
+  int clipSize[2] = { 0 };
   if (segmentationParameters->GetVectorAttribute("ClipRectangleOrigin", 2, clipOrigin) &&
       segmentationParameters->GetVectorAttribute("ClipRectangleSize", 2, clipSize))
   {
@@ -1093,6 +1117,27 @@ PlusStatus PlusSegmentationParameterDialog::ReadConfiguration()
   {
     LOG_INFO("Could not read NumberOfMaximumFiducialPointCandidates from configuration.");
   }
+
+  double minX(std::numeric_limits<double>::max());
+  double maxX(std::numeric_limits<double>::min());
+  double minZ(std::numeric_limits<double>::max());
+  double maxZ(std::numeric_limits<double>::min());
+  for (std::vector<PlusFidPattern*>::iterator it = m_PatternRecognition->GetPatterns().begin(); it != m_PatternRecognition->GetPatterns().end(); ++it)
+  {
+    auto pattern = *it;
+    for (std::vector<PlusFidWire>::const_iterator wireIt = pattern->GetWires().begin(); wireIt != pattern->GetWires().end(); ++wireIt)
+    {
+      const auto& wire = *wireIt;
+      minX = std::min(minX, std::min(wire.EndPointFront[0], wire.EndPointBack[0]));
+      maxX = std::max(maxX, std::max(wire.EndPointFront[0], wire.EndPointBack[0]));
+
+      minZ = std::min(minZ, std::min(wire.EndPointFront[2], wire.EndPointBack[2]));
+      maxZ = std::max(maxZ, std::max(wire.EndPointFront[2], wire.EndPointBack[2]));
+    }
+  }
+
+  ui.doubleSpinBox_ReferenceHeight->setValue(maxZ - minZ);
+  ui.doubleSpinBox_ReferenceWidth->setValue(maxX - minX);
 
   return PLUS_SUCCESS;
 }
@@ -1593,14 +1638,14 @@ void PlusSegmentationParameterDialog::ROIYMaxChanged(int aValue)
 }
 
 //-----------------------------------------------------------------------------
-void PlusSegmentationParameterDialog::ReferenceWidthChanged(int aValue)
+void PlusSegmentationParameterDialog::ReferenceWidthChanged(double aValue)
 {
   LOG_TRACE("PlusSegmentationParameterDialog::ReferenceWidthChanged(" << aValue << ")");
   ComputeSpacingFromMeasuredLengthSum();
 }
 
 //-----------------------------------------------------------------------------
-void PlusSegmentationParameterDialog::ReferenceHeightChanged(int aValue)
+void PlusSegmentationParameterDialog::ReferenceHeightChanged(double aValue)
 {
   LOG_TRACE("PlusSegmentationParameterDialog::ReferenceHeightChanged(" << aValue << ")");
   ComputeSpacingFromMeasuredLengthSum();
