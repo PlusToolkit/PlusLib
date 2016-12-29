@@ -127,6 +127,7 @@ OPTION(PLUSBUILD_USE_OpenIGTLink "Use OpenIGTLink" ON)
 OPTION(PLUSBUILD_USE_OpenIGTLinkIO "Use OpenIGTLinkIO. Turn on to enable remote control of PlusServerLauncher." OFF)
 OPTION(PLUSBUILD_BUILD_SHARED_LIBS "Build shared libraries instead of statically-linked libraries" ON)
 OPTION(PLUSBUILD_BUILD_PLUSAPP "Build PlusApp applications" ON)
+OPTION(PLUSBUILD_BUILD_PLUSLIB_WIDGETS "Build PlusLib widgets (required Qt)" ON)
 OPTION(PLUSBUILD_BUILD_PlusLib_TOOLS "Build the PlusLib tools (PlusServer, PlusServerRemoteControl...)" ON)
 OPTION(PLUSBUILD_BUILD_PLUSMODELCATALOG "Build Plus 3D printable model catalog" OFF)
 OPTION(PLUSBUILD_USE_Tesseract "Use OCR in PlusLib for recognizing ultrasound imaging parameters by reading text from grabbed images." OFF)
@@ -368,8 +369,8 @@ ENDIF()
 # Qt - Let's check if a valid version of Qt is available
 #-----------------------------------------------------------------------------
 SET(ep_qt_args) # Arguments that will have to be passed to external projects that use Qt
-IF(PLUSBUILD_BUILD_PLUSAPP)
-  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql Test QUIET)
+IF(PLUSBUILD_BUILD_PLUSAPP OR PLUSBUILD_BUILD_PLUSLIB_WIDGETS)
+  FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql Test Xml QUIET)
 
   IF ( NOT Qt5_FOUND )
     MESSAGE( FATAL_ERROR "This project requires Qt5 for building PlusApp but Qt was not found. Please specify Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP option.")
