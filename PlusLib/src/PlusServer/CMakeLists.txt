@@ -70,7 +70,7 @@ TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusServer CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusServer vtkPlusServer;"${PlusLib_BINARY_DIR}/src/PlusServer/vtkPlusServer.vcxproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusServer vtkPlusServer;${PlusLib_BINARY_DIR}/src/PlusServer/vtkPlusServer.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Executables built by PlusServer project

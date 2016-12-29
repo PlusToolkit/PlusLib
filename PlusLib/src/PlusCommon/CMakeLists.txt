@@ -110,7 +110,7 @@ ENDIF()
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCommon CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusCommon vtkPlusCommon;"${PlusLib_BINARY_DIR}/src/PlusCommon/vtkPlusCommon.vcxproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusCommon vtkPlusCommon;${PlusLib_BINARY_DIR}/src/PlusCommon/vtkPlusCommon.vcxproj CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
@@ -140,5 +140,5 @@ INSTALL(FILES ${PlusCommon_HDRS}
 # Testing
 #
 IF (BUILD_TESTING)
-  SUBDIRS (Testing)
+  SUBDIRS(Testing)
 ENDIF (BUILD_TESTING)

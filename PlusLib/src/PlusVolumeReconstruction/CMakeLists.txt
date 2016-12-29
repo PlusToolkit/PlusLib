@@ -46,7 +46,7 @@ TARGET_LINK_LIBRARIES(  vtkPlusVolumeReconstruction  ${PlusVolumeReconstruction_
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusVolumeReconstruction CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusVolumeReconstruction vtkPlusVolumeReconstruction;"${PlusLib_BINARY_DIR}/src/PlusVolumeReconstruction/vtkPlusVolumeReconstruction.vcxproj";vtkPlusCommon;vtkPlusDataCollection CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusVolumeReconstruction vtkPlusVolumeReconstruction;${PlusLib_BINARY_DIR}/src/PlusVolumeReconstruction/vtkPlusVolumeReconstruction.vcxproj;vtkPlusCommon;vtkPlusDataCollection CACHE INTERNAL "" FORCE)
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(VolumeReconstructor Tools/VolumeReconstructor.cxx )
