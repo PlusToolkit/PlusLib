@@ -8,11 +8,10 @@ See License.txt for details.
 #define DEVICESETSELECTORWIDGET_H
 
 // Local includes
-#include "ui_PlusDeviceSetSelectorWidget.h"
-
-// PlusLib includes
-#include <PlusConfigure.h>
-#include <vtkPlusTransformRepository.h>
+#include "PlusConfigure.h"
+#include "PlusWidgetsExport.h"
+#include "ui_QPlusDeviceSetSelectorWidget.h"
+#include "vtkPlusTransformRepository.h"
 
 // Qt includes
 #include <QAction>
@@ -21,7 +20,7 @@ See License.txt for details.
 #include <QString>
 #include <QWidget>
 
-// vtk includes
+// VTK includes
 #include <vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
@@ -30,7 +29,7 @@ See License.txt for details.
 * \brief Data selector widget class
 * \ingroup PlusAppCommonWidgets
 */
-class PlusDeviceSetSelectorWidget : public QWidget
+class PlusWidgetsExport QPlusDeviceSetSelectorWidget : public QWidget
 {
   Q_OBJECT
 
@@ -40,7 +39,7 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  PlusDeviceSetSelectorWidget(QWidget* aParent = 0);
+  QPlusDeviceSetSelectorWidget(QWidget* aParent = 0);
 
   /*!
   * Set the device set combo box maximum size ratio
@@ -51,7 +50,7 @@ public:
   /*!
   * Destructor
   */
-  ~PlusDeviceSetSelectorWidget();
+  ~QPlusDeviceSetSelectorWidget();
 
   /*!
   * Set device set configuration directory

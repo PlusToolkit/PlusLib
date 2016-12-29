@@ -24,7 +24,7 @@ SET(PlusServerLauncher_UI_SRCS
 
 SET(PlusServerLauncher_QT_Resources
   PlusServerLauncher.qrc
-  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets/PlusCommonWidgets.qrc
+  ${PLUSLIB_WIDGETS_QRC}
   )
 
 # --------------------------------------------------------------------------
@@ -34,7 +34,7 @@ SET (PlusServerLauncher_LIBS
   Qt5::Network
   vtkPlusCommon
   vtkGUISupportQt
-  PlusCommonWidgets
+  PlusWidgets
   vtkPlusServer
   )
 IF(TARGET vtkRenderingGL2PS${VTK_RENDERING_BACKEND})
@@ -73,8 +73,6 @@ SET_TARGET_PROPERTIES(PlusServerLauncher PROPERTIES COMPILE_DEFINTIIONS
 target_include_directories(PlusServerLauncher PRIVATE 
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${PlusApp_BINARY_DIR}/PlusCommonWidgets
-  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets
   )
 TARGET_LINK_LIBRARIES( PlusServerLauncher PRIVATE ${PlusServerLauncher_LIBS} )
 

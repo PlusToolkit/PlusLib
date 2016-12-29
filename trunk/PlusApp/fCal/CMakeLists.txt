@@ -5,6 +5,13 @@ PROJECT(fCal)
 SET (fCal_SRCS
   fCalMain.cxx
   fCalMainWindow.cxx
+  PlusSegmentationParameterDialog.cxx
+  vtkPlusVisualizationController.cxx
+  vtkPlusDisplayableObject.cxx
+  vtkPlusImageVisualizer.cxx
+  vtkPlus3DObjectVisualizer.cxx
+  PlusCaptureControlWidget.cxx 
+  QCustomAction.cxx 
   )
 
 SET(fCal_Toolbox_SRCS
@@ -22,7 +29,14 @@ IF(WIN32)
 ENDIF()  
 
 SET (fCal_UI_HDRS
-    fCalMainWindow.h
+  fCalMainWindow.h
+  PlusSegmentationParameterDialog.h
+  vtkPlusVisualizationController.h
+  vtkPlusDisplayableObject.h
+  vtkPlusImageVisualizer.h
+  vtkPlus3DObjectVisualizer.h
+  PlusCaptureControlWidget.h 
+  QCustomAction.h 
   )
 
 SET (fCal_Toolbox_UI_HDRS
@@ -45,6 +59,8 @@ SET (fCal_UI_SRCS
   Toolboxes/QStylusCalibrationToolbox.ui
   Toolboxes/QPhantomRegistrationToolbox.ui
   Toolboxes/QVolumeReconstructionToolbox.ui
+  PlusSegmentationParameterDialog.ui
+  PlusCaptureControlWidget.ui 
   )
 
 SET (fCal_QT_Resources
@@ -56,7 +72,8 @@ SET (fCal_QT_Resources
 SET(fCal_LIBS 
   Qt5::Widgets
   Qt5::Core
-  PlusCommonWidgets
+  Qt5::Xml
+  PlusWidgets
   vtkPlusCommon
   itkvnl 
   itkvnl_algo 
@@ -98,8 +115,6 @@ target_include_directories(fCal PUBLIC
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Toolboxes
-  ${PlusApp_BINARY_DIR}/PlusCommonWidgets
-  ${PlusApp_SOURCE_DIR}/PlusCommonWidgets
   )
 source_group(Toolboxes FILES ${fCal_Toolbox_SRCS} ${fCal_Toolbox_UI_HDRS})
 source_group("UI Files" FILES ${fCal_UI_SRCS})
@@ -111,4 +126,10 @@ IF(PLUSAPP_INSTALL_BIN_DIR)
     DESTINATION ${PLUSAPP_INSTALL_BIN_DIR}
     COMPONENT RuntimeLibraries
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Testing
+IF (BUILD_TESTING)
+  ADD_SUBDIRECTORY (Testing)
 ENDIF()

@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>CapturingToolbox</class>
  <widget class="QWidget" name="CapturingToolbox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>402</width>
+    <height>540</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Capturing</string>
   </property>
@@ -48,7 +56,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_fCalCapture">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -83,7 +91,7 @@
         <string>Record</string>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
        </property>
       </widget>
@@ -119,7 +127,7 @@
         <string>Snapshot</string>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Snapshot.png</normaloff>:/icons/Resources/icon_Snapshot.png</iconset>
        </property>
       </widget>
@@ -156,11 +164,8 @@
     </spacer>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>4</number>
-     </property>
-     <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
       <widget class="QLabel" name="label_NumberOfRecordedFramesText">
        <property name="minimumSize">
         <size>
@@ -173,7 +178,7 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QLabel" name="label_NumberOfRecordedFrames">
        <property name="font">
         <font>
@@ -189,18 +194,53 @@
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7">
-     <item>
+     <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Sampling rate:</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_ActualRecordingFrameRateText">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Actual recording frame rate (FPS): </string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="label_ActualRecordingFrameRate">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>0.0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_RequestedRecordingFrameRate">
+       <property name="text">
+        <string>0.0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
       <widget class="QSlider" name="horizontalSlider_SamplingRate">
        <property name="maximum">
         <number>10</number>
@@ -231,11 +271,7 @@
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
-     <item>
+     <item row="2" column="0">
       <widget class="QLabel" name="label_RequestedRecordingFrameRateText">
        <property name="minimumSize">
         <size>
@@ -248,57 +284,7 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="label_RequestedRecordingFrameRate">
-       <property name="text">
-        <string>0.0</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <property name="spacing">
-      <number>4</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label_ActualRecordingFrameRateText">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Actual recording frame rate (FPS): </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_ActualRecordingFrameRate">
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>0.0</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_8">
-     <item>
+     <item row="4" column="0">
       <widget class="QLabel" name="label_MaximumRecordingFrameRateText">
        <property name="minimumSize">
         <size>
@@ -311,7 +297,7 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="4" column="1">
       <widget class="QLabel" name="label_MaximumRecordingFrameRate">
        <property name="text">
         <string>0.0</string>
@@ -369,7 +355,7 @@
         <string>Save</string>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>
@@ -425,7 +411,7 @@
         <string>Save As...</string>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>
@@ -453,7 +439,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_AllActions">
+    <layout class="QHBoxLayout" name="horizontalLayout_CaptureDeviceGlobalActions">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -482,7 +468,7 @@
         <string>Record All</string>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Record.png</normaloff>:/icons/Resources/icon_Record.png</iconset>
        </property>
       </widget>
@@ -569,7 +555,6 @@
  </widget>
  <resources>
   <include location="../fCal.qrc"/>
-  <include location="../../PlusCommonWidgets/PlusCommonWidgets.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusToolStateDisplayWidget.h"
+#include "QPlusToolStateDisplayWidget.h"
 
 // PlusLib includes
 #include <PlusTrackedFrame.h>
@@ -14,9 +14,11 @@
 
 // Qt includes
 #include <QGridLayout>
+#include <QLabel>
+#include <QTextEdit>
 
 //-----------------------------------------------------------------------------
-PlusToolStateDisplayWidget::PlusToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags aFlags)
+QPlusToolStateDisplayWidget::QPlusToolStateDisplayWidget(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_SelectedChannel(NULL)
   , m_Initialized(false)
@@ -36,7 +38,7 @@ PlusToolStateDisplayWidget::PlusToolStateDisplayWidget(QWidget* aParent, Qt::Win
 }
 
 //-----------------------------------------------------------------------------
-PlusToolStateDisplayWidget::~PlusToolStateDisplayWidget()
+QPlusToolStateDisplayWidget::~QPlusToolStateDisplayWidget()
 {
   m_ToolNameLabels.clear();
   m_ToolStateLabels.clear();
@@ -45,9 +47,9 @@ PlusToolStateDisplayWidget::~PlusToolStateDisplayWidget()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful)
+PlusStatus QPlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel, bool aConnectionSuccessful)
 {
-  LOG_TRACE("PlusToolStateDisplayWidget::InitializeTools");
+  LOG_TRACE("QPlusToolStateDisplayWidget::InitializeTools");
 
   // Clear former content
   if (this->layout())
@@ -149,13 +151,13 @@ PlusStatus PlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel,
 }
 
 //-----------------------------------------------------------------------------
-bool PlusToolStateDisplayWidget::IsInitialized()
+bool QPlusToolStateDisplayWidget::IsInitialized()
 {
   return m_Initialized;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusToolStateDisplayWidget::Update()
+PlusStatus QPlusToolStateDisplayWidget::Update()
 {
   if (! m_Initialized)
   {
@@ -208,18 +210,18 @@ PlusStatus PlusToolStateDisplayWidget::Update()
     {
       switch (status)
       {
-      case (FIELD_OK):
-        label->setText("OK");
-        label->setTextColor(Qt::green);
-        break;
-      case (FIELD_INVALID):
-        label->setText("MISSING");
-        label->setTextColor(QColor::fromRgb(223, 0, 0));
-        break;
-      default:
-        label->setText("UNKNOWN");
-        label->setTextColor(QColor::fromRgb(223, 0, 0));
-        break;
+        case (FIELD_OK):
+          label->setText("OK");
+          label->setTextColor(Qt::green);
+          break;
+        case (FIELD_INVALID):
+          label->setText("MISSING");
+          label->setTextColor(QColor::fromRgb(223, 0, 0));
+          break;
+        default:
+          label->setText("UNKNOWN");
+          label->setTextColor(QColor::fromRgb(223, 0, 0));
+          break;
       }
     }
   }

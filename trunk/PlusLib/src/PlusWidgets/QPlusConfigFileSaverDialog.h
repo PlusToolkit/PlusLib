@@ -8,10 +8,9 @@
 #define CONFIGFILESAVERDIALOG_H
 
 // Local includes
-#include "ui_PlusConfigFileSaverDialog.h"
-
-// PlusLib includes
-#include <PlusConfigure.h>
+#include "PlusConfigure.h"
+#include "PlusWidgetsExport.h"
+#include "ui_QPlusConfigFileSaverDialog.h"
 
 // Qt includes
 #include <QDialog>
@@ -20,11 +19,11 @@ class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
 
-/*! \class PlusConfigFileSaverDialog
+/*! \class QPlusConfigFileSaverDialog
  * \brief Configuration file saver dialog class
  * \ingroup PlusAppCommonWidgets
  */
-class PlusConfigFileSaverDialog : public QDialog
+class PlusWidgetsExport QPlusConfigFileSaverDialog : public QDialog
 {
   Q_OBJECT
 
@@ -33,18 +32,18 @@ public:
   * Constructor
   * \param aParent Parent object
   */
-  PlusConfigFileSaverDialog(QWidget* aParent);
+  QPlusConfigFileSaverDialog(QWidget* aParent);
 
   /*!
   * Destructor
   */
-  ~PlusConfigFileSaverDialog();
+  ~QPlusConfigFileSaverDialog();
 
   /*!
   * Set destination directory for configuration file
   * \param aDirectory Input configuration directory
   */
-  void SetDestinationDirectory(std::string aDirectory);
+  void SetDestinationDirectory(const std::string& aDirectory);
 
 protected:
   /*!

@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>SpatialCalibrationToolbox</class>
  <widget class="QWidget" name="SpatialCalibrationToolbox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>236</width>
+    <height>265</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Spatial calibration</string>
   </property>
@@ -150,7 +158,7 @@
        </property>
        <property name="icon">
         <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/PlusCommonWidgets/Resources/icon_Edit.png</normaloff>:/icons/PlusCommonWidgets/Resources/icon_Edit.png</iconset>
+         <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
        </property>
       </widget>
      </item>

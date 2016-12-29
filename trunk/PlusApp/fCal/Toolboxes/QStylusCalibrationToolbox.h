@@ -68,18 +68,11 @@ public:
   * Return pivot calibration algorithm object
   * \return Pivot calibration algo
   */
-  vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo()
-  {
-    return m_PivotCalibration;
-  };
+  vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo();
 
 protected slots:
-
-  /*! Stop calibration */
-  void Stop();
-
-  /*! Start/Stop calibration button is pressed */
-  void OnStartStop();
+  void StopCalibration();
+  void OnStartStopClicked();
 
   /*!
   * Slot handling change of stylus calibration number of points
@@ -93,32 +86,18 @@ protected slots:
   void OnDataAcquired();
 
 protected:
-
   /*! Start calibration */
-  void Start();
+  void StartCalibration();
+  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec);
 
-  void SetFreeHandStartupDelaySec(int freeHandStartupDelaySec) {m_FreeHandStartupDelaySec = freeHandStartupDelaySec;};
+  vtkSmartPointer<vtkPlusPivotCalibrationAlgo>  m_PivotCalibration;
+  int                                           m_NumberOfPoints;
+  int                                           m_FreeHandStartupDelaySec;
+  int                                           m_CurrentPointNumber;
+  QString                                       m_StylusPositionString;
+  vtkSmartPointer<vtkMatrix4x4>                 m_PreviousStylusToReferenceTransformMatrix;
+  QTime                                         m_CalibrationStartupDelayStartTime;
 
-  /*! Pivot calibration algorithm */
-  vtkPlusPivotCalibrationAlgo*   m_PivotCalibration;
-
-  /*! Number of points to acquire */
-  int                        m_NumberOfPoints;
-
-  /*! Delay time before start acquisition [s] */
-  int                        m_FreeHandStartupDelaySec;
-
-  /*! Number of points acquired so far */
-  int                        m_CurrentPointNumber;
-
-  /*! Stylus or stylus tip position (depending on the state) as string */
-  QString                    m_StylusPositionString;
-
-  /*! Previous stylus to reference transform matrix to determine the difference at each point acquisition */
-  vtkMatrix4x4*             m_PreviousStylusToReferenceTransformMatrix;
-
-  /*! Measures elapsed calibration startup delay */
-  QTime                     m_CalibrationStartupDelayStartTime;
 protected:
   Ui::StylusCalibrationToolbox ui;
 

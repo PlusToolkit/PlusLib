@@ -710,21 +710,19 @@ void QCapturingToolbox::OnDeactivated()
 void QCapturingToolbox::InitCaptureDeviceScrollArea()
 {
   m_GridWidget = new QWidget(this);
-  m_GridWidget->setObjectName(QString::fromUtf8("gridWidget"));
+  m_GridWidget->setObjectName(tr("gridWidget"));
   m_GridWidget->setEnabled(true);
   m_GridLayout = new QGridLayout(m_GridWidget);
-  m_GridLayout->setObjectName(QString::fromUtf8("captureWidgetLayout"));
+  m_GridLayout->setObjectName(tr("captureWidgetLayout"));
   m_GridLayout->setHorizontalSpacing(0);
-  m_GridLayout->setContentsMargins(0, -1, 0, -1);
+  m_GridLayout->setMargin(0);
   m_GridLayout->setAlignment(Qt::AlignTop);
 
   m_ScrollArea = new QScrollArea(this);
-  m_ScrollArea->setObjectName(QString::fromUtf8("scrollArea_captureDeviceContainer"));
+  m_ScrollArea->setObjectName(tr("scrollArea_captureDeviceContainer"));
   m_ScrollArea->setFrameShape(QFrame::NoFrame);
   m_ScrollArea->setFrameShadow(QFrame::Plain);
   m_ScrollArea->setLineWidth(0);
-  m_ScrollArea->setMinimumSize(177, 300);
-  m_ScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   m_ScrollArea->setWidgetResizable(true);
   m_GridWidget->setLayout(m_GridLayout);
   m_ScrollArea->setWidget(m_GridWidget);

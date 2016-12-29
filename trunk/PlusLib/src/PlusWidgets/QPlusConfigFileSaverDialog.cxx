@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusConfigFileSaverDialog.h"
+#include "QPlusConfigFileSaverDialog.h"
 
 // VTK includes
 #include <vtkXMLUtilities.h>
@@ -17,7 +17,7 @@
 #include <QString>
 
 //-----------------------------------------------------------------------------
-PlusConfigFileSaverDialog::PlusConfigFileSaverDialog(QWidget* aParent)
+QPlusConfigFileSaverDialog::QPlusConfigFileSaverDialog(QWidget* aParent)
   : QDialog(aParent)
 {
   ui.setupUi(this);
@@ -31,14 +31,14 @@ PlusConfigFileSaverDialog::PlusConfigFileSaverDialog(QWidget* aParent)
 }
 
 //-----------------------------------------------------------------------------
-PlusConfigFileSaverDialog::~PlusConfigFileSaverDialog()
+QPlusConfigFileSaverDialog::~QPlusConfigFileSaverDialog()
 {
 }
 
 //-----------------------------------------------------------------------------
-void PlusConfigFileSaverDialog::OpenDestinationDirectoryClicked()
+void QPlusConfigFileSaverDialog::OpenDestinationDirectoryClicked()
 {
-  LOG_TRACE("PlusConfigFileSaverDialog::OpenDestinationDirectoryClicked");
+  LOG_TRACE("QPlusConfigFileSaverDialog::OpenDestinationDirectoryClicked");
 
   // Directory open dialog for selecting configuration directory
   QString dirName = QFileDialog::getExistingDirectory(NULL, QString(tr("Select destination directory")), m_DestinationDirectory);
@@ -47,29 +47,27 @@ void PlusConfigFileSaverDialog::OpenDestinationDirectoryClicked()
     return;
   }
 
-  this->SetDestinationDirectory(dirName.toLatin1().constData());
-
-  m_DestinationDirectory = dirName;
+  this->SetDestinationDirectory(dirName.toStdString());
 
   ui.lineEdit_DestinationDirectory->setText(dirName);
   ui.lineEdit_DestinationDirectory->setToolTip(dirName);
 }
 
 //-----------------------------------------------------------------------------
-void PlusConfigFileSaverDialog::SetDestinationDirectory(std::string aDirectory)
+void QPlusConfigFileSaverDialog::SetDestinationDirectory(const std::string& aDirectory)
 {
-  LOG_TRACE("PlusConfigFileSaverDialog::SetDestinationDirectory(" << aDirectory << ")");
+  LOG_TRACE("QPlusConfigFileSaverDialog::SetDestinationDirectory(" << aDirectory << ")");
 
-  m_DestinationDirectory = aDirectory.c_str();
+  m_DestinationDirectory = QString::fromStdString(aDirectory);
 
   ui.lineEdit_DestinationDirectory->setText(m_DestinationDirectory);
   ui.lineEdit_DestinationDirectory->setToolTip(m_DestinationDirectory);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusConfigFileSaverDialog::ReadConfiguration()
+PlusStatus QPlusConfigFileSaverDialog::ReadConfiguration()
 {
-  LOG_TRACE("PlusConfigFileSaverDialog::ReadConfiguration");
+  LOG_TRACE("QPlusConfigFileSaverDialog::ReadConfiguration");
 
   // Find Device set element
   vtkXMLDataElement* dataCollection = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()->FindNestedElementWithName("DataCollection");
@@ -109,9 +107,9 @@ PlusStatus PlusConfigFileSaverDialog::ReadConfiguration()
 }
 
 //-----------------------------------------------------------------------------
-void PlusConfigFileSaverDialog::SaveClicked()
+void QPlusConfigFileSaverDialog::SaveClicked()
 {
-  LOG_TRACE("PlusConfigFileSaverDialog::SaveClicked");
+  LOG_TRACE("QPlusConfigFileSaverDialog::SaveClicked");
 
   // Get root element
   vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
@@ -136,18 +134,18 @@ void PlusConfigFileSaverDialog::SaveClicked()
     return;
   }
   // Set name and description to XML
-  deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toLatin1().constData());
-  deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toLatin1().constData());
+  deviceSet->SetAttribute("Name", ui.lineEdit_DeviceSetName->text().toStdString().c_str());
+  deviceSet->SetAttribute("Description", ui.textEdit_Description->toPlainText().toStdString().c_str());
 
   // Display file save dialog and save XML
   QString filter = QString(tr("XML files ( *.xml );;"));
   QString destinationFile = QString("%1/%2").arg(m_DestinationDirectory).arg(vtkPlusConfig::GetInstance()->GetNewDeviceSetConfigurationFileName().c_str());
   QString fileName = QFileDialog::getSaveFileName(NULL, tr("Save result configuration XML"), destinationFile, filter);
 
-  if (! fileName.isNull())
+  if (!fileName.isNull())
   {
-    PlusCommon::PrintXML(fileName.toLatin1().constData(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
-    LOG_INFO("Device set configuration saved as '" << fileName.toLatin1().constData() << "'");
+    PlusCommon::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    LOG_INFO("Device set configuration saved as '" << fileName.toStdString() << "'");
   }
 
   accept();

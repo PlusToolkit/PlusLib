@@ -7,23 +7,24 @@
 #ifndef TOOLSTATEDISPLAYWIDGET_H
 #define TOOLSTATEDISPLAYWIDGET_H
 
-// PlusLib includes
-#include <PlusConfigure.h>
+// Local includes
+#include "PlusConfigure.h"
+#include "PlusWidgetsExport.h"
 
 // Qt includes
-#include <QLabel>
-#include <QTextEdit>
 #include <QWidget>
 
+class QLabel;
+class QTextEdit;
 class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
 
-/*! \class PlusToolStateDisplayWidget
+/*! \class QPlusToolStateDisplayWidget
  * \brief Widget that shows state of all tools available to the tracker
  * \ingroup PlusAppCommonWidgets
  */
-class PlusToolStateDisplayWidget : public QWidget
+class PlusWidgetsExport QPlusToolStateDisplayWidget : public QWidget
 {
   Q_OBJECT
 
@@ -33,12 +34,12 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  PlusToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
+  QPlusToolStateDisplayWidget(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
   */
-  ~PlusToolStateDisplayWidget();
+  ~QPlusToolStateDisplayWidget();
 
   /*!
   * Read tools and set up widget

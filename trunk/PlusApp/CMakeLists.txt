@@ -157,12 +157,6 @@ SET(CMAKE_AUTOUIC ON)
 SET(CMAKE_AUTORCC ON)
 
 # --------------------------------------------------------------------------
-# Build the PlusCommonWidgets library (Qt)
-# --------------------------------------------------------------------------
-ADD_SUBDIRECTORY(PlusCommonWidgets)
-SET(PLUSAPP_LIBRARIES PlusCommonWidgets)
-
-# --------------------------------------------------------------------------
 # Build various utilities
 # --------------------------------------------------------------------------
 ADD_SUBDIRECTORY(PointSetExtractor)
@@ -226,21 +220,11 @@ GROUP_PLUSLIB_MS_PROJECTS("PlusLib")
 SET (PLUSAPP_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/PlusCommonWidgets
-  ${CMAKE_CURRENT_BINARY_DIR}/PlusCommonWidgets
   )
 
 # --------------------------------------------------------------------------
 # Exports & Generation
 # --------------------------------------------------------------------------
-SET( PLUSAPP_TARGETS
-  PlusCommonWidgets
-  )
-
-# Add all targets to the build-tree export set
-export(TARGETS ${PLUSAPP_TARGETS}
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/PlusAppLibraryTargets.cmake")
-
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE PlusApp)

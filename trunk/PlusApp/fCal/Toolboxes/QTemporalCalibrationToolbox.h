@@ -10,8 +10,10 @@ See License.txt for details.
 // Local includes
 #include "QAbstractToolbox.h"
 #include "ui_QTemporalCalibrationToolbox.h"
+
 // PlusLib includes
 #include <PlusConfigure.h>
+#include <vtkPlusLineSegmentationAlgo.h>
 #include <vtkPlusTemporalCalibrationAlgo.h>
 
 // Qt includes
@@ -169,6 +171,8 @@ protected:
 
   std::string                                     LastSaveDirectory;
   QPushButton*                                    SaveFileButton;
+
+  vtkSmartPointer<vtkPlusLineSegmentationAlgo>    LineSegmenter;
 
 protected:
   Ui::TemporalCalibrationToolbox ui;

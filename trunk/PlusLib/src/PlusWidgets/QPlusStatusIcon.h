@@ -7,8 +7,9 @@
 #ifndef STATUSICON_H
 #define STATUSICON_H
 
-// PlusLib includes
-#include <PlusConfigure.h>
+// Local includes
+#include "PlusConfigure.h"
+#include "PlusWidgetsExport.h"
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -50,14 +51,14 @@ signals:
 
 //-----------------------------------------------------------------------------
 
-/*! \class PlusStatusIcon
+/*! \class QPlusStatusIcon
  *
  * Widget that shows the current status of the application and displays all log messages occurred
  *
  * \ingroup PlusAppCommonWidgets
  *
  */
-class PlusStatusIcon : public QWidget
+class PlusWidgetsExport QPlusStatusIcon : public QWidget
 {
   Q_OBJECT
 
@@ -67,12 +68,12 @@ public:
   * \param aParent parent
   * \param aFlags widget flag
   */
-  PlusStatusIcon(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
+  QPlusStatusIcon(QWidget* aParent = 0, Qt::WindowFlags aFlags = 0);
 
   /*!
   * Destructor
   */
-  ~PlusStatusIcon();
+  ~QPlusStatusIcon();
 
   void SetMaxMessageCount(int count);
 

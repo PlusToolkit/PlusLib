@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>VolumeReconstructionToolbox</class>
  <widget class="QWidget" name="VolumeReconstructionToolbox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>236</width>
+    <height>307</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Volume reconstruction</string>
   </property>
@@ -108,7 +116,7 @@
        </property>
        <property name="icon">
         <iconset resource="../fCal.qrc">
-         <normaloff>:/icons/PlusCommonWidgets/Resources/icon_OpenFile.png</normaloff>:/icons/PlusCommonWidgets/Resources/icon_OpenFile.png</iconset>
+         <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -145,6 +153,10 @@
        </property>
        <property name="text">
         <string>Reconstruct</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../fCal.qrc">
+         <normaloff>:/icons/Resources/icon_Play.png</normaloff>:/icons/Resources/icon_Play.png</iconset>
        </property>
       </widget>
      </item>
@@ -251,7 +263,7 @@
         <string>Save volume...</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
        </property>
       </widget>

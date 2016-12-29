@@ -5,9 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusDeviceSetSelectorWidget.h"
+#include <QPlusDeviceSetSelectorWidget.h>
 #include "PlusServerLauncherMainWindow.h"
-#include "PlusStatusIcon.h"
+#include <QPlusStatusIcon.h>
 
 // PlusLib includes
 #include <PlusCommon.h>
@@ -46,28 +46,28 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent /*=0*/, Qt::WindowFlags flags/*=0*/, bool autoConnect /*=false*/, int remoteControlServerPort/*=RemoteControlServerPortUseDefault*/)
+PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent /*=0*/, Qt::WindowFlags flags/*=0*/, bool autoConnect /*=false*/, int remoteControlServerPort/*=RemoteControlServerPortUseDefault*/)
   : QMainWindow(parent, flags | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint)
   , m_DeviceSetSelectorWidget(NULL)
   , m_CurrentServerInstance(NULL)
   , m_RemoteControlServerPort(remoteControlServerPort)
 {
   m_RemoteControlServerCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
-  m_RemoteControlServerCallbackCommand->SetCallback(PlusServerLauncherMainWindow::onRemoteControlServerEventReceived);
+  m_RemoteControlServerCallbackCommand->SetCallback(PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived);
   m_RemoteControlServerCallbackCommand->SetClientData(this);
 
   // Set up UI
   ui.setupUi(this);
 
   // Create device set selector widget
-  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(NULL);
+  m_DeviceSetSelectorWidget = new QPlusDeviceSetSelectorWidget(NULL);
   m_DeviceSetSelectorWidget->setMaximumWidth(1200);
   m_DeviceSetSelectorWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launch server"));
-  connect(m_DeviceSetSelectorWidget, SIGNAL(ConnectToDevicesByConfigFileInvoked(std::string)), this, SLOT(connectToDevicesByConfigFile(std::string)));
+  connect(m_DeviceSetSelectorWidget, SIGNAL(ConnectToDevicesByConfigFileInvoked(std::string)), this, SLOT(ConnectToDevicesByConfigFile(std::string)));
 
   // Create status icon
-  PlusStatusIcon* statusIcon = new PlusStatusIcon(NULL);
+  QPlusStatusIcon* statusIcon = new QPlusStatusIcon(NULL);
   // Show only the last few thousand messages
   // (it should be enough, as all the messages are available in log files anyway)
   statusIcon->SetMaxMessageCount(3000);
@@ -88,7 +88,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent /*=0*
     ui.comboBox_LogLevel->setCurrentIndex(ui.comboBox_LogLevel->findData(QVariant(vtkPlusLogger::LOG_LEVEL_INFO)));
     vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
   }
-  connect(ui.comboBox_LogLevel, SIGNAL(currentIndexChanged(int)), this, SLOT(logLevelChanged()));
+  connect(ui.comboBox_LogLevel, SIGNAL(currentIndexChanged(int)), this, SLOT(LogLevelChanged()));
 
   // Insert widgets into placeholders
   ui.centralLayout->setMargin(4);
@@ -112,7 +112,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent /*=0*
     }
     else
     {
-      connectToDevicesByConfigFile(configFileName);
+      ConnectToDevicesByConfigFile(configFileName);
       if (m_DeviceSetSelectorWidget->GetConnectionSuccessful())
       {
         showMinimized();
@@ -162,7 +162,7 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget *parent /*=0*
 //-----------------------------------------------------------------------------
 PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 {
-  stopServer(); // deletes m_CurrentServerInstance
+  StopServer(); // deletes m_CurrentServerInstance
 
 #ifdef PLUS_USE_OpenIGTLinkIO
   if (m_RemoteControlServerLogic)
@@ -179,11 +179,11 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 }
 
 //-----------------------------------------------------------------------------
-bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
+bool PlusServerLauncherMainWindow::StartServer(const QString& configFilePath)
 {
   if (m_CurrentServerInstance != NULL)
   {
-    stopServer();
+    StopServer();
   }
 
   m_CurrentServerInstance = new QProcess();
@@ -191,10 +191,10 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
   std::string plusServerLocation = vtksys::SystemTools::GetFilenamePath(plusServerExecutable);
   m_CurrentServerInstance->setWorkingDirectory(QString(plusServerLocation.c_str()));
 
-  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
-  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-  connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
-  connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(StdOutMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(StdErrMsgReceived()));
+  connect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(ErrorReceived(QProcess::ProcessError)));
+  connect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ServerExecutableFinished(int, QProcess::ExitStatus)));
 
   // PlusServerLauncher wants at least LOG_LEVEL_INFO to parse status information from the PlusServer executable
   // Un-requested log entries that are captured from the PlusServer executable are parsed and dropped from output
@@ -220,7 +220,7 @@ bool PlusServerLauncherMainWindow::startServer(const QString& configFilePath)
 }
 
 //-----------------------------------------------------------------------------
-bool PlusServerLauncherMainWindow::stopServer()
+bool PlusServerLauncherMainWindow::StopServer()
 {
   if (m_CurrentServerInstance == NULL)
   {
@@ -228,10 +228,10 @@ bool PlusServerLauncherMainWindow::stopServer()
     return true;
   }
 
-  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(stdOutMsgReceived()));
-  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(stdErrMsgReceived()));
-  disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorReceived(QProcess::ProcessError)));
-  disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(serverExecutableFinished(int, QProcess::ExitStatus)));
+  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardOutput()), this, SLOT(StdOutMsgReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(readyReadStandardError()), this, SLOT(StdErrMsgReceived()));
+  disconnect(m_CurrentServerInstance, SIGNAL(error(QProcess::ProcessError)), this, SLOT(ErrorReceived(QProcess::ProcessError)));
+  disconnect(m_CurrentServerInstance, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ServerExecutableFinished(int, QProcess::ExitStatus)));
 
   bool forcedShutdown = false;
   if (m_CurrentServerInstance->state() == QProcess::Running)
@@ -262,7 +262,7 @@ bool PlusServerLauncherMainWindow::stopServer()
   }
   delete m_CurrentServerInstance;
   m_CurrentServerInstance = NULL;
-  PortList.clear();
+  m_PortList.clear();
   return (!forcedShutdown);
 }
 
@@ -275,7 +275,7 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
     int port(0);
     std::stringstream lineNumberStr(message.substr(message.find_last_of(':') + 1, message.length() - message.find_last_of(':')));
     lineNumberStr >> port;
-    PortList.push_back(port);
+    m_PortList.push_back(port);
   }
   else if (message.find("Server status: Server(s) are running.") != std::string::npos)
   {
@@ -299,13 +299,13 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
     serverList = serverList + ipAddresses + "\non ports:\n";
 
     std::stringstream portList;
-    for (unsigned int portIndex = 0; portIndex < PortList.size(); portIndex++)
+    for (unsigned int portIndex = 0; portIndex < m_PortList.size(); portIndex++)
     {
       if (!portList.str().empty())
       {
         portList << ",  ";
       }
-      portList << PortList[portIndex];
+      portList << m_PortList[portIndex];
     }
 
     serverList = serverList + portList.str();
@@ -322,12 +322,12 @@ void PlusServerLauncherMainWindow::ParseContent(const std::string& message)
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aConfigFile)
+void PlusServerLauncherMainWindow::ConnectToDevicesByConfigFile(std::string aConfigFile)
 {
   // Either a connect or disconnect, we always start from a clean slate: delete any previously active servers
   if (m_CurrentServerInstance != NULL)
   {
-    stopServer();
+    StopServer();
   }
 
   // Disconnect
@@ -344,7 +344,7 @@ void PlusServerLauncherMainWindow::connectToDevicesByConfigFile(std::string aCon
   LOG_INFO("Connect using configuration file: " << aConfigFile);
 
   // Connect
-  if (startServer(QString(aConfigFile.c_str())))
+  if (StartServer(QString(aConfigFile.c_str())))
   {
     m_DeviceSetSelectorWidget->SetConnectButtonText(QString("Launching..."));
     vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
@@ -372,7 +372,7 @@ void PlusServerLauncherMainWindow::keyPressEvent(QKeyEvent* e)
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray& strData)
+void PlusServerLauncherMainWindow::SendServerOutputToLogger(const QByteArray& strData)
 {
   typedef std::vector<std::string> StringList;
 
@@ -434,50 +434,50 @@ void PlusServerLauncherMainWindow::sendServerOutputToLogger(const QByteArray& st
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::stdOutMsgReceived()
+void PlusServerLauncherMainWindow::StdOutMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardOutput();
-  sendServerOutputToLogger(strData);
+  SendServerOutputToLogger(strData);
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::stdErrMsgReceived()
+void PlusServerLauncherMainWindow::StdErrMsgReceived()
 {
   QByteArray strData = m_CurrentServerInstance->readAllStandardError();
-  sendServerOutputToLogger(strData);
+  SendServerOutputToLogger(strData);
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::errorReceived(QProcess::ProcessError errorCode)
+void PlusServerLauncherMainWindow::ErrorReceived(QProcess::ProcessError errorCode)
 {
   const char* errorString = "unknown";
   switch ((QProcess::ProcessError)errorCode)
   {
-  case QProcess::FailedToStart:
-    errorString = "FailedToStart";
-    break;
-  case QProcess::Crashed:
-    errorString = "Crashed";
-    break;
-  case QProcess::Timedout:
-    errorString = "Timedout";
-    break;
-  case QProcess::WriteError:
-    errorString = "WriteError";
-    break;
-  case QProcess::ReadError:
-    errorString = "ReadError";
-    break;
-  case QProcess::UnknownError:
-  default:
-    errorString = "UnknownError";
+    case QProcess::FailedToStart:
+      errorString = "FailedToStart";
+      break;
+    case QProcess::Crashed:
+      errorString = "Crashed";
+      break;
+    case QProcess::Timedout:
+      errorString = "Timedout";
+      break;
+    case QProcess::WriteError:
+      errorString = "WriteError";
+      break;
+    case QProcess::ReadError:
+      errorString = "ReadError";
+      break;
+    case QProcess::UnknownError:
+    default:
+      errorString = "UnknownError";
   }
   LOG_ERROR("Server process error: " << errorString);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
 
 //-----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QProcess::ExitStatus status)
+void PlusServerLauncherMainWindow::ServerExecutableFinished(int returnCode, QProcess::ExitStatus status)
 {
   if (returnCode == 0)
   {
@@ -487,19 +487,19 @@ void PlusServerLauncherMainWindow::serverExecutableFinished(int returnCode, QPro
   {
     LOG_ERROR("Server stopped unexpectedly. Return code: " << returnCode);
   }
-  this->connectToDevicesByConfigFile("");
+  this->ConnectToDevicesByConfigFile("");
   ui.comboBox_LogLevel->setEnabled(true);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
 }
 
 //----------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::logLevelChanged()
+void PlusServerLauncherMainWindow::LogLevelChanged()
 {
   vtkPlusLogger::Instance()->SetLogLevel(ui.comboBox_LogLevel->currentData().toInt());
 }
 
 //---------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::onRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void *calldata)
+void PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void* calldata)
 {
 #ifdef PLUS_USE_OpenIGTLinkIO
   PlusServerLauncherMainWindow* self = reinterpret_cast<PlusServerLauncherMainWindow*>(clientdata);

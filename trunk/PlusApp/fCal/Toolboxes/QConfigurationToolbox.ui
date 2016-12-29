@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>ConfigurationToolbox</class>
  <widget class="QWidget" name="ConfigurationToolbox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>166</width>
+    <height>257</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Configuration</string>
   </property>
@@ -87,7 +95,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_PopOut.png</normaloff>:/icons/Resources/icon_PopOut.png</iconset>
        </property>
        <property name="checkable">
@@ -256,7 +264,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../PlusCommonWidgets/PlusCommonWidgets.qrc">
+        <iconset resource="../fCal.qrc">
          <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
        <property name="iconSize">
@@ -272,7 +280,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../PlusCommonWidgets/PlusCommonWidgets.qrc"/>
+  <include location="../fCal.qrc"/>
  </resources>
  <connections/>
 </ui>

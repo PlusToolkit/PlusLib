@@ -45,7 +45,7 @@ QStylusCalibrationToolbox::QStylusCalibrationToolbox(fCalMainWindow* aParentMain
   ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
 
   // Connect events
-  connect(ui.pushButton_StartStop, SIGNAL(clicked()), this, SLOT(OnStartStop()));
+  connect(ui.pushButton_StartStop, SIGNAL(clicked()), this, SLOT(OnStartStopClicked()));
   connect(ui.spinBox_NumberOfStylusCalibrationPoints, SIGNAL(valueChanged(int)), this, SLOT(NumberOfStylusCalibrationPointsChanged(int)));
 }
 
@@ -117,7 +117,7 @@ void QStylusCalibrationToolbox::OnDeactivated()
 {
   if (m_State == ToolboxState_StartupDelay || m_State == ToolboxState_InProgress)
   {
-    Stop();
+    StopCalibration();
   }
 }
 
@@ -417,8 +417,14 @@ void QStylusCalibrationToolbox::SetDisplayAccordingToState()
   }
 }
 
+//----------------------------------------------------------------------------
+vtkPlusPivotCalibrationAlgo* QStylusCalibrationToolbox::GetPivotCalibrationAlgo()
+{
+  return m_PivotCalibration;
+}
+
 //-----------------------------------------------------------------------------
-void QStylusCalibrationToolbox::Start()
+void QStylusCalibrationToolbox::StartCalibration()
 {
   LOG_TRACE("StylusCalibrationToolbox::Start");
 
@@ -449,8 +455,14 @@ void QStylusCalibrationToolbox::Start()
   LOG_INFO("Stylus calibration started");
 }
 
+//----------------------------------------------------------------------------
+void QStylusCalibrationToolbox::SetFreeHandStartupDelaySec(int freeHandStartupDelaySec)
+{
+  m_FreeHandStartupDelaySec = freeHandStartupDelaySec;
+}
+
 //-----------------------------------------------------------------------------
-void QStylusCalibrationToolbox::Stop()
+void QStylusCalibrationToolbox::StopCalibration()
 {
   LOG_TRACE("StylusCalibrationToolbox::Stop");
 
@@ -495,15 +507,15 @@ void QStylusCalibrationToolbox::Stop()
 }
 
 //-----------------------------------------------------------------------------
-void QStylusCalibrationToolbox::OnStartStop()
+void QStylusCalibrationToolbox::OnStartStopClicked()
 {
   if (m_State == ToolboxState_StartupDelay || m_State == ToolboxState_InProgress)
   {
-    Stop();
+    StopCalibration();
   }
   else
   {
-    Start();
+    StartCalibration();
   }
 }
 
@@ -603,7 +615,7 @@ void QStylusCalibrationToolbox::OnDataAcquired()
     // If enough points have been acquired, stop
     if (m_CurrentPointNumber >= m_NumberOfPoints)
     {
-      Stop();
+      StopCalibration();
     }
     else
     {

@@ -101,7 +101,7 @@
             </property>
             <property name="icon">
              <iconset resource="fCal.qrc">
-              <normaloff>:/icons/PlusCommonWidgets/Resources/icon_Save.png</normaloff>:/icons/PlusCommonWidgets/Resources/icon_Save.png</iconset>
+              <normaloff>:/icons/Resources/icon_Save.png</normaloff>:/icons/Resources/icon_Save.png</iconset>
             </property>
            </widget>
           </item>
@@ -197,8 +197,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>308</width>
-            <height>174</height>
+            <width>230</width>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -217,7 +217,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -236,7 +236,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -255,7 +255,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -274,7 +274,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -293,7 +293,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -312,7 +312,7 @@
             <x>0</x>
             <y>0</y>
             <width>230</width>
-            <height>28</height>
+            <height>419</height>
            </rect>
           </property>
           <property name="minimumSize">

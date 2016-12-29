@@ -14,8 +14,8 @@ See License.txt for details.
 
 #include <QWidget>
 
-class PlusDeviceSetSelectorWidget;
-class PlusToolStateDisplayWidget;
+class QPlusDeviceSetSelectorWidget;
+class QPlusToolStateDisplayWidget;
 class vtkPlusChannel;
 
 //-----------------------------------------------------------------------------
@@ -131,19 +131,19 @@ protected slots:
 
 protected:
   /*! Device set selector widget */
-  PlusDeviceSetSelectorWidget*  m_DeviceSetSelectorWidget;
+  QPlusDeviceSetSelectorWidget*   m_DeviceSetSelectorWidget;
 
   /*! Tool state display widget */
-  PlusToolStateDisplayWidget*   m_ToolStateDisplayWidget;
+  QPlusToolStateDisplayWidget*    m_ToolStateDisplayWidget;
 
   /*! Window that is created when tool state display widget is popped out */
-  QWidget*                  m_ToolStatePopOutWindow;
+  QWidget*                        m_ToolStatePopOutWindow;
 
   /*! Flag indicating if tool state display widget is detached */
-  bool                      m_IsToolDisplayDetached;
+  bool                            m_IsToolDisplayDetached;
 
   /*! String to hold the last location of data saved */
-  QString                   m_LastImageDirectoryLocation;
+  QString                         m_LastImageDirectoryLocation;
 
 protected:
   Ui::ConfigurationToolbox  ui;

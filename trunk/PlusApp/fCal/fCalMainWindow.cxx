@@ -6,6 +6,8 @@ See License.txt for details.
 
 // Local includes
 #include "fCalMainWindow.h"
+#include "QCustomAction.h"
+#include "vtkPlusVisualizationController.h"
 
 // Toolbox includes
 #include "QCapturingToolbox.h"
@@ -20,12 +22,8 @@ See License.txt for details.
 #include <vtkPlusDataSource.h>
 #include <vtkPlusVirtualDiscCapture.h>
 #include <vtkPlusVirtualMixer.h>
-
-// PlusCommonWidget includes
-#include <PlusConfigFileSaverDialog.h>
-#include <PlusStatusIcon.h>
-#include <QCustomAction.h>
-#include <vtkPlusVisualizationController.h>
+#include <QPlusConfigFileSaverDialog.h>
+#include <QPlusStatusIcon.h>
 
 // vtk includes
 #include "vtkRenderWindow.h"
@@ -100,7 +98,7 @@ void fCalMainWindow::Initialize()
   LOG_TRACE("fCalMainWindow::Initialize");
 
   // Create status icon
-  m_StatusIcon = new PlusStatusIcon(this);
+  m_StatusIcon = new QPlusStatusIcon(this);
 
   // Set up timer for refreshing UI
   m_UiRefreshTimer = new QTimer(this);
@@ -645,7 +643,7 @@ void fCalMainWindow::SaveDeviceSetConfiguration()
   // Write the current state into the device set configuration XML
   GetVisualizationController()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
-  PlusConfigFileSaverDialog* configSaverDialog = new PlusConfigFileSaverDialog(this);
+  QPlusConfigFileSaverDialog* configSaverDialog = new QPlusConfigFileSaverDialog(this);
   configSaverDialog->exec();
 
   delete configSaverDialog;

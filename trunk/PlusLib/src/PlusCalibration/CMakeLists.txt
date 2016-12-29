@@ -110,7 +110,7 @@ TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCalibration CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusCalibration vtkPlusCalibration;"${PlusLib_BINARY_DIR}/src/PlusCalibration/vtkPlusCalibration.vcxproj";vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusCalibration vtkPlusCalibration;${PlusLib_BINARY_DIR}/src/PlusCalibration/vtkPlusCalibration.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------

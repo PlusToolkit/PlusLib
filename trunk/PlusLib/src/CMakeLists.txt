@@ -2,20 +2,20 @@
 # Try to find VTK and include its settings (otherwise complain)
 FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 
-IF ( VTK_FOUND )
+IF(VTK_FOUND)
   INCLUDE(${VTK_USE_FILE})
-ELSE ( VTK_FOUND )
+ELSE()
   MESSAGE( FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
-ENDIF ( VTK_FOUND )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Try to find ITK and include its settings (otherwise complain)
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
-IF ( ITK_FOUND )
+IF(ITK_FOUND)
   INCLUDE( ${ITK_USE_FILE} )
-ELSE ( ITK_FOUND )
+ELSE()
   MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
-ENDIF( ITK_FOUND )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Use OpenIGTLink protocol
@@ -32,7 +32,7 @@ IF(PLUS_USE_OpenIGTLink)
   SET(PLUS_OPENIGTLINK_VERSION_MAJOR "${OpenIGTLink_VERSION_MAJOR}")
   SET(PLUS_OPENIGTLINK_VERSION_MINOR "${OpenIGTLink_VERSION_MINOR}")
   SET(PLUS_OPENIGTLINK_VERSION_PATCH "${OpenIGTLink_VERSION_PATCH}")
-ENDIF(PLUS_USE_OpenIGTLink)
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Options
@@ -52,6 +52,16 @@ OPTION (PLUS_TEST_HIGH_ACCURACY_TIMING "Enable testing of high-accuracy timing. 
 MARK_AS_ADVANCED(PLUS_TEST_HIGH_ACCURACY_TIMING)
 
 OPTION(PLUS_USE_INTEL_MKL "Use the Intel MKL library (only for image processing)" OFF)
+
+OPTION(PLUS_BUILD_WIDGETS "Build re-usable widgets for writing PlusLib based applications" OFF)
+IF(PLUS_BUILD_WIDGETS)
+  FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Core Widgets Test Xml)
+
+  # Instruct CMake to run tools automatically when needed.
+  SET(CMAKE_AUTOMOC ON)
+  SET(CMAKE_AUTOUIC ON)
+  SET(CMAKE_AUTORCC ON)
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
@@ -85,7 +95,7 @@ LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 # each command-line tool with the --help parameter)
 IF(BUILD_DOCUMENTATION)
   FILE(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Doc/Help)
-ENDIF(BUILD_DOCUMENTATION)
+ENDIF()
 
 # This macro generates a command-line application help file
 MACRO(GENERATE_HELP_DOC TARGET_NAME)
@@ -96,8 +106,8 @@ MACRO(GENERATE_HELP_DOC TARGET_NAME)
       COMMAND $<TARGET_FILE:${TARGET_NAME}> --help > ${TARGET_NAME}Help.txt
       WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Doc/Help
       )
-  ENDIF(BUILD_DOCUMENTATION)
-ENDMACRO(GENERATE_HELP_DOC)
+  ENDIF()
+ENDMACRO()
 
 # --------------------------------------------------------------------------
 # Library export directive file generation
@@ -105,9 +115,9 @@ ENDMACRO(GENERATE_HELP_DOC)
 # This macro generates a ...Export.h file that specifies platform-specific DLL export directives,
 # for example on Windows: __declspec( dllexport )
 MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
-  SET (MY_LIBNAME ${LIBRARY_NAME})
-  SET (MY_EXPORT_HEADER_PREFIX ${MY_LIBNAME})
-  SET (MY_LIBRARY_EXPORT_DIRECTIVE "${MY_LIBNAME}Export")
+  SET(MY_LIBNAME ${LIBRARY_NAME})
+  SET(MY_EXPORT_HEADER_PREFIX ${MY_LIBNAME})
+  SET(MY_LIBRARY_EXPORT_DIRECTIVE "${MY_LIBNAME}Export")
   CONFIGURE_FILE(
     ${PlusLib_SOURCE_DIR}/src/PlusExport.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
@@ -116,7 +126,7 @@ MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
     ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
     DESTINATION include
     )
-ENDMACRO(GENERATE_EXPORT_DIRECTIVE_FILE)
+ENDMACRO()
 
 # --------------------------------------------------------------------------
 # Initialize variables that will be filled by makefiles in subdirectories
@@ -147,48 +157,54 @@ SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INT
 # vcProj_...
 # PLUSLIB_DEPENDENCIES
 
+IF(PLUS_BUILD_WIDGETS)
+  ADD_SUBDIRECTORY(PlusWidgets)
+  INCLUDE_DIRECTORIES( ${PlusWidgets_INCLUDE_DIRS} )
+  LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusWidgets_INCLUDE_DIRS} CACHE INTERNAL "" )
+ENDIF()
+
 ADD_SUBDIRECTORY(Utilities)
 INCLUDE_DIRECTORIES( ${Utilities_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${Utilities_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusCommon)
 INCLUDE_DIRECTORIES( ${PlusCommon_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusCommon_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusCommon_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusRendering)
 INCLUDE_DIRECTORIES( ${PlusRendering_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusRendering_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusRendering_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 IF(PLUS_USE_OpenIGTLink)
   ADD_SUBDIRECTORY(PlusOpenIGTLink)
   INCLUDE_DIRECTORIES( ${PlusOpenIGTLink_INCLUDE_DIRS} )
-  SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusOpenIGTLink_INCLUDE_DIRS} CACHE INTERNAL "" )
+  LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusOpenIGTLink_INCLUDE_DIRS} CACHE INTERNAL "" )
 ENDIF()
 
 ADD_SUBDIRECTORY(PlusImageProcessing)
 INCLUDE_DIRECTORIES( ${PlusImageProcessing_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusImageProcessing_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusImageProcessing_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusUsSimulator)
 INCLUDE_DIRECTORIES( ${PlusUsSimulator_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusUsSimulator_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusUsSimulator_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusVolumeReconstruction)
 INCLUDE_DIRECTORIES( ${PlusVolumeReconstruction_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusVolumeReconstruction_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusVolumeReconstruction_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusDataCollection)
 INCLUDE_DIRECTORIES( ${PlusDataCollection_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusDataCollection_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 ADD_SUBDIRECTORY(PlusCalibration)
 INCLUDE_DIRECTORIES( ${PlusCalibration_INCLUDE_DIRS} )
-SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusCalibration_INCLUDE_DIRS} CACHE INTERNAL "" )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusCalibration_INCLUDE_DIRS} CACHE INTERNAL "" )
 
 IF(PLUS_USE_OpenIGTLink)
   ADD_SUBDIRECTORY(PlusServer)
   INCLUDE_DIRECTORIES( ${PlusServer_INCLUDE_DIRS} )
-  SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "" )
+  LIST(APPEND PLUSLIB_INCLUDE_DIRS ${PlusServer_INCLUDE_DIRS} CACHE INTERNAL "" )
 ENDIF()
 
 ADD_SUBDIRECTORY(scripts)
@@ -282,7 +298,7 @@ SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
 SET( PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels" )
 SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
 
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   # PlusConfig.xml generation for Windows (separate directories for different build types)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
@@ -312,7 +328,6 @@ OPTION(BUILD_DOCUMENTATION "Build the documentation (Doxygen)." OFF)
 MARK_AS_ADVANCED(BUILD_DOCUMENTATION)
 
 IF(BUILD_DOCUMENTATION)
-
   SET(PROGWIN64 "PROGRAMFILES")
   SET(PROGWIN32 "PROGRAMFILES(X86)")
 
@@ -330,9 +345,8 @@ IF(BUILD_DOCUMENTATION)
 
   IF(WIN32)
     SET(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
-  ENDIF(WIN32)
-
-ENDIF(BUILD_DOCUMENTATION)
+  ENDIF()
+ENDIF()
 
 ADD_SUBDIRECTORY(Documentation)
 

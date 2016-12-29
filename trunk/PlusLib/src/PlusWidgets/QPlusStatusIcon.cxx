@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusStatusIcon.h"
+#include "QPlusStatusIcon.h"
 
 // Qt includes
 #include <QCoreApplication>
@@ -28,7 +28,7 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-PlusStatusIcon::PlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
+QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
   , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
   , m_DotLabel(NULL)
@@ -75,13 +75,13 @@ PlusStatusIcon::PlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatusIcon::~PlusStatusIcon()
+QPlusStatusIcon::~QPlusStatusIcon()
 {
   vtkPlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::AddMessage(QString aInputString)
+void QPlusStatusIcon::AddMessage(QString aInputString)
 {
   // No matter what store the log entry to be able to reconstruct it later
   m_MessageLog.push_back(aInputString);
@@ -100,7 +100,7 @@ void PlusStatusIcon::AddMessage(QString aInputString)
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ParseMessage(QString& aInputString)
+void QPlusStatusIcon::ParseMessage(QString& aInputString)
 {
   // Parse input string and extract log level and the message
   bool ok;
@@ -117,25 +117,25 @@ void PlusStatusIcon::ParseMessage(QString& aInputString)
   // Re-color dot and message text if necessary
   switch (logLevel)
   {
-  case vtkPlusLogger::LOG_LEVEL_ERROR:
-    if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR)
-    {
-      m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
-      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
-    }
-    message = ERROR_HTML;
-    break;
-  case vtkPlusLogger::LOG_LEVEL_WARNING:
-    if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING)
-    {
-      m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
-      m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
-    }
-    message = WARNING_HTML;
-    break;
-  default:
-    message = INFO_HTML;
-    break;
+    case vtkPlusLogger::LOG_LEVEL_ERROR:
+      if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR)
+      {
+        m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
+        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+      }
+      message = ERROR_HTML;
+      break;
+    case vtkPlusLogger::LOG_LEVEL_WARNING:
+      if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING)
+      {
+        m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
+        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+      }
+      message = WARNING_HTML;
+      break;
+    default:
+      message = INFO_HTML;
+      break;
   }
 
   message = message.append(aInputString.right(aInputString.size() - pos - 1)).append(END_HTML);
@@ -189,7 +189,7 @@ void PlusStatusIcon::ParseMessage(QString& aInputString)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusStatusIcon::ConstructMessageListWidget()
+PlusStatus QPlusStatusIcon::ConstructMessageListWidget()
 {
   LOG_TRACE("ToolStateDisplayWidget::ConstructMessageListWidget");
 
@@ -263,7 +263,7 @@ PlusStatus PlusStatusIcon::ConstructMessageListWidget()
 }
 
 //-----------------------------------------------------------------------------
-bool PlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
+bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
 {
   if (ev->type() == QEvent::MouseButtonPress)
   {
@@ -307,7 +307,7 @@ bool PlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
 }
 
 //----------------------------------------------------------------------------
-void PlusStatusIcon::resizeEvent(QResizeEvent* event)
+void QPlusStatusIcon::resizeEvent(QResizeEvent* event)
 {
   const QPixmap* pix = m_DotLabel->pixmap();
   m_DotLabel->setPixmap(pix->scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
@@ -316,7 +316,7 @@ void PlusStatusIcon::resizeEvent(QResizeEvent* event)
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::CreateCustomContextMenu(const QPoint& aPoint)
+void QPlusStatusIcon::CreateCustomContextMenu(const QPoint& aPoint)
 {
   QMenu* menu = m_MessageTextEdit->createStandardContextMenu();
   QAction* clear = new QAction("Clear", this);
@@ -327,7 +327,7 @@ void PlusStatusIcon::CreateCustomContextMenu(const QPoint& aPoint)
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ClearMessageList()
+void QPlusStatusIcon::ClearMessageList()
 {
   m_MessageTextEdit->clear();
   ResetIconState();
@@ -335,13 +335,13 @@ void PlusStatusIcon::ClearMessageList()
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ApplyFilterTimerFired()
+void QPlusStatusIcon::ApplyFilterTimerFired()
 {
   this->ApplyFilter();
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ClearFilterButtonClicked()
+void QPlusStatusIcon::ClearFilterButtonClicked()
 {
   // clear log
   m_FilterLineEdit->clear();
@@ -350,7 +350,7 @@ void PlusStatusIcon::ClearFilterButtonClicked()
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::FilterLineEditEdited(const QString&)
+void QPlusStatusIcon::FilterLineEditEdited(const QString&)
 {
   m_ClearFilterButton->setEnabled(!m_FilterLineEdit->text().isEmpty());
 
@@ -364,7 +364,7 @@ void PlusStatusIcon::FilterLineEditEdited(const QString&)
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ApplyFilter()
+void QPlusStatusIcon::ApplyFilter()
 {
   // Clear the log
   m_MessageTextEdit->clear();
@@ -381,14 +381,14 @@ void PlusStatusIcon::ApplyFilter()
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::ResetIconState()
+void QPlusStatusIcon::ResetIconState()
 {
   m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
   m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 }
 
 //-----------------------------------------------------------------------------
-void PlusStatusIcon::SetMaxMessageCount(int count)
+void QPlusStatusIcon::SetMaxMessageCount(int count)
 {
   if (count < 0)
   {

@@ -18,7 +18,7 @@
 #include "vtkIGTLIOConnector.h"
 #endif
 
-class PlusDeviceSetSelectorWidget;
+class QPlusDeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
 class vtkPlusDataCollector;
 class vtkPlusTransformRepository;
@@ -38,7 +38,6 @@ class PlusServerLauncherMainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-
   enum
   {
     RemoteControlServerPortDisable = -1,
@@ -51,63 +50,62 @@ public:
     \param aFlags widget flag
     \param remoteControlServerPort port number where launcher listens for remote control OpenIGTLink commands. 0 means use default port, -1 means do not start a remote control server.
   */
-  PlusServerLauncherMainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false, int remoteControlServerPort = RemoteControlServerPortUseDefault);
-  /*! Destructor */
+  PlusServerLauncherMainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false, int remoteControlServerPort = RemoteControlServerPortUseDefault);
   ~PlusServerLauncherMainWindow();
 
-  int defaultRemoteControlServerPort() { return 18904; }
+  inline int DefaultRemoteControlServerPort() { return 18904; }
 
 protected slots:
   /*!
     Connect to devices described in the argument configuration file in response by clicking on the Connect button
     \param aConfigFile DeviceSet configuration file path and name
   */
-  void connectToDevicesByConfigFile(std::string);
+  void ConnectToDevicesByConfigFile(std::string);
 
   /*! Called whenever a key is pressed while the windows is active, used for intercepting the ESC key */
-  void keyPressEvent(QKeyEvent* e);
+  virtual void keyPressEvent(QKeyEvent* e);
 
-  void stdOutMsgReceived();
+  void StdOutMsgReceived();
 
-  void stdErrMsgReceived();
+  void StdErrMsgReceived();
 
-  void errorReceived(QProcess::ProcessError);
+  void ErrorReceived(QProcess::ProcessError);
 
-  void serverExecutableFinished(int returnCode, QProcess::ExitStatus status);
+  void ServerExecutableFinished(int returnCode, QProcess::ExitStatus status);
 
-  void logLevelChanged();
+  void LogLevelChanged();
 
-  static void onRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void *calldata);
+  static void OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void* calldata);
 
 protected:
   /*! Receive standard output or error and send it to the log */
-  void sendServerOutputToLogger(const QByteArray& strData);
+  void SendServerOutputToLogger(const QByteArray& strData);
 
   /*! Start server process, connect outputs to logger. Returns with true on success. */
-  bool startServer(const QString& configFilePath);
+  bool StartServer(const QString& configFilePath);
 
   /*! Stop server process, disconnect outputs. Returns with true on success (shutdown on request was successful, without forcing). */
-  bool stopServer();
+  bool StopServer();
 
   /*! Parse a given log line for salient information from the PlusServer */
   void ParseContent(const std::string& message);
 
 protected:
   /*! Device set selector widget */
-  PlusDeviceSetSelectorWidget* m_DeviceSetSelectorWidget;
+  QPlusDeviceSetSelectorWidget*         m_DeviceSetSelectorWidget;
 
   /*! PlusServer instance that is responsible for all data collection and network transfer */
-  QProcess* m_CurrentServerInstance;
+  QProcess*                             m_CurrentServerInstance;
 
   /*! List of active ports for PlusServers */
-  std::vector<int> PortList;
+  std::vector<int>                      m_PortList;
 
   /*! OpenIGTLink server that allows remote control of launcher (start/stop a PlusServer process, etc) */
   int m_RemoteControlServerPort;
-  vtkSmartPointer<vtkCallbackCommand> m_RemoteControlServerCallbackCommand;
+  vtkSmartPointer<vtkCallbackCommand>   m_RemoteControlServerCallbackCommand;
 #ifdef PLUS_USE_OpenIGTLinkIO
-  vtkIGTLIOLogicPointer m_RemoteControlServerLogic;
-  vtkIGTLIOConnectorPointer m_RemoteControlServerConnector;
+  vtkIGTLIOLogicPointer                 m_RemoteControlServerLogic;
+  vtkIGTLIOConnectorPointer             m_RemoteControlServerConnector;
 #endif
 
 private:

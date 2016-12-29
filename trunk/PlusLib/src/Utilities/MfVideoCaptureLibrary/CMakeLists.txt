@@ -58,7 +58,7 @@ target_include_directories(MfVideoCaptureLibrary PUBLIC ${MfVideoCaptureLibrary_
 SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MfVideoCaptureLibrary CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_MfVideoCaptureLibrary MfVideoCaptureLibrary;"${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCaptureLibrary/MfVideoCaptureLibrary.vcxproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_MfVideoCaptureLibrary MfVideoCaptureLibrary;${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCaptureLibrary/MfVideoCaptureLibrary.vcxproj CACHE INTERNAL "" FORCE)
 
 INSTALL_TARGETS(/lib MfVideoCaptureLibrary)
 INSTALL(FILES ${MfVideoCaptureLibrary_HDRS}

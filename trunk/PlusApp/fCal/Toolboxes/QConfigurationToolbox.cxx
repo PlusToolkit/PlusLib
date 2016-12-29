@@ -5,8 +5,6 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusDeviceSetSelectorWidget.h"
-#include "PlusToolStateDisplayWidget.h"
 #include "QConfigurationToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDisplayableObject.h"
@@ -14,6 +12,8 @@ See License.txt for details.
 
 // PlusLib includes
 #include <PlusFidPatternRecognition.h>
+#include <QPlusDeviceSetSelectorWidget.h>
+#include <QPlusToolStateDisplayWidget.h>
 #include <vtkPlusChannel.h>
 #include <vtkPlusDevice.h>
 #include <vtkPlusPhantomLandmarkRegistrationAlgo.h>
@@ -42,10 +42,10 @@ QConfigurationToolbox::QConfigurationToolbox(fCalMainWindow* aParentMainWindow, 
   ui.setupUi(this);
 
   // Create and setup device set selector widget
-  m_DeviceSetSelectorWidget = new PlusDeviceSetSelectorWidget(this);
+  m_DeviceSetSelectorWidget = new QPlusDeviceSetSelectorWidget(this);
 
   // Create tool box state widget
-  m_ToolStateDisplayWidget = new PlusToolStateDisplayWidget(this);
+  m_ToolStateDisplayWidget = new QPlusToolStateDisplayWidget(this);
   m_ToolStateDisplayWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
   // Make connections

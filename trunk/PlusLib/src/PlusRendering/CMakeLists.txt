@@ -40,7 +40,7 @@ TARGET_LINK_LIBRARIES(vtkPlusRendering PUBLIC ${PlusRendering_LIBS} )
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusRendering CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusRendering vtkPlusRendering;"${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj" CACHE INTERNAL "" FORCE)
+SET(vcProj_vtkPlusRendering vtkPlusRendering;${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)

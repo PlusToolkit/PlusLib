@@ -76,6 +76,7 @@ QTemporalCalibrationToolbox::QTemporalCalibrationToolbox(fCalMainWindow* aParent
   , RequestedFixedChannel("")
   , RequestedMovingChannel("")
   , SaveFileButton(nullptr)
+  , LineSegmenter(vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New())
 {
   ui.setupUi(this);
 
@@ -327,13 +328,12 @@ void QTemporalCalibrationToolbox::RefreshContent()
 void QTemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
 {
   // Try segmenting the line from the image
-  auto lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
-  lineSegmenter->SetTrackedFrame(frame);
-  lineSegmenter->SetSaveIntermediateImages(false);
-  if (lineSegmenter->Update() == PLUS_SUCCESS)
+  this->LineSegmenter->SetTrackedFrame(frame);
+  this->LineSegmenter->SetSaveIntermediateImages(false);
+  if (this->LineSegmenter->Update() == PLUS_SUCCESS)
   {
     std::vector<vtkPlusLineSegmentationAlgo::LineParameters> parameters;
-    lineSegmenter->GetDetectedLineParameters(parameters);
+    this->LineSegmenter->GetDetectedLineParameters(parameters);
     if (parameters[0].lineDetected)
     {
       auto dimensions = frame.GetImageData()->GetImage()->GetDimensions();
@@ -697,42 +697,42 @@ void QTemporalCalibrationToolbox::ComputeCalibrationResults()
   {
     switch (error)
     {
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD:
-      double correlation;
-      this->TemporalCalibrationAlgo->GetBestCorrelation(correlation);
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_RESULT_ABOVE_THRESHOLD:
+        double correlation;
+        this->TemporalCalibrationAlgo->GetBestCorrelation(correlation);
 
-      strs << "Result above threshold. " << correlation;
-      errorStr = strs.str();
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
-      errorStr = "Invalid transform name.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
-      errorStr = "No timestamps on data.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
-      errorStr = "Unable to normalize the data.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
-      errorStr = "Correlation list empty. Unable to perform analysis on data.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
-      errorStr = "Missing video data.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
-      errorStr = "Data not in MF orientation.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES:
-      errorStr = "Not enough frames in fixed signal.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
-      errorStr = "No frames in ultrasound data.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
-      errorStr = "Sampling resolution too small.";
-      break;
-    case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE:
-      break;
+        strs << "Result above threshold. " << correlation;
+        errorStr = strs.str();
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_INVALID_TRANSFORM_NAME:
+        errorStr = "Invalid transform name.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_TIMESTAMPS:
+        errorStr = "No timestamps on data.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_UNABLE_NORMALIZE_METRIC:
+        errorStr = "Unable to normalize the data.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_CORRELATION_RESULT_EMPTY:
+        errorStr = "Correlation list empty. Unable to perform analysis on data.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_VIDEO_DATA:
+        errorStr = "Missing video data.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_MF_ORIENTATION:
+        errorStr = "Data not in MF orientation.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NOT_ENOUGH_FIXED_FRAMES:
+        errorStr = "Not enough frames in fixed signal.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NO_FRAMES_IN_ULTRASOUND_DATA:
+        errorStr = "No frames in ultrasound data.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_SAMPLING_RESOLUTION_TOO_SMALL:
+        errorStr = "Sampling resolution too small.";
+        break;
+      case vtkPlusTemporalCalibrationAlgo::TEMPORAL_CALIBRATION_ERROR_NONE:
+        break;
     }
 
     LOG_ERROR("Cannot determine tracker lag, temporal calibration failed! Error: " << errorStr);
@@ -1046,6 +1046,8 @@ void QTemporalCalibrationToolbox::OnDeactivated()
   // The channels may get deleted (e.g., by a disconnect/connect), so make sure they are not reused
   this->FixedChannel = NULL;
   this->MovingChannel = NULL;
+
+  m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationVisible(false);
 }
 
 //-----------------------------------------------------------------------------

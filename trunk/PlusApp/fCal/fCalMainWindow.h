@@ -14,9 +14,9 @@ See License.txt for details.
 class QAbstractToolbox;
 class QCustomAction;
 class QLabel;
+class QPlusStatusIcon;
 class QProgressBar;
 class QTimer;
-class PlusStatusIcon;
 class vtkPlusChannel;
 class vtkPlusDevice;
 class vtkPlusVisualizationController;
@@ -298,10 +298,10 @@ protected:
   QTimer*                             m_UiRefreshTimer;
 
   /*! Status icon instance */
-  PlusStatusIcon*                     m_StatusIcon;
+  QPlusStatusIcon*                    m_StatusIcon;
 
   /*! List of toolbox objects (the indices are the type identifiers) */
-  std::vector<QAbstractToolbox*>       m_ToolboxList;
+  std::vector<QAbstractToolbox*>      m_ToolboxList;
 
   /*! Image coordinate frame name for Volume reconstruction */
   std::string                         m_ImageCoordinateFrame;
