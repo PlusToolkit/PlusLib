@@ -7,17 +7,21 @@ See License.txt for details.
 #ifndef CAPTURINGTOOLBOX_H
 #define CAPTURINGTOOLBOX_H
 
+// PlusLib includes
+#include <PlusConfigure.h>
+
+// Local includes
 #include "QAbstractToolbox.h"
-#include "PlusConfigure.h"
 #include "ui_QCapturingToolbox.h"
 
-#include <QString>
+// Qt includes
 #include <QWidget>
 
 class PlusCaptureControlWidget;
-class QScrollArea;
 class QGridLayout;
+class QScrollArea;
 class QSpacerItem;
+class QString;
 class QTimer;
 class vtkPlusTrackedFrameList;
 
@@ -60,10 +64,7 @@ public:
   void SetDisplayAccordingToState();
 
   /*! Get recorded tracked frame list */
-  vtkPlusTrackedFrameList* GetRecordedFrames()
-  {
-    return m_RecordedFrames;
-  };
+  inline vtkPlusTrackedFrameList* GetRecordedFrames() { return m_RecordedFrames; }
 
 protected:
   /*!

@@ -4,21 +4,29 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusCaptureControlWidget.h"
 #include "QCapturingToolbox.h"
-#include "PlusTrackedFrame.h"
 #include "QVolumeReconstructionToolbox.h"
 #include "fCalMainWindow.h"
-#include "vtkPlusDevice.h" // Only to get maximum frame rate in device mode
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusVisualizationController.h"
-#include "vtksys/SystemTools.hxx"
+
+// PlusLib includes
+#include <PlusTrackedFrame.h>
+#include <vtkPlusDevice.h>
+#include <vtkPlusSequenceIO.h>
+#include <vtkPlusTrackedFrameList.h>
+
+// VTK includes
+#include <vtksys/SystemTools.hxx>
+
+// Qt includes
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QScrollArea>
 #include <QSpacerItem>
+#include <QString>
 #include <QTimer>
 
 static const int MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up

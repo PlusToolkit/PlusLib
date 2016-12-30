@@ -5,28 +5,28 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusSegmentationParameterDialog.h"
 #include "QSpatialCalibrationToolbox.h"
 #include "fCalMainWindow.h"
 #include "vtkPlusDisplayableObject.h"
 #include "vtkPlusVisualizationController.h"
+#include "PlusSegmentationParameterDialog.h"
 
 // PlusLib includes
-#include "PlusConfigure.h"
-#include "PlusFidPatternRecognition.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusDevice.h"
-#include "vtkPlusProbeCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
+#include <PlusConfigure.h>
+#include <PlusFidPatternRecognition.h>
+#include <PlusTrackedFrame.h>
+#include <vtkPlusDevice.h>
+#include <vtkPlusProbeCalibrationAlgo.h>
+#include <vtkPlusTrackedFrameList.h>
 
 // VTK includes
+#include <vtkPoints.h>
 #include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
 
 // Qt includes
 #include <QFileDialog>
 #include <QTimer>
-#include "vtkPoints.h"
 
 //-----------------------------------------------------------------------------
 QSpatialCalibrationToolbox::QSpatialCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
