@@ -11,7 +11,7 @@ SET (fCal_SRCS
   vtkPlusImageVisualizer.cxx
   vtkPlus3DObjectVisualizer.cxx
   PlusCaptureControlWidget.cxx 
-  QCustomAction.cxx 
+  QPlusChannelAction.cxx 
   )
 
 SET(fCal_Toolbox_SRCS
@@ -36,7 +36,7 @@ SET (fCal_UI_HDRS
   vtkPlusImageVisualizer.h
   vtkPlus3DObjectVisualizer.h
   PlusCaptureControlWidget.h 
-  QCustomAction.h 
+  QPlusChannelAction.h
   )
 
 SET (fCal_Toolbox_UI_HDRS

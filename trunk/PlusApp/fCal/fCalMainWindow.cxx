@@ -6,7 +6,7 @@ See License.txt for details.
 
 // Local includes
 #include "fCalMainWindow.h"
-#include "QCustomAction.h"
+#include "QPlusChannelAction.h"
 #include "vtkPlusVisualizationController.h"
 
 // Toolbox includes
@@ -112,25 +112,25 @@ void fCalMainWindow::Initialize()
   ui.pushButton_Tools->installEventFilter(this);
 
   // Set up menu items for image manipulation button
-  QCustomAction* mfRightUpAction = new QCustomAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
+  QPlusChannelAction* mfRightUpAction = new QPlusChannelAction("Marked Right, Far Up", ui.pushButton_ImageOrientation);
   connect(mfRightUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFUp()));
   m_ImageManipulationActionList.push_back(mfRightUpAction);
-  QCustomAction* mfLeftUpAction = new QCustomAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
+  QPlusChannelAction* mfLeftUpAction = new QPlusChannelAction("Marked Left, Far Up", ui.pushButton_ImageOrientation);
   connect(mfLeftUpAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFUp()));
   m_ImageManipulationActionList.push_back(mfLeftUpAction);
-  QCustomAction* mfRightDownAction = new QCustomAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
+  QPlusChannelAction* mfRightDownAction = new QPlusChannelAction("Marked Right, Far Down", ui.pushButton_ImageOrientation);
   connect(mfRightDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMRightFDown()));
   m_ImageManipulationActionList.push_back(mfRightDownAction);
-  QCustomAction* mfLeftDownAction = new QCustomAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
+  QPlusChannelAction* mfLeftDownAction = new QPlusChannelAction("Marked Left, Far Down", ui.pushButton_ImageOrientation);
   connect(mfLeftDownAction, SIGNAL(triggered()), this, SLOT(SetOrientationMLeftFDown()));
   m_ImageManipulationActionList.push_back(mfLeftDownAction);
-  m_ShowOrientationMarkerAction = new QCustomAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
+  m_ShowOrientationMarkerAction = new QPlusChannelAction("Show Orientation Markers", ui.pushButton_ImageOrientation);
   connect(m_ShowOrientationMarkerAction, SIGNAL(triggered()), this, SLOT(EnableOrientationMarkers()));
   m_ShowOrientationMarkerAction->setCheckable(true);
   m_ImageManipulationActionList.push_back(m_ShowOrientationMarkerAction);
-  QCustomAction* separator = new QCustomAction("", NULL, true);
+  QPlusChannelAction* separator = new QPlusChannelAction("", NULL, true);
   m_ImageManipulationActionList.push_back(separator);
-  m_ShowROIAction = new QCustomAction("Show Region of Interest", ui.pushButton_ImageOrientation);
+  m_ShowROIAction = new QPlusChannelAction("Show Region of Interest", ui.pushButton_ImageOrientation);
   connect(m_ShowROIAction, SIGNAL(triggered()), this, SLOT(EnableROI()));
   m_ShowROIAction->setCheckable(true);
   m_ImageManipulationActionList.push_back(m_ShowROIAction);
@@ -482,9 +482,9 @@ bool fCalMainWindow::eventFilter(QObject* obj, QEvent* ev)
           return true;
         }
         menu = new QMenu(tr("Orientations"), ui.pushButton_ImageOrientation);
-        for (std::vector<QCustomAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it)
+        for (std::vector<QPlusChannelAction*>::iterator it = m_ImageManipulationActionList.begin(); it != m_ImageManipulationActionList.end(); ++it)
         {
-          QCustomAction* action = (*it);
+          QPlusChannelAction* action = (*it);
           if (action->IsSeparator())
           {
             menu->addSeparator();
@@ -504,9 +504,9 @@ bool fCalMainWindow::eventFilter(QObject* obj, QEvent* ev)
         }
         menu = new QMenu(tr("Devices"), ui.pushButton_ShowDevices);
 
-        for (std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
+        for (std::vector<QPlusChannelAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
         {
-          QCustomAction* action = (*it);
+          QPlusChannelAction* action = (*it);
           if (action->IsSeparator())
           {
             menu->addSeparator();
@@ -880,30 +880,30 @@ void fCalMainWindow::Set3DManipulationMenuEnabled(bool aEnable)
 //-----------------------------------------------------------------------------
 void fCalMainWindow::BuildChannelMenu()
 {
-  for (std::vector<QCustomAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
+  for (std::vector<QPlusChannelAction*>::iterator it = m_3DActionList.begin(); it != m_3DActionList.end(); ++it)
   {
-    QCustomAction* action = *it;
+    QPlusChannelAction* action = *it;
     disconnect(action, SIGNAL(triggered()));
     delete(action);
   }
   m_3DActionList.clear();
 
   // Set up menu items for 3D manipulation menu
-  m_Show3DObjectsAction = new QCustomAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
+  m_Show3DObjectsAction = new QPlusChannelAction("Show all devices / Show content for current toolbox", ui.pushButton_ShowDevices);
   connect(m_Show3DObjectsAction, SIGNAL(triggered()), this, SLOT(ShowDevicesToggled()));
   m_Show3DObjectsAction->setCheckable(true);
   m_3DActionList.push_back(m_Show3DObjectsAction);
 
-  QCustomAction* separator = new QCustomAction("", NULL, true);
+  QPlusChannelAction* separator = new QPlusChannelAction("", NULL, true);
   m_3DActionList.push_back(separator);
 
-  m_ShowPhantomModelAction = new QCustomAction("Show phantom box", ui.pushButton_ShowDevices);
+  m_ShowPhantomModelAction = new QPlusChannelAction("Show phantom box", ui.pushButton_ShowDevices);
   connect(m_ShowPhantomModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomModelToggled()));
   m_ShowPhantomModelAction->setCheckable(true);
   m_ShowPhantomModelAction->setChecked(true);
   m_3DActionList.push_back(m_ShowPhantomModelAction);
 
-  m_ShowPhantomWiresModelAction = new QCustomAction("Show phantom wires", ui.pushButton_ShowDevices);
+  m_ShowPhantomWiresModelAction = new QPlusChannelAction("Show phantom wires", ui.pushButton_ShowDevices);
   connect(m_ShowPhantomWiresModelAction, SIGNAL(triggered()), this, SLOT(ShowPhantomWiresModelToggled()));
   m_ShowPhantomWiresModelAction->setCheckable(true);
   m_ShowPhantomWiresModelAction->setChecked(true);
@@ -917,7 +917,7 @@ void fCalMainWindow::BuildChannelMenu()
     return;
   }
 
-  separator = new QCustomAction("", NULL, true);
+  separator = new QPlusChannelAction("", NULL, true);
   m_3DActionList.push_back(separator);
 
   // Determine total number of output channels
@@ -941,7 +941,7 @@ void fCalMainWindow::BuildChannelMenu()
       vtkPlusChannel* aChannel = *channelIter;
       std::stringstream ss;
       ss << device->GetDeviceId() << " : " << aChannel->GetChannelId();
-      QCustomAction* action = new QCustomAction(QString::fromLatin1(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
+      QPlusChannelAction* action = new QPlusChannelAction(QString::fromLatin1(ss.str().c_str()), ui.pushButton_ShowDevices, false, aChannel);
       action->setCheckable(true);
       action->setDisabled(numChannels == 1);
       vtkPlusChannel* currentChannel(NULL);

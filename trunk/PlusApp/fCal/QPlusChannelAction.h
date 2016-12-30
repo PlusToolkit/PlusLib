@@ -14,12 +14,12 @@ See License.txt for details.
 // Qt includes
 #include <QAction>
 
-class QCustomAction : public QAction
+class QPlusChannelAction : public QAction
 {
   Q_OBJECT
 
 public:
-  QCustomAction(const QString& text, QObject* parent, bool aIsSeparator = false, vtkPlusChannel* ownerChannel = NULL);
+  QPlusChannelAction(const QString& text, QObject* parent, bool aIsSeparator = false, vtkPlusChannel* ownerChannel = NULL);
   bool IsSeparator()
   {
     return m_IsSeparator;

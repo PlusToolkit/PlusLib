@@ -5,10 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "QCustomAction.h"
+#include "QPlusChannelAction.h"
 
 //-----------------------------------------------------------------------------
-QCustomAction::QCustomAction(const QString& text, QObject* parent, bool aIsSeparator, vtkPlusChannel* ownerChannel)
+QPlusChannelAction::QPlusChannelAction(const QString& text, QObject* parent, bool aIsSeparator, vtkPlusChannel* ownerChannel)
   : QAction(text, parent)
   , m_IsSeparator(aIsSeparator)
   , m_OwnerChannel(ownerChannel)
@@ -16,7 +16,7 @@ QCustomAction::QCustomAction(const QString& text, QObject* parent, bool aIsSepar
 }
 
 //-----------------------------------------------------------------------------
-void QCustomAction::activated()
+void QPlusChannelAction::activated()
 {
   emit channelSelected(m_OwnerChannel);
 }

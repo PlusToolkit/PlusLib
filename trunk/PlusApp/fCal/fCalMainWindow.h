@@ -12,7 +12,7 @@ See License.txt for details.
 #include <QMainWindow>
 
 class QAbstractToolbox;
-class QCustomAction;
+class QPlusChannelAction;
 class QLabel;
 class QPlusStatusIcon;
 class QProgressBar;
@@ -340,25 +340,25 @@ protected:
   bool                                m_ForceShowAllDevicesIn3D;
 
   /*! Keep a reference to this action because we'll need to reference its state */
-  QCustomAction*                      m_ShowOrientationMarkerAction;
+  QPlusChannelAction*                      m_ShowOrientationMarkerAction;
 
   /*! Keep a reference to this action because we'll need to reference its state */
-  QCustomAction*                      m_ShowROIAction;
+  QPlusChannelAction*                      m_ShowROIAction;
 
   /*! Reference to all actions that will show up in ROI list */
-  std::vector<QCustomAction*>         m_ImageManipulationActionList;
+  std::vector<QPlusChannelAction*>         m_ImageManipulationActionList;
 
   /*! Reference to the switch mode button */
-  QCustomAction*                      m_Show3DObjectsAction;
+  QPlusChannelAction*                      m_Show3DObjectsAction;
 
   /*! Reference to the show phantom action */
-  QCustomAction*                      m_ShowPhantomModelAction;
+  QPlusChannelAction*                      m_ShowPhantomModelAction;
 
   /*! Reference to the show phantom wires action */
-  QCustomAction*                      m_ShowPhantomWiresModelAction;
+  QPlusChannelAction*                      m_ShowPhantomWiresModelAction;
 
   /*! Reference to all actions that will show up in ROI list */
-  std::vector<QCustomAction*>         m_3DActionList;
+  std::vector<QPlusChannelAction*>         m_3DActionList;
 
   /*! Selected channel */
   vtkPlusChannel*                     m_SelectedChannel;

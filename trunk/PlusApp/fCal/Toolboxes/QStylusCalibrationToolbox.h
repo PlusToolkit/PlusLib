@@ -66,7 +66,7 @@ public:
 
   /*!
   * Return pivot calibration algorithm object
-  * \return Pivot calibration algo
+  * \return Pivot calibration algorithm
   */
   vtkPlusPivotCalibrationAlgo* GetPivotCalibrationAlgo();
 
