@@ -24,22 +24,13 @@ See License.txt for details.
 QStylusCalibrationToolbox::QStylusCalibrationToolbox(fCalMainWindow* aParentMainWindow, Qt::WindowFlags aFlags)
   : QAbstractToolbox(aParentMainWindow)
   , QWidget(aParentMainWindow, aFlags)
+  , m_PivotCalibration(vtkSmartPointer<vtkPlusPivotCalibrationAlgo>::New())
   , m_NumberOfPoints(200)
   , m_FreeHandStartupDelaySec(5)
   , m_CurrentPointNumber(0)
-  , m_PreviousStylusToReferenceTransformMatrix(NULL)
+  , m_PreviousStylusToReferenceTransformMatrix(vtkSmartPointer<vtkMatrix4x4>::New())
 {
   ui.setupUi(this);
-
-  // Create algorithm class
-  m_PivotCalibration = vtkPlusPivotCalibrationAlgo::New();
-  if (m_PivotCalibration == NULL)
-  {
-    LOG_ERROR("Unable to instantiate pivot calibration algorithm class!");
-    return;
-  }
-
-  m_PreviousStylusToReferenceTransformMatrix = vtkMatrix4x4::New();
 
   // Feed number of points from controller
   ui.spinBox_NumberOfStylusCalibrationPoints->setValue(m_NumberOfPoints);
@@ -52,17 +43,6 @@ QStylusCalibrationToolbox::QStylusCalibrationToolbox(fCalMainWindow* aParentMain
 //-----------------------------------------------------------------------------
 QStylusCalibrationToolbox::~QStylusCalibrationToolbox()
 {
-  if (m_PivotCalibration != NULL)
-  {
-    m_PivotCalibration->Delete();
-    m_PivotCalibration = NULL;
-  }
-
-  if (m_PreviousStylusToReferenceTransformMatrix != NULL)
-  {
-    m_PreviousStylusToReferenceTransformMatrix->Delete();
-    m_PreviousStylusToReferenceTransformMatrix = NULL;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -76,8 +56,7 @@ void QStylusCalibrationToolbox::OnActivated()
     m_ParentMainWindow->GetVisualizationController()->ClearResultPolyData();
 
     bool initializationSuccess = true;
-    if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL)
-        || !(m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
+    if ((m_ParentMainWindow->GetVisualizationController()->GetDataCollector() == NULL) || !(m_ParentMainWindow->GetVisualizationController()->GetDataCollector()->GetConnected()))
     {
       LOG_ERROR("Reading pivot calibration algorithm configuration failed!");
       initializationSuccess = false;
@@ -159,7 +138,7 @@ PlusStatus QStylusCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aConf
 //-----------------------------------------------------------------------------
 void QStylusCalibrationToolbox::RefreshContent()
 {
-  //LOG_TRACE("StylusCalibrationToolbox: Refresh stylus calibration toolbox content");
+  LOG_TRACE("StylusCalibrationToolbox::RefreshContent");
 
   if (m_State == ToolboxState_Idle)
   {
@@ -358,7 +337,7 @@ void QStylusCalibrationToolbox::SetDisplayAccordingToState()
     ui.label_CurrentPositionText->setText(tr("Current stylus position (mm):"));
     ui.label_CurrentPosition->setText(m_StylusPositionString);
     ui.label_StylusTipTransform->setText(tr("N/A"));
-    ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are aquired"));
+    ui.label_Instructions->setText(tr("Move around stylus with its tip fixed until the required amount of points are acquired"));
 
     ui.pushButton_StartStop->setEnabled(true);
     ui.pushButton_StartStop->setText("Stop");
