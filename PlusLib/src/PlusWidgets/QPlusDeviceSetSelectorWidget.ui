@@ -66,7 +66,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="PlusCommonWidgets.qrc">
+        <iconset resource="PlusWidgets.qrc">
          <normaloff>:/icons/Resources/icon_OpenFile.png</normaloff>:/icons/Resources/icon_OpenFile.png</iconset>
        </property>
       </widget>
@@ -86,7 +86,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="PlusCommonWidgets.qrc">
+        <iconset resource="PlusWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Refresh.png</normaloff>:/icons/Resources/icon_Refresh.png</iconset>
        </property>
       </widget>
@@ -133,7 +133,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="PlusCommonWidgets.qrc">
+        <iconset resource="PlusWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Edit.png</normaloff>:/icons/Resources/icon_Edit.png</iconset>
        </property>
       </widget>
@@ -196,7 +196,7 @@
         <string>Connect</string>
        </property>
        <property name="icon">
-        <iconset resource="PlusCommonWidgets.qrc">
+        <iconset resource="PlusWidgets.qrc">
          <normaloff>:/icons/Resources/icon_Connect.png</normaloff>:/icons/Resources/icon_Connect.png</iconset>
        </property>
       </widget>
@@ -226,7 +226,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="PlusCommonWidgets.qrc"/>
+  <include location="PlusWidgets.qrc"/>
  </resources>
  <connections/>
 </ui>
