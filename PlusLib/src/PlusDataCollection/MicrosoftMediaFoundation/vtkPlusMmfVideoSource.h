@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 /*=========================================================================
 The following copyright notice is applicable to parts of this file:
@@ -11,7 +11,7 @@ All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
-=========================================================================*/ 
+=========================================================================*/
 
 #ifndef __vtkPlusMmfVideoSource_h
 #define __vtkPlusMmfVideoSource_h
@@ -27,14 +27,14 @@ Authors include: Danielle Pace
 class MmfVideoSourceReader;
 
 /*!
-  \class vtkPlusMmfVideoSource 
+  \class vtkPlusMmfVideoSource
   \brief Microsoft media foundation video digitizer
 
   Media foundation require Microsoft Windows SDK 7.1 or later. Download <a href="http://www.microsoft.com/en-us/download/details.aspx?id=8279">here</a>
 
   \sa vtkPlusDevice
   \ingroup PlusLibDataCollection
-*/ 
+*/
 class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
 {
   friend class MmfVideoSourceReader;
@@ -44,24 +44,24 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
     unsigned int DeviceId;
     unsigned int StreamIndex;
     int FrameSize[2];
-    std::string PixelFormatName; // e.g., YUY2    
+    std::wstring PixelFormatName; // e.g., YUY2
   };
 
 public:
-  static vtkPlusMmfVideoSource *New();
+  static vtkPlusMmfVideoSource* New();
   vtkTypeMacro(vtkPlusMmfVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual void SetRequestedDeviceId(unsigned int deviceId);  
-  virtual void SetRequestedVideoFormat(const std::string& pixelFormatName);
+  virtual void SetRequestedDeviceId(unsigned int deviceId);
+  virtual void SetRequestedVideoFormat(const std::wstring& pixelFormatName);
   virtual void SetRequestedStreamIndex(unsigned int streamIndex);
   virtual void SetRequestedFrameSize(int frameSize[2]);
-  
-  std::string GetRequestedDeviceName();
-  std::string GetActiveDeviceName();
-  void GetListOfCaptureVideoFormats(std::vector< std::string > &videoModes, unsigned int deviceId);
+
+  std::wstring GetRequestedDeviceName();
+  std::wstring GetActiveDeviceName();
+  void GetListOfCaptureVideoFormats(std::vector<std::wstring>& videoModes, unsigned int deviceId);
   void LogListOfCaptureVideoFormats(unsigned int deviceId);
-  void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
+  void GetListOfCaptureDevices(std::vector<std::wstring>& deviceNames);
   void LogListOfCaptureDevices();
 
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* xmlElement);
@@ -94,7 +94,7 @@ protected:
 
   PlusStatus AddFrame(unsigned char* bufferData, DWORD bufferSize);
 
-  std::string GetCaptureDeviceName(unsigned int deviceId);
+  std::wstring GetCaptureDeviceName(unsigned int deviceId);
 
   int FrameIndex;
 
