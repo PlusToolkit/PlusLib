@@ -122,6 +122,14 @@ MODEL_TABLE_ROW(
   ID "OrientationLR-Plane"
   DESCRIPTION "This is the most simple reference sensor holder to be used on patients. In a certain surgical setting (e.g. when stuck on the chest) this defines the patient orientation. This allows saving virtual camera positions."
   )
+MODEL_TABLE_ROW(
+  ID "PolarisAscensionPlane"
+  IMAGE_PRINTABLE_FILE "TrackingFixtures/MultiModalityTracking/PolarisAscensionPlane.STL"
+  PRINTABLE_FILES
+    "TrackingFixtures/MultiModalityTracking/PolarisAscensionPlane.STL"
+	"TrackingFixtures/MultiModalityTracking/PolarisAscensionPlane.rom"
+  DESCRIPTION "Part that can be tracked by both Polaris and Ascension trackers"
+  )
 # Add remaining experimental tools
 SET(EXPERIMENTAL_TRACKING_FIXTURES
   MarkerHolder_120mm_Winged_1.0
