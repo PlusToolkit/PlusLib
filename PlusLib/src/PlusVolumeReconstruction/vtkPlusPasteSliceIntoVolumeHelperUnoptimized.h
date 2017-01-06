@@ -331,7 +331,6 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
           if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
           {
             // too dark, skip this pixel
-            inPtr += numscalars;
             continue;
           }
         }        

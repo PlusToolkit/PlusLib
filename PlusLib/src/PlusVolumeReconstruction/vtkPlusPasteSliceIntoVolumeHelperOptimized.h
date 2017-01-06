@@ -1028,7 +1028,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
       bool skipMiddleSegment = false;
       int xSkipMiddleSegmentPixStart; // first pixel that should be skipped in the middle
       int xSkipMiddleSegmentPixEnd; // last pixel that should be skipped in the middle
-      if (fanClippingEnabled)
+      if (fanClippingEnabled && xIntersectionPixStart <= xIntersectionPixEnd)
       {
         // equivalent to: xIntersectionPixStart < PlusMath::Ceil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
         // this is what the radius would be based on tan(fanAngle)
