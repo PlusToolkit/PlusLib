@@ -408,7 +408,7 @@ ENDIF()
 IF (PLUS_USE_INTELREALSENSE)
     ADD_EXECUTABLE(vtkIntelRealSenseTrackerTest vtkIntelRealSenseTrackerTest.cxx)
 SET_TARGET_PROPERTIES(vtkIntelRealSenseTrackerTest PROPERTIES FOLDER Tests)
-    TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon)    
+    TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
 ENDIF()
 
 #***************************  vtkNVidiaDVPVideoSourceTest ***************************
