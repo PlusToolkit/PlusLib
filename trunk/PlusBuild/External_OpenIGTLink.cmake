@@ -32,7 +32,7 @@ IF(OpenIGTLink_DIR)
 ELSE()
 
   # OpenIGTLink has not been built yet, so download and build it as an external project
-  MESSAGE(STATUS "Downloading OpenIGTLink from ${GIT_PROTOCOL}://github.com/IGSIO/OpenIGTLink.git.")
+  MESSAGE(STATUS "Downloading OpenIGTLink from ${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git.")
   
   SET (PLUS_OpenIGTLink_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/OpenIGTLink")
   SET (PLUS_OpenIGTLink_DIR "${CMAKE_BINARY_DIR}/Deps/OpenIGTLink-bin" CACHE INTERNAL "Path to store OpenIGTLink binaries")
@@ -42,8 +42,8 @@ ELSE()
     SOURCE_DIR "${PLUS_OpenIGTLink_SRC_DIR}"
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
     #--Download step--------------
-    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/IGSIO/OpenIGTLink.git"
-    GIT_TAG "6ed7e75180726671ed1a8c8876f06a53ed06f788"
+    GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
+    GIT_TAG "dcdb5b93eba56aebf84afbca69e972f261c20626"
     #--Configure step-------------
     CMAKE_ARGS 
         ${ep_common_args}
