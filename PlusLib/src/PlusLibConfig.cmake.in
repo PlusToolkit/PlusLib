@@ -30,6 +30,8 @@ ENDIF()
 SET(PlusLib_TARGETS_FILE @CMAKE_BINARY_DIR@/PlusLibTargets.cmake)
 INCLUDE(${PlusLib_TARGETS_FILE})
 
+SET(PLUS_USE_OpenIGTLinkIO @PLUS_USE_OpenIGTLinkIO@)
+
 # Tell the user project where to find our headers and libraries
 SET(PlusLib_INCLUDE_DIRS "@PLUSLIB_INCLUDE_DIRS@")
 SET(PlusLib_DATA_DIR "@PLUSLIB_DATA_DIR@")
@@ -112,6 +114,7 @@ ENDIF()
 IF(@PLUS_USE_OpenIGTLink@)
   SET(OpenIGTLink_DIR "@OpenIGTLink_DIR@")
   FIND_PACKAGE(OpenIGTLink NO_MODULE REQUIRED)
+
   IF(@PLUS_USE_OpenIGTLinkIO@)
     SET(OpenIGTLinkIO_DIR "@OpenIGTLinkIO_DIR@")
     FIND_PACKAGE(OpenIGTLinkIO NO_MODULE REQUIRED)
