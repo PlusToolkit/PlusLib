@@ -5,12 +5,12 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include <QPlusDeviceSetSelectorWidget.h>
 #include "PlusServerLauncherMainWindow.h"
-#include <QPlusStatusIcon.h>
 
 // PlusLib includes
 #include <PlusCommon.h>
+#include <QPlusDeviceSetSelectorWidget.h>
+#include <QPlusStatusIcon.h>
 #include <vtkPlusDataCollector.h>
 #include <vtkPlusDeviceFactory.h>
 #include <vtkPlusOpenIGTLinkServer.h>
@@ -28,8 +28,12 @@ See License.txt for details.
 #include <QStringList>
 #include <QTimer>
 
-// std includes
+// STL includes
 #include <algorithm>
+
+#if defined(PLUS_USE_OpenIGTLinkIO)
+#include <vtkIGTLIODevice.h>
+#endif
 
 namespace
 {
@@ -145,6 +149,11 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent /*=0*
 
   if (m_RemoteControlServerPort != PlusServerLauncherMainWindow::RemoteControlServerPortDisable)
   {
+    if (m_RemoteControlServerPort == PlusServerLauncherMainWindow::RemoteControlServerPortUseDefault)
+    {
+      m_RemoteControlServerPort = DEFAULT_REMOTE_CONTROL_SERVER_PORT;
+    }
+
 #ifdef PLUS_USE_OpenIGTLinkIO
     LOG_INFO("Start remote control server at port: " << m_RemoteControlServerPort);
     m_RemoteControlServerLogic = vtkIGTLIOLogicPointer::New();
@@ -453,24 +462,24 @@ void PlusServerLauncherMainWindow::ErrorReceived(QProcess::ProcessError errorCod
   const char* errorString = "unknown";
   switch ((QProcess::ProcessError)errorCode)
   {
-    case QProcess::FailedToStart:
-      errorString = "FailedToStart";
-      break;
-    case QProcess::Crashed:
-      errorString = "Crashed";
-      break;
-    case QProcess::Timedout:
-      errorString = "Timedout";
-      break;
-    case QProcess::WriteError:
-      errorString = "WriteError";
-      break;
-    case QProcess::ReadError:
-      errorString = "ReadError";
-      break;
-    case QProcess::UnknownError:
-    default:
-      errorString = "UnknownError";
+  case QProcess::FailedToStart:
+    errorString = "FailedToStart";
+    break;
+  case QProcess::Crashed:
+    errorString = "Crashed";
+    break;
+  case QProcess::Timedout:
+    errorString = "Timedout";
+    break;
+  case QProcess::WriteError:
+    errorString = "WriteError";
+    break;
+  case QProcess::ReadError:
+    errorString = "ReadError";
+    break;
+  case QProcess::UnknownError:
+  default:
+    errorString = "UnknownError";
   }
   LOG_ERROR("Server process error: " << errorString);
   m_DeviceSetSelectorWidget->SetConnectionSuccessful(false);
@@ -499,13 +508,24 @@ void PlusServerLauncherMainWindow::LogLevelChanged()
 }
 
 //---------------------------------------------------------------------------
-void PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void* calldata)
+void PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eventId, void* clientData, void* callData)
 {
 #ifdef PLUS_USE_OpenIGTLinkIO
-  PlusServerLauncherMainWindow* self = reinterpret_cast<PlusServerLauncherMainWindow*>(clientdata);
-  std::cout << "-------------------- LogicFixture=" << self << ", onReceivedEventFunc " << eid << std::endl;
+  PlusServerLauncherMainWindow* self = reinterpret_cast<PlusServerLauncherMainWindow*>(clientData);
 
-  //self->LastReceivedEvent = eid;
-  //  logic->InvokeEvent(vtkIGTLIOLogic::NewDeviceEvent, calldata);
+  auto device = dynamic_cast<vtkIGTLIODevice*>(caller);
+
+  if (device == nullptr)
+  {
+    return;
+  }
+
+  switch (eventId)
+  {
+  case vtkIGTLIOLogic::CommandQueryReceivedEvent:
+    break;
+  case vtkIGTLIOLogic::CommandResponseReceivedEvent:
+    break;
+  }
 #endif
 }

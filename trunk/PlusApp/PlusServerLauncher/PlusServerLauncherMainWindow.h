@@ -14,8 +14,8 @@
 #include <QProcess>
 
 #ifdef PLUS_USE_OpenIGTLinkIO
-#include "vtkIGTLIOLogic.h"
-#include "vtkIGTLIOConnector.h"
+#include <vtkIGTLIOLogic.h>
+#include <vtkIGTLIOConnector.h>
 #endif
 
 class QPlusDeviceSetSelectorWidget;
@@ -43,6 +43,7 @@ public:
     RemoteControlServerPortDisable = -1,
     RemoteControlServerPortUseDefault = 0
   };
+  static const int DEFAULT_REMOTE_CONTROL_SERVER_PORT = 18904;
 
   /*!
     Constructor
@@ -52,8 +53,6 @@ public:
   */
   PlusServerLauncherMainWindow(QWidget* parent = 0, Qt::WindowFlags flags = 0, bool autoConnect = false, int remoteControlServerPort = RemoteControlServerPortUseDefault);
   ~PlusServerLauncherMainWindow();
-
-  inline int DefaultRemoteControlServerPort() { return 18904; }
 
 protected slots:
   /*!

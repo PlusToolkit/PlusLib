@@ -155,7 +155,7 @@ protected:
   virtual ~vtkPlusOpenIGTLinkServer();
 
   /*! Add a response to the queue for sending to the client */
-  PlusStatus QueueMessageReponseForClient(int clientId, igtl::MessageBase::Pointer message);
+  PlusStatus QueueMessageResponseForClient(int clientId, igtl::MessageBase::Pointer message);
 
   /*! Thread for client connection handling */
   static void* ConnectionReceiverThread(vtkMultiThreader::ThreadInfo* data);

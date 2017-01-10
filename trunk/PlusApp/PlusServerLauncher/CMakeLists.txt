@@ -47,11 +47,8 @@ ELSEIF(TARGET vtkRenderingGL2PS)
     )
 ENDIF()
 
-IF(PLUS_USE_OpenIGTLinkIO)
-  find_package(OpenIGTLinkIO REQUIRED)
-  SET (PlusServerLauncher_LIBS ${PlusServerLauncher_LIBS}
-    igtlioLogic
-    )
+IF(TARGET igtlioLogic)
+  LIST(APPEND PlusServerLauncher_LIBS igtlioLogic)
 ENDIF()
 
 SET (APP_MODE MACOSX_BUNDLE)

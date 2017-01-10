@@ -4,30 +4,43 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
-#include "vtkPlusDataCollector.h"
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusIgtlMessageFactory.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusTransformRepository.h"
-#include "vtkPlusCommand.h"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkObjectFactory.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataReader.h>
 
 // OpenIGTLink includes
-#include "igtlCommandMessage.h"
-#include "igtlImageMessage.h"
-#include "igtlImageMetaMessage.h"
-#include "igtlMessageHeader.h"
-#include "igtlPlusClientInfoMessage.h"
-#include "igtlStatusMessage.h"
-#include "igtlStringMessage.h"
-#include "igtlTrackingDataMessage.h"
+#include <igtlCommandMessage.h>
+#include <igtlImageMessage.h>
+#include <igtlImageMetaMessage.h>
+#include <igtlMessageHeader.h>
+#include <igtlPlusClientInfoMessage.h>
+#include <igtlStatusMessage.h>
+#include <igtlStringMessage.h>
+#include <igtlPolyDataMessage.h>
+#include <igtlTrackingDataMessage.h>
+
+// OpenIGTLinkIO includes
+#include <igtlPolyDataConverter.h>
+
+// STL includes
+#include <future>
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
@@ -95,7 +108,7 @@ vtkPlusOpenIGTLinkServer::~vtkPlusOpenIGTLinkServer()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkServer::QueueMessageReponseForClient(int clientId, igtl::MessageBase::Pointer message)
+PlusStatus vtkPlusOpenIGTLinkServer::QueueMessageResponseForClient(int clientId, igtl::MessageBase::Pointer message)
 {
   bool found(false);
   {
@@ -678,8 +691,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     {
       std::string deviceName("");
 
-      igtl::StartTrackingDataMessage::Pointer startTracking;
-      startTracking = igtl::StartTrackingDataMessage::New();
+      igtl::StartTrackingDataMessage::Pointer startTracking = dynamic_cast<igtl::StartTrackingDataMessage*>(bodyMessage.GetPointer());
       startTracking->SetMessageHeader(headerMsg);
       startTracking->AllocateBuffer();
 
@@ -701,16 +713,86 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
       rtsMsg->SetStatus(0);
       rtsMsg->Pack();
-      self->QueueMessageReponseForClient(client->ClientId, msg);
+      self->QueueMessageResponseForClient(client->ClientId, msg);
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StopTrackingDataMessage))
     {
+      igtl::StopTrackingDataMessage::Pointer stopTracking = dynamic_cast<igtl::StopTrackingDataMessage*>(bodyMessage.GetPointer());
+      stopTracking->SetMessageHeader(headerMsg);
+      stopTracking->AllocateBuffer();
+
+      clientSocket->Receive(stopTracking->GetBufferBodyPointer(), stopTracking->GetBufferBodySize());
+
       client->ClientInfo.TDATARequested = false;
       igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
       igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
       rtsMsg->SetStatus(0);
       rtsMsg->Pack();
-      self->QueueMessageReponseForClient(client->ClientId, msg);
+      self->QueueMessageResponseForClient(client->ClientId, msg);
+    }
+    else if (typeid(*bodyMessage) == typeid(igtl::GetPolyDataMessage))
+    {
+      igtl::GetPolyDataMessage::Pointer polyDataMessage = dynamic_cast<igtl::GetPolyDataMessage*>(bodyMessage.GetPointer());
+      polyDataMessage->SetMessageHeader(headerMsg);
+      polyDataMessage->AllocateBuffer();
+
+      clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
+
+      std::string fileName;
+      // Check metadata for requisite parameters, if absent, check deviceName
+      if (polyDataMessage->GetHeaderVersion() > IGTL_HEADER_VERSION_1)
+      {
+        if (!polyDataMessage->GetMetaDataElement("filename", fileName))
+        {
+          fileName = polyDataMessage->GetDeviceName();
+          if (fileName.empty())
+          {
+            LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
+            continue;
+          }
+        }
+      }
+      else
+      {
+        fileName = polyDataMessage->GetDeviceName();
+        if (fileName.empty())
+        {
+          LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
+          continue;
+        }
+      }
+
+      std::async(std::launch::async, [self, client, fileName, version = polyDataMessage->GetHeaderVersion()]()
+      {
+        vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+        reader->SetFileName(fileName.c_str());
+        reader->Update();
+
+        auto polyData = reader->GetOutput();
+        if (polyData != nullptr)
+        {
+          igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", version);
+          igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
+
+          igtl::PolyDataConverter::MessageContent content;
+          content.deviceName = "PlusServer";
+          content.polydata = polyData;
+          igtl::PolyDataConverter::Pointer converter = igtl::PolyDataConverter::New();
+          converter->VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
+          if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
+          {
+            LOG_ERROR("Filename too long to be sent back to client. Aborting.");
+            return;
+          }
+          self->QueueMessageResponseForClient(client->ClientId, msg);
+          return;
+        }
+
+        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", version);
+        igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
+        rtsPolyMsg->SetStatus(false);
+        self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
+      });
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StatusMessage))
     {
@@ -1171,7 +1253,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
 
       for (std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it)
       {
-        igtlMessage->AddMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
+        igtlMessage->SetMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
       }
 
       LOG_DEBUG("Command response: " << replyStr.str());

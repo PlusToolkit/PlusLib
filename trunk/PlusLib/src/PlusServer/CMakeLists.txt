@@ -58,6 +58,7 @@ SET (PlusServer_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
   vtkPlusVolumeReconstruction
+  igtlioConverter
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
