@@ -289,6 +289,15 @@ public:
     return PLUS_SUCCESS;
   };
 
+  /*!
+  Build a list of all of the input devices directly connected to this device (if any)
+  */
+  PlusStatus GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList);
+  /*!
+  Recursively assemble all devices that feed into this device (if any)
+  */
+  PlusStatus GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList);
+
   //BTX
   // These are used by static functions in vtkPlusDevice.cxx, and since
   // VTK doesn't generally use 'friend' functions they are public

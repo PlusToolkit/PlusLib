@@ -36,6 +36,8 @@ public:
 
   void SetNameToRequestChannelIds();
   void SetNameToRequestDeviceIds();
+  void SetNameToRequestInputDeviceIds();
+  void SetNameToRequestDeviceChannelIds();
 
   /*! Read command parameters from XML */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
@@ -47,12 +49,16 @@ public:
   vtkSetStringMacro(DeviceType);
   vtkGetStringMacro(DeviceType);
 
+  vtkSetStringMacro(DeviceId);
+  vtkGetStringMacro(DeviceId);
+
 protected:
 
   vtkPlusRequestIdsCommand();
   virtual ~vtkPlusRequestIdsCommand();
 
   char* DeviceType;
+  char* DeviceId;
 
 private:
 
