@@ -48,6 +48,7 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   virtual double GetAcquisitionRate() const;
+
 protected:
   vtkPlusVirtualMixer();
   virtual ~vtkPlusVirtualMixer();

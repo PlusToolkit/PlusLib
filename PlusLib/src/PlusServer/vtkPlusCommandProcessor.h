@@ -66,6 +66,12 @@ public:
   virtual PlusStatus QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString);
 
   /*!
+  Adds a response to the response queue for reply. Can be called from any thread.
+  Adds support for receiving commands to be rejected without processing but send an error reply
+  */
+  virtual PlusStatus QueueCommandResponse(const PlusStatus& status, const std::string &deviceName, unsigned int clientId, const std::string& commandName, uint32_t uid, const std::string &replyString);
+
+  /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
     The caller is responsible for deleting the returned response objects.
     Can be called from any thread.

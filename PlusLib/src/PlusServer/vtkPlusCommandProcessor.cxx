@@ -2,7 +2,7 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
@@ -13,10 +13,10 @@ See License.txt for details.
 #include "vtkPlusGetImageCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
-  #include "vtkPlusStealthLinkCommand.h"
+#include "vtkPlusStealthLinkCommand.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  #include "vtkPlusConoProbeLinkCommand.h"
+#include "vtkPlusConoProbeLinkCommand.h"
 #endif
 #include "igtl_header.h"
 #include "vtkPlusGetTransformCommand.h"
@@ -29,15 +29,15 @@ See License.txt for details.
 #include "vtkPlusVersionCommand.h"
 #include "vtkXMLUtilities.h"
 
-vtkStandardNewMacro( vtkPlusCommandProcessor );
+vtkStandardNewMacro(vtkPlusCommandProcessor);
 
 //----------------------------------------------------------------------------
 vtkPlusCommandProcessor::vtkPlusCommandProcessor()
-: PlusServer(NULL)
-, Threader(vtkSmartPointer<vtkMultiThreader>::New())
-, Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-, CommandExecutionActive(std::make_pair(false,false))
-, CommandExecutionThreadId(-1)
+  : PlusServer(NULL)
+  , Threader(vtkSmartPointer<vtkMultiThreader>::New())
+  , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , CommandExecutionActive(std::make_pair(false, false))
+  , CommandExecutionThreadId(-1)
 {
   // Register default commands
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New());
@@ -63,7 +63,7 @@ vtkPlusCommandProcessor::~vtkPlusCommandProcessor()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusCommandProcessor::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusCommandProcessor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Available Commands : ";
@@ -83,10 +83,10 @@ void vtkPlusCommandProcessor::PrintSelf( ostream& os, vtkIndent indent )
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::Start()
 {
-  if ( this->CommandExecutionThreadId < 0 )
+  if (this->CommandExecutionThreadId < 0)
   {
     this->CommandExecutionActive.first = true;
-    this->CommandExecutionThreadId = this->Threader->SpawnThread( (vtkThreadFunctionType)&CommandExecutionThread, this );
+    this->CommandExecutionThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)&CommandExecutionThread, this);
   }
   return PLUS_SUCCESS;
 }
@@ -95,15 +95,15 @@ PlusStatus vtkPlusCommandProcessor::Start()
 PlusStatus vtkPlusCommandProcessor::Stop()
 {
   // Stop the command execution thread
-  if ( this->CommandExecutionThreadId >=0 )
+  if (this->CommandExecutionThreadId >= 0)
   {
-    this->CommandExecutionActive.first = false; 
-    while ( this->CommandExecutionActive.second )
+    this->CommandExecutionActive.first = false;
+    while (this->CommandExecutionActive.second)
     {
-      // Wait until the thread stops 
-      vtkPlusAccurateTimer::Delay( 0.2 ); 
+      // Wait until the thread stops
+      vtkPlusAccurateTimer::Delay(0.2);
     }
-    this->CommandExecutionThreadId = -1; 
+    this->CommandExecutionThreadId = -1;
   }
 
   LOG_DEBUG("Command execution thread stopped");
@@ -112,20 +112,20 @@ PlusStatus vtkPlusCommandProcessor::Stop()
 }
 
 //----------------------------------------------------------------------------
-void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadInfo* data )
+void* vtkPlusCommandProcessor::CommandExecutionThread(vtkMultiThreader::ThreadInfo* data)
 {
-  vtkPlusCommandProcessor* self = (vtkPlusCommandProcessor*)( data->UserData );
+  vtkPlusCommandProcessor* self = (vtkPlusCommandProcessor*)(data->UserData);
 
-  self->CommandExecutionActive.second = true;   
+  self->CommandExecutionActive.second = true;
 
-  // Execute commands until a stop is requested  
-  while ( self->CommandExecutionActive.first )
+  // Execute commands until a stop is requested
+  while (self->CommandExecutionActive.first)
   {
     self->ExecuteCommands();
     // no commands in the queue, wait a bit before checking again
-    const double commandQueuePollIntervalSec=0.010;
+    const double commandQueuePollIntervalSec = 0.010;
 #ifdef _WIN32
-    Sleep(commandQueuePollIntervalSec*1000);
+    Sleep(commandQueuePollIntervalSec * 1000);
 #else
     usleep(commandQueuePollIntervalSec * 1000000);
 #endif
@@ -133,18 +133,18 @@ void* vtkPlusCommandProcessor::CommandExecutionThread( vtkMultiThreader::ThreadI
 
   // Close thread
   self->CommandExecutionThreadId = -1;
-  self->CommandExecutionActive.second = false; 
+  self->CommandExecutionActive.second = false;
   return NULL;
 }
 
 //----------------------------------------------------------------------------
 int vtkPlusCommandProcessor::ExecuteCommands()
-{   
+{
   // Implemented in a while loop to not block the mutex during command execution, only during management of the queue.
   int numberOfExecutedCommands(0);
   while (1)
   {
-    vtkSmartPointer<vtkPlusCommand> cmd; // next command to be processed  
+    vtkSmartPointer<vtkPlusCommand> cmd; // next command to be processed
     {
       PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       if (this->CommandQueue.empty())
@@ -163,10 +163,10 @@ int vtkPlusCommandProcessor::ExecuteCommands()
 
     // move the response objects from the command to the processor's queue
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);  
+      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       cmd->PopCommandResponses(this->CommandResponseQueue);
     }
-    
+
     numberOfExecutedCommands++;
   }
 
@@ -191,34 +191,34 @@ PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
     return PLUS_FAIL;
   }
 
-  for (std::list<std::string>::iterator nameIt=cmdNames.begin(); nameIt!=cmdNames.end(); ++nameIt)
+  for (std::list<std::string>::iterator nameIt = cmdNames.begin(); nameIt != cmdNames.end(); ++nameIt)
   {
-    this->RegisteredCommands[*nameIt]=cmd;
+    this->RegisteredCommands[*nameIt] = cmd;
     cmd->Register(this);
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& commandName, const std::string &commandStr)
+vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& commandName, const std::string& commandStr)
 {
-  vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromString(commandStr.c_str()) );
-  if (cmdElement.GetPointer()==NULL)
+  vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(commandStr.c_str()));
+  if (cmdElement.GetPointer() == NULL)
   {
-    LOG_ERROR("failed to parse XML command string (received: "+commandStr+")");
+    LOG_ERROR("failed to parse XML command string (received: " + commandStr + ")");
     return NULL;
   }
 
-  if (STRCASECMP(cmdElement->GetName(),"Command")!=0)
+  if (STRCASECMP(cmdElement->GetName(), "Command") != 0)
   {
-    LOG_ERROR("Command element expected (received: "+commandStr+")");
+    LOG_ERROR("Command element expected (received: " + commandStr + ")");
     return NULL;
   }
 
   if (this->RegisteredCommands.find(commandName) == this->RegisteredCommands.end())
   {
     // unregistered command
-    LOG_ERROR("Unknown command: "<<commandName);
+    LOG_ERROR("Unknown command: " << commandName);
     return NULL;
   }
 
@@ -229,20 +229,20 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& co
     cmd = NULL;
     LOG_ERROR("Failed to initialize command from string: " + commandStr);
     return NULL;
-  }  
+  }
   return cmd;
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string &commandString, const std::string &deviceName, uint32_t uid)
-{  
-  if( commandString.empty() )
+PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string& commandString, const std::string& deviceName, uint32_t uid)
+{
+  if (commandString.empty())
   {
     LOG_ERROR("Command string is undefined");
     return PLUS_FAIL;
   }
 
-  if( commandName.empty() )
+  if (commandName.empty())
   {
     LOG_ERROR("Command name is undefined");
     return PLUS_FAIL;
@@ -251,49 +251,32 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
   vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandName, commandString));
   if (cmd.GetPointer() == NULL)
   {
-    if( !respondUsingIGTLCommand )
+    if (!respondUsingIGTLCommand)
     {
       this->QueueStringResponse(PLUS_FAIL, deviceName, std::string("Error attempting to process command."));
-      return PLUS_FAIL;
     }
     else
     {
-      // TODO : determine error string syntax/standard
-      std::string errorMessage = commandName + std::string(": failure");
-      LOG_ERROR(errorMessage);
-
-      vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
-      response->SetClientId(clientId);
-      response->SetDeviceName(deviceName);
-      response->SetOriginalId(uid);
-      response->SetRespondWithCommandMessage(true);
-      response->SetErrorString(errorMessage);
-      response->SetStatus(PLUS_FAIL);
-      {
-        // Add response to the command response queue
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-        this->CommandResponseQueue.push_back(response);
-      }
-      return PLUS_FAIL;
+      this->QueueCommandResponse(PLUS_FAIL, deviceName, clientId, commandName, uid, std::string("Error attempting to process command."));
     }
+    return PLUS_FAIL;
   }
+
   cmd->SetCommandProcessor(this);
   cmd->SetClientId(clientId);
   cmd->SetDeviceName(deviceName.c_str());
   cmd->SetId(uid);
   cmd->SetRespondWithCommandMessage(respondUsingIGTLCommand);
 
-  {
-    // Add command to the execution queue
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandQueue.push_back(cmd);
-  }
+  // Add command to the execution queue
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  this->CommandQueue.push_back(cmd);
+
   return PLUS_SUCCESS;
 }
 
-
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status, const std::string &deviceName, const std::string &replyString)
+PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status, const std::string& deviceName, const std::string& replyString)
 {
   vtkSmartPointer<vtkPlusCommandStringResponse> response = vtkSmartPointer<vtkPlusCommandStringResponse>::New();
   response->SetDeviceName(deviceName);
@@ -302,28 +285,50 @@ PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status
   replyStr << " Status=\"" << (status == PLUS_SUCCESS ? "SUCCESS" : "FAIL") << "\"";
   replyStr << " Message=\"";
   // Write to XML, encoding special characters, such as " ' \ < > &
-  vtkXMLUtilities::EncodeString(replyString.c_str(), VTK_ENCODING_NONE, replyStr, VTK_ENCODING_NONE, 1 /* encode special characters */ );
+  vtkXMLUtilities::EncodeString(replyString.c_str(), VTK_ENCODING_NONE, replyStr, VTK_ENCODING_NONE, 1 /* encode special characters */);
   replyStr << "\"";
   replyStr << " />";
 
   response->SetMessage(replyStr.str());
   response->SetStatus(status);
-  {
-    // Add response to the command response queue
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
-    this->CommandResponseQueue.push_back(response);
-  }
+
+  // Add response to the command response queue
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  this->CommandResponseQueue.push_back(response);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(const PlusStatus& status, const std::string& deviceName, unsigned int clientId, const std::string& commandName, uint32_t uid, const std::string& replyString)
+{
+  // TODO : determine error string syntax/standard
+  std::string errorMessage = commandName + std::string(": failure");
+  LOG_ERROR(errorMessage);
+
+  vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
+  response->SetClientId(clientId);
+  response->SetDeviceName(deviceName);
+  response->SetOriginalId(uid);
+  response->SetRespondWithCommandMessage(true);
+  response->SetErrorString(errorMessage);
+  response->SetStatus(PLUS_FAIL);
+
+  // Add response to the command response queue
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  this->CommandResponseQueue.push_back(response);
+
   return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------
-void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList &responses)
+void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList& responses)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
   // Add reply to the sending queue
   // Append this->CommandResponses to 'responses'.
   // Elements appended to 'responses' are removed from this->CommandResponses.
-  responses.splice(responses.end(),this->CommandResponseQueue,this->CommandResponseQueue.begin(),this->CommandResponseQueue.end());
+  responses.splice(responses.end(), this->CommandResponseQueue, this->CommandResponseQueue.begin(), this->CommandResponseQueue.end());
 }
 
 //------------------------------------------------------------------------------

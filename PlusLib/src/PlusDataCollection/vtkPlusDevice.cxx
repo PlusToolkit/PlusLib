@@ -527,6 +527,29 @@ double vtkPlusDevice::GetLocalTimeOffsetSec()
   return this->LocalTimeOffsetSec;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList)
+{
+  for (auto channel : this->InputChannels)
+  {
+    outDeviceList.push_back(channel->GetOwnerDevice());
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList)
+{
+  for (auto channel : this->InputChannels)
+  {
+    channel->GetOwnerDevice()->GetInputDevicesRecursive(outDeviceList);
+    outDeviceList.push_back(channel->GetOwnerDevice());
+  }
+
+  return PLUS_SUCCESS;
+}
+
 //-----------------------------------------------------------------------------
 void vtkPlusDevice::DeepCopy(vtkPlusDevice* device)
 {
