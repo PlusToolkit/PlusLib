@@ -193,20 +193,20 @@ static int vtkTrilinearInterpolation(F *point,
        outIdZ0 | (outExt[5]-outExt[4] - outIdZ1)) >= 0)
   {
     // do reverse trilinear interpolation
-    int factX0 = outIdX0*outInc[0];
-    int factY0 = outIdY0*outInc[1];
-    int factZ0 = outIdZ0*outInc[2];
-    int factX1 = outIdX1*outInc[0];
-    int factY1 = outIdY1*outInc[1];
-    int factZ1 = outIdZ1*outInc[2];
+    vtkIdType factX0 = outIdX0*outInc[0];
+    vtkIdType factY0 = outIdY0*outInc[1];
+    vtkIdType factZ0 = outIdZ0*outInc[2];
+    vtkIdType factX1 = outIdX1*outInc[0];
+    vtkIdType factY1 = outIdY1*outInc[1];
+    vtkIdType factZ1 = outIdZ1*outInc[2];
 
-    int factY0Z0 = factY0 + factZ0;
-    int factY0Z1 = factY0 + factZ1;
-    int factY1Z0 = factY1 + factZ0;
-    int factY1Z1 = factY1 + factZ1;
+    vtkIdType factY0Z0 = factY0 + factZ0;
+    vtkIdType factY0Z1 = factY0 + factZ1;
+    vtkIdType factY1Z0 = factY1 + factZ0;
+    vtkIdType factY1Z1 = factY1 + factZ1;
 
     // increment between the output pointer and the 8 pixels to work on
-    int idx[8];
+    vtkIdType idx[8];
     idx[0] = factX0 + factY0Z0;
     idx[1] = factX0 + factY0Z1;
     idx[2] = factX0 + factY1Z0;
@@ -252,7 +252,7 @@ static int vtkTrilinearInterpolation(F *point,
       }
       inPtrTmp = inPtr;
       outPtrTmp = outPtr+idx[j];
-      accPtrTmp = accPtr+ ((idx[j]/outInc[0])); // removed cast to unsigned short - prevented larger increments in Z direction
+      accPtrTmp = accPtr+ ((idx[j]/outInc[0]));
       a = *accPtrTmp;
 
       int i = numscalars;
