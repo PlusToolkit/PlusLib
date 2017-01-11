@@ -17,12 +17,13 @@ IF(OpenIGTLinkIO_DIR)
       FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
       )    
   ELSE()
-      FILE(COPY 
-        ${OpenIGTLinkIO_LIBRARY_DIRS}/
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-        )
+    FILE(COPY 
+      ${OpenIGTLinkIO_LIBRARY_DIRS}/
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
   ENDIF()
+
   SET (PLUS_OpenIGTLinkIO_DIR "${OpenIGTLinkIO_DIR}" CACHE INTERNAL "Path to store OpenIGTLinkIO binaries")
 ELSE()
   # OpenIGTLinkIO has not been built yet, so download and build it as an external project
@@ -40,21 +41,21 @@ ELSE()
     GIT_TAG "master"
     #--Configure step-------------
     CMAKE_ARGS 
-        ${ep_common_args}
-        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
-        -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
-        -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
-        -DBUILD_EXAMPLES:BOOL=OFF
-        -DBUILD_TESTING:BOOL=OFF
-        -DVTK_DIR:PATH=${PLUS_VTK_DIR}
-        -DOpenIGTLink_DIR:PATH=${PLUS_OpenIGTLink_DIR}
-        -DIGTLIO_USE_GUI:BOOL=OFF
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      ${ep_common_args}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
+      -DBUILD_EXAMPLES:BOOL=OFF
+      -DBUILD_TESTING:BOOL=OFF
+      -DVTK_DIR:PATH=${PLUS_VTK_DIR}
+      -DOpenIGTLink_DIR:PATH=${PLUS_OpenIGTLink_DIR}
+      -DIGTLIO_USE_GUI:BOOL=OFF
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS ${OpenIGTLinkIO_DEPENDENCIES}
     )  
-    
-ENDIF(OpenIGTLinkIO_DIR)
+ENDIF()

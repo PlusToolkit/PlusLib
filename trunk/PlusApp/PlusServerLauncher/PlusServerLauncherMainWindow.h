@@ -13,10 +13,9 @@
 #include <QMainWindow>
 #include <QProcess>
 
-#ifdef PLUS_USE_OpenIGTLinkIO
+// OpenIGTLinkIO includes
 #include <vtkIGTLIOLogic.h>
 #include <vtkIGTLIOConnector.h>
-#endif
 
 class QPlusDeviceSetSelectorWidget;
 class vtkPlusOpenIGTLinkServer;
@@ -74,7 +73,7 @@ protected slots:
 
   void LogLevelChanged();
 
-  static void OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eid, void* clientdata, void* calldata);
+  static void OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eventId, void* clientdata, void* calldata);
 
 protected:
   /*! Receive standard output or error and send it to the log */
@@ -102,10 +101,8 @@ protected:
   /*! OpenIGTLink server that allows remote control of launcher (start/stop a PlusServer process, etc) */
   int m_RemoteControlServerPort;
   vtkSmartPointer<vtkCallbackCommand>   m_RemoteControlServerCallbackCommand;
-#ifdef PLUS_USE_OpenIGTLinkIO
   vtkIGTLIOLogicPointer                 m_RemoteControlServerLogic;
   vtkIGTLIOConnectorPointer             m_RemoteControlServerConnector;
-#endif
 
 private:
   Ui::PlusServerLauncherMainWindow ui;

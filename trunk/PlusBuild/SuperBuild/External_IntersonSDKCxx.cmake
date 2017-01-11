@@ -2,8 +2,8 @@
 FIND_PATH(IntersonSDK_DIR 
   NAMES Libraries/Interson.dll
   PATHS C:/IntersonSDK )
-IF( NOT IntersonSDK_DIR )
-  MESSAGE( FATAL_ERROR "Please specify the path to the IntersonSDK in  IntersonSDK_DIR" )
+IF(NOT IntersonSDK_DIR)
+  MESSAGE(FATAL_ERROR "Please specify the path to the IntersonSDK in IntersonSDK_DIR")
 ENDIF()
 
 IF(IntersonSDKCxx_DIR)
@@ -12,21 +12,21 @@ IF(IntersonSDKCxx_DIR)
   
   MESSAGE(STATUS "Using IntersonSDKCxx available at: ${IntersonSDKCxx_DIR}")
 
-  SET( _config )
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+  SET(_config)
+  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET( _config "/Release" )
   ENDIF()
   FOREACH(_libpath ${IntersonSDKCxx_RUNTIME_LIBRARY_DIRS})
-    IF( EXISTS "${_libpath}/IntersonCxx.${CMAKE_SHARED_LIBRARY_SUFFIX}" )
+    IF(EXISTS "${_libpath}/IntersonCxx.${CMAKE_SHARED_LIBRARY_SUFFIX}")
       FILE(COPY "${_libpath}"
         DESTINATION "${PLUS_EXECUTABLE_OUTPUT_PATH}${_config}"
         FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
         )
     ENDIF()
   ENDFOREACH()
-  SET (PLUS_IntersonSDKCxx_DIR "${IntersonSDKCxx_DIR}" CACHE INTERNAL "Path to store IntersonSDKCxx binaries")
-  
-ELSE(IntersonSDKCxx_DIR)
+
+  SET(PLUS_IntersonSDKCxx_DIR "${IntersonSDKCxx_DIR}" CACHE INTERNAL "Path to store IntersonSDKCxx binaries")
+ELSE()
   # IntersonSDKCxx has not been built yet, so download and build it as an external project
   SET (IntersonSDKCxx_REPOSITORY ${GIT_PROTOCOL}://github.com/KitwareMedical/IntersonSDKCxx.git)
   SET (IntersonSDKCxx_GIT_TAG 819d620052be7e9b232e12d8946793c15cfbf5a3)
@@ -43,7 +43,9 @@ ELSE(IntersonSDKCxx_DIR)
     #--Configure step-------------
     CMAKE_ARGS 
       ${ep_common_args}
-      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
       -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS} 
       -DBUILD_TESTING:BOOL=OFF
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
@@ -54,5 +56,4 @@ ELSE(IntersonSDKCxx_DIR)
     INSTALL_COMMAND ""
     DEPENDS ${IntersonSDKCxx_DEPENDENCIES}
     )
-
-ENDIF(IntersonSDKCxx_DIR)
+ENDIF()

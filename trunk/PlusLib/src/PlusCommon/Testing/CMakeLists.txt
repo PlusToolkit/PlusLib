@@ -7,7 +7,7 @@ SET_TARGET_PROPERTIES(vtkPlusLoggerTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkPlusLoggerTest vtkPlusCommon )
 
 ADD_TEST(vtkPlusLoggerTest
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusLoggerTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusLoggerTest
   --verbose=5
   )
 
@@ -17,7 +17,7 @@ SET_TARGET_PROPERTIES(PlusCommonTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(PlusCommonTest vtkPlusCommon )
 
 ADD_TEST(PlusCommonTest
-  ${EXECUTABLE_OUTPUT_PATH}/PlusCommonTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusCommonTest
   )
 
 #--------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ SET_TARGET_PROPERTIES(PlusMathTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )
 
 ADD_TEST(PlusMathTest
-  ${EXECUTABLE_OUTPUT_PATH}/PlusMathTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusMathTest
   --xml-file=${TestDataDir}/PlusMathTestData.xml
   )
 
@@ -37,7 +37,7 @@ TARGET_LINK_LIBRARIES(AccurateTimerTest vtkPlusCommon )
 GENERATE_HELP_DOC(AccurateTimerTest)
 
 ADD_TEST(AccurateTimerTest
-  ${EXECUTABLE_OUTPUT_PATH}/AccurateTimerTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/AccurateTimerTest
   --testTimeSec=10
   --averageIntendedDelaySec=0.005
   --numberOfThreads=3
@@ -51,7 +51,7 @@ SET_TARGET_PROPERTIES(vtkTransformRepositoryTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkTransformRepositoryTest vtkPlusCommon )
 
 ADD_TEST(vtkTransformRepositoryTest
-  ${EXECUTABLE_OUTPUT_PATH}/vtkTransformRepositoryTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkTransformRepositoryTest
   --verbose=3
   )
 # This test prints some errors when testing error cases, therefore the output is not
@@ -68,7 +68,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
     --use-compression
     --verbose=3
-    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    WORKING_DIRECTORY ${PLUS_EXECUTABLE_OUTPUT_PATH}
     )
   SET_TESTS_PROPERTIES( EditSequenceFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 

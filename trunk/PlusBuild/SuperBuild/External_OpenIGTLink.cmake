@@ -1,5 +1,4 @@
 IF(OpenIGTLink_DIR)
-
   # OpenIGTLink has been built already
   FIND_PACKAGE(OpenIGTLink REQUIRED NO_MODULE)
   IF(${OpenIGTLink_PROTOCOL_VERSION} LESS 3)
@@ -9,7 +8,7 @@ IF(OpenIGTLink_DIR)
   MESSAGE(STATUS "Using OpenIGTLink available at: ${OpenIGTLink_DIR}")
   
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     FILE(COPY 
       ${OpenIGTLink_LIBRARY_DIRS}/Release/
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
@@ -21,16 +20,15 @@ IF(OpenIGTLink_DIR)
       FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
       )    
   ELSE()
-      FILE(COPY 
-        ${OpenIGTLink_LIBRARY_DIRS}/
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-        )
+    FILE(COPY 
+      ${OpenIGTLink_LIBRARY_DIRS}/
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
   ENDIF()
-  SET (PLUS_OpenIGTLink_DIR "${OpenIGTLink_DIR}" CACHE INTERNAL "Path to store OpenIGTLink binaries")
-  
-ELSE()
 
+  SET (PLUS_OpenIGTLink_DIR "${OpenIGTLink_DIR}" CACHE INTERNAL "Path to store OpenIGTLink binaries")
+ELSE()
   # OpenIGTLink has not been built yet, so download and build it as an external project
   MESSAGE(STATUS "Downloading OpenIGTLink from ${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git.")
   
@@ -43,23 +41,24 @@ ELSE()
     BINARY_DIR "${PLUS_OpenIGTLink_DIR}"
     #--Download step--------------
     GIT_REPOSITORY "${GIT_PROTOCOL}://github.com/openigtlink/OpenIGTLink.git"
-    GIT_TAG "dcdb5b93eba56aebf84afbca69e972f261c20626"
+    GIT_TAG "master"
     #--Configure step-------------
     CMAKE_ARGS 
-        ${ep_common_args}
-        -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
-        -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
-        -DBUILD_EXAMPLES:BOOL=OFF
-        -DBUILD_TESTING:BOOL=OFF
-        -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=OFF
-        -DOpenIGTLink_PROTOCOL_VERSION_3:BOOL=ON
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      ${ep_common_args}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
+      -DBUILD_EXAMPLES:BOOL=OFF
+      -DBUILD_TESTING:BOOL=OFF
+      -DOpenIGTLink_PROTOCOL_VERSION_2:BOOL=OFF
+      -DOpenIGTLink_PROTOCOL_VERSION_3:BOOL=ON
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
     #--Build step-----------------
     BUILD_ALWAYS 1
     #--Install step-----------------
     INSTALL_COMMAND ""
     DEPENDS ${OpenIGTLink_DEPENDENCIES}
     )  
-    
 ENDIF()

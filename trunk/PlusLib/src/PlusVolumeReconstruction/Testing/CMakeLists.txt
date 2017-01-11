@@ -4,7 +4,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   # Reconstruct volumes
   ADD_TEST(vtkVolumeReconstructorTestRunNearLateUChar
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
     --output-volume-file=vtkVolumeReconstructorTestNNLATEvolume.mha
@@ -13,7 +13,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearLateUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(vtkVolumeReconstructorTestRunNearMeanUChar
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MEAN.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
     --output-volume-file=vtkVolumeReconstructorTestNNMEANvolume.mha
@@ -22,7 +22,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearMeanUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(vtkVolumeReconstructorTestRunNearMaxiFloat
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
     --output-volume-file=vtkVolumeReconstructorTestNNMAXIvolume.mha
@@ -31,7 +31,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearMaxiFloat PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(vtkVolumeReconstructorTestRunLinrLateFloat
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_LN_LATE.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
     --output-volume-file=vtkVolumeReconstructorTestLNLATEvolume.mha
@@ -40,7 +40,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunLinrLateFloat PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(vtkVolumeReconstructorTestRunLinrMeanUChar
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_LN_MEAN.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
     --output-volume-file=vtkVolumeReconstructorTestLNMEANvolume.mha
@@ -49,7 +49,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunLinrMeanUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(vtkVolumeReconstructorTestRunLinrMaxiUChar
-    ${EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_LN_MAXI.xml
     --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
     --output-volume-file=vtkVolumeReconstructorTestLNMAXIvolume.mha
@@ -101,7 +101,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareLinrMaxiUChar PROPERTIES DEPENDS vtkVolumeReconstructorTestRunLinrMaxiUChar)
 
   ADD_TEST(CreateSliceModelsTest 
-    ${EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
     --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
     --output-model-file=GeneratedSliceModels.mha  
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
@@ -111,7 +111,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(DrawClipRegionRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Ultrasonix_C5-2_NDIPolaris_fCal3.xml
     --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.mha
     --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.mha

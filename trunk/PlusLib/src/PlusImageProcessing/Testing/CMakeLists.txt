@@ -11,7 +11,7 @@ TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest
   )
 
 ADD_TEST(vtkPlusTransverseProcessEnhancerTest 
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
   # TODO Add your test parameters here
   )
 SET_TESTS_PROPERTIES( vtkPlusTransverseProcessEnhancerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -19,7 +19,7 @@ SET_TESTS_PROPERTIES( vtkPlusTransverseProcessEnhancerTest PROPERTIES FAIL_REGUL
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   # --------------------------------------------------------------------------
   ADD_TEST(vtkPlusRfToBrightnessConvertRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
     --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
     --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
@@ -37,7 +37,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(vtkPlusUsScanConvertCurvilinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
     --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
     --output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
@@ -55,7 +55,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(vtkPlusUsScanConvertLinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
     --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
     --output-img-file=outputUltrasonixLinearScanConvertedData.mha 
@@ -73,7 +73,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(vtkPlusUsScanConvertBkCurvilinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/RfProcessor
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
     --rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
     --output-img-file=outputBkCurvilinearScanConvertedData.mha 
@@ -91,7 +91,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(DrawScanLinesCurvilinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawScanLines
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
     --source-seq-file=${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
     --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
@@ -100,7 +100,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   # --------------------------------------------------------------------------
   ADD_TEST(DrawScanLinesLinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/DrawScanLines
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawScanLines
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
     --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.mha
     --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.mha
@@ -109,7 +109,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #---------------------------------------------------------------------------
   ADD_TEST(ExtractScanLinesCurvilinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
     --config-file=${ConfigFilesDir}/Testing/SpineUltrasound-Lumbar-C5_config.xml
     --input-seq-file=${TestDataDir}/SpineUltrasound-Lumbar-C5.mha
     --output-seq-file=SpineUltrasound-Lumbar-C5_ScanLines.mha 
@@ -118,7 +118,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #---------------------------------------------------------------------------
   ADD_TEST(ExtractScanLinesLinearRunTest
-    ${EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
     --config-file=${ConfigFilesDir}/Testing/BoneUltrasound_L14_config.xml
     --input-seq-file=${TestDataDir}/BoneUltrasound_L14.mha
     --output-seq-file=BoneUltrasound_L14_ScanLines.mha 

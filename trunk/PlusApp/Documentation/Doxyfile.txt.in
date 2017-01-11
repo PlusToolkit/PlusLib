@@ -846,7 +846,7 @@ EXCLUDE_SYMBOLS        =
 
 EXAMPLE_PATH           = "@PLUSLIB_SOURCE_DIR@" \
                          "@PLUSLIB_DATA_DIR@" \
-                         "@EXECUTABLE_OUTPUT_PATH@/Doc/Help"
+                         "@PLUS_EXECUTABLE_OUTPUT_PATH@/Doc/Help"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and

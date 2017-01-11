@@ -4,10 +4,15 @@ SET(tesseract_ROOT_DIR ${CMAKE_BINARY_DIR}/Deps)
 
 # --------------------------------------------------------------------------
 # leptonica
-SET (PLUS_leptonica_src_DIR ${tesseract_ROOT_DIR}/leptonica CACHE INTERNAL "Path to store leptonica contents.")
-SET (PLUS_leptonica_prefix_DIR ${tesseract_ROOT_DIR}/leptonica-prefix CACHE INTERNAL "Path to store leptonica prefix data.")
-SET (PLUS_leptonica_DIR "${tesseract_ROOT_DIR}/leptonica-bin" CACHE INTERNAL "Path to store leptonica binaries")
-ExternalProject_Add( leptonica
+IF(leptonica_DIR)
+  FIND_PACKAGE(leptonica REQUIRED NO_MODULE)
+  
+  SET(PLUS_leptonica_DIR ${leptonica_DIR} CACHE INTERNAL "Path to store leptonica binaries.")
+ELSE()
+  SET (PLUS_leptonica_src_DIR ${tesseract_ROOT_DIR}/leptonica CACHE INTERNAL "Path to store leptonica contents.")
+  SET (PLUS_leptonica_prefix_DIR ${tesseract_ROOT_DIR}/leptonica-prefix CACHE INTERNAL "Path to store leptonica prefix data.")
+  SET (PLUS_leptonica_DIR "${tesseract_ROOT_DIR}/leptonica-bin" CACHE INTERNAL "Path to store leptonica binaries.")
+  ExternalProject_Add( leptonica
     PREFIX ${PLUS_leptonica_prefix_DIR}
     "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     SOURCE_DIR "${PLUS_leptonica_src_DIR}"
@@ -28,12 +33,20 @@ ExternalProject_Add( leptonica
     #--Dependencies-----------------
     DEPENDS ${leptonica_DEPENDENCIES}
     )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # tessdata
-SET (PLUS_tessdata_src_DIR ${tesseract_ROOT_DIR}/tessdata CACHE INTERNAL "Path to store tesseract language data contents.")
-SET (PLUS_tessdata_prefix_DIR ${tesseract_ROOT_DIR}/tessdata-prefix CACHE INTERNAL "Path to store tesseract language prefix data.")
-ExternalProject_Add( tessdata
+IF(tessdata_DIR)
+  IF(NOT EXISTS ${tessdata_DIR})
+    MESSAGE(FATAL_ERROR "Folder specified by tessdata_DIR does not exist.")
+  ENDIF()
+  
+  SET(PLUS_tessdata_src_DIR ${tessdata_DIR} CACHE INTERNAL "Path to store tesseract language data contents.")
+ELSE()
+  SET (PLUS_tessdata_src_DIR ${tesseract_ROOT_DIR}/tessdata CACHE INTERNAL "Path to store tesseract language data contents.")
+  SET (PLUS_tessdata_prefix_DIR ${tesseract_ROOT_DIR}/tessdata-prefix CACHE INTERNAL "Path to store tesseract language prefix data.")
+  ExternalProject_Add( tessdata
     "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     PREFIX ${PLUS_tessdata_prefix_DIR}
     SOURCE_DIR "${PLUS_tessdata_src_DIR}"
@@ -50,7 +63,8 @@ ExternalProject_Add( tessdata
     INSTALL_COMMAND ""
     DEPENDS ""
     )
-SET( tesseract_DEPENDENCIES ${tesseract_DEPENDENCIES} tessdata )
+  SET(tesseract_DEPENDENCIES ${tesseract_DEPENDENCIES} tessdata)
+ENDIF()
 
 IF( "$ENV{TESSDATA_PREFIX}" STREQUAL "" OR NOT "$ENV{TESSDATA_PREFIX}" STREQUAL "${PLUS_tessdata_src_DIR}")
   IF( WIN32 )
@@ -91,11 +105,18 @@ ELSE()
 ENDIF()
 
 # --------------------------------------------------------------------------
-# tesseract-ocr-cmake
-SET (PLUS_tesseract_src_DIR ${tesseract_ROOT_DIR}/tesseract CACHE INTERNAL "Path to store tesseract contents.")
-SET (PLUS_tesseract_prefix_DIR ${tesseract_ROOT_DIR}/tesseract-prefix CACHE INTERNAL "Path to store tesseract prefix data.")
-SET (PLUS_tesseract_DIR "${tesseract_ROOT_DIR}/tesseract-bin" CACHE INTERNAL "Path to store tesseract binaries")
-ExternalProject_Add( tesseract
+# tesseract
+IF(tesseract_DIR)
+  FIND_PACKAGE(tesseract REQUIRED NO_MODULE)
+  
+  SET (PLUS_tesseract_DIR ${tesseract_DIR} CACHE INTERNAL "Path to store tesseract binaries")
+ELSE()
+  MESSAGE("Downloading tesseract from ${GIT_PROTOCOL}://github.com/PLUSToolkit/tesseract-ocr-cmake.git")
+
+  SET (PLUS_tesseract_src_DIR ${tesseract_ROOT_DIR}/tesseract CACHE INTERNAL "Path to store tesseract contents.")
+  SET (PLUS_tesseract_prefix_DIR ${tesseract_ROOT_DIR}/tesseract-prefix CACHE INTERNAL "Path to store tesseract prefix data.")
+  SET (PLUS_tesseract_DIR "${tesseract_ROOT_DIR}/tesseract-bin" CACHE INTERNAL "Path to store tesseract binaries")
+  ExternalProject_Add( tesseract
     PREFIX ${PLUS_tesseract_prefix_DIR}
     "${PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS}"
     SOURCE_DIR "${PLUS_tesseract_src_DIR}"
@@ -105,15 +126,19 @@ ExternalProject_Add( tesseract
     GIT_TAG 21855d0568a9253dede4e223aae71c0249b90438
     #--Configure step-------------
     CMAKE_ARGS
-        ${ep_common_args}
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
-        -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_tesseract_DIR}
-        -DLeptonica_DIR:PATH=${PLUS_leptonica_DIR}
+      ${ep_common_args}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      -DCMAKE_PREFIX_PATH:STRING=${CMAKE_PREFIX_PATH}
+      -DCMAKE_INSTALL_PREFIX:PATH=${PLUS_tesseract_DIR}
+      -DLeptonica_DIR:PATH=${PLUS_leptonica_DIR}
     #--Build step-----------------
     BUILD_ALWAYS 1
     #--Install step-----------------
     #--Dependencies-----------------
     DEPENDS ${tesseract_DEPENDENCIES}
-    )
+  )
+ENDIF()

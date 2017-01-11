@@ -6,7 +6,7 @@ SET_TARGET_PROPERTIES(vtkPlusUsSimulatorTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkPlusUsSimulatorTest vtkPlusUsSimulator vtkFiltersGeneral)
 
 ADD_TEST(vtkPlusUsSimulatorRunTestLinear
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestLinear.xml
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputLinear.mha 
@@ -22,7 +22,7 @@ ADD_TEST(vtkPlusUsSimulatorCompareToBaselineTestLinear
 SET_TESTS_PROPERTIES(vtkPlusUsSimulatorCompareToBaselineTestLinear PROPERTIES DEPENDS vtkPlusUsSimulatorRunTestLinear)
 
 ADD_TEST(vtkPlusUsSimulatorRunTestCurvilinear
-  ${EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
+  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestCurvilinear.xml
   --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputCurvilinear.mha 

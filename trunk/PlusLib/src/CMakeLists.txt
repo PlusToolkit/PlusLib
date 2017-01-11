@@ -66,15 +66,22 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Configure output paths for libraries and executables.
-IF(NOT DEFINED PLUS_EXECUTABLE_OUTPUT_PATH)
+IF(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+  SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PlusLib_BINARY_DIR}/bin")
   SET(PLUS_EXECUTABLE_OUTPUT_PATH "${PlusLib_BINARY_DIR}/bin")
 ENDIF()
-SET(LIBRARY_OUTPUT_PATH  ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all libraries." FORCE)
-SET(EXECUTABLE_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for building all executables." FORCE)
-SET(INCLUDES_OUTPUT_PATH ${PLUS_EXECUTABLE_OUTPUT_PATH} CACHE PATH "Single output directory for all include files" FORCE)
-MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDES_OUTPUT_PATH)
 
-IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+IF(NOT DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+  SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PlusLib_BINARY_DIR}/lib")
+  SET(PLUS_LIBRARY_OUTPUT_PATH "${PlusLib_BINARY_DIR}/lib")
+ENDIF()
+
+IF(NOT DEFINED CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+  SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PlusLib_BINARY_DIR}/lib")
+  SET(PLUS_ARCHIVE_OUTPUT_PATH "${PlusLib_BINARY_DIR}/lib")
+ENDIF()
+
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(TEST_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/Output")
 ELSE()
   SET(TEST_OUTPUT_PATH "${PLUS_EXECUTABLE_OUTPUT_PATH}/Output")
@@ -82,12 +89,12 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # The project library directories.
-SET(PLUSLIB_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
+SET(PLUSLIB_LIBRARY_DIRS ${PLUS_LIBRARY_OUTPUT_PATH} CACHE INTERNAL "Path to the Plus library directory" FORCE)
 
 # Library directories should be added automatically by the build system, however GrabbieLib
 # is not found by default (as it does not have a proper USE file), therefore we add
 # the library output directory to the library search path
-LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+LINK_DIRECTORIES(${PLUS_LIBRARY_OUTPUT_PATH})
 
 # --------------------------------------------------------------------------
 # Command-line application documentation

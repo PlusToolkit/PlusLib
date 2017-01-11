@@ -9,14 +9,13 @@
 #=========================================================================*/
 
 IF(BiiGOptitrack_DIR)
-
   # OpenIGTLink has been built already
   FIND_PACKAGE(BiiGOptitrack REQUIRED PATHS ${BiiGOptitrack_DIR} NO_DEFAULT_PATH)
 
   MESSAGE(STATUS "Using BiiGOptitrack available at: ${BiiGOptitrack_DIR}")
 
   # Copy libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-  IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+  IF( MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
     FILE(COPY
       ${BiiGOptitrack_LIBRARY_DIRS}/
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
@@ -28,15 +27,14 @@ IF(BiiGOptitrack_DIR)
       FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
   ELSE()
-      FILE(COPY
-        ${BiiGOptitrack_LIBRARY_DIRS}/
-        DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
-        FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
-        )
+    FILE(COPY
+      ${BiiGOptitrack_LIBRARY_DIRS}/
+      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}
+      FILES_MATCHING REGEX .*${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
   ENDIF()
   SET (PLUS_BiiGOptitrack_DIR "${BiiGOptitrack_DIR}" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
 ELSE(BiiGOptitrack_DIR)
-
   # BiiGOptitrack has not been built yet, so download and build it as an external project
   SET (PLUS_BiiGOptitrack_SRC_DIR "${CMAKE_BINARY_DIR}/Deps/BiiGOptitrack")
   SET (PLUS_BiiGOptitrack_DIR "${CMAKE_BINARY_DIR}/Deps/BiiGOptitrack-bin" CACHE INTERNAL "Path to store BiiGOptitrack binaries")
@@ -49,22 +47,24 @@ ELSE(BiiGOptitrack_DIR)
     GIT_TAG "master"
     #--Configure step-------------
     CMAKE_ARGS
-        ${ep_common_args}
-        -DLIBRARY_OUTPUT_PATH:STRING=${PLUS_EXECUTABLE_OUTPUT_PATH}
-        -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
-        -DBUILD_EXAMPLES:BOOL=OFF
-        -DBUILD_TESTING:BOOL=OFF
-        -DBiiGOptitrack_USE_FAKE_NPAPI:BOOL=OFF
-        -DUSE_CalibrationValidation:BOOL=OFF
-        -DUSE_IGTLinkPython:BOOL=OFF
-        -DUSE_Python:BOOL=OFF
-        -DUSE_OptitrackClient:BOOL=OFF
-        -DUSE_OptitrackServer:BOOL=OFF
-        -DUSE_TestOptitrack:BOOL=OFF
-        -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
-        -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
-        -DBiiGOptitrack_OpenIGTLink_EXTERNAL_DIR:PATH=${PLUS_OpenIGTLink_DIR}
-        -DBiiGOptitrack_ITK_EXTERNAL_DIR:PATH=${PLUS_ITK_DIR}
+      ${ep_common_args}
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${PLUS_EXECUTABLE_OUTPUT_PATH}
+      -DBUILD_SHARED_LIBS:BOOL=${PLUSBUILD_BUILD_SHARED_LIBS}
+      -DBUILD_EXAMPLES:BOOL=OFF
+      -DBUILD_TESTING:BOOL=OFF
+      -DBiiGOptitrack_USE_FAKE_NPAPI:BOOL=OFF
+      -DUSE_CalibrationValidation:BOOL=OFF
+      -DUSE_IGTLinkPython:BOOL=OFF
+      -DUSE_Python:BOOL=OFF
+      -DUSE_OptitrackClient:BOOL=OFF
+      -DUSE_OptitrackServer:BOOL=OFF
+      -DUSE_TestOptitrack:BOOL=OFF
+      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
+      -DBiiGOptitrack_OpenIGTLink_EXTERNAL_DIR:PATH=${PLUS_OpenIGTLink_DIR}
+      -DBiiGOptitrack_ITK_EXTERNAL_DIR:PATH=${PLUS_ITK_DIR}
     #--Build step-----------------
     BUILD_ALWAYS 1
     #--Install step-----------------
@@ -72,4 +72,4 @@ ELSE(BiiGOptitrack_DIR)
     DEPENDS ${BiiGOptitrack_DEPENDENCIES}
     )
 
-ENDIF(BiiGOptitrack_DIR)
+ENDIF()

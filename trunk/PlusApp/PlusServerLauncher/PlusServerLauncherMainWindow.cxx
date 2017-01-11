@@ -31,9 +31,8 @@ See License.txt for details.
 // STL includes
 #include <algorithm>
 
-#if defined(PLUS_USE_OpenIGTLinkIO)
+// OpenIGTLinkIO includes
 #include <vtkIGTLIODevice.h>
-#endif
 
 namespace
 {
@@ -154,7 +153,6 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent /*=0*
       m_RemoteControlServerPort = DEFAULT_REMOTE_CONTROL_SERVER_PORT;
     }
 
-#ifdef PLUS_USE_OpenIGTLinkIO
     LOG_INFO("Start remote control server at port: " << m_RemoteControlServerPort);
     m_RemoteControlServerLogic = vtkIGTLIOLogicPointer::New();
     m_RemoteControlServerLogic->AddObserver(vtkIGTLIOLogic::CommandQueryReceivedEvent, m_RemoteControlServerCallbackCommand);
@@ -162,9 +160,6 @@ PlusServerLauncherMainWindow::PlusServerLauncherMainWindow(QWidget* parent /*=0*
     m_RemoteControlServerConnector = m_RemoteControlServerLogic->CreateConnector();
     m_RemoteControlServerConnector->SetTypeServer(m_RemoteControlServerPort);
     m_RemoteControlServerConnector->Start();
-#else
-    LOG_ERROR("Remote control server mode is not supported");
-#endif
   }
 }
 
@@ -173,12 +168,10 @@ PlusServerLauncherMainWindow::~PlusServerLauncherMainWindow()
 {
   StopServer(); // deletes m_CurrentServerInstance
 
-#ifdef PLUS_USE_OpenIGTLinkIO
   if (m_RemoteControlServerLogic)
   {
     m_RemoteControlServerLogic->RemoveObserver(m_RemoteControlServerCallbackCommand);
   }
-#endif
 
   if (m_DeviceSetSelectorWidget != NULL)
   {
@@ -510,7 +503,6 @@ void PlusServerLauncherMainWindow::LogLevelChanged()
 //---------------------------------------------------------------------------
 void PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived(vtkObject* caller, unsigned long eventId, void* clientData, void* callData)
 {
-#ifdef PLUS_USE_OpenIGTLinkIO
   PlusServerLauncherMainWindow* self = reinterpret_cast<PlusServerLauncherMainWindow*>(clientData);
 
   auto device = dynamic_cast<vtkIGTLIODevice*>(caller);
@@ -527,5 +519,4 @@ void PlusServerLauncherMainWindow::OnRemoteControlServerEventReceived(vtkObject*
   case vtkIGTLIOLogic::CommandResponseReceivedEvent:
     break;
   }
-#endif
 }

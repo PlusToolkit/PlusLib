@@ -30,7 +30,6 @@
 #endif
 
 #cmakedefine PLUS_USE_OpenIGTLink
-#cmakedefine PLUS_USE_OpenIGTLinkIO
 
 #cmakedefine BUILD_SHARED_LIBS
 

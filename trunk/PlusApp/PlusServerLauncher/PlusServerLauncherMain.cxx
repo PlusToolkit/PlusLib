@@ -119,33 +119,26 @@ int appMain(int argc, char *argv[])
   std::string deviceSetConfigurationDirectoryPath;
   std::string inputConfigFileName;
   bool autoConnect=false;
-  int remoteControlServerPort =
-#ifdef PLUS_USE_OpenIGTLinkIO
-    PlusServerLauncherMainWindow::RemoteControlServerPortUseDefault;
-#else
-    PlusServerLauncherMainWindow::RemoteControlServerPortDisable;
-#endif
+  int remoteControlServerPort = PlusServerLauncherMainWindow::RemoteControlServerPortUseDefault;
 
   if (argc > 1)
   {
     int verboseLevel = -1;
 
-	  vtksys::CommandLineArguments cmdargs;
-	  cmdargs.Initialize(argc, argv);
+    vtksys::CommandLineArguments cmdargs;
+    cmdargs.Initialize(argc, argv);
 
-	  bool printHelp(false);
+    bool printHelp(false);
 
     cmdargs.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
-	  cmdargs.AddArgument("--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
-	  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+    cmdargs.AddArgument("--device-set-configuration-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationDirectoryPath, "Device set configuration directory path");
+    cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
     cmdargs.AddBooleanArgument("--connect", &autoConnect, "Automatically connect after the application is started");
-#ifdef PLUS_USE_OpenIGTLinkIO
     cmdargs.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "OpenIGTLink port number where the launcher will listen for remote control requests. If set to -1 then no remote control server will be launched. Default = 18904.");
-#endif
     cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug)");
 
-	  if ( !cmdargs.Parse() )
-	  {
+    if ( !cmdargs.Parse() )
+    {
       QString cmdArgsString;
       for (int i=0; i<argc; i++)
       {
@@ -156,9 +149,9 @@ int appMain(int argc, char *argv[])
       QString details;
       details.append("Command-line options:\n");
       details.append(cmdargs.GetHelp());
-		  DisplayMessage(msg, details, true);
-		  exit(EXIT_FAILURE);
-	  }
+      DisplayMessage(msg, details, true);
+      exit(EXIT_FAILURE);
+    }
 
     if ( printHelp )
     {
@@ -167,7 +160,7 @@ int appMain(int argc, char *argv[])
       msg.append(cmdargs.GetHelp());
       msg.append("</pre></html>");
       QString details;
-		  DisplayMessage(msg, details, false);
+      DisplayMessage(msg, details, false);
       exit(EXIT_SUCCESS); 
     }
 
@@ -182,15 +175,15 @@ int appMain(int argc, char *argv[])
 
     if (verboseLevel > -1)
     {
-  	  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+      vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
     }
   }
 
   // Start the application  
   PlusServerLauncherMainWindow PlusServerLauncherMainWindow(0, 0, autoConnect, remoteControlServerPort);
-	PlusServerLauncherMainWindow.show();
+  PlusServerLauncherMainWindow.show();
 
-	int retValue=app.exec();
+  int retValue=app.exec();
 
   return retValue;
 }
