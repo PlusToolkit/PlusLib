@@ -3,7 +3,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST( PlusServer
-    ${EXECUTABLE_OUTPUT_PATH}/PlusServer
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusServer
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
     --running-time=5
     --testing-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestClient.xml
@@ -12,7 +12,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST( PlusServerOpenIGTLinkCommandsTest
-    ${EXECUTABLE_OUTPUT_PATH}/PlusServerRemoteControl
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusServerRemoteControl
     --server-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkCommandsTest.xml
     --run-tests
     )
