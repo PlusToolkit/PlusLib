@@ -19,9 +19,14 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusVirtualCapture);
 
-static const double WARNING_RECORDING_LAG_SEC = 1.0; // if the recording lags more than this then a warning message will be displayed
-static const double MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
-static const unsigned int DISABLE_FRAME_BUFFER = std::numeric_limits<unsigned int>::max();
+//----------------------------------------------------------------------------
+
+namespace
+{
+  static const double WARNING_RECORDING_LAG_SEC = 1.0; // if the recording lags more than this then a warning message will be displayed
+  static const double MAX_ALLOWED_RECORDING_LAG_SEC = 3.0; // if the recording lags more than this then it'll skip frames to catch up
+  static const unsigned int DISABLE_FRAME_BUFFER = std::numeric_limits<unsigned int>::max();
+}
 
 //----------------------------------------------------------------------------
 vtkPlusVirtualCapture::vtkPlusVirtualCapture()
