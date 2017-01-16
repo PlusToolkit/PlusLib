@@ -20,18 +20,18 @@ class vtkPlusTrackedFrameList;
 
 \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusVirtualDiscCapture : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusVirtualCapture : public vtkPlusDevice
 {
 public:
-  static vtkPlusVirtualDiscCapture* New();
-  vtkTypeMacro( vtkPlusVirtualDiscCapture, vtkPlusDevice );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  static vtkPlusVirtualCapture* New();
+  vtkTypeMacro(vtkPlusVirtualCapture, vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   /*! write main configuration to xml data */
-  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* );
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
 
   virtual PlusStatus InternalUpdate();
 
@@ -40,14 +40,14 @@ public:
   virtual bool HasUnsavedData() const;
 
   /*! Open the output file for writing */
-  virtual PlusStatus OpenFile( const char* aFilename = NULL );
+  virtual PlusStatus OpenFile(const char* aFilename = NULL);
 
   /*!
     Close the output file.
     resultFilename contains the full path of the actual written file name. It may be different than the requested name
     if the requested name was not valid (for example wrong extension).
   */
-  virtual PlusStatus CloseFile( const char* aFilename = NULL, std::string* resultFilename = NULL );
+  virtual PlusStatus CloseFile(const char* aFilename = NULL, std::string* resultFilename = NULL);
 
   virtual PlusStatus Reset();
 
@@ -56,48 +56,48 @@ public:
   virtual int OutputChannelCount() const;
 
   /*! Enables capturing frames. It can be used for pausing the recording. */
-  vtkGetMacro( EnableCapturing, bool );
-  void SetEnableCapturing( bool aValue );
+  vtkGetMacro(EnableCapturing, bool);
+  void SetEnableCapturing(bool aValue);
 
   /*!
     Method that writes output streams to XML
   */
-  virtual void InternalWriteOutputChannels( vtkXMLDataElement* rootXMLElement );
+  virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
-  vtkSetMacro( RequestedFrameRate, double );
-  vtkGetMacro( RequestedFrameRate, double );
+  vtkSetMacro(RequestedFrameRate, double);
+  vtkGetMacro(RequestedFrameRate, double);
 
-  vtkGetMacro( ActualFrameRate, double );
-  vtkGetMacro( TotalFramesRecorded, long int );
+  vtkGetMacro(ActualFrameRate, double);
+  vtkGetMacro(TotalFramesRecorded, long int);
 
-  vtkGetMacro( BaseFilename, std::string );
-  vtkSetMacro( BaseFilename, std::string );
+  vtkGetMacro(BaseFilename, std::string);
+  vtkSetMacro(BaseFilename, std::string);
 
-  vtkGetMacro( EnableFileCompression, bool );
-  void SetEnableFileCompression( bool aFileCompression );
+  vtkGetMacro(EnableFileCompression, bool);
+  void SetEnableFileCompression(bool aFileCompression);
 
-  vtkSetMacro( EnableCapturingOnStart, bool );
-  vtkGetMacro( EnableCapturingOnStart, bool );
+  vtkSetMacro(EnableCapturingOnStart, bool);
+  vtkGetMacro(EnableCapturingOnStart, bool);
 
-  vtkGetMacro( IsData3D, bool );
+  vtkGetMacro(IsData3D, bool);
 
   virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
   virtual bool IsVirtual() const { return true; }
 
-  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath( CurrentFilename ); };
+  virtual std::string GetOutputFileName() { return vtkPlusConfig::GetInstance()->GetOutputPath(CurrentFilename); };
 
 protected:
-  vtkPlusVirtualDiscCapture();
-  virtual ~vtkPlusVirtualDiscCapture();
+  vtkPlusVirtualCapture();
+  virtual ~vtkPlusVirtualCapture();
 
   virtual PlusStatus ClearRecordedFrames();
 
-  vtkSetMacro( ActualFrameRate, double );
-  vtkSetMacro( FrameBufferSize, unsigned int );
-  vtkGetMacro( FrameBufferSize, unsigned int );
-  vtkSetMacro( IsData3D, bool );
+  vtkSetMacro(ActualFrameRate, double);
+  vtkSetMacro(FrameBufferSize, unsigned int);
+  vtkGetMacro(FrameBufferSize, unsigned int);
+  vtkSetMacro(IsData3D, bool);
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
@@ -108,7 +108,7 @@ protected:
     Copy frames to memory buffer or disk.
     If force flag is true then data is written to disk immediately.
   */
-  virtual PlusStatus WriteFrames( bool force = false );
+  virtual PlusStatus WriteFrames(bool force = false);
 
 protected:
   /*! Recorded tracked frame list */
@@ -173,13 +173,13 @@ protected:
 
   vtkPlusLogger::LogLevelType GracePeriodLogLevel;
 
-  PlusStatus GetInputTrackedFrame( PlusTrackedFrame& aFrame );
-  PlusStatus GetInputTrackedFrameListSampled( double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec );
-  PlusStatus GetLatestInputItemTimestamp( double& timestamp );
+  PlusStatus GetInputTrackedFrame(PlusTrackedFrame& aFrame);
+  PlusStatus GetInputTrackedFrameListSampled(double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);
+  PlusStatus GetLatestInputItemTimestamp(double& timestamp);
 
 private:
-  vtkPlusVirtualDiscCapture( const vtkPlusVirtualDiscCapture& ); // Not implemented.
-  void operator=( const vtkPlusVirtualDiscCapture& ); // Not implemented.
+  vtkPlusVirtualCapture(const vtkPlusVirtualCapture&);   // Not implemented.
+  void operator=(const vtkPlusVirtualCapture&);   // Not implemented.
 };
 
 #endif

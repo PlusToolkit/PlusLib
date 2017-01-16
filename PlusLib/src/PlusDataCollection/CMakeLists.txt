@@ -108,7 +108,7 @@ SET(Common_SRCS
 SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualMixer.cxx
   VirtualDevices/vtkPlusVirtualSwitcher.cxx
-  VirtualDevices/vtkPlusVirtualDiscCapture.cxx 
+  VirtualDevices/vtkPlusVirtualCapture.cxx 
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
   )
 IF(PLUS_USE_tesseract)
@@ -148,7 +148,7 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(Virtual_HDRS
     VirtualDevices/vtkPlusVirtualMixer.h
     VirtualDevices/vtkPlusVirtualSwitcher.h
-    VirtualDevices/vtkPlusVirtualDiscCapture.h
+    VirtualDevices/vtkPlusVirtualCapture.h
     VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
     )
   IF(PLUS_USE_tesseract)
