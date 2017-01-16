@@ -762,37 +762,34 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         }
       }
 
-      std::async(std::launch::async, [self, client, fileName, version = polyDataMessage->GetHeaderVersion()]()
+      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+      reader->SetFileName(fileName.c_str());
+      reader->Update();
+
+      auto polyData = reader->GetOutput();
+      if (polyData != nullptr)
       {
-        vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-        reader->SetFileName(fileName.c_str());
-        reader->Update();
+        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", polyDataMessage->GetHeaderVersion());
+        igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
 
-        auto polyData = reader->GetOutput();
-        if (polyData != nullptr)
+        igtl::PolyDataConverter::MessageContent content;
+        content.deviceName = "PlusServer";
+        content.polydata = polyData;
+        igtl::PolyDataConverter::Pointer converter = igtl::PolyDataConverter::New();
+        converter->VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
+        if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
         {
-          igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", version);
-          igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
-
-          igtl::PolyDataConverter::MessageContent content;
-          content.deviceName = "PlusServer";
-          content.polydata = polyData;
-          igtl::PolyDataConverter::Pointer converter = igtl::PolyDataConverter::New();
-          converter->VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
-          if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
-          {
-            LOG_ERROR("Filename too long to be sent back to client. Aborting.");
-            return;
-          }
-          self->QueueMessageResponseForClient(client->ClientId, msg);
-          return;
+          LOG_ERROR("Filename too long to be sent back to client. Aborting.");
+          continue;
         }
+        self->QueueMessageResponseForClient(client->ClientId, msg);
+        continue;
+      }
 
-        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", version);
-        igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
-        rtsPolyMsg->SetStatus(false);
-        self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
-      });
+      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", polyDataMessage->GetHeaderVersion());
+      igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
+      rtsPolyMsg->SetStatus(false);
+      self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StatusMessage))
     {
