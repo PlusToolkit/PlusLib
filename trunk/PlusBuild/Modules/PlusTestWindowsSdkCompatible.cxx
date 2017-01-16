@@ -2,6 +2,14 @@
 
 #include <Mfapi.h>
 
+#pragma comment(lib, "evr.lib")
+#pragma comment(lib, "Mf.lib")
+#pragma comment(lib, "Mfplat.lib")
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Mfreadwrite.lib")
+#pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "Strmiids.lib")
+
 int main()
 {
   
