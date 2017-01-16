@@ -528,7 +528,7 @@ double vtkPlusDevice::GetLocalTimeOffsetSec()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList)
+PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList) const
 {
   for (auto channel : this->InputChannels)
   {
@@ -539,7 +539,7 @@ PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDevice
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList)
+PlusStatus vtkPlusDevice::GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList) const
 {
   for (auto channel : this->InputChannels)
   {
@@ -2081,6 +2081,12 @@ PlusStatus vtkPlusDevice::GetDataSource(const char* aSourceId, vtkPlusDataSource
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetDataSource(const std::string& aSourceId, vtkPlusDataSource*& aSource)
+{
+  return GetDataSource(aSourceId.c_str(), aSource);
+}
+
+//----------------------------------------------------------------------------
 ChannelContainerConstIterator vtkPlusDevice::GetOutputChannelsStart() const
 {
   return this->OutputChannels.begin();
@@ -2274,12 +2280,12 @@ bool vtkPlusDevice::HasGracePeriodExpired()
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::CreateDefaultOutputChannel(bool addSource/*=true*/)
+PlusStatus vtkPlusDevice::CreateDefaultOutputChannel(const char* channelId /*=NULL*/, bool addSource/*=true*/)
 {
   // Create output channel
   vtkSmartPointer<vtkPlusChannel> aChannel = vtkSmartPointer<vtkPlusChannel>::New();
   aChannel->SetOwnerDevice(this);
-  aChannel->SetChannelId("VideoStream");
+  aChannel->SetChannelId(channelId != NULL ? channelId : "OutputChannel");
   if (this->AddOutputChannel(aChannel) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;

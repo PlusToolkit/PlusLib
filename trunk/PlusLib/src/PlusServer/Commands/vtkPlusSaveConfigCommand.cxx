@@ -10,9 +10,9 @@ See License.txt for details.
 #include "vtkPlusCommandResponse.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusTransformRepository.h"
-#include "vtkPlusVirtualDiscCapture.h"
+#include "vtkPlusVirtualCapture.h"
 
-vtkStandardNewMacro( vtkPlusSaveConfigCommand );
+vtkStandardNewMacro(vtkPlusSaveConfigCommand);
 
 static const char SAVE_CONFIG_CMD[] = "SaveConfig";
 
@@ -54,16 +54,16 @@ std::string vtkPlusSaveConfigCommand::GetDescription(const char* commandName)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSaveConfigCommand::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusSaveConfigCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
   os << indent << "Filename: " << this->Filename;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSaveConfigCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
+  if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -74,7 +74,7 @@ PlusStatus vtkPlusSaveConfigCommand::ReadConfiguration(vtkXMLDataElement* aConfi
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSaveConfigCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
-  if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
+  if (vtkPlusCommand::WriteConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -88,20 +88,20 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
 {
   LOG_INFO("vtkPlusSaveConfigCommand::Execute");
 
-  if (GetFilename()==NULL)
+  if (GetFilename() == NULL)
   {
     this->SetFilename(this->CommandProcessor->GetPlusServer()->GetConfigFilename());
   }
 
-  std::string baseMessageString = std::string("SaveConfig (") + (this->Filename?this->Filename:"undefined") + ")";
+  std::string baseMessageString = std::string("SaveConfig (") + (this->Filename ? this->Filename : "undefined") + ")";
 
-  if( this->GetDataCollector() == NULL)
+  if (this->GetDataCollector() == NULL)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Can't access data collector.");
     return PLUS_FAIL;
   }
-  if( this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
-      || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS )
+  if (this->GetDataCollector()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS
+      || this->GetTransformRepository()->WriteConfiguration(vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()) != PLUS_SUCCESS)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Unable to write configuration.");
     return PLUS_FAIL;

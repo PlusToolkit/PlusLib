@@ -292,11 +292,11 @@ public:
   /*!
   Build a list of all of the input devices directly connected to this device (if any)
   */
-  PlusStatus GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList);
+  PlusStatus GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList) const;
   /*!
   Recursively assemble all devices that feed into this device (if any)
   */
-  PlusStatus GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList);
+  PlusStatus GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList) const;
 
   //BTX
   // These are used by static functions in vtkPlusDevice.cxx, and since
@@ -460,10 +460,10 @@ public:
   vtkGetMacro(MissingInputGracePeriodSec, double);
 
   /*!
-    Creates a default output channel for the device with the name 'VideoStream'.
+    Creates a default output channel for the device with the name channelId or "OutputChannel".
     \param addSource If true then for imaging devices a default 'Video' source is added to the output.
   */
-  virtual PlusStatus CreateDefaultOutputChannel(bool addSource = true);
+  virtual PlusStatus CreateDefaultOutputChannel(const char* channelId = NULL, bool addSource = true);
 
   /*! Convenience function for getting the first available video source in the output channels */
   PlusStatus GetFirstActiveOutputVideoSource(vtkPlusDataSource*& aVideoSource);
