@@ -551,7 +551,7 @@ ENDIF()
 IF(PLUS_USE_INTERSONSDKCXX_VIDEO AND NOT IntersonSDKCxx_DIR)
   SET(IntersonSDKCxx_DEPENDENCIES)
   LIST(APPEND PlusLib_DEPENDENCIES IntersonSDKCxx)
-  INCLUDE(External_IntersonSDKCxx.cmake)
+  INCLUDE(SuperBuild/External_IntersonSDKCxx.cmake)
 ENDIF()
 
 IF(PLUS_USE_OPTITRACK AND PLUS_BiiGOptitrack_DIR AND NOT BiiGOptitrack_DIR)
