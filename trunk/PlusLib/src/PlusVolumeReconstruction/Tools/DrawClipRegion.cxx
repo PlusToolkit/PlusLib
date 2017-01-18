@@ -1,17 +1,28 @@
-#include "PlusConfigure.h"
-#include "vtksys/CommandLineArguments.hxx"
+/*=Plus=header=begin======================================================
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
+=========================================================Plus=header=end*/
 
-#include "PlusVideoFrame.h"
+// Local includes
+#include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
-#include "vtkImageData.h"
-#include "vtkMath.h"
+#include "PlusVideoFrame.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkSmartPointer.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusVolumeReconstructor.h"
-#include "vtkXMLUtilities.h"
 
-float DRAWING_COLOR = 255;
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkMath.h>
+#include <vtkSmartPointer.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/CommandLineArguments.hxx>
+
+namespace
+{
+  static const float DRAWING_COLOR = 255;
+}
 
 //----------------------------------------------------------------------------
 void DrawSector(vtkImageData* imageData, int* imageExtent, double* origin, double* fanAnglesDeg, double radius, int numberOfPoints)
@@ -41,9 +52,20 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
   if (drawOrigin)
   {
     int numberOfPointsForDrawing = startRadius / 10; // 1/10 point/pixel: dotted line
-    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0])), static_cast<unsigned int>(std::round(fanOrigin[1])), 0 };
-    unsigned int endPointLeft[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))), 0 };
-    unsigned int endPointRight[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))), 0 };
+    double rounded = std::round(fanOrigin[1]);
+    unsigned int val = static_cast<unsigned int>(rounded);
+    std::array<int, 3> startPoint = { static_cast<int>(std::round(fanOrigin[0])),
+                                      static_cast<int>(std::round(fanOrigin[1])),
+                                      0
+                                    };
+    std::array<int, 3> endPointLeft = { static_cast<int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))),
+                                        static_cast<int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))),
+                                        0
+                                      };
+    std::array<int, 3> endPointRight = { static_cast<int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))),
+                                         static_cast<int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))),
+                                         0
+                                       };
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointLeft, numberOfPointsForDrawing);
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointRight, numberOfPointsForDrawing);
   }
@@ -51,13 +73,26 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
   {
     int numberOfPointsForDrawing = (stopRadius - startRadius) / pointSpacing;
     {
-      unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))), 0 };
-      unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[0]))), 0 };
+      std::array<int, 3> startPoint = { static_cast<int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))),
+                                        static_cast<int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))),
+                                        0
+                                      };
+      std::array<int, 3> endPoint = { static_cast<int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[0]))),
+                                      static_cast<int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[0]))),
+                                      0
+                                    };
       PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
     }
+
     {
-      unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))), 0 };
-      unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[1]))), 0 };
+      std::array<int, 3> startPoint = { static_cast<int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))),
+                                        static_cast<int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))),
+                                        0
+                                      };
+      std::array<int, 3> endPoint = { static_cast<int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[1]))),
+                                      static_cast<int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[1]))),
+                                      0
+                                    };
       PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
     }
   }
@@ -80,25 +115,49 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
 
   // Horizontal lines
   {
-    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
-    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
+    std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0])),
+                                      static_cast<int>(std::round(clipRectangleOrigin[1])),
+                                      0
+                                    };
+    std::array<int, 3> endPoint = { static_cast<int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)),
+                                    static_cast<int>(std::round(clipRectangleOrigin[1])),
+                                    0
+                                  };
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
   {
-    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
-    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0])),
+                                      static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
+                                      0
+                                    };
+    std::array<int, 3> endPoint = { static_cast<int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)),
+                                    static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
+                                    0
+                                  };
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
 
   // Vertical lines
   {
-    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
-    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0])),
+                                      static_cast<int>(std::round(clipRectangleOrigin[1])),
+                                      0
+                                    };
+    std::array<int, 3> endPoint = { static_cast<int>(std::round(clipRectangleOrigin[0])),
+                                    static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
+                                    0
+                                  };
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
   {
-    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
-    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)),
+                                      static_cast<int>(std::round(clipRectangleOrigin[1])),
+                                      0
+                                    };
+    std::array<int, 3> endPoint = { static_cast<int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)),
+                                    static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
+                                    0
+                                  };
     PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
 }
