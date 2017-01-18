@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusVirtualDiscCapture_h
-#define __vtkPlusVirtualDiscCapture_h
+#ifndef __vtkPlusVirtualCapture_h
+#define __vtkPlusVirtualCapture_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
@@ -15,7 +15,7 @@ See License.txt for details.
 class vtkPlusTrackedFrameList;
 
 /*!
-\class vtkPlusVirtualDiscCapture
+\class vtkPlusVirtualCapture
 \brief
 
 \ingroup PlusLibDataCollection

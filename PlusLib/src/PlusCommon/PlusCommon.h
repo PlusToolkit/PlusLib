@@ -18,10 +18,16 @@
 #include <vtkImageData.h>
 #include <vtksys/SystemTools.hxx>
 
-// std includes
-#include <float.h> // for DBL_MAX
+// System includes
+#include <float.h>
+
+// STL includes
+#include <array>
 #include <sstream>
 #include <list>
+
+class vtkPlusUsScanConvert;
+class vtkPlusTrackedFrameList;
 
 enum PlusStatus
 {
@@ -195,6 +201,7 @@ private:
   }\
 }
 
+class vtkPlusTrackedFrameList;
 class vtkXMLDataElement;
 
 namespace PlusCommon
@@ -284,22 +291,31 @@ namespace PlusCommon
   };
 
   //----------------------------------------------------------------------------
-  static void DrawLine(vtkImageData& imageData,
-                       float colour[3],
-                       LINE_STYLE style,
-                       unsigned int startPixel[3],
-                       unsigned int endPixel[3],
-                       unsigned int numberOfPoints,
-                       ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
+  vtkPlusCommonExport PlusStatus DrawLine(vtkImageData& imageData,
+                                          float colour[3],
+                                          LINE_STYLE style,
+                                          unsigned int startPixel[3],
+                                          unsigned int endPixel[3],
+                                          unsigned int numberOfPoints,
+                                          ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
 
   //----------------------------------------------------------------------------
-  static void DrawLine(vtkImageData& imageData,
-                       float greyValue,
-                       LINE_STYLE style,
-                       unsigned int* startPixel,
-                       unsigned int* endPixel,
-                       unsigned int numberOfPoints,
-                       ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
+  vtkPlusCommonExport PlusStatus DrawLine(vtkImageData& imageData,
+                                          float greyValue,
+                                          LINE_STYLE style,
+                                          unsigned int startPixel[3],
+                                          unsigned int endPixel[3],
+                                          unsigned int numberOfPoints,
+                                          ALPHA_BEHAVIOR alphaBehavior = ALPHA_BEHAVIOR_OPAQUE);
+
+  //----------------------------------------------------------------------------
+  typedef std::array<unsigned int, 3> PixelPoint;
+  typedef std::pair<PixelPoint, PixelPoint> PixelLine;
+  typedef std::vector<PixelLine> PixelLineList;
+  vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList);
+  vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, float colour[3], const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList);
+  vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkImageData* imageData);
+  vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, float colour[3], const PixelLineList& scanLineEndPoints, vtkImageData* imageData);
 
 #if defined(_MSC_VER) && _MSC_VER < 1700
   // This method can be used for number to string conversion

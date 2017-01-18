@@ -16,7 +16,7 @@ class vtkPlusDataCollector;
 
 /*!
   \class vtkPlusStartStopRecordingCommand
-  \brief This command starts and stops capturing with a vtkPlusVirtualDiscCapture capture on the server side.
+  \brief This command starts and stops capturing with a vtkPlusVirtualCapture capture on the server side.
   \ingroup PlusLibPlusServer
  */
 class vtkPlusServerExport vtkPlusStartStopRecordingCommand : public vtkPlusCommand

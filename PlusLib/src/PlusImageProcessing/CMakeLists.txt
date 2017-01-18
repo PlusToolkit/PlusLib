@@ -181,7 +181,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(DrawScanLines Tools/DrawScanLines.cxx )
   SET_TARGET_PROPERTIES(DrawScanLines PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(DrawScanLines vtkPlusImageProcessing )
+  TARGET_LINK_LIBRARIES(DrawScanLines vtkPlusImageProcessing vtkPlusCommon)
   GENERATE_HELP_DOC(DrawScanLines)
 
   #---------------------------------------------------------------------------

@@ -73,7 +73,7 @@ std::string vtkPlusRequestIdsCommand::GetDescription(const char* commandName)
   if (commandName == NULL || STRCASECMP(commandName, REQUEST_DEVICE_IDS_CMD))
   {
     desc += REQUEST_DEVICE_IDS_CMD;
-    desc += ": Request the list of devices. Attributes: DeviceType: restrict the returned list of devices to a specific type (VirtualDiscCapture, VirtualVolumeReconstructor, etc.)";
+    desc += ": Request the list of devices. Attributes: DeviceType: restrict the returned list of devices to a specific type (VirtualCapture, VirtualVolumeReconstructor, etc.)";
   }
   if (commandName == NULL || STRCASECMP(commandName, REQUEST_INPUT_DEVICE_IDS_CMD))
   {
