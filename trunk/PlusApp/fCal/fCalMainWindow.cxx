@@ -20,7 +20,7 @@ See License.txt for details.
 
 // PlusLib includes
 #include <vtkPlusDataSource.h>
-#include <vtkPlusVirtualDiscCapture.h>
+#include <vtkPlusVirtualCapture.h>
 #include <vtkPlusVirtualMixer.h>
 #include <QPlusConfigFileSaverDialog.h>
 #include <QPlusStatusIcon.h>
@@ -932,7 +932,7 @@ void fCalMainWindow::BuildChannelMenu()
   for (DeviceCollectionIterator it = aCollection.begin(); it != aCollection.end(); ++it)
   {
     vtkPlusDevice* device = *it;
-    if (dynamic_cast<vtkPlusVirtualDiscCapture*>(device) != NULL)
+    if (dynamic_cast<vtkPlusVirtualCapture*>(device) != NULL)
     {
       continue;
     }

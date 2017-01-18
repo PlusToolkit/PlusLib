@@ -745,9 +745,9 @@ void QCapturingToolbox::InitCaptureDeviceScrollArea()
     for (DeviceCollectionConstIterator it = aCollection.begin(); it != aCollection.end(); ++it)
     {
       vtkPlusDevice* aDevice = *it;
-      if (dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice) != NULL)
+      if (dynamic_cast<vtkPlusVirtualCapture*>(aDevice) != NULL)
       {
-        vtkPlusVirtualDiscCapture* capDevice = dynamic_cast<vtkPlusVirtualDiscCapture*>(aDevice);
+        vtkPlusVirtualCapture* capDevice = dynamic_cast<vtkPlusVirtualCapture*>(aDevice);
         PlusCaptureControlWidget* aWidget = new PlusCaptureControlWidget(NULL);
         aWidget->SetCaptureDevice(*capDevice);
         m_GridLayout->addWidget(aWidget);

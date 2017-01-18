@@ -14,36 +14,16 @@
 float DRAWING_COLOR = 255;
 
 //----------------------------------------------------------------------------
-void DrawLine(vtkImageData* imageData, int* imageExtent, double startX, double startY, double endX, double endY, int numberOfPoints)
-{
-  double directionVectorX = static_cast<double>(endX-startX)/(numberOfPoints-1);
-  double directionVectorY = static_cast<double>(endY-startY)/(numberOfPoints-1);
-  for (int pointIndex=0; pointIndex<numberOfPoints; ++pointIndex)
-  {
-    int pixelCoordX = startX + directionVectorX * pointIndex;
-    int pixelCoordY = startY + directionVectorY * pointIndex;
-    if (pixelCoordX<imageExtent[0] ||  pixelCoordX>imageExtent[1]
-    || pixelCoordY<imageExtent[2] ||  pixelCoordY>imageExtent[3])
-    {
-      // outside of the specified extent
-      continue;
-    }
-    imageData->SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, 0, 0, DRAWING_COLOR);
-  }
-}
-
-//----------------------------------------------------------------------------
 void DrawSector(vtkImageData* imageData, int* imageExtent, double* origin, double* fanAnglesDeg, double radius, int numberOfPoints)
 {
   double startAngleRad = vtkMath::RadiansFromDegrees(fanAnglesDeg[0]);
-  double deltaAngleRad = vtkMath::RadiansFromDegrees((fanAnglesDeg[1]-fanAnglesDeg[0])/(numberOfPoints-1));
-  for (int pointIndex=0; pointIndex<numberOfPoints; ++pointIndex)
+  double deltaAngleRad = vtkMath::RadiansFromDegrees((fanAnglesDeg[1] - fanAnglesDeg[0]) / (numberOfPoints - 1));
+  for (int pointIndex = 0; pointIndex < numberOfPoints; ++pointIndex)
   {
-    double angleRad = startAngleRad + pointIndex*deltaAngleRad;
-    int pixelCoordX = origin[0] + radius*sin(angleRad);
-    int pixelCoordY = origin[1] + radius*cos(angleRad);
-    if (pixelCoordX<imageExtent[0] ||  pixelCoordX>imageExtent[1]
-    || pixelCoordY<imageExtent[2] ||  pixelCoordY>imageExtent[3])
+    double angleRad = startAngleRad + pointIndex * deltaAngleRad;
+    int pixelCoordX = origin[0] + radius * sin(angleRad);
+    int pixelCoordY = origin[1] + radius * cos(angleRad);
+    if (pixelCoordX < imageExtent[0] ||  pixelCoordX > imageExtent[1] || pixelCoordY < imageExtent[2] ||  pixelCoordY > imageExtent[3])
     {
       // outside of the specified extent
       continue;
@@ -55,26 +35,37 @@ void DrawSector(vtkImageData* imageData, int* imageExtent, double* origin, doubl
 //----------------------------------------------------------------------------
 void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, double stopRadius, double* fanAnglesDeg, int pointSpacing, bool drawOrigin)
 {
-  double fanAnglesRad[2]={vtkMath::RadiansFromDegrees(fanAnglesDeg[0]), vtkMath::RadiansFromDegrees(fanAnglesDeg[1])};
+  double fanAnglesRad[2] = {vtkMath::RadiansFromDegrees(fanAnglesDeg[0]), vtkMath::RadiansFromDegrees(fanAnglesDeg[1])};
   int* extent = imageData->GetExtent();
   // origin to start radius (to highlight the origin in the image)
   if (drawOrigin)
   {
-    int numberOfPointsForDrawing = startRadius/10; // 1/10 point/pixel: dotted line
-    DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+startRadius*sin(fanAnglesRad[0]), fanOrigin[1]+startRadius*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
-    DrawLine(imageData, extent, fanOrigin[0], fanOrigin[1], fanOrigin[0]+startRadius*sin(fanAnglesRad[1]), fanOrigin[1]+startRadius*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
+    int numberOfPointsForDrawing = startRadius / 10; // 1/10 point/pixel: dotted line
+    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0])), static_cast<unsigned int>(std::round(fanOrigin[1])), 0 };
+    unsigned int endPointLeft[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))), 0 };
+    unsigned int endPointRight[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))), 0 };
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointLeft, numberOfPointsForDrawing);
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointRight, numberOfPointsForDrawing);
   }
   // side lines from start to stop radius
   {
-    int numberOfPointsForDrawing = (stopRadius-startRadius)/pointSpacing;
-    DrawLine(imageData, extent, fanOrigin[0]+startRadius*sin(fanAnglesRad[0]), fanOrigin[1]+startRadius*cos(fanAnglesRad[0]), fanOrigin[0]+stopRadius*sin(fanAnglesRad[0]), fanOrigin[1]+stopRadius*cos(fanAnglesRad[0]), numberOfPointsForDrawing);
-    DrawLine(imageData, extent, fanOrigin[0]+startRadius*sin(fanAnglesRad[1]), fanOrigin[1]+startRadius*cos(fanAnglesRad[1]), fanOrigin[0]+stopRadius*sin(fanAnglesRad[1]), fanOrigin[1]+stopRadius*cos(fanAnglesRad[1]), numberOfPointsForDrawing);
+    int numberOfPointsForDrawing = (stopRadius - startRadius) / pointSpacing;
+    {
+      unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[0]))), 0 };
+      unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[0]))), static_cast<unsigned int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[0]))), 0 };
+      PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
+    }
+    {
+      unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + startRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))), 0 };
+      unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(fanOrigin[0] + stopRadius * sin(fanAnglesRad[1]))), static_cast<unsigned int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[1]))), 0 };
+      PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
+    }
   }
   // circle sectors at start and stop radius
   {
-    int numberOfPointsForDrawing = startRadius*(fanAnglesRad[1]-fanAnglesRad[0])/pointSpacing; // sector length
+    int numberOfPointsForDrawing = startRadius * (fanAnglesRad[1] - fanAnglesRad[0]) / pointSpacing; // sector length
     DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, startRadius, numberOfPointsForDrawing);
-    numberOfPointsForDrawing = stopRadius*(fanAnglesRad[1]-fanAnglesRad[0])/pointSpacing; // sector length
+    numberOfPointsForDrawing = stopRadius * (fanAnglesRad[1] - fanAnglesRad[0]) / pointSpacing; // sector length
     DrawSector(imageData, extent, fanOrigin, fanAnglesDeg, stopRadius, numberOfPointsForDrawing);
   }
 }
@@ -85,13 +76,31 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
   int* clipRectangleOrigin = reconstructor->GetClipRectangleOrigin();
   int* clipRectangleSize = reconstructor->GetClipRectangleSize();
   int* extent = imageData->GetExtent();
-  int numberOfPoints=200; // number of drawn points per line
+  int numberOfPoints = 200; // number of drawn points per line
+
   // Horizontal lines
-  DrawLine(imageData, extent, clipRectangleOrigin[0],clipRectangleOrigin[1], clipRectangleOrigin[0]+clipRectangleSize[0]-1, clipRectangleOrigin[1], numberOfPoints);
-  DrawLine(imageData, extent, clipRectangleOrigin[0],clipRectangleOrigin[1]+clipRectangleSize[1]-1, clipRectangleOrigin[0]+clipRectangleSize[0]-1, clipRectangleOrigin[1]+clipRectangleSize[1]-1, numberOfPoints);
+  {
+    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
+    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+  }
+  {
+    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+  }
+
   // Vertical lines
-  DrawLine(imageData, extent, clipRectangleOrigin[0],clipRectangleOrigin[1], clipRectangleOrigin[0], clipRectangleOrigin[1]+clipRectangleSize[1]-1, numberOfPoints);
-  DrawLine(imageData, extent, clipRectangleOrigin[0]+clipRectangleSize[0]-1,clipRectangleOrigin[1], clipRectangleOrigin[0]+clipRectangleSize[0]-1, clipRectangleOrigin[1]+clipRectangleSize[1]-1, numberOfPoints);
+  {
+    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
+    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0])), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+  }
+  {
+    unsigned int startPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1])), 0 };
+    unsigned int endPoint[3] = { static_cast<unsigned int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)), static_cast<unsigned int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)), 0 };
+    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -103,7 +112,7 @@ void DrawClipFan(vtkImageData* imageData, vtkPlusVolumeReconstructor* reconstruc
   {
     return;
   }
-  
+
   double* fanOrigin = reconstructor->GetFanOrigin();
   double* maxFanAnglesDeg = reconstructor->GetFanAnglesDeg();
   double* detectedFanAnglesDeg = reconstructor->GetDetectedFanAnglesDeg();
@@ -121,7 +130,7 @@ void DrawClipFan(vtkImageData* imageData, vtkPlusVolumeReconstructor* reconstruc
     {
       // draw maximum fan angles with dotted line
       DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, maxFanAnglesDeg, 10, true /* draw origin*/);
-      DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, detectedFanAnglesDeg, 1, false /* do not draw origin*/);      
+      DrawFan(imageData, fanOrigin, fanRadiusStartPixel, fanRadiusStopPixel, detectedFanAnglesDeg, 1, false /* do not draw origin*/);
     }
     else
     {
@@ -145,13 +154,13 @@ int main(int argc, char** argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--source-seq-file",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input ultrasound image sequence.");
-  args.AddArgument("--output-seq-file",vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgSeqFileName, "Output ultrasound sequence, with clipping rectangle and fan overlaid.");
+  args.AddArgument("--source-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputImgSeqFileName, "Input ultrasound image sequence.");
+  args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImgSeqFileName, "Output ultrasound sequence, with clipping rectangle and fan overlaid.");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "The ultrasound sequence config file.");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  // Fail if arguements can't be parsed
+  // Fail if arguments can't be parsed
   if (!args.Parse())
   {
     std::cerr << "Error parsing arguments." << std::endl;
@@ -182,7 +191,7 @@ int main(int argc, char** argv)
 
   // Read the image sequence
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
@@ -190,9 +199,9 @@ int main(int argc, char** argv)
 
   // For reading the configuration file
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
-  {  
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
   }
   vtkXMLDataElement* volumeReconstructionElement = configRootElement->LookupElementWithName("VolumeReconstruction");
@@ -202,7 +211,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
   vtkSmartPointer<vtkPlusVolumeReconstructor> reconstructor = vtkSmartPointer<vtkPlusVolumeReconstructor>::New();
-  if (reconstructor->ReadConfiguration(volumeReconstructionElement->GetParent())==PLUS_FAIL)
+  if (reconstructor->ReadConfiguration(volumeReconstructionElement->GetParent()) == PLUS_FAIL)
   {
     LOG_ERROR("Failed to parse VolumeReconstruction element in input configuration file");
     return EXIT_FAILURE;
@@ -210,7 +219,7 @@ int main(int argc, char** argv)
 
   // Draw
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
-  LOG_INFO("Processing "<<numberOfFrames<<" frames...");
+  LOG_INFO("Processing " << numberOfFrames << " frames...");
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
     PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
@@ -226,16 +235,16 @@ int main(int argc, char** argv)
     int extensionDot = inputImgSeqFileName.find_last_of(".");
     if (extensionDot != std::string::npos)
     {
-      inputImgSeqFileName = inputImgSeqFileName.substr(0,extensionDot);
+      inputImgSeqFileName = inputImgSeqFileName.substr(0, extensionDot);
     }
     outputImgSeqFileName = inputImgSeqFileName + "-Scanlines.nrrd";
   }
-  if( vtkPlusSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Write(outputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS)
   {
     //Error has already been logged
     return EXIT_FAILURE;
   }
-  LOG_INFO("Writing to "<<outputImgSeqFileName<<" complete.");
+  LOG_INFO("Writing to " << outputImgSeqFileName << " complete.");
 
   return EXIT_SUCCESS;
 }

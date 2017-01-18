@@ -80,7 +80,7 @@ public:
   virtual std::string GetFileName();
 
   /*! Generate frame size related custom strings and store them
-      This is used by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+      This is used by vtkPlusVirtualCapture to update the final tally of frames, as it continually appends new frames to the file
       and this class to initialize the values when opening the image header
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?

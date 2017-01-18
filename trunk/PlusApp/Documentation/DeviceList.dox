@@ -46,7 +46,7 @@
 - \subpage DeviceFake
 
 \par Data processors
-- \subpage DeviceVirtualDiscCapture
+- \subpage DeviceVirtualCapture
 - \subpage DeviceVirtualVolumeReconstructor
 - \subpage DeviceVirtualMixer
 - \subpage DeviceVirtualSwitcher

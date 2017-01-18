@@ -224,13 +224,13 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::NotifyConfigured()
 {
   if( !this->OutputChannels.empty() )
   {
-    LOG_WARNING( "vtkPlusVirtualDiscCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped." );
+    LOG_WARNING( "vtkPlusVirtualCapture is expecting no output channel(s) and there are " << this->OutputChannels.size() << " channels. Output channel information will be dropped." );
     this->OutputChannels.clear();
   }
 
   if( this->InputChannels.empty() )
   {
-    LOG_ERROR( "No input channel sent to vtkPlusVirtualDiscCapture. Unable to save anything." );
+    LOG_ERROR( "No input channel sent to vtkPlusVirtualCapture. Unable to save anything." );
     return PLUS_FAIL;
   }
   vtkPlusChannel* inputChannel = this->InputChannels[0];

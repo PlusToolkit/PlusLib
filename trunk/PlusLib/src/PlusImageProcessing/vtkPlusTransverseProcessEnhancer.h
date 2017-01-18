@@ -7,9 +7,8 @@ See License.txt for details.
 #ifndef __vtkPlusTransverseProcessEnhancer_h
 #define __vtkPlusTransverseProcessEnhancer_h
 
-#include "vtkPlusImageProcessingExport.h"
-
 // Local includes
+#include "vtkPlusImageProcessingExport.h"
 #include "vtkPlusTrackedFrameProcessor.h"
 
 // VTK includes
@@ -35,106 +34,100 @@ class vtkPlusImageProcessingExport vtkPlusTransverseProcessEnhancer : public vtk
 {
 public:
   static vtkPlusTransverseProcessEnhancer* New();
-  vtkTypeMacro( vtkPlusTransverseProcessEnhancer, vtkPlusTrackedFrameProcessor );
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro(vtkPlusTransverseProcessEnhancer, vtkPlusTrackedFrameProcessor);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Update output frame from input frame */
-  virtual PlusStatus ProcessFrame( PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame );
+  virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* processingElement );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* processingElement);
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* processingElement );
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* processingElement);
 
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
   /*! Set optional output file name for sub-sampled input image sequence */
-  void SetLinesImageFileName( const std::string& fileName );
+  void SetLinesImageFileName(const std::string& fileName);
 
-  void SetIntermediateImageFileName( const std::string& fileName );
+  void SetIntermediateImageFileName(const std::string& fileName);
 
   /*! Set optional output file name for processed sub-sampled image sequence */
-  void SetProcessedLinesImageFileName( const std::string& fileName );
+  void SetProcessedLinesImageFileName(const std::string& fileName);
 
-  vtkSetMacro( ConvertToLinesImage, bool );
-  vtkGetMacro( ConvertToLinesImage, bool );
-  vtkBooleanMacro( ConvertToLinesImage, bool );
+  vtkSetMacro(ConvertToLinesImage, bool);
+  vtkGetMacro(ConvertToLinesImage, bool);
+  vtkBooleanMacro(ConvertToLinesImage, bool);
 
-  vtkSetMacro( NumberOfScanLines, int );
-  vtkGetMacro( NumberOfScanLines, int );
+  vtkSetMacro(NumberOfScanLines, int);
+  vtkGetMacro(NumberOfScanLines, int);
 
-  vtkSetMacro( NumberOfSamplesPerScanLine, int );
-  vtkGetMacro( NumberOfSamplesPerScanLine, int );
+  vtkSetMacro(NumberOfSamplesPerScanLine, int);
+  vtkGetMacro(NumberOfSamplesPerScanLine, int);
 
-  vtkSetMacro( GaussianEnabled, bool );
-  vtkGetMacro( GaussianEnabled, bool );
-  vtkBooleanMacro( GaussianEnabled, bool );
+  vtkSetMacro(GaussianEnabled, bool);
+  vtkGetMacro(GaussianEnabled, bool);
+  vtkBooleanMacro(GaussianEnabled, bool);
 
-  void SetGaussianStdDev( double GaussianStdDev );
-  void SetGaussianKernelSize( int GaussianKernelSize );
+  void SetGaussianStdDev(double GaussianStdDev);
+  void SetGaussianKernelSize(int GaussianKernelSize);
 
-  vtkSetMacro( ThresholdingEnabled, bool );
-  vtkGetMacro( ThresholdingEnabled, bool );
-  vtkBooleanMacro( ThresholdingEnabled, bool );
+  vtkSetMacro(ThresholdingEnabled, bool);
+  vtkGetMacro(ThresholdingEnabled, bool);
+  vtkBooleanMacro(ThresholdingEnabled, bool);
 
-  void SetThresholdInValue( double NewThresholdInValue );
-  void SetThresholdOutValue( double NewThresholdOutValue );
-  void SetLowerThreshold( double LowerThreshold );
-  void SetUpperThreshold( double UpperThreshold );
+  void SetThresholdInValue(double NewThresholdInValue);
+  void SetThresholdOutValue(double NewThresholdOutValue);
+  void SetLowerThreshold(double LowerThreshold);
+  void SetUpperThreshold(double UpperThreshold);
 
-  vtkSetMacro( EdgeDetectorEnabled, bool );
-  vtkGetMacro( EdgeDetectorEnabled, bool );
-  vtkBooleanMacro( EdgeDetectorEnabled, bool );
+  vtkSetMacro(EdgeDetectorEnabled, bool);
+  vtkGetMacro(EdgeDetectorEnabled, bool);
+  vtkBooleanMacro(EdgeDetectorEnabled, bool);
 
-  vtkSetMacro( IslandRemovalEnabled, bool );
-  vtkGetMacro( IslandRemovalEnabled, bool );
-  vtkBooleanMacro( IslandRemovalEnabled, bool );
+  vtkSetMacro(IslandRemovalEnabled, bool);
+  vtkGetMacro(IslandRemovalEnabled, bool);
+  vtkBooleanMacro(IslandRemovalEnabled, bool);
 
-  void SetIslandAreaThreshold( int islandAreaThreshold );
+  void SetIslandAreaThreshold(int islandAreaThreshold);
 
-  vtkSetMacro( ErosionEnabled, bool );
-  vtkGetMacro( ErosionEnabled, bool );
-  vtkBooleanMacro( ErosionEnabled, bool );
+  vtkSetMacro(ErosionEnabled, bool);
+  vtkGetMacro(ErosionEnabled, bool);
+  vtkBooleanMacro(ErosionEnabled, bool);
 
   vtkSetVector2Macro(ErosionKernelSize, int);
   vtkGetVector2Macro(ErosionKernelSize, int);
 
-  vtkSetMacro( DilationEnabled, bool );
-  vtkGetMacro( DilationEnabled, bool );
-  vtkBooleanMacro( DilationEnabled, bool );
+  vtkSetMacro(DilationEnabled, bool);
+  vtkGetMacro(DilationEnabled, bool);
+  vtkBooleanMacro(DilationEnabled, bool);
 
   vtkSetVector2Macro(DilationKernelSize, int);
   vtkGetVector2Macro(DilationKernelSize, int);
 
-  vtkSetMacro( ReconvertBinaryToGreyscale, bool );
-  vtkGetMacro( ReconvertBinaryToGreyscale, bool );
-  vtkBooleanMacro( ReconvertBinaryToGreyscale, bool );
+  vtkSetMacro(ReconvertBinaryToGreyscale, bool);
+  vtkGetMacro(ReconvertBinaryToGreyscale, bool);
+  vtkBooleanMacro(ReconvertBinaryToGreyscale, bool);
 
-  vtkSetMacro( ReturnToFanImage, bool );
-  vtkGetMacro( ReturnToFanImage, bool );
-  vtkBooleanMacro( ReturnToFanImage, bool );
+  vtkSetMacro(ReturnToFanImage, bool);
+  vtkGetMacro(ReturnToFanImage, bool);
+  vtkBooleanMacro(ReturnToFanImage, bool);
 
 
 protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
 
-  /*! Helper function for drawing a line on a VTK image */
-  void DrawLine( vtkImageData* imageData, int* imageExtent, double* start, double* end, int numberOfPoints );
-
-  /*! Draws scanlines on the image - for testing and debugging */
-  void DrawScanLines( vtkPlusUsScanConvert* scanConverter, vtkImageData* imageData );
-
-  void FillLinesImage( vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData );
+  void FillLinesImage(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData);
   void ProcessLinesImage();
-  void VectorImageToUchar( vtkImageData* inputImage, vtkImageData* ConversionImage );
+  void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
   void FillShadowValues();
 
-  void ComputeHistogram( vtkImageData* imageData );
+  void ComputeHistogram(vtkImageData* imageData);
 
-  void ImageConjunction( vtkImageData* InputImage, vtkImageData* MaskImage );
+  void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
 
 protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;

@@ -329,7 +329,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
   DeviceTypes["VirtualCapture"] = (PointerToDevice)&vtkPlusVirtualCapture::New;
   DeviceTypeClassNames["VirtualCapture"] = "vtkPlusVirtualCapture";
   DeviceTypes["VirtualBufferedCapture"] = (PointerToDevice)&vtkPlusVirtualCapture::New;
-  DeviceTypeClassNames["VirtualBufferedCapture"] = "vtkPlusVirtualDiscCapture";
+  DeviceTypeClassNames["VirtualBufferedCapture"] = "vtkPlusVirtualCapture";
   DeviceTypes["VirtualVolumeReconstructor"] = (PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New;
   DeviceTypeClassNames["VirtualVolumeReconstructor"] = "vtkPlusVirtualVolumeReconstructor";
 }

@@ -11,7 +11,7 @@ SET (ToolStateDisplayWidgetTest_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
   )
-  
+
 ADD_EXECUTABLE(ToolStateDisplayWidgetTest ToolStateDisplayWidgetTest.cxx 
   ${CMAKE_CURRENT_SOURCE_DIR}/../PlusWidgets.qrc 
   )

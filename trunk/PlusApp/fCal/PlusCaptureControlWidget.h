@@ -12,7 +12,7 @@ See License.txt for details.
 
 // PlusLib includes
 #include <PlusConfigure.h>
-#include <vtkPlusVirtualDiscCapture.h>
+#include <vtkPlusVirtualCapture.h>
 
 // Qt includes
 #include <QString>
@@ -22,7 +22,7 @@ See License.txt for details.
 //-----------------------------------------------------------------------------
 
 /*! \class PlusCaptureControlWidget
-* \brief Control vtkPlusVirtualDiscCapture devices
+* \brief Control vtkPlusVirtualCapture devices
 * \ingroup PlusAppCaptureClient
 */
 class PlusCaptureControlWidget : public QWidget
@@ -37,9 +37,9 @@ public:
 
   virtual double GetMaximumFrameRate() const;
 
-  virtual void SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice);
+  virtual void SetCaptureDevice(vtkPlusVirtualCapture& aDevice);
 
-  virtual vtkPlusVirtualDiscCapture* GetCaptureDevice()
+  virtual vtkPlusVirtualCapture* GetCaptureDevice()
   {
     return m_Device;
   }
@@ -93,7 +93,7 @@ protected slots:
 
 protected:
   /*! device to interact with */
-  vtkPlusVirtualDiscCapture* m_Device;
+  vtkPlusVirtualCapture* m_Device;
 
 protected:
   Ui::CaptureControlWidget ui;

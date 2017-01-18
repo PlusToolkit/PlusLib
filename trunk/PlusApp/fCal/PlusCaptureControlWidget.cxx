@@ -10,7 +10,7 @@ See License.txt for details.
 // PlusLib includes
 #include <vtkPlusChannel.h>
 #include <vtkPlusDataCollector.h>
-#include <vtkPlusVirtualDiscCapture.h>
+#include <vtkPlusVirtualCapture.h>
 
 // VTK includes
 #include <vtksys/SystemTools.hxx>
@@ -161,7 +161,7 @@ void PlusCaptureControlWidget::StartStopButtonPressed()
 }
 
 //-----------------------------------------------------------------------------
-void PlusCaptureControlWidget::SetCaptureDevice(vtkPlusVirtualDiscCapture& aDevice)
+void PlusCaptureControlWidget::SetCaptureDevice(vtkPlusVirtualCapture& aDevice)
 {
   m_Device = &aDevice;
 

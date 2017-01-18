@@ -113,7 +113,7 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 
 - RequestChannelIds: returns a list of available channel IDs
 - RequestDeviceIds: returns a list of available device IDs
-  - \xmlAtt DeviceType: restrict the returned list of devices to a specific type (VirtualDiscCapture, VirtualVolumeReconstructor, etc.)
+  - \xmlAtt DeviceType: restrict the returned list of devices to a specific type (VirtualCapture, VirtualVolumeReconstructor, etc.)
 - StartRecording: starts recording to file
   - \xmlAtt CaptureDeviceId \RequiredAtt
   - \xmlAtt OutputFilename

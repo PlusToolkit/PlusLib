@@ -530,8 +530,9 @@ double vtkPlusDevice::GetLocalTimeOffsetSec()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList) const
 {
-  for (auto channel : this->InputChannels)
+  for (ChannelContainerConstIterator iter = this->InputChannels.cbegin(); iter != this->InputChannels.cend(); ++iter)
   {
+    const vtkPlusChannel* channel = *iter;
     outDeviceList.push_back(channel->GetOwnerDevice());
   }
 

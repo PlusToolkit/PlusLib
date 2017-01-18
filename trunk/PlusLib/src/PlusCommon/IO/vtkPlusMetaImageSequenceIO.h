@@ -35,7 +35,7 @@ public:
   vtkGetMacro(Output2DDataWithZDimensionIncluded, bool);
 
   /*! Update the number of frames in the header
-      This is used primarily by vtkPlusVirtualDiscCapture to update the final tally of frames, as it continually appends new frames to the file
+      This is used primarily by vtkPlusVirtualCapture to update the final tally of frames, as it continually appends new frames to the file
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
