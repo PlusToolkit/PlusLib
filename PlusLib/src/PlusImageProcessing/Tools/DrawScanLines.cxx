@@ -144,8 +144,8 @@ int main(int argc, char** argv)
     double start[4] = { 0 };
     double end[4] = { 0 };
     scanConverter->GetScanLineEndPoints(scanLine, start, end);
-    PlusCommon::PixelPoint startPoint = { static_cast<unsigned int>(std::round(start[0])), static_cast<unsigned int>(std::round(start[1])), static_cast<unsigned int>(std::round(start[2])) };
-    PlusCommon::PixelPoint endPoint = { static_cast<unsigned int>(std::round(end[0])), static_cast<unsigned int>(std::round(end[1])), static_cast<unsigned int>(std::round(end[2])) };
+    PlusCommon::PixelPoint startPoint = { static_cast<int>(std::round(start[0])), static_cast<int>(std::round(start[1])), static_cast<int>(std::round(start[2])) };
+    PlusCommon::PixelPoint endPoint = { static_cast<int>(std::round(end[0])), static_cast<int>(std::round(end[1])), static_cast<int>(std::round(end[2])) };
     lines.push_back(PlusCommon::PixelLine(startPoint, endPoint));
   }
 

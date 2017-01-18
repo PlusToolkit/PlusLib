@@ -494,19 +494,22 @@ vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std:
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_STYLE style, unsigned int startPixel[3], unsigned int endPixel[3], unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
+PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, const std::array<float, 3>& colour, LINE_STYLE style,
+                                const std::array<int, 3>& startPixel, const std::array<int, 3>& endPixel,
+                                unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
 {
-  auto checkRange([](unsigned int startPixel, unsigned int endPixel) -> bool
+  auto checkRange([](int startPixel, int endPixel) -> bool
   {
-    if (endPixel > startPixel)
+    if (endPixel < startPixel)
     {
       auto temp = startPixel;
       startPixel = endPixel;
       endPixel = temp;
     }
 
-    if (endPixel - startPixel > static_cast<unsigned int>(std::numeric_limits<int>::max()))
+    if (endPixel < 0 && endPixel - startPixel > 0)
     {
+      // negative overflow
       return false;
     }
 
@@ -531,11 +534,9 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_S
     return PLUS_FAIL;
   }
 
-  int startPixelInt[3] = { static_cast<int>(startPixel[0]), static_cast<int>(startPixel[1]), static_cast<int>(startPixel[2]) };
-  int endPixelInt[3] = { static_cast<int>(endPixel[0]), static_cast<int>(endPixel[1]), static_cast<int>(endPixel[2]) };
   if (style == LINE_STYLE_SOLID)
   {
-    numberOfPoints = std::max(endPixelInt[0] - startPixelInt[0], endPixelInt[1] - startPixelInt[1]) + 1;
+    numberOfPoints = std::max(endPixel[0] - startPixel[0], endPixel[1] - startPixel[1]) + 1;
   }
   else if (numberOfPoints < 2)
   {
@@ -543,6 +544,7 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_S
     return PLUS_FAIL;
   }
 
+  int* extent = imageData.GetExtent();
   double directionVectorX = static_cast<double>(endPixel[0] - startPixel[0]) / (numberOfPoints - 1);
   double directionVectorY = static_cast<double>(endPixel[1] - startPixel[1]) / (numberOfPoints - 1);
   double directionVectorZ = static_cast<double>(endPixel[2] - startPixel[2]) / (numberOfPoints - 1);
@@ -554,10 +556,20 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_S
 
     for (int component = 0; component < std::min(imageData.GetNumberOfScalarComponents(), 3); ++component)
     {
+      if (pixelCoordX < static_cast<unsigned int>(extent[0]) || pixelCoordX > static_cast<unsigned int>(extent[1]) || pixelCoordY < static_cast<unsigned int>(extent[2]) || pixelCoordY > static_cast<unsigned int>(extent[3]))
+      {
+        // outside of the specified extent
+        continue;
+      }
       imageData.SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, pixelCoordZ, component, colour[component]);
     }
     if (imageData.GetNumberOfScalarComponents() > 3 && alphaBehavior == ALPHA_BEHAVIOR_OPAQUE)
     {
+      if (pixelCoordX < static_cast<unsigned int>(extent[0]) || pixelCoordX > static_cast<unsigned int>(extent[1]) || pixelCoordY < static_cast<unsigned int>(extent[2]) || pixelCoordY > static_cast<unsigned int>(extent[3]))
+      {
+        // outside of the specified extent
+        continue;
+      }
       // TODO : is a component value from [0,1]?
       imageData.SetScalarComponentFromFloat(pixelCoordX, pixelCoordY, pixelCoordZ, 3, 1.f);
     }
@@ -569,42 +581,21 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float colour[3], LINE_S
 //----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList)
 {
-  float colour[3] = { greyValue, greyValue, greyValue };
+  const std::array<float, 3>& colour = { greyValue, greyValue, greyValue };
   return PlusCommon::DrawScanLines(inputImageExtent, colour, scanLineEndPoints, trackedFrameList);
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float colour[3], const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList)
+vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, const std::array<float, 3>& colour, const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList)
 {
-  int numOfSamplesPerScanline = inputImageExtent[1] - inputImageExtent[0] + 1;
-  int numOfScanlines = inputImageExtent[3] - inputImageExtent[2] + 1;
-
   LOG_DEBUG("Processing " << trackedFrameList->GetNumberOfTrackedFrames() << " frames...");
 
   PlusStatus result(PLUS_SUCCESS);
-  for (int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); frameIndex++)
+  for (unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); frameIndex++)
   {
+    LOG_DEBUG("Processing frame " << frameIndex);
     PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
-    vtkImageData* imageData = frame->GetImageData()->GetImage();
-    int* outputExtent = imageData->GetExtent();
-    for (int scanLine = 0; scanLine < numOfScanlines; scanLine++)
-    {
-      double start[4] = { 0 };
-      double end[4] = { 0 };
-      unsigned int startInt[4];
-      unsigned int endInt[4];
-      for (int i = 0; i < 4; ++i)
-      {
-        startInt[i] = static_cast<unsigned int>(std::round(start[i]));
-        endInt[i] = static_cast<unsigned int>(std::round(end[i]));
-      }
-      if (PlusCommon::DrawLine(*imageData, colour, PlusCommon::LINE_STYLE_SOLID, startInt, endInt, numOfSamplesPerScanline) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Scaline " << scanLine << " failed. Unable to draw line.");
-        result = PLUS_FAIL;
-        continue;
-      }
-    }
+    PlusCommon::DrawScanLines(inputImageExtent, colour, scanLineEndPoints, frame->GetImageData()->GetImage());
   }
 
   return result;
@@ -613,32 +604,21 @@ vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, 
 //----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkImageData* imageData)
 {
-  float colour[3] = { greyValue, greyValue, greyValue };
+  std::array<float, 3> colour = { greyValue, greyValue, greyValue };
   return PlusCommon::DrawScanLines(inputImageExtent, colour, scanLineEndPoints, imageData);
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float colour[3], const PixelLineList& scanLineEndPoints, vtkImageData* imageData)
+vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, const std::array<float, 3>& colour, const PixelLineList& scanLineEndPoints, vtkImageData* imageData)
 {
   int numOfSamplesPerScanline = inputImageExtent[1] - inputImageExtent[0] + 1;
-  int numOfScanlines = inputImageExtent[3] - inputImageExtent[2] + 1;
 
   PlusStatus result(PLUS_SUCCESS);
-  int* outputExtent = imageData->GetExtent();
-  for (int scanLine = 0; scanLine < numOfScanlines; scanLine++)
+  for (auto iter = scanLineEndPoints.begin(); iter != scanLineEndPoints.end(); iter++)
   {
-    double start[4] = { 0 };
-    double end[4] = { 0 };
-    unsigned int startInt[4];
-    unsigned int endInt[4];
-    for (int i = 0; i < 4; ++i)
+    if (PlusCommon::DrawLine(*imageData, colour, PlusCommon::LINE_STYLE_SOLID, iter->first, iter->second, numOfSamplesPerScanline) != PLUS_SUCCESS)
     {
-      startInt[i] = static_cast<unsigned int>(std::round(start[i]));
-      endInt[i] = static_cast<unsigned int>(std::round(end[i]));
-    }
-    if (PlusCommon::DrawLine(*imageData, colour, PlusCommon::LINE_STYLE_SOLID, startInt, endInt, numOfSamplesPerScanline) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Scaline " << scanLine << " failed. Unable to draw line.");
+      LOG_ERROR("Scaline failed. Unable to draw line.");
       result = PLUS_FAIL;
       continue;
     }
@@ -648,9 +628,10 @@ vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float greyValue, LINE_STYLE style, unsigned int startPixel[3], unsigned int endPixel[3], unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
+PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float greyValue, LINE_STYLE style, const std::array<int, 3>& startPixel,
+                                const std::array<int, 3>& endPixel, unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
 {
-  float colour[3] = { greyValue, greyValue, greyValue };
+  std::array<float, 3> colour = { greyValue, greyValue, greyValue };
   return PlusCommon::DrawLine(imageData, colour, style, startPixel, endPixel, numberOfPoints, alphaBehavior);
 }
 
