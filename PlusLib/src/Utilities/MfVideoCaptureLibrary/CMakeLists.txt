@@ -28,7 +28,7 @@ endif()
 
 SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
 
-SET (MfVideoCaptureLibraryLibNames
+SET (MfVideoCaptureLibrary_LIBS
   Evr
   Mf
   Mfplat
@@ -37,20 +37,10 @@ SET (MfVideoCaptureLibraryLibNames
   mfuuid
   Strmiids
   )
-set(MfVideoCaptureLibrary_LIBS)
-foreach(_lib ${MfVideoCaptureLibraryLibNames})
-  set(_libVarName "${_lib}Lib")
-  set("${_libVarName}" "${_lib}-NOTFOUND")
-  FIND_LIBRARY ("${_libVarName}" NAMES "${_lib}" PATHS ${WINDOWS_SDK_LIBRARY_DIRS} NO_DEFAULT_PATH)
-  if ("${${_libVarName}}" STREQUAL "${_libVarName}-NOTFOUND")
-    MESSAGE(FATAL_ERROR "Library not found in Windows SDK: ${_lib}")
-  endif()
-  LIST(APPEND MfVideoCaptureLibrary_LIBS "${${_libVarName}}")
-endforeach()
 
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
 SET_TARGET_PROPERTIES(MfVideoCaptureLibrary PROPERTIES FOLDER Utilities)
-TARGET_LINK_LIBRARIES( MfVideoCaptureLibrary ${MfVideoCaptureLibrary_LIBS})
+TARGET_LINK_LIBRARIES(MfVideoCaptureLibrary PRIVATE ${MfVideoCaptureLibrary_LIBS})
 target_include_directories(MfVideoCaptureLibrary PUBLIC ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS})
 
 # --------------------------------------------------------------------------
