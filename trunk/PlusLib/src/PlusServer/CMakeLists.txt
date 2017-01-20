@@ -63,7 +63,10 @@ SET (PlusServer_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
-target_include_directories(vtkPlusServer PUBLIC ${PlusServer_INCLUDE_DIRS} )
+target_include_directories(vtkPlusServer PUBLIC ${PlusServer_INCLUDE_DIRS})
+IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
+  target_compile_options(vtkPlusServer PRIVATE -ftemplate-depth=5000)
+endif()
 TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
 
 # --------------------------------------------------------------------------
