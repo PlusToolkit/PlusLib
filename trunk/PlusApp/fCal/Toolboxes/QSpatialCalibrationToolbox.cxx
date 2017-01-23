@@ -618,14 +618,7 @@ void QSpatialCalibrationToolbox::StartCalibration()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Set validation transform names for tracked frame lists
-  std::string toolReferenceFrame;
-  if ((m_ParentMainWindow->GetSelectedChannel() == NULL)
-      || (m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName() == NULL))
-  {
-    LOG_ERROR("Failed to get tool reference frame name");
-    return;
-  }
-  toolReferenceFrame = m_ParentMainWindow->GetSelectedChannel()->GetOwnerDevice()->GetToolReferenceFrameName();
+  std::string toolReferenceFrame = m_Calibration->GetReferenceCoordinateFrame();
   PlusTransformName transformNameForValidation(m_ParentMainWindow->GetProbeCoordinateFrame(), toolReferenceFrame.c_str());
   m_SpatialCalibrationData->SetFrameTransformNameForValidation(transformNameForValidation);
   m_SpatialValidationData->SetFrameTransformNameForValidation(transformNameForValidation);
