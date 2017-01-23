@@ -24,7 +24,7 @@
       ToolReferenceFrame="Reference" >
       <DataSources>
         <DataSource Type="Tool" Id="XZAxis" PortName="coreXY"
-                    From="Reference" To="XZAxis"
+                    From="Reference" To="USImage"
                     Persistent="FALSE" BufferSize="10"
                     PreTMatrix="
                      1.0    0.0    0.0    0.0
@@ -35,15 +35,6 @@
                     MotionType="Linear" PulseSpacing="0.001" PulseSpacing2="0.001"
                     LocalAxis="1 0 0" LocalAxis2="0 0 1"
                     Mode ="4" Resolution = "3600" />
-
-        <DataSource Type="Tool" Id="USCalibration" PortName="USCalibration"
-                     From="XZAxis" To="USImage"
-                     Persistent="TRUE"
-                     PreTMatrix="
-                     1.0    0.0    0.0    0.0
-                     0.0    0.0    1.0    0.0
-                     0.0    1.0    0.0    0.0
-                     0.0    0.0    0.0    1.0"/>
 
          <DataSource Type="Tool" Id="USImage" PortName="USImage"
                     From="USImage" To="Reference"
