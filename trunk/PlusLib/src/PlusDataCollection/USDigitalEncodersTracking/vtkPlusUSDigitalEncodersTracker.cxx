@@ -378,14 +378,24 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       return PLUS_FAIL;
     }
     
-    long Encoder_Value;
+    long Encoder_Value, errorCode;
     vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
 
     // Read encoder positions and transform it into XY position in mm
-    Encoder_Value = ::A2GetPosition(encoders.Encoder_Addr, &Encoder_Value);
+    errorCode = ::A2GetPosition(encoders.Encoder_Addr, &Encoder_Value);
+    if (errorCode)
+    {
+      LOG_ERROR("Unable to read position of first encoder with SN: " << encoders.Encoder_SN);
+      return PLUS_FAIL;
+    }
     double firstEnc = Encoder_Value * encoders.Encoder_PulseSpacing;
 
-    Encoder_Value = ::A2GetPosition(encoders.Encoder_Addr2, &Encoder_Value);
+    errorCode = ::A2GetPosition(encoders.Encoder_Addr2, &Encoder_Value);
+    if (errorCode)
+    {
+      LOG_ERROR("Unable to read position of second encoder with SN: " << encoders.Encoder_SN2);
+      return PLUS_FAIL;
+    }
     double secondEnc = Encoder_Value * encoders.Encoder_PulseSpacing2;
 
     double firstAxis = firstEnc + secondEnc;
