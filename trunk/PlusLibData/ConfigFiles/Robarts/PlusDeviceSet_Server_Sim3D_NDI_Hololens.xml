@@ -20,20 +20,14 @@
     <Device
       Id="TrackerDevice" 
       Type="AuroraTracker"
-      SerialPort="5"
+      SerialPort="3"
       ToolReferenceFrame="Tracker" >
       <DataSources>
         <DataSource Type="Tool" Id="Phantom" PortName="0" />
-        <DataSource Type="Tool" Id="Probe" PortName="1" />
-        <DataSource Type="Tool" Id="Stylus" PortName="2" />
-        <DataSource Type="Tool" Id="Reference" PortName="3" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
           <DataSource Id="Phantom" />
-          <DataSource Id="Probe" />
-          <DataSource Id="Stylus" />
-          <DataSource Id="Reference" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -87,44 +81,66 @@
         0     0    1     0
         0     0    0     1"
       Error="0.0" Date="012712_152030" />
+    <Transform From="Probe" To="Phantom"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+    <Transform From="Stylus" To="Phantom"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+    <Transform From="Reference" To="Phantom"
+      Matrix="
+        1     0    0     0
+        0     1    0     0
+        0     0    1     0
+        0     0    0     1"
+      Error="0.0" Date="012712_152030" />
+    <!-- 1 = green, 2 = hub, 3 = yellow, 4 = blue, 5 = teal -->
     <Transform From="RedSphere1" To="Phantom"
       Matrix="
-        0.9089	0	0.417014	39.1541
-        0.416435	-0.0526467	-0.90764	-85.2199
-        0.0219544	0.998613	-0.0478506	-4.49278
+        0.908182	0	0.418576	38.4158
+        0.41852	-0.0164886	-0.908058	-83.3391
+        0.00690175	0.999864	-0.0149747	-1.37433
         0	0	0	1"
-       Error="0.705186" Date="122216_115653" />
+       Error="0.460909" Date="012217_162405" />
 
     <Transform From="RedSphere2" To="Phantom"
       Matrix="
-        0.770838	0	-0.637031	-23.6374
-        0.632016	-0.125243	0.764768	28.3772
-        -0.0797834	-0.992126	-0.0965417	-3.58223
+        0.762407	0	-0.647098	-23.35
+        0.641294	-0.133636	0.755568	27.2641
+        -0.0864758	-0.99103	-0.101885	-3.67645
         0	0	0	1"
-       Error="0.531791" Date="122216_115908" />
+       Error="1.20231" Date="012217_162912" />
 
     <Transform From="RedSphere3" To="Phantom"
       Matrix="
-        0.979309	0	0.202369	20.0147
-        -0.19034	0.339632	0.921097	91.098
-        -0.0687312	-0.940558	0.332605	32.8952
+        0.442096	0	-0.896968	-99.5291
+        0.538623	-0.79963	0.265476	29.4576
+        -0.717242	-0.600493	-0.353513	-39.2264
         0	0	0	1"
-       Error="0.465206" Date="122216_115952" />
+       Error="1.42647" Date="012217_162707" />
 
     <Transform From="RedSphere4" To="Phantom"
       Matrix="
-        0.815525	0	-0.578722	-65.4222
-        0.374361	-0.762596	0.527543	59.6366
-        -0.441331	-0.646875	-0.621916	-70.3051
+        0.971239	0	-0.238109	-24.6704
+        0.186731	0.620474	0.761672	78.9166
+        0.14774	-0.784227	0.602628	62.4381
         0	0	0	1"
-       Error="0.338208" Date="122216_120054" />
+       Error="0.703026" Date="012217_162551" />
        
     <Transform From="RedSphere5" To="Phantom"
       Matrix="
-        0.725799	0	-0.687907	-79.526
-        0.630696	0.39927	0.665436	76.9283
-        0.274661	-0.916833	0.28979	33.5014
+        0.971843	0	-0.235628	-26.6609
+        0.212161	-0.43505	0.875054	99.0105
+        -0.10251	-0.900406	-0.4228	-47.839
         0	0	0	1"
-       Error="0.57998" Date="122616_113911" />
+       Error="0.823018" Date="012217_162743" />
   </CoordinateDefinitions> 
 </PlusConfiguration>
