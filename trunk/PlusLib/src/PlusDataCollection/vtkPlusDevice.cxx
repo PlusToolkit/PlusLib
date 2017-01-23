@@ -107,7 +107,6 @@ vtkStandardNewMacro(vtkPlusDevice);
 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
-const char* vtkPlusDevice::DEFAULT_TRACKER_REFERENCE_FRAME_NAME = "Tracker";
 const char* vtkPlusDevice::BMODE_PORT_NAME = "B";
 const char* vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
 const std::string vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME = "ProbeId";
@@ -151,8 +150,6 @@ vtkPlusDevice::vtkPlusDevice()
   , RequirePortNameInDeviceSetConfiguration(false)
 {
   this->SetNumberOfInputPorts(0);
-
-  this->SetToolReferenceFrameName(DEFAULT_TRACKER_REFERENCE_FRAME_NAME);
 
   // For threaded capture of transformations
   this->UpdateMutex = vtkPlusRecursiveCriticalSection::New();
@@ -894,10 +891,13 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   {
     this->SetToolReferenceFrameName(referenceName);
   }
-  else if (this->IsTracker())
+  else
   {
     this->SetToolReferenceFrameName(this->GetDeviceId());
-    LOCAL_LOG_WARNING("ToolReferenceFrame is undefined. Default \"" << (this->GetToolReferenceFrameName() ? this->GetToolReferenceFrameName() : "(undefined)") << "\" will be used.");
+    if (this->IsTracker())
+    {
+      LOCAL_LOG_WARNING("ToolReferenceFrame is undefined. Default \"" << (this->GetToolReferenceFrameName() ? this->GetToolReferenceFrameName() : "(undefined)") << "\" will be used.");
+    }
   }
 
   if (deviceXMLElement->GetAttribute("MissingInputGracePeriodSec") != NULL)
