@@ -4,11 +4,13 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
-#include "vtkObjectFactory.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
+
+// VTK includes
+#include <vtkObjectFactory.h>
 
 //----------------------------------------------------------------------------
 // Virtual devices
@@ -18,6 +20,9 @@ See License.txt for details.
 #include "vtkPlusVirtualVolumeReconstructor.h"
 #include "vtkPlusImageProcessorVideoSource.h"
 #include "vtkPlusGenericSerialDevice.h"
+#ifdef PLUS_USE_tesseract
+#include "vtkPlusVirtualTextRecognizer.h"
+#endif
 
 //----------------------------------------------------------------------------
 // Tracker devices
@@ -150,198 +155,142 @@ See License.txt for details.
 #include "vtkPlusOvrvisionProVideoSource.h"
 #endif
 
-//---------------------------------------------------------------------------
-// Virtual devices
-#ifdef PLUS_USE_tesseract
-#include "vtkPlusVirtualTextRecognizer.h"
-#endif
-
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
 
 //----------------------------------------------------------------------------
-
-vtkPlusDeviceFactory::vtkPlusDeviceFactory(void)
+vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 {
-  DeviceTypes["FakeTracker"] = (PointerToDevice)&vtkPlusFakeTracker::New;
-  DeviceTypeClassNames["FakeTracker"] = "vtkPlusFakeTracker";
-  DeviceTypes["ChRobotics"] = (PointerToDevice)&vtkPlusChRoboticsTracker::New;
-  DeviceTypeClassNames["ChRobotics"] = "vtkPlusChRoboticsTracker";
-  DeviceTypes["Microchip"] = (PointerToDevice)&vtkPlusMicrochipTracker::New;
-  DeviceTypeClassNames["Microchip"] = "vtkPlusMicrochipTracker";
+  RegisterDevice("Fake", "vtkPlusFakeTracker", (PointerToDevice)&vtkPlusFakeTracker::New);
+  RegisterDevice("ChRobotics", "vtkPlusChRoboticsTracker", (PointerToDevice)&vtkPlusChRoboticsTracker::New);
+  RegisterDevice("Microchip", "vtkPlusMicrochipTracker", (PointerToDevice)&vtkPlusMicrochipTracker::New);
 
 #ifdef PLUS_USE_3dConnexion_TRACKER
   // 3dConnexion tracker is supported on Windows only
-  DeviceTypes["3dConnexion"] = (PointerToDevice)&vtkPlus3dConnexionTracker::New;
-  DeviceTypeClassNames["3dConnexion"] = "vtkPlus3dConnexionTracker";
+  RegisterDevice("3dConnexion", "vtkPlus3dConnexionTracker", (PointerToDevice)&vtkPlus3dConnexionTracker::New);
 #endif
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkTracker"] = (PointerToDevice)&vtkPlusOpenIGTLinkTracker::New;
-  DeviceTypeClassNames["OpenIGTLinkTracker"] = "vtkPlusOpenIGTLinkTracker";
+  RegisterDevice("OpenIGTLinkTracker", "vtkPlusOpenIGTLinkTracker", (PointerToDevice)&vtkPlusOpenIGTLinkTracker::New);
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
-  DeviceTypes["BrachyTracker"] = (PointerToDevice)&vtkPlusBrachyTracker::New;
-  DeviceTypeClassNames["BrachyTracker"] = "vtkPlusBrachyTracker";
+  RegisterDevice("BrachyTracker", "vtkPlusBrachyTracker", (PointerToDevice)&vtkPlusBrachyTracker::New);
 #endif
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
-  DeviceTypes["USDigitalEncodersTracker"] = (PointerToDevice)&vtkPlusUSDigitalEncodersTracker::New;
-  DeviceTypeClassNames["USDigitalEncodersTracker"] = "vtkPlusUSDigitalEncodersTracker";
+  RegisterDevice("USDigitalEncodersTracker", "vtkPlusUSDigitalEncodersTracker", (PointerToDevice)&vtkPlusUSDigitalEncodersTracker::New);
 #endif
 #ifdef PLUS_USE_NDI_CERTUS
-  DeviceTypes["CertusTracker"] = (PointerToDevice)&vtkPlusNDICertusTracker::New;
-  DeviceTypeClassNames["CertusTracker"] = "vtkPlusNDICertusTracker";
+  RegisterDevice("CertusTracker", "vtkPlusNDICertusTracker", (PointerToDevice)&vtkPlusNDICertusTracker::New);
 #endif
 #ifdef PLUS_USE_NDI
-  DeviceTypes["PolarisTracker"] = (PointerToDevice)&vtkPlusNDITracker::New;
-  DeviceTypeClassNames["PolarisTracker"] = "vtkPlusNDITracker";
-  DeviceTypes["AuroraTracker"] = (PointerToDevice)&vtkPlusNDITracker::New;
-  DeviceTypeClassNames["AuroraTracker"] = "vtkPlusNDITracker";
+  RegisterDevice("PolarisTracker", "vtkPlusNDITracker", (PointerToDevice)&vtkPlusNDITracker::New);
+  RegisterDevice("AuroraTracker", "vtkPlusNDITracker", (PointerToDevice)&vtkPlusNDITracker::New);
 #endif
 #ifdef PLUS_USE_MICRONTRACKER
-  DeviceTypes["MicronTracker"] = (PointerToDevice)&vtkPlusMicronTracker::New;
-  DeviceTypeClassNames["MicronTracker"] = "vtkPlusMicronTracker";
+  RegisterDevice("MicronTracker", "vtkPlusMicronTracker", (PointerToDevice)&vtkPlusMicronTracker::New);
 #endif
 #ifdef PLUS_USE_INTELREALSENSE
-  DeviceTypes["IntelRealSenseTracker"] = (PointerToDevice)&vtkPlusIntelRealSenseTracker::New;
-  DeviceTypeClassNames["IntelRealSenseTracker"] = "vtkPlusIntelRealSenseTracker";
+  RegisterDevice("IntelRealSenseTracker", "vtkPlusIntelRealSenseTracker", (PointerToDevice)&vtkPlusIntelRealSenseTracker::New);
 #endif
 #ifdef PLUS_USE_STEALTHLINK
-  DeviceTypes["StealthLinkTracker"] = (PointerToDevice)&vtkPlusStealthLinkTracker::New;
-  DeviceTypeClassNames["StealthLinkTracker"] = "vtkPlusStealthLinkTracker";
+  RegisterDevice("StealthLinkTracker", "vtkPlusStealthLinkTracker", (PointerToDevice)&vtkPlusStealthLinkTracker::New);
 #endif
 #ifdef PLUS_USE_Ascension3DG
-  DeviceTypes["Ascension3DG"] = (PointerToDevice)&vtkAscension3DGTracker::New;
-  DeviceTypeClassNames["Ascension3DG"] = "vtkAscension3DGTracker";
+  RegisterDevice("Ascension3DG", "vtkAscension3DGTracker", (PointerToDevice)&vtkAscension3DGTracker::New);
 #endif
 #ifdef PLUS_USE_Ascension3DGm
-  DeviceTypes["Ascension3DGm"] = (PointerToDevice)&vtkAscension3DGmTracker::New;
-  DeviceTypeClassNames["Ascension3DGm"] = "vtkAscension3DGmTracker";
+  RegisterDevice("Ascension3DGm", "vtkAscension3DGmTracker", (PointerToDevice)&vtkAscension3DGmTracker::New);
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
-  DeviceTypes["PhidgetSpatial"] = (PointerToDevice)&vtkPlusPhidgetSpatialTracker::New;
-  DeviceTypeClassNames["PhidgetSpatial"] = "vtkPlusPhidgetSpatialTracker";
+  RegisterDevice("PhidgetSpatial", "vtkPlusPhidgetSpatialTracker", (PointerToDevice)&vtkPlusPhidgetSpatialTracker::New);
 #endif
 
-  DeviceTypes["SavedDataSource"] = (PointerToDevice)&vtkPlusSavedDataSource::New;
-  DeviceTypeClassNames["SavedDataSource"] = "vtkPlusSavedDataSource";
-  DeviceTypes["UsSimulator"] = (PointerToDevice)&vtkPlusUsSimulatorVideoSource::New;
-  DeviceTypeClassNames["UsSimulator"] = "vtkPlusUsSimulatorVideoSource";
-  DeviceTypes["ImageProcessor"] = (PointerToDevice)&vtkPlusImageProcessorVideoSource::New;
-  DeviceTypeClassNames["ImageProcessor"] = "vtkPlusImageProcessorVideoSource";
-  DeviceTypes["GenericSerialDevice"] = (PointerToDevice)&vtkPlusGenericSerialDevice::New;
-  DeviceTypeClassNames["GenericSerialDevice"] = "vtkPlusGenericSerialDevice";
-  DeviceTypes["NoiseVideo"] = (PointerToDevice)&vtkPlusDevice::New;
-  DeviceTypeClassNames["NoiseVideo"] = "vtkPlusDevice";
+  RegisterDevice("SavedDataSource", "vtkPlusSavedDataSource", (PointerToDevice)&vtkPlusSavedDataSource::New);
+  RegisterDevice("UsSimulator", "vtkPlusUsSimulatorVideoSource", (PointerToDevice)&vtkPlusUsSimulatorVideoSource::New);
+  RegisterDevice("ImageProcessor", "vtkPlusImageProcessorVideoSource", (PointerToDevice)&vtkPlusImageProcessorVideoSource::New);
+  RegisterDevice("GenericSerialDevice", "vtkPlusGenericSerialDevice", (PointerToDevice)&vtkPlusGenericSerialDevice::New);
+  RegisterDevice("NoiseVideo", "vtkPlusDevice", (PointerToDevice)&vtkPlusDevice::New);
 #ifdef PLUS_USE_OpenIGTLink
-  DeviceTypes["OpenIGTLinkVideo"] = (PointerToDevice)&vtkPlusOpenIGTLinkVideoSource::New;
-  DeviceTypeClassNames["OpenIGTLinkVideo"] = "vtkPlusOpenIGTLinkVideoSource";
+  RegisterDevice("OpenIGTLinkVideo", "vtkPlusOpenIGTLinkVideoSource", (PointerToDevice)&vtkPlusOpenIGTLinkVideoSource::New);
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-  DeviceTypes["OptimetConoProbe"] = (PointerToDevice)&vtkPlusOptimetConoProbeMeasurer::New;
+  RegisterDevice("OptimetConoProbe", "vtkPlusOptimetConoProbeMeasurer", (PointerToDevice)&vtkPlusOptimetConoProbeMeasurer::New);
 #endif
 #ifdef PLUS_USE_OPTITRACK
-  DeviceTypes["OptiTrack"] = (PointerToDevice)&vtkPlusOptiTrackTracker::New;
-  DeviceTypeClassNames["OptiTrack"] = "vtkPlusOptiTrackTracker";
+  RegisterDevice("OptiTrack", "vtkPlusOptiTrackTracker", (PointerToDevice)&vtkPlusOptiTrackTracker::New);
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-  DeviceTypes["SonixVideo"] = (PointerToDevice)&vtkPlusSonixVideoSource::New;
-  DeviceTypeClassNames["SonixVideo"] = "vtkPlusSonixVideoSource";
-  DeviceTypes["SonixPortaVideo"] = (PointerToDevice)&vtkPlusSonixPortaVideoSource::New;
-  DeviceTypeClassNames["SonixPortaVideo"] = "vtkPlusSonixPortaVideoSource";
+  RegisterDevice("SonixVideo", "vtkPlusSonixVideoSource", (PointerToDevice)&vtkPlusSonixVideoSource::New);
+  RegisterDevice("SonixPortaVideo", "vtkPlusSonixPortaVideoSource", (PointerToDevice)&vtkPlusSonixPortaVideoSource::New);
 #endif
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-  DeviceTypes["BkProFocusOem"] = (PointerToDevice)&vtkPlusBkProFocusOemVideoSource::New;
-  DeviceTypeClassNames["BkProFocusOem"] = "vtkPlusBkProFocusOemVideoSource";
+  RegisterDevice("BkProFocusOem", "vtkPlusBkProFocusOemVideoSource", (PointerToDevice)&vtkPlusBkProFocusOemVideoSource::New);
 #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-  DeviceTypes["BkProFocusCameraLink"] = (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New;
-  DeviceTypeClassNames["BkProFocusCameraLink"] = "vtkPlusBkProFocusCameraLinkVideoSource";
-  DeviceTypes["BkProFocus"] = (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New;
-  DeviceTypeClassNames["BkProFocus"] = "vtkPlusBkProFocusCameraLinkVideoSource";  // for backward compatibility only
+  RegisterDevice("BkProFocusCameraLink", "vtkPlusBkProFocusCameraLinkVideoSource", (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New);
+  RegisterDevice("BkProFocus", "vtkPlusBkProFocusCameraLinkVideoSource", (PointerToDevice)&vtkPlusBkProFocusCameraLinkVideoSource::New);
 #endif
 #endif
 #ifdef PLUS_USE_VFW_VIDEO
-  DeviceTypes["VFWVideo"] = (PointerToDevice)&vtkPlusWin32VideoSource2::New;
-  DeviceTypeClassNames["VFWVideo"] = "vtkPlusWin32VideoSource2";
+  RegisterDevice("VFWVideo", "vtkPlusWin32VideoSource2", (PointerToDevice)&vtkPlusWin32VideoSource2::New);
 #endif
 #ifdef PLUS_USE_MMF_VIDEO
-  DeviceTypes["MmfVideo"] = (PointerToDevice)&vtkPlusMmfVideoSource::New;
-  DeviceTypeClassNames["MmfVideo"] = "vtkPlusMmfVideoSource";
+  RegisterDevice("MmfVideo", "vtkPlusMmfVideoSource", (PointerToDevice)&vtkPlusMmfVideoSource::New);
 #endif
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
-  DeviceTypes["ICCapturing"] = (PointerToDevice)&vtkPlusICCapturingSource::New;
-  DeviceTypeClassNames["ICCapturing"] = "vtkPlusICCapturingSource";
+  RegisterDevice("ICCapturing", "vtkPlusICCapturingSource", (PointerToDevice)&vtkPlusICCapturingSource::New);
 #endif
 #ifdef PLUS_USE_INTERSON_VIDEO
-  DeviceTypes["IntersonVideo"] = (PointerToDevice)&vtkPlusIntersonVideoSource::New;
-  DeviceTypeClassNames["IntersonVideo"] = "vtkPlusIntersonVideoSource";
+  RegisterDevice("IntersonVideo", "vtkPlusIntersonVideoSource", (PointerToDevice)&vtkPlusIntersonVideoSource::New);
 #endif
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
-  DeviceTypes["IntersonSDKCxxVideo"] = (PointerToDevice)&vtkPlusIntersonSDKCxxVideoSource::New;
-  DeviceTypeClassNames["IntersonSDKCxxVideo"] = "vtkPlusIntersonSDKCxxVideoSource";
+  RegisterDevice("IntersonSDKCxxVideo", "vtkPlusIntersonSDKCxxVideoSource", (PointerToDevice)&vtkPlusIntersonSDKCxxVideoSource::New);
 #endif
 #ifdef PLUS_USE_TELEMED_VIDEO
-  DeviceTypes["TelemedVideo"] = (PointerToDevice)&vtkPlusTelemedVideoSource::New;
-  DeviceTypeClassNames["TelemedVideo"] = "vtkPlusTelemedVideoSource";
+  RegisterDevice("TelemedVideo", "vtkPlusTelemedVideoSource", (PointerToDevice)&vtkPlusTelemedVideoSource::New);
 #endif
 #ifdef PLUS_USE_THORLABS_VIDEO
-  DeviceTypes["ThorLabsVideo"] = (PointerToDevice)&vtkPlusThorLabsVideoSource::New;
-  DeviceTypeClassNames["ThorLabsVideo"] = "vtkPlusThorLabsVideoSource";
+  RegisterDevice("ThorLabsVideo", "vtkPlusThorLabsVideoSource", (PointerToDevice)&vtkPlusThorLabsVideoSource::New);
 #endif
 #ifdef PLUS_USE_EPIPHAN
-  DeviceTypes["Epiphan"] = (PointerToDevice)&vtkPlusEpiphanVideoSource::New;
-  DeviceTypeClassNames["Epiphan"] = "vtkPlusEpiphanVideoSource";
+  RegisterDevice("Epiphan", "vtkPlusEpiphanVideoSource", (PointerToDevice)&vtkPlusEpiphanVideoSource::New);
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-  DeviceTypes["IntuitiveDaVinci"] = (PointerToDevice)&vtkPlusIntuitiveDaVinciTracker::New;
-  DeviceTypeClassNames["IntuitiveDaVinci"] = "vtkPlusIntuitiveDaVinciTracker";
+  RegisterDevice("IntuitiveDaVinci", "vtkPlusIntuitiveDaVinciTracker", (PointerToDevice)&vtkPlusIntuitiveDaVinciTracker::New);
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-  DeviceTypes["iE33Video"] = (PointerToDevice)&vtkPlusPhilips3DProbeVideoSource::New;
-  DeviceTypeClassNames["iE33Video"] = "vtkPlusPhilips3DProbeVideoSource";
+  RegisterDevice("iE33Video", "vtkPlusPhilips3DProbeVideoSource", (PointerToDevice)&vtkPlusPhilips3DProbeVideoSource::New);
 #endif
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
-  DeviceTypes["CapistranoVideo"] = (PointerToDevice)&vtkPlusCapistranoVideoSource::New;
-  DeviceTypeClassNames["CapistranoVideo"] = "vtkPlusCapistranoVideoSource";
+  RegisterDevice("CapistranoVideo", "vtkPlusCapistranoVideoSource", (PointerToDevice)&vtkPlusCapistranoVideoSource::New);
 #endif
 #ifdef PLUS_USE_tesseract
-  DeviceTypes["VirtualTextRecognizer"] = (PointerToDevice)&vtkPlusVirtualTextRecognizer::New;
-  DeviceTypeClassNames["VirtualTextRecognizer"] = "vtkPlusVirtualTextRecognizer";
+  RegisterDevice("VirtualTextRecognizer", "vtkPlusVirtualTextRecognizer", (PointerToDevice)&vtkPlusVirtualTextRecognizer::New);
 #endif
 #ifdef PLUS_USE_NVIDIA_DVP
-  DeviceTypes["NVidiaDVP"] = (PointerToDevice)&vtkPlusNvidiaDVPVideoSource::New;
-  DeviceTypeClassNames["NVidiaDVP"] = "vtkPlusNVidiaDVPVideoSource";
+  RegisterDevice("NVidiaDVP", "vtkPlusNvidiaDVPVideoSource", (PointerToDevice)&vtkPlusNvidiaDVPVideoSource::New);
 #endif
 
 #ifdef PLUS_USE_OvrvisionPro
-  DeviceTypes["OvrvisionPro"] = (PointerToDevice)&vtkPlusOvrvisionProVideoSource::New;
-  DeviceTypeClassNames["OvrvisionPro"] = "vtkPlusOvrvisionProVideoSource";
+  RegisterDevice("OvrvisionPro", "vtkPlusOvrvisionProVideoSource", (PointerToDevice)&vtkPlusOvrvisionProVideoSource::New);
 #endif
 
   // Virtual Devices
-  DeviceTypes["VirtualMixer"] = (PointerToDevice)&vtkPlusVirtualMixer::New;
-  DeviceTypeClassNames["VirtualMixer"] = "vtkPlusVirtualMixer";
-  DeviceTypes["VirtualSwitcher"] = (PointerToDevice)&vtkPlusVirtualSwitcher::New;
-  DeviceTypeClassNames["VirtualSwitcher"] = "vtkPlusVirtualSwitcher";
-  DeviceTypes["VirtualCapture"] = (PointerToDevice)&vtkPlusVirtualCapture::New;
-  DeviceTypeClassNames["VirtualCapture"] = "vtkPlusVirtualCapture";
-  DeviceTypes["VirtualBufferedCapture"] = (PointerToDevice)&vtkPlusVirtualCapture::New;
-  DeviceTypeClassNames["VirtualBufferedCapture"] = "vtkPlusVirtualCapture";
-  DeviceTypes["VirtualVolumeReconstructor"] = (PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New;
-  DeviceTypeClassNames["VirtualVolumeReconstructor"] = "vtkPlusVirtualVolumeReconstructor";
+  RegisterDevice("VirtualMixer", "vtkPlusVirtualMixer", (PointerToDevice)&vtkPlusVirtualMixer::New);
+  RegisterDevice("VirtualSwitcher", "vtkPlusVirtualSwitcher", (PointerToDevice)&vtkPlusVirtualSwitcher::New);
+  RegisterDevice("VirtualCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New);
+  RegisterDevice("VirtualBufferedCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New);
+  RegisterDevice("VirtualVolumeReconstructor", "vtkPlusVirtualVolumeReconstructor", (PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New);
 }
 
 //----------------------------------------------------------------------------
-
 vtkPlusDeviceFactory::~vtkPlusDeviceFactory(void)
 {
 }
 
 //----------------------------------------------------------------------------
-
 void vtkPlusDeviceFactory::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -349,7 +298,6 @@ void vtkPlusDeviceFactory::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-
 void vtkPlusDeviceFactory::PrintAvailableDevices(ostream& os, vtkIndent indent)
 {
   os << indent << "Supported devices: " << std::endl;
@@ -367,7 +315,6 @@ void vtkPlusDeviceFactory::PrintAvailableDevices(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPlusDeviceFactory::CreateInstance(const char* aDeviceType, vtkPlusDevice*& aDevice, const std::string& aDeviceId)
 {
   if (aDevice != NULL)
@@ -449,4 +396,11 @@ PlusStatus vtkPlusDeviceFactory::GetDeviceTypeName(const std::string& deviceClas
   }
 
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDeviceFactory::RegisterDevice(const std::string& deviceTypeName, const std::string& deviceClassName, vtkPlusDeviceFactory::PointerToDevice constructionMethod)
+{
+  vtkPlusDeviceFactory::DeviceTypes[deviceTypeName] = constructionMethod;
+  vtkPlusDeviceFactory::DeviceTypeClassNames[deviceTypeName] = deviceClassName;
 }
