@@ -7,15 +7,17 @@ See License.txt for details.
 #ifndef __vtkPlusDataCollector_h
 #define __vtkPlusDataCollector_h
 
-#include "vtkPlusDataCollectionExport.h"
-
+// Local includes
 #include "PlusCommon.h"
-#include "vtkObject.h"
+#include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+
+// VTK includes
+#include <vtkObject.h>
 
 class PlusTrackedFrame;
 class vtkPlusChannel;
-
+class vtkPlusDeviceFactory;
 class vtkPlusTrackedFrameList;
 class vtkXMLDataElement;
 
@@ -42,6 +44,15 @@ public:
   Write main configuration to xml data
   */
   PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
+
+  /*!
+  Set the factory instance used to create devices
+  */
+  void SetDeviceFactory(vtkSmartPointer<vtkPlusDeviceFactory> factory);
+  /*!
+  Get the factory instance used to create devices
+  */
+  vtkPlusDeviceFactory& GetDeviceFactory();
 
   /*!
   Start the devices. The device is brought from
@@ -148,6 +159,8 @@ protected:
 
   /*! The timestamp filtering methods require some time to initialize. Synchronization will ignore data that are acquired during startup delay. */
   double StartupDelaySec;
+
+  vtkSmartPointer<vtkPlusDeviceFactory> DeviceFactory;
 
   DeviceCollection Devices;
 

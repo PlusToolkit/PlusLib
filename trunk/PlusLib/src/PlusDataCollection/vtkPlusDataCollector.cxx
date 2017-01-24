@@ -29,6 +29,7 @@ vtkStandardNewMacro(vtkPlusDataCollector);
 vtkPlusDataCollector::vtkPlusDataCollector()
   : vtkObject()
   , StartupDelaySec(0.0)
+  , DeviceFactory(vtkSmartPointer<vtkPlusDeviceFactory>::New())
   , Connected(false)
   , Started(false)
 {
@@ -88,8 +89,6 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration(vtkXMLDataElement* aConfig)
     LOG_DEBUG("StartupDelaySec: " << std::fixed << startupDelaySec);
   }
 
-  vtkSmartPointer<vtkPlusDeviceFactory> factory = vtkSmartPointer<vtkPlusDeviceFactory>::New();
-
   std::set<std::string> existingDeviceIds;
 
   for (int i = 0; i < dataCollectionElement->GetNumberOfNestedElements(); ++i)
@@ -116,7 +115,7 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration(vtkXMLDataElement* aConfig)
     }
     existingDeviceIds.insert(deviceId);
 
-    if (factory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL)
+    if (DeviceFactory->CreateInstance(deviceElement->GetAttribute("Type"), device, deviceElement->GetAttribute("Id")) == PLUS_FAIL)
     {
       LOG_ERROR("Unable to create device: " << deviceElement->GetAttribute("Type"));
       continue;
@@ -259,6 +258,21 @@ PlusStatus vtkPlusDataCollector::WriteConfiguration(vtkXMLDataElement* aConfig)
   }
 
   return status;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDataCollector::SetDeviceFactory(vtkSmartPointer<vtkPlusDeviceFactory> factory)
+{
+  if (factory != nullptr)
+  {
+    this->DeviceFactory = factory;
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkPlusDeviceFactory& vtkPlusDataCollector::GetDeviceFactory()
+{
+  return *this->DeviceFactory.Get();
 }
 
 //----------------------------------------------------------------------------
