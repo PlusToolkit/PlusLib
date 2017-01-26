@@ -26,9 +26,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
+#include <vtkPNGReader.h>
+#include <vtkImageFlip.h>
+#include <vtkImageImport.h>
 
 // ITK includes
 #include <metaImage.h>
+#include <itkImageFileReader.h>
 
 vtkStandardNewMacro(vtkPlusVolumeReconstructor);
 
@@ -124,12 +128,18 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
                                     this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION, \
                                     this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION);
 
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
+  XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
                                     this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE, \
                                     this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE, \
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE, \
                                     this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    XML_READ_STRING_ATTRIBUTE_REQUIRED(ImportanceMaskFilename, reconConfig);
+  }
 
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FillHoles, reconConfig, "ON", true, "OFF", false);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFanAnglesAutoDetect, reconConfig);
@@ -229,6 +239,15 @@ PlusStatus vtkPlusVolumeReconstructor::WriteConfiguration(vtkXMLDataElement* con
   else
   {
     XML_REMOVE_ATTRIBUTE(reconConfig, "NumberOfThreads");
+  }
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    reconConfig->SetAttribute("ImportanceMaskFilename", this->ImportanceMaskFilename.c_str());
+  }
+  else
+  {
+    XML_REMOVE_ATTRIBUTE(reconConfig, "ImportanceMaskFilename");
   }
 
   if (this->Reconstructor->IsPixelRejectionEnabled())
@@ -882,4 +901,56 @@ void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectBrightnessThreshold(doubl
 void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectFilterRadiusPixel(int radiusPixel)
 {
   this->FanAngleDetector->SetFilterRadiusPixel(radiusPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(std::string filename)
+{
+  if (this->ImportanceMaskFilename != filename)
+  {
+    this->ImportanceMaskFilename = filename;
+    
+    bool useVTK = true;
+    if (useVTK) //do not drag in ITK as a dependency
+    {
+      vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
+      reader->SetFileName(filename.c_str());
+      reader->Update();
+
+      vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+      flipYFilter->SetFilteredAxis(1); // flip y axis
+      flipYFilter->SetInputConnection(reader->GetOutputPort());
+      flipYFilter->Update();
+      this->Reconstructor->GetImportanceMask()->ShallowCopy(flipYFilter->GetOutput());
+    }
+    else //itk reader supports many file formats
+    {
+      typedef itk::Image<unsigned char, 3> uc2Type;
+      typedef itk::ImageFileReader<uc2Type> ReaderType;
+      ReaderType::Pointer reader2 = ReaderType::New();
+      reader2->SetFileName(filename);
+      reader2->Update();
+      uc2Type::Pointer img = reader2->GetOutput();
+      uc2Type::RegionType region = img->GetLargestPossibleRegion();
+      img->Register();
+
+      vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
+      importer->SetWholeExtent(region.GetIndex(0), region.GetSize(0) - 1, region.GetIndex(1), region.GetSize(1) - 1, region.GetIndex(2), region.GetSize(2) - 1);
+      importer->SetDataExtentToWholeExtent();
+      importer->SetDataScalarTypeToUnsignedChar();
+      importer->SetImportVoidPointer(img->GetBufferPointer(), region.GetNumberOfPixels());
+      importer->SetScalarArrayName("itkGraylevels");
+      importer->Update();
+      this->Reconstructor->GetImportanceMask()->ShallowCopy(importer->GetOutput());
+    }
+
+    this->Reconstructor->Modified();
+    this->Modified();
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusVolumeReconstructor::GetImportanceMaskFilename()
+{
+  return this->ImportanceMaskFilename;
 }

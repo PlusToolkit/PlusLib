@@ -507,6 +507,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int numscalars,
                                                  vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode, 
                                                  unsigned short *accPtr,
+                                                 unsigned char *&imPtr,
                                                  unsigned int *accOverflowCount,
                                                  double pixelRejectionThreshold)
 {
@@ -573,7 +574,71 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         } 
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 );
+        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
+      }
+    }
+    break;
+  case  vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE :
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
+    {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          imPtr++;
+          continue;
+        }
+      }
+
+      outPoint[0] = outPoint1[0] + idX*xAxis[0]; 
+      outPoint[1] = outPoint1[1] + idX*xAxis[1];
+      outPoint[2] = outPoint1[2] + idX*xAxis[2];
+
+      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+
+      int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
+      T *outPtr1 = outPtr + inc;
+      // divide by outInc[0] to accomodate for the difference
+      // in the number of scalar pointers between the output
+      // and the accumulation buffer
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]); // removed cast to unsigned short because it might cause loss in larger numbers
+
+      if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
+        if (*imPtr == 0) //nothing to do
+            break;
+        unsigned short newa = *accPtr1 + *imPtr;
+
+        if (newa > ACCUMULATION_THRESHOLD)
+          (*accOverflowCount) += 1;
+
+        int i = numscalars;
+        do 
+        {
+          i--;
+          *outPtr1 = ((*inPtr++)*(*imPtr) + (*outPtr1)*(*accPtr1))/newa;
+          outPtr1++;
+        }
+        while (i);
+        imPtr++;
+
+        *accPtr1 = ACCUMULATION_MAXIMUM;
+        if (newa < ACCUMULATION_MAXIMUM)
+        {
+          *accPtr1 = newa;
+        } 
+      } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+        // TODO : This doesn't iterate through the scalars, this could be a problem
+        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
       }
     }
     break;
@@ -692,6 +757,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
                                                  int numscalars,
                                                  vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode,
                                                  unsigned short *accPtr,
+                                                 unsigned char *&imPtr,
                                                  unsigned int *accOverflowCount,
                                                  double pixelRejectionThreshold)
 {
@@ -755,6 +821,74 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
           outPtr1++;
         }
         while (i);
+
+        *accPtr1 = ACCUMULATION_MAXIMUM;
+        if (newa < ACCUMULATION_MAXIMUM)
+        {
+          *accPtr1 = newa;
+        }
+      } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+        // TODO : This doesn't iterate through the scalars, this could be a problem
+        *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+      }
+
+      outPoint[0] += xAxis[0];
+      outPoint[1] += xAxis[1];
+      outPoint[2] += xAxis[2];
+    }
+    break;
+  case  vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE :
+    // Nearest-Neighbor, no extent checks, with accumulation
+    for (int idX = xIntersectionPixStart; idX <= xIntersectionPixEnd; idX++)
+    {
+      if (pixelRejectionEnabled)
+      {
+        double inPixelSumAllComponents = 0;
+        for (int i = numscalars-1; i>=0; i--)
+        {
+          inPixelSumAllComponents+=inPtr[i];
+        }
+        if (inPixelSumAllComponents<pixelRejectionThresholdSumAllComponents)
+        {
+          // too dark, skip this pixel
+          inPtr += numscalars;
+          outPoint[0] += xAxis[0];
+          outPoint[1] += xAxis[1];
+          outPoint[2] += xAxis[2];
+          imPtr++;
+          continue;
+        }
+      }
+
+      int outIdX = PlusMath::Round(outPoint[0]);
+      int outIdY = PlusMath::Round(outPoint[1]);
+      int outIdZ = PlusMath::Round(outPoint[2]);
+
+      int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
+      T *outPtr1 = outPtr + inc;
+      // divide by outInc[0] to accomodate for the difference
+      // in the number of scalar pointers between the output
+      // and the accumulation buffer
+      unsigned short *accPtr1 = accPtr + (inc/outInc[0]);
+
+      if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
+        if (*imPtr == 0) //nothing to do
+            break;
+        unsigned short newa = *accPtr1 + *imPtr;
+
+        if (newa > ACCUMULATION_THRESHOLD)
+          (*accOverflowCount) += 1;
+
+        int i = numscalars;
+        do 
+        {
+          i--;
+          *outPtr1 = ((*inPtr++)*(*imPtr) + (*outPtr1)*(*accPtr1))/newa;
+          outPtr1++;
+        }
+        while (i);
+        imPtr++;
 
         *accPtr1 = ACCUMULATION_MAXIMUM;
         if (newa < ACCUMULATION_MAXIMUM)
@@ -883,6 +1017,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
   vtkImageData* outData = insertionParams->outData;
   T* outPtr = reinterpret_cast<T*>(insertionParams->outPtr);
   unsigned short* accPtr = insertionParams->accPtr;
+  unsigned char* imPtr = insertionParams->imPtr;
   vtkImageData* inData = insertionParams->inData;
   T* inPtr = reinterpret_cast<T*>(insertionParams->inPtr);
   int* inExt = insertionParams->inExt;
@@ -959,8 +1094,11 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
   vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
-
-  //////
+  vtkIdType imIncX = 0, imIncY = 0, imIncZ = 0;
+  if (compoundingMode == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    insertionParams->imData->GetContinuousIncrements(inExt, imIncX, imIncY, imIncZ);
+  }
 
   int outMax[3];
   int outMin[3]; // the max and min values of the output extents -
@@ -1133,6 +1271,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
       for (int idX = inExt[0]; idX < xIntersectionPixStart; idX++)
       {
         inPtr += numscalars;
+        imPtr++;
       }
       // multiplying the input point by the transform will give you fractional pixels,
       // so we need interpolation
@@ -1154,6 +1293,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
               {
                 // too dark, skip this pixel
                 inPtr += numscalars; // go to the next x pixel
+                imPtr++;
                 continue;
               }
             }
@@ -1161,10 +1301,12 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, imPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
+            imPtr++;
           }
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
+          imPtr += xSkipMiddleSegmentPixEnd - xSkipMiddleSegmentPixStart + 1;
           for (int idX = xSkipMiddleSegmentPixEnd+1; idX <= xIntersectionPixEnd; idX++) // for all of the x pixels within the fan after the skipped middle section
           {
             if (pixelRejectionEnabled)
@@ -1178,6 +1320,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
               {
                 // too dark, skip this pixel
                 inPtr += numscalars; // go to the next x pixel
+                imPtr++;
                 continue;
               }
             }
@@ -1185,8 +1328,9 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, imPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
+            imPtr++;
           }
         }
         else
@@ -1204,6 +1348,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
               {
                 // too dark, skip this pixel
                 inPtr += numscalars; // go to the next x pixel
+                imPtr++;
                 continue;
               }
             }
@@ -1211,8 +1356,9 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             outPoint[0] = outPoint1[0] + idX*xAxis[0];
             outPoint[1] = outPoint1[1] + idX*xAxis[1];
             outPoint[2] = outPoint1[2] + idX*xAxis[2];
-            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
+            vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, imPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount); // hit is either 1 or 0
             inPtr += numscalars; // go to the next x pixel
+            imPtr++;
           }
         }
       }      
@@ -1223,17 +1369,18 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xSkipMiddleSegmentPixStart-1, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
+            numscalars, compoundingMode, accPtr, imPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
+          imPtr += (xSkipMiddleSegmentPixEnd - xSkipMiddleSegmentPixStart + 1);;
           vtkFreehand2OptimizedNNHelper(xSkipMiddleSegmentPixEnd+1, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
+            numscalars, compoundingMode, accPtr, imPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
         }
         else
         {
           vtkFreehand2OptimizedNNHelper(xIntersectionPixStart, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
-            numscalars, compoundingMode, accPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
+            numscalars, compoundingMode, accPtr, imPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
         }
       }
 
@@ -1241,11 +1388,14 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
       for (int idX = xIntersectionPixEnd+1; idX <= inExt[1]; idX++)
       {
         inPtr += numscalars;
+        imPtr++;
       }
 
       inPtr += inIncY; // move to the next line
+      imPtr += imIncY;
     }
     inPtr += inIncZ; // move to the next image
+    imPtr += imIncZ;
   }
 }
 

@@ -90,7 +90,8 @@ public:
     UNDEFINED_COMPOUNDING_MODE,
     LATEST_COMPOUNDING_MODE,
     MAXIMUM_COMPOUNDING_MODE,
-    MEAN_COMPOUNDING_MODE
+    MEAN_COMPOUNDING_MODE,
+    IMPORTANCE_MASK_COMPOUNDING_MODE
   };
 
   enum CalculationTypeDeprecated
@@ -145,10 +146,24 @@ public:
 
   /*!
     Get the accumulation buffer
-    accumulation buffer is for compounding, there is a voxel in
+    Accumulation buffer is for compounding, there is a voxel in
     the accumulation buffer for each voxel in the output.
   */
   virtual vtkImageData *GetAccumulationBuffer();
+
+  /*!
+  Get the importance mask
+  The importance mask of pixels in a frame (0-255).
+  0 means pixel is ignored during compounding.
+  */
+  virtual vtkImageData *GetImportanceMask();
+
+  /*!
+  Set the importance mask
+  The importance mask of pixels in a frame (0-255).
+  0 means pixel is ignored during compounding.
+  */
+  virtual void SetImportanceMask(vtkImageData * importanceMask);
 
   /*! Creates the and clears all necessary image buffers */
   virtual PlusStatus ResetOutput();
@@ -326,6 +341,7 @@ protected:
 
   vtkImageData *ReconstructedVolume;
   vtkImageData *AccumulationBuffer;
+  vtkImageData *ImportanceMask;
 
   // Output image position and size
   double OutputOrigin[3];

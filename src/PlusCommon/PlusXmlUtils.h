@@ -463,6 +463,37 @@ public:
     } \
   }
 
+#define XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2, enumString3, enumValue3, enumString4, enumValue4)  \
+  { \
+    const char* attributeName = #memberVar; \
+    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    if (strValue != NULL) \
+    { \
+      if (STRCASECMP(strValue, enumString1)==0)  \
+      { \
+        this->Set##memberVar(enumValue1); \
+      } \
+      else if (STRCASECMP(strValue, enumString2)==0)  \
+      { \
+        this->Set##memberVar(enumValue2);  \
+      } \
+      else if (STRCASECMP(strValue, enumString3)==0)  \
+      { \
+        this->Set##memberVar(enumValue3);  \
+      } \
+      else if (STRCASECMP(strValue, enumString4)==0)  \
+      { \
+        this->Set##memberVar(enumValue4);  \
+      } \
+      else  \
+      { \
+        LOG_WARNING("Failed to read enumerated value from "<<attributeName \
+          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
+          <<": expected '"<<enumString1<<"', '"<<enumString2<<"', or '"<<enumString3<<"', got '"<<strValue<<"'"); \
+      } \
+    } \
+  }
+
 #if (VTK_MAJOR_VERSION < 6)
     // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
   #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  PlusCommon::RemoveAttribute(xmlElementVar, attributeName);
