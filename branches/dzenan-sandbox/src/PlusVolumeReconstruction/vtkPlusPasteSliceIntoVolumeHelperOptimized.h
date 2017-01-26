@@ -1371,6 +1371,7 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             inPtr, outPtr, outExt, outInc,
             numscalars, compoundingMode, accPtr, imPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
           inPtr += numscalars * (xSkipMiddleSegmentPixEnd-xSkipMiddleSegmentPixStart+1);
+          imPtr += (xSkipMiddleSegmentPixEnd - xSkipMiddleSegmentPixStart + 1);;
           vtkFreehand2OptimizedNNHelper(xSkipMiddleSegmentPixEnd+1, xIntersectionPixEnd, outPoint, outPoint1, xAxis, 
             inPtr, outPtr, outExt, outInc,
             numscalars, compoundingMode, accPtr, imPtr, accOverflowCount, insertionParams->pixelRejectionThreshold);
