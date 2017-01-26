@@ -1,0 +1,43 @@
+/*!
+\page ApplicationPlusVersion Version information (PlusVersion)
+
+Prints the version of all hardware SDKs that were used for building Plus.
+
+\section ApplicationPlusVersionExamples Example output
+
+~~~
+Software version: Plus-2.1.2.3530 - Win32
+Supported devices:
+  - 3dConnexion (ver: Plus-2.1.2)
+  - Ascension3DG (ver: Plus-2.1.2)
+  - AuroraTracker (ver: NDICAPI-3.1)
+  - BrachyTracker (ver: Plus-2.1.2)
+  - CertusTracker (ver: Optotrak API (Win32 DLL Version) Version 3.01.03)
+  - ChRobotics (ver: Plus-2.1.2)
+  - Epiphan (ver: Plus-2.1.2)
+  - FakeTracker (ver: Plus-2.1.2)
+  - ICCapturing (ver: The Imaging Source UDSHL-3.2)
+  - MicronTracker (ver: MTC-3.6.5.4)
+  - MmfVideo (ver: Plus-2.1.2)
+  - NoiseVideo (ver: Plus-2.1.2)
+  - OpenIGTLinkTracker (ver: OpenIGTLink v1.10.10)
+  - OpenIGTLinkVideo (ver: OpenIGTLink v1.10.10)
+  - PhidgetSpatial (ver: Plus-2.1.2)
+  - PolarisTracker (ver: NDICAPI-3.1)
+  - SavedDataSource (ver: Plus-2.1.2)
+  - SonixPortaVideo (ver: UltrasonixSDK-5.7.1)
+  - SonixVideo (ver: UltrasonixSDK-5.7.1)
+  - UsSimulator (ver: Plus-2.1.2)
+  - VFWVideo (ver: Plus-2.1.2)
+  - VirtualBufferedCapture (ver: Plus-2.1.2)
+  - VirtualCapture (ver: Plus-2.1.2)
+  - VirtualMixer (ver: Plus-2.1.2)
+  - VirtualSwitcher (ver: Plus-2.1.2)
+  - VirtualVolumeReconstructor (ver: Plus-2.1.2)
+~~~
+
+\section ApplicationPlusVersionHelp Command-line parameters reference
+
+\verbinclude "PlusVersionHelp.txt"
+
+*/

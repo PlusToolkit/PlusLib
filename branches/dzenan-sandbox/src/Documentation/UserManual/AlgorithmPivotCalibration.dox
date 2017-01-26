@@ -1,0 +1,30 @@
+/**
+
+\page AlgorithmPivotCalibration Pivot calibration algorithm
+
+This algorithm computes transformation between the tip of a tracked pointer and the coordinate system of tracking marker attached to the object.
+
+Usually the marker's coordinate system is named as Stylus,
+the coordinate system that has its origin at the tooltip is named as StylusTip. The StylusTip coordinate system
+can be chosen to have the same orientation as the Stylus coordinate system, however this may not be aligned with
+the principal axes of the stylus object. This misalignment may be confusing for the users. The StylusTip coordinate
+system could be aligned with the principal axes of the stylus, by asking the user to translate or sping the stylus along its
+axes or to perform a landmark registration. However, these extra steps increase the complexity of the procedure and
+generally the accuracy of the stylus orientation is not critical, as it is used for visual representation only.
+Therefore, in Plus the approximate stylus orientation is computed from the data acquired for the pivot calibration.
+The marker's origin (Stylus coordinate system origin) is assumed to be close to the long axis of the stylus,
+therefore the -Z axis of the StylusTip coordinate system is chosen as the unit vector pointing from the StylusTip
+origin to the Stylus origin and the other two axes are aligned with the X and Y axes of the Stylus coordinate system.
+
+\section PivotCalibrationConfigSettings Configuration settings
+
+- \xmlElem \b vtkPlusPivotCalibrationAlgo
+  - \xmlAtt ObjectMarkerCoordinateFrame \RequiredAtt
+  - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
+  - \xmlAtt ObjectPivotPointCoordinateFrame \RequiredAtt
+
+\section AlgorithmPivotCalibrationExampleConfigFile Example configuration file PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml
+
+\include "ConfigFiles/PlusDeviceSet_fCal_Ultrasonix_L14-5_Ascension3DG_2.0.xml"
+
+*/
