@@ -103,7 +103,7 @@ PlusStatus vtkPlusDisplayableObject::ReadConfiguration(vtkXMLDataElement* aConfi
   {
     LOG_WARNING("Displayable object " << objectCoordinateFrame << " without an ID. Cannot perform a lookup by ID.");
   }
-  this->SetObjectId(id);
+  this->SetObjectId(id == NULL ? "" : id);
 
   return PLUS_SUCCESS;
 }

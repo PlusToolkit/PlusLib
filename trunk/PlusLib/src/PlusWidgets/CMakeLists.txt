@@ -61,6 +61,18 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/PlusWidgets/${PROJECT_NAME}.vcxproj CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
+# Install
+#
+INSTALL(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+  )
+INSTALL(FILES ${${PROJECT_NAME}_UI_HDRS}
+  DESTINATION include
+  )
+
+# --------------------------------------------------------------------------
 # Testing
 IF (BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)

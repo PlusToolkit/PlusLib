@@ -5,7 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 # ------------------------------------------------------------------------
 # PlusLib
 # --------------------------------------------------------------------------
-FIND_PACKAGE(PlusLib REQUIRED PATHS "${PlusLib_DIR}/src" NO_MODULE)
+FIND_PACKAGE(PlusLib REQUIRED NO_MODULE)
 INCLUDE(${PlusLib_USE_FILE})
 
 # ------------------------------------------------------------------------
@@ -33,9 +33,7 @@ MESSAGE(STATUS "PlusApp version: ${PLUSAPP_VERSION}" )
 # --------------------------------------------------------------------------
 
 # Standard CMake option for testing.
-OPTION(BUILD_TESTING
-       "Build test programs"
-       ON)
+OPTION(BUILD_TESTING "Build test programs" ON)
 
 INCLUDE(CTest)
 
@@ -67,15 +65,18 @@ CONFIGURE_FILE(
 IF (PLUSAPP_OFFLINE_BUILD)
   SET(PLUSAPP_REVISION 0)
 ELSE()
-  FIND_PACKAGE(Subversion)
+  FIND_PACKAGE(Git)
+  IF(Git_FOUND)
+    EXECUTE_PROCESS(COMMAND git rev-parse HEAD OUTPUT_VARIABLE PLUSAPP_REVISION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+    STRING(REGEX REPLACE "\n$" "" PLUSAPP_REVISION "${PLUSAPP_REVISION}")
+    STRING(REGEX REPLACE "\r$" "" PLUSAPP_REVISION "${PLUSAPP_REVISION}")
+    
+    MESSAGE(STATUS "Current git hash is ${PLUSLIB_REVISION}")
 
-  IF(Subversion_FOUND)
-    Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PLUSAPP_SVN_INFO)
-    MESSAGE(STATUS "Current revision is ${PLUSAPP_SVN_INFO_WC_REVISION}")
-    SET(PLUSAPP_REVISION ${PLUSAPP_SVN_INFO_WC_REVISION})
+    EXECUTE_PROCESS(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE PLUSAPP_SHORT_REVISION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+    STRING(REGEX REPLACE "\n$" "" PLUSAPP_SHORT_REVISION "${PLUSAPP_SHORT_REVISION}")
+    STRING(REGEX REPLACE "\r$" "" PLUSAPP_SHORT_REVISION "${PLUSAPP_SHORT_REVISION}")
   ENDIF()
- 
-  SET( PLUSAPP_SVN_EXECUTABLE ${Subversion_SVN_EXECUTABLE} )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -180,7 +181,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the DiagnosticTools
 # --------------------------------------------------------------------------
-IF (PLUSAPP_BUILD_DiagnosticTools)
+IF(PLUSAPP_BUILD_DiagnosticTools)
   ADD_SUBDIRECTORY(DiagnosticTools)
   ADD_DEPENDENCIES(DiagDataCollection ${PLUSLIB_DEPENDENCIES})
 ENDIF()
@@ -188,7 +189,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the fCal application (Qt)
 # --------------------------------------------------------------------------
-IF (PLUSAPP_BUILD_fCal)
+IF(PLUSAPP_BUILD_fCal)
   ADD_SUBDIRECTORY(fCal)
   ADD_DEPENDENCIES(fCal ${PLUSLIB_DEPENDENCIES})
 ENDIF()
@@ -213,11 +214,11 @@ IF(NOT EXISTS ${DOXYGEN_DOT_EXECUTABLE})
       "$ENV{${PROGWIN64}}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
-  )
+    )
 
   IF(WIN32)
     SET(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
-  ENDIF(WIN32)
+  ENDIF()
 ENDIF()
 
 ADD_SUBDIRECTORY(Documentation)
@@ -254,10 +255,10 @@ CONFIGURE_FILE(
   )
 
 # Generate default application configuration file for the install
-SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "../config" )
-SET( PLUSCONFIG_IMAGE_DIR "../data" )
-SET( PLUSCONFIG_MODEL_DIR "../config" )
-SET( PLUSCONFIG_SCRIPTS_DIR "../scripts" )
+SET(PLUSCONFIG_DEVICESET_CONFIG_DIR "../config")
+SET(PLUSCONFIG_IMAGE_DIR "../data")
+SET(PLUSCONFIG_MODEL_DIR "../config")
+SET(PLUSCONFIG_SCRIPTS_DIR "../scripts")
 
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in

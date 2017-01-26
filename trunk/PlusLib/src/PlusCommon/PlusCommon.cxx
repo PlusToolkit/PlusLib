@@ -429,7 +429,7 @@ PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
 //----------------------------------------------------------------------------
 std::string PlusCommon::GetPlusLibVersionString()
 {
-  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_REVISION);
+  std::string plusLibVersion = std::string("Plus-") + std::string(PLUSLIB_VERSION) + "." + std::string(PLUSLIB_SHORT_REVISION);
 #ifdef _DEBUG
   plusLibVersion += " (debug build)";
 #endif

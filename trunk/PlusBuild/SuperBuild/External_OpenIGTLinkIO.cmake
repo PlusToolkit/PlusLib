@@ -1,6 +1,6 @@
 IF(OpenIGTLinkIO_DIR)
   # OpenIGTLinkIO has been built already
-  FIND_PACKAGE(OpenIGTLinkIO REQUIRED PATHS ${OpenIGTLink_DIR} NO_DEFAULT_PATH)
+  FIND_PACKAGE(OpenIGTLinkIO REQUIRED PATHS ${OpenIGTLinkIO_DIR} NO_DEFAULT_PATH)
 
   MESSAGE(STATUS "Using OpenIGTLinkIO available at: ${OpenIGTLinkIO_DIR}")
   

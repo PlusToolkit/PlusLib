@@ -35,7 +35,7 @@ ENDIF()
 IF (PLUSBUILD_OFFLINE_BUILD)
   # Set an empty download and update command for external projects
   SET(PLUSBUILD_EXTERNAL_PROJECT_CUSTOM_COMMANDS DOWNLOAD_COMMAND "" UPDATE_COMMAND "")
-ELSE (PLUSBUILD_OFFLINE_BUILD)
+ELSE()
   # Don't change the default download command
   # This argument will be used for ExternalProject_Add macro, which does its
   # very strict parsing, which throws a warning if an empty argument is passed.
@@ -47,27 +47,12 @@ ELSE (PLUSBUILD_OFFLINE_BUILD)
   #-----------------------------------------------------------------------------
   # SVN - Let's check if a valid version of SVN is available
   #-----------------------------------------------------------------------------
-  # Need subversion for the automatic update of the repository
-  MARK_AS_ADVANCED(CLEAR Subversion_SVN_EXECUTABLE)
   FIND_FILE(Subversion_SVN_EXECUTABLE svn${CMAKE_EXECUTABLE_SUFFIX}
     PATHS
     "c:/Program Files/TortoiseSVN/bin/"
     "c:/Program Files/SlikSvn/bin/"
     )
   FIND_PACKAGE(Subversion REQUIRED)
-
-  #-----------------------------------------------------------------------------
-  # SVN - Parse current branch to send to external plusapp/pluslib
-  SET(PLUSBUILD_SVN_BRANCH trunk) # Default to trunk, as per previous behavior
-  IF(EXISTS ${CMAKE_SOURCE_DIR}/.svn/)
-    Subversion_WC_INFO(${PROJECT_SOURCE_DIR} Plus)
-    STRING(FIND ${Plus_WC_URL} "/plus/" _plus_pos REVERSE)
-    MATH(EXPR _plus_pos '${_plus_pos}+6')
-    STRING(SUBSTRING ${Plus_WC_URL} ${_plus_pos} -1 _branch)
-    STRING(FIND ${_branch} "/" _plus_build_pos REVERSE)
-    STRING(SUBSTRING ${_branch} 0 ${_plus_build_pos} PLUSBUILD_SVN_BRANCH)
-    MESSAGE(STATUS "Current branch of this PlusBuild is: ${PLUSBUILD_SVN_BRANCH}")
-  ENDIF()
 
   #-----------------------------------------------------------------------------
   # ASSEMBLA - Set username and password for assembla
@@ -79,26 +64,24 @@ ELSE (PLUSBUILD_OFFLINE_BUILD)
   #-----------------------------------------------------------------------------
   # GIT - Let's check if a valid version of GIT is available
   #-----------------------------------------------------------------------------
-  # Need Git for the automatic update of the repository
-
-  OPTION(PLUSBUILD_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+  OPTION(PLUSBUILD_USE_GIT_PROTOCOL "If behind a firewall turn this off to use https instead." OFF)
 
   SET(GIT_PROTOCOL "git")
   IF(NOT PLUSBUILD_USE_GIT_PROTOCOL)
-    SET(GIT_PROTOCOL "http")
+    SET(GIT_PROTOCOL "https")
   ENDIF()
 
-  MARK_AS_ADVANCED(CLEAR GIT_EXECUTABLE)
   FIND_FILE(GIT_EXECUTABLE git${CMAKE_EXECUTABLE_SUFFIX}
     PATHS
       "c:/Program Files/Git/bin/"
       "c:/Program Files (x86)/Git/bin/"
     )
   FIND_PACKAGE(Git)
+
   IF(NOT GIT_FOUND)
-    MESSAGE(FATAL_ERROR "error: Install Git and try to re-configure")
+    MESSAGE(FATAL_ERROR "Install Git and re-configure.")
   ENDIF()
-ENDIF (PLUSBUILD_OFFLINE_BUILD)
+ENDIF()
 
 #-----------------------------------------------------------------------------
 # Options to control build process
@@ -109,7 +92,7 @@ SET(ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY OFF)
 SET(ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY OFF)
 SET(ENABLED_BY_DEFAULT_ON_WINDOWS64_ONLY OFF)
 IF(CMAKE_HOST_WIN32)
-  SET (ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
+  SET(ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY ON)
   IF(NOT CMAKE_CL_64)
     SET(ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY ON)
   ELSE()
@@ -285,12 +268,15 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Plus revision - Set Plus stable relase revision (0 means latest)
 #-----------------------------------------------------------------------------
-SET(PLUS_SVN_REVISION 0 CACHE STRING "Set Plus desired SVN revision number (0 means latest)")
+SET(PLUSLIB_GIT_REVISION "master" CACHE STRING "Set PlusLib desired git hash (master means latest)")
+SET(PLUSAPP_GIT_REVISION "master" CACHE STRING "Set PlusApp desired git hash (master means latest)")
 
 #-----------------------------------------------------------------------------
 # Plus executable output path
 #-----------------------------------------------------------------------------
 SET(PLUS_EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
+SET(PLUS_LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
+SET(PLUS_ARCHIVE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 
 #-----------------------------------------------------------------------------
 # Specify common external project properties
@@ -305,7 +291,7 @@ IF(UNIX AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   SET(ADDITIONAL_C_FLAGS "-fPIC")
 ENDIF()
 
-IF(NOT ${CMAKE_GENERATOR} MATCHES "Visual Studio")
+IF(NOT MSVC)
   LIST(APPEND ep_common_args -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
 ENDIF()
 
@@ -335,7 +321,7 @@ IF(PLUSBUILD_USE_3DSlicer)
   UNSET (OpenIGTLink_DIR CACHE)
 
   # Try to find Slicer4
-  FIND_PACKAGE( Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET)
+  FIND_PACKAGE(Slicer PATHS ${PLUSBUILD_SLICER_BIN_DIRECTORY} NO_DEFAULT_PATH QUIET)
   IF(Slicer_FOUND)
     SET(Slicer_SKIP_EXTENSION_NAME_CHECK TRUE)
     INCLUDE( ${Slicer_USE_FILE})
@@ -363,7 +349,7 @@ IF(PLUSBUILD_BUILD_PLUSAPP OR PLUSBUILD_BUILD_PLUSLIB_WIDGETS)
   FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Designer OpenGL Sql Test Xml QUIET)
 
   IF(NOT Qt5_FOUND)
-    MESSAGE(FATAL_ERROR "This project requires Qt5 for building PlusApp but Qt was not found. Please specify Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP option.")
+    MESSAGE(FATAL_ERROR "This project requires Qt5 for building PlusApp but Qt was not found. Please specify Qt5_DIR or turn off PLUSBUILD_BUILD_PLUSAPP/PLUSBUILD_BUILD_PLUSLIB_WIDGETS options.")
   ENDIF()
 
   SET(QT_VERSION_MAJOR ${Qt5Core_VERSION_MAJOR})
@@ -394,7 +380,11 @@ INCLUDE(SuperBuild/External_ITK.cmake)
 IF(PLUSBUILD_USE_OpenIGTLink)
   SET(OpenIGTLink_DEPENDENCIES)
   INCLUDE(SuperBuild/External_OpenIGTLink.cmake)
-  SET(OpenIGTLinkIO_DEPENDENCIES vtk OpenIGTLink)
+  
+  SET(OpenIGTLinkIO_DEPENDENCIES OpenIGTLink)
+  IF(TARGET vtk)
+    LIST(APPEND OpenIGTLinkIO_DEPENDENCIES vtk)
+  ENDIF()
   INCLUDE(SuperBuild/External_OpenIGTLinkIO.cmake)
 ENDIF()
 

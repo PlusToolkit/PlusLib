@@ -41,9 +41,9 @@ IF(VTK_DIR)
   SET (PLUS_VTK_DIR "${VTK_DIR}" CACHE INTERNAL "Path to store vtk binaries")
 
   IF(PLUSBUILD_BUILD_PLUSAPP AND NOT TARGET vtkGUISupportQt)
-    MESSAGE( SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
+    MESSAGE(SEND_ERROR "You have to build VTK with VTK_USE_QT flag ON if you need to use PLUSBUILD_BUILD_PLUSAPP.")
   ENDIF()
-ELSE(VTK_DIR)
+ELSE()
   # VTK has not been built yet, so download and build it as an external project
   SET(VTK_GIT_PROTOCOL https)
 

@@ -38,7 +38,7 @@ PROJECT_NAME           = "Plus applications user manual"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = @PLUSAPP_VERSION@.@PLUSAPP_REVISION@
+PROJECT_NUMBER         = @PLUSAPP_VERSION@.@PLUSAPP_SHORT_REVISION@
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a

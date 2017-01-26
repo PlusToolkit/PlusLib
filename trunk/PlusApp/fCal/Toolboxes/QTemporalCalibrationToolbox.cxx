@@ -275,7 +275,7 @@ PlusStatus QTemporalCalibrationToolbox::ReadConfiguration(vtkXMLDataElement* aCo
     this->RequestedMovingSource = fCalElement->GetAttribute("MovingSourceId");
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec , fCalElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FreeHandStartupDelaySec, fCalElement);
 
   return PLUS_SUCCESS;
 }
@@ -342,13 +342,13 @@ void QTemporalCalibrationToolbox::SegmentAndDisplayLine(PlusTrackedFrame& frame)
                        0.0
                      };
       double p2[3] = { parameters[0].lineOriginPoint_Image[0] + 100000 * parameters[0].lineDirectionVector_Image[0],
-                       parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1] ,
+                       parameters[0].lineOriginPoint_Image[1] + 100000 * parameters[0].lineDirectionVector_Image[1],
                        0.0
                      };
       double r1[3], r2[3];
       double t1, t2;
       int plane1, plane2;
-      double bounds[6] = { 0.0, dimensions[0], 0.0, dimensions[1], 0.0, 1.0 };
+      double bounds[6] = { 0.0, static_cast<double>(dimensions[0]), 0.0, static_cast<double>(dimensions[1]), 0.0, 1.0 };
       vtkBox::IntersectWithLine(bounds, p1, p2, t1, t2, r1, r2, plane1, plane2);
 
       m_ParentMainWindow->GetVisualizationController()->SetLineSegmentationPoints(r1, r2);

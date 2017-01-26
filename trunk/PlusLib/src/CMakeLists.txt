@@ -5,16 +5,16 @@ FIND_PACKAGE(VTK NO_MODULE REQUIRED PATHS ${VTK_DIR} NO_DEFAULT_PATH)
 IF(VTK_FOUND)
   INCLUDE(${VTK_USE_FILE})
 ELSE()
-  MESSAGE( FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
+  MESSAGE(FATAL_ERROR "This application requires VTK. One of these components is missing. Please verify configuration")
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Try to find ITK and include its settings (otherwise complain)
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF(ITK_FOUND)
-  INCLUDE( ${ITK_USE_FILE} )
+  INCLUDE(${ITK_USE_FILE})
 ELSE()
-  MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
+  MESSAGE(FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -311,10 +311,10 @@ CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
-SET( PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles" )
-SET( PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages" )
-SET( PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels" )
-SET( PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}" )
+SET(PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles")
+SET(PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages")
+SET(PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels")
+SET(PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}")
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   # PlusConfig.xml generation for Windows (separate directories for different build types)
@@ -359,7 +359,7 @@ IF(BUILD_DOCUMENTATION)
       "$ENV{${PROGWIN64}}/Graphviz2.34/bin"
     DOC "Graphviz Dot tool for using Doxygen"
     NO_SYSTEM_ENVIRONMENT_PATH
-  )
+    )
 
   IF(WIN32)
     SET(DOXYGEN_HHC_EXECUTABLE "${PLUSLIB_TOOLS_DIR}/HtmlHelp/hhc.exe" CACHE FILEPATH "Path to the Windows HTML Help Compiler tool." FORCE)
