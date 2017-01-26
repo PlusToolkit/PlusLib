@@ -77,7 +77,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="ie33Philips_biPlaneCapture.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>

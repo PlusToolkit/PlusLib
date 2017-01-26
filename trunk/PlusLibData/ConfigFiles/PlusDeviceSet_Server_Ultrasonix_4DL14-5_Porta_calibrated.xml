@@ -34,7 +34,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       RequestedFrameRate="100"
       EnableCapturing="FALSE" >
       <InputChannels>

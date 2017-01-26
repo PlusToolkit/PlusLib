@@ -38,7 +38,7 @@ The computer needs to be on the same local network as Aurora SCU unit. The needl
     </Device>
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="ndiCapture.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>

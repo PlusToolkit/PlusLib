@@ -23,7 +23,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="OpenIGTTrackedVideoRecordingTest.mha"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>

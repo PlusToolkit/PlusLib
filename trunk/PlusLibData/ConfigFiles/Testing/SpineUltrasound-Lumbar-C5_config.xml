@@ -68,7 +68,7 @@
         <OutputChannel Id="TrackedVideoStream" />
       </OutputChannels>
     </Device>
-    <Device Id="CaptureDevice" Type="VirtualDiscCapture" BaseFilename="RecordingTest.mha" EnableCapturing="FALSE" RequestedFrameRate="15">
+    <Device Id="CaptureDevice" Type="VirtualCapture" BaseFilename="RecordingTest.mha" EnableCapturing="FALSE" RequestedFrameRate="15">
       <InputChannels>
         <InputChannel Id="TrackedVideoStream" />
       </InputChannels>

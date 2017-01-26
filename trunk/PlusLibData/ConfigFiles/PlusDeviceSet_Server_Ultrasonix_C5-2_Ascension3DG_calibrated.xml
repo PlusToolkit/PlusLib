@@ -51,7 +51,7 @@
     </Device>
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="Recording.mhd"
       EnableCapturingOnStart="FALSE"
       RequestedFrameRate="15" >

@@ -40,7 +40,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="IntersonRf.mha"
       RequestedFrameRate="12"
       EnableCapturingOnStart="TRUE" >

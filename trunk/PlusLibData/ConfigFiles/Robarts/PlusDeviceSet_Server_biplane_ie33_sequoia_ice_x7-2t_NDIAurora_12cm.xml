@@ -89,7 +89,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="ie33_ice.nrrd"
       EnableCapturing="FALSE" >
       <InputChannels>

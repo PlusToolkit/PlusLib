@@ -53,7 +53,7 @@
 	
 	<Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="ie33Philips3DCapture.mha"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>

@@ -27,7 +27,7 @@ The computer needs to be on the same local network as Certus SCU unit. The needl
     </Device>
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="RecordingTest.mha"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>

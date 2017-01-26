@@ -42,7 +42,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="E:\arankin\Philips3DRecordingTest.mha"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>

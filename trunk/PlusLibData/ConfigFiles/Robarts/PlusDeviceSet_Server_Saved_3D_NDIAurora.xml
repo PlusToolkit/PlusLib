@@ -23,7 +23,7 @@
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="RecordingTest.nrrd"
       EnableFileCompression="TRUE"
       EnableCapturingOnStart="FALSE" >

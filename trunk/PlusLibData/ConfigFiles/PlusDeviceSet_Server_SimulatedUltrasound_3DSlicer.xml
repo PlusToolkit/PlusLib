@@ -205,7 +205,7 @@ To use with Ascension tracker instead of a simulated tracker: enable the Ascensi
 
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
+      Type="VirtualCapture"
       BaseFilename="RecordingTest.mha"
       EnableCapturingOnStart="FALSE" >
       <InputChannels>

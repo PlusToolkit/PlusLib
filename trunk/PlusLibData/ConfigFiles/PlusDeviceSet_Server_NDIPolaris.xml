@@ -10,30 +10,37 @@ For NDI Polaris passive marker starting kit: Tool (8700339), Stylus (8700340), R
       Type="PolarisTracker"
       SerialPort="3"
       BaudRate="115200"
-      ToolReferenceFrame="Tracker" >
+      ToolReferenceFrame="Reference" >
       <DataSources>
-        <DataSource Type="Tool" Id="Tool" RomFile="NdiToolDefinitions/8700339.rom"  />
-        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700340.rom"  />
-        <DataSource Type="Tool" Id="Reference" RomFile="NdiToolDefinitions/8700449.rom"  />
+        <DataSource Type="Tool" Id="Stylus" RomFile="NdiToolDefinitions/8700248.rom"  />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream" >
-          <DataSource Id="Tool"/>
-          <DataSource Id="Reference"/>
           <DataSource Id="Stylus"/>
         </OutputChannel>
       </OutputChannels>
     </Device>
     <Device
       Id="CaptureDevice"
-      Type="VirtualDiscCapture"
-      BaseFilename="RecordingTest.mha"
-      EnableCapturingOnStart="FALSE" >
+      Type="VirtualCapture"
+      BaseFilename="RecordingTest.nrrd"
+      EnableFileCompression="TRUE"
+      EnableCapturingOnStart="TRUE" >
       <InputChannels>
         <InputChannel Id="TrackerStream" />
       </InputChannels>
     </Device>    
   </DataCollection>
+
+  <CoordinateDefinitions>
+    <Transform From="StylusTip" To="Stylus"
+      Matrix="
+        1	0	0.000203823	0.0180449
+        3.31529e-09	-1	-1.62655e-05	-0.00144002
+        0.000203823	1.62655e-05	-1	-88.5321
+        0	0	0	1"
+       Error="0.554951" Date="012617_105449" />
+  </CoordinateDefinitions>
 
   <PlusOpenIGTLinkServer 
     MaxNumberOfIgtlMessagesToSend="1" 
@@ -46,9 +53,7 @@ For NDI Polaris passive marker starting kit: Tool (8700339), Stylus (8700340), R
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames> 
-        <Transform Name="ToolToTracker" />
-        <Transform Name="StylusToTracker" />
-        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusTipToReference" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
