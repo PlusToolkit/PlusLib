@@ -8,5 +8,6 @@
 #define __PlusRevision_h
 
 #cmakedefine PLUSLIB_REVISION "${PLUSLIB_REVISION}"
+#cmakedefine PLUSLIB_SHORT_REVISION "${PLUSLIB_SHORT_REVISION}"
 
 #endif // __PlusRevision_h
