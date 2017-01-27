@@ -14,7 +14,13 @@ printErrorAndExit() {
 }
 
 # Make sure we are inside the repository.
-cd "$(echo "$0" | sed 's/[^/]*$//')"/..
+inUtilDir=`echo $0 | awk '/[uU]tilities/ {print $0}'`
+pwd=`pwd`
+inUtilDirPwd=`echo $pwd | awk '/[uU]tilities/ {print $pwd}'`
+if [ -n "$inUtilDir" ] || [ -n "$inUtilDirPwd" ]
+then
+  cd ..
+fi
 
 if test -d .git/.git; then
   printErrorAndExit "The directory '.git/.git' exists, indicating a
