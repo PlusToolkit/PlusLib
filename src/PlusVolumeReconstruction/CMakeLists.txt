@@ -38,7 +38,12 @@ SET (PlusVolumeReconstruction_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
 ADD_LIBRARY(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_SRCS} ${PlusVolumeReconstruction_HDRS})
-target_include_directories(vtkPlusVolumeReconstruction PUBLIC ${PlusVolumeReconstruction_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusVolumeReconstruction_INCLUDE_DIRS)
+  target_include_directories(vtkPlusVolumeReconstruction PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusVolumeReconstruction PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(  vtkPlusVolumeReconstruction  ${PlusVolumeReconstruction_LIBS} )
 
 # --------------------------------------------------------------------------
@@ -80,7 +85,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
       VolumeReconstructor
       CreateSliceModels
       DrawClipRegion
-    DESTINATION bin
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}"
     COMPONENT RuntimeExecutables
     )
 ENDIF()
@@ -88,13 +93,13 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusVolumeReconstruction
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusVolumeReconstruction EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusVolumeReconstruction_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

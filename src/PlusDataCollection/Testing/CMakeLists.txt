@@ -488,6 +488,6 @@ ENDIF()
 #
 INSTALL(
   TARGETS TrackingTest
-  DESTINATION bin
+  DESTINATION "${PLUSLIB_BINARY_INSTALL}"
   COMPONENT RuntimeExecutables
   )

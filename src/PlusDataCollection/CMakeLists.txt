@@ -161,6 +161,8 @@ SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
   ${Virtual_HDRS}
   )
 
+SET(PlusDataCollection_INSTALL_INCLUDE_FILES )
+
 SET (External_Libraries_Install)
 SET (External_Libraries_Debug)
 
@@ -317,6 +319,7 @@ IF (PLUS_USE_NDI)
     CACHE INTERNAL "" FORCE)
 
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} vtkndicapi )
+  # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -371,6 +374,7 @@ IF (PLUS_USE_MICRONTRACKER)
       ${MICRONTRACKER_BINARY_DIR}/Windist/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
   ENDIF()
+  # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -405,6 +409,14 @@ IF (PLUS_USE_INTELREALSENSE)
     )
 
   # TODO: may need to install DLLs
+  # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
+  # This also seems to be missing the corresponding entry in the PlusLibConfig.cmake 
+#  SET ( External_Libraries_Install ${External_Libraries_Install}
+#    ${INTELREALSENSE_RELEASE_LIB}
+#    )
+#  SET ( External_Libraries_Debug_Install ${External_Libraries_Debug_Install}
+#    ${INTELREALSENSE_DEBUG_LIB}
+#    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -447,6 +459,9 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
+  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -483,6 +498,9 @@ IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
+  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -495,6 +513,10 @@ IF( PLUS_USE_Ascension3DG )
   IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET (Ascension_HDRS
       Ascension3DGTracking/vtkPlusAscension3DGTracker.h 
+      )
+    # vtkPlusAscension3DGTrackerBase has to be installed as well
+    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES 
+      Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
       )
   ENDIF()
 
@@ -522,6 +544,7 @@ IF( PLUS_USE_Ascension3DG )
   
   SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DG)
   SET(External_Libraries_Install ${External_Libraries_Install} ${Ascension3DG_SHARED_LIB_FILE})
+  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install} ${Ascension3DG_LIB_FILE})
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${Ascension3DG_LIB_FILE})
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${Ascension3DG_SHARED_LIB_FILE})
 ENDIF()
@@ -535,6 +558,10 @@ IF( PLUS_USE_Ascension3DGm )
   IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET (Ascension3DGm_HDRS
       Ascension3DGTracking/vtkAscension3DGmTracker.h
+      )
+    # vtkPlusAscension3DGTrackerBase has to be installed as well
+    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES 
+      Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
       )
   ENDIF()
   
@@ -552,12 +579,15 @@ IF( PLUS_USE_Ascension3DGm )
     CACHE INTERNAL "" FORCE)
 
   ADD_LIBRARY(Ascension3DGm SHARED IMPORTED)
-  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX})
-  SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} )
+  SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_IMPLIB ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX})
+  SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_LOCATION ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} )
 
   SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DGm )
   SET ( External_Libraries_Install ${External_Libraries_Install}
     ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    )
+  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+    ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} 
     )
 ENDIF()
 
@@ -592,6 +622,9 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
 
   SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
   SET ( External_Libraries_Install ${External_Libraries_Install}
+    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    )
+  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
 ENDIF()
@@ -1073,6 +1106,9 @@ IF (PLUS_USE_EPIPHAN)
   SET ( External_Libraries_Debug ${External_Libraries_Debug} 
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
+  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+    ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
 
   # Create a target for proper CMake infrastructure
   ADD_LIBRARY(Epiphan SHARED IMPORTED)
@@ -1433,6 +1469,15 @@ IF(PLUS_USE_NVIDIA_DVP)
     QuadroSDI
     ${OPENGL_LIBRARIES}
     )
+  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install}
+    "${QuadroSDI_LIBRARY_DIR}/nvapi64${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${QuadroSDI_LIBRARY_DIR}/nvapi${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${QuadroSDI_LIBRARY_DIR}/ANCapi${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${QuadroSDI_LIBRARY_DIR}/NvCpl${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${QuadroSDI_LIBRARY_DIR}/cutil64${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${QuadroSDI_LIBRARY_DIR}/cutil32${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    "${NVIDIA_DVP_LIB_DIR}/dvp${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -1485,7 +1530,12 @@ SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusDataCollection)
 ADD_LIBRARY(vtkPlusDataCollection ${PlusDataCollection_SRCS} ${PlusDataCollection_HDRS})
-target_include_directories(vtkPlusDataCollection PUBLIC ${PlusDataCollection_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusDataCollection_INCLUDE_DIRS)
+  target_include_directories(vtkPlusDataCollection PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusDataCollection PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 
 IF(MSVC)
   # enable parallel in-target build as data collection is the largest project by far
@@ -1598,24 +1648,28 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
   ENDIF()
   
-  INSTALL(TARGETS PlusVersion ViewSequenceFile
-    RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  INSTALL(TARGETS PlusVersion ViewSequenceFile EXPORT PlusLib
+    RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Install
 INSTALL(FILES ${External_Libraries_Install}
-  DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
   
-INSTALL(TARGETS vtkPlusDataCollection
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusDataCollection EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
-INSTALL(FILES ${PlusDataCollection_HDRS}
-  DESTINATION include
+INSTALL(FILES ${PlusDataCollection_HDRS} ${PlusDataCollection_INSTALL_INCLUDE_FILES}
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
+  )
+# Introduce a CMAKE Build Flag, whether Static libraries should be installed?
+INSTALL(FILES ${External_Libraries_Static_Install}
+  DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
   )
 
 # --------------------------------------------------------------------------
