@@ -124,6 +124,8 @@ MACRO(GENERATE_HELP_DOC TARGET_NAME)
       COMMAND $<TARGET_FILE:${TARGET_NAME}> --help > ${TARGET_NAME}Help.txt
       WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Doc/Help
       )
+      INSTALL(FILES "${EXECUTABLE_OUTPUT_PATH}/Doc/Help/${TARGET_NAME}Help.txt"
+        CONFIGURATIONS Release DESTINATION "${PLUSLIB_SHARE_INSTALL}/doc")
   ENDIF()
 ENDMACRO()
 
@@ -142,7 +144,7 @@ MACRO(GENERATE_EXPORT_DIRECTIVE_FILE LIBRARY_NAME)
     )
   INSTALL(FILES 
     ${CMAKE_CURRENT_BINARY_DIR}/${MY_EXPORT_HEADER_PREFIX}Export.h
-    DESTINATION include
+    DESTINATION "${PLUSLIB_INCLUDE_INSTALL}"
     )
 ENDMACRO()
 
@@ -156,6 +158,12 @@ SET(PLUSLIB_DEPENDENCIES "" CACHE INTERNAL "" )
 # PLUSLIB_INCLUDE_DIRS contain all the include directories that will be
 # available to applications that use PlusLib
 SET(PLUSLIB_INCLUDE_DIRS "" CACHE INTERNAL "" )
+
+# PLUSLIB_INSTALL_INCLUDE_FILES contains the include files to install with the build
+SET(PLUSLIB_INSTALL_INCLUDE_FILES )
+
+# PLUSLIB_INSTALL_CMAKE_FILES contains the cmake files to install
+SET(PLUSLIB_INSTALL_CMAKE_FILES "")
 
 # --------------------------------------------------------------------------
 # Current directory
@@ -172,6 +180,8 @@ SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INT
 
 # Variables sent back from subdirectories (through CACHE):
 # ..._INCLUDE_DIRS
+# ..._INSTALL_INCLUDE_FILES
+# ..._INSTALL_CMAKE_FILES
 # vcProj_...
 # PLUSLIB_DEPENDENCIES
 
@@ -237,6 +247,7 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h
   )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/PlusConfigure.h")
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfigure.h.in
   ${CMAKE_BINARY_DIR}/PlusConfigure.h
@@ -245,11 +256,12 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/PlusRevision.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
   )
+LIST(APPEND PLUSLIB_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h")
 
 INSTALL(FILES 
   ${CMAKE_BINARY_DIR}/PlusConfigure.h
   ${CMAKE_CURRENT_BINARY_DIR}/PlusRevision.h
-  DESTINATION include
+  DESTINATION ${PLUSLIB_INCLUDE_INSTALL}
   )
 
 # --------------------------------------------------------------------------
@@ -297,11 +309,16 @@ ENDIF()
 #-----------------------------------------------------------------------------
 # Re: #1075 eventually remove this section after people are used to the new location
 # Create a PlusConfig.cmake file for the use from the build tree
+
+# for installing, added additional FLAG PLUSLIB_IS_INSTALL
+set(PLUSLIB_IS_INSTALL OFF)
 CONFIGURE_FILE(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
 CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
-
+LIST(APPEND PLUSLIB_INSTALL_CMAKE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake")
+  
+  
 #-----------------------------------------------------------------------------
 # With regards to ticket #1075, also generate in top-level directory
 CONFIGURE_FILE(PlusLibConfig.cmake.in
@@ -327,7 +344,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/Debug/PlusConfig.xml
     )
   INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
-    DESTINATION share
+    DESTINATION ${PLUSLIB_SHARE_INSTALL}
     )
 ELSE()
   # PlusConfig.xml generation for other OS (only one build type is supported)
@@ -336,7 +353,7 @@ ELSE()
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
     )
   INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusConfig.xml
-    DESTINATION share
+    DESTINATION ${PLUSLIB_SHARE_INSTALL}
     )
 ENDIF()
 
@@ -370,6 +387,7 @@ ADD_SUBDIRECTORY(Documentation)
 
 #-----------------------------------------------------------------------------
 # Generate include file for projects that use this library
+# this file currently contains only binary paths
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/UsePlusLib.cmake @ONLY)
@@ -379,3 +397,118 @@ CONFIGURE_FILE(
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/UsePlusLib.cmake.in
   ${CMAKE_BINARY_DIR}/UsePlusLib.cmake @ONLY)
+
+#-----------------------------------------------------------------------------
+# Starting here, all operations are exclusively for INSTALL
+#-----------------------------------------------------------------------------
+### That means some variables are filled with bogus data in other cases.
+  
+#-----------------------------------------------------------------------------
+# Install UseFile/Config
+  
+INSTALL(FILES ${PLUSLIB_INSTALL_INCLUDE_FILES}
+  DESTINATION ${PLUSLIB_INCLUDE_INSTALL} CONFIGURATIONS Release COMPONENT Development
+  )
+ 
+INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
+  DESTINATION ${PLUSLIB_SHARE_INSTALL} CONFIGURATIONS Release 
+  )
+  
+INSTALL(FILES ${PLUSLIB_INSTALL_CMAKE_FILES}
+  DESTINATION ${PLUSLIB_CMAKE_INSTALL} CONFIGURATIONS Release COMPONENT Development
+  )
+  
+# set all paths to install location paths
+SET(PLUSLIB_IS_INSTALL ON)
+#relative to PlusConfig.cmake
+
+# include files should all we copied into the include folder
+SET(PLUSLIB_INCLUDE_DIRS "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_INCLUDE_INSTALL}")
+SET(PLUSLIB_DATA_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_SHARE_INSTALL}")
+# PlusLib_Libraries is filled with depending external libaries twice, during build/installation and inclusion in 2nd project
+SET(PlusLib_LIBRARIES "")
+
+IF(${PLUS_USE_EPIPHAN})
+  SET(EPIPHAN_LIB_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_LIBRARY_INSTALL}")
+  SET(EPIPHAN_BINARY_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_BINARY_INSTALL}")
+ENDIF()
+
+IF(${PLUS_USE_Ascension3DG})
+  get_filename_component(Ascension3DG_LIB_FILE ${Ascension3DG_LIB_FILE} NAME)
+  SET(Ascension3DG_LIB_FILE "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_LIBRARY_INSTALL}/${Ascension3DG_LIB_FILE}")
+  get_filename_component(Ascension3DG_SHARED_LIB_FILE ${Ascension3DG_SHARED_LIB_FILE} NAME)
+  SET(Ascension3DG_SHARED_LIB_FILE "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_BINARY_INSTALL}/${Ascension3DG_SHARED_LIB_FILE}")
+ENDIF()
+
+IF(${PLUS_USE_Ascension3DGm})
+  SET(Ascension3DGm_BINARY_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_BINARY_INSTALL}")
+  SET(Ascension3DGm_LIB_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_LIBRARY_INSTALL}")
+ENDIF()
+
+IF(${PLUS_USE_PHIDGET_SPATIAL_TRACKER})
+  SET(PHIDGET_SPATIAL_BINARY_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_BINARY_INSTALL}")
+  SET(PHIDGET_SPATIAL_LIB_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_LIBRARY_INSTALL}")
+ENDIF()
+
+IF(${PLUS_USE_BRACHY_TRACKER})
+  SET(USDIGITAL_SEI_BINARY_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_BINARY_INSTALL}")
+  SET(USDIGITAL_SEI_LIB_DIR "\${PLUSLIB_INSTALL_PATH}/${PLUSLIB_LIBRARY_INSTALL}")
+ENDIF()
+
+IF( ${PLUS_USE_NVIDIA_DVP})
+  # use the relative paths instead of absolute paths
+  FILE(RELATIVE_PATH NVIDIA_DVP_LIB_DIR ${CMAKE_INSTALL_PREFIX} ${NVIDIA_DVP_LIB_DIR})
+  FILE(RELATIVE_PATH NVIDIA_DVP_BINARY_DIR ${CMAKE_INSTALL_PREFIX} ${NVIDIA_DVP_BINARY_DIR})
+  FILE(RELATIVE_PATH QuadroSDI_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX} ${QuadroSDI_INCLUDE_DIRS})
+  FILE(RELATIVE_PATH QuadroSDI_LIBRARY_DIR ${CMAKE_INSTALL_PREFIX} ${QuadroSDI_LIBRARY_DIR})
+ENDIF()
+
+IF(${PLUS_USE_OpenIGTLink})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH OpenIGTLink_DIR ${CMAKE_INSTALL_PREFIX} ${OpenIGTLink_DIR})
+  SET(OpenIGTLink_DIR "\${PLUSLIB_INSTALL_PATH}/${OpenIGTLink_DIR}")
+ENDIF()
+
+IF(${PLUS_USE_OvrvisionPro})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH OvrvisionPro_DIR ${CMAKE_INSTALL_PREFIX} ${OvrvisionPro_DIR})
+  SET(OvrvisionPro_DIR "\${PLUSLIB_INSTALL_PATH}/${OvrvisionPro_DIR}")
+ENDIF()
+
+# use the relative paths instead of absolute paths
+FILE(RELATIVE_PATH VTK_DIR ${CMAKE_INSTALL_PREFIX} ${VTK_DIR})
+FILE(RELATIVE_PATH ITK_DIR ${CMAKE_INSTALL_PREFIX} ${ITK_DIR})
+
+IF(${PLUS_USE_tesseract})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH tesseract_DIR ${CMAKE_INSTALL_PREFIX} ${tesseract_DIR})
+  SET(tesseract_DIR "\${PLUSLIB_INSTALL_PATH}/${tesseract_DIR}")
+ENDIF()
+
+IF(${PLUS_USE_SLICER})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH SLICER_BIN_DIRECTORY ${CMAKE_INSTALL_PREFIX} ${SLICER_BIN_DIRECTORY})
+  SET(SLICER_BIN_DIRECTORY "\${PLUSLIB_INSTALL_PATH}/${SLICER_BIN_DIRECTORY}")
+ENDIF()
+
+INSTALL(EXPORT PlusLib
+  DESTINATION "${PLUSLIB_CMAKE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
+  FILE PlusLibTargets.cmake
+  )
+
+CONFIGURE_FILE(
+  PlusLibConfig.cmake.in
+  CMakeFiles/install/PlusLibConfig.cmake @ONLY
+  )
+CONFIGURE_FILE(
+  UsePlusLib.cmake.in
+  CMakeFiles/install/UsePlusLib.cmake @ONLY
+  )
+
+INSTALL(FILES 
+  "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/PlusLibConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/UsePlusLib.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake"
+  DESTINATION "${PLUSLIB_CMAKE_INSTALL}"
+  CONFIGURATIONS Release
+  )

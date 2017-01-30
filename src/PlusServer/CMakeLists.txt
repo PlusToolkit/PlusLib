@@ -63,7 +63,12 @@ SET (PlusServer_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
-target_include_directories(vtkPlusServer PUBLIC ${PlusServer_INCLUDE_DIRS})
+foreach(p IN LISTS PlusServer_INCLUDE_DIRS)
+  target_include_directories(vtkPlusServer PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusServer PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
   target_compile_options(vtkPlusServer PRIVATE -ftemplate-depth=5000)
 endif()
@@ -91,18 +96,18 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusServer
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusServer EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
-INSTALL(FILES ${PlusServer_HDRS}
-  DESTINATION include
+INSTALL(FILES ${vtkPlusServer_HDRS}
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  INSTALL(TARGETS PlusServer PlusServerRemoteControl
-    DESTINATION bin COMPONENT RuntimeExecutables
+  INSTALL(TARGETS PlusRendering PlusRenderingRemoteControl EXPORT PlusLib
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeExecutables
     )
 ENDIF()
 

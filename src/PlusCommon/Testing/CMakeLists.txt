@@ -220,6 +220,6 @@ ENDIF()
 INSTALL(
   TARGETS
     AccurateTimerTest
-  DESTINATION bin
+  DESTINATION "${PLUSLIB_BINARY_INSTALL}"
   COMPONENT RuntimeExecutables
   )

@@ -43,7 +43,14 @@ SET(PLANE_ESTIMATION_SRCS
 
 ADD_EXECUTABLE(planeEstimation ${PLANE_ESTIMATION_HDRS} ${PLANE_ESTIMATION_SRCS})
 SET_TARGET_PROPERTIES(planeEstimation PROPERTIES FOLDER Utilities)
-target_include_directories(planeEstimation PUBLIC ${RANSAC_INCLUDE_DIRS})
+foreach(p IN LISTS RANSAC_INCLUDE_DIRS)
+  target_include_directories(planeEstimation PUBLIC 
+    $<BUILD_INTERFACE:${p}>
+    )
+endforeach()
+target_include_directories(planeEstimation PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>
+  )
 TARGET_LINK_LIBRARIES(planeEstimation PUBLIC 
   ITKCommon
   itkvnl
@@ -65,15 +72,25 @@ SET(SPHERE_ESTIMATION_SRCS
 
 ADD_EXECUTABLE(sphereEstimation ${SPHERE_ESTIMATION_HDRS} ${SPHERE_ESTIMATION_SRCS})
 SET_TARGET_PROPERTIES(sphereEstimation PROPERTIES FOLDER Utilities)
-target_include_directories(sphereEstimation PUBLIC ${RANSAC_INCLUDE_DIRS})
+foreach(p IN LISTS RANSAC_INCLUDE_DIRS)
+  target_include_directories(sphereEstimation PUBLIC 
+    $<BUILD_INTERFACE:${p}>
+    )
+endforeach()
+target_include_directories(sphereEstimation PUBLIC
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>
+  )
 TARGET_LINK_LIBRARIES(sphereEstimation PUBLIC 
   ITKCommon
   itkvnl
   itkvnl_algo
   )
 
+INSTALL(TARGETS sphereEstimation EXPORT PlusLib DESTINATION ${PLUSLIB_BINARY_INSTALL})
+INSTALL(TARGETS planeEstimation EXPORT PlusLib DESTINATION ${PLUSLIB_BINARY_INSTALL})
+
 INSTALL(FILES ${RANSAC_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}"
   )
 
 #
