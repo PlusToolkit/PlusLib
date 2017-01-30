@@ -2,9 +2,9 @@
 \page DeviceFake Fake tracking system as a simulator
 Simulates a fake tracking system with tools that have predetermined behavior. This allows someone who doesn't have access to a tracking system to test code that relies on having one active.
 
-\section FakeConfigSettings Device configuration settings
+\section FakeTrackerConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "Fake" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "FakeTracker" \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{30} 
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
@@ -29,7 +29,7 @@ Simulates a fake tracking system with tools that have predetermined behavior. Th
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
-\section FakeExampleConfigFile Example configuration file PlusDeviceSet_FakeTracker_ToolState.xml
+\section FakeTrackerExampleConfigFile Example configuration file PlusDeviceSet_FakeTracker_ToolState.xml
 
 \include "ConfigFiles/Testing/PlusDeviceSet_FakeTracker_ToolState.xml"
 
