@@ -686,7 +686,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuf
   decodedImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 #endif
 
-  PlusStatus status = PixelCodec::ConvertToGray(BI_RGB, width, height, &(this->Internal->DecodingBuffer[0]), (unsigned char*)decodedImage->GetScalarPointer());
+  PlusStatus status = PixelCodec::ConvertToGray(PixelCodec::PixelEncoding_RGBA32, width, height, &(this->Internal->DecodingBuffer[0]), (unsigned char*)decodedImage->GetScalarPointer());
 
   // close the file
   png_read_end(png_ptr, NULL);
