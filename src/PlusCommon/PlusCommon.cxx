@@ -581,7 +581,9 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, const std::array<float,
 //----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList)
 {
-  const std::array<float, 3>& colour = { greyValue, greyValue, greyValue };
+  std::array<float, 3> colour;
+  colour[0] = colour[1] = colour[2] = greyValue;
+
   return PlusCommon::DrawScanLines(inputImageExtent, colour, scanLineEndPoints, trackedFrameList);
 }
 
@@ -604,7 +606,9 @@ vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, 
 //----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkImageData* imageData)
 {
-  std::array<float, 3> colour = { greyValue, greyValue, greyValue };
+  std::array<float, 3> colour;
+  colour[0] = colour[1] = colour[2] = greyValue;
+
   return PlusCommon::DrawScanLines(inputImageExtent, colour, scanLineEndPoints, imageData);
 }
 
@@ -631,7 +635,9 @@ vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, 
 PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float greyValue, LINE_STYLE style, const std::array<int, 3>& startPixel,
                                 const std::array<int, 3>& endPixel, unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
 {
-  std::array<float, 3> colour = { greyValue, greyValue, greyValue };
+  std::array<float, 3> colour;
+  colour[0] = colour[1] = colour[2] = greyValue;
+
   return PlusCommon::DrawLine(imageData, colour, style, startPixel, endPixel, numberOfPoints, alphaBehavior);
 }
 

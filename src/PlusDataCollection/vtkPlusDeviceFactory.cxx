@@ -162,7 +162,7 @@ vtkStandardNewMacro(vtkPlusDeviceFactory);
 //----------------------------------------------------------------------------
 vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 {
-  RegisterDevice("Fake", "vtkPlusFakeTracker", (PointerToDevice)&vtkPlusFakeTracker::New);
+  RegisterDevice("FakeTracker", "vtkPlusFakeTracker", (PointerToDevice)&vtkPlusFakeTracker::New);
   RegisterDevice("ChRobotics", "vtkPlusChRoboticsTracker", (PointerToDevice)&vtkPlusChRoboticsTracker::New);
   RegisterDevice("Microchip", "vtkPlusMicrochipTracker", (PointerToDevice)&vtkPlusMicrochipTracker::New);
 
