@@ -325,7 +325,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
 
     int numChars = (int)this->Internal->OemClientReadBuffer[numBytesProcessed] - (int)('0');
     numBytesProcessed++;
-    LOG_TRACE("Number of bytes in the image: " << numChars); // 7 or 6
+    LOG_TRACE("Number of bytes in the image size: " << numChars); // 7 or 6
     if (numChars == 0)
     {
       LOG_ERROR("Failed to read image from BK OEM interface");
@@ -348,7 +348,6 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
       {
         timeStamp[k] = this->Internal->OemClientReadBuffer[numBytesProcessed];
       }
-      numBytesProcessed++;
       // Seems this is NOT correct, but the format is NOT described in the manual
       unsigned int _timestamp = *(int*)timeStamp;
       LOG_TRACE("Image timestamp = " << static_cast<std::ostringstream*>(&(std::ostringstream() << _timestamp))->str());
