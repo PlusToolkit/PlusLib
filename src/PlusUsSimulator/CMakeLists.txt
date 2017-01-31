@@ -28,7 +28,12 @@ SET (PlusUsSimulator_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusUsSimulator)
 ADD_LIBRARY(vtkPlusUsSimulator ${PlusUsSimulator_SRCS} ${PlusUsSimulator_HDRS})
-target_include_directories(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusUsSimulator_INCLUDE_DIRS)
+  target_include_directories(vtkPlusUsSimulator PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusUsSimulator PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_LIBS})
 
 # --------------------------------------------------------------------------
@@ -46,11 +51,11 @@ ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusUsSimulator
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusUsSimulator EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusUsSimulator_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}"
   )
