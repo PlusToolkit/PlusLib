@@ -876,7 +876,8 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     )
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     GrabbieLib
-    ${VTK_PNG_LIBRARIES}
+    vtkpng
+    vtkInteractionImage
     )
 
   # CameraLink interface

@@ -6,8 +6,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "igtlPlusClientInfoMessage.h"
-#include "igtlutil/igtl_header.h"
-#include "igtlutil/igtl_util.h"
+#include "igtl_header.h"
+#include "igtl_util.h"
 #include "vtkPlusIgtlMessageFactory.h"
 
 namespace igtl 
