@@ -172,9 +172,6 @@ protected:
   /*! Process the command replies queue and send messages */
   static PlusStatus SendCommandResponses(vtkPlusOpenIGTLinkServer& self);
 
-  /*! Analyze an incoming command and queue for processing */
-  static PlusStatus ProcessIncomingCommand(igtl::MessageHeader::Pointer headerMsg, int clientId, std::deque<uint32_t>& previousCommandIds, igtl::CommandMessage::Pointer commandMsg, vtkPlusOpenIGTLinkServer* self);
-
   /*! Thread for receiving control data from clients */
   static void* DataReceiverThread(vtkMultiThreader::ThreadInfo* data);
 
