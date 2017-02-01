@@ -303,6 +303,7 @@ PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTr
   if (FindPath(aTransformName, transformInfoList) != PLUS_SUCCESS)
   {
     // the transform cannot be computed, error has been already logged by FindPath
+    *isValid = false;
     return PLUS_FAIL;
   }
 
