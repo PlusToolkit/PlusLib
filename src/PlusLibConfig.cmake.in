@@ -18,27 +18,13 @@
 #-----------------------------------------------------------------------------
 
 # set the targets file (relative for install location)
-IF(@PLUSLIB_IS_INSTALL@)
-  get_filename_component(PLUSLIB_PACKAGE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-  get_filename_component(_IMPORT_PREFIX "${PLUSLIB_PACKAGE_DIR}" PATH)
-  get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
-  get_filename_component(PLUSLIB_INSTALL_PATH "${_IMPORT_PREFIX}" PATH)
-  SET(PlusLib_TARGETS_FILE "${PLUSLIB_PACKAGE_DIR}/PlusLibTargets.cmake")
-  SET(VTK_DIR "${PLUSLIB_INSTALL_PATH}/@VTK_DIR@")
-ELSE()
-  SET(PlusLib_TARGETS_FILE "@CMAKE_BINARY_DIR@/PlusLibTargets.cmake")
-  SET(VTK_DIR "@VTK_DIR@")
-ENDIF()
+@PLUSLIB_CONFIG_CODE@
 
 FIND_PACKAGE(VTK REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
 
 IF(@ITK_FOUND@)
-  IF(@PLUSLIB_IS_INSTALL@)
-    SET(ITK_DIR "${PLUSLIB_INSTALL_PATH}/@ITK_DIR@")
-  ELSEIF()
-    SET(ITK_DIR "@ITK_DIR@")
-  ENDIF()
+  SET(ITK_DIR "@ITK_CONFIG_DIR@")
   FIND_PACKAGE(ITK REQUIRED NO_MODULE)
   INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
 ENDIF()
@@ -51,12 +37,7 @@ SET(PlusLib_DATA_DIR "@PLUSLIB_DATA_DIR@")
 SET(PlusLib_LIBRARIES "@PLUSLIB_DEPENDENCIES@")
 
 # Tell the user project where to find Plus use file
-IF(@PLUSLIB_IS_INSTALL@)
-  # UseFile is not yet fixed
-  SET(PlusLib_USE_FILE "${PLUSLIB_PACKAGE_DIR}/UsePlusLib.cmake" )
-ELSE()
-  SET(PlusLib_USE_FILE "@CMAKE_BINARY_DIR@/UsePlusLib.cmake" )
-ENDIF()
+SET(PlusLib_USE_FILE "@PLUSLIB_CONFIG_USEFILE@" )
 
 # Get the location for IntersonCxx
 SET(PLUS_USE_INTERSONSDKCXX_VIDEO "@PLUS_USE_INTERSONSDKCXX_VIDEO@")
@@ -136,10 +117,7 @@ IF(@PLUS_USE_OpenIGTLink@)
     SET(OpenIGTLink_DIR "@OpenIGTLink_DIR@")
   ENDIF()
   FIND_PACKAGE(OpenIGTLink NO_MODULE REQUIRED)
-  IF(NOT DEFINED OpenIGTLinkIO_DIR)
-    SET(OpenIGTLinkIO_DIR "@OpenIGTLinkIO_DIR@")
-  ENDIF()
-  FIND_PACKAGE(OpenIGTLinkIO NO_MODULE REQUIRED)
+  @OPENIGTLINKIO_CONFIG_CODE@
 ENDIF()
 
 IF(@PLUS_USE_OvrvisionPro@)

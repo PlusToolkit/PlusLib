@@ -22,7 +22,7 @@ ENDIF()
 OPTION(PLUS_USE_OpenIGTLink "Use the OpenIGTLink protocol" OFF)
 SET(PLUS_OPENIGTLINK_VERSION)
 IF(PLUS_USE_OpenIGTLink)
-  FIND_PACKAGE(OpenIGTLinkIO REQUIRED NO_MODULE)
+  FIND_PACKAGE(OpenIGTLink REQUIRED NO_MODULE)
   IF(${OpenIGTLink_PROTOCOL_VERSION} LESS 3)
     MESSAGE(FATAL_ERROR "PLUS requires a build of OpenIGTLink with v3 support enabled.")
   ENDIF()
@@ -31,6 +31,8 @@ IF(PLUS_USE_OpenIGTLink)
   SET(PLUS_OPENIGTLINK_VERSION_MAJOR "${OpenIGTLink_VERSION_MAJOR}")
   SET(PLUS_OPENIGTLINK_VERSION_MINOR "${OpenIGTLink_VERSION_MINOR}")
   SET(PLUS_OPENIGTLINK_VERSION_PATCH "${OpenIGTLink_VERSION_PATCH}")
+  
+  FIND_PACKAGE(OpenIGTLinkIO REQUIRED NO_MODULE)
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -164,6 +166,9 @@ SET(PLUSLIB_INSTALL_INCLUDE_FILES )
 
 # PLUSLIB_INSTALL_CMAKE_FILES contains the cmake files to install
 SET(PLUSLIB_INSTALL_CMAKE_FILES "")
+
+# CONFIG CODE FOR OPENIGTLINKIO LIBRARY
+SET(OPENIGTLINKIO_CONFIG_CODE "")
 
 # --------------------------------------------------------------------------
 # Current directory
@@ -306,12 +311,17 @@ IF( PLUS_USE_NVIDIA_DVP )
   LIST(APPEND PLUSLIB_DEPENDENCIES QuadroSDI)
 ENDIF()
 
+# for installing PLUSLIB_CONFIG_CODE is used
+SET(PLUSLIB_CONFIG_CODE
+"SET(PlusLib_TARGETS_FILE \"${CMAKE_BINARY_DIR}/PlusLibTargets.cmake\")
+SET(VTK_DIR \"${VTK_DIR}\")
+")
+SET(ITK_CONFIG_DIR ${ITK_DIR})
+SET(PLUSLIB_CONFIG_USEFILE "${CMAKE_BINARY_DIR}/UsePlusLib.cmake" )
+
+# Create a PlusConfig.cmake file for the use from the build tree
 #-----------------------------------------------------------------------------
 # Re: #1075 eventually remove this section after people are used to the new location
-# Create a PlusConfig.cmake file for the use from the build tree
-
-# for installing, added additional FLAG PLUSLIB_IS_INSTALL
-set(PLUSLIB_IS_INSTALL OFF)
 CONFIGURE_FILE(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
 CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
@@ -419,7 +429,6 @@ INSTALL(FILES ${PLUSLIB_INSTALL_CMAKE_FILES}
   )
   
 # set all paths to install location paths
-SET(PLUSLIB_IS_INSTALL ON)
 #relative to PlusConfig.cmake
 
 # include files should all we copied into the include folder
@@ -476,8 +485,8 @@ IF(${PLUS_USE_OvrvisionPro})
 ENDIF()
 
 # use the relative paths instead of absolute paths
-FILE(RELATIVE_PATH VTK_DIR ${CMAKE_INSTALL_PREFIX} ${VTK_DIR})
-FILE(RELATIVE_PATH ITK_DIR ${CMAKE_INSTALL_PREFIX} ${ITK_DIR})
+FILE(RELATIVE_PATH VTK_REL_DIR ${CMAKE_INSTALL_PREFIX} ${VTK_DIR})
+FILE(RELATIVE_PATH ITK_REL_DIR ${CMAKE_INSTALL_PREFIX} ${ITK_DIR})
 
 IF(${PLUS_USE_tesseract})
   # use the relative path instead of absolute path
@@ -495,6 +504,17 @@ INSTALL(EXPORT PlusLib
   DESTINATION "${PLUSLIB_CMAKE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   FILE PlusLibTargets.cmake
   )
+
+SET(PLUSLIB_CONFIG_CODE [=[
+  get_filename_component(PLUSLIB_PACKAGE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+  get_filename_component(_IMPORT_PREFIX "${PLUSLIB_PACKAGE_DIR}" PATH)
+  get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+  get_filename_component(PLUSLIB_INSTALL_PATH "${_IMPORT_PREFIX}" PATH)
+  SET(PlusLib_TARGETS_FILE "${PLUSLIB_PACKAGE_DIR}/PlusLibTargets.cmake")
+  SET(VTK_DIR "${PLUSLIB_INSTALL_PATH}/]=])
+SET(PLUSLIB_CONFIG_CODE "${PLUSLIB_CONFIG_CODE}${VTK_REL_DIR}\")")
+SET(ITK_CONFIG_DIR "\${PLUSLIB_INSTALL_PREFIX}/${ITK_REL_DIR}")
+SET(PLUSLIB_CONFIG_USEFILE "\${PLUSLIB_PACKAGE_DIR}/UsePlusLib.cmake")
 
 CONFIGURE_FILE(
   PlusLibConfig.cmake.in

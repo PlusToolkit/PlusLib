@@ -58,8 +58,20 @@ SET (PlusServer_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
   vtkPlusVolumeReconstruction
+  )
+SET(PlusServer_PRIVATE_LIBS
   igtlioConverter
   )
+# if igtlioConverter was compiled as a static library, we do not need igtlio in the install configuration
+GET_PROPERTY(IGTLIO_LIB_TYPE TARGET igtlioConverter PROPERTY STATIC_LIBRARY_FLAGS)
+IF(NOT IGTLIO_LIB_TYPE STREQUAL "STATIC_LIBRARY")
+  SET(OPENIGTLINKIO_CONFIG_CODE [=[
+    IF(NOT DEFINED OpenIGTLinkIO_DIR)
+      SET(OpenIGTLinkIO_DIR "@OpenIGTLinkIO_DIR@")
+    ENDIF()
+    FIND_PACKAGE(OpenIGTLinkIO NO_MODULE REQUIRED)]=])
+ENDIF()
+
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
 ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
@@ -73,6 +85,7 @@ IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
   target_compile_options(vtkPlusServer PRIVATE -ftemplate-depth=5000)
 endif()
 TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
+TARGET_LINK_LIBRARIES(vtkPlusServer PRIVATE ${PlusServer_PRIVATE_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
