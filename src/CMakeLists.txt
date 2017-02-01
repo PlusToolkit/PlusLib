@@ -242,10 +242,6 @@ ENDIF()
 
 ADD_SUBDIRECTORY(scripts)
 
-FILE(GLOB headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
-  )
-
 # --------------------------------------------------------------------------
 # Configure include file
 CONFIGURE_FILE(
@@ -312,10 +308,8 @@ IF( PLUS_USE_NVIDIA_DVP )
 ENDIF()
 
 # for installing PLUSLIB_CONFIG_CODE is used
-SET(PLUSLIB_CONFIG_CODE
-"SET(PlusLib_TARGETS_FILE \"${CMAKE_BINARY_DIR}/PlusLibTargets.cmake\")
-SET(VTK_DIR \"${VTK_DIR}\")
-")
+SET(PLUSLIB_CONFIG_CODE "SET(PlusLib_TARGETS_FILE \"${CMAKE_BINARY_DIR}/PlusLibTargets.cmake\")\n")
+SET(VTK_CONFIG_DIR ${VTK_DIR})
 SET(ITK_CONFIG_DIR ${ITK_DIR})
 SET(PLUSLIB_CONFIG_USEFILE "${CMAKE_BINARY_DIR}/UsePlusLib.cmake" )
 
@@ -506,28 +500,27 @@ INSTALL(EXPORT PlusLib
   )
 
 SET(PLUSLIB_CONFIG_CODE [=[
-  get_filename_component(PLUSLIB_PACKAGE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-  get_filename_component(_IMPORT_PREFIX "${PLUSLIB_PACKAGE_DIR}" PATH)
-  get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
-  get_filename_component(PLUSLIB_INSTALL_PATH "${_IMPORT_PREFIX}" PATH)
-  SET(PlusLib_TARGETS_FILE "${PLUSLIB_PACKAGE_DIR}/PlusLibTargets.cmake")
-  SET(VTK_DIR "${PLUSLIB_INSTALL_PATH}/]=])
-SET(PLUSLIB_CONFIG_CODE "${PLUSLIB_CONFIG_CODE}${VTK_REL_DIR}\")")
+get_filename_component(PLUSLIB_PACKAGE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_IMPORT_PREFIX "${PLUSLIB_PACKAGE_DIR}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(PLUSLIB_INSTALL_PATH "${_IMPORT_PREFIX}" PATH)
+SET(PlusLib_TARGETS_FILE "${PLUSLIB_PACKAGE_DIR}/PlusLibTargets.cmake")]=])
+SET(VTK_CONFIG_DIR "\${PLUSLIB_INSTALL_PATH}/${VTK_REL_DIR}")
 SET(ITK_CONFIG_DIR "\${PLUSLIB_INSTALL_PREFIX}/${ITK_REL_DIR}")
 SET(PLUSLIB_CONFIG_USEFILE "\${PLUSLIB_PACKAGE_DIR}/UsePlusLib.cmake")
 
 CONFIGURE_FILE(
   PlusLibConfig.cmake.in
-  CMakeFiles/install/PlusLibConfig.cmake @ONLY
+  ${CMAKE_BINARY_DIR}/CMakeFiles/install/PlusLibConfig.cmake @ONLY
   )
 CONFIGURE_FILE(
   UsePlusLib.cmake.in
-  CMakeFiles/install/UsePlusLib.cmake @ONLY
+  ${CMAKE_BINARY_DIR}/CMakeFiles/install/UsePlusLib.cmake @ONLY
   )
 
 INSTALL(FILES 
-  "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/PlusLibConfig.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/UsePlusLib.cmake"
+  "${CMAKE_BINARY_DIR}/CMakeFiles/install/PlusLibConfig.cmake"
+  "${CMAKE_BINARY_DIR}/CMakeFiles/install/UsePlusLib.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake"
   DESTINATION "${PLUSLIB_CMAKE_INSTALL}"
   CONFIGURATIONS Release

@@ -19,12 +19,25 @@
 
 # set the targets file (relative for install location)
 @PLUSLIB_CONFIG_CODE@
+IF(VTK_FOUND)
+  IF(NOT ${VTK_VERSION} VERSION_EQUAL "@VTK_VERSION@")
+    MESSAGE(SEND_ERROR "Trying to use different VTK versions in PlusLib (@VTK_VERSION@) and your superceeding project (${VTK_VERSION}), use the same version of VTK.")
+  ENDIF()
+ELSE()
+  SET(VTK_DIR "@VTK_CONFIG_DIR@" CACHE PATH "Path to VTK")
+ENDIF()
 
 FIND_PACKAGE(VTK REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
 
 IF(@ITK_FOUND@)
-  SET(ITK_DIR "@ITK_CONFIG_DIR@")
+  IF(ITK_FOUND)
+	IF(NOT ${ITK_VERSION} VERSION_EQUAL "@ITK_VERSION@")
+	  MESSAGE(SEND_ERROR "Trying to use different ITK versions in PlusLib (@ITK_VERSION@) and your superceeding project (${ITK_VERSION}), use the same version of ITK.")
+	ENDIF()
+  ELSE()
+	SET(ITK_DIR "@ITK_CONFIG_DIR@" CACHE PATH "Path to ITK")
+  ENDIF()
   FIND_PACKAGE(ITK REQUIRED NO_MODULE)
   INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
 ENDIF()
