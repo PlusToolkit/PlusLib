@@ -112,8 +112,8 @@ struct vtkPlusPasteSliceIntoVolumeInsertSliceParams
   vtkImageData* outData;            // the output volume
   void* outPtr;                     // scalar pointer to the output volume over the output extent
   unsigned short* accPtr;           // scalar pointer to the accumulation buffer over the output extent
-  vtkImageData* imData;             // importance mask
-  unsigned char* imPtr;             // scalar pointer to the importance mask over the output extent
+  vtkImageData* importanceMask;
+  unsigned char* importancePtr;     // scalar pointer to the importance mask over the output extent
   vtkImageData* inData;             // input slice
   void* inPtr;                      // scalar pointer to the input volume over the input slice extent
   int* inExt;                       // array size 6, input slice extent (could have been split for threading)
@@ -158,7 +158,7 @@ static int vtkTrilinearInterpolation(F *point,
                                      T *inPtr,
                                      T *outPtr,
                                      unsigned short *accPtr,
-                                     unsigned char *imPtr,
+                                     unsigned char *importancePtr,
                                      int numscalars, 
                                      vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode,
                                      int outExt[6],
@@ -308,10 +308,10 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         case vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE:
           f = fdx[j];
-          if (*imPtr == 0)
+          if (*importancePtr == 0)
             break;
-          a = F( (*imPtr)*f + *accPtrTmp );
-          r = F( (*inPtrTmp)*(*imPtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
+          a = F( (*importancePtr)*f + *accPtrTmp );
+          r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
           if (roundOutput)
           {
             PlusMath::Round(r, *outPtrTmp);
@@ -326,7 +326,7 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         }
         inPtrTmp++;
-        imPtr++;
+        importancePtr++;
         outPtrTmp++;
       }
       while (i);

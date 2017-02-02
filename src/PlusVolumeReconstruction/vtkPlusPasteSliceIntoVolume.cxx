@@ -428,7 +428,7 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   void* inPtr = inData->GetScalarPointerForExtent( inputFrameExtentForCurrentThread );
 
   // Get importance mask extent and pointer
-  void *imPtr = str->Importance->GetScalarPointerForExtent( inputFrameExtentForCurrentThread );
+  void *importancePtr = str->Importance->GetScalarPointerForExtent( inputFrameExtentForCurrentThread );
 
   // Get output volume extent and pointer
   vtkImageData* outData = str->OutputVolume;
@@ -470,7 +470,7 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   vtkPlusPasteSliceIntoVolumeInsertSliceParams insertionParams;
   insertionParams.accOverflowCount = accumulationBufferSaturationErrorsThread;
   insertionParams.accPtr = ( unsigned short* )accPtr;
-  insertionParams.imPtr = ( unsigned char* )imPtr;
+  insertionParams.importancePtr = ( unsigned char* )importancePtr;
   insertionParams.compoundingMode = str->CompoundingMode;
   insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;
   insertionParams.clipRectangleSize = str->ClipRectangleSize;
@@ -478,7 +478,7 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   insertionParams.fanRadiusStart = str->FanRadiusStart;
   insertionParams.fanRadiusStop = str->FanRadiusStop;
   insertionParams.fanOrigin = str->FanOrigin;
-  insertionParams.imData = str->Importance;
+  insertionParams.importanceMask = str->Importance;
   insertionParams.inData = str->InputFrameImage;
   insertionParams.inExt = inputFrameExtentForCurrentThread;
   insertionParams.inPtr = inPtr;

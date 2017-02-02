@@ -84,7 +84,7 @@ static int vtkNearestNeighborInterpolation(F *point,
                                            T *inPtr,
                                            T *outPtr,
                                            unsigned short *accPtr,
-                                           unsigned char *imPtr,
+                                           unsigned char *importancePtr,
                                            int numscalars,
                                            vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode,
                                            int outExt[6],
@@ -163,15 +163,15 @@ static int vtkNearestNeighborInterpolation(F *point,
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
 
-          if (*imPtr == 0) //nothing to do
+          if (*importancePtr == 0) //nothing to do
             break;
-          int newa = *accPtr + *imPtr;
+          int newa = *accPtr + *importancePtr;
           if (newa > ACCUMULATION_THRESHOLD)
             (*accOverflowCount) += 1;
 
           for (i = 0; i < numscalars; i++)
           {
-            *outPtr = ((*inPtr++)*(*imPtr) + (*outPtr)*(*accPtr))/newa;
+            *outPtr = ((*inPtr++)*(*importancePtr) + (*outPtr)*(*accPtr))/newa;
             outPtr++;
           }
 
@@ -232,7 +232,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkImageData* outData = insertionParams->outData;
   T* outPtr = reinterpret_cast<T*>(insertionParams->outPtr);
   unsigned short* accPtr = insertionParams->accPtr;
-  unsigned char* imPtr = insertionParams->imPtr;
+  unsigned char* importancePtr = insertionParams->importancePtr;
   vtkImageData* inData = insertionParams->inData;
   T* inPtr = reinterpret_cast<T*>(insertionParams->inPtr);
   int* inExt = insertionParams->inExt;
@@ -338,11 +338,11 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   double inPoint[4]; 
   inPoint[3] = 1;
   bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
-  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, imPtr += inIncZ)
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += inIncZ)
   {
-    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, imPtr += inIncY)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += inIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, imPtr++)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr++)
       {
         // check if we are within the current clip extent
         if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])
@@ -405,7 +405,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
         outPoint[3] = 1;
 
         // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-        interpolate(outPoint, inPtr, outPtr, accPtr, imPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
+        interpolate(outPoint, inPtr, outPtr, accPtr, importancePtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
       }
     }
   }
