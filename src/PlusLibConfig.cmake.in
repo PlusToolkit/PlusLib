@@ -27,7 +27,7 @@ ELSE()
   SET(VTK_DIR "@VTK_CONFIG_DIR@" CACHE PATH "Path to VTK")
 ENDIF()
 
-FIND_PACKAGE(VTK REQUIRED NO_MODULE)
+FIND_PACKAGE(VTK "@VTK_VERSION@" EXACT REQUIRED NO_MODULE)
 INCLUDE(${VTK_USE_FILE}) # Must be included as VTK does not populate CMake target properties correctly
 
 IF(@ITK_FOUND@)
@@ -38,7 +38,7 @@ IF(@ITK_FOUND@)
   ELSE()
 	SET(ITK_DIR "@ITK_CONFIG_DIR@" CACHE PATH "Path to ITK")
   ENDIF()
-  FIND_PACKAGE(ITK REQUIRED NO_MODULE)
+  FIND_PACKAGE(ITK "@ITK_VERSION@" EXACT REQUIRED NO_MODULE)
   INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
 ENDIF()
 
