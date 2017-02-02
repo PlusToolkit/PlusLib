@@ -308,6 +308,8 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
+  vtkIdType imIncX = 0, imIncY = 0, imIncZ = 0;
+  insertionParams->importanceMask->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
 
   // Set interpolation method - nearest neighbor or trilinear  
   int (*interpolate)(F *, T *, T *, unsigned short *, unsigned char *, int, vtkPlusPasteSliceIntoVolume::CompoundingType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
@@ -338,11 +340,11 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   double inPoint[4]; 
   inPoint[3] = 1;
   bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
-  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += inIncZ)
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += imIncZ)
   {
-    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += inIncY)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += imIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr++)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += imIncX)
       {
         // check if we are within the current clip extent
         if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])
