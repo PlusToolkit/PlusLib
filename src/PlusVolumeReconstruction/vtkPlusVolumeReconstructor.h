@@ -191,8 +191,8 @@ public:
   void SetPixelRejectionThreshold(double threshold);
   double GetPixelRejectionThreshold();
 
-  std::string GetImportanceMaskFilename();
-  void SetImportanceMaskFilename(std::string filename);
+  const std::string& GetImportanceMaskFilename() const;
+  void SetImportanceMaskFilename(const std::string& filename);
 
 protected:
   vtkPlusVolumeReconstructor();

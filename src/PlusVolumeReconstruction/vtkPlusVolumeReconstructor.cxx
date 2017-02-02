@@ -904,7 +904,7 @@ void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectFilterRadiusPixel(int rad
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(std::string filename)
+void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& filename)
 {
   if (this->ImportanceMaskFilename != filename)
   {
@@ -950,7 +950,7 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(std::string filename)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusVolumeReconstructor::GetImportanceMaskFilename()
+const std::string& vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
 {
   return this->ImportanceMaskFilename;
 }

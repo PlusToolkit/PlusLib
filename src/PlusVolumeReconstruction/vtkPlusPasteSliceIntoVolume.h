@@ -130,6 +130,20 @@ public:
   vtkGetVector6Macro(OutputExtent, int);  
 
   /*!
+  Get the importance mask
+  The importance mask of pixels in a frame (0-255).
+  0 means pixel is ignored during compounding.
+  */
+  vtkGetMacro(ImportanceMask, vtkImageData *);
+
+  /*!
+  Set the importance mask
+  The importance mask of pixels in a frame (0-255).
+  0 means pixel is ignored during compounding.
+  */
+  vtkSetMacro(ImportanceMask, vtkImageData *);
+
+  /*!
     Insert the slice into the reconstructed volume
     The origin of the image is at the first pixel stored in the memory.
     The extent, origin, and spacing of the output must be defined before calling this method.
@@ -150,20 +164,6 @@ public:
     the accumulation buffer for each voxel in the output.
   */
   virtual vtkImageData *GetAccumulationBuffer();
-
-  /*!
-  Get the importance mask
-  The importance mask of pixels in a frame (0-255).
-  0 means pixel is ignored during compounding.
-  */
-  virtual vtkImageData *GetImportanceMask();
-
-  /*!
-  Set the importance mask
-  The importance mask of pixels in a frame (0-255).
-  0 means pixel is ignored during compounding.
-  */
-  virtual void SetImportanceMask(vtkImageData * importanceMask);
 
   /*! Creates the and clears all necessary image buffers */
   virtual PlusStatus ResetOutput();
@@ -277,13 +277,14 @@ public:
 
   /*!
     Set the compounding mode
-    MEAN:     For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps 
-              from the same angle (regardless of intersection). Resistant to noise, but slower than other 
-              compounding methods.
-    LATEST:   For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps 
-              from the same angle (regardless of intersection). Fast, but susceptible to noise.
-    MAXIMUM:  For each voxel, use only the pixel value with the highest intensity. Used when multiple slices 
-              from different angles are expected to intersect. Fast, but susceptible to noise.
+    MEAN:           For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps 
+                    from the same angle (regardless of intersection). Resistant to noise, but slower than other 
+                    compounding methods.
+    IMPORTANCEMASK: Similar to MEAN, but pixels in a frame are weighted by their importance, which is supplied by a mask.
+    LATEST:         For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps 
+                    from the same angle (regardless of intersection). Fast, but susceptible to noise.
+    MAXIMUM:        For each voxel, use only the pixel value with the highest intensity. Used when multiple slices 
+                    from different angles are expected to intersect. Fast, but susceptible to noise.
   */
   vtkSetMacro(CompoundingMode,CompoundingType);
   /*! Get the result mode */

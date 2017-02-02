@@ -226,18 +226,6 @@ vtkImageData* vtkPlusPasteSliceIntoVolume::GetAccumulationBuffer()
 }
 
 //----------------------------------------------------------------------------
-vtkImageData* vtkPlusPasteSliceIntoVolume::GetImportanceMask()
-{
-  return this->ImportanceMask;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusPasteSliceIntoVolume::SetImportanceMask(vtkImageData* importanceMask)
-{
-  this->ImportanceMask = importanceMask;
-}
-
-//----------------------------------------------------------------------------
 // Clear the output volume and the accumulation buffer
 PlusStatus vtkPlusPasteSliceIntoVolume::ResetOutput()
 {
@@ -303,43 +291,6 @@ PlusStatus vtkPlusPasteSliceIntoVolume::ResetOutput()
                          outData->GetScalarSize()*outData->GetNumberOfScalarComponents() ) );
   }
 
-  //if (this->GetCompoundingMode() == IMPORTANCE_MASK_COMPOUNDING_MODE)
-  //{
-  //  // Allocate memory for importance mask and set all pixels to 0
-
-  //  vtkImageData* imData = this->GetImportanceMask();
-  //  if (imData == NULL )
-  //  {
-  //    LOG_ERROR( "Importance mask object is not created" );
-  //    return PLUS_FAIL;
-  //  }
-  //  int imExtent[6] = { 0, -1, 0, -1, 0, 1 }; //initialize to zeroes
-  //  for ( int i = 0; i < 4; i++ )
-  //  {
-  //    imExtent[i] = this->OutputExtent[i];
-  //  }
-  //  
-  //  imData->SetExtent( imExtent );
-  //  imData->SetOrigin( this->OutputOrigin );
-  //  imData->SetSpacing( this->OutputSpacing );
-  //  imData->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
-  //  
-  //  void* imPtr = imData->GetScalarPointerForExtent( imExtent );
-  //  if ( imPtr == NULL )
-  //  {
-  //    LOG_ERROR( "Cannot allocate memory for importance mask extent: " <<
-		//         imExtent[1] - imExtent[0] << "x" << imExtent[3] - imExtent[2] << " x " << imExtent[5] - imExtent[4] );
-  //  }
-  //  else
-  //  {
-  //    //by initializing importance to 255 the behavior will be the same as MEAN compounding
-  //    memset( imPtr, 255, ( size_t( imExtent[1] - imExtent[0] + 1 ) *
-  //                          size_t( imExtent[3] - imExtent[2] + 1 ) *
-  //                          size_t( imExtent[5] - imExtent[4] + 1 ) *
-  //                          imData->GetScalarSize()*imData->GetNumberOfScalarComponents() ) );
-  //  }
-  //}
-
   return PLUS_SUCCESS;
 }
 
@@ -361,15 +312,6 @@ PlusStatus vtkPlusPasteSliceIntoVolume::InsertSlice( vtkImageData* image, vtkMat
                << " Cannot insert slice into the volume. Set the correct output volume origin, spacing, and extent before inserting slices." );
     return PLUS_FAIL;
   }
-
-  //vtkSmartPointer<vtkBMPWriter> writer = vtkSmartPointer<vtkBMPWriter>::New();
-  //writer->SetInputData(image);
-  //writer->SetFileName("C:/pvrFrame.bmp");
-  //writer->Update();
-  //vtkSmartPointer<vtkBMPWriter> writer2 = vtkSmartPointer<vtkBMPWriter>::New();
-  //writer2->SetInputData(this->ImportanceMask);
-  //writer2->SetFileName("C:/pvrMask.bmp");
-  //writer2->Update();
 
   InsertSliceThreadFunctionInfoStruct str;
   str.InputFrameImage = image;
@@ -824,7 +766,7 @@ const char* vtkPlusPasteSliceIntoVolume::GetCompoundingModeAsString( Compounding
   case MEAN_COMPOUNDING_MODE:
     return "MEAN";
   case IMPORTANCE_MASK_COMPOUNDING_MODE:
-	  return "IMPORTANCEMASK";
+	return "IMPORTANCEMASK";
   case MAXIMUM_COMPOUNDING_MODE:
     return "MAXIMUM";
   default:
