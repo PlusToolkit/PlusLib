@@ -14,10 +14,16 @@ printErrorAndExit() {
 }
 
 # Make sure we are inside the repository.
-inUtilDir=`echo $0 | awk '/[uU]tilities/ {print $0}'`
-pwd=`pwd`
-inUtilDirPwd=`echo $pwd | awk '/[uU]tilities/ {print $pwd}'`
-if [ -n "$inUtilDir" ] || [ -n "$inUtilDirPwd" ]
+currentDir=$0
+if [ -n "$currentDir" ]
+then
+  currentDir=`pwd`
+fi
+
+inPlusLib=`echo $currentDir | awk '/PlusLib$/ {print $currentDir}'`
+inUtil=`echo $currentDir | awk '/[uU]tilities$/ {print $currentDir}'`
+
+if [ -n "$inUtil" ]
 then
   cd ..
 fi
