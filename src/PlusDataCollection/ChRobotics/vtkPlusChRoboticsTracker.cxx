@@ -22,9 +22,9 @@ See License.txt for details.
 #include <math.h>
 
 #ifdef _WIN32
-  #include <io.h> // for findnext
+#include <io.h> // for findnext
 #else
-  #include <dirent.h>
+#include <dirent.h>
 #endif
 
 
@@ -32,42 +32,42 @@ vtkStandardNewMacro(vtkPlusChRoboticsTracker);
 
 //-------------------------------------------------------------------------
 // Definitions of constant register address (addresses that must remain the same on all firmware versions)
-static const unsigned char UM6_GET_FW_VERSION=170;
+static const unsigned char UM6_GET_FW_VERSION = 170;
 
 // Definitions of some error packets - these are also required to remain constant through all firmware revisions
-static const unsigned char UM6_BAD_CHECKSUM=253;
-static const unsigned char UM6_UNKNOWN_ADDRESS=254;
-static const unsigned char UM6_INVALID_BATCH_SIZE=255;
+static const unsigned char UM6_BAD_CHECKSUM = 253;
+static const unsigned char UM6_UNKNOWN_ADDRESS = 254;
+static const unsigned char UM6_INVALID_BATCH_SIZE = 255;
 
-static const unsigned char DATA_REGISTER_START_ADDRESS=85;
-static const unsigned char COMMAND_START_ADDRESS=170;
+static const unsigned char DATA_REGISTER_START_ADDRESS = 85;
+static const unsigned char COMMAND_START_ADDRESS = 170;
 
 //-------------------------------------------------------------------------
 
-static const int MAX_COMMAND_REPLY_WAIT=3000; // number of maximum replies to wait for a command reply
+static const int MAX_COMMAND_REPLY_WAIT = 3000; // number of maximum replies to wait for a command reply
 
 //-------------------------------------------------------------------------
 vtkPlusChRoboticsTracker::vtkPlusChRoboticsTracker() :
-SerialPort(5),
-BaudRate(115200)
-{ 
-  this->Serial = new SerialLine(); 
+  SerialPort(5),
+  BaudRate(115200)
+{
+  this->Serial = new SerialLine();
 
   this->OrientationSensorTool = NULL;
 
-  this->FirmwareDefinition=vtkXMLDataElement::New();
+  this->FirmwareDefinition = vtkXMLDataElement::New();
 
   this->RequirePortNameInDeviceSetConfiguration = true;
-  
+
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 20;
 }
 
 //-------------------------------------------------------------------------
-vtkPlusChRoboticsTracker::~vtkPlusChRoboticsTracker() 
+vtkPlusChRoboticsTracker::~vtkPlusChRoboticsTracker()
 {
-  if ( this->Recording )
+  if (this->Recording)
   {
     this->StopRecording();
   }
@@ -75,24 +75,24 @@ vtkPlusChRoboticsTracker::~vtkPlusChRoboticsTracker()
   if (this->Serial->IsHandleAlive())
   {
     this->Serial->Close();
-    delete this->Serial; 
-    this->Serial = NULL; 
+    delete this->Serial;
+    this->Serial = NULL;
   }
 
   this->FirmwareDefinition->Delete();
-  this->FirmwareDefinition=NULL;
+  this->FirmwareDefinition = NULL;
 }
 
 //-------------------------------------------------------------------------
-void vtkPlusChRoboticsTracker::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusChRoboticsTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::InternalConnect()
 {
-  LOG_TRACE( "vtkPlusChRoboticsTracker::Connect" ); 
+  LOG_TRACE("vtkPlusChRoboticsTracker::Connect");
 
   if (this->Serial->IsHandleAlive())
   {
@@ -100,34 +100,34 @@ PlusStatus vtkPlusChRoboticsTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  std::ostringstream strComPort; 
-  strComPort << "COM" << this->SerialPort; 
-  this->Serial->SetPortName(strComPort.str()); 
+  std::ostringstream strComPort;
+  strComPort << "COM" << this->SerialPort;
+  this->Serial->SetPortName(strComPort.str());
 
-  this->Serial->SetSerialPortSpeed(this->BaudRate); 
+  this->Serial->SetSerialPortSpeed(this->BaudRate);
 
   this->Serial->SetMaxReplyTime(1000);
 
   if (!this->Serial->Open())
   {
-    LOG_ERROR("Cannot open serial port "<<strComPort.str());
+    LOG_ERROR("Cannot open serial port " << strComPort.str());
     return PLUS_FAIL;
   }
 
-  if (!this->Serial->IsHandleAlive())  
-  {  
-    LOG_ERROR("COM port handle is not alive "<<strComPort.str());
-    return PLUS_FAIL; 
+  if (!this->Serial->IsHandleAlive())
+  {
+    LOG_ERROR("COM port handle is not alive " << strComPort.str());
+    return PLUS_FAIL;
   }
 
-  if (LoadFirmwareDescriptionForConnectedDevice()!=PLUS_SUCCESS)
+  if (LoadFirmwareDescriptionForConnectedDevice() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to load firmware description for the connected device");
     this->Serial->Close();
     return PLUS_FAIL;
   }
 
-  if (UpdateDataItemDescriptors()!=PLUS_SUCCESS)
+  if (UpdateDataItemDescriptors() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to update data item descriptors from firmware description");
     this->Serial->Close();
@@ -137,13 +137,13 @@ PlusStatus vtkPlusChRoboticsTracker::InternalConnect()
   this->OrientationSensorTool = NULL;
   GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::InternalDisconnect()
 {
-  LOG_TRACE( "vtkPlusChRoboticsTracker::Disconnect" ); 
+  LOG_TRACE("vtkPlusChRoboticsTracker::Disconnect");
   this->StopRecording();
 
   this->Serial->Close();
@@ -155,37 +155,37 @@ PlusStatus vtkPlusChRoboticsTracker::InternalDisconnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::Probe()
 {
-  LOG_TRACE("vtkPlusChRoboticsTracker::Probe"); 
+  LOG_TRACE("vtkPlusChRoboticsTracker::Probe");
 
   LOG_ERROR("vtkPlusChRoboticsTracker::Probe is not implemented");
 
-  return PLUS_SUCCESS; 
-} 
+  return PLUS_SUCCESS;
+}
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::InternalStartRecording()
 {
-  LOG_TRACE( "vtkPlusChRoboticsTracker::InternalStartRecording" ); 
+  LOG_TRACE("vtkPlusChRoboticsTracker::InternalStartRecording");
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::InternalStopRecording()
 {
-  LOG_TRACE( "vtkPlusChRoboticsTracker::InternalStopRecording" );
+  LOG_TRACE("vtkPlusChRoboticsTracker::InternalStopRecording");
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::InternalUpdate()
 {
-  LOG_TRACE( "vtkPlusChRoboticsTracker::InternalUpdate" ); 
+  LOG_TRACE("vtkPlusChRoboticsTracker::InternalUpdate");
 
   ChrSerialPacket packet;
 
-  while (this->Serial->GetNumberOfBytesAvailableForReading()>0)
-  {    
-    if (ReceivePacket(packet)==PLUS_SUCCESS)
+  while (this->Serial->GetNumberOfBytesAvailableForReading() > 0)
+  {
+    if (ReceivePacket(packet) == PLUS_SUCCESS)
     {
       ProcessPacket(packet);
     }
@@ -193,21 +193,21 @@ PlusStatus vtkPlusChRoboticsTracker::InternalUpdate()
 
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  if (this->OrientationSensorTool!=NULL)
+  if (this->OrientationSensorTool != NULL)
   {
-    vtkSmartPointer<vtkMatrix4x4> orientationSensorToTracker=vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkSmartPointer<vtkMatrix4x4> orientationSensorToTracker = vtkSmartPointer<vtkMatrix4x4>::New();
 
     // LOG_TRACE("roll="<<this->EulerRoll.GetValue() <<", pitch="<<this->EulerPitch.GetValue() <<", yaw="<<this->EulerYaw.GetValue());
 
-    vtkSmartPointer<vtkTransform> transform=vtkSmartPointer<vtkTransform>::New();
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
     transform->RotateX(this->EulerRoll.GetValue());
     transform->RotateY(this->EulerPitch.GetValue());
     transform->RotateZ(this->EulerYaw.GetValue());
     transform->GetMatrix(orientationSensorToTracker);
-    
+
     // This device has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = this->OrientationSensorTool->GetFrameNumber() + 1 ; 
-    ToolTimeStampedUpdate( this->OrientationSensorTool->GetSourceId(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp); 
+    unsigned long frameNumber = this->OrientationSensorTool->GetFrameNumber() + 1 ;
+    ToolTimeStampedUpdate(this->OrientationSensorTool->GetId(), orientationSensorToTracker, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -216,53 +216,53 @@ PlusStatus vtkPlusChRoboticsTracker::InternalUpdate()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::FindFirmwareDefinition(const std::string& requestedFirmwareId, vtkXMLDataElement* foundDefinition)
 {
-  std::string firmwareFullPath=vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->FirmwareDirectory.c_str());
-  LOG_DEBUG("Loading the firmware files from "<<firmwareFullPath);
-  
+  std::string firmwareFullPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->FirmwareDirectory.c_str());
+  LOG_DEBUG("Loading the firmware files from " << firmwareFullPath);
+
   std::vector<std::string> firmwareFileList;
   GetFileNamesFromDirectory(firmwareFileList, firmwareFullPath);
-  if (firmwareFileList.size()==0)
+  if (firmwareFileList.size() == 0)
   {
-    LOG_ERROR("Failed to load firmware definitions from "<<firmwareFullPath);
+    LOG_ERROR("Failed to load firmware definitions from " << firmwareFullPath);
     return PLUS_FAIL;
   }
-  
-  for (std::vector<std::string>::iterator it=firmwareFileList.begin(); it!=firmwareFileList.end(); ++it)
+
+  for (std::vector<std::string>::iterator it = firmwareFileList.begin(); it != firmwareFileList.end(); ++it)
   {
-    LOG_DEBUG("Loading firmware from: "<<(*it));
-    vtkSmartPointer<vtkXMLDataElement> firmwareElemRoot = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile((*it).c_str())); 
-    if (firmwareElemRoot.GetPointer()==NULL)
+    LOG_DEBUG("Loading firmware from: " << (*it));
+    vtkSmartPointer<vtkXMLDataElement> firmwareElemRoot = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile((*it).c_str()));
+    if (firmwareElemRoot.GetPointer() == NULL)
     {
-      LOG_WARNING("Failed to read firmware definition from "<<(*it)<<". The file is ignored.");
+      LOG_WARNING("Failed to read firmware definition from " << (*it) << ". The file is ignored.");
       continue;
     }
-    const char* foundFirmwareId=firmwareElemRoot->GetAttribute("id");
-    if (foundFirmwareId==NULL)
+    const char* foundFirmwareId = firmwareElemRoot->GetAttribute("id");
+    if (foundFirmwareId == NULL)
     {
-      LOG_WARNING("Id not found in firmware definition file "<<(*it)<<". The file is ignored.");
+      LOG_WARNING("Id not found in firmware definition file " << (*it) << ". The file is ignored.");
       continue;
-    }      
-          
-    if (requestedFirmwareId.compare(foundFirmwareId)==0)
+    }
+
+    if (requestedFirmwareId.compare(foundFirmwareId) == 0)
     {
       // found firmware description
-      foundDefinition->DeepCopy(firmwareElemRoot);      
+      foundDefinition->DeepCopy(firmwareElemRoot);
       return PLUS_SUCCESS;
     }
   }
-  
+
   foundDefinition->RemoveAllAttributes();
   foundDefinition->RemoveAllNestedElements();
-  LOG_ERROR("Could not find ChRobotics firmware definition for attached device ("<<requestedFirmwareId<<")");
+  LOG_ERROR("Could not find ChRobotics firmware definition for attached device (" << requestedFirmwareId << ")");
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string> &fileNames, const std::string &dir)
-{  
+void vtkPlusChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string>& fileNames, const std::string& dir)
+{
 #ifdef _WIN32 // Windows
-  _finddata_t file; 
-  std::string findPath=dir+"\\*.*";
+  _finddata_t file;
+  std::string findPath = dir + "\\*.*";
   long currentPosition = _findfirst(findPath.c_str(), &file); //find the first file in directory
   if (currentPosition == -1L)
   {
@@ -272,7 +272,7 @@ void vtkPlusChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string
   {
     std::string fileName = file.name;
     //ignore . and ..
-    if(strcmp(fileName.c_str() , ".") != 0 && strcmp(fileName.c_str() , "..") !=0 )
+    if (strcmp(fileName.c_str(), ".") != 0 && strcmp(fileName.c_str(), "..") != 0)
     {
       //If not subdirectory
       if (!(file.attrib & _A_SUBDIR))
@@ -280,16 +280,17 @@ void vtkPlusChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string
         fileNames.push_back(std::string(dir) + "/" +  fileName);
       }
     }
-  } while(_findnext(currentPosition, &file) == 0);
+  }
+  while (_findnext(currentPosition, &file) == 0);
   _findclose(currentPosition); //close search
 #else // Linux
   DIR* d;
-  struct dirent *ent;
-  if ( (d = opendir(dir.c_str())) != NULL)
+  struct dirent* ent;
+  if ((d = opendir(dir.c_str())) != NULL)
   {
     while ((ent = readdir(d)) != NULL)
     {
-      std::string entry( ent->d_name );
+      std::string entry(ent->d_name);
       if (entry != "." && entry != "..")
       {
         fileNames.push_back(dir + "/" + entry);
@@ -303,12 +304,12 @@ void vtkPlusChRoboticsTracker::GetFileNamesFromDirectory(std::vector<std::string
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusChRoboticsTracker::UpdateDataItemDescriptors()
 {
-  PlusStatus status=PLUS_SUCCESS;
-  
-  if (FindDataItemDescriptor("Roll (phi)",this->EulerRoll)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("Pitch (theta)",this->EulerPitch)!=PLUS_SUCCESS) { status=PLUS_FAIL; }
-  if (FindDataItemDescriptor("Yaw (psi)",this->EulerYaw)!=PLUS_SUCCESS) { status=PLUS_FAIL; }  
-  
+  PlusStatus status = PLUS_SUCCESS;
+
+  if (FindDataItemDescriptor("Roll (phi)", this->EulerRoll) != PLUS_SUCCESS) { status = PLUS_FAIL; }
+  if (FindDataItemDescriptor("Pitch (theta)", this->EulerPitch) != PLUS_SUCCESS) { status = PLUS_FAIL; }
+  if (FindDataItemDescriptor("Yaw (psi)", this->EulerYaw) != PLUS_SUCCESS) { status = PLUS_FAIL; }
+
   return status;
 }
 
@@ -317,61 +318,61 @@ void vtkPlusChRoboticsTracker::UpdateDataItemValues(ChrSerialPacket& packet)
 {
   this->EulerRoll.ReadValueFromPacket(packet);
   this->EulerPitch.ReadValueFromPacket(packet);
-  this->EulerYaw.ReadValueFromPacket(packet); 
+  this->EulerYaw.ReadValueFromPacket(packet);
 }
 
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusChRoboticsTracker::FindDataItemDescriptor(const std::string itemName, ChrDataItem &foundItem)
+PlusStatus vtkPlusChRoboticsTracker::FindDataItemDescriptor(const std::string itemName, ChrDataItem& foundItem)
 {
-  if (this->FirmwareDefinition==NULL)
+  if (this->FirmwareDefinition == NULL)
   {
     LOG_ERROR("Firmware definition is not available");
     return PLUS_FAIL;
   }
 
-  const std::string dataGroupElemName="DataGroup";
-  const std::string dataItemElemName="DataItem";
+  const std::string dataGroupElemName = "DataGroup";
+  const std::string dataItemElemName = "DataItem";
 
-  for ( int dataGroupIndex = 0; dataGroupIndex < this->FirmwareDefinition->GetNumberOfNestedElements(); ++dataGroupIndex )
+  for (int dataGroupIndex = 0; dataGroupIndex < this->FirmwareDefinition->GetNumberOfNestedElements(); ++dataGroupIndex)
   {
     vtkXMLDataElement* groupElem = this->FirmwareDefinition->GetNestedElement(dataGroupIndex);
-    if ( groupElem == NULL )
+    if (groupElem == NULL)
     {
-      continue; 
+      continue;
     }
-    if (dataGroupElemName.compare(groupElem->GetName())!=0)
+    if (dataGroupElemName.compare(groupElem->GetName()) != 0)
     {
       // not a data group
       continue;
     }
-    for ( int dataItemIndex = 0; dataItemIndex < groupElem->GetNumberOfNestedElements(); ++dataItemIndex )
+    for (int dataItemIndex = 0; dataItemIndex < groupElem->GetNumberOfNestedElements(); ++dataItemIndex)
     {
       vtkXMLDataElement* dataItemElem = groupElem->GetNestedElement(dataItemIndex);
 
-      if (dataItemElemName.compare(dataItemElem->GetName())!=0)
+      if (dataItemElemName.compare(dataItemElem->GetName()) != 0)
       {
         // not a data item
         continue;
       }
 
-      vtkXMLDataElement* dataItemNameElem=dataItemElem->FindNestedElementWithName("Name");
-      if ( dataItemNameElem == NULL )
+      vtkXMLDataElement* dataItemNameElem = dataItemElem->FindNestedElementWithName("Name");
+      if (dataItemNameElem == NULL)
       {
         // name is undefined
-        continue; 
+        continue;
       }
-      if (itemName.compare(dataItemNameElem->GetCharacterData())!=0)
+      if (itemName.compare(dataItemNameElem->GetCharacterData()) != 0)
       {
         // item name does not match the item that we are looking for
         continue;
-      }      
+      }
       // data item description found
       return foundItem.ReadDescriptionFromXml(dataItemElem);
-    } 
-  } 
+    }
+  }
 
-  LOG_ERROR("Data item desctiption not found: "<<itemName);
+  LOG_ERROR("Data item desctiption not found: " << itemName);
   return PLUS_FAIL;
 }
 
@@ -384,85 +385,85 @@ PlusStatus vtkPlusChRoboticsTracker::LoadFirmwareDescriptionForConnectedDevice()
   ChrSerialPacket fwRequest;
   fwRequest.SetHasData(false);
   fwRequest.SetBatchEnable(false);
-  fwRequest.SetAddress(UM6_GET_FW_VERSION);  
+  fwRequest.SetAddress(UM6_GET_FW_VERSION);
 
   ChrSerialPacket fwReply;
 
-  if (SendCommand(fwRequest, fwReply)!=PLUS_SUCCESS)
+  if (SendCommand(fwRequest, fwReply) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to query ChRobotics device firmware version");
     return PLUS_FAIL;
   }
 
   // Convert packet data to string
-  unsigned char dataLength=fwReply.GetDataLength();
-  for (int i=0; i<dataLength; i++)
+  unsigned char dataLength = fwReply.GetDataLength();
+  for (int i = 0; i < dataLength; i++)
   {
     this->FirmwareVersionId.push_back(fwReply.GetDataByte(i));
   }
 
   // Search loaded firmware items to determine if we have a definition
   // for the firmware revision given by the sensor.
-  if (FindFirmwareDefinition(this->FirmwareVersionId, this->FirmwareDefinition)!=PLUS_SUCCESS)
+  if (FindFirmwareDefinition(this->FirmwareVersionId, this->FirmwareDefinition) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to load firmware definition for ChRobotics device version "<<this->FirmwareVersionId);
+    LOG_ERROR("Failed to load firmware definition for ChRobotics device version " << this->FirmwareVersionId);
     return PLUS_FAIL;
   }
 
-  LOG_INFO("CHRobotics device firmware identified ("<< this->FirmwareVersionId <<") and firmware definition loaded." );
+  LOG_INFO("CHRobotics device firmware identified (" << this->FirmwareVersionId << ") and firmware definition loaded.");
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusChRoboticsTracker::SendCommand( ChrSerialPacket& requestPacket, ChrSerialPacket& replyPacket )
+PlusStatus vtkPlusChRoboticsTracker::SendCommand(ChrSerialPacket& requestPacket, ChrSerialPacket& replyPacket)
 {
-  if (SendPacket( requestPacket )!=PLUS_SUCCESS)
+  if (SendPacket(requestPacket) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-  for (int i=0; i<MAX_COMMAND_REPLY_WAIT; i++)
+  for (int i = 0; i < MAX_COMMAND_REPLY_WAIT; i++)
   {
-    ReceivePacket(replyPacket);    
-    if (replyPacket.GetAddress()==requestPacket.GetAddress())
+    ReceivePacket(replyPacket);
+    if (replyPacket.GetAddress() == requestPacket.GetAddress())
     {
       // we've received reply to the command
       return PLUS_SUCCESS;
-    }    
+    }
   }
-  LOG_ERROR("Failed to receive reply to command "<<int(requestPacket.GetAddress()));
+  LOG_ERROR("Failed to receive reply to command " << int(requestPacket.GetAddress()));
   return PLUS_FAIL;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusChRoboticsTracker::SendPacket( ChrSerialPacket& packet )
+PlusStatus vtkPlusChRoboticsTracker::SendPacket(ChrSerialPacket& packet)
 {
   std::vector<unsigned char> data_array;
 
   packet.ComputeChecksum();
-  unsigned char packetLength=packet.GetPacketLength();
-  for( int i = 0; i < packetLength; i++ )
+  unsigned char packetLength = packet.GetPacketLength();
+  for (int i = 0; i < packetLength; i++)
   {
     this->Serial->Write(packet.GetPacketByte(i));
   }
 
-  LOG_TRACE("Sent packet: address="<<int(packet.GetAddress())<<", data length="<<int(packet.GetDataLength()));
+  LOG_TRACE("Sent packet: address=" << int(packet.GetAddress()) << ", data length=" << int(packet.GetDataLength()));
 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
+PlusStatus vtkPlusChRoboticsTracker::ReceivePacket(ChrSerialPacket& packet)
 {
   // search for the packet start sequence "snp"
   std::deque<unsigned char> lastThreeChars;
-  unsigned char d=0;
+  unsigned char d = 0;
   this->Serial->Read(d);
   lastThreeChars.push_back(d);
   this->Serial->Read(d);
   lastThreeChars.push_back(d);
   this->Serial->Read(d);
   lastThreeChars.push_back(d);
-  while (lastThreeChars[0]!='s' || lastThreeChars[1]!='n' || lastThreeChars[2]!='p')
+  while (lastThreeChars[0] != 's' || lastThreeChars[1] != 'n' || lastThreeChars[2] != 'p')
   {
     lastThreeChars.pop_front();
     if (!this->Serial->Read(d))
@@ -489,23 +490,23 @@ PlusStatus vtkPlusChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
 
   // Copy data bytes into packet data array
   int dataLength = packet.GetDataLength();
-  for( int i = 0; i < dataLength; i++ )
+  for (int i = 0; i < dataLength; i++)
   {
     if (!this->Serial->Read(d))
     {
-      LOG_ERROR("Failed to read packet data["<<i<<"] through serial line");
+      LOG_ERROR("Failed to read packet data[" << i << "] through serial line");
       return PLUS_FAIL;
     }
-    packet.SetDataByte( i, d );
+    packet.SetDataByte(i, d);
   }
 
-  unsigned char checksum0=0;
+  unsigned char checksum0 = 0;
   if (!this->Serial->Read(checksum0))
   {
     LOG_ERROR("Failed to read packet checksum[0] through serial line");
     return PLUS_FAIL;
   }
-  unsigned char checksum1=0;
+  unsigned char checksum1 = 0;
   if (!this->Serial->Read(checksum1))
   {
     LOG_ERROR("Failed to read packet checksum[1] through serial line");
@@ -515,52 +516,52 @@ PlusStatus vtkPlusChRoboticsTracker::ReceivePacket( ChrSerialPacket& packet )
   // Compute the checksum and compare with the one given in the packet.  If different, ignore this packet
   packet.ComputeChecksum();
 
-  if (packet.GetChecksumByte(0)!=checksum0 || packet.GetChecksumByte(1)!=checksum1)
+  if (packet.GetChecksumByte(0) != checksum0 || packet.GetChecksumByte(1) != checksum1)
   {
     LOG_ERROR("Received a packet with bad checksum through serial line ("
-      <<"address="<<int(packet.GetAddress())<<", checksum: "
-      <<int(packet.GetChecksumByte(0))<<"!="<<int(checksum0)<<" and/or "
-      <<int(packet.GetChecksumByte(1))<<"!="<<int(checksum1)<<")"
-      );
+              << "address=" << int(packet.GetAddress()) << ", checksum: "
+              << int(packet.GetChecksumByte(0)) << "!=" << int(checksum0) << " and/or "
+              << int(packet.GetChecksumByte(1)) << "!=" << int(checksum1) << ")"
+             );
     return PLUS_FAIL;
   }
 
-  LOG_TRACE("Received packet: address="<<int(packet.GetAddress())<<", data length="<<int(packet.GetDataLength()));
+  LOG_TRACE("Received packet: address=" << int(packet.GetAddress()) << ", data length=" << int(packet.GetDataLength()));
 
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
+PlusStatus vtkPlusChRoboticsTracker::ProcessPacket(ChrSerialPacket& packet)
 {
   // Firmware-independent processing
 
-  if( packet.GetAddress() == UM6_BAD_CHECKSUM )
+  if (packet.GetAddress() == UM6_BAD_CHECKSUM)
   {
     LOG_WARNING("Received ChRobotics sensor reply: BAD_CHECKSUM");
     return PLUS_FAIL;
   }
-  else if( packet.GetAddress() == UM6_UNKNOWN_ADDRESS )
+  else if (packet.GetAddress() == UM6_UNKNOWN_ADDRESS)
   {
     LOG_WARNING("Received ChRobotics sensor reply: UNKNOWN_ADDRESS");
     return PLUS_FAIL;
   }
-  else if( packet.GetAddress() == UM6_INVALID_BATCH_SIZE )
+  else if (packet.GetAddress() == UM6_INVALID_BATCH_SIZE)
   {
     LOG_WARNING("Received ChRobotics sensor reply: INVALID_BATCH_SIZE");
     return PLUS_FAIL;
   }
 
-  if( packet.GetHasData() )
+  if (packet.GetHasData())
   {
-    // Packet has data.  
+    // Packet has data.
 
     // If this packet reported the contents of data registers, update local data registers accordingly
-    if( (packet.GetAddress() >= DATA_REGISTER_START_ADDRESS) && (packet.GetAddress() < COMMAND_START_ADDRESS) )
+    if ((packet.GetAddress() >= DATA_REGISTER_START_ADDRESS) && (packet.GetAddress() < COMMAND_START_ADDRESS))
     {
-      UpdateDataItemValues(packet);   
-    }    
-    else if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
+      UpdateDataItemValues(packet);
+    }
+    else if (packet.GetAddress() < DATA_REGISTER_START_ADDRESS)
     {
       // this packet reported the contents of configuration registers
       // we could get here the new configuration register value
@@ -574,12 +575,12 @@ PlusStatus vtkPlusChRoboticsTracker::ProcessPacket( ChrSerialPacket& packet )
   else
   {
     // Packet has no data
-    if( packet.GetAddress() < DATA_REGISTER_START_ADDRESS )
+    if (packet.GetAddress() < DATA_REGISTER_START_ADDRESS)
     {
       // configuration register address
       // the packet signifies that a write operation to a configuration register was just completed
     }
-    else if( packet.GetAddress() >= COMMAND_START_ADDRESS )
+    else if (packet.GetAddress() >= COMMAND_START_ADDRESS)
     {
       // command register address
       // the packet signals that a received command either succeeded or failed
@@ -596,7 +597,7 @@ PlusStatus vtkPlusChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* rootCo
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(FirmwareDirectory, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(FirmwareDirectory, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -604,7 +605,7 @@ PlusStatus vtkPlusChRoboticsTracker::ReadConfiguration(vtkXMLDataElement* rootCo
 PlusStatus vtkPlusChRoboticsTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
-  trackerConfig->SetUnsignedLongAttribute( "SerialPort", this->SerialPort ); 
-  trackerConfig->SetUnsignedLongAttribute( "BaudRate", this->BaudRate ); 
+  trackerConfig->SetUnsignedLongAttribute("SerialPort", this->SerialPort);
+  trackerConfig->SetUnsignedLongAttribute("BaudRate", this->BaudRate);
   return PLUS_SUCCESS;
 }

@@ -156,9 +156,9 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration( vtkXMLDataElement*
 
   */
 
-  XML_READ_STRING_ATTRIBUTE_WARNING(IpAddr, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_WARNING(IpAddr, deviceConfig);
   // XML_READ_SCALAR_ATTRIBUTE_WARNING(unsigned int, Port, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_WARNING(Password, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_WARNING(Password, deviceConfig);
 
   return PLUS_SUCCESS;
 }

@@ -262,7 +262,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::ReadConfiguration( vtkXMLDataElement* r
   }
 
   this->SetLanguage(DEFAULT_LANGUAGE);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(Language, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(Language, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_OPTIONAL(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
 
@@ -324,7 +324,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::WriteConfiguration(vtkXMLDataElement* r
 
   if( STRCASECMP(this->Language, DEFAULT_LANGUAGE) != 0 )
   {
-    XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(Language, deviceConfig);
+    XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(Language, deviceConfig);
   }
 
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);

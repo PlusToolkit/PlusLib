@@ -139,9 +139,9 @@ public:
   Set size of the internal frame buffer, i.e. the number of most recent frames that
   are stored in the video source class internally.
   */
-  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const char* aSourceId = NULL);
+  virtual PlusStatus SetBufferSize(vtkPlusChannel& aChannel, int FrameBufferSize, const std::string& aSourceId = std::string(""));
   /*! Get size of the internal frame buffer. */
-  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const char* aSourceId = NULL);
+  virtual PlusStatus GetBufferSize(vtkPlusChannel& aChannel, int& outVal, const std::string& aSourceId = std::string(""));
 
   /*! Set recording start time */
   virtual void SetStartTime(double startTime);
@@ -152,10 +152,8 @@ public:
   /*! Is this device a tracker */
   virtual bool IsTracker() const;
 
-  virtual bool IsVirtual() const
-  {
-    return false;
-  }
+  virtual bool IsVirtual() const { return false; }
+
   /*!
   Reset the device. The actual reset action is defined in subclasses. A reset is typically performed on the users request
   while the device is connected. A reset can be used for zeroing sensors, canceling an operation in progress, etc.
@@ -166,10 +164,10 @@ public:
   void ClearAllBuffers();
 
   /*! Dump the current state of the device to sequence file (with each tools and buffers) */
-  virtual PlusStatus WriteToolsToSequenceFile(const char* filename, bool useCompression = false);
+  virtual PlusStatus WriteToolsToSequenceFile(const std::string& filename, bool useCompression = false);
 
   /*! Make this device into a copy of another device. */
-  void DeepCopy(vtkPlusDevice* device);
+  void DeepCopy(const vtkPlusDevice& device);
 
   /*! Get the internal update rate for this tracking system.  This is the number of buffer entry items sent by the device per second (per tool). */
   double GetInternalUpdateRate() const;
@@ -187,8 +185,10 @@ public:
 
   /*! Get the tool object for the specified tool port name */
   PlusStatus GetToolByPortName(const char* aPortName, vtkPlusDataSource*& aSource);
+  PlusStatus GetToolByPortName(const std::string& aPortName, vtkPlusDataSource*& aSource);
   /*! Get the video source objects for the specified video port name */
   PlusStatus GetVideoSourcesByPortName(const char* aPortName, std::vector<vtkPlusDataSource*>& sources);
+  PlusStatus GetVideoSourcesByPortName(const std::string& aPortName, std::vector<vtkPlusDataSource*>& sources);
 
   /*! Get the beginning of the tool iterator */
   DataSourceContainerConstIterator GetToolIteratorBegin() const;
@@ -200,7 +200,7 @@ public:
   PlusStatus AddTool(vtkPlusDataSource* tool, bool requireUniquePortName = true);
 
   /*! Get number of images */
-  int GetNumberOfTools() const;
+  virtual int GetNumberOfTools() const;
 
   /*! Get the video source for the specified source name */
   PlusStatus GetVideoSource(const char* aSourceId, vtkPlusDataSource*& aVideoSource);
@@ -224,7 +224,7 @@ public:
   PlusStatus AddVideoSource(vtkPlusDataSource* anImage);
 
   /*! Get number of images */
-  int GetNumberOfVideoSources() const;
+  virtual int GetNumberOfVideoSources() const;
 
   /*! Get the field data source for the specified field data id */
   PlusStatus GetFieldDataSource(const char* aSourceId, vtkPlusDataSource*& aSource) const;
@@ -240,7 +240,7 @@ public:
   PlusStatus AddFieldDataSource(vtkPlusDataSource* aSource);
 
   /*! Get number of field data sources */
-  int GetNumberOfFieldDataSources() const;
+  virtual int GetNumberOfFieldDataSources() const;
 
   /*! Convert tool status to string */
   static std::string ConvertToolStatusToString(ToolStatus status);
@@ -252,13 +252,12 @@ public:
   static ToolStatus ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus);
 
   /*! Set Reference name of the tools */
-  vtkSetStringMacro(ToolReferenceFrameName);
-
+  void SetToolReferenceFrameName(const std::string& frameName);
   /*! Get Reference name of the tools */
-  vtkGetStringMacro(ToolReferenceFrameName);
+  const std::string& GetToolReferenceFrameName() const;
 
   /*! Is the device correctly configured? */
-  vtkGetMacro(CorrectlyConfigured, bool);
+  virtual bool GetCorrectlyConfigured() const;
 
   /*! Set the parent data collector */
   virtual void SetDataCollector(vtkPlusDataCollector* _arg);
@@ -271,7 +270,7 @@ public:
 
   /*! Set local time offset of all available buffers */
   virtual void SetLocalTimeOffsetSec(double aTimeOffsetSec);
-  virtual double GetLocalTimeOffsetSec();
+  virtual double GetLocalTimeOffsetSec() const;
 
   /*!
   The subclass will do all the hardware-specific update stuff
@@ -284,10 +283,7 @@ public:
   need to communicate with the device from outside of InternalUpdate().
   A call to this->UpdateMutex->Unlock() will resume the thread.
   */
-  virtual PlusStatus InternalUpdate()
-  {
-    return PLUS_SUCCESS;
-  };
+  virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
 
   /*!
   Build a list of all of the input devices directly connected to this device (if any)
@@ -313,24 +309,18 @@ public:
   PlusStatus SetAcquisitionRate(double aRate);
 
   /*! Get whether recording is underway */
-  bool IsRecording() const
-  {
-    return (this->Recording != 0);
-  }
+  virtual bool IsRecording() const;
 
   /* Return the id of the device */
-  virtual char* GetDeviceId() const
-  {
-    return this->DeviceId;
-  }
+  virtual const std::string& GetDeviceId() const;
   // Set the device Id
-  vtkSetStringMacro(DeviceId);
+  void SetDeviceId(const std::string& id);
 
   /*!
   Get the frame number (some devices has frame numbering, otherwise
   just increment if new frame received)
   */
-  vtkGetMacro(FrameNumber, unsigned long);
+  virtual unsigned long GetFrameNumber() const;
 
   /*!
   Get a time stamp in seconds (resolution of milliseconds) for
@@ -340,10 +330,7 @@ public:
   otherwise it is the timestamp for the most recent frame, which is not
   necessarily the output
   */
-  virtual double GetFrameTimeStamp()
-  {
-    return this->FrameTimeStamp;
-  };
+  virtual double GetFrameTimeStamp() const;
 
   /*!
   The result of GetOutput() will be the frame closest to DesiredTimestamp
@@ -373,7 +360,7 @@ public:
   vtkGetMacro(TimestampClosestToDesired, double);
 
   /*! Are we connected? */
-  vtkGetMacro(Connected, int);
+  virtual int GetConnected() const;
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
@@ -422,10 +409,7 @@ public:
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const char* aChannelId);
   PlusStatus GetOutputChannelByName(vtkPlusChannel*& aChannel, const std::string& aChannelId);
 
-  virtual int OutputChannelCount() const
-  {
-    return OutputChannels.size();
-  }
+  virtual int OutputChannelCount() const;
 
   ChannelContainerConstIterator GetOutputChannelsStart() const;
   ChannelContainerConstIterator GetOutputChannelsEnd() const;
@@ -438,10 +422,7 @@ public:
   /*!
   Perform any completion tasks once configured
   */
-  virtual PlusStatus NotifyConfigured()
-  {
-    return PLUS_SUCCESS;
-  }
+  virtual PlusStatus NotifyConfigured() { return PLUS_SUCCESS; }
 
   /*!
   Return the latest or desired image frame. This method can be overridden in subclasses
@@ -457,7 +438,7 @@ public:
 
   /* Accessors for the grace period value */
   vtkSetMacro(MissingInputGracePeriodSec, double);
-  vtkGetMacro(MissingInputGracePeriodSec, double);
+  double GetMissingInputGracePeriodSec() const;
 
   /*!
     Creates a default output channel for the device with the name channelId or "OutputChannel".
@@ -491,34 +472,22 @@ protected:
   PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output);
 
   /*! Should be overridden to connect to the hardware */
-  virtual PlusStatus InternalConnect()
-  {
-    return PLUS_SUCCESS;
-  }
+  virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }
 
   /*! Release the video driver. Should be overridden to disconnect from the hardware. */
-  virtual PlusStatus InternalDisconnect()
-  {
-    return PLUS_SUCCESS;
-  };
+  virtual PlusStatus InternalDisconnect() { return PLUS_SUCCESS; };
 
   /*!
   Called at the end of StartRecording to allow hardware-specific
   actions for starting the recording
   */
-  virtual PlusStatus InternalStartRecording()
-  {
-    return PLUS_SUCCESS;
-  };
+  virtual PlusStatus InternalStartRecording() { return PLUS_SUCCESS; };
 
   /*!
   Called at the beginning of StopRecording to allow hardware-specific
   actions for stopping the recording
   */
-  virtual PlusStatus InternalStopRecording()
-  {
-    return PLUS_SUCCESS;
-  };
+  virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
 
   /*!
   This function can be called to add a video item to the specified video data sources
@@ -541,7 +510,7 @@ protected:
   can communicate information back to the vtkPlusDevice base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   */
-  virtual PlusStatus ToolTimeStampedUpdate(const char* aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus ToolTimeStampedUpdate(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   This function is called by InternalUpdate() so that the subclasses
@@ -549,7 +518,7 @@ protected:
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  virtual PlusStatus ToolTimeStampedUpdateWithoutFiltering(const char* aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus ToolTimeStampedUpdateWithoutFiltering(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device
@@ -575,15 +544,12 @@ protected:
   vtkSetMacro(CorrectlyConfigured, bool);
 
   vtkSetMacro(StartThreadForInternalUpdates, bool);
-  vtkGetMacro(StartThreadForInternalUpdates, bool);
+  bool GetStartThreadForInternalUpdates() const;
 
   vtkSetMacro(RecordingStartTime, double);
-  vtkGetMacro(RecordingStartTime, double);
+  double GetRecordingStartTime() const;
 
-  virtual vtkPlusDataCollector* GetDataCollector()
-  {
-    return this->DataCollector;
-  }
+  virtual vtkPlusDataCollector* GetDataCollector();
 
   bool HasGracePeriodExpired();
 
@@ -591,8 +557,6 @@ protected:
   virtual ~vtkPlusDevice();
 
 protected:
-  static const int VIRTUAL_DEVICE_FRAME_RATE;
-
   /*! Flag to store recording thread state */
   bool ThreadAlive;
 
@@ -615,10 +579,10 @@ protected:
   DataSourceContainer Fields;
 
   /*! Reference name of the tools */
-  char* ToolReferenceFrameName;
+  std::string ToolReferenceFrameName;
 
   /*! Id of the device */
-  char* DeviceId;
+  std::string DeviceId;
 
   vtkPlusDataCollector* DataCollector;
 
@@ -659,10 +623,12 @@ protected:
 
   /*!
     The list contains the IDs of the tools that have been already reported to be unknown.
-    This list is used to only report an unknown tool once (after the connection has been establiushed), not at each
+    This list is used to only report an unknown tool once (after the connection has been established), not at each
     attempt to access it.
   */
   std::set< std::string > ReportedUnknownTools;
+
+  static const int VIRTUAL_DEVICE_FRAME_RATE;
 
 protected:
   /*

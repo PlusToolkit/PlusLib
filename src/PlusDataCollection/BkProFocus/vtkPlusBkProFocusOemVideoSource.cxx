@@ -325,7 +325,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
 
     int numChars = (int)this->Internal->OemClientReadBuffer[numBytesProcessed] - (int)('0');
     numBytesProcessed++;
-    LOG_TRACE("Number of bytes in the image: " << numChars); // 7 or 6
+    LOG_TRACE("Number of bytes in the image size: " << numChars); // 7 or 6
     if (numChars == 0)
     {
       LOG_ERROR("Failed to read image from BK OEM interface");
@@ -348,7 +348,6 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
       {
         timeStamp[k] = this->Internal->OemClientReadBuffer[numBytesProcessed];
       }
-      numBytesProcessed++;
       // Seems this is NOT correct, but the format is NOT described in the manual
       unsigned int _timestamp = *(int*)timeStamp;
       LOG_TRACE("Image timestamp = " << static_cast<std::ostringstream*>(&(std::ostringstream() << _timestamp))->str());
@@ -466,7 +465,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::QueryImageSize()
 PlusStatus vtkPlusBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(IniFileName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(IniFileName, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ContinuousStreamingEnabled, deviceConfig);
   return PLUS_SUCCESS;
 }
@@ -687,7 +686,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuf
   decodedImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 #endif
 
-  PlusStatus status = PixelCodec::ConvertToGray(BI_RGB, width, height, &(this->Internal->DecodingBuffer[0]), (unsigned char*)decodedImage->GetScalarPointer());
+  PlusStatus status = PixelCodec::ConvertToGray(PixelCodec::PixelEncoding_RGBA32, width, height, &(this->Internal->DecodingBuffer[0]), (unsigned char*)decodedImage->GetScalarPointer());
 
   // close the file
   png_read_end(png_ptr, NULL);

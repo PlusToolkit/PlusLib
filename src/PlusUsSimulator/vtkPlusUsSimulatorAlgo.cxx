@@ -405,8 +405,8 @@ PlusStatus vtkPlusUsSimulatorAlgo::ReadConfiguration( vtkXMLDataElement* config 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, NoiseAmplitude, usSimulatorAlgoElement );
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL( double, 3, NoiseFrequency, usSimulatorAlgoElement );
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL( double, 3, NoisePhase, usSimulatorAlgoElement );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ImageCoordinateFrame, usSimulatorAlgoElement );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ReferenceCoordinateFrame, usSimulatorAlgoElement );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ImageCoordinateFrame, usSimulatorAlgoElement );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ReferenceCoordinateFrame, usSimulatorAlgoElement );
 
   XML_FIND_NESTED_ELEMENT_REQUIRED( rfProcesingElement, usSimulatorAlgoElement, "RfProcessing" );
   this->RfProcessor->ReadConfiguration( rfProcesingElement );

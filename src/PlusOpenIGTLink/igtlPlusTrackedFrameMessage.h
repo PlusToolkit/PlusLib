@@ -14,8 +14,8 @@
 #include "igtl_win32header.h"
 #include "igtlMessageBase.h"
 #include "igtlObject.h"
-#include "igtlutil/igtl_header.h"
-#include "igtlutil/igtl_util.h"
+#include "igtl_header.h"
+#include "igtl_util.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include <string>

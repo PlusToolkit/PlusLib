@@ -286,7 +286,7 @@ PlusStatus vtkPlusGenericSerialDevice::ReadConfiguration( vtkXMLDataElement* roo
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( unsigned long, BaudRate, deviceConfig );
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MaximumReplyDelaySec, deviceConfig );
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MaximumReplyDurationSec, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( LineEnding, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( LineEnding, deviceConfig );
   return PLUS_SUCCESS;
 }
 

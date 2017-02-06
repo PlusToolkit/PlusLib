@@ -275,13 +275,13 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration( vtkXMLDataElement*
 
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED( int, 2, Resolution, deviceConfig );
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED( int, Framerate, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( LeftEyeDataSourceName, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( RightEyeDataSourceName, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( Vendor, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( LeftEyeDataSourceName, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( RightEyeDataSourceName, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( Vendor, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Exposure, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( CameraSync, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( ProcessingModeName, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( ProcessingModeName, deviceConfig );
 
   if ( !ConfigureRequestedFormat() )
   {

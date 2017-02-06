@@ -246,7 +246,7 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::ReadConfiguration(vtkXMLDataElement
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Port, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(IPAddress, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(IPAddress, deviceConfig);
 #ifdef _WIN32
   struct in_addr address;
   int result = InetPton(AF_INET, this->IPAddress, &address);
@@ -278,7 +278,7 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::WriteConfiguration(vtkXMLDataElemen
   LOG_TRACE("vtkPlusPhilips3DProbeVideoSource::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfig);
 
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(IPAddress, deviceConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(IPAddress, deviceConfig);
   deviceConfig->SetIntAttribute("Port", this->Port);
 
   deviceConfig->SetDoubleAttribute("ResolutionFactor", this->ResolutionFactor);

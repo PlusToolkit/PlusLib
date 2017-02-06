@@ -42,6 +42,14 @@ See License.txt for details.
 // STL includes
 #include <future>
 
+#if defined(WIN32)
+#include "vtkPlusOpenIGTLinkServerWin32.cxx"
+#elif defined(__APPLE__)
+#include "vtkPlusOpenIGTLinkServerMacOSX.cxx"
+#elif defined(__linux__)
+#include "vtkPlusOpenIGTLinkServerLinux.cxx"
+#endif
+
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
 static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
 static const int NUMBER_OF_RECENT_COMMAND_IDS_STORED = 10;
@@ -154,7 +162,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
   {
     this->ConnectionActive.first = true;
     this->ConnectionReceiverThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)&ConnectionReceiverThread, this);
-    LOG_INFO("Plus OpenIGTLink server started on port: " << this->ListeningPort);
   }
 
   if (this->DataSenderThreadId < 0)
@@ -222,6 +229,8 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
     LOG_ERROR("Cannot create a server socket.");
     return NULL;
   }
+
+  PrintServerInfo(self);
 
   self->ConnectionActive.second = true;
 
@@ -1046,7 +1055,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->SetConfigFilename(aFilename);
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, serverElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(OutputChannelId, serverElement);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(OutputChannelId, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, serverElement);

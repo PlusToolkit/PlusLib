@@ -366,9 +366,9 @@ PlusStatus vtkPlusICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootCo
 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
 
   // Only for backward compatibility
@@ -376,7 +376,7 @@ PlusStatus vtkPlusICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootCo
   // then this method parses that and updates VideoFormat and FrameSize accordingly
   ParseDShowLibVideoFormatString(this->VideoFormat);
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(InputChannel, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ICBufferSize, deviceConfig);
 
   return PLUS_SUCCESS;

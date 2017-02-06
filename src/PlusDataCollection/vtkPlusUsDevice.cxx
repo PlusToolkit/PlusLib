@@ -59,7 +59,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration( vtkXMLDataElement* rootConfigElem
     return PLUS_FAIL;
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( TextRecognizerInputChannelName, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( TextRecognizerInputChannelName, deviceConfig );
   const char* transformName = deviceConfig->GetAttribute( "ImageToTransducerTransformName" );
   if( transformName != NULL && this->ImageToTransducerTransform.SetTransformName( transformName ) != PLUS_SUCCESS )
   {
@@ -79,7 +79,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration( vtkXMLDataElement* rootConfigElem
 PlusStatus vtkPlusUsDevice::WriteConfiguration( vtkXMLDataElement* deviceConfig )
 {
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING( imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG );
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL( TextRecognizerInputChannelName, deviceConfig );
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL( TextRecognizerInputChannelName, deviceConfig );
   if( this->TextRecognizerInputChannelName != NULL )
   {
     deviceConfig->SetAttribute( "ImageToTransducerTransformName", this->ImageToTransducerTransform.GetTransformName().c_str() );

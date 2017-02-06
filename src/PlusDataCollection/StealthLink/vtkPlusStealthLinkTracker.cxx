@@ -757,8 +757,8 @@ PlusStatus vtkPlusStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* root
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
 
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ServerAddress, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ServerPort, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ServerAddress, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ServerPort, deviceConfig );
 
   std::string deviceIdStr( this->GetDeviceId() ? this->GetDeviceId() : "" );
   if( deviceIdStr.size() > MAX_DEVICE_ID_LENGTH )
