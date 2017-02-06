@@ -63,8 +63,8 @@ public:
 
   int ToolCount() const { return this->Tools.size(); }
   PlusStatus AddTool(vtkPlusDataSource* aTool);
-  PlusStatus RemoveTool(const char* toolSourceId);
-  PlusStatus GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId);
+  PlusStatus RemoveTool(const std::string& toolSourceId);
+  PlusStatus GetTool(vtkPlusDataSource*& aTool, const std::string& toolSourceId);
   PlusStatus RemoveTools();
   inline DataSourceContainerIterator GetToolsStartIterator() { return this->Tools.begin(); };
   inline DataSourceContainerIterator GetToolsEndIterator() { return this->Tools.end(); };
@@ -73,8 +73,8 @@ public:
 
   int FieldCount() const { return this->FieldDataSources.size(); }
   PlusStatus AddFieldDataSource(vtkPlusDataSource* aSource);
-  PlusStatus RemoveFieldDataSource(const char* sourceId);
-  PlusStatus GetFieldDataSource(vtkPlusDataSource*& aSource, const char* sourceId);
+  PlusStatus RemoveFieldDataSource(const std::string& sourceId);
+  PlusStatus GetFieldDataSource(vtkPlusDataSource*& aSource, const std::string& sourceId);
   PlusStatus RemoveFieldDataSources();
   inline DataSourceContainerIterator GetFieldDataSourcesStartIterator() { return this->FieldDataSources.begin(); };
   inline DataSourceContainerIterator GetFieldDataSourcesEndIterator() { return this->FieldDataSources.end(); };

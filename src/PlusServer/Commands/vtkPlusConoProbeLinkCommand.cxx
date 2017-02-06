@@ -76,7 +76,7 @@ PlusStatus vtkPlusConoProbeLinkCommand::WriteConfiguration(vtkXMLDataElement* aC
     return PLUS_FAIL;
   }  
   
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ConoProbeDeviceId, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(ConoProbeDeviceId, aConfig);
 
   return PLUS_SUCCESS;
 }

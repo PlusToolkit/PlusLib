@@ -92,7 +92,7 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
 

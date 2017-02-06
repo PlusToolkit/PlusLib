@@ -4,12 +4,15 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
-#include "vtkMatrix4x4.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDataSource.h"
-#include "vtkTransform.h"
+
+// VTK includes
+#include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 
 //----------------------------------------------------------------------------
 
@@ -24,12 +27,12 @@ std::string vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG = "FieldData";
 //----------------------------------------------------------------------------
 vtkPlusDataSource::vtkPlusDataSource()
   : Device(NULL)
-  , PortName(NULL)
+  , PortName("")
   , InputImageOrientation(US_IMG_ORIENT_XX)   // a.k.a. PortUsImageOrientation, PortImageOrientation
   , Type(DATA_SOURCE_TYPE_NONE)
   , FrameNumber(0)
-  , SourceId(NULL)
-  , ReferenceCoordinateFrameName(NULL)
+  , Id("")
+  , ReferenceCoordinateFrameName("")
   , Buffer(vtkPlusBuffer::New())
 {
   this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
@@ -48,24 +51,6 @@ vtkPlusDataSource::vtkPlusDataSource()
 //----------------------------------------------------------------------------
 vtkPlusDataSource::~vtkPlusDataSource()
 {
-  if (this->SourceId != NULL)
-  {
-    delete [] this->SourceId;
-    this->SourceId = NULL;
-  }
-
-  if (this->ReferenceCoordinateFrameName != NULL)
-  {
-    delete [] this->ReferenceCoordinateFrameName;
-    this->ReferenceCoordinateFrameName = NULL;
-  }
-
-  if (this->PortName != NULL)
-  {
-    delete [] this->PortName;
-    this->PortName = NULL;
-  }
-
   if (this->Buffer != NULL)
   {
     this->Buffer->Delete();
@@ -82,32 +67,27 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "Tracker: " << this->Device << std::endl;
   }
-  if (this->SourceId)
-  {
-    os << indent << "SourceId: " << this->GetSourceId() << std::endl;
-  }
+  os << indent << "Id: " << this->GetId() << std::endl;
   if (this->Type != DATA_SOURCE_TYPE_NONE)
   {
     switch (this->Type)
     {
-    case DATA_SOURCE_TYPE_TOOL:
-      os << indent << "Type: Tool" << std::endl;
-      break;
-    case DATA_SOURCE_TYPE_VIDEO:
-      os << indent << "Type: Video" << std::endl;
-      break;
-    case DATA_SOURCE_TYPE_FIELDDATA:
-      os << indent << "Type: Fields" << std::endl;
-      break;
-    case DATA_SOURCE_TYPE_NONE:
-      break;
+      case DATA_SOURCE_TYPE_TOOL:
+        os << indent << "Type: Tool" << std::endl;
+        break;
+      case DATA_SOURCE_TYPE_VIDEO:
+        os << indent << "Type: Video" << std::endl;
+        break;
+      case DATA_SOURCE_TYPE_FIELDDATA:
+        os << indent << "Type: Fields" << std::endl;
+        break;
+      case DATA_SOURCE_TYPE_NONE:
+        break;
     }
   }
-  if (this->ReferenceCoordinateFrameName)
-  {
-    os << indent << "ReferenceCoordinateFrameName: " << this->GetReferenceCoordinateFrameName() << std::endl;
-  }
-  if (this->PortName)
+  os << indent << "ReferenceCoordinateFrameName: " << this->GetReferenceCoordinateFrameName() << std::endl;
+
+  if (!this->PortName.empty())
   {
     os << indent << "PortName: " << this->GetPortName() << std::endl;
   }
@@ -120,137 +100,150 @@ void vtkPlusDataSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetSourceId(const char* aSourceId)
+PlusStatus vtkPlusDataSource::SetId(const char* aSourceId)
 {
-  if (this->SourceId == NULL && aSourceId == NULL)
+  if (aSourceId == NULL && !this->Id.empty())
   {
-    return PLUS_SUCCESS;
-  }
-
-  if (this->SourceId && aSourceId && (STRCASECMP(this->SourceId, aSourceId) == 0))
-  {
-    return PLUS_SUCCESS;
-  }
-
-  if (this->SourceId != NULL)
-  {
-    // Here we would normally delete SourceId and set it to NULL, but we just return with an error instead because modification of the value is not allowed
-    LOG_ERROR("SourceId change is not allowed for source '" << this->SourceId << "'");
     return PLUS_FAIL;
   }
 
-  if (aSourceId != NULL)
+  return this->SetId(std::string(aSourceId));
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::SetId(const std::string& aSourceId)
+{
+  if (this->Id == aSourceId)
   {
-    // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(aSourceId) + 1;
-    char* cp1 =  new char[n];
-    const char* cp2 = (aSourceId);
-    this->SourceId = cp1;
-    do
-    {
-      *cp1++ = *cp2++;
-    }
-    while (--n);
+    return PLUS_SUCCESS;
   }
+
+  if (!this->Id.empty())
+  {
+    // Here we would normally delete SourceId and set it to NULL, but we just return with an error instead because modification of the value is not allowed
+    LOG_ERROR("SourceId change is not allowed for source '" << this->Id << "'");
+    return PLUS_FAIL;
+  }
+
+  this->Id = aSourceId;
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* referenceCoordinateName)
+PlusStatus vtkPlusDataSource::SetSourceId(const std::string& aSourceId)
 {
-  if (this->ReferenceCoordinateFrameName == NULL && referenceCoordinateName == NULL)
+  return this->SetId(aSourceId);
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusDataSource::GetId() const
+{
+  return this->Id;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusDataSource::GetSourceId() const
+{
+  return this->GetId();
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const std::string& referenceCoordinateName)
+{
+  if (this->ReferenceCoordinateFrameName == referenceCoordinateName)
   {
     return PLUS_SUCCESS;
   }
 
-  if (this->ReferenceCoordinateFrameName && referenceCoordinateName && (STRCASECMP(this->ReferenceCoordinateFrameName, referenceCoordinateName) == 0))
-  {
-    return PLUS_SUCCESS;
-  }
-
-  if (this->ReferenceCoordinateFrameName != NULL)
+  if (!this->ReferenceCoordinateFrameName.empty())
   {
     // Here we would normally delete ReferenceCoordinateFrame and set it to NULL, but we just return with an error instead because modification of the value is not allowed
     LOG_ERROR("Reference frame name change is not allowed for tool '" << this->ReferenceCoordinateFrameName << "'");
     return PLUS_FAIL;
   }
 
-  if (referenceCoordinateName != NULL)
-  {
-    // Copy string  (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(referenceCoordinateName) + 1;
-    char* cp1 =  new char[n];
-    const char* cp2 = (referenceCoordinateName);
-    this->ReferenceCoordinateFrameName = cp1;
-    do
-    {
-      *cp1++ = *cp2++;
-    }
-    while (--n);
-  }
+  this->ReferenceCoordinateFrameName = referenceCoordinateName;
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* referenceName)
+{
+  if (referenceName == NULL && !this->ReferenceCoordinateFrameName.empty())
+  {
+    return PLUS_FAIL;
+  }
+
+  return this->SetReferenceCoordinateFrameName(std::string(referenceName));
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusDataSource::GetReferenceCoordinateFrameName() const
+{
+  return this->ReferenceCoordinateFrameName;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusDataSource::GetPortName() const
+{
+  return this->PortName;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::SetPortName(const char* portName)
 {
-  if (this->PortName == NULL && portName == NULL)
+  if (portName == NULL)
   {
-    // no change (current and requested name are both empty)
+    LOG_ERROR("NULL portName sent to SetPortName.");
+    return PLUS_FAIL;
+  }
+
+  return this->SetPortName(std::string(portName));
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::SetPortName(const std::string& portName)
+{
+  if (this->PortName == portName)
+  {
+    // no change (current and requested name are the same)
     return PLUS_SUCCESS;
   }
 
-  if (this->PortName && portName && (STRCASECMP(this->PortName, portName) == 0))
+  if (!this->PortName.empty())
   {
-    // no change (current and requested names are te same)
-    return PLUS_SUCCESS;
-  }
-
-  if (this->PortName != NULL)
-  {
-    // Here we would normally delete PortName and set it to NULL, but we just return with an error instead because modification of the value is not allowed
     LOG_ERROR("Port name change is not allowed on source port'" << this->PortName << "'");
     return PLUS_FAIL;
   }
 
-  if (portName != NULL)
+  if (!portName.empty())
   {
-    // Copy string (based on vtkSetStringMacro in vtkSetGet.h)
-    size_t n = strlen(portName) + 1;
-    char* cp1 =  new char[n];
-    const char* cp2 = (portName);
-    this->PortName = cp1;
-    do
-    {
-      *cp1++ = *cp2++;
-    }
-    while (--n);
+    this->PortName = portName;
   }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusDataSource::DeepCopy(vtkPlusDataSource* aSource)
+void vtkPlusDataSource::DeepCopy(const vtkPlusDataSource& aSource)
 {
   LOG_TRACE("vtkPlusDataSource::DeepCopy");
 
-  this->SetSourceId(aSource->GetSourceId());
-  this->SetType(aSource->GetType());
-  this->SetReferenceCoordinateFrameName(aSource->GetReferenceCoordinateFrameName());
+  this->SetId(aSource.GetId());
+  this->SetType(aSource.GetType());
+  this->SetReferenceCoordinateFrameName(aSource.GetReferenceCoordinateFrameName());
 
-  this->Buffer->DeepCopy(aSource->GetBuffer());
+  this->Buffer->DeepCopy(aSource.Buffer);
 
-  this->SetFrameNumber(aSource->GetFrameNumber());
+  this->SetFrameNumber(aSource.GetFrameNumber());
 
-  this->CustomProperties = aSource->CustomProperties;
+  this->CustomProperties = aSource.CustomProperties;
 }
 
-
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool requirePortNameInSourceConfiguration, bool requireImageOrientationInSourceConfiguration, const char* aDescriptiveNameForBuffer)
+PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool requirePortNameInSourceConfiguration, bool requireImageOrientationInSourceConfiguration, const std::string& aDescriptiveNameForBuffer)
 {
   LOG_TRACE("vtkPlusDataSource::ReadConfiguration");
 
@@ -260,10 +253,10 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     return PLUS_FAIL;
   }
 
-  const char* sourceId = sourceElement->GetAttribute("Id");
-  if (sourceId == NULL)
+  std::string sourceId = sourceElement->GetAttribute("Id") != NULL ? sourceElement->GetAttribute("Id") : "";
+  if (sourceId.empty())
   {
-    LOG_ERROR("Unable to find attribute Id! Id attribute is mandatory in source definition.");
+    LOG_ERROR("Unable to find attribute \"Id\"! Id attribute is mandatory in source definition.");
     return PLUS_FAIL;
   }
 
@@ -277,7 +270,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   if (type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_TOOL_TAG.c_str()) == 0)
   {
     PlusTransformName idName(sourceId, this->GetReferenceCoordinateFrameName());
-    this->SetSourceId(idName.GetTransformName().c_str());
+    this->SetId(idName.GetTransformName());
     this->SetType(DATA_SOURCE_TYPE_TOOL);
 
     if (requirePortNameInSourceConfiguration && portName == NULL)
@@ -288,12 +281,12 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else if (type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_FIELDDATA_TAG.c_str()) == 0)
   {
-    this->SetSourceId(sourceId);
+    this->SetId(sourceId);
     this->SetType(DATA_SOURCE_TYPE_FIELDDATA);
   }
   else if (type != NULL && STRCASECMP(type, DATA_SOURCE_TYPE_VIDEO_TAG.c_str()) == 0)
   {
-    this->SetSourceId(sourceId);
+    this->SetId(sourceId);
     this->SetType(DATA_SOURCE_TYPE_VIDEO);
 
     const char* usImageOrientation = sourceElement->GetAttribute("PortUsImageOrientation");
@@ -308,7 +301,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     }
     else if (requireImageOrientationInSourceConfiguration)
     {
-      LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetSourceId() << "\' element - please set PortUsImageOrientation in the source configuration");
+      LOG_ERROR("Video image orientation is not defined in the source \'" << this->GetId() << "\' element - please set PortUsImageOrientation in the source configuration");
     }
 
     const char* imageType = sourceElement->GetAttribute("ImageType");
@@ -390,7 +383,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else
   {
-    LOG_DEBUG("Buffer size is not defined in source element \"" << this->GetSourceId() << "\". Using default buffer size: " << this->GetBuffer()->GetBufferSize());
+    LOG_DEBUG("Buffer size is not defined in source element \"" << this->GetId() << "\". Using default buffer size: " << this->GetBuffer()->GetBufferSize());
   }
 
   int averagedItemsForFiltering = 0;
@@ -400,19 +393,19 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
   }
   else
   {
-    LOG_DEBUG("AveragedItemsForFiltering is not defined in source element \"" << this->GetSourceId() << "\". Using default value: " << this->GetBuffer()->GetAveragedItemsForFiltering());
+    LOG_DEBUG("AveragedItemsForFiltering is not defined in source element \"" << this->GetId() << "\". Using default value: " << this->GetBuffer()->GetAveragedItemsForFiltering());
   }
 
   std::string descName;
-  if (aDescriptiveNameForBuffer != NULL)
+  if (!aDescriptiveNameForBuffer.empty())
   {
     descName += aDescriptiveNameForBuffer;
     descName += "-";
-    descName += this->GetSourceId();
+    descName += this->GetId();
   }
   else
   {
-    descName += this->GetSourceId();
+    descName += this->GetId();
   }
   this->GetBuffer()->SetDescriptiveName(descName.c_str());
 
@@ -448,14 +441,15 @@ PlusStatus vtkPlusDataSource::WriteConfiguration(vtkXMLDataElement* aSourceEleme
 
   if (this->GetType() == DATA_SOURCE_TYPE_TOOL)
   {
-    PlusTransformName sourceId(this->GetSourceId());
+    PlusTransformName sourceId(this->GetId());
     aSourceElement->SetAttribute("Id", sourceId.From().c_str());
   }
   else
   {
-    aSourceElement->SetAttribute("Id", this->GetSourceId());
+    XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Id, aSourceElement);
   }
-  aSourceElement->SetAttribute("PortName", this->GetPortName());
+
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(PortName, aSourceElement);
   aSourceElement->SetIntAttribute("BufferSize", this->GetBuffer()->GetBufferSize());
 
   if (aSourceElement->GetAttribute("AveragedItemsForFiltering") != NULL)
@@ -502,14 +496,14 @@ PlusStatus vtkPlusDataSource::WriteCompactConfiguration(vtkXMLDataElement* aSour
 
   if (this->GetType() == DATA_SOURCE_TYPE_TOOL)
   {
-    PlusTransformName sourceId(this->GetSourceId());
+    PlusTransformName sourceId(this->GetId());
     aSourceElement->SetAttribute("Id", sourceId.From().c_str());
   }
   else
   {
-    aSourceElement->SetAttribute("Id", this->GetSourceId());
+    XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Id, aSourceElement);
   }
-  aSourceElement->SetAttribute("PortName", this->GetPortName());
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(PortName, aSourceElement);
 
   return PLUS_SUCCESS;
 }
@@ -526,11 +520,17 @@ void vtkPlusDataSource::SetType(DataSourceType aType)
   this->Type = aType;
 }
 
+//----------------------------------------------------------------------------
+unsigned long vtkPlusDataSource::GetFrameNumber() const
+{
+  return this->FrameNumber;
+}
+
 //-----------------------------------------------------------------------------
 std::string vtkPlusDataSource::GetTransformName() const
 {
   std::ostringstream ss;
-  ss << this->SourceId << "To" << this->ReferenceCoordinateFrameName;
+  ss << this->Id << "To" << this->ReferenceCoordinateFrameName;
   return ss.str();
 }
 

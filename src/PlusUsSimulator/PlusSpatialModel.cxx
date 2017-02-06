@@ -181,8 +181,8 @@ PlusStatus PlusSpatialModel::ReadConfiguration( vtkXMLDataElement* spatialModelE
 {
   XML_VERIFY_ELEMENT( spatialModelElement, "SpatialModel" );
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( Name, spatialModelElement );
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( ObjectCoordinateFrame, spatialModelElement );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( Name, spatialModelElement );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( ObjectCoordinateFrame, spatialModelElement );
   SetModelFile( spatialModelElement->GetAttribute( "ModelFile" ) ); // if ModelFile is not set then we set it to NULL (it is not optional)
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL( double, 16, ModelToObjectTransform, spatialModelElement );
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, DensityKgPerM3, spatialModelElement );

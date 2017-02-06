@@ -396,7 +396,7 @@ PlusStatus vtkPlusDataCollector::GetDevice(vtkPlusDevice*& aDevice, const std::s
   {
     vtkPlusDevice* device = (*it);
 
-    if (STRCASECMP(device->GetDeviceId(), aDeviceId.c_str()) == 0)
+    if (device->GetDeviceId() == aDeviceId)
     {
       aDevice = device;
       return PLUS_SUCCESS;

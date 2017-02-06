@@ -918,7 +918,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ReadConfiguration(vtkXMLDataElement* aCo
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(PlotIntensityProfile, lineSegmentationElement);
 
   this->IntermediateFilesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(IntermediateFilesOutputDirectory, lineSegmentationElement);
 
   int clipRectangleOrigin[2];
   int clipRectangleSize[2];

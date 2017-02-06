@@ -102,8 +102,8 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   }
 
   // Common parameters
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CaptureDeviceId, aConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ChannelId, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(CaptureDeviceId, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ChannelId, aConfig);
 
   if (CaptureDeviceId == nullptr && ChannelId == nullptr)
   {
@@ -112,7 +112,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   }
 
   // Stop parameters
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(OutputFilename, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(OutputFilename, aConfig);
 
   // Start parameters
   if (this->GetName() && STRCASECMP(this->GetName(), START_CMD) == 0)
@@ -131,9 +131,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::WriteConfiguration(vtkXMLDataElemen
     return PLUS_FAIL;
   }
 
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(CaptureDeviceId, aConfig);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ChannelId, aConfig);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(OutputFilename, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(CaptureDeviceId, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(ChannelId, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(OutputFilename, aConfig);
 
   if (this->GetName() && STRCASECMP(this->GetName(), START_CMD) == 0)
   {

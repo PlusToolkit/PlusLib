@@ -183,7 +183,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   // We need the following tool names from the server
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    PlusTransformName tName(it->second->GetSourceId());
+    PlusTransformName tName(it->second->GetId());
     clientInfo.TransformNames.push_back(tName);
   }
 
@@ -315,9 +315,9 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
 PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ReceiveTimeoutSec, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SendTimeoutSec, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);

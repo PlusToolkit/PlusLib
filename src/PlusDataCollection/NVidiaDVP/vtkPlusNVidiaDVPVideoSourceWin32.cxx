@@ -284,7 +284,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Video format
   std::string videoFormat;
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoFormat, videoFormat, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoFormat, videoFormat, deviceConfig);
   if (videoFormat == "487i5994_259")
   {
     VideoHeight = 487;
@@ -488,7 +488,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Data format
   std::string dataFormat;
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DataFormat, dataFormat, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DataFormat, dataFormat, deviceConfig);
   if (dataFormat == "r8g8b8_to_ycrcb444")
   {
     NvOptions.dataFormat = NVVIODATAFORMAT_R8G8B8_TO_YCRCB444;
@@ -685,7 +685,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Sampling
   std::string sampling;
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Sampling, sampling, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Sampling, sampling, deviceConfig);
   if (sampling == "422")
   {
     NvOptions.sampling = NVVIOCOMPONENTSAMPLING_422;
