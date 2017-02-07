@@ -92,7 +92,7 @@ QPlusDeviceSetSelectorWidget::~QPlusDeviceSetSelectorWidget()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationDirectory(QString aDirectory)
+PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationDirectory(const QString& aDirectory)
 {
   LOG_TRACE("DeviceSetSelectorWidget::SetConfigurationDirectory(" << aDirectory.toStdString() << ")");
 
@@ -103,6 +103,10 @@ PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationDirectory(QString aDire
     ui.lineEdit_ConfigurationDirectory->setToolTip(aDirectory);
 
     m_ConfigurationDirectory = aDirectory;
+
+    // Save the selected directory to config object
+    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(m_ConfigurationDirectory.toStdString());
+    vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
 
     return PLUS_SUCCESS;
   }
@@ -118,6 +122,24 @@ PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationDirectory(QString aDire
   }
 }
 
+//----------------------------------------------------------------------------
+PlusStatus QPlusDeviceSetSelectorWidget::SetConfigurationFile(const QString& aFilename)
+{
+  QString fileName = QDir::toNativeSeparators(aFilename);
+  QFileInfo info(fileName);
+  if (info.exists())
+  {
+    if (this->SetConfigurationDirectory(info.absoluteDir().absolutePath()) == PLUS_SUCCESS)
+    {
+      QString fileName = QDir::toNativeSeparators(info.absoluteFilePath());
+      ui.comboBox_DeviceSet->setCurrentIndex(ui.comboBox_DeviceSet->findData(fileName));
+      return PLUS_SUCCESS;
+    }
+  }
+
+  return PLUS_FAIL;
+}
+
 //-----------------------------------------------------------------------------
 void QPlusDeviceSetSelectorWidget::OpenConfigurationDirectory()
 {
@@ -130,13 +152,7 @@ void QPlusDeviceSetSelectorWidget::OpenConfigurationDirectory()
     return;
   }
 
-  if (SetConfigurationDirectory(dirName) == PLUS_SUCCESS)
-  {
-    // Save the selected directory to config object
-    vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationDirectory(dirName.toStdString());
-    vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
-  }
-  else
+  if (SetConfigurationDirectory(dirName) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to open selected directory!");
   }

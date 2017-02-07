@@ -53,7 +53,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool requirePortNameInSourceConfiguration = false, bool requireImageOrientationInChannelConfiguration = false, const char* aDescriptiveNameForBuffer = NULL);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* toolElement, bool requirePortNameInSourceConfiguration = false, bool requireImageOrientationInChannelConfiguration = false, const std::string& aDescriptiveNameForBuffer = std::string(""));
   /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* toolElement);
   /*! WriteCompactConfiguration is called when a channel is populating its tool data source links, most usages should call WriteConfiguration */
@@ -61,20 +61,20 @@ public:
 
   /*! Set source Id. SourceId is used to identify the data source among all the data sources provided by the device
   therefore it must be unique */
-  PlusStatus SetSourceId(const char* toolSourceId);
+  PlusStatus SetId(const char* aSourceId);
+  PlusStatus SetId(const std::string& aSourceId);
+  PlusStatus SetSourceId(const std::string& aSourceId);
   /*! Get source id */
-  vtkGetStringMacro(SourceId);
+  const std::string& GetId() const;
+  const std::string& GetSourceId() const;
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceCoordinateFrameName(const char* referenceName);
+  PlusStatus SetReferenceCoordinateFrameName(const std::string& referenceName);
   /*! Get the reference coordinate frame name */
-  vtkGetStringMacro(ReferenceCoordinateFrameName);
+  const std::string& GetReferenceCoordinateFrameName() const;
 
   std::string GetTransformName() const;
-
-  /*! Set port name. Port name is used to identify the source among all the sources provided by the device
-  therefore it must be unique */
-  PlusStatus SetPortName(const char* portName);
 
   /*! Set the image type. Does not convert the pixel values. */
   PlusStatus SetImageType(US_IMAGE_TYPE imageType);
@@ -91,7 +91,7 @@ public:
   vtkGetVector3Macro(InputFrameSize, unsigned int);
 
   /*!
-  Get the oputput frame size in pixel. If no clipping rectangle is set then the output
+  Get the output frame size in pixel. If no clipping rectangle is set then the output
   frame size is the clipping rectangle size; otherwise it is the input frame size
   */
   virtual unsigned int* GetOutputFrameSize();
@@ -232,17 +232,14 @@ public:
 
   /*! Get the device which owns this source. */
   // TODO : consider a re-design of this idea
-  void SetDevice(vtkPlusDevice* _arg)
-  {
-    this->Device = _arg;
-  }
-  vtkPlusDevice* GetDevice()
-  {
-    return this->Device;
-  }
+  void SetDevice(vtkPlusDevice* _arg) { this->Device = _arg; }
+  vtkPlusDevice* GetDevice() { return this->Device; }
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
-  vtkGetStringMacro(PortName);
+  const std::string& GetPortName() const;
+  /*! Set port name. Port name is used to identify the source among all the sources provided by the device therefore it must be unique */
+  PlusStatus SetPortName(const std::string& portName);
+  PlusStatus SetPortName(const char* portName);
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType);
@@ -286,7 +283,7 @@ public:
   void SetType(DataSourceType aType);
 
   /*! Get the frame number (some devices have frame numbering, otherwise just increment if new frame received) */
-  vtkGetMacro(FrameNumber, unsigned long);
+  unsigned long GetFrameNumber() const;
   vtkSetMacro(FrameNumber, unsigned long);
 
   /*!
@@ -302,7 +299,7 @@ public:
   void SetCustomProperty(const std::string& propertyName, const std::string& propertyValue);
 
   /*! Make this tracker into a copy of another tracker. You should lock both of the tracker buffers before doing this. */
-  void DeepCopy(vtkPlusDataSource* source);
+  void DeepCopy(const vtkPlusDataSource& source);
 
   /*!
     Get the clip rectangle size to apply to the image in pixel coordinates.
@@ -339,7 +336,7 @@ protected:
 
   vtkPlusDevice* Device;
 
-  char* PortName;
+  std::string PortName;
   /*! The orientation of the image outputted by the device */
   US_IMAGE_ORIENTATION InputImageOrientation;
 
@@ -347,8 +344,8 @@ protected:
 
   unsigned long FrameNumber;
 
-  char* SourceId;
-  char* ReferenceCoordinateFrameName;
+  std::string Id;
+  std::string ReferenceCoordinateFrameName;
 
   vtkPlusBuffer* Buffer;
 

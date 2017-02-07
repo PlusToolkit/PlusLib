@@ -465,7 +465,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::QueryImageSize()
 PlusStatus vtkPlusBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(IniFileName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(IniFileName, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ContinuousStreamingEnabled, deviceConfig);
   return PLUS_SUCCESS;
 }

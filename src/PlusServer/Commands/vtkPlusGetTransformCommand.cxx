@@ -65,7 +65,7 @@ PlusStatus vtkPlusGetTransformCommand::ReadConfiguration(vtkXMLDataElement* aCon
   {
     return PLUS_FAIL;
   }
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
   return PLUS_SUCCESS;
 }
 

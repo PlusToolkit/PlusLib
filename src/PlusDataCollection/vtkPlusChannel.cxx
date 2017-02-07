@@ -107,16 +107,16 @@ PlusStatus vtkPlusChannel::ReadConfiguration(vtkXMLDataElement* aChannelElement,
     {
       if (aSource->GetType() == DATA_SOURCE_TYPE_TOOL)
       {
-        this->Tools[aSource->GetSourceId()] = aSource;
+        this->Tools[aSource->GetId()] = aSource;
       }
       else
       {
-        this->FieldDataSources[aSource->GetSourceId()] = aSource;
+        this->FieldDataSources[aSource->GetId()] = aSource;
       }
     }
     else if (this->OwnerDevice->GetDataSource(idName.GetTransformName().c_str(), aSource) == PLUS_SUCCESS)
     {
-      this->Tools[aSource->GetSourceId()] = aSource;
+      this->Tools[aSource->GetId()] = aSource;
     }
     else
     {
@@ -229,9 +229,9 @@ PlusStatus vtkPlusChannel::WriteConfiguration(vtkXMLDataElement* aChannelElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolSourceId)
+PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const std::string& toolSourceId)
 {
-  if (toolSourceId == NULL)
+  if (toolSourceId.empty())
   {
     LOG_ERROR("vtkPlusChannel::GetTool failed: toolSourceId is invalid");
     return PLUS_FAIL;
@@ -239,7 +239,7 @@ PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const char* toolSo
 
   for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if (STRCASECMP(toolSourceId, it->second->GetSourceId()) == 0)
+    if (toolSourceId == it->second->GetId())
     {
       aTool = it->second;
       return PLUS_SUCCESS;
@@ -267,8 +267,8 @@ PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool)
     }
   }
 
-  this->Tools[aTool->GetSourceId()] = aTool;
-  this->Tools[aTool->GetSourceId()]->Register(this);
+  this->Tools[aTool->GetId()] = aTool;
+  this->Tools[aTool->GetId()]->Register(this);
 
   if (this->TimestampMasterTool == NULL)
   {
@@ -281,9 +281,9 @@ PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::RemoveTool(const char* toolSourceId)
+PlusStatus vtkPlusChannel::RemoveTool(const std::string& toolSourceId)
 {
-  if (toolSourceId == NULL)
+  if (toolSourceId.empty())
   {
     LOG_ERROR("vtkPlusChannel::RemoveTool failed: toolSourceId is invalid");
     return PLUS_FAIL;
@@ -291,7 +291,7 @@ PlusStatus vtkPlusChannel::RemoveTool(const char* toolSourceId)
 
   for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
-    if (STRCASECMP(it->second->GetSourceId(), toolSourceId) == 0)
+    if (it->second->GetId() == toolSourceId)
     {
       this->Tools.erase(it);
       if (this->TimestampMasterTool == it->second)
@@ -332,16 +332,16 @@ PlusStatus vtkPlusChannel::AddFieldDataSource(vtkPlusDataSource* aSource)
     }
   }
 
-  this->FieldDataSources[aSource->GetSourceId()] = aSource;
-  this->FieldDataSources[aSource->GetSourceId()]->Register(this);
+  this->FieldDataSources[aSource->GetId()] = aSource;
+  this->FieldDataSources[aSource->GetId()]->Register(this);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::RemoveFieldDataSource(const char* sourceId)
+PlusStatus vtkPlusChannel::RemoveFieldDataSource(const std::string& sourceId)
 {
-  if (sourceId == NULL)
+  if (sourceId.empty())
   {
     LOG_ERROR("vtkPlusChannel::RemoveFieldDataSource failed: sourceId is invalid");
     return PLUS_FAIL;
@@ -349,7 +349,7 @@ PlusStatus vtkPlusChannel::RemoveFieldDataSource(const char* sourceId)
 
   for (DataSourceContainerIterator it = this->FieldDataSources.begin(); it != this->FieldDataSources.end(); ++it)
   {
-    if (STRCASECMP(it->second->GetSourceId(), sourceId) == 0)
+    if (it->second->GetId() == sourceId)
     {
       this->FieldDataSources.erase(it);
       return PLUS_SUCCESS;
@@ -360,9 +360,9 @@ PlusStatus vtkPlusChannel::RemoveFieldDataSource(const char* sourceId)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetFieldDataSource(vtkPlusDataSource*& aSource, const char* sourceId)
+PlusStatus vtkPlusChannel::GetFieldDataSource(vtkPlusDataSource*& aSource, const std::string& sourceId)
 {
-  if (sourceId == NULL)
+  if (sourceId.empty())
   {
     LOG_ERROR("vtkPlusChannel::GetFieldDataSource failed: sourceId is invalid");
     return PLUS_FAIL;
@@ -370,7 +370,7 @@ PlusStatus vtkPlusChannel::GetFieldDataSource(vtkPlusDataSource*& aSource, const
 
   for (DataSourceContainerIterator it = this->FieldDataSources.begin(); it != this->FieldDataSources.end(); ++it)
   {
-    if (STRCASECMP(sourceId, it->second->GetSourceId()) == 0)
+    if (sourceId == it->second->GetId())
     {
       aSource = it->second;
       return PLUS_SUCCESS;
@@ -570,7 +570,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
   for (DataSourceContainerConstIterator it = this->GetToolsStartIterator(); it != this->GetToolsEndIterator(); ++it)
   {
     vtkPlusDataSource* aTool = it->second;
-    PlusTransformName toolTransformName(aTool->GetSourceId());
+    PlusTransformName toolTransformName(aTool->GetId());
     if (!toolTransformName.IsValid())
     {
       LOG_ERROR("Tool transform name is invalid!");
@@ -596,7 +596,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
         numberOfErrors++;
       }
 
-      LOG_ERROR(aTool->GetSourceId() << ": Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ").");
+      LOG_ERROR(aTool->GetId() << ": Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ").");
       numberOfErrors++;
       continue;
     }
@@ -604,21 +604,21 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
     vtkSmartPointer<vtkMatrix4x4> dMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     if (bufferItem.GetMatrix(dMatrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get matrix from buffer item for tool " << aTool->GetSourceId());
+      LOG_ERROR("Failed to get matrix from buffer item for tool " << aTool->GetId());
       numberOfErrors++;
       continue;
     }
 
     if (aTrackedFrame.SetCustomFrameTransform(toolTransformName, dMatrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to set transform for tool " << aTool->GetSourceId());
+      LOG_ERROR("Failed to set transform for tool " << aTool->GetId());
       numberOfErrors++;
       continue;
     }
 
     if (aTrackedFrame.SetCustomFrameTransformStatus(toolTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus())) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to set transform status for tool " << aTool->GetSourceId());
+      LOG_ERROR("Failed to set transform status for tool " << aTool->GetId());
       numberOfErrors++;
       continue;
     }
@@ -656,7 +656,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
         numberOfErrors++;
       }
 
-      LOG_ERROR(aSource->GetSourceId() << ": Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ").");
+      LOG_ERROR(aSource->GetId() << ": Failed to get tracker item from buffer by time: " << std::fixed << synchronizedTimestamp << " (Latest timestamp: " << latestTimestamp << "   Oldest timestamp: " << oldestTimestamp << ").");
       numberOfErrors++;
       continue;
     }
@@ -811,16 +811,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }
@@ -858,16 +858,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }
@@ -1848,16 +1848,16 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
 
     if (tool->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get timestamp report table from tool '" << tool->GetSourceId() << "' buffer!");
+      LOG_ERROR("Failed to get timestamp report table from tool '" << tool->GetId() << "' buffer!");
       return PLUS_FAIL;
     }
 
-    reportText =  std::string("Tracking data - ") + tool->GetSourceId();
+    reportText =  std::string("Tracking data - ") + tool->GetId();
     htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H2);
-    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + tool->GetSourceId() + "-TrackerBufferTimestamps.png").c_str(), reportText.c_str());
+    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + tool->GetId() + "-TrackerBufferTimestamps.png").c_str(), reportText.c_str());
     PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
-    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + tool->GetSourceId() + "TrackerBufferTimestamps.txt");
+    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + tool->GetId() + "TrackerBufferTimestamps.txt");
     PlusPlotter::DumpTableToFile(timestampReportTable, reportFile.c_str());
 
     htmlReport->AddHorizontalLine();
@@ -1870,16 +1870,16 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
 
     if (aSource->GetTimeStampReportTable(timestampReportTable) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get timestamp report table from source '" << aSource->GetSourceId() << "' buffer!");
+      LOG_ERROR("Failed to get timestamp report table from source '" << aSource->GetId() << "' buffer!");
       return PLUS_FAIL;
     }
 
-    reportText =  std::string("Field data - ") + aSource->GetSourceId();
+    reportText =  std::string("Field data - ") + aSource->GetId();
     htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H2);
-    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + aSource->GetSourceId() + "-FieldDataBufferTimestamps.png").c_str(), reportText.c_str());
+    std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + aSource->GetId() + "-FieldDataBufferTimestamps.png").c_str(), reportText.c_str());
     PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
-    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + aSource->GetSourceId() + "FieldDataBufferTimestamps.txt");
+    std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + aSource->GetId() + "FieldDataBufferTimestamps.txt");
     PlusPlotter::DumpTableToFile(timestampReportTable, reportFile.c_str());
 
     htmlReport->AddHorizontalLine();

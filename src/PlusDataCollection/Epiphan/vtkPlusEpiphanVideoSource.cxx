@@ -282,7 +282,7 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalUpdate()
     }
     if (aSource->AddItem(frame->pixbuf, aSource->GetInputImageOrientation(), this->FrameSize, VTK_UNSIGNED_CHAR, numberOfScalarComponents, aSource->GetImageType(), 0, this->FrameNumber) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Error adding item to video source " << aSource->GetSourceId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId());
+      LOG_ERROR("Error adding item to video source " << aSource->GetId() << " on channel " << (*this->OutputChannels.begin())->GetChannelId());
       return PLUS_FAIL;
     }
     else
@@ -322,7 +322,7 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     LOG_DEBUG("Epiphan device location is not specified in the configuration");
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
   if (this->RotationMode != NULL)
   {
     if (STRCASECMP(this->RotationMode, "Left90") == 0)
@@ -339,7 +339,7 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     }
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
   if (this->ScaleMode != NULL)
   {
     if (STRCASECMP(this->ScaleMode, "NearestNeighbor") == 0)
@@ -408,7 +408,7 @@ PlusStatus vtkPlusEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* root
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
 
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
 
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
   XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");

@@ -204,14 +204,14 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   toolMatrix->Identity();
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    if (identifiedToolSourceIds.find(it->second->GetSourceId()) != identifiedToolSourceIds.end())
+    if (identifiedToolSourceIds.find(it->second->GetId()) != identifiedToolSourceIds.end())
     {
       // this tool has been found and update has been already called with the correct transform
-      LOG_TRACE("Tool " << it->second->GetSourceId() << ": found");
+      LOG_TRACE("Tool " << it->second->GetId() << ": found");
       continue;
     }
-    LOG_TRACE("Tool " << it->second->GetSourceId() << ": not found");
-    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
+    LOG_TRACE("Tool " << it->second->GetId() << ": not found");
+    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetId(), toolMatrix, TOOL_OUT_OF_VIEW, unfilteredTimestamp, filteredTimestamp);
   }
   return PLUS_SUCCESS;
 }
@@ -414,9 +414,9 @@ PlusStatus vtkPlusOpenIGTLinkTracker::StoreMostRecentTransformValues(double unfi
         status = PLUS_FAIL;
       }
     }
-    if (this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_OK, unfilteredTimestamp, unfilteredTimestamp) != PLUS_SUCCESS)
+    if (this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetId(), toolMatrix, TOOL_OK, unfilteredTimestamp, unfilteredTimestamp) != PLUS_SUCCESS)
     {
-      LOG_INFO("ToolTimeStampedUpdate failed for tool: " << it->second->GetSourceId() << " with timestamp: " << std::fixed << unfilteredTimestamp);
+      LOG_INFO("ToolTimeStampedUpdate failed for tool: " << it->second->GetId() << " with timestamp: " << std::fixed << unfilteredTimestamp);
       status = PLUS_FAIL;
     }
   }
@@ -466,10 +466,10 @@ PlusStatus vtkPlusOpenIGTLinkTracker::StoreInvalidTransforms(double unfilteredTi
       }
     }
 
-    LOG_TRACE("No update was received for tool: " << it->second->GetSourceId() << ", assume that it does not provide valid transform anymore");
-    if (this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), toolMatrix, TOOL_INVALID, unfilteredTimestamp, unfilteredTimestamp) != PLUS_SUCCESS)
+    LOG_TRACE("No update was received for tool: " << it->second->GetId() << ", assume that it does not provide valid transform anymore");
+    if (this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetId(), toolMatrix, TOOL_INVALID, unfilteredTimestamp, unfilteredTimestamp) != PLUS_SUCCESS)
     {
-      LOG_INFO("ToolTimeStampedUpdate failed for tool: " << it->second->GetSourceId() << " with timestamp: " << std::fixed << unfilteredTimestamp);
+      LOG_INFO("ToolTimeStampedUpdate failed for tool: " << it->second->GetId() << " with timestamp: " << std::fixed << unfilteredTimestamp);
       status = PLUS_FAIL;
     }
   }
@@ -481,7 +481,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::StoreInvalidTransforms(double unfilteredTi
 PlusStatus vtkPlusOpenIGTLinkTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
   return PLUS_SUCCESS;
 }

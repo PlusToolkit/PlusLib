@@ -91,7 +91,7 @@ PlusStatus vtkPlusStealthLinkCommand::ReadConfiguration(vtkXMLDataElement* aConf
     this->SetDicomImagesOutputDirectory(dicomImagesDefaultOutputDirectory.c_str());
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(StealthLinkDeviceId, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(StealthLinkDeviceId, aConfig);
 
   if(aConfig->GetAttribute("VolumeEmbeddedTransformToFrame"))
   {
@@ -114,9 +114,9 @@ PlusStatus vtkPlusStealthLinkCommand::WriteConfiguration(vtkXMLDataElement* aCon
   {
     return PLUS_FAIL;
   }
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(StealthLinkDeviceId, aConfig);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(DicomImagesOutputDirectory, aConfig);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(VolumeEmbeddedTransformToFrame, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(StealthLinkDeviceId, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(DicomImagesOutputDirectory, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(VolumeEmbeddedTransformToFrame, aConfig);
   XML_WRITE_BOOL_ATTRIBUTE(KeepReceivedDicomFiles, aConfig);
   return PLUS_SUCCESS;
 }

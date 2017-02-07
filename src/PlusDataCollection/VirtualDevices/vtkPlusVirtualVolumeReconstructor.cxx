@@ -63,8 +63,8 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::ReadConfiguration( vtkXMLDataEleme
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL( EnableReconstruction, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( OutputVolFilename, deviceConfig );
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( OutputVolDeviceName, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( OutputVolFilename, deviceConfig );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( OutputVolDeviceName, deviceConfig );
 
   PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock( this->VolumeReconstructorAccessMutex );
   this->VolumeReconstructor->ReadConfiguration( deviceConfig );

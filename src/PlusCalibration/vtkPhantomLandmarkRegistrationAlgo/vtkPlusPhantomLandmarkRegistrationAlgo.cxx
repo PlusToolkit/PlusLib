@@ -215,9 +215,9 @@ PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::ReadConfiguration( vtkXMLData
 
   // vtkPlusPhantomLandmarkRegistrationAlgo section
   XML_FIND_NESTED_ELEMENT_REQUIRED( phantomRegistrationElement, aConfig, vtkPlusPhantomLandmarkRegistrationAlgo::ConfigurationElementName.c_str() );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( PhantomCoordinateFrame, phantomRegistrationElement );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( ReferenceCoordinateFrame, phantomRegistrationElement );
-  XML_READ_STRING_ATTRIBUTE_REQUIRED( StylusTipCoordinateFrame, phantomRegistrationElement );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( PhantomCoordinateFrame, phantomRegistrationElement );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ReferenceCoordinateFrame, phantomRegistrationElement );
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED( StylusTipCoordinateFrame, phantomRegistrationElement );
 
   return PLUS_SUCCESS;
 }

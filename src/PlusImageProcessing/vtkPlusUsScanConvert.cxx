@@ -70,7 +70,7 @@ PlusStatus vtkPlusUsScanConvert::ReadConfiguration( vtkXMLDataElement* scanConve
     return PLUS_FAIL;
   }
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL( TransducerName, scanConversionElement );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( TransducerName, scanConversionElement );
 
   double outputImageSpacing[2] = {0};
   if ( scanConversionElement->GetVectorAttribute( "OutputImageSpacingMmPerPixel", 2, outputImageSpacing ) )

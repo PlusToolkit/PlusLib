@@ -161,8 +161,8 @@ int main( int argc, char** argv )
   args.AddArgument( "--add-transform", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformNamesToAdd, "Name of the transform to add to each frame (e.g., StylusTipToTracker); multiple transforms can be added separated by a comma (e.g., StylusTipToReference,ProbeToReference)" );
   args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceSetConfigurationFileName, "Used device set configuration file path and name" );
 
-  args.AddArgument( "--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations." );
-  args.AddArgument( "--rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectSizePix, "Fill or crop rectangle size in MF coordinate frame, in pixels. Required for FILL_IMAGE_RECTANGLE and CROP operations." );
+  args.AddArgument( "--rect-origin", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectOriginPix, "Fill or crop rectangle top-left corner position in MF coordinate frame, in pixels, separated by space (e.g., --rect-origin 12 34)." );
+  args.AddArgument( "--rect-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &rectSizePix, "Fill or crop rectangle size in MF coordinate frame, in pixels, separated by space (e.g., --rect-size 56 78)." );
   args.AddArgument( "--flipX", vtksys::CommandLineArguments::NO_ARGUMENT, &flipX, "Flip image along X axis." );
   args.AddArgument( "--flipY", vtksys::CommandLineArguments::NO_ARGUMENT, &flipY, "Flip image along Y axis." );
   args.AddArgument( "--flipZ", vtksys::CommandLineArguments::NO_ARGUMENT, &flipZ, "Flip image along Z axis." );
@@ -181,22 +181,33 @@ int main( int argc, char** argv )
     std::cout << args.GetHelp() << std::endl;
     std::cout << std::endl << "Operations: " << std::endl << std::endl;
 
-    std::cout << "- UPDATE_FRAME_FIELD_NAME: update field names for each frame, if not exists add it." << std::endl;
-    std::cout << "- UPDATE_FRAME_FIELD_VALUE: update field values for each frame, if not exists add it." << std::endl;
-    std::cout << "- DELETE_FRAME_FIELD: delete fields with name specified from each frame." << std::endl;
+    std::cout << "- UPDATE_FRAME_FIELD_NAME: update per-frame field names for each frame. If field does not exist then it is added." << std::endl;
+    std::cout << "  Requires --field-name and --updated-field-name." << std::endl;
+    std::cout << "- UPDATE_FRAME_FIELD_VALUE: update per-frame field values for each frame, if not exists add it." << std::endl;
+    std::cout << "  Uses --field-name, --updated-field-name, --updated-field-value, --frame-scalar-*, --frame-transform-*" << std::endl;
+    std::cout << "- DELETE_FRAME_FIELD: delete per-frame field (field values specified for each frame)." << std::endl;
+    std::cout << "  Requires --field-name." << std::endl;
 
     std::cout << "- UPDATE_FIELD_NAME: update field name, if not exists add it." << std::endl;
+    std::cout << "  Requires --field-name and --updated-field-name." << std::endl;
     std::cout << "- UPDATE_FIELD_VALUE: update field value, if not exists add it." << std::endl;
+    std::cout << "  Requires --field-name and --updated-field-value." << std::endl;
     std::cout << "- DELETE_FIELD: delete field with name specified." << std::endl;
+    std::cout << "  Requires --field-name." << std::endl;
     std::cout << "- ADD_TRANSFORM: add specified transform." << std::endl;
+    std::cout << "  Requires --add-transform." << std::endl;
 
     std::cout << "- TRIM: Trim sequence file." << std::endl;
+    std::cout << "  Requires --first-frame-index and --last-frame-index." << std::endl;
     std::cout << "- DECIMATE: Keep every N-th frame of the sequence file." << std::endl;
-    std::cout << "- MERGE: Merge multiple sequence files into one. Set input files with the --source-seq-files parameter." << std::endl;
+    std::cout << "  Requires --decimation-factor." << std::endl;
+    std::cout << "- MERGE: Merge multiple sequence files into one." << std::endl;
+    std::cout << "  Set input files with the --source-seq-files parameter." << std::endl;
 
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
+    std::cout << "  Requires --rect-origin, --rect-size, and --fill-gray-level. E.g., --rect-origin 12 34 --rect-size 56 78)" << std::endl;
     std::cout << "- CROP: Crop a rectangle in the image (useful for cropping b-mode image from the data obtained via frame-grabber)." << std::endl;
-    std::cout << "  FILL_IMAGE_RECTANGLE and CROP require specification of the rectangle (e.g., --rect-origin 12 34 --rect-size 56 78)" << std::endl;
+    std::cout << "  Requires --rect-origin and --rect-size. (e.g., --rect-size 56 78). Optional: --flip*." << std::endl;
 
     std::cout << "- REMOVE_IMAGE_DATA: Remove image data from a meta file that has both image and tracker data, and keep only the tracker data." << std::endl;
 

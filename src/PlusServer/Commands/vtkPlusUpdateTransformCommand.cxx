@@ -71,11 +71,11 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
   {
     return PLUS_FAIL;
   }
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 16, TransformValue, aConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TransformPersistent, aConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransformError, aConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TransformDate, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TransformDate, aConfig);
   return PLUS_SUCCESS;
 }
 
@@ -96,7 +96,7 @@ PlusStatus vtkPlusUpdateTransformCommand::WriteConfiguration(vtkXMLDataElement* 
     aConfig->SetVectorAttribute("TransformValue", 16, vectorMatrix);
   }
 
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(TransformDate, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(TransformDate, aConfig);
 
   if (this->GetTransformError() >= 0)
   {

@@ -86,8 +86,8 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
 {
   XML_FIND_NESTED_ELEMENT_REQUIRED(reconConfig, config, "VolumeReconstruction");
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
 
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 3, OutputSpacing, reconConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, reconConfig);
@@ -156,10 +156,10 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
   }
 
   // ==== Warn if using DEPRECATED XML tags (2014-08-15, #923) ====
-  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Compounding, reconConfig, CompoundingMode);
+  XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(Compounding, reconConfig, CompoundingMode);
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", 1, "OFF", 0);
 
-  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Calculation, reconConfig, CompoundingMode);
+  XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(Calculation, reconConfig, CompoundingMode);
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
                                     this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION, \
                                     this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION), vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION);

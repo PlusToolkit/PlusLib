@@ -699,13 +699,13 @@ PlusStatus vtkPlusSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Usm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Pci, deviceConfig);
 
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaLicensePath, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(PortaLUTPath, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(PortaSettingPath, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(PortaLicensePath, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
 
   double obsolete = 0;
   if ( deviceConfig->GetScalarAttribute("HighVoltage", obsolete)) 
@@ -758,7 +758,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetAttribute("PortaFirmwarePath", this->PortaFirmwarePath);
 
   XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, deviceConfig);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
 
   return PLUS_SUCCESS;
 }
