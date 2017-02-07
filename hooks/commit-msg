@@ -6,7 +6,7 @@ test "" = "$(grep '^Signed-off-by: ' "$1" |
 	exit 1
 }
 
-result=`awk '/(addresses|re|refs|references|see|new|accepted|test|closed|invalid|fix|fixes|close|closed|closes|untest|reassign|reopen|accept) \#[1-9][0-9]*/ {print}' $1`
+result=`awk '/(addresses|re|refs|references|see|new|accepted|test|closed|invalid|fix|fixes|fixed|close|closed|closes|untest|reassign|reopen|accept) \#[1-9][0-9]*/ {print}' $1`
 
 if [ -z "$result" ]
 then
