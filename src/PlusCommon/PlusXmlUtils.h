@@ -18,36 +18,35 @@
 class PlusXmlUtils
 {
 public:
-
   /*! Attempt to read an XML file file from the current directory or the device set configuration file directory */
   static PlusStatus ReadDeviceSetConfigurationFromFile(vtkXMLDataElement* config, const char* filename)
   {
-    if (config==NULL)
+    if (config == NULL)
     {
       LOG_ERROR("Reading device set configuration file failed: invalid config input");
       return PLUS_FAIL;
     }
-    if (filename==NULL)
+    if (filename == NULL)
     {
       LOG_ERROR("Reading device set configuration file failed: filename is not specified");
       return PLUS_FAIL;
     }
 
-    std::string filePath=filename;
+    std::string filePath = filename;
     if (!vtksys::SystemTools::FileExists(filePath.c_str(), true))
     {
       filePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(filename);
       if (!vtksys::SystemTools::FileExists(filePath.c_str(), true))
       {
-        LOG_ERROR("Reading device set configuration file failed: "<<filename<<" does not exist in the current directory or in "<<vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
-        return PLUS_FAIL;      
+        LOG_ERROR("Reading device set configuration file failed: " << filename << " does not exist in the current directory or in " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+        return PLUS_FAIL;
       }
     }
 
     vtkSmartPointer<vtkXMLDataElement> rootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(filePath.c_str()));
     if (rootElement == NULL)
     {
-      LOG_ERROR("Reading device set configuration file failed: syntax error in "<<filename);
+      LOG_ERROR("Reading device set configuration file failed: syntax error in " << filename);
       return PLUS_FAIL;
     }
     config->DeepCopy(rootElement);
@@ -57,18 +56,18 @@ public:
   /*! Get a nested XML element with the specified name. If the element does not exist then create one. */
   static vtkXMLDataElement* GetNestedElementWithName(vtkXMLDataElement* config, const char* elementName)
   {
-    if (config==NULL)
+    if (config == NULL)
     {
       LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: config is invalid");
       return NULL;
     }
-    if (elementName==NULL)
+    if (elementName == NULL)
     {
       LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: elementName is invalid");
       return NULL;
-    }    
-    vtkXMLDataElement* nestedElement = config->FindNestedElementWithName(elementName); 
-    if (nestedElement!=NULL)
+    }
+    vtkXMLDataElement* nestedElement = config->FindNestedElementWithName(elementName);
+    if (nestedElement != NULL)
     {
       // the element exists, return it
       return nestedElement;
@@ -79,7 +78,7 @@ public:
     nestedElement = config->FindNestedElementWithName(elementName);
     if (nestedElement == NULL)
     {
-      LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: cannot add nested element with name "<<elementName);
+      LOG_ERROR("PlusXmlUtils::GetNestedElementWithName failed: cannot add nested element with name " << elementName);
     }
     return nestedElement;
   }
@@ -118,7 +117,7 @@ public:
     LOG_ERROR("Unable to find or create "<<nestedXmlElementName<<" element in device set configuration");  \
     return PLUS_FAIL; \
   }
-  
+
 #define XML_VERIFY_ELEMENT(xmlElementVar, expectedXmlElementName) \
   if (xmlElementVar == NULL) \
   { \
@@ -130,7 +129,7 @@ public:
     LOG_ERROR("Unable to read "<<expectedXmlElementName<<" element: unexpected name: "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(unspecified)")); \
     return PLUS_FAIL; \
   }
-  
+
 /*
 #define XML_GET_ATTRIBUTE_REQUIRED(destinationXmlElementVar, xmlElementVar, attributeName)  \
   const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -142,7 +141,7 @@ public:
 */
 
 // Read a string attribute and save it to a class member variable. If not found return with fail.
-#define XML_READ_STRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
+#define XML_READ_CSTRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -156,7 +155,7 @@ public:
 
 // Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
 // If attribute not found then the member is not modified but a warning is logged.
-#define XML_READ_STRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
+#define XML_READ_CSTRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -172,7 +171,7 @@ public:
 
 // Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
 // If attribute not found then the member is not modified.
-#define XML_READ_STRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
+#define XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
@@ -183,7 +182,7 @@ public:
   }
 
 // Read a string attribute and save it to a variable.
-#define XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
+#define XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
   { \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#varName);  \
     if (destinationXmlElementVar != NULL)  \
@@ -494,21 +493,35 @@ public:
     } \
   }
 
-#if (VTK_MAJOR_VERSION < 6)
-    // Workaround for RemoveAttribute bug in VTK5 (https://www.assembla.com/spaces/plus/tickets/859)
-  #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  PlusCommon::RemoveAttribute(xmlElementVar, attributeName);
-#else
-  #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
-#endif
+#define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
 
-#define XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(memberVar, xmlElementVar)  \
+#define XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(memberVar, xmlElementVar)  \
+  if (!this->Get##memberVar().empty()) \
+  { \
+    std::string attributeName = #memberVar; \
+    xmlElementVar->SetAttribute(attributeName.c_str(), this->Get##memberVar().c_str()); \
+  }
+
+#define XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(memberVar, xmlElementVar)  \
   if (this->Get##memberVar()) \
   { \
     const char* attributeName = #memberVar; \
     xmlElementVar->SetAttribute(attributeName, this->Get##memberVar()); \
   }
 
-#define XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
+#define XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(memberVar, xmlElementVar)  \
+  if (!this->Get##memberVar().empty()) \
+  { \
+    std::string attributeName = #memberVar; \
+    xmlElementVar->SetAttribute(attributeName.c_str(), this->Get##memberVar()); \
+  } \
+  else \
+  { \
+    std::string attributeName = #memberVar; \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName.c_str()); \
+  }
+
+#define XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
   if (this->Get##memberVar()) \
   { \
     const char* attributeName = #memberVar; \
@@ -516,10 +529,10 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, #memberVar); \
+    std::string attributeName = #memberVar; \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName.c_str()); \
   }
 
-  
 #define XML_WRITE_BOOL_ATTRIBUTE(memberVar, xmlElementVar)  \
   { \
   const char* attributeName = #memberVar; \
@@ -545,7 +558,7 @@ public:
     } \
   }
 
-#define XML_READ_WARNING_DEPRECATED_STRING_REPLACED(memberVar, xmlElementVar, newMemberVar)  \
+#define XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(memberVar, xmlElementVar, newMemberVar)  \
   { \
     const char* attributeName = #memberVar; \
     const char* newAttributeName = #newMemberVar; \
@@ -556,5 +569,5 @@ public:
         <<" is deprecated. Use "<<newAttributeName<<" instead."); \
     } \
   }
-  
+
 #endif //__PlusXmlUtils_h
