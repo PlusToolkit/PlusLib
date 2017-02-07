@@ -68,7 +68,7 @@ POSSIBILITY OF SUCH DAMAGES.
   it is first determined which output voxels map to look-up indices
   within the input data extent.  Then, further calculations are
   done only for those voxels.  This means that 1) minimal work
-  is done for voxels which map to regions outside fo the input
+  is done for voxels which map to regions outside of the input
   extent (they are just set to the background color) and 2)
   the inner loops of the look-up and interpolation are
   tightened relative to the un-uptimized version.
@@ -83,7 +83,8 @@ template <class F, class T>
 static int vtkNearestNeighborInterpolation(F *point,
                                            T *inPtr,
                                            T *outPtr,
-                                           unsigned short *accPtr, 
+                                           unsigned short *accPtr,
+                                           unsigned char *importancePtr,
                                            int numscalars,
                                            vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode,
                                            int outExt[6],
@@ -157,6 +158,34 @@ static int vtkNearestNeighborInterpolation(F *point,
         }
         break;
       }
+    case (vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE):
+      {
+        accPtr += inc/outInc[0];
+        if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
+
+          if (*importancePtr == 0) //nothing to do
+            break;
+          int newa = *accPtr + *importancePtr;
+          if (newa > ACCUMULATION_THRESHOLD)
+            (*accOverflowCount) += 1;
+
+          for (i = 0; i < numscalars; i++)
+          {
+            *outPtr = ((*inPtr++)*(*importancePtr) + (*outPtr)*(*accPtr))/newa;
+            outPtr++;
+          }
+
+          *accPtr = ACCUMULATION_MAXIMUM; // set to 0xFFFF by default for overflow protection
+          if (newa < ACCUMULATION_MAXIMUM)
+          {
+            *accPtr = newa;
+          }
+        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+          // TODO: Should do this for all the scalars, and accumulation?
+          *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr)); //bug, reversed weights
+        }
+        break;
+      }
     case (vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE):
       {
         accPtr += inc/outInc[0];
@@ -203,6 +232,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkImageData* outData = insertionParams->outData;
   T* outPtr = reinterpret_cast<T*>(insertionParams->outPtr);
   unsigned short* accPtr = insertionParams->accPtr;
+  unsigned char* importancePtr = insertionParams->importancePtr;
   vtkImageData* inData = insertionParams->inData;
   T* inPtr = reinterpret_cast<T*>(insertionParams->inPtr);
   int* inExt = insertionParams->inExt;
@@ -278,9 +308,11 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
+  vtkIdType imIncX = 0, imIncY = 0, imIncZ = 0;
+  insertionParams->importanceMask->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
 
   // Set interpolation method - nearest neighbor or trilinear  
-  int (*interpolate)(double *, T *, T *, unsigned short *, int, vtkPlusPasteSliceIntoVolume::CompoundingType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
+  int (*interpolate)(F *, T *, T *, unsigned short *, unsigned char *, int, vtkPlusPasteSliceIntoVolume::CompoundingType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
   switch (interpolationMode)
   {
   case vtkPlusPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION:
@@ -308,11 +340,11 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   double inPoint[4]; 
   inPoint[3] = 1;
   bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
-  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ)
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += imIncZ)
   {
-    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += imIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += imIncX)
       {
         // check if we are within the current clip extent
         if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])
@@ -375,7 +407,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
         outPoint[3] = 1;
 
         // interpolation functions return 1 if the interpolation was successful, 0 otherwise
-        interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
+        interpolate(outPoint, inPtr, outPtr, accPtr, importancePtr, numscalars, compoundingMode, outExt, outInc, accOverflowCount);
       }
     }
   }
