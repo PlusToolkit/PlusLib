@@ -344,6 +344,7 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         }
         inPtrTmp++;
+        importancePtr++;
         outPtrTmp++;
       }
       while (i); // number of scalars

@@ -1,27 +1,6 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-function(RegressionTestMCI ImageName Ext) #optional: Algo Axis Label
-  foreach(f ${ARGN}) #create unique test name
-    set(optArgs "${optArgs}_${f}")
-  endforeach()
-  set(outImage "${ITK_TEST_OUTPUT_DIR}/${ImageName}${optArgs}.${Ext}")
-  set(imageNameOpt "${ImageName}${optArgs}")
-  if(${MCI_TestWithRLEImage})
-    itk_add_test( NAME rleMCI_${ImageName}${optArgs}
-      COMMAND MorphologicalContourInterpolationTestDriver
-      --compare DATA{Baseline/${imageNameOpt}.${Ext}} ${outImage}
-      itkMorphologicalContourInterpolationTestWithRLEImage
-        DATA{Input/${ImageName}.${Ext}} ${outImage} ${ARGN})
-  else(${MCI_TestWithRLEImage})
-    itk_add_test( NAME itkMCI_${ImageName}${optArgs}
-      COMMAND MorphologicalContourInterpolationTestDriver
-      --compare DATA{Baseline/${imageNameOpt}.${Ext}} ${outImage}
-      itkMorphologicalContourInterpolationTest
-        DATA{Input/${ImageName}.${Ext}} ${outImage} ${ARGN})
-  endif(${MCI_TestWithRLEImage})
-endfunction()
-
 function(RegressionTest TestName Config Seq Out)
   ADD_TEST(vtkVolumeReconstructorTestRun${TestName}
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
