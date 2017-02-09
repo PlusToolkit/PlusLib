@@ -923,7 +923,7 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
     flipYFilter->SetFilteredAxis(1); // flip y axis
     flipYFilter->SetInputConnection(reader->GetOutputPort());
     flipYFilter->Update();
-    this->Reconstructor->GetImportanceMask()->ShallowCopy(flipYFilter->GetOutput());
+    this->Reconstructor->SetImportanceMask(flipYFilter->GetOutput());
 
     this->Reconstructor->Modified();
     this->Modified();
@@ -931,7 +931,7 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
+std::string vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
 {
   return this->ImportanceMaskFilename;
 }

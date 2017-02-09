@@ -316,7 +316,9 @@ static int vtkTrilinearInterpolation(F *point,
         case vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE:
           f = fdx[j];
           if (*importancePtr == 0)
+          {
             break;
+          }
           a = F( (*importancePtr)*f + *accPtrTmp );
           if (typeid(F) == typeid(fixed))
           {
@@ -342,14 +344,15 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         }
         inPtrTmp++;
-        importancePtr++;
         outPtrTmp++;
       }
-      while (i);
+      while (i); // number of scalars
 
       F newa = a;
       if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
+      {
         (*accOverflowCount) += 1;
+      }
 
       // don't allow accumulation buffer overflow
       *accPtrTmp = ACCUMULATION_MAXIMUM;
