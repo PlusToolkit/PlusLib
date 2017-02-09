@@ -34,12 +34,13 @@ SET (PlusVolumeReconstruction_LIBS
   vtkRenderingFreeType
   vtkRendering${VTK_RENDERING_BACKEND}
   vtkRenderingVolume${VTK_RENDERING_BACKEND}
+  ITKIOImageBase
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
 ADD_LIBRARY(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_SRCS} ${PlusVolumeReconstruction_HDRS})
-target_include_directories(vtkPlusVolumeReconstruction PUBLIC ${PlusVolumeReconstruction_INCLUDE_DIRS} )
-TARGET_LINK_LIBRARIES(  vtkPlusVolumeReconstruction  ${PlusVolumeReconstruction_LIBS} )
+target_include_directories(vtkPlusVolumeReconstruction PUBLIC ${PlusVolumeReconstruction_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
@@ -56,7 +57,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   ADD_EXECUTABLE(CreateSliceModels Tools/CreateSliceModels.cxx )
   SET_TARGET_PROPERTIES(CreateSliceModels PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES( CreateSliceModels 
+  TARGET_LINK_LIBRARIES(CreateSliceModels 
     vtkPlusCommon 
     vtkPlusVolumeReconstruction 
     vtkFiltersSources 
