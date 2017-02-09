@@ -574,7 +574,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         } 
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
+        *outPtr1 = (T)( (*inPtr++)*0.00390625 + (*outPtr1)*0.99609375 );
       }
     }
     break;
@@ -638,7 +638,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         } 
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
+        *outPtr1 = (T)( (*inPtr++)*0.00390625 + (*outPtr1)*0.99609375 );
       }
     }
     break;
@@ -829,7 +829,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+        *outPtr1 = (T)( (*inPtr++)*0.00390625 + (*outPtr1)*0.99609375 );
       }
 
       outPoint[0] += xAxis[0];
@@ -897,7 +897,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+        *outPtr1 = (T)( (*inPtr++)*0.00390625 + (*outPtr1)*0.99609375 );
       }
 
       outPoint[0] += xAxis[0];
