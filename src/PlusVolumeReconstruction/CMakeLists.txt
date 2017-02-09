@@ -34,7 +34,6 @@ SET (PlusVolumeReconstruction_LIBS
   vtkRenderingFreeType
   vtkRendering${VTK_RENDERING_BACKEND}
   vtkRenderingVolume${VTK_RENDERING_BACKEND}
-  ITKIOImageBase
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
