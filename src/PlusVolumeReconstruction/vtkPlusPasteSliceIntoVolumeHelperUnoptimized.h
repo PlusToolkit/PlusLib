@@ -154,7 +154,7 @@ static int vtkNearestNeighborInterpolation(F *point,
           }
         } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           // TODO: Should do this for all the scalars, and accumulation?
-          *outPtr = (T)(0.00390625 * (*inPtr++) + 0.99609375 * (*outPtr));
+          *outPtr = (T)(fraction1_256 * (*inPtr++) + fraction255_256 * (*outPtr));
         }
         break;
       }
@@ -182,7 +182,7 @@ static int vtkNearestNeighborInterpolation(F *point,
           }
         } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           // TODO: Should do this for all the scalars, and accumulation?
-          *outPtr = (T)(0.00390625 * (*inPtr++) + 0.99609375 * (*outPtr));
+          *outPtr = (T)(fraction1_256 * (*inPtr++) + fraction255_256 * (*outPtr));
         }
         break;
       }

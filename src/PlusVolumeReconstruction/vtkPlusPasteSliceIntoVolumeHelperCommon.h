@@ -94,6 +94,12 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 class vtkImageData;
 
+namespace
+{
+    static const double fraction1_256 = 1.0 / 256;
+    static const double fraction255_256 = 255.0 / 256;
+}
+
 // regarding these values, see comments at the top of this file by Thomas Vaughan
 #define ACCUMULATION_MULTIPLIER 256
 #define ACCUMULATION_MAXIMUM 65535
