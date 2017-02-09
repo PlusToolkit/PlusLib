@@ -119,19 +119,19 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
   }
 
   // reconstruction options
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Interpolation, reconConfig, \
-                                    this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION, \
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Interpolation, reconConfig,
+                                    this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION,
                                     this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
 
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig, \
-                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION, \
-                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION, \
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig,
+                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION,
+                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION,
                                     this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION);
 
-  XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
-                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE, \
-                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE, \
-                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE, \
+  XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE,
                                     this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
@@ -160,20 +160,25 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", 1, "OFF", 0);
 
   XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(Calculation, reconConfig, CompoundingMode);
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
-                                    this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION, \
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig,
+                                    this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION,
                                     this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION), vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION);
 
   if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::UNDEFINED_COMPOUNDING_MODE)
   {
     if (this->Reconstructor->GetCalculation() == vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION)
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE); }
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
+    }
     else if (this->Reconstructor->GetCompounding() == 0)
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE); }
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE);
+    }
     else
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE); }
-    LOG_WARNING("CompoundingMode has not been set. Will assume " <<
-                this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE);
+    }
+    LOG_WARNING("CompoundingMode has not been set. Will assume " << this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
   }
 
   this->Modified();
@@ -909,7 +914,7 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
   if (this->ImportanceMaskFilename != filename)
   {
     this->ImportanceMaskFilename = filename;
-    
+
     // use itk reader which supports many file formats
     typedef itk::Image<unsigned char, 3> uc2Type;
     typedef itk::ImageFileReader<uc2Type> ReaderType;
