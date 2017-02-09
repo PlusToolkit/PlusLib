@@ -37,7 +37,7 @@ vtkStandardNewMacro(vtkPlusNDICertusTracker);
 #define VTK_CERTUS_DEBUG_STATEMENTS 0
 
 //----------------------------------------------------------------------------
-// map values 0, 1, 2 to the proper Certus VLED state constant 
+// map values 0, 1, 2 to the proper Certus VLED state constant
 static VLEDState vtkNDICertusMapVLEDState[] = { VLEDST_OFF, VLEDST_ON, VLEDST_BLINK };
 
 //----------------------------------------------------------------------------
@@ -57,12 +57,12 @@ vtkPlusNDICertusTracker::vtkPlusNDICertusTracker()
   this->RequirePortNameInDeviceSetConfiguration = true;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
-  this->StartThreadForInternalUpdates=true;
+  this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 50;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusNDICertusTracker::~vtkPlusNDICertusTracker() 
+vtkPlusNDICertusTracker::~vtkPlusNDICertusTracker()
 {
   if (this->Recording)
   {
@@ -78,20 +78,20 @@ vtkPlusNDICertusTracker::~vtkPlusNDICertusTracker()
 //----------------------------------------------------------------------------
 std::string vtkPlusNDICertusTracker::GetSdkVersion()
 {
-  const int BUFSIZE=200;
-  char version[BUFSIZE+1];
-  version[BUFSIZE]=0;
+  const int BUFSIZE = 200;
+  char version[BUFSIZE + 1];
+  version[BUFSIZE] = 0;
   OAPIGetVersionString(version, BUFSIZE);
-  return std::string(version); 
+  return std::string(version);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusNDICertusTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf(os, indent);
 
   os << indent << "SendMatrix: " << this->SendMatrix << "\n";
-  this->SendMatrix->PrintSelf(os,indent.GetNextIndent());
+  this->SendMatrix->PrintSelf(os, indent.GetNextIndent());
   os << indent << "NumberOfRigidBodies: " << this->NumberOfRigidBodies << "\n";
   os << indent << "NumberOfMarkers: " << this->NumberOfMarkers << "\n";
 }
@@ -105,7 +105,7 @@ static char vtkCertusErrorString[MAX_ERROR_STRING_LENGTH + 1];
 { \
   LOG_ERROR(vtkCertusErrorString); \
 } \
-} 
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDICertusTracker::InternalConnect()
@@ -137,11 +137,12 @@ PlusStatus vtkPlusNDICertusTracker::InternalConnect()
   }
 
   // Wait for 1 second, according to the Certus documentation
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkPlusAccurateTimer::Delay(1);
 
   // Do the initialization
   if (TransputerInitializeSystem(0) != OPTO_NO_ERROR_CODE)
-  { // optionally, use "OPTO_LOG_ERRORS_FLAG" argument to above
+  {
+    // optionally, use "OPTO_LOG_ERRORS_FLAG" argument to above
     LOG_ERROR("Call to Certus TransputerInitializeSystem() failed");
     vtkPrintCertusErrorMacro();
     return PLUS_FAIL;
@@ -161,7 +162,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDICertusTracker::InternalDisconnect()
 {
-  this->StopRecording(); 
+  this->StopRecording();
 
   // Shut down the system
   this->ShutdownCertusSystem();
@@ -173,7 +174,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalDisconnect()
 PlusStatus vtkPlusNDICertusTracker::InitializeCertusSystem()
 {
   // Connect to device
-  if (this->Connect()!=PLUS_SUCCESS)
+  if (this->Connect() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -182,7 +183,7 @@ PlusStatus vtkPlusNDICertusTracker::InitializeCertusSystem()
   int nNumSensors;
   int nNumOdaus;
   int nFlags;
-  if (OptotrakGetStatus(&nNumSensors, &nNumOdaus, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &nFlags ) != OPTO_NO_ERROR_CODE)
+  if (OptotrakGetStatus(&nNumSensors, &nNumOdaus, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &nFlags) != OPTO_NO_ERROR_CODE)
   {
     LOG_ERROR("Call to OptotrakGetStatus() failed");
     vtkPrintCertusErrorMacro();
@@ -190,7 +191,7 @@ PlusStatus vtkPlusNDICertusTracker::InitializeCertusSystem()
   }
 
   // Make sure that the attached system is a Certus
-  if ((nFlags & (OPTOTRAK_3020_FLAG | OPTOTRAK_CERTUS_FLAG))!= OPTOTRAK_CERTUS_FLAG)
+  if ((nFlags & (OPTOTRAK_3020_FLAG | OPTOTRAK_CERTUS_FLAG)) != OPTOTRAK_CERTUS_FLAG)
   {
     LOG_ERROR("Only Certus is supported. Attached device is not Certus.");
     return PLUS_FAIL;
@@ -200,7 +201,7 @@ PlusStatus vtkPlusNDICertusTracker::InitializeCertusSystem()
   if ((nNumSensors != 1 || nNumOdaus != 1))
   {
     LOG_DEBUG("Certus configuration: " << nNumSensors << " sensors, "
-      << nNumOdaus << " odaus");
+              << nNumOdaus << " odaus");
     //successFlag = 0;
   }
 
@@ -225,17 +226,17 @@ PlusStatus vtkPlusNDICertusTracker::ActivateCertusMarkers()
 {
   // count the number of markers on all tools first
   if (OptotrakSetupCollection(
-    this->NumberOfMarkers,  /* Number of markers in the collection. */
-    (float)100.0,   /* Frequency to collect data frames at. */
-    (float)2500.0,  /* Marker frequency for marker maximum on-time. */
-    30,             /* Dynamic or Static Threshold value to use. */
-    160,            /* Minimum gain code amplification to use. */
-    0,              /* Stream mode for the data buffers. */
-    (float)0.35,    /* Marker Duty Cycle to use. */
-    (float)7.0,     /* Voltage to use when turning on markers. */
-    (float)1.0,     /* Number of seconds of data to collect. */
-    (float)0.0,     /* Number of seconds to pre-trigger data by. */
-    OPTOTRAK_BUFFER_RAW_FLAG ) != OPTO_NO_ERROR_CODE)
+        this->NumberOfMarkers,  /* Number of markers in the collection. */
+        (float)100.0,   /* Frequency to collect data frames at. */
+        (float)2500.0,  /* Marker frequency for marker maximum on-time. */
+        30,             /* Dynamic or Static Threshold value to use. */
+        160,            /* Minimum gain code amplification to use. */
+        0,              /* Stream mode for the data buffers. */
+        (float)0.35,    /* Marker Duty Cycle to use. */
+        (float)7.0,     /* Voltage to use when turning on markers. */
+        (float)1.0,     /* Number of seconds of data to collect. */
+        (float)0.0,     /* Number of seconds to pre-trigger data by. */
+        OPTOTRAK_BUFFER_RAW_FLAG) != OPTO_NO_ERROR_CODE)
   {
     return PLUS_FAIL;
   }
@@ -253,7 +254,7 @@ PlusStatus vtkPlusNDICertusTracker::ActivateCertusMarkers()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDICertusTracker::DeActivateCertusMarkers()
 {
-  if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
+  if (OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
   {
     LOG_ERROR("Cannot activate the markers");
     return PLUS_FAIL;
@@ -278,7 +279,7 @@ PlusStatus vtkPlusNDICertusTracker::Probe()
   this->ShutdownCertusSystem();
 
   return status;
-} 
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDICertusTracker::InternalStartRecording()
@@ -291,7 +292,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalStartRecording()
   // Attempt to initialize the Certus
   // and enable all the tools
   if (!this->InitializeCertusSystem()
-    || !this->EnableToolPorts())
+      || !this->EnableToolPorts())
   {
     vtkPrintCertusErrorMacro();
     this->ShutdownCertusSystem();
@@ -312,7 +313,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDICertusTracker::InternalStopRecording()
 {
-  if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
+  if (OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
   {
     vtkPrintCertusErrorMacro();
   }
@@ -342,7 +343,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
   // initialize transformations to identity
   for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++)
   {
-    missing[tool] = 1; 
+    missing[tool] = 1;
 
     transform[tool][0] = 1.0;
     transform[tool][1] = transform[tool][2] = transform[tool][3] = 0.0;
@@ -353,11 +354,11 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
   unsigned int uFrameNumber = 0;
   unsigned int uElements = 0;
   unsigned int uFlags = 0;
-  OptotrakRigidStruct *rigidBodyData;
+  OptotrakRigidStruct* rigidBodyData;
   rigidBodyData = new OptotrakRigidStruct[this->NumberOfRigidBodies];
 
   if (DataGetLatestTransforms2(&uFrameNumber, &uElements, &uFlags,
-    rigidBodyData, 0) != OPTO_NO_ERROR_CODE)
+                               rigidBodyData, 0) != OPTO_NO_ERROR_CODE)
   {
     vtkPrintCertusErrorMacro();
     delete [] rigidBodyData;
@@ -365,18 +366,18 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
   }
 
   LOG_TRACE("Found " << uElements << " rigid bodies, expected " << this->NumberOfRigidBodies
-    << " with " << this->NumberOfMarkers << " markers");
+            << " with " << this->NumberOfMarkers << " markers");
 
   for (int rigidCounter = 0; rigidCounter < this->NumberOfRigidBodies;
-    rigidCounter++)
+       rigidCounter++)
   {
     OptotrakRigidStruct& rigidBody = rigidBodyData[rigidCounter];
     long rigidId = rigidBody.RigidId;
 
-    std::map<int, int>::iterator rigidBodyMapIterator = this->RigidBodyMap.find(rigidId); 
-    if ( rigidBodyMapIterator != this->RigidBodyMap.end())
+    std::map<int, int>::iterator rigidBodyMapIterator = this->RigidBodyMap.find(rigidId);
+    if (rigidBodyMapIterator != this->RigidBodyMap.end())
     {
-      tool = rigidBodyMapIterator->second; 
+      tool = rigidBodyMapIterator->second;
     }
     else
     {
@@ -387,7 +388,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
     if ((rigidBody.flags & OPTOTRAK_UNDETERMINED_FLAG) == 0)
     {
       // this is done to keep the code similar to POLARIS
-      double *trans = transform[tool];
+      double* trans = transform[tool];
       trans[0] = rigidBody.transformation.quaternion.rotation.q0;
       trans[1] = rigidBody.transformation.quaternion.rotation.qx;
       trans[2] = rigidBody.transformation.quaternion.rotation.qy;
@@ -396,11 +397,11 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
       trans[5] = rigidBody.transformation.quaternion.translation.y;
       trans[6] = rigidBody.transformation.quaternion.translation.z;
       trans[7] = rigidBody.QuaternionError;
-      LOG_TRACE("Rigid body "<<rigidCounter<<" (rigidId="<<rigidId<<") translation: "<< trans[4] << ", " << trans[5] << ", " << trans[6]);
+      LOG_TRACE("Rigid body " << rigidCounter << " (rigidId=" << rigidId << ") translation: " << trans[4] << ", " << trans[5] << ", " << trans[6]);
     }
     else
     {
-      LOG_TRACE("Rigid body "<<rigidCounter<<" (rigidId="<<rigidId<<") undetermined");
+      LOG_TRACE("Rigid body " << rigidCounter << " (rigidId=" << rigidId << ") undetermined");
     }
 
     statusFlags[tool] = rigidBody.flags;
@@ -410,7 +411,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
 
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++) 
+  for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++)
   {
     if (this->PortEnabled[tool] == 0)
     {
@@ -424,23 +425,23 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
     if ((statusFlags[tool] & OPTOTRAK_UNDETERMINED_FLAG) != 0)
     {
       status = TOOL_MISSING;
-      this->SetToolLED(tool, 0, TR_LED_FLASH); 
+      this->SetToolLED(tool, 0, TR_LED_FLASH);
     }
 
-    ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
+    ndiTransformToMatrixd(transform[tool], *this->SendMatrix->Element);
     this->SendMatrix->Transpose();
 
-    std::ostringstream toolPortName; 
-    toolPortName << tool; 
-    vtkPlusDataSource* trackerTool = NULL; 
-    if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+    std::ostringstream toolPortName;
+    toolPortName << tool;
+    vtkPlusDataSource* trackerTool = NULL;
+    if (this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+      LOG_ERROR("Failed to get tool by port name: " << toolPortName.str());
     }
     else
     {
       // send the matrix and status to the tool's vtkPlusDataBuffer
-      this->ToolTimeStampedUpdate(trackerTool->GetSourceId(), this->SendMatrix, status, (unsigned long)uFrameNumber, unfilteredTimestamp);
+      this->ToolTimeStampedUpdate(trackerTool->GetId(), this->SendMatrix, status, (unsigned long)uFrameNumber, unfilteredTimestamp);
     }
   }
 
@@ -471,7 +472,7 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
   if (this->Recording)
   {
     LOG_DEBUG("DeActivating Markers");
-    if(!this->DeActivateCertusMarkers())
+    if (!this->DeActivateCertusMarkers())
     {
       vtkPrintCertusErrorMacro();
     }
@@ -479,12 +480,12 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
 
   // device handles (including status)
   int nDeviceHandles = 0;
-  DeviceHandle *deviceHandles;
+  DeviceHandle* deviceHandles;
 
   int allDevicesEnabled = 0;
   for (int trialNumber = 0;
-    trialNumber < 3 && !allDevicesEnabled;
-    trialNumber++)
+       trialNumber < 3 && !allDevicesEnabled;
+       trialNumber++)
   {
     LOG_DEBUG("Getting Number Device Handles");
     if (OptotrakGetNumberDeviceHandles(&nDeviceHandles) != OPTO_NO_ERROR_CODE)
@@ -505,7 +506,7 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
     unsigned int flags = 0;
     LOG_DEBUG("Getting Device Handles for " << nDeviceHandles << " devices");
     if (OptotrakGetDeviceHandles(deviceHandles, nDeviceHandles, &flags)
-      != OPTO_NO_ERROR_CODE)
+        != OPTO_NO_ERROR_CODE)
     {
       vtkPrintCertusErrorMacro();
       delete [] deviceHandles;
@@ -517,8 +518,8 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
 
     // free any unoccupied handles, enable any initialized handles
     for (int deviceCounter = 0;
-      deviceCounter < nDeviceHandles;
-      deviceCounter++)
+         deviceCounter < nDeviceHandles;
+         deviceCounter++)
     {
       int ph = deviceHandles[deviceCounter].nID;
       DeviceHandleStatus status = deviceHandles[deviceCounter].dtStatus;
@@ -552,8 +553,8 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
 
   // get information for all tools
   for (int deviceCounter = 0;
-    deviceCounter < nDeviceHandles;
-    deviceCounter++)
+       deviceCounter < nDeviceHandles;
+       deviceCounter++)
   {
     int ph = deviceHandles[deviceCounter].nID;
     DeviceHandleStatus status = deviceHandles[deviceCounter].dtStatus;
@@ -564,12 +565,12 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
       continue;
     }
 
-    DeviceHandleProperty *properties = 0;
+    DeviceHandleProperty* properties = 0;
     int nProperties = 0;
     LOG_DEBUG("Getting number of properties for port handle " << ph);
     if (OptotrakDeviceHandleGetNumberProperties(ph, &nProperties)
-      != OPTO_NO_ERROR_CODE
-      || nProperties == 0)
+        != OPTO_NO_ERROR_CODE
+        || nProperties == 0)
     {
       vtkPrintCertusErrorMacro();
     }
@@ -578,14 +579,14 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
       properties = new DeviceHandleProperty[nProperties];
       LOG_DEBUG("Getting " << nProperties << " properties for handle " << ph);
       if (OptotrakDeviceHandleGetProperties(ph, properties, nProperties)
-        != OPTO_NO_ERROR_CODE)
+          != OPTO_NO_ERROR_CODE)
       {
         vtkPrintCertusErrorMacro();
       }
       else
       {
         // the properties of interest
-        static const int deviceNameMaxlen = 128; 
+        static const int deviceNameMaxlen = 128;
         char deviceName[deviceNameMaxlen + 1];
         int hasROM = 0;
         int nToolPorts = 0;
@@ -601,7 +602,7 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
           if (propertyID == DH_PROPERTY_NAME)
           {
             strncpy(deviceName, properties[propCounter].dtData.szData,
-              deviceNameMaxlen);
+                    deviceNameMaxlen);
             deviceName[deviceNameMaxlen] = '\0';
           }
           else if (propertyID == DH_PROPERTY_HAS_ROM)
@@ -640,28 +641,28 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
           // assume only one strober: index tools by SubPort
           int port = nSubPort - 1;
 
-          LOG_INFO("Found tool port " << port << " for device " << deviceName); 
+          LOG_INFO("Found tool port " << port << " for device " << deviceName);
 
           if (port >= 0 && port < VTK_CERTUS_NTOOLS)
           {
             if (this->PortEnabled[port] &&
-              this->PortHandle[port] != ph)
+                this->PortHandle[port] != ph)
             {
               LOG_ERROR("Port number " << port << " is already "
-                "taken by a different tool");
+                        "taken by a different tool");
             }
             else
             {
               this->PortHandle[port] = ph;
               this->PortEnabled[port] = (status == DH_STATUS_ENABLED);
 
-              std::ostringstream toolPortName; 
-              toolPortName << port; 
-              vtkPlusDataSource* trackerTool = NULL; 
-              if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+              std::ostringstream toolPortName;
+              toolPortName << port;
+              vtkPlusDataSource* trackerTool = NULL;
+              if (this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS)
               {
-                LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName.str() << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str() );
-                this->PortEnabled[port] = 0; 
+                LOG_WARNING("Undefined connected tool found in the strober on port '" << toolPortName.str() << "' with name '" << deviceName << "', disabled it until not defined in the config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName().c_str());
+                this->PortEnabled[port] = 0;
               }
             }
 
@@ -679,35 +680,35 @@ PlusStatus vtkPlusNDICertusTracker::EnableToolPorts()
     delete [] deviceHandles;
   }
 
-  this->RigidBodyMap.clear(); 
+  this->RigidBodyMap.clear();
   // add rigid bodies
   for (toolCounter = 0; toolCounter < VTK_CERTUS_NTOOLS; toolCounter++)
   {
     if (this->PortEnabled[toolCounter])
     {
       int ph = this->PortHandle[toolCounter];
-      int rigidID = this->NumberOfRigidBodies; 
+      int rigidID = this->NumberOfRigidBodies;
       LOG_DEBUG("Adding rigid body for port handle" << ph);
       if (RigidBodyAddFromDeviceHandle(ph,
-        rigidID, // rigID is port handle
-        OPTOTRAK_QUATERN_RIGID_FLAG |
-        OPTOTRAK_RETURN_QUATERN_FLAG)
-        != OPTO_NO_ERROR_CODE)
+                                       rigidID, // rigID is port handle
+                                       OPTOTRAK_QUATERN_RIGID_FLAG |
+                                       OPTOTRAK_RETURN_QUATERN_FLAG)
+          != OPTO_NO_ERROR_CODE)
       {
         vtkPrintCertusErrorMacro();
       }
       else
       {
-        this->RigidBodyMap[rigidID] = toolCounter; 
+        this->RigidBodyMap[rigidID] = toolCounter;
         // increment the number of rigid bodies
         this->NumberOfRigidBodies++;
 
-        std::ostringstream toolPortName; 
-        toolPortName << toolCounter; 
-        vtkPlusDataSource* trackerTool = NULL; 
-        if ( this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS )
+        std::ostringstream toolPortName;
+        toolPortName << toolCounter;
+        vtkPlusDataSource* trackerTool = NULL;
+        if (this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS)
         {
-          LOG_ERROR("Failed to get tool by port name: " << toolPortName.str() ); 
+          LOG_ERROR("Failed to get tool by port name: " << toolPortName.str());
           continue;
         }
       }
@@ -787,8 +788,8 @@ int vtkPlusNDICertusTracker::GetToolFromHandle(int handle)
 PlusStatus vtkPlusNDICertusTracker::SetToolLED(int portNumber, int led, vtkPlusNDICertusTracker::LedState state)
 {
   if (this->Recording &&
-    portNumber >= 0 && portNumber < VTK_CERTUS_NTOOLS &&
-    led >= 0 && led < 3)
+      portNumber >= 0 && portNumber < VTK_CERTUS_NTOOLS &&
+      led >= 0 && led < 3)
   {
     VLEDState pstate = vtkNDICertusMapVLEDState[led];
     int ph = this->PortHandle[portNumber];
@@ -797,7 +798,7 @@ PlusStatus vtkPlusNDICertusTracker::SetToolLED(int portNumber, int led, vtkPlusN
       return PLUS_FAIL;
     }
 
-    OptotrakDeviceHandleSetVisibleLED(ph, led+1, pstate);
+    OptotrakDeviceHandleSetVisibleLED(ph, led + 1, pstate);
   }
 
   return PLUS_FAIL;

@@ -79,7 +79,7 @@ PlusStatus vtkPlusSaveConfigCommand::WriteConfiguration(vtkXMLDataElement* aConf
     return PLUS_FAIL;
   }
   // Start parameters
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(Filename, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(Filename, aConfig);
   return PLUS_SUCCESS;
 }
 

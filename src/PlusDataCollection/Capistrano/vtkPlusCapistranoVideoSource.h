@@ -61,8 +61,51 @@ public:
   /* Set the pulser frequency of US probe */
   PlusStatus SetPulseFrequency(float pf);
 
-  /* Set the pulser frequency of US probe */
-  PlusStatus SetWobbleRate(unsigned char wr);
+  /* Set the desired probe speed in Hz.
+  *  The resulting probe speed will be approximately the value specified. */
+  PlusStatus SetWobbleRate(unsigned char wobbleRate);
+
+  /* Probe speed in Hz */
+  unsigned char GetWobbleRate();
+
+  /* Set the jitter compensation value for the probe servo */
+  PlusStatus SetJitterCompensation(unsigned char jitterComp);
+
+  /* Jitter compensation value for the probe servo */
+  unsigned char GetJitterCompensation();
+
+  /* Set the position scale value for the probe servo */
+  PlusStatus SetPositionScale(unsigned char scale);
+
+  /* Position scale value for the probe servo */
+  unsigned char GetPositionScale();
+
+  /* Set the desired probe scan angle (in radians) */
+  PlusStatus SetSweepAngle(float sweepAngle);
+
+  /* Probe scan angle (in radians) */
+  float GetSweepAngle();
+
+  /* Set the gain value for the probe servo */
+  PlusStatus SetServoGain(unsigned char servoGain);
+
+  /* Gain value for the probe servo */
+  unsigned char GetServoGain();
+
+  /* State is the desired overscan multiplier.
+  *  Overscan is done in 6.25% steps from 6.25% to 50% (three-bit number).
+  *  As such, the valid values are 0…7 which correspond to 6.25%, 12.5%, …, 43.75%, 50%. */
+  PlusStatus SetOverscan(int state);
+
+  /* Overscan multiplier. Overscan is done in 6.25% steps from 6.25% to 50% (three-bit number).
+  *  As such, the valid values are 0…7 which correspond to 6.25%, 12.5%, …, 43.75%, 50%. */
+  int GetOverscan();
+
+  /* Sets the desired probe servo derivative compensation */
+  PlusStatus SetDerivativeCompensation(unsigned char derivativeCompensation);
+
+  /* Probe servo derivative compensation */
+  unsigned char GetDerivativeCompensation();
 
   /* Set the pulser voltage of US probe */
   PlusStatus SetPulseVoltage(float pv);
@@ -210,7 +253,7 @@ protected:
   int                            CineBuffers;
   float                          SampleFrequency;
   float                          PulseFrequency;
-  int                            WobbleRate;
+  unsigned char                  PositionScale;
   bool                           Interpolate;
   bool                           AverageMode;
   unsigned int                   CurrentBModeViewOption;

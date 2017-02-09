@@ -9,8 +9,8 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 
 /*!
-\class vtkPlusAscension3DGTrackerBase 
-\brief Interface for the Ascension 3DG magnetic tracker 
+\class vtkPlusAscension3DGTrackerBase
+\brief Interface for the Ascension 3DG magnetic tracker
 
 This class talks with Ascension3DG tracker over the ATC trakSTAR device driver
 
@@ -20,9 +20,9 @@ class vtkPlusDataCollectionExport vtkPlusAscension3DGTrackerBase : public vtkPlu
 {
 public:
 
-  static vtkPlusAscension3DGTrackerBase *New();
-  vtkTypeMacro( vtkPlusAscension3DGTrackerBase,vtkPlusDevice );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  static vtkPlusAscension3DGTrackerBase* New();
+  vtkTypeMacro(vtkPlusAscension3DGTrackerBase, vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual bool IsTracker() const { return true; }
 
@@ -33,13 +33,13 @@ public:
   virtual PlusStatus InternalDisconnect();
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Write main configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! 
-  Probe to see if the tracking system is present on the specified serial port.  
+  /*!
+  Probe to see if the tracking system is present on the specified serial port.
   If the SerialPort is set to -1, then all serial ports will be checked.
   */
   PlusStatus Probe();
@@ -70,7 +70,7 @@ protected:
   vtkPlusAscension3DGTrackerBase();
   ~vtkPlusAscension3DGTrackerBase();
 
-  /*! 
+  /*!
   Start the tracking system.  The tracking system is brought from its ground state into full tracking mode.
   The device will only be reset if communication cannot be established without a reset.
   */
@@ -83,20 +83,21 @@ private:  // Definitions.
   enum {TRANSMITTER_OFF = -1};
 
 private:  // Functions.
-  vtkPlusAscension3DGTrackerBase( const vtkPlusAscension3DGTrackerBase& );
-  void operator=( const vtkPlusAscension3DGTrackerBase& );  
+  vtkPlusAscension3DGTrackerBase(const vtkPlusAscension3DGTrackerBase&);
+  void operator=(const vtkPlusAscension3DGTrackerBase&);
 
   /*! Check return status and log in case of error */
-  PlusStatus CheckReturnStatus( int status );
+  PlusStatus CheckReturnStatus(int status);
 
   /*!
     Adds 3 quality values (in the translation component of the transformation matrix) to the buffer.
     For sensors sensorStartIndex, sensorStartIndex+1, and sensorStartIndex+2.
   */
-  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolPortName, unsigned int sensorStartIndex, const std::vector<unsigned short> &qualityValues, double unfilteredTimestamp);
+  PlusStatus QualityToolTimeStampedUpdate(const char* qualityToolPortName, unsigned int sensorStartIndex, const std::vector<unsigned short>& qualityValues, double unfilteredTimestamp);
 
   /*! Returns true if the port name belongs to a virtual tool that stores quality values */
   bool IsQualityPortName(const char* name);
+  bool IsQualityPortName(const std::string& name);
 
 
 private:  // Variables.
@@ -104,12 +105,12 @@ private:  // Variables.
   std::vector< bool > SensorAttached;
   std::vector< bool > SensorInMotion;
 
-  void* AscensionRecordBuffer; 
+  void* AscensionRecordBuffer;
 
   bool TransmitterAttached;
 
   unsigned int FrameNumber;
-  int NumberOfSensors; 
+  int NumberOfSensors;
 
   /*! AC wide notch filter status: enabled (1) or disabled (0) */
   int FilterAcWideNotch;

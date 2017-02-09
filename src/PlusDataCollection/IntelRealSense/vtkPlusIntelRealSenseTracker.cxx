@@ -380,8 +380,8 @@ PlusStatus vtkPlusIntelRealSenseTracker::GetImage(vtkImageData* leftImage, vtkIm
 PlusStatus vtkPlusIntelRealSenseTracker::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CameraCalibrationFile, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(CameraCalibrationFile, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(TrackingMethod, deviceConfig, "3D", TRACKING_3D, "2D", TRACKING_2D);
 
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)

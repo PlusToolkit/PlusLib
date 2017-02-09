@@ -26,9 +26,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
+#include <vtkPNGReader.h>
+#include <vtkImageFlip.h>
+#include <vtkImageImport.h>
 
 // ITK includes
 #include <metaImage.h>
+#include <itkImageFileReader.h>
 
 vtkStandardNewMacro(vtkPlusVolumeReconstructor);
 
@@ -82,8 +86,8 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
 {
   XML_FIND_NESTED_ELEMENT_REQUIRED(reconConfig, config, "VolumeReconstruction");
 
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
 
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 3, OutputSpacing, reconConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, reconConfig);
@@ -115,21 +119,27 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
   }
 
   // reconstruction options
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Interpolation, reconConfig, \
-                                    this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION, \
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Interpolation, reconConfig,
+                                    this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::LINEAR_INTERPOLATION,
                                     this->Reconstructor->GetInterpolationModeAsString(vtkPlusPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION), vtkPlusPasteSliceIntoVolume::NEAREST_NEIGHBOR_INTERPOLATION);
 
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig, \
-                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION, \
-                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION, \
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(Optimization, reconConfig,
+                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::FULL_OPTIMIZATION,
+                                    this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::PARTIAL_OPTIMIZATION,
                                     this->Reconstructor->GetOptimizationModeAsString(vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION), vtkPlusPasteSliceIntoVolume::NO_OPTIMIZATION);
 
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig, \
-                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE, \
-                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE, \
+  XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(CompoundingMode, reconConfig,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE,
+                                    this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE,
                                     this->Reconstructor->GetCompoundingModeAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE), vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ImportanceMaskFilename, reconConfig);
+  }
 
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FillHoles, reconConfig, "ON", true, "OFF", false);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFanAnglesAutoDetect, reconConfig);
@@ -146,24 +156,29 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
   }
 
   // ==== Warn if using DEPRECATED XML tags (2014-08-15, #923) ====
-  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Compounding, reconConfig, CompoundingMode);
+  XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(Compounding, reconConfig, CompoundingMode);
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Compounding, reconConfig, "ON", 1, "OFF", 0);
 
-  XML_READ_WARNING_DEPRECATED_STRING_REPLACED(Calculation, reconConfig, CompoundingMode);
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig, \
-                                    this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION, \
+  XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(Calculation, reconConfig, CompoundingMode);
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(Calculation, reconConfig,
+                                    this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION), vtkPlusPasteSliceIntoVolume::WEIGHTED_AVERAGE_CALCULATION,
                                     this->Reconstructor->GetCalculationAsString(vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION), vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION);
 
   if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::UNDEFINED_COMPOUNDING_MODE)
   {
     if (this->Reconstructor->GetCalculation() == vtkPlusPasteSliceIntoVolume::MAXIMUM_CALCULATION)
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE); }
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE);
+    }
     else if (this->Reconstructor->GetCompounding() == 0)
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE); }
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE);
+    }
     else
-    { SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE); }
-    LOG_WARNING("CompoundingMode has not been set. Will assume " <<
-                this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
+    {
+      SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE);
+    }
+    LOG_WARNING("CompoundingMode has not been set. Will assume " << this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
   }
 
   this->Modified();
@@ -229,6 +244,15 @@ PlusStatus vtkPlusVolumeReconstructor::WriteConfiguration(vtkXMLDataElement* con
   else
   {
     XML_REMOVE_ATTRIBUTE(reconConfig, "NumberOfThreads");
+  }
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    reconConfig->SetAttribute("ImportanceMaskFilename", this->ImportanceMaskFilename.c_str());
+  }
+  else
+  {
+    XML_REMOVE_ATTRIBUTE(reconConfig, "ImportanceMaskFilename");
   }
 
   if (this->Reconstructor->IsPixelRejectionEnabled())
@@ -882,4 +906,41 @@ void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectBrightnessThreshold(doubl
 void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectFilterRadiusPixel(int radiusPixel)
 {
   this->FanAngleDetector->SetFilterRadiusPixel(radiusPixel);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& filename)
+{
+  if (this->ImportanceMaskFilename != filename)
+  {
+    this->ImportanceMaskFilename = filename;
+
+    // use itk reader which supports many file formats
+    typedef itk::Image<unsigned char, 3> uc2Type;
+    typedef itk::ImageFileReader<uc2Type> ReaderType;
+    ReaderType::Pointer reader2 = ReaderType::New();
+    reader2->SetFileName(filename);
+    reader2->Update();
+    uc2Type::Pointer img = reader2->GetOutput();
+    uc2Type::RegionType region = img->GetLargestPossibleRegion();
+    img->Register();
+
+    vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
+    importer->SetWholeExtent(region.GetIndex(0), region.GetSize(0) - 1, region.GetIndex(1), region.GetSize(1) - 1, region.GetIndex(2), region.GetSize(2) - 1);
+    importer->SetDataExtentToWholeExtent();
+    importer->SetDataScalarTypeToUnsignedChar();
+    importer->SetImportVoidPointer(img->GetBufferPointer(), region.GetNumberOfPixels());
+    importer->SetScalarArrayName("itkGraylevels");
+    importer->Update();
+    this->Reconstructor->GetImportanceMask()->ShallowCopy(importer->GetOutput());
+
+    this->Reconstructor->Modified();
+    this->Modified();
+  }
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
+{
+  return this->ImportanceMaskFilename;
 }

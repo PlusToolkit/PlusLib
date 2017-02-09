@@ -83,7 +83,7 @@ target_include_directories(vtkPlusServer PUBLIC
   $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
   target_compile_options(vtkPlusServer PRIVATE -ftemplate-depth=5000)
-endif()
+ENDIF()
 TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
 TARGET_LINK_LIBRARIES(vtkPlusServer PRIVATE ${PlusServer_PRIVATE_LIBS})
 

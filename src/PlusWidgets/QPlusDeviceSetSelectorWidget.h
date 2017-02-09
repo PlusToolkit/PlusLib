@@ -55,9 +55,16 @@ public:
   /*!
   * Set device set configuration directory
   * \param aDirectory Input configuration directory
-  * \param Success flag
+  * \return Success flag
   */
-  PlusStatus SetConfigurationDirectory(QString aDirectory);
+  PlusStatus SetConfigurationDirectory(const QString& aDirectory);
+
+  /*!
+  * Set device set configuration file, if it contains a folder structure, the directory is changed and the file is selected
+  * \param aFilename Input configuration filename
+  * \return Success flag
+  */
+  PlusStatus SetConfigurationFile(const QString& aFilename);
 
   /*!
   * Set connection successful flag

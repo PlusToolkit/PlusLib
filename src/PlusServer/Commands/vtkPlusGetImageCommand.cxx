@@ -11,12 +11,12 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkPlusCommandProcessor.h"
 
-static const char GET_IMAGE_META_DATA[]="GET_IMGMETA";
-static const char GET_IMAGE[]="GET_IMAGE";
+static const char GET_IMAGE_META_DATA[] = "GET_IMGMETA";
+static const char GET_IMAGE[] = "GET_IMAGE";
 
-static const char DeviceNameImageIdSeparator='-';
+static const char DeviceNameImageIdSeparator = '-';
 
-vtkStandardNewMacro( vtkPlusGetImageCommand );
+vtkStandardNewMacro(vtkPlusGetImageCommand);
 
 //----------------------------------------------------------------------------
 vtkPlusGetImageCommand::vtkPlusGetImageCommand()
@@ -32,13 +32,13 @@ vtkPlusGetImageCommand::~vtkPlusGetImageCommand()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusGetImageCommand::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusGetImageCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string> &cmdNames)
+void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string>& cmdNames)
 {
   cmdNames.clear();
   cmdNames.push_back(GET_IMAGE_META_DATA);
@@ -49,15 +49,15 @@ void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string> &cmdNames)
 std::string vtkPlusGetImageCommand::GetDescription(const char* commandName)
 {
   std::string desc;
-  if (commandName==NULL || STRCASECMP(commandName, GET_IMAGE_META_DATA))
+  if (commandName == NULL || STRCASECMP(commandName, GET_IMAGE_META_DATA))
   {
-    desc+=GET_IMAGE_META_DATA;
-    desc+=": Acquire the image meta data information from all the devices that are connected.";
+    desc += GET_IMAGE_META_DATA;
+    desc += ": Acquire the image meta data information from all the devices that are connected.";
   }
-  if (commandName==NULL || STRCASECMP(commandName, GET_IMAGE))
+  if (commandName == NULL || STRCASECMP(commandName, GET_IMAGE))
   {
-    desc+=GET_IMAGE;
-    desc+="Acquire the volume data and the ijkToRas transformation of the data from the specified device.";
+    desc += GET_IMAGE;
+    desc += "Acquire the volume data and the ijkToRas transformation of the data from the specified device.";
   }
   return desc;
 }
@@ -81,24 +81,24 @@ PlusStatus vtkPlusGetImageCommand::Execute()
                             + ", device: (" + (this->GetImageId() == NULL ? "(undefined)" : this->GetImageId()) + ")";
 
   std::string errorString;
-  if (STRCASECMP(this->Name, GET_IMAGE_META_DATA)==0)
+  if (STRCASECMP(this->Name, GET_IMAGE_META_DATA) == 0)
   {
     std::string imageIdStr(this->GetImageId());
-    if(imageIdStr.size() > 0)
+    if (imageIdStr.size() > 0)
     {
       LOG_ERROR("The implementation of the GET_IMGMETA is not implemented for the case in which an id is specified. The id is supposed to be empty and then it will send the meta data from all connected devices")
       return PLUS_FAIL;
     }
-    if( this->ExecuteImageMetaReply(errorString) != PLUS_SUCCESS )
+    if (this->ExecuteImageMetaReply(errorString) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, baseMessage + " Failed. See error message.", errorString);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
-  else if (STRCASECMP(this->Name, GET_IMAGE)==0)
+  else if (STRCASECMP(this->Name, GET_IMAGE) == 0)
   {
-    if( this->ExecuteImageReply(errorString) != PLUS_SUCCESS )
+    if (this->ExecuteImageReply(errorString) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, baseMessage + " Failed. See error message.", errorString);
       return PLUS_FAIL;
@@ -112,8 +112,8 @@ PlusStatus vtkPlusGetImageCommand::Execute()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString)
 {
-  vtkPlusDataCollector* dataCollector=GetDataCollector();
-  if (dataCollector==NULL)
+  vtkPlusDataCollector* dataCollector = GetDataCollector();
+  if (dataCollector == NULL)
   {
     outErrorString = "The DataCollector is NULL.";
     return PLUS_FAIL;
@@ -121,10 +121,10 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
 
   vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
   vtkSmartPointer<vtkMatrix4x4> ijkToRasTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+  for (DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it)
   {
     vtkPlusDevice* plusDevice = (*it);
-    if(plusDevice->GetDeviceId() == NULL)
+    if (plusDevice->GetDeviceId().empty())
     {
       outErrorString = "PLUS device has a NULL id.";
       return PLUS_FAIL;
@@ -132,27 +132,27 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageReply(std::string& outErrorString
 
     std::string imageIdStr(this->GetImageId()); // SLD-001
     size_t dashFound = imageIdStr.find_last_of(DeviceNameImageIdSeparator);
-    if(dashFound == std::string::npos)
+    if (dashFound == std::string::npos)
     {
       outErrorString = "ImageId has to contain a dash right after the deviceId.";
       return PLUS_FAIL;
     }
 
-    std::string requestedDeviceId = imageIdStr.substr(0,dashFound); //SLD
-    std::string requestedImageId = imageIdStr.substr(dashFound+1); // 001
+    std::string requestedDeviceId = imageIdStr.substr(0, dashFound); //SLD
+    std::string requestedImageId = imageIdStr.substr(dashFound + 1); // 001
     std::string deviceIdStr(plusDevice->GetDeviceId()); // SLD
-    if(requestedDeviceId.compare(deviceIdStr) == 0)
+    if (requestedDeviceId.compare(deviceIdStr) == 0)
     {
       std::string assignedImageId("");
-      if(plusDevice->GetImage(requestedImageId, assignedImageId, std::string("Ras"), imageData, ijkToRasTransform))
+      if (plusDevice->GetImage(requestedImageId, assignedImageId, std::string("Ras"), imageData, ijkToRasTransform))
       {
-        if(assignedImageId.compare(requestedImageId) !=0 )
+        if (assignedImageId.compare(requestedImageId) != 0)
         {
           outErrorString = "The assignedImageId does not match requestedImageId.";
           return PLUS_FAIL;
         }
 
-        vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse=vtkSmartPointer<vtkPlusCommandImageResponse>::New();
+        vtkSmartPointer<vtkPlusCommandImageResponse> imageResponse = vtkSmartPointer<vtkPlusCommandImageResponse>::New();
         this->CommandResponseQueue.push_back(imageResponse);
         imageResponse->SetClientId(this->ClientId);
         imageResponse->SetImageName(this->GetImageId());
@@ -179,15 +179,15 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
   }
   vtkPlusDevice* plusDevice;
   PlusCommon::ImageMetaDataList imageMetaDataList;
-  for( DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it )
+  for (DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it)
   {
     plusDevice = (*it);
-    if(plusDevice == NULL)
+    if (plusDevice == NULL)
     {
       outErrorString = "NULL device found in data collector list.";
       return PLUS_FAIL;
     }
-    if(plusDevice->GetDeviceId() == NULL)
+    if (plusDevice->GetDeviceId().empty())
     {
       outErrorString = "PLUS device has a NULL deviceId.";
       return PLUS_FAIL;
@@ -195,23 +195,23 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
     PlusCommon::ImageMetaDataList imageMetaDataListDevice;
     imageMetaDataListDevice.clear();
     plusDevice->GetImageMetaData(imageMetaDataListDevice);
-    for(PlusCommon::ImageMetaDataList::iterator it = imageMetaDataListDevice.begin(); it!= imageMetaDataListDevice.end(); it++)
+    for (PlusCommon::ImageMetaDataList::iterator it = imageMetaDataListDevice.begin(); it != imageMetaDataListDevice.end(); it++)
     {
-      if(it->Id.find(DeviceNameImageIdSeparator) != std::string::npos)
+      if (it->Id.find(DeviceNameImageIdSeparator) != std::string::npos)
       {
         outErrorString = "DeviceId cannot contain a dash.";
         return PLUS_FAIL;
       }
       it->Id = std::string(plusDevice->GetDeviceId()) + DeviceNameImageIdSeparator + (*it).Id;
     }
-    imageMetaDataList.splice(imageMetaDataList.end(),imageMetaDataListDevice,imageMetaDataListDevice.begin(),imageMetaDataListDevice.end());
+    imageMetaDataList.splice(imageMetaDataList.end(), imageMetaDataListDevice, imageMetaDataListDevice.begin(), imageMetaDataListDevice.end());
   }
-  if(imageMetaDataList.size() == 0)
+  if (imageMetaDataList.size() == 0)
   {
     LOG_INFO("There are currently no images on the devices that are connected through plus.");
   }
 
-  vtkSmartPointer<vtkPlusCommandImageMetaDataResponse > imageMetaDataResponse=vtkSmartPointer<vtkPlusCommandImageMetaDataResponse>::New();
+  vtkSmartPointer<vtkPlusCommandImageMetaDataResponse > imageMetaDataResponse = vtkSmartPointer<vtkPlusCommandImageMetaDataResponse>::New();
   this->CommandResponseQueue.push_back(imageMetaDataResponse);
   imageMetaDataResponse->SetClientId(this->ClientId);
   imageMetaDataResponse->SetRespondWithCommandMessage(this->GetRespondWithCommandMessage());

@@ -9,31 +9,34 @@ See License.txt for details.
   \brief This a test program acquires both video and tracking data and writes them into separate metafiles
 */
 
+// Local includes
 #include "PlusConfigure.h"
-#include "vtkPlusDataCollector.h"
+#include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusBuffer.h"
 #include "vtkPlusSavedDataSource.h"
-#include "vtkSmartPointer.h"
-#include "vtkTimerLog.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtksys/SystemTools.hxx"
+
+// VTK includes
+#include <vtkSmartPointer.h>
+#include <vtkTimerLog.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/CommandLineArguments.hxx>
+#include <vtksys/SystemTools.hxx>
 
 int main(int argc, char** argv)
 {
   int numberOfFailures(0);
   std::string inputConfigFileName;
   double inputAcqTimeLength(20);
-  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.nrrd"); 
-  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.nrrd"); 
+  std::string outputTrackerBufferSequenceFileName("TrackerBufferMetafile.nrrd");
+  std::string outputVideoBufferSequenceFileName("VideoBufferMetafile.nrrd");
   std::string inputVideoBufferMetafile;
   std::string inputTrackerBufferMetafile;
   bool outputCompressed(true);
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -47,7 +50,7 @@ int main(int argc, char** argv)
   args.AddArgument("--output-compressed", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputCompressed, "Compressed output (0=non-compressed, 1=compressed, default:compressed)");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
@@ -65,7 +68,7 @@ int main(int argc, char** argv)
   ///////////////
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
@@ -75,151 +78,148 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
 
-  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to configure data collector in configuration file specified by: " << inputConfigFileName );
+    LOG_ERROR("Unable to configure data collector in configuration file specified by: " << inputConfigFileName);
     exit(EXIT_FAILURE);
   }
   vtkPlusDevice* videoDevice = NULL;
   vtkPlusDevice* trackerDevice = NULL;
 
-  if ( !inputVideoBufferMetafile.empty() )
+  if (!inputVideoBufferMetafile.empty())
   {
-    if( dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS )
+    if (dataCollector->GetDevice(videoDevice, "VideoDevice") != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to locate the device with Id=\"VideoDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
     vtkPlusSavedDataSource* videoSource = dynamic_cast<vtkPlusSavedDataSource*>(videoDevice);
-    if ( videoSource == NULL )
+    if (videoSource == NULL)
     {
-      LOG_ERROR( "Unable to cast device to vtkPlusSavedDataSource." );
-      exit( EXIT_FAILURE );
+      LOG_ERROR("Unable to cast device to vtkPlusSavedDataSource.");
+      exit(EXIT_FAILURE);
     }
     videoSource->SetSequenceFile(inputVideoBufferMetafile.c_str());
   }
 
-  if ( !inputTrackerBufferMetafile.empty() )
+  if (!inputTrackerBufferMetafile.empty())
   {
-    if( dataCollector->GetDevice(trackerDevice, "TrackerDevice") != PLUS_SUCCESS )
+    if (dataCollector->GetDevice(trackerDevice, "TrackerDevice") != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to locate the device with Id=\"TrackerDevice\". Check config file.");
       exit(EXIT_FAILURE);
     }
     vtkPlusSavedDataSource* tracker = dynamic_cast<vtkPlusSavedDataSource*>(trackerDevice);
-    if ( tracker == NULL )
+    if (tracker == NULL)
     {
-      LOG_ERROR( "Unable to cast tracker to vtkPlusSavedDataSource" );
-      exit( EXIT_FAILURE );
+      LOG_ERROR("Unable to cast tracker to vtkPlusSavedDataSource");
+      exit(EXIT_FAILURE);
     }
     tracker->SetSequenceFile(inputTrackerBufferMetafile.c_str());
   }
 
-  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  if (dataCollector->Connect() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to connect to data collector!");
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
 
-  if ( dataCollector->Start() != PLUS_SUCCESS )
+  if (dataCollector->Start() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to start data collection");
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
 
   const double acqStartTime = vtkTimerLog::GetUniversalTime();
 
-  while ( acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime() )
+  while (acqStartTime + inputAcqTimeLength > vtkTimerLog::GetUniversalTime())
   {
-    LOG_INFO( acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() << " seconds left..." );
+    LOG_INFO(acqStartTime + inputAcqTimeLength - vtkTimerLog::GetUniversalTime() << " seconds left...");
     vtksys::SystemTools::Delay(1000);
   }
 
   vtkSmartPointer<vtkPlusBuffer> videobuffer = vtkSmartPointer<vtkPlusBuffer>::New();
   vtkPlusChannel* aChannel(NULL);
   vtkPlusDataSource* aSource(NULL);
-  if( videoDevice == NULL || videoDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (videoDevice == NULL || videoDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS || aChannel == NULL || aChannel->GetVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source.");
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
 
   aSource->DeepCopyBufferTo(*videobuffer);
 
   vtkSmartPointer<vtkPlusDevice> tracker = vtkSmartPointer<vtkPlusDevice>::New();
-  if ( trackerDevice != NULL )
+  if (trackerDevice != NULL)
   {
     LOG_INFO("Copy tracker");
-    tracker->DeepCopy(trackerDevice);
+    tracker->DeepCopy(*trackerDevice);
   }
 
-  if ( videoDevice != NULL )
+  if (videoDevice != NULL)
   {
-    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
+    std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
     LOG_INFO("Write video buffer to " << fullPath);
     videobuffer->WriteToSequenceFile(fullPath.c_str(), outputCompressed);
   }
 
-  if ( trackerDevice != NULL )
+  if (trackerDevice != NULL)
   {
-    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
-    LOG_INFO("Write tracker buffer to " << fullPath );
+    std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
+    LOG_INFO("Write tracker buffer to " << fullPath);
     tracker->WriteToolsToSequenceFile(fullPath.c_str(), outputCompressed);
   }
 
-
-  if ( videoDevice != NULL )
+  if (videoDevice != NULL)
   {
-    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
-    if ( vtksys::SystemTools::FileExists(fullPath.c_str(), true) )
+    std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputVideoBufferSequenceFileName);
+    if (vtksys::SystemTools::FileExists(fullPath.c_str(), true))
     {
       LOG_INFO("Remove generated video metafile!");
-      if ( !vtksys::SystemTools::RemoveFile(fullPath.c_str()) )
+      if (!vtksys::SystemTools::RemoveFile(fullPath.c_str()))
       {
-        LOG_ERROR("Unable to remove generated video buffer: " << fullPath );
+        LOG_ERROR("Unable to remove generated video buffer: " << fullPath);
         numberOfFailures++;
       }
     }
     else
     {
-      LOG_ERROR("Unable to find video buffer at: " << fullPath );
+      LOG_ERROR("Unable to find video buffer at: " << fullPath);
       numberOfFailures++;
     }
   }
 
-  if ( trackerDevice != NULL )
+  if (trackerDevice != NULL)
   {
-    std::string fullPath=vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
-    if ( vtksys::SystemTools::FileExists(fullPath.c_str(), true) )
+    std::string fullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputTrackerBufferSequenceFileName);
+    if (vtksys::SystemTools::FileExists(fullPath.c_str(), true))
     {
       LOG_INFO("Remove generated tracker metafile!");
-      if ( !vtksys::SystemTools::RemoveFile(fullPath.c_str()) )
+      if (!vtksys::SystemTools::RemoveFile(fullPath.c_str()))
       {
-        LOG_ERROR("Unable to remove generated tracker buffer: " << fullPath );
+        LOG_ERROR("Unable to remove generated tracker buffer: " << fullPath);
         numberOfFailures++;
       }
     }
     else
     {
-      LOG_ERROR("Unable to find tracker buffer at: " << fullPath );
+      LOG_ERROR("Unable to find tracker buffer at: " << fullPath);
       numberOfFailures++;
     }
   }
 
-  if ( dataCollector->Stop() != PLUS_SUCCESS )
+  if (dataCollector->Stop() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to stop data collection!");
     numberOfFailures++;
   }
 
-  if ( numberOfFailures > 0 )
+  if (numberOfFailures > 0)
   {
-    LOG_ERROR("Number of failures: " << numberOfFailures );
+    LOG_ERROR("Number of failures: " << numberOfFailures);
     return EXIT_FAILURE;
   }
 
   std::cout << "Test completed successfully!" << std::endl;
   return EXIT_SUCCESS;
-
 }
-

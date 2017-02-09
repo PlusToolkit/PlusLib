@@ -191,6 +191,9 @@ public:
   void SetPixelRejectionThreshold(double threshold);
   double GetPixelRejectionThreshold();
 
+  const std::string& GetImportanceMaskFilename() const;
+  void SetImportanceMaskFilename(const std::string& filename);
+
 protected:
   vtkPlusVolumeReconstructor();
   virtual ~vtkPlusVolumeReconstructor();
@@ -234,6 +237,8 @@ protected:
     If EnableFanAnglesAutoDetect is disabled then these values will be used as fan angles.
   */
   double FanAnglesDeg[2];
+
+  std::string ImportanceMaskFilename;
 
 private:
   vtkPlusVolumeReconstructor(const vtkPlusVolumeReconstructor&);  // Not implemented.

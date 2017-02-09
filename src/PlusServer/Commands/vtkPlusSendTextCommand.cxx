@@ -71,8 +71,8 @@ PlusStatus vtkPlusSendTextCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
   {
     return PLUS_FAIL;
   }
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(DeviceId, aConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(Text, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(DeviceId, aConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(Text, aConfig);
   return PLUS_SUCCESS;
 }
 
@@ -83,8 +83,8 @@ PlusStatus vtkPlusSendTextCommand::WriteConfiguration(vtkXMLDataElement* aConfig
   {
     return PLUS_FAIL;
   }
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(DeviceId, aConfig);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_NULL(Text, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(DeviceId, aConfig);
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(Text, aConfig);
   return PLUS_SUCCESS;
 }
 
