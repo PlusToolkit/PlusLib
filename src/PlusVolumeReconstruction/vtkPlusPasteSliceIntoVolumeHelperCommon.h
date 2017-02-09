@@ -90,6 +90,7 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 #include "PlusMath.h"
 #include "float.h" // for DBL_MAX
+#include <typeinfo>
 
 class vtkImageData;
 
@@ -311,7 +312,16 @@ static int vtkTrilinearInterpolation(F *point,
           if (*importancePtr == 0)
             break;
           a = F( (*importancePtr)*f + *accPtrTmp );
-          r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
+          if (typeid(F) == typeid(fixed))
+          {
+            //multiplying (*accPtrTmp)*(*outPtrTmp) tends to overflow fixed point type, so divide in-between
+            //splitting like this incurs two divisions, but avoids overflow
+            r = (*inPtrTmp)*(*importancePtr)*f / a + ((*accPtrTmp) / a)*(*outPtrTmp);
+          }
+          else // with float just one division is used
+          {
+            r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
+          }
           if (roundOutput)
           {
             PlusMath::Round(r, *outPtrTmp);
