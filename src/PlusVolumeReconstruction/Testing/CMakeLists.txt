@@ -1,38 +1,46 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
-function(RegressionTest TestName Config Seq Out)
+function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNameFragment)
   ADD_TEST(vtkVolumeReconstructorTestRun${TestName}
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_${Config}.xml
-    --source-seq-file=${TestDataDir}/${Seq}.mha
-    --output-volume-file=vtkVolumeReconstructorTest${Out}volume.mha
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_${ConfigFileNameFragment}.xml
+    --source-seq-file=${TestDataDir}/${InputSeqFile}.mha
+    --output-volume-file=vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     --image-to-reference-transform=ImageToReference
     )
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRun${TestName} PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  
+
   ADD_TEST(vtkVolumeReconstructorTestCompare${TestName}
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTest${Out}volumeRef.mha
-    vtkVolumeReconstructorTest${Out}volume.mha
+    ${CMAKE_COMMAND} -E compare_files
+    ${TestDataDir}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha
+    vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     )
   SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompare${TestName} PROPERTIES DEPENDS vtkVolumeReconstructorTestRun${TestName})
 endfunction()
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  #RegressionTest(TestSpecificName ConfigFileNameFragment InputSeqFile OutNameFragment)
-  RegressionTest(NearLateUChar SonixRP_TRUS_D70mm_NN_LATE SpinePhantomFreehand NNLATE)
-  RegressionTest(NearMeanUChar SpinePhantom_NN_MEAN SpinePhantomFreehand NNMEAN)
-  RegressionTest(NearMaxiFloat SpinePhantom_NN_MAXI SpinePhantomFreehand3FramesFloat NNMAXI)
-  RegressionTest(LinrLateFloat SpinePhantom_LN_LATE SpinePhantomFreehand3FramesFloat LNLATE)
-  RegressionTest(LinrMeanUChar SonixRP_TRUS_D70mm_LN_MEAN SpinePhantomFreehand LNMEAN)
-  RegressionTest(LinrMaxiUChar SpinePhantom_LN_MAXI SpinePhantomFreehand LNMAXI)
+  VolRecRegressionTest(NearLateUChar SonixRP_TRUS_D70mm_NN_LATE SpinePhantomFreehand NNLATE)
+  VolRecRegressionTest(NearMeanUChar SpinePhantom_NN_MEAN SpinePhantomFreehand NNMEAN)
+  VolRecRegressionTest(NearMaxiFloat SpinePhantom_NN_MAXI SpinePhantomFreehand3FramesFloat NNMAXI)
+  VolRecRegressionTest(LinrLateFloat SpinePhantom_LN_LATE SpinePhantomFreehand3FramesFloat LNLATE)
+  VolRecRegressionTest(LinrMeanUChar SonixRP_TRUS_D70mm_LN_MEAN SpinePhantomFreehand LNMEAN)
+  VolRecRegressionTest(LinrMaxiUChar SpinePhantom_LN_MAXI SpinePhantomFreehand LNMAXI)
+
+  # Importance mask tests
+  file(COPY ${TestDataDir}/ImportanceMask.png DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  VolRecRegressionTest(IMLinearFull ImportanceMaskLinearFull ImportanceMaskInput IMLiF)
+  VolRecRegressionTest(IMLinearPartial ImportanceMaskLinearPartial ImportanceMaskInput IMLiP)
+  VolRecRegressionTest(IMLinearNone ImportanceMaskLinearNone ImportanceMaskInput IMLiN)
+  VolRecRegressionTest(IMNearFull ImportanceMaskNNFull ImportanceMaskInput IMNNF)
+  VolRecRegressionTest(IMNearPartial ImportanceMaskNNPartial ImportanceMaskInput IMNNP)
+  VolRecRegressionTest(IMNearNone ImportanceMaskNNNone ImportanceMaskInput IMNNN)
 
 
-  ADD_TEST(CreateSliceModelsTest 
+  ADD_TEST(CreateSliceModelsTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
     --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
-    --output-model-file=GeneratedSliceModels.mha  
+    --output-model-file=GeneratedSliceModels.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
     --image-to-reference-transform=ProbeToReference
     )
@@ -47,7 +55,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(DrawClipRegionCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files 
+    ${CMAKE_COMMAND} -E compare_files
      ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
      ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
     )
