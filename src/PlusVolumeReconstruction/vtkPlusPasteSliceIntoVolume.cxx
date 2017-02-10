@@ -389,6 +389,17 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   str->InputFrameImage->GetExtent( inputFrameExtent );
   unsigned char *importancePtr = NULL;
   int inputFrameExtentForCurrentThread[6] = { 0, -1, 0, -1, 0, -1 };
+
+  int totalUsedThreads = vtkPlusPasteSliceIntoVolume::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
+
+  if (threadId >= totalUsedThreads)
+  {
+    // don't use this thread. Sometimes the threads dont
+    // break up very well and it is just as efficient to leave a
+    // few threads idle.
+    return VTK_THREAD_RETURN_VALUE;
+  }
+
   if (str->CompoundingMode == IMPORTANCE_MASK_COMPOUNDING_MODE)
   {
     if (!str->Importance)
@@ -423,16 +434,6 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
       return VTK_THREAD_RETURN_VALUE;
     }
     importancePtr = static_cast<unsigned char*>(str->Importance->GetScalarPointerForExtent(inputFrameExtentForCurrentThread));
-  }
-
-  int totalUsedThreads = vtkPlusPasteSliceIntoVolume::SplitSliceExtent( inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount );
-
-  if ( threadId >= totalUsedThreads )
-  {
-    //   don't use this thread. Sometimes the threads dont
-    //   break up very well and it is just as efficient to leave a
-    //   few threads idle.
-    return VTK_THREAD_RETURN_VALUE;
   }
 
   // this filter expects that input is the same type as output.
