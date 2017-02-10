@@ -322,7 +322,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkIdType impIncZ = 0;
   if (insertionParams->importanceMask)
   {
-    insertionParams->importanceMask->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
+    insertionParams->importanceMask->GetContinuousIncrements(inExt, impIncX, impIncY, impIncZ);
   }
 
   // Set interpolation method - nearest neighbor or trilinear  
@@ -358,7 +358,7 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   {
     for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += impIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += impIncX)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += 1)
       {
         // check if we are within the current clip extent
         if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])
