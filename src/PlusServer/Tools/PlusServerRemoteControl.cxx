@@ -48,19 +48,19 @@ class vtkPlusOpenIGTLinkClientWithTransformLogging : public vtkPlusOpenIGTLinkCl
 public:
 
   static vtkPlusOpenIGTLinkClientWithTransformLogging* New();
-  vtkTypeMacro( vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient );
+  vtkTypeMacro(vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient);
 
   bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
   {
     bool messageBodyReceived = false;
     igtl::MessageBase::Pointer bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(messageHeader);
-    if( bodyMsg.IsNull() )
+    if (bodyMsg.IsNull())
     {
       LOG_ERROR("Unable to create message of type: " << messageHeader->GetMessageType());
       return false;
     }
 
-    if ( typeid(*bodyMsg) != typeid(igtl::TransformMessage) )
+    if (typeid(*bodyMsg) != typeid(igtl::TransformMessage))
     {
       // not a transform message
       return messageBodyReceived;
@@ -73,7 +73,7 @@ public:
     messageBodyReceived = true;
 
     int c = transformMsg->Unpack(1);
-    if ( !(c & igtl::MessageHeader::UNPACK_BODY))
+    if (!(c & igtl::MessageHeader::UNPACK_BODY))
     {
       LOG_ERROR("Failed to receive TRANSFORM reply (invalid body)");
       return messageBodyReceived;
@@ -92,11 +92,11 @@ protected:
   vtkPlusOpenIGTLinkClientWithTransformLogging() {};
   virtual ~vtkPlusOpenIGTLinkClientWithTransformLogging() {};
 private:
-  vtkPlusOpenIGTLinkClientWithTransformLogging( const vtkPlusOpenIGTLinkClientWithTransformLogging& );
-  void operator=( const vtkPlusOpenIGTLinkClientWithTransformLogging& );
+  vtkPlusOpenIGTLinkClientWithTransformLogging(const vtkPlusOpenIGTLinkClientWithTransformLogging&);
+  void operator=(const vtkPlusOpenIGTLinkClientWithTransformLogging&);
 };
 
-vtkStandardNewMacro( vtkPlusOpenIGTLinkClientWithTransformLogging );
+vtkStandardNewMacro(vtkPlusOpenIGTLinkClientWithTransformLogging);
 
 // Utility functions for sending commands
 
@@ -119,7 +119,7 @@ PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::
   cmd->SetNameToStart();
   cmd->SetId(commandId);
   cmd->SetEnableCompression(enableCompression);
-  if ( !deviceId.empty() )
+  if (!deviceId.empty())
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
@@ -138,7 +138,7 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
     outputFilename = "PlusServerRecording.nrrd";
   }
   cmd->SetOutputFilename(outputFilename.c_str());
-  if ( !deviceId.empty() )
+  if (!deviceId.empty())
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
@@ -152,7 +152,7 @@ PlusStatus ExecuteSuspendAcquisition(vtkPlusOpenIGTLinkClient* client, const std
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd = vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToSuspend();
   cmd->SetId(commandId);
-  if ( !deviceId.empty() )
+  if (!deviceId.empty())
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
@@ -166,7 +166,7 @@ PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std:
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd = vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToResume();
   cmd->SetId(commandId);
-  if ( !deviceId.empty() )
+  if (!deviceId.empty())
   {
     cmd->SetCaptureDeviceId(deviceId.c_str());
   }
@@ -175,7 +175,11 @@ PlusStatus ExecuteResumeAcquisition(vtkPlusOpenIGTLinkClient* client, const std:
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client, const std::string& deviceId, const std::string& inputFilename, const std::string& outputFilename, const std::string& outputImageName, int commandId)
+PlusStatus ExecuteReconstructFromFile(vtkPlusOpenIGTLinkClient* client,
+                                      const std::string& deviceId,
+                                      const std::string& inputFilename,
+                                      const std::string& outputFilename,
+                                      const std::string& outputImageName, int commandId)
 {
   vtkSmartPointer<vtkPlusReconstructVolumeCommand> cmd = vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New();
   cmd->SetNameToReconstruct();
@@ -339,7 +343,12 @@ PlusStatus ExecuteGetDeviceIds(vtkPlusOpenIGTLinkClient* client, const std::stri
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::string& transformName, const std::string& transformValue, const std::string& transformError, const std::string& transformDate, const std::string& transformPersistent, int commandId)
+PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client,
+                                  const std::string& transformName,
+                                  const std::string& transformValue,
+                                  const std::string& transformError,
+                                  const std::string& transformDate,
+                                  const std::string& transformPersistent, int commandId)
 {
   vtkSmartPointer<vtkPlusUpdateTransformCommand> cmd = vtkSmartPointer<vtkPlusUpdateTransformCommand>::New();
   cmd->SetNameToUpdateTransform();
@@ -349,11 +358,11 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client, const std::s
   PlusCommon::StringToDouble(transformError.c_str(), value);
   cmd->SetTransformError(value);
   cmd->SetTransformDate(transformDate.c_str());
-  cmd->SetTransformPersistent(transformPersistent.compare("TRUE") == 0 );
+  cmd->SetTransformPersistent(transformPersistent.compare("TRUE") == 0);
   std::vector<std::string> elems;
   vtkMatrix4x4* transformValueMatrix = vtkMatrix4x4::New();
   PlusCommon::SplitStringIntoTokens(transformValue, ' ', elems);
-  if( elems.size() != 16 )
+  if (elems.size() != 16)
   {
     LOG_ERROR("Invalid formatting of matrix string.");
     return PLUS_FAIL;
@@ -429,7 +438,12 @@ PlusStatus ExecuteSendText(vtkPlusOpenIGTLinkClient* client, const std::string& 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client, bool& didTimeout, std::string& outContent, std::string& outErrorMessage, std::map<std::string, std::string>& parameters, int timeoutSec = 30)
+PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client,
+                                bool& didTimeout,
+                                std::string& outContent,
+                                std::string& outErrorMessage,
+                                igtl::MessageBase::MetaDataMap& parameters,
+                                int timeoutSec = 30)
 {
   int32_t commandId;
   std::string commandName;
@@ -445,15 +459,15 @@ PlusStatus ReceiveAndPrintReply(vtkPlusOpenIGTLinkClient* client, bool& didTimeo
   }
 
   LOG_INFO("Command ID: " << commandId);
-  LOG_INFO("Status: " << (result == PLUS_SUCCESS ? "SUCCESS" : "FAIL") );
+  LOG_INFO("Status: " << (result == PLUS_SUCCESS ? "SUCCESS" : "FAIL"));
   if (result == PLUS_FAIL)
   {
     LOG_INFO("Error: " << outErrorMessage);
   }
   LOG_INFO("Message: " << outContent);
-  for( std::map<std::string, std::string>::const_iterator it = parameters.begin(); it != parameters.end(); ++it )
+  for (igtl::MessageBase::MetaDataMap::const_iterator it = parameters.begin(); it != parameters.end(); ++it)
   {
-    LOG_INFO(it->first << ": " << it->second);
+    LOG_INFO(it->first << ": " << it->second.second);
   }
 
   return result;
@@ -465,7 +479,7 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess*&
   processPtr = NULL;
   std::string executablePath = vtkPlusConfig::GetInstance()->GetPlusExecutablePath("PlusServer");
 
-  if ( !vtksys::SystemTools::FileExists( executablePath.c_str(), true) )
+  if (!vtksys::SystemTools::FileExists(executablePath.c_str(), true))
   {
     LOG_ERROR("Unable to find executable at: " << executablePath);
     return PLUS_FAIL;
@@ -487,9 +501,9 @@ PlusStatus StartPlusServerProcess(const std::string& configFile, vtksysProcess*&
     vtksysProcess_SetPipeFile(processPtr, vtksysProcess_Pipe_STDOUT, "PlusServerRemoteControlStdOut.log");
     vtksysProcess_SetPipeFile(processPtr, vtksysProcess_Pipe_STDERR, "PlusServerRemoteControlStdErr.log");
 
-    LOG_INFO("Start PlusServer..." );
+    LOG_INFO("Start PlusServer...");
     vtksysProcess_Execute(processPtr);
-    LOG_DEBUG("PlusServer started" );
+    LOG_DEBUG("PlusServer started");
 
     return PLUS_SUCCESS;
   }
@@ -530,23 +544,23 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 
   std::string replyMessage;
   std::string errorMessage;
-  std::map<std::string, std::string> parameters;
+  igtl::MessageBase::MetaDataMap parameters;
   int commandId = 1;
   bool didTimeout(false);
 
-  if( client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3 )
+  if (client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3)
   {
     ExecuteVersion(client, commandId++);
     PlusStatus result = ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters, 3);
-    if( result == PLUS_FAIL && didTimeout && client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3 )
+    if (result == PLUS_FAIL && didTimeout && client->GetServerIGTLVersion() >= OpenIGTLink_PROTOCOL_VERSION_3)
     {
       // Version 3 and greater expect a reply to the version command, if it timed out, it is an error
       LOG_ERROR("Version handshake to the server timed out but it was unexpected.");
       exit(EXIT_FAILURE);
     }
-    else if( result == PLUS_SUCCESS && parameters.find("Version") != parameters.end() )
+    else if (result == PLUS_SUCCESS && parameters.find("Version") != parameters.end())
     {
-      LOG_INFO("Server IGTL Version: " << parameters["Version"]);
+      LOG_INFO("Server IGTL Version: " << parameters["Version"].second);
     }
     else
     {
@@ -559,24 +573,24 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   // Basic commands
   ExecuteGetChannelIds(client, commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
-  if( client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3 )
+  if (client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3)
   {
-    if( replyMessage != "TrackedVideoStream" )
+    if (replyMessage != "TrackedVideoStream")
     {
       LOG_ERROR("Incorrect reply sent. Got: " << replyMessage << ". Expected: \"TrackedVideoStream\"");
     }
   }
   else
   {
-    if( parameters.size() == 0 || parameters.find("TrackedVideoStream") == parameters.end())
+    if (parameters.size() == 0 || parameters.find("TrackedVideoStream") == parameters.end())
     {
       LOG_ERROR("Empty result or entry not found in list of device IDs.");
     }
     else
     {
-      if( parameters["TrackedVideoStream"].compare("TrackedVideoStream") != 0 )
+      if (parameters["TrackedVideoStream"].second.compare("TrackedVideoStream") != 0)
       {
-        LOG_ERROR("Incorrect parameter returned. Got: " << parameters["TrackedVideoStream"] << ". Expected: \"TrackedVideoStream\"");
+        LOG_ERROR("Incorrect parameter returned. Got: " << parameters["TrackedVideoStream"].second << ". Expected: \"TrackedVideoStream\"");
       }
     }
   }
@@ -584,22 +598,22 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
 
   ExecuteGetDeviceIds(client, "VirtualVolumeReconstructor", commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
-  if( client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3 )
+  if (client->GetServerIGTLVersion() < OpenIGTLink_PROTOCOL_VERSION_3)
   {
-    if( replyMessage != "VolumeReconstructorDevice" )
+    if (replyMessage != "VolumeReconstructorDevice")
     {
       LOG_ERROR("Incorrect reply sent. Got: " << replyMessage << ". Expected: \"VolumeReconstructorDevice\"");
     }
   }
   else
   {
-    if( parameters.size() == 0)
+    if (parameters.size() == 0)
     {
       LOG_ERROR("Empty result returned for list of device IDs.");
     }
     else
     {
-      if( parameters["VolumeReconstructorDevice"].compare("VolumeReconstructorDevice") != 0 )
+      if (parameters["VolumeReconstructorDevice"].second.compare("VolumeReconstructorDevice") != 0)
       {
         LOG_ERROR("Incorrect parameter returned.");
       }
@@ -689,7 +703,7 @@ void SignalInterruptHandler(int s)
 
 
 //----------------------------------------------------------------------------
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
   // Check command line arguments.
   std::string serverHost = "127.0.0.1";
@@ -719,50 +733,50 @@ int main( int argc, char** argv )
   int commandId(0);
 
   vtksys::CommandLineArguments args;
-  args.Initialize( argc, argv );
+  args.Initialize(argc, argv);
 
-  args.AddArgument( "--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)" );
-  args.AddArgument( "--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)" );
-  args.AddArgument( "--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command, 
-    "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT, UPDATE_TRANSFORM, GET_TRANSFORM)" );
-  args.AddArgument( "--command-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &commandId, "Command ID to send to the server.");
-  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHeaderVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
-  args.AddArgument( "--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type." );
-  args.AddArgument( "--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command" );
-  args.AddArgument( "--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)" );
-  args.AddArgument( "--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)" );
-  args.AddArgument( "--text", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &text, "Text to be sent to the device" );
-  args.AddArgument( "--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform" );
-  args.AddArgument( "--transform-date", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformDate, "The date of the transform to update." );
-  args.AddArgument( "--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update." );
-  args.AddArgument( "--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update." );
-  args.AddArgument( "--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update." );
-  args.AddArgument( "--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &enableCompression, "Set capture device to record compressed data. Only supported with .nrrd capture." );
-  args.AddArgument( "--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");
-  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
-  args.AddArgument( "--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
-  args.AddArgument( "--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
-  args.AddArgument( "--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
-  args.AddArgument( "--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
-  args.AddArgument( "--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped." );
-  args.AddArgument( "--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
-  args.AddArgument( "--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "IGLT protocol version of the server.");
+  args.AddArgument("--host", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHost, "Host name of the OpenIGTLink server (default: 127.0.0.1)");
+  args.AddArgument("--port", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverPort, "Port address of the OpenIGTLink server (default: 18944)");
+  args.AddArgument("--command", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &command,
+                   "Command name to be executed on the server (START_ACQUISITION, STOP_ACQUISITION, SUSPEND_ACQUISITION, RESUME_ACQUISITION, RECONSTRUCT, START_RECONSTRUCTION, SUSPEND_RECONSTRUCTION, RESUME_RECONSTRUCTION, STOP_RECONSTRUCTION, GET_RECONSTRUCTION_SNAPSHOT, GET_CHANNEL_IDS, GET_DEVICE_IDS, GET_EXAM_DATA, SEND_TEXT, UPDATE_TRANSFORM, GET_TRANSFORM)");
+  args.AddArgument("--command-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &commandId, "Command ID to send to the server.");
+  args.AddArgument("--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverHeaderVersion, "The version of IGTL used by the server. Remove this parameter when querying is dynamic.");
+  args.AddArgument("--device", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "ID of the controlled device (optional, default: first VirtualStreamCapture or VirtualVolumeReconstructor device). In case of GET_DEVICE_IDS it is not an ID but a device type.");
+  args.AddArgument("--input-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFilename, "File name of the input, used for RECONSTRUCT command");
+  args.AddArgument("--output-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFilename, "File name of the output, used for START command (optional, default: 'PlusServerRecording.nrrd' for acquisition, no output for volume reconstruction)");
+  args.AddArgument("--output-image-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputImageName, "OpenIGTLink device name of the reconstructed file (optional, default: image is not sent)");
+  args.AddArgument("--text", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &text, "Text to be sent to the device");
+  args.AddArgument("--transform-name", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformName, "The name of the transform to update. Form=[From]To[To]Transform");
+  args.AddArgument("--transform-date", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformDate, "The date of the transform to update.");
+  args.AddArgument("--transform-error", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformError, "The error of the transform to update.");
+  args.AddArgument("--transform-persistent", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformPersistent, "The persistence of the transform to update.");
+  args.AddArgument("--transform-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &transformValue, "The actual transformation matrix to update.");
+  args.AddArgument("--use-compression", vtksys::CommandLineArguments::NO_ARGUMENT, &enableCompression, "Set capture device to record compressed data. Only supported with .nrrd capture.");
+  args.AddArgument("--keep-connected", vtksys::CommandLineArguments::NO_ARGUMENT, &keepConnected, "Keep the connection to the server after command completion (exits on CTRL-C).");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
+  args.AddArgument("--dicom-directory", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dicomOutputDirectory, "The folder directory for the dicom images acquired from the StealthLink Server");
+  args.AddArgument("--volumeEmbeddedTransformToFrame", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &volumeEmbeddedTransformToFrame, "The reference frame in which the dicom image will be represented. Ex: RAS,LPS,Reference,Tracker etc");
+  args.AddArgument("--keepReceivedDicomFiles", vtksys::CommandLineArguments::NO_ARGUMENT, &keepReceivedDicomFiles, "Keep the dicom files in the designated folder after having acquired them from the server");
+  args.AddArgument("--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
+  args.AddArgument("--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped.");
+  args.AddArgument("--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
+  args.AddArgument("--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "IGLT protocol version of the server.");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  if ( command.empty() && !keepConnected && !runTests)
+  if (command.empty() && !keepConnected && !runTests)
   {
     LOG_ERROR("The program has nothing to do, as neither --command, --keep-connected, nor --run-tests is specifed");
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Start a PlusServer
   vtksysProcess* plusServerProcess = NULL;
@@ -785,7 +799,7 @@ int main( int argc, char** argv )
   }
   client->SetServerHost(serverHost.c_str());
   client->SetServerPort(serverPort);
-  if( serverIGTLVersion > 0 )
+  if (serverIGTLVersion > 0)
   {
     client->SetServerIGTLVersion(serverIGTLVersion);
   }
@@ -799,7 +813,7 @@ int main( int argc, char** argv )
   int processReturnValue = EXIT_SUCCESS;
 
   // Run a command
-  if ( !command.empty() )
+  if (!command.empty())
   {
     PlusStatus commandExecutionStatus = PLUS_SUCCESS;
     // Execute command
@@ -887,7 +901,7 @@ int main( int argc, char** argv )
       std::string replyMessage;
       std::string errorMessage;
       bool didTimeout;
-      std::map<std::string, std::string> parameters;
+      igtl::MessageBase::MetaDataMap parameters;
       if (ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters) != PLUS_SUCCESS)
       {
         processReturnValue = EXIT_FAILURE;
