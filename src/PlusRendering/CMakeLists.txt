@@ -2,12 +2,14 @@
 # Sources
 
 SET (PlusRendering_SRCS
+  PlusPlotter.cxx
   vtkPlusToolAxesActor.cxx
   )
 
 SET (PlusRendering_HDRS)
 if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET (PlusRendering_HDRS
+    PlusPlotter.h
     vtkPlusToolAxesActor.h
     )
 endif ()
@@ -24,10 +26,14 @@ SET (PlusRendering_LIBS
   vtkPlusCommon
   vtkCommonCore
   vtkFiltersSources
+  vtkChartsCore
+  vtkViewsContext2D
+  vtkIOCore
   vtkInteractionStyle
   vtkRenderingFreeType
   vtkRenderingAnnotation
   vtkRendering${VTK_RENDERING_BACKEND}
+  vtkRenderingContext${VTK_RENDERING_BACKEND}
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusRendering)
