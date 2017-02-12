@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusRequestIdsCommand_h
 #define __vtkPlusRequestIdsCommand_h
@@ -12,27 +12,27 @@
 #include "vtkPlusCommand.h"
 
 /*!
-  \class vtkPlusRequestDeviceIDsCommand 
+  \class vtkPlusRequestDeviceIDsCommand
   \brief This command returns the list of devices to the client
   \ingroup PlusLibPlusServer
- */ 
+ */
 class vtkPlusServerExport vtkPlusRequestIdsCommand : public vtkPlusCommand
 {
 public:
 
-  static vtkPlusRequestIdsCommand *New();
+  static vtkPlusRequestIdsCommand* New();
   vtkTypeMacro(vtkPlusRequestIdsCommand, vtkPlusCommand);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
   virtual vtkPlusCommand* Clone() { return New(); }
 
   /*! Executes the command  */
   virtual PlusStatus Execute();
 
   /*! Get all the command names that this class can execute */
-  virtual void GetCommandNames(std::list<std::string> &cmdNames);
+  virtual void GetCommandNames(std::list<std::string>& cmdNames);
 
   /*! Gets the description for the specified command name. */
-  virtual std::string GetDescription(const char* commandName);
+  virtual std::string GetDescription(const std::string& commandName);
 
   void SetNameToRequestChannelIds();
   void SetNameToRequestDeviceIds();
@@ -46,25 +46,25 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Restrict the returned device IDs to this type */
-  vtkSetStringMacro(DeviceType);
-  vtkGetStringMacro(DeviceType);
+  virtual void SetDeviceType(const std::string& deviceType);
+  virtual const std::string& GetDeviceType() const;
 
-  vtkSetStringMacro(DeviceId);
-  vtkGetStringMacro(DeviceId);
+  virtual void SetDeviceId(const std::string& deviceId);
+  virtual const std::string& GetDeviceId() const;
 
 protected:
 
   vtkPlusRequestIdsCommand();
   virtual ~vtkPlusRequestIdsCommand();
 
-  char* DeviceType;
-  char* DeviceId;
+  std::string DeviceType;
+  std::string DeviceId;
 
 private:
 
-  vtkPlusRequestIdsCommand( const vtkPlusRequestIdsCommand& );
-  void operator=( const vtkPlusRequestIdsCommand& );
-  
+  vtkPlusRequestIdsCommand(const vtkPlusRequestIdsCommand&);
+  void operator=(const vtkPlusRequestIdsCommand&);
+
 };
 
 

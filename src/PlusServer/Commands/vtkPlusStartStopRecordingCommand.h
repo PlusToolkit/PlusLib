@@ -41,16 +41,16 @@ public:
   virtual void GetCommandNames(std::list<std::string>& cmdNames);
 
   /*! Gets the description for the specified command name. */
-  virtual std::string GetDescription(const char* commandName);
+  virtual std::string GetDescription(const std::string& commandName);
 
-  vtkGetStringMacro(OutputFilename);
-  vtkSetStringMacro(OutputFilename);
+  virtual const std::string& GetOutputFilename() const { return this->OutputFilename; }
+  virtual void SetOutputFilename(const std::string& outputFilename) { this->OutputFilename = outputFilename; }
 
-  vtkGetStringMacro(CaptureDeviceId);
-  vtkSetStringMacro(CaptureDeviceId);
+  virtual const std::string& GetCaptureDeviceId() const { return this->CaptureDeviceId; }
+  virtual void SetCaptureDeviceId(const std::string& captureDeviceId) { this->CaptureDeviceId = captureDeviceId; }
 
-  vtkGetStringMacro(ChannelId);
-  vtkSetStringMacro(ChannelId);
+  virtual const std::string& GetChannelId() const { return this->ChannelId; }
+  virtual void SetChannelId(const std::string& channelId) { this->ChannelId = channelId; }
 
   vtkGetMacro(EnableCompression, bool);
   vtkSetMacro(EnableCompression, bool);
@@ -77,10 +77,10 @@ protected:
   virtual ~vtkPlusStartStopRecordingCommand();
 
 private:
-  bool  EnableCompression;
-  char* OutputFilename;
-  char* CaptureDeviceId;
-  char* ChannelId;
+  bool        EnableCompression;
+  std::string OutputFilename;
+  std::string CaptureDeviceId;
+  std::string ChannelId;
 
   vtkPlusStartStopRecordingCommand(const vtkPlusStartStopRecordingCommand&);
   void operator=(const vtkPlusStartStopRecordingCommand&);

@@ -16,15 +16,16 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusRequestIdsCommand);
 
-static const char REQUEST_CHANNEL_IDS_CMD[] = "RequestChannelIds";
-static const char REQUEST_DEVICE_CHANNEL_IDS_CMD[] = "RequestDeviceChannelIds";
-static const char REQUEST_DEVICE_IDS_CMD[] = "RequestDeviceIds";
-static const char REQUEST_INPUT_DEVICE_IDS_CMD[] = "RequestInputDeviceIds";
+namespace
+{
+  static const std::string REQUEST_CHANNEL_IDS_CMD = "RequestChannelIds";
+  static const std::string REQUEST_DEVICE_CHANNEL_IDS_CMD = "RequestDeviceChannelIds";
+  static const std::string REQUEST_DEVICE_IDS_CMD = "RequestDeviceIds";
+  static const std::string REQUEST_INPUT_DEVICE_IDS_CMD = "RequestInputDeviceIds";
+}
 
 //----------------------------------------------------------------------------
 vtkPlusRequestIdsCommand::vtkPlusRequestIdsCommand()
-  : DeviceType(NULL)
-  , DeviceId(NULL)
 {
 }
 
@@ -62,25 +63,25 @@ void vtkPlusRequestIdsCommand::GetCommandNames(std::list<std::string>& cmdNames)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusRequestIdsCommand::GetDescription(const char* commandName)
+std::string vtkPlusRequestIdsCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName == NULL || STRCASECMP(commandName, REQUEST_CHANNEL_IDS_CMD))
+  if (commandName.empty() || commandName == REQUEST_CHANNEL_IDS_CMD)
   {
     desc += REQUEST_CHANNEL_IDS_CMD;
     desc += ": Request the list of channels for all devices.";
   }
-  if (commandName == NULL || STRCASECMP(commandName, REQUEST_DEVICE_IDS_CMD))
+  if (commandName.empty() || commandName == REQUEST_DEVICE_IDS_CMD)
   {
     desc += REQUEST_DEVICE_IDS_CMD;
     desc += ": Request the list of devices. Attributes: DeviceType: restrict the returned list of devices to a specific type (VirtualCapture, VirtualVolumeReconstructor, etc.)";
   }
-  if (commandName == NULL || STRCASECMP(commandName, REQUEST_INPUT_DEVICE_IDS_CMD))
+  if (commandName.empty() || commandName == REQUEST_INPUT_DEVICE_IDS_CMD)
   {
     desc += REQUEST_INPUT_DEVICE_IDS_CMD;
     desc += ": Request the list of devices that are used as input to the requested device. Attributes: DeviceId: the id of the device to query.";
   }
-  if (commandName == NULL || STRCASECMP(commandName, REQUEST_DEVICE_CHANNEL_IDS_CMD))
+  if (commandName.empty() || commandName == REQUEST_DEVICE_CHANNEL_IDS_CMD)
   {
     desc += REQUEST_DEVICE_CHANNEL_IDS_CMD;
     desc += ": Request the list of channels for a given device. Attributes: DeviceId: the id of the device to query.";
@@ -113,15 +114,39 @@ PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConf
   {
     return PLUS_FAIL;
   }
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(DeviceId, aConfig);
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(DeviceType, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(DeviceId, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(DeviceType, aConfig);
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusRequestIdsCommand::SetDeviceType(const std::string& deviceType)
+{
+  this->DeviceType = deviceType;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusRequestIdsCommand::GetDeviceType() const
+{
+  return this->DeviceType;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusRequestIdsCommand::SetDeviceId(const std::string& deviceId)
+{
+  this->DeviceId = deviceId;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusRequestIdsCommand::GetDeviceId() const
+{
+  return this->DeviceId;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
-  if (this->Name == NULL)
+  if (this->Name.empty())
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
@@ -153,7 +178,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     return (vtkPlusDevice*)nullptr;
   };
 
-  if (STRCASECMP(this->Name, REQUEST_CHANNEL_IDS_CMD) == 0)
+  if (this->Name == REQUEST_CHANNEL_IDS_CMD)
   {
     std::string responseMessage;
     bool addSeparator = false;
@@ -194,7 +219,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
-  else if (STRCASECMP(this->Name, REQUEST_DEVICE_IDS_CMD) == 0)
+  else if (this->Name == REQUEST_DEVICE_IDS_CMD)
   {
     std::string responseMessage;
     bool addSeparator = false;
@@ -208,7 +233,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
         continue;
       }
       std::string deviceClassName;
-      if (this->DeviceType != NULL)
+      if (!this->DeviceType.empty())
       {
         // Translate requested device ID (factory name) to c++ class name
         vtkSmartPointer<vtkPlusDeviceFactory> factory = vtkSmartPointer<vtkPlusDeviceFactory>::New();
@@ -247,9 +272,9 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
-  else if (STRCASECMP(this->Name, REQUEST_INPUT_DEVICE_IDS_CMD) == 0)
+  else if (this->Name == REQUEST_INPUT_DEVICE_IDS_CMD)
   {
-    if (this->DeviceId == nullptr)
+    if (!this->DeviceId.empty())
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed, see error message.", "Unknown device id requested.");
       return PLUS_FAIL;
@@ -280,7 +305,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", nullptr);
     return PLUS_SUCCESS;
   }
-  else if (STRCASECMP(this->Name, REQUEST_DEVICE_CHANNEL_IDS_CMD) == 0)
+  else if (this->Name == REQUEST_DEVICE_CHANNEL_IDS_CMD)
   {
     auto device = _FindDevice(aCollection);
     if (device == nullptr)

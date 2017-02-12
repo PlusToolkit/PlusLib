@@ -28,10 +28,6 @@ happens between two threads. In real life, it happens between two programs.
 #include <cstdlib>
 #include <cstdio>
 
-// Connect/disconnect clients to server for testing purposes
-PlusStatus ConnectClients(int listeningPort, std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement);
-PlusStatus DisconnectClients(std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList);
-
 // Forward declare signal handler
 void SignalInterruptHandler(int s);
 static bool stopRequested = false;
@@ -58,7 +54,6 @@ int main(int argc, char** argv)
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
   args.AddArgument("--running-time", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &runTimeSec, "Server running time period in seconds. If the parameter is not defined or 0 then the server runs infinitely.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
-  args.AddArgument("--testing-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &testingConfigFileName, "Enable testing mode (testing PlusServer functionality by running a few OpenIGTLink clients)");
 
   if (!args.Parse())
   {
@@ -172,33 +167,6 @@ int main(int argc, char** argv)
 
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
 
-  // *************************** Testing **************************
-  std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> > testClientList;
-  if (!testingConfigFileName.empty())
-  {
-    // During testing, there is only one instance of PlusServer, so we can access serverList[0] directly
-
-    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-    if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, testingConfigFileName.c_str()) == PLUS_FAIL)
-    {
-      LOG_ERROR("Unable to read test configuration from file " << testingConfigFileName.c_str());
-      DisconnectClients(testClientList);
-      serverList[0]->Stop();
-      exit(EXIT_FAILURE);
-    }
-
-    // Connect clients to server
-    if (ConnectClients(serverList[0]->GetListeningPort(), testClientList, numOfTestClientsToConnect, configRootElement) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to connect clients to PlusServer!");
-      DisconnectClients(testClientList);
-      serverList[0]->Stop();
-      exit(EXIT_FAILURE);
-    }
-    vtkPlusAccurateTimer::Delay(1.0);   // make sure the threads have some time to connect regardless of the specified runTimeSec
-    LOG_INFO("Clients are connected");
-  }
-  // *************************** End of testing **************************
   LOG_INFO("Server status: Server(s) are running.");
   LOG_INFO("Press Ctrl-C to quit.");
 
@@ -227,138 +195,14 @@ int main(int argc, char** argv)
     vtkPlusAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
   }
 
-
-
-  // *************************** Testing **************************
-  if (!testingConfigFileName.empty())
-  {
-    LOG_INFO("Requested testing time elapsed");
-    // make sure all the clients are still connected
-    int numOfActuallyConnectedClients = serverList[0]->GetNumberOfConnectedClients();
-    if (numOfActuallyConnectedClients != numOfTestClientsToConnect)
-    {
-      LOG_ERROR("Number of connected clients to PlusServer doesn't match the requirements ("
-                << numOfActuallyConnectedClients << " out of " << numOfTestClientsToConnect << ").");
-      DisconnectClients(testClientList);
-      serverList[0]->Stop();
-      exit(EXIT_FAILURE);
-    }
-
-    // Disconnect clients from server
-    LOG_INFO("Disconnecting clients...");
-    if (DisconnectClients(testClientList) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to disconnect clients from PlusServer!");
-      serverList[0]->Stop();
-      exit(EXIT_FAILURE);
-    }
-    LOG_INFO("Clients are disconnected");
-  }
-  // *************************** End of testing **************************
-
   for (std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it)
   {
     (*it)->Stop();
   }
 
-  if (!testingConfigFileName.empty())
-  {
-    LOG_INFO("Test is successfully completed");
-  }
-
   LOG_INFO("Shutdown successful.");
 
   return EXIT_SUCCESS;
-}
-
-// -------------------------------------------------
-PlusStatus ConnectClients(int listeningPort, std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList, int numberOfClientsToConnect, vtkSmartPointer<vtkXMLDataElement> configRootElement)
-{
-  if (configRootElement == NULL)
-  {
-    LOG_ERROR("PlusServer client configuration is missing");
-    return PLUS_FAIL;
-  }
-
-  int numberOfErrors = 0;
-
-  // Clear test client list
-  testClientList.clear();
-
-  for (int i = 0; i < numberOfClientsToConnect; ++i)
-  {
-    vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> client = vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource>::New();
-    client->SetDeviceId("OpenIGTLinkVideoSenderDevice");
-    client->ReadConfiguration(configRootElement);
-    client->SetServerAddress("localhost");
-    client->SetServerPort(listeningPort);
-    if (client->OutputChannelCount() == 0)
-    {
-      LOG_ERROR("No output channels in openIGTLink client.");
-      ++numberOfErrors;
-      continue;
-    }
-
-    vtkPlusChannel* aChannel = *(client->GetOutputChannelsStart());
-    vtkPlusDataSource* aSource(NULL);
-    if (aChannel->GetVideoSource(aSource) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to retrieve the video source.");
-      continue;
-    }
-    client->SetBufferSize(*aChannel, 10);
-    client->SetMessageType("TrackedFrame");
-    PlusTransformName name("Image", "Reference");
-    client->SetImageStream(name);
-    aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
-
-    if (client->Connect() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Client #" << i + 1 << " couldn't connect to server.");
-      ++numberOfErrors;
-      continue;
-    }
-
-    LOG_DEBUG("Client #" << i + 1 << " successfully connected to server!");
-
-    if (client->StartRecording() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Client #" << i + 1 << " couldn't start recording frames.");
-      client->Disconnect();
-      ++numberOfErrors;
-      continue;
-    }
-
-    // Add connected client to list
-    testClientList.push_back(client);
-  }
-
-  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
-}
-
-// -------------------------------------------------
-PlusStatus DisconnectClients(std::vector< vtkSmartPointer<vtkPlusOpenIGTLinkVideoSource> >& testClientList)
-{
-  int numberOfErrors = 0;
-  for (unsigned int i = 0; i < testClientList.size(); ++i)
-  {
-    if (testClientList[i]->StopRecording() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Client #" << i + 1 << " failed to stop recording");
-      ++numberOfErrors;
-    }
-
-    if (testClientList[i]->Disconnect() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Client #" << i + 1 << " failed to disconnect from server");
-      ++numberOfErrors;
-      continue;
-    }
-
-    LOG_DEBUG("Client #" << i + 1 << " successfully disconnected from server!");
-  }
-
-  return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
 }
 
 // -------------------------------------------------

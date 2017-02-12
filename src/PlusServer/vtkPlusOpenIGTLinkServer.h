@@ -7,21 +7,27 @@
 #ifndef __VTKPLUSOPENIGTLINKSERVER_H
 #define __VTKPLUSOPENIGTLINKSERVER_H
 
+// Local includes
 #include "vtkPlusServerExport.h"
-
 #include "PlusIgtlClientInfo.h"
-#include "vtkMultiThreader.h"
-#include "vtkObject.h"
 #include "vtkPlusIgtlMessageFactory.h"
-#include "vtkSmartPointer.h"
+
+// VTK includes
+#include <vtkMultiThreader.h>
+#include <vtkObject.h>
+#include <vtkSmartPointer.h>
+
+// STL includes
 #include <deque>
 
+// OS includes
 #if (_MSC_VER == 1500)
 #include <stdint.h>
 #endif
 
-#include "igtlCommandMessage.h"
-#include "igtlServerSocket.h"
+// IGTL includes
+#include <igtlMessageBase.h>
+#include <igtlServerSocket.h>
 
 class PlusTrackedFrame;
 class vtkPlusDataCollector;
@@ -94,40 +100,40 @@ public:
 
 
   /*! Read the configuration file in XML format and set up the devices */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* serverElement, const char* aFilename);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* serverElement, const std::string& aFilename);
 
   /*! Set server listening port */
   vtkSetMacro(ListeningPort, int);
   /*! Get server listening port */
-  vtkGetMacro(ListeningPort, int);
+  virtual int GetListeningPort() const;
 
-  vtkGetStringMacro(OutputChannelId);
+  virtual const std::string& GetOutputChannelId() const;
 
   vtkSetMacro(MissingInputGracePeriodSec, double);
-  vtkGetMacro(MissingInputGracePeriodSec, double);
+  virtual double GetMissingInputGracePeriodSec() const;
 
   vtkSetMacro(MaxTimeSpentWithProcessingMs, double);
-  vtkGetMacro(MaxTimeSpentWithProcessingMs, double);
+  virtual double GetMaxTimeSpentWithProcessingMs() const;
 
   vtkSetMacro(SendValidTransformsOnly, bool);
-  vtkGetMacro(SendValidTransformsOnly, bool);
+  virtual bool GetSendValidTransformsOnly() const;
 
   vtkSetMacro(DefaultClientSendTimeoutSec, float);
-  vtkGetMacro(DefaultClientSendTimeoutSec, float);
+  virtual float GetDefaultClientSendTimeoutSec() const;
 
   vtkSetMacro(DefaultClientReceiveTimeoutSec, float);
-  vtkGetMacro(DefaultClientReceiveTimeoutSec, float);
+  virtual float GetDefaultClientReceiveTimeoutSec() const;
 
   /*! Set data collector instance */
   virtual void SetDataCollector(vtkPlusDataCollector* dataCollector);
-  virtual vtkPlusDataCollector* GetDataCollector();
+  virtual vtkPlusDataCollector* GetDataCollector() const;
 
   /*! Set transform repository instance */
   virtual void SetTransformRepository(vtkPlusTransformRepository* transformRepository);
-  virtual vtkPlusTransformRepository* GetTransformRepository();
+  virtual vtkPlusTransformRepository* GetTransformRepository() const;
 
   /*! Get number of connected clients */
-  virtual int GetNumberOfConnectedClients();
+  virtual unsigned int GetNumberOfConnectedClients() const;
 
   /*! Retrieve a COPY of client info for a given clientId
     Locks access to the client info for the duration of the function
@@ -140,7 +146,7 @@ public:
   /*! Stop server */
   PlusStatus StopOpenIGTLinkService();
 
-  vtkGetStringMacro(ConfigFilename);
+  virtual const std::string& GetConfigFilename() const;
 
   vtkGetMacro(IGTLProtocolVersion, int);
 
@@ -190,27 +196,19 @@ protected:
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */
   vtkSetMacro(IgtlMessageCrcCheckEnabled, bool);
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */
-  vtkGetMacro(IgtlMessageCrcCheckEnabled, bool);
+  virtual bool GetIgtlMessageCrcCheckEnabled() const;
 
   vtkSetMacro(MaxNumberOfIgtlMessagesToSend, int);
-  vtkGetMacro(MaxNumberOfIgtlMessagesToSend, int);
+  virtual int GetMaxNumberOfIgtlMessagesToSend() const;
 
   vtkSetMacro(NumberOfRetryAttempts, int);
-  vtkGetMacro(NumberOfRetryAttempts, int);
+  virtual int GetNumberOfRetryAttempts() const;
 
   vtkSetMacro(DelayBetweenRetryAttemptsSec, double);
-  vtkGetMacro(DelayBetweenRetryAttemptsSec, double);
+  virtual double GetDelayBetweenRetryAttemptsSec() const;
 
-  /*!
-    Execute a remotely invoked command
-    \param resultString String containing the reply to the command (human readable)
-    \return Status code (igtl::StatusMessage::STATUS_OK, STATUS_UNKNOWN_INSTRUCTION, ... see igtl_status.h)
-  */
-  int ExecuteCommand(const char* commandString, std::string& resultString);
-
-  vtkSetStringMacro(OutputChannelId);
-
-  vtkSetStringMacro(ConfigFilename);
+  virtual void SetOutputChannelId(const std::string& outputChannelId);
+  virtual void SetConfigFilename(const std::string& configFilename);
 
   bool HasGracePeriodExpired();
 
@@ -296,12 +294,12 @@ private:
   vtkSmartPointer<vtkPlusRecursiveCriticalSection> MessageResponseQueueMutex;
 
   /*! Channel ID to request the data from */
-  char* OutputChannelId;
+  std::string OutputChannelId;
 
   /*! Channel to use for broadcasting */
   vtkPlusChannel* BroadcastChannel;
 
-  char* ConfigFilename;
+  std::string ConfigFilename;
 
   vtkPlusLogger::LogLevelType GracePeriodLogLevel;
   double MissingInputGracePeriodSec;

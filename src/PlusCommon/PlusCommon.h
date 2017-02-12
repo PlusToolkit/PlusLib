@@ -355,7 +355,7 @@ namespace PlusCommon
     matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
     are printed in 4 lines.
   */
-  vtkPlusCommonExport PlusStatus PrintXML(const char* fname, vtkXMLDataElement* elem);
+  vtkPlusCommonExport PlusStatus PrintXML(const std::string& filename, vtkXMLDataElement* elem);
   /*!
     Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
     there are no extra lines, if there are many attributes then each of them is printed on separate line, and
@@ -421,6 +421,7 @@ public:
     and the coordinate frame names should be in camel case format starting with capitalized letters.
   */
   PlusStatus SetTransformName(const char* aTransformName);
+  PlusStatus SetTransformName(const std::string& aTransformName);
 
   /*! Return combined transform name between 'From' and 'To' coordinate frames: [From]To[To] */
   PlusStatus GetTransformName(std::string& aTransformName) const;

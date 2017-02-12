@@ -13,24 +13,23 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusUpdateTransformCommand);
 
-static const char UPDATE_TRANSFORM_CMD[] = "UpdateTransform";
+namespace
+{
+  static const std::string UPDATE_TRANSFORM_CMD = "UpdateTransform";
+}
 
 //----------------------------------------------------------------------------
 vtkPlusUpdateTransformCommand::vtkPlusUpdateTransformCommand()
-  : TransformName(NULL)
-  , TransformValue(NULL)
+  : TransformValue(NULL)
   , TransformPersistent(true)
   , TransformError(-1.0)
-  , TransformDate(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusUpdateTransformCommand::~vtkPlusUpdateTransformCommand()
 {
-  this->SetTransformName(NULL);
   this->SetTransformValue(static_cast<vtkMatrix4x4*>(NULL));
-  this->SetTransformDate(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -47,15 +46,27 @@ void vtkPlusUpdateTransformCommand::GetCommandNames(std::list<std::string>& cmdN
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusUpdateTransformCommand::GetDescription(const char* commandName)
+std::string vtkPlusUpdateTransformCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName == NULL || STRCASECMP(commandName, UPDATE_TRANSFORM_CMD))
+  if (commandName.empty() || commandName == UPDATE_TRANSFORM_CMD)
   {
     desc += UPDATE_TRANSFORM_CMD;
     desc += ": Update the details of a transform in the remote transform repository.";
   }
   return desc;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusUpdateTransformCommand::GetTransformName() const
+{
+  return this->TransformName;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusUpdateTransformCommand::SetTransformName(const std::string& transformName)
+{
+  this->TransformName = transformName;
 }
 
 //----------------------------------------------------------------------------
@@ -71,7 +82,7 @@ PlusStatus vtkPlusUpdateTransformCommand::ReadConfiguration(vtkXMLDataElement* a
   {
     return PLUS_FAIL;
   }
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TransformName, aConfig);
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 16, TransformValue, aConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TransformPersistent, aConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransformError, aConfig);
@@ -87,7 +98,7 @@ PlusStatus vtkPlusUpdateTransformCommand::WriteConfiguration(vtkXMLDataElement* 
     return PLUS_FAIL;
   }
 
-  aConfig->SetAttribute("TransformName", this->GetTransformName());
+  aConfig->SetAttribute("TransformName", this->GetTransformName().c_str());
 
   if (this->GetTransformValue())
   {
@@ -96,7 +107,7 @@ PlusStatus vtkPlusUpdateTransformCommand::WriteConfiguration(vtkXMLDataElement* 
     aConfig->SetVectorAttribute("TransformValue", 16, vectorMatrix);
   }
 
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(TransformDate, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(TransformDate, aConfig);
 
   if (this->GetTransformError() >= 0)
   {
@@ -113,7 +124,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 {
   LOG_INFO("vtkPlusUpdateTransformCommand::Execute:");
 
-  std::string baseMessageString = std::string("UpdateTransform (") + (this->GetTransformName() ? this->GetTransformName() : "undefined") + ")";
+  std::string baseMessageString = std::string("UpdateTransform (") + (!this->GetTransformName().empty() ? this->GetTransformName() : "undefined") + ")";
   std::string warningString;
 
   if (this->GetTransformRepository() == NULL)
@@ -146,7 +157,7 @@ PlusStatus vtkPlusUpdateTransformCommand::Execute()
 
   this->GetTransformRepository()->SetTransformPersistent(aName, this->GetTransformPersistent());
 
-  if (this->GetTransformDate())
+  if (!this->GetTransformDate().empty())
   {
     this->GetTransformRepository()->SetTransformDate(aName, this->GetTransformDate());
   }
@@ -165,4 +176,16 @@ void vtkPlusUpdateTransformCommand::SetTransformValue(double* matrixElements)
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
   matrix->DeepCopy(matrixElements);
   this->SetTransformValue(matrix);
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusUpdateTransformCommand::GetTransformDate() const
+{
+  return this->TransformDate;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusUpdateTransformCommand::SetTransformDate(const std::string& transformDate)
+{
+  this->TransformDate = transformDate;
 }
