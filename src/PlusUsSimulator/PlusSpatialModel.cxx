@@ -48,14 +48,14 @@ PlusSpatialModel::PlusSpatialModel()
 //-----------------------------------------------------------------------------
 PlusSpatialModel::~PlusSpatialModel()
 {
-  SetModelToObjectTransform( static_cast<vtkMatrix4x4*>( NULL ) );
-  SetReferenceToObjectTransform( NULL );
-  SetModelLocalizer( NULL );
-  SetPolyData( NULL );
+  SetModelToObjectTransform(static_cast<vtkMatrix4x4*>(NULL));
+  SetReferenceToObjectTransform(NULL);
+  SetModelLocalizer(NULL);
+  SetPolyData(NULL);
 }
 
 //-----------------------------------------------------------------------------
-PlusSpatialModel::PlusSpatialModel( const PlusSpatialModel& model )
+PlusSpatialModel::PlusSpatialModel(const PlusSpatialModel& model)
 {
   this->Name = model.Name;
   this->ObjectCoordinateFrame = model.ObjectCoordinateFrame;
@@ -72,17 +72,17 @@ PlusSpatialModel::PlusSpatialModel( const PlusSpatialModel& model )
   this->ReferenceToObjectTransform = NULL;
   this->ModelLocalizer = NULL;
   this->PolyData = NULL;
-  SetModelToObjectTransform( model.ModelToObjectTransform );
-  SetReferenceToObjectTransform( model.ReferenceToObjectTransform );
-  SetModelLocalizer( model.ModelLocalizer );
-  SetPolyData( model.PolyData );
+  SetModelToObjectTransform(model.ModelToObjectTransform);
+  SetReferenceToObjectTransform(model.ReferenceToObjectTransform);
+  SetModelLocalizer(model.ModelLocalizer);
+  SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate = model.ModelFileNeedsUpdate;
   this->PrecomputedAttenuations = model.PrecomputedAttenuations;
   this->TransducerSpatialModelMaxOverlapMm = model.TransducerSpatialModelMaxOverlapMm;
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::operator=( const PlusSpatialModel& model )
+void PlusSpatialModel::operator=(const PlusSpatialModel& model)
 {
   this->Name = model.Name;
   this->ObjectCoordinateFrame = model.ObjectCoordinateFrame;
@@ -95,112 +95,142 @@ void PlusSpatialModel::operator=( const PlusSpatialModel& model )
   this->BackscatterDiffuseReflectionCoefficient = model.BackscatterDiffuseReflectionCoefficient;
   this->SurfaceDiffuseReflectionCoefficient = model.SurfaceDiffuseReflectionCoefficient;
   this->SurfaceSpecularReflectionCoefficient = model.SurfaceSpecularReflectionCoefficient;
-  SetModelToObjectTransform( model.ModelToObjectTransform );
-  SetReferenceToObjectTransform( model.ReferenceToObjectTransform );
-  SetModelLocalizer( model.ModelLocalizer );
-  SetPolyData( model.PolyData );
+  SetModelToObjectTransform(model.ModelToObjectTransform);
+  SetReferenceToObjectTransform(model.ReferenceToObjectTransform);
+  SetModelLocalizer(model.ModelLocalizer);
+  SetPolyData(model.PolyData);
   this->ModelFileNeedsUpdate = model.ModelFileNeedsUpdate;
   this->PrecomputedAttenuations = model.PrecomputedAttenuations;
   this->TransducerSpatialModelMaxOverlapMm = model.TransducerSpatialModelMaxOverlapMm;
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetModelToObjectTransform( vtkMatrix4x4* modelToObjectTransform )
+void PlusSpatialModel::SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform)
 {
-  if ( this->ModelToObjectTransform == modelToObjectTransform )
+  if (this->ModelToObjectTransform == modelToObjectTransform)
   {
     return;
   }
-  if ( this->ModelToObjectTransform != NULL )
+  if (this->ModelToObjectTransform != NULL)
   {
     this->ModelToObjectTransform->Delete();
   }
   this->ModelToObjectTransform = modelToObjectTransform;
-  if ( this->ModelToObjectTransform != NULL )
+  if (this->ModelToObjectTransform != NULL)
   {
-    this->ModelToObjectTransform->Register( NULL );
+    this->ModelToObjectTransform->Register(NULL);
   }
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetReferenceToObjectTransform( vtkMatrix4x4* referenceToObjectTransform )
+void PlusSpatialModel::SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform)
 {
-  if ( this->ReferenceToObjectTransform == referenceToObjectTransform )
+  if (this->ReferenceToObjectTransform == referenceToObjectTransform)
   {
     return;
   }
-  if ( this->ReferenceToObjectTransform != NULL )
+  if (this->ReferenceToObjectTransform != NULL)
   {
     this->ReferenceToObjectTransform->Delete();
   }
   this->ReferenceToObjectTransform = referenceToObjectTransform;
-  if ( this->ReferenceToObjectTransform != NULL )
+  if (this->ReferenceToObjectTransform != NULL)
   {
-    this->ReferenceToObjectTransform->Register( NULL );
+    this->ReferenceToObjectTransform->Register(NULL);
   }
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetPolyData( vtkPolyData* polyData )
+void PlusSpatialModel::SetPolyData(vtkPolyData* polyData)
 {
-  if ( this->PolyData == polyData )
+  if (this->PolyData == polyData)
   {
     return;
   }
-  if ( this->PolyData != NULL )
+  if (this->PolyData != NULL)
   {
     this->PolyData->Delete();
   }
   this->PolyData = polyData;
-  if ( this->PolyData != NULL )
+  if (this->PolyData != NULL)
   {
-    this->PolyData->Register( NULL );
+    this->PolyData->Register(NULL);
   }
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetModelLocalizer( vtkModifiedBSPTree* modelLocalizer )
+void PlusSpatialModel::SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer)
 {
-  if ( this->ModelLocalizer == modelLocalizer )
+  if (this->ModelLocalizer == modelLocalizer)
   {
     return;
   }
-  if ( this->ModelLocalizer != NULL )
+  if (this->ModelLocalizer != NULL)
   {
     this->ModelLocalizer->Delete();
   }
   this->ModelLocalizer = modelLocalizer;
-  if ( this->ModelLocalizer != NULL )
+  if (this->ModelLocalizer != NULL)
   {
-    this->ModelLocalizer->Register( NULL );
+    this->ModelLocalizer->Register(NULL);
   }
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus PlusSpatialModel::ReadConfiguration( vtkXMLDataElement* spatialModelElement )
+PlusStatus PlusSpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelElement)
 {
-  XML_VERIFY_ELEMENT( spatialModelElement, "SpatialModel" );
+  XML_VERIFY_ELEMENT(spatialModelElement, "SpatialModel");
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( Name, spatialModelElement );
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( ObjectCoordinateFrame, spatialModelElement );
-  SetModelFile( spatialModelElement->GetAttribute( "ModelFile" ) ); // if ModelFile is not set then we set it to NULL (it is not optional)
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL( double, 16, ModelToObjectTransform, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, DensityKgPerM3, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, SoundVelocityMPerSec, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, AttenuationCoefficientDbPerCmMhz, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, SurfaceReflectionIntensityDecayDbPerMm, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, BackscatterDiffuseReflectionCoefficient, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, SurfaceDiffuseReflectionCoefficient, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, SurfaceSpecularReflectionCoefficient, spatialModelElement );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, TransducerSpatialModelMaxOverlapMm, spatialModelElement );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
+  SetModelFile(spatialModelElement->GetAttribute("ModelFile"));     // if ModelFile is not set then we set it to NULL (it is not optional)
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 16, ModelToObjectTransform, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DensityKgPerM3, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocityMPerSec, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AttenuationCoefficientDbPerCmMhz, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceReflectionIntensityDecayDbPerMm, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, BackscatterDiffuseReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceDiffuseReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SurfaceSpecularReflectionCoefficient, spatialModelElement);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, TransducerSpatialModelMaxOverlapMm, spatialModelElement);
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetImagingFrequencyMhz( double frequencyMhz )
+void PlusSpatialModel::SetImagingFrequencyMhz(double frequencyMhz)
 {
   this->ImagingFrequencyMhz = frequencyMhz;
+}
+
+//----------------------------------------------------------------------------
+std::string PlusSpatialModel::GetName() const
+{
+  return this->Name;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetName(const std::string& name)
+{
+  this->Name = name;
+}
+
+//----------------------------------------------------------------------------
+std::string PlusSpatialModel::GetObjectCoordinateFrame() const
+{
+  return this->ObjectCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetObjectCoordinateFrame(const std::string& objectCoordinateFrame)
+{
+  this->ObjectCoordinateFrame = objectCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+vtkMatrix4x4* PlusSpatialModel::GetModelToObjectTransform()
+{
+  return this->ModelToObjectTransform;
 }
 
 //-----------------------------------------------------------------------------
@@ -211,102 +241,102 @@ double PlusSpatialModel::GetAcousticImpedanceMegarayls()
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad )
+void PlusSpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm, double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad)
 {
   UpdateModelFile();
 
-  if ( numberOfFilledPixels <= 0 )
+  if (numberOfFilledPixels <= 0)
   {
     transmittedIntensity = incidentIntensity;
     return;
   }
 
   // Make sure there is enough space to store the results
-  if ( reflectedIntensity.size() < numberOfFilledPixels )
+  if (reflectedIntensity.size() < numberOfFilledPixels)
   {
-    reflectedIntensity.resize( numberOfFilledPixels );
+    reflectedIntensity.resize(numberOfFilledPixels);
   }
 
   // Compute reflection from the surface of the previous and this model
   double acousticImpedanceMegarayls = GetAcousticImpedanceMegarayls();
   // intensityReflectionCoefficient: reflected beam intensity / incident beam intensity => can be computed from acoustic impedance mismatch
   double intensityReflectionCoefficient =
-    ( previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls ) * ( previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls )
-    / ( previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls ) / ( previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls );
+    (previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls) * (previousModelAcousticImpedanceMegarayls - acousticImpedanceMegarayls)
+    / (previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls) / (previousModelAcousticImpedanceMegarayls + acousticImpedanceMegarayls);
   double surfaceReflectedBeamIntensity = incidentIntensity * intensityReflectionCoefficient;
   double surfaceTransmittedBeamIntensity = incidentIntensity - surfaceReflectedBeamIntensity;
 
   // backscatteredReflectedIntensity: intensity reflected from the surface
   double backscatteredReflectedIntensity = this->SurfaceDiffuseReflectionCoefficient * surfaceReflectedBeamIntensity;;
-  if ( this->SurfaceSpecularReflectionCoefficient > 0 )
+  if (this->SurfaceSpecularReflectionCoefficient > 0)
   {
     // There is specular reflection
     // Normalize incidence angle to -90..90 deg
-    if ( incidenceAngleRad > vtkMath::Pi() / 2 )
+    if (incidenceAngleRad > vtkMath::Pi() / 2)
     {
       incidenceAngleRad -= vtkMath::Pi();
     }
-    else if ( incidenceAngleRad < -vtkMath::Pi() / 2 )
+    else if (incidenceAngleRad < -vtkMath::Pi() / 2)
     {
       incidenceAngleRad += vtkMath::Pi();
     }
-    const double stdev = vtkMath::RadiansFromDegrees( SPECULAR_REFLECTION_BRDF_STDEV );
-    float reflectionDirectionFactor = exp( -( incidenceAngleRad * incidenceAngleRad ) / ( stdev * stdev ) );
+    const double stdev = vtkMath::RadiansFromDegrees(SPECULAR_REFLECTION_BRDF_STDEV);
+    float reflectionDirectionFactor = exp(-(incidenceAngleRad * incidenceAngleRad) / (stdev * stdev));
     backscatteredReflectedIntensity += reflectionDirectionFactor * this->SurfaceSpecularReflectionCoefficient * surfaceReflectedBeamIntensity;
   }
 
   // Compute attenuation within this model
-  double intensityAttenuationCoefficientdBPerPixel = this->AttenuationCoefficientDbPerCmMhz * ( distanceBetweenScanlineSamplePointsMm / 10.0 ) * this->ImagingFrequencyMhz;
+  double intensityAttenuationCoefficientdBPerPixel = this->AttenuationCoefficientDbPerCmMhz * (distanceBetweenScanlineSamplePointsMm / 10.0) * this->ImagingFrequencyMhz;
   // intensityAttenuationCoefficientPerPixel: should be close to 1, as it's the ratio of (transmitted beam intensity / incident beam intensity) after traversing through a single pixel
-  double intensityAttenuationCoefficientPerPixel = pow( 10.0, -intensityAttenuationCoefficientdBPerPixel / 10.0 );
+  double intensityAttenuationCoefficientPerPixel = pow(10.0, -intensityAttenuationCoefficientdBPerPixel / 10.0);
   // intensityAttenuatedFractionPerPixel: how big fraction of the intensity is attenuated during traversing through one voxel
-  double intensityAttenuatedFractionPerPixel = ( 1 - intensityAttenuationCoefficientPerPixel );
+  double intensityAttenuatedFractionPerPixel = (1 - intensityAttenuationCoefficientPerPixel);
   // intensityTransmittedFractionPerPixelTwoWay: how big fraction of the intensity is transmitted during traversing through one voxel; takes into account both propagation directions
   double intensityTransmittedFractionPerPixelTwoWay = intensityAttenuationCoefficientPerPixel * intensityAttenuationCoefficientPerPixel;
 
   transmittedIntensity = surfaceTransmittedBeamIntensity * intensityTransmittedFractionPerPixelTwoWay;
 
-  if ( (numberOfFilledPixels > 0 && this->PrecomputedAttenuations.size() < numberOfFilledPixels) || intensityTransmittedFractionPerPixelTwoWay != this->PrecomputedAttenuations[0] )
+  if ((numberOfFilledPixels > 0 && this->PrecomputedAttenuations.size() < numberOfFilledPixels) || intensityTransmittedFractionPerPixelTwoWay != this->PrecomputedAttenuations[0])
   {
-    UpdatePrecomputedAttenuations( intensityTransmittedFractionPerPixelTwoWay, numberOfFilledPixels );
+    UpdatePrecomputedAttenuations(intensityTransmittedFractionPerPixelTwoWay, numberOfFilledPixels);
   }
 
   // We iterate until transmittedIntensity * intensityTransmittedFractionPerPixelTwoWay^n > MINIMUM_BEAM_INTENSITY
   // So, n = log(MINIMUM_BEAM_INTENSITY/transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay)
   unsigned int numberOfIterationsToReachMinimumBeamIntensity = 0;
-  if ( transmittedIntensity > MINIMUM_BEAM_INTENSITY )
+  if (transmittedIntensity > MINIMUM_BEAM_INTENSITY)
   {
     numberOfIterationsToReachMinimumBeamIntensity =
-      std::min<unsigned int>( numberOfFilledPixels, // value may be larger than number of pixels to fill -> clamp it to the number of pixels to fill
-      static_cast<unsigned int>( std::max<int>( 0, // value may be negative when AttenuationCoefficientDbPerCmMhz is close to 0 -> clamp it to zero
-      floor( log( MINIMUM_BEAM_INTENSITY / transmittedIntensity ) / log( intensityTransmittedFractionPerPixelTwoWay ) ) + 1 )));
+      std::min<unsigned int>(numberOfFilledPixels,  // value may be larger than number of pixels to fill -> clamp it to the number of pixels to fill
+                             static_cast<unsigned int>(std::max<int>(0,   // value may be negative when AttenuationCoefficientDbPerCmMhz is close to 0 -> clamp it to zero
+                                 floor(log(MINIMUM_BEAM_INTENSITY / transmittedIntensity) / log(intensityTransmittedFractionPerPixelTwoWay)) + 1)));
     double backScatterFactor = transmittedIntensity * intensityAttenuatedFractionPerPixel * this->BackscatterDiffuseReflectionCoefficient / intensityTransmittedFractionPerPixelTwoWay;
-    for( unsigned int currentPixelInFilledPixels = 0; currentPixelInFilledPixels < numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++ )
+    for (unsigned int currentPixelInFilledPixels = 0; currentPixelInFilledPixels < numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels++)
     {
       // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
       //reflectedIntensity[currentPixelInFilledPixels] = *(attenuation++) * backScatterFactor;
       reflectedIntensity[currentPixelInFilledPixels] = this->PrecomputedAttenuations[currentPixelInFilledPixels] * backScatterFactor;
     }
-    transmittedIntensity *= pow( intensityTransmittedFractionPerPixelTwoWay, static_cast<double>(numberOfIterationsToReachMinimumBeamIntensity) );
+    transmittedIntensity *= pow(intensityTransmittedFractionPerPixelTwoWay, static_cast<double>(numberOfIterationsToReachMinimumBeamIntensity));
   }
   else
   {
     transmittedIntensity = 0;
   }
   // The beam intensity is very close to 0, so fill the remaining values with 0 instead of computing miniscule values
-  for( unsigned int currentPixelInFilledPixels = numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels < numberOfFilledPixels; currentPixelInFilledPixels++ )
+  for (unsigned int currentPixelInFilledPixels = numberOfIterationsToReachMinimumBeamIntensity; currentPixelInFilledPixels < numberOfFilledPixels; currentPixelInFilledPixels++)
   {
     reflectedIntensity[currentPixelInFilledPixels] = 0.0;
   }
 
   // Add surface reflection
-  if ( backscatteredReflectedIntensity > MINIMUM_BEAM_INTENSITY )
+  if (backscatteredReflectedIntensity > MINIMUM_BEAM_INTENSITY)
   {
-    double surfaceReflectionIntensityDecayPerPixel = pow( 10.0, -this->SurfaceReflectionIntensityDecayDbPerMm * distanceBetweenScanlineSamplePointsMm / 10.0 );
+    double surfaceReflectionIntensityDecayPerPixel = pow(10.0, -this->SurfaceReflectionIntensityDecayDbPerMm * distanceBetweenScanlineSamplePointsMm / 10.0);
     // We iterate until backscatteredReflectedIntensity * surfaceReflectionIntensityDecayPerPixel^n > MINIMUM_BEAM_INTENSITY
     // So, n = log(MINIMUM_BEAM_INTENSITY/backscatteredReflectedIntensity) / log(surfaceReflectionIntensityDecayPerPixel)
-    int numberOfIterationsToReachMinimumBackscatteredIntensity = std::min<int>( numberOfFilledPixels, floor( log( MINIMUM_BEAM_INTENSITY / backscatteredReflectedIntensity ) / log( surfaceReflectionIntensityDecayPerPixel ) ) + 1 );
-    for( int currentPixelInFilledPixels = 0; currentPixelInFilledPixels < numberOfIterationsToReachMinimumBackscatteredIntensity; currentPixelInFilledPixels++ )
+    int numberOfIterationsToReachMinimumBackscatteredIntensity = std::min<int>(numberOfFilledPixels, floor(log(MINIMUM_BEAM_INTENSITY / backscatteredReflectedIntensity) / log(surfaceReflectionIntensityDecayPerPixel)) + 1);
+    for (int currentPixelInFilledPixels = 0; currentPixelInFilledPixels < numberOfIterationsToReachMinimumBackscatteredIntensity; currentPixelInFilledPixels++)
     {
       // a fraction of the attenuation is caused by backscattering, the backscattering is sensed by the transducer
       reflectedIntensity[currentPixelInFilledPixels] += backscatteredReflectedIntensity;
@@ -316,12 +346,60 @@ void PlusSpatialModel::CalculateIntensity( std::vector<double>& reflectedIntensi
   // TODO: to simulate beamwidth, take into account the incidence angle and disperse the reflection on a larger area if the angle is large
 }
 
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetDensityKgPerM3(double d)
+{
+  this->DensityKgPerM3 = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetSoundVelocityMPerSec(double d)
+{
+  this->SoundVelocityMPerSec = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetAttenuationCoefficientDbPerCmMhz(double d)
+{
+  this->AttenuationCoefficientDbPerCmMhz = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetSurfaceReflectionIntensityDecayDbPerMm(double d)
+{
+  this->SurfaceReflectionIntensityDecayDbPerMm = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetBackscatterDiffuseReflectionCoefficient(double d)
+{
+  this->BackscatterDiffuseReflectionCoefficient = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetSurfaceDiffuseReflectionCoefficient(double d)
+{
+  this->SurfaceDiffuseReflectionCoefficient = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetSurfaceSpecularReflectionCoefficient(double d)
+{
+  this->SurfaceSpecularReflectionCoefficient = d;
+}
+
+//----------------------------------------------------------------------------
+void PlusSpatialModel::SetTransducerSpatialModelMaxOverlapMm(double d)
+{
+  this->TransducerSpatialModelMaxOverlapMm = d;
+}
+
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference )
+void PlusSpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference)
 {
   UpdateModelFile();
 
-  if ( this->ModelFile.empty() )
+  if (this->ModelFile.empty())
   {
     // no model is defined, which means that the model is everywhere
     // add an intersection point at 0 distance, which means that the whole scanline is in this model
@@ -329,7 +407,7 @@ void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& l
     intersectionInfo.Model = this;
     intersectionInfo.IntersectionIncidenceAngleRad = 0;
     intersectionInfo.IntersectionDistanceFromStartPointMm = 0;
-    lineIntersections.push_back( intersectionInfo );
+    lineIntersections.push_back(intersectionInfo);
     return;
   }
 
@@ -341,35 +419,35 @@ void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& l
     scanLineEndPoint_Reference[2] - scanLineStartPoint_Reference[2],
     0
   };
-  double scanLineDirectionVectorNorm_Reference = vtkMath::Norm( scanLineDirectionVector_Reference );
+  double scanLineDirectionVectorNorm_Reference = vtkMath::Norm(scanLineDirectionVector_Reference);
   double searchLineStartPoint_Reference[4] = {0, 0, 0, 1};
-  for ( int i = 0; i < 3; i++ )
+  for (int i = 0; i < 3; i++)
   {
     searchLineStartPoint_Reference[i] = scanLineStartPoint_Reference[i] - this->TransducerSpatialModelMaxOverlapMm * scanLineDirectionVector_Reference[i] / scanLineDirectionVectorNorm_Reference;
   }
 
   vtkSmartPointer<vtkMatrix4x4> objectToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Invert( this->ModelToObjectTransform, objectToModelMatrix );
+  vtkMatrix4x4::Invert(this->ModelToObjectTransform, objectToModelMatrix);
   vtkSmartPointer<vtkMatrix4x4> referenceToModelMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Multiply4x4( objectToModelMatrix, this->ReferenceToObjectTransform, referenceToModelMatrix );
+  vtkMatrix4x4::Multiply4x4(objectToModelMatrix, this->ReferenceToObjectTransform, referenceToModelMatrix);
 
   double searchLineStartPoint_Model[4] = {0, 0, 0, 1};
   double scanLineEndPoint_Model[4] = {0, 0, 0, 1};
-  referenceToModelMatrix->MultiplyPoint( searchLineStartPoint_Reference, searchLineStartPoint_Model );
-  referenceToModelMatrix->MultiplyPoint( scanLineEndPoint_Reference, scanLineEndPoint_Model );
+  referenceToModelMatrix->MultiplyPoint(searchLineStartPoint_Reference, searchLineStartPoint_Model);
+  referenceToModelMatrix->MultiplyPoint(scanLineEndPoint_Reference, scanLineEndPoint_Model);
 
   vtkSmartPointer<vtkPoints> intersectionPoints_Model = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkIdList> intersectionCellIds = vtkSmartPointer<vtkIdList>::New();
-  this->ModelLocalizer->IntersectWithLine( searchLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, intersectionCellIds );
+  this->ModelLocalizer->IntersectWithLine(searchLineStartPoint_Model, scanLineEndPoint_Model, 0.0, intersectionPoints_Model, intersectionCellIds);
 
-  if ( intersectionPoints_Model->GetNumberOfPoints() < 1 )
+  if (intersectionPoints_Model->GetNumberOfPoints() < 1)
   {
     // no intersections with this model
     return;
   }
 
   vtkSmartPointer<vtkMatrix4x4> modelToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Invert( referenceToModelMatrix, modelToReferenceMatrix );
+  vtkMatrix4x4::Invert(referenceToModelMatrix, modelToReferenceMatrix);
 
   // Measure the distance from the starting point in the reference coordinate system
   double intersectionPoint_Model[4] = {0, 0, 0, 1};
@@ -378,15 +456,15 @@ void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& l
   bool scanLineStartPointInsideModel = false;
   // Search for intersection points in the search line that are not part of the scanline to detect
   // potential model/transducer overlap
-  for ( ; intersectionPointIndex < intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++ )
+  for (; intersectionPointIndex < intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++)
   {
-    intersectionPoints_Model->GetPoint( intersectionPointIndex, intersectionPoint_Model );
-    modelToReferenceMatrix->MultiplyPoint( intersectionPoint_Model, intersectionPoint_Reference );
-    double intersectionDistanceFromSearchLineStartPointMm = sqrt( vtkMath::Distance2BetweenPoints( searchLineStartPoint_Reference, intersectionPoint_Reference ) );
-    if ( intersectionDistanceFromSearchLineStartPointMm <= this->TransducerSpatialModelMaxOverlapMm )
+    intersectionPoints_Model->GetPoint(intersectionPointIndex, intersectionPoint_Model);
+    modelToReferenceMatrix->MultiplyPoint(intersectionPoint_Model, intersectionPoint_Reference);
+    double intersectionDistanceFromSearchLineStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(searchLineStartPoint_Reference, intersectionPoint_Reference));
+    if (intersectionDistanceFromSearchLineStartPointMm <= this->TransducerSpatialModelMaxOverlapMm)
     {
       // there is an intersection point in the searchline that is not part of the scanline
-      scanLineStartPointInsideModel = ( !scanLineStartPointInsideModel );
+      scanLineStartPointInsideModel = (!scanLineStartPointInsideModel);
     }
     else
     {
@@ -396,31 +474,31 @@ void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& l
   }
   LineIntersectionInfo intersectionInfo;
   intersectionInfo.Model = this;
-  if ( scanLineStartPointInsideModel )
+  if (scanLineStartPointInsideModel)
   {
     // the scanline starting point is inside the model, so add an intersection point at 0 distance
     intersectionInfo.IntersectionDistanceFromStartPointMm = 0;
-    lineIntersections.push_back( intersectionInfo );
+    lineIntersections.push_back(intersectionInfo);
   }
 
   // Get surface normals at intersection points
   vtkDataArray* normals_Model = NULL;
-  if ( this->PolyData->GetPointData() )
+  if (this->PolyData->GetPointData())
   {
     normals_Model = this->PolyData->GetPointData()->GetNormals();
   }
 
   double scanLineDirectionVector_Model[4] = {0, 0, 0, 0};
-  referenceToModelMatrix->MultiplyPoint( scanLineDirectionVector_Reference, scanLineDirectionVector_Model );
-  vtkMath::Normalize( scanLineDirectionVector_Model );
+  referenceToModelMatrix->MultiplyPoint(scanLineDirectionVector_Reference, scanLineDirectionVector_Model);
+  vtkMath::Normalize(scanLineDirectionVector_Model);
 
-  for ( ; intersectionPointIndex < intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++ )
+  for (; intersectionPointIndex < intersectionPoints_Model->GetNumberOfPoints(); intersectionPointIndex++)
   {
-    intersectionPoints_Model->GetPoint( intersectionPointIndex, intersectionPoint_Model );
-    modelToReferenceMatrix->MultiplyPoint( intersectionPoint_Model, intersectionPoint_Reference );
-    intersectionInfo.IntersectionDistanceFromStartPointMm = sqrt( vtkMath::Distance2BetweenPoints( scanLineStartPoint_Reference, intersectionPoint_Reference ) );
-    vtkTriangle* cell = vtkTriangle::SafeDownCast( this->PolyData->GetCell( intersectionCellIds->GetId( intersectionPointIndex ) ) );
-    if ( cell != NULL && normals_Model != NULL )
+    intersectionPoints_Model->GetPoint(intersectionPointIndex, intersectionPoint_Model);
+    modelToReferenceMatrix->MultiplyPoint(intersectionPoint_Model, intersectionPoint_Reference);
+    intersectionInfo.IntersectionDistanceFromStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(scanLineStartPoint_Reference, intersectionPoint_Reference));
+    vtkTriangle* cell = vtkTriangle::SafeDownCast(this->PolyData->GetCell(intersectionCellIds->GetId(intersectionPointIndex)));
+    if (cell != NULL && normals_Model != NULL)
     {
       const int NUMBER_OF_POINTS_PER_CELL = 3; // triangle cell
       double pcoords[NUMBER_OF_POINTS_PER_CELL] = {0, 0, 0};
@@ -428,119 +506,118 @@ void PlusSpatialModel::GetLineIntersections( std::deque<LineIntersectionInfo>& l
       double weights[NUMBER_OF_POINTS_PER_CELL] = {0, 0, 0};
       double closestPoint[3] = {0, 0, 0};
       int subId = 0;
-      cell->EvaluatePosition( intersectionPoint_Model, closestPoint, subId, pcoords, dist2, weights );
+      cell->EvaluatePosition(intersectionPoint_Model, closestPoint, subId, pcoords, dist2, weights);
       double interpolatedNormal_Model[3] = {0, 0, 0};
-      for ( int pointIndex = 0; pointIndex < NUMBER_OF_POINTS_PER_CELL; pointIndex++ )
+      for (int pointIndex = 0; pointIndex < NUMBER_OF_POINTS_PER_CELL; pointIndex++)
       {
-        double* normalAtCellCorner = normals_Model->GetTuple3( cell->GetPointId( pointIndex ) );
-        if ( normalAtCellCorner == NULL )
+        double* normalAtCellCorner = normals_Model->GetTuple3(cell->GetPointId(pointIndex));
+        if (normalAtCellCorner == NULL)
         {
-          LOG_ERROR( "SpatialModel::GetLineIntersections error: invalid normal" );
+          LOG_ERROR("SpatialModel::GetLineIntersections error: invalid normal");
           continue;
         }
         interpolatedNormal_Model[0] += normalAtCellCorner[0] * weights[pointIndex];
         interpolatedNormal_Model[1] += normalAtCellCorner[1] * weights[pointIndex];
         interpolatedNormal_Model[2] += normalAtCellCorner[2] * weights[pointIndex];
       }
-      vtkMath::Normalize( interpolatedNormal_Model );
-      intersectionInfo.IntersectionIncidenceAngleRad = acos( vtkMath::Dot( interpolatedNormal_Model, scanLineDirectionVector_Model ) );
+      vtkMath::Normalize(interpolatedNormal_Model);
+      intersectionInfo.IntersectionIncidenceAngleRad = acos(vtkMath::Dot(interpolatedNormal_Model, scanLineDirectionVector_Model));
     }
     else
     {
-      LOG_ERROR( "SpatialModel::GetLineIntersections error: surface normal is not available" );
+      LOG_ERROR("SpatialModel::GetLineIntersections error: surface normal is not available");
       intersectionInfo.IntersectionIncidenceAngleRad = 0;
     }
-    lineIntersections.push_back( intersectionInfo );
+    lineIntersections.push_back(intersectionInfo);
   }
-
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus PlusSpatialModel::UpdateModelFile()
 {
-  if ( !this->ModelFileNeedsUpdate )
+  if (!this->ModelFileNeedsUpdate)
   {
     return PLUS_SUCCESS;
   }
 
   this->ModelFileNeedsUpdate = false;
 
-  if ( this->PolyData != NULL )
+  if (this->PolyData != NULL)
   {
     this->PolyData->Delete();
     this->PolyData = NULL;
   }
 
-  if ( this->ModelFile.empty() )
+  if (this->ModelFile.empty())
   {
-    LOG_DEBUG( "ModelFileName is not specified for SpatialModel " << ( this->Name.empty() ? "(undefined)" : this->Name ) << " it will be used as background media" );
+    LOG_DEBUG("ModelFileName is not specified for SpatialModel " << (this->Name.empty() ? "(undefined)" : this->Name) << " it will be used as background media");
     return PLUS_SUCCESS;
   }
 
   std::string foundAbsoluteImagePath;
   // FindImagePath is used instead of FindModelPath, as the model is expected to be in the image directory
   // it might be more reasonable to move the model to the model directory and change this to FindModelPath
-  if ( vtkPlusConfig::GetInstance()->FindImagePath( this->ModelFile, foundAbsoluteImagePath ) != PLUS_SUCCESS )
+  if (vtkPlusConfig::GetInstance()->FindImagePath(this->ModelFile, foundAbsoluteImagePath) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Cannot find input model file " << this->ModelFile );
+    LOG_ERROR("Cannot find input model file " << this->ModelFile);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkPolyData> polyData;
 
-  std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension( foundAbsoluteImagePath );
-  if ( STRCASECMP( fileExt.c_str(), ".stl" ) == 0 )
+  std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(foundAbsoluteImagePath);
+  if (STRCASECMP(fileExt.c_str(), ".stl") == 0)
   {
     vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
-    modelReader->SetFileName( foundAbsoluteImagePath.c_str() );
+    modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
     polyData = modelReader->GetOutput();
   }
   else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
-    modelReader->SetFileName( foundAbsoluteImagePath.c_str() );
+    modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
     polyData = modelReader->GetOutput();
   }
 
-  if ( polyData.GetPointer() == NULL || polyData->GetNumberOfPoints() == 0 )
+  if (polyData.GetPointer() == NULL || polyData->GetNumberOfPoints() == 0)
   {
-    LOG_ERROR( "Model specified cannot be found: " << foundAbsoluteImagePath );
+    LOG_ERROR("Model specified cannot be found: " << foundAbsoluteImagePath);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkPolyDataNormals> polyDataNormalsComputer = vtkSmartPointer<vtkPolyDataNormals>::New();
-  polyDataNormalsComputer->SetInputData( polyData );
+  polyDataNormalsComputer->SetInputData(polyData);
   polyDataNormalsComputer->Update();
   this->PolyData = polyDataNormalsComputer->GetOutput();
-  this->PolyData->Register( NULL );
+  this->PolyData->Register(NULL);
 
-  this->ModelLocalizer->SetDataSet( this->PolyData );
-  this->ModelLocalizer->SetMaxLevel( 24 );
-  this->ModelLocalizer->SetNumberOfCellsPerNode( 32 );
+  this->ModelLocalizer->SetDataSet(this->PolyData);
+  this->ModelLocalizer->SetMaxLevel(24);
+  this->ModelLocalizer->SetNumberOfCellsPerNode(32);
   this->ModelLocalizer->BuildLocator();
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetModelFile( const char* modelFile )
+void PlusSpatialModel::SetModelFile(const char* modelFile)
 {
   std::string oldModelFile = this->ModelFile;
   this->ModelFile = modelFile ? modelFile : "";
-  if ( this->ModelFile.compare( oldModelFile ) != 0 )
+  if (this->ModelFile.compare(oldModelFile) != 0)
   {
     this->ModelFileNeedsUpdate = true;
   }
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::UpdatePrecomputedAttenuations( double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements )
+void PlusSpatialModel::UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements)
 {
-  this->PrecomputedAttenuations.resize( numberOfElements );
+  this->PrecomputedAttenuations.resize(numberOfElements);
   double attenuation = intensityTransmittedFractionPerPixelTwoWay;
-  for ( int i = 0; i < numberOfElements; i++ )
+  for (int i = 0; i < numberOfElements; i++)
   {
     this->PrecomputedAttenuations[i] = attenuation;
     attenuation *= intensityTransmittedFractionPerPixelTwoWay;
@@ -548,7 +625,7 @@ void PlusSpatialModel::UpdatePrecomputedAttenuations( double intensityTransmitte
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetModelToObjectTransform( double* matrixElements )
+void PlusSpatialModel::SetModelToObjectTransform(double* matrixElements)
 {
-  this->ModelToObjectTransform->DeepCopy( matrixElements );
+  this->ModelToObjectTransform->DeepCopy(matrixElements);
 }

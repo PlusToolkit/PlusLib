@@ -53,7 +53,7 @@ void vtkPlusSaveConfigCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusSaveConfigCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == SAVE_CONFIG_CMD)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SAVE_CONFIG_CMD))
   {
     desc += SAVE_CONFIG_CMD;
     desc += ": Tell the data collector to save the config file.";
@@ -62,7 +62,7 @@ std::string vtkPlusSaveConfigCommand::GetDescription(const std::string& commandN
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusSaveConfigCommand::GetFilename() const
+std::string vtkPlusSaveConfigCommand::GetFilename() const
 {
   return this->Filename;
 }

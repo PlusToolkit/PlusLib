@@ -137,13 +137,13 @@ PlusStatus vtkPlusDataSource::SetSourceId(const std::string& aSourceId)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDataSource::GetId() const
+std::string vtkPlusDataSource::GetId() const
 {
   return this->Id;
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDataSource::GetSourceId() const
+std::string vtkPlusDataSource::GetSourceId() const
 {
   return this->GetId();
 }
@@ -180,13 +180,13 @@ PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* refere
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDataSource::GetReferenceCoordinateFrameName() const
+std::string vtkPlusDataSource::GetReferenceCoordinateFrameName() const
 {
   return this->ReferenceCoordinateFrameName;
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDataSource::GetPortName() const
+std::string vtkPlusDataSource::GetPortName() const
 {
   return this->PortName;
 }

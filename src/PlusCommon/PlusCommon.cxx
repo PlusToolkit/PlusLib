@@ -589,6 +589,28 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, const std::array<float,
   return PLUS_SUCCESS;
 }
 
+namespace
+{
+  //----------------------------------------------------------------------------
+  bool icompare_pred(unsigned char a, unsigned char b)
+  {
+    return ::tolower(a) == ::tolower(b);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::IsEqualInsensitive(std::string const& a, std::string const& b)
+{
+  if (a.length() == b.length())
+  {
+    return std::equal(b.begin(), b.end(), a.begin(), icompare_pred);
+  }
+  else
+  {
+    return false;
+  }
+}
+
 //----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::DrawScanLines(int* inputImageExtent, float greyValue, const PixelLineList& scanLineEndPoints, vtkPlusTrackedFrameList* trackedFrameList)
 {

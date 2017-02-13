@@ -43,13 +43,13 @@ POSSIBILITY OF SUCH DAMAGES.
 /* MODIFIED JUNE 2012 by Thomas Vaughan:
 A few notes about the code:
 
-It is unclear why the variable 255 was used in many places. Following the 
-logic, it is the equivalent to the accumulation buffer value for inserting 
-a whole pixel into a single voxel. In this case it would make more sense if 
-the value was 256 (which is consistent with the fixed point representation). 
-However, as mentioned above, it is unclear what the original intent with this 
-number was. I changed it to 256. For readability and to make it easier to 
-change  later, I defined it as a preprocessor statement in this header file - 
+It is unclear why the variable 255 was used in many places. Following the
+logic, it is the equivalent to the accumulation buffer value for inserting
+a whole pixel into a single voxel. In this case it would make more sense if
+the value was 256 (which is consistent with the fixed point representation).
+However, as mentioned above, it is unclear what the original intent with this
+number was. I changed it to 256. For readability and to make it easier to
+change  later, I defined it as a preprocessor statement in this header file -
 see ACCUMULATION_MULTIPLIER.
 
 Depending on the data type used to store the accumulation buffer, there will
@@ -64,13 +64,13 @@ calculation will be correct as long as inserting the pixel does not cause
 the accumulation buffer to overflow. The highest value that can be inserted
 into the accumulation value is ACCUMULATION_MULTIPLIER. As long as the current
 accumulation buffer value plus ACCUMULATION_MULTIPLIER is less than or equal
-to the maximm value, we are safe. Therefore, the threshold should be defined 
-as: 
+to the maximm value, we are safe. Therefore, the threshold should be defined
+as:
 ACCUMULATION_THRESHOLD = (ACCUMULATION_MAXIMUM - ACCUMULATION_MULTIPLIER)
 
-Note that, in order to deal with overflow, the code previously would take in 
-the additional pixel value and  calculate a weighted average, as normally done 
-in compounding (MEAN), but then reset the  accumulation value for the voxel to 65535 
+Note that, in order to deal with overflow, the code previously would take in
+the additional pixel value and  calculate a weighted average, as normally done
+in compounding (MEAN), but then reset the  accumulation value for the voxel to 65535
 afterward. This resulted in unwanted and clearly-wrong artifacts.
 */
 
@@ -89,6 +89,7 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#include "fixed.h"
 #include "float.h" // for DBL_MAX
 #include <typeinfo>
 
@@ -96,8 +97,8 @@ class vtkImageData;
 
 namespace
 {
-    static const double fraction1_256 = 1.0 / 256;
-    static const double fraction255_256 = 255.0 / 256;
+  static const double fraction1_256 = 1.0 / 256;
+  static const double fraction255_256 = 255.0 / 256;
 }
 
 // regarding these values, see comments at the top of this file by Thomas Vaughan
@@ -107,13 +108,13 @@ namespace
 
 #define PIXEL_REJECTION_DISABLED (-DBL_MAX)
 
-bool PixelRejectionEnabled(double threshold) { return threshold > PIXEL_REJECTION_DISABLED+DBL_MIN*200; }
+bool PixelRejectionEnabled(double threshold) { return threshold > PIXEL_REJECTION_DISABLED + DBL_MIN * 200; }
 
 /*!
   These are the parameters that are supplied to any given "InsertSlice" function, whether it be
   optimized or unoptimized.
  */
-struct vtkPlusPasteSliceIntoVolumeInsertSliceParams 
+struct vtkPlusPasteSliceIntoVolumeInsertSliceParams
 {
   // information on the volume
   vtkImageData* outData;            // the output volume
@@ -149,24 +150,24 @@ struct vtkPlusPasteSliceIntoVolumeInsertSliceParams
 /*!
   Implements trilinear interpolation
 
-  Does reverse trilinear interpolation. Trilinear interpolation would use 
-  the pixel values to interpolate something in the middle we have the 
-  something in the middle and want to spread it to the discrete pixel 
+  Does reverse trilinear interpolation. Trilinear interpolation would use
+  the pixel values to interpolate something in the middle we have the
+  something in the middle and want to spread it to the discrete pixel
   values around it, in an interpolated way
 
   Do trilinear interpolation of the input data 'inPtr' of extent 'inExt'
-  at the 'point'.  The result is placed at 'outPtr'.  
+  at the 'point'.  The result is placed at 'outPtr'.
   If the lookup data is beyond the extent 'inExt', set 'outPtr' to
-  the background color 'background'.  
+  the background color 'background'.
   The number of scalar components in the data is 'numscalars'
 */
 template <class F, class T>
-static int vtkTrilinearInterpolation(F *point,
-                                     T *inPtr,
-                                     T *outPtr,
-                                     unsigned short *accPtr,
-                                     unsigned char *importancePtr,
-                                     int numscalars, 
+static int vtkTrilinearInterpolation(F* point,
+                                     T* inPtr,
+                                     T* outPtr,
+                                     unsigned short* accPtr,
+                                     unsigned char* importancePtr,
+                                     int numscalars,
                                      vtkPlusPasteSliceIntoVolume::CompoundingType compoundingMode,
                                      int outExt[6],
                                      vtkIdType outInc[3],
@@ -174,12 +175,12 @@ static int vtkTrilinearInterpolation(F *point,
 {
   // Determine if the output is a floating point or integer type. If floating point type then we don't round
   // the interpolated value.
-  bool roundOutput=true; // assume integer output by default
-  T floatValueInOutputType=0.3;
-  if (floatValueInOutputType>0)
+  bool roundOutput = true; // assume integer output by default
+  T floatValueInOutputType = 0.3;
+  if (floatValueInOutputType > 0)
   {
     // output is a floating point number
-    roundOutput=false;
+    roundOutput = false;
   }
 
   F fx, fy, fz;
@@ -198,17 +199,17 @@ static int vtkTrilinearInterpolation(F *point,
   // and the fractional component (fx) for x, y and z
 
   // bounds check
-  if ((outIdX0 | (outExt[1]-outExt[0] - outIdX1) |
-       outIdY0 | (outExt[3]-outExt[2] - outIdY1) |
-       outIdZ0 | (outExt[5]-outExt[4] - outIdZ1)) >= 0)
+  if ((outIdX0 | (outExt[1] - outExt[0] - outIdX1) |
+       outIdY0 | (outExt[3] - outExt[2] - outIdY1) |
+       outIdZ0 | (outExt[5] - outExt[4] - outIdZ1)) >= 0)
   {
     // do reverse trilinear interpolation
-    vtkIdType factX0 = outIdX0*outInc[0];
-    vtkIdType factY0 = outIdY0*outInc[1];
-    vtkIdType factZ0 = outIdZ0*outInc[2];
-    vtkIdType factX1 = outIdX1*outInc[0];
-    vtkIdType factY1 = outIdY1*outInc[1];
-    vtkIdType factZ1 = outIdZ1*outInc[2];
+    vtkIdType factX0 = outIdX0 * outInc[0];
+    vtkIdType factY0 = outIdY0 * outInc[1];
+    vtkIdType factZ0 = outIdZ0 * outInc[2];
+    vtkIdType factX1 = outIdX1 * outInc[0];
+    vtkIdType factY1 = outIdY1 * outInc[1];
+    vtkIdType factZ1 = outIdZ1 * outInc[2];
 
     vtkIdType factY0Z0 = factY0 + factZ0;
     vtkIdType factY0Z1 = factY0 + factZ1;
@@ -231,29 +232,29 @@ static int vtkTrilinearInterpolation(F *point,
     F ry = 1 - fy;
     F rz = 1 - fz;
 
-    F ryrz = ry*rz;
-    F ryfz = ry*fz;
-    F fyrz = fy*rz;
-    F fyfz = fy*fz;
+    F ryrz = ry * rz;
+    F ryfz = ry * fz;
+    F fyrz = fy * rz;
+    F fyfz = fy * fz;
 
     F fdx[8]; // fdx is the weight towards the corner
-    fdx[0] = rx*ryrz;
-    fdx[1] = rx*ryfz;
-    fdx[2] = rx*fyrz;
-    fdx[3] = rx*fyfz;
-    fdx[4] = fx*ryrz;
-    fdx[5] = fx*ryfz;
-    fdx[6] = fx*fyrz;
-    fdx[7] = fx*fyfz;
+    fdx[0] = rx * ryrz;
+    fdx[1] = rx * ryfz;
+    fdx[2] = rx * fyrz;
+    fdx[3] = rx * fyfz;
+    fdx[4] = fx * ryrz;
+    fdx[5] = fx * ryfz;
+    fdx[6] = fx * fyrz;
+    fdx[7] = fx * fyfz;
 
     F f, r, a;
-    T *inPtrTmp, *outPtrTmp;
+    T* inPtrTmp, *outPtrTmp;
 
-    unsigned short *accPtrTmp;
+    unsigned short* accPtrTmp;
 
     // loop over the eight voxels
     int j = 8;
-    do 
+    do
     {
       j--;
       if (fdx[j] == 0)
@@ -261,8 +262,8 @@ static int vtkTrilinearInterpolation(F *point,
         continue;
       }
       inPtrTmp = inPtr;
-      outPtrTmp = outPtr+idx[j];
-      accPtrTmp = accPtr+ ((idx[j]/outInc[0]));
+      outPtrTmp = outPtr + idx[j];
+      accPtrTmp = accPtr + ((idx[j] / outInc[0]));
       a = *accPtrTmp;
 
       int i = numscalars;
@@ -271,12 +272,12 @@ static int vtkTrilinearInterpolation(F *point,
         i--;
         switch (compoundingMode)
         {
-        case vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE:
+          case vtkPlusPasteSliceIntoVolume::MAXIMUM_COMPOUNDING_MODE:
           {
             const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
-                                      // (trilinear weight = 0.125 for each), then it the compounding operator
-                                      // should be applied for each. Else, it should only be considered
-                                      // for the other nearest voxels.
+            // (trilinear weight = 0.125 for each), then it the compounding operator
+            // should be applied for each. Else, it should only be considered
+            // for the other nearest voxels.
             if (fdx[j] >= minWeight && *inPtrTmp > *outPtrTmp)
             {
               *outPtrTmp = (*inPtrTmp);
@@ -285,12 +286,12 @@ static int vtkTrilinearInterpolation(F *point,
             }
             break;
           }
-        case vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE:
+          case vtkPlusPasteSliceIntoVolume::LATEST_COMPOUNDING_MODE:
           {
             const F minWeight(0.125); // If a pixel is right in the middle of the eight surrounding voxels
-                                      // (trilinear weight = 0.125 for each), then it the compounding operator
-                                      // should be applied for each. Else, it should only be considered
-                                      // for the other nearest voxels.
+            // (trilinear weight = 0.125 for each), then it the compounding operator
+            // should be applied for each. Else, it should only be considered
+            // for the other nearest voxels.
             if (fdx[j] >= minWeight)
             {
               *outPtrTmp = (*inPtrTmp);
@@ -299,49 +300,49 @@ static int vtkTrilinearInterpolation(F *point,
             }
             break;
           }
-        case vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE:
-          f = fdx[j];
-          r = F((*accPtrTmp)/(double)ACCUMULATION_MULTIPLIER);  // added division by double, since this always returned 0 otherwise
-          a = f + r;
-          if (roundOutput)
-          {
-            PlusMath::Round((f*(*inPtrTmp) + r*(*outPtrTmp))/a, *outPtrTmp);
-          }
-          else
-          {
-            *outPtrTmp = (f*(*inPtrTmp) + r*(*outPtrTmp))/a;
-          }
-          a *= ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
-          break;
-        case vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE:
-          f = fdx[j];
-          if (*importancePtr == 0)
-          {
+          case vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE:
+            f = fdx[j];
+            r = F((*accPtrTmp) / (double)ACCUMULATION_MULTIPLIER); // added division by double, since this always returned 0 otherwise
+            a = f + r;
+            if (roundOutput)
+            {
+              PlusMath::Round((f * (*inPtrTmp) + r * (*outPtrTmp)) / a, *outPtrTmp);
+            }
+            else
+            {
+              *outPtrTmp = (f * (*inPtrTmp) + r * (*outPtrTmp)) / a;
+            }
+            a *= ACCUMULATION_MULTIPLIER; // needs to be done for proper conversion to unsigned short for accumulation buffer
             break;
-          }
-          a = F( (*importancePtr)*f + *accPtrTmp );
-          if (typeid(F) == typeid(fixed))
-          {
-            //multiplying (*accPtrTmp)*(*outPtrTmp) tends to overflow fixed point type, so divide in-between
-            //splitting like this incurs two divisions, but avoids overflow
-            r = (*inPtrTmp)*(*importancePtr)*f / a + ((*accPtrTmp) / a)*(*outPtrTmp);
-          }
-          else // with float just one division is used
-          {
-            r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
-          }
-          if (roundOutput)
-          {
-            PlusMath::Round(r, *outPtrTmp);
-          }
-          else
-          {
-            *outPtrTmp = r;
-          }
-          break;
-        default:
-          LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
-          break;
+          case vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE:
+            f = fdx[j];
+            if (*importancePtr == 0)
+            {
+              break;
+            }
+            a = F((*importancePtr) * f + *accPtrTmp);
+            if (typeid(F) == typeid(fixed))
+            {
+              //multiplying (*accPtrTmp)*(*outPtrTmp) tends to overflow fixed point type, so divide in-between
+              //splitting like this incurs two divisions, but avoids overflow
+              r = (*inPtrTmp) * (*importancePtr) * f / a + ((*accPtrTmp) / a) * (*outPtrTmp);
+            }
+            else // with float just one division is used
+            {
+              r = F((*inPtrTmp) * (*importancePtr) * f + (*outPtrTmp) * (*accPtrTmp)) / a;
+            }
+            if (roundOutput)
+            {
+              PlusMath::Round(r, *outPtrTmp);
+            }
+            else
+            {
+              *outPtrTmp = r;
+            }
+            break;
+          default:
+            LOG_ERROR("Unknown Compounding operator detected, value " << compoundingMode << ". Leaving value as-is.");
+            break;
         }
         inPtrTmp++;
         outPtrTmp++;
@@ -367,13 +368,13 @@ static int vtkTrilinearInterpolation(F *point,
   }
   // if bounds check fails
   return 0;
-}     
+}
 
 
 //----------------------------------------------------------------------------
 /*!
   Convert the ClipRectangle into a clip extent that can be applied to the
-  input data - number of pixels (+ or -) from the origin (the z component 
+  input data - number of pixels (+ or -) from the origin (the z component
   is copied from the inExt parameter)
 
   \param clipExt {x0, x1, y0, y1, z0, z1} the "output" of this function is to change this array
@@ -384,28 +385,32 @@ static int vtkTrilinearInterpolation(F *point,
   \param clipRectangleSize = {x, y} size of the clipping rectangle in the image, in pixels
 */
 void GetClipExtent(int clipExt[6],
-                       double inOrigin[3],
-                       double inSpacing[3],
-                       const int inExt[6],
-                       double clipRectangleOrigin[2],
-                       double clipRectangleSize[2])
+                   double inOrigin[3],
+                   double inSpacing[3],
+                   const int inExt[6],
+                   double clipRectangleOrigin[2],
+                   double clipRectangleSize[2])
 {
   // Map the clip rectangle (millimetres) to pixels
   // --> number of pixels (+ or -) from the origin
 
-  int x0 = (int)ceil((clipRectangleOrigin[0]-inOrigin[0])/inSpacing[0]);
-  int x1 = (int)floor((clipRectangleOrigin[0]-inOrigin[0]+clipRectangleSize[0])/inSpacing[0]);
-  int y0 = (int)ceil((clipRectangleOrigin[1]-inOrigin[1])/inSpacing[1]);
-  int y1 = (int)floor((clipRectangleOrigin[1]-inOrigin[1]+clipRectangleSize[1])/inSpacing[1]);
+  int x0 = (int)ceil((clipRectangleOrigin[0] - inOrigin[0]) / inSpacing[0]);
+  int x1 = (int)floor((clipRectangleOrigin[0] - inOrigin[0] + clipRectangleSize[0]) / inSpacing[0]);
+  int y0 = (int)ceil((clipRectangleOrigin[1] - inOrigin[1]) / inSpacing[1]);
+  int y1 = (int)floor((clipRectangleOrigin[1] - inOrigin[1] + clipRectangleSize[1]) / inSpacing[1]);
 
   // Make sure that x0 <= x1 and y0 <= y1
   if (x0 > x1)
   {
-    int tmp = x0; x0 = x1; x1 = tmp;
+    int tmp = x0;
+    x0 = x1;
+    x1 = tmp;
   }
   if (y0 > y1)
   {
-    int tmp = y0; y0 = y1; y1 = tmp;
+    int tmp = y0;
+    y0 = y1;
+    y1 = tmp;
   }
 
   // make sure the clip extent lies within the input extent
@@ -421,7 +426,7 @@ void GetClipExtent(int clipExt[6],
   if (x0 > x1)
   {
     x0 = inExt[0];
-    x1 = inExt[0]-1;
+    x1 = inExt[0] - 1;
   }
 
   if (y0 < inExt[2])
@@ -436,7 +441,7 @@ void GetClipExtent(int clipExt[6],
   if (y0 > y1)
   {
     y0 = inExt[2];
-    y1 = inExt[2]-1;
+    y1 = inExt[2] - 1;
   }
 
   // Set the clip extent

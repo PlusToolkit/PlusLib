@@ -53,7 +53,7 @@ public:
   /*! Set OpenIGTLink message type */
   virtual void SetMessageType(const std::string& messageType);
   /*! Get OpenIGTLink message type */
-  virtual const std::string& GetMessageType() const;
+  virtual std::string GetMessageType() const;
 
   /*! Set image streams to be sent when message type is a type that sends an image */
   vtkSetMacro(ImageStream, PlusTransformName);
@@ -64,7 +64,7 @@ public:
   /*! Set OpenIGTLink server address */
   virtual void SetServerAddress(const std::string& serverAddress);
   /*! Get OpenIGTLink server address */
-  virtual const std::string& GetServerAddress() const;
+  virtual std::string GetServerAddress() const;
 
   /*! Set OpenIGTLink server port */
   vtkSetMacro(ServerPort, int);

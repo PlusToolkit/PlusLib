@@ -279,7 +279,7 @@ void vtkPlusVirtualVolumeReconstructor::SetOutputVolFilename(const std::string& 
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusVirtualVolumeReconstructor::GetOutputVolFilename() const
+std::string vtkPlusVirtualVolumeReconstructor::GetOutputVolFilename() const
 {
   return this->OutputVolFilename;
 }
@@ -291,7 +291,7 @@ void vtkPlusVirtualVolumeReconstructor::SetOutputVolDeviceName(const std::string
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusVirtualVolumeReconstructor::GetOutputVolDeviceName() const
+std::string vtkPlusVirtualVolumeReconstructor::GetOutputVolDeviceName() const
 {
   return this->OutputVolDeviceName;
 }

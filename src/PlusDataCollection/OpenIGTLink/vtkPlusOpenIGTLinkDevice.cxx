@@ -42,6 +42,7 @@ vtkPlusOpenIGTLinkDevice::~vtkPlusOpenIGTLinkDevice()
   {
     this->StopRecording();
   }
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket = NULL;
 }
 
@@ -79,6 +80,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalConnect()
   // Clear buffers on connect
   this->ClearAllBuffers();
 
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
   if (this->ClientSocket->GetConnected())
   {
     return PLUS_SUCCESS;
@@ -117,9 +119,12 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
 {
   LOG_DEBUG("Attempt to connect to client socket in device " << this->GetDeviceId());
 
-  if (this->ClientSocket->GetConnected())
   {
-    this->ClientSocket->CloseSocket();
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    if (this->ClientSocket->GetConnected())
+    {
+      this->ClientSocket->CloseSocket();
+    }
   }
 
   if (this->ServerAddress.empty())
@@ -152,6 +157,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     LOG_DEBUG("Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ").");
   }
 
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket->SetReceiveTimeout(this->ReceiveTimeoutSec * 1000.0);   // *1000 because SetReceiveTimeout expects msec
   this->ClientSocket->SetSendTimeout(this->SendTimeoutSec * 1000.0);   // *1000 because SetSendTimeout expects msec
 
@@ -225,6 +231,7 @@ void vtkPlusOpenIGTLinkDevice::OnReceiveTimeout()
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer& headerMsg)
 {
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
   PlusStatus socketStatus = ReceiveMessageHeader(headerMsg);
   if (socketStatus == PLUS_FAIL || !this->ClientSocket->GetConnected())
   {
@@ -264,7 +271,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
       headerMsg = NULL;
       return PLUS_FAIL;
     }
-    return headerMsg == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
+    return PLUS_SUCCESS;
   }
 
   // No data has been received
@@ -303,7 +310,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
   LOG_DEBUG("No data coming from OpenIGTLink device " << this->GetDeviceId());
 #endif
 
-  return headerMsg == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
+  return socketError ? PLUS_FAIL : PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -359,7 +366,7 @@ void vtkPlusOpenIGTLinkDevice::SetMessageType(const std::string& messageType)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkDevice::GetMessageType() const
+std::string vtkPlusOpenIGTLinkDevice::GetMessageType() const
 {
   return this->MessageType;
 }
@@ -371,7 +378,7 @@ void vtkPlusOpenIGTLinkDevice::SetServerAddress(const std::string& serverAddress
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkDevice::GetServerAddress() const
+std::string vtkPlusOpenIGTLinkDevice::GetServerAddress() const
 {
   return this->ServerAddress;
 }

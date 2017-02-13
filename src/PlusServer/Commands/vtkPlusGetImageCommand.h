@@ -41,7 +41,7 @@ public:
   void SetNameToGetImage();
 
   /*! Id of the device */
-  virtual const std::string& GetImageId() const;
+  virtual std::string GetImageId() const;
   virtual void SetImageId(const std::string& imageId);
 
 protected:

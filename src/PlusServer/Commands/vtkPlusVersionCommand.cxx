@@ -46,7 +46,7 @@ void vtkPlusVersionCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusVersionCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == VERSION_CMD)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, VERSION_CMD))
   {
     desc += VERSION_CMD;
     desc += ": Send and receive version to/from the device.";

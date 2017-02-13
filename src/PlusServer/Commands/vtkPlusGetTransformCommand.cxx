@@ -45,7 +45,7 @@ void vtkPlusGetTransformCommand::GetCommandNames(std::list<std::string>& cmdName
 std::string vtkPlusGetTransformCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == GET_TRANSFORM_CMD)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_TRANSFORM_CMD))
   {
     desc += GET_TRANSFORM_CMD;
     desc += ": Retrieve the details of a transform in the remote transform repository.";
@@ -54,7 +54,7 @@ std::string vtkPlusGetTransformCommand::GetDescription(const std::string& comman
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusGetTransformCommand::GetTransformName() const
+std::string vtkPlusGetTransformCommand::GetTransformName() const
 {
   return this->TransformName;
 }

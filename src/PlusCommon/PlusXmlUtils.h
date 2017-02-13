@@ -515,7 +515,7 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, ##memberVar.c_str()); \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, memberVar.c_str()); \
   }
 
 #define XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
