@@ -39,9 +39,6 @@ See License.txt for details.
 // OpenIGTLinkIO includes
 #include <igtlPolyDataConverter.h>
 
-// STL includes
-#include <future>
-
 #if defined(WIN32)
 #include "vtkPlusOpenIGTLinkServerWin32.cxx"
 #elif defined(__APPLE__)

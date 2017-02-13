@@ -760,10 +760,9 @@ PlusStatus vtkPlusStealthLinkTracker::ReadConfiguration( vtkXMLDataElement* root
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ServerAddress, deviceConfig );
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED( ServerPort, deviceConfig );
 
-  std::string deviceIdStr( this->GetDeviceId() ? this->GetDeviceId() : "" );
-  if( deviceIdStr.size() > MAX_DEVICE_ID_LENGTH )
+  if( this->GetDeviceId().size() > MAX_DEVICE_ID_LENGTH )
   {
-    LOG_WARNING( "The device id " << deviceIdStr << " might be too long, as it may be used for generating identifiers for images that will be sent through OpenIGTLink. Consider choosing a shorter device Id. Example: SLD1" );
+    LOG_WARNING( "The device id " << this->GetDeviceId() << " might be too long, as it may be used for generating identifiers for images that will be sent through OpenIGTLink. Consider choosing a shorter device Id. Example: SLD1" );
   }
 
   return PLUS_SUCCESS;
@@ -878,7 +877,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
   for ( DataSourceContainerConstIterator toolIterator = this->GetToolIteratorBegin(); toolIterator != this->GetToolIteratorEnd(); ++toolIterator )
   {
     //if the wanted transformation is the frameToTracker
-    if( !strcmp( toolIterator->second->GetPortName(), navData.frameName.c_str() ) ) // static!
+    if( toolIterator->second->GetPortName() == navData.frameName ) // static!
     {
       if( frameOutOfView == false )
       {
@@ -890,7 +889,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
       }
     }
     // if the wanted transformation is rasToTracker
-    else if( !strcmp( toolIterator->second->GetPortName(), vtkInternalShared::GetRasRegistrationToolName() ) ) // static!
+    else if( strcmp( toolIterator->second->GetPortName().c_str(), vtkInternalShared::GetRasRegistrationToolName() ) ) // static!
     {
       // If frame is not out of view, the RasToTrackerTransform is invalid
       bool examValid =  this->InternalShared->GetExamValid(); //thread safe with the set function
@@ -907,7 +906,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
       }
     }
     // if the wanted Transform is any tool to Tracker example sytlusToTracker, probeToTracker etc
-    else if( !strcmp( toolIterator->second->GetPortName(), navData.instrumentName.c_str() ) )
+    else if( toolIterator->second->GetPortName() == navData.instrumentName )
     {
       if( instrumentOutOfView == false )
       {

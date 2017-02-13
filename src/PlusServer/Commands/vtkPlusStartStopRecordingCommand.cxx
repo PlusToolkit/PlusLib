@@ -216,10 +216,10 @@ vtkPlusVirtualCapture* vtkPlusStartStopRecordingCommand::GetOrCreateCaptureDevic
     {
       std::vector<vtkPlusDevice*> devices;
       (*iter)->GetInputDevices(devices);
-      for (auto device : devices)
+      for (auto it = devices.begin(); it != devices.end(); ++it)
       {
         vtkPlusChannel* aChannel;
-        if (device->GetOutputChannelByName(aChannel, channelId) == PLUS_SUCCESS)
+        if ((*it)->GetOutputChannelByName(aChannel, channelId) == PLUS_SUCCESS)
         {
           foundDevice = dynamic_cast<vtkPlusVirtualCapture*>(*iter);
         }

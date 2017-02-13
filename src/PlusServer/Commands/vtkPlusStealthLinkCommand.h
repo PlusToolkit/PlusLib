@@ -55,8 +55,8 @@ public:
     The frame reference in  which the image will be represented. Example if this is RAS then image will be defined
     in RAS coordinate system, if Reference, the image will be in reference coordinate system
   */
-  vtkSetStringMacro(VolumeEmbeddedTransformToFrame);
-  vtkGetStringMacro(VolumeEmbeddedTransformToFrame);
+  virtual void SetVolumeEmbeddedTransformToFrame(const std::string& volumeEmbeddedTransformToFrame) { this->VolumeEmbeddedTransformToFrame = volumeEmbeddedTransformToFrame; }
+  virtual const std::string& GetVolumeEmbeddedTransformToFrame() const { return this->VolumeEmbeddedTransformToFrame;}
 
   /*!
     If enabled then the DICOM files received through StealthLink will be preserved in the DicomImagesOutputDirectory.

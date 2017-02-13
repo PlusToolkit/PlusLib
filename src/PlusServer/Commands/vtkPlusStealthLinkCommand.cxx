@@ -173,7 +173,7 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     return PLUS_FAIL;
   }
 
-  if (STRCASECMP(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD) == 0)
+  if (this->Name == GET_STEALTHLINK_EXAM_DATA_CMD)
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: " << GetStealthLinkDeviceId());
 

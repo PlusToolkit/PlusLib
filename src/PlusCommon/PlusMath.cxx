@@ -658,7 +658,7 @@ PlusStatus PlusMath::ComputePercentile(const std::vector<double> &values, double
   std::vector<double> sortedValues=values;
   std::sort(sortedValues.begin(), sortedValues.end());
 
-  int numberOfKeptValues = ROUND( (double)sortedValues.size() * percentileToKeep );
+  int numberOfKeptValues = PlusMath::Round( (double)sortedValues.size() * percentileToKeep );
   sortedValues.erase(sortedValues.begin()+numberOfKeptValues, sortedValues.end());
 
   valueMax=sortedValues.back();
@@ -666,3 +666,13 @@ PlusStatus PlusMath::ComputePercentile(const std::vector<double> &values, double
 
   return PLUS_SUCCESS;
 }
+
+#if _MSC_VER == 1600 // VS 2010
+namespace std
+{
+  double round(double arg)
+  {
+	  return PlusMath::Round(arg);
+  }
+}
+#endif

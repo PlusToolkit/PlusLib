@@ -166,13 +166,13 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     return PLUS_FAIL;
   }
 
-  auto _FindDevice = [this](DeviceCollection & aCollection)
+  auto _FindDevice = [this](DeviceCollection & aCollection) -> vtkPlusDevice*
   {
-    for (auto aDevice : aCollection)
+    for (auto it = aCollection.begin(); it != aCollection.end(); ++it)
     {
-      if (this->DeviceId == aDevice->GetDeviceId())
+      if (this->DeviceId == (*it)->GetDeviceId())
       {
-        return aDevice;
+        return (*it);
       }
     }
     return (vtkPlusDevice*)nullptr;
@@ -296,9 +296,9 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     list.insert(list.begin(), device);
 
     std::ostringstream oss;
-    for (auto device : list)
+    for (auto it = list.begin(); it != list.end(); ++it)
     {
-      oss << device->GetDeviceId();
+      oss << (*it)->GetDeviceId();
       oss << ",";
     }
 

@@ -55,9 +55,6 @@ enum PlusImagingMode
 #  define STRCASECMP strcasecmp
 #endif
 
-/* Define round function */
-#define ROUND(x) (static_cast<int>(floor( x + 0.5 )))
-
 ///////////////////////////////////////////////////////////////////
 // Logging
 
