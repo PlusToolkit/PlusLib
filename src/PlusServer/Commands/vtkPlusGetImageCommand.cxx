@@ -11,24 +11,26 @@ See License.txt for details.
 #include "vtkImageData.h"
 #include "vtkPlusCommandProcessor.h"
 
-static const char GET_IMAGE_META_DATA[] = "GET_IMGMETA";
-static const char GET_IMAGE[] = "GET_IMAGE";
+namespace
+{
+  static const std::string GET_IMAGE_META_DATA = "GET_IMGMETA";
+  static const std::string GET_IMAGE = "GET_IMAGE";
 
-static const char DeviceNameImageIdSeparator = '-';
+  static const char DeviceNameImageIdSeparator = '-';
+}
 
 vtkStandardNewMacro(vtkPlusGetImageCommand);
 
 //----------------------------------------------------------------------------
 vtkPlusGetImageCommand::vtkPlusGetImageCommand()
-  : ImageId(NULL)
+  : ImageMetaDatasetsCount(1)
 {
-  this->ImageMetaDatasetsCount = 1;
+
 }
 
 //----------------------------------------------------------------------------
 vtkPlusGetImageCommand::~vtkPlusGetImageCommand()
 {
-  this->SetImageId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -46,15 +48,15 @@ void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string>& cmdNames)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusGetImageCommand::GetDescription(const char* commandName)
+std::string vtkPlusGetImageCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName == NULL || STRCASECMP(commandName, GET_IMAGE_META_DATA))
+  if (commandName.empty() || commandName == GET_IMAGE_META_DATA)
   {
     desc += GET_IMAGE_META_DATA;
     desc += ": Acquire the image meta data information from all the devices that are connected.";
   }
-  if (commandName == NULL || STRCASECMP(commandName, GET_IMAGE))
+  if (commandName.empty() || commandName == GET_IMAGE)
   {
     desc += GET_IMAGE;
     desc += "Acquire the volume data and the ijkToRas transformation of the data from the specified device.";
@@ -75,13 +77,25 @@ void vtkPlusGetImageCommand::SetNameToGetImage()
 }
 
 //----------------------------------------------------------------------------
+const std::string& vtkPlusGetImageCommand::GetImageId() const
+{
+  return this->ImageId;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusGetImageCommand::SetImageId(const std::string& imageId)
+{
+  this->ImageId = imageId;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusGetImageCommand::Execute()
 {
-  std::string baseMessage = std::string("vtkPlusGetImageCommand ") + (this->Name ? this->Name : "(undefined)")
-                            + ", device: (" + (this->GetImageId() == NULL ? "(undefined)" : this->GetImageId()) + ")";
+  std::string baseMessage = std::string("vtkPlusGetImageCommand ") + (!this->Name.empty() ? this->Name : "(undefined)")
+                            + ", device: (" + (this->GetImageId().empty() ? "(undefined)" : this->GetImageId()) + ")";
 
   std::string errorString;
-  if (STRCASECMP(this->Name, GET_IMAGE_META_DATA) == 0)
+  if (this->Name == GET_IMAGE_META_DATA)
   {
     std::string imageIdStr(this->GetImageId());
     if (imageIdStr.size() > 0)
@@ -96,7 +110,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
     }
     return PLUS_SUCCESS;
   }
-  else if (STRCASECMP(this->Name, GET_IMAGE) == 0)
+  else if (this->Name == GET_IMAGE)
   {
     if (this->ExecuteImageReply(errorString) != PLUS_SUCCESS)
     {

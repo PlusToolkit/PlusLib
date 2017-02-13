@@ -87,7 +87,7 @@ public:
   virtual PlusStatus GetTransformError(const PlusTransformName& aTransformName, double& aError, bool quiet = false);
 
   /*! Set the computation date of the transform matrix between two coordinate frames. */
-  virtual PlusStatus SetTransformDate(const PlusTransformName& aTransformName, const char* aDate);
+  virtual PlusStatus SetTransformDate(const PlusTransformName& aTransformName, const std::string& aDate);
 
   /*! Get the computation date of the transform matrix between two coordinate frames. */
   virtual PlusStatus GetTransformDate(const PlusTransformName& aTransformName, std::string& aDate, bool quiet = false);

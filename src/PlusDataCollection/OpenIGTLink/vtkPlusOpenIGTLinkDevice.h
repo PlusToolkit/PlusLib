@@ -7,12 +7,15 @@
 #ifndef __vtkPlusOpenIGTLinkDevice_h
 #define __vtkPlusOpenIGTLinkDevice_h
 
-#include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
-
+#include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
-#include "igtlClientSocket.h"
-#include "igtlMessageBase.h"
+
+// IGTL includes
+#include <igtlClientSocket.h>
+#include <igtlMessageBase.h>
+
+class vtkPlusIgtlMessageFactory;
 
 /*!
   \class vtkPlusOpenIGTLinkDevice
@@ -48,9 +51,9 @@ public:
   bool SendMessage(igtl::MessageBase::Pointer packedMessage);
 
   /*! Set OpenIGTLink message type */
-  vtkSetStringMacro(MessageType);
+  virtual void SetMessageType(const std::string& messageType);
   /*! Get OpenIGTLink message type */
-  vtkGetStringMacro(MessageType);
+  virtual const std::string& GetMessageType() const;
 
   /*! Set image streams to be sent when message type is a type that sends an image */
   vtkSetMacro(ImageStream, PlusTransformName);
@@ -59,9 +62,9 @@ public:
   vtkGetMacro(ImageStream, PlusTransformName);
 
   /*! Set OpenIGTLink server address */
-  vtkSetStringMacro(ServerAddress);
+  virtual void SetServerAddress(const std::string& serverAddress);
   /*! Get OpenIGTLink server address */
-  vtkGetStringMacro(ServerAddress);
+  virtual const std::string& GetServerAddress() const;
 
   /*! Set OpenIGTLink server port */
   vtkSetMacro(ServerPort, int);
@@ -114,19 +117,19 @@ protected:
   */
   virtual PlusStatus ReceiveMessageHeader(igtl::MessageHeader::Pointer& headerMsg);
 
-  /*! Set the ReconnectOnNoData flag */
+  /*! Set the ReconnectOnReceiveTimeout flag */
   vtkSetMacro(ReconnectOnReceiveTimeout, bool);
 
   vtkSetMacro(UseReceivedTimestamps, bool);
 
   /*! OpenIGTLink message type */
-  char* MessageType;
+  std::string MessageType;
 
   /*! Image stream to send when message type wants to send an image */
   PlusTransformName ImageStream;
 
   /*! OpenIGTLink server address */
-  char* ServerAddress;
+  std::string ServerAddress;
 
   /*! OpenIGTLink server port */
   int ServerPort;
@@ -143,6 +146,9 @@ protected:
 
   /*! Delay between retry attempts */
   double DelayBetweenRetryAttemptsSec;
+
+  /* IGTL message factory*/
+  vtkSmartPointer<vtkPlusIgtlMessageFactory> MessageFactory;
 
   /*! Control access to the socket */
   vtkSmartPointer<vtkPlusRecursiveCriticalSection> SocketMutex;

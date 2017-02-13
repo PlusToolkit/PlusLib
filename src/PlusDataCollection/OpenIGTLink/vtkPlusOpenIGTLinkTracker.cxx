@@ -498,7 +498,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::WriteConfiguration(vtkXMLDataElement* root
 //----------------------------------------------------------------------------
 bool vtkPlusOpenIGTLinkTracker::IsTDataMessageType()
 {
-  if (this->MessageType == NULL)
+  if (this->MessageType.empty())
   {
     return false;
   }

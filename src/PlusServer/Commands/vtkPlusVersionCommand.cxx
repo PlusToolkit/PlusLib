@@ -9,13 +9,15 @@ See License.txt for details.
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusVersionCommand.h"
 
-vtkStandardNewMacro( vtkPlusVersionCommand );
+vtkStandardNewMacro(vtkPlusVersionCommand);
 
-static const char VERSION_CMD[] = "Version";
+namespace
+{
+  static const std::string VERSION_CMD = "Version";
+}
 
 //----------------------------------------------------------------------------
 vtkPlusVersionCommand::vtkPlusVersionCommand()
-  : vtkPlusCommand()
 {
   // It handles only one command, set its name by default
   this->SetName(VERSION_CMD);
@@ -41,10 +43,10 @@ void vtkPlusVersionCommand::GetCommandNames(std::list<std::string>& cmdNames)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusVersionCommand::GetDescription(const char* commandName)
+std::string vtkPlusVersionCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName == NULL || STRCASECMP(commandName, VERSION_CMD))
+  if (commandName.empty() || commandName == VERSION_CMD)
   {
     desc += VERSION_CMD;
     desc += ": Send and receive version to/from the device.";

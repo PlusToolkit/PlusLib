@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusSendTextCommand_h
 #define __vtkPlusSendTextCommand_h
@@ -14,19 +14,19 @@
 class vtkMatrix4x4;
 
 /*!
-  \class vtkPlusSendTextCommand 
+  \class vtkPlusSendTextCommand
   \brief This command send text to a device and optionally return with a response text
   \ingroup PlusLibPlusServer
-  
+
   This command is used for communicating with a generic serial device.
- */ 
+ */
 class vtkPlusServerExport vtkPlusSendTextCommand : public vtkPlusCommand
 {
 public:
 
-  static vtkPlusSendTextCommand *New();
+  static vtkPlusSendTextCommand* New();
   vtkTypeMacro(vtkPlusSendTextCommand, vtkPlusCommand);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
   virtual vtkPlusCommand* Clone() { return New(); }
 
   /*! Executes the command  */
@@ -39,22 +39,22 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get all the command names that this class can execute */
-  virtual void GetCommandNames(std::list<std::string> &cmdNames);
+  virtual void GetCommandNames(std::list<std::string>& cmdNames);
 
   /*! Gets the description for the specified command name. */
-  virtual std::string GetDescription(const char* commandName);
- 
+  virtual std::string GetDescription(const std::string& commandName);
+
   /*! Id of the device that the text will be sent to */
-  vtkGetStringMacro(DeviceId);
-  vtkSetStringMacro(DeviceId);
- 
-  /*! Text to send */
-  vtkGetStringMacro(Text);
-  vtkSetStringMacro(Text);
+  virtual const std::string& GetDeviceId() const;
+  virtual void SetDeviceId(const std::string& deviceId);
 
   /*! Text to send */
-  vtkGetStringMacro(ResponseText);
-  vtkSetStringMacro(ResponseText);
+  virtual const std::string& GetText() const;
+  virtual void SetText(const std::string& text);
+
+  /*! Text to send */
+  virtual const std::string& GetResponseText() const;
+  virtual void SetResponseText(const std::string& responseText);
 
   /*!
     If true then the command waits for a response and returns with the received text in the command response.
@@ -68,15 +68,15 @@ public:
 protected:
   vtkPlusSendTextCommand();
   virtual ~vtkPlusSendTextCommand();
-  
+
 private:
-  char* DeviceId;
-  char* Text;
-  char* ResponseText;
+  std::string DeviceId;
+  std::string Text;
+  std::string ResponseText;
   bool ResponseExpected;
 
-  vtkPlusSendTextCommand( const vtkPlusSendTextCommand& );
-  void operator=( const vtkPlusSendTextCommand& );
+  vtkPlusSendTextCommand(const vtkPlusSendTextCommand&);
+  void operator=(const vtkPlusSendTextCommand&);
 };
 
 
