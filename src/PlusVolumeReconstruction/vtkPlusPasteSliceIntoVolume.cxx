@@ -55,8 +55,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPlusPasteSliceIntoVolumeHelperUnoptimized.h"
 #include "vtkPlusPasteSliceIntoVolumeHelperOptimized.h"
 
-//#include "vtkBMPWriter.h" //debugging
-
 vtkStandardNewMacro( vtkPlusPasteSliceIntoVolume );
 
 struct InsertSliceThreadFunctionInfoStruct
@@ -85,7 +83,7 @@ vtkPlusPasteSliceIntoVolume::vtkPlusPasteSliceIntoVolume()
 {
   this->ReconstructedVolume = vtkImageData::New();
   this->AccumulationBuffer = vtkImageData::New();
-  this->ImportanceMask = vtkImageData::New();
+  this->ImportanceMask = NULL;
   this->Threader = vtkMultiThreader::New();
 
   this->OutputOrigin[0] = 0.0;
@@ -149,11 +147,7 @@ vtkPlusPasteSliceIntoVolume::~vtkPlusPasteSliceIntoVolume()
     this->AccumulationBuffer->Delete();
     this->AccumulationBuffer = NULL;
   }
-  if (this->ImportanceMask)
-  {
-	this->ImportanceMask->Delete();
-	this->ImportanceMask = NULL;
-  }
+  this->SetImportanceMask(NULL);
   if ( this->Threader )
   {
     this->Threader->Delete();
@@ -177,8 +171,8 @@ void vtkPlusPasteSliceIntoVolume::PrintSelf( ostream& os, vtkIndent indent )
   }
   if (this->ImportanceMask)
   {
-	os << indent << "ImportanceMask:\n";
-	this->ImportanceMask->PrintSelf(os, indent.GetNextIndent());
+    os << indent << "ImportanceMask:\n";
+    this->ImportanceMask->PrintSelf(os, indent.GetNextIndent());
   }
   os << indent << "OutputOrigin: " << this->OutputOrigin[0] << " " <<
      this->OutputOrigin[1] << " " << this->OutputOrigin[2] << "\n";
@@ -377,7 +371,6 @@ PlusStatus vtkPlusPasteSliceIntoVolume::InsertSlice( vtkImageData* image, vtkMat
 
   this->ReconstructedVolume->Modified();
   this->AccumulationBuffer->Modified();
-  this->ImportanceMask->Modified();
   this->Modified();
 
   return PLUS_SUCCESS;
@@ -394,25 +387,53 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   int threadCount = threadInfo->NumberOfThreads;
   int inputFrameExtent[6];
   str->InputFrameImage->GetExtent( inputFrameExtent );
+  unsigned char *importancePtr = NULL;
+  int inputFrameExtentForCurrentThread[6] = { 0, -1, 0, -1, 0, -1 };
+
+  int totalUsedThreads = vtkPlusPasteSliceIntoVolume::SplitSliceExtent(inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount);
+
+  if (threadId >= totalUsedThreads)
+  {
+    // don't use this thread. Sometimes the threads dont
+    // break up very well and it is just as efficient to leave a
+    // few threads idle.
+    return VTK_THREAD_RETURN_VALUE;
+  }
+
   if (str->CompoundingMode == IMPORTANCE_MASK_COMPOUNDING_MODE)
   {
+    if (!str->Importance)
+    {
+      LOG_ERROR( "OptimizedInsertSlice: IMPORTANCE_MASK_COMPOUNDING_MODE was selected but importance mask has not been defined" );
+      return VTK_THREAD_RETURN_VALUE;
+    }
     int importanceMaskExtent[6];
     str->Importance->GetExtent( importanceMaskExtent );
     for (int i = 0; i < 6; i++)
     {
-      assert(inputFrameExtent[i] == importanceMaskExtent[i]);
+      if (inputFrameExtent[i]!=importanceMaskExtent[i])
+      {
+        LOG_ERROR("OptimizedInsertSlice: input frame extent ["
+        << inputFrameExtent[0] << ", " << inputFrameExtent[1] << ", " << inputFrameExtent[2]<<", "
+        << inputFrameExtent[3] << ", " << inputFrameExtent[4] << ", " << inputFrameExtent[5]<<"]"
+        " does not match importance mask extent ["
+        << importanceMaskExtent[0] << ", " << importanceMaskExtent[1] << ", " << importanceMaskExtent[2]<<", "
+        << importanceMaskExtent[3] << ", " << importanceMaskExtent[4] << ", " << importanceMaskExtent[5]<<"]");
+        return VTK_THREAD_RETURN_VALUE;
+      }
     }
-  }
-
-  int inputFrameExtentForCurrentThread[6];
-  int totalUsedThreads = vtkPlusPasteSliceIntoVolume::SplitSliceExtent( inputFrameExtentForCurrentThread, inputFrameExtent, threadId, threadCount );
-
-  if ( threadId >= totalUsedThreads )
-  {
-    //   don't use this thread. Sometimes the threads dont
-    //   break up very well and it is just as efficient to leave a
-    //   few threads idle.
-    return VTK_THREAD_RETURN_VALUE;
+    if (str->Importance->GetNumberOfScalarComponents() != 1)
+    {
+      LOG_ERROR("OptimizedInsertSlice: number of scalar components in importance mask is invalid (1 expected, actual value is "
+        << str->Importance->GetNumberOfScalarComponents() << ")");
+      return VTK_THREAD_RETURN_VALUE;
+    }
+    if (str->Importance->GetScalarType() != VTK_UNSIGNED_CHAR)
+    {
+      LOG_ERROR( "OptimizedInsertSlice: importance mask extent must have unsigned char scalar type");
+      return VTK_THREAD_RETURN_VALUE;
+    }
+    importancePtr = static_cast<unsigned char*>(str->Importance->GetScalarPointerForExtent(inputFrameExtentForCurrentThread));
   }
 
   // this filter expects that input is the same type as output.
@@ -427,16 +448,17 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   vtkImageData* inData = str->InputFrameImage;
   void* inPtr = inData->GetScalarPointerForExtent( inputFrameExtentForCurrentThread );
 
-  // Get importance mask extent and pointer
-  void *importancePtr = str->Importance->GetScalarPointerForExtent( inputFrameExtentForCurrentThread );
-
   // Get output volume extent and pointer
   vtkImageData* outData = str->OutputVolume;
   int* outExt = outData->GetExtent();
   void* outPtr = outData->GetScalarPointerForExtent( outExt );
 
-  void* accPtr = NULL;
-  accPtr = str->Accumulator->GetScalarPointerForExtent( outExt );
+  if (str->Accumulator->GetScalarType() != VTK_UNSIGNED_SHORT || str->Accumulator->GetNumberOfScalarComponents() != 1)
+  {
+    LOG_ERROR( "OptimizedInsertSlice: accumulator must have unsigned short scalar type and 1 component");
+    return VTK_THREAD_RETURN_VALUE;
+  }
+  unsigned short* accPtr = static_cast<unsigned short*>(str->Accumulator->GetScalarPointerForExtent(outExt));
 
   // count the number of accumulation buffer overflow instances in the memory address here:
   unsigned int* accumulationBufferSaturationErrorsThread = &( str->AccumulationBufferSaturationErrors[threadId] );
@@ -469,8 +491,9 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   // set up all the info for passing into the appropriate insertSlice function
   vtkPlusPasteSliceIntoVolumeInsertSliceParams insertionParams;
   insertionParams.accOverflowCount = accumulationBufferSaturationErrorsThread;
-  insertionParams.accPtr = ( unsigned short* )accPtr;
-  insertionParams.importancePtr = ( unsigned char* )importancePtr;
+  insertionParams.accPtr = accPtr;
+  insertionParams.importanceMask = str->Importance;
+  insertionParams.importancePtr = importancePtr;
   insertionParams.compoundingMode = str->CompoundingMode;
   insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;
   insertionParams.clipRectangleSize = str->ClipRectangleSize;
@@ -478,7 +501,6 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   insertionParams.fanRadiusStart = str->FanRadiusStart;
   insertionParams.fanRadiusStop = str->FanRadiusStop;
   insertionParams.fanOrigin = str->FanOrigin;
-  insertionParams.importanceMask = str->Importance;
   insertionParams.inData = str->InputFrameImage;
   insertionParams.inExt = inputFrameExtentForCurrentThread;
   insertionParams.inPtr = inPtr;
@@ -766,7 +788,7 @@ const char* vtkPlusPasteSliceIntoVolume::GetCompoundingModeAsString( Compounding
   case MEAN_COMPOUNDING_MODE:
     return "MEAN";
   case IMPORTANCE_MASK_COMPOUNDING_MODE:
-	return "IMPORTANCEMASK";
+    return "IMPORTANCE_MASK";
   case MAXIMUM_COMPOUNDING_MODE:
     return "MAXIMUM";
   default:

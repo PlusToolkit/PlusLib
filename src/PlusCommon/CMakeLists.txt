@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Sources
 
-SET (PlusCommon_SRCS
+SET(PlusCommon_SRCS
   PlusCommon.cxx
   vtkPlusAccurateTimer.cxx
   vtkPlusLogger.cxx
@@ -19,9 +19,8 @@ SET (PlusCommon_SRCS
   vtkPlusRecursiveCriticalSection.cxx
   )
 
-SET (PlusCommon_HDRS)
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusCommon_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(PlusCommon_HDRS
     PlusCommon.h
     vtkPlusAccurateTimer.h
     WindowsAccurateTimer.h
@@ -43,9 +42,9 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     PixelCodec.h
     PlusXmlUtils.h
     )
-endif ()
+ENDIF()
 
-SET (PlusCommon_INCLUDE_DIRS
+SET(PlusCommon_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -54,8 +53,7 @@ SET (PlusCommon_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusCommon_LIBS 
-  ${PlusCommon_LIBS}
+SET(PlusCommon_LIBS 
   vtkCommonCore
   vtkCommonDataModel
   vtkImagingCore
@@ -86,13 +84,13 @@ SET (PlusCommon_LIBS
   itkvnl_algo
   )
 
-if (WIN32)
-  SET (PlusCommon_LIBS ${PlusCommon_LIBS} Winmm )
-endif (WIN32)
+IF(WIN32)
+  LIST(APPEND PlusCommon_LIBS Winmm)
+ENDIF(WIN32)
 
-IF (PLUS_USE_OpenIGTLink)
-   SET (PlusCommon_LIBS ${PlusCommon_LIBS} OpenIGTLink )
-ENDIF(PLUS_USE_OpenIGTLink)
+IF(PLUS_USE_OpenIGTLink)
+  LIST(APPEND PlusCommon_LIBS OpenIGTLink)
+ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
@@ -120,9 +118,9 @@ SET(vcProj_vtkPlusCommon vtkPlusCommon;${PlusLib_BINARY_DIR}/src/PlusCommon/vtkP
 
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  ADD_EXECUTABLE(EditSequenceFile Tools/EditSequenceFile.cxx )
+  ADD_EXECUTABLE(EditSequenceFile Tools/EditSequenceFile.cxx)
   SET_TARGET_PROPERTIES(EditSequenceFile PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon )
+  TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon)
   GENERATE_HELP_DOC(EditSequenceFile)
 
   INSTALL(TARGETS EditSequenceFile EXPORT PlusLib
@@ -144,6 +142,6 @@ INSTALL(FILES ${PlusCommon_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-IF (BUILD_TESTING)
+IF(BUILD_TESTING)
   SUBDIRS(Testing)
-ENDIF (BUILD_TESTING)
+ENDIF()

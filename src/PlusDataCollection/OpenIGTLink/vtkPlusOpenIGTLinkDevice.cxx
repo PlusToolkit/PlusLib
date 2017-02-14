@@ -4,26 +4,27 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "igtlMessageFactory.h"
 #include "igtlPlusClientInfoMessage.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusIgtlMessageFactory.h"
 #include "vtkPlusOpenIGTLinkDevice.h"
 
+// OS includes
 #ifdef _WIN32
 #include <Winsock2.h>
 #endif
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
-  : MessageType(NULL)
-  , ServerAddress(NULL)
-  , ServerPort(-1)
+  : ServerPort(-1)
   , IgtlMessageCrcCheckEnabled(0)
   , ReceiveTimeoutSec(0.5)
   , SendTimeoutSec(0.5)
   , NumberOfRetryAttempts(3)   // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
   , DelayBetweenRetryAttemptsSec(0.100)   // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
+  , MessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
   , SocketMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
   , ClientSocket(igtl::ClientSocket::New())
   , ReconnectOnReceiveTimeout(true)
@@ -48,12 +49,12 @@ vtkPlusOpenIGTLinkDevice::~vtkPlusOpenIGTLinkDevice()
 void vtkPlusOpenIGTLinkDevice::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  if (this->ServerAddress)
+  if (!this->ServerAddress.empty())
   {
     os << indent << "Server address: " << this->ServerAddress << "\n";
   }
   os << indent << "Server port: " << this->ServerPort << "\n";
-  if (this->MessageType)
+  if (!this->MessageType.empty())
   {
     os << indent << "Message type: " << this->MessageType << "\n";
   }
@@ -91,6 +92,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusOpenIGTLinkDevice::Disconnect");
 
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket->CloseSocket();
   return this->StopRecording();
 }
@@ -120,7 +122,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     this->ClientSocket->CloseSocket();
   }
 
-  if (this->ServerAddress == NULL)
+  if (this->ServerAddress.empty())
   {
     LOG_ERROR("Unable to connect OpenIGTLink server - server address is undefined");
     return PLUS_FAIL;
@@ -136,7 +138,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
   {
     PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
     RETRY_UNTIL_TRUE(
-      (errorCode = this->ClientSocket->ConnectToServer(this->ServerAddress, this->ServerPort)) == 0,
+      (errorCode = this->ClientSocket->ConnectToServer(this->ServerAddress.c_str(), this->ServerPort)) == 0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
   }
 
@@ -160,7 +162,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
 PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
 {
   // If we specified message type, try to send it to the server
-  if (this->MessageType == NULL)
+  if (this->MessageType.empty())
   {
     return PLUS_SUCCESS;
   }
@@ -218,10 +220,6 @@ void vtkPlusOpenIGTLinkDevice::OnReceiveTimeout()
     LOG_WARNING("No OpenIGTLink message has been received in device " << this->GetDeviceId() << ": failed to receive OpenIGTLink transforms. Attempt to reconnect.");
     ClientSocketReconnect();
   }
-  else
-  {
-    LOG_WARNING("No OpenIGTLink message has been received in device " << this->GetDeviceId());
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -246,10 +244,7 @@ void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::Messa
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::Pointer& headerMsg)
 {
-  {
-    igtl::MessageFactory::Pointer factory = igtl::MessageFactory::New();
-    headerMsg = factory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
-  }
+  headerMsg = this->MessageFactory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
 
   int numOfBytesReceived = 0;
   {
@@ -269,7 +264,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
       headerMsg = NULL;
       return PLUS_FAIL;
     }
-    return PLUS_SUCCESS;
+    return headerMsg == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
   }
 
   // No data has been received
@@ -308,16 +303,16 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
   LOG_DEBUG("No data coming from OpenIGTLink device " << this->GetDeviceId());
 #endif
 
-  return socketError ? PLUS_FAIL : PLUS_SUCCESS;
+  return headerMsg == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ServerPort, deviceConfig);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(MessageType, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ReceiveTimeoutSec, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SendTimeoutSec, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IgtlMessageCrcCheckEnabled, deviceConfig);
@@ -330,9 +325,9 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReadConfiguration(vtkXMLDataElement* rootCo
 PlusStatus vtkPlusOpenIGTLinkDevice::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  deviceConfig->SetAttribute("ServerAddress", this->ServerAddress);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(ServerAddress, rootConfigElement);
   deviceConfig->SetIntAttribute("ServerPort", this->ServerPort);
-  deviceConfig->SetAttribute("MessageType", this->MessageType);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(MessageType, rootConfigElement);
   deviceConfig->SetDoubleAttribute("ReceiveTimeoutSec", this->ReceiveTimeoutSec);
   deviceConfig->SetDoubleAttribute("SendTimeoutSec", this->SendTimeoutSec);
   deviceConfig->SetAttribute("IgtlMessageCrcCheckEnabled", this->IgtlMessageCrcCheckEnabled ? "true" : "false");
@@ -355,4 +350,28 @@ bool vtkPlusOpenIGTLinkDevice::SendMessage(igtl::MessageBase::Pointer packedMess
     return false;
   }
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkDevice::SetMessageType(const std::string& messageType)
+{
+  this->MessageType = messageType;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusOpenIGTLinkDevice::GetMessageType() const
+{
+  return this->MessageType;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusOpenIGTLinkDevice::SetServerAddress(const std::string& serverAddress)
+{
+  this->ServerAddress = serverAddress;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusOpenIGTLinkDevice::GetServerAddress() const
+{
+  return this->ServerAddress;
 }

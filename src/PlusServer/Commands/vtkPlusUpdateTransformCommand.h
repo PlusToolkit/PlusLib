@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #ifndef __vtkPlusUpdateTransformCommand_h
 #define __vtkPlusUpdateTransformCommand_h
@@ -13,17 +13,17 @@
 class vtkMatrix4x4;
 
 /*!
-  \class vtkPlusUpdateTransformCommand 
+  \class vtkPlusUpdateTransformCommand
   \brief This command updates the value of a transformation in the transform repository
   \ingroup PlusLibPlusServer
- */ 
+ */
 class vtkPlusServerExport vtkPlusUpdateTransformCommand : public vtkPlusCommand
 {
 public:
 
-  static vtkPlusUpdateTransformCommand *New();
+  static vtkPlusUpdateTransformCommand* New();
   vtkTypeMacro(vtkPlusUpdateTransformCommand, vtkPlusCommand);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
   virtual vtkPlusCommand* Clone() { return New(); }
 
   /*! Executes the command  */
@@ -36,26 +36,26 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Get all the command names that this class can execute */
-  virtual void GetCommandNames(std::list<std::string> &cmdNames);
+  virtual void GetCommandNames(std::list<std::string>& cmdNames);
 
   /*! Gets the description for the specified command name. */
-  virtual std::string GetDescription(const char* commandName);
-  
-  vtkGetStringMacro(TransformName);
-  vtkSetStringMacro(TransformName);
+  virtual std::string GetDescription(const std::string& commandName);
+
+  virtual const std::string& GetTransformName() const;
+  virtual void SetTransformName(const std::string& transformName);
 
   vtkGetObjectMacro(TransformValue, vtkMatrix4x4);
   vtkSetObjectMacro(TransformValue, vtkMatrix4x4);
   void SetTransformValue(double* matrixElements);
 
-  vtkGetStringMacro(TransformDate);
-  vtkSetStringMacro(TransformDate);
+  virtual const std::string& GetTransformDate() const;
+  virtual void SetTransformDate(const std::string& transformDate);
 
   vtkGetMacro(TransformError, double);
-  void SetTransformError(double _arg){ this->TransformError = _arg; hasError = true; }
+  void SetTransformError(double _arg) { this->TransformError = _arg; hasError = true; }
 
   vtkGetMacro(TransformPersistent, bool);
-  void SetTransformPersistent(bool _arg){ this->TransformPersistent = _arg; hasPersistent = true; }
+  void SetTransformPersistent(bool _arg) { this->TransformPersistent = _arg; hasPersistent = true; }
 
   void SetNameToUpdateTransform();
 
@@ -63,20 +63,20 @@ protected:
 
   vtkPlusUpdateTransformCommand();
   virtual ~vtkPlusUpdateTransformCommand();
-  
+
 private:
-  char* TransformName;
+  std::string TransformName;
   vtkMatrix4x4* TransformValue;
   bool hasMatrix;
   bool TransformPersistent;
   bool hasPersistent;
   double TransformError;
   bool hasError;
-  char* TransformDate;
+  std::string TransformDate;
   bool hasDate;
 
-  vtkPlusUpdateTransformCommand( const vtkPlusUpdateTransformCommand& );
-  void operator=( const vtkPlusUpdateTransformCommand& );
+  vtkPlusUpdateTransformCommand(const vtkPlusUpdateTransformCommand&);
+  void operator=(const vtkPlusUpdateTransformCommand&);
 };
 
 

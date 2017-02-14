@@ -17,6 +17,7 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
+#include <vtkTable.h>
 
 //----------------------------------------------------------------------------
 
@@ -1832,11 +1833,11 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
     }
 
     std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-VideoBufferTimestamps.txt");
-    PlusPlotter::DumpTableToFile(timestampReportTable, reportFile.c_str());
+    PlusPlotter::WriteTableToFile(*timestampReportTable, reportFile.c_str());
 
     htmlReport->AddText("Video data", vtkPlusHTMLGenerator::H2);
     std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "VideoBufferTimestamps.png").c_str(), "Video Data Acquisition Analysis");
-    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
+    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", *timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
     htmlReport->AddHorizontalLine();
   }
@@ -1855,10 +1856,10 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
     reportText =  std::string("Tracking data - ") + tool->GetId();
     htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H2);
     std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + tool->GetId() + "-TrackerBufferTimestamps.png").c_str(), reportText.c_str());
-    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
+    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", *timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
     std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + tool->GetId() + "TrackerBufferTimestamps.txt");
-    PlusPlotter::DumpTableToFile(timestampReportTable, reportFile.c_str());
+    PlusPlotter::WriteTableToFile(*timestampReportTable, reportFile.c_str());
 
     htmlReport->AddHorizontalLine();
   }
@@ -1877,10 +1878,10 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
     reportText =  std::string("Field data - ") + aSource->GetId();
     htmlReport->AddText(reportText.c_str(), vtkPlusHTMLGenerator::H2);
     std::string imageFilePath = htmlReport->AddImageAutoFilename(std::string(deviceAndChannelName + "-" + aSource->GetId() + "-FieldDataBufferTimestamps.png").c_str(), reportText.c_str());
-    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
+    PlusPlotter::WriteLineChartToFile("Frame index", "Timestamp (s)", *timestampReportTable, 0, 1, 2, imageSize, imageFilePath.c_str());
 
     std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + "-" + deviceAndChannelName + "-" + aSource->GetId() + "FieldDataBufferTimestamps.txt");
-    PlusPlotter::DumpTableToFile(timestampReportTable, reportFile.c_str());
+    PlusPlotter::WriteTableToFile(*timestampReportTable, reportFile.c_str());
 
     htmlReport->AddHorizontalLine();
   }

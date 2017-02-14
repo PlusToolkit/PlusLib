@@ -9,7 +9,6 @@ void PrintServerInfo(vtkPlusOpenIGTLinkServer* self)
   PIP_ADAPTER_ADDRESSES pAddresses = NULL;
   ULONG outBufferSize = 0;
   ULONG iterations = 0;
-  char ipv4StringBuffer[64];
   DWORD ipv4StringBufferLength = 63;
 
   // Allocate a 15 KB buffer to start with.
@@ -53,8 +52,8 @@ void PrintServerInfo(vtkPlusOpenIGTLinkServer* self)
         for (unsigned int i = 0; pUnicast != NULL; i++)
         {
           sockaddr_in* sa_in = (sockaddr_in*)pUnicast->Address.lpSockaddr;
-          inet_ntop(AF_INET, &(sa_in->sin_addr), ipv4StringBuffer, ipv4StringBufferLength);
-          addresses.push_back(ipv4StringBuffer);
+          std::string address = inet_ntoa(sa_in->sin_addr);
+          addresses.push_back(address);
           pUnicast = pUnicast->Next;
         }
       }

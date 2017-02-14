@@ -1516,9 +1516,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the library
 LIST (APPEND PlusDataCollection_LIBS
-  vtkChartsCore
-  vtkRenderingContext${VTK_RENDERING_BACKEND}
-  vtkViewsContext2D
+  vtkPlusRendering
   vtkPlusCommon  
   vtkPlusUsSimulator
   vtkPlusVolumeReconstruction

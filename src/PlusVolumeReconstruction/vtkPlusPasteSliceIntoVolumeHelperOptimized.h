@@ -574,7 +574,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         } 
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
+        *outPtr1 = (T)( (*inPtr++)*fraction1_256 + (*outPtr1)*fraction255_256 );
       }
     }
     break;
@@ -612,14 +612,20 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       // and the accumulation buffer
       unsigned short *accPtr1 = accPtr + (inc/outInc[0]); // removed cast to unsigned short because it might cause loss in larger numbers
 
-      if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
-
-        if (*importancePtr == 0) //nothing to do
-            break;
+      if (*accPtr1 <= ACCUMULATION_THRESHOLD)
+      {
+        // no overflow, act normally
+        if (*importancePtr == 0)
+        {
+          //nothing to do
+          break;
+        }
         unsigned short newa = *accPtr1 + *importancePtr;
 
         if (newa > ACCUMULATION_THRESHOLD)
+        {
           (*accOverflowCount) += 1;
+        }
 
         int i = numscalars;
         do 
@@ -636,9 +642,12 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         {
           *accPtr1 = newa;
         } 
-      } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+      }
+      else
+      {
+        // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)( (*inPtr++)*0.99609375 + (*outPtr1)*0.00390625 ); //bug: weights reversed?
+        *outPtr1 = (T)( (*inPtr++)*fraction1_256 + (*outPtr1)*fraction255_256 );
       }
     }
     break;
@@ -829,7 +838,7 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+        *outPtr1 = (T)( (*inPtr++)*fraction1_256 + (*outPtr1)*fraction255_256 );
       }
 
       outPoint[0] += xAxis[0];
@@ -873,12 +882,17 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
 
       if (*accPtr1 <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
 
-        if (*importancePtr == 0) //nothing to do
-            break;
+        if (*importancePtr == 0)
+        {
+          //nothing to do
+          break;
+        }
         unsigned short newa = *accPtr1 + *importancePtr;
 
         if (newa > ACCUMULATION_THRESHOLD)
+        {
           (*accOverflowCount) += 1;
+        }
 
         int i = numscalars;
         do 
@@ -895,9 +909,12 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         {
           *accPtr1 = newa;
         }
-      } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+      }
+      else
+      {
+        // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
         // TODO : This doesn't iterate through the scalars, this could be a problem
-        *outPtr1 = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr1));
+        *outPtr1 = (T)( (*inPtr++)*fraction1_256 + (*outPtr1)*fraction255_256 );
       }
 
       outPoint[0] += xAxis[0];

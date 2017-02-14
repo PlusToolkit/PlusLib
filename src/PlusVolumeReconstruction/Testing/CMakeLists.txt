@@ -1,115 +1,51 @@
 SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
+function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNameFragment)
+  ADD_TEST(vtkVolumeReconstructorTestRun${TestName}
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_${ConfigFileNameFragment}.xml
+    --source-seq-file=${TestDataDir}/${InputSeqFile}.mha
+    --output-volume-file=vtkVolumeReconstructorTest${OutNameFragment}volume.mha
+    --image-to-reference-transform=ImageToReference
+    )
+  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRun${TestName} PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+
+  ADD_TEST(vtkVolumeReconstructorTestCompare${TestName}
+    ${CMAKE_COMMAND} -E compare_files
+    ${TestDataDir}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha
+    vtkVolumeReconstructorTest${OutNameFragment}volume.mha
+    )
+  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompare${TestName} PROPERTIES DEPENDS vtkVolumeReconstructorTestRun${TestName})
+endfunction()
+
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  # Reconstruct volumes
-  ADD_TEST(vtkVolumeReconstructorTestRunNearLateUChar
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_NN_LATE.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-    --output-volume-file=vtkVolumeReconstructorTestNNLATEvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearLateUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  VolRecRegressionTest(NearLateUChar SonixRP_TRUS_D70mm_NN_LATE SpinePhantomFreehand NNLATE)
+  VolRecRegressionTest(NearMeanUChar SpinePhantom_NN_MEAN SpinePhantomFreehand NNMEAN)
+  VolRecRegressionTest(NearMaxiFloat SpinePhantom_NN_MAXI SpinePhantomFreehand3FramesFloat NNMAXI)
+  VolRecRegressionTest(LinrLateFloat SpinePhantom_LN_LATE SpinePhantomFreehand3FramesFloat LNLATE)
+  VolRecRegressionTest(LinrMeanUChar SonixRP_TRUS_D70mm_LN_MEAN SpinePhantomFreehand LNMEAN)
+  VolRecRegressionTest(LinrMaxiUChar SpinePhantom_LN_MAXI SpinePhantomFreehand LNMAXI)
 
-  ADD_TEST(vtkVolumeReconstructorTestRunNearMeanUChar
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MEAN.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-    --output-volume-file=vtkVolumeReconstructorTestNNMEANvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearMeanUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  # Importance mask tests
+  file(COPY ${TestDataDir}/ImportanceMask.png DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  VolRecRegressionTest(IMLinearFull ImportanceMaskLinearFull ImportanceMaskInput IMLiF)
+  VolRecRegressionTest(IMLinearPartial ImportanceMaskLinearPartial ImportanceMaskInput IMLiP)
+  VolRecRegressionTest(IMLinearNone ImportanceMaskLinearNone ImportanceMaskInput IMLiN)
+  VolRecRegressionTest(IMNearFull ImportanceMaskNNFull ImportanceMaskInput IMNNF)
+  VolRecRegressionTest(IMNearPartial ImportanceMaskNNPartial ImportanceMaskInput IMNNP)
+  VolRecRegressionTest(IMNearNone ImportanceMaskNNNone ImportanceMaskInput IMNNN)
 
-  ADD_TEST(vtkVolumeReconstructorTestRunNearMaxiFloat
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_NN_MAXI.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
-    --output-volume-file=vtkVolumeReconstructorTestNNMAXIvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunNearMaxiFloat PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-  ADD_TEST(vtkVolumeReconstructorTestRunLinrLateFloat
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_LN_LATE.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand3FramesFloat.mha
-    --output-volume-file=vtkVolumeReconstructorTestLNLATEvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunLinrLateFloat PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  ADD_TEST(vtkVolumeReconstructorTestRunLinrMeanUChar
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SonixRP_TRUS_D70mm_LN_MEAN.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-    --output-volume-file=vtkVolumeReconstructorTestLNMEANvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunLinrMeanUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  ADD_TEST(vtkVolumeReconstructorTestRunLinrMaxiUChar
-    ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_SpinePhantom_LN_MAXI.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
-    --output-volume-file=vtkVolumeReconstructorTestLNMAXIvolume.mha
-    --image-to-reference-transform=ImageToReference
-    )
-  SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRunLinrMaxiUChar PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  # Compare reconstructed volumes with the reference volumes
-  ADD_TEST(vtkVolumeReconstructorTestCompareNearLateUChar
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestNNLATEvolumeRef.mha
-    vtkVolumeReconstructorTestNNLATEvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareNearLateUChar PROPERTIES DEPENDS vtkVolumeReconstructorTestRunNearLateUChar)
-
-  ADD_TEST(vtkVolumeReconstructorTestCompareNearMeanUChar
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestNNMEANvolumeRef.mha
-    vtkVolumeReconstructorTestNNMEANvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareNearMeanUChar PROPERTIES DEPENDS vtkVolumeReconstructorTestRunNearMeanUChar)
-
-  ADD_TEST(vtkVolumeReconstructorTestCompareNearMaxiFloat
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestNNMAXIvolumeRef.mha
-    vtkVolumeReconstructorTestNNMAXIvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareNearMaxiFloat PROPERTIES DEPENDS vtkVolumeReconstructorTestRunNearMaxiFloat)
-
-  ADD_TEST(vtkVolumeReconstructorTestCompareLinrLateFloat
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestLNLATEvolumeRef.mha
-    vtkVolumeReconstructorTestLNLATEvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareLinrLateFloat PROPERTIES DEPENDS vtkVolumeReconstructorTestRunLinrLateFloat)
-
-  ADD_TEST(vtkVolumeReconstructorTestCompareLinrMeanUChar
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestLNMEANvolumeRef.mha
-    vtkVolumeReconstructorTestLNMEANvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareLinrMeanUChar PROPERTIES DEPENDS vtkVolumeReconstructorTestRunLinrMeanUChar)
-
-  ADD_TEST(vtkVolumeReconstructorTestCompareLinrMaxiUChar
-    ${CMAKE_COMMAND} -E compare_files 
-    ${TestDataDir}/vtkVolumeReconstructorTestLNMAXIvolumeRef.mha
-    vtkVolumeReconstructorTestLNMAXIvolume.mha
-    )
-  SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompareLinrMaxiUChar PROPERTIES DEPENDS vtkVolumeReconstructorTestRunLinrMaxiUChar)
-
-  ADD_TEST(CreateSliceModelsTest 
+  ADD_TEST(CreateSliceModelsTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
     --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
-    --output-model-file=GeneratedSliceModels.mha  
+    --output-model-file=GeneratedSliceModels.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
     --image-to-reference-transform=ProbeToReference
     )
   SET_TESTS_PROPERTIES( CreateSliceModelsTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
-  # --------------------------------------------------------------------------
   ADD_TEST(DrawClipRegionRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Ultrasonix_C5-2_NDIPolaris_fCal3.xml
@@ -119,7 +55,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(DrawClipRegionCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files 
+    ${CMAKE_COMMAND} -E compare_files
      ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
      ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
     )

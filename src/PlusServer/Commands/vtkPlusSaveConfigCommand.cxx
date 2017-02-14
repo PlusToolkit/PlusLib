@@ -14,18 +14,26 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusSaveConfigCommand);
 
-static const char SAVE_CONFIG_CMD[] = "SaveConfig";
+namespace
+{
+  static const std::string SAVE_CONFIG_CMD = "SaveConfig";
+}
 
 //----------------------------------------------------------------------------
 vtkPlusSaveConfigCommand::vtkPlusSaveConfigCommand()
-  : Filename(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusSaveConfigCommand::~vtkPlusSaveConfigCommand()
 {
-  this->SetFilename(NULL);
+
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusSaveConfigCommand::SetFilename(const std::string& filename)
+{
+  this->Filename = filename;
 }
 
 //----------------------------------------------------------------------------
@@ -42,15 +50,21 @@ void vtkPlusSaveConfigCommand::GetCommandNames(std::list<std::string>& cmdNames)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusSaveConfigCommand::GetDescription(const char* commandName)
+std::string vtkPlusSaveConfigCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName == NULL || STRCASECMP(commandName, SAVE_CONFIG_CMD))
+  if (commandName.empty() || commandName == SAVE_CONFIG_CMD)
   {
     desc += SAVE_CONFIG_CMD;
     desc += ": Tell the data collector to save the config file.";
   }
   return desc;
+}
+
+//----------------------------------------------------------------------------
+const std::string& vtkPlusSaveConfigCommand::GetFilename() const
+{
+  return this->Filename;
 }
 
 //----------------------------------------------------------------------------
@@ -79,7 +93,7 @@ PlusStatus vtkPlusSaveConfigCommand::WriteConfiguration(vtkXMLDataElement* aConf
     return PLUS_FAIL;
   }
   // Start parameters
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(Filename, aConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Filename, aConfig);
   return PLUS_SUCCESS;
 }
 
@@ -88,12 +102,12 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
 {
   LOG_INFO("vtkPlusSaveConfigCommand::Execute");
 
-  if (GetFilename() == NULL)
+  if (GetFilename().empty())
   {
     this->SetFilename(this->CommandProcessor->GetPlusServer()->GetConfigFilename());
   }
 
-  std::string baseMessageString = std::string("SaveConfig (") + (this->Filename ? this->Filename : "undefined") + ")";
+  std::string baseMessageString = std::string("SaveConfig (") + (!this->Filename.empty() ? this->Filename : "undefined") + ")";
 
   if (this->GetDataCollector() == NULL)
   {

@@ -915,24 +915,15 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
   {
     this->ImportanceMaskFilename = filename;
 
-    // use itk reader which supports many file formats
-    typedef itk::Image<unsigned char, 3> uc2Type;
-    typedef itk::ImageFileReader<uc2Type> ReaderType;
-    ReaderType::Pointer reader2 = ReaderType::New();
-    reader2->SetFileName(filename);
-    reader2->Update();
-    uc2Type::Pointer img = reader2->GetOutput();
-    uc2Type::RegionType region = img->GetLargestPossibleRegion();
-    img->Register();
+    vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
+    reader->SetFileName(filename.c_str());
+    reader->Update();
 
-    vtkSmartPointer<vtkImageImport> importer = vtkSmartPointer<vtkImageImport>::New();
-    importer->SetWholeExtent(region.GetIndex(0), region.GetSize(0) - 1, region.GetIndex(1), region.GetSize(1) - 1, region.GetIndex(2), region.GetSize(2) - 1);
-    importer->SetDataExtentToWholeExtent();
-    importer->SetDataScalarTypeToUnsignedChar();
-    importer->SetImportVoidPointer(img->GetBufferPointer(), region.GetNumberOfPixels());
-    importer->SetScalarArrayName("itkGraylevels");
-    importer->Update();
-    this->Reconstructor->GetImportanceMask()->ShallowCopy(importer->GetOutput());
+    vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+    flipYFilter->SetFilteredAxis(1); // flip y axis
+    flipYFilter->SetInputConnection(reader->GetOutputPort());
+    flipYFilter->Update();
+    this->Reconstructor->SetImportanceMask(flipYFilter->GetOutput());
 
     this->Reconstructor->Modified();
     this->Modified();
@@ -940,7 +931,7 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
+std::string vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
 {
   return this->ImportanceMaskFilename;
 }

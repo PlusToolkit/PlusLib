@@ -26,37 +26,37 @@ class vtkPlusDataCollectionExport vtkPlusVirtualVolumeReconstructor : public vtk
 {
 public:
   static vtkPlusVirtualVolumeReconstructor* New();
-  vtkTypeMacro( vtkPlusVirtualVolumeReconstructor, vtkPlusDevice );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro(vtkPlusVirtualVolumeReconstructor, vtkPlusDevice);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   /*!
     This method is safe to be called from any thread.
   */
-  virtual PlusStatus GetReconstructedVolumeFromFile( const char* inputSeqFilename, vtkImageData* reconstructedVolume, std::string& errorMessage );
+  virtual PlusStatus GetReconstructedVolumeFromFile(const std::string& inputSeqFilename, vtkImageData* reconstructedVolume, std::string& errorMessage);
 
   /*!
     This method is safe to be called from any thread.
     \param applyHoleFilling If true (default) then hole filling will be applied (if enabled and fully specified), otherwise hole filling will be skipped
   */
-  PlusStatus GetReconstructedVolume( vtkImageData* reconstructedVolume, std::string& errorMessage, bool applyHoleFilling = true );
+  PlusStatus GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& outErrorMessage, bool applyHoleFilling = true);
 
   /*!
     Updated the transform repository contents within the volume reconstructor.
     It is advisable to call this before each volume reconstruction starting.
     This method is safe to be called from any thread.
   */
-  PlusStatus UpdateTransformRepository( vtkPlusTransformRepository* sharedTransformRepository );
+  PlusStatus UpdateTransformRepository(vtkPlusTransformRepository* sharedTransformRepository);
 
   /*!
     Enables adding frames to the volume. It can be used for pausing the recording.
     This method is safe to be called from any thread.
   */
-  vtkGetMacro( EnableReconstruction, bool );
+  vtkGetMacro(EnableReconstruction, bool);
   /*!
     Enables adding frames to the volume. It can be used for pausing the recording.
     This method is safe to be called from any thread.
   */
-  void SetEnableReconstruction( bool aValue );
+  void SetEnableReconstruction(bool aValue);
 
   /*!
     Clear the volume.
@@ -65,31 +65,31 @@ public:
   virtual PlusStatus Reset();
 
   /*! If specified, the reconstructed volume will be saved into this filename */
-  vtkSetStringMacro( OutputVolFilename );
-  vtkGetStringMacro( OutputVolFilename );
+  virtual void SetOutputVolFilename(const std::string& outputVolFilename);
+  virtual const std::string& GetOutputVolFilename() const;
 
   /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
-  vtkSetStringMacro( OutputVolDeviceName );
-  vtkGetStringMacro( OutputVolDeviceName );
+  virtual void SetOutputVolDeviceName(const std::string& outputVolDeviceName);
+  virtual const std::string& GetOutputVolDeviceName() const;
 
   /*! Set the output volume's origin in the Reference coordinate system*/
-  void SetOutputOrigin( double* origin );
+  void SetOutputOrigin(double* origin);
 
   /*! Set the output volume's spacing in the Reference coordinate system's unit (usually mm)*/
-  void SetOutputSpacing( double* spacing );
+  void SetOutputSpacing(double* spacing);
 
   /*! Set the output volume's extent (xStart, xEnd, yStart, yEnd, zStart, zEnd) in voxels */
-  void SetOutputExtent( int* extent );
+  void SetOutputExtent(int* extent);
 
-  vtkGetMacro( TotalFramesRecorded, long int );
+  vtkGetMacro(TotalFramesRecorded, long int);
 
 protected:
 
   /*! Read main configuration from xml data */
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement*);
 
   /*! write main configuration to xml data */
-  virtual PlusStatus WriteConfiguration( vtkXMLDataElement* );
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
 
   virtual PlusStatus InternalUpdate();
 
@@ -102,10 +102,10 @@ protected:
   /*!
     Method that writes output streams to XML
   */
-  virtual void InternalWriteOutputChannels( vtkXMLDataElement* rootXMLElement );
+  virtual void InternalWriteOutputChannels(vtkXMLDataElement* rootXMLElement);
 
-  void SetRequestedFrameRate( double aValue );
-  vtkGetMacro( RequestedFrameRate, double );
+  void SetRequestedFrameRate(double aValue);
+  vtkGetMacro(RequestedFrameRate, double);
 
   virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
 
@@ -115,7 +115,7 @@ protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
-  PlusStatus AddFrames( vtkPlusTrackedFrameList* trackedFrameList );
+  PlusStatus AddFrames(vtkPlusTrackedFrameList* trackedFrameList);
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
@@ -151,15 +151,15 @@ protected:
 
   bool EnableReconstruction;
 
-  char* OutputVolFilename;
-  char* OutputVolDeviceName;
+  std::string OutputVolFilename;
+  std::string OutputVolDeviceName;
 
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */
   vtkSmartPointer<vtkPlusRecursiveCriticalSection> VolumeReconstructorAccessMutex;
 
 private:
-  vtkPlusVirtualVolumeReconstructor( const vtkPlusVirtualVolumeReconstructor& ); // Not implemented.
-  void operator=( const vtkPlusVirtualVolumeReconstructor& ); // Not implemented.
+  vtkPlusVirtualVolumeReconstructor(const vtkPlusVirtualVolumeReconstructor&);   // Not implemented.
+  void operator=(const vtkPlusVirtualVolumeReconstructor&);   // Not implemented.
 };
 
 #endif

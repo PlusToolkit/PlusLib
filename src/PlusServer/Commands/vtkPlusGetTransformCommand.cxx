@@ -11,20 +11,21 @@ See License.txt for details.
 #include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusTransformRepository.h"
 
-vtkStandardNewMacro( vtkPlusGetTransformCommand );
+vtkStandardNewMacro(vtkPlusGetTransformCommand);
 
-static const char GET_TRANSFORM_CMD[] = "GetTransform";
+namespace
+{
+  static const std::string GET_TRANSFORM_CMD = "GetTransform";
+}
 
 //----------------------------------------------------------------------------
 vtkPlusGetTransformCommand::vtkPlusGetTransformCommand()
-  : TransformName(NULL)
 {
 }
 
 //----------------------------------------------------------------------------
 vtkPlusGetTransformCommand::~vtkPlusGetTransformCommand()
 {
-  this->SetTransformName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -41,43 +42,55 @@ void vtkPlusGetTransformCommand::GetCommandNames(std::list<std::string>& cmdName
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusGetTransformCommand::GetDescription(const char* commandName)
+std::string vtkPlusGetTransformCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName==NULL || STRCASECMP(commandName, GET_TRANSFORM_CMD))
+  if (commandName.empty() || commandName == GET_TRANSFORM_CMD)
   {
-    desc+=GET_TRANSFORM_CMD;
-    desc+=": Retrieve the details of a transform in the remote transform repository.";
+    desc += GET_TRANSFORM_CMD;
+    desc += ": Retrieve the details of a transform in the remote transform repository.";
   }
   return desc;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusGetTransformCommand::PrintSelf( ostream& os, vtkIndent indent )
+const std::string& vtkPlusGetTransformCommand::GetTransformName() const
 {
-  this->Superclass::PrintSelf( os, indent );
+  return this->TransformName;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusGetTransformCommand::SetTransformName(const std::string& transformName)
+{
+  this->TransformName = transformName;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusGetTransformCommand::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetTransformCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  if (vtkPlusCommand::ReadConfiguration(aConfig)!=PLUS_SUCCESS)
+  if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(TransformName, aConfig);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusGetTransformCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
-  if (vtkPlusCommand::WriteConfiguration(aConfig)!=PLUS_SUCCESS)
+  if (vtkPlusCommand::WriteConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  aConfig->SetAttribute("TransformName", this->GetTransformName());
+  XML_WRITE_STRING_ATTRIBUTE(TransformName, aConfig);
 
   return PLUS_SUCCESS;
 }
@@ -87,10 +100,10 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
 {
   LOG_INFO("vtkPlusGetTransformCommand::Execute:");
 
-  std::string baseMessageString = std::string("GetTransform (") + (this->GetTransformName()?this->GetTransformName():"undefined") + ")";
+  std::string baseMessageString = std::string("GetTransform (") + (!this->GetTransformName().empty() ? this->GetTransformName() : "undefined") + ")";
   std::string warningString;
 
-  if( this->GetTransformRepository() == NULL )
+  if (this->GetTransformRepository() == NULL)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Failed: invalid transform repository.");
     return PLUS_FAIL;
@@ -99,7 +112,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
   PlusTransformName aName;
   aName.SetTransformName(this->GetTransformName());
 
-  if( this->GetTransformRepository()->IsExistingTransform(aName) != PLUS_SUCCESS)
+  if (this->GetTransformRepository()->IsExistingTransform(aName) != PLUS_SUCCESS)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessageString + " Failed. Transform not found.");
     return PLUS_SUCCESS;
@@ -117,22 +130,22 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
   errorStringStream << error;
 
   std::ostringstream valueStringStream;
-  if( !this->RespondWithCommandMessage )
+  if (!this->RespondWithCommandMessage)
   {
     valueStringStream << "<name=\"" << aName.GetTransformName() << "\" value=\"";
   }
-  for( int i = 0; i < 4; ++i )
+  for (int i = 0; i < 4; ++i)
   {
-    for( int j = 0; j < 4; ++j)
+    for (int j = 0; j < 4; ++j)
     {
       valueStringStream << value->GetElement(i, j);
-      if( i * j < 9 )
+      if (i * j < 9)
       {
         valueStringStream << " ";
       }
     }
   }
-  if( !this->RespondWithCommandMessage )
+  if (!this->RespondWithCommandMessage)
   {
     valueStringStream << "\" persistent=\"" << (persistent ? "true" : "false") << "\" date=\"" << date << "\" error=\"" << error << "\"/>";
     this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + valueStringStream.str());

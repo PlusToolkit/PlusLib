@@ -154,7 +154,7 @@ static int vtkNearestNeighborInterpolation(F *point,
           }
         } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           // TODO: Should do this for all the scalars, and accumulation?
-          *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr));
+          *outPtr = (T)(fraction1_256 * (*inPtr++) + fraction255_256 * (*outPtr));
         }
         break;
       }
@@ -163,12 +163,18 @@ static int vtkNearestNeighborInterpolation(F *point,
         accPtr += inc/outInc[0];
         if (*accPtr <= ACCUMULATION_THRESHOLD) { // no overflow, act normally
 
-          if (*importancePtr == 0) //nothing to do
+          if (*importancePtr == 0)
+          {
+            //nothing to do
             break;
+          }
+
           int newa = *accPtr + *importancePtr;
           if (newa > ACCUMULATION_THRESHOLD)
+          {
             (*accOverflowCount) += 1;
-
+          }
+          
           for (i = 0; i < numscalars; i++)
           {
             *outPtr = ((*inPtr++)*(*importancePtr) + (*outPtr)*(*accPtr))/newa;
@@ -180,9 +186,12 @@ static int vtkNearestNeighborInterpolation(F *point,
           {
             *accPtr = newa;
           }
-        } else { // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
+        } 
+        else 
+        { 
+          // overflow, use recursive filtering with 255/256 and 1/256 as the weights, since 255 voxels have been inserted so far
           // TODO: Should do this for all the scalars, and accumulation?
-          *outPtr = (T)(0.99609375 * (*inPtr++) + 0.00390625 * (*outPtr)); //bug, reversed weights
+          *outPtr = (T)(fraction1_256 * (*inPtr++) + fraction255_256 * (*outPtr));
         }
         break;
       }
@@ -308,8 +317,13 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   vtkIdType inIncX=0, inIncY=0, inIncZ=0;
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   int numscalars = inData->GetNumberOfScalarComponents();
-  vtkIdType imIncX = 0, imIncY = 0, imIncZ = 0;
-  insertionParams->importanceMask->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
+  vtkIdType impIncX = 0;
+  vtkIdType impIncY = 0;
+  vtkIdType impIncZ = 0;
+  if (insertionParams->importanceMask)
+  {
+    insertionParams->importanceMask->GetContinuousIncrements(inExt, impIncX, impIncY, impIncZ);
+  }
 
   // Set interpolation method - nearest neighbor or trilinear  
   int (*interpolate)(F *, T *, T *, unsigned short *, unsigned char *, int, vtkPlusPasteSliceIntoVolume::CompoundingType, int a[6], vtkIdType b[3], unsigned int *)=NULL; // pointer to the nearest neighbor or trilinear interpolation function  
@@ -340,11 +354,11 @@ static void vtkUnoptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSlicePara
   double inPoint[4]; 
   inPoint[3] = 1;
   bool fanClippingEnabled = (fanLinePixelRatioLeft != 0 || fanLinePixelRatioRight != 0);
-  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += imIncZ)
+  for (int idZ = inExt[4]; idZ <= inExt[5]; idZ++, inPtr += inIncZ, importancePtr += impIncZ)
   {
-    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += imIncY)
+    for (int idY = inExt[2]; idY <= inExt[3]; idY++, inPtr += inIncY, importancePtr += impIncY)
     {
-      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += imIncX)
+      for (int idX = inExt[0]; idX <= inExt[1]; idX++, inPtr += numscalars, importancePtr += 1)
       {
         // check if we are within the current clip extent
         if (idX < clipExt[0] || idX > clipExt[1] || idY < clipExt[2] || idY > clipExt[3])

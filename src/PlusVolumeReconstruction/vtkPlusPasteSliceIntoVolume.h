@@ -133,6 +133,7 @@ public:
   Get the importance mask
   The importance mask of pixels in a frame (0-255).
   0 means pixel is ignored during compounding.
+  Pixel type of unsigned char, number of scalar components of 1 required.
   */
   vtkGetMacro(ImportanceMask, vtkImageData *);
 
@@ -140,8 +141,9 @@ public:
   Set the importance mask
   The importance mask of pixels in a frame (0-255).
   0 means pixel is ignored during compounding.
+  Pixel type of unsigned char, number of scalar components of 1 required.
   */
-  vtkSetMacro(ImportanceMask, vtkImageData *);
+  vtkSetObjectMacro(ImportanceMask, vtkImageData);
 
   /*!
     Insert the slice into the reconstructed volume
@@ -277,14 +279,14 @@ public:
 
   /*!
     Set the compounding mode
-    MEAN:           For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps 
-                    from the same angle (regardless of intersection). Resistant to noise, but slower than other 
-                    compounding methods.
-    IMPORTANCEMASK: Similar to MEAN, but pixels in a frame are weighted by their importance, which is supplied by a mask.
-    LATEST:         For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps 
-                    from the same angle (regardless of intersection). Fast, but susceptible to noise.
-    MAXIMUM:        For each voxel, use only the pixel value with the highest intensity. Used when multiple slices 
-                    from different angles are expected to intersect. Fast, but susceptible to noise.
+    MEAN:            For each voxel, use an average of all inserted pixel values. Used on single or multiple sweeps 
+                     from the same angle (regardless of intersection). Resistant to noise, but slower than other 
+                     compounding methods.
+    IMPORTANCE_MASK: Similar to MEAN, but pixels in a frame are weighted by their importance, which is supplied by a mask.
+    LATEST:          For each voxel, use only the latest inserted pixel value. Used on single or multiple sweeps 
+                     from the same angle (regardless of intersection). Fast, but susceptible to noise.
+    MAXIMUM:         For each voxel, use only the pixel value with the highest intensity. Used when multiple slices 
+                     from different angles are expected to intersect. Fast, but susceptible to noise.
   */
   vtkSetMacro(CompoundingMode,CompoundingType);
   /*! Get the result mode */

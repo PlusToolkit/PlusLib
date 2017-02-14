@@ -6,6 +6,8 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
+#include "PlusMath.h"
 #include "PlusTrackedFrame.h"
 #include "PlusVideoFrame.h"
 #include "vtkPlusSequenceIO.h"

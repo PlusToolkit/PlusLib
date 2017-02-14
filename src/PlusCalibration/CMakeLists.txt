@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Sources
 
-SET (PlusCalibration_SRCS
+SET(PlusCalibration_SRCS
   PatternLocAlgo/PlusFidSegmentation.cxx
   PatternLocAlgo/PlusFidLineFinder.cxx
   PatternLocAlgo/PlusFidLabeling.cxx
@@ -33,9 +33,9 @@ SET (PlusCalibration_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   )
 
-SET (PlusCalibration_HDRS)
+SET(PlusCalibration_HDRS)
 IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusCalibration_HDRS
+  SET(PlusCalibration_HDRS
     PatternLocAlgo/PlusFidSegmentation.h
     PatternLocAlgo/PlusFidLineFinder.h
     PatternLocAlgo/PlusFidLabeling.h
@@ -65,9 +65,9 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     vtkPhantomLinearObjectRegistrationAlgo/Reference.h
     vtkPhantomLinearObjectRegistrationAlgo/References.h
     )
-ENDIF ()
+ENDIF()
 
-SET (PlusCalibration_INCLUDE_DIRS
+SET(PlusCalibration_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/PatternLocAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
@@ -83,20 +83,15 @@ SET (PlusCalibration_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusCalibration_LIBS
+SET(PlusCalibration_LIBS
   ITKCommon
   ITKIOImageBase
   ITKOptimizers
   ITKTransform
-  vtkChartsCore
   vtkInteractionStyle
   vtkRenderingFreeType
-  vtkViewsContext2D
-  vtkIOCore
   vtkFiltersStatistics
-  vtkRendering${VTK_RENDERING_BACKEND}
-  vtkRenderingVolume${VTK_RENDERING_BACKEND}
-  vtkRenderingContext${VTK_RENDERING_BACKEND}
+  vtkPlusRendering
   vtkPlusCommon
   )
 
@@ -113,7 +108,7 @@ TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCalibration CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCalibration CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkPlusCalibration vtkPlusCalibration;${PlusLib_BINARY_DIR}/src/PlusCalibration/vtkPlusCalibration.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)

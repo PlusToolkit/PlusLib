@@ -60,21 +60,32 @@ bool PlusTransformName::IsValid() const
 //-------------------------------------------------------
 PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
 {
-  this->m_From.clear();
-  this->m_To.clear();
-
   if (aTransformName == NULL)
   {
     LOG_ERROR("Failed to set transform name if it's NULL");
     return PLUS_FAIL;
   }
 
-  std::string transformNameStr(aTransformName);
+  return this->SetTransformName(std::string(aTransformName));
+}
+
+//----------------------------------------------------------------------------
+PlusStatus PlusTransformName::SetTransformName(const std::string& aTransformName)
+{
+  if (aTransformName.empty())
+  {
+    LOG_ERROR("Failed to set transform name if it's empty");
+    return PLUS_FAIL;
+  }
+
+  this->m_From.clear();
+  this->m_To.clear();
+
   size_t posTo = std::string::npos;
 
   // Check if the string has only one valid 'To' phrase
   int numOfMatch = 0;
-  std::string subString = transformNameStr;
+  std::string subString = aTransformName;
   size_t posToTested = std::string::npos;
   size_t numberOfRemovedChars = 0;
   while (((posToTested = subString.find("To")) != std::string::npos) && (subString.length() > posToTested + 2))
@@ -108,17 +119,17 @@ PlusStatus PlusTransformName::SetTransformName(const char* aTransformName)
     LOG_ERROR("Failed to set transform name - no coordinate frame name before 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL;
   }
-  else if (posTo == transformNameStr.length() - 2)
+  else if (posTo == aTransformName.length() - 2)
   {
     LOG_ERROR("Failed to set transform name - no coordinate frame name after 'To' in '" << aTransformName << "'!");
     return PLUS_FAIL;
   }
 
   // Set From coordinate frame name
-  this->m_From = transformNameStr.substr(0, posTo);
+  this->m_From = aTransformName.substr(0, posTo);
 
   // Allow handling of To coordinate frame containing "Transform"
-  std::string postFrom(transformNameStr.substr(posTo + 2));
+  std::string postFrom(aTransformName.substr(posTo + 2));
   if (postFrom.find("Transform") != std::string::npos)
   {
     postFrom = postFrom.substr(0, postFrom.find("Transform"));
@@ -414,7 +425,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML(const char* fname, vtkXMLDataElement* elem)
+PlusStatus PlusCommon::PrintXML(const std::string& fname, vtkXMLDataElement* elem)
 {
   ofstream of(fname);
   if (!of.is_open())

@@ -427,7 +427,7 @@ PlusStatus vtkPlusTransformRepository::GetTransformError(const PlusTransformName
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransformRepository::SetTransformDate(const PlusTransformName& aTransformName, const char* aDate)
+PlusStatus vtkPlusTransformRepository::SetTransformDate(const PlusTransformName& aTransformName, const std::string& aDate)
 {
   if (aTransformName.From() == aTransformName.To())
   {
@@ -435,9 +435,9 @@ PlusStatus vtkPlusTransformRepository::SetTransformDate(const PlusTransformName&
     return PLUS_FAIL;
   }
 
-  if (aDate == NULL)
+  if (aDate.empty())
   {
-    LOG_ERROR("Cannot set computation date if it's NULL.");
+    LOG_ERROR("Cannot set computation date if it's empty.");
     return PLUS_FAIL;
   }
 

@@ -191,7 +191,7 @@ public:
   void SetPixelRejectionThreshold(double threshold);
   double GetPixelRejectionThreshold();
 
-  const std::string& GetImportanceMaskFilename() const;
+  std::string GetImportanceMaskFilename() const;
   void SetImportanceMaskFilename(const std::string& filename);
 
 protected:

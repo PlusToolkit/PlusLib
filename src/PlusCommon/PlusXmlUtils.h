@@ -87,7 +87,7 @@ public:
 #define XML_FIND_NESTED_ELEMENT_OPTIONAL(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
   if (rootXmlElementVar == NULL) \
   { \
-    LOG_ERROR("Invalid device set configuration found while looking for optional "<<nestedXmlElementName<<" element"); \
+    LOG_ERROR("Invalid device set configuration found while looking for optional " << nestedXmlElementName << " element"); \
     return PLUS_FAIL; \
   } \
   vtkXMLDataElement* destinationXmlElementVar = rootXmlElementVar->FindNestedElementWithName(nestedXmlElementName);
@@ -95,59 +95,60 @@ public:
 #define XML_FIND_NESTED_ELEMENT_REQUIRED(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
   if (rootXmlElementVar == NULL) \
   { \
-    LOG_ERROR("Invalid device set configuration: unable to find required "<<nestedXmlElementName<<" element"); \
+    LOG_ERROR("Invalid device set configuration: unable to find required " << nestedXmlElementName << " element"); \
     return PLUS_FAIL; \
   } \
   vtkXMLDataElement* destinationXmlElementVar = rootXmlElementVar->FindNestedElementWithName(nestedXmlElementName);  \
   if (destinationXmlElementVar == NULL)  \
   { \
-    LOG_ERROR("Unable to find required "<<nestedXmlElementName<<" element in device set configuration");  \
+    LOG_ERROR("Unable to find required " << nestedXmlElementName << " element in device set configuration");  \
     return PLUS_FAIL; \
   }
 
 #define XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(destinationXmlElementVar, rootXmlElementVar, nestedXmlElementName) \
   if (rootXmlElementVar == NULL) \
   { \
-    LOG_ERROR("Invalid device set configuration: unable to find required "<<nestedXmlElementName<<" element"); \
+    LOG_ERROR("Invalid device set configuration: unable to find required " << nestedXmlElementName << " element"); \
     return PLUS_FAIL; \
   } \
   vtkXMLDataElement* destinationXmlElementVar = PlusXmlUtils::GetNestedElementWithName(rootXmlElementVar,nestedXmlElementName);  \
   if (destinationXmlElementVar == NULL)  \
   { \
-    LOG_ERROR("Unable to find or create "<<nestedXmlElementName<<" element in device set configuration");  \
+    LOG_ERROR("Unable to find or create " << nestedXmlElementName << " element in device set configuration");  \
     return PLUS_FAIL; \
   }
 
 #define XML_VERIFY_ELEMENT(xmlElementVar, expectedXmlElementName) \
   if (xmlElementVar == NULL) \
   { \
-    LOG_ERROR("Missing or invalid "<<expectedXmlElementName<<" element"); \
+    LOG_ERROR("Missing or invalid " << expectedXmlElementName << " element"); \
     return PLUS_FAIL; \
   } \
   if ( xmlElementVar->GetName() == NULL || STRCASECMP(xmlElementVar->GetName(),expectedXmlElementName)!=0)  \
   { \
-    LOG_ERROR("Unable to read "<<expectedXmlElementName<<" element: unexpected name: "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(unspecified)")); \
+    LOG_ERROR("Unable to read " << expectedXmlElementName << " element: unexpected name: " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(unspecified)")); \
     return PLUS_FAIL; \
   }
 
-/*
-#define XML_GET_ATTRIBUTE_REQUIRED(destinationXmlElementVar, xmlElementVar, attributeName)  \
-  const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
-  if (destinationXmlElementVar == NULL)  \
+// Read a string attribute and save it to a class member variable. If not found return with fail.
+#define XML_READ_STRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
   { \
-    LOG_ERROR("Unable to find required "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
-    return PLUS_FAIL; \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
+    if (destinationXmlElementVar == NULL)  \
+    { \
+      LOG_ERROR("Unable to find required " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
+      return PLUS_FAIL; \
+    } \
+    this->Set##memberVar(std::string(destinationXmlElementVar));  \
   }
-*/
 
 // Read a string attribute and save it to a class member variable. If not found return with fail.
 #define XML_READ_CSTRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
     if (destinationXmlElementVar == NULL)  \
     { \
-      LOG_ERROR("Unable to find required "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_ERROR("Unable to find required " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
       return PLUS_FAIL; \
     } \
     this->Set##memberVar(destinationXmlElementVar);  \
@@ -157,15 +158,14 @@ public:
 // If attribute not found then the member is not modified but a warning is logged.
 #define XML_READ_CSTRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
     if (destinationXmlElementVar != NULL)  \
     { \
       this->Set##memberVar(destinationXmlElementVar);  \
     } \
     else \
     { \
-      LOG_WARNING("Unable to find expected "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_WARNING("Unable to find expected " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
     } \
   }
 
@@ -173,11 +173,21 @@ public:
 // If attribute not found then the member is not modified.
 #define XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(attributeName);  \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
     if (destinationXmlElementVar != NULL)  \
     { \
       this->Set##memberVar(destinationXmlElementVar);  \
+    } \
+  }
+
+// Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
+// If attribute not found then the member is not modified.
+#define XML_READ_STRING_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
+  { \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
+    if (destinationXmlElementVar != NULL)  \
+    { \
+      this->Set##memberVar(std::string(destinationXmlElementVar));  \
     } \
   }
 
@@ -194,9 +204,8 @@ public:
 // Read a numeric attribute and save it to a class member variable. If not found then no change.
 #define XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(memberVarType, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
-    if ( xmlElementVar->GetScalarAttribute(attributeName, tmpValue) )  \
+    if ( xmlElementVar->GetScalarAttribute(#memberVar, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
@@ -205,30 +214,28 @@ public:
 // Read a numeric attribute and save it to a class member variable. If not found then log warning and make no change.
 #define XML_READ_SCALAR_ATTRIBUTE_WARNING(memberVarType, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
-    if ( xmlElementVar->GetScalarAttribute(attributeName, tmpValue) )  \
+    if ( xmlElementVar->GetScalarAttribute(#memberVar, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
     else \
     { \
-      LOG_WARNING("Unable to find expected "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_WARNING("Unable to find expected " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
     } \
   }
 
 // Read a numeric attribute and save it to a class member variable. If not found then return with error.
 #define XML_READ_SCALAR_ATTRIBUTE_REQUIRED(memberVarType, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue = 0; \
-    if ( xmlElementVar->GetScalarAttribute(attributeName, tmpValue) )  \
+    if ( xmlElementVar->GetScalarAttribute(#memberVar, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
     else  \
     { \
-      LOG_ERROR("Unable to find required "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_ERROR("Unable to find required " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
       return PLUS_FAIL; \
     } \
   }
@@ -253,7 +260,7 @@ public:
     } \
     else  \
     { \
-      LOG_ERROR("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") << " element in device set configuration");  \
+      LOG_ERROR("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
       return PLUS_FAIL; \
     } \
   }
@@ -261,9 +268,8 @@ public:
 // Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
 #define XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
-    if ( xmlElementVar->GetVectorAttribute(attributeName, vectorSize, tmpValue) )  \
+    if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
@@ -273,19 +279,18 @@ public:
 // If number of parameters in the attribute is not exactly the same as expected then return with error.
 #define XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize+1] = {0}; /* try to read one more value to detect if more values are specified */ \
-    if ( xmlElementVar->GetAttribute(attributeName) ) \
+    if ( xmlElementVar->GetAttribute(#memberVar) ) \
     { \
-      if ( xmlElementVar->GetVectorAttribute(attributeName, vectorSize+1, tmpValue) == vectorSize)  \
+      if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize+1, tmpValue) == vectorSize)  \
       { \
         this->Set##memberVar(tmpValue); \
       } \
       else \
       { \
-        LOG_ERROR("Unable to parse "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-        <<" element in device set configuration. Expected exactly "<<vectorSize<<" values separated by spaces, instead got this: "<< \
-        xmlElementVar->GetAttribute(attributeName));  \
+        LOG_ERROR("Unable to parse " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+        <<" element in device set configuration. Expected exactly " << vectorSize << " values separated by spaces, instead got this: "<< \
+        xmlElementVar->GetAttribute(#memberVar));  \
         return PLUS_FAIL; \
       } \
     } \
@@ -294,30 +299,28 @@ public:
 // Read a vector of numeric attributes and save it to a class member variable. If not found then do not change the value and log warning.
 #define XML_READ_VECTOR_ATTRIBUTE_WARNING(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
-    if ( xmlElementVar->GetVectorAttribute(attributeName, vectorSize, tmpValue) )  \
+    if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
     else \
     { \
-      LOG_WARNING("Unable to find required "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_WARNING("Unable to find required " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
     } \
   }
 
 // Read a vector of numeric attributes and save it to a class member variable. If not found then return with failure.
 #define XML_READ_VECTOR_ATTRIBUTE_REQUIRED(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
     memberVarType tmpValue[vectorSize] = {0}; \
-    if ( xmlElementVar->GetVectorAttribute(attributeName, vectorSize, tmpValue) )  \
+    if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize, tmpValue) )  \
     { \
       this->Set##memberVar(tmpValue); \
     } \
     else \
     { \
-      LOG_ERROR("Unable to find required "<<attributeName<<" attribute in "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)")<<" element in device set configuration");  \
+      LOG_ERROR("Unable to find required " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
       return PLUS_FAIL; \
     } \
   }
@@ -342,15 +345,14 @@ public:
     } \
     else \
     { \
-      LOG_WARNING("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") << " element in device set configuration");  \
+      LOG_WARNING("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
     } \
   }
 
 // Read a bool attribute (TRUE/FALSE) and save it to a class member variable. If not found do not change it.
 #define XML_READ_BOOL_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
       if (STRCASECMP(strValue, "TRUE")==0)  \
@@ -363,9 +365,9 @@ public:
       } \
       else  \
       { \
-        LOG_WARNING("Failed to read boolean value from "<<attributeName \
-          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-          <<": expected 'TRUE' or 'FALSE', got '"<<strValue<<"'"); \
+        LOG_WARNING("Failed to read boolean value from " << #memberVar \
+          <<" attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          <<": expected 'TRUE' or 'FALSE', got '" << strValue << "'"); \
       } \
     } \
   }
@@ -386,17 +388,16 @@ public:
         } \
         else  \
         { \
-          LOG_WARNING("Failed to read boolean value from "<<#attributeName \
-            <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-            <<": expected 'TRUE' or 'FALSE', got '"<<strValue<<"'"); \
+          LOG_WARNING("Failed to read boolean value from " << #attributeName \
+            <<" attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+            <<": expected 'TRUE' or 'FALSE', got '" << strValue << "'"); \
         } \
       } \
     }
 
 #define XML_READ_ENUM1_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
       if (STRCASECMP(strValue, enumString1)==0)  \
@@ -405,17 +406,16 @@ public:
       } \
       else  \
       { \
-        LOG_WARNING("Failed to read enumerated value from "<<attributeName \
-          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-          <<": expected '"<<enumString1<<"'"); \
+        LOG_WARNING("Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected '" << enumString1 << "'"); \
       } \
     } \
   }
 
 #define XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
       if (STRCASECMP(strValue, enumString1)==0)  \
@@ -428,17 +428,16 @@ public:
       } \
       else  \
       { \
-        LOG_WARNING("Failed to read enumerated value from "<<attributeName \
-          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-          <<": expected '"<<enumString1<<"' or '"<<enumString2<<"', got '"<<strValue<<"'"); \
+        LOG_WARNING("Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected '" << enumString1 << "' or '" << enumString2 << "', got '" << strValue << "'"); \
       } \
     } \
   }
 
 #define XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2, enumString3, enumValue3)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
       if (STRCASECMP(strValue, enumString1)==0)  \
@@ -455,17 +454,16 @@ public:
       } \
       else  \
       { \
-        LOG_WARNING("Failed to read enumerated value from "<<attributeName \
-          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-          <<": expected '"<<enumString1<<"', '"<<enumString2<<"', or '"<<enumString3<<"', got '"<<strValue<<"'"); \
+        LOG_WARNING("Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected '" << enumString1 << "', '" << enumString2 << "', or '" << enumString3 << "', got '" << strValue << "'"); \
       } \
     } \
   }
 
 #define XML_READ_ENUM4_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2, enumString3, enumValue3, enumString4, enumValue4)  \
   { \
-    const char* attributeName = #memberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
       if (STRCASECMP(strValue, enumString1)==0)  \
@@ -486,63 +484,59 @@ public:
       } \
       else  \
       { \
-        LOG_WARNING("Failed to read enumerated value from "<<attributeName \
-          <<" attribute of element "<<(xmlElementVar->GetName()?xmlElementVar->GetName():"(undefined)") \
-          <<": expected '"<<enumString1<<"', '"<<enumString2<<"', or '"<<enumString3<<"', got '"<<strValue<<"'"); \
+        LOG_WARNING("Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected '" << enumString1 << "', '" << enumString2 << "', or '" << enumString3 << "', got '" << strValue << "'"); \
       } \
     } \
   }
 
 #define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
 
+#define XML_WRITE_STRING_ATTRIBUTE(memberVar, xmlElementVar)  \
+  xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar().c_str()); \
+
 #define XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(memberVar, xmlElementVar)  \
   if (!this->Get##memberVar().empty()) \
   { \
-    std::string attributeName = #memberVar; \
-    xmlElementVar->SetAttribute(attributeName.c_str(), this->Get##memberVar().c_str()); \
+    xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar().c_str()); \
   }
 
 #define XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(memberVar, xmlElementVar)  \
   if (this->Get##memberVar()) \
   { \
-    const char* attributeName = #memberVar; \
-    xmlElementVar->SetAttribute(attributeName, this->Get##memberVar()); \
+    xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar()); \
   }
 
 #define XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(memberVar, xmlElementVar)  \
   if (!this->Get##memberVar().empty()) \
   { \
-    std::string attributeName = #memberVar; \
-    xmlElementVar->SetAttribute(attributeName.c_str(), this->Get##memberVar()); \
+    xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar().c_str()); \
   } \
   else \
   { \
-    std::string attributeName = #memberVar; \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName.c_str()); \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, ##memberVar.c_str()); \
   }
 
 #define XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
   if (this->Get##memberVar()) \
   { \
-    const char* attributeName = #memberVar; \
-    xmlElementVar->SetAttribute(attributeName, this->Get##memberVar()); \
+    xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar()); \
   } \
   else \
   { \
-    std::string attributeName = #memberVar; \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName.c_str()); \
+    XML_REMOVE_ATTRIBUTE(xmlElementVar, #memberVar); \
   }
 
 #define XML_WRITE_BOOL_ATTRIBUTE(memberVar, xmlElementVar)  \
   { \
-  const char* attributeName = #memberVar; \
     if (this->Get##memberVar()) \
     { \
-      xmlElementVar->SetAttribute(attributeName, "TRUE"); \
+      xmlElementVar->SetAttribute(#memberVar, "TRUE"); \
     } \
     else \
     { \
-      xmlElementVar->SetAttribute(attributeName, "FALSE"); \
+      xmlElementVar->SetAttribute(#memberVar, "FALSE"); \
     } \
   }
 
@@ -560,13 +554,11 @@ public:
 
 #define XML_READ_WARNING_DEPRECATED_CSTRING_REPLACED(memberVar, xmlElementVar, newMemberVar)  \
   { \
-    const char* attributeName = #memberVar; \
     const char* newAttributeName = #newMemberVar; \
-    const char* strValue = xmlElementVar->GetAttribute(attributeName); \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
     if (strValue != NULL) \
     { \
-      LOG_WARNING("Use of "<<attributeName \
-        <<" is deprecated. Use "<<newAttributeName<<" instead."); \
+      LOG_WARNING("Use of " << #memberVar << " is deprecated. Use " << #newMemberVar << " instead."); \
     } \
   }
 

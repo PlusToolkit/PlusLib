@@ -19,6 +19,14 @@
 
 class vtkMatrix4x4;
 class vtkTransform;
+
+#if _MSC_VER == 1600 // VS 2010
+namespace std
+{
+  double vtkPlusCommonExport round(double arg);
+}
+#endif
+
 /*!
   \class PlusMath
   \brief A utility class that contains static functions for various useful commonly used computations
@@ -274,6 +282,5 @@ private:
   PlusMath(PlusMath const&);
   PlusMath& operator=(PlusMath const&);
 };
-
 
 #endif 

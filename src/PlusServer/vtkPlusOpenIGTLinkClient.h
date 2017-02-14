@@ -9,14 +9,20 @@
 
 #include "vtkPlusServerExport.h"
 
-#include "igtlClientSocket.h"
-#include "igtlCommandMessage.h"
-#include "igtlMessageHeader.h"
-#include "igtlOSUtil.h"
-#include "vtkObject.h"
+// Local includes
 #include "vtkPlusCommand.h"
 #include "vtkPlusIgtlMessageFactory.h"
 
+// OpenIGTLink includes
+#include <igtlClientSocket.h>
+#include <igtlCommandMessage.h>
+#include <igtlMessageHeader.h>
+#include <igtlOSUtil.h>
+
+// VTK includes
+#include <vtkObject.h>
+
+// STL includes
 #include <deque>
 #include <string>
 
@@ -34,31 +40,39 @@ class vtkPlusRecursiveCriticalSection;
 class vtkPlusServerExport vtkPlusOpenIGTLinkClient : public vtkObject
 {
 public:
-
   static vtkPlusOpenIGTLinkClient* New();
-  vtkTypeMacro( vtkPlusOpenIGTLinkClient, vtkObject );
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  vtkTypeMacro(vtkPlusOpenIGTLinkClient, vtkObject);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkSetMacro( ServerPort, int );
-  vtkSetStringMacro( ServerHost );
+  vtkSetMacro(ServerPort, int);
+  virtual int GetServerPort() const;
 
-  vtkSetMacro( ServerIGTLVersion, int );
-  vtkGetMacro( ServerIGTLVersion, int );
+  virtual void SetServerHost(const std::string& serverHost);
+  virtual const std::string& GetServerHost() const;
+
+  vtkSetMacro(ServerIGTLVersion, int);
+  virtual int GetServerIGTLVersion() const;
 
   /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
-  PlusStatus Connect( double timeoutSec = -1 );
+  PlusStatus Connect(double timeoutSec = -1);
 
   /*! Disconnect from the connected server */
   PlusStatus Disconnect();
 
   /*! Send a command to the connected server */
-  PlusStatus SendCommand( vtkPlusCommand* command );
+  PlusStatus SendCommand(vtkPlusCommand* command);
 
   /*! Send a packed message to the connected server */
-  PlusStatus SendMessage( igtl::MessageBase::Pointer packedMessage );
+  PlusStatus SendMessage(igtl::MessageBase::Pointer packedMessage);
 
   /*! Wait for a command reply */
-  PlusStatus ReceiveReply( PlusStatus& result, int32_t& outOriginalCommandId, std::string& outErrorString, std::string& outContent, std::map<std::string, std::string>& outParameters, std::string& outCommandName, double timeoutSec = 0 );
+  PlusStatus ReceiveReply(PlusStatus& result,
+                          int32_t& outOriginalCommandId,
+                          std::string& outErrorString,
+                          std::string& outContent,
+                          igtl::MessageBase::MetaDataMap& outParameters,
+                          std::string& outCommandName,
+                          double timeoutSec = 0);
 
   void Lock();
   void Unlock();
@@ -71,7 +85,7 @@ public:
     If the message is not read then this method should return false (and the
     message body will be skipped).
   */
-  virtual bool OnMessageReceived( igtl::MessageHeader::Pointer messageHeader )
+  virtual bool OnMessageReceived(igtl::MessageHeader::Pointer messageHeader)
   {
     return false;
   }
@@ -81,42 +95,43 @@ protected:
   virtual ~vtkPlusOpenIGTLinkClient();
 
   /*! Thread-safe method that allows child classes to read data from the socket */
-  int SocketReceive( void* data, int length );
+  int SocketReceive(void* data, int length);
 
-  /*! igtl Factory for message sending */
-  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
-
-private:
   /*! Thread for receiving control data from clients */
-  static void* DataReceiverThread( vtkMultiThreader::ThreadInfo* data );
+  static void* DataReceiverThread(vtkMultiThreader::ThreadInfo* data);
 
-  vtkPlusOpenIGTLinkClient( const vtkPlusOpenIGTLinkClient& );
-  void operator=( const vtkPlusOpenIGTLinkClient& );
+protected:
+  /*! igtl Factory for message sending */
+  vtkSmartPointer<vtkPlusIgtlMessageFactory>        IgtlMessageFactory;
 
-  std::pair<bool, bool> DataReceiverActive;
+  std::pair<bool, bool>                             DataReceiverActive;
 
-  int DataReceiverThreadId;
+  int                                               DataReceiverThreadId;
 
   /*! vtkMultiThreader instance for controlling threads */
-  vtkSmartPointer<vtkMultiThreader> Threader;
+  vtkSmartPointer<vtkMultiThreader>                 Threader;
 
   /*! Mutex instance for safe data access */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> SocketMutex;
+  vtkSmartPointer<vtkPlusRecursiveCriticalSection>  Mutex;
+  vtkSmartPointer<vtkPlusRecursiveCriticalSection>  SocketMutex;
 
-  igtl::ClientSocket::Pointer ClientSocket;
+  igtl::ClientSocket::Pointer                       ClientSocket;
 
-  igtlUint32 LastGeneratedCommandId;
+  igtlUint32                                        LastGeneratedCommandId;
 
-  std::deque<igtl::MessageBase::Pointer> Replies;
+  std::deque<igtl::MessageBase::Pointer>            Replies;
 
-  int         ServerPort;
-  char*       ServerHost;
+  int                                               ServerPort;
+  std::string                                       ServerHost;
 
   // IGTL protocol version of the server
-  int         ServerIGTLVersion;
+  int                                               ServerIGTLVersion;
 
-  static const float CLIENT_SOCKET_TIMEOUT_SEC;
+  static const float                                CLIENT_SOCKET_TIMEOUT_SEC;
+
+private:
+  vtkPlusOpenIGTLinkClient(const vtkPlusOpenIGTLinkClient&);
+  void operator=(const vtkPlusOpenIGTLinkClient&);
 };
 
 #endif

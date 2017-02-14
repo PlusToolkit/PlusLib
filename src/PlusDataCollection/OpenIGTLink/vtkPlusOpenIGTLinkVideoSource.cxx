@@ -16,11 +16,11 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
 
-vtkStandardNewMacro( vtkPlusOpenIGTLinkVideoSource );
+vtkStandardNewMacro(vtkPlusOpenIGTLinkVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkVideoSource::vtkPlusOpenIGTLinkVideoSource()
-  : IgtlMessageFactory( vtkSmartPointer<vtkPlusIgtlMessageFactory>::New() )
+  : IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   this->RequireImageOrientationInConfiguration = true;
 }
@@ -31,66 +31,64 @@ vtkPlusOpenIGTLinkVideoSource::~vtkPlusOpenIGTLinkVideoSource()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkVideoSource::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusOpenIGTLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
 {
-  LOG_TRACE( "vtkPlusOpenIGTLinkVideoSource::InternalUpdate" );
-  if ( !this->Recording )
+  LOG_TRACE("vtkPlusOpenIGTLinkVideoSource::InternalUpdate");
+  if (!this->Recording)
   {
     // drop the frame, we are not recording data now
     return PLUS_SUCCESS;
   }
 
   igtl::MessageHeader::Pointer headerMsg;
-  ReceiveMessageHeaderWithErrorHandling( headerMsg );
-
-  if ( headerMsg.IsNull() )
+  if (ReceiveMessageHeader(headerMsg) == PLUS_FAIL)
   {
     OnReceiveTimeout();
     return PLUS_FAIL;
   }
 
   // We've received valid header data
-  headerMsg->Unpack( this->IgtlMessageCrcCheckEnabled );
+  headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
 
   // Set unfiltered and filtered timestamp by converting UTC to system timestamp
   double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   PlusTrackedFrame trackedFrame;
-  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage( headerMsg );
+  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
 
-  if ( typeid( *bodyMsg ) == typeid( igtl::ImageMessage ) )
+  if (typeid(*bodyMsg) == typeid(igtl::ImageMessage))
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackImageMessage( bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
+    if (vtkPlusIgtlMessageCommon::UnpackImageMessage(bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
-      LOG_ERROR( "Couldn't get image from OpenIGTLink server!" );
+      LOG_ERROR("Couldn't get image from OpenIGTLink server!");
       return PLUS_FAIL;
     }
   }
-  else if ( typeid( *bodyMsg ) == typeid( igtl::PlusTrackedFrameMessage ) )
+  else if (typeid(*bodyMsg) == typeid(igtl::PlusTrackedFrameMessage))
   {
-    if ( vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage( bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled ) != PLUS_SUCCESS )
+    if (vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(bodyMsg, this->ClientSocket, trackedFrame, this->ImageMessageEmbeddedTransformName, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
-      LOG_ERROR( "Couldn't get tracked frame from OpenIGTLink server!" );
+      LOG_ERROR("Couldn't get tracked frame from OpenIGTLink server!");
       return PLUS_FAIL;
     }
     double unfilteredTimestampUtc = trackedFrame.GetTimestamp();
-    if ( this->UseReceivedTimestamps )
+    if (this->UseReceivedTimestamps)
     {
       // Use the timestamp in the OpenIGTLink message
       // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
-      unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTimeFromUniversalTime( unfilteredTimestampUtc );
+      unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc);
     }
   }
   else
   {
     // if the data type is unknown, skip reading.
-    this->ClientSocket->Skip( headerMsg->GetBodySizeToRead(), 0 );
+    this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
     return PLUS_SUCCESS;
   }
 
@@ -103,62 +101,62 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   this->FrameNumber++;
 
   vtkPlusDataSource* aSource = NULL;
-  if( this->GetFirstActiveOutputVideoSource( aSource ) != PLUS_SUCCESS )
+  if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to retrieve the video source in the OpenIGTLinkVideo device." );
+    LOG_ERROR("Unable to retrieve the video source in the OpenIGTLinkVideo device.");
     return PLUS_FAIL;
   }
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
-  if ( aSource->GetNumberOfItems() == 0 )
+  if (aSource->GetNumberOfItems() == 0)
   {
     PlusVideoFrame* videoFrame = trackedFrame.GetImageData();
-    if ( videoFrame == NULL )
+    if (videoFrame == NULL)
     {
-      LOG_ERROR( "Invalid video frame received, cannot use it to initialize the video buffer" );
+      LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
-    aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
-    aSource->SetImageType( videoFrame->GetImageType() );
-    aSource->SetInputFrameSize( trackedFrame.GetFrameSize() );
+    aSource->SetPixelType(videoFrame->GetVTKScalarPixelType());
+    aSource->SetNumberOfScalarComponents(videoFrame->GetNumberOfScalarComponents());
+    aSource->SetImageType(videoFrame->GetImageType());
+    aSource->SetInputFrameSize(trackedFrame.GetFrameSize());
   }
   PlusTrackedFrame::FieldMapType customFields = trackedFrame.GetCustomFields();
-  PlusStatus status = aSource->AddItem( trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields );
+  PlusStatus status = aSource->AddItem(trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields);
   this->Modified();
 
   return status;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
+PlusStatus vtkPlusOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( ImageMessageEmbeddedTransformName, deviceConfig );
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
+PlusStatus vtkPlusOpenIGTLinkVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( deviceConfig, rootConfigElement );
-  deviceConfig->SetAttribute( "ImageMessageEmbeddedTransformName", this->ImageMessageEmbeddedTransformName.GetTransformName().c_str() );
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+  deviceConfig->SetAttribute("ImageMessageEmbeddedTransformName", this->ImageMessageEmbeddedTransformName.GetTransformName().c_str());
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if (this->OutputChannels.size() > 1)
   {
-    LOG_WARNING( "vtkPlusOpenIGTLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used." );
+    LOG_WARNING("vtkPlusOpenIGTLinkVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR( "No output channels defined for vtkPlusOpenIGTLinkVideoSource. Cannot proceed." );
-    this->SetCorrectlyConfigured( false );
+    LOG_ERROR("No output channels defined for vtkPlusOpenIGTLinkVideoSource. Cannot proceed.");
+    this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
@@ -166,7 +164,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkVideoSource::SetImageMessageEmbeddedTransformName( const char* nameString )
+PlusStatus vtkPlusOpenIGTLinkVideoSource::SetImageMessageEmbeddedTransformName(const char* nameString)
 {
-  return this->ImageMessageEmbeddedTransformName.SetTransformName( nameString );
+  return this->ImageMessageEmbeddedTransformName.SetTransformName(nameString);
 }

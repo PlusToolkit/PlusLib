@@ -90,8 +90,15 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 #include "PlusMath.h"
 #include "float.h" // for DBL_MAX
+#include <typeinfo>
 
 class vtkImageData;
+
+namespace
+{
+    static const double fraction1_256 = 1.0 / 256;
+    static const double fraction255_256 = 255.0 / 256;
+}
 
 // regarding these values, see comments at the top of this file by Thomas Vaughan
 #define ACCUMULATION_MULTIPLIER 256
@@ -309,9 +316,20 @@ static int vtkTrilinearInterpolation(F *point,
         case vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE:
           f = fdx[j];
           if (*importancePtr == 0)
+          {
             break;
+          }
           a = F( (*importancePtr)*f + *accPtrTmp );
-          r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
+          if (typeid(F) == typeid(fixed))
+          {
+            //multiplying (*accPtrTmp)*(*outPtrTmp) tends to overflow fixed point type, so divide in-between
+            //splitting like this incurs two divisions, but avoids overflow
+            r = (*inPtrTmp)*(*importancePtr)*f / a + ((*accPtrTmp) / a)*(*outPtrTmp);
+          }
+          else // with float just one division is used
+          {
+            r = F( (*inPtrTmp)*(*importancePtr)*f + (*outPtrTmp)*(*accPtrTmp) ) / a;
+          }
           if (roundOutput)
           {
             PlusMath::Round(r, *outPtrTmp);
@@ -326,14 +344,15 @@ static int vtkTrilinearInterpolation(F *point,
           break;
         }
         inPtrTmp++;
-        importancePtr++;
         outPtrTmp++;
       }
-      while (i);
+      while (i); // number of scalars
 
       F newa = a;
       if (newa > ACCUMULATION_THRESHOLD && *accPtrTmp <= ACCUMULATION_THRESHOLD)
+      {
         (*accOverflowCount) += 1;
+      }
 
       // don't allow accumulation buffer overflow
       *accPtrTmp = ACCUMULATION_MAXIMUM;
