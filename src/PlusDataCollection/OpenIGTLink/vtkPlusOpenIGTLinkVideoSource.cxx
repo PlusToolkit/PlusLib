@@ -40,7 +40,7 @@ void vtkPlusOpenIGTLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
 {
   LOG_TRACE("vtkPlusOpenIGTLinkVideoSource::InternalUpdate");
-  if (!this->Recording)
+  if (!this->IsRecording() || !this->GetConnected())
   {
     // drop the frame, we are not recording data now
     return PLUS_SUCCESS;
@@ -49,8 +49,19 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   igtl::MessageHeader::Pointer headerMsg;
   if (ReceiveMessageHeader(headerMsg) == PLUS_FAIL)
   {
+    if (!this->IsRecording() || !this->GetConnected())
+    {
+      // Disconnect while waiting for message, exit gracefully
+      return PLUS_SUCCESS;
+    }
     OnReceiveTimeout();
     return PLUS_FAIL;
+  }
+
+  if (headerMsg == nullptr)
+  {
+    // Not a problem, just no messages received this timeout period
+    return PLUS_SUCCESS;
   }
 
   // We've received valid header data
@@ -88,6 +99,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   else
   {
     // if the data type is unknown, skip reading.
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
     return PLUS_SUCCESS;
   }

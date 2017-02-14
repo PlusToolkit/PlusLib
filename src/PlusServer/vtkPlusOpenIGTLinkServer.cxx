@@ -554,6 +554,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     int bytesReceived = clientSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
     if (bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetPackSize())
     {
+      vtkPlusAccurateTimer::Delay(0.1);
       continue;
     }
 
