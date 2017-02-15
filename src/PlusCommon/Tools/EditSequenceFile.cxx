@@ -321,6 +321,7 @@ int main(int argc, char** argv)
 
   ///////////////////////////////////////////////////////////////////
   // Read input files
+
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   vtkSmartPointer<vtkPlusTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
