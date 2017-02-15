@@ -83,52 +83,52 @@ namespace
 int main(int argc, char** argv)
 {
   // Parse command-line arguments
-  bool printHelp = false;
-  int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
-  vtksys::CommandLineArguments args;
+  bool                            printHelp = false;
+  int                             verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  vtksys::CommandLineArguments    args;
 
-  std::string inputFileName; // Sequence file name with path to edit
-  std::vector<std::string> inputFileNames; // Sequence file name list with path to edit
-  std::string outputFileName; // Sequence file name with path to save the result
-  std::string strOperation;
-  OperationType operation;
-  bool useCompression = false;
-  bool incrementTimestamps = false;
+  std::string                     inputFileName; // Sequence file name with path to edit
+  std::vector<std::string>        inputFileNames; // Sequence file name list with path to edit
+  std::string                     outputFileName; // Sequence file name with path to save the result
+  std::string                     strOperation;
+  OperationType                   operation;
+  bool                            useCompression = false;
+  bool                            incrementTimestamps = false;
 
-  int firstFrameIndex = -1; // First frame index used for trimming the sequence file.
-  int lastFrameIndex = -1; // Last frame index used for trimming the sequence file.
+  int                             firstFrameIndex = -1; // First frame index used for trimming the sequence file.
+  int                             lastFrameIndex = -1; // Last frame index used for trimming the sequence file.
 
-  std::string fieldName; // Field name to edit
-  std::string updatedFieldName;  // Updated field name after edit
-  std::string updatedFieldValue;  // Updated field value after edit
+  std::string                     fieldName; // Field name to edit
+  std::string                     updatedFieldName;  // Updated field name after edit
+  std::string                     updatedFieldValue;  // Updated field value after edit
 
-  int frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence file (Default: 5)
+  int                             frameScalarDecimalDigits = 5;  // Number of digits saved for frame field value into sequence file (Default: 5)
 
-  double frameScalarStart = 0.0;  // Frame scalar field value starting index (Default: 0.0)
-  double frameScalarIncrement = 1.0;  // Frame scalar field value increment (Default: 1.0)
+  double                          frameScalarStart = 0.0;  // Frame scalar field value starting index (Default: 0.0)
+  double                          frameScalarIncrement = 1.0;  // Frame scalar field value increment (Default: 1.0)
 
-  int decimationFactor = 2; // Keep every 2nd frame by default
+  int                             decimationFactor = 2; // Keep every 2nd frame by default
 
-  std::string strFrameTransformStart; // Frame transform field starting 4x4 transform matrix (Default: identity)
-  vtkSmartPointer<vtkMatrix4x4> frameTransformStart = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform field starting 4x4 transform matrix (Default: identity)
+  std::string                     strFrameTransformStart; // Frame transform field starting 4x4 transform matrix (Default: identity)
+  vtkSmartPointer<vtkMatrix4x4>   frameTransformStart = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform field starting 4x4 transform matrix (Default: identity)
 
-  std::string strFrameTransformIncrement; // Frame transform increment 4x4 transform matrix
-  vtkSmartPointer<vtkMatrix4x4> frameTransformIncrement = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform increment 4x4 transform matrix
+  std::string                     strFrameTransformIncrement; // Frame transform increment 4x4 transform matrix
+  vtkSmartPointer<vtkMatrix4x4>   frameTransformIncrement = vtkSmartPointer<vtkMatrix4x4>::New();  // Frame transform increment 4x4 transform matrix
 
-  std::string strFrameTransformIndexFieldName;
+  std::string                     strFrameTransformIndexFieldName;
 
-  std::string strUpdatedReferenceTransformName;
+  std::string                     strUpdatedReferenceTransformName;
 
-  std::string transformNamesToAdd;  // Name of the transform to add to each frame
-  std::string deviceSetConfigurationFileName; // Used device set configuration file path and name
+  std::string                     transformNamesToAdd;  // Name of the transform to add to each frame
+  std::string                     deviceSetConfigurationFileName; // Used device set configuration file path and name
 
-  std::vector<int> rectOriginPix; // Fill/crop rectangle top-left corner position in MF coordinate frame, in pixels
-  std::vector<int> rectSizePix; // Fill/crop rectangle size in MF coordinate frame, in pixels
-  int fillGrayLevel = 0; // Rectangle fill color
+  std::vector<int>                rectOriginPix; // Fill/crop rectangle top-left corner position in MF coordinate frame, in pixels
+  std::vector<int>                rectSizePix; // Fill/crop rectangle size in MF coordinate frame, in pixels
+  int                             fillGrayLevel = 0; // Rectangle fill color
 
-  bool flipX(false);
-  bool flipY(false);
-  bool flipZ(false);
+  bool                            flipX(false);
+  bool                            flipY(false);
+  bool                            flipZ(false);
 
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
