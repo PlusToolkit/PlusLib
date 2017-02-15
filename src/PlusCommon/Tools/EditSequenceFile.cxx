@@ -4,20 +4,23 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "PlusTrackedFrame.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkSmartPointer.h"
 #include "vtkPlusTrackedFrameList.h"
-#include "vtkTransform.h"
 #include "vtkPlusTransformRepository.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/CommandLineArguments.hxx"
-#include "vtksys/RegularExpression.hxx"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+#include <vtkXMLDataElement.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/CommandLineArguments.hxx>
+#include <vtksys/RegularExpression.hxx>
 
 enum OperationType
 {
