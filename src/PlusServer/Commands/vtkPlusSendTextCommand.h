@@ -45,15 +45,15 @@ public:
   virtual std::string GetDescription(const std::string& commandName);
 
   /*! Id of the device that the text will be sent to */
-  virtual const std::string& GetDeviceId() const;
+  virtual std::string GetDeviceId() const;
   virtual void SetDeviceId(const std::string& deviceId);
 
   /*! Text to send */
-  virtual const std::string& GetText() const;
+  virtual std::string GetText() const;
   virtual void SetText(const std::string& text);
 
   /*! Text to send */
-  virtual const std::string& GetResponseText() const;
+  virtual std::string GetResponseText() const;
   virtual void SetResponseText(const std::string& responseText);
 
   /*!

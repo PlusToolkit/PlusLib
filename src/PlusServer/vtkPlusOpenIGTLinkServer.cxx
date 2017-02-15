@@ -214,7 +214,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkServer::GetConfigFilename() const
+std::string vtkPlusOpenIGTLinkServer::GetConfigFilename() const
 {
   return this->ConfigFilename;
 }
@@ -1115,7 +1115,7 @@ int vtkPlusOpenIGTLinkServer::GetListeningPort() const
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkServer::GetOutputChannelId() const
+std::string vtkPlusOpenIGTLinkServer::GetOutputChannelId() const
 {
   return this->OutputChannelId;
 }

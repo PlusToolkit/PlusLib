@@ -49,7 +49,7 @@ void vtkPlusUpdateTransformCommand::GetCommandNames(std::list<std::string>& cmdN
 std::string vtkPlusUpdateTransformCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == UPDATE_TRANSFORM_CMD)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, UPDATE_TRANSFORM_CMD))
   {
     desc += UPDATE_TRANSFORM_CMD;
     desc += ": Update the details of a transform in the remote transform repository.";
@@ -58,7 +58,7 @@ std::string vtkPlusUpdateTransformCommand::GetDescription(const std::string& com
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusUpdateTransformCommand::GetTransformName() const
+std::string vtkPlusUpdateTransformCommand::GetTransformName() const
 {
   return this->TransformName;
 }
@@ -179,7 +179,7 @@ void vtkPlusUpdateTransformCommand::SetTransformValue(double* matrixElements)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusUpdateTransformCommand::GetTransformDate() const
+std::string vtkPlusUpdateTransformCommand::GetTransformDate() const
 {
   return this->TransformDate;
 }

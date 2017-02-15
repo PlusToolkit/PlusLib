@@ -42,7 +42,7 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual const std::string& GetFilename() const;
+  virtual std::string GetFilename() const;
   virtual void SetFilename(const std::string& filename);
 
   void SetNameToSaveConfig();

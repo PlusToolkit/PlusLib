@@ -40,7 +40,7 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual const std::string& GetTransformName() const;
+  virtual std::string GetTransformName() const;
   virtual void SetTransformName(const std::string& transformName);
 
   void SetNameToGetTransform();

@@ -23,7 +23,6 @@ class vtkPolyData;
 class vtkPlusUsSimulatorExport PlusSpatialModel
 {
 public:
-
   struct LineIntersectionInfo
   {
     LineIntersectionInfo()
@@ -43,27 +42,27 @@ public:
   virtual ~PlusSpatialModel();
 
   /*! Copy constructor. Performs shallow-copy. */
-  PlusSpatialModel( const PlusSpatialModel& model );
+  PlusSpatialModel(const PlusSpatialModel& model);
   /*! Assignment operator. Performs shallow-copy. */
-  void operator=( const PlusSpatialModel& model );
+  void operator=(const PlusSpatialModel& model);
 
-  virtual PlusStatus ReadConfiguration( vtkXMLDataElement* spatialModelElement );
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* spatialModelElement);
 
   /*! Set the surface model file name (STL or VTP). It can be used to override the model file name specified in the XML configuration. */
-  void SetModelFile( const char* modelFile );
+  void SetModelFile(const char* modelFile);
 
   /*! Set US imaging frequency for generated image */
-  void SetImagingFrequencyMhz( double frequencyMhz );
+  void SetImagingFrequencyMhz(double frequencyMhz);
 
-  const std::string& GetName() { return this->Name; };
-  void SetName( const std::string& name ) { this->Name = name; };
+  std::string GetName() const;
+  void SetName(const std::string& name);
 
-  const std::string& GetObjectCoordinateFrame() { return this->ObjectCoordinateFrame; };
-  void SetObjectCoordinateFrame( const std::string& objectCoordinateFrame ) { this->ObjectCoordinateFrame = objectCoordinateFrame; };
+  std::string GetObjectCoordinateFrame() const;
+  void SetObjectCoordinateFrame(const std::string& objectCoordinateFrame);
 
-  vtkMatrix4x4* GetModelToObjectTransform() { return this->ModelToObjectTransform; };
+  vtkMatrix4x4* GetModelToObjectTransform();
 
-  void SetReferenceToObjectTransform( vtkMatrix4x4* referenceToObjectTransform );
+  void SetReferenceToObjectTransform(vtkMatrix4x4* referenceToObjectTransform);
 
   /*!
     Get all the intersection points of the model and a line. Input and output points are all in Model coordinate system.
@@ -71,7 +70,7 @@ public:
     If the line starts inside the model then the first intersection position is 0.
     The unit of the reference coordinate system must be in mm.
   */
-  void GetLineIntersections( std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference );
+  void GetLineIntersections(std::deque<LineIntersectionInfo>& lineIntersections, double* scanLineStartPoint_Reference, double* scanLineEndPoint_Reference);
 
   double GetAcousticImpedanceMegarayls();
 
@@ -81,30 +80,28 @@ public:
       fraction of the beam intensity would be sensed at the transducer. It includes the effect of attenuation of both incoming and reflected direction.
     \param transmittedIntensity: intensity when the beam leaves the model
   */
-  void CalculateIntensity( std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
-                           double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad );
+  void CalculateIntensity(std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
+                          double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad);
 
-  void SetDensityKgPerM3( double d ) { this->DensityKgPerM3 = d; };
-  void SetSoundVelocityMPerSec( double d ) { this->SoundVelocityMPerSec = d; };
-  void SetAttenuationCoefficientDbPerCmMhz( double d ) { this->AttenuationCoefficientDbPerCmMhz = d; };
-  void SetSurfaceReflectionIntensityDecayDbPerMm( double d ) { this->SurfaceReflectionIntensityDecayDbPerMm = d; };
-  void SetBackscatterDiffuseReflectionCoefficient( double d ) { this->BackscatterDiffuseReflectionCoefficient = d; };
-  void SetSurfaceDiffuseReflectionCoefficient( double d ) { this->SurfaceDiffuseReflectionCoefficient = d; };
-  void SetSurfaceSpecularReflectionCoefficient( double d ) { this->SurfaceSpecularReflectionCoefficient = d; };
-  void SetTransducerSpatialModelMaxOverlapMm( double d ) { this->TransducerSpatialModelMaxOverlapMm = d; };
+  void SetDensityKgPerM3(double d);;
+  void SetSoundVelocityMPerSec(double d);;
+  void SetAttenuationCoefficientDbPerCmMhz(double d);;
+  void SetSurfaceReflectionIntensityDecayDbPerMm(double d);;
+  void SetBackscatterDiffuseReflectionCoefficient(double d);;
+  void SetSurfaceDiffuseReflectionCoefficient(double d);;
+  void SetSurfaceSpecularReflectionCoefficient(double d);;
+  void SetTransducerSpatialModelMaxOverlapMm(double d);;
 
 protected:
-
-  void SetPolyData( vtkPolyData* polyData );
-  void SetModelLocalizer( vtkModifiedBSPTree* modelLocalizer );
-  void SetModelToObjectTransform( vtkMatrix4x4* modelToObjectTransform );
-  void SetModelToObjectTransform( double* matrixElements );
+  void SetPolyData(vtkPolyData* polyData);
+  void SetModelLocalizer(vtkModifiedBSPTree* modelLocalizer);
+  void SetModelToObjectTransform(vtkMatrix4x4* modelToObjectTransform);
+  void SetModelToObjectTransform(double* matrixElements);
 
   PlusStatus UpdateModelFile();
-  void UpdatePrecomputedAttenuations( double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements );
+  void UpdatePrecomputedAttenuations(double intensityTransmittedFractionPerPixelTwoWay, int numberOfElements);
 
-private:
-
+protected:
   //PlusStatus LoadModel(const std::string& absoluteImagePath);
 
   /*! Identifying name of Model*/
@@ -194,7 +191,6 @@ private:
 
   /*! List of attenuations: intensityTransmittedFractionPerPixelTwoWay, intensityTransmittedFractionPerPixelTwoWay^2, intensityTransmittedFractionPerPixelTwoWay^3, ... */
   std::vector<double> PrecomputedAttenuations;
-
 };
 
 #endif

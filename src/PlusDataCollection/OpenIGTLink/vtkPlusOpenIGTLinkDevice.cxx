@@ -366,7 +366,7 @@ void vtkPlusOpenIGTLinkDevice::SetMessageType(const std::string& messageType)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkDevice::GetMessageType() const
+std::string vtkPlusOpenIGTLinkDevice::GetMessageType() const
 {
   return this->MessageType;
 }
@@ -378,7 +378,7 @@ void vtkPlusOpenIGTLinkDevice::SetServerAddress(const std::string& serverAddress
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkDevice::GetServerAddress() const
+std::string vtkPlusOpenIGTLinkDevice::GetServerAddress() const
 {
   return this->ServerAddress;
 }

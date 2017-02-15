@@ -653,7 +653,7 @@ bool vtkPlusDevice::IsRecording() const
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDevice::GetDeviceId() const
+std::string vtkPlusDevice::GetDeviceId() const
 {
   return this->DeviceId;
 }
@@ -810,7 +810,7 @@ void vtkPlusDevice::SetToolReferenceFrameName(const std::string& frameName)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusDevice::GetToolReferenceFrameName() const
+std::string vtkPlusDevice::GetToolReferenceFrameName() const
 {
   return this->ToolReferenceFrameName;
 }

@@ -10,49 +10,49 @@
 
 //-----------------------------------------------------------------------------
 PlusPatternRecognitionResult::PlusPatternRecognitionResult()
-  : DotsFound( false )
-  , Intensity( -1 )
-  , NumDots( -1 )
+  : DotsFound(false)
+  , Intensity(-1)
+  , NumDots(-1)
 {
 }
 
 //-----------------------------------------------------------------------------
-double PlusFidLine::ComputeAngleRad( const PlusFidLine& line )
+double PlusFidLine::ComputeAngleRad(const PlusFidLine& line)
 {
   //atan2 return the angle between the line and the x-axis from -Pi to Pi
-  double angleRad = atan2( line.GetDirectionVector()[1], line.GetDirectionVector()[0] );
+  double angleRad = atan2(line.GetDirectionVector()[1], line.GetDirectionVector()[0]);
   return angleRad;
 }
 
 //-----------------------------------------------------------------------------
-double PlusFidLine::ComputeAngleRad( const PlusFidLine& line1, const PlusFidLine& line2 )
+double PlusFidLine::ComputeAngleRad(const PlusFidLine& line1, const PlusFidLine& line2)
 {
   // a * b = |a| * |b| * cos(alpha)
   const double* a = line1.GetDirectionVector();
   const double* b = line2.GetDirectionVector();
-  double angleBetweenLines = acos( a[0] * b[0] + a[1] * b[1] / sqrt( a[0] * a[0] + a[1] * a[1] ) / sqrt( b[0] * b[0] + b[1] * b[1] ) );
+  double angleBetweenLines = acos(a[0] * b[0] + a[1] * b[1] / sqrt(a[0] * a[0] + a[1] * a[1]) / sqrt(b[0] * b[0] + b[1] * b[1]));
   // Normalize between -pi/2 .. +pi/2
-  if ( angleBetweenLines > vtkMath::Pi() / 2 )
+  if (angleBetweenLines > vtkMath::Pi() / 2)
   {
     angleBetweenLines -= vtkMath::Pi();
   }
-  else if ( angleBetweenLines < -vtkMath::Pi() / 2 )
+  else if (angleBetweenLines < -vtkMath::Pi() / 2)
   {
     angleBetweenLines += vtkMath::Pi();
   }
   // Return the absolute value (0..+pi/2)
-  return fabs( angleBetweenLines );
+  return fabs(angleBetweenLines);
 }
 
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetPoint( int aIndex, int aValue )
+void PlusFidLine::SetPoint(int aIndex, int aValue)
 {
   Points[aIndex] = aValue;
 }
 
 //----------------------------------------------------------------------------
-int PlusFidLine::GetPoint( int aIndex ) const
+int PlusFidLine::GetPoint(int aIndex) const
 {
   return Points[aIndex];
 }
@@ -64,7 +64,7 @@ unsigned int PlusFidLine::GetNumberOfPoints() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetIntensity( double value )
+void PlusFidLine::SetIntensity(double value)
 {
   Intensity = value;
 }
@@ -76,13 +76,13 @@ double PlusFidLine::GetIntensity() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetLength( double value )
+void PlusFidLine::SetLength(double value)
 {
   Length = value;
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetDirectionVector( int aIndex, double aValue )
+void PlusFidLine::SetDirectionVector(int aIndex, double aValue)
 {
   DirectionVector[aIndex] = aValue;
 }
@@ -94,7 +94,7 @@ const double* PlusFidLine::GetDirectionVector() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetStartPointIndex( int index )
+void PlusFidLine::SetStartPointIndex(int index)
 {
   StartPointIndex = index;
 }
@@ -106,7 +106,7 @@ int PlusFidLine::GetStartPointIndex() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::SetEndPointIndex( int index )
+void PlusFidLine::SetEndPointIndex(int index)
 {
   EndPointIndex = index;
 }
@@ -118,33 +118,33 @@ int PlusFidLine::GetEndPointIndex() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::ResizePoints( int aNewSize )
+void PlusFidLine::ResizePoints(int aNewSize)
 {
-  Points.resize( aNewSize );
+  Points.resize(aNewSize);
 }
 
 //----------------------------------------------------------------------------
-void PlusFidLine::AddPoint( int aPoint )
+void PlusFidLine::AddPoint(int aPoint)
 {
-  Points.push_back( aPoint );
+  Points.push_back(aPoint);
 }
 
 //-----------------------------------------------------------------------------
-bool PlusFidDot::IntensityLessThan( const PlusFidDot& dot1, const PlusFidDot& dot2 )
+bool PlusFidDot::IntensityLessThan(const PlusFidDot& dot1, const PlusFidDot& dot2)
 {
   /* Use > to get descending. */
   return dot1.GetDotIntensity() > dot2.GetDotIntensity();
 }
 
 //-----------------------------------------------------------------------------
-bool PlusFidDot::PositionLessThan( std::vector<PlusFidDot>::iterator b1, std::vector<PlusFidDot>::iterator b2 )
+bool PlusFidDot::PositionLessThan(std::vector<PlusFidDot>::iterator b1, std::vector<PlusFidDot>::iterator b2)
 {
   /* Use > to get descending. */
   return b1->GetX() > b2->GetX();
 }
 
 //----------------------------------------------------------------------------
-void PlusFidDot::SetX( double value )
+void PlusFidDot::SetX(double value)
 {
   m_X = value;
 }
@@ -156,7 +156,7 @@ double PlusFidDot::GetX() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidDot::SetY( double value )
+void PlusFidDot::SetY(double value)
 {
   m_Y = value;
 }
@@ -168,7 +168,7 @@ double PlusFidDot::GetY() const
 }
 
 //----------------------------------------------------------------------------
-void PlusFidDot::SetDotIntensity( double value )
+void PlusFidDot::SetDotIntensity(double value)
 {
   m_DotIntensity = value;
 }
@@ -180,35 +180,35 @@ double PlusFidDot::GetDotIntensity() const
 }
 
 //-----------------------------------------------------------------------------
-double  PlusFidDot::GetDistanceFrom( PlusFidDot& d )
+double  PlusFidDot::GetDistanceFrom(PlusFidDot& d)
 {
-  return sqrt( ( m_X - d.m_X ) * ( m_X - d.m_X ) + ( m_Y - d.m_Y ) * ( m_Y - d.m_Y ) );
+  return sqrt((m_X - d.m_X) * (m_X - d.m_X) + (m_Y - d.m_Y) * (m_Y - d.m_Y));
 }
 
 //----------------------------------------------------------------------------
-bool PlusFidDot::operator==( const PlusFidDot& data ) const
+bool PlusFidDot::operator==(const PlusFidDot& data) const
 {
-  return ( m_X == data.m_X && m_Y == data.m_Y ) ;
+  return (m_X == data.m_X && m_Y == data.m_Y) ;
 }
 
 //-----------------------------------------------------------------------------
-bool PlusFidLine::lessThan( const PlusFidLine& line1, const PlusFidLine& line2 )
+bool PlusFidLine::lessThan(const PlusFidLine& line1, const PlusFidLine& line2)
 {
   /* Use > to get descending. */
   return line1.GetIntensity() > line2.GetIntensity();
 }
 
 //-----------------------------------------------------------------------------
-bool PlusFidLine::compareLines( const PlusFidLine& line1, const PlusFidLine& line2 )
+bool PlusFidLine::compareLines(const PlusFidLine& line1, const PlusFidLine& line2)
 {
   //make sure the lines are not the same, dot-wise
-  for ( unsigned int i = 0; i < line1.GetNumberOfPoints(); i++ )
+  for (unsigned int i = 0; i < line1.GetNumberOfPoints(); i++)
   {
-    if ( line1.GetPoint( i ) < line2.GetPoint( i ) )
+    if (line1.GetPoint(i) < line2.GetPoint(i))
     {
       return true;
     }
-    else if ( line1.GetPoint( i ) > line2.GetPoint( i ) )
+    else if (line1.GetPoint(i) > line2.GetPoint(i))
     {
       return false;
     }
@@ -227,7 +227,7 @@ void PlusPatternRecognitionResult::Clear()
 }
 
 //----------------------------------------------------------------------------
-void PlusPatternRecognitionResult::SetDotsFound( bool value )
+void PlusPatternRecognitionResult::SetDotsFound(bool value)
 {
   DotsFound = value;
 }
@@ -239,7 +239,7 @@ bool PlusPatternRecognitionResult::GetDotsFound()
 }
 
 //----------------------------------------------------------------------------
-void PlusPatternRecognitionResult::SetFoundDotsCoordinateValue( std::vector< std::vector<double> > value )
+void PlusPatternRecognitionResult::SetFoundDotsCoordinateValue(std::vector< std::vector<double> > value)
 {
   FoundDotsCoordinateValue = value;
 }
@@ -251,7 +251,7 @@ std::vector< std::vector<double> >& PlusPatternRecognitionResult::GetFoundDotsCo
 }
 
 //----------------------------------------------------------------------------
-void PlusPatternRecognitionResult::SetCandidateFidValues( std::vector<PlusFidDot> value )
+void PlusPatternRecognitionResult::SetCandidateFidValues(std::vector<PlusFidDot> value)
 {
   CandidateFidValues = value;
 }
@@ -287,43 +287,43 @@ const std::vector<double>& PlusFidPattern::GetDistanceToOriginToleranceMm() cons
 }
 
 //----------------------------------------------------------------------------
-void PlusFidPattern::AddWire( const PlusFidWire& wire )
+void PlusFidPattern::AddWire(const PlusFidWire& wire)
 {
-  this->Wires.push_back( wire );
+  this->Wires.push_back(wire);
 }
 
 //----------------------------------------------------------------------------
-void PlusFidPattern::AddDistanceToOriginElementMm( double aElement )
+void PlusFidPattern::AddDistanceToOriginElementMm(double aElement)
 {
-  this->DistanceToOriginMm.push_back( aElement );
+  this->DistanceToOriginMm.push_back(aElement);
 }
 
 //----------------------------------------------------------------------------
-void PlusFidPattern::SetDistanceToOriginElementMm( int index, double aElement )
-{
-  this->DistanceToOriginMm[index] = aElement;
-}
-
-//----------------------------------------------------------------------------
-void PlusFidPattern::AddDistanceToOriginToleranceElementMm( double aElement )
-{
-  this->DistanceToOriginToleranceMm.push_back( aElement );
-}
-
-//----------------------------------------------------------------------------
-void PlusFidPattern::SetDistanceToOriginToleranceElementMm( int index, double aElement )
+void PlusFidPattern::SetDistanceToOriginElementMm(int index, double aElement)
 {
   this->DistanceToOriginMm[index] = aElement;
 }
 
 //----------------------------------------------------------------------------
-void PlusFidWire::SetName( const std::string& aName )
+void PlusFidPattern::AddDistanceToOriginToleranceElementMm(double aElement)
+{
+  this->DistanceToOriginToleranceMm.push_back(aElement);
+}
+
+//----------------------------------------------------------------------------
+void PlusFidPattern::SetDistanceToOriginToleranceElementMm(int index, double aElement)
+{
+  this->DistanceToOriginMm[index] = aElement;
+}
+
+//----------------------------------------------------------------------------
+void PlusFidWire::SetName(const std::string& aName)
 {
   this->Name = aName;
 }
 
 //----------------------------------------------------------------------------
-const std::string& PlusFidWire::GetName() const
+std::string PlusFidWire::GetName() const
 {
   return Name;
 }

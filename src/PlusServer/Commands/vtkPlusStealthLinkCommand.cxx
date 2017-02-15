@@ -53,7 +53,7 @@ void vtkPlusStealthLinkCommand::GetCommandNames(std::list<std::string>& cmdNames
 std::string vtkPlusStealthLinkCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName ==  GET_STEALTHLINK_EXAM_DATA_CMD)
+  if (commandName.empty() || PlusCommon::iequal(commandName,  GET_STEALTHLINK_EXAM_DATA_CMD))
   {
     desc += GET_STEALTHLINK_EXAM_DATA_CMD;
     desc += ": Acquire the exam data from the StealthLink Server. The exam data contains the image being displayed on the StealthLink Server. The 3D volume will be constructed using these images";
@@ -62,7 +62,7 @@ std::string vtkPlusStealthLinkCommand::GetDescription(const std::string& command
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusStealthLinkCommand::GetStealthLinkDeviceId() const
+std::string vtkPlusStealthLinkCommand::GetStealthLinkDeviceId() const
 {
   return this->StealthLinkDeviceId;
 }
@@ -80,9 +80,21 @@ void vtkPlusStealthLinkCommand::SetDicomImagesOutputDirectory(const std::string&
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusStealthLinkCommand::GetDicomImagesOutputDirectory() const
+std::string vtkPlusStealthLinkCommand::GetDicomImagesOutputDirectory() const
 {
   return this->DicomImagesOutputDirectory;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusStealthLinkCommand::SetVolumeEmbeddedTransformToFrame(const std::string& volumeEmbeddedTransformToFrame)
+{
+  this->VolumeEmbeddedTransformToFrame = volumeEmbeddedTransformToFrame;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusStealthLinkCommand::GetVolumeEmbeddedTransformToFrame() const
+{
+  return this->VolumeEmbeddedTransformToFrame;
 }
 
 //----------------------------------------------------------------------------
@@ -173,7 +185,7 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     return PLUS_FAIL;
   }
 
-  if (this->Name == GET_STEALTHLINK_EXAM_DATA_CMD)
+  if (PlusCommon::iequal(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD))
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: " << GetStealthLinkDeviceId());
 
