@@ -67,10 +67,10 @@ public:
   virtual bool GetRespondWithCommandMessage() const;
   vtkSetMacro(RespondWithCommandMessage, bool);
 
-  virtual const std::string& GetName() const;
+  virtual std::string GetName() const;
   virtual void SetName(const std::string& name);
 
-  virtual const std::string& GetDeviceName() const;
+  virtual std::string GetDeviceName() const;
   virtual void SetDeviceName(const std::string& deviceName);
 
   virtual uint32_t GetId() const;

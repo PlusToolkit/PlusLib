@@ -65,14 +65,14 @@ public:
   PlusStatus SetId(const std::string& aSourceId);
   PlusStatus SetSourceId(const std::string& aSourceId);
   /*! Get source id */
-  const std::string& GetId() const;
-  const std::string& GetSourceId() const;
+  std::string GetId() const;
+  std::string GetSourceId() const;
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceCoordinateFrameName(const char* referenceName);
   PlusStatus SetReferenceCoordinateFrameName(const std::string& referenceName);
   /*! Get the reference coordinate frame name */
-  const std::string& GetReferenceCoordinateFrameName() const;
+  std::string GetReferenceCoordinateFrameName() const;
 
   std::string GetTransformName() const;
 
@@ -236,7 +236,7 @@ public:
   vtkPlusDevice* GetDevice() { return this->Device; }
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
-  const std::string& GetPortName() const;
+  std::string GetPortName() const;
   /*! Set port name. Port name is used to identify the source among all the sources provided by the device therefore it must be unique */
   PlusStatus SetPortName(const std::string& portName);
   PlusStatus SetPortName(const char* portName);

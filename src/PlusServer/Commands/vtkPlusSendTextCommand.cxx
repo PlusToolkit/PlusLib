@@ -46,7 +46,7 @@ void vtkPlusSendTextCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusSendTextCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == SEND_TEXT_CMD)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SEND_TEXT_CMD))
   {
     desc += SEND_TEXT_CMD;
     desc += ": Send text data to the device.";
@@ -55,7 +55,7 @@ std::string vtkPlusSendTextCommand::GetDescription(const std::string& commandNam
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusSendTextCommand::GetDeviceId() const
+std::string vtkPlusSendTextCommand::GetDeviceId() const
 {
   return this->DeviceId;
 }
@@ -67,7 +67,7 @@ void vtkPlusSendTextCommand::SetDeviceId(const std::string& deviceId)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusSendTextCommand::GetText() const
+std::string vtkPlusSendTextCommand::GetText() const
 {
   return this->Text;
 }
@@ -79,7 +79,7 @@ void vtkPlusSendTextCommand::SetText(const std::string& text)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusSendTextCommand::GetResponseText() const
+std::string vtkPlusSendTextCommand::GetResponseText() const
 {
   return this->ResponseText;
 }

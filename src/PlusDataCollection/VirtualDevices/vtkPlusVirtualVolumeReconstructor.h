@@ -66,11 +66,11 @@ public:
 
   /*! If specified, the reconstructed volume will be saved into this filename */
   virtual void SetOutputVolFilename(const std::string& outputVolFilename);
-  virtual const std::string& GetOutputVolFilename() const;
+  virtual std::string GetOutputVolFilename() const;
 
   /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
   virtual void SetOutputVolDeviceName(const std::string& outputVolDeviceName);
-  virtual const std::string& GetOutputVolDeviceName() const;
+  virtual std::string GetOutputVolDeviceName() const;
 
   /*! Set the output volume's origin in the Reference coordinate system*/
   void SetOutputOrigin(double* origin);

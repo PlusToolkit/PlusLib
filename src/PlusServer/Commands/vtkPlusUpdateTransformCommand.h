@@ -41,14 +41,14 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual const std::string& GetTransformName() const;
+  virtual std::string GetTransformName() const;
   virtual void SetTransformName(const std::string& transformName);
 
   vtkGetObjectMacro(TransformValue, vtkMatrix4x4);
   vtkSetObjectMacro(TransformValue, vtkMatrix4x4);
   void SetTransformValue(double* matrixElements);
 
-  virtual const std::string& GetTransformDate() const;
+  virtual std::string GetTransformDate() const;
   virtual void SetTransformDate(const std::string& transformDate);
 
   vtkGetMacro(TransformError, double);

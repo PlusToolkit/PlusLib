@@ -50,8 +50,8 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual const std::string& GetConoProbeDeviceId() const;
   virtual void SetConoProbeDeviceId(const std::string& conoProbeDeviceId);
+  virtual std::string GetConoProbeDeviceId() const;
 
   void SetNameToShow();
 

@@ -254,7 +254,7 @@ public:
   /*! Set Reference name of the tools */
   void SetToolReferenceFrameName(const std::string& frameName);
   /*! Get Reference name of the tools */
-  const std::string& GetToolReferenceFrameName() const;
+  std::string GetToolReferenceFrameName() const;
 
   /*! Is the device correctly configured? */
   virtual bool GetCorrectlyConfigured() const;
@@ -312,7 +312,7 @@ public:
   virtual bool IsRecording() const;
 
   /* Return the id of the device */
-  virtual const std::string& GetDeviceId() const;
+  virtual std::string GetDeviceId() const;
   // Set the device Id
   void SetDeviceId(const std::string& id);
 

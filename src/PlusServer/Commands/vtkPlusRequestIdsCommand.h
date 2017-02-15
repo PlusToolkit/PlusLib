@@ -47,10 +47,10 @@ public:
 
   /*! Restrict the returned device IDs to this type */
   virtual void SetDeviceType(const std::string& deviceType);
-  virtual const std::string& GetDeviceType() const;
+  virtual std::string GetDeviceType() const;
 
   virtual void SetDeviceId(const std::string& deviceId);
-  virtual const std::string& GetDeviceId() const;
+  virtual std::string GetDeviceId() const;
 
 protected:
 

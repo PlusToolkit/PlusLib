@@ -48,7 +48,7 @@ public:
   virtual int GetServerPort() const;
 
   virtual void SetServerHost(const std::string& serverHost);
-  virtual const std::string& GetServerHost() const;
+  virtual std::string GetServerHost() const;
 
   vtkSetMacro(ServerIGTLVersion, int);
   virtual int GetServerIGTLVersion() const;
