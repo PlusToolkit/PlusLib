@@ -45,19 +45,19 @@ public:
   virtual std::string GetDescription(const std::string& commandName);
 
   /*! File name of the sequence file that contains the image frames */
-  virtual const std::string& GetInputSeqFilename() const;
+  virtual std::string GetInputSeqFilename() const;
   virtual void SetInputSeqFilename(const std::string& inputSeqFilename);
 
   /*! If specified, the reconstructed volume will be saved into this filename */
-  virtual const std::string& GetOutputVolFilename() const;
+  virtual std::string GetOutputVolFilename() const;
   virtual void SetOutputVolFilename(const std::string& outputVolFilename);
 
   /*! If specified, the reconstructed volume will sent to the client through OpenIGTLink, using this device name */
-  virtual const std::string& GetOutputVolDeviceName() const { return this->OutputVolDeviceName; }
+  virtual std::string GetOutputVolDeviceName() const;
   virtual void SetOutputVolDeviceName(const std::string& outputVolDeviceName);
 
   /*! Id of the live reconstruction command to be stopped, suspended, or resumed at the next Execute */
-  virtual const std::string& GetVolumeReconstructorDeviceId() const;
+  virtual std::string GetVolumeReconstructorDeviceId() const;
   virtual void SetVolumeReconstructorDeviceId(const std::string& volumeReconstructorDeviceId);
 
   /*!

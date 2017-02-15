@@ -11,9 +11,12 @@ See License.txt for details.
 #include "vtkPlusOptimetConoProbeMeasurer.h"
 #include "vtkPlusDataCollector.h"
 
-vtkStandardNewMacro(vtkPlusConoProbeLinkCommand);
+namespace
+{
+  static const std::string SHOW_CMD = "ShowProbeDialog";
+}
 
-static const std::string SHOW_CMD = "ShowProbeDialog";
+vtkStandardNewMacro(vtkPlusConoProbeLinkCommand);
 
 //----------------------------------------------------------------------------
 vtkPlusConoProbeLinkCommand::vtkPlusConoProbeLinkCommand()
@@ -42,7 +45,7 @@ void vtkPlusConoProbeLinkCommand::GetCommandNames(std::list<std::string>& cmdNam
 std::string vtkPlusConoProbeLinkCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName ==  SHOW_CMD)
+  if (commandName.empty() || PlusCommon::iequal(commandName, SHOW_CMD))
   {
     desc += SHOW_CMD;
     desc += ": Opens the Probe Dialog part of the Optimet Smart32 SDK. ConoProbeDeviceId: ID of the ConoProbe device.";
@@ -51,7 +54,7 @@ std::string vtkPlusConoProbeLinkCommand::GetDescription(const std::string& comma
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusConoProbeLinkCommand::GetConoProbeDeviceId() const
+std::string vtkPlusConoProbeLinkCommand::GetConoProbeDeviceId() const
 {
   return this->ConoProbeDeviceId;
 }
@@ -164,7 +167,7 @@ PlusStatus vtkPlusConoProbeLinkCommand::Execute()
 
   std::string responseMessageBase = std::string("OptimetConoProbe (") + conoProbeDevice->GetDeviceId() + ") " + this->Name;
   LOG_INFO("vtkPlusConoProbeLinkCommand::Execute: " << this->Name);
-  if (this->Name == SHOW_CMD)
+  if (PlusCommon::iequal(this->Name, SHOW_CMD))
   {
     if (conoProbeDevice->ShowProbeDialog())
     {

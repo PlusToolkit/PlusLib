@@ -51,12 +51,12 @@ void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusGetImageCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || commandName == GET_IMAGE_META_DATA)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_IMAGE_META_DATA))
   {
     desc += GET_IMAGE_META_DATA;
     desc += ": Acquire the image meta data information from all the devices that are connected.";
   }
-  if (commandName.empty() || commandName == GET_IMAGE)
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_IMAGE))
   {
     desc += GET_IMAGE;
     desc += "Acquire the volume data and the ijkToRas transformation of the data from the specified device.";
@@ -77,7 +77,7 @@ void vtkPlusGetImageCommand::SetNameToGetImage()
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusGetImageCommand::GetImageId() const
+std::string vtkPlusGetImageCommand::GetImageId() const
 {
   return this->ImageId;
 }
@@ -95,7 +95,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
                             + ", device: (" + (this->GetImageId().empty() ? "(undefined)" : this->GetImageId()) + ")";
 
   std::string errorString;
-  if (this->Name == GET_IMAGE_META_DATA)
+  if (PlusCommon::IsEqualInsensitive(this->Name, GET_IMAGE_META_DATA))
   {
     std::string imageIdStr(this->GetImageId());
     if (imageIdStr.size() > 0)
@@ -110,7 +110,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
     }
     return PLUS_SUCCESS;
   }
-  else if (this->Name == GET_IMAGE)
+  else if (PlusCommon::IsEqualInsensitive(this->Name, GET_IMAGE))
   {
     if (this->ExecuteImageReply(errorString) != PLUS_SUCCESS)
     {

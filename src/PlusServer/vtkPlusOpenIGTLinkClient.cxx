@@ -326,7 +326,7 @@ void vtkPlusOpenIGTLinkClient::SetServerHost(const std::string& serverHost)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusOpenIGTLinkClient::GetServerHost() const
+std::string vtkPlusOpenIGTLinkClient::GetServerHost() const
 {
   return this->ServerHost;
 }

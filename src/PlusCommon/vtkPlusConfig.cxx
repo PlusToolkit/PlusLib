@@ -1038,7 +1038,7 @@ void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetCo
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusConfig::GetEditorApplicationExecutable() const
+std::string vtkPlusConfig::GetEditorApplicationExecutable() const
 {
   return this->EditorApplicationExecutable;
 }

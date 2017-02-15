@@ -102,7 +102,7 @@ bool vtkPlusCommand::GetRespondWithCommandMessage() const
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusCommand::GetName() const
+std::string vtkPlusCommand::GetName() const
 {
   return this->Name;
 }
@@ -114,7 +114,7 @@ void vtkPlusCommand::SetName(const std::string& name)
 }
 
 //----------------------------------------------------------------------------
-const std::string& vtkPlusCommand::GetDeviceName() const
+std::string vtkPlusCommand::GetDeviceName() const
 {
   return this->DeviceName;
 }
@@ -193,7 +193,7 @@ PlusStatus vtkPlusCommand::ValidateName()
   GetCommandNames(cmdNames);
   for (std::list<std::string>::iterator it = cmdNames.begin(); it != cmdNames.end(); ++it)
   {
-    if (*it == this->Name)
+    if (PlusCommon::IsEqualInsensitive(*it, this->Name))
     {
       // command found
       return PLUS_SUCCESS;

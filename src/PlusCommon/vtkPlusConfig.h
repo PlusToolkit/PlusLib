@@ -200,7 +200,7 @@ public:
   void SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData);
 
   /*! Get editor application executable path and file name */
-  const std::string& GetEditorApplicationExecutable() const;
+  std::string GetEditorApplicationExecutable() const;
   /*! Set editor application executable path and file name */
   void SetEditorApplicationExecutable(const std::string& _arg);
 
