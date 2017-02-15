@@ -207,6 +207,9 @@ protected:
   vtkSetMacro(DelayBetweenRetryAttemptsSec, double);
   virtual double GetDelayBetweenRetryAttemptsSec() const;
 
+  vtkSetMacro(KeepAliveIntervalSec, double);
+  virtual double GetKeepAliveIntervalSec() const;
+
   virtual void SetOutputChannelId(const std::string& outputChannelId);
   virtual void SetConfigFilename(const std::string& configFilename);
 
@@ -298,6 +301,8 @@ private:
 
   /*! Channel to use for broadcasting */
   vtkPlusChannel* BroadcastChannel;
+
+  double KeepAliveIntervalSec;
 
   std::string ConfigFilename;
 
