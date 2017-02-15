@@ -89,6 +89,7 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#include "fixed.h"
 #include "float.h" // for DBL_MAX
 #include <typeinfo>
 
