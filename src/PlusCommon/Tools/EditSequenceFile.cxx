@@ -74,8 +74,11 @@ PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<s
 PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::vector<unsigned int>& fillRectOrigin, const std::vector<unsigned int>& fillRectSize, int fillGrayLevel);
 PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int>& cropRectOrigin, const std::vector<int>& cropRectSize);
 
-const std::string FIELD_VALUE_FRAME_SCALAR = "{frame-scalar}";
-const std::string FIELD_VALUE_FRAME_TRANSFORM = "{frame-transform}";
+namespace
+{
+  const std::string FIELD_VALUE_FRAME_SCALAR = "{frame-scalar}";
+  const std::string FIELD_VALUE_FRAME_TRANSFORM = "{frame-transform}";
+}
 
 int main(int argc, char** argv)
 {
