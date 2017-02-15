@@ -53,16 +53,16 @@ public:
     FrameTransformIncrement = NULL;
   }
 
-  std::string FieldName;
-  std::string UpdatedFieldName;
-  std::string UpdatedFieldValue;
-  vtkPlusTrackedFrameList* TrackedFrameList;
-  double FrameScalarStart;
-  double FrameScalarIncrement;
-  int FrameScalarDecimalDigits;
-  vtkMatrix4x4* FrameTransformStart;
-  vtkMatrix4x4* FrameTransformIncrement;
-  std::string FrameTransformIndexFieldName;
+  std::string               FieldName;
+  std::string               UpdatedFieldName;
+  std::string               UpdatedFieldValue;
+  vtkPlusTrackedFrameList*  TrackedFrameList;
+  double                    FrameScalarStart;
+  double                    FrameScalarIncrement;
+  int                       FrameScalarDecimalDigits;
+  vtkMatrix4x4*             FrameTransformStart;
+  vtkMatrix4x4*             FrameTransformIncrement;
+  std::string               FrameTransformIndexFieldName;
 };
 
 PlusStatus TrimSequenceFile(vtkPlusTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex);
