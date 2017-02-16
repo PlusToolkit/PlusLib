@@ -52,17 +52,25 @@ IF(WIN32)
 ENDIF()
 
 # --------------------------------------------------------------------------
-# User options
-#
-
-# Standard CMake option for testing.
-OPTION(BUILD_TESTING "Build test programs" ON)
-
-# --------------------------------------------------------------------------
 # Testing
 #
+OPTION(BUILD_TESTING "Build test programs" ON)
 
-IF (PLUS_OFFLINE_BUILD)
+INCLUDE(CTest)
+
+# Clean up the IDE folder name for CTest dashboard targets
+IF(BUILD_TESTING)
+  FOREACH(mode Experimental Nightly Continuous NightlyMemoryCheck)
+    IF(TARGET ${mode})
+      SET_PROPERTY(TARGET ${mode} PROPERTY FOLDER "CTest Targets")
+    ENDIF()
+  ENDFOREACH()
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Repository
+#
+IF(PLUS_OFFLINE_BUILD)
   SET(PLUSLIB_REVISION "NA")
   SET(PLUSLIB_SHORT_REVISION "NA")
 ELSE()
@@ -91,15 +99,25 @@ ELSE()
   ENDIF()
 ENDIF()
 
-INCLUDE(CTest)
-
-# Clean up the IDE folder name for CTest dashboard targets
-IF(BUILD_TESTING)
-  FOREACH(mode Experimental Nightly Continuous NightlyMemoryCheck)
-    IF(TARGET ${mode})
-      SET_PROPERTY(TARGET ${mode} PROPERTY FOLDER "CTest Targets")
-    ENDIF()
-  ENDFOREACH()
+# --------------------------------------------------------------------------
+# Developer setup
+#
+IF(Git_FOUND)
+  GET_FILENAME_COMPONENT(_git_directory ${GIT_EXECUTABLE} DIRECTORY)
+ENDIF()
+SET(_x86env "ProgramFiles(x86)")
+FIND_PROGRAM(BASH_EXECUTABLE bash
+  HINTS 
+    ${_git_directory}
+    $ENV{ProgramFiles}/Git/bin
+    $ENV{${_x86env}}/Git/bin
+  )
+MARK_AS_ADVANCED(BASH_EXECUTABLE)
+IF(BASH_EXECUTABLE)
+  EXECUTE_PROCESS(COMMAND "${BASH_EXECUTABLE}" -c "cd ${CMAKE_SOURCE_DIR} && ${CMAKE_SOURCE_DIR}/Utilities/SetupForDevelopment.sh copyOnly"
+    OUTPUT_VARIABLE _bashOutput
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}}
+  )
 ENDIF()
 
 # --------------------------------------------------------------------------
