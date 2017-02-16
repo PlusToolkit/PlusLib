@@ -51,6 +51,13 @@ setup_user() {
   git config user.email "$email"
 }
 
+if [ "$1" == "copyOnly" ]; then
+  # Copy hooks
+  echo cp hooks/commit-msg .git/hooks
+  cp hooks/commit-msg .git/hooks
+  exit 0
+fi
+
 # Logic to introduce yourself to Git.
 gitName=$(git config user.name)
 gitEmail=$(git config user.email)
@@ -61,23 +68,21 @@ fi
 # Loop until the user is happy with the authorship information
 for (( ; ; ))
 do
-  # Display the final user information.
-  gitName=$(git config user.name)
-  gitEmail=$(git config user.email)
-  echo "Your commits will have the following author:
+# Display the final user information.
+gitName=$(git config user.name)
+gitEmail=$(git config user.email)
+echo "Your commits will have the following author:
 
-  $gitName <$gitEmail>
-  "
-  read -ep "Is the author name and email address above correct? [Y/n] " correct
-  if [ "$correct" == "n" ] || [ "$correct" == "N" ]; then
-    setup_user
-  else
-    break
-  fi
+$gitName <$gitEmail>
+"
+read -ep "Is the author name and email address above correct? [Y/n] " correct
+if [ "$correct" == "n" ] || [ "$correct" == "N" ]; then
+  setup_user
+else
+  break
+fi
 done
 
-# Copy hooks
-cp hooks/commit-msg .git/hooks
 
 # Record the version of this setup so the developer can be notified that
 # this script and/or hooks have been modified.
