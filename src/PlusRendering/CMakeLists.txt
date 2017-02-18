@@ -38,7 +38,12 @@ SET (PlusRendering_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusRendering)
 ADD_LIBRARY(vtkPlusRendering ${PlusRendering_SRCS} ${PlusRendering_HDRS})
-target_include_directories(vtkPlusRendering PUBLIC ${PlusRendering_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusRendering_INCLUDE_DIRS)
+  target_include_directories(vtkPlusRendering PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusRendering PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusRendering PUBLIC ${PlusRendering_LIBS} )
 
 # --------------------------------------------------------------------------
@@ -63,13 +68,13 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusRendering
+INSTALL(TARGETS vtkPlusRendering EXPORT PlusLib
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusRendering_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

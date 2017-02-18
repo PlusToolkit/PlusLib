@@ -10,6 +10,11 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   CMAKE_POLICY(PUSH)
   CMAKE_POLICY(SET CMP0012 NEW) # if() recognizes numbers and boolean constants
 
+  IF(@PLUSLIB_IS_INSTALL@)
+    MESSAGE(FATAL_ERROR "PlusLib use file is not supported for INSTALL Builds. Please link directly to targets provided by PlusLibTargets.cmake.")
+  ENDIF()
+  
+  
   ## Set Plus binary dir path
   SET(PLUSLIB_DIR "@PlusLib_BINARY_DIR@")
 

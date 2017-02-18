@@ -11,6 +11,6 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 #
 
 INSTALL(TARGETS 
-  DESTINATION bin
+  DESTINATION "${PLUSLIB_BINARY_INSTALL}"
   COMPONENT RuntimeExecutables
   )

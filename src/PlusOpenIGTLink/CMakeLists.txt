@@ -33,7 +33,12 @@ SET (PlusOpenIGTLink_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
 ADD_LIBRARY(vtkPlusOpenIGTLink ${PlusOpenIGTLink_SRCS} ${PlusOpenIGTLink_HDRS})
-target_include_directories(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusOpenIGTLink_INCLUDE_DIRS)
+  target_include_directories(vtkPlusOpenIGTLink PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusOpenIGTLink PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_LIBS})
 
 # --------------------------------------------------------------------------
@@ -46,13 +51,13 @@ SET(vcProj_vtkPlusOpenIGTLink vtkPlusOpenIGTLink;${PlusLib_BINARY_DIR}/src/PlusO
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusOpenIGTLink
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusOpenIGTLink EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusOpenIGTLink_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

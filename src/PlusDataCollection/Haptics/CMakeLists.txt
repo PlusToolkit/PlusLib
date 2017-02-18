@@ -30,6 +30,22 @@ GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusHaptics)
 
 # -----------------------------------------------------------------
 # Build the library
-include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
 target_link_libraries(${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
+foreach(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(${PROJECT_NAME} PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(${PROJECT_NAME} PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+
+# --------------------------------------------------------------------------
+# Install
+#
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
+  )
+INSTALL(FILES ${${PROJECT_NAME}_INSTALL_INCLUDE_FILES}
+  DESTINATION "${${PROJECT_NAME}_HDRS}" CONFIGURATIONS Release COMPONENT Development)

@@ -146,7 +146,12 @@ ENDIF (PLUS_USE_INTEL_MKL)
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusImageProcessing)
 ADD_LIBRARY(vtkPlusImageProcessing ${PlusImageProcessing_SRCS} ${PlusImageProcessing_HDRS})
-target_include_directories(vtkPlusImageProcessing PUBLIC ${PlusImageProcessing_INCLUDE_DIRS} )
+foreach(p IN LISTS PlusImageProcessing_INCLUDE_DIRS)
+  target_include_directories(vtkPlusImageProcessing PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusImageProcessing PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusImageProcessing ${PlusImageProcessing_LIBS})
 
 # --------------------------------------------------------------------------
@@ -216,9 +221,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ENDIF (PLUS_USE_INTEL_MKL)
 
   INSTALL(
-    TARGETS ${INSTALL_TARGETS}
+    TARGETS ${INSTALL_TARGETS} EXPORT PlusLib
     RUNTIME
-    DESTINATION bin
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}"
     CONFIGURATIONS Release
     COMPONENT RuntimeExecutables
     )
@@ -232,11 +237,11 @@ ENDIF (BUILD_TESTING)
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusImageProcessing
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusImageProcessing EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusImageProcessing_HDRS}
-  DESTINATION include
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )

@@ -94,8 +94,14 @@ ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
-target_include_directories(vtkPlusCommon PUBLIC ${PlusCommon_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(vtkPlusCommon PUBLIC ${PlusCommon_LIBS})
+foreach(p IN LISTS PlusCommon_INCLUDE_DIRS)
+  target_include_directories(vtkPlusCommon PUBLIC 
+    $<BUILD_INTERFACE:${p}>)
+endforeach()
+target_include_directories(vtkPlusCommon PUBLIC 
+  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+
+TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
 
 IF(MSVC)
   # enable parallel in-target build
@@ -117,22 +123,21 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon)
   GENERATE_HELP_DOC(EditSequenceFile)
 
-  INSTALL(TARGETS EditSequenceFile
-    RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeExecutables
+  INSTALL(TARGETS EditSequenceFile EXPORT PlusLib
+    RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeExecutables
     )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusCommon
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+INSTALL(TARGETS vtkPlusCommon EXPORT PlusLib
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${PlusCommon_HDRS}
-  DESTINATION include
-  )
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development)
 
 # --------------------------------------------------------------------------
 # Testing
