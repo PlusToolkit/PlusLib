@@ -142,9 +142,11 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
     OvrvisionProHandle.PreStoreCamData(OVR::OV_CAMQT_NONE);
   }
 
-  // Greyscale simply means r = g = b = a (see PreStoreCamData source)
+  // Grey scale simply means r = g = b = a (see PreStoreCamData source)
   cv::Mat matLeft(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_LEFT));
   cv::Mat matRight(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_RIGHT));
+
+  // TODO : threaded OpenCL approach
 
   if (this->IsCapturingRGB)
   {
@@ -159,27 +161,27 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
   }
 
   // Add them to our local buffers
-  if (LeftEyeDataSource->AddItem(matLeft.data,
-                                 LeftEyeDataSource->GetInputImageOrientation(),
-                                 LeftEyeDataSource->GetInputFrameSize(),
-                                 VTK_UNSIGNED_CHAR,
-                                 matLeft.channels(),
-                                 matLeft.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
-                                 0,
-                                 this->FrameNumber) != PLUS_SUCCESS)
+  if (this->LeftEyeDataSource->AddItem(matLeft.data,
+                                       this->LeftEyeDataSource->GetInputImageOrientation(),
+                                       this->LeftEyeDataSource->GetInputFrameSize(),
+                                       VTK_UNSIGNED_CHAR,
+                                       matLeft.channels(),
+                                       matLeft.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                       0,
+                                       this->FrameNumber) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to add left eye image to data source.");
     numErrors++;
   }
 
-  if (RightEyeDataSource->AddItem(matRight.data,
-                                  RightEyeDataSource->GetInputImageOrientation(),
-                                  RightEyeDataSource->GetInputFrameSize(),
-                                  VTK_UNSIGNED_CHAR,
-                                  matRight.channels(),
-                                  matRight.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
-                                  0,
-                                  this->FrameNumber) != PLUS_SUCCESS)
+  if (this->RightEyeDataSource->AddItem(matRight.data,
+                                        this->RightEyeDataSource->GetInputImageOrientation(),
+                                        this->RightEyeDataSource->GetInputFrameSize(),
+                                        VTK_UNSIGNED_CHAR,
+                                        matRight.channels(),
+                                        matRight.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                        0,
+                                        this->FrameNumber) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to add right eye image to data source.");
     numErrors++;
@@ -193,67 +195,67 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
 //----------------------------------------------------------------------------
 bool vtkPlusOvrvisionProVideoSource::ConfigureRequestedFormat()
 {
-  RegionOfInterest.offsetX = 0;
-  RegionOfInterest.offsetY = 0;
-  RegionOfInterest.width = Resolution[0];
-  RegionOfInterest.height = Resolution[1];
+  this->RegionOfInterest.offsetX = 0;
+  this->RegionOfInterest.offsetY = 0;
+  this->RegionOfInterest.width = this->Resolution[0];
+  this->RegionOfInterest.height = this->Resolution[1];
 
   switch (Framerate)
   {
     case 15:
-      if (Resolution[0] == 2560 && Resolution[1] == 1920)
+      if (this->Resolution[0] == 2560 && this->Resolution[1] == 1920)
       {
-        RequestedFormat = OVR::OV_CAM5MP_FULL;
+        this->RequestedFormat = OVR::OV_CAM5MP_FULL;
         return true;
       }
-      if (Resolution[0] == 1280 && Resolution[1] == 960)
+      if (this->Resolution[0] == 1280 && this->Resolution[1] == 960)
       {
-        RequestedFormat = OVR::OV_CAM20HD_FULL;
+        this->RequestedFormat = OVR::OV_CAM20HD_FULL;
         return true;
       }
       return false;
     case 30:
-      if (Resolution[0] == 1920 && Resolution[1] == 1080)
+      if (this->Resolution[0] == 1920 && this->Resolution[1] == 1080)
       {
-        RequestedFormat = OVR::OV_CAM5MP_FHD;
+        this->RequestedFormat = OVR::OV_CAM5MP_FHD;
         return true;
       }
-      if (Resolution[0] == 640 && Resolution[1] == 480)
+      if (this->Resolution[0] == 640 && this->Resolution[1] == 480)
       {
-        RequestedFormat = OVR::OV_CAM20VR_VGA;
+        this->RequestedFormat = OVR::OV_CAM20VR_VGA;
         return true;
       }
       return false;
     case 45:
-      if (Resolution[0] == 1280 && Resolution[1] == 960)
+      if (this->Resolution[0] == 1280 && this->Resolution[1] == 960)
       {
-        RequestedFormat = OVR::OV_CAMHD_FULL;
+        this->RequestedFormat = OVR::OV_CAMHD_FULL;
         return true;
       }
       return false;
     case 60:
-      if (Resolution[0] == 960 && Resolution[1] == 950)
+      if (this->Resolution[0] == 960 && this->Resolution[1] == 950)
       {
-        RequestedFormat = OVR::OV_CAMVR_FULL;
+        this->RequestedFormat = OVR::OV_CAMVR_FULL;
         return true;
       }
-      if (Resolution[0] == 1280 && Resolution[1] == 800)
+      if (this->Resolution[0] == 1280 && this->Resolution[1] == 800)
       {
-        RequestedFormat = OVR::OV_CAMVR_WIDE;
+        this->RequestedFormat = OVR::OV_CAMVR_WIDE;
         return true;
       }
       return false;
     case 90:
-      if (Resolution[0] == 640 && Resolution[1] == 480)
+      if (this->Resolution[0] == 640 && this->Resolution[1] == 480)
       {
-        RequestedFormat = OVR::OV_CAMVR_VGA;
+        this->RequestedFormat = OVR::OV_CAMVR_VGA;
         return true;
       }
       return false;
     case 120:
-      if (Resolution[0] == 320 && Resolution[1] == 240)
+      if (this->Resolution[0] == 320 && this->Resolution[1] == 240)
       {
-        RequestedFormat = OVR::OV_CAMVR_QVGA;
+        this->RequestedFormat = OVR::OV_CAMVR_QVGA;
         return true;
       }
       return false;
@@ -267,18 +269,18 @@ bool vtkPlusOvrvisionProVideoSource::ConfigureRequestedFormat()
 //----------------------------------------------------------------------------
 void vtkPlusOvrvisionProVideoSource::ConfigureProcessingMode()
 {
-  ProcessingMode = OVR::OV_CAMQT_NONE;
-  if (PlusCommon::IsEqualInsensitive(ProcessingModeName, "OV_CAMQT_DMSRMP"))
+  this->ProcessingMode = OVR::OV_CAMQT_NONE;
+  if (PlusCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMSRMP"))
   {
-    ProcessingMode = OVR::OV_CAMQT_DMSRMP;
+    this->ProcessingMode = OVR::OV_CAMQT_DMSRMP;
   }
-  else if (PlusCommon::IsEqualInsensitive(ProcessingModeName, "OV_CAMQT_DMS"))
+  else if (PlusCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMS"))
   {
-    ProcessingMode = OVR::OV_CAMQT_DMS;
+    this->ProcessingMode = OVR::OV_CAMQT_DMS;
   }
   else
   {
-    LOG_WARNING("Unrecognized processing mode detected.");
+    LOG_WARNING("Unrecognized processing mode detected. Defaulting to OVR::OV_CAMQT_NONE.");
   }
 }
 
@@ -291,20 +293,22 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Framerate, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(LeftEyeDataSourceName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(RightEyeDataSourceName, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(Vendor, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(Vendor, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Exposure, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(CameraSync, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ProcessingModeName, deviceConfig);
 
-  if (!ConfigureRequestedFormat())
+  this->SetAcquisitionRate(this->Framerate);
+
+  if (!this->ConfigureRequestedFormat())
   {
     return PLUS_FAIL;
   }
 
-  if (!ProcessingModeName.empty())
+  if (!this->ProcessingModeName.empty())
   {
-    ConfigureProcessingMode();
+    this->ConfigureProcessingMode();
   }
 
   return PLUS_SUCCESS;
@@ -383,14 +387,14 @@ PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration(vtkXMLDataElement*
       break;
   }
 
-  if (CameraSync)
+  if (this->CameraSync)
   {
     deviceConfig->SetAttribute("CameraSync", "TRUE");
   }
 
-  if (ProcessingMode != OVR::OV_CAMQT_NONE)
+  if (this->ProcessingMode != OVR::OV_CAMQT_NONE)
   {
-    switch (ProcessingMode)
+    switch (this->ProcessingMode)
     {
       case OVR::OV_CAMQT_DMS:
         deviceConfig->SetAttribute("ProcessingModeName", "OV_CAMQT_DMS");
@@ -410,30 +414,30 @@ PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration(vtkXMLDataElement*
 PlusStatus vtkPlusOvrvisionProVideoSource::NotifyConfigured()
 {
   // OvrvisionSDK requires two data sources, left eye and right eye
-  if (this->GetDataSource(LeftEyeDataSourceName, LeftEyeDataSource) != PLUS_SUCCESS)
+  if (this->GetDataSource(this->LeftEyeDataSourceName, this->LeftEyeDataSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to locate data source for left eye labelled: " << LeftEyeDataSourceName);
+    LOG_ERROR("Unable to locate data source for left eye labelled: " << this->LeftEyeDataSourceName);
     return PLUS_FAIL;
   }
 
-  if (this->GetDataSource(RightEyeDataSourceName, RightEyeDataSource) != PLUS_SUCCESS)
+  if (this->GetDataSource(this->RightEyeDataSourceName, this->RightEyeDataSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to locate data source for right eye labelled: " << RightEyeDataSourceName);
+    LOG_ERROR("Unable to locate data source for right eye labelled: " << this->RightEyeDataSourceName);
     return PLUS_FAIL;
   }
 
-  if (LeftEyeDataSource->GetImageType() != RightEyeDataSource->GetImageType())
+  if (this->LeftEyeDataSource->GetImageType() != this->RightEyeDataSource->GetImageType())
   {
     LOG_ERROR("Mistmatch between left and right eye data source image types.");
     return PLUS_FAIL;
   }
 
-  if (LeftEyeDataSource->GetImageType() == US_IMG_RGB_COLOR)
+  if (this->LeftEyeDataSource->GetImageType() == US_IMG_RGB_COLOR)
   {
     this->IsCapturingRGB = true;
   }
 
-  if (RightEyeDataSource->GetImageType() != US_IMG_RGB_COLOR)
+  if (this->RightEyeDataSource->GetImageType() != US_IMG_RGB_COLOR)
   {
     LOG_ERROR("Right eye data source must be configured for image type US_IMG_RGB_COLOR. Aborting.");
     return PLUS_FAIL;

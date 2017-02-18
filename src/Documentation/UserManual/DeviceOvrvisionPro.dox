@@ -24,12 +24,13 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 
 - \xmlAtt \ref DeviceType "Type" = \c "OvrvisionPro" \RequiredAtt
 
-- \xmlAtt \b DirectShowFilterID defines the filter ID that corresponds to this device. Windows Only. \RequiredAtt
+- \xmlAtt \b DirectShowFilterID Defines the filter ID that corresponds to this device. Windows Only. \RequiredAtt
 - \xmlAtt \b Resolution and \b Framerate define the requested capture format of the camera. Supported values are (USB3) 2560x1920@15fps, 1920x1080@30fps, 1280x960@45fps, 960x950@60fps, 1280x800@60fps, 640x480@90fps, 320x240@120fps, (USB2) 1280x960@15fps, 640x480@30fps \RequiredAtt{640x480@30}
-- \xmlAtt \b CameraSync defines whether to keep the stereo camera acquisition in sync or not \OptionalAtt{false}
-- \xmlAtt \b ProcessingModeName defines what post-processing to perform on the image. Supported values are OV_CAMQT_DMSRMP, OV_CAMQT_DMS, OV_CAMQT_NONE \OptionalAtt{OV_CAMQT_NONE}
-- \xmlAtt \b LeftEyeDataSourceName identifies which data source is for the left eye \RequiredAtt
-- \xmlAtt \b RightEyeDataSourceName identifies which data source is for the right eye \RequiredAtt
+- \xmlAtt \b CameraSync Defines whether to keep the stereo camera acquisition in sync or not \OptionalAtt{false}
+- \xmlAtt \b Vendor Identifies which vendor of GPU is available in the computer. Supported values must match <a href="https://www.khronos.org/registry/OpenCL/sdk/1.0/docs/man/xhtml/clGetPlatformInfo.html">clGetPlatformInfo</a> \OptionalAtt{""}
+- \xmlAtt \b ProcessingModeName Defines what post-processing to perform on the image. Supported values are OV_CAMQT_DMSRMP, OV_CAMQT_DMS, OV_CAMQT_NONE \OptionalAtt{OV_CAMQT_NONE}
+- \xmlAtt \b LeftEyeDataSourceName Identifies which data source is for the left eye \RequiredAtt
+- \xmlAtt \b RightEyeDataSourceName Identifies which data source is for the right eye \RequiredAtt
 
 - \xmlElem \ref DataSources Exactly two \c DataSource child elements are required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
