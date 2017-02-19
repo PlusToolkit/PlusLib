@@ -1,20 +1,18 @@
 # --------------------------------------------------------------------------
 # Sources
-
-SET (PlusRendering_SRCS
+SET(PlusRendering_SRCS
   PlusPlotter.cxx
   vtkPlusToolAxesActor.cxx
   )
 
-SET (PlusRendering_HDRS)
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusRendering_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(PlusRendering_HDRS
     PlusPlotter.h
     vtkPlusToolAxesActor.h
     )
-endif ()
+ENDIF()
 
-SET (PlusRendering_INCLUDE_DIRS
+SET(PlusRendering_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -22,7 +20,7 @@ SET (PlusRendering_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusRendering_LIBS 
+SET(PlusRendering_LIBS 
   vtkPlusCommon
   vtkCommonCore
   vtkFiltersSources
@@ -38,12 +36,10 @@ SET (PlusRendering_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusRendering)
 ADD_LIBRARY(vtkPlusRendering ${PlusRendering_SRCS} ${PlusRendering_HDRS})
-foreach(p IN LISTS PlusRendering_INCLUDE_DIRS)
-  target_include_directories(vtkPlusRendering PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
-endforeach()
-target_include_directories(vtkPlusRendering PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+FOREACH(p IN LISTS PlusRendering_INCLUDE_DIRS)
+  target_include_directories(vtkPlusRendering PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(vtkPlusRendering PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusRendering PUBLIC ${PlusRendering_LIBS} )
 
 # --------------------------------------------------------------------------
@@ -53,7 +49,6 @@ LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_vtkPlusRendering vtkPlusRendering;${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj CACHE INTERNAL "" FORCE)
 
-#--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
@@ -80,6 +75,6 @@ INSTALL(FILES ${PlusRendering_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-IF (BUILD_TESTING)
-  SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
+IF(BUILD_TESTING)
+  SUBDIRS(Testing)
+ENDIF()

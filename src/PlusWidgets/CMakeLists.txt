@@ -36,6 +36,10 @@ SET (${PROJECT_NAME}_LIBS
   vtkPlusDataCollection
   )
 
+SET(${PROJECT_NAME}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 GENERATE_EXPORT_DIRECTIVE_FILE(${PROJECT_NAME})
 ADD_LIBRARY(${PROJECT_NAME}
   ${${PROJECT_NAME}_SRCS} 
@@ -48,10 +52,10 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
   ${Qt5Widgets_COMPILE_DEFINITIONS} 
   )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
-target_include_directories(${PROJECT_NAME} PUBLIC 
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 
 # --------------------------------------------------------------------------
 # Set external MS project
@@ -63,13 +67,14 @@ SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/PlusWidgets
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS ${PROJECT_NAME}
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib
   RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
   LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
   )
 INSTALL(FILES ${${PROJECT_NAME}_UI_HDRS}
   DESTINATION include
+  COMPONENT Development
   )
 
 # --------------------------------------------------------------------------

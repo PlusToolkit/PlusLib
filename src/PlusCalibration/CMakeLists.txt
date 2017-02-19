@@ -97,12 +97,10 @@ SET(PlusCalibration_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCalibration)
 ADD_LIBRARY( vtkPlusCalibration ${PlusCalibration_SRCS} ${PlusCalibration_HDRS} )
-foreach(p IN LISTS PlusCalibration_INCLUDE_DIRS)
-  target_include_directories(vtkPlusCalibration PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
-endforeach()
-target_include_directories(vtkPlusCalibration PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+FOREACH(p IN LISTS PlusCalibration_INCLUDE_DIRS)
+  target_include_directories(vtkPlusCalibration PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(vtkPlusCalibration PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 
 TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
 
@@ -141,7 +139,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(TemporalCalibration Tools/TemporalCalibration.cxx)
   SET_TARGET_PROPERTIES(TemporalCalibration PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES( TemporalCalibration vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection)
+  TARGET_LINK_LIBRARIES(TemporalCalibration vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection)
   GENERATE_HELP_DOC(TemporalCalibration)
 
   #--------------------------------------------------------------------------------------------
@@ -177,6 +175,6 @@ INSTALL(FILES ${PlusCalibration_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-IF (BUILD_TESTING)
+IF(BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
-ENDIF (BUILD_TESTING)
+ENDIF()

@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 # Sources
-SET (PlusOpenIGTLink_SRCS
+SET(PlusOpenIGTLink_SRCS
   igtlPlusClientInfoMessage.cxx
   igtlPlusUsMessage.cxx
   igtlPlusTrackedFrameMessage.cxx
@@ -11,7 +11,7 @@ SET (PlusOpenIGTLink_SRCS
   )
 
 IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusOpenIGTLink_HDRS
+  SET(PlusOpenIGTLink_HDRS
     igtlPlusClientInfoMessage.h
     igtlPlusUsMessage.h
     igtlPlusTrackedFrameMessage.h
@@ -22,23 +22,24 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     )
 ENDIF ()
 
-SET (PlusOpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
+SET(PlusOpenIGTLink_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR} 
+  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusOpenIGTLink_LIBS
+SET(PlusOpenIGTLink_LIBS
   vtkPlusCommon
   OpenIGTLink
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
 ADD_LIBRARY(vtkPlusOpenIGTLink ${PlusOpenIGTLink_SRCS} ${PlusOpenIGTLink_HDRS})
-foreach(p IN LISTS PlusOpenIGTLink_INCLUDE_DIRS)
-  target_include_directories(vtkPlusOpenIGTLink PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
-endforeach()
-target_include_directories(vtkPlusOpenIGTLink PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+FOREACH(p IN LISTS PlusOpenIGTLink_INCLUDE_DIRS)
+  target_include_directories(vtkPlusOpenIGTLink PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(vtkPlusOpenIGTLink PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusOpenIGTLink PUBLIC ${PlusOpenIGTLink_LIBS})
 
 # --------------------------------------------------------------------------
@@ -63,6 +64,6 @@ INSTALL(FILES ${PlusOpenIGTLink_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-IF (BUILD_TESTING)
+IF(BUILD_TESTING)
   SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
+ENDIF()

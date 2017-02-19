@@ -1,8 +1,8 @@
 PROJECT(MfVideoCaptureLibrary)
 
-SET (MfVideoCaptureLibrary_INCLUDE_DIRS
-  ${MfVideoCaptureLibrary_SOURCE_DIR}
-  ${MfVideoCaptureLibrary_BINARY_DIR}
+SET(${PROJECT_NAME}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   )
 
 SET(MfVideoCaptureLibrary_SRCS
@@ -41,11 +41,10 @@ SET (MfVideoCaptureLibrary_LIBS
 ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
 SET_TARGET_PROPERTIES(MfVideoCaptureLibrary PROPERTIES FOLDER Utilities)
 TARGET_LINK_LIBRARIES(MfVideoCaptureLibrary PRIVATE ${MfVideoCaptureLibrary_LIBS})
-target_include_directories(MfVideoCaptureLibrary PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}> 
-  $<BUILD_INTERFACE:${MfVideoCaptureLibrary_INCLUDE_DIRS}> 
-  ${WINDOWS_SDK_INCLUDE_DIRS}
-  )
+FOREACH(p IN LISTS MfVideoCaptureLibrary_INCLUDE_DIRS)
+  target_include_directories(MfVideoCaptureLibrary PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(MfVideoCaptureLibrary PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}> ${WINDOWS_SDK_INCLUDE_DIRS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

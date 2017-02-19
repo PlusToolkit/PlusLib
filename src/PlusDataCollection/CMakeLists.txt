@@ -1529,10 +1529,10 @@ SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusDataCollection)
 ADD_LIBRARY(vtkPlusDataCollection ${PlusDataCollection_SRCS} ${PlusDataCollection_HDRS})
-foreach(p IN LISTS PlusDataCollection_INCLUDE_DIRS)
+FOREACH(p IN LISTS PlusDataCollection_INCLUDE_DIRS)
   target_include_directories(vtkPlusDataCollection PUBLIC 
     $<BUILD_INTERFACE:${p}>)
-endforeach()
+ENDFOREACH()
 target_include_directories(vtkPlusDataCollection PUBLIC 
   $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 

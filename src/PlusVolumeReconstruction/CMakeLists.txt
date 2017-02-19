@@ -1,18 +1,14 @@
 # --------------------------------------------------------------------------
-# Options
-
-# --------------------------------------------------------------------------
 # Sources
-SET (PlusVolumeReconstruction_SRCS
+SET(PlusVolumeReconstruction_SRCS
   vtkPlusPasteSliceIntoVolume.cxx
   vtkPlusVolumeReconstructor.cxx
   vtkPlusFillHolesInVolume.cxx
   vtkPlusFanAngleDetectorAlgo.cxx
   )
 
-SET (PlusVolumeReconstruction_HDRS)
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusVolumeReconstruction_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(PlusVolumeReconstruction_HDRS
     fixed.h
     vtkPlusPasteSliceIntoVolume.h
     vtkPlusPasteSliceIntoVolumeHelperCommon.h
@@ -22,13 +18,16 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     vtkPlusFillHolesInVolume.h
     vtkPlusFanAngleDetectorAlgo.h
     )
-endif ()  
+ENDIF()
 
-SET (PlusVolumeReconstruction_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE )
+SET(PlusVolumeReconstruction_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (PlusVolumeReconstruction_LIBS
+SET(PlusVolumeReconstruction_LIBS
   vtkPlusCommon
   vtkInteractionStyle
   vtkRenderingFreeType
@@ -38,12 +37,10 @@ SET (PlusVolumeReconstruction_LIBS
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusVolumeReconstruction)
 ADD_LIBRARY(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_SRCS} ${PlusVolumeReconstruction_HDRS})
-foreach(p IN LISTS PlusVolumeReconstruction_INCLUDE_DIRS)
-  target_include_directories(vtkPlusVolumeReconstruction PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
-endforeach()
-target_include_directories(vtkPlusVolumeReconstruction PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+FOREACH(p IN LISTS PlusVolumeReconstruction_INCLUDE_DIRS)
+  target_include_directories(vtkPlusVolumeReconstruction PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(vtkPlusVolumeReconstruction PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtkPlusVolumeReconstruction ${PlusVolumeReconstruction_LIBS})
 
 # --------------------------------------------------------------------------
@@ -105,6 +102,6 @@ INSTALL(FILES ${PlusVolumeReconstruction_HDRS}
 # --------------------------------------------------------------------------
 # Testing
 #
-IF (BUILD_TESTING)
-  SUBDIRS (Testing)
-ENDIF (BUILD_TESTING)
+IF(BUILD_TESTING)
+  SUBDIRS(Testing)
+ENDIF()

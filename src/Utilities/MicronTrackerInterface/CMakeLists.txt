@@ -1,11 +1,12 @@
-PROJECT(vtkPlusMicronTrackerInterface)
+PROJECT(${PROJECT_NAME})
 
-SET (vtkPlusMicronTrackerInterface_INCLUDE_DIRS 
-  ${vtkPlusMicronTrackerInterface_SOURCE_DIR} 
-  ${vtkPlusMicronTrackerInterface_BINARY_DIR} 
+SET (${PROJECT_NAME}_INCLUDE_DIRS 
+  ${${PROJECT_NAME}_SOURCE_DIR} 
+  ${${PROJECT_NAME}_BINARY_DIR} 
+  ${MICRONTRACKER_INCLUDE_DIR}
   )
 
-SET(vtkPlusMicronTrackerInterface_SRCS
+SET(${PROJECT_NAME}_SRCS
   MicronTrackerInterface.cpp
   MicronTrackerLogger.cpp
   Cameras.cpp
@@ -22,7 +23,7 @@ SET(vtkPlusMicronTrackerInterface_SRCS
 )
 
 if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(vtkPlusMicronTrackerInterface_HDRS
+  SET(${PROJECT_NAME}_HDRS
     MicronTrackerInterface.h
     MicronTrackerLogger.h
     Cameras.h
@@ -39,35 +40,28 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
 )
 endif()
 
-SET (vtkPlusMicronTrackerInterface_INCLUDE_DIRS 
-  ${vtkPlusMicronTrackerInterface_INCLUDE_DIRS} 
-  #since files from the Microntracker will not be installed, this might lead to problems with the 
-  # Micron Tracker in a install use case
-  ${MICRONTRACKER_INCLUDE_DIR}
-  )
-
-SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${vtkPlusMicronTrackerInterface_INCLUDE_DIRS} CACHE INTERNAL "")
+SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${${PROJECT_NAME}_INCLUDE_DIRS} CACHE INTERNAL "")
 
 # Create a static library (to not have too many DLLs and also because
 # the driver library interface heavily uses STL containers, which are unsafe
 # to use at a DLL interface)
-ADD_LIBRARY(vtkPlusMicronTrackerInterface STATIC ${vtkPlusMicronTrackerInterface_SRCS} ${vtkPlusMicronTrackerInterface_HDRS})
-SET_TARGET_PROPERTIES(vtkPlusMicronTrackerInterface PROPERTIES FOLDER Utilities)
-target_include_directories(vtkPlusMicronTrackerInterface PUBLIC 
-  $<BUILD_INSTALL:${vtkPlusMicronTrackerInterface_INCLUDE_DIRS}> 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>
-)
+ADD_LIBRARY(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER Utilities)
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 
 # --------------------------------------------------------------------------
 # Set external MS project 
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusMicronTrackerInterface CACHE INTERNAL "" FORCE)
+SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} ${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusMicronTrackerInterface vtkPlusMicronTrackerInterface;"${PlusLib_BINARY_DIR}/src/Utilities/MicronTrackerInterface/vtkPlusMicronTrackerInterface.vcxproj" CACHE INTERNAL "" FORCE) 
+SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};"${PlusLib_BINARY_DIR}/src/Utilities/MicronTrackerInterface/${PROJECT_NAME}.vcxproj" CACHE INTERNAL "" FORCE) 
 
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib 
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}"
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
+  
   )
-INSTALL(FILES ${vtkPlusMicronTrackerInterface_HDRS}
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}"
-  )
+INSTALL(FILES ${${PROJECT_NAME}_HDRS} DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development)

@@ -94,14 +94,11 @@ ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
 ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
-foreach(p IN LISTS PlusCommon_INCLUDE_DIRS)
-  target_include_directories(vtkPlusCommon PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
-endforeach()
-target_include_directories(vtkPlusCommon PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-
-TARGET_LINK_LIBRARIES(  vtkPlusCommon ${PlusCommon_LIBS} )
+FOREACH(p IN LISTS PlusCommon_INCLUDE_DIRS)
+  target_include_directories(vtkPlusCommon PUBLIC $<BUILD_INTERFACE:${p}>)
+ENDFOREACH()
+target_include_directories(vtkPlusCommon PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtkPlusCommon ${PlusCommon_LIBS})
 
 IF(MSVC)
   # enable parallel in-target build
