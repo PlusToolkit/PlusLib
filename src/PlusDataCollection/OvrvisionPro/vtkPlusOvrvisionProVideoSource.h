@@ -13,6 +13,9 @@
 // OvrvisionPro SDK includes
 #include <ovrvision_pro.h>
 
+// OpenCV includes
+#include <opencv2/core/mat.hpp>
+
 /*!
   \class __vtkPlusOvrvisionProVideoSource_h
   \brief Class for providing video input from the OvrvisionPro stereo camera device
@@ -54,8 +57,6 @@ protected:
   void SetVendor(const std::string& vendor);
   void SetProcessingModeName(const std::string& processingModeName);
 
-  vtkSetVector2Macro(Resolution, int);
-  vtkSetMacro(Framerate, int);
   vtkSetMacro(CameraSync, bool);
   vtkGetMacro(Exposure, int);
 
@@ -68,8 +69,10 @@ protected:
   /// Device-specific on-update function
   virtual PlusStatus InternalUpdate();
 
-  bool ConfigureRequestedFormat();
   void ConfigureProcessingMode();
+
+  static std::string CamPropToString(OVR::Camprop format);
+  static OVR::Camprop StringToCamProp(const std::string& format);
 
 protected:
   vtkPlusOvrvisionProVideoSource();
@@ -97,6 +100,14 @@ protected:
 
   vtkPlusDataSource* LeftEyeDataSource;
   vtkPlusDataSource* RightEyeDataSource;
+
+#if defined(PLUS_USE_OPENCL)
+  cv::UMat LeftImageCL;
+  cv::UMat RightImageCL;
+#endif
+
+  cv::Mat LeftImage;
+  cv::Mat RightImage;
 
 private:
   static vtkPlusOvrvisionProVideoSource* ActiveDevice;

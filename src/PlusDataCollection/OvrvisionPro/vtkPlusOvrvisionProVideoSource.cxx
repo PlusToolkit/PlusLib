@@ -4,17 +4,26 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "vtkPlusOvrvisionProVideoSource.h"
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtksys/SystemTools.hxx"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkObjectFactory.h>
+#include <vtksys/SystemTools.hxx>
 
 // OpenCV includes
-#include <cv.h>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/mat.hpp>
+#if defined(PLUS_USE_OPENCL)
+  #include <opencv2/core/ocl.hpp>
+
+  // OpenCL includes
+  #include <CL/cl.h>
+#endif
 
 //----------------------------------------------------------------------------
 
@@ -82,25 +91,26 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkPlusOvrvisionProVideoSource::InternalConnect");
 
+#if defined(PLUS_USE_OPENCL)
+  cv::ocl::setUseOpenCL(true);
+#endif
+
   if (!OvrvisionProHandle.Open(0, RequestedFormat, Vendor.c_str()))     // We don't need to share it with OpenGL/D3D, but in the future we could access the images in GPU memory
   {
     LOG_ERROR("Unable to connect to OvrvisionPro device.");
     return PLUS_FAIL;
   }
 
-  if (OvrvisionProHandle.GetCamWidth() != Resolution[0])
-  {
-    LOG_ERROR("Improperly configured device. Cannot connect. Width (cam)" << OvrvisionProHandle.GetCamWidth() << " != (config)" << Resolution[0]);
-    OvrvisionProHandle.Close();
-    return PLUS_FAIL;
-  }
+  Resolution[0] = OvrvisionProHandle.GetCamWidth();
+  Resolution[1] = OvrvisionProHandle.GetCamHeight();
+  Framerate = OvrvisionProHandle.GetCamFramerate();
 
-  if (OvrvisionProHandle.GetCamHeight() != Resolution[1])
-  {
-    LOG_ERROR("Improperly configured device. Cannot connect. Height (cam)" << OvrvisionProHandle.GetCamHeight() << " != (config)" << Resolution[1]);
-    OvrvisionProHandle.Close();
-    return PLUS_FAIL;
-  }
+  this->SetAcquisitionRate(Framerate);
+
+  this->RegionOfInterest.offsetX = 0;
+  this->RegionOfInterest.offsetY = 0;
+  this->RegionOfInterest.width = this->Resolution[0];
+  this->RegionOfInterest.height = this->Resolution[1];
 
   int frameSize[3] = { Resolution[0], Resolution[1], 1 };
   LeftEyeDataSource->SetInputFrameSize(frameSize);
@@ -110,6 +120,21 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
 
   OvrvisionProHandle.SetCameraSyncMode(CameraSync);
   OvrvisionProHandle.SetCameraExposure(Exposure);
+
+#if defined(PLUS_USE_OPENCL)
+  cl_platform_id id = OvrvisionProHandle.GetPlatformId();
+  cv::ocl::PlatformInfo info(&id);
+
+  cv::ocl::attachContext(info.name(), OvrvisionProHandle.GetPlatformId(), OvrvisionProHandle.GetContext(), OvrvisionProHandle.GetDeviceId());
+#endif
+
+  this->LeftImage = cv::Mat(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4);
+  this->RightImage = cv::Mat(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4);
+
+#if !defined(PLUS_USE_OPENCL)
+  this->LeftImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_LEFT);
+  this->RightImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_RIGHT);
+#endif
 
   return PLUS_SUCCESS;
 }
@@ -135,38 +160,39 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
   // Query the SDK for the latest frames
   if (this->IsCapturingRGB)
   {
+#if defined(PLUS_USE_OPENCL)
+    OvrvisionProHandle.Capture(this->ProcessingMode); // Capture does not copy it to CPU
+
+    cv::ocl::convertFromImage(OvrvisionProHandle.GetLeftCLImage(), this->LeftImageCL);
+    cv::ocl::convertFromImage(OvrvisionProHandle.GetRightCLImage(), this->RightImageCL);
+
+    cv::cvtColor(this->LeftImageCL, this->LeftImageCL, cv::COLOR_BGRA2RGB);
+    cv::cvtColor(this->RightImageCL, this->RightImageCL, cv::COLOR_BGRA2RGB);
+
+    this->LeftImageCL.copyTo(this->LeftImage);
+    this->RightImageCL.copyTo(this->RightImage);
+#else
     OvrvisionProHandle.PreStoreCamData(this->ProcessingMode);
+
+    cv::cvtColor(this->LeftImage, this->LeftImage, cv::COLOR_BGRA2RGB);
+    cv::cvtColor(this->RightImage, this->RightImage, cv::COLOR_BGRA2RGB);
+#endif
   }
   else
   {
+    // Cannot use OpenCL, because it doesn't touch gray scale data (just splits the 16 bit to two 8 bit)
     OvrvisionProHandle.PreStoreCamData(OVR::OV_CAMQT_NONE);
-  }
-
-  // Grey scale simply means r = g = b = a (see PreStoreCamData source)
-  cv::Mat matLeft(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_LEFT));
-  cv::Mat matRight(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4, OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_RIGHT));
-
-  // TODO : threaded OpenCL approach
-
-  if (this->IsCapturingRGB)
-  {
-    // Convert From BGRA to RGB
-    cv::cvtColor(matLeft, matLeft, cv::COLOR_BGRA2RGB);
-    cv::cvtColor(matRight, matRight, cv::COLOR_BGRA2RGB);
-  }
-  else
-  {
-    cv::cvtColor(matLeft, matLeft, cv::COLOR_BGRA2GRAY);
-    cv::cvtColor(matRight, matRight, cv::COLOR_BGRA2GRAY);
+    cv::cvtColor(this->LeftImage, this->LeftImage, cv::COLOR_BGRA2GRAY);
+    cv::cvtColor(this->RightImage, this->RightImage, cv::COLOR_BGRA2GRAY);
   }
 
   // Add them to our local buffers
-  if (this->LeftEyeDataSource->AddItem(matLeft.data,
+  if (this->LeftEyeDataSource->AddItem(this->LeftImage.data,
                                        this->LeftEyeDataSource->GetInputImageOrientation(),
                                        this->LeftEyeDataSource->GetInputFrameSize(),
                                        VTK_UNSIGNED_CHAR,
-                                       matLeft.channels(),
-                                       matLeft.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                       this->LeftImage.channels(),
+                                       this->LeftImage.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                        0,
                                        this->FrameNumber) != PLUS_SUCCESS)
   {
@@ -174,12 +200,12 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
     numErrors++;
   }
 
-  if (this->RightEyeDataSource->AddItem(matRight.data,
+  if (this->RightEyeDataSource->AddItem(this->RightImage.data,
                                         this->RightEyeDataSource->GetInputImageOrientation(),
                                         this->RightEyeDataSource->GetInputFrameSize(),
                                         VTK_UNSIGNED_CHAR,
-                                        matRight.channels(),
-                                        matRight.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                        this->RightImage.channels(),
+                                        this->RightImage.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                         0,
                                         this->FrameNumber) != PLUS_SUCCESS)
   {
@@ -190,80 +216,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
   this->FrameNumber++;
 
   return numErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusOvrvisionProVideoSource::ConfigureRequestedFormat()
-{
-  this->RegionOfInterest.offsetX = 0;
-  this->RegionOfInterest.offsetY = 0;
-  this->RegionOfInterest.width = this->Resolution[0];
-  this->RegionOfInterest.height = this->Resolution[1];
-
-  switch (Framerate)
-  {
-    case 15:
-      if (this->Resolution[0] == 2560 && this->Resolution[1] == 1920)
-      {
-        this->RequestedFormat = OVR::OV_CAM5MP_FULL;
-        return true;
-      }
-      if (this->Resolution[0] == 1280 && this->Resolution[1] == 960)
-      {
-        this->RequestedFormat = OVR::OV_CAM20HD_FULL;
-        return true;
-      }
-      return false;
-    case 30:
-      if (this->Resolution[0] == 1920 && this->Resolution[1] == 1080)
-      {
-        this->RequestedFormat = OVR::OV_CAM5MP_FHD;
-        return true;
-      }
-      if (this->Resolution[0] == 640 && this->Resolution[1] == 480)
-      {
-        this->RequestedFormat = OVR::OV_CAM20VR_VGA;
-        return true;
-      }
-      return false;
-    case 45:
-      if (this->Resolution[0] == 1280 && this->Resolution[1] == 960)
-      {
-        this->RequestedFormat = OVR::OV_CAMHD_FULL;
-        return true;
-      }
-      return false;
-    case 60:
-      if (this->Resolution[0] == 960 && this->Resolution[1] == 950)
-      {
-        this->RequestedFormat = OVR::OV_CAMVR_FULL;
-        return true;
-      }
-      if (this->Resolution[0] == 1280 && this->Resolution[1] == 800)
-      {
-        this->RequestedFormat = OVR::OV_CAMVR_WIDE;
-        return true;
-      }
-      return false;
-    case 90:
-      if (this->Resolution[0] == 640 && this->Resolution[1] == 480)
-      {
-        this->RequestedFormat = OVR::OV_CAMVR_VGA;
-        return true;
-      }
-      return false;
-    case 120:
-      if (this->Resolution[0] == 320 && this->Resolution[1] == 240)
-      {
-        this->RequestedFormat = OVR::OV_CAMVR_QVGA;
-        return true;
-      }
-      return false;
-    default:
-      LOG_ERROR("Unsupported framerate requested.");
-  }
-
-  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -284,13 +236,96 @@ void vtkPlusOvrvisionProVideoSource::ConfigureProcessingMode()
   }
 }
 
+//----------------------------------------------------------------------------
+std::string vtkPlusOvrvisionProVideoSource::CamPropToString(OVR::Camprop format)
+{
+  switch (format)
+  {
+    case OVR::OV_CAM5MP_FULL:
+      return "OV_CAM5MP_FULL";
+    case OVR::OV_CAM5MP_FHD:
+      return "OV_CAM5MP_FHD";
+    case OVR::OV_CAMHD_FULL:
+      return "OV_CAMHD_FULL";
+    case OVR::OV_CAMVR_FULL:
+      return "OV_CAMVR_FULL";
+    case OVR::OV_CAMVR_WIDE:
+      return "OV_CAMVR_WIDE";
+    case OVR::OV_CAMVR_VGA:
+      return "OV_CAMVR_VGA";
+    case OVR::OV_CAMVR_QVGA:
+      return "OV_CAMVR_QVGA";
+    case OVR::OV_CAM20HD_FULL:
+      return "OV_CAM20HD_FULL";
+    case OVR::OV_CAM20VR_VGA:
+    default:
+      return "OV_CAM20VR_VGA";
+  }
+}
+
+//----------------------------------------------------------------------------
+OVR::Camprop vtkPlusOvrvisionProVideoSource::StringToCamProp(const std::string& format)
+{
+  // Handle strings without OV_ in front
+  std::string nonConstFormat = format;
+  if (nonConstFormat.find("OV_") == std::string::npos)
+  {
+    nonConstFormat.insert(0, "OV_");
+  }
+
+  if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FULL"))
+  {
+    return OVR::OV_CAM5MP_FULL;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FHD"))
+  {
+    return OVR::OV_CAM5MP_FHD;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMHD_FULL"))
+  {
+    return OVR::OV_CAMHD_FULL;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_FULL"))
+  {
+    return OVR::OV_CAMVR_FULL;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_WIDE"))
+  {
+    return OVR::OV_CAMVR_WIDE;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_VGA"))
+  {
+    return OVR::OV_CAMVR_VGA;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_QVGA"))
+  {
+    return OVR::OV_CAMVR_QVGA;
+  }
+  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM20HD_FULL"))
+  {
+    return OVR::OV_CAM20HD_FULL;
+  }
+  else
+  {
+    return OVR::OV_CAM20VR_VGA;
+  }
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, Resolution, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, Framerate, deviceConfig);
+  auto attr = deviceConfig->GetAttribute("RequestedFormat");
+  if (attr == nullptr)
+  {
+    LOG_INFO("No requested format defined. Falling back to OV_CAM20VR_VGA (640x480@30fps).");
+    RequestedFormat = OVR::OV_CAM20VR_VGA;
+  }
+  else
+  {
+    this->RequestedFormat = vtkPlusOvrvisionProVideoSource::StringToCamProp(attr);
+  }
   XML_READ_STRING_ATTRIBUTE_REQUIRED(LeftEyeDataSourceName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(RightEyeDataSourceName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(Vendor, deviceConfig);
@@ -300,11 +335,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ProcessingModeName, deviceConfig);
 
   this->SetAcquisitionRate(this->Framerate);
-
-  if (!this->ConfigureRequestedFormat())
-  {
-    return PLUS_FAIL;
-  }
 
   if (!this->ProcessingModeName.empty())
   {
@@ -319,73 +349,8 @@ PlusStatus vtkPlusOvrvisionProVideoSource::WriteConfiguration(vtkXMLDataElement*
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
-  int resolution[2];
-  switch (RequestedFormat)
-  {
-    case OVR::OV_CAM5MP_FULL:
-      //!2560x1920 @15fps
-      resolution[0] = 2560;
-      resolution[1] = 1920;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 15);
-      break;
-    case OVR::OV_CAM5MP_FHD:
-      //!1920x1080 @30fps
-      resolution[0] = 1920;
-      resolution[1] = 1080;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 30);
-      break;
-    case OVR::OV_CAMHD_FULL:
-      //!1280x960  @45fps
-      resolution[0] = 1280;
-      resolution[1] = 960;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 45);
-      break;
-    case OVR::OV_CAMVR_FULL:
-      //!960x950   @60fps
-      resolution[0] = 960;
-      resolution[1] = 950;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 60);
-      break;
-    case OVR::OV_CAMVR_WIDE:
-      //!1280x800  @60fps
-      resolution[0] = 1280;
-      resolution[1] = 800;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 60);
-      break;
-    case OVR::OV_CAMVR_VGA:
-      //!640x480   @90fps
-      resolution[0] = 640;
-      resolution[1] = 480;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 90);
-      break;
-    case OVR::OV_CAMVR_QVGA:
-      //!320x240   @120fps
-      resolution[0] = 320;
-      resolution[1] = 240;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 120);
-      break;
-    case OVR::OV_CAM20HD_FULL:
-      //!1280x960  @15fps
-      resolution[0] = 1280;
-      resolution[1] = 960;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 15);
-      break;
-    case OVR::OV_CAM20VR_VGA:
-      //!640x480   @30fps
-      resolution[0] = 640;
-      resolution[1] = 480;
-      deviceConfig->SetVectorAttribute("Resolution", 2, resolution);
-      deviceConfig->SetIntAttribute("Framerate", 30);
-      break;
-  }
+  std::string requestedFormat = vtkPlusOvrvisionProVideoSource::CamPropToString(this->RequestedFormat);
+  rootConfigElement->SetAttribute("RequestedFormat", requestedFormat.c_str());
 
   if (this->CameraSync)
   {

@@ -67,8 +67,7 @@ IF (PLUS_USE_NVIDIA_DVP)
 ENDIF()
 
 OPTION(PLUS_USE_OvrvisionPro "Provide support for the OvrvisionPro Stereo Camera" OFF)
-IF (PLUS_USE_OvrvisionPro)
-  FIND_PACKAGE(OvrvisionPro REQUIRED NO_MODULE)
+IF(PLUS_USE_OvrvisionPro)
   OPTION(PLUS_TEST_OvrvisionPro "Enable testing of acquisition of stereo images from the OvrvisionPro" OFF)
 ENDIF()
 
@@ -1498,6 +1497,8 @@ IF (PLUS_USE_OvrvisionPro)
 
   SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/OvrvisionPro
+    ${OpenCV_INCLUDE_DIRS}
+    ${OpenCL_INCLUDE_DIRS}
     )
 
   SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
@@ -1530,12 +1531,17 @@ SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusDataCollection)
 ADD_LIBRARY(vtkPlusDataCollection ${PlusDataCollection_SRCS} ${PlusDataCollection_HDRS})
 FOREACH(p IN LISTS PlusDataCollection_INCLUDE_DIRS)
-  target_include_directories(vtkPlusDataCollection PUBLIC 
-    $<BUILD_INTERFACE:${p}>)
+  target_include_directories(vtkPlusDataCollection PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusDataCollection PUBLIC 
-  $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+target_include_directories(vtkPlusDataCollection PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 
+IF(OpenCL_FOUND)
+  # Enable downstream targets to use/link this device
+  target_compile_definitions(vtkPlusDataCollection PUBLIC -DPLUS_USE_OPENCL)
+  SET(PLUS_USE_OPENCL ON CACHE INTERNAL "Use OpenCL accelerated functions in Plus.")
+  MARK_AS_ADVANCED(PLUS_USE_OPENCL)
+ENDIF()
+  
 IF(MSVC)
   # enable parallel in-target build as data collection is the largest project by far
   # do not add to interface defines as downstream targets don't necessarily need MP
@@ -1641,7 +1647,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   GENERATE_HELP_DOC(PlusVersion)
   
   # OpenIGTLink 
-  IF( PLUS_USE_OpenIGTLink )
+  IF(PLUS_USE_OpenIGTLink)
     ADD_EXECUTABLE(BrainLabTrackerSim Tools/BrainLabTrackerSim.cxx)
     SET_TARGET_PROPERTIES(BrainLabTrackerSim PROPERTIES FOLDER Tools)
     TARGET_LINK_LIBRARIES(BrainLabTrackerSim OpenIGTLink vtkPlusCommon)
