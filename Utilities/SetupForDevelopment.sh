@@ -28,6 +28,8 @@ then
   cd ..
 fi
 
+gitDir=`git rev-parse --git-dir`
+
 if test -d .git/.git; then
   printErrorAndExit "The directory '.git/.git' exists, indicating a
   configuration error.
@@ -53,8 +55,8 @@ setup_user() {
 
 if [ "$1" == "copyOnly" ]; then
   # Copy hooks
-  echo cp hooks/commit-msg .git/hooks
-  cp hooks/commit-msg .git/hooks
+  echo cp hooks/commit-msg $gitDir/hooks
+  cp hooks/commit-msg $gitDir/hooks
   exit 0
 fi
 
