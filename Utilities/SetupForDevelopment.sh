@@ -42,6 +42,8 @@ git config branch.master.rebase true
 # display of changes merged in the fast-forward operation.
 git config rebase.stat true
 
+gitDir=`git rev-parse --git-dir`
+
 setup_user() {
   read -ep "Please enter your full name, such as 'John Doe': " name
   echo "Setting name to '$name'"
@@ -51,10 +53,11 @@ setup_user() {
   git config user.email "$email"
 }
 
+# Copy hooks
+echo cp hooks/commit-msg $gitDir/hooks
+cp hooks/commit-msg $gitDir/hooks
+
 if [ "$1" == "copyOnly" ]; then
-  # Copy hooks
-  echo cp hooks/commit-msg .git/hooks
-  cp hooks/commit-msg .git/hooks
   exit 0
 fi
 
@@ -82,7 +85,6 @@ else
   break
 fi
 done
-
 
 # Record the version of this setup so the developer can be notified that
 # this script and/or hooks have been modified.
