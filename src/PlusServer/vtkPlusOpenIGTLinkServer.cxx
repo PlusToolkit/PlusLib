@@ -37,7 +37,7 @@ See License.txt for details.
 #include <igtlTrackingDataMessage.h>
 
 // OpenIGTLinkIO includes
-#include <igtlPolyDataConverter.h>
+#include <igtlioPolyDataConverter.h>
 
 #if defined(WIN32)
 #include "vtkPlusOpenIGTLinkServerWin32.cxx"
@@ -784,11 +784,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", polyDataMessage->GetHeaderVersion());
         igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
 
-        igtl::PolyDataConverter::MessageContent content;
+        igtlio::PolyDataConverter::MessageContent content;
         content.deviceName = "PlusServer";
         content.polydata = polyData;
-        igtl::PolyDataConverter::Pointer converter = igtl::PolyDataConverter::New();
-        converter->VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
+        igtlio::PolyDataConverter::VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
         if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
         {
           LOG_ERROR("Filename too long to be sent back to client. Aborting.");
