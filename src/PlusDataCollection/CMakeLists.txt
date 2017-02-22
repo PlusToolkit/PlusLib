@@ -349,7 +349,7 @@ IF (PLUS_USE_MICRONTRACKER)
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
   SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
-    vtkPlusMicronTrackerInterface
+    MicronTrackerInterface
     ${MICRONTRACKER_LIBRARY}
     )
 
