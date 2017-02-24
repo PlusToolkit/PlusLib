@@ -314,7 +314,7 @@ ENDIF()
 IF(PLUS_USE_TELEMED_VIDEO)
   ADD_EXECUTABLE(vtkTelemedVideoSourceTest vtkTelemedVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkTelemedVideoSourceTest PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 
   IF (PLUS_TEST_TELEMED)
     ADD_TEST(vtkTelemedVideoSourceTest

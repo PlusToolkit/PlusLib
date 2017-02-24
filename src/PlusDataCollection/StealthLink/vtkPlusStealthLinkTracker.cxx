@@ -889,7 +889,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
       }
     }
     // if the wanted transformation is rasToTracker
-    else if (toolIterator->second->GetPortName() == vtkInternalShared::GetRasRegistrationToolName()))   // static!
+    else if (toolIterator->second->GetPortName() == vtkInternalShared::GetRasRegistrationToolName())   // static!
     {
       // If frame is not out of view, the RasToTrackerTransform is invalid
       bool examValid =  this->InternalShared->GetExamValid(); //thread safe with the set function

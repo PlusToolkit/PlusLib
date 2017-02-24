@@ -546,7 +546,7 @@ QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument&
 void QPlusDeviceSetSelectorWidget::FixComboBoxDropDownListSizeAdjustemnt(QComboBox* cb)
 {
   int scroll = cb->count() <= cb->maxVisibleItems() ? 0 :
-               QApplication::style()->pixelMetric(QStyle::PixelMetric::PM_ScrollBarExtent);
+               QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
   int max = 0;
 

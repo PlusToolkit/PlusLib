@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
     // TODO : Set the Frequency (in MHz) on the device
   }
 
-  TelemedDevice->CreateDefaultOutputChannel(true);
+  TelemedDevice->CreateDefaultOutputChannel(NULL, true);
 
   vtkPlusDataSource* videoSource=NULL;
   if (TelemedDevice->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
