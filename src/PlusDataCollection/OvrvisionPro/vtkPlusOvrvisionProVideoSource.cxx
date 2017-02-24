@@ -331,6 +331,8 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(Vendor, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Exposure, deviceConfig);
 
+  SetAcquisitionRate(Framerate);
+
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(CameraSync, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ProcessingModeName, deviceConfig);
 

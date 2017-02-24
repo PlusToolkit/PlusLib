@@ -547,9 +547,11 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
   igtl::ClientSocket::Pointer clientSocket = client->ClientSocket;
   int clientId = client->ClientId;
 
+  igtl::MessageHeader::Pointer headerMsg = self->IgtlMessageFactory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
+
   while (client->DataReceiverActive.first)
   {
-    igtl::MessageHeader::Pointer headerMsg = self->IgtlMessageFactory->CreateHeaderMessage(IGTL_HEADER_VERSION_1);
+    headerMsg->InitBuffer();
 
     // Receive generic header from the socket
     int bytesReceived = clientSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
