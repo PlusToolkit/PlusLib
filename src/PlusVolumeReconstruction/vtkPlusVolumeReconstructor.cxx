@@ -38,19 +38,17 @@ vtkStandardNewMacro(vtkPlusVolumeReconstructor);
 
 //----------------------------------------------------------------------------
 vtkPlusVolumeReconstructor::vtkPlusVolumeReconstructor()
-  : ImageCoordinateFrame(NULL)
-  , ReferenceCoordinateFrame(NULL)
+  : ReconstructedVolume(vtkSmartPointer<vtkImageData>::New())
+  , Reconstructor(vtkPlusPasteSliceIntoVolume::New())
+  , HoleFiller(vtkPlusFillHolesInVolume::New())
+  , FanAngleDetector(vtkPlusFanAngleDetectorAlgo::New())
+  , FillHoles(false)
+  , EnableFanAnglesAutoDetect(false)
+  , SkipInterval(1)
+  , ReconstructedVolumeUpdatedTime(0)
 {
-  this->ReconstructedVolume = vtkSmartPointer<vtkImageData>::New();
-  this->Reconstructor = vtkPlusPasteSliceIntoVolume::New();
-  this->HoleFiller = vtkPlusFillHolesInVolume::New();
-  this->FanAngleDetector = vtkPlusFanAngleDetectorAlgo::New();
-  this->FillHoles = false;
   this->FanAnglesDeg[0] = 0.0;
   this->FanAnglesDeg[1] = 0.0;
-  this->EnableFanAnglesAutoDetect = false;
-  this->SkipInterval = 1;
-  this->ReconstructedVolumeUpdatedTime = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -86,8 +84,8 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
 {
   XML_FIND_NESTED_ELEMENT_REQUIRED(reconConfig, config, "VolumeReconstruction");
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ReferenceCoordinateFrame, reconConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageCoordinateFrame, reconConfig);
 
   XML_READ_VECTOR_ATTRIBUTE_REQUIRED(double, 3, OutputSpacing, reconConfig);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 3, OutputOrigin, reconConfig);
@@ -192,8 +190,8 @@ PlusStatus vtkPlusVolumeReconstructor::WriteConfiguration(vtkXMLDataElement* con
 {
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(reconConfig, config, "VolumeReconstruction");
 
-  reconConfig->SetAttribute("ImageCoordinateFrame", this->ImageCoordinateFrame);
-  reconConfig->SetAttribute("ReferenceCoordinateFrame", this->ReferenceCoordinateFrame);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(ImageCoordinateFrame, config);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(ReferenceCoordinateFrame, config);
 
   // output parameters
   reconConfig->SetVectorAttribute("OutputSpacing", 3, this->Reconstructor->GetOutputSpacing());
@@ -321,22 +319,20 @@ void vtkPlusVolumeReconstructor::AddImageToExtent(vtkImageData* image, vtkMatrix
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVolumeReconstructor::GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName)
 {
-  if (this->ReferenceCoordinateFrame != NULL && this->ImageCoordinateFrame != NULL)
+  // image to reference transform is specified in the XML tree
+  imageToReferenceTransformName = PlusTransformName(this->ImageCoordinateFrame, this->ReferenceCoordinateFrame);
+  if (!imageToReferenceTransformName.IsValid())
   {
-    // image to reference transform is specified in the XML tree
-    imageToReferenceTransformName = PlusTransformName(this->ImageCoordinateFrame, this->ReferenceCoordinateFrame);
-    if (!imageToReferenceTransformName.IsValid())
-    {
-      LOG_ERROR("Failed to set ImageToReference transform name from '" << this->ImageCoordinateFrame << "' to '" << this->ReferenceCoordinateFrame << "'");
-      return PLUS_FAIL;
-    }
-    return PLUS_SUCCESS;
+    LOG_ERROR("Failed to set ImageToReference transform name from '" << this->ImageCoordinateFrame << "' to '" << this->ReferenceCoordinateFrame << "'");
+    return PLUS_FAIL;
   }
-  if (this->ImageCoordinateFrame == NULL)
+  return PLUS_SUCCESS;
+
+  if (this->ImageCoordinateFrame.empty())
   {
     LOG_ERROR("Image coordinate frame name is undefined");
   }
-  if (this->ReferenceCoordinateFrame == NULL)
+  if (this->ReferenceCoordinateFrame.empty())
   {
     LOG_ERROR("Reference coordinate frame name is undefined");
   }
@@ -617,7 +613,7 @@ PlusStatus vtkPlusVolumeReconstructor::ExtractAccumulation(vtkImageData* accumul
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(const char* filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
+PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
   if (accumulation)
@@ -640,7 +636,7 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(const c
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression/*=true*/)
+PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression/*=true*/)
 {
   if (volumeToSave == NULL)
   {
@@ -651,18 +647,18 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImag
   MET_ValueEnumType scalarType = MET_NONE;
   switch (volumeToSave->GetScalarType())
   {
-  case VTK_UNSIGNED_CHAR:
-    scalarType = MET_UCHAR;
-    break;
-  case VTK_UNSIGNED_SHORT:
-    scalarType = MET_USHORT;
-    break;
-  case VTK_FLOAT:
-    scalarType = MET_FLOAT;
-    break;
-  default:
-    LOG_ERROR("Scalar type is not supported!");
-    return PLUS_FAIL;
+    case VTK_UNSIGNED_CHAR:
+      scalarType = MET_UCHAR;
+      break;
+    case VTK_UNSIGNED_SHORT:
+      scalarType = MET_USHORT;
+      break;
+    case VTK_FLOAT:
+      scalarType = MET_FLOAT;
+      break;
+    default:
+      LOG_ERROR("Scalar type is not supported!");
+      return PLUS_FAIL;
   }
 
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
@@ -675,7 +671,7 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImag
   metaImage.BinaryData(true);
   metaImage.CompressedData(useCompression);
   metaImage.ElementDataFileName("LOCAL");
-  if (metaImage.Write(filename) == false)
+  if (metaImage.Write(filename.c_str()) == false)
   {
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;
@@ -928,6 +924,30 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
     this->Reconstructor->Modified();
     this->Modified();
   }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusVolumeReconstructor::GetImageCoordinateFrame() const
+{
+  return this->ImageCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVolumeReconstructor::SetImageCoordinateFrame(const std::string& frame)
+{
+  this->ImageCoordinateFrame = frame;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusVolumeReconstructor::GetReferenceCoordinateFrame() const
+{
+  return this->ReferenceCoordinateFrame;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVolumeReconstructor::SetReferenceCoordinateFrame(const std::string& frame)
+{
+  this->ReferenceCoordinateFrame = frame;
 }
 
 //----------------------------------------------------------------------------

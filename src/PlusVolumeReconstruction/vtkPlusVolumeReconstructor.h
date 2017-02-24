@@ -101,7 +101,7 @@ public:
     \accumulation True if accumulation buffer needs to be saved, false if gray levels (default)
     \useCompression True if compression is turned on (default), false otherwise
   */
-  PlusStatus SaveReconstructedVolumeToMetafile(const char* filename, bool accumulation = false, bool useCompression = true);
+  PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true);
 
   /*!
     Save reconstructed volume to metafile
@@ -109,15 +109,15 @@ public:
     \param filename Path and filename of the output file
     \useCompression True if compression is turned on (default), false otherwise
   */
-  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const char* filename, bool useCompression = true);
+  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
 
   /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
-  vtkGetStringMacro(ImageCoordinateFrame);
-  vtkSetStringMacro(ImageCoordinateFrame);
+  std::string GetImageCoordinateFrame() const;
+  void SetImageCoordinateFrame(const std::string& frame);
 
   /*! Get/set the Reference coordinate system name. It overrides the value read from the config file. */
-  vtkGetStringMacro(ReferenceCoordinateFrame);
-  vtkSetStringMacro(ReferenceCoordinateFrame);
+  std::string GetReferenceCoordinateFrame() const;
+  void SetReferenceCoordinateFrame(const std::string& frame);
 
   vtkGetMacro(EnableFanAnglesAutoDetect, bool);
   vtkSetMacro(EnableFanAnglesAutoDetect, bool);
@@ -204,6 +204,7 @@ protected:
   /*! Construct ImageToReference transform name from the image and reference coordinate frame member variables */
   PlusStatus GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName);
 
+protected:
   vtkPlusPasteSliceIntoVolume* Reconstructor;
   vtkPlusFillHolesInVolume* HoleFiller;
   vtkPlusFanAngleDetectorAlgo* FanAngleDetector;
@@ -211,14 +212,14 @@ protected:
   vtkSmartPointer<vtkImageData> ReconstructedVolume;
 
   /*! Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame */
-  char* ImageCoordinateFrame;
+  std::string ImageCoordinateFrame;
 
   /*!
     Defines the Reference coordinate system name: the volume will be reconstructed in this coordinate system
     (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in
     the Reference coordinate system)
   */
-  char* ReferenceCoordinateFrame;
+  std::string ReferenceCoordinateFrame;
 
   /*! If enabled then the hole filling will be applied on output reconstructed volume */
   bool FillHoles;

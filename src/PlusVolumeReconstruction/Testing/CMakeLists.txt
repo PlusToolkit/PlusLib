@@ -8,6 +8,7 @@ function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNa
     --source-seq-file=${TestDataDir}/${InputSeqFile}.mha
     --output-volume-file=vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     --image-to-reference-transform=ImageToReference
+    --importance-mask-file=${TestDataDir}/ImportanceMask.png
     )
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRun${TestName} PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
@@ -28,7 +29,6 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   VolRecRegressionTest(LinrMaxiUChar SpinePhantom_LN_MAXI SpinePhantomFreehand LNMAXI)
 
   # Importance mask tests
-  file(COPY ${TestDataDir}/ImportanceMask.png DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
   VolRecRegressionTest(IMLinearFull ImportanceMaskLinearFull ImportanceMaskInput IMLiF)
   VolRecRegressionTest(IMLinearPartial ImportanceMaskLinearPartial ImportanceMaskInput IMLiP)
   VolRecRegressionTest(IMLinearNone ImportanceMaskLinearNone ImportanceMaskInput IMLiN)
