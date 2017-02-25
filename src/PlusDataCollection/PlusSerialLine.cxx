@@ -43,7 +43,7 @@ bool SerialLine::Open()
 
   // Open serial port
 #ifdef _WIN32
-  m_CommHandle = CreateFile(m_PortName.c_str(),
+  m_CommHandle = CreateFile(this->PortName.c_str(),
     GENERIC_READ|GENERIC_WRITE,
     0,  // not allowed to share ports
     0,  // child-processes don't inherit handle

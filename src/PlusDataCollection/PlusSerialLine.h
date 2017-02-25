@@ -61,11 +61,10 @@ public:
   bool Read(BYTE &data);
 
   /*! Set the serial port name e.g. COM1 */ 
-  void SetPortName(const std::string &name) { m_PortName=name; };
-
+  SetStdStringMacro(PortName);
   /*! Get the serial port name */ 
-  std::string GetPortName() const { return m_PortName; };
-
+  GetStdStringMacro(PortName);
+  
   /*! Set the serial port speed */ 
   void SetSerialPortSpeed(DWORD speed) { m_SerialPortSpeed=speed; };
 
@@ -86,7 +85,7 @@ public:
 
 private:
   HANDLE m_CommHandle;
-  std::string m_PortName;
+  std::string PortName;
   DWORD m_SerialPortSpeed;
   int m_MaxReplyTime;
   int UpdateSerialBuffer();

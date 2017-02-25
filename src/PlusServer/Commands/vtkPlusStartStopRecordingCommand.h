@@ -43,14 +43,14 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual std::string GetOutputFilename() const;
-  virtual void SetOutputFilename(const std::string& outputFilename);
+  vtkGetStdStringMacro(OutputFilename);
+  vtkSetStdStringMacro(OutputFilename);
 
-  virtual std::string GetCaptureDeviceId() const;
-  virtual void SetCaptureDeviceId(const std::string& captureDeviceId);
+  vtkGetStdStringMacro(CaptureDeviceId);
+  vtkSetStdStringMacro(CaptureDeviceId);
 
-  virtual std::string GetChannelId() const;
-  virtual void SetChannelId(const std::string& channelId);
+  vtkGetStdStringMacro(ChannelId);
+  vtkSetStdStringMacro(ChannelId);
 
   vtkGetMacro(EnableCompression, bool);
   vtkSetMacro(EnableCompression, bool);

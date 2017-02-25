@@ -36,37 +36,6 @@ vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
 //----------------------------------------------------------------------------
 vtkPlusStartStopRecordingCommand::~vtkPlusStartStopRecordingCommand()
 {
-
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetOutputFilename(const std::string& outputFilename)
-{
-  this->OutputFilename = outputFilename;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStartStopRecordingCommand::GetCaptureDeviceId() const
-{
-  return this->CaptureDeviceId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetCaptureDeviceId(const std::string& captureDeviceId)
-{
-  this->CaptureDeviceId = captureDeviceId;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStartStopRecordingCommand::GetChannelId() const
-{
-  return this->ChannelId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStartStopRecordingCommand::SetChannelId(const std::string& channelId)
-{
-  this->ChannelId = channelId;
 }
 
 //----------------------------------------------------------------------------
@@ -110,12 +79,6 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& 
     desc += ": Stop collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId (optional)";
   }
   return desc;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStartStopRecordingCommand::GetOutputFilename() const
-{
-  return this->OutputFilename;
 }
 
 //----------------------------------------------------------------------------

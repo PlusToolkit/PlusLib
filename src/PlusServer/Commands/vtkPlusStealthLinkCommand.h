@@ -44,26 +44,26 @@ public:
   virtual std::string GetDescription(const std::string& commandName);
 
   /*! Id of the stealthlink device */
-  virtual void SetStealthLinkDeviceId(const std::string& stealthLinkDeviceId);
-  virtual std::string GetStealthLinkDeviceId() const;
+  vtkGetStdStringMacro(StealthLinkDeviceId);
+  vtkSetStdStringMacro(StealthLinkDeviceId);
 
   /*! The folder in which the dicom images will be stored. The default value is: PlusOutputDirectory\StealthLinkDicomOutput  */
-  virtual void SetDicomImagesOutputDirectory(const std::string& dicomImagesOutputDirectory);
-  virtual std::string GetDicomImagesOutputDirectory() const;
+  vtkGetStdStringMacro(DicomImagesOutputDirectory);
+  vtkSetStdStringMacro(DicomImagesOutputDirectory);
 
   /*!
     The frame reference in  which the image will be represented. Example if this is RAS then image will be defined
     in RAS coordinate system, if Reference, the image will be in reference coordinate system
   */
-  virtual void SetVolumeEmbeddedTransformToFrame(const std::string& volumeEmbeddedTransformToFrame);
-  virtual std::string GetVolumeEmbeddedTransformToFrame() const;
+  vtkGetStdStringMacro(VolumeEmbeddedTransformToFrame);
+  vtkSetStdStringMacro(VolumeEmbeddedTransformToFrame);
 
   /*!
     If enabled then the DICOM files received through StealthLink will be preserved in the DicomImagesOutputDirectory.
     If disabled then the DICOM files are deleted after the volume is sent through OpenIGTLink.
   */
-  void SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles);
-  bool GetKeepReceivedDicomFiles();
+  vtkGetMacro(KeepReceivedDicomFiles, bool);
+  vtkSetMacro(KeepReceivedDicomFiles, bool);
 
   /*!
     Set the command to get the exam data (image and Ras to VolumeEmbeddedTransformToFrame coordinate system transform).

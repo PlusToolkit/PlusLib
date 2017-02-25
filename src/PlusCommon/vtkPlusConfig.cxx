@@ -1021,12 +1021,6 @@ std::string vtkPlusConfig::GetDeviceSetConfigurationFileName()
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkPlusConfig::GetApplicationStartTimestamp()
-{
-  return this->ApplicationStartTimestamp;
-}
-
-//-----------------------------------------------------------------------------
 void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData)
 {
   vtkSetObjectBodyMacro(DeviceSetConfigurationData, vtkXMLDataElement, deviceSetConfigurationData);
@@ -1035,18 +1029,6 @@ void vtkPlusConfig::SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetCo
     std::string plusLibVersion = PlusCommon::GetPlusLibVersionString();
     this->DeviceSetConfigurationData->SetAttribute("PlusRevision", plusLibVersion.c_str());
   }
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusConfig::GetEditorApplicationExecutable() const
-{
-  return this->EditorApplicationExecutable;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusConfig::SetEditorApplicationExecutable(const std::string& _arg)
-{
-  this->EditorApplicationExecutable = _arg;
 }
 
 //-----------------------------------------------------------------------------

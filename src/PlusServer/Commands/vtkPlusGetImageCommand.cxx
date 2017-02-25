@@ -77,18 +77,6 @@ void vtkPlusGetImageCommand::SetNameToGetImage()
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusGetImageCommand::GetImageId() const
-{
-  return this->ImageId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusGetImageCommand::SetImageId(const std::string& imageId)
-{
-  this->ImageId = imageId;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusGetImageCommand::Execute()
 {
   std::string baseMessage = std::string("vtkPlusGetImageCommand ") + (!this->Name.empty() ? this->Name : "(undefined)")

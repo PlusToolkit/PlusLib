@@ -198,42 +198,6 @@ PlusStatus PlusSpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelEl
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetImagingFrequencyMhz(double frequencyMhz)
-{
-  this->ImagingFrequencyMhz = frequencyMhz;
-}
-
-//----------------------------------------------------------------------------
-std::string PlusSpatialModel::GetName() const
-{
-  return this->Name;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetName(const std::string& name)
-{
-  this->Name = name;
-}
-
-//----------------------------------------------------------------------------
-std::string PlusSpatialModel::GetObjectCoordinateFrame() const
-{
-  return this->ObjectCoordinateFrame;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetObjectCoordinateFrame(const std::string& objectCoordinateFrame)
-{
-  this->ObjectCoordinateFrame = objectCoordinateFrame;
-}
-
-//----------------------------------------------------------------------------
-vtkMatrix4x4* PlusSpatialModel::GetModelToObjectTransform()
-{
-  return this->ModelToObjectTransform;
-}
-
-//-----------------------------------------------------------------------------
 double PlusSpatialModel::GetAcousticImpedanceMegarayls()
 {
   double acousticImpedanceRayls = this->DensityKgPerM3 * this->SoundVelocityMPerSec; // kg / (s * m2)
@@ -344,54 +308,6 @@ void PlusSpatialModel::CalculateIntensity(std::vector<double>& reflectedIntensit
     }
   }
   // TODO: to simulate beamwidth, take into account the incidence angle and disperse the reflection on a larger area if the angle is large
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetDensityKgPerM3(double d)
-{
-  this->DensityKgPerM3 = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetSoundVelocityMPerSec(double d)
-{
-  this->SoundVelocityMPerSec = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetAttenuationCoefficientDbPerCmMhz(double d)
-{
-  this->AttenuationCoefficientDbPerCmMhz = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetSurfaceReflectionIntensityDecayDbPerMm(double d)
-{
-  this->SurfaceReflectionIntensityDecayDbPerMm = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetBackscatterDiffuseReflectionCoefficient(double d)
-{
-  this->BackscatterDiffuseReflectionCoefficient = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetSurfaceDiffuseReflectionCoefficient(double d)
-{
-  this->SurfaceDiffuseReflectionCoefficient = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetSurfaceSpecularReflectionCoefficient(double d)
-{
-  this->SurfaceSpecularReflectionCoefficient = d;
-}
-
-//----------------------------------------------------------------------------
-void PlusSpatialModel::SetTransducerSpatialModelMaxOverlapMm(double d)
-{
-  this->TransducerSpatialModelMaxOverlapMm = d;
 }
 
 //-----------------------------------------------------------------------------

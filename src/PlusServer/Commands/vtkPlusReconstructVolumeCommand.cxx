@@ -136,54 +136,6 @@ std::string vtkPlusReconstructVolumeCommand::GetDescription(const std::string& c
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusReconstructVolumeCommand::GetInputSeqFilename() const
-{
-  return this->InputSeqFilename;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusReconstructVolumeCommand::SetInputSeqFilename(const std::string& inputSeqFilename)
-{
-  this->InputSeqFilename = inputSeqFilename;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusReconstructVolumeCommand::GetOutputVolFilename() const
-{
-  return this->OutputVolFilename;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusReconstructVolumeCommand::SetOutputVolFilename(const std::string& outputVolFilename)
-{
-  this->OutputVolFilename = outputVolFilename;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusReconstructVolumeCommand::GetOutputVolDeviceName() const
-{
-  return this->OutputVolDeviceName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusReconstructVolumeCommand::SetOutputVolDeviceName(const std::string& outputVolDeviceName)
-{
-  this->OutputVolDeviceName = outputVolDeviceName;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusReconstructVolumeCommand::GetVolumeReconstructorDeviceId() const
-{
-  return this->VolumeReconstructorDeviceId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusReconstructVolumeCommand::SetVolumeReconstructorDeviceId(const std::string& volumeReconstructorDeviceId)
-{
-  this->VolumeReconstructorDeviceId = volumeReconstructorDeviceId;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusReconstructVolumeCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)

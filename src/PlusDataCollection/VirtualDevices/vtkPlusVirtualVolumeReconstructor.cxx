@@ -272,30 +272,6 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::Reset()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-void vtkPlusVirtualVolumeReconstructor::SetOutputVolFilename(const std::string& outputVolFilename)
-{
-  this->OutputVolFilename = outputVolFilename;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusVirtualVolumeReconstructor::GetOutputVolFilename() const
-{
-  return this->OutputVolFilename;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusVirtualVolumeReconstructor::SetOutputVolDeviceName(const std::string& outputVolDeviceName)
-{
-  this->OutputVolDeviceName = outputVolDeviceName;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusVirtualVolumeReconstructor::GetOutputVolDeviceName() const
-{
-  return this->OutputVolDeviceName;
-}
-
 //-----------------------------------------------------------------------------
 double vtkPlusVirtualVolumeReconstructor::GetAcquisitionRate() const
 {

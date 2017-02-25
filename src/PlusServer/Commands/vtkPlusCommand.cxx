@@ -84,54 +84,6 @@ void vtkPlusCommand::SetCommandProcessor(vtkPlusCommandProcessor* processor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusCommand::SetClientId(int clientId)
-{
-  this->ClientId = clientId;
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusCommand::GetClientId() const
-{
-  return this->ClientId;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusCommand::GetRespondWithCommandMessage() const
-{
-  return this->RespondWithCommandMessage;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetName() const
-{
-  return this->Name;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusCommand::SetName(const std::string& name)
-{
-  this->Name = name;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusCommand::GetDeviceName() const
-{
-  return this->DeviceName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusCommand::SetDeviceName(const std::string& deviceName)
-{
-  this->DeviceName = deviceName;
-}
-
-//----------------------------------------------------------------------------
-uint32_t vtkPlusCommand::GetId() const
-{
-  return this->Id;
-}
-
-//----------------------------------------------------------------------------
 vtkPlusDataCollector* vtkPlusCommand::GetDataCollector()
 {
   if (this->CommandProcessor == NULL)

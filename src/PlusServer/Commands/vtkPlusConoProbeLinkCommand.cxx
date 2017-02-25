@@ -54,18 +54,6 @@ std::string vtkPlusConoProbeLinkCommand::GetDescription(const std::string& comma
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusConoProbeLinkCommand::GetConoProbeDeviceId() const
-{
-  return this->ConoProbeDeviceId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusConoProbeLinkCommand::SetConoProbeDeviceId(const std::string& conoProbeDeviceId)
-{
-  this->ConoProbeDeviceId = conoProbeDeviceId;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusConoProbeLinkCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

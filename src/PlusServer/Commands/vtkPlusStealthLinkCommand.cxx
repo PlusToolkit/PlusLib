@@ -62,30 +62,6 @@ std::string vtkPlusStealthLinkCommand::GetDescription(const std::string& command
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusStealthLinkCommand::GetStealthLinkDeviceId() const
-{
-  return this->StealthLinkDeviceId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStealthLinkCommand::SetStealthLinkDeviceId(const std::string& stealthLinkDeviceId)
-{
-  this->StealthLinkDeviceId = stealthLinkDeviceId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStealthLinkCommand::SetDicomImagesOutputDirectory(const std::string& dicomImagesOutputDirectory)
-{
-  this->DicomImagesOutputDirectory = dicomImagesOutputDirectory;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStealthLinkCommand::GetDicomImagesOutputDirectory() const
-{
-  return this->DicomImagesOutputDirectory;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusStealthLinkCommand::SetVolumeEmbeddedTransformToFrame(const std::string& volumeEmbeddedTransformToFrame)
 {
   this->VolumeEmbeddedTransformToFrame = volumeEmbeddedTransformToFrame;
@@ -101,18 +77,6 @@ std::string vtkPlusStealthLinkCommand::GetVolumeEmbeddedTransformToFrame() const
 void vtkPlusStealthLinkCommand::SetNameToGetExam()
 {
   this->SetName(GET_STEALTHLINK_EXAM_DATA_CMD);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusStealthLinkCommand::SetKeepReceivedDicomFiles(bool keepReceivedDicomFiles)
-{
-  this->KeepReceivedDicomFiles = keepReceivedDicomFiles;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusStealthLinkCommand::GetKeepReceivedDicomFiles()
-{
-  return this->KeepReceivedDicomFiles;
 }
 
 //----------------------------------------------------------------------------

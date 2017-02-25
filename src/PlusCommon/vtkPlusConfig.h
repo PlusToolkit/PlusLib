@@ -200,12 +200,12 @@ public:
   void SetDeviceSetConfigurationData(vtkXMLDataElement* deviceSetConfigurationData);
 
   /*! Get editor application executable path and file name */
-  std::string GetEditorApplicationExecutable() const;
+  vtkGetStdStringMacro(EditorApplicationExecutable);
   /*! Set editor application executable path and file name */
-  void SetEditorApplicationExecutable(const std::string& _arg);
+  vtkSetStdStringMacro(EditorApplicationExecutable);
 
   /*! Get application start timestamp */
-  std::string GetApplicationStartTimestamp();
+  vtkGetStdStringMacro(ApplicationStartTimestamp);
 
   /*!
     Gets the full path of a Plus executable file.

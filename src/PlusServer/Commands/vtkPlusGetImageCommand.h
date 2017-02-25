@@ -41,8 +41,8 @@ public:
   void SetNameToGetImage();
 
   /*! Id of the device */
-  virtual std::string GetImageId() const;
-  virtual void SetImageId(const std::string& imageId);
+  vtkGetStdStringMacro(ImageId);
+  vtkSetStdStringMacro(ImageId);
 
 protected:
   /*! Prepare sending image as a response */

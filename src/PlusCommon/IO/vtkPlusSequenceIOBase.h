@@ -76,8 +76,7 @@ public:
     MHD images and the full image (including pixel data) in case of MHA images.
   */
   virtual PlusStatus SetFileName( const std::string& aFilename ) = 0;
-
-  virtual std::string GetFileName();
+  vtkGetStdStringMacro(FileName);
 
   /*! Generate frame size related custom strings and store them
       This is used by vtkPlusVirtualCapture to update the final tally of frames, as it continually appends new frames to the file

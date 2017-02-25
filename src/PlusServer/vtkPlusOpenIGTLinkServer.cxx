@@ -62,9 +62,6 @@ static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
 
 vtkStandardNewMacro(vtkPlusOpenIGTLinkServer);
 
-vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, TransformRepository, vtkPlusTransformRepository);
-vtkCxxSetObjectMacro(vtkPlusOpenIGTLinkServer, DataCollector, vtkPlusDataCollector);
-
 int vtkPlusOpenIGTLinkServer::ClientIdCounter = 1;
 
 //----------------------------------------------------------------------------
@@ -212,12 +209,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
   LOG_INFO("Plus OpenIGTLink server stopped.");
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusOpenIGTLinkServer::GetConfigFilename() const
-{
-  return this->ConfigFilename;
 }
 
 //----------------------------------------------------------------------------
@@ -983,24 +974,6 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusOpenIGTLinkServer::GetIgtlMessageCrcCheckEnabled() const
-{
-  return this->IgtlMessageCrcCheckEnabled;
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkServer::GetMaxNumberOfIgtlMessagesToSend() const
-{
-  return this->MaxNumberOfIgtlMessagesToSend;
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkServer::GetNumberOfRetryAttempts() const
-{
-  return this->NumberOfRetryAttempts;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkServer::KeepAlive()
 {
   LOG_TRACE("Keep alive packet sent to clients...");
@@ -1111,88 +1084,10 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkServer::GetListeningPort() const
-{
-  return this->ListeningPort;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusOpenIGTLinkServer::GetOutputChannelId() const
-{
-  return this->OutputChannelId;
-}
-
-//----------------------------------------------------------------------------
-double vtkPlusOpenIGTLinkServer::GetMissingInputGracePeriodSec() const
-{
-  return this->MissingInputGracePeriodSec;
-}
-
-//----------------------------------------------------------------------------
-double vtkPlusOpenIGTLinkServer::GetMaxTimeSpentWithProcessingMs() const
-{
-  return this->MaxTimeSpentWithProcessingMs;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusOpenIGTLinkServer::GetSendValidTransformsOnly() const
-{
-  return this->SendValidTransformsOnly;
-}
-
-//----------------------------------------------------------------------------
-float vtkPlusOpenIGTLinkServer::GetDefaultClientSendTimeoutSec() const
-{
-  return this->DefaultClientSendTimeoutSec;
-}
-
-//----------------------------------------------------------------------------
-float vtkPlusOpenIGTLinkServer::GetDefaultClientReceiveTimeoutSec() const
-{
-  return this->DefaultClientReceiveTimeoutSec;
-}
-
 //------------------------------------------------------------------------------
 int vtkPlusOpenIGTLinkServer::ProcessPendingCommands()
 {
   return this->PlusCommandProcessor->ExecuteCommands();
-}
-
-//------------------------------------------------------------------------------
-vtkPlusDataCollector* vtkPlusOpenIGTLinkServer::GetDataCollector() const
-{
-  return this->DataCollector;
-}
-
-//------------------------------------------------------------------------------
-vtkPlusTransformRepository* vtkPlusOpenIGTLinkServer::GetTransformRepository() const
-{
-  return this->TransformRepository;
-}
-
-//----------------------------------------------------------------------------
-double vtkPlusOpenIGTLinkServer::GetDelayBetweenRetryAttemptsSec() const
-{
-  return this->DelayBetweenRetryAttemptsSec;
-}
-
-//----------------------------------------------------------------------------
-double vtkPlusOpenIGTLinkServer::GetKeepAliveIntervalSec() const
-{
-  return this->KeepAliveIntervalSec;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::SetOutputChannelId(const std::string& outputChannelId)
-{
-  this->OutputChannelId = outputChannelId;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkServer::SetConfigFilename(const std::string& configFilename)
-{
-  this->ConfigFilename = configFilename;
 }
 
 //------------------------------------------------------------------------------

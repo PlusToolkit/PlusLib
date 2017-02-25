@@ -358,27 +358,3 @@ bool vtkPlusOpenIGTLinkDevice::SendMessage(igtl::MessageBase::Pointer packedMess
   }
   return true;
 }
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkDevice::SetMessageType(const std::string& messageType)
-{
-  this->MessageType = messageType;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusOpenIGTLinkDevice::GetMessageType() const
-{
-  return this->MessageType;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkDevice::SetServerAddress(const std::string& serverAddress)
-{
-  this->ServerAddress = serverAddress;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusOpenIGTLinkDevice::GetServerAddress() const
-{
-  return this->ServerAddress;
-}

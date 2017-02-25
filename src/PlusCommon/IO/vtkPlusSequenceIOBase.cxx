@@ -587,9 +587,3 @@ PlusStatus vtkPlusSequenceIOBase::AppendFile( const std::string& sourceFilename,
   }
   return PLUS_SUCCESS;
 }
-
-//----------------------------------------------------------------------------
-std::string vtkPlusSequenceIOBase::GetFileName()
-{
-  return this->FileName;
-}

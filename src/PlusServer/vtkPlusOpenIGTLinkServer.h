@@ -10,7 +10,9 @@
 // Local includes
 #include "vtkPlusServerExport.h"
 #include "PlusIgtlClientInfo.h"
+#include "vtkPlusDataCollector.h"
 #include "vtkPlusIgtlMessageFactory.h"
+#include "vtkPlusTransformRepository.h"
 
 // VTK includes
 #include <vtkMultiThreader.h>
@@ -105,32 +107,32 @@ public:
   /*! Set server listening port */
   vtkSetMacro(ListeningPort, int);
   /*! Get server listening port */
-  virtual int GetListeningPort() const;
+  vtkGetMacroConst(ListeningPort, int);
 
-  virtual std::string GetOutputChannelId() const;
+  vtkGetStdStringMacro(OutputChannelId);
 
   vtkSetMacro(MissingInputGracePeriodSec, double);
-  virtual double GetMissingInputGracePeriodSec() const;
+  vtkGetMacroConst(MissingInputGracePeriodSec, double);
 
   vtkSetMacro(MaxTimeSpentWithProcessingMs, double);
-  virtual double GetMaxTimeSpentWithProcessingMs() const;
+  vtkGetMacroConst(MaxTimeSpentWithProcessingMs, double);
 
   vtkSetMacro(SendValidTransformsOnly, bool);
-  virtual bool GetSendValidTransformsOnly() const;
+  vtkGetMacroConst(SendValidTransformsOnly, bool);
 
   vtkSetMacro(DefaultClientSendTimeoutSec, float);
-  virtual float GetDefaultClientSendTimeoutSec() const;
+  vtkGetMacroConst(DefaultClientSendTimeoutSec, float);
 
   vtkSetMacro(DefaultClientReceiveTimeoutSec, float);
-  virtual float GetDefaultClientReceiveTimeoutSec() const;
+  vtkGetMacroConst(DefaultClientReceiveTimeoutSec, float);
 
   /*! Set data collector instance */
-  virtual void SetDataCollector(vtkPlusDataCollector* dataCollector);
-  virtual vtkPlusDataCollector* GetDataCollector() const;
+  vtkSetMacro(DataCollector, vtkPlusDataCollector*);
+  vtkGetMacroConst(DataCollector, vtkPlusDataCollector*);
 
   /*! Set transform repository instance */
-  virtual void SetTransformRepository(vtkPlusTransformRepository* transformRepository);
-  virtual vtkPlusTransformRepository* GetTransformRepository() const;
+  vtkSetMacro(TransformRepository, vtkPlusTransformRepository*);
+  vtkGetMacroConst(TransformRepository, vtkPlusTransformRepository*);
 
   /*! Get number of connected clients */
   virtual unsigned int GetNumberOfConnectedClients() const;
@@ -146,7 +148,7 @@ public:
   /*! Stop server */
   PlusStatus StopOpenIGTLinkService();
 
-  virtual std::string GetConfigFilename() const;
+  vtkGetStdStringMacro(ConfigFilename);
 
   vtkGetMacro(IGTLProtocolVersion, int);
 
@@ -196,22 +198,22 @@ protected:
   /*! Set IGTL CRC check flag (0: disabled, 1: enabled) */
   vtkSetMacro(IgtlMessageCrcCheckEnabled, bool);
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */
-  virtual bool GetIgtlMessageCrcCheckEnabled() const;
+  vtkGetMacroConst(IgtlMessageCrcCheckEnabled, bool);
 
   vtkSetMacro(MaxNumberOfIgtlMessagesToSend, int);
-  virtual int GetMaxNumberOfIgtlMessagesToSend() const;
+  vtkGetMacroConst(MaxNumberOfIgtlMessagesToSend, int);
 
   vtkSetMacro(NumberOfRetryAttempts, int);
-  virtual int GetNumberOfRetryAttempts() const;
+  vtkGetMacroConst(NumberOfRetryAttempts, int);
 
   vtkSetMacro(DelayBetweenRetryAttemptsSec, double);
-  virtual double GetDelayBetweenRetryAttemptsSec() const;
+  vtkGetMacroConst(DelayBetweenRetryAttemptsSec, double);
 
   vtkSetMacro(KeepAliveIntervalSec, double);
-  virtual double GetKeepAliveIntervalSec() const;
+  vtkGetMacroConst(KeepAliveIntervalSec, double);
 
-  virtual void SetOutputChannelId(const std::string& outputChannelId);
-  virtual void SetConfigFilename(const std::string& configFilename);
+  vtkSetStdStringMacro(OutputChannelId);
+  vtkSetStdStringMacro(ConfigFilename);
 
   bool HasGracePeriodExpired();
 

@@ -51,9 +51,9 @@ public:
   virtual void SetCommandProcessor(vtkPlusCommandProcessor* processor);
 
   /*! Set the id of the client that requested the command */
-  virtual void SetClientId(int clientId);
-  virtual int GetClientId() const;
-
+  vtkSetMacro(ClientId, int);
+  vtkGetMacro(ClientId, int);
+  
   /*!
     Gets the description for the specified command name. Command name is specified because a command object
     may be able to execute different commands.
@@ -64,16 +64,16 @@ public:
   /*! Returns the list of command names that this command can process */
   virtual void GetCommandNames(std::list<std::string>& cmdNames) = 0;
 
-  virtual bool GetRespondWithCommandMessage() const;
+  vtkGetMacro(RespondWithCommandMessage, bool);
   vtkSetMacro(RespondWithCommandMessage, bool);
 
-  virtual std::string GetName() const;
-  virtual void SetName(const std::string& name);
+  vtkSetStdStringMacro(Name);
+  vtkGetStdStringMacro(Name);
 
-  virtual std::string GetDeviceName() const;
-  virtual void SetDeviceName(const std::string& deviceName);
+  vtkSetStdStringMacro(DeviceName);
+  vtkGetStdStringMacro(DeviceName);
 
-  virtual uint32_t GetId() const;
+  vtkGetMacro(Id, uint32_t);
   vtkSetMacro(Id, uint32_t);
 
   /*!

@@ -45,13 +45,13 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkSetMacro(ServerPort, int);
-  virtual int GetServerPort() const;
+  vtkGetMacroConst(ServerPort, int);
 
-  virtual void SetServerHost(const std::string& serverHost);
-  virtual std::string GetServerHost() const;
+  vtkGetStdStringMacro(ServerHost);
+  vtkSetStdStringMacro(ServerHost);
 
   vtkSetMacro(ServerIGTLVersion, int);
-  virtual int GetServerIGTLVersion() const;
+  vtkGetMacroConst(ServerIGTLVersion, int);
 
   /*! If timeoutSec<0 then connection will be attempted multiple times until successfully connected or the timeout elapse */
   PlusStatus Connect(double timeoutSec = -1);

@@ -65,14 +65,14 @@ public:
   PlusStatus SetId(const std::string& aSourceId);
   PlusStatus SetSourceId(const std::string& aSourceId);
   /*! Get source id */
-  std::string GetId() const;
+  vtkGetStdStringMacro(Id);
   std::string GetSourceId() const;
 
   /*! Set reference name. Reference name is used to convey context about the coordinate frame that the tool is based */
   PlusStatus SetReferenceCoordinateFrameName(const char* referenceName);
   PlusStatus SetReferenceCoordinateFrameName(const std::string& referenceName);
   /*! Get the reference coordinate frame name */
-  std::string GetReferenceCoordinateFrameName() const;
+  vtkGetStdStringMacro(ReferenceCoordinateFrameName);
 
   std::string GetTransformName() const;
 
@@ -236,7 +236,7 @@ public:
   vtkPlusDevice* GetDevice() { return this->Device; }
 
   /*! Get port name. Port name is used to identify the tool among all the tools provided by the tracker device. */
-  std::string GetPortName() const;
+  vtkGetStdStringMacro(PortName);
   /*! Set port name. Port name is used to identify the source among all the sources provided by the device therefore it must be unique */
   PlusStatus SetPortName(const std::string& portName);
   PlusStatus SetPortName(const char* portName);
@@ -279,11 +279,11 @@ public:
   virtual US_IMAGE_ORIENTATION GetOutputImageOrientation();
 
   /*! Get type: video or tool. */
-  DataSourceType GetType() const;
-  void SetType(DataSourceType aType);
+  vtkGetMacroConst(Type, DataSourceType);
+  vtkSetMacro(Type, DataSourceType);
 
   /*! Get the frame number (some devices have frame numbering, otherwise just increment if new frame received) */
-  unsigned long GetFrameNumber() const;
+  vtkGetMacroConst(FrameNumber, unsigned long);
   vtkSetMacro(FrameNumber, unsigned long);
 
   /*!

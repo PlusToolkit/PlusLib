@@ -52,13 +52,13 @@ public:
   void SetModelFile(const char* modelFile);
 
   /*! Set US imaging frequency for generated image */
-  void SetImagingFrequencyMhz(double frequencyMhz);
+  SetMacro(ImagingFrequencyMhz, double);
 
-  std::string GetName() const;
-  void SetName(const std::string& name);
+  GetStdStringMacro(Name);
+  SetStdStringMacro(Name);
 
-  std::string GetObjectCoordinateFrame() const;
-  void SetObjectCoordinateFrame(const std::string& objectCoordinateFrame);
+  GetStdStringMacro(ObjectCoordinateFrame);
+  SetStdStringMacro(ObjectCoordinateFrame);
 
   vtkMatrix4x4* GetModelToObjectTransform();
 
@@ -83,14 +83,14 @@ public:
   void CalculateIntensity(std::vector<double>& reflectedIntensity, unsigned int numberOfFilledPixels, double distanceBetweenScanlineSamplePointsMm,
                           double previousModelAcousticImpedanceMegarayls, double incidentIntensity, double& transmittedIntensity, double incidenceAngleRad);
 
-  void SetDensityKgPerM3(double d);;
-  void SetSoundVelocityMPerSec(double d);;
-  void SetAttenuationCoefficientDbPerCmMhz(double d);;
-  void SetSurfaceReflectionIntensityDecayDbPerMm(double d);;
-  void SetBackscatterDiffuseReflectionCoefficient(double d);;
-  void SetSurfaceDiffuseReflectionCoefficient(double d);;
-  void SetSurfaceSpecularReflectionCoefficient(double d);;
-  void SetTransducerSpatialModelMaxOverlapMm(double d);;
+  SetMacro(DensityKgPerM3, double);
+  SetMacro(SoundVelocityMPerSec, double);
+  SetMacro(AttenuationCoefficientDbPerCmMhz, double);
+  SetMacro(SurfaceReflectionIntensityDecayDbPerMm, double);
+  SetMacro(BackscatterDiffuseReflectionCoefficient, double);
+  SetMacro(SurfaceDiffuseReflectionCoefficient, double);
+  SetMacro(SurfaceSpecularReflectionCoefficient, double);
+  SetMacro(TransducerSpatialModelMaxOverlapMm, double);
 
 protected:
   void SetPolyData(vtkPolyData* polyData);

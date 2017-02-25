@@ -45,12 +45,6 @@ vtkPlusOpenIGTLinkClient::~vtkPlusOpenIGTLinkClient()
 }
 
 //----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkClient::GetServerIGTLVersion() const
-{
-  return this->ServerIGTLVersion;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkClient::Connect(double timeoutSec/*=-1*/)
 {
   const double retryDelaySec = 1.0;
@@ -311,24 +305,6 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(PlusStatus& result, int32_t& o
 void vtkPlusOpenIGTLinkClient::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-int vtkPlusOpenIGTLinkClient::GetServerPort() const
-{
-  return this->ServerPort;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusOpenIGTLinkClient::SetServerHost(const std::string& serverHost)
-{
-  this->ServerHost = serverHost;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusOpenIGTLinkClient::GetServerHost() const
-{
-  return this->ServerHost;
 }
 
 //----------------------------------------------------------------------------

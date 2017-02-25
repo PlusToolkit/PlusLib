@@ -69,8 +69,6 @@ vtkPlusVolumeReconstructor::~vtkPlusVolumeReconstructor()
     this->FanAngleDetector->Delete();
     this->FanAngleDetector = NULL;
   }
-  SetImageCoordinateFrame(NULL);
-  SetReferenceCoordinateFrame(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -924,34 +922,4 @@ void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& fi
     this->Reconstructor->Modified();
     this->Modified();
   }
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusVolumeReconstructor::GetImageCoordinateFrame() const
-{
-  return this->ImageCoordinateFrame;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusVolumeReconstructor::SetImageCoordinateFrame(const std::string& frame)
-{
-  this->ImageCoordinateFrame = frame;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusVolumeReconstructor::GetReferenceCoordinateFrame() const
-{
-  return this->ReferenceCoordinateFrame;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusVolumeReconstructor::SetReferenceCoordinateFrame(const std::string& frame)
-{
-  this->ReferenceCoordinateFrame = frame;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusVolumeReconstructor::GetImportanceMaskFilename() const
-{
-  return this->ImportanceMaskFilename;
 }

@@ -137,12 +137,6 @@ PlusStatus vtkPlusDataSource::SetSourceId(const std::string& aSourceId)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusDataSource::GetId() const
-{
-  return this->Id;
-}
-
-//----------------------------------------------------------------------------
 std::string vtkPlusDataSource::GetSourceId() const
 {
   return this->GetId();
@@ -177,18 +171,6 @@ PlusStatus vtkPlusDataSource::SetReferenceCoordinateFrameName(const char* refere
   }
 
   return this->SetReferenceCoordinateFrameName(std::string(referenceName));
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusDataSource::GetReferenceCoordinateFrameName() const
-{
-  return this->ReferenceCoordinateFrameName;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusDataSource::GetPortName() const
-{
-  return this->PortName;
 }
 
 //----------------------------------------------------------------------------
@@ -506,24 +488,6 @@ PlusStatus vtkPlusDataSource::WriteCompactConfiguration(vtkXMLDataElement* aSour
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(PortName, aSourceElement);
 
   return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-DataSourceType vtkPlusDataSource::GetType() const
-{
-  return this->Type;
-}
-
-//-----------------------------------------------------------------------------
-void vtkPlusDataSource::SetType(DataSourceType aType)
-{
-  this->Type = aType;
-}
-
-//----------------------------------------------------------------------------
-unsigned long vtkPlusDataSource::GetFrameNumber() const
-{
-  return this->FrameNumber;
 }
 
 //-----------------------------------------------------------------------------

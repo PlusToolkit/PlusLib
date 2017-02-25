@@ -200,6 +200,70 @@ private:
   }\
 }
 
+//
+// Get character string.  Creates member Get"name"()
+// (e.g., char *GetFilename());
+//
+#define vtkGetStdStringMacro(name) \
+virtual std::string Get##name () const { \
+  return this->name; \
+}
+
+#define GetStdStringMacro(name) \
+virtual std::string Get##name () const { \
+  return this->name; \
+}
+
+//
+// Set character string.  Creates member Set"name"()
+// (e.g., SetFilename(char *));
+//
+#define vtkSetStdStringMacro(name) \
+virtual void Set##name (const std::string& _arg) \
+{ \
+  if ( this->name.compare(_arg) == 0 ) { return;} \
+  this->name = _arg; \
+  this->Modified(); \
+} \
+virtual void Set##name (const char* _arg) \
+{ \
+  this->Set##name(std::string(_arg ? _arg : "")); \
+}
+
+#define SetStdStringMacro(name) \
+virtual void Set##name (const std::string& _arg) \
+{ \
+  if ( this->name.compare(_arg) == 0 ) { return;} \
+  this->name = _arg; \
+} \
+virtual void Set##name (const char* _arg) \
+{ \
+  this->Set##name(std::string(_arg ? _arg : "")); \
+}
+
+#define vtkGetMacroConst(name,type) \
+virtual type Get##name () const { \
+  return this->name; \
+} 
+
+#define SetMacro(name,type) \
+virtual void Set##name (type _arg) \
+{ \
+  if (this->name != _arg) \
+  { \
+    this->name = _arg; \
+  } \
+} 
+
+#define GetMacro(name,type) \
+virtual void Set##name (type _arg) \
+{ \
+  if (this->name != _arg) \
+  { \
+    this->name = _arg; \
+  } \
+} 
+
 class vtkPlusTrackedFrameList;
 class vtkXMLDataElement;
 

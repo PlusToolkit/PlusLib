@@ -112,12 +112,12 @@ public:
   static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
 
   /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
-  std::string GetImageCoordinateFrame() const;
-  void SetImageCoordinateFrame(const std::string& frame);
+  vtkGetStdStringMacro(ImageCoordinateFrame);
+  vtkSetStdStringMacro(ImageCoordinateFrame);
 
   /*! Get/set the Reference coordinate system name. It overrides the value read from the config file. */
-  std::string GetReferenceCoordinateFrame() const;
-  void SetReferenceCoordinateFrame(const std::string& frame);
+  vtkGetStdStringMacro(ReferenceCoordinateFrame);
+  vtkSetStdStringMacro(ReferenceCoordinateFrame);
 
   vtkGetMacro(EnableFanAnglesAutoDetect, bool);
   vtkSetMacro(EnableFanAnglesAutoDetect, bool);
@@ -191,7 +191,7 @@ public:
   void SetPixelRejectionThreshold(double threshold);
   double GetPixelRejectionThreshold();
 
-  std::string GetImportanceMaskFilename() const;
+  vtkGetStdStringMacro(ImportanceMaskFilename);
   void SetImportanceMaskFilename(const std::string& filename);
 
 protected:

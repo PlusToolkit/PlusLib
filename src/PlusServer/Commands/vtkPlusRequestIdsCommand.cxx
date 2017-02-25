@@ -120,30 +120,6 @@ PlusStatus vtkPlusRequestIdsCommand::WriteConfiguration(vtkXMLDataElement* aConf
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusRequestIdsCommand::SetDeviceType(const std::string& deviceType)
-{
-  this->DeviceType = deviceType;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusRequestIdsCommand::GetDeviceType() const
-{
-  return this->DeviceType;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusRequestIdsCommand::SetDeviceId(const std::string& deviceId)
-{
-  this->DeviceId = deviceId;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusRequestIdsCommand::GetDeviceId() const
-{
-  return this->DeviceId;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusRequestIdsCommand::Execute()
 {
   if (this->Name.empty())

@@ -31,12 +31,6 @@ vtkPlusSaveConfigCommand::~vtkPlusSaveConfigCommand()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSaveConfigCommand::SetFilename(const std::string& filename)
-{
-  this->Filename = filename;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusSaveConfigCommand::SetNameToSaveConfig()
 {
   this->SetName(SAVE_CONFIG_CMD);
@@ -59,12 +53,6 @@ std::string vtkPlusSaveConfigCommand::GetDescription(const std::string& commandN
     desc += ": Tell the data collector to save the config file.";
   }
   return desc;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusSaveConfigCommand::GetFilename() const
-{
-  return this->Filename;
 }
 
 //----------------------------------------------------------------------------

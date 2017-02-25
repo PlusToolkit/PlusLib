@@ -40,8 +40,8 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  virtual std::string GetTransformName() const;
-  virtual void SetTransformName(const std::string& transformName);
+  vtkGetStdStringMacro(TransformName);
+  vtkSetStdStringMacro(TransformName);
 
   void SetNameToGetTransform();
 

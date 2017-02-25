@@ -58,18 +58,6 @@ std::string vtkPlusUpdateTransformCommand::GetDescription(const std::string& com
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusUpdateTransformCommand::GetTransformName() const
-{
-  return this->TransformName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusUpdateTransformCommand::SetTransformName(const std::string& transformName)
-{
-  this->TransformName = transformName;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusUpdateTransformCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -176,16 +164,4 @@ void vtkPlusUpdateTransformCommand::SetTransformValue(double* matrixElements)
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
   matrix->DeepCopy(matrixElements);
   this->SetTransformValue(matrix);
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusUpdateTransformCommand::GetTransformDate() const
-{
-  return this->TransformDate;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusUpdateTransformCommand::SetTransformDate(const std::string& transformDate)
-{
-  this->TransformDate = transformDate;
 }

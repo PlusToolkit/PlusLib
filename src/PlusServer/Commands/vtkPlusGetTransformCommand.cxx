@@ -54,18 +54,6 @@ std::string vtkPlusGetTransformCommand::GetDescription(const std::string& comman
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusGetTransformCommand::GetTransformName() const
-{
-  return this->TransformName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusGetTransformCommand::SetTransformName(const std::string& transformName)
-{
-  this->TransformName = transformName;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusGetTransformCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);

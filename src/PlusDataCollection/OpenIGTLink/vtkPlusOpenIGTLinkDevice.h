@@ -51,9 +51,9 @@ public:
   bool SendMessage(igtl::MessageBase::Pointer packedMessage);
 
   /*! Set OpenIGTLink message type */
-  virtual void SetMessageType(const std::string& messageType);
+  vtkSetStdStringMacro(MessageType);
   /*! Get OpenIGTLink message type */
-  virtual std::string GetMessageType() const;
+  vtkGetStdStringMacro(MessageType);
 
   /*! Set image streams to be sent when message type is a type that sends an image */
   vtkSetMacro(ImageStream, PlusTransformName);
@@ -62,9 +62,9 @@ public:
   vtkGetMacro(ImageStream, PlusTransformName);
 
   /*! Set OpenIGTLink server address */
-  virtual void SetServerAddress(const std::string& serverAddress);
+  vtkSetStdStringMacro(ServerAddress);
   /*! Get OpenIGTLink server address */
-  virtual std::string GetServerAddress() const;
+  vtkGetStdStringMacro(ServerAddress);
 
   /*! Set OpenIGTLink server port */
   vtkSetMacro(ServerPort, int);

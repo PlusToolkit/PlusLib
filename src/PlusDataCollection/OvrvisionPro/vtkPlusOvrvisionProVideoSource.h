@@ -41,10 +41,10 @@ public:
   /// Perform any completion tasks once configured
   virtual PlusStatus NotifyConfigured();
 
-  std::string GetLeftEyeDataSourceName() const;
-  std::string GetRightEyeDataSourceName() const;
-  std::string GetProcessingModeName() const;
-  std::string GetVendor() const;
+  vtkGetStdStringMacro(LeftEyeDataSourceName);
+  vtkGetStdStringMacro(RightEyeDataSourceName);
+  vtkGetStdStringMacro(ProcessingModeName);
+  vtkGetStdStringMacro(Vendor);
 
   vtkGetVector2Macro(Resolution, int);
   vtkGetMacro(Framerate, int);
@@ -52,10 +52,10 @@ public:
   vtkSetMacro(Exposure, int);
 
 protected:
-  void SetLeftEyeDataSourceName(const std::string& leftEyeDataSourceName);
-  void SetRightEyeDataSourceName(const std::string& rightEyeDataSourceName) { this->RightEyeDataSourceName = rightEyeDataSourceName; }
-  void SetVendor(const std::string& vendor);
-  void SetProcessingModeName(const std::string& processingModeName);
+  vtkSetStdStringMacro(LeftEyeDataSourceName);
+  vtkSetStdStringMacro(RightEyeDataSourceName);
+  vtkSetStdStringMacro(ProcessingModeName);
+  vtkSetStdStringMacro(Vendor);
 
   vtkSetMacro(CameraSync, bool);
   vtkGetMacro(Exposure, int);

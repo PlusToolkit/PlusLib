@@ -46,11 +46,11 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Restrict the returned device IDs to this type */
-  virtual void SetDeviceType(const std::string& deviceType);
-  virtual std::string GetDeviceType() const;
+  vtkGetStdStringMacro(DeviceType);
+  vtkSetStdStringMacro(DeviceType);
 
-  virtual void SetDeviceId(const std::string& deviceId);
-  virtual std::string GetDeviceId() const;
+  vtkGetStdStringMacro(DeviceId);
+  vtkSetStdStringMacro(DeviceId);
 
 protected:
 
