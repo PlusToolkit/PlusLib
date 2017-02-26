@@ -62,18 +62,6 @@ std::string vtkPlusStealthLinkCommand::GetDescription(const std::string& command
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusStealthLinkCommand::SetVolumeEmbeddedTransformToFrame(const std::string& volumeEmbeddedTransformToFrame)
-{
-  this->VolumeEmbeddedTransformToFrame = volumeEmbeddedTransformToFrame;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusStealthLinkCommand::GetVolumeEmbeddedTransformToFrame() const
-{
-  return this->VolumeEmbeddedTransformToFrame;
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusStealthLinkCommand::SetNameToGetExam()
 {
   this->SetName(GET_STEALTHLINK_EXAM_DATA_CMD);
