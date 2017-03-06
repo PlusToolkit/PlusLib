@@ -72,8 +72,9 @@ public:
   /*! Get number of tracked frames */
   virtual unsigned int GetNumberOfTrackedFrames()
   {
-    return this->TrackedFrameList.size();
+    return this->Size();
   }
+  virtual unsigned int Size() { return this->TrackedFrameList.size(); }
 
   /*! Save the tracked data to sequence metafile */
   PlusStatus SaveToSequenceMetafile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool enableImageDataWrite = true);
@@ -234,6 +235,11 @@ public:
   TrackedFrameListType::const_iterator begin() const;
   TrackedFrameListType::const_iterator end() const;
 
+  TrackedFrameListType::reverse_iterator rbegin();
+  TrackedFrameListType::reverse_iterator rend();
+  TrackedFrameListType::const_reverse_iterator rbegin() const;
+  TrackedFrameListType::const_reverse_iterator rend() const;
+
 protected:
   vtkPlusTrackedFrameList();
   virtual ~vtkPlusTrackedFrameList();
@@ -279,5 +285,10 @@ vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::iterator begi
 vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::iterator end(vtkPlusTrackedFrameList& list);
 vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator begin(const vtkPlusTrackedFrameList& list);
 vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator end(const vtkPlusTrackedFrameList& list);
+
+vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator rbegin(vtkPlusTrackedFrameList& list);
+vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator rend(vtkPlusTrackedFrameList& list);
+vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator rbegin(const vtkPlusTrackedFrameList& list);
+vtkPlusCommonExport vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator rend(const vtkPlusTrackedFrameList& list);
 
 #endif

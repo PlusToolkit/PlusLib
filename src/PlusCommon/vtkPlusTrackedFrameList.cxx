@@ -972,3 +972,51 @@ vtkPlusTrackedFrameList::TrackedFrameListType::const_iterator end(const vtkPlusT
 {
   return list.end();
 }
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator vtkPlusTrackedFrameList::rbegin()
+{
+  return TrackedFrameList.rbegin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator vtkPlusTrackedFrameList::rbegin() const
+{
+  return TrackedFrameList.rbegin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator vtkPlusTrackedFrameList::rend()
+{
+  return TrackedFrameList.rend();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator vtkPlusTrackedFrameList::rend() const
+{
+  return TrackedFrameList.rend();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator rbegin(vtkPlusTrackedFrameList& list)
+{
+  return list.rbegin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator rbegin(const vtkPlusTrackedFrameList& list)
+{
+  return list.rbegin();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::reverse_iterator rend(vtkPlusTrackedFrameList& list)
+{
+  return list.rend();
+}
+
+//----------------------------------------------------------------------------
+vtkPlusTrackedFrameList::TrackedFrameListType::const_reverse_iterator rend(const vtkPlusTrackedFrameList& list)
+{
+  return list.rend();
+}
