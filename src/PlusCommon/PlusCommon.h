@@ -26,7 +26,6 @@
 #include <list>
 #include <locale>
 #include <sstream>
-//#include <xutility>
 
 class vtkPlusUsScanConvert;
 class vtkPlusTrackedFrameList;

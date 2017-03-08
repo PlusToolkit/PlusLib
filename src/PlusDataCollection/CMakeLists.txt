@@ -46,8 +46,8 @@ OPTION (PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D 
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
-IF (PLUS_TEST_ULTRASONIX)
-  SET (PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
+IF(PLUS_TEST_ULTRASONIX)
+  SET(PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
 
 OPTION(PLUS_USE_MMF_VIDEO "Provide support for the Microsoft Media Foundation video digitizers (requires installation of Windows Platform SDK 7.1 or later)" OFF)
@@ -61,7 +61,7 @@ IF(PLUS_USE_tesseract)
 ENDIF()
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
-IF (PLUS_USE_NVIDIA_DVP)
+IF(PLUS_USE_NVIDIA_DVP)
   FIND_PACKAGE(QuadroSDI REQUIRED)
   FIND_PACKAGE(OpenGL REQUIRED)
 ENDIF()
@@ -80,7 +80,7 @@ SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusHaptics CACHE INTERNAL "
 
 # --------------------------------------------------------------------------
 # Sources
-SET (PlusDataCollection_SRCS
+SET(PlusDataCollection_SRCS
   FakeTracking/vtkPlusFakeTracker.cxx   
   SavedDataSource/vtkPlusSavedDataSource.cxx 
   ImageProcessor/vtkPlusImageProcessorVideoSource.cxx
@@ -111,7 +111,7 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
   )
 IF(PLUS_USE_tesseract)
-  SET (Virtual_SRCS ${Virtual_SRCS} VirtualDevices/vtkPlusVirtualTextRecognizer.cxx)
+  SET(Virtual_SRCS ${Virtual_SRCS} VirtualDevices/vtkPlusVirtualTextRecognizer.cxx)
 ENDIF()
 
 SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
@@ -119,9 +119,9 @@ SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
   ${Virtual_SRCS}
   )
 
-SET (PlusDataCollection_HDRS)
-IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (PlusDataCollection_HDRS
+SET(PlusDataCollection_HDRS)
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(PlusDataCollection_HDRS
     FakeTracking/vtkPlusFakeTracker.h
     SavedDataSource/vtkPlusSavedDataSource.h 
     ImageProcessor/vtkPlusImageProcessorVideoSource.h
@@ -151,7 +151,7 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
     )
   IF(PLUS_USE_tesseract)
-    SET (Virtual_HDRS ${Virtual_HDRS} VirtualDevices/vtkPlusVirtualTextRecognizer.h)
+    SET(Virtual_HDRS ${Virtual_HDRS} VirtualDevices/vtkPlusVirtualTextRecognizer.h)
   ENDIF()
 ENDIF()
 
@@ -162,10 +162,10 @@ SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
 
 SET(PlusDataCollection_INSTALL_INCLUDE_FILES )
 
-SET (External_Libraries_Install)
-SET (External_Libraries_Debug)
+SET(External_Libraries_Install)
+SET(External_Libraries_Debug)
 
-SET (PlusDataCollection_INCLUDE_DIRS
+SET(PlusDataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/FakeTracking 
@@ -177,15 +177,15 @@ SET (PlusDataCollection_INCLUDE_DIRS
   
 # --------------------------------------------------------------------------
 # OptiTrack support
-IF (PLUS_USE_OPTITRACK)
-  IF (WIN32)
+IF(PLUS_USE_OPTITRACK)
+  IF(WIN32)
     # PlusLib Files
-    SET (OptiTrack_SRCS
+    SET(OptiTrack_SRCS
       OptiTrack/vtkPlusOptiTrackTracker.cxx
       )
 
     IF(MSVC)
-      SET (OptiTrack_HDRS
+      SET(OptiTrack_HDRS
         OptiTrack/vtkPlusOptiTrackTracker.h
         )
     ENDIF()
@@ -198,7 +198,7 @@ IF (PLUS_USE_OPTITRACK)
       ${OptiTrack_SRCS}
       )
 
-    SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+    SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
          ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
          CACHE INTERNAL "" FORCE)
 
@@ -220,13 +220,13 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Optimet ConoProbe support
-IF (PLUS_USE_OPTIMET_CONOPROBE)
-  SET (Optimet_SRCS
+IF(PLUS_USE_OPTIMET_CONOPROBE)
+  SET(Optimet_SRCS
     Optimet/vtkPlusOptimetConoProbeMeasurer.cxx
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Optimet_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Optimet_HDRS
       Optimet/vtkPlusOptimetConoProbeMeasurer.h
       )
   ENDIF()
@@ -239,33 +239,35 @@ IF (PLUS_USE_OPTIMET_CONOPROBE)
     ${Optimet_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${OPTIMETSMART32SDK_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Optimet 
     CACHE INTERNAL "" FORCE
     )
     
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
   ${OPTIMETSMART32SDK_LIBRARY}
   )
 
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
   ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
   ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # NDI Certus support
-IF (PLUS_USE_NDI_CERTUS)
-  SET (NDICertus_SRCS
+IF(PLUS_USE_NDI_CERTUS)
+  FIND_PACKAGE(ndicapi REQUIRED NO_MODULE)
+
+  SET(NDICertus_SRCS
     NDICertusTracking/vtkPlusNDICertusTracker.cxx
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (NDICertus_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(NDICertus_HDRS
       NDICertusTracking/vtkPlusNDICertusTracker.h
       )
   ENDIF()
@@ -278,29 +280,38 @@ IF (PLUS_USE_NDI_CERTUS)
     ${NDICertus_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/NDICertusTracking 
     ${NDIOAPI_INCLUDE_DIR} CACHE INTERNAL "" FORCE
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     ${NDIOAPI_LIBRARY}
-    vtkndicapi # uses ndicapi's math functions
+    ndicapi
     )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
+  ELSE()
+    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION)
+  ENDIF()
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${_lib}
     )
 ENDIF()
 
 #--------------------------------------------------------------------------
 # NDI COMMON API support
-IF (PLUS_USE_NDI)
-  SET (NDICAPI_SRCS
+IF(PLUS_USE_NDI)
+  FIND_PACKAGE(ndicapi REQUIRED NO_MODULE)
+
+  SET(NDICAPI_SRCS
     PolarisTracking/vtkPlusNDITracker.cxx
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (NDICAPI_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(NDICAPI_HDRS
       PolarisTracking/vtkPlusNDITracker.h
       )
   ENDIF()
@@ -313,23 +324,33 @@ IF (PLUS_USE_NDI)
     ${NDICAPI_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
     CACHE INTERNAL "" FORCE)
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} vtkndicapi )
-  # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    ndicapi 
+    )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
+  ELSE()
+    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION)
+  ENDIF()
+  SET(External_Libraries_Install ${External_Libraries_Install}
+    ${_lib}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
 # MICRONTRACKER support
-IF (PLUS_USE_MICRONTRACKER)
-  SET (MicronTracking_SRCS
+IF(PLUS_USE_MICRONTRACKER)
+  SET(MicronTracking_SRCS
     MicronTracking/vtkPlusMicronTracker.cxx
   )
   
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (MicronTracking_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(MicronTracking_HDRS
       MicronTracking/vtkPlusMicronTracker.h
       )
   ENDIF()
@@ -342,20 +363,20 @@ IF (PLUS_USE_MICRONTRACKER)
     ${MicronTracking_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
     CACHE INTERNAL "" FORCE)
    
   INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     MicronTrackerInterface
     ${MICRONTRACKER_LIBRARY}
     )
 
-  IF (EXISTS "${MICRONTRACKER_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  IF(EXISTS "${MICRONTRACKER_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}")
     # MicronTracker 3.7.x
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${MICRONTRACKER_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MICRONTRACKER_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MICRONTRACKER_BINARY_DIR}/FlyCapture2_C${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -366,7 +387,7 @@ IF (PLUS_USE_MICRONTRACKER)
       )
   ELSE()
     # MicronTracker 3.6.x
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${MICRONTRACKER_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MICRONTRACKER_BINARY_DIR}/Windist/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MICRONTRACKER_BINARY_DIR}/Windist/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -378,13 +399,13 @@ ENDIF()
 
 #--------------------------------------------------------------------------
 # INTELREALSENSE support
-IF (PLUS_USE_INTELREALSENSE)
-  SET (IntelRealSense_SRCS
+IF(PLUS_USE_INTELREALSENSE)
+  SET(IntelRealSense_SRCS
     IntelRealSense/vtkPlusIntelRealSenseTracker.cxx
   )
   
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (IntelRealSense_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(IntelRealSense_HDRS
       IntelRealSense/vtkPlusIntelRealSenseTracker.h
       )
   ENDIF()
@@ -397,12 +418,12 @@ IF (PLUS_USE_INTELREALSENSE)
     ${IntelRealSense_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSense
     ${INTELREALSENSE_INCLUDE_DIR}
     CACHE INTERNAL "" FORCE)
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     optimized ${INTELREALSENSE_RELEASE_LIB}
     debug ${INTELREALSENSE_DEBUG_LIB}
     )
@@ -410,25 +431,25 @@ IF (PLUS_USE_INTELREALSENSE)
   # TODO: may need to install DLLs
   # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
   # This also seems to be missing the corresponding entry in the PlusLibConfig.cmake 
-#  SET ( External_Libraries_Install ${External_Libraries_Install}
+#  SET(External_Libraries_Install ${External_Libraries_Install}
 #    ${INTELREALSENSE_RELEASE_LIB}
 #    )
-#  SET ( External_Libraries_Debug_Install ${External_Libraries_Debug_Install}
+#  SET( External_Libraries_Debug_Install ${External_Libraries_Debug_Install}
 #    ${INTELREALSENSE_DEBUG_LIB}
 #    )
 ENDIF()
 
 #--------------------------------------------------------------------------
 # BrachyTracker support
-IF (PLUS_USE_BRACHY_TRACKER)
-  SET (BrachyTracker_SRCS
+IF(PLUS_USE_BRACHY_TRACKER)
+  SET(BrachyTracker_SRCS
     BrachyTracking/vtkPlusBrachyTracker.cxx
     BrachyTracking/PlusCmsBrachyStepper.cxx
     BrachyTracking/PlusCivcoBrachyStepper.cxx
   )
   
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (BrachyTracker_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(BrachyTracker_HDRS
       BrachyTracking/vtkPlusBrachyTracker.h
       BrachyTracking/PlusCmsBrachyStepper.h 
       BrachyTracking/PlusBrachyStepper.h 
@@ -444,7 +465,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     ${BrachyTracker_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
     ${USDIGITAL_SEI_INCLUDE_DIR}
     CACHE INTERNAL "" FORCE)
@@ -453,25 +474,25 @@ IF (PLUS_USE_BRACHY_TRACKER)
   SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_IMPLIB ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_LOCATION ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} USDigitalEncoders )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} USDigitalEncoders )
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
-  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 ENDIF()
 
 #--------------------------------------------------------------------------
 # USDigitalEncoders tracking support
-IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
-  SET (USDigitalEncoders_SRCS
+IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
+  SET(USDigitalEncoders_SRCS
     USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.cxx
   )
   
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (USDigitalEncoders_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(USDigitalEncoders_HDRS
       USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.h
       )
   ENDIF()
@@ -484,20 +505,20 @@ IF (PLUS_USE_USDIGITALENCODERS_TRACKER)
     ${USDigitalEncoders_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
     ${USDIGITAL_SEI_INCLUDE_DIR}
     CACHE INTERNAL "" FORCE)
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
     )
-  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 ENDIF()
@@ -505,12 +526,12 @@ ENDIF()
 #--------------------------------------------------------------------------
 # Ascension 3DG support (trakSTAR)
 IF( PLUS_USE_Ascension3DG )
-  SET (Ascension_SRCS
+  SET(Ascension_SRCS
     Ascension3DGTracking/vtkPlusAscension3DGTracker.cxx 
     )
     
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Ascension_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Ascension_HDRS
       Ascension3DGTracking/vtkPlusAscension3DGTracker.h 
       )
     # vtkPlusAscension3DGTrackerBase has to be installed as well
@@ -527,13 +548,13 @@ IF( PLUS_USE_Ascension3DG )
     ${Ascension_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${ATC_TRAKSTAR_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE)
 
   ADD_LIBRARY(Ascension3DG SHARED IMPORTED)
-  IF ( (MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64") OR MINGW )
+  IF( (MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64") OR MINGW )
     SET(Ascension3DG_LIB_FILE ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG64${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE FILEPATH "Lib file for Ascension3DG.")
     SET(Ascension3DG_SHARED_LIB_FILE ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG64${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE FILEPATH "DLL file for Ascension3DG.")
   ELSE()
@@ -551,11 +572,11 @@ ENDIF()
 #--------------------------------------------------------------------------
 # Ascension 3DGm support (medSAFE)
 IF( PLUS_USE_Ascension3DGm )
-  SET (Ascension3DGm_SRCS
+  SET(Ascension3DGm_SRCS
     Ascension3DGTracking/vtkAscension3DGmTracker.cxx 
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Ascension3DGm_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Ascension3DGm_HDRS
       Ascension3DGTracking/vtkAscension3DGmTracker.h
       )
     # vtkPlusAscension3DGTrackerBase has to be installed as well
@@ -572,7 +593,7 @@ IF( PLUS_USE_Ascension3DGm )
     ${Ascension3DGm_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${ATC_MEDSAFE_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     CACHE INTERNAL "" FORCE)
@@ -581,11 +602,11 @@ IF( PLUS_USE_Ascension3DGm )
   SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_IMPLIB ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET Ascension3DGm PROPERTY IMPORTED_LOCATION ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} )
 
-  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DGm )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DGm )
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} 
     )
 ENDIF()
@@ -593,11 +614,11 @@ ENDIF()
 #--------------------------------------------------------------------------
 # PhidgetSpatial 3/3/3 MARG sensor (magnetometer, accelerometer, gyroscope)
 IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
-  SET (PhidgetSpatial_SRCS
+  SET(PhidgetSpatial_SRCS
     PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx 
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (PhidgetSpatial_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(PhidgetSpatial_HDRS
       PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h 
       )
   ENDIF()
@@ -610,7 +631,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
     ${PhidgetSpatial_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
     CACHE INTERNAL "" FORCE)
@@ -619,11 +640,11 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-  SET ( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
 ENDIF()
@@ -631,12 +652,12 @@ ENDIF()
 #--------------------------------------------------------------------------
 # 3dConnexion SpaceNavigator and similar 3D mouse devices
 IF( PLUS_USE_3dConnexion_TRACKER )
-  IF (WIN32)  # the 3D mouse is currently supported on Windows only
-    SET (3dConnexion_SRCS
+  IF(WIN32)  # the 3D mouse is currently supported on Windows only
+    SET(3dConnexion_SRCS
       3dConnexionTracking/vtkPlus3dConnexionTracker.cxx
       )
-    IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-      SET (3dConnexion_HDRS
+    IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+      SET(3dConnexion_HDRS
         3dConnexionTracking/vtkPlus3dConnexionTracker.h 
         )
     ENDIF()
@@ -649,7 +670,7 @@ IF( PLUS_USE_3dConnexion_TRACKER )
       ${3dConnexion_SRCS}
       )
 
-    SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+    SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
       ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
       CACHE INTERNAL "" FORCE)
   ENDIF()
@@ -657,11 +678,11 @@ ENDIF()
 
 #--------------------------------------------------------------------------
 # CH Robotics UM6 MARG sensor (magnetometer, accelerometer, gyroscope)
-SET (ChRobotics_SRCS
+SET(ChRobotics_SRCS
   ChRobotics/vtkPlusChRoboticsTracker.cxx
   )
-IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (ChRobotics_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(ChRobotics_HDRS
     ChRobotics/vtkPlusChRoboticsTracker.h 
     )
 ENDIF()
@@ -674,17 +695,17 @@ SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
   ${ChRobotics_SRCS}
   )
 
-SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
   ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
   CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------
 # Microchip MARG sensor (magnetometer, accelerometer, gyroscope)
-SET (MicrochipMARG_SRCS
+SET(MicrochipMARG_SRCS
   MicrochipTracking/vtkPlusMicrochipTracker.cxx
   )
-IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (MicrochipMARG_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(MicrochipMARG_HDRS
     MicrochipTracking/vtkPlusMicrochipTracker.h 
     )
 ENDIF()
@@ -697,21 +718,21 @@ SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
   ${MicrochipMARG_SRCS}
   )
 
-SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
   ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
   CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------
 # OpenIGTLink 
 IF( PLUS_USE_OpenIGTLink )
-  SET (OpenIGTLink_SRCS
+  SET(OpenIGTLink_SRCS
     OpenIGTLink/vtkPlusOpenIGTLinkDevice.cxx 
     OpenIGTLink/vtkPlusOpenIGTLinkTracker.cxx 
     OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.cxx
     )
     
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (OpenIGTLink_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OpenIGTLink_HDRS
       OpenIGTLink/vtkPlusOpenIGTLinkDevice.h
       OpenIGTLink/vtkPlusOpenIGTLinkTracker.h 
       OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
@@ -726,18 +747,18 @@ IF( PLUS_USE_OpenIGTLink )
     ${OpenIGTLink_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLink
     ${OpenIGTLink_INCLUDE_DIRS}
     CACHE INTERNAL "" FORCE)
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} OpenIGTLink vtkPlusOpenIGTLink )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Ultrasonix support
-IF (PLUS_USE_ULTRASONIX_VIDEO)
-  SET (Ultrasonix_SRCS
+IF(PLUS_USE_ULTRASONIX_VIDEO)
+  SET(Ultrasonix_SRCS
     SonixVideo/vtkPlusSonixVideoSource.cxx
     SonixVideo/vtkPlusSonixVolumeReader.cxx
     SonixVideo/itkUlteriusImageIO.cxx
@@ -745,8 +766,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     SonixVideo/vtkPlusSonixPortaVideoSource.cxx
     )
     
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Ultrasonix_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Ultrasonix_HDRS
       SonixVideo/vtkPlusSonixVideoSource.h
       SonixVideo/vtkPlusSonixVolumeReader.h
       SonixVideo/itkUlteriusImageIO.h
@@ -764,7 +785,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     )
 
   MESSAGE(STATUS "Ultrasonix SDK directory: ${ULTRASONIX_SDK_DIR}")
-  IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 1)
+  IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 1)
     # Use Ultrasonix SDK 1.2 (only Ulterius is supported)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
@@ -773,7 +794,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
       optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
       debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
       )
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${ULTRASONIX_SDK_BINARY_DIR}/r/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/r/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
@@ -781,7 +802,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
       ${ULTRASONIX_SDK_BINARY_DIR}/d/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/d/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
-  ELSEIF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
+  ELSEIF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 2)
     # Use Ultrasonix SDK 2.0 (only Ulterius is supported)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
@@ -789,7 +810,7 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     LIST (APPEND PlusDataCollection_LIBS
       ${ULTERIUS_LIB_DIR}/ulterius.lib
       )
-    SET ( Ultrasonix_External_Libs 
+    SET( Ultrasonix_External_Libs 
       ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -797,8 +818,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
       ${ULTRASONIX_SDK_BINARY_DIR}/umc_xml${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/xerces-c_2_7_u_vc6${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
-    SET ( External_Libraries_Install ${External_Libraries_Install} ${Ultrasonix_External_Libs} )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug} ${Ultrasonix_External_Libs} )
+    SET(External_Libraries_Install ${External_Libraries_Install} ${Ultrasonix_External_Libs} )
+    SET( External_Libraries_Debug ${External_Libraries_Debug} ${Ultrasonix_External_Libs} )
   ELSE()
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ultrasonix SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/ulterius/inc CACHE PATH "Path to the Ultrasonix SDK Ulterius include directory." FORCE)
@@ -813,8 +834,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     LIST (APPEND PlusDataCollection_LIBS
       ${PORTA_LIB_DIR}/porta.lib
       )
-    IF (PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
-      IF (PLUS_ULTRASONIX_SDK_MINOR_VERSION EQUAL 0)
+    IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
+      IF(PLUS_ULTRASONIX_SDK_MINOR_VERSION EQUAL 0)
         MESSAGE( FATAL_ERROR "Plus does not support Ultrasonix SDK version 6.0.x")
       ENDIF()
 
@@ -826,8 +847,8 @@ IF (PLUS_USE_ULTRASONIX_VIDEO)
     FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES 
       "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-    SET ( External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
+    SET(External_Libraries_Install ${External_Libraries_Install} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
+    SET( External_Libraries_Debug ${External_Libraries_Debug} ${ULTRASONIX_SDK_SHARED_LIBRARIES} )
   ENDIF()
 
   LIST (APPEND PlusDataCollection_LIBS
@@ -845,12 +866,12 @@ ENDIF()
 # BK ProFocus support
 
 # OEM interface
-IF (PLUS_USE_BKPROFOCUS_VIDEO)
-  SET (BKProFocus_SRCS
+IF(PLUS_USE_BKPROFOCUS_VIDEO)
+  SET(BKProFocus_SRCS
     BkProFocus/vtkPlusBkProFocusOemVideoSource.cxx 
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (BKProFocus_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(BKProFocus_HDRS
       BkProFocus/vtkPlusBkProFocusOemVideoSource.h
       )
   ENDIF()
@@ -863,7 +884,7 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     ${BKProFocus_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
     ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
     ${GRABBIELIB_SOURCE_DIR}/cfuff
@@ -873,25 +894,25 @@ IF (PLUS_USE_BKPROFOCUS_VIDEO)
     ${GRABBIELIB_SOURCE_DIR}/ParametersLibrary        
     ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus
     )
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     GrabbieLib
     vtkpng
     vtkInteractionImage
     )
 
   # CameraLink interface
-  IF (PLUS_USE_BKPROFOCUS_CAMERALINK)
-    SET (PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+  IF(PLUS_USE_BKPROFOCUS_CAMERALINK)
+    SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
       BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.cxx
       BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
       )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
       BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.h
       BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
   ENDIF()
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   ENDIF()
@@ -899,13 +920,13 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # ICCapturing support
-IF (PLUS_USE_ICCAPTURING_VIDEO)
-  SET (ICCapturing_SRCS
+IF(PLUS_USE_ICCAPTURING_VIDEO)
+  SET(ICCapturing_SRCS
     ICCapturing/vtkPlusICCapturingSource.cxx
     ICCapturing/ICCapturingListener.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (ICCapturing_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(ICCapturing_HDRS
       ICCapturing/vtkPlusICCapturingSource.h
       ICCapturing/ICCapturingListener.h 
       )
@@ -920,32 +941,32 @@ IF (PLUS_USE_ICCAPTURING_VIDEO)
     )
 
   # Look for ICCapturing libraries   
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${ICCAPTURING_INCLUDE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/ICCapturing
     )
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     optimized ${ICCAPTURING_TIS_UDSHL_STATIC_LIB}
     debug ${ICCAPTURING_TIS_UDSHLD_STATIC_LIB}
     )
 
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${ICCAPTURING_TIS_UDSHL_SHARED_LIB}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+  SET( External_Libraries_Debug ${External_Libraries_Debug} 
     ${ICCAPTURING_TIS_UDSHLD_SHARED_LIB}
     )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # StealthLink2.0 suppport
-IF (PLUS_USE_STEALTHLINK)
-  SET (StealthLink_SRCS
+IF(PLUS_USE_STEALTHLINK)
+  SET(StealthLink_SRCS
     StealthLink/vtkPlusStealthLinkTracker.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (StealthLink_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(StealthLink_HDRS
       StealthLink/vtkPlusStealthLinkTracker.h
       )
   ENDIF()
@@ -958,24 +979,24 @@ IF (PLUS_USE_STEALTHLINK)
     ${StealthLink_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${STEALTHLINK_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/StealthLink
     )
 
-  IF (WIN32)
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  IF(WIN32)
+    SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
       optimized ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
       debug ${STEALTHLINK_STEALTHLINKD_STATIC_LIBRARY}
       )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+    SET( External_Libraries_Debug ${External_Libraries_Debug} 
       ${STEALTHLINK_STEALTHLINKD_SHARED_LIBRARY}
       )
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${STEALTHLINK_STEALTHLINK_SHARED_LIBRARY}
       )
   ELSE()
-    SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
       ${STEALTHLINK_STEALTHLINK_STATIC_LIBRARY}
       )
   ENDIF()
@@ -984,13 +1005,13 @@ ENDIF()
 #--------------------------------------------------------------------------
 # da Vinci Surgical System support
 IF(PLUS_USE_IntuitiveDaVinci)
-  SET (daVinci_SRCS
+  SET(daVinci_SRCS
     IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.cxx
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (daVinci_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(daVinci_HDRS
       IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h 
       IntuitiveDaVinci/IntuitiveDaVinci.h
     )
@@ -1018,12 +1039,12 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Video-for-Windows video digitizer support
-IF (PLUS_USE_VFW_VIDEO)
-  SET (Vfw_SRCS
+IF(PLUS_USE_VFW_VIDEO)
+  SET(Vfw_SRCS
     VideoForWindows/vtkPlusWin32VideoSource2.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Vfw_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Vfw_HDRS
       VideoForWindows/vtkPlusWin32VideoSource2.h
       )
   ENDIF()
@@ -1036,25 +1057,25 @@ IF (PLUS_USE_VFW_VIDEO)
     ${Vfw_SRCS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ws2_32
     )
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows   
     )
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     Vfw32.lib
     )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Microsoft Media Foundation video digitizer support
-IF (PLUS_USE_MMF_VIDEO)
-  SET (Mmf_SRCS
+IF(PLUS_USE_MMF_VIDEO)
+  SET(Mmf_SRCS
     MicrosoftMediaFoundation/vtkPlusMmfVideoSource.cxx 
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Mmf_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Mmf_HDRS
       MicrosoftMediaFoundation/vtkPlusMmfVideoSource.h 
       )
   ENDIF()
@@ -1067,23 +1088,23 @@ IF (PLUS_USE_MMF_VIDEO)
     ${Mmf_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicrosoftMediaFoundation
     ${WINDOWS_SDK_INCLUDE_DIRS}
     )
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     MfVideoCaptureLibrary
     )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Epiphan support
-IF (PLUS_USE_EPIPHAN)
-  SET (Epiphan_SRCS
+IF(PLUS_USE_EPIPHAN)
+  SET(Epiphan_SRCS
     Epiphan/vtkPlusEpiphanVideoSource.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Epiphan_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Epiphan_HDRS
       Epiphan/vtkPlusEpiphanVideoSource.h
       )
   ENDIF()
@@ -1096,17 +1117,17 @@ IF (PLUS_USE_EPIPHAN)
     ${Epiphan_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${EPIPHAN_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Epiphan
     )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug} 
+  SET( External_Libraries_Debug ${External_Libraries_Debug} 
     ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-  SET ( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 
@@ -1115,19 +1136,19 @@ IF (PLUS_USE_EPIPHAN)
   SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_IMPLIB ${EPIPHAN_LIB_DIR}/frmgrab${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_LOCATION ${EPIPHAN_BINARY_DIR}/frmgrab${CMAKE_SHARED_LIBRARY_SUFFIX})
   
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     Epiphan
   )
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Capistrano Labs support
-IF (PLUS_USE_CAPISTRANO_VIDEO)
-  SET (Capistrano_SRCS
+IF(PLUS_USE_CAPISTRANO_VIDEO)
+  SET(Capistrano_SRCS
     Capistrano/vtkPlusCapistranoVideoSource.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Capistrano_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Capistrano_HDRS
       Capistrano/vtkPlusCapistranoVideoSource.h
       )
   ENDIF()
@@ -1140,19 +1161,19 @@ IF (PLUS_USE_CAPISTRANO_VIDEO)
     ${Capistrano_SRCS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${CAPISTRANO_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Capistrano
     )
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+  SET( External_Libraries_Debug ${External_Libraries_Debug}
     ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
@@ -1160,12 +1181,12 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Interson support
-IF (PLUS_USE_INTERSON_VIDEO)
-  SET (Interson_SRCS
+IF(PLUS_USE_INTERSON_VIDEO)
+  SET(Interson_SRCS
     Interson/vtkPlusIntersonVideoSource.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Interson_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Interson_HDRS
       Interson/vtkPlusIntersonVideoSource.h
       )
   ENDIF()
@@ -1178,30 +1199,30 @@ IF (PLUS_USE_INTERSON_VIDEO)
     ${Interson_SRCS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ${INTERSON_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${INTERSON_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${INTERSON_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Interson
     )
 
   IF( ${CMAKE_GENERATOR} MATCHES Win64 )
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+    SET( External_Libraries_Debug ${External_Libraries_Debug}
       ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
   ELSE()
-      SET ( External_Libraries_Install ${External_Libraries_Install}
+      SET(External_Libraries_Install ${External_Libraries_Install}
       ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
-    SET ( External_Libraries_Debug ${External_Libraries_Debug}
+    SET( External_Libraries_Debug ${External_Libraries_Debug}
       ${INTERSON_WIN32_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
@@ -1210,13 +1231,13 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Interson SDK C++ support
-IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
+IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
   FIND_PACKAGE( IntersonSDKCxx REQUIRED )
-  SET (IntersonCXX_SRCS
+  SET(IntersonCXX_SRCS
     IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (IntersonCXX_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(IntersonCXX_HDRS
       IntersonSDKCxx/vtkPlusIntersonSDKCxxVideoSource.h
       )
   ENDIF()
@@ -1229,19 +1250,19 @@ IF (PLUS_USE_INTERSONSDKCXX_VIDEO)
     ${IntersonCXX_SRCS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ${IntersonSDKCxx_LIBRARIES}
     )
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
     ${IntersonSDKCxx_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntersonSDKCxx
     )
 
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${IntersonSDK_DIR}/Libraries/Interson${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${IntersonSDK_DIR}/Libraries/IntersonTools${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+  SET( External_Libraries_Debug ${External_Libraries_Debug}
     ${IntersonSDK_DIR}/Libraries/Interson${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${IntersonSDK_DIR}/Libraries/IntersonTools${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
@@ -1249,16 +1270,16 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Telemed support
-IF (PLUS_USE_TELEMED_VIDEO)
-  SET (Telemed_SRCS
+IF(PLUS_USE_TELEMED_VIDEO)
+  SET(Telemed_SRCS
     Telemed/vtkPlusTelemedVideoSource.cxx
     Telemed/TelemedUltrasound.cxx
     Telemed/Usgfw2_i.c
     Telemed/Usgfw2_p.c
     Telemed/dlldata.c
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Telemed_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Telemed_HDRS
       Telemed/vtkPlusTelemedVideoSource.h
       Telemed/TelemedUltrasound.h
       Telemed/Usgfw2_h.h
@@ -1274,7 +1295,7 @@ IF (PLUS_USE_TELEMED_VIDEO)
     )
 
   # Find Telemed SDK include directory
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${TELEMED_INCLUDE_DIR}
     ${WINDOWS_SDK_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Telemed
@@ -1283,7 +1304,7 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Thorlabs support
-IF (PLUS_USE_THORLABS_VIDEO)
+IF(PLUS_USE_THORLABS_VIDEO)
 
   # Linker would return with SAFESEH not supported error
   # if attempting to link Thorlabs libraries with VS2013 or later.
@@ -1300,11 +1321,11 @@ IF (PLUS_USE_THORLABS_VIDEO)
   SET(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /SAFESEH:NO") 
   SET(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} /SAFESEH:NO") 
 
-  SET (ThorLabs_SRCS
+  SET(ThorLabs_SRCS
     ThorLabs/vtkPlusThorLabsVideoSource.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (ThorLabs_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(ThorLabs_HDRS
       ThorLabs/vtkPlusThorLabsVideoSource.h
       )
   ENDIF()
@@ -1317,11 +1338,11 @@ IF (PLUS_USE_THORLABS_VIDEO)
     ${ThorLabs_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/ThorLabs  
     ${THORLABS_INCLUDE_DIR}
     )
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
     ${THORLABS_LIBRARY_DIR}/TLCCS_32${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${THORLABS_LIBRARY_DIR}/visa32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
@@ -1329,25 +1350,25 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Philips ie33 3d ultrasound support
-IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
+IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
   IF(PLUS_USE_ULTRASONIX_VIDEO)
     # Ultrasonix contains its own libmmd.dll which does not support all the functionality needed for the philips probe
     # They both cannot be enabled at the same time.
     MESSAGE( FATAL_ERROR "Plus cannot enable both Ultrasonix and Philips devices due to .dll conflicts in their respective SDK packages.")
   ELSE()
-    SET (Philips_SRCS
+    SET(Philips_SRCS
       Philips3D/vtkPlusPhilips3DProbeVideoSource.cxx 
       Philips3D/vtkPlusIEEListener.cxx 
       )
 
-    IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-      SET (Philips_HDRS
+    IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+      SET(Philips_HDRS
         Philips3D/vtkPlusPhilips3DProbeVideoSource.h
         Philips3D/vtkPlusIEEListener.h
         )
     ENDIF()
 
-    SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
+    SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS} 
       ${CMAKE_CURRENT_SOURCE_DIR}/Philips3D
       ${Philips_INCLUDE_DIRS}
       CACHE INTERNAL "" FORCE)
@@ -1368,7 +1389,7 @@ IF (PLUS_USE_PHILIPS_3D_ULTRASOUND)
       ${Philips_SRCS}
       )
 
-    SET ( External_Libraries_Install ${External_Libraries_Install}
+    SET(External_Libraries_Install ${External_Libraries_Install}
       ${PHILIPS_SDK_SHARED_LIBRARIES}
       )
   ENDIF()
@@ -1379,11 +1400,11 @@ ENDIF()
 IF(PLUS_USE_tesseract)
   FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${tesseract_INCLUDE_DIRS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     ${tesseract_LIBRARIES}
     vtkzlib vtkpng
     )
@@ -1401,22 +1422,22 @@ IF(PLUS_USE_NVIDIA_DVP)
   SET(NVidiaDVP_HDRS ${CMAKE_CURRENT_BINARY_DIR}/nvConfigure.h)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+    SET(NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
       NVidiaDVP/vtkPlusNVidiaDVPVideoSourceWin32.cxx
       )
 
-    IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-      SET (NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
+    IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+      SET(NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
         NVidiaDVP/vtkPlusNVidiaDVPVideoSourceWin32.h
         )
     ENDIF()
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+    SET(NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
       NVidiaDVP/vtkPlusNVidiaDVPVideoSourceLinux.cxx
       )
   ENDIF()
   
-  SET (NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
+  SET(NVidiaDVP_SRCS ${NVidiaDVP_SRCS} 
     NVidiaDVP/glExtensions.cpp
     NVidiaDVP/nvGPUutil.cpp
     NVidiaDVP/nvSDIin.cpp
@@ -1424,8 +1445,8 @@ IF(PLUS_USE_NVIDIA_DVP)
     NVidiaDVP/nvSDIutil.cpp
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(NVidiaDVP_HDRS ${NVidiaDVP_HDRS}
       NVidiaDVP/nvGPUutil.h
       NVidiaDVP/nvSDIin.h
       NVidiaDVP/nvSDIout.h
@@ -1443,14 +1464,14 @@ IF(PLUS_USE_NVIDIA_DVP)
     ${NVidiaDVP_SRCS}
     )
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/NVidiaDVP
     )
 
-  SET ( External_Libraries_Install ${External_Libraries_Install}
+  SET(External_Libraries_Install ${External_Libraries_Install}
     ${NVIDIA_DVP_BINARY_DIR}/dvp${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-  SET ( External_Libraries_Debug ${External_Libraries_Debug}
+  SET( External_Libraries_Debug ${External_Libraries_Debug}
     ${NVIDIA_DVP_BINARY_DIR}/dvp${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
@@ -1464,7 +1485,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     # What to do here?
   ENDIF()
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     NVidiaDVP
     QuadroSDI
     ${OPENGL_LIBRARIES}
@@ -1482,20 +1503,20 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # OvrvisionPro
-IF (PLUS_USE_OvrvisionPro)
+IF(PLUS_USE_OvrvisionPro)
   FIND_PACKAGE(OvrvisionPro REQUIRED NO_MODULE)
 
-  SET (OvrvisionPro_SRCS
+  SET(OvrvisionPro_SRCS
     OvrvisionPro/vtkPlusOvrvisionProVideoSource.cxx
     )
 
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (OvrvisionPro_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OvrvisionPro_HDRS
       OvrvisionPro/vtkPlusOvrvisionProVideoSource.h
       )
   ENDIF()
 
-  SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/OvrvisionPro
     ${OpenCV_INCLUDE_DIRS}
     ${OpenCL_INCLUDE_DIRS}
@@ -1509,7 +1530,7 @@ IF (PLUS_USE_OvrvisionPro)
     ${OvrvisionPro_SRCS}
     )
 
-  SET (PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     OvrvisionPro
     )
 ENDIF()
@@ -1524,7 +1545,7 @@ LIST (APPEND PlusDataCollection_LIBS
   vtkPlusImageProcessing
   )
 
-SET (PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
   ${PlusUsSimulator_INCLUDE_DIRS}
   )
 
@@ -1595,7 +1616,7 @@ SET(vcProj_vtkPlusDataCollection vtkPlusDataCollection;${PlusLib_BINARY_DIR}/src
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
   FILE(COPY ${External_Libraries_Install}
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
       )
@@ -1603,8 +1624,8 @@ IF ( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "X
   # If debug and release dll has the same name then the debug dll would be
   # overwritten by the file copy. To prevent this, copy only those release dlls
   # that has no corresponding debug dll with the same filename.
-  SET (External_Libraries_Install_Minus_Debug)
-  SET (External_Libraries_Debug_FileName)
+  SET(External_Libraries_Install_Minus_Debug)
+  SET(External_Libraries_Debug_FileName)
 
   # Find the file names of the debug shared libraries
   FOREACH (DEBUG ${External_Libraries_Debug})
@@ -1679,6 +1700,6 @@ INSTALL(FILES ${External_Libraries_Static_Install}
 
 # --------------------------------------------------------------------------
 # Testing
-IF (BUILD_TESTING)
+IF(BUILD_TESTING)
   SUBDIRS (Testing)
 ENDIF()
