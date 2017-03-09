@@ -290,14 +290,14 @@ IF(PLUS_USE_NDI_CERTUS)
     ndicapi
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
-  ELSE()
-    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION)
+  GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
+  IF(_lib)
+    LIST(APPEND External_Libraries_Install
+      ${_lib}
+      )
   ENDIF()
-  SET(External_Libraries_Install ${External_Libraries_Install}
+  LIST(APPEND External_Libraries_Install
     ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${_lib}
     )
 ENDIF()
 
@@ -332,14 +332,12 @@ IF(PLUS_USE_NDI)
     ndicapi 
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
-  ELSE()
-    GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION)
+  GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
+  IF(_lib)
+    LIST(APPEND External_Libraries_Install
+      ${_lib}
+      )
   ENDIF()
-  SET(External_Libraries_Install ${External_Libraries_Install}
-    ${_lib}
-    )
 ENDIF()
 
 #--------------------------------------------------------------------------
