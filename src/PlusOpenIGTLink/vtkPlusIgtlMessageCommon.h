@@ -23,6 +23,8 @@ See License.txt for details.
 #include "igtlStringMessage.h"
 #include "igtlTrackingDataMessage.h"
 #include "igtlTransformMessage.h"
+#include "igtlVideoMessage.h"
+#include "VideoStreamIGTLinkServer.h"
 
 class vtkXMLDataElement;
 class PlusTrackedFrame;
@@ -54,6 +56,8 @@ public:
 
   /*! Unpack US message to tracked frame */
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck);
+
+  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame);
 
   /*! Pack image message from tracked frame */
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix);

@@ -32,6 +32,7 @@ SET(PlusOpenIGTLink_INCLUDE_DIRS
 SET(PlusOpenIGTLink_LIBS
   vtkPlusCommon
   OpenIGTLink
+  openh264
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusOpenIGTLink)
