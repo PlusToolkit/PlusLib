@@ -1263,12 +1263,16 @@ PlusStatus vtkPlusCapistranoVideoSource::WaitForFrame()
   break;
   case USB_NOTSEQ:
     LOG_ERROR("Lost Probe Synchronization. Please check probe cables and restart.");
+	FreezeDevice(true);
+	FreezeDevice(false);
     break;
   case USB_STOPPED:
     LOG_ERROR("USB: Stopped. Check probe and restart.");
     break;
   default:
     LOG_ERROR("USB: Unknown USB error: "<<usbErrorCode);
+	FreezeDevice(true);
+	FreezeDevice(false);
     break;
   }
 
