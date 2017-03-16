@@ -41,6 +41,8 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   this->IgtlFactory->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
   this->IgtlFactory->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
   this->IgtlFactory->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
+  configFile = "ServerConfig.cfg";
+  videoStreamEncoderMap.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -203,7 +205,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
 
         //Set transform name to [Name]To[CoordinateFrame]
         PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
-        igtl::VideoMessage::Pointer videoMessage = dynamic_cast<igtl::VideoMessage*>(igtlMessage->Clone().GetPointer());
+        igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();//dynamic_cast<igtl::VideoMessage*>(igtlMessage->Clone().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
         if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
         {
@@ -211,8 +213,19 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
             // The transform name is passed in the metadata
             deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
-        videoMessage->SetDeviceName(deviceName.c_str());
-        if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame) != PLUS_SUCCESS)
+        if (videoStreamEncoderMap.find(deviceName) == videoStreamEncoderMap.end())
+        {
+          vtkDirectory* directory = vtkDirectory::New();
+          char buf[200];
+          directory->GetCurrentWorkingDirectory(buf, 200);
+          std::string fullFileName(buf);
+          fullFileName.append("\\");
+          fullFileName.append(this->configFile);
+          VideoStreamIGTLinkServer * newEncoder = new VideoStreamIGTLinkServer(this->configFile);
+          newEncoder->InitializeEncoderAndServer();
+          videoStreamEncoderMap[std::string(deviceName)] = newEncoder;
+        }
+        if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, deviceName, videoStreamEncoderMap[std::string(deviceName)]) != PLUS_SUCCESS)
         {
             LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
             numberOfErrors++;

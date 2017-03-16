@@ -46,7 +46,7 @@ void PrintServerInfo(vtkPlusOpenIGTLinkServer* self)
     PIP_ADAPTER_ADDRESSES pCurrAddresses = pAddresses;
     while (pCurrAddresses)
     {
-      PIP_ADAPTER_UNICAST_ADDRESS pUnicast = pCurrAddresses->FirstUnicastAddress;
+      PIP_ADAPTER_UNICAST_ADDRESS_XP pUnicast = pCurrAddresses->FirstUnicastAddress;
       if (pUnicast != NULL)
       {
         for (unsigned int i = 0; pUnicast != NULL; i++)

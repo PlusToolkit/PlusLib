@@ -57,7 +57,7 @@ public:
   /*! Unpack US message to tracked frame */
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck);
 
-  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame);
+  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame, std::string deviceName,  VideoStreamIGTLinkServer* videoStreamEncoder);
 
   /*! Pack image message from tracked frame */
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix);
