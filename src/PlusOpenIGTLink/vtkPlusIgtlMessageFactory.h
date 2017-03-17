@@ -14,7 +14,7 @@
 #include "igtlMessageBase.h"
 #include "igtlMessageFactory.h"
 #include "PlusIgtlClientInfo.h" 
-#include "VideoStreamIGTLinkServer.h"
+#include "H264Encoder.h"
 
 #include <map>
 #include <string>
@@ -88,7 +88,7 @@ private:
   vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);
   void operator=(const vtkPlusIgtlMessageFactory&);
   char* configFile;
-  std::map<std::string, VideoStreamIGTLinkServer*> videoStreamEncoderMap;
+  std::map<std::string, H264Encoder*> videoStreamEncoderMap;
 
 }; 
 

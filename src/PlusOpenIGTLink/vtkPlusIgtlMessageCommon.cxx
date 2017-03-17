@@ -198,7 +198,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
 
 //----------------------------------------------------------------------------
 // static
-PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame,std::string deviceName, VideoStreamIGTLinkServer* videoStreamEncoder)
+PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame, H264Encoder* videoStreamEncoder)
 {
   if (videoStreamEncoder == NULL)
   {
@@ -239,55 +239,25 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   unsigned char* vtkImagePointer = new unsigned char[imageSizePixels[0] * imageSizePixels[1]*3/2];
   memset(vtkImagePointer, 0, imageSizePixels[0] * imageSizePixels[1] * 3 / 2);
   memcpy(vtkImagePointer, frameImage->GetScalarPointer(), imageSizePixels[0] * imageSizePixels[1]);
-
-  if ((videoStreamEncoder->pSrcPic->iPicWidth != imageSizePixels[0])
-   || (videoStreamEncoder->pSrcPic->iPicHeight != imageSizePixels[1]))
+  SSourcePicture* pSrcPic = new SSourcePicture();
+  if ((pSrcPic->iPicWidth != imageSizePixels[0])
+   || (pSrcPic->iPicHeight != imageSizePixels[1]))
   {
-    videoStreamEncoder->SetSrcPicWidth(imageSizePixels[0]);
-    videoStreamEncoder->SetSrcPicHeight(imageSizePixels[1]);
+    pSrcPic->iPicWidth  = imageSizePixels[0];
+    pSrcPic->iPicHeight = imageSizePixels[1];
   }
-  int iEncFrames = videoStreamEncoder->EncodeSingleFrame(vtkImagePointer);
-  if (iEncFrames == 0)
-  {
-      videoMessage->SetHeaderVersion(IGTL_HEADER_VERSION_2);
-      videoMessage->SetDeviceName(deviceName.c_str());
-      videoMessage->SetTimeStamp(igtlFrameTime);
-      videoMessage->SetBitStreamSize(videoStreamEncoder->sFbi.iFrameSizeInBytes);
-      videoMessage->AllocateBuffer();
-      videoMessage->SetScalarType(videoMessage->TYPE_UINT8);
-      videoMessage->SetEndian(igtl_is_little_endian() == true ? 2 : 1); //little endian is 2 big endian is 1
-      videoMessage->SetWidth(videoStreamEncoder->pSrcPic->iPicWidth);
-      videoMessage->SetHeight(videoStreamEncoder->pSrcPic->iPicHeight);
-      //Left bit shift the videoFrameType to the upper byte if the video source is Gray image
-      //This is a parameter needs to be added into the xml files
-      igtl_uint16 grayFrameType = ((igtl_uint16)videoStreamEncoder->videoFrameType) << 8;
-      videoMessage->SetFrameType(grayFrameType);
-      
-      unsigned char* igtlvideoPointer = (unsigned char*)(videoMessage->GetPackFragmentPointer(2));
-      int frameSize = 0;
-      int iLayer = 0;
-      while (iLayer < videoStreamEncoder->sFbi.iLayerNum) {
-        SLayerBSInfo* pLayerBsInfo = &(videoStreamEncoder->sFbi.sLayerInfo[iLayer]);
-          if (pLayerBsInfo != NULL) {
-              int iLayerSize = 0;
-              int iNalIdx = pLayerBsInfo->iNalCount - 1;
-              do {
-                  iLayerSize += pLayerBsInfo->pNalLengthInByte[iNalIdx];
-                  --iNalIdx;
-              } while (iNalIdx >= 0);
-              frameSize += iLayerSize;
-              for (int i = 0; i < iLayerSize; i++)
-              {
-                  igtlvideoPointer[frameSize - iLayerSize + i] = pLayerBsInfo->pBsBuf[i];
-              }
-          }
-          ++iLayer;
-      }
-      videoMessage->Pack();
-  }
+  int iSourceWidth = pSrcPic->iPicWidth;
+  int iSourceHeight = pSrcPic->iPicHeight;
+  pSrcPic->pData[0] = vtkImagePointer;
+  pSrcPic->pData[1] = pSrcPic->pData[0] + (iSourceWidth * iSourceHeight);
+  pSrcPic->pData[2] = pSrcPic->pData[1] + (iSourceWidth * iSourceHeight >> 2);
+  bool isGrayImage = true;
+  int iEncFrames = videoStreamEncoder->EncodeSingleFrameIntoVideoMSG(pSrcPic, videoMessage, isGrayImage);
   delete vtkImagePointer;
   vtkImagePointer = NULL;
-  return PLUS_SUCCESS;
+  if (iEncFrames == 0)
+    return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

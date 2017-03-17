@@ -48,7 +48,14 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::~vtkPlusIgtlMessageFactory()
 {
-
+  std::map<std::string, H264Encoder*>::iterator itr;
+   while (itr != this->videoStreamEncoderMap.end())
+  {
+    // found it - delete it
+    itr->second->~H264Encoder();
+    this->videoStreamEncoderMap.erase(itr);
+    itr++;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -221,11 +228,12 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           std::string fullFileName(buf);
           fullFileName.append("\\");
           fullFileName.append(this->configFile);
-          VideoStreamIGTLinkServer * newEncoder = new VideoStreamIGTLinkServer(this->configFile);
-          newEncoder->InitializeEncoderAndServer();
+          H264Encoder * newEncoder = new H264Encoder(this->configFile);
+          newEncoder->InitializeEncoder();
           videoStreamEncoderMap[std::string(deviceName)] = newEncoder;
         }
-        if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, deviceName, videoStreamEncoderMap[std::string(deviceName)]) != PLUS_SUCCESS)
+        videoMessage->SetDeviceName(deviceName);
+        if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, videoStreamEncoderMap[std::string(deviceName)]) != PLUS_SUCCESS)
         {
             LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
             numberOfErrors++;
