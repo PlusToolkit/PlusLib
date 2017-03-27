@@ -41,7 +41,7 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   this->IgtlFactory->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
   this->IgtlFactory->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
   this->IgtlFactory->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
-  configFile = "CodecConfig.cfg";
+  configFile = "";
   videoStreamEncoderMap.clear();
 }
 
@@ -225,12 +225,6 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         }
         if (videoStreamEncoderMap.find(deviceName) == videoStreamEncoderMap.end())
         {
-          vtkDirectory* directory = vtkDirectory::New();
-          char buf[200];
-          directory->GetCurrentWorkingDirectory(buf, 200);
-          std::string fullFileName(buf);
-          fullFileName.append("\\");
-          fullFileName.append(this->configFile);
           H264Encoder * newEncoder = new H264Encoder(this->configFile);
           newEncoder->InitializeEncoder();
           videoStreamEncoderMap[std::string(deviceName)] = newEncoder;

@@ -239,17 +239,20 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   unsigned char* vtkImagePointer = new unsigned char[imageSizePixels[0] * imageSizePixels[1]*3/2];
   memset(vtkImagePointer, 0, imageSizePixels[0] * imageSizePixels[1] * 3 / 2);
   memcpy(vtkImagePointer, frameImage->GetScalarPointer(), imageSizePixels[0] * imageSizePixels[1]);
+  int iSourceWidth = imageSizePixels[0];
+  int iSourceHeight = imageSizePixels[1];
   SSourcePicture* pSrcPic = new SSourcePicture();
   pSrcPic->iColorFormat = videoFormatI420; // currently only format 420 is supported.
   pSrcPic->uiTimeStamp = 0;
-  if ((pSrcPic->iPicWidth != imageSizePixels[0])
-   || (pSrcPic->iPicHeight != imageSizePixels[1]))
+  pSrcPic->iPicWidth  = imageSizePixels[0];
+  pSrcPic->iPicHeight = imageSizePixels[1];
+  if (videoStreamEncoder->GetPicHeight() != iSourceHeight
+    || videoStreamEncoder->GetPicWidth() != iSourceWidth)
   {
-    pSrcPic->iPicWidth  = imageSizePixels[0];
-    pSrcPic->iPicHeight = imageSizePixels[1];
+    videoStreamEncoder->SetPicHeight(iSourceHeight);
+    videoStreamEncoder->SetPicWidth(iSourceWidth);
+    videoStreamEncoder->InitializeEncoder();
   }
-  int iSourceWidth = pSrcPic->iPicWidth;
-  int iSourceHeight = pSrcPic->iPicHeight;
   pSrcPic->pData[0] = vtkImagePointer;
   pSrcPic->pData[1] = pSrcPic->pData[0] + (iSourceWidth * iSourceHeight);
   pSrcPic->pData[2] = pSrcPic->pData[1] + (iSourceWidth * iSourceHeight >> 2);
