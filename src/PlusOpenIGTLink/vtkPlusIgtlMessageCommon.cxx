@@ -240,6 +240,8 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   memset(vtkImagePointer, 0, imageSizePixels[0] * imageSizePixels[1] * 3 / 2);
   memcpy(vtkImagePointer, frameImage->GetScalarPointer(), imageSizePixels[0] * imageSizePixels[1]);
   SSourcePicture* pSrcPic = new SSourcePicture();
+  pSrcPic->iColorFormat = videoFormatI420; // currently only format 420 is supported.
+  pSrcPic->uiTimeStamp = 0;
   if ((pSrcPic->iPicWidth != imageSizePixels[0])
    || (pSrcPic->iPicHeight != imageSizePixels[1]))
   {

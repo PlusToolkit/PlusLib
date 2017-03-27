@@ -41,7 +41,7 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   this->IgtlFactory->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
   this->IgtlFactory->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
   this->IgtlFactory->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
-  configFile = "ServerConfig.cfg";
+  configFile = "CodecConfig.cfg";
   videoStreamEncoderMap.clear();
 }
 
@@ -49,12 +49,15 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
 vtkPlusIgtlMessageFactory::~vtkPlusIgtlMessageFactory()
 {
   std::map<std::string, H264Encoder*>::iterator itr;
-   while (itr != this->videoStreamEncoderMap.end())
+  if (this->videoStreamEncoderMap.size())
   {
-    // found it - delete it
-    itr->second->~H264Encoder();
-    this->videoStreamEncoderMap.erase(itr);
-    itr++;
+    while (itr != this->videoStreamEncoderMap.end())
+    {
+      // found it - delete it
+      itr->second->~H264Encoder();
+      this->videoStreamEncoderMap.erase(itr);
+      itr++;
+    }
   }
 }
 
