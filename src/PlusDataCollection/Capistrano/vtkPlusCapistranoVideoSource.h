@@ -162,7 +162,14 @@ public:
   vtkSetVector3Macro(CurrentPixelSpacingMm, double); 
 
   /*! Get Current Pixel Spacing values Of US Image (mm) */
-  vtkGetVector3Macro(CurrentPixelSpacingMm, double); 
+  vtkGetVector3Macro(CurrentPixelSpacingMm, double);
+
+  /*! Set ON/OFF of collecting US data. */
+  PlusStatus FreezeDevice(bool freeze);
+
+  /*! Checks whether the device is frozen or live. */
+  bool IsFrozen();
+
 protected:
 
   /*! Constructor */
@@ -203,9 +210,6 @@ protected:
 
   /*! Initialize an TGC for US B-Mode image */
   PlusStatus InitializeTGC();
-
-  /*! Set ON/OFF of collecting US data. */
-  PlusStatus FreezeDevice(bool freeze);
 
   /*! Wait US Data from US device  */
   PlusStatus WaitForFrame();
