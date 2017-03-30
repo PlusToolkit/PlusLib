@@ -1235,6 +1235,12 @@ PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
 }
 
 // ----------------------------------------------------------------------------
+bool vtkPlusCapistranoVideoSource::IsFrozen()
+{
+    return Frozen;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::WaitForFrame()
 {
   bool  nextFrameReady = (usbWaitFrame()==1);
