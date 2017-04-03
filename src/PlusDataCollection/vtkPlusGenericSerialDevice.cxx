@@ -4,59 +4,66 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
+#include "PlusSerialLine.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusGenericSerialDevice.h"
 
-#include "PlusSerialLine.h"
-#include "vtkObjectFactory.h"
-#include "vtkXMLDataElement.h"
-#include "vtkXMLUtilities.h"
-#include "vtksys/SystemTools.hxx"
+// VTK includes
+#include <vtkObjectFactory.h>
+#include <vtkXMLDataElement.h>
+#include <vtkXMLUtilities.h>
+#include <vtksys/SystemTools.hxx>
 
+// STL includes
 #include <deque>
 
-vtkStandardNewMacro( vtkPlusGenericSerialDevice );
+//----------------------------------------------------------------------------
 
-//-------------------------------------------------------------------------
-void bin2hex( const std::string& inputBinary, std::string& outputHexEncoded )
+vtkStandardNewMacro(vtkPlusGenericSerialDevice);
+
+//----------------------------------------------------------------------------
+void bin2hex(const std::string& inputBinary, std::string& outputHexEncoded)
 {
   std::stringstream ss;
-  ss << std::hex << std::setfill( '0' );
-  for ( unsigned int i = 0; i < inputBinary.size(); i++ )
+  ss << std::hex << std::setfill('0');
+  for (unsigned int i = 0; i < inputBinary.size(); i++)
   {
-    if ( i > 0 )
+    if (i > 0)
     {
       ss << " ";
     }
-    ss << std::setw( 2 ) << int( inputBinary[i] );
+    ss << std::setw(2) << int(inputBinary[i]);
   }
   outputHexEncoded = ss.str();
 }
 
-void hex2bin( const std::string& inputHexEncoded, std::string& outputBinary )
+//----------------------------------------------------------------------------
+void hex2bin(const std::string& inputHexEncoded, std::string& outputBinary)
 {
   outputBinary.clear();
   int i;
-  std::stringstream ss( inputHexEncoded );
-  while ( ss >> std::hex >> i )
+  std::stringstream ss(inputHexEncoded);
+  while (ss >> std::hex >> i)
   {
-    outputBinary += static_cast<char>( i );
+    outputBinary += static_cast<char>(i);
   }
 }
 
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 vtkPlusGenericSerialDevice::vtkPlusGenericSerialDevice()
-  : Serial( new SerialLine() )
-  , SerialPort( 1 )
-  , BaudRate( 9600 )
-  , MaximumReplyDelaySec( 0.100 )
-  , MaximumReplyDurationSec( 0.300 )
-  , Mutex( vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New() )
+  : Serial(new SerialLine())
+  , SerialPort(1)
+  , BaudRate(9600)
+  , MaximumReplyDelaySec(0.100)
+  , MaximumReplyDurationSec(0.300)
+  , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , FrameNumber(0)
+  , FieldDataSource(nullptr)
 {
-  this->Serial = new SerialLine();
-
   // By default use CR as line ending (13, 0x0D)
-  this->SetLineEnding( "0d" );
+  this->SetLineEnding("0d");
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
@@ -66,12 +73,12 @@ vtkPlusGenericSerialDevice::vtkPlusGenericSerialDevice()
 //-------------------------------------------------------------------------
 vtkPlusGenericSerialDevice::~vtkPlusGenericSerialDevice()
 {
-  if ( this->Recording )
+  if (this->Recording)
   {
     this->StopRecording();
   }
 
-  if ( this->Serial->IsHandleAlive() )
+  if (this->Serial->IsHandleAlive())
   {
     this->Serial->Close();
     delete this->Serial;
@@ -80,19 +87,19 @@ vtkPlusGenericSerialDevice::~vtkPlusGenericSerialDevice()
 }
 
 //-------------------------------------------------------------------------
-void vtkPlusGenericSerialDevice::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusGenericSerialDevice::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
 {
-  LOG_TRACE( "vtkPlusGenericSerialDevice::Connect" );
+  LOG_TRACE("vtkPlusGenericSerialDevice::Connect");
 
-  if ( this->Serial->IsHandleAlive() )
+  if (this->Serial->IsHandleAlive())
   {
-    LOG_ERROR( "Already connected to serial port" );
+    LOG_ERROR("Already connected to serial port");
     return PLUS_FAIL;
   }
 
@@ -100,7 +107,7 @@ PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
   // Port number<10: COMn
   // Port number>=10: \\.\COMn
   std::ostringstream strComPort;
-  if ( this->SerialPort < 10 )
+  if (this->SerialPort < 10)
   {
     strComPort << "COM" << this->SerialPort;
   }
@@ -108,21 +115,21 @@ PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
   {
     strComPort << "\\\\.\\COM" << this->SerialPort;
   }
-  this->Serial->SetPortName( strComPort.str() );
+  this->Serial->SetPortName(strComPort.str());
 
-  this->Serial->SetSerialPortSpeed( this->BaudRate );
+  this->Serial->SetSerialPortSpeed(this->BaudRate);
 
-  this->Serial->SetMaxReplyTime( 50 ); // msec
+  this->Serial->SetMaxReplyTime(50);   // msec
 
-  if ( !this->Serial->Open() )
+  if (!this->Serial->Open())
   {
-    LOG_ERROR( "Cannot open serial port " << strComPort.str() );
+    LOG_ERROR("Cannot open serial port " << strComPort.str());
     return PLUS_FAIL;
   }
 
-  if ( !this->Serial->IsHandleAlive() )
+  if (!this->Serial->IsHandleAlive())
   {
-    LOG_ERROR( "COM port handle is not alive " << strComPort.str() );
+    LOG_ERROR("COM port handle is not alive " << strComPort.str());
     return PLUS_FAIL;
   }
 
@@ -132,7 +139,7 @@ PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::InternalDisconnect()
 {
-  LOG_TRACE( "vtkPlusGenericSerialDevice::Disconnect" );
+  LOG_TRACE("vtkPlusGenericSerialDevice::Disconnect");
   this->StopRecording();
 
   this->Serial->Close();
@@ -141,41 +148,20 @@ PlusStatus vtkPlusGenericSerialDevice::InternalDisconnect()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::Probe()
-{
-  LOG_ERROR( "vtkPlusGenericSerialDevice::Probe is not implemented" );
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::InternalStartRecording()
-{
-  LOG_TRACE( "vtkPlusGenericSerialDevice::InternalStartRecording" );
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::InternalStopRecording()
-{
-  LOG_TRACE( "vtkPlusGenericSerialDevice::InternalStopRecording" );
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
 {
   // Either update or send commands - but not simultaneously
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock( this->Mutex );
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   // Determine the maximum time to spend in the loop (acquisition time period, but maximum 1 sec)
-  double maxReadTimeSec = ( this->AcquisitionRate < 1.0 ) ? 1.0 : 1 / this->AcquisitionRate;
+  double maxReadTimeSec = (this->AcquisitionRate < 1.0) ? 1.0 : 1 / this->AcquisitionRate;
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
-  while ( this->Serial->GetNumberOfBytesAvailableForReading() > 0 )
+  while (this->Serial->GetNumberOfBytesAvailableForReading() > 0)
   {
     std::string textReceived;
-    ReceiveResponse( textReceived );
-    LOG_DEBUG( "Received from serial device without request: " << textReceived );
-    if ( vtkPlusAccurateTimer::GetSystemTime() - startTime > maxReadTimeSec )
+    ReceiveResponse(textReceived);
+    LOG_DEBUG("Received from serial device without request: " << textReceived);
+    if (vtkPlusAccurateTimer::GetSystemTime() - startTime > maxReadTimeSec)
     {
       // force exit from the loop if continuously receiving data
       break;
@@ -184,43 +170,42 @@ PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
-
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::SendText( const std::string& textToSend, std::string* textReceived/*=NULL*/ )
+PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/)
 {
-  LOG_DEBUG( "Send to Serial device: " << textToSend );
+  LOG_DEBUG("Send to Serial device: " << textToSend);
 
   // Either update or send commands - but not simultaneously
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock( this->Mutex );
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   // Write text
   unsigned char packetLength = textToSend.size();
-  for( int i = 0; i < packetLength; i++ )
+  for (int i = 0; i < packetLength; i++)
   {
-    this->Serial->Write( textToSend[i] );
+    this->Serial->Write(textToSend[i]);
   }
   // Write line ending
-  for ( std::string::iterator lineEndingIt = this->LineEndingBin.begin(); lineEndingIt != this->LineEndingBin.end(); ++lineEndingIt )
+  for (std::string::iterator lineEndingIt = this->LineEndingBin.begin(); lineEndingIt != this->LineEndingBin.end(); ++lineEndingIt)
   {
-    this->Serial->Write( *lineEndingIt );
+    this->Serial->Write(*lineEndingIt);
   }
   // Get response
-  if ( textReceived != NULL )
+  if (textReceived != NULL)
   {
     textReceived->clear();
     this->WaitForResponse();
-    while ( this->Serial->GetNumberOfBytesAvailableForReading() > 0 )
+    while (this->Serial->GetNumberOfBytesAvailableForReading() > 0)
     {
       // a response is expected
       std::string line;
-      if ( this->ReceiveResponse( line ) != PLUS_SUCCESS )
+      if (this->ReceiveResponse(line) != PLUS_SUCCESS)
       {
         *textReceived += line;
         break;
       }
       *textReceived += line;
     }
-    LOG_DEBUG( "Received from serial device: " << ( *textReceived ) );
+    LOG_DEBUG("Received from serial device: " << (*textReceived));
   }
   return PLUS_SUCCESS;
 }
@@ -231,21 +216,21 @@ bool vtkPlusGenericSerialDevice::WaitForResponse()
   const int waitPeriodSec = 0.010;
 
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
-  while ( this->Serial->GetNumberOfBytesAvailableForReading() == 0 )
+  while (this->Serial->GetNumberOfBytesAvailableForReading() == 0)
   {
-    if ( vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDelaySec )
+    if (vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDelaySec)
     {
       // waiting time expired
       return false;
     }
-    vtksys::SystemTools::Delay( waitPeriodSec * 1000 );
+    vtksys::SystemTools::Delay(waitPeriodSec * 1000);
   }
   // data available for reading
   return true;
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse( std::string& textReceived )
+PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived)
 {
   textReceived.clear();
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
@@ -256,55 +241,75 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse( std::string& textReceive
   bool lineEndingFound = false;
   do
   {
-    while ( !this->Serial->Read( d ) )
+    while (!this->Serial->Read(d))
     {
-      if ( vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDurationSec )
+      if (vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDurationSec)
       {
         // waiting time expired
-        LOG_ERROR( "Failed to read complete line from serial device. Received: " << textReceived );
+        LOG_ERROR("Failed to read complete line from serial device. Received: " << textReceived);
         return PLUS_FAIL;
       }
     }
-    textReceived.push_back( d );
+    textReceived.push_back(d);
     lineEndingFound = textReceived.size() >= lineEndingLength
-                      && ( this->LineEndingBin.compare( textReceived.substr( textReceived.size() - lineEndingLength, lineEndingLength ) ) == 0 );
+                      && (this->LineEndingBin.compare(textReceived.substr(textReceived.size() - lineEndingLength, lineEndingLength)) == 0);
 
   }
-  while ( !lineEndingFound );
+  while (!lineEndingFound);
 
   // Remove line ending
-  textReceived.erase( textReceived.size() - lineEndingLength, lineEndingLength );
+  textReceived.erase(textReceived.size() - lineEndingLength, lineEndingLength);
+
+  // Store in frame
+  if (this->FieldDataSource != nullptr)
+  {
+    PlusTrackedFrame::FieldMapType fieldMap;
+    fieldMap["ReceivedText"] = textReceived;
+    this->FieldDataSource->AddItem(fieldMap, this->FrameNumber);
+    FrameNumber++;
+  }
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::ReadConfiguration( vtkXMLDataElement* rootConfigElement )
+PlusStatus vtkPlusGenericSerialDevice::NotifyConfigured()
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING( deviceConfig, rootConfigElement );
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED( unsigned long, SerialPort, deviceConfig );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( unsigned long, BaudRate, deviceConfig );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MaximumReplyDelaySec, deviceConfig );
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL( double, MaximumReplyDurationSec, deviceConfig );
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( LineEnding, deviceConfig );
+  if (this->GetFieldDataSourcessIteratorBegin() != this->GetFieldDataSourcessIteratorEnd())
+  {
+    this->FieldDataSource = this->Fields.begin()->second;
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::WriteConfiguration( vtkXMLDataElement* rootConfigElement )
+PlusStatus vtkPlusGenericSerialDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING( deviceConfig, rootConfigElement );
-  deviceConfig->SetUnsignedLongAttribute( "SerialPort", this->SerialPort );
-  deviceConfig->SetUnsignedLongAttribute( "BaudRate", this->BaudRate );
-  deviceConfig->SetDoubleAttribute( "MaximumReplyDelaySec", this->MaximumReplyDelaySec );
-  deviceConfig->SetDoubleAttribute( "MaximumReplyDurationSec", this->MaximumReplyDurationSec );
-  deviceConfig->SetAttribute( "LineEnding", this->LineEnding.c_str() );
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(unsigned long, SerialPort, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaximumReplyDelaySec, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaximumReplyDurationSec, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(LineEnding, deviceConfig);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusGenericSerialDevice::SetLineEnding( const char* lineEndingHex )
+PlusStatus vtkPlusGenericSerialDevice::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+{
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+  deviceConfig->SetUnsignedLongAttribute("SerialPort", this->SerialPort);
+  deviceConfig->SetUnsignedLongAttribute("BaudRate", this->BaudRate);
+  deviceConfig->SetDoubleAttribute("MaximumReplyDelaySec", this->MaximumReplyDelaySec);
+  deviceConfig->SetDoubleAttribute("MaximumReplyDurationSec", this->MaximumReplyDurationSec);
+  deviceConfig->SetAttribute("LineEnding", this->LineEnding.c_str());
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusGenericSerialDevice::SetLineEnding(const char* lineEndingHex)
 {
   this->LineEnding = lineEndingHex;
-  hex2bin( this->LineEnding, this->LineEndingBin );
+  hex2bin(this->LineEnding, this->LineEndingBin);
 }

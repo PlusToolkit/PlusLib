@@ -9,9 +9,9 @@
 #define _RAWSERIALLINE_H_
 
 #ifdef _WIN32
-#include <windows.h>
+  #include <windows.h>
 #else
-#define INVALID_HANDLE_VALUE (-1)
+  #define INVALID_HANDLE_VALUE (-1)
 #endif
 
 #include <string>
@@ -26,7 +26,7 @@ sample code can be found in src\Utilities\ndicapi\ndicapi_serial.* or at https:/
 \ingroup PlusLibDataCollection
 */
 
-class SerialLine  
+class SerialLine
 {
 public:
   typedef unsigned long DWORD;
@@ -38,14 +38,14 @@ public:
 #else
   typedef int HANDLE;
 #endif
-  
+
   SerialLine();
   virtual ~SerialLine();
 
-  /*! Open serial port */ 
+  /*! Open serial port */
   bool Open();
 
-  /*! Close serial port */ 
+  /*! Close serial port */
   void Close();
 
   /*! Write data to the serial port. Returns the number of writes actually written. */
@@ -55,40 +55,39 @@ public:
   bool Write(const BYTE data);
 
   /*! Read data from the serial port. Returns the number of writes actually read. */
-  int Read(BYTE *data, int maxNumberOfBytesToRead);
+  int Read(BYTE* data, int maxNumberOfBytesToRead);
 
-  /*! Read a single byte from the serial port. Returns true if successful. */ 
-  bool Read(BYTE &data);
+  /*! Read a single byte from the serial port. Returns true if successful. */
+  bool Read(BYTE& data);
 
-  /*! Set the serial port name e.g. COM1 */ 
+  /*! Set the serial port name e.g. COM1 */
   SetStdStringMacro(PortName);
-  /*! Get the serial port name */ 
+  /*! Get the serial port name */
   GetStdStringMacro(PortName);
-  
-  /*! Set the serial port speed */ 
-  void SetSerialPortSpeed(DWORD speed) { m_SerialPortSpeed=speed; };
 
-  /*! Set the serial port max reply time */ 
-  void SetMaxReplyTime(int maxreply) { m_MaxReplyTime=maxreply; };
+  /*! Set the serial port speed */
+  void SetSerialPortSpeed(DWORD speed);;
 
-  /*! Get the serial port max reply time */ 
-  int GetMaxReplyTime() const { return m_MaxReplyTime; };
+  /*! Set the serial port max reply time */
+  void SetMaxReplyTime(int maxreply);;
 
-  /*! Check the handle alive status */ 
-  bool IsHandleAlive() const { return (m_CommHandle != INVALID_HANDLE_VALUE); };
+  /*! Get the serial port max reply time */
+  int GetMaxReplyTime() const;;
 
-  /*! Check the handle alive status */ 
+  /*! Check the handle alive status */
+  bool IsHandleAlive() const;;
+
+  /*! Check the handle alive status */
   unsigned int GetNumberOfBytesAvailableForReading() const;
 
-  /*! Clears the device's error flag to enable additional input and output (I/O) operations  */ 
+  /*! Clears the device's error flag to enable additional input and output (I/O) operations  */
   DWORD ClearError();
 
 private:
-  HANDLE m_CommHandle;
+  HANDLE      CommHandle;
   std::string PortName;
-  DWORD m_SerialPortSpeed;
-  int m_MaxReplyTime;
-  int UpdateSerialBuffer();
+  DWORD       SerialPortSpeed;
+  int         MaxReplyTime;
 };
 
-#endif 
+#endif
