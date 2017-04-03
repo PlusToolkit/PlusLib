@@ -45,4 +45,28 @@ for reponse that is terminated by the same newline string.
 
 \include "ConfigFiles/PlusDeviceSet_Server_GenericSerial.xml"
 
+\section GenericSerialExampleSlicerScript Example script for sending command from 3D Slicer
+
+<code>
+connectorNode = slicer.vtkMRMLIGTLConnectorNode()
+connectorNode.SetTypeClient('127.0.0.1', 18944)
+slicer.mrmlScene.AddNode(connectorNode)
+connectorNode.Start()
+
+arduinoCmd = slicer.vtkSlicerOpenIGTLinkCommand()
+arduinoCmd.SetCommandName('SendText')
+arduinoCmd.SetCommandAttribute('DeviceId','SerialDevice')
+arduinoCmd.SetCommandTimeoutSec(1.0)
+
+arduinoCmd.SetCommandAttribute('Text', "123456")
+slicer.modules.openigtlinkremote.logic().SendCommand(arduinoCmd, connectorNode.GetID())
+
+def onArduinoCmdCompleted(observer, eventid):
+  print("Command completed with status: " + arduinoCmd.StatusToString(arduinoCmd.GetStatus()))
+  print("Response message: " + arduinoCmd.GetResponseMessage())
+  print("Full response: " + arduinoCmd.GetResponseText())
+
+arduinoCmd.AddObserver(arduinoCmd.CommandCompletedEvent, onArduinoCmdCompleted)
+</code>
+
 */
