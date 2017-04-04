@@ -112,7 +112,12 @@ int main(int argc, char** argv)
       LOG_ERROR("Frame size shall contain two numbers, separated by a space");
       return EXIT_FAILURE;
     }
-    frameGrabber->SetRequestedFrameSize(&(frameSize[0]));
+    std::vector<unsigned int> size;
+    for (unsigned int i = 0; i < frameSize.size(); ++i)
+    {
+      size.push_back(static_cast<unsigned int>(size[i]));
+    }
+    frameGrabber->SetRequestedFrameSize(size.data());
   }
 
   frameGrabber->CreateDefaultOutputChannel();

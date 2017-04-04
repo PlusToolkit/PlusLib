@@ -264,9 +264,9 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived
   if (this->FieldDataSource != nullptr)
   {
     PlusTrackedFrame::FieldMapType fieldMap;
-    fieldMap["ReceivedText"] = textReceived;
+    fieldMap[this->FieldDataSource->GetId()] = textReceived;
     this->FieldDataSource->AddItem(fieldMap, this->FrameNumber);
-    FrameNumber++;
+    this->FrameNumber++;
   }
 
   return PLUS_SUCCESS;

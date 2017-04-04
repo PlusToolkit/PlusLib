@@ -24,7 +24,7 @@
 
 // OS includes
 #if (_MSC_VER == 1500)
-#include <stdint.h>
+  #include <stdint.h>
 #endif
 
 // IGTL includes
@@ -200,6 +200,9 @@ protected:
   /*! Get IGTL CRC check flag (0: disabled, 1: enabled) */
   vtkGetMacroConst(IgtlMessageCrcCheckEnabled, bool);
 
+  vtkSetMacro(LogWarningOnNoDataAvailable, bool);
+  vtkGetMacroConst(LogWarningOnNoDataAvailable, bool);
+
   vtkSetMacro(MaxNumberOfIgtlMessagesToSend, int);
   vtkGetMacroConst(MaxNumberOfIgtlMessagesToSend, int);
 
@@ -303,6 +306,8 @@ private:
 
   /*! Channel to use for broadcasting */
   vtkPlusChannel* BroadcastChannel;
+
+  bool LogWarningOnNoDataAvailable;
 
   double KeepAliveIntervalSec;
 
