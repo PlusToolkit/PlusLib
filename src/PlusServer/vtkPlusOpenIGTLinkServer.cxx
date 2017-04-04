@@ -40,11 +40,11 @@ See License.txt for details.
 #include <igtlioPolyDataConverter.h>
 
 #if defined(WIN32)
-#include "vtkPlusOpenIGTLinkServerWin32.cxx"
+  #include "vtkPlusOpenIGTLinkServerWin32.cxx"
 #elif defined(__APPLE__)
-#include "vtkPlusOpenIGTLinkServerMacOSX.cxx"
+  #include "vtkPlusOpenIGTLinkServerMacOSX.cxx"
 #elif defined(__linux__)
-#include "vtkPlusOpenIGTLinkServerLinux.cxx"
+  #include "vtkPlusOpenIGTLinkServerLinux.cxx"
 #endif
 
 static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
@@ -1050,7 +1050,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->SetConfigFilename(aFilename);
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, ListeningPort, serverElement);
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(OutputChannelId, serverElement);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(OutputChannelId, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MissingInputGracePeriodSec, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, MaxTimeSpentWithProcessingMs, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MaxNumberOfIgtlMessagesToSend, serverElement);
