@@ -43,7 +43,7 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
   {
     unsigned int DeviceId;
     unsigned int StreamIndex;
-    int FrameSize[2];
+    unsigned int FrameSize[2];
     std::wstring PixelFormatName; // e.g., YUY2
   };
 
@@ -55,7 +55,7 @@ public:
   virtual void SetRequestedDeviceId(unsigned int deviceId);
   virtual void SetRequestedVideoFormat(const std::wstring& pixelFormatName);
   virtual void SetRequestedStreamIndex(unsigned int streamIndex);
-  virtual void SetRequestedFrameSize(int frameSize[2]);
+  virtual void SetRequestedFrameSize(unsigned int frameSize[2]);
 
   std::wstring GetRequestedDeviceName();
   std::wstring GetActiveDeviceName();

@@ -518,7 +518,8 @@ PlusStatus vtkPlusMmfVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   {
     XML_REMOVE_ATTRIBUTE(deviceConfig, "CaptureStreamIndex");
   }
-  deviceConfig->SetVectorAttribute("FrameSize", 2, this->RequestedVideoFormat.FrameSize);
+  int frameSize[2] = { static_cast<int>(this->RequestedVideoFormat.FrameSize[0]), static_cast<int>(this->RequestedVideoFormat.FrameSize[1]) };
+  deviceConfig->SetVectorAttribute("FrameSize", 2, frameSize);
   auto attr = std::string(this->RequestedVideoFormat.PixelFormatName.begin(), this->RequestedVideoFormat.PixelFormatName.end());
   deviceConfig->SetAttribute("VideoFormat", attr.c_str());
 
@@ -538,7 +539,7 @@ void vtkPlusMmfVideoSource::SetRequestedStreamIndex(unsigned int streamIndex)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusMmfVideoSource::SetRequestedFrameSize(int frameSize[2])
+void vtkPlusMmfVideoSource::SetRequestedFrameSize(unsigned int frameSize[2])
 {
   this->RequestedVideoFormat.FrameSize[0] = frameSize[0];
   this->RequestedVideoFormat.FrameSize[1] = frameSize[1];
