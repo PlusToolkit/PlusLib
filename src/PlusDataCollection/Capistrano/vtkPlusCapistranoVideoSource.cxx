@@ -1214,6 +1214,11 @@ PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
     return PLUS_FAIL;
   }
 
+  if (this->Frozen == freeze) //already in desired mode
+  {
+    return PLUS_SUCCESS;
+  }
+
   this->Frozen=freeze;
   if (this->Frozen)
   {
