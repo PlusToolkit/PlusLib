@@ -38,6 +38,7 @@ OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
+OPTION (PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
 OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
@@ -1267,6 +1268,45 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# Interson Array SDK C++ support
+IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
+  FIND_PACKAGE( IntersonArraySDKCxx REQUIRED )
+  SET(IntersonArrayCXX_SRCS
+    IntersonArraySDKCxx/vtkPlusIntersonArraySDKCxxVideoSource.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(IntersonArrayCXX_HDRS
+      IntersonArraySDKCxx/vtkPlusIntersonArraySDKCxxVideoSource.h
+      )
+  ENDIF()
+
+  SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+    ${IntersonArrayCXX_HDRS}
+    )
+
+  SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+    ${IntersonArrayCXX_SRCS}
+    )
+
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+    ${IntersonArraySDKCxx_LIBRARIES}
+    )
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+    ${IntersonArraySDKCxx_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/IntersonArraySDKCxx
+    )
+
+  SET(External_Libraries_Install ${External_Libraries_Install}
+    ${IntersonArraySDK_DIR}/Libraries/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/Libraries/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  SET( External_Libraries_Debug ${External_Libraries_Debug}
+    ${IntersonArraySDK_DIR}/Libraries/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${IntersonArraySDK_DIR}/Libraries/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Telemed support
 IF(PLUS_USE_TELEMED_VIDEO)
   SET(Telemed_SRCS
@@ -1578,6 +1618,7 @@ source_group("ThorLabs" FILES ${ThorLabs_HDRS} ${ThorLabs_SRCS})
 source_group("Telemed" FILES ${Telemed_HDRS} ${Telemed_SRCS})
 source_group("Interson" FILES ${Interson_HDRS} ${Interson_SRCS})
 source_group("IntersonCXX" FILES ${IntersonCXX_HDRS} ${IntersonCXX_SRCS})
+source_group("IntersonArrayCXX" FILES ${IntersonArrayCXX_HDRS} ${IntersonArrayCXX_SRCS})
 source_group("Capistrano" FILES ${Capistrano_HDRS} ${Capistrano_SRCS})
 source_group("Epiphan" FILES ${Epiphan_HDRS} ${Epiphan_SRCS})
 source_group("MicrosoftMediaFoundation" FILES ${Mmf_HDRS} ${Mmf_SRCS})
