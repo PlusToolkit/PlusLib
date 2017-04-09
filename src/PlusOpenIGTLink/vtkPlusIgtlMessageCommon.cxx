@@ -615,7 +615,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
     }
 
     igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
-    trackElement->SetName(transformIterator->first.c_str());
+    if (!trackElement->SetName(transformIterator->first.c_str()))
+    {
+      LOG_WARNING("Transform name too long: " << transformIterator->first << ". Skipping.");
+      continue;
+    }
     trackElement->SetType(igtl::TrackingDataElement::TYPE_6D);
     trackElement->SetMatrix(matrix);
     trackingDataMessage->AddTrackingDataElement(trackElement);
