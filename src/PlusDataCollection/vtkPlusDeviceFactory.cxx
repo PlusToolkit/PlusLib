@@ -281,7 +281,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
   RegisterDevice("VirtualMixer", "vtkPlusVirtualMixer", (PointerToDevice)&vtkPlusVirtualMixer::New);
   RegisterDevice("VirtualSwitcher", "vtkPlusVirtualSwitcher", (PointerToDevice)&vtkPlusVirtualSwitcher::New);
   RegisterDevice("VirtualCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New);
-  RegisterDevice("VirtualBufferedCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New);
+  RegisterDevice("VirtualDiscCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New); // for backward compatibility
+  RegisterDevice("VirtualBufferedCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New); // for backward compatibility
   RegisterDevice("VirtualVolumeReconstructor", "vtkPlusVirtualVolumeReconstructor", (PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New);
 }
 

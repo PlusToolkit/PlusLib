@@ -91,6 +91,12 @@ void vtkPlusVirtualCapture::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  const char* deviceType = deviceConfig->GetAttribute("Type");
+  if (deviceType && deviceType != std::string("VirtualCapture"))
+  {
+    LOG_WARNING("Device type \"" << deviceType << "\" is deprecated. Use \"VirtualCapture\" instead.");
+    deviceConfig->SetAttribute("Type", "VirtualCapture");
+  }
 
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
@@ -416,7 +422,7 @@ PlusStatus vtkPlusVirtualCapture::NotifyConfigured()
 
   if (this->InputChannels.empty())
   {
-    LOG_ERROR("No input channel sent to vtkPlusVirtualCapture. Unable to save anything.");
+    LOG_ERROR("No input channel set for vtkPlusVirtualCapture. Unable to save anything.");
     return PLUS_FAIL;
   }
   vtkPlusChannel* inputChannel = this->InputChannels[0];
