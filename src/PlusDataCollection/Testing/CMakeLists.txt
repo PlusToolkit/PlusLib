@@ -235,6 +235,46 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
   PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF()
 
+#*************************** vtkIntersonArraySDKCxxVideoSourceTest.cxx ***************************
+IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
+  ADD_EXECUTABLE(vtkIntersonArraySDKCxxVideoSourceTest vtkintersonArraySDKCxxVideoSourceTest.cxx)
+  SET_TARGET_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkIntersonArraySDKCxxVideoSourceTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceTest
+    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceTest.xml
+    )
+  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceScanConvertTest
+    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceScanConvertTest.xml
+    )
+  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfTest
+    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+    --rendering-off
+    --acq-mode=RF
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfTest.xml
+    )
+  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
+    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfBmodeTest.xml
+    )
+  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
+    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
+    --rendering-off
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfDecimationBmodeTest.xml
+    )
+  SET_TESTS_PROPERTIES( vtkIntersonArraySDKCxxVideoSourceTest
+    vtkIntersonArraySDKCxxVideoSourceScanConvertTest
+    vtkIntersonArraySDKCxxVideoSourceRfTest
+    vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
+    vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
+  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()
+
+
 IF(PLUS_USE_BKPROFOCUS_VIDEO)
   #*************************** vtkBkProFocusOemVideoSourceTest.cxx ***************************
   ADD_EXECUTABLE(vtkBkProFocusOemVideoSourceTest vtkBkProFocusOemVideoSourceTest.cxx )

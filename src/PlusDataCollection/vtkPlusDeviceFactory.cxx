@@ -112,6 +112,9 @@ See License.txt for details.
 #include "vtkPlusIntersonSDKCxxVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_INTERSONARRAYSDKCXX_VIDEO
+#include "vtkPlusIntersonArraySDKCxxVideoSource.h"
+#endif
 
 #ifdef PLUS_USE_TELEMED_VIDEO
 #include "Telemed\vtkPlusTelemedVideoSource.h"
@@ -244,6 +247,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
   RegisterDevice("IntersonSDKCxxVideo", "vtkPlusIntersonSDKCxxVideoSource", (PointerToDevice)&vtkPlusIntersonSDKCxxVideoSource::New);
+#endif
+#ifdef PLUS_USE_INTERSONARRAYSDKCXX_VIDEO
+  RegisterDevice("IntersonArraySDKCxxVideo", "vtkPlusIntersonArraySDKCxxVideoSource", (PointerToDevice)&vtkPlusIntersonArraySDKCxxVideoSource::New);
 #endif
 #ifdef PLUS_USE_TELEMED_VIDEO
   RegisterDevice("TelemedVideo", "vtkPlusTelemedVideoSource", (PointerToDevice)&vtkPlusTelemedVideoSource::New);
