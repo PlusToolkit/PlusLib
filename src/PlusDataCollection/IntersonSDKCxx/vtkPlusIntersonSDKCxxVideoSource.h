@@ -96,13 +96,13 @@ protected:
 
   vtkPlusUsImagingParameters* ImagingParameters;
 
-private:
-  vtkPlusIntersonSDKCxxVideoSource(const vtkPlusIntersonSDKCxxVideoSource&);  // Not implemented.
-  void operator=(const vtkPlusIntersonSDKCxxVideoSource&);  // Not implemented.
-
   unsigned char PulseVoltage;
 
   int RfDecimation;
+
+private:
+  vtkPlusIntersonSDKCxxVideoSource(const vtkPlusIntersonSDKCxxVideoSource&);  // Not implemented.
+  void operator=(const vtkPlusIntersonSDKCxxVideoSource&);  // Not implemented.
 
   static void __stdcall vtkPlusIntersonSDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData );
   static void __stdcall vtkPlusIntersonSDKCxxVideoSource::NewRfImageCallback( RfPixelType * buffer, void * clientData );
