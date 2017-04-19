@@ -52,22 +52,6 @@ SET(PlusLib_LIBRARIES "@PLUSLIB_DEPENDENCIES@")
 # Tell the user project where to find Plus use file
 SET(PlusLib_USE_FILE "@PLUSLIB_CONFIG_USEFILE@" )
 
-# Get the location for IntersonCxx
-IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
-  IF(NOT DEFINED IntersonSDKCxx_DIR)
-    SET(IntersonSDKCxx_DIR @IntersonSDKCxx_DIR@)
-  ENDIF()
-  FIND_PACKAGE(IntersonSDKCxx REQUIRED)
-ENDIF()
-
-# Get the location for IntersonArrayCxx
-IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
-  IF(NOT DEFINED IntersonArraySDKCxx_DIR)
-    SET(IntersonArraySDKCxx_DIR @IntersonArraySDKCxx_DIR@)
-  ENDIF()
-  FIND_PACKAGE(IntersonArraySDKCxx REQUIRED)
-ENDIF()
-
 IF( @PLUS_USE_EPIPHAN@ AND NOT TARGET Epiphan )
   ADD_LIBRARY(Epiphan SHARED IMPORTED)
   SET_PROPERTY(TARGET Epiphan PROPERTY IMPORTED_IMPLIB "@EPIPHAN_LIB_DIR@/frmgrab@CMAKE_STATIC_LIBRARY_SUFFIX@")
