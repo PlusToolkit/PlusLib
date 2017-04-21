@@ -1471,7 +1471,7 @@ IF(PLUS_USE_tesseract)
 
   SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
     ${tesseract_LIBRARIES}
-    vtkzlib vtkpng
+    ${PlusZLib} vtkpng
     )
 ENDIF()
 

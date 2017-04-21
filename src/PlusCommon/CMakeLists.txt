@@ -60,10 +60,9 @@ SET(PlusCommon_LIBS
   vtkIOXMLParser
   vtkIOImage
   vtkCommonSystem
-  vtkzlib
   vtksys
   itksys
-  itkzlib
+  ${PlusZLib}
   ITKIONIFTI
   ITKIONRRD
   ITKIOGIPL
