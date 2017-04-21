@@ -12,6 +12,9 @@ ENDIF()
 # Try to find ITK and include its settings (otherwise complain)
 FIND_PACKAGE (ITK REQUIRED PATHS ${ITK_DIR} NO_DEFAULT_PATH)
 IF(ITK_FOUND)
+  IF(ITK_NO_IO_FACTORY_REGISTER_MANAGER)
+    MESSAGE("ITK_NO_IO_FACTORY_REGISTER_MANAGER is true, disabling default I/O factory manager")
+  ENDIF()
   INCLUDE(${ITK_USE_FILE})
 ELSE()
   MESSAGE(FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
@@ -189,6 +192,14 @@ SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INT
 # ..._INSTALL_CMAKE_FILES
 # vcProj_...
 # PLUSLIB_DEPENDENCIES
+
+IF(PLUS_USE_SYSTEM_ZLIB) # setting PlusZLib needs to come before processing subdirectories
+  SET(PlusZLib ${ZLIB_LIBRARY})
+  INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
+  LIST(APPEND PLUSLIB_INCLUDE_DIRS ${ZLIB_INCLUDE_DIR} CACHE INTERNAL "" )
+ELSE()
+  SET(PlusZLib vtkzlib)
+ENDIF()
 
 IF(PLUS_BUILD_WIDGETS)
   ADD_SUBDIRECTORY(PlusWidgets)
