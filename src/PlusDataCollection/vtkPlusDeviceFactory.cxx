@@ -74,6 +74,9 @@ See License.txt for details.
 // 3dConnexion tracker is supported on Windows only
 #include "vtkPlus3dConnexionTracker.h"
 #endif
+#ifdef PLUS_USE_AGILENT
+#include "vtkPlusAgilentScopeTracker.h"
+#endif
 
 //----------------------------------------------------------------------------
 // Video sources
@@ -281,6 +284,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_OvrvisionPro
   RegisterDevice("OvrvisionPro", "vtkPlusOvrvisionProVideoSource", (PointerToDevice)&vtkPlusOvrvisionProVideoSource::New);
+#endif
+#ifdef PLUS_USE_AGILENT
+  RegisterDevice("AgilentScope", "vtkPlusAgilentScopeTracker", (PointerToDevice)&vtkPlusAgilentScopeTracker::New);
 #endif
 
   // Virtual Devices

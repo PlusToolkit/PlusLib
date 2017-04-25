@@ -45,6 +45,7 @@ OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Ser
 OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
 OPTION (PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
+OPTION (PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 
 OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -1434,6 +1435,32 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# Agilent DXYZ/D310 PCI oscillioscope support
+IF(PLUS_USE_AGILENT)
+  FIND_PACKAGE(AgilentMD1 REQUIRED)
+  
+  SET (Agilent_SRCS
+    Agilent/vtkPlusAgilentScopeTracker.cxx
+    )
+  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET (Agilent_HDRS
+      Agilent/vtkPlusAgilentScopeTracker.h
+      )
+  ENDIF()
+
+  LIST(APPEND PlusDataCollection_HDRS ${Agilent_HDRS})
+  LIST(APPEND PlusDataCollection_SRCS ${Agilent_SRCS})
+
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/Agilent)
+  GET_TARGET_PROPERTY(_md1_shared_lib AgilentMD1 IMPORTED_LOCATION)
+  LIST(APPEND External_Libraries_Install 
+    ${_md1_shared_lib}
+    )
+
+  LIST(APPEND PlusDataCollection_LIBS AgilentMD1)
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Try to find tesseract and include its settings (otherwise complain)
 IF(PLUS_USE_tesseract)
   FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
@@ -1645,6 +1672,7 @@ source_group("OptiTrack" FILES ${OptiTrack_HDRS} ${OptiTrack_SRCS})
 source_group("VirtualDevices" FILES ${Virtual_HDRS} ${Virtual_SRCS})
 source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
+source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
