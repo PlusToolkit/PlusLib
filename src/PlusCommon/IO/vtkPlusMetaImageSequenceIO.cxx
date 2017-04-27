@@ -12,11 +12,11 @@ See License.txt for details.
 #include <vector>
 
 #ifdef _WIN32
-#define FSEEK _fseeki64
-#define FTELL _ftelli64
+  #define FSEEK _fseeki64
+  #define FTELL _ftelli64
 #else
-#define FSEEK fseek
-#define FTELL ftell
+  #define FSEEK fseek
+  #define FTELL ftell
 #endif
 
 #include "vtksys/SystemTools.hxx"
@@ -119,16 +119,15 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
     // trim spaces from the left and right
     PlusCommon::Trim(name);
     PlusCommon::Trim(value);
-
-    if (name.compare(0, SEQMETA_FIELD_FRAME_FIELD_PREFIX.size(), SEQMETA_FIELD_FRAME_FIELD_PREFIX) != 0)
+    if (!PlusCommon::HasSubstrInsensitive(name, SEQMETA_FIELD_FRAME_FIELD_PREFIX))
     {
       // field
       SetCustomString(name.c_str(), value.c_str());
 
       // Arrived to ElementDataFile, this is the last element
-      if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE) == 0)
+      if (PlusCommon::IsEqualInsensitive(name, SEQMETA_FIELD_ELEMENT_DATA_FILE))
       {
-        if (value.compare(SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL) == 0)
+        if (PlusCommon::IsEqualInsensitive(value, SEQMETA_FIELD_VALUE_ELEMENT_DATA_FILE_LOCAL))
         {
           // pixel data stored locally
           this->PixelDataFileOffset = FTELL(stream);
@@ -215,7 +214,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
   for (unsigned int i = 0; i < kinds.size(); i++)
   {
     issDimSize >> dimSize;
-    if (kinds[i].compare("domain") == 0)
+    if (PlusCommon::IsEqualInsensitive(kinds[i], "domain"))
     {
       if (spatialDomainCount == 3 && dimSize > 1)   // 0-indexed, this is the 4th spatial domain
       {
@@ -225,7 +224,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
       this->Dimensions[spatialDomainCount] = dimSize;
       spatialDomainCount++;
     }
-    else if (kinds[i].compare("time") == 0 || kinds[i].compare("list") == 0)       // time = resampling ok, list = resampling not ok
+    else if (PlusCommon::IsEqualInsensitive(kinds[i], "time") || PlusCommon::IsEqualInsensitive(kinds[i], "list")) // time = resampling ok, list = resampling not ok
     {
       this->Dimensions[3] = dimSize;
     }
@@ -551,12 +550,12 @@ bool vtkPlusMetaImageSequenceIO::CanReadFile(const std::string& filename)
   PlusCommon::Trim(name);
   PlusCommon::Trim(value);
 
-  if (name.compare("ObjectType") != 0)
+  if (!PlusCommon::IsEqualInsensitive(name, "ObjectType"))
   {
     LOG_DEBUG("Expect ObjectType field name in the first field");
     return false;
   }
-  if (value.compare("Image") != 0)
+  if (!PlusCommon::IsEqualInsensitive(value, "Image"))
   {
     LOG_DEBUG("Expect Image value name in the first field");
     return false;
@@ -568,8 +567,8 @@ bool vtkPlusMetaImageSequenceIO::CanReadFile(const std::string& filename)
 //----------------------------------------------------------------------------
 bool vtkPlusMetaImageSequenceIO::CanWriteFile(const std::string& filename)
 {
-  if (vtksys::SystemTools::GetFilenameExtension(filename).compare(".mha") == 0 ||
-      vtksys::SystemTools::GetFilenameExtension(filename).compare(".mhd") == 0)
+  if (PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".mha")  ||
+      PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".mhd"))
   {
     return true;
   }
@@ -818,15 +817,15 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
   this->TrackedFrameList->GetCustomFieldNameList(fieldNames);
   for (std::vector<std::string>::iterator it = fieldNames.begin(); it != fieldNames.end(); it++)
   {
-    if (it->compare("ObjectType") == 0)
+    if (PlusCommon::IsEqualInsensitive(*it, "ObjectType"))
     {
       continue;  // this must be the first element
     }
-    if (it->compare("NDims") == 0)
+    if (PlusCommon::IsEqualInsensitive(*it, "NDims"))
     {
       continue;  // this must be the second element
     }
-    if (it->compare("ElementDataFile") == 0)
+    if (PlusCommon::IsEqualInsensitive(*it, "ElementDataFile"))
     {
       continue;  // this must be the last element
     }
@@ -1035,37 +1034,37 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int& com
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(const std::string& elementTypeStr, PlusCommon::VTKScalarPixelType& vtkPixelType)
 {
-  if (elementTypeStr.compare("MET_OTHER") == 0
-      || elementTypeStr.compare("MET_NONE") == 0
+  if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_OTHER")
+      || PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_NONE")
       || elementTypeStr.empty())
   {
     vtkPixelType = VTK_VOID;
   }
-  else if (elementTypeStr.compare("MET_CHAR") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_CHAR"))
   {
     vtkPixelType = VTK_CHAR;
   }
-  else if (elementTypeStr.compare("MET_ASCII_CHAR") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_ASCII_CHAR"))
   {
     vtkPixelType = VTK_CHAR;
   }
-  else if (elementTypeStr.compare("MET_UCHAR") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_UCHAR"))
   {
     vtkPixelType = VTK_UNSIGNED_CHAR;
   }
-  else if (elementTypeStr.compare("MET_SHORT") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_SHORT"))
   {
     vtkPixelType = VTK_SHORT;
   }
-  else if (elementTypeStr.compare("MET_USHORT") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_USHORT"))
   {
     vtkPixelType = VTK_UNSIGNED_SHORT;
   }
-  else if (elementTypeStr.compare("MET_INT") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_INT"))
   {
     vtkPixelType = VTK_INT;
   }
-  else if (elementTypeStr.compare("MET_UINT") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_UINT"))
   {
     if (sizeof(unsigned int) == MET_ValueTypeSize[MET_UINT])
     {
@@ -1076,7 +1075,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_UNSIGNED_LONG;
     }
   }
-  else if (elementTypeStr.compare("MET_LONG") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_LONG"))
   {
     if (sizeof(unsigned int) == MET_ValueTypeSize[MET_LONG])
     {
@@ -1087,7 +1086,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_INT;
     }
   }
-  else if (elementTypeStr.compare("MET_ULONG") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_ULONG"))
   {
     if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG])
     {
@@ -1098,7 +1097,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_UNSIGNED_INT;
     }
   }
-  else if (elementTypeStr.compare("MET_LONG_LONG") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_LONG_LONG"))
   {
     if (sizeof(long) == MET_ValueTypeSize[MET_LONG_LONG])
     {
@@ -1113,7 +1112,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_VOID;
     }
   }
-  else if (elementTypeStr.compare("MET_ULONG_LONG") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_ULONG_LONG"))
   {
     if (sizeof(unsigned long) == MET_ValueTypeSize[MET_ULONG_LONG])
     {
@@ -1128,7 +1127,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_VOID;
     }
   }
-  else if (elementTypeStr.compare("MET_FLOAT") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_FLOAT"))
   {
     if (sizeof(float) == MET_ValueTypeSize[MET_FLOAT])
     {
@@ -1139,7 +1138,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ConvertMetaElementTypeToVtkPixelType(cons
       vtkPixelType = VTK_DOUBLE;
     }
   }
-  else if (elementTypeStr.compare("MET_DOUBLE") == 0)
+  else if (PlusCommon::IsEqualInsensitive(elementTypeStr, "MET_DOUBLE"))
   {
     vtkPixelType = VTK_DOUBLE;
     if (sizeof(double) == MET_ValueTypeSize[MET_DOUBLE])
@@ -1244,7 +1243,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fiel
     std::string name = line.substr(0, equalSignFound);
     PlusCommon::Trim(name);
 
-    if (name.compare(fieldName) == 0)
+    if (PlusCommon::IsEqualInsensitive(name, fieldName))
     {
       // found the field that has to be updated
 
@@ -1276,7 +1275,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::UpdateFieldInImageHeader(const char* fiel
 
       return PLUS_SUCCESS;
     }
-    else if (name.compare(SEQMETA_FIELD_ELEMENT_DATA_FILE) == 0)
+    else if (PlusCommon::IsEqualInsensitive(name, SEQMETA_FIELD_ELEMENT_DATA_FILE))
     {
       // this is guaranteed to be the last line in the header
       break;

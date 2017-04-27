@@ -118,63 +118,63 @@ void vtkFcsvReader::Update()
 //----------------------------------------------------------------------------
 void vtkFcsvReader::ProcessHeaderEntry(const std::string& headerEntry, const std::string& headerEntryValue)
 {
-  if (headerEntry.compare("numPoints") == 0)
+  if (PlusCommon::IsEqualInsensitive(headerEntry, "numPoints"))
   {
     FcsvDataObject.numPoints = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("version") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "version"))
   {
     FcsvDataObject.version = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("name") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "name"))
   {
     FcsvDataObject.name = headerEntryValue;
   }
-  else if (headerEntry.compare("symbolScale") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "symbolScale"))
   {
     FcsvDataObject.symbolScale = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("symbolType") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "symbolType"))
   {
     FcsvDataObject.symbolType = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("visibility") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "visibility"))
   {
     FcsvDataObject.visibility = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("textScale") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "textScale"))
   {
     FcsvDataObject.textScale = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("opacity") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "opacity"))
   {
     FcsvDataObject.opacity = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("ambient") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "ambient"))
   {
     FcsvDataObject.ambient = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("diffuse") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "diffuse"))
   {
     FcsvDataObject.diffuse = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("specular") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "specular"))
   {
     FcsvDataObject.specular = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("power") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "power"))
   {
     FcsvDataObject.power = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("locked") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "locked"))
   {
     FcsvDataObject.locked = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("numberingScheme") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "numberingScheme"))
   {
     FcsvDataObject.numberingScheme = atof(headerEntryValue.c_str());
   }
-  else if (headerEntry.compare("color") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "color"))
   {
     std::vector<std::string> elems;
     PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
@@ -183,7 +183,7 @@ void vtkFcsvReader::ProcessHeaderEntry(const std::string& headerEntry, const std
     FcsvDataObject.color[1] = atof(elems[1].c_str());
     FcsvDataObject.color[2] = atof(elems[2].c_str());
   }
-  else if (headerEntry.compare("selectedColor") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "selectedColor"))
   {
     std::vector<std::string> elems;
     PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
@@ -192,7 +192,7 @@ void vtkFcsvReader::ProcessHeaderEntry(const std::string& headerEntry, const std
     FcsvDataObject.selectedColor[1] = atof(elems[1].c_str());
     FcsvDataObject.selectedColor[2] = atof(elems[2].c_str());
   }
-  else if (headerEntry.compare("columns") == 0)
+  else if (PlusCommon::IsEqualInsensitive(headerEntry, "columns"))
   {
     std::vector<std::string> elems;
     PlusCommon::SplitStringIntoTokens(headerEntryValue, ' ', elems);

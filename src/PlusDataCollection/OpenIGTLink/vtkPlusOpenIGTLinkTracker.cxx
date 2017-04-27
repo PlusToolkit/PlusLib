@@ -502,5 +502,5 @@ bool vtkPlusOpenIGTLinkTracker::IsTDataMessageType()
   {
     return false;
   }
-  return (std::string(this->MessageType).compare("TDATA") == 0);
+  return (PlusCommon::IsEqualInsensitive(this->MessageType, "TDATA"));
 }

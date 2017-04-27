@@ -30,8 +30,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-#pragma warning ( disable : 4311 )
-#pragma warning ( disable : 4312 )
+  #pragma warning ( disable : 4311 )
+  #pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
@@ -111,8 +111,8 @@ vtkStandardNewMacro(vtkPlusDevice);
 
 const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
-const char* vtkPlusDevice::BMODE_PORT_NAME = "B";
-const char* vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
+const std::string vtkPlusDevice::BMODE_PORT_NAME = "B";
+const std::string vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
 const std::string vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME = "ProbeId";
 const std::string vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME = "Depth";
 const std::string vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME = "Mode";
@@ -2347,11 +2347,11 @@ PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channe
     // determine and set the mode
     if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
     {
-      if (value.compare(std::string(vtkPlusDevice::RFMODE_PORT_NAME)) == 0)
+      if (PlusCommon::IsEqualInsensitive(value, vtkPlusDevice::RFMODE_PORT_NAME))
       {
         key->Mode = Plus_RfMode;
       }
-      else if (value.compare(std::string(vtkPlusDevice::BMODE_PORT_NAME)) == 0)
+      else if (PlusCommon::IsEqualInsensitive(value, vtkPlusDevice::BMODE_PORT_NAME))
       {
         key->Mode = Plus_BMode;
       }

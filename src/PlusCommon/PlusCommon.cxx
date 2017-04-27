@@ -15,6 +15,10 @@ See License.txt for details.
 #include <vtkXMLDataElement.h>
 #include <vtksys/SystemTools.hxx>
 
+// STL includes
+#include <algorithm>
+#include <string>
+
 //-------------------------------------------------------
 PlusTransformName::PlusTransformName()
 {
@@ -596,6 +600,12 @@ namespace
   {
     return ::tolower(a) == ::tolower(b);
   }
+
+  //----------------------------------------------------------------------------
+  bool icompare_pred_w(wchar_t a, wchar_t b)
+  {
+    return ::towlower(a) == ::towlower(b);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -609,6 +619,41 @@ bool vtkPlusCommonExport PlusCommon::IsEqualInsensitive(std::string const& a, st
   {
     return false;
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::IsEqualInsensitive(std::wstring const& a, std::wstring const& b)
+{
+  if (a.length() == b.length())
+  {
+    return std::equal(b.begin(), b.end(), a.begin(), icompare_pred_w);
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::string const& a, std::string const& b)
+{
+  std::string lowerA(a);
+  std::transform(begin(lowerA), end(lowerA), lowerA.begin(), ::tolower);
+  std::string lowerB(b);
+  std::transform(begin(lowerB), end(lowerB), lowerB.begin(), ::tolower);
+
+  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::wstring const& a, std::wstring const& b)
+{
+  std::wstring lowerA;
+  std::transform(begin(a), end(a), lowerA.begin(), ::towlower);
+  std::wstring lowerB;
+  std::transform(begin(b), end(b), lowerB.begin(), ::towlower);
+
+  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
 }
 
 //----------------------------------------------------------------------------

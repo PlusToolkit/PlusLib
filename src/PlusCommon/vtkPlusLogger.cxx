@@ -5,9 +5,9 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #ifdef _WIN32
-#include <Windows.h> // required for setting the text color on the console output
+  #include <Windows.h> // required for setting the text color on the console output
 #else
-#include <errno.h> // required for getting last error on linux
+  #include <errno.h> // required for getting last error on linux
 #endif
 
 #include "PlusConfigure.h"
@@ -264,7 +264,7 @@ void vtkPlusLogger::SetLogFileName(const char* logfilename)
 
   if (this->m_FileStream.is_open())
   {
-    if (m_LogFileName.compare(logfilename) == 0)
+    if (PlusCommon::IsEqualInsensitive(m_LogFileName, logfilename))
     {
       // the file change has not changed and the log file is already created, so there is nothing to do
       return;

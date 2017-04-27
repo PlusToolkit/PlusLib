@@ -47,13 +47,13 @@ enum PlusImagingMode
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
-#  if defined(__BORLANDC__)
-#    define STRCASECMP stricmp
-#  else
-#    define STRCASECMP _stricmp
-#  endif
+  #if defined(__BORLANDC__)
+    #define STRCASECMP stricmp
+  #else
+    #define STRCASECMP _stricmp
+  #endif
 #else
-#  define STRCASECMP strcasecmp
+  #define STRCASECMP strcasecmp
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -243,7 +243,7 @@ virtual void Set##name (const char* _arg) \
 #define vtkGetMacroConst(name,type) \
 virtual type Get##name () const { \
   return this->name; \
-} 
+}
 
 #define SetMacro(name,type) \
 virtual void Set##name (type _arg) \
@@ -252,7 +252,7 @@ virtual void Set##name (type _arg) \
   { \
     this->name = _arg; \
   } \
-} 
+}
 
 #define GetMacro(name,type) \
 virtual void Set##name (type _arg) \
@@ -261,7 +261,7 @@ virtual void Set##name (type _arg) \
   { \
     this->name = _arg; \
   } \
-} 
+}
 
 class vtkPlusTrackedFrameList;
 class vtkXMLDataElement;
@@ -372,6 +372,9 @@ namespace PlusCommon
 
   //----------------------------------------------------------------------------
   bool vtkPlusCommonExport IsEqualInsensitive(std::string const& a, std::string const& b);
+  bool vtkPlusCommonExport IsEqualInsensitive(std::wstring const& a, std::wstring const& b);
+  bool vtkPlusCommonExport HasSubstrInsensitive(std::string const& a, std::string const& b);
+  bool vtkPlusCommonExport HasSubstrInsensitive(std::wstring const& a, std::wstring const& b);
 
   //----------------------------------------------------------------------------
   typedef std::array<int, 3> PixelPoint;

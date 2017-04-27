@@ -782,11 +782,11 @@ PlusStatus vtkPlusTransformRepository::WriteConfigurationGeneric(vtkXMLDataEleme
         newTransformElement->SetName("Transform");
         newTransformElement->SetAttribute("From", fromCoordinateFrame.c_str());
         newTransformElement->SetAttribute("To", toCoordinateFrame.c_str());
-        if (persistent.compare("false") == 0)
+        if (PlusCommon::IsEqualInsensitive(persistent, "false"))
         {
           newTransformElement->SetAttribute("Persistent", persistent.c_str());
         }
-        if (valid.compare("false") == 0)
+        if (PlusCommon::IsEqualInsensitive(valid, "false"))
         {
           newTransformElement->SetAttribute("Valid", valid.c_str());
         }

@@ -817,15 +817,15 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
       for (fieldIterator = sourceCustomFields.begin(); fieldIterator != sourceCustomFields.end(); fieldIterator++)
       {
         // skip special fields
-        if (fieldIterator->first.compare("TimeStamp") == 0)
+        if (PlusCommon::IsEqualInsensitive(fieldIterator->first, "TimeStamp"))
         {
           continue;
         }
-        if (fieldIterator->first.compare("UnfilteredTimestamp") == 0)
+        if (PlusCommon::IsEqualInsensitive(fieldIterator->first, "UnfilteredTimestamp"))
         {
           continue;
         }
-        if (fieldIterator->first.compare("FrameNumber") == 0)
+        if (PlusCommon::IsEqualInsensitive(fieldIterator->first, "FrameNumber"))
         {
           continue;
         }
@@ -895,26 +895,26 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
     int clipRectSize[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
     switch (timestampFiltering)
     {
-    case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS)
-      {
-        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
-      }
-      break;
-    case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS)
-      {
-        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
-      }
-      break;
-    case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, timestamp, timestamp, &customFields) != PLUS_SUCCESS)
-      {
-        LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
-      }
-      break;
-    default:
-      break;
+      case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
+        if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, timestamp, &customFields) != PLUS_SUCCESS)
+        {
+          LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
+        }
+        break;
+      case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
+        if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, unfilteredtimestamp, UNDEFINED_TIMESTAMP, &customFields) != PLUS_SUCCESS)
+        {
+          LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
+        }
+        break;
+      case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
+        if (this->AddItem(sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData(), frmnum, clipRectOrigin, clipRectSize, timestamp, timestamp, &customFields) != PLUS_SUCCESS)
+        {
+          LOCAL_LOG_WARNING("Failed to add video frame to buffer from sequence metafile with frame #" << frameNumber);
+        }
+        break;
+      default:
+        break;
     }
   }
 
@@ -1016,14 +1016,14 @@ PlusStatus vtkPlusBuffer::GetPrevNextBufferItemFromTime(double time, StreamBuffe
   {
     switch (status)
     {
-    case ITEM_NOT_AVAILABLE_YET:
-      LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time << ". Item is not available yet.");
-      break;
-    case ITEM_NOT_AVAILABLE_ANYMORE:
-      LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time << ". Item is not available anymore.");
-      break;
-    default:
-      break;
+      case ITEM_NOT_AVAILABLE_YET:
+        LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time << ". Item is not available yet.");
+        break;
+      case ITEM_NOT_AVAILABLE_ANYMORE:
+        LOCAL_LOG_DEBUG("vtkPlusBuffer: Cannot get any item from the data buffer for time: " << std::fixed << time << ". Item is not available anymore.");
+        break;
+      default:
+        break;
     }
     return PLUS_FAIL;
   }
@@ -1119,15 +1119,15 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromTime(double time, StreamBufferI
 {
   switch (interpolation)
   {
-  case EXACT_TIME:
-    return GetStreamBufferItemFromExactTime(time, bufferItem);
-  case INTERPOLATED:
-    return GetInterpolatedStreamBufferItemFromTime(time, bufferItem);
-  case CLOSEST_TIME:
-    return GetStreamBufferItemFromClosestTime(time, bufferItem);
-  default:
-    LOCAL_LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
-    return GetStreamBufferItemFromExactTime(time, bufferItem);
+    case EXACT_TIME:
+      return GetStreamBufferItemFromExactTime(time, bufferItem);
+    case INTERPOLATED:
+      return GetInterpolatedStreamBufferItemFromTime(time, bufferItem);
+    case CLOSEST_TIME:
+      return GetStreamBufferItemFromClosestTime(time, bufferItem);
+    default:
+      LOCAL_LOG_WARNING("Unknown interpolation type: " << interpolation << ". Defaulting to exact time request.");
+      return GetStreamBufferItemFromExactTime(time, bufferItem);
   }
 }
 
@@ -1175,14 +1175,14 @@ ItemStatus vtkPlusBuffer::GetStreamBufferItemFromClosestTime(double time, Stream
   {
     switch (status)
     {
-    case ITEM_NOT_AVAILABLE_YET:
-      LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time << ". Item is not available yet.");
-      break;
-    case ITEM_NOT_AVAILABLE_ANYMORE:
-      LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time << ". Item is not available anymore.");
-      break;
-    default:
-      break;
+      case ITEM_NOT_AVAILABLE_YET:
+        LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time << ". Item is not available yet.");
+        break;
+      case ITEM_NOT_AVAILABLE_ANYMORE:
+        LOCAL_LOG_WARNING("vtkPlusBuffer: Cannot get any item from the buffer for time: " << std::fixed << time << ". Item is not available anymore.");
+        break;
+      default:
+        break;
     }
     return status;
   }
@@ -1458,17 +1458,17 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
 
     switch (timestampFiltering)
     {
-    case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp, timestamp);
-      break;
-    case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp);
-      break;
-    case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
-      this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, timestamp, timestamp);
-      break;
-    default:
-      break;
+      case READ_FILTERED_AND_UNFILTERED_TIMESTAMPS:
+        this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp, timestamp);
+        break;
+      case READ_UNFILTERED_COMPUTE_FILTERED_TIMESTAMPS:
+        this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, unfilteredtimestamp);
+        break;
+      case READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS:
+        this->AddTimeStampedItem(copiedTransformMatrix, toolStatus, frmnum, timestamp, timestamp);
+        break;
+      default:
+        break;
     }
 
   }

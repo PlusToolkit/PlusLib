@@ -22,7 +22,7 @@ See License.txt for details.
 #include <QUrl>
 
 #if !defined(_WIN32)
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
 enum DataItemRoles
@@ -319,7 +319,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
   {
     QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
-    if (extension.compare(QString(".xml")) != 0)
+    if (!PlusCommon::IsEqualInsensitive(extension.toStdString(), ".xml"))
     {
       continue;
     }
@@ -340,7 +340,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
       QDomElement docElem = doc.documentElement();
 
       // Check if the root element is PlusConfiguration and contains a DataCollection child
-      if (!docElem.tagName().compare("PlusConfiguration"))
+      if (!docElem.tagName().compare("PlusConfiguration", Qt::CaseInsensitive))
       {
         QDomNodeList list = docElem.elementsByTagName("DataCollection");
 
