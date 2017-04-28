@@ -144,7 +144,7 @@ void QPlusConfigFileSaverDialog::SaveClicked()
 
   if (!fileName.isNull())
   {
-    PlusCommon::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    PlusCommon::XML::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     LOG_INFO("Device set configuration saved as '" << fileName.toStdString() << "'");
   }
 

@@ -680,7 +680,7 @@ PlusStatus vtkPlusProbeCalibrationAlgo::SaveCalibrationResultAndErrorReportToXML
   if (status == PLUS_SUCCESS)
   {
     probeCalibrationResult->AddNestedElement(calibrationFile);
-    PlusCommon::PrintXML(calibrationResultFileNameWithPath.c_str(), probeCalibrationResult);
+    PlusCommon::XML::PrintXML(calibrationResultFileNameWithPath.c_str(), probeCalibrationResult);
   }
 
   return status;

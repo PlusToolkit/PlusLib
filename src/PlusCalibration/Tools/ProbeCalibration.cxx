@@ -190,7 +190,7 @@ int main (int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    PlusCommon::PrintXML(resultConfigFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()); 
+    PlusCommon::XML::PrintXML(resultConfigFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData()); 
   }
 
   if (!inputBaselineFileName.empty())

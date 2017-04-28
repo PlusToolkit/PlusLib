@@ -191,14 +191,15 @@ PlusStatus vtkPlusChannel::WriteConfiguration(vtkXMLDataElement* aChannelElement
     {
       continue;
     }
-    if (element->GetAttribute("Type") != NULL && STRCASECMP(element->GetAttribute("Type"), "Video") == 0)
+    bool isEqual(false);
+    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       if (this->HasVideoSource())
       {
         this->VideoSource->WriteConfiguration(element);
       }
     }
-    else if (element->GetAttribute("Type") != NULL && STRCASECMP(element->GetAttribute("Type"), "Tool") == 0)
+    else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       vtkPlusDataSource* aTool = NULL;
       if (element->GetAttribute("Id") == NULL || this->GetTool(aTool, element->GetAttribute("Id")) != PLUS_SUCCESS)
@@ -208,7 +209,7 @@ PlusStatus vtkPlusChannel::WriteConfiguration(vtkXMLDataElement* aChannelElement
       }
       aTool->WriteCompactConfiguration(element);
     }
-    else if (element->GetAttribute("Type") != NULL && STRCASECMP(element->GetAttribute("Type"), "FieldData") == 0)
+    else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       vtkPlusDataSource* aSource = NULL;
       if (element->GetAttribute("Id") == NULL || this->GetFieldDataSource(aSource, element->GetAttribute("Id")) != PLUS_SUCCESS)
@@ -812,16 +813,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-          case ITEM_NOT_AVAILABLE_YET:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-            break;
-          case ITEM_NOT_AVAILABLE_ANYMORE:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-            break;
-          case ITEM_UNKNOWN_ERROR:
-          default:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
-            break;
+        case ITEM_NOT_AVAILABLE_YET:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+          break;
+        case ITEM_NOT_AVAILABLE_ANYMORE:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+          break;
+        case ITEM_UNKNOWN_ERROR:
+        default:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
+          break;
         }
         return PLUS_FAIL;
       }
@@ -859,16 +860,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-          case ITEM_NOT_AVAILABLE_YET:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-            break;
-          case ITEM_NOT_AVAILABLE_ANYMORE:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-            break;
-          case ITEM_UNKNOWN_ERROR:
-          default:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
-            break;
+        case ITEM_NOT_AVAILABLE_YET:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+          break;
+        case ITEM_NOT_AVAILABLE_ANYMORE:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+          break;
+        case ITEM_UNKNOWN_ERROR:
+        default:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
+          break;
         }
         return PLUS_FAIL;
       }

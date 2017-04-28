@@ -47,13 +47,13 @@ enum PlusImagingMode
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
-  #if defined(__BORLANDC__)
-    #define STRCASECMP stricmp
-  #else
-    #define STRCASECMP _stricmp
-  #endif
+#if defined(__BORLANDC__)
+#define STRCASECMP stricmp
 #else
-  #define STRCASECMP strcasecmp
+#define STRCASECMP _stricmp
+#endif
+#else
+#define STRCASECMP strcasecmp
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -417,22 +417,30 @@ namespace PlusCommon
   */
   vtkPlusCommonExport PlusStatus RobustFwrite(FILE* fileHandle, void* data, size_t dataSize, size_t& writtenSize);
 
-  /*!
-    Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
-    there are no extra lines, if there are many attributes then each of them is printed on separate line, and
-    matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
-    are printed in 4 lines.
-  */
-  vtkPlusCommonExport PlusStatus PrintXML(const std::string& filename, vtkXMLDataElement* elem);
-  /*!
-    Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
-    there are no extra lines, if there are many attributes then each of them is printed on separate line, and
-    matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
-    are printed in 4 lines.
-  */
-  vtkPlusCommonExport PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
-
   vtkPlusCommonExport std::string GetPlusLibVersionString();
+
+  //----------------------------------------------------------------------------
+  namespace XML
+  {
+    /*!
+      Writes an XML element to file. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
+      there are no extra lines, if there are many attributes then each of them is printed on separate line, and
+      matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
+      are printed in 4 lines.
+    */
+    vtkPlusCommonExport PlusStatus PrintXML(const std::string& filename, vtkXMLDataElement* elem);
+    /*!
+      Writes an XML element to a stream. The output is nicer that with the built-in vtkXMLDataElement::PrintXML, as
+      there are no extra lines, if there are many attributes then each of them is printed on separate line, and
+      matrix elements (those that contain Matrix or Transform in the attribute name and 16 numerical elements in the attribute value)
+      are printed in 4 lines.
+    */
+    vtkPlusCommonExport PlusStatus PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem);
+
+    vtkPlusCommonExport PlusStatus SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, const std::string& value, bool& isEqual);
+    vtkPlusCommonExport PlusStatus SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, const std::wstring& value, bool& isEqual);
+  }
+
 };
 
 /*!

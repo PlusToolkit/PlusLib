@@ -497,7 +497,7 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
   }
 
   std::string applicationConfigurationFilePath = vtksys::SystemTools::CollapseFullPath(APPLICATION_CONFIGURATION_FILE_NAME, this->ProgramDirectory.c_str());
-  PlusCommon::PrintXML(applicationConfigurationFilePath.c_str(), this->ApplicationConfigurationData);
+  PlusCommon::XML::PrintXML(applicationConfigurationFilePath.c_str(), this->ApplicationConfigurationData);
 
   LOG_DEBUG("Application configuration file '" << applicationConfigurationFilePath << "' saved");
 

@@ -79,7 +79,7 @@ PlusStatus PlusTrackedFrame::GetTrackedFrameInXmlData(std::string& strXmlData, c
   PlusStatus status = this->PrintToXML(xmlData, requestedTransforms);
 
   std::ostringstream os;
-  PlusCommon::PrintXML(os, vtkIndent(0), xmlData);
+  PlusCommon::XML::PrintXML(os, vtkIndent(0), xmlData);
 
   strXmlData = os.str();
 

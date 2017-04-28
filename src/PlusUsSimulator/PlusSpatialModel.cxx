@@ -523,7 +523,7 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
 //-----------------------------------------------------------------------------
 void PlusSpatialModel::SetModelFile(const std::string& modelFile)
 {
-  if (this->ModelFile.compare(modelFile) == 0)
+  if (this->ModelFile.compare(modelFile) != 0)
   {
     this->ModelFileNeedsUpdate = true;
   }

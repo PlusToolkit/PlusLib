@@ -30,8 +30,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-  #pragma warning ( disable : 4311 )
-  #pragma warning ( disable : 4312 )
+#pragma warning ( disable : 4311 )
+#pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
@@ -1001,7 +1001,8 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
       }
 
       vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New();
-      if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Tool") == 0)
+      bool isEqual(false);
+      if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         aDataSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
 
@@ -1016,7 +1017,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
           LOCAL_LOG_ERROR("Failed to add tool '" << (!aDataSource->GetId().empty() ? aDataSource->GetId() : "(unspecified)") << "' to device on port " << (!aDataSource->GetPortName().empty() ? aDataSource->GetPortName() : "(unspecified)"));
         }
       }
-      else if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "FieldData") == 0)
+      else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         if (aDataSource->ReadConfiguration(dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId()) != PLUS_SUCCESS)
         {
@@ -1029,7 +1030,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
           LOCAL_LOG_ERROR("Failed to add field data source '" << (!aDataSource->GetId().empty() ? aDataSource->GetId() : "(unspecified)") << "' to device.");
         }
       }
-      else if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), "Video") == 0)
+      else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         aDataSource->ReadConfiguration(dataSourceElement, this->RequirePortNameInDeviceSetConfiguration, this->RequireImageOrientationInConfiguration, this->GetDeviceId());
 
@@ -1137,7 +1138,8 @@ PlusStatus vtkPlusDevice::WriteConfiguration(vtkXMLDataElement* config)
         continue;
       }
       vtkPlusDataSource* aDataSource = NULL;
-      if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG.c_str()) == 0)
+      bool isEqual(false);
+      if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         PlusTransformName toolId(dataSourceElement->GetAttribute("Id"), this->GetToolReferenceFrameName());
         if (dataSourceElement->GetAttribute("Id") == NULL || this->GetTool(toolId.GetTransformName(), aDataSource) != PLUS_SUCCESS)
@@ -1147,7 +1149,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration(vtkXMLDataElement* config)
         }
         aDataSource->WriteConfiguration(dataSourceElement);
       }
-      if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG.c_str()) == 0)
+      else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         if (dataSourceElement->GetAttribute("Id") == NULL || this->GetFieldDataSource(dataSourceElement->GetAttribute("Id"), aDataSource) != PLUS_SUCCESS)
         {
@@ -1156,7 +1158,7 @@ PlusStatus vtkPlusDevice::WriteConfiguration(vtkXMLDataElement* config)
         }
         aDataSource->WriteConfiguration(dataSourceElement);
       }
-      else if (dataSourceElement->GetAttribute("Type") != NULL && STRCASECMP(dataSourceElement->GetAttribute("Type"), vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG.c_str()) == 0)
+      else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG, isEqual) == PLUS_SUCCESS && isEqual)
       {
         if (dataSourceElement->GetAttribute("Id") == NULL || this->GetVideoSource(dataSourceElement->GetAttribute("Id"), aDataSource) != PLUS_SUCCESS)
         {

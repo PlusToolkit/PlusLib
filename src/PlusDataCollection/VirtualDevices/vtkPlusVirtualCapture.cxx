@@ -253,7 +253,7 @@ PlusStatus vtkPlusVirtualCapture::CloseFile(const char* aFilename /* = NULL */, 
   std::string path = vtksys::SystemTools::GetFilenamePath(fullPath);
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath);
   std::string configFileName = path + "/" + filename + "_config.xml";
-  PlusCommon::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  PlusCommon::XML::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   this->IsHeaderPrepared = false;
   this->TotalFramesRecorded = 0;

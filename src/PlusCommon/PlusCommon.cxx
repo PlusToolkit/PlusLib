@@ -306,33 +306,33 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-      case '&':
-        os << "&amp;";
-        break;
-      case '<':
-        os << "&lt;";
-        break;
-      case '>':
-        os << "&gt;";
-        break;
-      case '"':
-        os << "&quot;";
-        break;
-      case '\'':
-        os << "&apos;";
-        break;
-      default:
-        os << data[i];
+    case '&':
+      os << "&amp;";
+      break;
+    case '<':
+      os << "&lt;";
+      break;
+    case '>':
+      os << "&gt;";
+      break;
+    case '"':
+      os << "&quot;";
+      break;
+    case '\'':
+      os << "&apos;";
+      break;
+    default:
+      os << data[i];
     }
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem)
+PlusStatus PlusCommon::XML::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem)
 {
   if (elem == NULL)
   {
-    LOG_ERROR("PlusCommon::PrintXML failed, input element is invalid");
+    LOG_ERROR("PlusCommon::XML::PrintXML failed, input element is invalid");
     return PLUS_FAIL;
   }
   vtkIndent nextIndent = indent.GetNextIndent();
@@ -429,7 +429,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML(const std::string& fname, vtkXMLDataElement* elem)
+PlusStatus PlusCommon::XML::PrintXML(const std::string& fname, vtkXMLDataElement* elem)
 {
   ofstream of(fname);
   if (!of.is_open())
@@ -438,7 +438,7 @@ PlusStatus PlusCommon::PrintXML(const std::string& fname, vtkXMLDataElement* ele
     return PLUS_FAIL;
   }
   of.imbue(std::locale::classic());
-  return PlusCommon::PrintXML(of, vtkIndent(), elem);
+  return PlusCommon::XML::PrintXML(of, vtkIndent(), elem);
 }
 
 //----------------------------------------------------------------------------
@@ -771,4 +771,26 @@ PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSiz
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, const std::string& value, bool& isEqual)
+{
+  if (attributeName.empty())
+  {
+    return PLUS_FAIL;
+  }
+  auto attr = element.GetAttribute(attributeName.c_str());
+  if (attr == NULL)
+  {
+    return PLUS_FAIL;
+  }
+  isEqual = PlusCommon::IsEqualInsensitive(attr, value);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, const std::wstring& value, bool& isEqual)
+{
+  return PlusCommon::XML::SafeCheckAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), std::string(begin(value), end(value)), isEqual);
 }
