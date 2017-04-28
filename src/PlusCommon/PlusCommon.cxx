@@ -306,23 +306,23 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-      case '&':
-        os << "&amp;";
-        break;
-      case '<':
-        os << "&lt;";
-        break;
-      case '>':
-        os << "&gt;";
-        break;
-      case '"':
-        os << "&quot;";
-        break;
-      case '\'':
-        os << "&apos;";
-        break;
-      default:
-        os << data[i];
+    case '&':
+      os << "&amp;";
+      break;
+    case '<':
+      os << "&lt;";
+      break;
+    case '>':
+      os << "&gt;";
+      break;
+    case '"':
+      os << "&quot;";
+      break;
+    case '\'':
+      os << "&apos;";
+      break;
+    default:
+      os << data[i];
     }
   }
 }

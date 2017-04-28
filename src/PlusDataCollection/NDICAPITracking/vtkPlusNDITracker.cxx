@@ -224,33 +224,33 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
   int baud = NDI_9600;
   switch (this->BaudRate)
   {
-    case 9600:
-      baud = NDI_9600;
-      break;
-    case 14400:
-      baud = NDI_14400;
-      break;
-    case 19200:
-      baud = NDI_19200;
-      break;
-    case 38400:
-      baud = NDI_38400;
-      break;
-    case 57600:
-      baud = NDI_57600;
-      break;
-    case 115200:
-      baud = NDI_115200;
-      break;
-    case 921600:
-      baud = NDI_921600;
-      break;
-    case 1228739:
-      baud = NDI_1228739;
-      break;
-    default:
-      LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
-      return PLUS_FAIL;
+  case 9600:
+    baud = NDI_9600;
+    break;
+  case 14400:
+    baud = NDI_14400;
+    break;
+  case 19200:
+    baud = NDI_19200;
+    break;
+  case 38400:
+    baud = NDI_38400;
+    break;
+  case 57600:
+    baud = NDI_57600;
+    break;
+  case 115200:
+    baud = NDI_115200;
+    break;
+  case 921600:
+    baud = NDI_921600;
+    break;
+  case 1228739:
+    baud = NDI_1228739;
+    break;
+  default:
+    LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
+    return PLUS_FAIL;
   }
 
   char* devicename = ndiDeviceName(this->SerialPort - 1);
@@ -841,18 +841,18 @@ PlusStatus  vtkPlusNDITracker::SetToolLED(const char* sourceId, int led, LedStat
   int plstate = NDI_BLANK;
   switch (state)
   {
-    case TR_LED_OFF:
-      plstate = NDI_BLANK;
-      break;
-    case TR_LED_ON:
-      plstate = NDI_SOLID;
-      break;
-    case TR_LED_FLASH:
-      plstate = NDI_FLASH;
-      break;
-    default:
-      LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
-      return PLUS_FAIL;
+  case TR_LED_OFF:
+    plstate = NDI_BLANK;
+    break;
+  case TR_LED_ON:
+    plstate = NDI_SOLID;
+    break;
+  case TR_LED_FLASH:
+    plstate = NDI_FLASH;
+    break;
+  default:
+    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
+    return PLUS_FAIL;
   }
 
   this->Command("LED:%02X%d%c", portHandle, led + 1, plstate);
@@ -1076,14 +1076,14 @@ void vtkPlusNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int
     std::string shapeType;
     switch (volDescriptor[0])
     {
-      case '9':
-        shapeType = "Cube volume";
-        break;
-      case 'A':
-        shapeType = "Dome volume";
-        break;
-      default:
-        shapeType = "unknown";
+    case '9':
+      shapeType = "Cube volume";
+      break;
+    case 'A':
+      shapeType = "Dome volume";
+      break;
+    default:
+      shapeType = "unknown";
     }
     LOG_DYNAMIC(" Shape type: " << shapeType << " (" << volDescriptor[0] << ")", logLevel);
 
@@ -1103,17 +1103,17 @@ void vtkPlusNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int
     std::string metalResistant;
     switch (volDescriptor[72])
     {
-      case '0':
-        metalResistant = "no information";
-        break;
-      case '1':
-        metalResistant = "metal resistant";
-        break;
-      case '2':
-        metalResistant = "not metal resistant";
-        break;
-      default:
-        metalResistant = "unknown";
+    case '0':
+      metalResistant = "no information";
+      break;
+    case '1':
+      metalResistant = "metal resistant";
+      break;
+    case '2':
+      metalResistant = "not metal resistant";
+      break;
+    default:
+      metalResistant = "unknown";
     }
     LOG_DYNAMIC(" Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel);
   }
