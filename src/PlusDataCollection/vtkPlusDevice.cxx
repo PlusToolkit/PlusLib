@@ -30,8 +30,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-  #pragma warning ( disable : 4311 )
-  #pragma warning ( disable : 4312 )
+#pragma warning ( disable : 4311 )
+#pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
