@@ -439,6 +439,11 @@ namespace PlusCommon
 
     vtkPlusCommonExport PlusStatus SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, const std::string& value, bool& isEqual);
     vtkPlusCommonExport PlusStatus SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, const std::wstring& value, bool& isEqual);
+
+    vtkPlusCommonExport PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, std::string& value);
+    vtkPlusCommonExport PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, std::string& value);
+    template<typename T> vtkPlusCommonExport PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, T& value);
+    template<typename T> vtkPlusCommonExport PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, T& value);
   }
 
 };
@@ -559,5 +564,6 @@ private:
 
 #include "vtkPlusConfig.h"
 #include "PlusXmlUtils.h"
+#include "PlusCommon.txx"
 
 #endif //__PlusCommon_h

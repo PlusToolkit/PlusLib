@@ -790,6 +790,23 @@ vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensiti
 }
 
 //----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, std::string& value)
+{
+  if (attributeName.empty())
+  {
+    return PLUS_FAIL;
+  }
+  value = element.GetAttribute(attributeName.c_str());
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, std::string& value)
+{
+  return PlusCommon::XML::SafeGetAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), value);
+}
+
+//----------------------------------------------------------------------------
 vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, const std::wstring& value, bool& isEqual)
 {
   return PlusCommon::XML::SafeCheckAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), std::string(begin(value), end(value)), isEqual);

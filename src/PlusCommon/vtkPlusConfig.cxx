@@ -251,7 +251,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   this->SetApplicationConfigurationData(applicationConfigurationRoot);
 
   // Verify root element name
-  if (STRCASECMP(applicationConfigurationRoot->GetName(), "PlusConfig") != 0)
+  if (!PlusCommon::IsEqualInsensitive(applicationConfigurationRoot->GetName(), "PlusConfig"))
   {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << applicationConfigurationFilePath << "' should be 'PlusConfig' instead of '" << applicationConfigurationRoot->GetName() << "')");
     return PLUS_FAIL;

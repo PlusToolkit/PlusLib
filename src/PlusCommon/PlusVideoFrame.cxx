@@ -21,7 +21,7 @@ See License.txt for details.
 #include <string>
 
 #ifdef PLUS_USE_OpenIGTLink
-  #include "igtlImageMessage.h"
+#include "igtlImageMessage.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -661,71 +661,71 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString(const char*
   {
     return imgOrientation;
   }
-  else if (STRCASECMP(imgOrientationStr, "UF") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UF"))
   {
     imgOrientation = US_IMG_ORIENT_UF;
   }
-  else if (STRCASECMP(imgOrientationStr, "UN") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UN"))
   {
     imgOrientation = US_IMG_ORIENT_UN;
   }
-  else if (STRCASECMP(imgOrientationStr, "MF") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MF"))
   {
     imgOrientation = US_IMG_ORIENT_MF;
   }
-  else if (STRCASECMP(imgOrientationStr, "MN") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MN"))
   {
     imgOrientation = US_IMG_ORIENT_MN;
   }
-  else if (STRCASECMP(imgOrientationStr, "UFA") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UFA"))
   {
     imgOrientation = US_IMG_ORIENT_UFA;
   }
-  else if (STRCASECMP(imgOrientationStr, "UNA") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UNA"))
   {
     imgOrientation = US_IMG_ORIENT_UNA;
   }
-  else if (STRCASECMP(imgOrientationStr, "MFA") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MFA"))
   {
     imgOrientation = US_IMG_ORIENT_MFA;
   }
-  else if (STRCASECMP(imgOrientationStr, "MNA") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MNA"))
   {
     imgOrientation = US_IMG_ORIENT_MNA;
   }
-  else if (STRCASECMP(imgOrientationStr, "AMF") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "AMF"))
   {
     imgOrientation = US_IMG_ORIENT_AMF;
   }
-  else if (STRCASECMP(imgOrientationStr, "UFD") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UFD"))
   {
     imgOrientation = US_IMG_ORIENT_UFD;
   }
-  else if (STRCASECMP(imgOrientationStr, "UND") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UND"))
   {
     imgOrientation = US_IMG_ORIENT_UND;
   }
-  else if (STRCASECMP(imgOrientationStr, "MFD") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MFD"))
   {
     imgOrientation = US_IMG_ORIENT_MFD;
   }
-  else if (STRCASECMP(imgOrientationStr, "MND") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MND"))
   {
     imgOrientation = US_IMG_ORIENT_MND;
   }
-  else if (STRCASECMP(imgOrientationStr, "FU") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "FU"))
   {
     imgOrientation = US_IMG_ORIENT_FU;
   }
-  else if (STRCASECMP(imgOrientationStr, "NU") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "NU"))
   {
     imgOrientation = US_IMG_ORIENT_NU;
   }
-  else if (STRCASECMP(imgOrientationStr, "FM") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "FM"))
   {
     imgOrientation = US_IMG_ORIENT_FM;
   }
-  else if (STRCASECMP(imgOrientationStr, "NM") == 0)
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "NM"))
   {
     imgOrientation = US_IMG_ORIENT_NM;
   }
@@ -734,38 +734,44 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString(const char*
 }
 
 //----------------------------------------------------------------------------
-const char* PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
+US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString(const std::string& imgOrientationStr)
+{
+  return PlusVideoFrame::GetUsImageOrientationFromString(imgOrientationStr.c_str());
+}
+
+//----------------------------------------------------------------------------
+std::string PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
 {
   switch (imgOrientation)
   {
-    case US_IMG_ORIENT_FM:
-      return "FM";
-    case US_IMG_ORIENT_NM:
-      return "NM";
-    case US_IMG_ORIENT_FU:
-      return "FU";
-    case US_IMG_ORIENT_NU:
-      return "NU";
-    case US_IMG_ORIENT_UFA:
-      return "UFA";
-    case US_IMG_ORIENT_UNA:
-      return "UNA";
-    case US_IMG_ORIENT_MFA:
-      return "MFA";
-    case US_IMG_ORIENT_MNA:
-      return "MNA";
-    case US_IMG_ORIENT_AMF:
-      return "AMF";
-    case US_IMG_ORIENT_UFD:
-      return "UFD";
-    case US_IMG_ORIENT_UND:
-      return "UND";
-    case US_IMG_ORIENT_MFD:
-      return "MFD";
-    case US_IMG_ORIENT_MND:
-      return "MND";
-    default:
-      return "XX";
+  case US_IMG_ORIENT_FM:
+    return "FM";
+  case US_IMG_ORIENT_NM:
+    return "NM";
+  case US_IMG_ORIENT_FU:
+    return "FU";
+  case US_IMG_ORIENT_NU:
+    return "NU";
+  case US_IMG_ORIENT_UFA:
+    return "UFA";
+  case US_IMG_ORIENT_UNA:
+    return "UNA";
+  case US_IMG_ORIENT_MFA:
+    return "MFA";
+  case US_IMG_ORIENT_MNA:
+    return "MNA";
+  case US_IMG_ORIENT_AMF:
+    return "AMF";
+  case US_IMG_ORIENT_UFD:
+    return "UFD";
+  case US_IMG_ORIENT_UND:
+    return "UND";
+  case US_IMG_ORIENT_MFD:
+    return "MFD";
+  case US_IMG_ORIENT_MND:
+    return "MND";
+  default:
+    return "XX";
   }
 }
 
@@ -806,22 +812,22 @@ US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString(const std::string& imgTyp
 }
 
 //----------------------------------------------------------------------------
-const char* PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
+std::string PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
 {
   switch (imgType)
   {
-    case US_IMG_BRIGHTNESS:
-      return "BRIGHTNESS";
-    case US_IMG_RF_REAL:
-      return "RF_REAL";
-    case US_IMG_RF_IQ_LINE:
-      return "RF_IQ_LINE";
-    case US_IMG_RF_I_LINE_Q_LINE:
-      return "RF_I_LINE_Q_LINE";
-    case US_IMG_RGB_COLOR:
-      return "RGB_COLOR";
-    default:
-      return "XX";
+  case US_IMG_BRIGHTNESS:
+    return "BRIGHTNESS";
+  case US_IMG_RF_REAL:
+    return "RF_REAL";
+  case US_IMG_RF_IQ_LINE:
+    return "RF_IQ_LINE";
+  case US_IMG_RF_I_LINE_Q_LINE:
+    return "RF_I_LINE_Q_LINE";
+  case US_IMG_RGB_COLOR:
+    return "RGB_COLOR";
+  default:
+    return "XX";
   }
 }
 
@@ -1241,20 +1247,20 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
   PlusStatus status(PLUS_FAIL);
   switch (numberOfBytesPerScalar)
   {
-    case 1:
-      status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-      break;
-    case 2:
-      status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-      break;
-    case 4:
-      status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-      break;
-    case 8:
-      status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-      break;
-    default:
-      LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
+  case 1:
+    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+    break;
+  case 2:
+    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+    break;
+  case 4:
+    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+    break;
+  case 8:
+    status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+    break;
+  default:
+    LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
   }
   return status;
 }
@@ -1316,29 +1322,29 @@ int PlusVideoFrame::GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pix
 {
   switch (pixelType)
   {
-    case VTK_UNSIGNED_CHAR:
-      return sizeof(vtkTypeUInt8);
-    case VTK_CHAR:
-      return sizeof(vtkTypeInt8);
-    case VTK_UNSIGNED_SHORT:
-      return sizeof(vtkTypeUInt16);
-    case VTK_SHORT:
-      return sizeof(vtkTypeInt16);
-    case VTK_UNSIGNED_INT:
-      return sizeof(vtkTypeUInt32);
-    case VTK_INT:
-      return sizeof(vtkTypeInt32);
-    case VTK_UNSIGNED_LONG:
-      return sizeof(unsigned long);
-    case VTK_LONG:
-      return sizeof(long);
-    case VTK_FLOAT:
-      return sizeof(vtkTypeFloat32);
-    case VTK_DOUBLE:
-      return sizeof(vtkTypeFloat64);
-    default:
-      LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type " << pixelType);
-      return VTK_VOID;
+  case VTK_UNSIGNED_CHAR:
+    return sizeof(vtkTypeUInt8);
+  case VTK_CHAR:
+    return sizeof(vtkTypeInt8);
+  case VTK_UNSIGNED_SHORT:
+    return sizeof(vtkTypeUInt16);
+  case VTK_SHORT:
+    return sizeof(vtkTypeInt16);
+  case VTK_UNSIGNED_INT:
+    return sizeof(vtkTypeUInt32);
+  case VTK_INT:
+    return sizeof(vtkTypeInt32);
+  case VTK_UNSIGNED_LONG:
+    return sizeof(unsigned long);
+  case VTK_LONG:
+    return sizeof(long);
+  case VTK_FLOAT:
+    return sizeof(vtkTypeFloat32);
+  case VTK_DOUBLE:
+    return sizeof(vtkTypeFloat64);
+  default:
+    LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type " << pixelType);
+    return VTK_VOID;
   }
 }
 
@@ -1347,29 +1353,29 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType(PlusCommon:
 {
   switch (pixelType)
   {
-    case itk::ImageIOBase::UCHAR:
-      return VTK_UNSIGNED_CHAR;
-    case itk::ImageIOBase::CHAR:
-      return VTK_CHAR;
-    case itk::ImageIOBase::USHORT:
-      return VTK_UNSIGNED_SHORT;
-    case itk::ImageIOBase::SHORT:
-      return VTK_SHORT;
-    case itk::ImageIOBase::UINT:
-      return VTK_UNSIGNED_INT;
-    case itk::ImageIOBase::INT:
-      return VTK_INT;
-    case itk::ImageIOBase::ULONG:
-      return VTK_UNSIGNED_LONG;
-    case itk::ImageIOBase::LONG:
-      return VTK_LONG;
-    case itk::ImageIOBase::FLOAT:
-      return VTK_FLOAT;
-    case itk::ImageIOBase::DOUBLE:
-      return VTK_DOUBLE;
-    case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-    default:
-      return VTK_VOID;
+  case itk::ImageIOBase::UCHAR:
+    return VTK_UNSIGNED_CHAR;
+  case itk::ImageIOBase::CHAR:
+    return VTK_CHAR;
+  case itk::ImageIOBase::USHORT:
+    return VTK_UNSIGNED_SHORT;
+  case itk::ImageIOBase::SHORT:
+    return VTK_SHORT;
+  case itk::ImageIOBase::UINT:
+    return VTK_UNSIGNED_INT;
+  case itk::ImageIOBase::INT:
+    return VTK_INT;
+  case itk::ImageIOBase::ULONG:
+    return VTK_UNSIGNED_LONG;
+  case itk::ImageIOBase::LONG:
+    return VTK_LONG;
+  case itk::ImageIOBase::FLOAT:
+    return VTK_FLOAT;
+  case itk::ImageIOBase::DOUBLE:
+    return VTK_DOUBLE;
+  case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+  default:
+    return VTK_VOID;
   }
 }
 
@@ -1380,24 +1386,24 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(Plu
 {
   switch (igtlPixelType)
   {
-    case igtl::ImageMessage::TYPE_INT8:
-      return VTK_CHAR;
-    case igtl::ImageMessage::TYPE_UINT8:
-      return VTK_UNSIGNED_CHAR;
-    case igtl::ImageMessage::TYPE_INT16:
-      return VTK_SHORT;
-    case igtl::ImageMessage::TYPE_UINT16:
-      return VTK_UNSIGNED_SHORT;
-    case igtl::ImageMessage::TYPE_INT32:
-      return VTK_INT;
-    case igtl::ImageMessage::TYPE_UINT32:
-      return VTK_UNSIGNED_INT;
-    case igtl::ImageMessage::TYPE_FLOAT32:
-      return VTK_FLOAT;
-    case igtl::ImageMessage::TYPE_FLOAT64:
-      return VTK_DOUBLE;
-    default:
-      return VTK_VOID;
+  case igtl::ImageMessage::TYPE_INT8:
+    return VTK_CHAR;
+  case igtl::ImageMessage::TYPE_UINT8:
+    return VTK_UNSIGNED_CHAR;
+  case igtl::ImageMessage::TYPE_INT16:
+    return VTK_SHORT;
+  case igtl::ImageMessage::TYPE_UINT16:
+    return VTK_UNSIGNED_SHORT;
+  case igtl::ImageMessage::TYPE_INT32:
+    return VTK_INT;
+  case igtl::ImageMessage::TYPE_UINT32:
+    return VTK_UNSIGNED_INT;
+  case igtl::ImageMessage::TYPE_FLOAT32:
+    return VTK_FLOAT;
+  case igtl::ImageMessage::TYPE_FLOAT64:
+    return VTK_DOUBLE;
+  default:
+    return VTK_VOID;
   }
 }
 
@@ -1407,26 +1413,26 @@ PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(Pl
 {
   switch (pixelType)
   {
-    case VTK_CHAR:
-      return igtl::ImageMessage::TYPE_INT8;
-    case VTK_UNSIGNED_CHAR:
-      return igtl::ImageMessage::TYPE_UINT8;
-    case VTK_SHORT:
-      return igtl::ImageMessage::TYPE_INT16;
-    case VTK_UNSIGNED_SHORT:
-      return igtl::ImageMessage::TYPE_UINT16;
-    case VTK_INT:
-      return igtl::ImageMessage::TYPE_INT32;
-    case VTK_UNSIGNED_INT:
-      return igtl::ImageMessage::TYPE_UINT32;
-    case VTK_FLOAT:
-      return igtl::ImageMessage::TYPE_FLOAT32;
-    case VTK_DOUBLE:
-      return igtl::ImageMessage::TYPE_FLOAT64;
-    default:
-      // There is no unknown IGT scalar pixel type, so display an error message
-      LOG_ERROR("Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!");
-      return igtl::ImageMessage::TYPE_INT8;
+  case VTK_CHAR:
+    return igtl::ImageMessage::TYPE_INT8;
+  case VTK_UNSIGNED_CHAR:
+    return igtl::ImageMessage::TYPE_UINT8;
+  case VTK_SHORT:
+    return igtl::ImageMessage::TYPE_INT16;
+  case VTK_UNSIGNED_SHORT:
+    return igtl::ImageMessage::TYPE_UINT16;
+  case VTK_INT:
+    return igtl::ImageMessage::TYPE_INT32;
+  case VTK_UNSIGNED_INT:
+    return igtl::ImageMessage::TYPE_UINT32;
+  case VTK_FLOAT:
+    return igtl::ImageMessage::TYPE_FLOAT32;
+  case VTK_DOUBLE:
+    return igtl::ImageMessage::TYPE_FLOAT64;
+  default:
+    // There is no unknown IGT scalar pixel type, so display an error message
+    LOG_ERROR("Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!");
+    return igtl::ImageMessage::TYPE_INT8;
   }
 }
 
@@ -1450,16 +1456,16 @@ std::string PlusVideoFrame::GetStringFromVTKPixelType(PlusCommon::VTKScalarPixel
 {
   switch (vtkScalarPixelType)
   {
-      VTK_TO_STRING(VTK_CHAR);
-      VTK_TO_STRING(VTK_UNSIGNED_CHAR);
-      VTK_TO_STRING(VTK_SHORT);
-      VTK_TO_STRING(VTK_UNSIGNED_SHORT);
-      VTK_TO_STRING(VTK_INT);
-      VTK_TO_STRING(VTK_UNSIGNED_INT);
-      VTK_TO_STRING(VTK_FLOAT);
-      VTK_TO_STRING(VTK_DOUBLE);
-    default:
-      return "Unknown";
+    VTK_TO_STRING(VTK_CHAR);
+    VTK_TO_STRING(VTK_UNSIGNED_CHAR);
+    VTK_TO_STRING(VTK_SHORT);
+    VTK_TO_STRING(VTK_UNSIGNED_SHORT);
+    VTK_TO_STRING(VTK_INT);
+    VTK_TO_STRING(VTK_UNSIGNED_INT);
+    VTK_TO_STRING(VTK_FLOAT);
+    VTK_TO_STRING(VTK_DOUBLE);
+  default:
+    return "Unknown";
   }
 }
 
@@ -1470,11 +1476,11 @@ std::string PlusVideoFrame::TransposeToString(TransposeType type)
 {
   switch (type)
   {
-    case TRANSPOSE_NONE:
-      return "TRANPOSE_NONE";
-    case TRANSPOSE_IJKtoKIJ:
-      return "TRANSPOSE_KIJtoIJK";
-    default:
-      return "ERROR";
+  case TRANSPOSE_NONE:
+    return "TRANPOSE_NONE";
+  case TRANSPOSE_IJKtoKIJ:
+    return "TRANSPOSE_KIJtoIJK";
+  default:
+    return "ERROR";
   }
 }

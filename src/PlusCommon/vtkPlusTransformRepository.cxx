@@ -631,7 +631,7 @@ PlusStatus vtkPlusTransformRepository::ReadConfiguration(vtkXMLDataElement* conf
   for (int nestedElementIndex = 0; nestedElementIndex < coordinateDefinitions->GetNumberOfNestedElements(); ++nestedElementIndex)
   {
     vtkXMLDataElement* nestedElement = coordinateDefinitions->GetNestedElement(nestedElementIndex);
-    if (STRCASECMP(nestedElement->GetName(), "Transform") != 0)
+    if (!PlusCommon::IsEqualInsensitive(nestedElement->GetName(), "Transform"))
     {
       // Not a transform element, skip it
       continue;
@@ -676,58 +676,46 @@ PlusStatus vtkPlusTransformRepository::ReadConfiguration(vtkXMLDataElement* conf
     }
 
     bool isPersistent = true;
-    if (nestedElement->GetAttribute("Persistent")) // if it exists, then it is non-persistent
-    {
-      if (STRCASECMP(nestedElement->GetAttribute("Persistent"), "FALSE") == 0)
-      {
-        isPersistent = false;
-      }
-    }
+    PlusCommon::XML::SafeCheckAttributeValueInsensitive(*nestedElement, "Persistent", "FALSE", isPersistent);
     if (this->SetTransformPersistent(transformName, isPersistent) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to set transform to " << isPersistent << ": " << fromAttribute << "' to '" << toAttribute << "' transform");
       numberOfErrors++;
       continue;
     }
+
     bool isValid = true;
-    if (nestedElement->GetAttribute("Valid")) // if exists, then invalid
-    {
-      if (STRCASECMP(nestedElement->GetAttribute("Valid"), "FALSE") == 0)
-      {
-        isValid = false;
-      }
-    }
-    if (this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS)
+    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*nestedElement, "Valid", "FALSE", isValid) != PLUS_SUCCESS ||
+        this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to set transform to " <<  isValid << " : " << fromAttribute << "' to '" << toAttribute << "' transform");
       numberOfErrors++;
       continue;
     }
+
     double error(0);
-    if (nestedElement->GetScalarAttribute("Error", error))
+    if (PlusCommon::XML::SafeGetAttributeValueInsensitive<double>(*nestedElement, "Error", error) != PLUS_SUCCESS ||
+        this->SetTransformError(transformName, error) != PLUS_SUCCESS)
     {
-      if (this->SetTransformError(transformName, error) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Unable to set transform error: '" << fromAttribute << "' to '" << toAttribute << "' transform");
-        numberOfErrors++;
-        continue;
-      }
+      LOG_ERROR("Unable to set transform error: '" << fromAttribute << "' to '" << toAttribute << "' transform");
+      numberOfErrors++;
+      continue;
     }
 
-    const char* date =  nestedElement->GetAttribute("Date");
-    if (date != NULL)
+    std::string date("");
+    if (PlusCommon::XML::SafeGetAttributeValueInsensitive(*nestedElement, "Date", date) != PLUS_SUCCESS ||
+        this->SetTransformDate(transformName, date) != PLUS_SUCCESS)
     {
-      if (this->SetTransformDate(transformName, date) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Unable to set transform date: '" << fromAttribute << "' to '" << toAttribute << "' transform");
-        numberOfErrors++;
-        continue;
-      }
+      LOG_ERROR("Unable to set transform date: '" << fromAttribute << "' to '" << toAttribute << "' transform");
+      numberOfErrors++;
+      continue;
     }
   }
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
 }
+
+//----------------------------------------------------------------------------
 // copyAllTransforms: include non-persistent and invalid transforms
 // Attributes: Persistent="TRUE/FALSE" Valid="TRUE/FALSE" => add it to ReadConfiguration, too
 PlusStatus vtkPlusTransformRepository::WriteConfigurationGeneric(vtkXMLDataElement* configRootElement, bool copyAllTransforms)

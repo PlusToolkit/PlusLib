@@ -492,7 +492,7 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
     modelReader->Update();
     polyData = modelReader->GetOutput();
   }
-  else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
+  else //if (PlusCommon::IsEqualInsensitive(fileExt.c_str(),".vtp"))
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
