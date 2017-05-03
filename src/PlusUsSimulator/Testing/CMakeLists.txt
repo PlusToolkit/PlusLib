@@ -42,6 +42,5 @@ SET_TESTS_PROPERTIES(vtkPlusUsSimulatorCompareToBaselineTestCurvilinear PROPERTI
 #INSTALL(TARGETS vtkPlusUsSimulatorTest
 #  RUNTIME
 #  DESTINATION bin
-#  CONFIGURATIONS Release
 #  COMPONENT RuntimeExecutables
 #  )
