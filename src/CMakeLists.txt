@@ -324,13 +324,16 @@ SET(VTK_CONFIG_DIR ${VTK_DIR})
 SET(ITK_CONFIG_DIR ${ITK_DIR})
 SET(PLUSLIB_CONFIG_USEFILE "${CMAKE_BINARY_DIR}/UsePlusLib.cmake" )
 
-# Create a PlusConfig.cmake file for the use from the build tree
+# Create a PlusConfig.cmake and PlusConfigVersion.cmake file for the use from the build tree
 #-----------------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
 # Re: #1075 eventually remove this section after people are used to the new location
 CONFIGURE_FILE(PlusLibConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
-CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake"
+  VERSION ${PLUSLIB_VERSION}
+  COMPATIBILITY ExactVersion)
 LIST(APPEND PLUSLIB_INSTALL_CMAKE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake")
   
   
@@ -338,8 +341,10 @@ LIST(APPEND PLUSLIB_INSTALL_CMAKE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/PlusLibCon
 # With regards to ticket #1075, also generate in top-level directory
 CONFIGURE_FILE(PlusLibConfig.cmake.in
   "${CMAKE_BINARY_DIR}/PlusLibConfig.cmake" @ONLY)
-CONFIGURE_FILE(PlusLibConfigVersion.cmake.in
-  "${CMAKE_BINARY_DIR}/PlusLibConfigVersion.cmake" @ONLY)
+write_basic_package_version_file(
+  "${CMAKE_BINARY_DIR}/PlusLibConfigVersion.cmake"
+  VERSION ${PLUSLIB_VERSION}
+  COMPATIBILITY ExactVersion)
 
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
