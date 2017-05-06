@@ -40,8 +40,8 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-IF(${CMAKE_GENERATOR} MATCHES "Visual Studio 17")
-  # VS2017 + Qt 5.7 puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
+IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.8")
+  # CMake 3.8 and later puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
   # .../PlusLib-bin/src/PlusWidgets/PlusWidgets_autogen/include
   SET(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
