@@ -39,10 +39,13 @@ SET (${PROJECT_NAME}_LIBS
 SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+IF(${CMAKE_GENERATOR} MATCHES "Visual Studio 17")
   # VS2017 + Qt 5.7 puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
   # .../PlusLib-bin/src/PlusWidgets/PlusWidgets_autogen/include
-  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include
-  )
+  SET(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
+ENDIF()
 GENERATE_EXPORT_DIRECTIVE_FILE(${PROJECT_NAME})
 ADD_LIBRARY(${PROJECT_NAME}
   ${${PROJECT_NAME}_SRCS} 
