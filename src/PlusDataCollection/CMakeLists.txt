@@ -1760,9 +1760,11 @@ INSTALL(TARGETS vtkPlusDataCollection EXPORT PlusLib
 INSTALL(FILES ${PlusDataCollection_HDRS} ${PlusDataCollection_INSTALL_INCLUDE_FILES}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
+IF(MSVC)
 INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusDataCollection>" OPTIONAL
   DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   )
+ENDIF(MSVC)
 # Introduce a CMAKE Build Flag, whether Static libraries should be installed?
 INSTALL(FILES ${External_Libraries_Static_Install}
   DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries

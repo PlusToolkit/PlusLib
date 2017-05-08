@@ -60,9 +60,11 @@ INSTALL(TARGETS vtkPlusOpenIGTLink EXPORT PlusLib
 INSTALL(FILES ${PlusOpenIGTLink_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusOpenIGTLink>" OPTIONAL
-  DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  )
+IF(MSVC)
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusOpenIGTLink>" OPTIONAL
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+    )
+ENDIF(MSVC)
 
 # --------------------------------------------------------------------------
 # Testing

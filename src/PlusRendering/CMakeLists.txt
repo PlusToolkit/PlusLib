@@ -71,9 +71,11 @@ INSTALL(TARGETS vtkPlusRendering EXPORT PlusLib
 INSTALL(FILES ${PlusRendering_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusRendering>" OPTIONAL
-  DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  )
+IF(MSVC)
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusRendering>" OPTIONAL
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+    )
+ENDIF(MSVC)
 
 # --------------------------------------------------------------------------
 # Testing

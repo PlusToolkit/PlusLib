@@ -226,11 +226,15 @@ INSTALL(TARGETS vtkPlusImageProcessing EXPORT PlusLib
 INSTALL(FILES ${PlusImageProcessing_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusImageProcessing>" OPTIONAL
-  DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  )
+IF(MSVC)
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusImageProcessing>" OPTIONAL
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+    )
+ENDIF(MSVC)
 
-  # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# Testing
+#
 IF(BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF()
