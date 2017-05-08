@@ -58,6 +58,12 @@ public:
   vtkGetMacro(FilterDcAdaptive, double);
   vtkGetMacro(FilterLargeChange, int);
   vtkGetMacro(FilterAlpha, bool);
+  vtkGetMacro(Hemisphere, int);
+
+  /*! Returns "" if type value is unknown. */
+  static std::string GetHemisphereTypeAsString(int type);
+  /*! Returns -1 if type string is unknown. */
+  static int GetHemisphereTypeFromString(const char* typeStr);
 
 protected:
   vtkSetMacro(FilterAcWideNotch, int);
@@ -65,6 +71,7 @@ protected:
   vtkSetMacro(FilterDcAdaptive, double);
   vtkSetMacro(FilterLargeChange, int);
   vtkSetMacro(FilterAlpha, bool);
+  vtkSetMacro(Hemisphere, int);
 
 protected:
   vtkPlusAscension3DGTrackerBase();
@@ -111,6 +118,9 @@ private:  // Variables.
 
   unsigned int FrameNumber;
   int NumberOfSensors;
+
+  /*! Measurement area (what side of the transmitter the sensors are located).  */
+  int Hemisphere;
 
   /*! AC wide notch filter status: enabled (1) or disabled (0) */
   int FilterAcWideNotch;

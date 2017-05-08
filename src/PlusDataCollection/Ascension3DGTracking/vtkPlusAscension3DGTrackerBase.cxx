@@ -38,6 +38,7 @@ vtkPlusAscension3DGTrackerBase::vtkPlusAscension3DGTrackerBase()
   this->FilterDcAdaptive = 0.0;
   this->FilterLargeChange = 0;
   this->FilterAlpha = false;
+  this->Hemisphere = FRONT;
 
   this->RequirePortNameInDeviceSetConfiguration = true;
 
@@ -110,6 +111,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalConnect()
     this->CheckReturnStatus(SetSensorParameter(sensorID, FILTER_AC_NARROW_NOTCH, &this->FilterAcNarrowNotch, sizeof(int)));
     this->CheckReturnStatus(SetSensorParameter(sensorID, FILTER_DC_ADAPTIVE, &this->FilterDcAdaptive, sizeof(double)));
     this->CheckReturnStatus(SetSensorParameter(sensorID, FILTER_LARGE_CHANGE, &this->FilterLargeChange, sizeof(int)));
+    this->CheckReturnStatus(SetSensorParameter(sensorID, HEMISPHERE, &this->Hemisphere, sizeof(int)));
 
     tagADAPTIVE_PARAMETERS alphaStruct;
     alphaStruct.alphaMin[0] = alphaStruct.alphaMin[1] = alphaStruct.alphaMin[2] = alphaStruct.alphaMin[3]
@@ -283,7 +285,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalStopRecording()
 {
   LOG_TRACE("vtkAscension3DGTracker::InternalStopRecording");
 
-  short selectID = TRANSMITTER_OFF;
+  short selectID = vtkPlusAscension3DGTrackerBase::TRANSMITTER_OFF;
   if (this->CheckReturnStatus(SetSystemParameter(SELECT_TRANSMITTER, &selectID, sizeof(selectID)))
       != PLUS_SUCCESS)
   {
@@ -473,6 +475,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FilterDcAdaptive, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterLargeChange, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FilterAlpha, deviceConfig);
+  XML_READ_ENUM_ATTRIBUTE_OPTIONAL(Hemisphere, deviceConfig, vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString, 0, 6);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
@@ -548,6 +551,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::WriteConfiguration(vtkXMLDataElement*
   trackerConfig->SetDoubleAttribute("FilterDcAdaptive", this->GetFilterDcAdaptive());
   trackerConfig->SetIntAttribute("FilterLargeChange", this->GetFilterLargeChange());
   trackerConfig->SetIntAttribute("FilterAlpha", (this->GetFilterAlpha() ? 1 : 0));
+  trackerConfig->SetAttribute("Hemisphere", vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString(this->GetHemisphere()).c_str());
 
   return PLUS_SUCCESS;
 }
@@ -605,4 +609,40 @@ PlusStatus vtkPlusAscension3DGTrackerBase::QualityToolTimeStampedUpdate(const ch
   // Devices has no frame numbering, so just auto increment tool frame number
   unsigned long frameNumber = qualityTool->GetFrameNumber() + 1 ;
   return this->ToolTimeStampedUpdate(qualityTool->GetSourceId(), qualityStorageMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString(int type)
+{
+  switch (type)
+  {
+  case FRONT: return "FRONT";
+  case BACK: return "BACK";
+  case TOP: return "TOP";
+  case BOTTOM: return "BOTTOM";
+  case LEFT: return "LEFT";
+  case RIGHT: return "RIGHT";
+  default:
+    LOG_ERROR("Unknown hemisphere type: " << type);
+    return "";
+  }
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusAscension3DGTrackerBase::GetHemisphereTypeFromString(const char* typeStr)
+{
+  if (typeStr == NULL)
+  {
+    LOG_ERROR("Invalid hemisphere type string");
+    return -1;
+  }
+  for (int i = 0; i < 6; i++)
+  {
+    if (PlusCommon::IsEqualInsensitive(vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString(i), typeStr))
+    {
+      return i;
+    }
+  }
+  LOG_ERROR("Unknown hemisphere type string: "<<typeStr);
+  return -1;
 }

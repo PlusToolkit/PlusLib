@@ -40,7 +40,13 @@ To support medSAFE models Plus have to be built with PLUS_USE_Ascension3DGm conf
 - \xmlAtt \b FilterDcAdaptive  DC adaptive filter parameter (0.0 for no filtering, 1.0 for maximum filtering). \OptionalAtt{0}
 - \xmlAtt \b FilterLargeChange Large change filter status flag. \OptionalAtt{0}
 - \xmlAtt \b FilterAlpha  Alpha filter status flag. \OptionalAtt{0}
-
+- \xmlAtt \b Hemisphere Defines in which hemisphere, centered about the transmitter, the sensors are located. \OptionalAtt{FRONT}
+   - \c FRONT The FRONT is the forward hemisphere in front of the transmitter. The front of the transmitter is the side with the Ascension logo molded into the case. It is the side opposite the side with the 2 positioning holes. This is the default.
+   - \c BACK The BACK is the opposite hemisphere to the FRONT hemisphere.
+   - \c TOP The TOP hemisphere is the upper hemisphere. When the transmitter is sitting on a flat surface with the locating holes on the surface the TOP hemisphere is above the transmitter.
+   - \c BOTTOM The BOTTOM hemisphere is the opposite hemisphere to the TOP hemisphere.
+   - \c LEFT The LEFT hemisphere is the hemisphere to the left of the observer when looking at the transmitter from the back.
+   - \c RIGHT The RIGHT hemisphere is the opposite hemisphere to the LEFT hemisphere. The LEFT hemisphere is on the left side of the observer when looking at the transmitter from the back.
 - \xmlElem \ref DataSources One \c DataSource child element for each tool. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \b Type = \c "Tool" \RequiredAtt

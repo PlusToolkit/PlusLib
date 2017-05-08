@@ -486,7 +486,41 @@ public:
       { \
         LOG_WARNING("Failed to read enumerated value from " << #memberVar \
           << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
-          << ": expected '" << enumString1 << "', '" << enumString2 << "', or '" << enumString3 << "', got '" << strValue << "'"); \
+          << ": expected '" << enumString1 << "', '" << enumString2 << "', '" << enumString3 << "', or '" << enumString4 << "', got '" << strValue << "'"); \
+      } \
+    } \
+  }
+
+#define XML_READ_ENUM_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, numberToStringConverter, startValue, numberOfValues)  \
+  { \
+    const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
+    if (strValue != NULL) \
+    { \
+      bool strValueValid = false; \
+      for (int value = startValue; value < startValue+numberOfValues; value++) \
+      { \
+        if (PlusCommon::IsEqualInsensitive(strValue, numberToStringConverter(value)))  \
+        { \
+          this->Set##memberVar(value); \
+          strValueValid = true; \
+          break; \
+        } \
+      } \
+      if (!strValueValid) \
+      { \
+        std::ostringstream ss; \
+        ss << "Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected "; \
+        for (int value = startValue; value < startValue + numberOfValues; value++) \
+        { \
+          if (value > startValue) \
+          { \
+            ss << ", ";  \
+          } \
+          ss << "'" << numberToStringConverter(value) << "'";  \
+        } \
+        LOG_WARNING(ss.str()); \
       } \
     } \
   }
