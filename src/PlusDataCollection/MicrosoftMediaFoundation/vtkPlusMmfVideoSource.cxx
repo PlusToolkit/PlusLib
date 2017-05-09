@@ -253,7 +253,7 @@ vtkPlusMmfVideoSource::vtkPlusMmfVideoSource()
   this->MmfSourceReader = new MmfVideoSourceReader(this);
   this->RequireImageOrientationInConfiguration = true;
 
-  this->AcquisitionRate = vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE;
+  this->AcquisitionRate = DEFAULT_ACQUISITION_RATE;
 
   this->RequestedVideoFormat.DeviceId = DEFAULT_DEVICE_ID;
   this->RequestedVideoFormat.StreamIndex = 0;
