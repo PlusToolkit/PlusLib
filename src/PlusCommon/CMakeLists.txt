@@ -135,11 +135,11 @@ INSTALL(TARGETS vtkPlusCommon EXPORT PlusLib
 INSTALL(FILES ${PlusCommon_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
-IF(MSVC)
+IF(MSVC AND BUILD_SHARED_LIBS)
   INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusCommon>" OPTIONAL
     DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
     )
-ENDIF(MSVC)
+ENDIF(MSVC AND BUILD_SHARED_LIBS)
 
 # --------------------------------------------------------------------------
 # Testing
