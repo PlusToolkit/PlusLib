@@ -314,22 +314,31 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   vtkPlusDataSource * source = NULL;
   this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
 
-  int width;
+  int width_samples;
   if( !rfSources.empty() )
     {
     container->SetRFData( true );
-    width = ContainerType::MAX_RFSAMPLES;
+    width_samples = ContainerType::MAX_RFSAMPLES;
     }
   else
     {
     container->SetRFData( false );
-    width = ContainerType::MAX_SAMPLES/2;
+    width_samples = ContainerType::MAX_SAMPLES/2;
     }
 
   LOG_DEBUG( "Interson Array SDK version " << this->Internal->GetSdkVersion() <<
              ", USB probe FPGA version " << hwControls->ReadFPGAVersion() );
 
-  std::vector<vtkPlusDataSource *> bmodeSources;
+  // Even if we do not use their SDK scan converter, we have to initialize the
+  // scan converter to get the probe fully initialized.
+  const int depth = 100;
+  const int heightLines = hwControls->GetLinesPerArray();
+  const int steering = 0;
+  container->IdleInitScanConverter( depth, width_samples, heightLines, probeId,
+    steering, false, false, 0 );
+  container->HardInitScanConverter( depth, width_samples, heightLines, steering );
+
+  std::vector<vtkPlusDataSource*> bmodeSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
 
   if( !rfSources.empty() )
@@ -492,17 +501,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalStartRecording()
   container->AbortScan();
 
   HWControlsType * hwControls = this->Internal->GetHWControls();
-
-  // Even if we do not use their SDK scan converter, we have to initialize the
-  // scan converter to get the probe fully initialized.
-  const int depth = 100;
-  const int height_lines = hwControls->GetLinesPerArray();
-  const int width_samples = ContainerType::MAX_RFSAMPLES;
-  const unsigned int probeId = hwControls->GetProbeID();
-  const int steering = 0;
-  container->IdleInitScanConverter( depth, width_samples, height_lines, probeId,
-    steering, false, false, 0 );
-  container->HardInitScanConverter( depth, width_samples, height_lines, steering );
 
   std::vector<vtkPlusDataSource *> bmodeSources;
   std::vector<vtkPlusDataSource *> rfSources;
