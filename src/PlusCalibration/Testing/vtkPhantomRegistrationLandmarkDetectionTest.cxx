@@ -476,7 +476,7 @@ int main ( int argc, char* argv[] )
 
         std::string registrationResultFileName = "PhantomRegistrationAutoDetectLandmarkTest.xml";
         vtksys::SystemTools::RemoveFile( registrationResultFileName.c_str() );
-        PlusCommon::PrintXML( registrationResultFileName.c_str(), configLandmarkDetection );
+        PlusCommon::XML::PrintXML( registrationResultFileName.c_str(), configLandmarkDetection );
 
         if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
         {

@@ -73,9 +73,8 @@ public:
   vtkTypeMacro(vtkPlusDevice, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  static const char* BMODE_PORT_NAME;
-  static const char* DEFAULT_TRACKER_REFERENCE_FRAME_NAME;
-  static const char* RFMODE_PORT_NAME;
+  static const std::string BMODE_PORT_NAME;
+  static const std::string RFMODE_PORT_NAME;
   static const std::string PROBE_SWITCH_ATTRIBUTE_NAME;
   static const std::string DEPTH_SWITCH_ATTRIBUTE_NAME;
   static const std::string MODE_SWITCH_ATTRIBUTE_NAME;

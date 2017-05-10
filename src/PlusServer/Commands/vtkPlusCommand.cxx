@@ -179,7 +179,7 @@ PlusStatus vtkPlusCommand::GenerateCommandDeviceName(const std::string& uid, std
 bool vtkPlusCommand::IsCommandDeviceName(const std::string& deviceName)
 {
   std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
-  if (prefix.compare(DEVICE_NAME_COMMAND) != 0)
+  if (!PlusCommon::IsEqualInsensitive(prefix, DEVICE_NAME_COMMAND))
   {
     return false;
   }
@@ -191,7 +191,7 @@ bool vtkPlusCommand::IsCommandDeviceName(const std::string& deviceName)
 bool vtkPlusCommand::IsReplyDeviceName(const std::string& deviceName, const std::string& uid)
 {
   std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
-  if (prefix.compare(DEVICE_NAME_REPLY) != 0)
+  if (!PlusCommon::IsEqualInsensitive(prefix, DEVICE_NAME_REPLY))
   {
     // not ACK_...
     return false;
@@ -202,7 +202,7 @@ bool vtkPlusCommand::IsReplyDeviceName(const std::string& deviceName, const std:
     return true;
   }
   std::string uidInDeviceName = GetUidFromCommandDeviceName(deviceName);
-  if (uidInDeviceName.compare(uid) != 0)
+  if (!PlusCommon::IsEqualInsensitive(uidInDeviceName, uid))
   {
     // uid mismatch
     return false;

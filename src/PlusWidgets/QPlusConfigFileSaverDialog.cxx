@@ -5,6 +5,7 @@
 =========================================================Plus=header=end*/
 
 // Local includes
+#include "PlusCommon.h"
 #include "QPlusConfigFileSaverDialog.h"
 
 // VTK includes
@@ -85,23 +86,22 @@ PlusStatus QPlusConfigFileSaverDialog::ReadConfiguration()
   }
 
   // Get name and description
-  const char* name = deviceSet->GetAttribute("Name");
-  if ((name == NULL) || (STRCASECMP(name, "") == 0))
+  bool isEqual(true);
+  if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Name", "", isEqual) == PLUS_FAIL || isEqual)
   {
     LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
 
-  const char* description = deviceSet->GetAttribute("Description");
-  if ((description == NULL) || (STRCASECMP(description, "") == 0))
+  if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Description", "", isEqual) == PLUS_FAIL || isEqual)
   {
     LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
 
   // Set text field values
-  ui.lineEdit_DeviceSetName->setText(name);
-  ui.textEdit_Description->setText(description);
+  ui.lineEdit_DeviceSetName->setText(deviceSet->GetAttribute("Name"));
+  ui.textEdit_Description->setText(deviceSet->GetAttribute("Description"));
 
   return PLUS_SUCCESS;
 }
@@ -144,7 +144,7 @@ void QPlusConfigFileSaverDialog::SaveClicked()
 
   if (!fileName.isNull())
   {
-    PlusCommon::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    PlusCommon::XML::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     LOG_INFO("Device set configuration saved as '" << fileName.toStdString() << "'");
   }
 

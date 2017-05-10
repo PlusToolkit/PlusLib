@@ -109,7 +109,7 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
     return PLUS_FAIL;
   }
 
-  PlusCommon::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  PlusCommon::XML::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
   this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + " Completed successfully.");
   return PLUS_SUCCESS;
 }

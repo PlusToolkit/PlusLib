@@ -49,7 +49,7 @@ public:
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* spatialModelElement);
 
   /*! Set the surface model file name (STL or VTP). It can be used to override the model file name specified in the XML configuration. */
-  void SetModelFile(const char* modelFile);
+  void SetModelFile(const std::string& modelFile);
 
   /*! Set US imaging frequency for generated image */
   SetMacro(ImagingFrequencyMhz, double);

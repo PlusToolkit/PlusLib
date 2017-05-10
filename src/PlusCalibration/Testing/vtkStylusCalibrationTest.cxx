@@ -228,7 +228,7 @@ int main (int argc, char* argv[])
   std::string calibrationResultFileName = "StylusCalibrationTest.xml";
   LOG_INFO("Writing calibration result ("<<pivotCalibration->GetObjectPivotPointCoordinateFrame()<<" to "<<pivotCalibration->GetObjectMarkerCoordinateFrame()<<" transform) to "<<calibrationResultFileName);
   vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-  PlusCommon::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
+  PlusCommon::XML::PrintXML(calibrationResultFileName.c_str(), configRootElement); 
   
   if (!inputBaselineFileName.empty())
   {

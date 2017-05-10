@@ -79,7 +79,7 @@ PlusStatus PlusTrackedFrame::GetTrackedFrameInXmlData(std::string& strXmlData, c
   PlusStatus status = this->PrintToXML(xmlData, requestedTransforms);
 
   std::ostringstream os;
-  PlusCommon::PrintXML(os, vtkIndent(0), xmlData);
+  PlusCommon::XML::PrintXML(os, vtkIndent(0), xmlData);
 
   strXmlData = os.str();
 
@@ -617,15 +617,15 @@ PlusStatus PlusTrackedFrame::WriteToFile(const std::string& filename, vtkMatrix4
   MET_ValueEnumType scalarType = MET_NONE;
   switch (volumeToSave->GetScalarType())
   {
-  case VTK_UNSIGNED_CHAR:
-    scalarType = MET_UCHAR;
-    break;
-  case VTK_FLOAT:
-    scalarType = MET_FLOAT;
-    break;
-  default:
-    LOG_ERROR("Scalar type is not supported!");
-    return PLUS_FAIL;
+    case VTK_UNSIGNED_CHAR:
+      scalarType = MET_UCHAR;
+      break;
+    case VTK_FLOAT:
+      scalarType = MET_FLOAT;
+      break;
+    default:
+      LOG_ERROR("Scalar type is not supported!");
+      return PLUS_FAIL;
   }
 
   MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
@@ -690,7 +690,7 @@ bool PlusTrackedFrame::IsTransform(std::string str)
     return false;
   }
 
-  return !str.substr(str.length() - TransformPostfix.length()).compare(TransformPostfix);
+  return PlusCommon::IsEqualInsensitive(str.substr(str.length() - TransformPostfix.length()), TransformPostfix);
 }
 
 //----------------------------------------------------------------------------
@@ -701,7 +701,7 @@ bool PlusTrackedFrame::IsTransformStatus(std::string str)
     return false;
   }
 
-  return !str.substr(str.length() - TransformStatusPostfix.length()).compare(TransformStatusPostfix);
+  return PlusCommon::IsEqualInsensitive(str.substr(str.length() - TransformStatusPostfix.length()), TransformStatusPostfix);
 }
 
 //----------------------------------------------------------------------------

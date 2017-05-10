@@ -15,6 +15,10 @@ See License.txt for details.
 #include <vtkXMLDataElement.h>
 #include <vtksys/SystemTools.hxx>
 
+// STL includes
+#include <algorithm>
+#include <string>
+
 //-------------------------------------------------------
 PlusTransformName::PlusTransformName()
 {
@@ -302,33 +306,33 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-      case '&':
-        os << "&amp;";
-        break;
-      case '<':
-        os << "&lt;";
-        break;
-      case '>':
-        os << "&gt;";
-        break;
-      case '"':
-        os << "&quot;";
-        break;
-      case '\'':
-        os << "&apos;";
-        break;
-      default:
-        os << data[i];
+    case '&':
+      os << "&amp;";
+      break;
+    case '<':
+      os << "&lt;";
+      break;
+    case '>':
+      os << "&gt;";
+      break;
+    case '"':
+      os << "&quot;";
+      break;
+    case '\'':
+      os << "&apos;";
+      break;
+    default:
+      os << data[i];
     }
   }
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem)
+PlusStatus PlusCommon::XML::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement* elem)
 {
   if (elem == NULL)
   {
-    LOG_ERROR("PlusCommon::PrintXML failed, input element is invalid");
+    LOG_ERROR("PlusCommon::XML::PrintXML failed, input element is invalid");
     return PLUS_FAIL;
   }
   vtkIndent nextIndent = indent.GetNextIndent();
@@ -425,7 +429,7 @@ PlusStatus PlusCommon::PrintXML(ostream& os, vtkIndent indent, vtkXMLDataElement
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusCommon::PrintXML(const std::string& fname, vtkXMLDataElement* elem)
+PlusStatus PlusCommon::XML::PrintXML(const std::string& fname, vtkXMLDataElement* elem)
 {
   ofstream of(fname);
   if (!of.is_open())
@@ -434,7 +438,7 @@ PlusStatus PlusCommon::PrintXML(const std::string& fname, vtkXMLDataElement* ele
     return PLUS_FAIL;
   }
   of.imbue(std::locale::classic());
-  return PlusCommon::PrintXML(of, vtkIndent(), elem);
+  return PlusCommon::XML::PrintXML(of, vtkIndent(), elem);
 }
 
 //----------------------------------------------------------------------------
@@ -596,6 +600,12 @@ namespace
   {
     return ::tolower(a) == ::tolower(b);
   }
+
+  //----------------------------------------------------------------------------
+  bool icompare_pred_w(wchar_t a, wchar_t b)
+  {
+    return ::towlower(a) == ::towlower(b);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -609,6 +619,41 @@ bool vtkPlusCommonExport PlusCommon::IsEqualInsensitive(std::string const& a, st
   {
     return false;
   }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::IsEqualInsensitive(std::wstring const& a, std::wstring const& b)
+{
+  if (a.length() == b.length())
+  {
+    return std::equal(b.begin(), b.end(), a.begin(), icompare_pred_w);
+  }
+  else
+  {
+    return false;
+  }
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::string const& a, std::string const& b)
+{
+  std::string lowerA(a);
+  std::transform(begin(lowerA), end(lowerA), lowerA.begin(), ::tolower);
+  std::string lowerB(b);
+  std::transform(begin(lowerB), end(lowerB), lowerB.begin(), ::tolower);
+
+  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::wstring const& a, std::wstring const& b)
+{
+  std::wstring lowerA;
+  std::transform(begin(a), end(a), lowerA.begin(), ::towlower);
+  std::wstring lowerB;
+  std::transform(begin(b), end(b), lowerB.begin(), ::towlower);
+
+  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
 }
 
 //----------------------------------------------------------------------------
@@ -726,4 +771,43 @@ PlusStatus PlusCommon::RobustFwrite(FILE* fileHandle, void* data, size_t dataSiz
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, const std::string& value, bool& isEqual)
+{
+  if (attributeName.empty())
+  {
+    return PLUS_FAIL;
+  }
+  auto attr = element.GetAttribute(attributeName.c_str());
+  if (attr == NULL)
+  {
+    return PLUS_FAIL;
+  }
+  isEqual = PlusCommon::IsEqualInsensitive(attr, value);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, std::string& value)
+{
+  if (attributeName.empty())
+  {
+    return PLUS_FAIL;
+  }
+  value = element.GetAttribute(attributeName.c_str());
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, std::string& value)
+{
+  return PlusCommon::XML::SafeGetAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), value);
+}
+
+//----------------------------------------------------------------------------
+vtkPlusCommonExport PlusStatus PlusCommon::XML::SafeCheckAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, const std::wstring& value, bool& isEqual)
+{
+  return PlusCommon::XML::SafeCheckAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), std::string(begin(value), end(value)), isEqual);
 }

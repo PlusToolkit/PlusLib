@@ -24,7 +24,7 @@ See License.txt for details.
 #include "vtkPlusVersionCommand.h"
 #include "vtkPlusIgtlMessageFactory.h"
 #ifdef PLUS_USE_STEALTHLINK
-#include "vtkPlusStealthLinkCommand.h"
+  #include "vtkPlusStealthLinkCommand.h"
 #endif
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/Process.h"
@@ -358,7 +358,7 @@ PlusStatus ExecuteUpdateTransform(vtkPlusOpenIGTLinkClient* client,
   PlusCommon::StringToDouble(transformError.c_str(), value);
   cmd->SetTransformError(value);
   cmd->SetTransformDate(transformDate.c_str());
-  cmd->SetTransformPersistent(transformPersistent.compare("TRUE") == 0);
+  cmd->SetTransformPersistent(PlusCommon::IsEqualInsensitive(transformPersistent, "TRUE"));
   std::vector<std::string> elems;
   vtkMatrix4x4* transformValueMatrix = vtkMatrix4x4::New();
   PlusCommon::SplitStringIntoTokens(transformValue, ' ', elems);
@@ -588,7 +588,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
     }
     else
     {
-      if (parameters["TrackedVideoStream"].second.compare("TrackedVideoStream") != 0)
+      if (!PlusCommon::IsEqualInsensitive(parameters["TrackedVideoStream"].second, "TrackedVideoStream"))
       {
         LOG_ERROR("Incorrect parameter returned. Got: " << parameters["TrackedVideoStream"].second << ". Expected: \"TrackedVideoStream\"");
       }
@@ -613,7 +613,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
     }
     else
     {
-      if (parameters["VolumeReconstructorDevice"].second.compare("VolumeReconstructorDevice") != 0)
+      if (!PlusCommon::IsEqualInsensitive(parameters["VolumeReconstructorDevice"].second, "VolumeReconstructorDevice"))
       {
         LOG_ERROR("Incorrect parameter returned.");
       }

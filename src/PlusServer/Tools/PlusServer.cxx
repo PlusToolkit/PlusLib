@@ -103,7 +103,7 @@ int main(int argc, char** argv)
   // Print configuration file contents for debugging purposes
   LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
   std::ostringstream xmlFileContents;
-  PlusCommon::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  PlusCommon::XML::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
   LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
 
   LOG_INFO("Server status: Reading configuration.");

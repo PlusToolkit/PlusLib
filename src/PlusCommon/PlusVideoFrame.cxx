@@ -30,43 +30,43 @@ namespace
 {
   //----------------------------------------------------------------------------
   template<class ScalarType>
-  PlusStatus FlipClipImageGeneric( vtkImageData* inputImage, const PlusVideoFrame::FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], vtkImageData* outputImage )
+  PlusStatus FlipClipImageGeneric(vtkImageData* inputImage, const PlusVideoFrame::FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], vtkImageData* outputImage)
   {
     const int numberOfScalarComponents = inputImage->GetNumberOfScalarComponents();
 
     int dims[3] = {0, 0, 0};
-    inputImage->GetDimensions( dims );
+    inputImage->GetDimensions(dims);
 
     int localClipRectangleSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
 
-    int inputWidth( dims[0] );
-    int inputHeight( dims[1] );
+    int inputWidth(dims[0]);
+    int inputHeight(dims[1]);
     // TODO : when flipping of 3D data is implemented, inputDepth will be needed
     //int inputDepth( dims[2] );
 
     int outputDims[3] = {0, 0, 0};
-    outputImage->GetDimensions( outputDims );
-    int outputWidth( outputDims[0] );
-    int outputHeight( outputDims[1] );
-    int outputDepth( outputDims[2] );
+    outputImage->GetDimensions(outputDims);
+    int outputWidth(outputDims[0]);
+    int outputHeight(outputDims[1]);
+    int outputDepth(outputDims[2]);
 
     void* inBuff = inputImage->GetScalarPointer();
     void* outBuff = outputImage->GetScalarPointer();
 
-    vtkIdType pixelIncrement( 0 );
-    vtkIdType inputRowIncrement( 0 );
-    vtkIdType inputImageIncrement( 0 );
-    inputImage->GetIncrements( pixelIncrement, inputRowIncrement, inputImageIncrement );
+    vtkIdType pixelIncrement(0);
+    vtkIdType inputRowIncrement(0);
+    vtkIdType inputImageIncrement(0);
+    inputImage->GetIncrements(pixelIncrement, inputRowIncrement, inputImageIncrement);
 
-    vtkIdType outputRowIncrement( 0 );
-    vtkIdType outputImageIncrement( 0 );
-    outputImage->GetIncrements( pixelIncrement, outputRowIncrement, outputImageIncrement );
+    vtkIdType outputRowIncrement(0);
+    vtkIdType outputImageIncrement(0);
+    outputImage->GetIncrements(pixelIncrement, outputRowIncrement, outputImageIncrement);
 
-    if ( flipInfo.doubleRow )
+    if (flipInfo.doubleRow)
     {
-      if ( inputHeight % 2 != 0 )
+      if (inputHeight % 2 != 0)
       {
-        LOG_ERROR( "Cannot flip image with pairs of rows kept together, as number of rows is odd (" << inputHeight << ")" );
+        LOG_ERROR("Cannot flip image with pairs of rows kept together, as number of rows is odd (" << inputHeight << ")");
         return PLUS_FAIL;
       }
       // TODO : I don't think this is correct if transposition is happening... double check
@@ -82,57 +82,57 @@ namespace
       inputRowIncrement *= 2;
       outputRowIncrement *= 2;
     }
-    if ( flipInfo.doubleColumn )
+    if (flipInfo.doubleColumn)
     {
-      if ( inputWidth % 2 != 0 )
+      if (inputWidth % 2 != 0)
       {
-        LOG_ERROR( "Cannot flip image with pairs of columns kept together, as number of columns is odd (" << inputWidth << ")" );
+        LOG_ERROR("Cannot flip image with pairs of columns kept together, as number of columns is odd (" << inputWidth << ")");
         return PLUS_FAIL;
       }
     }
 
-    if ( !flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
+    if (!flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip Y
-      for( int z = 0; z < outputDepth; z++ )
+      for (int z = 0; z < outputDepth; z++)
       {
         // Set the input position to be the first unclipped pixel in the input image
-        ScalarType* inputPixel = ( ScalarType* )inBuff + ( clipRectangleOrigin[2] + z ) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + (clipRectangleOrigin[2] + z) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
 
         // Set the target position pointer to the first pixel of the last row of each output image
-        ScalarType* outputPixel = ( ScalarType* )outBuff + outputImageIncrement * z + ( outputHeight - 1 ) * outputRowIncrement;
+        ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement * z + (outputHeight - 1) * outputRowIncrement;
         // Copy the image row-by-row, reversing the row order
-        for ( int y = 0; y < outputHeight; y++ )
+        for (int y = 0; y < outputHeight; y++)
         {
-          memcpy( outputPixel, inputPixel, outputWidth * pixelIncrement );
+          memcpy(outputPixel, inputPixel, outputWidth * pixelIncrement);
           inputPixel += inputRowIncrement;
           outputPixel -= outputRowIncrement;
         }
       }
     }
-    else if ( flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
+    else if (flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip X
-      if ( flipInfo.doubleColumn )
+      if (flipInfo.doubleColumn)
       {
         // flip X double column
-        for( int z = 0; z < outputDepth; z++ )
+        for (int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = ( ScalarType* )inBuff + ( clipRectangleOrigin[2] + z ) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (clipRectangleOrigin[2] + z) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
 
           // Set the target position pointer to the last pixel of the first row of each output image
-          ScalarType* outputPixel = ( ScalarType* )outBuff + outputImageIncrement * z + outputWidth * 2 * pixelIncrement - 2 * pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement * z + outputWidth * 2 * pixelIncrement - 2 * pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
-          for ( int y = 0; y < outputHeight; y++ )
+          for (int y = 0; y < outputHeight; y++)
           {
-            for ( int x = 0; x < outputWidth; x++ )
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel - 1 * numberOfScalarComponents + s ) = *( inputPixel + s );
-                *( outputPixel + s ) = *( inputPixel + 1 * numberOfScalarComponents + s );
+                *(outputPixel - 1 * numberOfScalarComponents + s) = *(inputPixel + s);
+                *(outputPixel + s) = *(inputPixel + 1 * numberOfScalarComponents + s);
               }
               inputPixel += 2 * pixelIncrement;
               outputPixel -= 2 * pixelIncrement;
@@ -140,29 +140,29 @@ namespace
             // bring the output back to the end of the next row
             outputPixel += 2 * outputRowIncrement;
             // wrap the input to the beginning of the next clipped row
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * 2 * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * 2 * pixelIncrement;
           }
         }
       }
       else
       {
         // flip X single column
-        for( int z = 0; z < outputDepth; z++ )
+        for (int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = ( ScalarType* )inBuff + ( clipRectangleOrigin[2] + z ) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (clipRectangleOrigin[2] + z) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
 
           // Set the target position pointer to the last pixel of the first row of each output image
-          ScalarType* outputPixel = ( ScalarType* )outBuff + z * outputImageIncrement + ( outputWidth - 1 ) * pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + z * outputImageIncrement + (outputWidth - 1) * pixelIncrement;
           // Copy the image row-by-row, reversing the pixel order in each row
-          for ( int y = 0; y < outputHeight; y++ )
+          for (int y = 0; y < outputHeight; y++)
           {
-            for ( int x = 0; x < outputWidth; x++ )
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel + s ) = *( inputPixel + s );
+                *(outputPixel + s) = *(inputPixel + s);
               }
               inputPixel += pixelIncrement;
               outputPixel -= pixelIncrement;
@@ -170,166 +170,166 @@ namespace
             // bring the output back to the end of the next row
             outputPixel += 2 * outputRowIncrement;
             // wrap the input to the beginning of the next clipped row
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * pixelIncrement;
           }
         }
       }
     }
-    else if ( flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
+    else if (flipInfo.hFlip && flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip X and Y
-      if ( flipInfo.doubleColumn )
+      if (flipInfo.doubleColumn)
       {
         // flip X and Y double column
-        for( int z = 0; z < outputDepth; z++ )
+        for (int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = ( ScalarType* )inBuff + ( clipRectangleOrigin[2] + z ) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (clipRectangleOrigin[2] + z) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
 
           // Set the target position pointer to the last pixel of each output image
-          ScalarType* outputPixel = ( ScalarType* )outBuff + outputImageIncrement * ( z + 1 ) - 2 * pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement * (z + 1) - 2 * pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
-          for ( int y = 0; y < outputHeight; y++ )
+          for (int y = 0; y < outputHeight; y++)
           {
-            for ( int x = 0; x < outputWidth; x++ )
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel + s ) = *( inputPixel + s );
+                *(outputPixel + s) = *(inputPixel + s);
               }
               inputPixel += 2 * pixelIncrement;
               outputPixel -= 2 * pixelIncrement;
             }
             // wrap the input to the beginning of the next clipped row
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * 2 * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * 2 * pixelIncrement;
           }
         }
       }
       else
       {
         // flip X and Y single column
-        for( int z = 0; z < outputDepth; z++ )
+        for (int z = 0; z < outputDepth; z++)
         {
           // Set the input position to be the first unclipped pixel in the input image
-          ScalarType* inputPixel = ( ScalarType* )inBuff + ( clipRectangleOrigin[2] + z ) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
+          ScalarType* inputPixel = (ScalarType*)inBuff + (clipRectangleOrigin[2] + z) * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
 
           // Set the target position pointer to the last pixel of each output image
-          ScalarType* outputPixel = ( ScalarType* )outBuff + outputImageIncrement * ( z + 1 ) - 1 * pixelIncrement;
+          ScalarType* outputPixel = (ScalarType*)outBuff + outputImageIncrement * (z + 1) - 1 * pixelIncrement;
           // Copy the image pixel-by-pixel, reversing the pixel order
-          for ( int y = 0; y < outputHeight; y++ )
+          for (int y = 0; y < outputHeight; y++)
           {
-            for ( int x = 0; x < outputWidth; x++ )
+            for (int x = 0; x < outputWidth; x++)
             {
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel + s ) = *( inputPixel + s );
+                *(outputPixel + s) = *(inputPixel + s);
               }
               inputPixel += pixelIncrement;
               outputPixel -= pixelIncrement;
             }
             // wrap the input to the beginning of the next clipped row
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * pixelIncrement;
           }
         }
       }
     }
-    else if( !flipInfo.hFlip && !flipInfo.vFlip && flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE )
+    else if (!flipInfo.hFlip && !flipInfo.vFlip && flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_NONE)
     {
       // flip Z
 
       // Set the input position to the first unclipped pixel
-      ScalarType* inputPixel = ( ScalarType* )inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
+      ScalarType* inputPixel = (ScalarType*)inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
 
-      for( int z = outputDepth - 1; z >= 0; z-- )
+      for (int z = outputDepth - 1; z >= 0; z--)
       {
         // Set the target position pointer to the first pixel of the each image
-        ScalarType* outputPixel = ( ScalarType* )outBuff + z * outputImageIncrement;
+        ScalarType* outputPixel = (ScalarType*)outBuff + z * outputImageIncrement;
 
         // Copy the image row-by-row
-        for ( int y = 0; y < outputHeight; y++ )
+        for (int y = 0; y < outputHeight; y++)
         {
-          memcpy( outputPixel, inputPixel, outputRowIncrement );
+          memcpy(outputPixel, inputPixel, outputRowIncrement);
           inputPixel += inputRowIncrement;
           outputPixel += outputRowIncrement;
         }
       }
     }
-    else if( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ )
+    else if (!flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ)
     {
       // Transpose an image in KIJ layout to IJK layout
-      if ( flipInfo.doubleColumn )
+      if (flipInfo.doubleColumn)
       {
         // Transpose an image in KIJ layout to IJK layout double column
 
         // Set the input position to the first unclipped pixel
-        ScalarType* inputPixel = ( ScalarType* )inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * 2 * pixelIncrement;
 
         // Copy the image column->row, each column from the next image
-        for( int z = 0; z < outputWidth; ++z )
+        for (int z = 0; z < outputWidth; ++z)
         {
-          for( int y = 0; y < outputDepth; ++y )
+          for (int y = 0; y < outputDepth; ++y)
           {
-            for( int x = 0; x < outputHeight; ++x )
+            for (int x = 0; x < outputHeight; ++x)
             {
               // Set the target position pointer to the correct output pixel offset
               // ZXY -> XYZ
-              ScalarType* outputPixel = ( ScalarType* )( outBuff ) + + z * 2 * pixelIncrement + x * outputRowIncrement + y * outputImageIncrement;
+              ScalarType* outputPixel = (ScalarType*)(outBuff) + + z * 2 * pixelIncrement + x * outputRowIncrement + y * outputImageIncrement;
 
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel + s ) = *( inputPixel + s );
+                *(outputPixel + s) = *(inputPixel + s);
               }
               inputPixel += 2 * pixelIncrement;
             }
             // wrap the input to the beginning of the next row's unclipped pixel
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * 2 * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * 2 * pixelIncrement;
           }
           // wrap the input to the beginning of the next image's unclipped row
-          inputPixel += ( inputHeight - localClipRectangleSize[1] ) * inputRowIncrement;
+          inputPixel += (inputHeight - localClipRectangleSize[1]) * inputRowIncrement;
         }
       }
       else
       {
         // Transpose an image IJK to KIJ
         // Set the input position to the first unclipped pixel
-        ScalarType* inputPixel = ( ScalarType* )inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
+        ScalarType* inputPixel = (ScalarType*)inBuff + clipRectangleOrigin[2] * inputImageIncrement + clipRectangleOrigin[1] * inputRowIncrement + clipRectangleOrigin[0] * pixelIncrement;
 
-        for( int z = 0; z < outputWidth; ++z )
+        for (int z = 0; z < outputWidth; ++z)
         {
-          for( int y = 0; y < outputDepth; ++y )
+          for (int y = 0; y < outputDepth; ++y)
           {
-            for( int x = 0; x < outputHeight; ++x )
+            for (int x = 0; x < outputHeight; ++x)
             {
               // Set the target position pointer to the correct output pixel offset
               // X,Y,Z -> Z,X,Y
-              ScalarType* outputPixel = ( ScalarType* )( outBuff ) + z * pixelIncrement + x * outputRowIncrement + y * outputImageIncrement;
+              ScalarType* outputPixel = (ScalarType*)(outBuff) + z * pixelIncrement + x * outputRowIncrement + y * outputImageIncrement;
 
               // For each scalar, copy it
-              for( int s = 0; s < numberOfScalarComponents; ++s )
+              for (int s = 0; s < numberOfScalarComponents; ++s)
               {
-                *( outputPixel + s ) = *( inputPixel + s );
+                *(outputPixel + s) = *(inputPixel + s);
               }
               inputPixel += pixelIncrement;
             }
             // wrap the input to the beginning of the next row's unclipped pixel
-            inputPixel += ( inputWidth - localClipRectangleSize[0] ) * pixelIncrement;
+            inputPixel += (inputWidth - localClipRectangleSize[0]) * pixelIncrement;
           }
           // wrap the input to the beginning of the next image's unclipped row
-          inputPixel += ( inputHeight - localClipRectangleSize[1] ) * inputRowIncrement;
+          inputPixel += (inputHeight - localClipRectangleSize[1]) * inputRowIncrement;
         }
       }
     }
     else
     {
-      LOG_ERROR( "Operation not permitted. " << std::endl << "flipInfo.hFlip: " << ( flipInfo.hFlip ? "TRUE" : "FALSE" ) << std::endl <<
-                 "flipInfo.vFlip: " << ( flipInfo.vFlip ? "TRUE" : "FALSE" ) << std::endl <<
-                 "flipInfo.eFlip: " << ( flipInfo.eFlip ? "TRUE" : "FALSE" ) << std::endl <<
-                 "flipInfo.tranpose: " << PlusVideoFrame::TransposeToString( flipInfo.tranpose ) << std::endl <<
-                 "flipInfo.doubleColumn: " << ( flipInfo.doubleColumn ? "TRUE" : "FALSE" ) << std::endl <<
-                 "flipInfo.doubleRow: " << ( flipInfo.doubleRow ? "TRUE" : "FALSE" ) );
+      LOG_ERROR("Operation not permitted. " << std::endl << "flipInfo.hFlip: " << (flipInfo.hFlip ? "TRUE" : "FALSE") << std::endl <<
+                "flipInfo.vFlip: " << (flipInfo.vFlip ? "TRUE" : "FALSE") << std::endl <<
+                "flipInfo.eFlip: " << (flipInfo.eFlip ? "TRUE" : "FALSE") << std::endl <<
+                "flipInfo.tranpose: " << PlusVideoFrame::TransposeToString(flipInfo.tranpose) << std::endl <<
+                "flipInfo.doubleColumn: " << (flipInfo.doubleColumn ? "TRUE" : "FALSE") << std::endl <<
+                "flipInfo.doubleRow: " << (flipInfo.doubleRow ? "TRUE" : "FALSE"));
     }
 
     return PLUS_SUCCESS;
@@ -338,17 +338,17 @@ namespace
 
 //----------------------------------------------------------------------------
 PlusVideoFrame::PlusVideoFrame()
-  : Image( NULL )
-  , ImageType( US_IMG_BRIGHTNESS )
-  , ImageOrientation( US_IMG_ORIENT_MF )
+  : Image(NULL)
+  , ImageType(US_IMG_BRIGHTNESS)
+  , ImageOrientation(US_IMG_ORIENT_MF)
 {
 }
 
 //----------------------------------------------------------------------------
-PlusVideoFrame::PlusVideoFrame( const PlusVideoFrame& videoItem )
-  : Image( NULL )
-  , ImageType( US_IMG_BRIGHTNESS )
-  , ImageOrientation( US_IMG_ORIENT_MF )
+PlusVideoFrame::PlusVideoFrame(const PlusVideoFrame& videoItem)
+  : Image(NULL)
+  , ImageType(US_IMG_BRIGHTNESS)
+  , ImageOrientation(US_IMG_ORIENT_MF)
 {
   *this = videoItem;
 }
@@ -356,14 +356,14 @@ PlusVideoFrame::PlusVideoFrame( const PlusVideoFrame& videoItem )
 //----------------------------------------------------------------------------
 PlusVideoFrame::~PlusVideoFrame()
 {
-  DELETE_IF_NOT_NULL( this->Image );
+  DELETE_IF_NOT_NULL(this->Image);
 }
 
 //----------------------------------------------------------------------------
-PlusVideoFrame& PlusVideoFrame::operator=( PlusVideoFrame const& videoItem )
+PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const& videoItem)
 {
   // Handle self-assignment
-  if ( this == &videoItem )
+  if (this == &videoItem)
   {
     return *this;
   }
@@ -372,18 +372,18 @@ PlusVideoFrame& PlusVideoFrame::operator=( PlusVideoFrame const& videoItem )
   this->ImageOrientation = videoItem.ImageOrientation;
 
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
-  if ( videoItem.GetFrameSizeInBytes() > 0 )
+  if (videoItem.GetFrameSizeInBytes() > 0)
   {
     unsigned int frameSize[3] = {0, 0, 0};
-    videoItem.GetFrameSize( frameSize );
+    videoItem.GetFrameSize(frameSize);
 
-    if ( this->AllocateFrame( frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents() ) != PLUS_SUCCESS )
+    if (this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents()) != PLUS_SUCCESS)
     {
-      LOG_ERROR( "Failed to allocate memory for the new frame in the buffer!" );
+      LOG_ERROR("Failed to allocate memory for the new frame in the buffer!");
     }
     else
     {
-      memcpy( this->GetScalarPointer(), videoItem.GetScalarPointer(), this->GetFrameSizeInBytes() );
+      memcpy(this->GetScalarPointer(), videoItem.GetScalarPointer(), this->GetFrameSizeInBytes());
       this->Image->Modified();
     }
   }
@@ -392,15 +392,15 @@ PlusVideoFrame& PlusVideoFrame::operator=( PlusVideoFrame const& videoItem )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::DeepCopy( PlusVideoFrame* videoItem )
+PlusStatus PlusVideoFrame::DeepCopy(PlusVideoFrame* videoItem)
 {
-  if ( videoItem == NULL )
+  if (videoItem == NULL)
   {
-    LOG_ERROR( "Failed to deep copy video buffer item - buffer item NULL!" );
+    LOG_ERROR("Failed to deep copy video buffer item - buffer item NULL!");
     return PLUS_FAIL;
   }
 
-  ( *this ) = ( *videoItem );
+  (*this) = (*videoItem);
 
   return PLUS_SUCCESS;
 }
@@ -408,156 +408,156 @@ PlusStatus PlusVideoFrame::DeepCopy( PlusVideoFrame* videoItem )
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::FillBlank()
 {
-  if ( !this->IsImageValid() )
+  if (!this->IsImageValid())
   {
-    LOG_ERROR( "Unable to fill image to blank, image data is NULL." );
+    LOG_ERROR("Unable to fill image to blank, image data is NULL.");
     return PLUS_FAIL;
   }
 
-  memset( this->GetScalarPointer(), 0, this->GetFrameSizeInBytes() );
+  memset(this->GetScalarPointer(), 0, this->GetFrameSizeInBytes());
 
   return PLUS_SUCCESS;
 }
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents )
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {
-  if ( imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0 )
+  if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
   {
-    LOG_WARNING( "Single slice images should have a dimension of z=1" );
+    LOG_WARNING("Single slice images should have a dimension of z=1");
   }
 
-  if ( image != NULL )
+  if (image != NULL)
   {
     int imageExtents[6] = {0, 0, 0, 0, 0, 0};
-    image->GetExtent( imageExtents );
-    if ( imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
-         imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
-         imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
-         image->GetScalarType() == pixType &&
-         image->GetNumberOfScalarComponents() == numberOfScalarComponents )
+    image->GetExtent(imageExtents);
+    if (imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
+        imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
+        imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
+        image->GetScalarType() == pixType &&
+        image->GetNumberOfScalarComponents() == numberOfScalarComponents)
     {
       // already allocated, no change
       return PLUS_SUCCESS;
     }
   }
 
-  image->SetExtent( 0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1 );
-  image->AllocateScalars( pixType, numberOfScalarComponents );
+  image->SetExtent(0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1);
+  image->AllocateScalars(pixType, numberOfScalarComponents);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame( vtkImageData* image, const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents )
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
-  if ( imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0 )
+  if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
   {
-    LOG_WARNING( "Single slice images should have a dimension of z=1" );
+    LOG_WARNING("Single slice images should have a dimension of z=1");
   }
 
-  if ( image != NULL )
+  if (image != NULL)
   {
     int imageExtents[6] = { 0, 0, 0, 0, 0, 0 };
-    image->GetExtent( imageExtents );
-    if ( imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
-         imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
-         imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
-         image->GetScalarType() == pixType &&
-         image->GetNumberOfScalarComponents() == numberOfScalarComponents )
+    image->GetExtent(imageExtents);
+    if (imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
+        imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
+        imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
+        image->GetScalarType() == pixType &&
+        image->GetNumberOfScalarComponents() == numberOfScalarComponents)
     {
       // already allocated, no change
       return PLUS_SUCCESS;
     }
   }
 
-  image->SetExtent( 0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1 );
-  image->AllocateScalars( pixType, numberOfScalarComponents );
+  image->SetExtent(0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1);
+  image->AllocateScalars(pixType, numberOfScalarComponents);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame( const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents )
+PlusStatus PlusVideoFrame::AllocateFrame(const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {
-  if( this->GetImage() == NULL )
+  if (this->GetImage() == NULL)
   {
-    this->SetImageData( vtkImageData::New() );
+    this->SetImageData(vtkImageData::New());
   }
-  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame( this->GetImage(), imageSize, pixType, numberOfScalarComponents );
+  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame(this->GetImage(), imageSize, pixType, numberOfScalarComponents);
   return allocStatus;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame( const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents )
+PlusStatus PlusVideoFrame::AllocateFrame(const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
-  if ( this->GetImage() == NULL )
+  if (this->GetImage() == NULL)
   {
-    this->SetImageData( vtkImageData::New() );
+    this->SetImageData(vtkImageData::New());
   }
-  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame( this->GetImage(), imageSize, pixType, numberOfScalarComponents );
+  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame(this->GetImage(), imageSize, pixType, numberOfScalarComponents);
   return allocStatus;
 }
 
 //----------------------------------------------------------------------------
 unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
 {
-  if ( !this->IsImageValid() )
+  if (!this->IsImageValid())
   {
     return 0;
   }
   unsigned int frameSize[3] = {0, 0, 0};
-  this->GetFrameSize( frameSize );
+  this->GetFrameSize(frameSize);
 
   int bytesPerScalar = GetNumberOfBytesPerScalar();
-  if ( bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4 && bytesPerScalar != 8 )
+  if (bytesPerScalar != 1 && bytesPerScalar != 2 && bytesPerScalar != 4 && bytesPerScalar != 8)
   {
-    LOG_ERROR( "Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component" );
+    LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
   unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * frameSize[2] * bytesPerScalar * this->GetNumberOfScalarComponents();
   return frameSizeInBytes;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::DeepCopyFrom( vtkImageData* frame )
+PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
 {
-  if ( frame == NULL )
+  if (frame == NULL)
   {
-    LOG_ERROR( "Failed to deep copy from vtk image data - input frame is NULL!" );
+    LOG_ERROR("Failed to deep copy from vtk image data - input frame is NULL!");
     return PLUS_FAIL;
   }
 
   int* frameExtent = frame->GetExtent();
-  int frameSize[3] = {( frameExtent[1] - frameExtent[0] + 1 ), ( frameExtent[3] - frameExtent[2] + 1 ), ( frameExtent[5] - frameExtent[4] + 1 ) };
+  int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) };
 
-  if ( this->AllocateFrame( frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents() ) != PLUS_SUCCESS )
+  if (this->AllocateFrame(frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents()) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to allocate memory for plus video frame!" );
+    LOG_ERROR("Failed to allocate memory for plus video frame!");
     return PLUS_FAIL;
   }
 
-  memcpy( this->Image->GetScalarPointer(), frame->GetScalarPointer(), this->GetFrameSizeInBytes() );
+  memcpy(this->Image->GetScalarPointer(), frame->GetScalarPointer(), this->GetFrameSizeInBytes());
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::ShallowCopyFrom( vtkImageData* frame )
+PlusStatus PlusVideoFrame::ShallowCopyFrom(vtkImageData* frame)
 {
-  if ( frame == NULL )
+  if (frame == NULL)
   {
-    LOG_ERROR( "Failed to shallow copy from vtk image data - input frame is NULL!" );
+    LOG_ERROR("Failed to shallow copy from vtk image data - input frame is NULL!");
     return PLUS_FAIL;
   }
-  this->Image->ShallowCopy( frame );
+  this->Image->ShallowCopy(frame);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 {
-  return PlusVideoFrame::GetNumberOfBytesPerScalar( GetVTKScalarPixelType() );
+  return PlusVideoFrame::GetNumberOfBytesPerScalar(GetVTKScalarPixelType());
 }
 
 //----------------------------------------------------------------------------
@@ -573,7 +573,7 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetImageOrientation() const
 }
 
 //----------------------------------------------------------------------------
-void PlusVideoFrame::SetImageOrientation( US_IMAGE_ORIENTATION imgOrientation )
+void PlusVideoFrame::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
 {
   this->ImageOrientation = imgOrientation;
 }
@@ -581,7 +581,7 @@ void PlusVideoFrame::SetImageOrientation( US_IMAGE_ORIENTATION imgOrientation )
 //----------------------------------------------------------------------------
 int PlusVideoFrame::GetNumberOfScalarComponents() const
 {
-  if( IsImageValid() )
+  if (IsImageValid())
   {
     return this->Image->GetNumberOfScalarComponents();
   }
@@ -596,7 +596,7 @@ US_IMAGE_TYPE PlusVideoFrame::GetImageType() const
 }
 
 //----------------------------------------------------------------------------
-void PlusVideoFrame::SetImageType( US_IMAGE_TYPE imgType )
+void PlusVideoFrame::SetImageType(US_IMAGE_TYPE imgType)
 {
   this->ImageType = imgType;
 }
@@ -604,9 +604,9 @@ void PlusVideoFrame::SetImageType( US_IMAGE_TYPE imgType )
 //----------------------------------------------------------------------------
 void* PlusVideoFrame::GetScalarPointer() const
 {
-  if ( !this->IsImageValid() )
+  if (!this->IsImageValid())
   {
-    LOG_ERROR( "Cannot get buffer pointer, the buffer hasn't been created yet" );
+    LOG_ERROR("Cannot get buffer pointer, the buffer hasn't been created yet");
     return NULL;
   }
 
@@ -614,39 +614,39 @@ void* PlusVideoFrame::GetScalarPointer() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetFrameSize( unsigned int frameSize[3] ) const
+PlusStatus PlusVideoFrame::GetFrameSize(unsigned int frameSize[3]) const
 {
-  if ( !this->IsImageValid() )
+  if (!this->IsImageValid())
   {
     frameSize[0] = frameSize[1] = frameSize[2] = 0;
     return PLUS_FAIL;
   }
 
   int frameSizeSigned[3];
-  this->Image->GetDimensions( frameSizeSigned );
+  this->Image->GetDimensions(frameSizeSigned);
 
-  if ( frameSizeSigned[0] < 0 )
+  if (frameSizeSigned[0] < 0)
   {
     frameSizeSigned[0] = 0;
   }
-  if ( frameSizeSigned[1] < 0 )
+  if (frameSizeSigned[1] < 0)
   {
     frameSizeSigned[1] = 0;
   }
-  if ( frameSizeSigned[2] < 0 )
+  if (frameSizeSigned[2] < 0)
   {
     frameSizeSigned[2] = 0;
   }
-  frameSize[0] = static_cast<unsigned int>( frameSizeSigned[0] );
-  frameSize[1] = static_cast<unsigned int>( frameSizeSigned[1] );
-  frameSize[2] = static_cast<unsigned int>( frameSizeSigned[2] );
+  frameSize[0] = static_cast<unsigned int>(frameSizeSigned[0]);
+  frameSize[1] = static_cast<unsigned int>(frameSizeSigned[1]);
+  frameSize[2] = static_cast<unsigned int>(frameSizeSigned[2]);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType() const
 {
-  if( this->Image == NULL || !this->IsImageValid() )
+  if (this->Image == NULL || !this->IsImageValid())
   {
     return VTK_VOID;
   }
@@ -654,78 +654,78 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType() const
 }
 
 //----------------------------------------------------------------------------
-US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char* imgOrientationStr )
+US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString(const char* imgOrientationStr)
 {
   US_IMAGE_ORIENTATION imgOrientation = US_IMG_ORIENT_XX;
-  if ( imgOrientationStr == NULL )
+  if (imgOrientationStr == NULL)
   {
     return imgOrientation;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UF" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UF"))
   {
     imgOrientation = US_IMG_ORIENT_UF;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UN" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UN"))
   {
     imgOrientation = US_IMG_ORIENT_UN;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MF" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MF"))
   {
     imgOrientation = US_IMG_ORIENT_MF;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MN" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MN"))
   {
     imgOrientation = US_IMG_ORIENT_MN;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UFA" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UFA"))
   {
     imgOrientation = US_IMG_ORIENT_UFA;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UNA" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UNA"))
   {
     imgOrientation = US_IMG_ORIENT_UNA;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MFA" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MFA"))
   {
     imgOrientation = US_IMG_ORIENT_MFA;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MNA" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MNA"))
   {
     imgOrientation = US_IMG_ORIENT_MNA;
   }
-  else if ( STRCASECMP( imgOrientationStr, "AMF" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "AMF"))
   {
     imgOrientation = US_IMG_ORIENT_AMF;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UFD" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UFD"))
   {
     imgOrientation = US_IMG_ORIENT_UFD;
   }
-  else if ( STRCASECMP( imgOrientationStr, "UND" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "UND"))
   {
     imgOrientation = US_IMG_ORIENT_UND;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MFD" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MFD"))
   {
     imgOrientation = US_IMG_ORIENT_MFD;
   }
-  else if ( STRCASECMP( imgOrientationStr, "MND" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "MND"))
   {
     imgOrientation = US_IMG_ORIENT_MND;
   }
-  else if ( STRCASECMP( imgOrientationStr, "FU" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "FU"))
   {
     imgOrientation = US_IMG_ORIENT_FU;
   }
-  else if ( STRCASECMP( imgOrientationStr, "NU" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "NU"))
   {
     imgOrientation = US_IMG_ORIENT_NU;
   }
-  else if ( STRCASECMP( imgOrientationStr, "FM" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "FM"))
   {
     imgOrientation = US_IMG_ORIENT_FM;
   }
-  else if ( STRCASECMP( imgOrientationStr, "NM" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgOrientationStr, "NM"))
   {
     imgOrientation = US_IMG_ORIENT_NM;
   }
@@ -734,9 +734,15 @@ US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString( const char
 }
 
 //----------------------------------------------------------------------------
-const char* PlusVideoFrame::GetStringFromUsImageOrientation( US_IMAGE_ORIENTATION imgOrientation )
+US_IMAGE_ORIENTATION PlusVideoFrame::GetUsImageOrientationFromString(const std::string& imgOrientationStr)
 {
-  switch ( imgOrientation )
+  return PlusVideoFrame::GetUsImageOrientationFromString(imgOrientationStr.c_str());
+}
+
+//----------------------------------------------------------------------------
+std::string PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
+{
+  switch (imgOrientation)
   {
   case US_IMG_ORIENT_FM:
     return "FM";
@@ -770,35 +776,35 @@ const char* PlusVideoFrame::GetStringFromUsImageOrientation( US_IMAGE_ORIENTATIO
 }
 
 //----------------------------------------------------------------------------
-US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString( const char* imgTypeStr )
+US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString(const char* imgTypeStr)
 {
-  return PlusVideoFrame::GetUsImageTypeFromString( std::string( imgTypeStr ) );
+  return PlusVideoFrame::GetUsImageTypeFromString(std::string(imgTypeStr));
 }
 
 //----------------------------------------------------------------------------
-US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString( const std::string& imgTypeStr )
+US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString(const std::string& imgTypeStr)
 {
-  std::string imgTypeUpper( imgTypeStr );
-  std::transform( imgTypeUpper.begin(), imgTypeUpper.end(), imgTypeUpper.begin(), ::toupper );
+  std::string imgTypeUpper(imgTypeStr);
+  std::transform(imgTypeUpper.begin(), imgTypeUpper.end(), imgTypeUpper.begin(), ::toupper);
 
   US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;
-  if ( imgTypeUpper.compare( "BRIGHTNESS" ) == 0 )
+  if (PlusCommon::IsEqualInsensitive(imgTypeUpper, "BRIGHTNESS"))
   {
     imgType = US_IMG_BRIGHTNESS;
   }
-  else if ( imgTypeUpper.compare( "RF_REAL" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgTypeUpper, "RF_REAL"))
   {
     imgType = US_IMG_RF_REAL;
   }
-  else if ( imgTypeUpper.compare( "RF_IQ_LINE" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgTypeUpper, "RF_IQ_LINE"))
   {
     imgType = US_IMG_RF_IQ_LINE;
   }
-  else if ( imgTypeUpper.compare( "RF_I_LINE_Q_LINE" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgTypeUpper, "RF_I_LINE_Q_LINE"))
   {
     imgType = US_IMG_RF_I_LINE_Q_LINE;
   }
-  else if ( imgTypeUpper.compare( "RGB_COLOR" ) == 0 )
+  else if (PlusCommon::IsEqualInsensitive(imgTypeUpper, "RGB_COLOR"))
   {
     imgType = US_IMG_RGB_COLOR;
   }
@@ -806,9 +812,9 @@ US_IMAGE_TYPE PlusVideoFrame::GetUsImageTypeFromString( const std::string& imgTy
 }
 
 //----------------------------------------------------------------------------
-const char* PlusVideoFrame::GetStringFromUsImageType( US_IMAGE_TYPE imgType )
+std::string PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
 {
-  switch ( imgType )
+  switch (imgType)
   {
   case US_IMG_BRIGHTNESS:
     return "BRIGHTNESS";
@@ -826,39 +832,39 @@ const char* PlusVideoFrame::GetStringFromUsImageType( US_IMAGE_TYPE imgType )
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetFlipAxes( US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo )
+PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1, US_IMAGE_TYPE usImageType1, US_IMAGE_ORIENTATION usImageOrientation2, FlipInfoType& flipInfo)
 {
   flipInfo.doubleRow = false;
   flipInfo.doubleColumn = false;
-  if ( usImageType1 == US_IMG_RF_I_LINE_Q_LINE )
+  if (usImageType1 == US_IMG_RF_I_LINE_Q_LINE)
   {
-    if ( usImageOrientation1 == US_IMG_ORIENT_FM
-         || usImageOrientation1 == US_IMG_ORIENT_FU
-         || usImageOrientation1 == US_IMG_ORIENT_NM
-         || usImageOrientation1 == US_IMG_ORIENT_NU )
+    if (usImageOrientation1 == US_IMG_ORIENT_FM
+        || usImageOrientation1 == US_IMG_ORIENT_FU
+        || usImageOrientation1 == US_IMG_ORIENT_NM
+        || usImageOrientation1 == US_IMG_ORIENT_NU)
     {
       // keep line pairs together
       flipInfo.doubleRow = true;
     }
     else
     {
-      LOG_ERROR( "RF scanlines are expected to be in image rows" );
+      LOG_ERROR("RF scanlines are expected to be in image rows");
       return PLUS_FAIL;
     }
   }
-  else if ( usImageType1 == US_IMG_RF_IQ_LINE )
+  else if (usImageType1 == US_IMG_RF_IQ_LINE)
   {
-    if ( usImageOrientation1 == US_IMG_ORIENT_FM
-         || usImageOrientation1 == US_IMG_ORIENT_FU
-         || usImageOrientation1 == US_IMG_ORIENT_NM
-         || usImageOrientation1 == US_IMG_ORIENT_NU )
+    if (usImageOrientation1 == US_IMG_ORIENT_FM
+        || usImageOrientation1 == US_IMG_ORIENT_FU
+        || usImageOrientation1 == US_IMG_ORIENT_NM
+        || usImageOrientation1 == US_IMG_ORIENT_NU)
     {
       // keep IQ value pairs together
       flipInfo.doubleColumn = true;
     }
     else
     {
-      LOG_ERROR( "RF scanlines are expected to be in image rows" );
+      LOG_ERROR("RF scanlines are expected to be in image rows");
       return PLUS_FAIL;
     }
   }
@@ -867,96 +873,96 @@ PlusStatus PlusVideoFrame::GetFlipAxes( US_IMAGE_ORIENTATION usImageOrientation1
   flipInfo.vFlip = false; // vertical
   flipInfo.eFlip = false; // elevational
   flipInfo.tranpose = TRANSPOSE_NONE; // no transpose
-  if ( usImageOrientation1 == US_IMG_ORIENT_XX )
+  if (usImageOrientation1 == US_IMG_ORIENT_XX)
   {
-    LOG_ERROR( "Failed to determine the necessary image flip - unknown input image orientation 1" );
+    LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 1");
     return PLUS_FAIL;
   }
 
-  if ( usImageOrientation2 == US_IMG_ORIENT_XX )
+  if (usImageOrientation2 == US_IMG_ORIENT_XX)
   {
-    LOG_ERROR( "Failed to determine the necessary image flip - unknown input image orientation 2" );
+    LOG_ERROR("Failed to determine the necessary image flip - unknown input image orientation 2");
     return PLUS_SUCCESS;
   }
-  if ( usImageOrientation1 == usImageOrientation2 )
+  if (usImageOrientation1 == usImageOrientation2)
   {
     // no flip
     return PLUS_SUCCESS;
   }
 
-  if( ( usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_MF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_UF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_MN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_UN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_NU ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_FU ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_NM ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_FM )
-    )
+  if ((usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_MF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_UF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_MN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_UN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_NU) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_FU) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_NM) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_FM)
+     )
   {
     // flip x
     flipInfo.hFlip = true;
     return PLUS_SUCCESS;
   }
-  if( ( usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_UN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_MN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_UF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_MF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_FM ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_NM ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_FU ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_NU )
-    )
+  if ((usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_UN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_MN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_UF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_MF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_FM) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_NM) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_FU) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_NU)
+     )
   {
     // flip y
     flipInfo.vFlip = true;
     return PLUS_SUCCESS;
   }
-  if( ( usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_UFD ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UFD && usImageOrientation2 == US_IMG_ORIENT_UFA ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_MFD ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MFD && usImageOrientation2 == US_IMG_ORIENT_MFA ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UNA && usImageOrientation2 == US_IMG_ORIENT_UND ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UND && usImageOrientation2 == US_IMG_ORIENT_UNA ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MNA && usImageOrientation2 == US_IMG_ORIENT_MND ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_MNA )
-    )
+  if ((usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_UFD) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UFD && usImageOrientation2 == US_IMG_ORIENT_UFA) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_MFD) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MFD && usImageOrientation2 == US_IMG_ORIENT_MFA) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UNA && usImageOrientation2 == US_IMG_ORIENT_UND) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UND && usImageOrientation2 == US_IMG_ORIENT_UNA) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MNA && usImageOrientation2 == US_IMG_ORIENT_MND) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_MNA)
+     )
   {
     // flip z
     flipInfo.eFlip = true;
     return PLUS_SUCCESS;
   }
-  if( ( usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_MN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_UN ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_MF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_UF ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_NM ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_FM ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_NU ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_FU )
-    )
+  if ((usImageOrientation1 == US_IMG_ORIENT_UF && usImageOrientation2 == US_IMG_ORIENT_MN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MF && usImageOrientation2 == US_IMG_ORIENT_UN) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UN && usImageOrientation2 == US_IMG_ORIENT_MF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MN && usImageOrientation2 == US_IMG_ORIENT_UF) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FU && usImageOrientation2 == US_IMG_ORIENT_NM) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NU && usImageOrientation2 == US_IMG_ORIENT_FM) ||
+      (usImageOrientation1 == US_IMG_ORIENT_FM && usImageOrientation2 == US_IMG_ORIENT_NU) ||
+      (usImageOrientation1 == US_IMG_ORIENT_NM && usImageOrientation2 == US_IMG_ORIENT_FU)
+     )
   {
     // flip xy
     flipInfo.hFlip = true;
     flipInfo.vFlip = true;
     return PLUS_SUCCESS;
   }
-  if( ( usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_MFD ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MFD && usImageOrientation2 == US_IMG_ORIENT_UFA ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_UNA && usImageOrientation2 == US_IMG_ORIENT_MND ) ||
-      ( usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_UNA )
-    )
+  if ((usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_MFD) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MFD && usImageOrientation2 == US_IMG_ORIENT_UFA) ||
+      (usImageOrientation1 == US_IMG_ORIENT_UNA && usImageOrientation2 == US_IMG_ORIENT_MND) ||
+      (usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_UNA)
+     )
   {
     // flip xz
     flipInfo.hFlip = true;
     flipInfo.eFlip = true;
     return PLUS_SUCCESS;
   }
-  if(
-    ( usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_UND ) ||
-    ( usImageOrientation1 == US_IMG_ORIENT_UND && usImageOrientation2 == US_IMG_ORIENT_UFA ) ||
-    ( usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_MND ) ||
-    ( usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_MFA )
+  if (
+    (usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_UND) ||
+    (usImageOrientation1 == US_IMG_ORIENT_UND && usImageOrientation2 == US_IMG_ORIENT_UFA) ||
+    (usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_MND) ||
+    (usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_MFA)
   )
   {
     // flip yz
@@ -964,9 +970,9 @@ PlusStatus PlusVideoFrame::GetFlipAxes( US_IMAGE_ORIENTATION usImageOrientation1
     flipInfo.eFlip = true;
     return PLUS_SUCCESS;
   }
-  if(
-    ( usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_MND ) ||
-    ( usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_UFA )
+  if (
+    (usImageOrientation1 == US_IMG_ORIENT_UFA && usImageOrientation2 == US_IMG_ORIENT_MND) ||
+    (usImageOrientation1 == US_IMG_ORIENT_MND && usImageOrientation2 == US_IMG_ORIENT_UFA)
   )
   {
     // flip xyz
@@ -975,9 +981,9 @@ PlusStatus PlusVideoFrame::GetFlipAxes( US_IMAGE_ORIENTATION usImageOrientation1
     flipInfo.eFlip = true;
     return PLUS_SUCCESS;
   }
-  if(
-    ( usImageOrientation1 == US_IMG_ORIENT_AMF && usImageOrientation2 == US_IMG_ORIENT_MFA ) ||
-    ( usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_AMF )
+  if (
+    (usImageOrientation1 == US_IMG_ORIENT_AMF && usImageOrientation2 == US_IMG_ORIENT_MFA) ||
+    (usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_AMF)
   )
   {
     // Tranpose J KI images to K IJ images
@@ -985,41 +991,41 @@ PlusStatus PlusVideoFrame::GetFlipAxes( US_IMAGE_ORIENTATION usImageOrientation1
     return PLUS_SUCCESS;
   }
 
-  assert( 0 );
-  LOG_ERROR( "Image orientation conversion between orientations " << PlusVideoFrame::GetStringFromUsImageOrientation( usImageOrientation1 )
-             << " and " << PlusVideoFrame::GetStringFromUsImageOrientation( usImageOrientation2 )
-             << " is not supported. Only reordering of rows, columns and slices." );
+  assert(0);
+  LOG_ERROR("Image orientation conversion between orientations " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation1)
+            << " and " << PlusVideoFrame::GetStringFromUsImageOrientation(usImageOrientation2)
+            << " is not supported. Only reordering of rows, columns and slices.");
   return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( vtkImageData* inUsImage,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(vtkImageData* inUsImage,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     vtkImageData* outUsOrientedImage,
     const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
+    const int clipRectangleSize[3])
 {
-  if ( inUsImage == NULL )
+  if (inUsImage == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to the requested orientation - input image is null!" );
+    LOG_ERROR("Failed to convert image data to the requested orientation - input image is null!");
     return PLUS_FAIL;
   }
 
-  if ( outUsOrientedImage == NULL )
+  if (outUsOrientedImage == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to the requested orientation - output image is null!" );
+    LOG_ERROR("Failed to convert image data to the requested orientation - output image is null!");
     return PLUS_FAIL;
   }
 
-  return PlusVideoFrame::FlipClipImage( inUsImage, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage );
+  return PlusVideoFrame::FlipClipImage(inUsImage, flipInfo, clipRectangleOrigin, clipRectangleSize, outUsOrientedImage);
 }
 
 //----------------------------------------------------------------------------
 // vtkImageImport logs a warning if the image size is (1,1,1) because it thinks
 // the whole extent is not set. Avoid the warning by specifying the extent using
 // a callback
-int* WholeExtentCallback_1_1_1( void* )
+int* WholeExtentCallback_1_1_1(void*)
 {
   static int defaultextent[6] = {0, 0, 0, 0, 0, 0};
   return defaultextent;
@@ -1028,7 +1034,7 @@ int* WholeExtentCallback_1_1_1( void* )
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType pixType,
@@ -1036,28 +1042,28 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
     const int inputFrameSizeInPx[3],
     PlusVideoFrame& outBufferItem,
     const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
+    const int clipRectangleSize[3])
 {
-  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, pixType,
-         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize );
+  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType,
+         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo, US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
     unsigned int numberOfScalarComponents,
     const unsigned int inputFrameSizeInPx[3],
     PlusVideoFrame& outBufferItem,
     const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
+    const int clipRectangleSize[3])
 {
-  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, inUsImagePixelType,
-         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize );
+  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, inUsImagePixelType,
+         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType pixType,
@@ -1065,21 +1071,21 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
     const int inputFrameSizeInPx[3],
     vtkImageData* outUsOrientedImage,
     const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
+    const int clipRectangleSize[3])
 {
-  if ( inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0 )
+  if (inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
   {
-    LOG_ERROR( "Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting." );
+    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting.");
     return PLUS_FAIL;
   }
 
-  unsigned int frameSizeInPxUint[3] = { static_cast<unsigned int>( inputFrameSizeInPx[0] ), static_cast<unsigned int>( inputFrameSizeInPx[1] ), static_cast<unsigned int>( inputFrameSizeInPx[2] ) };
-  return PlusVideoFrame::GetOrientedClippedImage( imageDataPtr, flipInfo, inUsImageType, pixType, static_cast<unsigned int>( numberOfScalarComponents ), frameSizeInPxUint, outUsOrientedImage,
-         clipRectangleOrigin, clipRectangleSize );
+  unsigned int frameSizeInPxUint[3] = { static_cast<unsigned int>(inputFrameSizeInPx[0]), static_cast<unsigned int>(inputFrameSizeInPx[1]), static_cast<unsigned int>(inputFrameSizeInPx[2]) };
+  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType, static_cast<unsigned int>(numberOfScalarComponents), frameSizeInPxUint, outUsOrientedImage,
+         clipRectangleOrigin, clipRectangleSize);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
+PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
@@ -1087,106 +1093,106 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage( unsigned char* imageDataPtr,
     const unsigned int inputFrameSizeInPx[3],
     vtkImageData* outUsOrientedImage,
     const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3] )
+    const int clipRectangleSize[3])
 {
-  if ( imageDataPtr == NULL )
+  if (imageDataPtr == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to MF orientation - input image is null!" );
+    LOG_ERROR("Failed to convert image data to MF orientation - input image is null!");
     return PLUS_FAIL;
   }
 
-  if ( outUsOrientedImage == NULL )
+  if (outUsOrientedImage == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to MF orientation - output image is null!" );
+    LOG_ERROR("Failed to convert image data to MF orientation - output image is null!");
     return PLUS_FAIL;
   }
 
   // Create a VTK image out of a buffer without copying the pixel data
   vtkSmartPointer<vtkImageImport> inUsImage = vtkSmartPointer<vtkImageImport>::New();
-  inUsImage->SetImportVoidPointer( imageDataPtr );
+  inUsImage->SetImportVoidPointer(imageDataPtr);
 
   // Avoid warning if image size is (1,1,1)
-  if ( inputFrameSizeInPx[0] == 1 && inputFrameSizeInPx[1] == 1 && inputFrameSizeInPx[2] == 1 )
+  if (inputFrameSizeInPx[0] == 1 && inputFrameSizeInPx[1] == 1 && inputFrameSizeInPx[2] == 1)
   {
-    inUsImage->SetWholeExtentCallback( WholeExtentCallback_1_1_1 );
+    inUsImage->SetWholeExtentCallback(WholeExtentCallback_1_1_1);
   }
   else
   {
-    inUsImage->SetWholeExtent( 0, inputFrameSizeInPx[0] - 1, 0, inputFrameSizeInPx[1] - 1, 0, inputFrameSizeInPx[2] - 1 );
+    inUsImage->SetWholeExtent(0, inputFrameSizeInPx[0] - 1, 0, inputFrameSizeInPx[1] - 1, 0, inputFrameSizeInPx[2] - 1);
   }
 
-  inUsImage->SetDataExtent( 0, inputFrameSizeInPx[0] - 1, 0, inputFrameSizeInPx[1] - 1, 0, inputFrameSizeInPx[2] - 1 );
-  inUsImage->SetDataScalarType( outUsOrientedImage->GetScalarType() );
-  inUsImage->SetNumberOfScalarComponents( outUsOrientedImage->GetNumberOfScalarComponents() );
+  inUsImage->SetDataExtent(0, inputFrameSizeInPx[0] - 1, 0, inputFrameSizeInPx[1] - 1, 0, inputFrameSizeInPx[2] - 1);
+  inUsImage->SetDataScalarType(outUsOrientedImage->GetScalarType());
+  inUsImage->SetNumberOfScalarComponents(outUsOrientedImage->GetNumberOfScalarComponents());
   inUsImage->Update();
 
-  PlusStatus result = PlusVideoFrame::GetOrientedClippedImage( inUsImage->GetOutput(), flipInfo, inUsImageType,
-                      outUsOrientedImage, clipRectangleOrigin, clipRectangleSize );
+  PlusStatus result = PlusVideoFrame::GetOrientedClippedImage(inUsImage->GetOutput(), flipInfo, inUsImageType,
+                      outUsOrientedImage, clipRectangleOrigin, clipRectangleSize);
 
   return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::FlipClipImage( vtkImageData* inUsImage,
+PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
     const PlusVideoFrame::FlipInfoType& flipInfo,
     const int clipRectangleOrigin[3],
     const int clipRectangleSize[3],
-    vtkImageData* outUsOrientedImage )
+    vtkImageData* outUsOrientedImage)
 {
-  if ( inUsImage == NULL )
+  if (inUsImage == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to the requested orientation - input image is null!" );
+    LOG_ERROR("Failed to convert image data to the requested orientation - input image is null!");
     return PLUS_FAIL;
   }
 
-  if ( outUsOrientedImage == NULL )
+  if (outUsOrientedImage == NULL)
   {
-    LOG_ERROR( "Failed to convert image data to the requested orientation - output image is null!" );
+    LOG_ERROR("Failed to convert image data to the requested orientation - output image is null!");
     return PLUS_FAIL;
   }
 
-  if ( !flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE )
+  if (!flipInfo.hFlip && !flipInfo.vFlip && !flipInfo.eFlip && flipInfo.tranpose == TRANSPOSE_NONE)
   {
-    if( PlusCommon::IsClippingRequested( clipRectangleOrigin, clipRectangleSize ) )
+    if (PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize))
     {
       // No flip or transpose, but clipping requested, let vtk do the heavy lifting
       vtkSmartPointer<vtkExtractVOI> extract = vtkSmartPointer<vtkExtractVOI>::New();
       vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
-      tp->SetOutput( inUsImage );
-      extract->SetInputConnection( tp->GetOutputPort() );
+      tp->SetOutput(inUsImage);
+      extract->SetInputConnection(tp->GetOutputPort());
       extract->SetVOI(
         clipRectangleOrigin[0], clipRectangleOrigin[0] + clipRectangleSize[0] - 1,
         clipRectangleOrigin[1], clipRectangleOrigin[1] + clipRectangleSize[1] - 1,
         clipRectangleOrigin[2], clipRectangleOrigin[2] + clipRectangleSize[2] - 1
       );
-      extract->SetOutput( outUsOrientedImage );
+      extract->SetOutput(outUsOrientedImage);
       extract->Update();
       return PLUS_SUCCESS;
     }
     else
     {
       // no flip, clip or transpose
-      outUsOrientedImage->DeepCopy( inUsImage );
+      outUsOrientedImage->DeepCopy(inUsImage);
       return PLUS_SUCCESS;
     }
   }
 
   // Validate output image is correct dimensions to receive final oriented and/or clipped result
   int inputDimensions[3] = {0, 0, 0};
-  inUsImage->GetDimensions( inputDimensions );
+  inUsImage->GetDimensions(inputDimensions);
   int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
   int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
   int finalOutputSize[3] = {inputDimensions[0], inputDimensions[1], inputDimensions[2]};
-  if( PlusCommon::IsClippingRequested( clipRectangleOrigin, clipRectangleSize ) )
+  if (PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize))
   {
     // Clipping requested, validate that source image is bigger than requested clip size
     int inExtents[6] = {0, 0, 0, 0, 0, 0};
-    inUsImage->GetExtent( inExtents );
+    inUsImage->GetExtent(inExtents);
 
-    if( !PlusCommon::IsClippingWithinExtents( clipRectangleOrigin, clipRectangleSize, inExtents )  )
+    if (!PlusCommon::IsClippingWithinExtents(clipRectangleOrigin, clipRectangleSize, inExtents))
     {
-      LOG_WARNING( "Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
-                   "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "]." );
+      LOG_WARNING("Clipping information cannot fit within the original image. No clipping will be performed. Origin=[" << clipRectangleOrigin[0] << "," << clipRectangleOrigin[1] << "," << clipRectangleOrigin[2] <<
+                  "]. Size=[" << clipRectangleSize[0] << "," << clipRectangleSize[1] << "," << clipRectangleSize[2] << "].");
 
       finalClipOrigin[0] = 0;
       finalClipOrigin[1] = 0;
@@ -1217,7 +1223,7 @@ PlusStatus PlusVideoFrame::FlipClipImage( vtkImageData* inUsImage,
   }
 
   // Adjust output image dimensions to account for transposition of axes
-  if( flipInfo.tranpose == TRANSPOSE_IJKtoKIJ )
+  if (flipInfo.tranpose == TRANSPOSE_IJKtoKIJ)
   {
     int temp = finalOutputSize[0];
     finalOutputSize[0] = finalOutputSize[2];
@@ -1226,126 +1232,126 @@ PlusStatus PlusVideoFrame::FlipClipImage( vtkImageData* inUsImage,
   }
 
   int outDimensions[3] = {0, 0, 0};
-  outUsOrientedImage->GetDimensions( outDimensions );
+  outUsOrientedImage->GetDimensions(outDimensions);
 
   // Update the output image if the dimensions don't match the final clip size (which might be the same as the input image)
-  if( outDimensions[0] != finalOutputSize[0] || outDimensions[1] != finalOutputSize[1] || outDimensions[2] != finalOutputSize[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents() )
+  if (outDimensions[0] != finalOutputSize[0] || outDimensions[1] != finalOutputSize[1] || outDimensions[2] != finalOutputSize[2] || outUsOrientedImage->GetScalarType() != inUsImage->GetScalarType() || outUsOrientedImage->GetNumberOfScalarComponents() != inUsImage->GetNumberOfScalarComponents())
   {
     // Allocate the output image, adjust for 1 based sizes to 0 based extents
-    outUsOrientedImage->SetExtent( 0, finalOutputSize[0] - 1, 0, finalOutputSize[1] - 1, 0, finalOutputSize[2] - 1 );
-    outUsOrientedImage->AllocateScalars( inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents() );
+    outUsOrientedImage->SetExtent(0, finalOutputSize[0] - 1, 0, finalOutputSize[1] - 1, 0, finalOutputSize[2] - 1);
+    outUsOrientedImage->AllocateScalars(inUsImage->GetScalarType(), inUsImage->GetNumberOfScalarComponents());
   }
 
-  int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar( inUsImage->GetScalarType() );
+  int numberOfBytesPerScalar = PlusVideoFrame::GetNumberOfBytesPerScalar(inUsImage->GetScalarType());
 
-  PlusStatus status( PLUS_FAIL );
-  switch ( numberOfBytesPerScalar )
+  PlusStatus status(PLUS_FAIL);
+  switch (numberOfBytesPerScalar)
   {
   case 1:
-    status = FlipClipImageGeneric<vtkTypeUInt8>( inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage );
+    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
     break;
   case 2:
-    status = FlipClipImageGeneric<vtkTypeUInt16>( inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage );
+    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
     break;
   case 4:
-    status = FlipClipImageGeneric<vtkTypeUInt32>( inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage );
+    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
     break;
   case 8:
-    status = FlipClipImageGeneric<vtkTypeUInt64>( inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage );
+    status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
     break;
   default:
-    LOG_ERROR( "Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar" );
+    LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
   }
   return status;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::ReadImageFromFile( PlusVideoFrame& frame, const char* fileName )
+PlusStatus PlusVideoFrame::ReadImageFromFile(PlusVideoFrame& frame, const char* fileName)
 {
-  vtkImageReader2* reader( NULL );
+  vtkImageReader2* reader(NULL);
 
-  std::string extension = vtksys::SystemTools::GetFilenameExtension( std::string( fileName ) );
-  std::transform( extension.begin(), extension.end(), extension.begin(), ::tolower );
+  std::string extension = vtksys::SystemTools::GetFilenameExtension(std::string(fileName));
+  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
   std::vector< std::string > readerExtensions;
 
-  if( reader == NULL )
+  if (reader == NULL)
   {
     reader = vtkTIFFReader::New();
-    PlusCommon::SplitStringIntoTokens( reader->GetFileExtensions(), ' ', readerExtensions );
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
 
-    if( std::find( readerExtensions.begin(), readerExtensions.end(), extension ) == readerExtensions.end() )
+    if (std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end())
     {
-      DELETE_IF_NOT_NULL( reader );
+      DELETE_IF_NOT_NULL(reader);
     }
   }
 
-  if( reader == NULL )
+  if (reader == NULL)
   {
     reader = vtkBMPReader::New();
-    PlusCommon::SplitStringIntoTokens( reader->GetFileExtensions(), ' ', readerExtensions );
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
 
-    if( std::find( readerExtensions.begin(), readerExtensions.end(), extension ) == readerExtensions.end() )
+    if (std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end())
     {
-      DELETE_IF_NOT_NULL( reader );
+      DELETE_IF_NOT_NULL(reader);
     }
   }
 
-  if( reader == NULL )
+  if (reader == NULL)
   {
     reader = vtkPNMReader::New();
-    PlusCommon::SplitStringIntoTokens( reader->GetFileExtensions(), ' ', readerExtensions );
+    PlusCommon::SplitStringIntoTokens(reader->GetFileExtensions(), ' ', readerExtensions);
 
-    if( std::find( readerExtensions.begin(), readerExtensions.end(), extension ) == readerExtensions.end() )
+    if (std::find(readerExtensions.begin(), readerExtensions.end(), extension) == readerExtensions.end())
     {
-      DELETE_IF_NOT_NULL( reader );
+      DELETE_IF_NOT_NULL(reader);
     }
   }
 
-  reader->SetFileName( fileName );
+  reader->SetFileName(fileName);
   reader->Update();
 
-  PlusStatus result = frame.DeepCopyFrom( reader->GetOutput() );
+  PlusStatus result = frame.DeepCopyFrom(reader->GetOutput());
   reader->Delete();
   return result;
 }
 
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetNumberOfBytesPerScalar( PlusCommon::VTKScalarPixelType pixelType )
+int PlusVideoFrame::GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType)
 {
-  switch ( pixelType )
+  switch (pixelType)
   {
   case VTK_UNSIGNED_CHAR:
-    return sizeof( vtkTypeUInt8 );
+    return sizeof(vtkTypeUInt8);
   case VTK_CHAR:
-    return sizeof( vtkTypeInt8 );
+    return sizeof(vtkTypeInt8);
   case VTK_UNSIGNED_SHORT:
-    return sizeof( vtkTypeUInt16 );
+    return sizeof(vtkTypeUInt16);
   case VTK_SHORT:
-    return sizeof( vtkTypeInt16 );
+    return sizeof(vtkTypeInt16);
   case VTK_UNSIGNED_INT:
-    return sizeof( vtkTypeUInt32 );
+    return sizeof(vtkTypeUInt32);
   case VTK_INT:
-    return sizeof( vtkTypeInt32 );
+    return sizeof(vtkTypeInt32);
   case VTK_UNSIGNED_LONG:
-    return sizeof( unsigned long );
+    return sizeof(unsigned long);
   case VTK_LONG:
-    return sizeof( long );
+    return sizeof(long);
   case VTK_FLOAT:
-    return sizeof( vtkTypeFloat32 );
+    return sizeof(vtkTypeFloat32);
   case VTK_DOUBLE:
-    return sizeof( vtkTypeFloat64 );
+    return sizeof(vtkTypeFloat64);
   default:
-    LOG_ERROR( "GetNumberOfBytesPerPixel: unknown pixel type " << pixelType );
+    LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type " << pixelType);
     return VTK_VOID;
   }
 }
 
 //----------------------------------------------------------------------------
-PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType( PlusCommon::ITKScalarPixelType pixelType )
+PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType(PlusCommon::ITKScalarPixelType pixelType)
 {
-  switch ( pixelType )
+  switch (pixelType)
   {
   case itk::ImageIOBase::UCHAR:
     return VTK_UNSIGNED_CHAR;
@@ -1376,9 +1382,9 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType( PlusCommon
 #ifdef PLUS_USE_OpenIGTLink
 //----------------------------------------------------------------------------
 // static
-PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL( PlusCommon::IGTLScalarPixelType igtlPixelType )
+PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(PlusCommon::IGTLScalarPixelType igtlPixelType)
 {
-  switch ( igtlPixelType )
+  switch (igtlPixelType)
   {
   case igtl::ImageMessage::TYPE_INT8:
     return VTK_CHAR;
@@ -1403,9 +1409,9 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL( Pl
 
 //----------------------------------------------------------------------------
 // static
-PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( PlusCommon::VTKScalarPixelType pixelType )
+PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(PlusCommon::VTKScalarPixelType pixelType)
 {
-  switch ( pixelType )
+  switch (pixelType)
   {
   case VTK_CHAR:
     return igtl::ImageMessage::TYPE_INT8;
@@ -1425,7 +1431,7 @@ PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK( P
     return igtl::ImageMessage::TYPE_FLOAT64;
   default:
     // There is no unknown IGT scalar pixel type, so display an error message
-    LOG_ERROR( "Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!" );
+    LOG_ERROR("Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!");
     return igtl::ImageMessage::TYPE_INT8;
   }
 }
@@ -1439,25 +1445,25 @@ vtkImageData* PlusVideoFrame::GetImage() const
 }
 
 //----------------------------------------------------------------------------
-void PlusVideoFrame::SetImageData( vtkImageData* imageData )
+void PlusVideoFrame::SetImageData(vtkImageData* imageData)
 {
   this->Image = imageData;
 }
 
 //----------------------------------------------------------------------------
 #define VTK_TO_STRING(pixType) case pixType: return "##pixType"
-std::string PlusVideoFrame::GetStringFromVTKPixelType( PlusCommon::VTKScalarPixelType vtkScalarPixelType )
+std::string PlusVideoFrame::GetStringFromVTKPixelType(PlusCommon::VTKScalarPixelType vtkScalarPixelType)
 {
-  switch( vtkScalarPixelType )
+  switch (vtkScalarPixelType)
   {
-    VTK_TO_STRING( VTK_CHAR );
-    VTK_TO_STRING( VTK_UNSIGNED_CHAR );
-    VTK_TO_STRING( VTK_SHORT );
-    VTK_TO_STRING( VTK_UNSIGNED_SHORT );
-    VTK_TO_STRING( VTK_INT );
-    VTK_TO_STRING( VTK_UNSIGNED_INT );
-    VTK_TO_STRING( VTK_FLOAT );
-    VTK_TO_STRING( VTK_DOUBLE );
+    VTK_TO_STRING(VTK_CHAR);
+    VTK_TO_STRING(VTK_UNSIGNED_CHAR);
+    VTK_TO_STRING(VTK_SHORT);
+    VTK_TO_STRING(VTK_UNSIGNED_SHORT);
+    VTK_TO_STRING(VTK_INT);
+    VTK_TO_STRING(VTK_UNSIGNED_INT);
+    VTK_TO_STRING(VTK_FLOAT);
+    VTK_TO_STRING(VTK_DOUBLE);
   default:
     return "Unknown";
   }
@@ -1466,9 +1472,9 @@ std::string PlusVideoFrame::GetStringFromVTKPixelType( PlusCommon::VTKScalarPixe
 #undef VTK_TO_STRING
 
 //----------------------------------------------------------------------------
-std::string PlusVideoFrame::TransposeToString( TransposeType type )
+std::string PlusVideoFrame::TransposeToString(TransposeType type)
 {
-  switch( type )
+  switch (type)
   {
   case TRANSPOSE_NONE:
     return "TRANPOSE_NONE";

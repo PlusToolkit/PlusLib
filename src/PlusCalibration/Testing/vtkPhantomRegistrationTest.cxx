@@ -194,7 +194,7 @@ int main (int argc, char* argv[])
 
   std::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-  PlusCommon::PrintXML(registrationResultFileName.c_str(), configRootElement); 
+  PlusCommon::XML::PrintXML(registrationResultFileName.c_str(), configRootElement); 
 
   if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
   {

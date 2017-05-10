@@ -28,21 +28,24 @@ double SPECULAR_REFLECTION_BRDF_STDEV = 30.0;
 
 //-----------------------------------------------------------------------------
 PlusSpatialModel::PlusSpatialModel()
+  : Name("")
+  , ModelFile("")
+  , ModelFileNeedsUpdate(false)
+  , ModelToObjectTransform(vtkMatrix4x4::New())
+  , ReferenceToObjectTransform(vtkMatrix4x4::New())
+  , ObjectCoordinateFrame("")
+  , ImagingFrequencyMhz(5.0)
+  , DensityKgPerM3(910)
+  , SoundVelocityMPerSec(1540)
+  , AttenuationCoefficientDbPerCmMhz(0.65)
+  , SurfaceReflectionIntensityDecayDbPerMm(20)
+  , BackscatterDiffuseReflectionCoefficient(0.1)
+  , TransducerSpatialModelMaxOverlapMm(10.0)
+  , SurfaceSpecularReflectionCoefficient(0.0)
+  , SurfaceDiffuseReflectionCoefficient(0.1)
+  , ModelLocalizer(vtkModifiedBSPTree::New())
+  , PolyData(NULL)
 {
-  this->DensityKgPerM3 = 910;
-  this->SoundVelocityMPerSec = 1540;
-  this->AttenuationCoefficientDbPerCmMhz = 0.65;
-  this->SurfaceReflectionIntensityDecayDbPerMm = 20;
-  this->BackscatterDiffuseReflectionCoefficient = 0.1;
-  this->SurfaceDiffuseReflectionCoefficient = 0.1;
-  this->SurfaceSpecularReflectionCoefficient = 0.0;
-  this->ImagingFrequencyMhz = 5.0;
-  this->ModelToObjectTransform = vtkMatrix4x4::New();
-  this->ReferenceToObjectTransform = vtkMatrix4x4::New();
-  this->ModelLocalizer = vtkModifiedBSPTree::New();
-  this->PolyData = NULL;
-  this->ModelFileNeedsUpdate = false;
-  this->TransducerSpatialModelMaxOverlapMm = 10.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -181,9 +184,9 @@ PlusStatus PlusSpatialModel::ReadConfiguration(vtkXMLDataElement* spatialModelEl
 {
   XML_VERIFY_ELEMENT(spatialModelElement, "SpatialModel");
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
-  SetModelFile(spatialModelElement->GetAttribute("ModelFile"));     // if ModelFile is not set then we set it to NULL (it is not optional)
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(Name, spatialModelElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ObjectCoordinateFrame, spatialModelElement);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ModelFile, spatialModelElement);
   XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 16, ModelToObjectTransform, spatialModelElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DensityKgPerM3, spatialModelElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, SoundVelocityMPerSec, spatialModelElement);
@@ -379,7 +382,7 @@ void PlusSpatialModel::GetLineIntersections(std::deque<LineIntersectionInfo>& li
     double intersectionDistanceFromSearchLineStartPointMm = sqrt(vtkMath::Distance2BetweenPoints(searchLineStartPoint_Reference, intersectionPoint_Reference));
     if (intersectionDistanceFromSearchLineStartPointMm <= this->TransducerSpatialModelMaxOverlapMm)
     {
-      // there is an intersection point in the searchline that is not part of the scanline
+      // there is an intersection point in the search line that is not part of the scanline
       scanLineStartPointInsideModel = (!scanLineStartPointInsideModel);
     }
     else
@@ -482,14 +485,14 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
   vtkSmartPointer<vtkPolyData> polyData;
 
   std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(foundAbsoluteImagePath);
-  if (STRCASECMP(fileExt.c_str(), ".stl") == 0)
+  if (PlusCommon::IsEqualInsensitive(fileExt, ".stl"))
   {
     vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
     polyData = modelReader->GetOutput();
   }
-  else //if (STRCASECMP(fileExt.c_str(),".vtp")==0)
+  else //if (PlusCommon::IsEqualInsensitive(fileExt.c_str(),".vtp"))
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
@@ -518,14 +521,13 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
 }
 
 //-----------------------------------------------------------------------------
-void PlusSpatialModel::SetModelFile(const char* modelFile)
+void PlusSpatialModel::SetModelFile(const std::string& modelFile)
 {
-  std::string oldModelFile = this->ModelFile;
-  this->ModelFile = modelFile ? modelFile : "";
-  if (this->ModelFile.compare(oldModelFile) != 0)
+  if (this->ModelFile.compare(modelFile) != 0)
   {
     this->ModelFileNeedsUpdate = true;
   }
+  this->ModelFile = modelFile;
 }
 
 //-----------------------------------------------------------------------------
