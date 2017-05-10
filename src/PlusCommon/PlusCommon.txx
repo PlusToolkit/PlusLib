@@ -17,7 +17,7 @@ namespace PlusCommon
     template<typename T>
     PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, T& value)
     {
-      if (element.GetAttribute(attributeName) == NULL)
+      if (element.GetAttribute(attributeName.c_str()) == NULL)
       {
         return PLUS_FAIL;
       }
