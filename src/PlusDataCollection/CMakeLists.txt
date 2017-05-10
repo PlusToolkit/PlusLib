@@ -1293,7 +1293,6 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
     ${IntersonArraySDKCxx_LIBRARIES}
     )
   SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
-    ${IntersonArraySDKCxx_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntersonArraySDKCxx
     )
 
