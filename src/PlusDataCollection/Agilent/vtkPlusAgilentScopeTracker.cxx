@@ -76,7 +76,8 @@ namespace
     char ErrMsg[256];
     if (status)
     {
-      Acqrs_errorMessage(VI_NULL, status, ErrMsg, 256); cout << functionName << ": " << ErrMsg << endl;
+      Acqrs_errorMessage(VI_NULL, status, ErrMsg, 256);
+      cout << functionName << ": " << ErrMsg << endl;
       return true;
     }
 
@@ -89,7 +90,7 @@ namespace
 
 vtkStandardNewMacro(vtkPlusAgilentScopeTracker);
 
-//---------------------------------------------------------------------------- 
+//----------------------------------------------------------------------------
 vtkPlusAgilentScopeTracker::vtkPlusAgilentScopeTracker()
   : InstrumentCount(0)
   , Status(0)
@@ -108,6 +109,7 @@ vtkPlusAgilentScopeTracker::vtkPlusAgilentScopeTracker()
   , Level(20.0) // In % of vertical full scale when using internal trigger
   , ZOffsetToTracker(vtkSmartPointer<vtkMatrix4x4>::New())
   , SignalImage(vtkSmartPointer<vtkImageData>::New())
+  , DataArray(NULL)
 {
   ZOffsetToTracker->Identity();
 
@@ -121,19 +123,10 @@ vtkPlusAgilentScopeTracker::vtkPlusAgilentScopeTracker()
 //---------------------------------------------------------------------------- Goli :)
 vtkPlusAgilentScopeTracker::~vtkPlusAgilentScopeTracker()
 {
-  /*
-  string s = "hello world";
-  string* s_ptr = &s;
-  string* s_null_ptr = nullptr;
-  string& s_null_ref = nullptr; // illegal
-  string& s_ref = s; // legal
-
-  std::fostream f("c:\output.txt");
-  std::iostream& f_ref = f;
-  ...PrintSelf(f_ptr, indent);
-  */
-
-  delete this->DataArray;
+  if (this->DataArray != NULL)
+  {
+    delete this->DataArray;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -236,7 +229,7 @@ PlusStatus vtkPlusAgilentScopeTracker::InternalUpdate()
     }
   }
 
-  double mmOffset = (this->DelayTimeSec * this->SpeedOfSound * 1000 / 2.0 ) + ( absMaxValueIndex * this->SpeedOfSound * 1000 / (2.0 * this->SampleFrequencyHz));
+  double mmOffset = (this->DelayTimeSec * this->SpeedOfSound * 1000 / 2.0) + (absMaxValueIndex * this->SpeedOfSound * 1000 / (2.0 * this->SampleFrequencyHz));
 
   // Calculate the mm offset of the abs max value
   this->ZOffsetToTracker->SetElement(2, 3, mmOffset);
@@ -255,7 +248,7 @@ PlusStatus vtkPlusAgilentScopeTracker::ReadConfiguration(vtkXMLDataElement* root
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(ViReal64, SampleFrequencyHz, deviceConfig);
-  this->SampleIntervalSec = 1.0 / (this->SampleFrequencyHz );
+  this->SampleIntervalSec = 1.0 / (this->SampleFrequencyHz);
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(ViReal64, DelayTimeSec, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(ViInt32, SampleCountPerAcquisition, deviceConfig);
@@ -313,7 +306,7 @@ PlusStatus vtkPlusAgilentScopeTracker::NotifyConfigured()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAgilentScopeTracker::InternalConnect()
 {
-  // Initialization of the instrument 
+  // Initialization of the instrument
   strncpy(this->ResourceName, "PCI::INSTR0", 16);
   strncpy(this->OptionString, "", 32);
   this->Status = Acqrs_InitWithOptions(this->ResourceName, VI_FALSE, VI_TRUE, this->OptionString, &this->InstrumentID);

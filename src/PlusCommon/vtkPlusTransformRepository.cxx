@@ -685,16 +685,16 @@ PlusStatus vtkPlusTransformRepository::ReadConfiguration(vtkXMLDataElement* conf
     }
 
     bool isValid = true;
-    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*nestedElement, "Valid", "FALSE", isValid) != PLUS_SUCCESS ||
+    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*nestedElement, "Valid", "FALSE", isValid) == PLUS_SUCCESS &&
         this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to set transform to " <<  isValid << " : " << fromAttribute << "' to '" << toAttribute << "' transform");
+      LOG_ERROR("Unable to set transform to " << (isValid ? "true" : "false") << " : " << fromAttribute << "' to '" << toAttribute << "' transform");
       numberOfErrors++;
       continue;
     }
 
     double error(0);
-    if (PlusCommon::XML::SafeGetAttributeValueInsensitive<double>(*nestedElement, "Error", error) != PLUS_SUCCESS ||
+    if (PlusCommon::XML::SafeGetAttributeValueInsensitive<double>(*nestedElement, "Error", error) == PLUS_SUCCESS &&
         this->SetTransformError(transformName, error) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to set transform error: '" << fromAttribute << "' to '" << toAttribute << "' transform");
@@ -703,7 +703,7 @@ PlusStatus vtkPlusTransformRepository::ReadConfiguration(vtkXMLDataElement* conf
     }
 
     std::string date("");
-    if (PlusCommon::XML::SafeGetAttributeValueInsensitive(*nestedElement, "Date", date) != PLUS_SUCCESS ||
+    if (PlusCommon::XML::SafeGetAttributeValueInsensitive(*nestedElement, "Date", date) == PLUS_SUCCESS &&
         this->SetTransformDate(transformName, date) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to set transform date: '" << fromAttribute << "' to '" << toAttribute << "' transform");
