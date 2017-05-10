@@ -17,6 +17,8 @@
 
 \section BkProFocusInstallation Installation
 
+- Turn off "CRC Check" and "Require Acknowledge" on the BK scanner
+- To use \b ContinuousStreamingEnabled: lock image size on the BK scanner (customize dialog -> Split/Size -> check "Lock Image Size" checkbox)
 - Limitation of B-mode image acquisition through the OEM interface: the application crashes on disconnect (see <a href="https://www.assembla.com/spaces/plus/tickets/753">#753</a>)
 - RF acquisition through TeledyneDalsa CameraLink interface card is supported, using Sapera API.
   - B-mode acquisition (using the internal RF->B-mode conversion algorithm) is available for the BK 8848 transducer (http://www.bkmed.com/8848_en.htm).
@@ -35,7 +37,7 @@
   See an example \ref inifile "INI file" below. \RequiredAtt
 
 - \xmlAtt \b ContinuousStreamingEnabled Uses continuous image streaming for significantly faster image transfer. \OptionalAtt{FALSE}
-  - TRUE: Use fast image transfer useing GRAB_FRAME command. This feature may require additional license from BK.
+  - TRUE: Use fast image transfer useing GRAB_FRAME command. This feature may require additional license from BK and locking image size on the BK scanner (see in \ref BkProFocusInstallation section).
   - FALSE: Request transfer of each frame. The responsiveness of the BK scanner software may be impacted if images are acquired continuously at a frame rate higher than a few frames per second. 
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
