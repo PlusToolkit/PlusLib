@@ -143,7 +143,7 @@ namespace MfVideoCapture
 
           if (SUCCEEDED(hr))
           {
-            out.MF_MT_AM_FORMAT_TYPE = MF_MT_AM_FORMAT_TYPE;
+            out.MF_MT_AM_FORMAT_TYPE = *var.puuid;
             out.MF_MT_AM_FORMAT_TYPEName = std::wstring(pGuidValName);
             pGuidValName = NULL;
           }
@@ -155,7 +155,7 @@ namespace MfVideoCapture
 
           if (SUCCEEDED(hr))
           {
-            out.MF_MT_MAJOR_TYPE = MF_MT_MAJOR_TYPE;
+            out.MF_MT_MAJOR_TYPE = *var.puuid;
             out.MF_MT_MAJOR_TYPEName = std::wstring(pGuidValName);
             pGuidValName = NULL;
           }
@@ -167,7 +167,7 @@ namespace MfVideoCapture
 
           if (SUCCEEDED(hr))
           {
-            out.MF_MT_SUBTYPE = MF_MT_SUBTYPE;
+            out.MF_MT_SUBTYPE = *var.puuid;
             out.MF_MT_SUBTYPEName = std::wstring(pGuidValName);
             pGuidValName = NULL;
           }

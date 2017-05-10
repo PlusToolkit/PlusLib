@@ -461,36 +461,39 @@ namespace MfVideoCapture
 
     // find the smallest frame rate that is at least as high as the requested (otherwise get the highest available frame rate)
     int formatIndex = 0;
-    int bestFrameRateDifferenceComparedToRequested = -1 - frameRate;
+    unsigned int bestFormatFrameRate = 0;
     int bestFormatIndex = -1;
     for (std::vector<MediaType>::iterator typeIt = this->CurrentStreamFormats[streamIndex].begin(); typeIt != this->CurrentStreamFormats[streamIndex].end(); ++typeIt)
     {
       // Note: we do not check the stream type here. It may be possible to match the requested type via a SourceReader later.
-      if (typeIt->width == w && typeIt->height == h)
+      if (typeIt->width == w && typeIt->height == h && typeIt->MF_MT_SUBTYPE == subtype)
       {
-        int frameRateDifferenceComparedToRequested = (int)typeIt->MF_MT_FRAME_RATE - (int)frameRate;
-        if (frameRateDifferenceComparedToRequested == 0)
+        //int frameRateDifferenceComparedToRequested = (int)typeIt->MF_MT_FRAME_RATE - (int)frameRate;
+        if (typeIt->MF_MT_FRAME_RATE == frameRate)
         {
           // the frame rate is matched exactly, we cannot get better than this
           foundFormatIndex = formatIndex;
           return true;
         }
-        else if (frameRateDifferenceComparedToRequested > 0)
+        else if (typeIt->MF_MT_FRAME_RATE > frameRate)
         {
           // frame rate is higher than requested, if this one is closer, then use this
-          if (frameRateDifferenceComparedToRequested < bestFrameRateDifferenceComparedToRequested || bestFrameRateDifferenceComparedToRequested < 0)
+          if (bestFormatIndex < 0 // no suitable format found yet, so this is the best so far
+            || bestFormatFrameRate < frameRate // only slower frame rate found before, so this is the best so far
+            || typeIt->MF_MT_FRAME_RATE < bestFormatFrameRate) // there are other faster rates but this one is closer to the requested
           {
             bestFormatIndex = formatIndex;
-            bestFrameRateDifferenceComparedToRequested = frameRateDifferenceComparedToRequested;
+            bestFormatFrameRate = typeIt->MF_MT_FRAME_RATE;
           }
         }
-        else
+        else // (typeIt->MF_MT_FRAME_RATE < frameRate)
         {
           // lower frame rate than needed, choose the highest frame rate
-          if (bestFrameRateDifferenceComparedToRequested < 0 && frameRateDifferenceComparedToRequested > bestFrameRateDifferenceComparedToRequested)
+          if (bestFormatIndex < 0 // no suitable format found yet, so this is the best so far
+            || typeIt->MF_MT_FRAME_RATE > bestFormatFrameRate) // this is closer to the requested
           {
             bestFormatIndex = formatIndex;
-            bestFrameRateDifferenceComparedToRequested = frameRateDifferenceComparedToRequested;
+            bestFormatFrameRate = typeIt->MF_MT_FRAME_RATE;
           }
         }
       }
@@ -696,7 +699,6 @@ done:
         if (SUCCEEDED(hr))
         {
           MediaType mt = FormatReader::Read(pType);
-          \
           mt.StreamId = streamId;
           formats.push_back(mt);
         }
