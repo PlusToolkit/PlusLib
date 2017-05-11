@@ -40,7 +40,9 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
-IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.8")
+# If CMake 3.7 is the minimum version then the next line can be
+# changed to: IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.8")
+IF(NOT (CMAKE_VERSION VERSION_LESS "3.8"))
   # CMake 3.8 and later puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
   # .../PlusLib-bin/src/PlusWidgets/PlusWidgets_autogen/include
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
