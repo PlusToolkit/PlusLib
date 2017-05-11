@@ -36,6 +36,7 @@ OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber devi
 OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
 OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
 OPTION (PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
+OPTION (PLUS_USE_WINPROBE_VIDEO "Provide support WinProbe ultrasound systems" OFF)
 OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION (PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
@@ -1194,6 +1195,56 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# WinProbe support
+IF(PLUS_USE_WINPROBE_VIDEO)
+  SET(WinProbe_SRCS
+    WinProbe/vtkPlusWinProbeVideoSource.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(WinProbe_HDRS
+      WinProbe/vtkPlusWinProbeVideoSource.h
+      )
+  ENDIF()
+  
+  SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+    ${WinProbe_HDRS}
+    )
+
+  SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+    ${WinProbe_SRCS}
+    )
+
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}     
+    ${WINPROBESDK_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/WinProbe
+    )
+
+  FILE(GLOB WinProbeXMLFiles "${WINPROBESDK_DIR}/xml/*.xml")
+
+  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    SET(Bitness "x64")
+  ELSE()
+    SET(Bitness "x32")
+  ENDIF() 
+  
+  FILE(GLOB WinProbeAssemblies "${WINPROBESDK_DIR}/${Bitness}/*.dll")
+
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} 
+    ${WINPROBESDK_DIR}/${Bitness}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/UltraVisionManagedDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  SET(External_Libraries_Install ${External_Libraries_Install}
+    ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WinProbeAssemblies}
+    ${WinProbeXMLFiles}
+    )
+  SET( External_Libraries_Debug ${External_Libraries_Debug}
+    ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WinProbeAssemblies}
+    ${WinProbeXMLFiles}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Interson support
 IF(PLUS_USE_INTERSON_VIDEO)
   SET(Interson_SRCS
@@ -1661,6 +1712,7 @@ source_group("Interson" FILES ${Interson_HDRS} ${Interson_SRCS})
 source_group("IntersonCXX" FILES ${IntersonCXX_HDRS} ${IntersonCXX_SRCS})
 source_group("IntersonArrayCXX" FILES ${IntersonArrayCXX_HDRS} ${IntersonArrayCXX_SRCS})
 source_group("Capistrano" FILES ${Capistrano_HDRS} ${Capistrano_SRCS})
+source_group("WinProbe" FILES ${WinProbe_HDRS} ${WinProbe_SRCS})
 source_group("Epiphan" FILES ${Epiphan_HDRS} ${Epiphan_SRCS})
 source_group("MicrosoftMediaFoundation" FILES ${Mmf_HDRS} ${Mmf_SRCS})
 source_group("VideoForWindows" FILES ${Vfw_HDRS} ${Vfw_SRCS})
