@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusDataCollectorFileTest.cxx
+  \file vtkDataCollectorFileTest.cxx
   \brief This program tests if a recorded tracked ultrasound buffer can be read and replayed from file using vtkPlusDataCollectorFile
 */ 
 

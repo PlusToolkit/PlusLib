@@ -7,7 +7,8 @@
 - Link to manufacturer's website: http://www.optimet.com/index.php
 
 \section OptimetConoProbeSupportedPlatforms Included in packages
-- \ref At the moment none.
+
+- This device is not included in any of the standard packages
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

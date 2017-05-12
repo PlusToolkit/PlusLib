@@ -34,8 +34,8 @@ voxel that has not been assigned any intensity value in the distribution step.
     in the SlicerIGT extension)
   - Reduce the region of interest size (change \c OutputExtent, \c OutputSpacing, and \c OutputOrigin)
 - I got an error: Path not found from Image to Reference ... / Failed to get transform ... from transform repository
-  - You have to specify the transform that is applied to each frame to insert them into the volume. It is typically a transform from the image coordinate system to a reference coordinate system (such as a reference sensor or the tracker). Usually the sequence metafiles contain transforms between the tracker and the probe coordinate frame, which is not directly usable for the reconstruction, because the coordinate frame of the image and the probe is not the same. Therefore the configuration file should contain the image to probe transform (typically computed by free-hand probe calibration).
-  - You can get the Path not found error if there is no transforms defined between the specified image and reference coordinate frames. Either the image or the reference coordinate frame name does not match the coordinate frame names described in the input sequence meta file. Or, no image to probe transform matrix is defined in the configuration file.
+  - You have to specify the transform that is applied to each frame to insert them into the volume. It is typically a transform from the image coordinate system to a reference coordinate system (such as a reference sensor or the tracker). Usually the sequence files contain transforms between the tracker and the probe coordinate frame, which is not directly usable for the reconstruction, because the coordinate frame of the image and the probe is not the same. Therefore the configuration file should contain the image to probe transform (typically computed by free-hand probe calibration).
+  - You can get the Path not found error if there is no transforms defined between the specified image and reference coordinate frames. Either the image or the reference coordinate frame name does not match the coordinate frame names described in the input sequence file. Or, no image to probe transform matrix is defined in the configuration file.
 - Check the slice positions using the CrateSliceModels tool
   - Image orientation (MF/MN/UF/UN) does not influence the slice locations, only the image contents within the slice. Therefore if the slice locations are not correct (do not seem to correspond to the actual motion of the transducer) then most likely the ImageToProbe matrix is not correct.
 - Check the ImageToProbe matrix
@@ -52,7 +52,7 @@ voxel that has not been assigned any intensity value in the distribution step.
     (the volume axes are parallel to the Reference coordinate system axes and the volume origin position is defined in the Reference coordinate system).
     If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ }
   - \xmlAtt \b ImageCoordinateFrame Defines the image coordinate system name: it corresponds to the 2D frame of the image data in the tracked frame.
-    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ } \OptionalAtt{ }
+    If not defined then the coordinate system name has to be specified by other means before starting a reconstruction. \OptionalAtt{ }
   - \xmlAtt \b OutputSpacing Output image resolution for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces.\RequiredAtt
   - \xmlAtt \b OutputOrigin Is output image origin position vector for each dimension of the reconstructed volume. Vector of 3 numbers, separated by spaces. \OptionalAtt{0 0 0}
   - \xmlAtt \b OutputExtent Defines the size of the reconstructed volume.  Vector of 6 numbers (x start, x end, y start, y end, z start, z end), separated by spaces. Usually the start values are 0, end values are the intended size - 1.\OptionalAtt{ }
@@ -104,7 +104,7 @@ Clipping rectangle must be always defined. Clipping fan is optional and it is ap
 all pixels that are outside the clipping rectangle <em>or</em> outisde the clipping fan will be ignored in volume reconstruction.
 
 Clipping rectangle and clipping fan are always defined in the MF coordinate system. If the UltrasoundImageOrientation field
-in the stored sequence metafile is not MF and the file is loaded into a generic software that ignores the UltrasoundImageOrientation field
+in the stored sequence file is not MF and the file is loaded into a generic software that ignores the UltrasoundImageOrientation field
 (such as ImageJ, 3D Slicer, Paraview) then the XY positions and orientations shown in the generic software has to be transformed.
 For example, if the image size is 640x480 pixels and UltrasoundImageOrientation=MN and the FanOrigin appears in the (320,440) position in ImageJ
 then the FanOriginPixel in the XML config file shall be (320,40).

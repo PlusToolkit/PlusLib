@@ -1,0 +1,17 @@
+/*!
+\page ApplicationViewSequenceFile Sequence file viewer (ViewSequenceFile)
+
+This is a simple tool for viewing frames of a sequence file interactively in 3D.
+You can browse between the slices by pressing the '+' and '-' keys and rotate the view by using the mouse.
+
+\image html ApplicationViewSequenceFileScreenshot.png
+
+\section ApplicationViewSequenceFileExamples Examples
+
+    ViewSequenceFile.exe --config-file=SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --image-to-reference-transform=ImageToTracker
+
+\section ApplicationViewSequenceFileHelp Command-line parameters reference
+
+\verbinclude "ViewSequenceFileHelp.txt"
+
+*/

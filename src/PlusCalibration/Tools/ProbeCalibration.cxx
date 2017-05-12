@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-\file vtkFreehandCalibrationTest.cxx
+\file ProbeCalibration.cxx
 \brief This test runs a freehand calibration on a recorded data set and
 compares the results to a baseline
 */

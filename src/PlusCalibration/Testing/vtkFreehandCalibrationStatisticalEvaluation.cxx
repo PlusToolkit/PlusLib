@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkFreehandCalibrationTest.cxx
+  \file vtkFreehandCalibrationStatisticalEvaluation.cxx
   \brief This test runs a freehand calibration on a recorded data set using
   several subsequences of frames and save the results
 */

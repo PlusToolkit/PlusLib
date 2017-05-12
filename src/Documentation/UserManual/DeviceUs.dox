@@ -18,3 +18,5 @@
   - \xmlElem \ref \b InputChannels
     - \xmlElem \ref \b InputChannel
         - \xmlAtt \b Id Identifier of the an OutputChannel of another device \RequiredAtt
+        
+*/

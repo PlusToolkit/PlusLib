@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusDataCollectorVideoAcqTest.cxx 
+  \file vtkDataCollectorVideoAcqTest.cxx
   \brief This a simple test program to acquire a video sequence and write to a metafile
 */ 
 

@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-\file vtkPlusCenterOfRotationCalibAlgoTest.cxx
+\file vtkLineSegmentationAlgoTest.cxx
 \brief This test computes center of rotation on a recorded data set and
 compares the results to a baseline
 */

@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkPlusDataCollectorTest1.cxx
+  \file vtkDataCollectorTest2.cxx
   \brief This program acquires tracked ultrasound data and displays it on the screen (in a 2D viewer).
 */
 
