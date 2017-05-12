@@ -10,10 +10,6 @@ This class acquires 4D (3D+t) image data from Philips ultrasound systems.
 
 \section PhilipsSupportedPlatforms Included in packages
 
-This device is not included in any of the standard packages, as it requires access to research interface from Philips.
-
-- \ref PackagePhilips
-
 - This device is not included in any of the standard packages, as it requires the Philips API, which is not available publicly.
 - If the software is obtained from Philips then Plus have to be built with PLUS_USE_PHILIPS_3D_ULTRASOUND.
 - The device is for Windows only.

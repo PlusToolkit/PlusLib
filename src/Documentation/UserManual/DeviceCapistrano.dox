@@ -7,8 +7,9 @@
   systems.
 - Link to manufacturer's website: http://www.capolabs.com/
 
-\section IntersonSupportedPlatforms Included in packages
-- \ref PackageInterson
+\section CapistranoSupportedPlatforms Included in packages
+
+- This device is not included in any of the standard packages
 
 \section CapistranoInstallation Installation
 

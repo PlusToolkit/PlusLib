@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkUSCalibrationControllerTest1.cxx 
+  \file vtkTRUSCalibrationTest.cxx
   \brief This test runs a TRUS probe calibration on a recorded data set and 
   compares the results to a baseline
 */ 

@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 /*!
-  \file vtkPlusCapistranoVideoSourceTest.cxx
+  \file vtkCapistranoVideoSourceTest.cxx
   \brief Test basic connection to the Capistrano USB ultrasound probe
 
   If the --rendering-off switch is defined then the connection is established, images are 

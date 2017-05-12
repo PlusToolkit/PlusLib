@@ -34,8 +34,8 @@ Need to install the drivers and software from <a href="http://www.epiphan.com/pr
 - \xmlAtt \b SerialNumber it is an optional parameter to set the \c ID of the preferred a frame grabber device (if multiple devices are connected). SerialNumber is kept for backward compatibility only. Serial number or other address should be specified in the GrabberLocation attribute.
 - \xmlAtt \b ClipRectangleOrigin and \b ClipRectangleSize define a screen region to capture information from, the clip rectangle width has to be typically a mulitple of 4 (e.g., \b ClipRectangleOrigin \c ="20 40" \b ClipRectangleSize \c ="512 512" ). If the \b ClipRectangleSize \c ="0 0" then the values are ignored and the whole frame is captured. \OptionalAtt{0 0}
 - \xmlAtt \b GrabberLocation it is used to choose a specific epiphan device (in the format local:[SERIAL], net:[ADDRESS[:PORT]], sn:SERIAL, id:INDEX). If nothing is specified then the auto-detection is attempted. \OptionalAtt{NULL}
-- \xmlAtt \b RotationMode it is used to configure the rotation parameter of the captured images. Options are None, Left90, Right90, 180 \Optional
-- \xmlAtt \b ScaleMode it is used to configure the scaling parameter of the captured images. Options are NearestNeighbor, WeightedAverage, FastBilinear, Bilinear, Bicubic, Experimental, Point, Area, BicubLin, Sinc, Lanczos, Spline, Hardware \Optional
+- \xmlAtt \b RotationMode it is used to configure the rotation parameter of the captured images. Options are None, Left90, Right90, 180 \OptionalAtt{ }
+- \xmlAtt \b ScaleMode it is used to configure the scaling parameter of the captured images. Options are NearestNeighbor, WeightedAverage, FastBilinear, Bilinear, Bicubic, Experimental, Point, Area, BicubLin, Sinc, Lanczos, Spline, Hardware \OptionalAtt{ }
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

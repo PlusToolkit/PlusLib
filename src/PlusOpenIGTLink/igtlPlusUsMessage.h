@@ -29,8 +29,8 @@ namespace igtl
     typedef igtl::SmartPointer<Self>        Pointer;
     typedef igtl::SmartPointer<const Self>  ConstPointer;
 
-    igtlTypeMacro(igtl::PlusUsMessage, igtl::ImageMessage)
-      igtlNewMacro(igtl::PlusUsMessage);
+    igtlTypeMacro(igtl::PlusUsMessage, igtl::ImageMessage);
+    igtlNewMacro(igtl::PlusUsMessage);
 
   public:
     /*! Override to use the plus igtl factory */

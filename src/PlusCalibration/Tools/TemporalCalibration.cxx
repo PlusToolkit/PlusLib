@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 /*!
-  \file TemporalCalibrationAlgoTest.cxx
+  \file TemporalCalibration.cxx
   \brief This program tests the temporal calibration algorithm by computing the time by which the inputted tracker data lags the inputted US video data.
 
   The inputted data is assumed to be collected by a US probe imaging a planar object; furthermore,

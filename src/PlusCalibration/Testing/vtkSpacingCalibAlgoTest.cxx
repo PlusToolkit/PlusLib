@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/ 
 
 /*!
-  \file vtkPlusSpacingCalibAlgoTest.cxx 
+  \file vtkSpacingCalibAlgoTest.cxx
   \brief This test runs a spacing calibration on a recorded data set and 
   compares the results to a baseline
 */ 

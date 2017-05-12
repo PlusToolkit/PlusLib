@@ -876,7 +876,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = "@PLUSLIB_SOURCE_DIR@" \
+EXAMPLE_PATH           = "@PlusLib_SOURCE_DIR@" \
                          "@PLUSLIB_DATA_DIR@" \
                          "@PLUS_EXECUTABLE_OUTPUT_PATH@/Doc/Help"
 
@@ -898,9 +898,9 @@ EXAMPLE_RECURSIVE      = YES
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = "@PLUSLIB_SOURCE_DIR@/src/Documentation/images/" \
-                         "@PLUSLIB_SOURCE_DIR@/src/Documentation/" \
-                         "@PLUSLIB_SOURCE_DIR@/src/" \
+IMAGE_PATH             = "@PlusLib_SOURCE_DIR@/src/Documentation/images/" \
+                         "@PlusLib_SOURCE_DIR@/src/Documentation/" \
+                         "@PlusLib_SOURCE_DIR@/src/" \
                          "@CMAKE_CURRENT_SOURCE_DIR@"
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
