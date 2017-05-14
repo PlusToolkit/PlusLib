@@ -292,11 +292,18 @@ IF(PLUS_USE_NDI_CERTUS)
     ndicapi
     )
 
-  GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
-  IF(_lib)
+  GET_TARGET_PROPERTY(_lib_release ndicapi IMPORTED_LOCATION_RELEASE)
+  GET_TARGET_PROPERTY(_lib_debug ndicapi IMPORTED_LOCATION_DEBUG)
+  IF(EXISTS ${_lib_release})
     LIST(APPEND External_Libraries_Install
-      ${_lib}
+      ${_lib_release}
       )
+  ELSEIF(EXISTS ${_lib_debug})
+    LIST(APPEND External_Libraries_Install
+      ${_lib_debug}
+      )
+  ELSE()
+    MESSAGE(FATAL_ERROR "Wanted to add ndicapi library to install, but dependent files don't exist. Do you need to build it?")
   ENDIF()
   LIST(APPEND External_Libraries_Install
     ${NDIOAPI_BINARY_DIR}/oapi${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -334,11 +341,18 @@ IF(PLUS_USE_NDI)
     ndicapi 
     )
 
-  GET_TARGET_PROPERTY(_lib ndicapi IMPORTED_LOCATION_RELEASE)
-  IF(_lib)
+  GET_TARGET_PROPERTY(_lib_release ndicapi IMPORTED_LOCATION_RELEASE)
+  GET_TARGET_PROPERTY(_lib_debug ndicapi IMPORTED_LOCATION_DEBUG)
+  IF(EXISTS ${_lib_release})
     LIST(APPEND External_Libraries_Install
-      ${_lib}
+      ${_lib_release}
       )
+  ELSEIF(EXISTS ${_lib_debug})
+    LIST(APPEND External_Libraries_Install
+      ${_lib_debug}
+      )
+  ELSE()
+    MESSAGE(FATAL_ERROR "Wanted to add ndicapi library to install, but dependent files don't exist. Do you need to build it?")
   ENDIF()
 ENDIF()
 
