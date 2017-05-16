@@ -51,7 +51,11 @@ public:
 
   /*! Set optional output file name for sub-sampled input image sequence */
   void SetLinesImageFileName(const std::string& fileName);
+  
+  /*! Set optional output file name for transverse process acoustic shadow images */
+  void SetShadowImageFileName(const std::string& fileName);
 
+  /*! Set optional output file name for partially process images */
   void SetIntermediateImageFileName(const std::string& fileName);
 
   /*! Set optional output file name for processed sub-sampled image sequence */
@@ -115,6 +119,31 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
+  //vtkSetMacro(LinesImageFileName, string);
+  vtkPlusTrackedFrameList* LinesFrameList;
+  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
+  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
+  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
+  
+  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList);
+  /*
+  vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
+  vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
+  vtkGetObjectMacro(IntermediateFrame, PlusTrackedFrame);
+  vtkGetObjectMacro(ProcessedLinesFrame, PlusTrackedFrame);
+
+  PlusTrackedFrame* GetLinesFrame() { return (this->LinesFrame); };
+  PlusTrackedFrame* GetShadowImageFrame() { return this->ShadowFrame; };
+  PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
+  PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
+  */
+  vtkImageData* GetLinesImage() { return (this->LinesImage); };
+  vtkImageData* GetShadowImage() { return this->ShadowImage; };
+  vtkImageData* GetIntermediateImage() { return this->IntermediateImage; };
+  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
 
 protected:
   vtkPlusTransverseProcessEnhancer();
@@ -129,7 +158,9 @@ protected:
 
   void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
 
-protected:
+  
+
+//protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
   vtkSmartPointer<vtkImageThreshold>        Thresholder;
   vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
@@ -176,18 +207,24 @@ protected:
   bool ReconvertBinaryToGreyscale;
 
   std::string LinesImageFileName;
+  //void SetLinesImageFileName(const std::string& fileName);
+  //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-  vtkSmartPointer<vtkPlusTrackedFrameList> LinesImageList;
-
+  
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
 
+  std::string ShadowImageFileName;
+  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
+  vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
+  
   std::string IntermediateImageFileName;
-  vtkSmartPointer<vtkImageData> ShadowValues; // Pixels (float) store probability of belonging to shadow
-  vtkSmartPointer<vtkPlusTrackedFrameList> IntermediateImageList; // For debugging and development.
+  //vtkSmartPointer<PlusTrackedFrame> IntermediateFrame;
+  vtkSmartPointer<vtkImageData> IntermediateImage; // Image after some of the processing operations have been applied
 
   std::string ProcessedLinesImageFileName;
-  vtkSmartPointer<vtkImageData> ProcessedLinesImage;
-  vtkSmartPointer<vtkPlusTrackedFrameList> ProcessedLinesImageList;
+  //vtkSmartPointer<PlusTrackedFrame> ProcessedLinesFrame;
+  vtkSmartPointer<vtkImageData> ProcessedLinesImage;  // Image after all of the processing operations have been applied
+
 };
 
 #endif

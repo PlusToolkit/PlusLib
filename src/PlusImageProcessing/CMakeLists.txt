@@ -192,6 +192,12 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   GENERATE_HELP_DOC(ScanConvert)
 
   #---------------------------------------------------------------------------
+  ADD_EXECUTABLE(EnhanceUsTrpSequence Tools/EnhanceUsTrpSequence.cxx)
+  SET_TARGET_PROPERTIES(EnhanceUsTrpSequence PROPERTIES FOLDER Tools)
+  TARGET_LINK_LIBRARIES(EnhanceUsTrpSequence vtkPlusImageProcessing)
+  GENERATE_HELP_DOC(EnhanceUsTrpSequence)
+  
+  #---------------------------------------------------------------------------
   IF(PLUS_USE_INTEL_MKL)
     ADD_EXECUTABLE(EnhanceBone Tools/EnhanceBone.cxx )
   SET_TARGET_PROPERTIES(EnhanceBone PROPERTIES FOLDER Tools)
@@ -205,6 +211,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     DrawScanLines
     ExtractScanLines
     ScanConvert
+    EnhanceUsTrpSequence
     )
   IF(PLUS_USE_INTEL_MKL)
     LIST(APPEND ${_install_targets} EnhanceBone)
