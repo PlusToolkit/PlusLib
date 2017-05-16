@@ -1,0 +1,13 @@
+/*!
+\page ApplicationEnhanceUsTrpSequence Enhance US sequence mha file (EnhanceUsTrpSequence)
+
+This is a command-line tool for applying a series of vtk image filter processing steps (specified in the config file) to an mha file of US images.
+Filter parameters are read from the ImageProcessingOperations element of the config file.
+
+\section ApplicationEnhanceUsTrpSequenceExamples Examples
+
+    EnhanceUsTrpSequence.exe --input-seq-file="SpineUltrasound-Lumbar-C5.mha" --config-file="ImageProcessing\PlusDeviceSet_Server_TransverseProcessEnhancerConfig.xml" --output-seq-file="TrialOutput.mha" --lines-image-file="LinesImages.mha" --intermediate-image-file="IntermediateImages.mha" --verbose=3
+
+\section ApplicationEnhanceUsTrpSequenceHelp Command-line parameters reference
+
+*/
