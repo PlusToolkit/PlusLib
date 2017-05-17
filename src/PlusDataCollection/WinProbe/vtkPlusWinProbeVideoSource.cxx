@@ -182,6 +182,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     WPLoadDefault();
     WPSetTransducerID(this->m_transducerID);
     //m_ADCfrequency = GetADCSamplingRate();
+    SetCompoundAngleCount(0);
 
     return PLUS_SUCCESS;
 }
