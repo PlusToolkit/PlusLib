@@ -21,8 +21,6 @@ class vtkImageGaussianSmooth;
 class vtkImageSobel2D;
 class vtkImageIslandRemoval2D;
 class vtkImageDilateErode3D;
-//class vtkImageCast;
-//class vtkImageShiftScale;
 class vtkPlusUsScanConvert;
 
 /*!
@@ -50,20 +48,37 @@ public:
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
   /*! Set optional output file name for sub-sampled input image sequence */
-  void SetLinesImageFileName(const std::string& fileName);
+  void SetLinesImageFileName(const std::string& fileName) { this->LinesImageFileName = fileName; };
   
   /*! Set optional output file name for transverse process acoustic shadow images */
-  void SetShadowImageFileName(const std::string& fileName);
+  void SetShadowImageFileName(const std::string& fileName) { this->ShadowImageFileName = fileName; };
 
   /*! Set optional output file name for partially process images */
-  void SetIntermediateImageFileName(const std::string& fileName);
+  void SetIntermediateImageFileName(const std::string& fileName) { this->IntermediateImageFileName = fileName; };
 
   /*! Set optional output file name for processed sub-sampled image sequence */
-  void SetProcessedLinesImageFileName(const std::string& fileName);
+  void SetProcessedLinesImageFileName(const std::string& fileName) { this->ProcessedLinesImageFileName = fileName; };
 
-  vtkSetMacro(ConvertToLinesImage, bool);
-  vtkGetMacro(ConvertToLinesImage, bool);
-  vtkBooleanMacro(ConvertToLinesImage, bool);
+  vtkPlusTrackedFrameList* LinesFrameList;
+  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
+  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
+  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
+
+  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList);
+
+protected:
+
+  vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
+  vtkSmartPointer<vtkImageThreshold>        Thresholder;
+  vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
+  vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
+  vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
+  vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
+  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
+  vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
 
   vtkSetMacro(NumberOfScanLines, int);
   vtkGetMacro(NumberOfScanLines, int);
@@ -71,35 +86,45 @@ public:
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
 
+  vtkSetMacro(ConvertToLinesImageEnabled, bool);
+  vtkGetMacro(ConvertToLinesImageEnabled, bool);
+  vtkBooleanMacro(ConvertToLinesImageEnabled, bool);
+  void ConvertToLinesImage(PlusVideoFrame* InputFrame);
+
   vtkSetMacro(GaussianEnabled, bool);
   vtkGetMacro(GaussianEnabled, bool);
   vtkBooleanMacro(GaussianEnabled, bool);
+  void Gaussian(vtkImageData* InputImage);
 
-  void SetGaussianStdDev(double GaussianStdDev);
-  void SetGaussianKernelSize(int GaussianKernelSize);
+  void SetGaussianStdDev(double GaussianStdDev) { this->GaussianSmooth->SetStandardDeviation(GaussianStdDev); };
+  void SetGaussianKernelSize(int GaussianKernelSize) { this->GaussianSmooth->SetRadiusFactor(GaussianKernelSize); };
 
   vtkSetMacro(ThresholdingEnabled, bool);
   vtkGetMacro(ThresholdingEnabled, bool);
   vtkBooleanMacro(ThresholdingEnabled, bool);
+  void Threshold(vtkImageData* InputImage);
 
-  void SetThresholdInValue(double NewThresholdInValue);
-  void SetThresholdOutValue(double NewThresholdOutValue);
+  void SetThresholdInValue(double NewThresholdInValue) { this->Thresholder->SetInValue(NewThresholdInValue); };
+  void SetThresholdOutValue(double NewThresholdOutValue) { this->Thresholder->SetOutValue(NewThresholdOutValue); };
+  
   void SetLowerThreshold(double LowerThreshold);
   void SetUpperThreshold(double UpperThreshold);
 
   vtkSetMacro(EdgeDetectorEnabled, bool);
   vtkGetMacro(EdgeDetectorEnabled, bool);
   vtkBooleanMacro(EdgeDetectorEnabled, bool);
+  void DetectEdges(vtkImageData* InputImage);
 
+  void SetIslandAreaThreshold(int islandAreaThreshold);
   vtkSetMacro(IslandRemovalEnabled, bool);
   vtkGetMacro(IslandRemovalEnabled, bool);
   vtkBooleanMacro(IslandRemovalEnabled, bool);
-
-  void SetIslandAreaThreshold(int islandAreaThreshold);
+  void RemoveIslands(vtkImageData* InputImage);
 
   vtkSetMacro(ErosionEnabled, bool);
   vtkGetMacro(ErosionEnabled, bool);
   vtkBooleanMacro(ErosionEnabled, bool);
+  void Erode(vtkImageData* InputImage);
 
   vtkSetVector2Macro(ErosionKernelSize, int);
   vtkGetVector2Macro(ErosionKernelSize, int);
@@ -107,6 +132,7 @@ public:
   vtkSetMacro(DilationEnabled, bool);
   vtkGetMacro(DilationEnabled, bool);
   vtkBooleanMacro(DilationEnabled, bool);
+  void Dilate(vtkImageData* InputImage);
 
   vtkSetVector2Macro(DilationKernelSize, int);
   vtkGetVector2Macro(DilationKernelSize, int);
@@ -119,58 +145,24 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
-  //vtkSetMacro(LinesImageFileName, string);
-  vtkPlusTrackedFrameList* LinesFrameList;
-  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
-  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
-  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
-  
-  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList);
-  /*
-  vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(IntermediateFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ProcessedLinesFrame, PlusTrackedFrame);
-
-  PlusTrackedFrame* GetLinesFrame() { return (this->LinesFrame); };
-  PlusTrackedFrame* GetShadowImageFrame() { return this->ShadowFrame; };
-  PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
-  PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
-  */
-  vtkImageData* GetLinesImage() { return (this->LinesImage); };
-  vtkImageData* GetShadowImage() { return this->ShadowImage; };
-  vtkImageData* GetIntermediateImage() { return this->IntermediateImage; };
-  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
-
-protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
 
   void FillLinesImage(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData);
   void ProcessLinesImage();
   void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
-  void FillShadowValues();
+  void FillShadowValues(vtkImageData* InputImage);
 
   void ComputeHistogram(vtkImageData* imageData);
 
   void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
 
-  
+  // Identifies which pixels in InputImage belong to transverse process surface and sets them to high in this->TrpImage
+  void IdentifyTrpPixels(vtkImageData* InputImage);
 
-//protected:
-  vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
-  vtkSmartPointer<vtkImageThreshold>        Thresholder;
-  vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
-  vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
-  vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
-  vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
-  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
-  vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
+//protected
 
-  bool ConvertToLinesImage;
+  bool ConvertToLinesImageEnabled;
   int NumberOfScanLines;
   int NumberOfSamplesPerScanLine;
   bool ReturnToFanImage;
@@ -206,24 +198,24 @@ protected:
 
   bool ReconvertBinaryToGreyscale;
 
+  bool SegmentShadowsEnabled;
+
   std::string LinesImageFileName;
-  //void SetLinesImageFileName(const std::string& fileName);
-  //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
   
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
 
   std::string ShadowImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
   
   std::string IntermediateImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> IntermediateFrame;
   vtkSmartPointer<vtkImageData> IntermediateImage; // Image after some of the processing operations have been applied
 
   std::string ProcessedLinesImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ProcessedLinesFrame;
   vtkSmartPointer<vtkImageData> ProcessedLinesImage;  // Image after all of the processing operations have been applied
+
+  std::string TrpImage;       // The only lit pixels of this image are recognized as beloning to transverse process
+  vtkSmartPointer<vtkImageData> TrpImage;
 
 };
 
