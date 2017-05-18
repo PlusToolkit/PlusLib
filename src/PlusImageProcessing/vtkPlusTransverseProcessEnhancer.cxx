@@ -337,49 +337,93 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkXMLDataElement* processingElement)
 {
-  XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
+	XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
-  if (this->GaussianEnabled)
-  {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, processingElement, "GaussianSmoothing");
-    gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
-    gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
-  }
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
 
-  if (this->ThresholdingEnabled)
-  {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, processingElement, "Thresholding");
-    thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
-    thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
-    thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
-    thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
-  }
+	if (this->ConvertToLinesImage){
+		imageProcessingOperations->SetAttribute("ConvertToLinesImage", "True");
+	}
+	else{
+		imageProcessingOperations->SetAttribute("ConvertToLinesImage", "False");
+	}
 
-  if (this->EdgeDetectorEnabled)
-  {
-    processingElement->SetAttribute("EdgeDetectorEnabled", "TRUE");
-  }
+	if (this->GaussianEnabled)
+	{
+		imageProcessingOperations->SetAttribute("GaussianEnabled", "True");
+		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
+		gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
+		gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
+	}
+	else{
+		imageProcessingOperations->SetAttribute("GaussianEnabled", "False");
+	}
 
-  if (this->IslandRemovalEnabled)
-  {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, processingElement, "IslandRemoval");
-    islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
-  }
+	if (this->ThresholdingEnabled)
+	{
+		imageProcessingOperations->SetAttribute("ThresholdingEnabled", "True");
+		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, imageProcessingOperations, "Thresholding");
+		thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
+		thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
+		thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
+		thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
+	}
+	else{
+		imageProcessingOperations->SetAttribute("ThresholdingEnabled", "False");
+	}
 
-  if (this->ErosionEnabled)
-  {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, processingElement, "Erosion");
-    erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
-  }
+	if (this->EdgeDetectorEnabled)
+	{
+		imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "True");
+	}
+	else{
+		imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "False");
+	}
 
-  if (this->DilationEnabled)
-  {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, processingElement, "Dilation");
-    dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
-  }
+	if (this->IslandRemovalEnabled){
+		imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "True");
+		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, imageProcessingOperations, "IslandRemoval");
+		islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
+	}
+	else{
+		imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "False");
+	}
 
-  return PLUS_SUCCESS;
+	if (this->ErosionEnabled)
+	{
+		imageProcessingOperations->SetAttribute("ErosionEnabled", "True");
+		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, imageProcessingOperations, "Erosion");
+		erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
+	}
+	else{
+		imageProcessingOperations->SetAttribute("ErosionEnabled", "False");
+	}
+
+	if (this->DilationEnabled)
+	{
+		imageProcessingOperations->SetAttribute("DilationEnabled", "True");
+		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
+		dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
+	}
+	else{
+		imageProcessingOperations->SetAttribute("DilationEnabled", "False");
+	}
+
+	if (this->ReconvertBinaryToGreyscale){
+		imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "True");
+	}
+	else{
+		imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "False");
+	}
+
+	if (this->ReturnToFanImage){
+		imageProcessingOperations->SetAttribute("ReturnToFanImage", "True");
+	}
+	else{
+		imageProcessingOperations->SetAttribute("ReturnToFanImage", "False");
+	}
+
+	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
