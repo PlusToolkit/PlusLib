@@ -344,20 +344,16 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
 ENDIF()
 
 #*************************** vtkWinProbeVideoSourceTest.cxx ***************************
-SET(WPWD ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}) # evaluates to C:/Dev/Plus64d/bin/$(Configuration), but working directory ends up being C:\Dev\Plus64d\PlusLib-bin\
-message("Right? way: ${WPWD}")
-SET(WPWD "C:/Dev/Plus64d/bin/Debug") # this works!
-message("Wrong way: ${WPWD}")
 IF(PLUS_USE_WINPROBE_VIDEO)
   ADD_EXECUTABLE(vtkWinProbeVideoSourceTest vtkWinProbeVideoSourceTest.cxx )
   SET_TARGET_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
   ADD_TEST(NAME vtkWinProbeVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
-	--rendering-off
-	--output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
+    --rendering-off
+    --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_WinProbeVideoSourceTest.xml
-	WORKING_DIRECTORY ${WPWD}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
   SET_TESTS_PROPERTIES( vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF()
