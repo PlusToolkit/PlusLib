@@ -32,58 +32,68 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : ScanConverter(nullptr),
-    ConvertToLinesImage(false),
-    NumberOfScanLines(0),
-    NumberOfSamplesPerScanLine(0),
+  ConvertToLinesImage(false),
+  NumberOfScanLines(0),
+  NumberOfSamplesPerScanLine(0),
 
-    Thresholder(vtkSmartPointer<vtkImageThreshold>::New()),
-    GaussianEnabled(false),
-    ThresholdInValue(0.0),
-    ThresholdOutValue(255.0),
-    LowerThreshold(0.0),
-    UpperThreshold(0.0),
+  RadiusStartMm(0),
+  RadiusStopMm(0),
+  ThetaStartDeg(0),
+  ThetaStopDeg(0),
 
-    GaussianSmooth(vtkSmartPointer<vtkImageGaussianSmooth>::New()),
-    EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
-    ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
-    BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
-    IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
-    ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+  Thresholder(vtkSmartPointer<vtkImageThreshold>::New()),
+  GaussianEnabled(false),
+  ThresholdInValue(0.0),
+  ThresholdOutValue(255.0),
+  LowerThreshold(0.0),
+  UpperThreshold(0.0),
 
-    ReturnToFanImage(false),
-    CurrentFrameMean(0.0),
-    CurrentFrameStDev(0.0),
-    CurrentFrameMax(0.0),
-    CurrentFrameMin(255.0),
-    
-    ThresholdingEnabled(false),
-    
-    EdgeDetectorEnabled(false),
-    ConversionImage(vtkSmartPointer<vtkImageData>::New()),
-    IslandRemovalEnabled(false),
-    IslandAreaThreshold(-1),
-    ErosionEnabled(false),
-    DilationEnabled(false),
-    ReconvertBinaryToGreyscale(false),
-    
-    LinesImage(vtkSmartPointer<vtkImageData>::New()),
-    //LinesFrame(),
-    //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    LinesFrameList(vtkPlusTrackedFrameList::New()),
-    UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
-    ShadowImage(vtkSmartPointer<vtkImageData>::New()),
-    //ShadowFrame(),
-    //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    ShadowFrameList(vtkPlusTrackedFrameList::New()),
-    IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
-    //IntermediateFrame(),
-    //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    IntermediateFrameList(vtkPlusTrackedFrameList::New()),
-    ProcessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
-    //ProcessedLinesFrame(),
-    //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
-    ProcessedLinesFrameList(vtkPlusTrackedFrameList::New())
+  GaussianSmooth(vtkSmartPointer<vtkImageGaussianSmooth>::New()),
+  EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
+  ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
+  BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
+  IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
+  ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+
+  ReturnToFanImage(false),
+  CurrentFrameMean(0.0),
+  CurrentFrameStDev(0.0),
+  CurrentFrameMax(0.0),
+  CurrentFrameMin(255.0),
+
+  ThresholdingEnabled(false),
+
+  EdgeDetectorEnabled(false),
+  ConversionImage(vtkSmartPointer<vtkImageData>::New()),
+  IslandRemovalEnabled(false),
+  IslandAreaThreshold(-1),
+  ErosionEnabled(false),
+  DilationEnabled(false),
+  ReconvertBinaryToGreyscale(false),
+
+  LinesImage(vtkSmartPointer<vtkImageData>::New()),
+  //LinesFrame(),
+  //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  LinesFrameList(vtkPlusTrackedFrameList::New()),
+  UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
+  ShadowImage(vtkSmartPointer<vtkImageData>::New()),
+  //ShadowFrame(),
+  //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  ShadowFrameList(vtkPlusTrackedFrameList::New()),
+  IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
+  //IntermediateFrame(),
+  //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  IntermediateFrameList(vtkPlusTrackedFrameList::New()),
+  ProcessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
+  //ProcessedLinesFrame(),
+  //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  ProcessedLinesFrameList(vtkPlusTrackedFrameList::New())
 {
+  this->SetOutputImageSizePixel(0, 0);
+  this->SetTransducerCenterPixel(0, 0);
+  this->SetOutputImageSpacingMmPerPixel(0, 0);
+
+
   this->SetDilationKernelSize(0, 0);
   this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev(7.0);
@@ -337,89 +347,116 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkXMLDataElement* processingElement)
 {
-	XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
+  XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
+
+  processingElement->SetIntAttribute("NumberOfScanLines", NumberOfScanLines);
+  processingElement->SetIntAttribute("NumberOfSamplesPerScanLine", NumberOfSamplesPerScanLine);
+
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(scanConversion, processingElement, "ScanConversion");
+  scanConversion->SetAttribute("TransducerName", "Ultrasonix_C5-2");
+  scanConversion->SetAttribute("TransducerGeometry", "CURVILINEAR");
+  scanConversion->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
+  scanConversion->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
+  scanConversion->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
+  scanConversion->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
+  scanConversion->SetVectorAttribute("OutputImageSizePixel", 2, this->OutputImageSizePixel);
+  scanConversion->SetVectorAttribute("TransducerCenterPixel", 2, this->TransducerCenterPixel);
+  scanConversion->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacingMmPerPixel);
 
 	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
 
-	if (this->ConvertToLinesImage){
+	if (this->ConvertToLinesImage)
+  {
 		imageProcessingOperations->SetAttribute("ConvertToLinesImage", "True");
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("ConvertToLinesImage", "False");
 	}
 
 	if (this->GaussianEnabled)
 	{
 		imageProcessingOperations->SetAttribute("GaussianEnabled", "True");
-		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
-		gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
-		gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("GaussianEnabled", "False");
 	}
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
+	gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
+	gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 
 	if (this->ThresholdingEnabled)
 	{
 		imageProcessingOperations->SetAttribute("ThresholdingEnabled", "True");
-		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, imageProcessingOperations, "Thresholding");
-		thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
-		thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
-		thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
-		thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("ThresholdingEnabled", "False");
 	}
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, imageProcessingOperations, "Thresholding");
+	thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
+	thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
+	thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
+	thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
 
 	if (this->EdgeDetectorEnabled)
 	{
 		imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "True");
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "False");
 	}
 
-	if (this->IslandRemovalEnabled){
+	if (this->IslandRemovalEnabled)
+  {
 		imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "True");
-		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, imageProcessingOperations, "IslandRemoval");
-		islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "False");
 	}
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, imageProcessingOperations, "IslandRemoval");
+	islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
 
 	if (this->ErosionEnabled)
 	{
 		imageProcessingOperations->SetAttribute("ErosionEnabled", "True");
-		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, imageProcessingOperations, "Erosion");
-		erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("ErosionEnabled", "False");
 	}
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, imageProcessingOperations, "Erosion");
+	erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
 
 	if (this->DilationEnabled)
 	{
 		imageProcessingOperations->SetAttribute("DilationEnabled", "True");
-		XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
-		dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("DilationEnabled", "False");
 	}
+	XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
+	dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
 
-	if (this->ReconvertBinaryToGreyscale){
+	if (this->ReconvertBinaryToGreyscale)
+  {
 		imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "True");
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "False");
 	}
 
-	if (this->ReturnToFanImage){
+	if (this->ReturnToFanImage)
+  {
 		imageProcessingOperations->SetAttribute("ReturnToFanImage", "True");
 	}
-	else{
+	else
+  {
 		imageProcessingOperations->SetAttribute("ReturnToFanImage", "False");
 	}
 

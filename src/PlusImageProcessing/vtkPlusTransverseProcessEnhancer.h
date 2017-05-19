@@ -71,6 +71,29 @@ public:
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
 
+  vtkSetMacro(RadiusStartMm, int);
+  vtkGetMacro(RadiusStartMm, int);
+
+  vtkSetMacro(RadiusStopMm, int);
+  vtkGetMacro(RadiusStopMm, int);
+
+  vtkSetMacro(ThetaStartDeg, int);
+  vtkGetMacro(ThetaStartDeg, int);
+
+  vtkSetMacro(ThetaStopDeg, int);
+  vtkGetMacro(ThetaStopDeg, int);
+
+  vtkSetVector2Macro(OutputImageSizePixel, int);
+  vtkGetVector2Macro(OutputImageSizePixel, int);
+
+  vtkSetVector2Macro(TransducerCenterPixel, int);
+  vtkGetVector2Macro(TransducerCenterPixel, int);
+
+  vtkSetVector2Macro(OutputImageSpacingMmPerPixel, double);
+  vtkGetVector2Macro(OutputImageSpacingMmPerPixel, double);
+
+
+
   vtkSetMacro(GaussianEnabled, bool);
   vtkGetMacro(GaussianEnabled, bool);
   vtkBooleanMacro(GaussianEnabled, bool);
@@ -180,6 +203,16 @@ protected:
   double CurrentFrameStDev;
   float CurrentFrameMax;
   float CurrentFrameMin;
+
+  // Scan Conversion parameters, defined in config file
+  int RadiusStartMm;
+  int RadiusStopMm;
+  int ThetaStartDeg;
+  int ThetaStopDeg;
+
+  int OutputImageSizePixel[2];
+  int TransducerCenterPixel[2];
+  double OutputImageSpacingMmPerPixel[2];
 
   // Image processing parameters, defined in config file
   bool GaussianEnabled;
