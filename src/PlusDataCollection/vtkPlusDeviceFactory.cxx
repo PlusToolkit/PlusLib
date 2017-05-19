@@ -147,6 +147,10 @@ See License.txt for details.
 #include "Capistrano\vtkPlusCapistranoVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_WINPROBE_VIDEO
+#include "WinProbe\vtkPlusWinProbeVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_NVIDIA_DVP
 #if WIN32
 #include "vtkPlusNVidiaDVPVideoSourceWin32.h"
@@ -275,6 +279,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
   RegisterDevice("CapistranoVideo", "vtkPlusCapistranoVideoSource", (PointerToDevice)&vtkPlusCapistranoVideoSource::New);
 #endif
+
+#ifdef PLUS_USE_WINPROBE_VIDEO
+  RegisterDevice("WinProbeVideo", "vtkPlusWinProbeVideoSource", (PointerToDevice)&vtkPlusWinProbeVideoSource::New);
+#endif
+
 #ifdef PLUS_USE_tesseract
   RegisterDevice("VirtualTextRecognizer", "vtkPlusVirtualTextRecognizer", (PointerToDevice)&vtkPlusVirtualTextRecognizer::New);
 #endif
