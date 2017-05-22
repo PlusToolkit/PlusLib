@@ -343,6 +343,21 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
     )
 ENDIF()
 
+#*************************** vtkWinProbeVideoSourceTest.cxx ***************************
+IF(PLUS_USE_WINPROBE_VIDEO)
+  ADD_EXECUTABLE(vtkWinProbeVideoSourceTest vtkWinProbeVideoSourceTest.cxx )
+  SET_TARGET_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkWinProbeVideoSourceTest vtkPlusDataCollection vtkInteractionImage) 
+  ADD_TEST(NAME vtkWinProbeVideoSourceTest 
+    COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
+    --rendering-off
+    --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_WinProbeVideoSourceTest.xml
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+  SET_TESTS_PROPERTIES( vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+ENDIF()
+
 #*************************** vtkIntersonVideoSourceTest.cxx ***************************
 IF(PLUS_USE_INTERSON_VIDEO)
   ADD_EXECUTABLE(vtkIntersonVideoSourceTest vtkIntersonVideoSourceTest.cxx )
