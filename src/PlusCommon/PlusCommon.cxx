@@ -642,18 +642,18 @@ bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::string const& a, 
   std::string lowerB(b);
   std::transform(begin(lowerB), end(lowerB), lowerB.begin(), ::tolower);
 
-  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+  return lowerA.find(lowerB) != std::string::npos;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::wstring const& a, std::wstring const& b)
 {
-  std::wstring lowerA;
-  std::transform(begin(a), end(a), lowerA.begin(), ::towlower);
-  std::wstring lowerB;
-  std::transform(begin(b), end(b), lowerB.begin(), ::towlower);
+  std::wstring lowerA(a);
+  std::transform(begin(lowerA), end(lowerA), begin(lowerA), ::towlower);
+  std::wstring lowerB(b);
+  std::transform(begin(lowerB), end(lowerB), begin(lowerB), ::towlower);
 
-  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+  return lowerA.find(lowerB) != std::wstring::npos;
 }
 
 //----------------------------------------------------------------------------

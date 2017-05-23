@@ -4,17 +4,22 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "vtkCommand.h"
-#include "vtkImageData.h"
-#include "vtkImageViewer2.h"
-#include "vtkPlusMmfVideoSource.h"
 #include "vtkPlusDataSource.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkRenderer.h"
-#include "vtkSmartPointer.h"
 #include "vtkPlusMmfVideoSource.h"
-#include "vtksys/CommandLineArguments.hxx"
+
+// VTK includes
+#include <vtkCommand.h>
+#include <vtkImageData.h>
+#include <vtkImageViewer2.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+#include <vtksys/CommandLineArguments.hxx>
+
+// MF Library
+#include <MediaFoundationVideoCaptureApi.h>
 
 void PrintLogsCallback(vtkObject* obj, unsigned long eid, void* clientdata, void* calldata);
 
@@ -98,11 +103,15 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  if (!pixelFormatName.empty())
+  if (pixelFormatName.empty())
   {
-    frameGrabber->SetRequestedVideoFormat(std::wstring(pixelFormatName.begin(), pixelFormatName.end()));
+    auto& api = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance();
+    auto mediaType = api.GetFormat(deviceId, streamIndex, 0);
+    pixelFormatName = std::string(begin(mediaType.MF_MT_SUBTYPEName), end(mediaType.MF_MT_SUBTYPEName));
+    pixelFormatName = pixelFormatName.substr(pixelFormatName.find('_') + 1);
   }
 
+  frameGrabber->SetRequestedVideoFormat(std::wstring(pixelFormatName.begin(), pixelFormatName.end()));
   frameGrabber->SetRequestedStreamIndex(streamIndex);
 
   if (!frameSize.empty())
@@ -115,7 +124,7 @@ int main(int argc, char** argv)
     std::vector<unsigned int> size;
     for (unsigned int i = 0; i < frameSize.size(); ++i)
     {
-      size.push_back(static_cast<unsigned int>(size[i]));
+      size.push_back(static_cast<unsigned int>(frameSize[i]));
     }
     frameGrabber->SetRequestedFrameSize(size.data());
   }
