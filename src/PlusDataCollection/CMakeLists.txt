@@ -74,6 +74,8 @@ IF(PLUS_USE_OvrvisionPro)
   OPTION(PLUS_TEST_OvrvisionPro "Enable testing of acquisition of stereo images from the OvrvisionPro" OFF)
 ENDIF()
 
+OPTION(PLUS_USE_OPTICAL_MARKER_TRACKING "Provide support of fiducial marker tracking." OFF)
+
 # --------------------------------------------------------------------------
 # Haptics
 ADD_SUBDIRECTORY(Haptics)
@@ -1683,6 +1685,38 @@ IF(MSVC)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(vtkPlusDataCollection ${PlusDataCollection_LIBS})
+
+# --------------------------------------------------------------------------
+# Optical Marker Tracking
+IF(PLUS_USE_OPTICAL_MARKER_TRACKING)
+  SET(OpticalMarkerTracking_SRCS
+    OpticalMarkerTracking/vtkPlusOpticalMarkerTracking.cxx
+    )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OpticalMarkerTracking_HDRS
+      OpticalMarkerTracking/vtkPlusOpticalMarkerTracking.h
+      )
+  ENDIF()
+
+  SET(PlusDataCollection_INCLUDE_DIRS ${PlusDataCollection_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking
+    ${aruco_INCLUDE_DIRS}
+    )
+
+  SET(PlusDataCollection_HDRS ${PlusDataCollection_HDRS}
+    ${OpticalMarkerTracking_HDRS}
+    )
+
+  SET(PlusDataCollection_SRCS ${PlusDataCollection_SRCS}
+    ${OpticalMarkerTracking_SRCS}
+    )
+
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS}
+    OpenCV
+    ${aruco_LIBS}
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Source groups
