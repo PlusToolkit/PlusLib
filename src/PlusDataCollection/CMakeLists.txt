@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Options
-OPTION (PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
-OPTION (PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
+OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
+OPTION(PLUS_USE_OPTIMET_CONOPROBE "Provide support for the Optimet ConoProbe" OFF)
 
 OPTION(PLUS_USE_NDI "Provide support for the NDI POLARIS and AURORA" OFF)
 OPTION(PLUS_USE_NDI_CERTUS "Provide support for the NDI Certus" OFF)
@@ -22,33 +22,33 @@ IF(PLUS_USE_CERTUS)
   SET(PLUS_USE_NDI_CERTUS ON CACHE BOOL "Provide support for the NDI Certus" FORCE)
 ENDIF()
 
-OPTION (PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
-OPTION (PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
-OPTION (PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
-OPTION (PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
-OPTION (PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
-OPTION (PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
-OPTION (PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
-OPTION (PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
-OPTION (PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
-OPTION (PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
-OPTION (PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
-OPTION (PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
-OPTION (PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
-OPTION (PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
-OPTION (PLUS_USE_WINPROBE_VIDEO "Provide support WinProbe ultrasound systems" OFF)
-OPTION (PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
-OPTION (PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
-OPTION (PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
-OPTION (PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
-OPTION (PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
-OPTION (PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
-OPTION (PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
-OPTION (PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
-OPTION (PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
-OPTION (PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
+OPTION(PLUS_USE_MICRONTRACKER "Provide support for the Claron MicronTracker" OFF)
+OPTION(PLUS_USE_BRACHY_TRACKER "Provide support for the brachy stepper tracking device" OFF)
+OPTION(PLUS_USE_USDIGITALENCODERS_TRACKER "Provide support for multiple USDigital encoders tracking device" OFF)
+OPTION(PLUS_USE_Ascension3DG "Provide support for the Ascension 3DG Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS_ONLY})
+OPTION(PLUS_USE_Ascension3DGm "Provide support for the Ascension 3DGm MedSafe Tracker" ${ENABLED_BY_DEFAULT_ON_WINDOWS32_ONLY})
+OPTION(PLUS_USE_PHIDGET_SPATIAL_TRACKER "Provide support for the Phidget Spatial accelerometer" OFF)
+OPTION(PLUS_USE_3dConnexion_TRACKER "Provide support for the 3dConnexion 3d mouse" OFF)
+OPTION(PLUS_USE_ULTRASONIX_VIDEO "Provide support for Ultrasonix ultrasound scanners" OFF)
+OPTION(PLUS_USE_BKPROFOCUS_VIDEO "Provide support for BK ProFocus ultrasound scanners through the OEM (TCP/IP) interface" OFF)
+OPTION(PLUS_USE_BKPROFOCUS_CAMERALINK "Provide support for BK ProFocus ultrasound scanners through CameraLink interface" OFF)
+OPTION(PLUS_USE_ICCAPTURING_VIDEO "Provide support for the IC framegrabber device" OFF)
+OPTION(PLUS_USE_VFW_VIDEO "Provide support for the Video-for-Windows video digitizer" OFF)
+OPTION(PLUS_USE_EPIPHAN "Provide support for the Epiphan" OFF)
+OPTION(PLUS_USE_CAPISTRANO_VIDEO "Provide support Capistrano Labs USB ultrasound probes" OFF)
+OPTION(PLUS_USE_WINPROBE_VIDEO "Provide support WinProbe ultrasound systems" OFF)
+OPTION(PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" OFF)
+OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
+OPTION(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
+OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
+OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
+OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
+OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
+OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 
-OPTION (PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
+OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
   SET(PLUS_TEST_ULTRASONIX_IP_ADDRESS "127.0.0.1" CACHE STRING "IP address of the Ultrasonix scanner that is used during testing")
 ENDIF()
@@ -58,7 +58,7 @@ IF(PLUS_USE_MMF_VIDEO)
   OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)
 ENDIF()
 
-OPTION (PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
+OPTION(PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
 IF(PLUS_USE_tesseract)
   OPTION(PLUS_TEST_tesseract "Enable testing functionality for tesseract virtual recognizer device." ON)
 ENDIF()
@@ -162,7 +162,7 @@ LIST(APPEND PlusDataCollection_HDRS
   ${Virtual_HDRS}
   )
 
-SET(PlusDataCollection_INSTALL_INCLUDE_FILES )
+SET(PlusDataCollection_INSTALL_INCLUDE_FILES)
 SET(External_Libraries_Install)
 SET(External_Libraries_Debug)
 
@@ -257,9 +257,9 @@ IF(PLUS_USE_OPTIMET_CONOPROBE)
   )
 
   LIST(APPEND External_Libraries_Install
-  ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
-  )
+    ${OPTIMETSMART32SDK_BINARY_DIR}/Smart32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTIMETSMART32SDK_BINARY_DIR}/NewProbeDialog${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -383,7 +383,7 @@ IF(PLUS_USE_MICRONTRACKER)
   LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
     )
-   
+
   FIND_PACKAGE(MicronTracker REQUIRED)
   
   LIST(APPEND PlusDataCollection_LIBS 
@@ -391,7 +391,7 @@ IF(PLUS_USE_MICRONTRACKER)
     )
 
   MicronTrackerInstall(${PLUSLIB_INCLUDE_INSTALL} ${PLUSLIB_BINARY_INSTALL} ${PLUSLIB_LIBRARY_INSTALL} ${PLUSLIB_ARCHIVE_INSTALL} PlusLib)
-  ENDIF()
+ENDIF()
 
 #--------------------------------------------------------------------------
 # INTELREALSENSE support
@@ -636,11 +636,11 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-  SET( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
+  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
   LIST(APPEND External_Libraries_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-  SET( External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install}
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
 ENDIF()
@@ -786,7 +786,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
     SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    LIST (APPEND PlusDataCollection_LIBS
+    LIST(APPEND PlusDataCollection_LIBS
       optimized ${ULTERIUS_LIB_DIR}/r/ulterius.lib
       debug ${ULTERIUS_LIB_DIR}/d/ulterius.lib
       )
@@ -803,10 +803,10 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     SET(ULTRASONIX_SDK_BINARY_DIR ${ULTRASONIX_SDK_DIR}/bin CACHE PATH "Path to the Ulterius SDK binary directory." FORCE)
     SET(ULTERIUS_INCLUDE_DIR ${ULTRASONIX_SDK_DIR}/inc CACHE PATH "Path to the Ulterius SDK include directory." FORCE)
     SET(ULTERIUS_LIB_DIR ${ULTRASONIX_SDK_DIR}/lib CACHE PATH "Path to the Ulterius SDK library directory." FORCE)
-    LIST (APPEND PlusDataCollection_LIBS
+    LIST(APPEND PlusDataCollection_LIBS
       ${ULTERIUS_LIB_DIR}/ulterius.lib
       )
-    SET( Ultrasonix_External_Libs 
+    SET(Ultrasonix_External_Libs 
       ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -827,7 +827,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     ENDIF()
     SET(PORTA_LIB_DIR ${ULTRASONIX_SDK_DIR}/porta/lib CACHE PATH "Path to the Ultrasonix SDK Porta library directory." FORCE)
 
-    LIST (APPEND PlusDataCollection_LIBS
+    LIST(APPEND PlusDataCollection_LIBS
       ${PORTA_LIB_DIR}/porta.lib
       )
     IF(PLUS_ULTRASONIX_SDK_MAJOR_VERSION EQUAL 6)
@@ -835,9 +835,9 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
         MESSAGE( FATAL_ERROR "Plus does not support Ultrasonix SDK version 6.0.x")
       ENDIF()
 
-      LIST (APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
+      LIST(APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius_old.lib)
     ELSE()
-      LIST (APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius.lib)
+      LIST(APPEND PlusDataCollection_LIBS ${ULTERIUS_LIB_DIR}/ulterius.lib)
     ENDIF()
 
     FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES 
@@ -847,11 +847,11 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     LIST(APPEND External_Libraries_Debug ${ULTRASONIX_SDK_SHARED_LIBRARIES})
   ENDIF()
 
-  LIST (APPEND PlusDataCollection_LIBS
+  LIST(APPEND PlusDataCollection_LIBS
     ITKCommon
     ITKIOImageBase
     )
-  LIST (APPEND PlusDataCollection_INCLUDE_DIRS
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${ULTERIUS_INCLUDE_DIR}
     ${PORTA_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
@@ -1203,7 +1203,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   FILE(GLOB WinProbeXMLFiles "${WINPROBESDK_DIR}/xml/*.xml")
   FILE(COPY ${WinProbeXMLFiles} DESTINATION ${CMAKE_BINARY_DIR})
 
-  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  IF(CMAKE_SIZEOF_VOID_P EQUAL 8 )
     SET(Bitness "x64")
   ELSE()
     SET(Bitness "x32")
@@ -1255,7 +1255,7 @@ IF(PLUS_USE_INTERSON_VIDEO)
     ${CMAKE_CURRENT_SOURCE_DIR}/Interson
     )
 
-  IF( ${CMAKE_GENERATOR} MATCHES Win64 )
+  IF(${CMAKE_GENERATOR} MATCHES Win64)
     LIST(APPEND External_Libraries_Install
       ${INTERSON_WIN64_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${INTERSON_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -1586,7 +1586,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     ${NVIDIA_DVP_BINARY_DIR}/dvp${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
-  IF( BUILD_SHARED_LIBS )
+  IF(BUILD_SHARED_LIBS)
     # Create a target for proper CMake infrastructure
     ADD_LIBRARY(NVidiaDVP SHARED IMPORTED)
     SET_PROPERTY(TARGET NVidiaDVP PROPERTY IMPORTED_IMPLIB ${NVIDIA_DVP_LIB_DIR}/dvp${CMAKE_STATIC_LIBRARY_SUFFIX})
@@ -1648,7 +1648,7 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Build the library
-LIST (APPEND PlusDataCollection_LIBS
+LIST(APPEND PlusDataCollection_LIBS
   vtkPlusRendering
   vtkPlusCommon  
   vtkPlusUsSimulator
