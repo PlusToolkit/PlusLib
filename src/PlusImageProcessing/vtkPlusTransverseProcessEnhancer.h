@@ -26,9 +26,9 @@ class vtkImageDilateErode3D;
 class vtkPlusUsScanConvert;
 
 /*!
-  \class vtkPlusTransverseProcessEnhancer
-  \brief Improves bone surface visibility in ultrasound images
-  \ingroup PlusLibImageProcessingAlgo
+\class vtkPlusTransverseProcessEnhancer
+\brief Improves bone surface visibility in ultrasound images
+\ingroup PlusLibImageProcessingAlgo
 */
 class vtkPlusImageProcessingExport vtkPlusTransverseProcessEnhancer : public vtkPlusTrackedFrameProcessor
 {
@@ -51,7 +51,7 @@ public:
 
   /*! Set optional output file name for sub-sampled input image sequence */
   void SetLinesImageFileName(const std::string& fileName);
-  
+
   /*! Set optional output file name for transverse process acoustic shadow images */
   void SetShadowImageFileName(const std::string& fileName);
 
@@ -70,6 +70,35 @@ public:
 
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
+
+  vtkSetMacro(TransducerName, char*);
+  vtkGetMacro(TransducerName, char*);
+
+  vtkSetMacro(TransducerGeometry, char*);
+  vtkGetMacro(TransducerGeometry, char*);
+
+  vtkSetMacro(RadiusStartMm, int);
+  vtkGetMacro(RadiusStartMm, int);
+
+  vtkSetMacro(RadiusStopMm, int);
+  vtkGetMacro(RadiusStopMm, int);
+
+  vtkSetMacro(ThetaStartDeg, int);
+  vtkGetMacro(ThetaStartDeg, int);
+
+  vtkSetMacro(ThetaStopDeg, int);
+  vtkGetMacro(ThetaStopDeg, int);
+
+  vtkSetVector2Macro(OutputImageSizePixel, int);
+  vtkGetVector2Macro(OutputImageSizePixel, int);
+
+  vtkSetVector2Macro(TransducerCenterPixel, int);
+  vtkGetVector2Macro(TransducerCenterPixel, int);
+
+  vtkSetVector2Macro(OutputImageSpacingMmPerPixel, double);
+  vtkGetVector2Macro(OutputImageSpacingMmPerPixel, double);
+
+
 
   vtkSetMacro(GaussianEnabled, bool);
   vtkGetMacro(GaussianEnabled, bool);
@@ -108,8 +137,8 @@ public:
   vtkGetMacro(DilationEnabled, bool);
   vtkBooleanMacro(DilationEnabled, bool);
 
-  vtkSetVector2Macro(DilationKernelSize, int);
-  vtkGetVector2Macro(DilationKernelSize, int);
+  vtkSetVector2Macro(DilationKernelRadiusPixel, int);
+  vtkGetVector2Macro(DilationKernelRadiusPixel, int);
 
   vtkSetMacro(ReconvertBinaryToGreyscale, bool);
   vtkGetMacro(ReconvertBinaryToGreyscale, bool);
@@ -124,7 +153,7 @@ public:
   vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
   vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
   vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
-  
+
   vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
   vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
   vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
@@ -158,9 +187,9 @@ protected:
 
   void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
 
-  
 
-//protected:
+
+  //protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
   vtkSmartPointer<vtkImageThreshold>        Thresholder;
   vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
@@ -178,8 +207,20 @@ protected:
   // Descriptive statistics of current image intensity.
   double CurrentFrameMean;
   double CurrentFrameStDev;
-  float CurrentFrameMax;
-  float CurrentFrameMin;
+  float CurrentFrameScalarComponentMax;
+  float CurrentFrameScalarComponentMin;
+
+  // Scan Conversion parameters, defined in config file
+  char* TransducerName;
+  char* TransducerGeometry;
+  int RadiusStartMm;
+  int RadiusStopMm;
+  int ThetaStartDeg;
+  int ThetaStopDeg;
+
+  int OutputImageSizePixel[2];
+  int TransducerCenterPixel[2];
+  double OutputImageSpacingMmPerPixel[2];
 
   // Image processing parameters, defined in config file
   bool GaussianEnabled;
@@ -202,7 +243,7 @@ protected:
   int ErosionKernelSize[2];
 
   bool DilationEnabled;
-  int DilationKernelSize[2];
+  int DilationKernelRadiusPixel[2];
 
   bool ReconvertBinaryToGreyscale;
 
@@ -210,13 +251,13 @@ protected:
   //void SetLinesImageFileName(const std::string& fileName);
   //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-  
+
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
 
   std::string ShadowImageFileName;
   //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
-  
+
   std::string IntermediateImageFileName;
   //vtkSmartPointer<PlusTrackedFrame> IntermediateFrame;
   vtkSmartPointer<vtkImageData> IntermediateImage; // Image after some of the processing operations have been applied
