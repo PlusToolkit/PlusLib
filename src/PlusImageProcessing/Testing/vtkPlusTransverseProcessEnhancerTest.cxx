@@ -32,9 +32,11 @@ int main(int argc, char** argv)
 
   //Setup variables for command line
   std::string inputFileName;
-  std::string configFileName;
+  std::string inputConfigFileName;
+  std::string outputConfigFileName;
   std::string outputFileName;
   std::string linesImageFileName;
+  std::string intermediateImageFileName;
   std::string shadowImageFileName;
   std::string processedLinesImageFileName;
 
@@ -44,9 +46,11 @@ int main(int argc, char** argv)
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help");
   args.AddArgument("--input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The filename for the input ultrasound sequence to process.");
-  args.AddArgument("--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &configFileName, "The filename for input config file.");
+  args.AddArgument("--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "The filename for input config file.");
+  args.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputConfigFileName, "Optional filename for output config file. Creates new config file with paramaters used during this test");
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "The filename to write the processed sequence to.");
   args.AddArgument("--output-lines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &linesImageFileName, "Optional output files for subsampled lines input image");
+  args.AddArgument("--output-intermediate-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateImageFileName, "Optional output file for intermediate data");
   args.AddArgument("--output-shadow-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &shadowImageFileName, "Optional output file for shadow image");
   args.AddArgument("--output-processedlines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &processedLinesImageFileName, "Optional output files for processed subsampled image");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
@@ -68,14 +72,14 @@ int main(int argc, char** argv)
     LOG_ERROR("the argument --input-seq-file is required");
     commandCheckStatus = EXIT_FAILURE;
   }
+  if (inputConfigFileName.empty())
+  {
+    LOG_ERROR("the argument --input-config-file is required");
+    commandCheckStatus = EXIT_FAILURE;
+  }
   if (outputFileName.empty())
   {
     LOG_ERROR("the argument --output-seq-file is required");
-    commandCheckStatus = EXIT_FAILURE;
-  }
-  if (configFileName.empty())
-  {
-    LOG_ERROR("the argument --input-config-file is required");
     commandCheckStatus = EXIT_FAILURE;
   }
 
@@ -88,7 +92,7 @@ int main(int argc, char** argv)
 
   // Read input sequence
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (trackedFrameList->ReadFromSequenceMetafile(inputFileName.c_str()) == PLUS_FAIL)
+  if (trackedFrameList->ReadFromSequenceMetafile(inputFileName) == PLUS_FAIL)
   {
     return EXIT_FAILURE;
   }
@@ -98,17 +102,17 @@ int main(int argc, char** argv)
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   LOG_INFO("Number of frames in input: " << numberOfFrames);
 
-
   //Check methods of vtkPlusTransverseProcessEnhancer for failure
 
   enhancer->SetInputFrames(trackedFrameList);
 
+
   //test the abillity to read to the config file
   LOG_INFO("Reading Config file.");
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, configFileName.c_str()) == PLUS_FAIL)
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
   {
-    LOG_ERROR("Unable to read configuration from file " << configFileName.c_str());
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
     return EXIT_FAILURE;
   }
 
@@ -121,7 +125,7 @@ int main(int argc, char** argv)
 
   if (enhancer->ReadConfiguration(configRootElement) == PLUS_FAIL)
   {
-    LOG_ERROR("Unable to read configuration from file " << configFileName.c_str());
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
     return EXIT_FAILURE;
   }
   LOG_INFO("Reading config file finished.");
@@ -135,37 +139,35 @@ int main(int argc, char** argv)
   }
   LOG_INFO("Processed Frames terminated successfully.");
 
-  //write various outputs to their respective files
-  if (linesImageFileName.empty() == false)
-  {
-    enhancer->SetLinesImageFileName(linesImageFileName);
-    if (enhancer->GetLinesFrameList()->SaveToSequenceMetafile(linesImageFileName) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the lines image to file: " << linesImageFileName.c_str());
-      return EXIT_FAILURE;
-    }
-  }
-  if (shadowImageFileName.empty() == false)
-  {
-    enhancer->SetLinesImageFileName(shadowImageFileName);
-    if (enhancer->GetLinesFrameList()->SaveToSequenceMetafile(shadowImageFileName) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the shadow image to file: " << shadowImageFileName.c_str());
-      return EXIT_FAILURE;
-    }
-  }
-  if (processedLinesImageFileName.empty() == false)
-  {
-    enhancer->SetLinesImageFileName(processedLinesImageFileName);
-    if (enhancer->GetLinesFrameList()->SaveToSequenceMetafile(processedLinesImageFileName) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the processed lines image to file: " << processedLinesImageFileName.c_str());
-      return EXIT_FAILURE;
-    }
-  }
+  //save various outputs file names
+  enhancer->SetLinesImageFileName(linesImageFileName);
+  enhancer->SetIntermediateImageFileName(intermediateImageFileName);
+  enhancer->SetShadowImageFileName(shadowImageFileName);
+  enhancer->SetProcessedLinesImageFileName(processedLinesImageFileName);
 
   enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName);
 
+  //test the abillity to Write to the config file
+  if (!outputConfigFileName.empty())
+  {
+    //Start the xml tree that will be written to
+    vtkSmartPointer<vtkXMLDataElement> processorWriteData = vtkSmartPointer<vtkXMLDataElement>::New();
+    processorWriteData->SetName("Processor");
+
+    //Write to the config file
+    LOG_DEBUG("Writing to config file...");
+    if (enhancer->WriteConfiguration(processorWriteData) == PLUS_FAIL)
+    {
+      LOG_ERROR("Unable to write to config file.");
+      return EXIT_FAILURE;
+    }
+    if (PlusCommon::XML::PrintXML(outputConfigFileName, processorWriteData) == PLUS_FAIL)
+    {
+      LOG_ERROR("An error occured when trying to save to the config file " << outputConfigFileName);
+      return EXIT_FAILURE;
+    }
+    LOG_DEBUG("Writing to config file finished.");
+  }
 
   LOG_INFO("Completed Test Successfully.");
   return EXIT_SUCCESS;
