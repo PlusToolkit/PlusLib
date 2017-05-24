@@ -32,59 +32,71 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : ScanConverter(nullptr),
-    ConvertToLinesImage(false),
-    NumberOfScanLines(0),
-    NumberOfSamplesPerScanLine(0),
+  ConvertToLinesImage(false),
+  NumberOfScanLines(0),
+  NumberOfSamplesPerScanLine(0),
 
-    Thresholder(vtkSmartPointer<vtkImageThreshold>::New()),
-    GaussianEnabled(false),
-    ThresholdInValue(0.0),
-    ThresholdOutValue(255.0),
-    LowerThreshold(0.0),
-    UpperThreshold(0.0),
+  TransducerName("Ultrasonix_C5-2"),
+  TransducerGeometry("CURVILINEAR"),
+  RadiusStartMm(0),
+  RadiusStopMm(0),
+  ThetaStartDeg(0),
+  ThetaStopDeg(0),
 
-    GaussianSmooth(vtkSmartPointer<vtkImageGaussianSmooth>::New()),
-    EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
-    ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
-    BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
-    IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
-    ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+  Thresholder(vtkSmartPointer<vtkImageThreshold>::New()),
+  GaussianEnabled(false),
+  ThresholdInValue(0.0),
+  ThresholdOutValue(255.0),
+  LowerThreshold(0.0),
+  UpperThreshold(0.0),
 
-    ReturnToFanImage(false),
-    CurrentFrameMean(0.0),
-    CurrentFrameStDev(0.0),
-    CurrentFrameMax(0.0),
-    CurrentFrameMin(255.0),
-    
-    ThresholdingEnabled(false),
-    
-    EdgeDetectorEnabled(false),
-    ConversionImage(vtkSmartPointer<vtkImageData>::New()),
-    IslandRemovalEnabled(false),
-    IslandAreaThreshold(-1),
-    ErosionEnabled(false),
-    DilationEnabled(false),
-    ReconvertBinaryToGreyscale(false),
-    
-    LinesImage(vtkSmartPointer<vtkImageData>::New()),
-    //LinesFrame(),
-    //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    LinesFrameList(vtkPlusTrackedFrameList::New()),
-    UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
-    ShadowImage(vtkSmartPointer<vtkImageData>::New()),
-    //ShadowFrame(),
-    //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    ShadowFrameList(vtkPlusTrackedFrameList::New()),
-    IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
-    //IntermediateFrame(),
-    //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-    IntermediateFrameList(vtkPlusTrackedFrameList::New()),
-    ProcessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
-    //ProcessedLinesFrame(),
-    //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
-    ProcessedLinesFrameList(vtkPlusTrackedFrameList::New())
+  GaussianSmooth(vtkSmartPointer<vtkImageGaussianSmooth>::New()),
+  EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
+  ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
+  BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
+  IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
+  ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+
+  ReturnToFanImage(false),
+  CurrentFrameMean(0.0),
+  CurrentFrameStDev(0.0),
+  CurrentFrameScalarComponentMax(0.0),
+  CurrentFrameScalarComponentMin(255.0),
+
+  ThresholdingEnabled(false),
+
+  EdgeDetectorEnabled(false),
+  ConversionImage(vtkSmartPointer<vtkImageData>::New()),
+  IslandRemovalEnabled(false),
+  IslandAreaThreshold(-1),
+  ErosionEnabled(false),
+  DilationEnabled(false),
+  ReconvertBinaryToGreyscale(false),
+
+  LinesImage(vtkSmartPointer<vtkImageData>::New()),
+  //LinesFrame(),
+  //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  LinesFrameList(vtkPlusTrackedFrameList::New()),
+  UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
+  ShadowImage(vtkSmartPointer<vtkImageData>::New()),
+  //ShadowFrame(),
+  //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  ShadowFrameList(vtkPlusTrackedFrameList::New()),
+  IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
+  //IntermediateFrame(),
+  //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
+  IntermediateFrameList(vtkPlusTrackedFrameList::New()),
+  ProcessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
+  //ProcessedLinesFrame(),
+  //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  ProcessedLinesFrameList(vtkPlusTrackedFrameList::New())
 {
-  this->SetDilationKernelSize(0, 0);
+  this->SetOutputImageSizePixel(0, 0);
+  this->SetTransducerCenterPixel(0, 0);
+  this->SetOutputImageSpacingMmPerPixel(0, 0);
+
+
+  this->SetDilationKernelRadiusPixel(0, 0);
   this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev(7.0);
   this->SetGaussianKernelSize(7.0);
@@ -126,7 +138,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
-  if (! this->LinesImageFileName.empty())
+  if (!this->LinesImageFileName.empty())
   {
     LOG_INFO("Writing lines image sequence");
     this->LinesFrameList->SaveToSequenceMetafile(this->LinesImageFileName, US_IMG_ORIENT_MF, false);
@@ -138,7 +150,7 @@ vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
     this->IntermediateFrameList->SaveToSequenceMetafile(this->IntermediateImageFileName, US_IMG_ORIENT_MF, false);
   }
 
-  if (! this->ProcessedLinesImageFileName.empty())
+  if (!this->ProcessedLinesImageFileName.empty())
   {
     LOG_INFO("Writing processed lines image sequence");
     this->ProcessedLinesFrameList->SaveToSequenceMetafile(this->ProcessedLinesImageFileName, US_IMG_ORIENT_MF, false);
@@ -229,7 +241,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
       else
       {
         XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdInValue, thresholdingParameters)
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, thresholdingParameters);
+          XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, thresholdingParameters);
 
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, LowerThreshold, thresholdingParameters);
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, UpperThreshold, thresholdingParameters);
@@ -276,7 +288,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
       }
       else
       {
-        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
+        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelRadiusPixel, dilationParameters);
       }
     }
 
@@ -288,18 +300,18 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
   }
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfScanLines, processingElement)
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfSamplesPerScanLine, processingElement)
+    XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfSamplesPerScanLine, processingElement)
 
-  int rfImageExtent[6] = {0, this->NumberOfSamplesPerScanLine - 1, 0, this->NumberOfScanLines - 1, 0, 0};
+    int rfImageExtent[6] = { 0, this->NumberOfSamplesPerScanLine - 1, 0, this->NumberOfScanLines - 1, 0, 0 };
   this->ScanConverter->SetInputImageExtent(rfImageExtent);
 
   // Allocate lines image.
   int* linesImageExtent = this->ScanConverter->GetInputImageExtent();
 
   LOG_DEBUG("Lines image extent: "
-            << linesImageExtent[0] << ", " << linesImageExtent[1]
-            << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
-            << ", " << linesImageExtent[4] << ", " << linesImageExtent[5]);
+    << linesImageExtent[0] << ", " << linesImageExtent[1]
+    << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
+    << ", " << linesImageExtent[4] << ", " << linesImageExtent[5]);
 
   this->BinaryImageForMorphology->SetExtent(linesImageExtent);
   this->BinaryImageForMorphology->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
@@ -339,44 +351,136 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkXMLDataElemen
 {
   XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
+  processingElement->SetIntAttribute("NumberOfScanLines", NumberOfScanLines);
+  processingElement->SetIntAttribute("NumberOfSamplesPerScanLine", NumberOfSamplesPerScanLine);
+
+
+  vtkSmartPointer<vtkXMLDataElement> scanConversion = vtkSmartPointer<vtkXMLDataElement>::New();
+  scanConversion->SetParent(processingElement);
+  scanConversion->SetName("ScanConversion");
+  scanConversion->SetAttribute("TransducerName", this->GetTransducerName());
+  scanConversion->SetAttribute("TransducerGeometry", this->GetTransducerGeometry());
+  scanConversion->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
+  scanConversion->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
+  scanConversion->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
+  scanConversion->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
+  scanConversion->SetVectorAttribute("OutputImageSizePixel", 2, this->OutputImageSizePixel);
+  scanConversion->SetVectorAttribute("TransducerCenterPixel", 2, this->TransducerCenterPixel);
+  scanConversion->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacingMmPerPixel);
+
+
+  vtkSmartPointer<vtkXMLDataElement> imageProcessingOperations = vtkSmartPointer<vtkXMLDataElement>::New();
+  imageProcessingOperations->SetParent(processingElement);
+  imageProcessingOperations->SetName("ImageProcessingOperations");
+
+  if (this->ConvertToLinesImage)
+  {
+    imageProcessingOperations->SetAttribute("ConvertToLinesImage", "True");
+  }
+  else
+  {
+    imageProcessingOperations->SetAttribute("ConvertToLinesImage", "False");
+  }
+
   if (this->GaussianEnabled)
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, processingElement, "GaussianSmoothing");
-    gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
-    gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
+    imageProcessingOperations->SetAttribute("GaussianEnabled", "True");
   }
+  else
+  {
+    imageProcessingOperations->SetAttribute("GaussianEnabled", "False");
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> gaussianParameters = vtkSmartPointer<vtkXMLDataElement>::New();
+  gaussianParameters->SetParent(processingElement);
+  gaussianParameters->SetName("GaussianSmoothing");
+  gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
+  gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 
   if (this->ThresholdingEnabled)
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, processingElement, "Thresholding");
-    thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
-    thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
-    thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
-    thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
+    imageProcessingOperations->SetAttribute("ThresholdingEnabled", "True");
   }
+  else
+  {
+    imageProcessingOperations->SetAttribute("ThresholdingEnabled", "False");
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> thresholdingParameters = vtkSmartPointer<vtkXMLDataElement>::New();
+  thresholdingParameters->SetParent(processingElement);
+  thresholdingParameters->SetName("Thresholding");
+  thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
+  thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
+  thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
+  thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
 
   if (this->EdgeDetectorEnabled)
   {
-    processingElement->SetAttribute("EdgeDetectorEnabled", "TRUE");
+    imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "True");
+  }
+  else
+  {
+    imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "False");
   }
 
   if (this->IslandRemovalEnabled)
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, processingElement, "IslandRemoval");
-    islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
+    imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "True");
   }
+  else
+  {
+    imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "False");
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> islandRemovalParameters = vtkSmartPointer<vtkXMLDataElement>::New();
+  islandRemovalParameters->SetParent(processingElement);
+  islandRemovalParameters->SetName("IslandRemoval");
+  islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
 
   if (this->ErosionEnabled)
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, processingElement, "Erosion");
-    erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
+    imageProcessingOperations->SetAttribute("ErosionEnabled", "True");
   }
+  else
+  {
+    imageProcessingOperations->SetAttribute("ErosionEnabled", "False");
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> erosionParameters = vtkSmartPointer<vtkXMLDataElement>::New();
+  erosionParameters->SetParent(processingElement);
+  erosionParameters->SetName("Erosion");
+  erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
 
   if (this->DilationEnabled)
   {
-    XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, processingElement, "Dilation");
-    dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
+    imageProcessingOperations->SetAttribute("DilationEnabled", "True");
+  }
+  else
+  {
+    imageProcessingOperations->SetAttribute("DilationEnabled", "False");
+  }
+
+  vtkSmartPointer<vtkXMLDataElement> dilationParameters = vtkSmartPointer<vtkXMLDataElement>::New();
+  dilationParameters->SetParent(processingElement);
+  dilationParameters->SetName("Dilation");
+  dilationParameters->SetVectorAttribute("DilationKernelRadiusPixel", 2, this->DilationKernelRadiusPixel);
+
+  if (this->ReconvertBinaryToGreyscale)
+  {
+    imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "True");
+  }
+  else
+  {
+    imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "False");
+  }
+
+  if (this->ReturnToFanImage)
+  {
+    imageProcessingOperations->SetAttribute("ReturnToFanImage", "True");
+  }
+  else
+  {
+    imageProcessingOperations->SetAttribute("ReturnToFanImage", "False");
   }
 
   return PLUS_SUCCESS;
@@ -399,14 +503,14 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkPlusUsScanConvert* scan
   long pixelCount = 0;
   double value = 0.0;
   double delta = 0.0;
-  this->CurrentFrameMax = 0.0;
-  this->CurrentFrameMin = 255.0;
+  this->CurrentFrameScalarComponentMax = 0.0;
+  this->CurrentFrameScalarComponentMin = 255.0;
 
   int* inputExtent = inputImageData->GetExtent();
-  for (int scanLine = 0; scanLine < numScanLines; scanLine ++)
+  for (int scanLine = 0; scanLine < numScanLines; scanLine++)
   {
-    double start[4] = {0};
-    double end[4] = {0};
+    double start[4] = { 0 };
+    double end[4] = { 0 };
     scanConverter->GetScanLineEndPoints(scanLine, start, end);
 
     double directionVectorX = static_cast<double>(end[0] - start[0]) / (lineLengthPx - 1);
@@ -415,8 +519,8 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkPlusUsScanConvert* scan
     {
       int pixelCoordX = start[0] + directionVectorX * pointIndex;
       int pixelCoordY = start[1] + directionVectorY * pointIndex;
-      if (pixelCoordX < inputExtent[0] ||  pixelCoordX > inputExtent[1]
-          || pixelCoordY < inputExtent[2] ||  pixelCoordY > inputExtent[3])
+      if (pixelCoordX < inputExtent[0] || pixelCoordX > inputExtent[1]
+        || pixelCoordY < inputExtent[2] || pixelCoordY > inputExtent[3])
       {
         //this->LinesFrame->GetImageData()->GetImage()->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
         this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
@@ -426,16 +530,16 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkPlusUsScanConvert* scan
       this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, value);
       //this->LinesFrame->GetImageData()->GetImage()->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, value);
 
-      if (this->CurrentFrameMax < value)
+      if (this->CurrentFrameScalarComponentMax < value)
       {
-        this->CurrentFrameMax = value;
+        this->CurrentFrameScalarComponentMax = value;
       }
-      if (this->CurrentFrameMin > value)
+      if (this->CurrentFrameScalarComponentMin > value)
       {
-        this->CurrentFrameMin = value;
+        this->CurrentFrameScalarComponentMin = value;
       }
 
-      ++ pixelCount;
+      ++pixelCount;
       delta = value - mean;
       mean = mean + delta / pixelCount;
       M2 = M2 + delta * (value - mean);
@@ -453,7 +557,7 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
   float thresholdSdFactor = 1.8;
   float nearFactor = 0.4;
 
-  int dims[3] = {0, 0, 0};
+  int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
   //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);
 
@@ -506,7 +610,7 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
 //----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::FillShadowValues()
 {
-  int dims[3] = {0, 0, 0};
+  int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
   //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);
 
@@ -517,7 +621,7 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
   unsigned char* vInput = 0;
   float* vOutput = 0;
 
-  for (int y = 0; y < dims[1]; y ++)
+  for (int y = 0; y < dims[1]; y++)
   {
     // Initialize variables for new scan line.
     lineMeanSoFar = 0.0;
@@ -539,7 +643,7 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
       lineMeanSoFar = lineMeanSoFar + diffFromMean / nSoFar;
       if (inputValue > lineMaxSoFar) { lineMaxSoFar = inputValue; }
 
-      shadowValue = 1.0 - (lineMaxSoFar / this->CurrentFrameMax);
+      shadowValue = 1.0 - (lineMaxSoFar / this->CurrentFrameScalarComponentMax);
 
       *vOutput = shadowValue;
     }
@@ -662,9 +766,9 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->Thresholder->SetInputData(this->IntermediateImage);
     //this->Thresholder->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->Thresholder->Update();
-    this->IntermediateImage->DeepCopy( this->Thresholder->GetOutput() );
+    this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->Thresholder->GetOutput());
-   // this->IntermediateFrame->GetImageData()->GetImage()->Modified();
+    // this->IntermediateFrame->GetImageData()->GetImage()->Modified();
   }
 
   if (this->GaussianEnabled)
@@ -672,7 +776,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->GaussianSmooth->SetInputData(this->IntermediateImage);
     //this->GaussianSmooth->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->GaussianSmooth->Update();
-    this->IntermediateImage->DeepCopy( this->GaussianSmooth->GetOutput() );
+    this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->GaussianSmooth->GetOutput());
     this->IntermediateImage->Modified();
   }
@@ -688,7 +792,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->EdgeDetector->Update();
     this->VectorImageToUchar(this->EdgeDetector->GetOutput(), this->ConversionImage);
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->ConversionImage);
-    this->IntermediateImage->DeepCopy( this->ConversionImage );
+    this->IntermediateImage->DeepCopy(this->ConversionImage);
     //this->IntermediateImage->Modified();
   }
 
@@ -729,7 +833,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     {
       this->ImageEroder->SetDilateValue(255);
       this->ImageEroder->SetErodeValue(0);
-      this->ImageEroder->SetKernelSize(this->DilationKernelSize[0], this -> DilationKernelSize[1], 1);
+      this->ImageEroder->SetKernelSize(this->DilationKernelRadiusPixel[0], this->DilationKernelRadiusPixel[1], 1);
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
@@ -895,7 +999,7 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   /*
   else if ( islandAreaThreshold > ( boundaries[0]*boundaries[1] ) )
   {
-    this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
+  this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
   }
   */
   else
