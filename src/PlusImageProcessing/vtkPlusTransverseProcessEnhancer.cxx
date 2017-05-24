@@ -36,8 +36,6 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   NumberOfScanLines(0),
   NumberOfSamplesPerScanLine(0),
 
-  TransducerName("Ultrasonix_C5-2"),
-  TransducerGeometry("CURVILINEAR"),
   RadiusStartMm(0),
   RadiusStopMm(0),
   ThetaStartDeg(0),
@@ -90,12 +88,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   //ProcessedLinesFrame(),
   //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
   ProcessedLinesFrameList(vtkPlusTrackedFrameList::New())
+
 {
-  this->SetOutputImageSizePixel(0, 0);
-  this->SetTransducerCenterPixel(0, 0);
-  this->SetOutputImageSpacingMmPerPixel(0, 0);
-
-
   this->SetDilationKernelRadiusPixel(0, 0);
   this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev(7.0);
@@ -138,22 +132,57 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
+
   if (!this->LinesImageFileName.empty())
   {
     LOG_INFO("Writing lines image sequence");
-    this->LinesFrameList->SaveToSequenceMetafile(this->LinesImageFileName, US_IMG_ORIENT_MF, false);
+    if (this->LinesFrameList->SaveToSequenceMetafile(this->LinesImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the lines image to file: " << LinesImageFileName);
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the lines image to the file: " << LinesImageFileName);
+    }
   }
 
   if (!this->IntermediateImageFileName.empty())
   {
     LOG_INFO("Writing intermediate image");
-    this->IntermediateFrameList->SaveToSequenceMetafile(this->IntermediateImageFileName, US_IMG_ORIENT_MF, false);
+    if (this->IntermediateFrameList->SaveToSequenceMetafile(this->IntermediateImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the intermediate image to file: " << IntermediateImageFileName);
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the intermediate image to the file: " << IntermediateImageFileName);
+    }
+  }
+
+  if (ShadowImageFileName.empty() == false)
+  {
+    LOG_INFO("Writing shadow image");
+    if (this->ShadowFrameList->SaveToSequenceMetafile(this->ShadowImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the shadow image to file: " << ShadowImageFileName);
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the shadow image to the file: " << ShadowImageFileName);
+    }
   }
 
   if (!this->ProcessedLinesImageFileName.empty())
   {
     LOG_INFO("Writing processed lines image sequence");
-    this->ProcessedLinesFrameList->SaveToSequenceMetafile(this->ProcessedLinesImageFileName, US_IMG_ORIENT_MF, false);
+    if (this->ProcessedLinesFrameList->SaveToSequenceMetafile(this->ProcessedLinesImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the processed lines image to file: " << ProcessedLinesImageFileName);
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the processed lines image sequence to the file: " << ProcessedLinesImageFileName);
+    }
   }
 }
 
@@ -198,6 +227,11 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
       return PLUS_FAIL;
     }
     this->ScanConverter->ReadConfiguration(scanConversionElement);
+
+    scanConversionElement->GetScalarAttribute("RadiusStartMm", RadiusStartMm);
+    scanConversionElement->GetScalarAttribute("RadiusStopMm", RadiusStopMm);
+    scanConversionElement->GetScalarAttribute("ThetaStartDeg", ThetaStartDeg);
+    scanConversionElement->GetScalarAttribute("ThetaStopDeg", ThetaStopDeg);
   }
   else
   {
@@ -349,139 +383,53 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkXMLDataElement* processingElement)
 {
+
   XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
 
+  processingElement->SetAttribute("Type", this->GetProcessorTypeName());
   processingElement->SetIntAttribute("NumberOfScanLines", NumberOfScanLines);
   processingElement->SetIntAttribute("NumberOfSamplesPerScanLine", NumberOfSamplesPerScanLine);
 
-
-  vtkSmartPointer<vtkXMLDataElement> scanConversion = vtkSmartPointer<vtkXMLDataElement>::New();
-  scanConversion->SetParent(processingElement);
-  scanConversion->SetName("ScanConversion");
-  scanConversion->SetAttribute("TransducerName", this->GetTransducerName());
-  scanConversion->SetAttribute("TransducerGeometry", this->GetTransducerGeometry());
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(scanConversion, processingElement, "ScanConversion");
+  this->ScanConverter->WriteConfiguration(scanConversion);;
   scanConversion->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
   scanConversion->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
   scanConversion->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
   scanConversion->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
-  scanConversion->SetVectorAttribute("OutputImageSizePixel", 2, this->OutputImageSizePixel);
-  scanConversion->SetVectorAttribute("TransducerCenterPixel", 2, this->TransducerCenterPixel);
-  scanConversion->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacingMmPerPixel);
 
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
 
-  vtkSmartPointer<vtkXMLDataElement> imageProcessingOperations = vtkSmartPointer<vtkXMLDataElement>::New();
-  imageProcessingOperations->SetParent(processingElement);
-  imageProcessingOperations->SetName("ImageProcessingOperations");
+  XML_WRITE_BOOL_ATTRIBUTE(ConvertToLinesImage, imageProcessingOperations);
 
-  if (this->ConvertToLinesImage)
-  {
-    imageProcessingOperations->SetAttribute("ConvertToLinesImage", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("ConvertToLinesImage", "False");
-  }
-
-  if (this->GaussianEnabled)
-  {
-    imageProcessingOperations->SetAttribute("GaussianEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("GaussianEnabled", "False");
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> gaussianParameters = vtkSmartPointer<vtkXMLDataElement>::New();
-  gaussianParameters->SetParent(processingElement);
-  gaussianParameters->SetName("GaussianSmoothing");
+  XML_WRITE_BOOL_ATTRIBUTE(GaussianEnabled, imageProcessingOperations);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
   gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
   gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 
-  if (this->ThresholdingEnabled)
-  {
-    imageProcessingOperations->SetAttribute("ThresholdingEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("ThresholdingEnabled", "False");
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> thresholdingParameters = vtkSmartPointer<vtkXMLDataElement>::New();
-  thresholdingParameters->SetParent(processingElement);
-  thresholdingParameters->SetName("Thresholding");
+  XML_WRITE_BOOL_ATTRIBUTE(ThresholdingEnabled, imageProcessingOperations);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, imageProcessingOperations, "Thresholding");
   thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
   thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
   thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
   thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
 
-  if (this->EdgeDetectorEnabled)
-  {
-    imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("EdgeDetectorEnabled", "False");
-  }
+  XML_WRITE_BOOL_ATTRIBUTE(EdgeDetectorEnabled, imageProcessingOperations);
 
-  if (this->IslandRemovalEnabled)
-  {
-    imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("IslandRemovalEnabled", "False");
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> islandRemovalParameters = vtkSmartPointer<vtkXMLDataElement>::New();
-  islandRemovalParameters->SetParent(processingElement);
-  islandRemovalParameters->SetName("IslandRemoval");
+  XML_WRITE_BOOL_ATTRIBUTE(IslandRemovalEnabled, imageProcessingOperations);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, imageProcessingOperations, "IslandRemoval");
   islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
 
-  if (this->ErosionEnabled)
-  {
-    imageProcessingOperations->SetAttribute("ErosionEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("ErosionEnabled", "False");
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> erosionParameters = vtkSmartPointer<vtkXMLDataElement>::New();
-  erosionParameters->SetParent(processingElement);
-  erosionParameters->SetName("Erosion");
+  XML_WRITE_BOOL_ATTRIBUTE(ErosionEnabled, imageProcessingOperations);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, imageProcessingOperations, "Erosion");
   erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
 
-  if (this->DilationEnabled)
-  {
-    imageProcessingOperations->SetAttribute("DilationEnabled", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("DilationEnabled", "False");
-  }
-
-  vtkSmartPointer<vtkXMLDataElement> dilationParameters = vtkSmartPointer<vtkXMLDataElement>::New();
-  dilationParameters->SetParent(processingElement);
-  dilationParameters->SetName("Dilation");
+  XML_WRITE_BOOL_ATTRIBUTE(DilationEnabled, imageProcessingOperations);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
   dilationParameters->SetVectorAttribute("DilationKernelRadiusPixel", 2, this->DilationKernelRadiusPixel);
 
-  if (this->ReconvertBinaryToGreyscale)
-  {
-    imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("ReconvertBinaryToGreyscale", "False");
-  }
+  XML_WRITE_BOOL_ATTRIBUTE(ReconvertBinaryToGreyscale, imageProcessingOperations);
 
-  if (this->ReturnToFanImage)
-  {
-    imageProcessingOperations->SetAttribute("ReturnToFanImage", "True");
-  }
-  else
-  {
-    imageProcessingOperations->SetAttribute("ReturnToFanImage", "False");
-  }
+  XML_WRITE_BOOL_ATTRIBUTE(ReturnToFanImage, imageProcessingOperations);
 
   return PLUS_SUCCESS;
 }

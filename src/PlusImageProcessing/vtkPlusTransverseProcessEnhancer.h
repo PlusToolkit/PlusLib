@@ -71,12 +71,6 @@ public:
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
 
-  vtkSetMacro(TransducerName, char*);
-  vtkGetMacro(TransducerName, char*);
-
-  vtkSetMacro(TransducerGeometry, char*);
-  vtkGetMacro(TransducerGeometry, char*);
-
   vtkSetMacro(RadiusStartMm, int);
   vtkGetMacro(RadiusStartMm, int);
 
@@ -89,14 +83,6 @@ public:
   vtkSetMacro(ThetaStopDeg, int);
   vtkGetMacro(ThetaStopDeg, int);
 
-  vtkSetVector2Macro(OutputImageSizePixel, int);
-  vtkGetVector2Macro(OutputImageSizePixel, int);
-
-  vtkSetVector2Macro(TransducerCenterPixel, int);
-  vtkGetVector2Macro(TransducerCenterPixel, int);
-
-  vtkSetVector2Macro(OutputImageSpacingMmPerPixel, double);
-  vtkGetVector2Macro(OutputImageSpacingMmPerPixel, double);
 
 
 
@@ -211,16 +197,10 @@ protected:
   float CurrentFrameScalarComponentMin;
 
   // Scan Conversion parameters, defined in config file
-  char* TransducerName;
-  char* TransducerGeometry;
   int RadiusStartMm;
   int RadiusStopMm;
   int ThetaStartDeg;
   int ThetaStopDeg;
-
-  int OutputImageSizePixel[2];
-  int TransducerCenterPixel[2];
-  double OutputImageSpacingMmPerPixel[2];
 
   // Image processing parameters, defined in config file
   bool GaussianEnabled;
