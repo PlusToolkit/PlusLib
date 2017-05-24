@@ -218,8 +218,7 @@ private:
 
 //----------------------------------------------------------------------------
 vtkPlusIntersonArraySDKCxxVideoSource::vtkPlusIntersonArraySDKCxxVideoSource():
-  PulseVoltage( 30 ),
-  RfDecimation( 0 )
+  PulseVoltage( 30 )
 {
   this->Internal = new vtkInternal(this);
 
@@ -249,7 +248,6 @@ void vtkPlusIntersonArraySDKCxxVideoSource::PrintSelf(ostream& os, vtkIndent ind
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Pulse voltage: " << this->PulseVoltage << "\n";
-  os << indent << "RF decimation: " << this->RfDecimation << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -316,22 +314,31 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalConnect()
   vtkPlusDataSource * source = NULL;
   this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, rfSources);
 
-  int width;
+  int width_samples;
   if( !rfSources.empty() )
     {
     container->SetRFData( true );
-    width = ContainerType::MAX_RFSAMPLES;
+    width_samples = ContainerType::MAX_RFSAMPLES;
     }
   else
     {
     container->SetRFData( false );
-    width = ContainerType::MAX_SAMPLES/2;
+    width_samples = ContainerType::MAX_SAMPLES/2;
     }
 
   LOG_DEBUG( "Interson Array SDK version " << this->Internal->GetSdkVersion() <<
              ", USB probe FPGA version " << hwControls->ReadFPGAVersion() );
 
-  std::vector<vtkPlusDataSource *> bmodeSources;
+  // Even if we do not use their SDK scan converter, we have to initialize the
+  // scan converter to get the probe fully initialized.
+  const int depth = 100;
+  const int heightLines = hwControls->GetLinesPerArray();
+  const int steering = 0;
+  container->IdleInitScanConverter( depth, width_samples, heightLines, probeId,
+    steering, false, false, 0 );
+  container->HardInitScanConverter( depth, width_samples, heightLines, steering );
+
+  std::vector<vtkPlusDataSource*> bmodeSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
 
   if( !rfSources.empty() )
@@ -495,17 +502,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::InternalStartRecording()
 
   HWControlsType * hwControls = this->Internal->GetHWControls();
 
-  // Even if we do not use their SDK scan converter, we have to initialize the
-  // scan converter to get the probe fully initialized.
-  const int depth = 100;
-  const int height_lines = hwControls->GetLinesPerArray();
-  const int width_samples = ContainerType::MAX_RFSAMPLES;
-  const unsigned int probeId = hwControls->GetProbeID();
-  const int steering = 0;
-  container->IdleInitScanConverter( depth, width_samples, height_lines, probeId,
-    steering, false, false, 0 );
-  container->HardInitScanConverter( depth, width_samples, height_lines, steering );
-
   std::vector<vtkPlusDataSource *> bmodeSources;
   std::vector<vtkPlusDataSource *> rfSources;
   this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, bmodeSources);
@@ -597,7 +593,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::ReadConfiguration(vtkXMLDataEl
   }
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, PulseVoltage, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, RfDecimation, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -607,7 +602,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::WriteConfiguration(vtkXMLDataE
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
   deviceConfig->SetIntAttribute("PulseVoltage", this->GetPulseVoltage());
-  deviceConfig->SetIntAttribute("RfDecimation", this->RfDecimation);
 
   return PLUS_SUCCESS;
 }
@@ -643,18 +637,6 @@ PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::SetPulseVoltage(unsigned char 
   if( voltage != this->PulseVoltage )
     {
     this->PulseVoltage = voltage;
-    this->Modified();
-    }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusIntersonArraySDKCxxVideoSource::SetRfDecimation(int enableDecimation)
-{
-  if( enableDecimation != this->RfDecimation )
-    {
-    this->RfDecimation = enableDecimation;
     this->Modified();
     }
 

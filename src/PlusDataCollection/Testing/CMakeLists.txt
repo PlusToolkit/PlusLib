@@ -261,16 +261,10 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
     --rendering-off
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfBmodeTest.xml
     )
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfDecimationBmodeTest.xml
-    )
   SET_TESTS_PROPERTIES( vtkIntersonArraySDKCxxVideoSourceTest
     vtkIntersonArraySDKCxxVideoSourceScanConvertTest
     vtkIntersonArraySDKCxxVideoSourceRfTest
     vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
-    vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
   PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 ENDIF()
 
