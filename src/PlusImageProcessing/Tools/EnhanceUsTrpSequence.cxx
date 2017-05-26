@@ -1,5 +1,5 @@
 #include "PlusConfigure.h"
-#include "plusTrackedFrame.h"
+#include "PlusTrackedFrame.h"
 #include "vtkImageCast.h"
 #include "vtkImageData.h"
 #include "vtkPlusMetaImageSequenceIO.h"
