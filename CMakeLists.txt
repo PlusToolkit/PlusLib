@@ -30,16 +30,16 @@ ENDIF()
 MESSAGE(STATUS "Configuring PLUS toolkit version ${PLUSLIB_VERSION}.")
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  IF( ${CMAKE_GENERATOR} MATCHES "Win64" )
+  IF( ${CMAKE_GENERATOR} MATCHES "Win64")
     SET(PLUSLIB_PLATFORM "Win64" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ELSE()
     SET(PLUSLIB_PLATFORM "Win32" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ENDIF()
 ELSE()
   IF(APPLE)
-    SET (PLUSLIB_PLATFORM "OSX" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+    SET(PLUSLIB_PLATFORM "OSX" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ELSE()
-    SET (PLUSLIB_PLATFORM "Linux" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+    SET(PLUSLIB_PLATFORM "Linux" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ENDIF()
 ENDIF()
 
@@ -49,7 +49,7 @@ MESSAGE(STATUS "Detected platform: ${PLUSLIB_PLATFORM}.")
 # System Settings
 IF(WIN32)
   # This method adds the necessary compiler flag
-  SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
+  SET(RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
   ADD_DEFINITIONS(-D_MSC_PLATFORM_TOOLSET_$(PlatformToolset))
   
   # Correct the incoming windows sdk variables, as they have been manipulated to be passed to this project

@@ -1,24 +1,26 @@
+PROJECT(PlusUsSimulator)
+
 # Sources
-SET(PlusUsSimulator_SRCS
-    vtkPlusUsSimulatorAlgo.cxx
+SET(${PROJECT_NAME}_SRCS
+    vtk${PROJECT_NAME}Algo.cxx
     PlusSpatialModel.cxx
     )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode") 
-  SET(PlusUsSimulator_HDRS
-    vtkPlusUsSimulatorAlgo.h
+  SET(${PROJECT_NAME}_HDRS
+    vtk${PROJECT_NAME}Algo.h
     PlusSpatialModel.h
     )
 ENDIF()
 
-SET(PlusUsSimulator_INCLUDE_DIRS 
+SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusUsSimulator_LIBS
+SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkPlusRendering
   vtkPlusImageProcessing
@@ -28,37 +30,37 @@ SET(PlusUsSimulator_LIBS
   vtkIOXML
   )
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusUsSimulator)
-ADD_LIBRARY(vtkPlusUsSimulator ${PlusUsSimulator_SRCS} ${PlusUsSimulator_HDRS})
-FOREACH(p IN LISTS PlusUsSimulator_INCLUDE_DIRS)
-  target_include_directories(vtkPlusUsSimulator PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusUsSimulator PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-TARGET_LINK_LIBRARIES(vtkPlusUsSimulator PUBLIC ${PlusUsSimulator_LIBS})
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusUsSimulator CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusUsSimulator vtkPlusUsSimulator;${PlusLib_BINARY_DIR}/src/PlusUsSimulator/vtkPlusUsSimulator.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusUsSimulator EXPORT PlusLib
+INSTALL(TARGETS vtk${PROJECT_NAME} EXPORT PlusLib
   RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES ${PlusUsSimulator_HDRS} 
+INSTALL(FILES ${${PROJECT_NAME}_HDRS} 
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
 IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusUsSimulator>" OPTIONAL
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtk${PROJECT_NAME}>" OPTIONAL
     DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
     )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Testing

@@ -2,21 +2,21 @@ PROJECT(PlusWidgets)
 
 # --------------------------------------------------------------------------
 # Sources
-SET (${PROJECT_NAME}_SRCS
+SET(${PROJECT_NAME}_SRCS
   QPlusDeviceSetSelectorWidget.cxx
   QPlusStatusIcon.cxx
   QPlusToolStateDisplayWidget.cxx
   QPlusConfigFileSaverDialog.cxx
   )
 
-SET (${PROJECT_NAME}_UI_HDRS
+SET(${PROJECT_NAME}_HDRS
   QPlusDeviceSetSelectorWidget.h
   QPlusStatusIcon.h
   QPlusToolStateDisplayWidget.h
   QPlusConfigFileSaverDialog.h
   )
 
-SET (${PROJECT_NAME}_UI_SRCS
+SET(${PROJECT_NAME}_UI_SRCS
   QPlusDeviceSetSelectorWidget.ui
   QPlusConfigFileSaverDialog.ui
   )
@@ -27,7 +27,7 @@ MARK_AS_ADVANCED(PLUSLIB_WIDGETS_QRC)
 
 # --------------------------------------------------------------------------
 # Build the library
-SET (${PROJECT_NAME}_LIBS 
+SET(${PROJECT_NAME}_LIBS 
   Qt5::Xml
   Qt5::Widgets
   vtkGUISupportQt
@@ -49,8 +49,8 @@ IF(NOT (CMAKE_VERSION VERSION_LESS "3.8"))
 ENDIF()
 GENERATE_EXPORT_DIRECTIVE_FILE(${PROJECT_NAME})
 ADD_LIBRARY(${PROJECT_NAME}
-  ${${PROJECT_NAME}_SRCS} 
-  ${${PROJECT_NAME}_UI_HDRS} 
+  ${${PROJECT_NAME}_SRCS}
+  ${${PROJECT_NAME}_HDRS} 
   ${${PROJECT_NAME}_UI_SRCS} 
   ${_Qt_resource}
   )
@@ -75,17 +75,21 @@ SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/PlusWidgets
 # Install
 #
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib
-  RUNTIME DESTINATION bin CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib CONFIGURATIONS Release COMPONENT Development
+  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
   )
-INSTALL(FILES ${${PROJECT_NAME}_UI_HDRS}
-  DESTINATION include
-  COMPONENT Development
+INSTALL(FILES ${${PROJECT_NAME}_HDRS}
+  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
+IF(MSVC AND BUILD_SHARED_LIBS)
+  INSTALL(FILES "$<TARGET_PDB_FILE:${PROJECT_NAME}>" OPTIONAL
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Testing
-IF (BUILD_TESTING)
+IF(BUILD_TESTING)
   ADD_SUBDIRECTORY (Testing)
 ENDIF()

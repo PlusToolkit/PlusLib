@@ -1,3 +1,5 @@
+PROJECT(PlusImageProcessing)
+
 IF(PLUS_USE_INTEL_MKL)
   FIND_PACKAGE( OpenMP REQUIRED)
   IF(OPENMP_FOUND)
@@ -9,7 +11,7 @@ IF(PLUS_USE_INTEL_MKL)
 
   FIND_PATH(IntelComposerXEdir foldermap.sc.xml
     PATHS "C:/Program Files (x86)/Intel/Composer XE 2015/"
-    DOC "A path to Intel Composer XE" )
+    DOC "A path to Intel Composer XE")
 
   IF(NOT IntelComposerXEdir)
     MESSAGE(FATAL_ERROR "A path to Intel Composer XE is invalid.")
@@ -17,7 +19,7 @@ IF(PLUS_USE_INTEL_MKL)
 ENDIF()
 
 # Sources
-SET(PlusImageProcessing_SRCS
+SET(${PROJECT_NAME}_SRCS
   vtkPlusTrackedFrameProcessor.cxx
   vtkPlusBoneEnhancer.cxx
   vtkPlusRfToBrightnessConvert.cxx
@@ -29,7 +31,7 @@ SET(PlusImageProcessing_SRCS
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(PlusImageProcessing_HDRS
+  SET(${PROJECT_NAME}_HDRS
     vtkPlusTrackedFrameProcessor.h
     vtkPlusBoneEnhancer.h
     vtkPlusRfToBrightnessConvert.h
@@ -41,25 +43,25 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     )
 ENDIF()
 
-SET(PlusImageProcessing_INCLUDE_DIRS
+SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   CACHE INTERNAL "" FORCE)
 
 IF(PLUS_USE_INTEL_MKL)
-  LIST(APPEND PlusImageProcessing_SRCS vtkPlusForoughiBoneSurfaceProbability.cxx)
+  LIST(APPEND ${PROJECT_NAME}_SRCS vtkPlusForoughiBoneSurfaceProbability.cxx)
   IF(WIN32)
-    LIST(APPEND PlusImageProcessing_HDRS vtkPlusForoughiBoneSurfaceProbability.h)
+    LIST(APPEND ${PROJECT_NAME}_HDRS vtkPlusForoughiBoneSurfaceProbability.h)
   ENDIF()
   
-  LIST(APPEND PlusImageProcessing_INCLUDE_DIRS "${IntelComposerXEdir}/mkl/include")
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${IntelComposerXEdir}/mkl/include")
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Build the library
 SET(External_Libraries_Install)
 
-SET(PlusImageProcessing_LIBS
+SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkImagingStatistics
   vtkImagingGeneral
@@ -133,27 +135,27 @@ IF(PLUS_USE_INTEL_MKL)
       )
   ENDIF()
 
-  LIST(APPEND PlusImageProcessing_LIBS ${MKL_LIBS})
+  LIST(APPEND ${PROJECT_NAME}_LIBS ${MKL_LIBS})
 ENDIF()
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusImageProcessing)
-ADD_LIBRARY(vtkPlusImageProcessing ${PlusImageProcessing_SRCS} ${PlusImageProcessing_HDRS})
-FOREACH(p IN LISTS PlusImageProcessing_INCLUDE_DIRS)
-  target_include_directories(vtkPlusImageProcessing PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusImageProcessing PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-TARGET_LINK_LIBRARIES(vtkPlusImageProcessing ${PlusImageProcessing_LIBS})
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusImageProcessing vtkPlusImageProcessing;${PlusLib_BINARY_DIR}/src/PlusImageProcessing/vtkPlusImageProcessing.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+IF(${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   FILE(COPY ${External_Libraries_Install}
     DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
     )
@@ -170,38 +172,38 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(RfProcessor Tools/RfProcessor.cxx )
   SET_TARGET_PROPERTIES(RfProcessor PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(RfProcessor vtkPlusImageProcessing )
+  TARGET_LINK_LIBRARIES(RfProcessor vtk${PROJECT_NAME} )
   GENERATE_HELP_DOC(RfProcessor)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(DrawScanLines Tools/DrawScanLines.cxx )
   SET_TARGET_PROPERTIES(DrawScanLines PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(DrawScanLines vtkPlusImageProcessing vtkPlusCommon)
+  TARGET_LINK_LIBRARIES(DrawScanLines vtk${PROJECT_NAME} vtkPlusCommon)
   GENERATE_HELP_DOC(DrawScanLines)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(ExtractScanLines Tools/ExtractScanLines.cxx)
   SET_TARGET_PROPERTIES(ExtractScanLines PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ExtractScanLines vtkPlusImageProcessing)
+  TARGET_LINK_LIBRARIES(ExtractScanLines vtk${PROJECT_NAME})
   GENERATE_HELP_DOC(ExtractScanLines)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(ScanConvert Tools/ScanConvert.cxx)
   SET_TARGET_PROPERTIES(ScanConvert PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ScanConvert vtkPlusImageProcessing)
+  TARGET_LINK_LIBRARIES(ScanConvert vtk${PROJECT_NAME})
   GENERATE_HELP_DOC(ScanConvert)
 
   #---------------------------------------------------------------------------
   ADD_EXECUTABLE(EnhanceUsTrpSequence Tools/EnhanceUsTrpSequence.cxx)
   SET_TARGET_PROPERTIES(EnhanceUsTrpSequence PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(EnhanceUsTrpSequence vtkPlusImageProcessing)
+  TARGET_LINK_LIBRARIES(EnhanceUsTrpSequence vtk${PROJECT_NAME})
   GENERATE_HELP_DOC(EnhanceUsTrpSequence)
   
   #---------------------------------------------------------------------------
   IF(PLUS_USE_INTEL_MKL)
     ADD_EXECUTABLE(EnhanceBone Tools/EnhanceBone.cxx )
   SET_TARGET_PROPERTIES(EnhanceBone PROPERTIES FOLDER Tools)
-    TARGET_LINK_LIBRARIES(EnhanceBone vtkPlusImageProcessing )
+    TARGET_LINK_LIBRARIES(EnhanceBone vtk${PROJECT_NAME} )
     GENERATE_HELP_DOC(EnhanceBone)
   ENDIF()
 
@@ -225,19 +227,19 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusImageProcessing EXPORT PlusLib
+INSTALL(TARGETS vtk${PROJECT_NAME} EXPORT PlusLib
   RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES ${PlusImageProcessing_HDRS}
+INSTALL(FILES ${${PROJECT_NAME}_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
 IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusImageProcessing>" OPTIONAL
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtk${PROJECT_NAME}>" OPTIONAL
     DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
     )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Testing

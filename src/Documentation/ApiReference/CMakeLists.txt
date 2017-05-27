@@ -10,7 +10,7 @@ IF(DOXYGEN_FOUND)
     SET(GENERATE_HTMLHELP "NO")
     SET(SEARCHENGINE "YES")
     SET(COMPRESSED_HELP_TARGET_FILE_EXT ".tar.gz")
-    IF (PLUS_DOCUMENTATION_SEARCH_SERVER_INDEXED)
+    IF(PLUS_DOCUMENTATION_SEARCH_SERVER_INDEXED)
       SET(SERVER_BASED_SEARCH "YES")
     ELSE()
       SET(SERVER_BASED_SEARCH "NO")
@@ -18,7 +18,7 @@ IF(DOXYGEN_FOUND)
 
     IF(WIN32)
       SET(COMPRESSED_HELP_TARGET_FILE_EXT ".chm")
-      IF (PLUS_DOCUMENTATION_SEARCH_SERVER_INDEXED)
+      IF(PLUS_DOCUMENTATION_SEARCH_SERVER_INDEXED)
         # search indexing is turned off if HTMLHELP generation is enabled, so we have to disable it
         SET(GENERATE_HTMLHELP "NO")
         SET(SEARCHENGINE "YES")
@@ -29,10 +29,10 @@ IF(DOXYGEN_FOUND)
     ENDIF()
 
     # Documentation for developers, including private members
-    SET(PlusLib_USER_DOCUMENTATION "NO" )
-    SET(PlusLib_DEV_DOCUMENTATION "YES" )
-    SET(PlusLib_ADDITIONAL_EXCLUDE_PATTERN "" )
-    SET(PlusLib_ADDITIONAL_FILE_PATTERN "*.c \  *.cc \  *.cxx \  *.cpp \  *.c++ \  *.hxx \  *.hpp \  *.h++ \  *.txx \  *.C \  *.CC \  *.C++ \  *.moc" )
+    SET(PlusLib_USER_DOCUMENTATION "NO")
+    SET(PlusLib_DEV_DOCUMENTATION "YES")
+    SET(PlusLib_ADDITIONAL_EXCLUDE_PATTERN "")
+    SET(PlusLib_ADDITIONAL_FILE_PATTERN "*.c \  *.cc \  *.cxx \  *.cpp \  *.c++ \  *.hxx \  *.hpp \  *.h++ \  *.txx \  *.C \  *.CC \  *.C++ \  *.moc")
 
     # Parameters for generate_doc.cmake
     SET(TARGET_NAME "ApiReference")

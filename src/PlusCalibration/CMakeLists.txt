@@ -1,7 +1,8 @@
+PROJECT(PlusCalibration)
+
 # --------------------------------------------------------------------------
 # Sources
-
-SET(PlusCalibration_SRCS
+SET(${PROJECT_NAME}_SRCS
   PatternLocAlgo/PlusFidSegmentation.cxx
   PatternLocAlgo/PlusFidLineFinder.cxx
   PatternLocAlgo/PlusFidLabeling.cxx
@@ -33,9 +34,8 @@ SET(PlusCalibration_SRCS
   vtkPhantomLinearObjectRegistrationAlgo/References.cxx
   )
 
-SET(PlusCalibration_HDRS)
-IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(PlusCalibration_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(${PROJECT_NAME}_HDRS
     PatternLocAlgo/PlusFidSegmentation.h
     PatternLocAlgo/PlusFidLineFinder.h
     PatternLocAlgo/PlusFidLabeling.h
@@ -67,7 +67,7 @@ IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     )
 ENDIF()
 
-SET(PlusCalibration_INCLUDE_DIRS
+SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/PatternLocAlgo
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkBrachyStepperPhantomRegistrationAlgo
@@ -83,7 +83,7 @@ SET(PlusCalibration_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusCalibration_LIBS
+SET(${PROJECT_NAME}_LIBS
   ITKCommon
   ITKIOImageBase
   ITKOptimizers
@@ -95,21 +95,20 @@ SET(PlusCalibration_LIBS
   vtkPlusCommon
   )
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCalibration)
-ADD_LIBRARY( vtkPlusCalibration ${PlusCalibration_SRCS} ${PlusCalibration_HDRS} )
-FOREACH(p IN LISTS PlusCalibration_INCLUDE_DIRS)
-  target_include_directories(vtkPlusCalibration PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusCalibration PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-
-TARGET_LINK_LIBRARIES(vtkPlusCalibration ${PlusCalibration_LIBS})
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCalibration CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusCalibration vtkPlusCalibration;${PlusLib_BINARY_DIR}/src/PlusCalibration/vtkPlusCalibration.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
@@ -119,7 +118,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TARGET_PROPERTIES(ConvertFcsvToXml PROPERTIES FOLDER Tools)
   # Link the executable to the algo library.
   TARGET_LINK_LIBRARIES( ConvertFcsvToXml
-    vtkPlusCalibration
+    vtk${PROJECT_NAME}
     ITKCommon
     vtkPlusDataCollection
     )
@@ -131,7 +130,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   SET_TARGET_PROPERTIES(ConvertXmlToFcsv PROPERTIES FOLDER Tools)
   # Link the executable to the algo library.
   TARGET_LINK_LIBRARIES( ConvertXmlToFcsv
-    vtkPlusCalibration
+    vtk${PROJECT_NAME}
     ITKCommon
     vtkPlusDataCollection
     )
@@ -139,13 +138,13 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(TemporalCalibration Tools/TemporalCalibration.cxx)
   SET_TARGET_PROPERTIES(TemporalCalibration PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(TemporalCalibration vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection)
+  TARGET_LINK_LIBRARIES(TemporalCalibration vtkPlusCommon vtk${PROJECT_NAME} vtkPlusDataCollection)
   GENERATE_HELP_DOC(TemporalCalibration)
 
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ProbeCalibration Tools/ProbeCalibration.cxx)
   SET_TARGET_PROPERTIES(ProbeCalibration PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
+  TARGET_LINK_LIBRARIES(ProbeCalibration itkvnl itkvnl_algo vtk${PROJECT_NAME} vtkPlusDataCollection )
   GENERATE_HELP_DOC(ProbeCalibration)
 
   INSTALL(
@@ -163,19 +162,19 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusCalibration EXPORT PlusLib
+INSTALL(TARGETS vtk${PROJECT_NAME} EXPORT PlusLib
   RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
   ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
   )
-INSTALL(FILES ${PlusCalibration_HDRS}
+INSTALL(FILES ${${PROJECT_NAME}_HDRS}
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
 IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusCalibration>" OPTIONAL
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtk${PROJECT_NAME}>" OPTIONAL
     DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
     )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+ENDIF()
   
 # --------------------------------------------------------------------------
 # Testing

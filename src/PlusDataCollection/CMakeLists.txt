@@ -1504,11 +1504,11 @@ ENDIF()
 IF(PLUS_USE_AGILENT)
   FIND_PACKAGE(AgilentMD1 REQUIRED)
   
-  SET (Agilent_SRCS
+  SET(Agilent_SRCS
     Agilent/vtkPlusAgilentScopeTracker.cxx
     )
-  IF (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET (Agilent_HDRS
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Agilent_HDRS
       Agilent/vtkPlusAgilentScopeTracker.h
       )
   ENDIF()
@@ -1752,7 +1752,7 @@ SET(vcProj_vtkPlusDataCollection vtkPlusDataCollection;${PlusLib_BINARY_DIR}/src
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
-IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode" )
+IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   FILE(COPY ${External_Libraries_Install}
       DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
       )
@@ -1830,10 +1830,10 @@ INSTALL(FILES ${PlusDataCollection_HDRS} ${PlusDataCollection_INSTALL_INCLUDE_FI
   DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
   )
 IF(MSVC AND BUILD_SHARED_LIBS)
-INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusDataCollection>" OPTIONAL
-  DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusDataCollection>" OPTIONAL
+    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+    )
+ENDIF()
 # Introduce a CMAKE Build Flag, whether Static libraries should be installed?
 INSTALL(FILES ${External_Libraries_Static_Install}
   DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
