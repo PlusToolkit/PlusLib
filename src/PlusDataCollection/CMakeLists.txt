@@ -340,21 +340,22 @@ IF(PLUS_USE_NDI)
     ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
     )
 
-  LIST(APPEND PlusDataCollection_LIBS 
-    ndicapi 
+  LIST(APPEND PlusDataCollection_LIBS
+    ndicapi
     )
 
-  GET_TARGET_PROPERTY(_lib_release ndicapi IMPORTED_LOCATION_RELEASE)
-  GET_TARGET_PROPERTY(_lib_debug ndicapi IMPORTED_LOCATION_DEBUG)
-  IF(EXISTS ${_lib_release})
-    LIST(APPEND External_Libraries_Install
-      ${_lib_release}
-      )
-  ELSEIF(EXISTS ${_lib_debug})
-    LIST(APPEND External_Libraries_Install
-      ${_lib_debug}
-      )
-  ELSE()
+  GET_TARGET_PROPERTY(_configs ndicapi IMPORTED_CONFIGURATIONS)
+  FOREACH(_config IN LISTS _configs)
+    GET_TARGET_PROPERTY(_location ndicapi IMPORTED_LOCATION_${_config})
+    IF(${_config} STREQUAL RELEASE OR ${_config} STREQUAL NOCONFIG)
+      LIST(APPEND _entries ${_config})
+      LIST(APPEND External_Libraries_Install ${_location})
+      BREAK()
+    ENDIF()
+  ENDFOREACH()
+
+  LIST(LENGTH _entries _size)
+  IF(_size EQUAL 0)
     MESSAGE(FATAL_ERROR "Wanted to add ndicapi library to install, but dependent files don't exist. Do you need to build it?")
   ENDIF()
 ENDIF()
@@ -365,7 +366,7 @@ IF(PLUS_USE_MICRONTRACKER)
   SET(MicronTracking_SRCS
     MicronTracking/vtkPlusMicronTracker.cxx
   )
-  
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(MicronTracking_HDRS
       MicronTracking/vtkPlusMicronTracker.h
@@ -380,11 +381,11 @@ IF(PLUS_USE_MICRONTRACKER)
     ${MicronTracking_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking
     )
 
-  LIST(APPEND PlusDataCollection_LIBS 
+  LIST(APPEND PlusDataCollection_LIBS
     MicronTrackerInterface
     )
 
@@ -416,7 +417,7 @@ IF(PLUS_USE_INTELREALSENSE)
   SET(IntelRealSense_SRCS
     IntelRealSense/vtkPlusIntelRealSenseTracker.cxx
   )
-  
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(IntelRealSense_HDRS
       IntelRealSense/vtkPlusIntelRealSenseTracker.h
@@ -431,12 +432,12 @@ IF(PLUS_USE_INTELREALSENSE)
     ${IntelRealSense_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSense
     ${INTELREALSENSE_INCLUDE_DIR}
     )
-  
-  LIST(APPEND PlusDataCollection_LIBS 
+
+  LIST(APPEND PlusDataCollection_LIBS
     optimized ${INTELREALSENSE_RELEASE_LIB}
     debug ${INTELREALSENSE_DEBUG_LIB}
     )
@@ -460,12 +461,12 @@ IF(PLUS_USE_BRACHY_TRACKER)
     BrachyTracking/PlusCmsBrachyStepper.cxx
     BrachyTracking/PlusCivcoBrachyStepper.cxx
   )
-  
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(BrachyTracker_HDRS
       BrachyTracking/vtkPlusBrachyTracker.h
-      BrachyTracking/PlusCmsBrachyStepper.h 
-      BrachyTracking/PlusBrachyStepper.h 
+      BrachyTracking/PlusCmsBrachyStepper.h
+      BrachyTracking/PlusBrachyStepper.h
       BrachyTracking/PlusCivcoBrachyStepper.h
       )
   ENDIF()
@@ -478,11 +479,11 @@ IF(PLUS_USE_BRACHY_TRACKER)
     ${BrachyTracker_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/BrachyTracking
     ${USDIGITAL_SEI_INCLUDE_DIR}
     )
-  
+
   ADD_LIBRARY(USDigitalEncoders SHARED IMPORTED)
   SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_IMPLIB ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET USDigitalEncoders PROPERTY IMPORTED_LOCATION ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -503,7 +504,7 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
   SET(USDigitalEncoders_SRCS
     USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.cxx
   )
-  
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(USDigitalEncoders_HDRS
       USDigitalEncodersTracking/vtkPlusUSDigitalEncodersTracker.h
@@ -518,11 +519,11 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
     ${USDigitalEncoders_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
     ${USDIGITAL_SEI_INCLUDE_DIR}
     )
-  
+
   LIST(APPEND PlusDataCollection_LIBS
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
@@ -540,15 +541,15 @@ ENDIF()
 # Ascension 3DG support (trakSTAR)
 IF( PLUS_USE_Ascension3DG )
   SET(Ascension_SRCS
-    Ascension3DGTracking/vtkPlusAscension3DGTracker.cxx 
+    Ascension3DGTracking/vtkPlusAscension3DGTracker.cxx
     )
-    
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(Ascension_HDRS
-      Ascension3DGTracking/vtkPlusAscension3DGTracker.h 
+      Ascension3DGTracking/vtkPlusAscension3DGTracker.h
       )
     # vtkPlusAscension3DGTrackerBase has to be installed as well
-    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES 
+    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES
       Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
       )
   ENDIF()
@@ -561,7 +562,7 @@ IF( PLUS_USE_Ascension3DG )
     ${Ascension_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${ATC_TRAKSTAR_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     )
@@ -574,7 +575,7 @@ IF( PLUS_USE_Ascension3DG )
     SET(Ascension3DG_LIB_FILE ${ATC_TRAKSTAR_LIB_DIR}/ATC3DG${CMAKE_STATIC_LIBRARY_SUFFIX} CACHE FILEPATH "Lib file for Ascension3DG.")
     SET(Ascension3DG_SHARED_LIB_FILE ${ATC_TRAKSTAR_BINARY_DIR}/ATC3DG${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE FILEPATH "DLL file for Ascension3DG.")
   ENDIF()
-  
+
   LIST(APPEND PlusDataCollection_LIBS Ascension3DG)
   LIST(APPEND External_Libraries_Install ${Ascension3DG_SHARED_LIB_FILE})
   SET(External_Libraries_Static_Install ${External_Libraries_Static_Install} ${Ascension3DG_LIB_FILE})
@@ -586,18 +587,18 @@ ENDIF()
 # Ascension 3DGm support (medSAFE)
 IF( PLUS_USE_Ascension3DGm )
   SET(Ascension3DGm_SRCS
-    Ascension3DGTracking/vtkAscension3DGmTracker.cxx 
+    Ascension3DGTracking/vtkAscension3DGmTracker.cxx
     )
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(Ascension3DGm_HDRS
       Ascension3DGTracking/vtkAscension3DGmTracker.h
       )
     # vtkPlusAscension3DGTrackerBase has to be installed as well
-    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES 
+    LIST(APPEND PlusDataCollection_INSTALL_INCLUDE_FILES
       Ascension3DGTracking/vtkPlusAscension3DGTrackerBase.h
       )
   ENDIF()
-  
+
   LIST(APPEND PlusDataCollection_HDRS
     ${Ascension3DGm_HDRS}
     )
@@ -606,7 +607,7 @@ IF( PLUS_USE_Ascension3DGm )
     ${Ascension3DGm_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${ATC_MEDSAFE_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Ascension3DGTracking
     )
@@ -617,10 +618,10 @@ IF( PLUS_USE_Ascension3DGm )
 
   SET( PlusDataCollection_LIBS ${PlusDataCollection_LIBS} Ascension3DGm )
   LIST(APPEND External_Libraries_Install
-    ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    ${ATC_MEDSAFE_BINARY_DIR}/ATC3DGm${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Static_Install
-    ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX} 
+    ${ATC_MEDSAFE_LIB_DIR}/ATC3DGm${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -628,14 +629,14 @@ ENDIF()
 # PhidgetSpatial 3/3/3 MARG sensor (magnetometer, accelerometer, gyroscope)
 IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET(PhidgetSpatial_SRCS
-    PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx 
+    PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.cxx
     )
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(PhidgetSpatial_HDRS
-      PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h 
+      PhidgetSpatialTracking/vtkPlusPhidgetSpatialTracker.h
       )
   ENDIF()
-  
+
   LIST(APPEND PlusDataCollection_HDRS
     ${PhidgetSpatial_HDRS}
     )
@@ -644,7 +645,7 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
     ${PhidgetSpatial_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${PHIDGET_SPATIAL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/PhidgetSpatialTracking
     )
@@ -653,14 +654,14 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-  LIST(APPEND PlusDataCollection_LIBS 
-    phidget vtkxio 
+  LIST(APPEND PlusDataCollection_LIBS
+    phidget vtkxio
     )
   LIST(APPEND External_Libraries_Install
-    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Static_Install
-    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
+    ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -673,10 +674,10 @@ IF( PLUS_USE_3dConnexion_TRACKER )
       )
     IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
       SET(3dConnexion_HDRS
-        3dConnexionTracking/vtkPlus3dConnexionTracker.h 
+        3dConnexionTracking/vtkPlus3dConnexionTracker.h
         )
     ENDIF()
-    
+
     LIST(APPEND PlusDataCollection_HDRS
       ${3dConnexion_HDRS}
       )
@@ -685,7 +686,7 @@ IF( PLUS_USE_3dConnexion_TRACKER )
       ${3dConnexion_SRCS}
       )
 
-    LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+    LIST(APPEND PlusDataCollection_INCLUDE_DIRS
       ${CMAKE_CURRENT_SOURCE_DIR}/3dConnexionTracking
       )
   ENDIF()
@@ -698,7 +699,7 @@ SET(ChRobotics_SRCS
   )
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(ChRobotics_HDRS
-    ChRobotics/vtkPlusChRoboticsTracker.h 
+    ChRobotics/vtkPlusChRoboticsTracker.h
     )
 ENDIF()
 
@@ -710,7 +711,7 @@ LIST(APPEND PlusDataCollection_SRCS
   ${ChRobotics_SRCS}
   )
 
-LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+LIST(APPEND PlusDataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/ChRobotics
   )
 
@@ -721,7 +722,7 @@ SET(MicrochipMARG_SRCS
   )
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(MicrochipMARG_HDRS
-    MicrochipTracking/vtkPlusMicrochipTracker.h 
+    MicrochipTracking/vtkPlusMicrochipTracker.h
     )
 ENDIF()
 
@@ -733,27 +734,27 @@ LIST(APPEND PlusDataCollection_SRCS
   ${MicrochipMARG_SRCS}
   )
 
-LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+LIST(APPEND PlusDataCollection_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/MicrochipTracking
   )
 
 #--------------------------------------------------------------------------
-# OpenIGTLink 
+# OpenIGTLink
 IF( PLUS_USE_OpenIGTLink )
   SET(OpenIGTLink_SRCS
-    OpenIGTLink/vtkPlusOpenIGTLinkDevice.cxx 
-    OpenIGTLink/vtkPlusOpenIGTLinkTracker.cxx 
+    OpenIGTLink/vtkPlusOpenIGTLinkDevice.cxx
+    OpenIGTLink/vtkPlusOpenIGTLinkTracker.cxx
     OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.cxx
     )
-    
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(OpenIGTLink_HDRS
       OpenIGTLink/vtkPlusOpenIGTLinkDevice.h
-      OpenIGTLink/vtkPlusOpenIGTLinkTracker.h 
+      OpenIGTLink/vtkPlusOpenIGTLinkTracker.h
       OpenIGTLink/vtkPlusOpenIGTLinkVideoSource.h
       )
   ENDIF()
-  
+
   LIST(APPEND PlusDataCollection_HDRS
     ${OpenIGTLink_HDRS}
     )
@@ -762,11 +763,11 @@ IF( PLUS_USE_OpenIGTLink )
     ${OpenIGTLink_SRCS}
     )
 
-  LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenIGTLink
     ${OpenIGTLink_INCLUDE_DIRS}
     )
-  
+
   LIST(APPEND PlusDataCollection_LIBS OpenIGTLink vtkPlusOpenIGTLink )
 ENDIF()
 
@@ -777,10 +778,10 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     SonixVideo/vtkPlusSonixVideoSource.cxx
     SonixVideo/vtkPlusSonixVolumeReader.cxx
     SonixVideo/itkUlteriusImageIO.cxx
-    SonixVideo/itkUlteriusImageIOFactory.cxx   
+    SonixVideo/itkUlteriusImageIOFactory.cxx
     SonixVideo/vtkPlusSonixPortaVideoSource.cxx
     )
-    
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(Ultrasonix_HDRS
       SonixVideo/vtkPlusSonixVideoSource.h

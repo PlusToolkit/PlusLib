@@ -53,7 +53,7 @@ SET(PlusCommon_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusCommon_LIBS 
+SET(PlusCommon_LIBS
   vtkCommonCore
   vtkCommonDataModel
   vtkImagingCore
