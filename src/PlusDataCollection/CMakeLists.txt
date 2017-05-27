@@ -361,7 +361,7 @@ IF(PLUS_USE_NDI)
 ENDIF()
 
 #--------------------------------------------------------------------------
-# MICRONTRACKER support
+# MicronTracker support
 IF(PLUS_USE_MICRONTRACKER)
   SET(MicronTracking_SRCS
     MicronTracking/vtkPlusMicronTracker.cxx

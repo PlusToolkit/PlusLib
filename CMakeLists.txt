@@ -236,22 +236,22 @@ ADD_SUBDIRECTORY(src)
 # Generate convenience files for automatic build, test, and packaging
 #
 IF(WIN32)
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
     ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
     )
 
   # Documentation generator
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/CreateApiReference.bat.in
     ${CMAKE_CURRENT_BINARY_DIR}/CreateApiReference.bat
     )
 ELSE()
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in
     ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
     )
-  file(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
+  FILE(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
     FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ
     )
