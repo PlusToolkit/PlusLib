@@ -54,16 +54,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_
 target_link_libraries(${PROJECT_NAME} PUBLIC ${MicronTracker_LIBRARY})
 
 # --------------------------------------------------------------------------
-# Set external MS project 
+# Set external MS project
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} ${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
 SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/Utilities/MicronTrackerInterface/${PROJECT_NAME}.vcxproj CACHE INTERNAL "" FORCE) 
 
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT PlusLib
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
-  )
-INSTALL(FILES ${${PROJECT_NAME}_HDRS} 
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
-  )
+# --------------------------------------------------------------------------
+# Install
+#
+PlusLibInstallLibrary(${PROJECT_NAME} ${PROJECT_NAME})
