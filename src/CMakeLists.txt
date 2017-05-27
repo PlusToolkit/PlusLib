@@ -335,8 +335,7 @@ write_basic_package_version_file(
   VERSION ${PLUSLIB_VERSION}
   COMPATIBILITY ExactVersion)
 LIST(APPEND PLUSLIB_INSTALL_CMAKE_FILES} "${CMAKE_CURRENT_BINARY_DIR}/PlusLibConfigVersion.cmake")
-  
-  
+
 #-----------------------------------------------------------------------------
 # With regards to ticket #1075, also generate in top-level directory
 CONFIGURE_FILE(PlusLibConfig.cmake.in
@@ -354,8 +353,8 @@ SET(PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels")
 SET(PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}")
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  # PlusConfig.xml generation for Windows (separate directories for different build types)
-  configure_file(
+  # PlusConfig.xml generation for Windows or Mac (separate directories for different build types)
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/PlusConfig.xml.in
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
     )
@@ -422,22 +421,17 @@ CONFIGURE_FILE(
 # Starting here, all operations are exclusively for INSTALL
 #-----------------------------------------------------------------------------
 ### That means some variables are filled with bogus data in other cases.
-  
+
 #-----------------------------------------------------------------------------
 # Install UseFile/Config
-  
 INSTALL(FILES ${PLUSLIB_INSTALL_INCLUDE_FILES}
   DESTINATION ${PLUSLIB_INCLUDE_INSTALL} COMPONENT Development
   )
- 
-INSTALL(FILES ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release/PlusConfig.xml
-  DESTINATION ${PLUSLIB_SHARE_INSTALL} 
-  )
-  
+
 INSTALL(FILES ${PLUSLIB_INSTALL_CMAKE_FILES}
   DESTINATION ${PLUSLIB_CMAKE_INSTALL} COMPONENT Development
   )
-  
+
 # set all paths to install location paths
 #relative to PlusConfig.cmake
 
