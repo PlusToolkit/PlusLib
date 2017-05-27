@@ -381,16 +381,33 @@ IF(PLUS_USE_MICRONTRACKER)
     )
 
   LIST(APPEND PlusDataCollection_INCLUDE_DIRS 
-    ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking 
+    ${CMAKE_CURRENT_SOURCE_DIR}/MicronTracking
     )
 
-  FIND_PACKAGE(MicronTracker REQUIRED)
-  
   LIST(APPEND PlusDataCollection_LIBS 
     MicronTrackerInterface
     )
 
-  MicronTrackerInstall(${PLUSLIB_INCLUDE_INSTALL} ${PLUSLIB_BINARY_INSTALL} ${PLUSLIB_LIBRARY_INSTALL} ${PLUSLIB_ARCHIVE_INSTALL} PlusLib)
+  IF(EXISTS "${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    # MicronTracker 3.7.x
+    SET(External_Libraries_Install ${External_Libraries_Install}
+      ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/FlyCapture2_C${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+    # MicronTracker 3.6.x
+    SET(External_Libraries_Install ${External_Libraries_Install}
+      ${MicronTracker_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/Windist/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/Windist/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${MicronTracker_BINARY_DIR}/Windist/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -636,11 +653,13 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_IMPLIB ${PHIDGET_SPATIAL_LIB_DIR}/phidget21${CMAKE_STATIC_LIBRARY_SUFFIX})
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-  SET(PlusDataCollection_LIBS ${PlusDataCollection_LIBS} phidget vtkxio )
+  LIST(APPEND PlusDataCollection_LIBS 
+    phidget vtkxio 
+    )
   LIST(APPEND External_Libraries_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
-  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  LIST(APPEND External_Libraries_Static_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget21${CMAKE_SHARED_LIBRARY_SUFFIX} 
     )
 ENDIF()

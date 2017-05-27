@@ -1,10 +1,9 @@
 PROJECT(MicronTrackerInterface)
 
-FIND_PACKAGE(MicronTracker REQUIRED)
-
 SET (${PROJECT_NAME}_INCLUDE_DIRS 
   ${${PROJECT_NAME}_SOURCE_DIR} 
   ${${PROJECT_NAME}_BINARY_DIR} 
+  ${MicronTracker_INCLUDE_DIR}
   )
 
 SET(${PROJECT_NAME}_SRCS
@@ -52,7 +51,7 @@ FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
   target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
 target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-target_link_libraries(${PROJECT_NAME} PUBLIC MicronTracker)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${MicronTracker_LIBRARY})
 
 # --------------------------------------------------------------------------
 # Set external MS project 
