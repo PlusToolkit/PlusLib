@@ -231,8 +231,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
           transformRepository->GetTransform(transformName, mat, &isValid);
 
-          if (!isValid)
+          if (!isValid && packValidTransformsOnly)
           {
+            LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
             continue;
           }
 
