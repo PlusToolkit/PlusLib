@@ -35,10 +35,7 @@ int main(int argc, char** argv)
   std::string inputConfigFileName;
   std::string outputConfigFileName;
   std::string outputFileName;
-  std::string linesImageFileName;
-  std::string intermediateImageFileName;
-  std::string shadowImageFileName;
-  std::string processedLinesImageFileName;
+  bool saveIntermediateResults = false;
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
@@ -49,16 +46,13 @@ int main(int argc, char** argv)
   args.AddArgument("--input-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "The filename for input config file.");
   args.AddArgument("--output-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputConfigFileName, "Optional filename for output config file. Creates new config file with paramaters used during this test");
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "The filename to write the processed sequence to.");
-  args.AddArgument("--output-lines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &linesImageFileName, "Optional output files for subsampled lines input image");
-  args.AddArgument("--output-intermediate-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateImageFileName, "Optional output file for intermediate data");
-  args.AddArgument("--output-shadow-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &shadowImageFileName, "Optional output file for shadow image");
-  args.AddArgument("--output-processedlines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &processedLinesImageFileName, "Optional output files for processed subsampled image");
+  args.AddArgument("--save-intermediate-images", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveIntermediateResults, "If intermediate images should be saved to output files");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
   if (!args.Parse())
   {
     LOG_ERROR("Problem parsing arguments");
-    LOG_ERROR("Help: " << args.GetHelp());
+    LOG_INFO("Help: " << args.GetHelp());
     exit(EXIT_FAILURE);
   }
 
@@ -131,6 +125,7 @@ int main(int argc, char** argv)
   LOG_INFO("Reading config file finished.");
 
   //Process the frames for the input file
+  enhancer->SetSaveIntermediateResults(saveIntermediateResults);
   LOG_INFO("attempting to Process Frames.");
   if (enhancer->Update() == PLUS_FAIL)
   {
@@ -139,13 +134,25 @@ int main(int argc, char** argv)
   }
   LOG_INFO("Processed Frames terminated successfully.");
 
-  //save various outputs file names
-  enhancer->SetLinesImageFileName(linesImageFileName);
-  enhancer->SetIntermediateImageFileName(intermediateImageFileName);
-  enhancer->SetShadowImageFileName(shadowImageFileName);
-  enhancer->SetProcessedLinesImageFileName(processedLinesImageFileName);
+  if (saveIntermediateResults)
+  {
+    enhancer->SetIntermediateImageFileName(outputFileName.substr(0, outputFileName.find(".")));
+    enhancer->SaveAllKeywordPostfixs("Lines");
+    enhancer->SaveAllKeywordPostfixs("Threshold");
+    enhancer->SaveAllKeywordPostfixs("Gaussian");
+    enhancer->SaveAllKeywordPostfixs("EdgeDetector");
+    enhancer->SaveAllKeywordPostfixs("Island");
+    enhancer->SaveAllKeywordPostfixs("Erosion");
+    enhancer->SaveAllKeywordPostfixs("Dilation");
+    enhancer->SaveAllKeywordPostfixs("ReconvertBinaryToGreyscale");
+    enhancer->SaveAllKeywordPostfixs("ReturnToFanImage");
+  }
 
-  enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName);
+  if (enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)
+  {
+    LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
+    return EXIT_FAILURE;
+  }
 
   //test the abillity to Write to the config file
   if (!outputConfigFileName.empty())
@@ -155,7 +162,7 @@ int main(int argc, char** argv)
     processorWriteData->SetName("Processor");
 
     //Write to the config file
-    LOG_DEBUG("Writing to config file...");
+    LOG_INFO("Writing to config file.");
     if (enhancer->WriteConfiguration(processorWriteData) == PLUS_FAIL)
     {
       LOG_ERROR("Unable to write to config file.");
@@ -166,7 +173,7 @@ int main(int argc, char** argv)
       LOG_ERROR("An error occured when trying to save to the config file " << outputConfigFileName);
       return EXIT_FAILURE;
     }
-    LOG_DEBUG("Writing to config file finished.");
+    LOG_INFO("Writing to config file finished successfully.");
   }
 
   LOG_INFO("Completed Test Successfully.");
