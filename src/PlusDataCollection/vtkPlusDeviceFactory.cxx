@@ -43,6 +43,9 @@ See License.txt for details.
 #ifdef PLUS_USE_INTELREALSENSE
 #include "vtkPlusIntelRealSenseTracker.h"
 #endif
+#ifdef PLUS_USE_OPTICAL_MARKER_TRACKER
+#include "vtkPlusOpticalMarkerTracker.h"
+#endif
 #ifdef PLUS_USE_STEALTHLINK
 #include "vtkPlusStealthLinkTracker.h"
 #endif
@@ -201,6 +204,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_INTELREALSENSE
   RegisterDevice("IntelRealSenseTracker", "vtkPlusIntelRealSenseTracker", (PointerToDevice)&vtkPlusIntelRealSenseTracker::New);
+#endif
+#ifdef PLUS_USE_OPTICAL_MARKER_TRACKER
+  RegisterDevice("OpticalMarkerTracker", "vtkPlusOpticalMarkerTracker", (PointerToDevice)&vtkPlusOpticalMarkerTracker::New);
 #endif
 #ifdef PLUS_USE_STEALTHLINK
   RegisterDevice("StealthLinkTracker", "vtkPlusStealthLinkTracker", (PointerToDevice)&vtkPlusStealthLinkTracker::New);

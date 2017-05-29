@@ -49,6 +49,7 @@ OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical S
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
+OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking." OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -453,6 +454,42 @@ IF(PLUS_USE_INTELREALSENSE)
 #  SET( External_Libraries_Debug_Install ${External_Libraries_Debug_Install}
 #    ${INTELREALSENSE_DEBUG_LIB}
 #    )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Optical Marker Tracking
+
+IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
+  SET(OpticalMarkerTracking_SRCS
+    OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.cxx
+    )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OpticalMarkerTracking_HDRS
+      OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.h
+      )
+  ENDIF()
+
+  LIST (APPEND PlusDataCollection_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking/includes
+    ${OpenCV_INCLUDE_DIRS}
+    #${aruco_INCLUDE_DIRS}
+    )
+
+  LIST (APPEND ${PROJECT_NAME}_HDRS 
+    ${OpticalMarkerTracking_HDRS}
+    )
+
+  LIST (APPEND ${PROJECT_NAME}_SRCS 
+    ${OpticalMarkerTracking_SRCS}
+    )
+
+  LIST (APPEND ${PROJECT_NAME}_LIBS
+    #OpticalMarkerTracking/libs
+    ${OpenCV_LIBS}
+    ${aruco_LIBS}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -1744,6 +1781,7 @@ source_group("VirtualDevices" FILES ${Virtual_HDRS} ${Virtual_SRCS})
 source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
 source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
+source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
