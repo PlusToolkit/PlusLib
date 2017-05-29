@@ -24,6 +24,8 @@ See License.txt for details.
 #include <vtkImageThreshold.h>
 #include <vtkObjectFactory.h>
 
+
+#include <direct.h>
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
@@ -71,6 +73,9 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   DilationEnabled(false),
   ReconvertBinaryToGreyscale(false),
 
+
+  IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
+  IntermediateFrameList(vtkPlusTrackedFrameList::New()),
   LinesImage(vtkSmartPointer<vtkImageData>::New()),
   //LinesFrame(),
   //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
@@ -80,10 +85,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   //ShadowFrame(),
   //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
   ShadowFrameList(vtkPlusTrackedFrameList::New()),
-  IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
   //IntermediateFrame(),
   //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-  IntermediateFrameList(vtkPlusTrackedFrameList::New()),
   ProcessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
   //ProcessedLinesFrame(),
   //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
@@ -119,12 +122,12 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ProcessedLinesFrame->GetImageData()->GetImage()->SetExtent(0, 0, 0, 0, 0, 0);
   */
   this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
-  this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0); //Temporary code 1
   this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->ProcessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
 
   this->LinesImageFileName.clear();
-  this->ShadowImageFileName.clear();
+  this->ShadowImageFileName.clear(); //Temporary code 1
   this->IntermediateImageFileName.clear();
   this->ProcessedLinesImageFileName.clear();
 }
@@ -132,59 +135,12 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
+  this->IntermediateImageMap.clear();
 
-  if (!this->LinesImageFileName.empty())
-  {
-    LOG_INFO("Writing lines image sequence");
-    if (this->LinesFrameList->SaveToSequenceMetafile(this->LinesImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the lines image to file: " << LinesImageFileName);
-    }
-    else
-    {
-      LOG_INFO("Sucessfully wrote the lines image to the file: " << LinesImageFileName);
-    }
-  }
+  //TODO: Move all the code that saves something into a dedicated function
 
-  if (!this->IntermediateImageFileName.empty())
-  {
-    LOG_INFO("Writing intermediate image");
-    if (this->IntermediateFrameList->SaveToSequenceMetafile(this->IntermediateImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the intermediate image to file: " << IntermediateImageFileName);
-    }
-    else
-    {
-      LOG_INFO("Sucessfully wrote the intermediate image to the file: " << IntermediateImageFileName);
-    }
-  }
-
-  if (ShadowImageFileName.empty() == false)
-  {
-    LOG_INFO("Writing shadow image");
-    if (this->ShadowFrameList->SaveToSequenceMetafile(this->ShadowImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the shadow image to file: " << ShadowImageFileName);
-    }
-    else
-    {
-      LOG_INFO("Sucessfully wrote the shadow image to the file: " << ShadowImageFileName);
-    }
-  }
-
-  if (!this->ProcessedLinesImageFileName.empty())
-  {
-    LOG_INFO("Writing processed lines image sequence");
-    if (this->ProcessedLinesFrameList->SaveToSequenceMetafile(this->ProcessedLinesImageFileName, US_IMG_ORIENT_MF, false) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the processed lines image to file: " << ProcessedLinesImageFileName);
-    }
-    else
-    {
-      LOG_INFO("Sucessfully wrote the processed lines image sequence to the file: " << ProcessedLinesImageFileName);
-    }
-  }
 }
+
 
 //----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::PrintSelf(ostream& os, vtkIndent indent)
@@ -228,10 +184,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkXMLDataElement
     }
     this->ScanConverter->ReadConfiguration(scanConversionElement);
 
-    scanConversionElement->GetScalarAttribute("RadiusStartMm", RadiusStartMm);
-    scanConversionElement->GetScalarAttribute("RadiusStopMm", RadiusStopMm);
-    scanConversionElement->GetScalarAttribute("ThetaStartDeg", ThetaStartDeg);
-    scanConversionElement->GetScalarAttribute("ThetaStopDeg", ThetaStopDeg);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, RadiusStartMm, scanConversionElement);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, RadiusStopMm, scanConversionElement);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ThetaStartDeg, scanConversionElement);
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ThetaStopDeg, scanConversionElement);
   }
   else
   {
@@ -390,12 +346,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkXMLDataElemen
   processingElement->SetIntAttribute("NumberOfScanLines", NumberOfScanLines);
   processingElement->SetIntAttribute("NumberOfSamplesPerScanLine", NumberOfSamplesPerScanLine);
 
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(scanConversion, processingElement, "ScanConversion");
-  this->ScanConverter->WriteConfiguration(scanConversion);;
-  scanConversion->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
-  scanConversion->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
-  scanConversion->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
-  scanConversion->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(scanConversionElement, processingElement, "ScanConversion");
+  this->ScanConverter->WriteConfiguration(scanConversionElement);
+  scanConversionElement->SetDoubleAttribute("RadiusStartMm", this->RadiusStartMm);
+  scanConversionElement->SetDoubleAttribute("RadiusStopMm", this->RadiusStopMm);
+  scanConversionElement->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
+  scanConversionElement->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
 
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
 
@@ -681,6 +637,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     return PLUS_FAIL;
   }
 
+
+
   if (this->ConvertToLinesImage)
   {
     this->ScanConverter->SetInputData(inputImage->GetImage());
@@ -688,8 +646,16 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     //inputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
     // Generate lines image.
     this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
-    //this->ProcessLinesImage();
-    //this->FillShadowValues();
+    this->ProcessLinesImage();
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_1Lines", this->ProcessedLinesImage);
+    }
+    this->FillShadowValues();
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_2Lines", this->ShadowImage);
+    }
     // Save lines image for debugging.
 
     PlusVideoFrame linesVideoFrame;
@@ -701,6 +667,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     //this->LinesFrameList->AddTrackedFrame(this->LinesFrame); // TODO: How to create a new tracked frame in PLUS
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->LinesFrame->GetImageData()->GetImage());
     this->IntermediateImage->DeepCopy(this->LinesImage);
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_3Lines", this->LinesImage);
+    }
   }
   else
   {
@@ -708,6 +678,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(inputImage->GetImage());
   }
   //this->IntermediateFrame->GetImageData()->GetImage()->Modified();
+
+
 
   if (this->ThresholdingEnabled)
   {
@@ -717,7 +689,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->Thresholder->GetOutput());
     // this->IntermediateFrame->GetImageData()->GetImage()->Modified();
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_1Threshold", this->Thresholder->GetOutput());
+    }
   }
+
 
   if (this->GaussianEnabled)
   {
@@ -727,7 +704,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->GaussianSmooth->GetOutput());
     this->IntermediateImage->Modified();
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_1Gaussian", this->GaussianSmooth->GetOutput());
+    }
   }
+
 
   // Store current itermediately processed image for pixel value retrieval after operations requiring binarization
   this->UnprocessedLinesImage->DeepCopy(this->IntermediateImage);
@@ -742,7 +724,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->ConversionImage);
     this->IntermediateImage->DeepCopy(this->ConversionImage);
     //this->IntermediateImage->Modified();
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_1EdgeDetector", this->ConversionImage);
+    }
   }
+
 
   // Save Intermediate image for debugging - placement of this is currently arbitrary, just getting it to work...
   PlusVideoFrame intermediateVideoFrame;
@@ -765,6 +752,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->IslandRemover->SetInputData(this->BinaryImageForMorphology);
       this->IslandRemover->Update();
       this->BinaryImageForMorphology->DeepCopy(this->IslandRemover->GetOutput());
+      if (this->SaveIntermediateResults)
+      {
+        this->AddIntermediateImage("_1Island", this->IslandRemover->GetOutput());
+      }
     }
     if (this->ErosionEnabled)
     {
@@ -776,6 +767,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
       this->ImageEroder->SetErodeValue(100);
       this->ImageEroder->SetDilateValue(100);
+      if (this->SaveIntermediateResults)
+      {
+        this->AddIntermediateImage("_1Erosion", this->ImageEroder->GetOutput());
+      }
     }
     if (this->DilationEnabled)
     {
@@ -787,12 +782,20 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
       this->ImageEroder->SetDilateValue(100);
       this->ImageEroder->SetErodeValue(100);
+      if (this->SaveIntermediateResults)
+      {
+        this->AddIntermediateImage("_1Dilation", this->ImageEroder->GetOutput());
+      }
     }
     if (this->ReconvertBinaryToGreyscale)
     {
       ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
       this->IntermediateImage->DeepCopy(this->UnprocessedLinesImage);
       //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->UnprocessedLinesImage);
+      if (this->SaveIntermediateResults)
+      {
+        this->AddIntermediateImage("_1ReconvertBinaryToGreyscale", this->UnprocessedLinesImage);
+      }
     }
     else
     {
@@ -800,6 +803,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     }
     //this->IntermediateFrame->GetImageData()->GetImage()->Modified();
   }
+
 
 
   // Save processed lines image for debugging.
@@ -818,13 +822,18 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->ScanConverter->SetInputData(this->ProcessedLinesImage);
     //this->ScanConverter->SetInputData(this->ProcessedLinesFrame->GetImageData()->GetImage());
     this->ScanConverter->Update();
-    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
+    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());      
+    if (this->SaveIntermediateResults)
+    {
+      this->AddIntermediateImage("_1ReturnToFanImage", this->ScanConverter->GetOutput());
+    }
   }
   else
   {
     outputImage->DeepCopyFrom(this->ProcessedLinesImage);
     //outputImage->DeepCopyFrom(this->ProcessedLinesFrame->GetImageData()->GetImage());
   }
+
 
   //outputImage->DeepCopyFrom( inputImage->GetImage() );
   // Set final output image data
@@ -842,42 +851,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-// TODO: Currently not used. If won't be used, delete.
-void vtkPlusTransverseProcessEnhancer::ComputeHistogram(vtkImageData* imageData)
-{
-  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInputData(imageData);
-  histogram->SetComponentExtent(1, 25, 0, 0, 0, 0);
-  histogram->SetComponentOrigin(1, 0, 0);
-  histogram->SetComponentSpacing(10, 0, 0);
-  histogram->SetIgnoreZero(true);
-  histogram->Update();
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetLinesImageFileName(const std::string& fileName)
-{
-  this->LinesImageFileName = fileName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetShadowImageFileName(const std::string& fileName)
-{
-  this->ShadowImageFileName = fileName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetIntermediateImageFileName(const std::string& fileName)
-{
-  this->IntermediateImageFileName = fileName;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetProcessedLinesImageFileName(const std::string& fileName)
-{
-  this->ProcessedLinesImageFileName = fileName;
-}
 
 //----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::SetGaussianStdDev(double gaussianStdDev)
@@ -955,3 +928,89 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
   }
 }
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs(std::string postfixKeyword)
+{
+  int postfixIndex = 1;
+  while (this->IntermediateImageMap.find("_" + std::to_string(postfixIndex) + postfixKeyword) != this->IntermediateImageMap.end())
+  {
+    this->SaveIntermediateResultToFile("_" + std::to_string(postfixIndex) + postfixKeyword);
+    postfixIndex += 1;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(std::string fileNamePostfix)
+{
+  /*
+  mkdir("./TEST");
+  CreateDirectory("Hello", NULL);
+  int keyworIndex = 1;
+  std::string allNumbers = "0123456789";
+  while (allNumbers.find(fileNamePostfix.substr(keyworIndex, 1)) != std::string::npos)
+  {
+    keyworIndex++;
+  }
+  CreateDirectory(("IntermediateImageFiles\\" + fileNamePostfix.substr(keyworIndex)).c_str(), NULL);
+
+  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+  if (indexIterator != this->IntermediateImageMap.end())
+  {
+    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile("IntermediateImageFiles\\" + fileNamePostfix.substr(keyworIndex) + "\\" + IntermediateImageFileName + fileNamePostfix + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
+      return PLUS_FAIL;
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the intermediate image with the postfix: " << fileNamePostfix);
+    }
+  }
+  */
+
+  if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + fileNamePostfix + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+  {
+    LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(std::string fileNamePostfix, vtkImageData* image)
+{
+  // Lookup in the map
+  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+  if (indexIterator != this->IntermediateImageMap.end())
+  {
+  }
+  else
+  {
+    // Create if not found
+    this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
+  }
+  PlusVideoFrame linesVideoFrame;
+  linesVideoFrame.DeepCopyFrom(image);
+  PlusTrackedFrame linesTrackedFrame;
+  linesTrackedFrame.SetImageData(linesVideoFrame);
+  this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
+
+
+}
+
+
+//----------------------------------------------------------------------------
+// TODO: Currently not used. If won't be used, delete.
+void vtkPlusTransverseProcessEnhancer::ComputeHistogram(vtkImageData* imageData)
+{
+  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
+  histogram->SetInputData(imageData);
+  histogram->SetComponentExtent(1, 25, 0, 0, 0, 0);
+  histogram->SetComponentOrigin(1, 0, 0);
+  histogram->SetComponentSpacing(10, 0, 0);
+  histogram->SetIgnoreZero(true);
+  histogram->Update();
+}
+
+

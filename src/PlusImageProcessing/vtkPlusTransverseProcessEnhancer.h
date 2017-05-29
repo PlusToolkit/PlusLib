@@ -4,6 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+//Temporary code 1 refers to output intermediate images that will be removed when map of frames works
+//Note: shadow images may not be temp?
+
 #ifndef __vtkPlusTransverseProcessEnhancer_h
 #define __vtkPlusTransverseProcessEnhancer_h
 
@@ -49,17 +52,10 @@ public:
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
-  /*! Set optional output file name for sub-sampled input image sequence */
-  void SetLinesImageFileName(const std::string& fileName);
+  /*! If optional output files for intermediate images should saved */
+  vtkSetMacro(IntermediateImageFileName, std::string);
+  vtkSetMacro(SaveIntermediateResults, bool);
 
-  /*! Set optional output file name for transverse process acoustic shadow images */
-  void SetShadowImageFileName(const std::string& fileName);
-
-  /*! Set optional output file name for partially process images */
-  void SetIntermediateImageFileName(const std::string& fileName);
-
-  /*! Set optional output file name for processed sub-sampled image sequence */
-  void SetProcessedLinesImageFileName(const std::string& fileName);
 
   vtkSetMacro(ConvertToLinesImage, bool);
   vtkGetMacro(ConvertToLinesImage, bool);
@@ -111,6 +107,7 @@ public:
   vtkBooleanMacro(IslandRemovalEnabled, bool);
 
   void SetIslandAreaThreshold(int islandAreaThreshold);
+  vtkGetMacro(IslandAreaThreshold, int);
 
   vtkSetMacro(ErosionEnabled, bool);
   vtkGetMacro(ErosionEnabled, bool);
@@ -135,15 +132,15 @@ public:
   vtkBooleanMacro(ReturnToFanImage, bool);
 
   //vtkSetMacro(LinesImageFileName, string);
-  vtkPlusTrackedFrameList* LinesFrameList;
-  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
-  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
-  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
+  vtkPlusTrackedFrameList* LinesFrameList; //Temporary code 1
+  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development. //Temporary code 1
+  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development  //Temporary code 1
+  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.  //Temporary code 1
 
-  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList); //Temporary code 1
+  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList); //Temporary code 1
+  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList); //Temporary code 1
+  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList); //Temporary code 1
   /*
   vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
   vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
@@ -155,10 +152,14 @@ public:
   PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
   PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
   */
-  vtkImageData* GetLinesImage() { return (this->LinesImage); };
-  vtkImageData* GetShadowImage() { return this->ShadowImage; };
-  vtkImageData* GetIntermediateImage() { return this->IntermediateImage; };
-  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
+  //TODO: Remove individial members?
+  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
+  //vtkImageData* GetLinesImage() { return (this->LinesImage); }; //Temporary code 1
+  vtkImageData* GetShadowImage() { return this->ShadowImage; }; //Temporary code 1
+  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); } //Temporary code 1
+
+  PlusStatus SaveAllKeywordPostfixs(std::string postfixKeyword);
+  PlusStatus SaveIntermediateResultToFile(std::string fileNamePostfix);
 
 protected:
   vtkPlusTransverseProcessEnhancer();
@@ -227,9 +228,17 @@ protected:
 
   bool ReconvertBinaryToGreyscale;
 
+  bool SaveIntermediateResults;
+
+  std::string IntermediateImageFileName;
+  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
+  vtkSmartPointer<vtkImageData> IntermediateImage; // Pixels (float) store probability of belonging to shadow
+
+  //Temporary code 1 start
   std::string LinesImageFileName;
   //void SetLinesImageFileName(const std::string& fileName);
   //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
+  //TODO: Remove individial members?
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
 
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
@@ -238,13 +247,19 @@ protected:
   //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
 
-  std::string IntermediateImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> IntermediateFrame;
-  vtkSmartPointer<vtkImageData> IntermediateImage; // Image after some of the processing operations have been applied
-
   std::string ProcessedLinesImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ProcessedLinesFrame;
-  vtkSmartPointer<vtkImageData> ProcessedLinesImage;  // Image after all of the processing operations have been applied
+  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
+  vtkSmartPointer<vtkImageData> ProcessedLinesImage; // Pixels (float) store probability of belonging to shadow
+  //Temporary code 1 end
+
+
+
+  /// Image after some of the processing operations have been applied
+  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
+
+  void AddIntermediateImage(std::string fileNamePostfix, vtkImageData* image);
+
+  PlusStatus SaveAllImageFiles();
 
 };
 
