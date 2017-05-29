@@ -4,8 +4,7 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-//Temporary code 1 refers to output intermediate images that will be removed when map of frames works
-//Note: shadow images may not be temp?
+
 
 #ifndef __vtkPlusTransverseProcessEnhancer_h
 #define __vtkPlusTransverseProcessEnhancer_h
@@ -44,16 +43,17 @@ public:
   virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* processingElement);
+  virtual PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* processingElement);
+  virtual PlusStatus WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
   /*! If optional output files for intermediate images should saved */
   vtkSetMacro(IntermediateImageFileName, std::string);
+  vtkSetMacro(IntermediateImageFilePath, std::string);
   vtkSetMacro(SaveIntermediateResults, bool);
 
 
@@ -78,8 +78,6 @@ public:
 
   vtkSetMacro(ThetaStopDeg, int);
   vtkGetMacro(ThetaStopDeg, int);
-
-
 
 
   vtkSetMacro(GaussianEnabled, bool);
@@ -132,15 +130,7 @@ public:
   vtkBooleanMacro(ReturnToFanImage, bool);
 
   //vtkSetMacro(LinesImageFileName, string);
-  vtkPlusTrackedFrameList* LinesFrameList; //Temporary code 1
-  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development. //Temporary code 1
-  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development  //Temporary code 1
-  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.  //Temporary code 1
 
-  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList); //Temporary code 1
-  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList); //Temporary code 1
-  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList); //Temporary code 1
-  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList); //Temporary code 1
   /*
   vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
   vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
@@ -152,27 +142,28 @@ public:
   PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
   PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
   */
-  //TODO: Remove individial members?
   std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
-  //vtkImageData* GetLinesImage() { return (this->LinesImage); }; //Temporary code 1
-  vtkImageData* GetShadowImage() { return this->ShadowImage; }; //Temporary code 1
-  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); } //Temporary code 1
+  //vtkImageData* GetLinesImage() { return (this->LinesImage); };
+  vtkImageData* GetShadowImage() { return this->ShadowImage; };
+  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); } 
 
-  PlusStatus SaveAllKeywordPostfixs(std::string postfixKeyword);
+  PlusStatus SaveAllKeywordPostfixs();
   PlusStatus SaveIntermediateResultToFile(std::string fileNamePostfix);
+
+  std::vector<std::string> IntermediatePostfixs;
 
 protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
 
-  void FillLinesImage(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData);
+  void FillLinesImage(vtkSmartPointer<vtkPlusUsScanConvert> scanConverter, vtkSmartPointer<vtkImageData> inputImageData);
   void ProcessLinesImage();
-  void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
+  void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> ConversionImage);
   void FillShadowValues();
 
-  void ComputeHistogram(vtkImageData* imageData);
+  void ComputeHistogram(vtkSmartPointer<vtkImageData> imageData);
 
-  void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
+  void ImageConjunction(vtkSmartPointer<vtkImageData> InputImage, vtkSmartPointer<vtkImageData> MaskImage);
 
 
 
@@ -230,36 +221,22 @@ protected:
 
   bool SaveIntermediateResults;
 
+  std::string IntermediateImageFilePath;
+
   std::string IntermediateImageFileName;
   //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> IntermediateImage; // Pixels (float) store probability of belonging to shadow
 
-  //Temporary code 1 start
-  std::string LinesImageFileName;
-  //void SetLinesImageFileName(const std::string& fileName);
-  //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
-  //TODO: Remove individial members?
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
-
-  std::string ShadowImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
-
-  std::string ProcessedLinesImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> ProcessedLinesImage; // Pixels (float) store probability of belonging to shadow
-  //Temporary code 1 end
-
-
 
   /// Image after some of the processing operations have been applied
   std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
 
-  void AddIntermediateImage(std::string fileNamePostfix, vtkImageData* image);
+  void AddIntermediateImage(std::string fileNamePostfix, vtkSmartPointer<vtkImageData> image);
 
-  PlusStatus SaveAllImageFiles();
 
 };
 

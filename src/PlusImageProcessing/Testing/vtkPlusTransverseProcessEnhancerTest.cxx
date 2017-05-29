@@ -27,6 +27,7 @@ This is a program meant to test vtkPlusTransverseProcessEnhancer.cxx from the co
 
 int main(int argc, char** argv)
 {
+
   bool printHelp = false;
   vtksys::CommandLineArguments args;
 
@@ -110,7 +111,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  vtkXMLDataElement* processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
+  vtkSmartPointer<vtkXMLDataElement> processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
   if (processorElement == NULL)
   {
     LOG_ERROR("Cannot find device set in XML tree element: " << ((*configRootElement).GetName()));
@@ -136,16 +137,11 @@ int main(int argc, char** argv)
 
   if (saveIntermediateResults)
   {
+    //Saves the intermediate results that were recorded during the call to enhancer->Update()
+    std::string path = argv[0];
+    enhancer->SetIntermediateImageFilePath(path.substr(0, path.rfind("\\")) + "\\Output");
     enhancer->SetIntermediateImageFileName(outputFileName.substr(0, outputFileName.find(".")));
-    enhancer->SaveAllKeywordPostfixs("Lines");
-    enhancer->SaveAllKeywordPostfixs("Threshold");
-    enhancer->SaveAllKeywordPostfixs("Gaussian");
-    enhancer->SaveAllKeywordPostfixs("EdgeDetector");
-    enhancer->SaveAllKeywordPostfixs("Island");
-    enhancer->SaveAllKeywordPostfixs("Erosion");
-    enhancer->SaveAllKeywordPostfixs("Dilation");
-    enhancer->SaveAllKeywordPostfixs("ReconvertBinaryToGreyscale");
-    enhancer->SaveAllKeywordPostfixs("ReturnToFanImage");
+    enhancer->SaveAllKeywordPostfixs();
   }
 
   if (enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)
