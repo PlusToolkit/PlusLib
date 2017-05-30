@@ -139,8 +139,7 @@ int main(int argc, char** argv)
   {
     //Saves the intermediate results that were recorded during the call to enhancer->Update()
     std::string path = argv[0];
-    enhancer->SetIntermediateImageFilePath(path.substr(0, path.rfind("\\")) + "\\Output");
-    enhancer->SetIntermediateImageFileName(outputFileName.substr(0, outputFileName.find(".")));
+    enhancer->SetIntermediateImageFileName(inputFileName.substr(0, inputFileName.find(".")));
     enhancer->SaveAllKeywordPostfixs();
   }
 
