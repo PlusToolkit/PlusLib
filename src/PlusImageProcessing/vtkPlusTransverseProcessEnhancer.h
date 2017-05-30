@@ -53,9 +53,7 @@ public:
 
   /*! If optional output files for intermediate images should saved */
   vtkSetMacro(IntermediateImageFileName, std::string);
-  vtkSetMacro(IntermediateImageFilePath, std::string);
   vtkSetMacro(SaveIntermediateResults, bool);
-
 
   vtkSetMacro(ConvertToLinesImage, bool);
   vtkGetMacro(ConvertToLinesImage, bool);
@@ -220,8 +218,6 @@ protected:
   bool ReconvertBinaryToGreyscale;
 
   bool SaveIntermediateResults;
-
-  std::string IntermediateImageFilePath;
 
   std::string IntermediateImageFileName;
   //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;

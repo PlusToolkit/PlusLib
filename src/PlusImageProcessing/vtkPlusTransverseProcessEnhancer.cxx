@@ -72,7 +72,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ErosionEnabled(false),
   DilationEnabled(false),
   ReconvertBinaryToGreyscale(false),
-  
+
 
   IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
   LinesImage(vtkSmartPointer<vtkImageData>::New()),
@@ -120,7 +120,6 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
 
-  this->IntermediateImageFilePath.clear();
   this->IntermediateImageFileName.clear();
 }
 
@@ -128,7 +127,6 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
   this->IntermediateImageMap.clear();
-  this->IntermediateImageFilePath.clear();
   this->IntermediateImageFileName.clear();
 }
 
@@ -612,6 +610,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 {
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
 
+
+
+
+
   if (this->ScanConverter.GetPointer() == NULL)
   {
     return PLUS_FAIL;
@@ -625,11 +627,11 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     // Generate lines image.
     this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
     this->ProcessLinesImage();
-    this->AddIntermediateImage("_1Lines", this->IntermediateImage);
+    this->AddIntermediateImage("_01Lines_1PostProcessLinesImage", this->IntermediateImage);
     this->FillShadowValues();
-    this->AddIntermediateImage("_2Lines", this->ShadowImage);
+    this->AddIntermediateImage("_01Lines_2PostFillShadowValues", this->ShadowImage);
     this->IntermediateImage->DeepCopy(this->LinesImage);
-    this->AddIntermediateImage("_3Lines", this->IntermediateImage);
+    this->AddIntermediateImage("_01Lines_3FilterEnd", this->IntermediateImage);
   }
   else
   {
@@ -647,7 +649,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->Thresholder->GetOutput());
     // this->IntermediateFrame->GetImageData()->GetImage()->Modified();
-    this->AddIntermediateImage("_1Threshold", this->IntermediateImage);
+    this->AddIntermediateImage("_02Threshold_1FilterEnd", this->IntermediateImage);
   }
 
   if (this->GaussianEnabled)
@@ -658,7 +660,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput());
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->GaussianSmooth->GetOutput());
     this->IntermediateImage->Modified();
-    this->AddIntermediateImage("_1Gaussian", this->IntermediateImage);
+    this->AddIntermediateImage("_03Gaussian_1FilterEnd", this->IntermediateImage);
   }
 
   // Store current itermediately processed image for pixel value retrieval after operations requiring binarization
@@ -670,12 +672,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->EdgeDetector->SetInputData(this->IntermediateImage);
     //this->EdgeDetector->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->EdgeDetector->Update();
-    this->AddIntermediateImage("_1EdgeDetector", this->EdgeDetector->GetOutput());
+    this->AddIntermediateImage("_04EdgeDetector_1PostEdgeDetectorUpdate", this->EdgeDetector->GetOutput());
     this->VectorImageToUchar(this->EdgeDetector->GetOutput(), this->ConversionImage);
     //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->ConversionImage);
     this->IntermediateImage->DeepCopy(this->ConversionImage);
     //this->IntermediateImage->Modified();
-    this->AddIntermediateImage("_2EdgeDetector", this->IntermediateImage);
+    this->AddIntermediateImage("_04EdgeDetector_2FilterEnd", this->IntermediateImage);
   }
 
   // If we are to perform any morphological operations, we must binarize the image
@@ -685,14 +687,14 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     //this->ImageBinarizer->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->ImageBinarizer->Update();
     this->BinaryImageForMorphology->DeepCopy(this->ImageBinarizer->GetOutput());
-    this->AddIntermediateImage("_1BinaryImageForMorphology", this->BinaryImageForMorphology);
+    this->AddIntermediateImage("_05BinaryImageForMorphology_1FilterEnd", this->BinaryImageForMorphology);
 
     if (this->IslandRemovalEnabled)
     {
       this->IslandRemover->SetInputData(this->BinaryImageForMorphology);
       this->IslandRemover->Update();
       this->BinaryImageForMorphology->DeepCopy(this->IslandRemover->GetOutput());
-      this->AddIntermediateImage("_1Island", this->IslandRemover->GetOutput());
+      this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
     }
     if (this->ErosionEnabled)
     {
@@ -702,10 +704,10 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
-      this->AddIntermediateImage("_1Erosion", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_07Erosion_1PostImageEroderUpdate", this->ImageEroder->GetOutput());
       this->ImageEroder->SetErodeValue(100);
       this->ImageEroder->SetDilateValue(100);
-      this->AddIntermediateImage("_2Erosion", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_07Erosion_2FilterEnd", this->ImageEroder->GetOutput());
     }
     if (this->DilationEnabled)
     {
@@ -715,17 +717,17 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
-      this->AddIntermediateImage("_1Dilation", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_08Dilation_1PostImageEroderUpdate", this->ImageEroder->GetOutput());
       this->ImageEroder->SetDilateValue(100);
       this->ImageEroder->SetErodeValue(100);
-      this->AddIntermediateImage("_2Dilation", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_08Dilation_2FilterEnd", this->ImageEroder->GetOutput());
     }
     if (this->ReconvertBinaryToGreyscale)
     {
       ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
       this->IntermediateImage->DeepCopy(this->UnprocessedLinesImage);
       //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->UnprocessedLinesImage);
-      this->AddIntermediateImage("_1ReconvertBinaryToGreyscale", this->IntermediateImage);
+      this->AddIntermediateImage("_09ReconvertBinaryToGreyscale_1FilterEnd", this->IntermediateImage);
     }
     else
     {
@@ -741,8 +743,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->ScanConverter->SetInputData(this->IntermediateImage);
     //this->ScanConverter->SetInputData(this->ProcessedLinesFrame->GetImageData()->GetImage());
     this->ScanConverter->Update();
-    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());      
-    this->AddIntermediateImage("_1ReturnToFanImage", this->ScanConverter->GetOutput());
+    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
+    this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
   }
   else
   {
@@ -764,6 +766,84 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   // Convert the lines image back to original geometry
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
+{
+  /*
+  Finds and saves all intermediate images that have been recorded.
+  Saves the images by calling this->SaveIntermediateResultToFile()
+  Returns PLUS_FAIL if this->SaveIntermediateResultToFile() encounters an error occured during this
+  process, returns PLUS_SUCCESS otherwise.
+  */
+
+  LOG_INFO(IntermediatePostfixs.size());
+  for (int PostfixIndex = this->IntermediatePostfixs.size() - 1; PostfixIndex >= 0; PostfixIndex -= 1){
+    if (this->SaveIntermediateResultToFile(this->IntermediatePostfixs.at(PostfixIndex)) == PLUS_FAIL)
+    {
+      return PLUS_FAIL;
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(std::string fileNamePostfix)
+{
+  /*
+  Takes a postfix as an argument and saves the intermediate image associated with that postfix
+  Returns PLUS_FAIL if an error occured during this process, returns PLUS_SUCCESS otherwise
+  */
+
+  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+  if (indexIterator != this->IntermediateImageMap.end())
+  {
+
+    //Try to save the intermediate image
+    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + fileNamePostfix + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    {
+      LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
+      return PLUS_FAIL;
+    }
+    else
+    {
+      LOG_INFO("Sucessfully wrote the intermediate image with the postfix: " << fileNamePostfix);
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(std::string fileNamePostfix, vtkSmartPointer<vtkImageData> image)
+{
+
+  if (fileNamePostfix == "")
+  {
+    LOG_WARNING("The empty string was given as an intermediate image file postfix.");
+  }
+
+  if (this->SaveIntermediateResults)
+  {
+    // See if the intermediate image should be created
+    std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+    if (indexIterator != this->IntermediateImageMap.end()){}
+    else
+    {
+      // Create if not found
+      this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
+
+      this->IntermediatePostfixs.push_back(fileNamePostfix);
+    }
+
+    //Add the current frame to its vtkPlusTrackedFrameList
+    PlusVideoFrame linesVideoFrame;
+    linesVideoFrame.DeepCopyFrom(image);
+    PlusTrackedFrame linesTrackedFrame;
+    linesTrackedFrame.SetImageData(linesVideoFrame);
+    this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
+  }
+
 }
 
 
@@ -843,109 +923,7 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
   }
 }
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
-{
-  /*
-  Finds and saves all intermediate images that have been recorded.
-  Saves the images by calling this->SaveIntermediateResultToFile()
-  Returns PLUS_FAIL if this->SaveIntermediateResultToFile() encounters an error occured during this 
-  process, returns PLUS_SUCCESS otherwise.
-  */
 
-  for (int PostfixIndex = this->IntermediatePostfixs.size() - 1; PostfixIndex >= 0; PostfixIndex -= 1){
-    int postfixNumIndex = 1;
-    while (this->IntermediateImageMap.find("_" + std::to_string(postfixNumIndex) + this->IntermediatePostfixs.at(PostfixIndex)) != this->IntermediateImageMap.end())
-    {
-      if (this->SaveIntermediateResultToFile("_" + std::to_string(postfixNumIndex) + this->IntermediatePostfixs.at(PostfixIndex)) == PLUS_FAIL)
-      {
-        return PLUS_FAIL;
-      }
-      postfixNumIndex += 1;
-    }
-  }
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(std::string fileNamePostfix)
-{
-  /*
-  Takes a postfix as an argument and saves the intermediate image associated with that postfix
-  Returns PLUS_FAIL if an error occured during this process, returns PLUS_SUCCESS otherwise
-  */
-
-  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
-  if (indexIterator != this->IntermediateImageMap.end())
-  {
-    //Creates the folder IntermediateImageFiles if it dosnt exist already
-    std::string CurrentPathStr = this->IntermediateImageFilePath + "\\IntermediateImageFiles";
-    char* CurrentPathChar = new char[CurrentPathStr.length() + 1];
-    std::strcpy(CurrentPathChar, CurrentPathStr.c_str());
-    _mkdir(CurrentPathChar);
-
-    //Determine what part of fileNamePostfix corresponds to it's numerical value, and where the postfex
-    //type truly begins. Then creates a sub-folder for the image based on said "true" postfex
-    int keyworIndex = 1;
-    std::string allNumbers = "0123456789";
-    while (allNumbers.find(fileNamePostfix.substr(keyworIndex, 1)) != std::string::npos)
-    {
-      keyworIndex++;
-    }
-    CurrentPathStr = CurrentPathStr + "\\" + fileNamePostfix.substr(keyworIndex);
-    CurrentPathChar = new char[CurrentPathStr.length() + 1];
-    std::strcpy(CurrentPathChar, CurrentPathStr.c_str());
-    _mkdir(CurrentPathChar);
-
-    //Try to save the intermediate image
-    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile("IntermediateImageFiles\\" + fileNamePostfix.substr(keyworIndex) + "\\" + IntermediateImageFileName + fileNamePostfix + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
-    {
-      LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
-      return PLUS_FAIL;
-    }
-    else
-    {
-      LOG_INFO("Sucessfully wrote the intermediate image with the postfix: " << fileNamePostfix);
-    }
-  }
-
-  return PLUS_SUCCESS;
-}
-
-void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(std::string fileNamePostfix, vtkSmartPointer<vtkImageData> image)
-{
-
-  if (this->SaveIntermediateResults)
-  {
-    // See if the intermediate image should be created
-    std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
-    if (indexIterator != this->IntermediateImageMap.end()){}
-    else
-    {
-      // Create if not found
-      this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
-
-      //Determine what part of fileNamePostfix corresponds to it's numerical value, and where the postfex
-      //type truly begins. Then creates a sub-folder for the image based on said "true" postfex
-      int keyworIndex = 1;
-      std::string allNumbers = "0123456789";
-      while (allNumbers.find(fileNamePostfix.substr(keyworIndex, 1)) != std::string::npos)
-      {
-        keyworIndex++;
-      }
-
-      this->IntermediatePostfixs.push_back(fileNamePostfix.substr(keyworIndex));
-    }
-
-    //Add the current frame to its vtkPlusTrackedFrameList
-    PlusVideoFrame linesVideoFrame;
-    linesVideoFrame.DeepCopyFrom(image);
-    PlusTrackedFrame linesTrackedFrame;
-    linesTrackedFrame.SetImageData(linesVideoFrame);
-    this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
-  }
-
-}
 
 
 //----------------------------------------------------------------------------
@@ -960,5 +938,3 @@ void vtkPlusTransverseProcessEnhancer::ComputeHistogram(vtkSmartPointer<vtkImage
   histogram->SetIgnoreZero(true);
   histogram->Update();
 }
-
-
