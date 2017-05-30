@@ -116,8 +116,8 @@ public:
   vtkGetMacro(DilationEnabled, bool);
   vtkBooleanMacro(DilationEnabled, bool);
 
-  vtkSetVector2Macro(DilationKernelRadiusPixel, int);
-  vtkGetVector2Macro(DilationKernelRadiusPixel, int);
+  vtkSetVector2Macro(DilationKernelSize, int);
+  vtkGetVector2Macro(DilationKernelSize, int);
 
   vtkSetMacro(ReconvertBinaryToGreyscale, bool);
   vtkGetMacro(ReconvertBinaryToGreyscale, bool);
@@ -213,7 +213,7 @@ protected:
   int ErosionKernelSize[2];
 
   bool DilationEnabled;
-  int DilationKernelRadiusPixel[2];
+  int DilationKernelSize[2];
 
   bool ReconvertBinaryToGreyscale;
 

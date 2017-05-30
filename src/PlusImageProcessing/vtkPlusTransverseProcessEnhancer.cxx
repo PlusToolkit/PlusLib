@@ -88,7 +88,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
 
 {
-  this->SetDilationKernelRadiusPixel(0, 0);
+  this->SetDilationKernelSize(0, 0);
   this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev(7.0);
   this->SetGaussianKernelSize(7.0);
@@ -267,7 +267,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
       }
       else
       {
-        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelRadiusPixel, dilationParameters);
+        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
       }
     }
 
@@ -360,7 +360,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
 
   XML_WRITE_BOOL_ATTRIBUTE(DilationEnabled, imageProcessingOperations);
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
-  dilationParameters->SetVectorAttribute("DilationKernelRadiusPixel", 2, this->DilationKernelRadiusPixel);
+  dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize); //DilationKernelRadiusPixel
 
   XML_WRITE_BOOL_ATTRIBUTE(ReconvertBinaryToGreyscale, imageProcessingOperations);
 
@@ -713,7 +713,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     {
       this->ImageEroder->SetDilateValue(255);
       this->ImageEroder->SetErodeValue(0);
-      this->ImageEroder->SetKernelSize(this->DilationKernelRadiusPixel[0], this->DilationKernelRadiusPixel[1], 1);
+      this->ImageEroder->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
@@ -778,7 +778,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
   process, returns PLUS_SUCCESS otherwise.
   */
 
-  LOG_INFO(IntermediatePostfixs.size());
   for (int PostfixIndex = this->IntermediatePostfixs.size() - 1; PostfixIndex >= 0; PostfixIndex -= 1){
     if (this->SaveIntermediateResultToFile(this->IntermediatePostfixs.at(PostfixIndex)) == PLUS_FAIL)
     {
