@@ -21,7 +21,6 @@ This is a program meant to test vtkPlusTransverseProcessEnhancer.cxx from the co
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkImageCast.h"
 
-
 //----------------------------------------------------------------------------
 
 
@@ -111,14 +110,35 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
-  if (processorElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> ElementToUse;
+
+  vtkSmartPointer<vtkXMLDataElement> ProcessorElement = configRootElement->FindNestedElementWithName("ScanConversion");
+  if (ProcessorElement == NULL)
   {
-    LOG_ERROR("Cannot find device set in XML tree element: " << ((*configRootElement).GetName()));
-    return PLUS_FAIL;
+    ProcessorElement = configRootElement->LookupElementWithName("Processor");
+    if (ProcessorElement != NULL){
+      vtkSmartPointer<vtkXMLDataElement> ScanConversionElement = ProcessorElement->FindNestedElementWithName("ScanConversion");
+      if (ScanConversionElement == NULL){
+        LOG_ERROR("Cannot find device set in XML tree element: ScanConversion");
+        return PLUS_FAIL;
+      }
+      else
+      {
+        ElementToUse = ProcessorElement;
+      }
+    }
+    else
+    {
+      LOG_ERROR("Cannot find device set in XML tree: Processor");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    ElementToUse = configRootElement;
   }
 
-  if (enhancer->ReadConfiguration(configRootElement) == PLUS_FAIL)
+  if (enhancer->ReadConfiguration(ElementToUse) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
     return EXIT_FAILURE;
@@ -137,9 +157,15 @@ int main(int argc, char** argv)
 
   if (saveIntermediateResults)
   {
+    int StartIndexPosition = 0;
+    if (inputFileName.find("\\") != std::string::npos)
+    {
+      StartIndexPosition = inputFileName.rfind("\\") + 1;
+    }
+    LOG_INFO(inputFileName.substr(StartIndexPosition, inputFileName.find(".") - StartIndexPosition));
     //Saves the intermediate results that were recorded during the call to enhancer->Update()
-    std::string path = argv[0];
-    enhancer->SetIntermediateImageFileName(inputFileName.substr(0, inputFileName.find(".")));
+
+    enhancer->SetIntermediateImageFileName(inputFileName.substr(StartIndexPosition, inputFileName.find(".") - StartIndexPosition));
     enhancer->SaveAllKeywordPostfixs();
   }
 
