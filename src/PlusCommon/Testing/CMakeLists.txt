@@ -213,7 +213,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     )
   SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageDataCompressed )
     
-  ADD_TEST(EditSequenceFileMix 
+  ADD_TEST(NAME EditSequenceFileMix 
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=MIX
     --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
