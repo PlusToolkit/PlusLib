@@ -157,14 +157,29 @@ int main(int argc, char** argv)
 
   if (saveIntermediateResults)
   {
-    int StartIndexPosition = 0;
+    int startInputFileNameIndex = 0;
     if (inputFileName.find("/") != std::string::npos)
     {
-      StartIndexPosition = inputFileName.rfind("/") + 1;
+      startInputFileNameIndex = inputFileName.rfind("/") + 1;
     }
+    if (inputFileName.find("\\") != std::string::npos)
+    {
+      startInputFileNameIndex = inputFileName.rfind("\\") + 1;
+    }
+    int startOutputFileNameIndex = 0;
+    if (outputFileName.find("/") != std::string::npos)
+    {
+      startOutputFileNameIndex = outputFileName.rfind("/") + 1;
+    }
+    if (outputFileName.find("\\") != std::string::npos)
+    {
+      startOutputFileNameIndex = outputFileName.rfind("\\") + 1;
+    }
+
+    LOG_INFO(outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));
     //Saves the intermediate results that were recorded during the call to enhancer->Update()
 
-    enhancer->SetIntermediateImageFileName(inputFileName.substr(StartIndexPosition, inputFileName.find(".") - StartIndexPosition));
+    enhancer->SetIntermediateImageFileName(outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));
     enhancer->SaveAllIntermediateResultsToFile();
   }
 
@@ -173,7 +188,7 @@ int main(int argc, char** argv)
     LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
     return EXIT_FAILURE;
   }
-
+  
   //test the abillity to Write to the config file
   if (!outputConfigFileName.empty())
   {
