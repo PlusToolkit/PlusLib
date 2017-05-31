@@ -127,28 +127,15 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
-  //vtkSetMacro(LinesImageFileName, string);
 
-  /*
-  vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(IntermediateFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ProcessedLinesFrame, PlusTrackedFrame);
-
-  PlusTrackedFrame* GetLinesFrame() { return (this->LinesFrame); };
-  PlusTrackedFrame* GetShadowImageFrame() { return this->ShadowFrame; };
-  PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
-  PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
-  */
-  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
-  //vtkImageData* GetLinesImage() { return (this->LinesImage); };
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   vtkImageData* GetShadowImage() { return this->ShadowImage; };
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); } 
 
-  PlusStatus SaveAllKeywordPostfixs();
-  PlusStatus SaveIntermediateResultToFile(std::string fileNamePostfix);
+  PlusStatus SaveAllIntermediateResultsToFile();
+  PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
 
-  std::vector<std::string> IntermediatePostfixs;
+  std::vector<char*> IntermediatePostfixes;
 
 protected:
   vtkPlusTransverseProcessEnhancer();
@@ -163,9 +150,9 @@ protected:
 
   void ImageConjunction(vtkSmartPointer<vtkImageData> InputImage, vtkSmartPointer<vtkImageData> MaskImage);
 
+  void AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image);
 
-
-  //protected:
+protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
   vtkSmartPointer<vtkImageThreshold>        Thresholder;
   vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
@@ -220,7 +207,6 @@ protected:
   bool SaveIntermediateResults;
 
   std::string IntermediateImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
   vtkSmartPointer<vtkImageData> IntermediateImage; // Pixels (float) store probability of belonging to shadow
 
   vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
@@ -229,11 +215,7 @@ protected:
   vtkSmartPointer<vtkImageData> ProcessedLinesImage; // Pixels (float) store probability of belonging to shadow
 
   /// Image after some of the processing operations have been applied
-  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
-
-  void AddIntermediateImage(std::string fileNamePostfix, vtkSmartPointer<vtkImageData> image);
-
-
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
 };
 
 #endif
