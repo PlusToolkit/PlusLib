@@ -63,17 +63,17 @@ int main(int argc, char** argv)
 
   if (inputFileName.empty())
   {
-    LOG_ERROR("the argument --input-seq-file is required");
+    LOG_ERROR("The argument --input-seq-file is required");
     commandCheckStatus = EXIT_FAILURE;
   }
   if (inputConfigFileName.empty())
   {
-    LOG_ERROR("the argument --input-config-file is required");
+    LOG_ERROR("The argument --input-config-file is required");
     commandCheckStatus = EXIT_FAILURE;
   }
   if (outputFileName.empty())
   {
-    LOG_ERROR("the argument --output-seq-file is required");
+    LOG_ERROR("The argument --output-seq-file is required");
     commandCheckStatus = EXIT_FAILURE;
   }
 
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkXMLDataElement> ElementToUse;
+  vtkSmartPointer<vtkXMLDataElement> elementToUse;
 
   vtkSmartPointer<vtkXMLDataElement> ProcessorElement = configRootElement->FindNestedElementWithName("ScanConversion");
   if (ProcessorElement == NULL)
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        ElementToUse = ProcessorElement;
+        elementToUse = ProcessorElement;
       }
     }
     else
@@ -135,10 +135,10 @@ int main(int argc, char** argv)
   }
   else
   {
-    ElementToUse = configRootElement;
+    elementToUse = configRootElement;
   }
 
-  if (enhancer->ReadConfiguration(ElementToUse) == PLUS_FAIL)
+  if (enhancer->ReadConfiguration(elementToUse) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
     return EXIT_FAILURE;
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
   //Process the frames for the input file
   enhancer->SetSaveIntermediateResults(saveIntermediateResults);
-  LOG_INFO("attempting to Process Frames.");
+  LOG_INFO("Attempting to Process Frames.");
   if (enhancer->Update() == PLUS_FAIL)
   {
     LOG_ERROR("Could not Process Frames.");
@@ -158,15 +158,14 @@ int main(int argc, char** argv)
   if (saveIntermediateResults)
   {
     int StartIndexPosition = 0;
-    if (inputFileName.find("\\") != std::string::npos)
+    if (inputFileName.find("/") != std::string::npos)
     {
-      StartIndexPosition = inputFileName.rfind("\\") + 1;
+      StartIndexPosition = inputFileName.rfind("/") + 1;
     }
-    LOG_INFO(inputFileName.substr(StartIndexPosition, inputFileName.find(".") - StartIndexPosition));
     //Saves the intermediate results that were recorded during the call to enhancer->Update()
 
     enhancer->SetIntermediateImageFileName(inputFileName.substr(StartIndexPosition, inputFileName.find(".") - StartIndexPosition));
-    enhancer->SaveAllKeywordPostfixs();
+    enhancer->SaveAllIntermediateResultsToFile();
   }
 
   if (enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)

@@ -33,7 +33,7 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 //----------------------------------------------------------------------------
 
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
-  : ScanConverter(nullptr),
+: ScanConverter(NULL),
   ConvertToLinesImage(false),
   NumberOfScanLines(0),
   NumberOfSamplesPerScanLine(0),
@@ -43,19 +43,19 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ThetaStartDeg(0),
   ThetaStopDeg(0),
 
-  Thresholder(vtkSmartPointer<vtkImageThreshold>::New()),
+  Thresholder(NULL),
   GaussianEnabled(false),
   ThresholdInValue(0.0),
   ThresholdOutValue(255.0),
   LowerThreshold(0.0),
   UpperThreshold(0.0),
 
-  GaussianSmooth(vtkSmartPointer<vtkImageGaussianSmooth>::New()),
-  EdgeDetector(vtkSmartPointer<vtkImageSobel2D>::New()),
-  ImageBinarizer(vtkSmartPointer<vtkImageThreshold>::New()),
-  BinaryImageForMorphology(vtkSmartPointer<vtkImageData>::New()),
-  IslandRemover(vtkSmartPointer<vtkImageIslandRemoval2D>::New()),
-  ImageEroder(vtkSmartPointer<vtkImageDilateErode3D>::New()),
+  GaussianSmooth(NULL),
+  EdgeDetector(NULL),
+  ImageBinarizer(NULL),
+  BinaryImageForMorphology(NULL),
+  IslandRemover(NULL),
+  ImageEroder(NULL),
 
   ReturnToFanImage(false),
   CurrentFrameMean(0.0),
@@ -66,34 +66,34 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ThresholdingEnabled(false),
 
   EdgeDetectorEnabled(false),
-  ConversionImage(vtkSmartPointer<vtkImageData>::New()),
+  ConversionImage(NULL),
   IslandRemovalEnabled(false),
   IslandAreaThreshold(-1),
   ErosionEnabled(false),
   DilationEnabled(false),
   ReconvertBinaryToGreyscale(false),
 
-
-  IntermediateImage(vtkSmartPointer<vtkImageData>::New()),
-  LinesImage(vtkSmartPointer<vtkImageData>::New()),
-  //LinesFrame(),
-  //LinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-  UnprocessedLinesImage(vtkSmartPointer<vtkImageData>::New()),
-  ShadowImage(vtkSmartPointer<vtkImageData>::New())
-  //ShadowFrame(),
-  //ShadowImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-  //IntermediateFrame(),
-  //IntermediateImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New()),
-  //ProcessedLinesFrame(),
-  //ProcessedLinesImageList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
-
+  IntermediateImage(NULL),
+  LinesImage(NULL),
+  UnprocessedLinesImage(NULL),
+  ShadowImage(NULL)
 {
+  this->Thresholder = vtkSmartPointer<vtkImageThreshold>::New();
+
+  this->GaussianSmooth = vtkSmartPointer<vtkImageGaussianSmooth>::New();
+  this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();
+  this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();
+  this->BinaryImageForMorphology = vtkSmartPointer<vtkImageData>::New();
+  this->IslandRemover = vtkSmartPointer<vtkImageIslandRemoval2D>::New();
+  this->ImageEroder = vtkSmartPointer<vtkImageDilateErode3D>::New();
+
   this->SetDilationKernelSize(0, 0);
   this->SetErosionKernelSize(5, 5);
   this->SetGaussianStdDev(7.0);
   this->SetGaussianKernelSize(7.0);
   this->GaussianSmooth->SetDimensionality(2);
 
+  this->ConversionImage = vtkSmartPointer<vtkImageData>::New();
   this->ConversionImage->SetExtent(0, 0, 0, 0, 0, 0);
 
   this->BinaryImageForMorphology->SetExtent(0, 0, 0, 0, 0, 0);
@@ -108,28 +108,26 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
   this->ImageEroder->SetErodeValue(100);        // 100, so that it will do nothing on binary image with values 0 and 255, until respecified
   this->ImageEroder->SetDilateValue(100);
-  //this->ImageDilater->SetKernelSize(5, 5, 1);
-  //this->ImageDilater->SetDilateValue(255);
-  /*
-  this->LinesFrame->GetImageData()->GetImage()->SetExtent(0, 0, 0, 0, 0, 0);
-  this->ShadowFrame->GetImageData()->GetImage()->SetExtent(0, 0, 0, 0, 0, 0);
-  this->IntermediateFrame->GetImageData()->GetImage()->SetExtent(0, 0, 0, 0, 0, 0);
-  this->ProcessedLinesFrame->GetImageData()->GetImage()->SetExtent(0, 0, 0, 0, 0, 0);
-  */
-  this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
-  this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
-  this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
 
-  this->IntermediateImageFileName.clear();
+  this->IntermediateImage = vtkSmartPointer<vtkImageData>::New();
+  this->LinesImage = vtkSmartPointer<vtkImageData>::New();
+  this->UnprocessedLinesImage = vtkSmartPointer<vtkImageData>::New();
+  this->ShadowImage = vtkSmartPointer<vtkImageData>::New();
+
+  this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->UnprocessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
+
+  this->IntermediateImageMap.clear();
 }
 
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
+  // Make sure contained smart pointers are deleted
   this->IntermediateImageMap.clear();
-  this->IntermediateImageFileName.clear();
 }
-
 
 //----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::PrintSelf(ostream& os, vtkIndent indent)
@@ -219,8 +217,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
       }
       else
       {
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdInValue, thresholdingParameters)
-          XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, thresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdInValue, thresholdingParameters);
+        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, thresholdingParameters);
 
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, LowerThreshold, thresholdingParameters);
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, UpperThreshold, thresholdingParameters);
@@ -297,20 +295,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
 
   this->LinesImage->SetExtent(linesImageExtent);
   this->LinesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  //this->LinesFrame->GetImageData()->GetImage()->SetExtent(linesImageExtent);
-  //this->LinesFrame->GetImageData()->GetImage()->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   this->ShadowImage->SetExtent(linesImageExtent);
   this->ShadowImage->AllocateScalars(VTK_FLOAT, 1);
-  //this->ShadowFrame->GetImageData()->GetImage()->SetExtent(linesImageExtent);
-  //this->ShadowFrame->GetImageData()->GetImage()->AllocateScalars(VTK_FLOAT, 1);
 
   this->IntermediateImage->SetExtent(linesImageExtent);
   this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  //this->IntermediateFrame->GetImageData()->GetImage()->SetExtent(linesImageExtent);
-  //this->IntermediateFrame->GetImageData()->GetImage()->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-
 
   return PLUS_SUCCESS;
 }
@@ -318,7 +308,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement)
 {
-
   XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
 
   processingElement->SetAttribute("Type", this->GetProcessorTypeName());
@@ -405,13 +394,11 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkPlusUsS
       if (pixelCoordX < inputExtent[0] || pixelCoordX > inputExtent[1]
         || pixelCoordY < inputExtent[2] || pixelCoordY > inputExtent[3])
       {
-        //this->LinesFrame->GetImageData()->GetImage()->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
         this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
         continue; // outside of the specified extent
       }
       value = inputImageData->GetScalarComponentAsDouble(pixelCoordX, pixelCoordY, 0, 0);
       this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, value);
-      //this->LinesFrame->GetImageData()->GetImage()->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, value);
 
       if (this->CurrentFrameScalarComponentMax < value)
       {
@@ -442,7 +429,6 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
-  //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);
 
   // Define the threshold value for bone candidate points.
   double dThreshold = this->CurrentFrameMean + thresholdSdFactor * this->CurrentFrameStDev;
@@ -451,7 +437,6 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
 
   // Compute mapping factor for values above threshold (T).
   // Mapping [T,255] to [25%,100%], that is [64,255].
-  //Output = delta x 191 / (255 - T ) + 64
   // where delta = PixelValue - T
   float mappingFactor = 191.0 / (255.0 - threshold);
   float mappingShift = 64.0;
@@ -469,8 +454,10 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
   unsigned char lastValue = 0;
   float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
 
+  // Populate this->ShadowImage pixel values with complement of this->LinesImage pixel relative brightness values
   this->FillShadowValues();
 
+  // Following loop currently only serves as a bounds check, does not otherwise modify this->LinesImage pixel values before storing them in this->IntermediateImage
   for (int y = 0; y < dims[1]; y++)
   {
     // Initialize variables for a new scan line.
@@ -478,8 +465,6 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
     {
       vInput = static_cast<unsigned char*>(this->LinesImage->GetScalarPointer(x, y, 0));
       vOutput = static_cast<unsigned char*>(this->IntermediateImage->GetScalarPointer(x, y, 0));
-      //vInput = static_cast<unsigned char*>(this->LinesFrame->GetImageData()->GetImage()->GetScalarPointer(x, y, 0));
-      //vOutput = static_cast<unsigned char*>(this->ProcessedLinesFrame->GetImageData()->GetImage()->GetScalarPointer(x, y, 0));
       output = (*vInput);
       if (output > 255) { (*vOutput) = 255; }
       else if (output < 0) { (*vOutput) = 0; }
@@ -487,7 +472,7 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
     }
   }
 
-  //this->IntermediateImage->Modified();
+  this->IntermediateImage->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -495,7 +480,6 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
 {
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
-  //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);
 
   float lineMeanSoFar = 0.0;
   float lineMaxSoFar = 0.0;
@@ -504,6 +488,7 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
   unsigned char* vInput = 0;
   float* vOutput = 0;
 
+  // Go along each scan line in this->LinesImage, and set this->ShadowImage pixel values to complement of relative this->LinesImage pixel brightnesses
   for (int y = 0; y < dims[1]; y++)
   {
     // Initialize variables for new scan line.
@@ -516,8 +501,6 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
     {
       vInput = static_cast<unsigned char*>(this->LinesImage->GetScalarPointer(x, y, 0));
       vOutput = static_cast<float*>(this->ShadowImage->GetScalarPointer(x, y, 0));
-      //vInput = static_cast<unsigned char*>(this->LinesFrame->GetImageData()->GetImage()->GetScalarPointer(x, y, 0));
-      //vOutput = static_cast<float*>(this->ShadowFrame->GetImageData()->GetImage()->GetScalarPointer(x, y, 0));
 
       unsigned char inputValue = (*vInput);
 
@@ -532,7 +515,6 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
     }
   }
   this->ShadowImage->Modified();
-  //this->ShadowFrame->GetImageData()->GetImage()->Modified();
   // Save shadow image
   PlusVideoFrame shadowVideoFrame;
   shadowVideoFrame.DeepCopyFrom(this->ShadowImage);
@@ -545,15 +527,13 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
 {
   unsigned char* vInput = 0;
   unsigned char* vOutput = 0;
-  unsigned char EdgeDetectorOutput0;
-  unsigned char EdgeDetectorOutput1;
+  unsigned char edgeDetectorOutput0;
+  unsigned char edgeDetectorOutput1;
   float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
-  //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);
   this->ConversionImage->SetExtent(this->LinesImage->GetExtent());
-  //this->ConversionImage->SetExtent(this->LinesFrame->GetImageData()->GetImage()->GetExtent());
   this->ConversionImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   for (int y = 0; y < dims[1]; y++)
   {
@@ -561,17 +541,16 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
 
     for (int x = dims[0] - 1; x >= 0; x--)   // Go towards transducer
     {
-      EdgeDetectorOutput0 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 0));
-      EdgeDetectorOutput1 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 1));
+      edgeDetectorOutput0 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 0));
+      edgeDetectorOutput1 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 1));
       vOutput = static_cast<unsigned char*>(this->ConversionImage->GetScalarPointer(x, y, 0));
-      output = (EdgeDetectorOutput0 + EdgeDetectorOutput1) / 2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
-      //this->ConversionImage->SetScalarComponentFromDouble(x, y, 0, 0, output);
+      output = (edgeDetectorOutput0 + edgeDetectorOutput1) / 2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
       if (output > 255) { (*vOutput) = 255; }
       else if (output < 0) { (*vOutput) = 0; }
       else { (*vOutput) = (unsigned char)output; }
     }
   }
-  //inputImage->Modified();
+  inputImage->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -579,12 +558,11 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
 void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImageData> InputImage, vtkSmartPointer<vtkImageData> MaskImage)
 {
   // Images must be of the same dimension, an should already be, I should check this though
-  unsigned char* InputPixelPointer = 0;
-  unsigned char* MaskImagePixel = 0;
+  unsigned char* inputPixelPointer = 0;
+  unsigned char* maskImagePixel = 0;
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);      // This will be the same as InputImage, as long as InputImage is converted to linesImage previously
-  //this->LinesFrame->GetImageData()->GetImage()->GetDimensions(dims);      // This will be the same as InputImage, as long as InputImage is converted to linesImage previously
 
   for (int y = 0; y < dims[1]; y++)
   {
@@ -598,8 +576,8 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
       }
       else
       {
-        InputPixelPointer = static_cast<unsigned char*>(InputImage->GetScalarPointer(x, y, 0));
-        *InputPixelPointer = 0;
+        inputPixelPointer = static_cast<unsigned char*>(InputImage->GetScalarPointer(x, y, 0));
+        *inputPixelPointer = 0;
       }
     }
   }
@@ -609,11 +587,7 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame)
 {
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
-
-
-
-
-
+  
   if (this->ScanConverter.GetPointer() == NULL)
   {
     return PLUS_FAIL;
@@ -623,7 +597,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   {
     this->ScanConverter->SetInputData(inputImage->GetImage());
     this->ScanConverter->Update();
-    //inputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
     // Generate lines image.
     this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
     this->ProcessLinesImage();
@@ -636,47 +609,37 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   else
   {
     this->IntermediateImage->DeepCopy(inputImage->GetImage());
-    //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(inputImage->GetImage());
   }
-  //this->IntermediateFrame->GetImageData()->GetImage()->Modified();
 
 
   if (this->ThresholdingEnabled)
   {
     this->Thresholder->SetInputData(this->IntermediateImage);
-    //this->Thresholder->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->Thresholder->Update();
     this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput());
-    //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->Thresholder->GetOutput());
-    // this->IntermediateFrame->GetImageData()->GetImage()->Modified();
     this->AddIntermediateImage("_02Threshold_1FilterEnd", this->IntermediateImage);
   }
 
   if (this->GaussianEnabled)
   {
     this->GaussianSmooth->SetInputData(this->IntermediateImage);
-    //this->GaussianSmooth->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->GaussianSmooth->Update();
     this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput());
-    //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->GaussianSmooth->GetOutput());
     this->IntermediateImage->Modified();
     this->AddIntermediateImage("_03Gaussian_1FilterEnd", this->IntermediateImage);
   }
 
   // Store current itermediately processed image for pixel value retrieval after operations requiring binarization
   this->UnprocessedLinesImage->DeepCopy(this->IntermediateImage);
-  //this->UnprocessedLinesImage->DeepCopy(this->IntermediateFrame->GetImageData()->GetImage());
 
   if (this->EdgeDetectorEnabled)
   {
     this->EdgeDetector->SetInputData(this->IntermediateImage);
-    //this->EdgeDetector->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->EdgeDetector->Update();
     this->AddIntermediateImage("_04EdgeDetector_1PostEdgeDetectorUpdate", this->EdgeDetector->GetOutput());
     this->VectorImageToUchar(this->EdgeDetector->GetOutput(), this->ConversionImage);
-    //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->ConversionImage);
     this->IntermediateImage->DeepCopy(this->ConversionImage);
-    //this->IntermediateImage->Modified();
+    this->IntermediateImage->Modified();
     this->AddIntermediateImage("_04EdgeDetector_2FilterEnd", this->IntermediateImage);
   }
 
@@ -684,7 +647,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled)
   {
     this->ImageBinarizer->SetInputData(this->IntermediateImage);
-    //this->ImageBinarizer->SetInputData(this->IntermediateFrame->GetImageData()->GetImage());
     this->ImageBinarizer->Update();
     this->BinaryImageForMorphology->DeepCopy(this->ImageBinarizer->GetOutput());
     this->AddIntermediateImage("_05BinaryImageForMorphology_1FilterEnd", this->BinaryImageForMorphology);
@@ -704,10 +666,11 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
-      this->AddIntermediateImage("_07Erosion_1PostImageEroderUpdate", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_07Erosion_1FilterEnd", this->ImageEroder->GetOutput());
+
+      //reset the values
       this->ImageEroder->SetErodeValue(100);
       this->ImageEroder->SetDilateValue(100);
-      this->AddIntermediateImage("_07Erosion_2FilterEnd", this->ImageEroder->GetOutput());
     }
     if (this->DilationEnabled)
     {
@@ -717,23 +680,22 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
-      this->AddIntermediateImage("_08Dilation_1PostImageEroderUpdate", this->ImageEroder->GetOutput());
+      this->AddIntermediateImage("_08Dilation_1FilterEnd", this->ImageEroder->GetOutput());
+
+      //reset the values
       this->ImageEroder->SetDilateValue(100);
       this->ImageEroder->SetErodeValue(100);
-      this->AddIntermediateImage("_08Dilation_2FilterEnd", this->ImageEroder->GetOutput());
     }
     if (this->ReconvertBinaryToGreyscale)
     {
       ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
       this->IntermediateImage->DeepCopy(this->UnprocessedLinesImage);
-      //this->IntermediateFrame->GetImageData()->GetImage()->DeepCopy(this->UnprocessedLinesImage);
       this->AddIntermediateImage("_09ReconvertBinaryToGreyscale_1FilterEnd", this->IntermediateImage);
     }
     else
     {
       this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
-    //this->IntermediateFrame->GetImageData()->GetImage()->Modified();
   }
 
 
@@ -741,7 +703,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   if (this->ReturnToFanImage)
   {
     this->ScanConverter->SetInputData(this->IntermediateImage);
-    //this->ScanConverter->SetInputData(this->ProcessedLinesFrame->GetImageData()->GetImage());
     this->ScanConverter->Update();
     outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
     this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
@@ -749,27 +710,13 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   else
   {
     outputImage->DeepCopyFrom(this->IntermediateImage);
-    //outputImage->DeepCopyFrom(this->ProcessedLinesFrame->GetImageData()->GetImage());
   }
-
-  //outputImage->DeepCopyFrom( inputImage->GetImage() );
-  // Set final output image data
-
-  //(outputImage)->DeepCopyFrom(this->Thresholder->GetOutput
-
-  //PlusTrackedFrame* processedLinesFrame = this->ProcessedLinesImageList->GetTrackedFrame(this->ProcessedLinesImageList->GetNumberOfTrackedFrames() - 1);
-  //processedLinesFrame->GetImageData()->DeepCopyFrom(this->IntermediateImage);
-
-  // Draw scan lines on the output image.
-  // DrawScanLines(this->ScanConverter, inputImage->GetImage());
-
-  // Convert the lines image back to original geometry
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllIntermediateResultsToFile()
 {
   /*
   Finds and saves all intermediate images that have been recorded.
@@ -778,8 +725,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
   process, returns PLUS_SUCCESS otherwise.
   */
 
-  for (int PostfixIndex = this->IntermediatePostfixs.size() - 1; PostfixIndex >= 0; PostfixIndex -= 1){
-    if (this->SaveIntermediateResultToFile(this->IntermediatePostfixs.at(PostfixIndex)) == PLUS_FAIL)
+  for (int postfixIndex = this->IntermediatePostfixes.size() - 1; postfixIndex >= 0; postfixIndex -= 1){
+    if (this->SaveIntermediateResultToFile(this->IntermediatePostfixes.at(postfixIndex)) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
@@ -788,19 +735,19 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllKeywordPostfixs()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(std::string fileNamePostfix)
+PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(char* fileNamePostfix)
 {
   /*
   Takes a postfix as an argument and saves the intermediate image associated with that postfix
   Returns PLUS_FAIL if an error occured during this process, returns PLUS_SUCCESS otherwise
   */
 
-  std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
   if (indexIterator != this->IntermediateImageMap.end())
   {
 
     //Try to save the intermediate image
-    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + fileNamePostfix + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + std::string(fileNamePostfix) + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
     {
       LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
       return PLUS_FAIL;
@@ -814,7 +761,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(std::s
   return PLUS_SUCCESS;
 }
 
-void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(std::string fileNamePostfix, vtkSmartPointer<vtkImageData> image)
+void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image)
 {
 
   if (fileNamePostfix == "")
@@ -825,14 +772,14 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(std::string fileName
   if (this->SaveIntermediateResults)
   {
     // See if the intermediate image should be created
-    std::map<std::string, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+    std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
     if (indexIterator != this->IntermediateImageMap.end()){}
     else
     {
       // Create if not found
       this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
 
-      this->IntermediatePostfixs.push_back(fileNamePostfix);
+      this->IntermediatePostfixes.push_back(fileNamePostfix);
     }
 
     //Add the current frame to its vtkPlusTrackedFrameList
@@ -920,7 +867,7 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   else
   {
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
-  }
+ } 
 }
 
 
