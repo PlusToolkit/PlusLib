@@ -212,7 +212,18 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
      ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
     )
   SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageDataCompressed )
-ENDIF()
+    
+  ADD_TEST(EditSequenceFileMix 
+    COMMAND $<TARGET_FILE:EditSequenceFile>
+    --operation=MIX
+    --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --output-seq-file=WaterTankBottomTranslationTrackedVideo.mha
+    --use-compression
+    --verbose=3
+    )
+  SET_TESTS_PROPERTIES(EditSequenceFileMix PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+
+ENDIF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
 # --------------------------------------------------------------------------
 # Install

@@ -3,7 +3,7 @@
 
 \tableofcontents
 
-This is a command-line tool for editing sequence metafiles. Operations include deleting frames from a file (TRIM command), merging sequence metafiles (MERGE command), adding/deleting/changing data fields (..._FIELD_... commands), compress/uncompress the image data (--use-compression switch).
+This is a command-line tool for editing sequence metafiles. Operations include deleting frames from a file (TRIM command), append sequence metafiles (APPEND command), adding/deleting/changing data fields (..._FIELD_... commands), compress/uncompress the image data (--use-compression switch).
 
 \section ApplicationEditSequenceFileExamples Examples
 
@@ -51,6 +51,12 @@ Saves only the tracker data from a meta file that has both tracker and image dat
     EditSequenceFile --operation=UPDATE_FRAME_FIELD_VALUE --source-seq-file=[inputFilePath] --output-seq-file=[outputFilePathTmp] --updated-field-name="StylusTipToStylusTransform" --updated-field-value="1  0  0  182.18    0  1  0  0.0744143    0  0  1  14.3197    0  0  0  1"
     EditSequenceFile --operation=UPDATE_FRAME_FIELD_VALUE --source-seq-file=[outputFilePathTmp] --output-seq-file=[outputFilePath] --updated-field-name="StylusTipToStylusTransformStatus" --updated-field-value="OK"
 
+## Mix multiple sequence files into one
+
+Create one sequence file that contains video of the first sequence and transforms from all others.
+
+    EditSequenceFile --operation=MIX --source-seq-files [videoInputFilePath] [transform1InputFilePath] [transform2InputFilePath] --output-seq-file=[outputFilePath]
+    
 \section ApplicationEditSequenceFileHelp Command-line parameters reference
 
 \verbinclude "EditSequenceFileHelp.txt"
