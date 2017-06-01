@@ -25,7 +25,6 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 
 
-#include <direct.h>
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
@@ -34,7 +33,7 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 : ScanConverter(NULL),
-  ConvertToLinesImage(false),
+  ConvertToLinesImage(true),
   NumberOfScanLines(0),
   NumberOfSamplesPerScanLine(0),
 
@@ -44,7 +43,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ThetaStopDeg(0),
 
   Thresholder(NULL),
-  GaussianEnabled(false),
+  GaussianEnabled(true),
   ThresholdInValue(0.0),
   ThresholdOutValue(255.0),
   LowerThreshold(0.0),
@@ -57,21 +56,21 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   IslandRemover(NULL),
   ImageEroder(NULL),
 
-  ReturnToFanImage(false),
+  ReturnToFanImage(true),
   CurrentFrameMean(0.0),
   CurrentFrameStDev(0.0),
   CurrentFrameScalarComponentMax(0.0),
   CurrentFrameScalarComponentMin(255.0),
 
-  ThresholdingEnabled(false),
+  ThresholdingEnabled(true),
 
-  EdgeDetectorEnabled(false),
+  EdgeDetectorEnabled(true),
   ConversionImage(NULL),
-  IslandRemovalEnabled(false),
+  IslandRemovalEnabled(true),
   IslandAreaThreshold(-1),
-  ErosionEnabled(false),
-  DilationEnabled(false),
-  ReconvertBinaryToGreyscale(false),
+  ErosionEnabled(true),
+  DilationEnabled(true),
+  ReconvertBinaryToGreyscale(true),
 
   IntermediateImage(NULL),
   LinesImage(NULL),
@@ -274,6 +273,16 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
   else
   {
     LOG_INFO("ImageProcessingOperations section not found in config file!");
+    LOG_INFO("Enabling all filters and using default values.");
+    this->ConvertToLinesImage = true;
+    this->GaussianEnabled = true;
+    this->ThresholdingEnabled = true;
+    this->EdgeDetectorEnabled = true;
+    this->IslandRemovalEnabled = true;
+    this->ErosionEnabled = true;
+    this->DilationEnabled = true;
+    this->ReconvertBinaryToGreyscale = true;
+    this->ReturnToFanImage = true;
   }
 
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfScanLines, processingElement)
@@ -587,12 +596,13 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame)
 {
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
+
+
   
   if (this->ScanConverter.GetPointer() == NULL)
   {
     return PLUS_FAIL;
   }
-
   if (this->ConvertToLinesImage)
   {
     this->ScanConverter->SetInputData(inputImage->GetImage());
@@ -696,21 +706,22 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     {
       this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
+
+    PlusVideoFrame* outputImage = outputFrame->GetImageData();
+    if (this->ReturnToFanImage)
+    {
+      this->ScanConverter->SetInputData(this->IntermediateImage);
+      this->ScanConverter->Update();
+      outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
+      this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
+    }
+    else
+    {
+      outputImage->DeepCopyFrom(this->IntermediateImage);
+    }
   }
 
-
-  PlusVideoFrame* outputImage = outputFrame->GetImageData();
-  if (this->ReturnToFanImage)
-  {
-    this->ScanConverter->SetInputData(this->IntermediateImage);
-    this->ScanConverter->Update();
-    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
-    this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
-  }
-  else
-  {
-    outputImage->DeepCopyFrom(this->IntermediateImage);
-  }
+  //vtkObject::GetGlobalWarningDisplay value: 1
 
   return PLUS_SUCCESS;
 }
