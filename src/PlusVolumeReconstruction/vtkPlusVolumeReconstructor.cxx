@@ -132,11 +132,6 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NumberOfThreads, reconConfig);
 
-  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
-  {
-    XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ImportanceMaskFilename, reconConfig);
-  }
-
   XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(FillHoles, reconConfig, "ON", true, "OFF", false);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFanAnglesAutoDetect, reconConfig);
 
@@ -175,6 +170,20 @@ PlusStatus vtkPlusVolumeReconstructor::ReadConfiguration(vtkXMLDataElement* conf
       SetCompoundingMode(vtkPlusPasteSliceIntoVolume::MEAN_COMPOUNDING_MODE);
     }
     LOG_WARNING("CompoundingMode has not been set. Will assume " << this->Reconstructor->GetCompoundingModeAsString(this->Reconstructor->GetCompoundingMode()) << ".");
+  }
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    XML_READ_STRING_ATTRIBUTE_REQUIRED(ImportanceMaskFilename, reconConfig);
+    if (UpdateImportanceMask() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to set up importance mask");
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImportanceMaskFilename, reconConfig);
   }
 
   this->Modified();
@@ -242,14 +251,7 @@ PlusStatus vtkPlusVolumeReconstructor::WriteConfiguration(vtkXMLDataElement* con
     XML_REMOVE_ATTRIBUTE(reconConfig, "NumberOfThreads");
   }
 
-  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
-  {
-    reconConfig->SetAttribute("ImportanceMaskFilename", this->ImportanceMaskFilename.c_str());
-  }
-  else
-  {
-    XML_REMOVE_ATTRIBUTE(reconConfig, "ImportanceMaskFilename");
-  }
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(ImportanceMaskFilename, reconConfig);
 
   if (this->Reconstructor->IsPixelRejectionEnabled())
   {
@@ -472,6 +474,15 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
   {
     LOG_ERROR("Failed to add tracked frame to volume - input transform repository is NULL");
     return PLUS_FAIL;
+  }
+
+  if (this->Reconstructor->GetCompoundingMode() == vtkPlusPasteSliceIntoVolume::IMPORTANCE_MASK_COMPOUNDING_MODE)
+  {
+    if (UpdateImportanceMask() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to get importance mask");
+      return PLUS_FAIL;
+    }
   }
 
   bool isMatrixValid(false);
@@ -903,23 +914,40 @@ void vtkPlusVolumeReconstructor::SetFanAnglesAutoDetectFilterRadiusPixel(int rad
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusVolumeReconstructor::SetImportanceMaskFilename(const std::string& filename)
+PlusStatus vtkPlusVolumeReconstructor::UpdateImportanceMask()
 {
-  if (this->ImportanceMaskFilename != filename)
+  if (this->ImportanceMaskFilename == this->ImportanceMaskFilenameInReconstructor)
   {
-    this->ImportanceMaskFilename = filename;
+    // no change
+    return PLUS_SUCCESS;
+  }
+  this->ImportanceMaskFilenameInReconstructor = this->ImportanceMaskFilename;
 
+  if (!this->ImportanceMaskFilename.empty())
+  {
+    std::string importanceMaskFilePath;
+    if (vtkPlusConfig::GetInstance()->FindImagePath(this->ImportanceMaskFilename, importanceMaskFilePath) == PLUS_FAIL)
+    {
+      LOG_ERROR("Cannot get importance mask from file: " << this->ImportanceMaskFilename);
+      return PLUS_FAIL;
+    }
     vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
-    reader->SetFileName(filename.c_str());
+    reader->SetFileName(importanceMaskFilePath.c_str());
     reader->Update();
-
+    if (reader->GetOutput() == NULL)
+    {
+      LOG_ERROR("Failed to read importance image from file: " << importanceMaskFilePath);
+      return PLUS_FAIL;
+    }
     vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
     flipYFilter->SetFilteredAxis(1); // flip y axis
     flipYFilter->SetInputConnection(reader->GetOutputPort());
     flipYFilter->Update();
     this->Reconstructor->SetImportanceMask(flipYFilter->GetOutput());
-
-    this->Reconstructor->Modified();
-    this->Modified();
   }
+  else
+  {
+    this->Reconstructor->SetImportanceMask(NULL);
+  }
+  return PLUS_SUCCESS;
 }
