@@ -15,7 +15,7 @@ function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNa
 
   # If expected filename is specified in a platform-specific directory then use that
   IF(WIN32)
-    SET(PLATFORM "Win32")
+    SET(PLATFORM "Windows")
   ELSE()
     SET(PLATFORM "Linux")
   ENDIF()
