@@ -18,6 +18,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkImageViewer.h"
+#include "vtkActor2D.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPlusDataSource.h"
 
@@ -95,6 +96,7 @@ int main(int argc, char* argv[])
         WinProbeDevice->ReadConfiguration(configRootElement);
     }
 
+    std::cout << "\n" << *WinProbeDevice; //invokes PrintSelf()
 
     if (WinProbeDevice->Connect() != PLUS_SUCCESS)
     {
@@ -102,7 +104,12 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    WinProbeDevice->StartRecording(); //start recording frame from the video
+    //test starting and stopping (pausing recording)
+    WinProbeDevice->StartRecording(); //applies the setting read from config file
+    std::cout << "\n" << *WinProbeDevice; //invokes PrintSelf()
+    WinProbeDevice->StopRecording();
+
+    WinProbeDevice->StartRecording();
 
     if (renderingOff)
     {
@@ -115,18 +122,20 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
 
+        WinProbeDevice->FreezeDevice(true);
         vtkPlusDataSource* aSource(NULL);
         aChannel->GetVideoSource(aSource);
         aSource->WriteToSequenceFile(outputFileName.c_str());
+        WinProbeDevice->FreezeDevice(false);
     }
     else
     {
         vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-        viewer->SetInputConnection(WinProbeDevice->GetOutputPort());   //set image to the render and window
+        viewer->SetInputConnection(WinProbeDevice->GetOutputPort()); //set image to the render and window
         viewer->SetColorWindow(255);
         viewer->SetColorLevel(127.5);
         viewer->SetZSlice(0);
-        viewer->SetSize(128, 512);
+        viewer->SetSize(512,1024);
 
         //Create the interactor that handles the event loop
         vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
@@ -149,7 +158,6 @@ int main(int argc, char* argv[])
 
     WinProbeDevice->StopRecording();
     WinProbeDevice->Disconnect();
-    
+
     return EXIT_SUCCESS;
 }
-
