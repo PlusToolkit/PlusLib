@@ -496,6 +496,18 @@ IF(${PLUS_USE_tesseract})
   SET(tesseract_DIR "\${PLUSLIB_INSTALL_PATH}/${tesseract_DIR}")
 ENDIF()
 
+IF(${PLUS_USE_OpenCV})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH OpenCV_DIR ${CMAKE_INSTALL_PREFIX} ${OpenCV_DIR})
+  SET(OpenCV_DIR "\${PLUSLIB_INSTALL_PATH}/${OpenCV_DIR}")
+ENDIF()
+
+IF(${PLUS_USE_aruco})
+  # use the relative path instead of absolute path
+  FILE(RELATIVE_PATH aruco_DIR ${CMAKE_INSTALL_PREFIX} ${aruco_DIR})
+  SET(aruco_DIR "\${PLUSLIB_INSTALL_PATH}/${aruco_DIR}")
+ENDIF()
+
 IF(${PLUS_USE_SLICER})
   # use the relative path instead of absolute path
   FILE(RELATIVE_PATH SLICER_BIN_DIRECTORY ${CMAKE_INSTALL_PREFIX} ${SLICER_BIN_DIRECTORY})

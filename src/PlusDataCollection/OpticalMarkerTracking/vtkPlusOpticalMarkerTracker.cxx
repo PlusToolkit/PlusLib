@@ -19,10 +19,13 @@ See License.txt for details.
 #include <set>
 #include "vtkPlusDataSource.h"
 #include "vtkMatrix4x4.h"
-#include "includes/aruco/dictionary.h"
 
-#include "includes/opencv2/highgui.hpp"
-#include "includes/opencv2/calib3d.hpp"
+// aruco
+#include "dictionary.h"
+
+// OpenCV
+#include <opencv2/highgui.hpp>
+#include <opencv2/calib3d.hpp>
 
 vtkStandardNewMacro(vtkPlusOpticalMarkerTracker);
 //----------------------------------------------------------------------------

@@ -9,9 +9,12 @@
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
-#include "includes/aruco/markerdetector.h"
-#include "includes/aruco/cameraparameters.h"
-#include "includes/aruco/posetracker.h"
+
+// aruco headers
+// TODO: move these to cxx files (use PIMPL - vtkInternal - if needed)
+#include "markerdetector.h"
+#include "cameraparameters.h"
+#include "posetracker.h"
 
 class vtkPlusDataSource;
 class vtkMatrix4x4;

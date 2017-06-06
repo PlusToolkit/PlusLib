@@ -49,7 +49,7 @@ OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical S
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
-OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking." OFF)
+OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -65,6 +65,9 @@ OPTION(PLUS_USE_tesseract "Provide support for optical character recognition vir
 IF(PLUS_USE_tesseract)
   OPTION(PLUS_TEST_tesseract "Enable testing functionality for tesseract virtual recognizer device." ON)
 ENDIF()
+
+OPTION(PLUS_USE_OpenCV "Provide support for optical marker tracking and other features using OpenCV." OFF)
+OPTION(PLUS_USE_aruco "Provide support for optical marker tracking using aruco." OFF)
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
 IF(PLUS_USE_NVIDIA_DVP)
@@ -347,6 +350,7 @@ IF(PLUS_USE_NDI)
     ndicapi
     )
 
+  SET(_entries)
   GET_TARGET_PROPERTY(_configs ndicapi IMPORTED_CONFIGURATIONS)
   FOREACH(_config IN LISTS _configs)
     GET_TARGET_PROPERTY(_location ndicapi IMPORTED_LOCATION_${_config})
@@ -459,7 +463,61 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Optical Marker Tracking
 
+# --------------------------------------------------------------------------
+# Try to find OpenCV and include its settings (otherwise complain)
+IF(PLUS_USE_OpenCV)
+  FIND_PACKAGE(OpenCV REQUIRED PATHS ${OpenCV_DIR})
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${OpenCV_INCLUDE_DIRS}
+    )
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${OpenCV_LIBRARIES}
+    )
+
+  # TODO: install shared libraries
+  # SET(_entries)
+  # GET_TARGET_PROPERTY(_configs OpenCV IMPORTED_CONFIGURATIONS)
+  # FOREACH(_config IN LISTS _configs)
+    # GET_TARGET_PROPERTY(_location OpenCV IMPORTED_LOCATION_${_config})
+    # IF(${_config} STREQUAL RELEASE OR ${_config} STREQUAL NOCONFIG)
+      # LIST(APPEND _entries ${_config})
+      # LIST(APPEND External_Libraries_Install ${_location})
+      # BREAK()
+    # ENDIF()
+  # ENDFOREACH()
+  # LIST(LENGTH _entries _size)
+  # IF(_size EQUAL 0)
+    # MESSAGE(FATAL_ERROR "Wanted to add OpenCV library to install, but dependent files don't exist. Do you need to build it?")
+  # ENDIF()
+
+ENDIF()
+
+IF(PLUS_USE_aruco)
+  # Instead of calling FIND_PACKAGE(aruco), set paths manually,
+  # because it is too difficult to fix aruco's CMake files.
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${aruco_DIR}/src
+    ${aruco_DIR}/../aruco/src
+    )    
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    aruco2019
+    )
+  SET(External_Libraries_Install ${External_Libraries_Install}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/aruco2019${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  SET(External_Libraries_Debug ${External_Libraries_Debug}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/aruco2019${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
 IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
+  IF(NOT PLUS_USE_OpenCV)
+    MESSAGE(ERROR "PLUS_USE_OPTICAL_MARKER_TRACKER requires PLUS_USE_OpenCV option enabled")
+  ENDIF()
+  IF(NOT PLUS_USE_aruco)
+    MESSAGE(ERROR "PLUS_USE_OPTICAL_MARKER_TRACKER requires PLUS_USE_aruco option enabled")
+  ENDIF()
+
   SET(OpticalMarkerTracking_SRCS
     OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.cxx
     )
@@ -472,9 +530,6 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
 
   LIST (APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking
-    ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking/includes
-    ${OpenCV_INCLUDE_DIRS}
-    #${aruco_INCLUDE_DIRS}
     )
 
   LIST (APPEND ${PROJECT_NAME}_HDRS 
@@ -483,12 +538,6 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
 
   LIST (APPEND ${PROJECT_NAME}_SRCS 
     ${OpticalMarkerTracking_SRCS}
-    )
-
-  LIST (APPEND ${PROJECT_NAME}_LIBS
-    #OpticalMarkerTracking/libs
-    ${OpenCV_LIBS}
-    ${aruco_LIBS}
     )
 ENDIF()
 
