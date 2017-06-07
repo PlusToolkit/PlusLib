@@ -41,12 +41,24 @@ vtkPlusIgtlMessageFactory::vtkPlusIgtlMessageFactory()
   this->IgtlFactory->AddMessageType("CLIENTINFO", (PointerToMessageBaseNew)&igtl::PlusClientInfoMessage::New);
   this->IgtlFactory->AddMessageType("TRACKEDFRAME", (PointerToMessageBaseNew)&igtl::PlusTrackedFrameMessage::New);
   this->IgtlFactory->AddMessageType("USMESSAGE", (PointerToMessageBaseNew)&igtl::PlusUsMessage::New);
+  configFile = "";
+  videoStreamEncoderMap.clear();
 }
 
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageFactory::~vtkPlusIgtlMessageFactory()
 {
-
+  std::map<std::string, H264Encoder*>::iterator itr;
+  if (this->videoStreamEncoderMap.size())
+  {
+    while (itr != this->videoStreamEncoderMap.end())
+    {
+      // found it - delete it
+      itr->second->~H264Encoder();
+      this->videoStreamEncoderMap.erase(itr);
+      itr++;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -192,6 +204,39 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
         igtlMessages.push_back(imageMessage.GetPointer());
+      }
+    }
+    // Video Stream message
+    else if (typeid(*igtlMessage) == typeid(igtl::VideoMessage))
+    {
+    for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
+    {
+        PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
+
+        //Set transform name to [Name]To[CoordinateFrame]
+        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
+        igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();//dynamic_cast<igtl::VideoMessage*>(igtlMessage->Clone().GetPointer());
+        std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
+        if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
+        {
+            // Allow overriding of device name with something human readable
+            // The transform name is passed in the metadata
+            deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+        }
+        if (videoStreamEncoderMap.find(deviceName) == videoStreamEncoderMap.end())
+        {
+          H264Encoder * newEncoder = new H264Encoder(this->configFile);
+          newEncoder->InitializeEncoder();
+          videoStreamEncoderMap[std::string(deviceName)] = newEncoder;
+        }
+        videoMessage->SetDeviceName(deviceName);
+        if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, videoStreamEncoderMap[std::string(deviceName)]) != PLUS_SUCCESS)
+        {
+            LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+            numberOfErrors++;
+            continue;
+        }
+        igtlMessages.push_back(videoMessage.GetPointer());
       }
     }
     // Transform message

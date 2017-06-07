@@ -24,13 +24,12 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusIgtlMessageCommon);
-
 //----------------------------------------------------------------------------
 vtkPlusIgtlMessageCommon::vtkPlusIgtlMessageCommon()
 {
 }
-
 //----------------------------------------------------------------------------
+
 vtkPlusIgtlMessageCommon::~vtkPlusIgtlMessageCommon()
 {
 }
@@ -199,6 +198,75 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
   trackedFrame = usMsg->GetTrackedFrame();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// static
+PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame, H264Encoder* videoStreamEncoder)
+{
+  if (videoStreamEncoder == NULL)
+  {
+    LOG_ERROR("Failed to pack video message - input video message encoder is NULL");;
+    return PLUS_FAIL;
+  }
+
+  if (videoMessage.IsNull())
+  {
+      LOG_ERROR("Failed to pack video message - input video message is NULL");;
+      return PLUS_FAIL;
+  }
+
+  if (!trackedFrame.GetImageData()->IsImageValid())
+  {
+      LOG_WARNING("Unable to send video message - video data is NOT valid!");
+      return PLUS_FAIL;
+  }
+
+  double timestamp = trackedFrame.GetTimestamp();
+  vtkImageData* frameImage = trackedFrame.GetImageData()->GetImage();
+
+  igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
+  igtlFrameTime->SetTime(timestamp);
+
+  int imageSizePixels[3] = { 0 };  double imageSpacingMm[3] = { 0 };
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(trackedFrame.GetImageData()->GetVTKScalarPixelType());
+  int numScalarComponents = trackedFrame.GetImageData()->GetNumberOfScalarComponents();
+
+  frameImage->GetDimensions(imageSizePixels);
+  frameImage->GetSpacing(imageSpacingMm);
+
+  float spacingFloat[3] = { 0 };
+  for (int i = 0; i < 3; ++i)
+  {
+      spacingFloat[i] = (float)imageSpacingMm[i];
+  }
+  unsigned char* vtkImagePointer = new unsigned char[imageSizePixels[0] * imageSizePixels[1]*3/2];
+  memset(vtkImagePointer, 0, imageSizePixels[0] * imageSizePixels[1] * 3 / 2);
+  memcpy(vtkImagePointer, frameImage->GetScalarPointer(), imageSizePixels[0] * imageSizePixels[1]);
+  int iSourceWidth = imageSizePixels[0];
+  int iSourceHeight = imageSizePixels[1];
+  SSourcePicture* pSrcPic = new SSourcePicture();
+  pSrcPic->iColorFormat = videoFormatI420; // currently only format 420 is supported.
+  pSrcPic->uiTimeStamp = 0;
+  pSrcPic->iPicWidth  = imageSizePixels[0];
+  pSrcPic->iPicHeight = imageSizePixels[1];
+  if (videoStreamEncoder->GetPicHeight() != iSourceHeight
+    || videoStreamEncoder->GetPicWidth() != iSourceWidth)
+  {
+    videoStreamEncoder->SetPicHeight(iSourceHeight);
+    videoStreamEncoder->SetPicWidth(iSourceWidth);
+    videoStreamEncoder->InitializeEncoder();
+  }
+  pSrcPic->pData[0] = vtkImagePointer;
+  pSrcPic->pData[1] = pSrcPic->pData[0] + (iSourceWidth * iSourceHeight);
+  pSrcPic->pData[2] = pSrcPic->pData[1] + (iSourceWidth * iSourceHeight >> 2);
+  bool isGrayImage = true;
+  int iEncFrames = videoStreamEncoder->EncodeSingleFrameIntoVideoMSG(pSrcPic, videoMessage, isGrayImage);
+  delete vtkImagePointer;
+  vtkImagePointer = NULL;
+  if (iEncFrames == 0)
+    return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

@@ -9,11 +9,15 @@
 
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkExport.h"
-
+#include "vtkDirectory.h"
 #include "vtkObject.h" 
 #include "igtlMessageBase.h"
 #include "igtlMessageFactory.h"
 #include "PlusIgtlClientInfo.h" 
+#include "H264Encoder.h"
+
+#include <map>
+#include <string>
 
 class vtkXMLDataElement; 
 class PlusTrackedFrame; 
@@ -83,6 +87,8 @@ protected:
 private:
   vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);
   void operator=(const vtkPlusIgtlMessageFactory&);
+  char* configFile;
+  std::map<std::string, H264Encoder*> videoStreamEncoderMap;
 
 }; 
 
