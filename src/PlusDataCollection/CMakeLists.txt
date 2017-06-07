@@ -473,23 +473,7 @@ IF(PLUS_USE_OpenCV)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${OpenCV_LIBRARIES}
     )
-
-  # TODO: install shared libraries
-  # SET(_entries)
-  # GET_TARGET_PROPERTY(_configs OpenCV IMPORTED_CONFIGURATIONS)
-  # FOREACH(_config IN LISTS _configs)
-    # GET_TARGET_PROPERTY(_location OpenCV IMPORTED_LOCATION_${_config})
-    # IF(${_config} STREQUAL RELEASE OR ${_config} STREQUAL NOCONFIG)
-      # LIST(APPEND _entries ${_config})
-      # LIST(APPEND External_Libraries_Install ${_location})
-      # BREAK()
-    # ENDIF()
-  # ENDFOREACH()
-  # LIST(LENGTH _entries _size)
-  # IF(_size EQUAL 0)
-    # MESSAGE(FATAL_ERROR "Wanted to add OpenCV library to install, but dependent files don't exist. Do you need to build it?")
-  # ENDIF()
-
+  # Installation of shared libraries is managed in PlusApp
 ENDIF()
 
 IF(PLUS_USE_aruco)
