@@ -15,7 +15,7 @@
 - \ref PackageThorLabs
 
 \section DeviceOpticalMarkerTrackerCalibration Calibration
-
+- <strong>WARNING: This is an external application and is the ONLY place distance should be specified in meters.  Everywhere else it is mm.</strong>
 - Print the <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/aruco_calibration_board_a4.pdf">aruco calibration chessboard</a> and measure the side length of the markers in meters.
 - To generate a calibration file, run aruco_calibration.exe using the command
   \code aruco_calibration.exe live:<camera-index> <output-file-name>.yml -size <marker-size-m> \endcode
