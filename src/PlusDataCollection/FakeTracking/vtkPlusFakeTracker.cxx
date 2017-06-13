@@ -358,6 +358,42 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     }
     break;
 
+    case (FakeTrackerMode_SmoothTranslation):
+    {
+        ToolStatus toolStatus = TOOL_OK;
+        if (this->Frame % 50 == 0)
+        {
+            toolStatus = TOOL_MISSING;
+        }
+
+        const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+        double tx = sin(this->Frame / 100.0)*20;  // -20 - +20
+        double ty = cos(this->Frame / 50.0)*10 + 50;  // 40 - 60
+        double tz = abs(this->Frame % 100 - 50.0) + 100;  // 100 - 150
+
+        this->InternalTransform->Identity();
+        this->InternalTransform->Translate(tx, ty, tz);
+        // Probe transform
+        {
+            PlusTransformName name("Probe", this->GetToolReferenceFrameName());
+            this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+        }
+
+        this->InternalTransform->Identity();
+        this->InternalTransform->Translate(5, -10, 1.5);
+        // Reference transform
+        {
+            PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+            this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
+        }
+        {
+            PlusTransformName name("MissingTool", this->GetToolReferenceFrameName());
+            this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), TOOL_MISSING, this->Frame, unfilteredTimestamp);
+        }
+
+    }
+    break;
+
     case (FakeTrackerMode_PivotCalibration): // Moves around a stylus with the tip fixed to a position
     {
       vtkMinimalStandardRandomSequence* random = vtkMinimalStandardRandomSequence::New();
@@ -546,6 +582,10 @@ PlusStatus vtkPlusFakeTracker::ReadConfiguration(vtkXMLDataElement* rootConfigEl
       else if (STRCASECMP(mode, "SmoothMove") == 0)
       {
         this->SetMode(FakeTrackerMode_SmoothMove);
+      }
+      else if (STRCASECMP(mode, "SmoothTranslation") == 0)
+      {
+          this->SetMode(FakeTrackerMode_SmoothTranslation);
       }
       else if (STRCASECMP(mode, "PivotCalibration") == 0)
       {
