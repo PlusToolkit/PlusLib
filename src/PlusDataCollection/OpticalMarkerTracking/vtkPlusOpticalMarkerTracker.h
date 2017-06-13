@@ -30,8 +30,8 @@ public:
   /*! Defines whether or not depth stream is used. */
   enum TRACKING_METHOD
   {
-    OPTICAL_ONLY,
-    OPTICAL_DEPTH
+    OPTICAL,
+    OPTICAL_AND_DEPTH
   };
 
   static vtkPlusOpticalMarkerTracker *New();
