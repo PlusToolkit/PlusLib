@@ -112,19 +112,19 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkXMLDataElement> elementToUse;
 
-  vtkSmartPointer<vtkXMLDataElement> ProcessorElement = configRootElement->FindNestedElementWithName("ScanConversion");
-  if (ProcessorElement == NULL)
+  vtkSmartPointer<vtkXMLDataElement> processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
+  if (processorElement == NULL)
   {
-    ProcessorElement = configRootElement->LookupElementWithName("Processor");
-    if (ProcessorElement != NULL){
-      vtkSmartPointer<vtkXMLDataElement> ScanConversionElement = ProcessorElement->FindNestedElementWithName("ScanConversion");
-      if (ScanConversionElement == NULL){
+    processorElement = configRootElement->LookupElementWithName("Processor");
+    if (processorElement != NULL){
+      vtkSmartPointer<vtkXMLDataElement> scanConversionElement = processorElement->FindNestedElementWithName("ScanConversion");
+      if (scanConversionElement == NULL){
         LOG_ERROR("Cannot find device set in XML tree element: ScanConversion");
         return PLUS_FAIL;
       }
       else
       {
-        elementToUse = ProcessorElement;
+        elementToUse = processorElement;
       }
     }
     else
@@ -144,6 +144,14 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
   LOG_INFO("Reading config file finished.");
+
+
+  if (enhancer->ProcessImageExtents() == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to process Image Extents.");
+    return EXIT_FAILURE;
+  }
+  LOG_INFO("Processed Image Extents.");
 
   //Process the frames for the input file
   enhancer->SetSaveIntermediateResults(saveIntermediateResults);
@@ -188,7 +196,7 @@ int main(int argc, char** argv)
     LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
     return EXIT_FAILURE;
   }
-  
+
   //test the abillity to Write to the config file
   if (!outputConfigFileName.empty())
   {
