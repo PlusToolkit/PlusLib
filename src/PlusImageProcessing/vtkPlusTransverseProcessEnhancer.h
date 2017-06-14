@@ -48,6 +48,10 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
+  virtual PlusStatus ProcessImageExtents();
+
+  void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
+
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
@@ -83,7 +87,7 @@ public:
   vtkBooleanMacro(GaussianEnabled, bool);
 
   void SetGaussianStdDev(double GaussianStdDev);
-  void SetGaussianKernelSize(int GaussianKernelSize);
+  void SetGaussianKernelSize(double GaussianKernelSize);
 
   vtkSetMacro(ThresholdingEnabled, bool);
   vtkGetMacro(ThresholdingEnabled, bool);
@@ -141,9 +145,9 @@ protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
 
-  void FillLinesImage(vtkSmartPointer<vtkPlusUsScanConvert> scanConverter, vtkSmartPointer<vtkImageData> inputImageData);
+  void FillLinesImage(vtkSmartPointer<vtkImageData> inputImageData);
   void ProcessLinesImage();
-  void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> ConversionImage);
+  void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage);
   void FillShadowValues();
 
   void ComputeHistogram(vtkSmartPointer<vtkImageData> imageData);
@@ -182,7 +186,7 @@ protected:
   // Image processing parameters, defined in config file
   bool GaussianEnabled;
   double GaussianStdDev;
-  int GaussianKernelSize;
+  double GaussianKernelSize;
 
   bool ThresholdingEnabled;
   double ThresholdInValue;
@@ -216,6 +220,11 @@ protected:
 
   /// Image after some of the processing operations have been applied
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
+
+
+  std::vector<int> MaxImageElements;
+  std::vector<int> MatrixElementDiffsLoc;
+  std::vector<int[3]> SmallAreaInfos;
 };
 
 #endif

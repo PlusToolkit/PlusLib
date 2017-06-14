@@ -25,6 +25,11 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 
 
+
+
+#include <cmath>
+
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
@@ -32,7 +37,7 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 //----------------------------------------------------------------------------
 
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
-: ScanConverter(NULL),
+  : ScanConverter(NULL),
   ConvertToLinesImage(true),
   NumberOfScanLines(0),
   NumberOfSamplesPerScanLine(0),
@@ -99,7 +104,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->ImageBinarizer->SetInValue(255);
   this->ImageBinarizer->SetOutValue(0);
-  this->ImageBinarizer->ThresholdBetween(10, 255);
+  this->ImageBinarizer->ThresholdBetween(55, 255);
   this->IslandRemover->SetIslandValue(255);
   this->IslandRemover->SetReplaceValue(0);
   this->IslandRemover->SetAreaThreshold(0);
@@ -202,7 +207,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
       {
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianStdDev, gaussianParameters);
 
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, GaussianKernelSize, gaussianParameters);
+        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianKernelSize, gaussianParameters);
       }
     }
 
@@ -221,7 +226,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
 
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, LowerThreshold, thresholdingParameters);
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, UpperThreshold, thresholdingParameters);
-
       }
     }
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EdgeDetectorEnabled, imageProcessingOperations);       // No other parameters to set?
@@ -285,34 +289,16 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
     this->ReturnToFanImage = true;
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfScanLines, processingElement)
-    XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfSamplesPerScanLine, processingElement)
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfScanLines, processingElement);
+  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, NumberOfSamplesPerScanLine, processingElement);
 
-    int rfImageExtent[6] = { 0, this->NumberOfSamplesPerScanLine - 1, 0, this->NumberOfScanLines - 1, 0, 0 };
+  int rfImageExtent[6] = { 0, this->NumberOfSamplesPerScanLine - 1, 0, this->NumberOfScanLines - 1, 0, 0 };
   this->ScanConverter->SetInputImageExtent(rfImageExtent);
 
-  // Allocate lines image.
-  int* linesImageExtent = this->ScanConverter->GetInputImageExtent();
-
-  LOG_DEBUG("Lines image extent: "
-    << linesImageExtent[0] << ", " << linesImageExtent[1]
-    << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
-    << ", " << linesImageExtent[4] << ", " << linesImageExtent[5]);
-
-  this->BinaryImageForMorphology->SetExtent(linesImageExtent);
-  this->BinaryImageForMorphology->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-  this->LinesImage->SetExtent(linesImageExtent);
-  this->LinesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-  this->ShadowImage->SetExtent(linesImageExtent);
-  this->ShadowImage->AllocateScalars(VTK_FLOAT, 1);
-
-  this->IntermediateImage->SetExtent(linesImageExtent);
-  this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
   return PLUS_SUCCESS;
+
 }
+
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement)
@@ -367,12 +353,41 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
   return PLUS_SUCCESS;
 }
 
+PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
+{
+
+  // Allocate lines image.
+  //TODO: Do not do memory management in ReadConfiguration. Should go to a processing method
+  int* linesImageExtent = this->ScanConverter->GetInputImageExtent();
+
+  LOG_DEBUG("Lines image extent: "
+    << linesImageExtent[0] << ", " << linesImageExtent[1]
+    << ", " << linesImageExtent[2] << ", " << linesImageExtent[3]
+    << ", " << linesImageExtent[4] << ", " << linesImageExtent[5]);
+
+  this->BinaryImageForMorphology->SetExtent(linesImageExtent);
+  this->BinaryImageForMorphology->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+  this->LinesImage->SetExtent(linesImageExtent);
+  this->LinesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+  this->ShadowImage->SetExtent(linesImageExtent);
+  this->ShadowImage->AllocateScalars(VTK_FLOAT, 1);
+
+  this->IntermediateImage->SetExtent(linesImageExtent);
+  this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+  return PLUS_SUCCESS;
+
+
+}
+
 //----------------------------------------------------------------------------
 // Fills the lines image by subsampling the input image along scanlines.
 // Also computes pixel statistics.
-void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkPlusUsScanConvert> scanConverter, vtkSmartPointer<vtkImageData> inputImageData)
+void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageData> inputImageData)
 {
-  int* linesImageExtent = scanConverter->GetInputImageExtent();
+  int* linesImageExtent = this->ScanConverter->GetInputImageExtent();
   int lineLengthPx = linesImageExtent[1] - linesImageExtent[0] + 1;
   int numScanLines = linesImageExtent[3] - linesImageExtent[2] + 1;
 
@@ -380,10 +395,10 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkPlusUsS
   // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
 
   double mean = 0.0;
-  double M2 = 0.0;
+  double sumSquareDiff = 0.0; //named M2 in online notes
   long pixelCount = 0;
-  double value = 0.0;
-  double delta = 0.0;
+  double currentValue = 0.0; //temporary value for each loop. //Named value in online notes
+  double valueMeanDiff = 0.0; //Named delta in online notes
   this->CurrentFrameScalarComponentMax = 0.0;
   this->CurrentFrameScalarComponentMin = 255.0;
 
@@ -392,7 +407,7 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkPlusUsS
   {
     double start[4] = { 0 };
     double end[4] = { 0 };
-    scanConverter->GetScanLineEndPoints(scanLine, start, end);
+    ScanConverter->GetScanLineEndPoints(scanLine, start, end);
 
     double directionVectorX = static_cast<double>(end[0] - start[0]) / (lineLengthPx - 1);
     double directionVectorY = static_cast<double>(end[1] - start[1]) / (lineLengthPx - 1);
@@ -406,28 +421,29 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkPlusUsS
         this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
         continue; // outside of the specified extent
       }
-      value = inputImageData->GetScalarComponentAsDouble(pixelCoordX, pixelCoordY, 0, 0);
-      this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, value);
+      currentValue = inputImageData->GetScalarComponentAsDouble(pixelCoordX, pixelCoordY, 0, 0);
+      this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, currentValue);
 
-      if (this->CurrentFrameScalarComponentMax < value)
+      if (this->CurrentFrameScalarComponentMax < currentValue)
       {
-        this->CurrentFrameScalarComponentMax = value;
+        this->CurrentFrameScalarComponentMax = currentValue;
       }
-      if (this->CurrentFrameScalarComponentMin > value)
+      if (this->CurrentFrameScalarComponentMin > currentValue)
       {
-        this->CurrentFrameScalarComponentMin = value;
+        this->CurrentFrameScalarComponentMin = currentValue;
       }
 
       ++pixelCount;
-      delta = value - mean;
-      mean = mean + delta / pixelCount;
-      M2 = M2 + delta * (value - mean);
+      valueMeanDiff = currentValue - mean;
+      mean = mean + valueMeanDiff / pixelCount;
+      sumSquareDiff = sumSquareDiff + valueMeanDiff * (currentValue - mean);
     }
   }
 
   this->CurrentFrameMean = mean;
-  this->CurrentFrameStDev = std::sqrt(M2 / (pixelCount - 1));
+  this->CurrentFrameStDev = std::sqrt(sumSquareDiff / (pixelCount - 1));
 }
+
 
 //----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
@@ -475,6 +491,8 @@ void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
       vInput = static_cast<unsigned char*>(this->LinesImage->GetScalarPointer(x, y, 0));
       vOutput = static_cast<unsigned char*>(this->IntermediateImage->GetScalarPointer(x, y, 0));
       output = (*vInput);
+
+      //Make vOutput a maximum of 255, and at minimum 0
       if (output > 255) { (*vOutput) = 255; }
       else if (output < 0) { (*vOutput) = 0; }
       else { (*vOutput) = (unsigned char)output; }
@@ -516,7 +534,10 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
       nSoFar++;
       float diffFromMean = inputValue - lineMeanSoFar;
       lineMeanSoFar = lineMeanSoFar + diffFromMean / nSoFar;
-      if (inputValue > lineMaxSoFar) { lineMaxSoFar = inputValue; }
+      if (inputValue > lineMaxSoFar) 
+      { 
+        lineMaxSoFar = inputValue; 
+      }
 
       shadowValue = 1.0 - (lineMaxSoFar / this->CurrentFrameScalarComponentMax);
 
@@ -532,13 +553,14 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> ConversionImage)
+void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage)
 {
   unsigned char* vInput = 0;
   unsigned char* vOutput = 0;
   unsigned char edgeDetectorOutput0;
   unsigned char edgeDetectorOutput1;
   float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
+  float output2 = 0.0; 
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
@@ -553,14 +575,56 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
       edgeDetectorOutput0 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 0));
       edgeDetectorOutput1 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 1));
       vOutput = static_cast<unsigned char*>(this->ConversionImage->GetScalarPointer(x, y, 0));
-      output = (edgeDetectorOutput0 + edgeDetectorOutput1) / 2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
+      output = (float)(edgeDetectorOutput0 + edgeDetectorOutput1) / (float)2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
+
+      if (edgeDetectorOutput0 != 0 && edgeDetectorOutput1 != 0){
+        int a = 1;
+      }
+
+      output2 = pow(pow(edgeDetectorOutput0, 2) + pow(edgeDetectorOutput1, 2), 0.5);
+
+
       if (output > 255) { (*vOutput) = 255; }
       else if (output < 0) { (*vOutput) = 0; }
       else { (*vOutput) = (unsigned char)output; }
     }
   }
-  inputImage->Modified();
 }
+
+
+//Used to remove all images the have a shadow image behind it
+void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage)
+{
+
+  int dims[3] = { 0, 0, 0 };
+  inputImage->GetDimensions(dims);
+
+  float*  vOutput;
+
+  for (int y = dims[1] - 1; y >= 0; y--)
+  {
+    int keepInfoCounter = 10; //When an image is detected, keep up to 10 pixles after it
+    for (int x = dims[0] - 1; x >= 0; x--)
+    {
+      vOutput = static_cast<float*>(inputImage->GetScalarPointer(x, y, 0));
+
+      if (*vOutput != 0)
+      {
+        if (keepInfoCounter == 0)
+        {
+          //Set the image to zero
+          *vOutput = 0;
+        }
+        else
+        {
+          keepInfoCounter--;
+        }
+      }
+    }
+  }
+}
+
+
 
 //----------------------------------------------------------------------------
 // If a pixel in MaskImage is > 0, the corresponding pixel in InputImage will remain unchanged, otherwise it will be set to 0
@@ -597,24 +661,28 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 {
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
 
+  int dims[3] = { 0, 0, 0 };
+  inputImage->GetImage()->GetDimensions(dims);
 
-  
   if (this->ScanConverter.GetPointer() == NULL)
   {
     return PLUS_FAIL;
   }
+  this->AddIntermediateImage("_00PreFilters", inputImage->GetImage());
+
   if (this->ConvertToLinesImage)
   {
     this->ScanConverter->SetInputData(inputImage->GetImage());
     this->ScanConverter->Update();
     // Generate lines image.
-    this->FillLinesImage(this->ScanConverter, inputImage->GetImage());
+    this->AddIntermediateImage("_01Lines_1PreFillLines", this->LinesImage);
+    this->FillLinesImage(inputImage->GetImage());
+    this->AddIntermediateImage("_01Lines_2PreProcessLinesImage", this->LinesImage);
     this->ProcessLinesImage();
-    this->AddIntermediateImage("_01Lines_1PostProcessLinesImage", this->IntermediateImage);
-    this->FillShadowValues();
-    this->AddIntermediateImage("_01Lines_2PostFillShadowValues", this->ShadowImage);
+    //this->FillShadowValues();
+    this->AddIntermediateImage("_01Lines_3PostFillShadowValues", this->ShadowImage);
     this->IntermediateImage->DeepCopy(this->LinesImage);
-    this->AddIntermediateImage("_01Lines_3FilterEnd", this->IntermediateImage);
+    this->AddIntermediateImage("_01Lines_4FilterEnd", this->IntermediateImage);
   }
   else
   {
@@ -626,7 +694,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   {
     this->Thresholder->SetInputData(this->IntermediateImage);
     this->Thresholder->Update();
-    this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput());
+    this->IntermediateImage->DeepCopy(this->Thresholder->GetOutput()); //TODO: Change to GetOutputPort()
     this->AddIntermediateImage("_02Threshold_1FilterEnd", this->IntermediateImage);
   }
 
@@ -634,7 +702,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   {
     this->GaussianSmooth->SetInputData(this->IntermediateImage);
     this->GaussianSmooth->Update();
-    this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput());
+    this->IntermediateImage->DeepCopy(this->GaussianSmooth->GetOutput()); //TODO: Change to GetOutputPort()
     this->IntermediateImage->Modified();
     this->AddIntermediateImage("_03Gaussian_1FilterEnd", this->IntermediateImage);
   }
@@ -646,28 +714,36 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   {
     this->EdgeDetector->SetInputData(this->IntermediateImage);
     this->EdgeDetector->Update();
-    this->AddIntermediateImage("_04EdgeDetector_1PostEdgeDetectorUpdate", this->EdgeDetector->GetOutput());
-    this->VectorImageToUchar(this->EdgeDetector->GetOutput(), this->ConversionImage);
+    this->VectorImageToUchar(this->EdgeDetector->GetOutput()); //TODO: Change to GetOutputPort()
     this->IntermediateImage->DeepCopy(this->ConversionImage);
     this->IntermediateImage->Modified();
-    this->AddIntermediateImage("_04EdgeDetector_2FilterEnd", this->IntermediateImage);
+    this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->IntermediateImage);
   }
 
+  //this->EdgeFrontLocalization(IntermediateImage);
+
   // If we are to perform any morphological operations, we must binarize the image
-  if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled)
+  if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled || this->ReconvertBinaryToGreyscale)
   {
     this->ImageBinarizer->SetInputData(this->IntermediateImage);
     this->ImageBinarizer->Update();
-    this->BinaryImageForMorphology->DeepCopy(this->ImageBinarizer->GetOutput());
+    this->BinaryImageForMorphology->DeepCopy(this->ImageBinarizer->GetOutput()); //TODO: Change to GetOutputPort()
     this->AddIntermediateImage("_05BinaryImageForMorphology_1FilterEnd", this->BinaryImageForMorphology);
+
+    //this->EdgeFrontLocalization(IntermediateImage);
+
 
     if (this->IslandRemovalEnabled)
     {
       this->IslandRemover->SetInputData(this->BinaryImageForMorphology);
       this->IslandRemover->Update();
-      this->BinaryImageForMorphology->DeepCopy(this->IslandRemover->GetOutput());
-      this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
+      this->BinaryImageForMorphology->DeepCopy(this->IslandRemover->GetOutput()); //TODO: Change to GetOutputPort()
+      this->AddIntermediateImage("_06Island_1FilterEnd", this->BinaryImageForMorphology);
     }
+
+    this->RemoveImagesPrecedingShadow(this->BinaryImageForMorphology);
+    this->AddIntermediateImage("_06Island_2FilterEnd", this->BinaryImageForMorphology);
+
     if (this->ErosionEnabled)
     {
       this->ImageEroder->SetErodeValue(255);
@@ -675,7 +751,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
-      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
+      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput()); //TODO: Change to GetOutputPort()
       this->AddIntermediateImage("_07Erosion_1FilterEnd", this->ImageEroder->GetOutput());
 
       //reset the values
@@ -689,7 +765,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
       this->ImageEroder->SetInputData(this->BinaryImageForMorphology);
       this->ImageEroder->Update();
-      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput());
+      this->BinaryImageForMorphology->DeepCopy(this->ImageEroder->GetOutput()); //TODO: Change to GetOutputPort()
       this->AddIntermediateImage("_08Dilation_1FilterEnd", this->ImageEroder->GetOutput());
 
       //reset the values
@@ -698,7 +774,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     }
     if (this->ReconvertBinaryToGreyscale)
     {
-      ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
+      this->ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);           // Currently, inputImage is the output of the edge detector, not original pixels
       this->IntermediateImage->DeepCopy(this->UnprocessedLinesImage);
       this->AddIntermediateImage("_09ReconvertBinaryToGreyscale_1FilterEnd", this->IntermediateImage);
     }
@@ -706,22 +782,21 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     {
       this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
-
-    PlusVideoFrame* outputImage = outputFrame->GetImageData();
-    if (this->ReturnToFanImage)
-    {
-      this->ScanConverter->SetInputData(this->IntermediateImage);
-      this->ScanConverter->Update();
-      outputImage->DeepCopyFrom(this->ScanConverter->GetOutput());
-      this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
-    }
-    else
-    {
-      outputImage->DeepCopyFrom(this->IntermediateImage);
-    }
   }
 
-  //vtkObject::GetGlobalWarningDisplay value: 1
+  PlusVideoFrame* outputImage = outputFrame->GetImageData();
+  if (this->ReturnToFanImage)
+  {
+    this->ScanConverter->SetInputData(this->IntermediateImage);
+    this->ScanConverter->Update();
+    outputImage->DeepCopyFrom(this->ScanConverter->GetOutput()); //TODO: Change to GetOutputPort()
+    this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->ScanConverter->GetOutput());
+  }
+  else
+  {
+    outputImage->DeepCopyFrom(this->IntermediateImage);
+  }
+
 
   return PLUS_SUCCESS;
 }
@@ -758,7 +833,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(char* 
   {
 
     //Try to save the intermediate image
-    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + std::string(fileNamePostfix) + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    if (this->IntermediateImageMap[fileNamePostfix]->SaveToSequenceMetafile(IntermediateImageFileName + "_Plus" + std::string(fileNamePostfix) + ".mha", US_IMG_ORIENT_MF, false) == PLUS_FAIL)
     {
       LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
       return PLUS_FAIL;
@@ -774,13 +849,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(char* 
 
 void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image)
 {
-
   if (fileNamePostfix == "")
   {
     LOG_WARNING("The empty string was given as an intermediate image file postfix.");
   }
 
-  if (this->SaveIntermediateResults)
+  if (this->SaveIntermediateResults) //TODO: Do this check when calling this method, not inside it
   {
     // See if the intermediate image should be created
     std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
@@ -800,7 +874,6 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfi
     linesTrackedFrame.SetImageData(linesVideoFrame);
     this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
   }
-
 }
 
 
@@ -812,7 +885,7 @@ void vtkPlusTransverseProcessEnhancer::SetGaussianStdDev(double gaussianStdDev)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetGaussianKernelSize(int gaussianKernelSize)
+void vtkPlusTransverseProcessEnhancer::SetGaussianKernelSize(double gaussianKernelSize)
 {
   this->GaussianKernelSize = gaussianKernelSize;
   this->GaussianSmooth->SetRadiusFactor(gaussianKernelSize);
@@ -878,7 +951,7 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   else
   {
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
- } 
+  }
 }
 
 
