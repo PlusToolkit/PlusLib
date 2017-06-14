@@ -357,7 +357,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 {
 
   // Allocate lines image.
-  //TODO: Do not do memory management in ReadConfiguration. Should go to a processing method
   int* linesImageExtent = this->ScanConverter->GetInputImageExtent();
 
   LOG_DEBUG("Lines image extent: "
