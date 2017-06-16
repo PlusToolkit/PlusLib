@@ -178,6 +178,9 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalConnect()
   // TODO: Need error handling for this?
   CP.readFromXMLFile(calibFilePath);
   MDetector.setDictionary(MarkerDictionary);
+  // threshold tuning numbers from aruco_test
+  MDetector.setThresholdParams(7, 7);
+  MDetector.setThresholdParamRange(2, 0);
 
   bool lowestRateKnown = false;
   double lowestRate = 30; // just a usual value (FPS)
@@ -312,14 +315,13 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
         //marker is in frame
         toolInFrame = true;
 
-        if (MarkerPoseTracker.estimatePose(*markerIt, CP, toolIt->MarkerSizeMm / MM_PER_M, 4))
+        if (toolIt->MarkerPoseTracker.estimatePose(*markerIt, CP, toolIt->MarkerSizeMm / MM_PER_M, 4))
         {
           // pose successfully estimated, update transform
-          cv::Mat Rvec = MarkerPoseTracker.getRvec();
-          cv::Mat Tvec = MarkerPoseTracker.getTvec();
+          cv::Mat Rvec = toolIt->MarkerPoseTracker.getRvec();
+          cv::Mat Tvec = toolIt->MarkerPoseTracker.getTvec();
           BuildTransformMatrix(toolIt->transformMatrix, Rvec, Tvec);
           ToolTimeStampedUpdate(toolIt->ToolSourceId, toolIt->transformMatrix, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
-
         }
         else
         {

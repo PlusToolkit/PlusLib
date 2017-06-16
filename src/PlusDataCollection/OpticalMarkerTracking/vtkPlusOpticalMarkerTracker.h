@@ -115,6 +115,7 @@ private:
     std::string MarkerMapFile;
     std::string ToolSourceId;
     std::string ToolName;
+    aruco::MarkerPoseTracker MarkerPoseTracker;
     vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   };
 
@@ -136,7 +137,6 @@ private:
   /*! Pointer to main aruco objects */
   aruco::MarkerDetector MDetector;
   aruco::CameraParameters CP;
-  aruco::MarkerPoseTracker MarkerPoseTracker;
   vector<aruco::Marker> markers;
 };
 
