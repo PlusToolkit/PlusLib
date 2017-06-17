@@ -19,6 +19,7 @@ See License.txt for details.
 #include <set>
 #include "vtkPlusDataSource.h"
 #include "vtkMatrix4x4.h"
+#include "PixelCodec.h"
 
 // aruco
 #include "dictionary.h"
@@ -286,20 +287,7 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
 
   // converting trackedFrame (vtkImageData) to cv::Mat
   cv::Mat image(dim[1], dim[0], CV_8UC3, cv::Scalar(0, 0, 255));
-  // TODO: error checking - image.isContinuous());
-  vtkImageData *vtkImage = frame->GetImage();
-  for (int i = 0; i < dim[0]; i++)
-  {
-    for (int j = 0; j < dim[1]; j++)
-    {
-      uchar *pixel = static_cast<uchar*>(vtkImage->GetScalarPointer(i, j, 0));
-      uchar temp = pixel[0];
-      // swap B and R channels since vtkImage is RGB and OCV is BGR
-      pixel[0] = pixel[2];
-      pixel[2] = temp;
-      image.at<cv::Vec3b>(j, i) = static_cast<cv::Vec3b>(pixel);
-    }
-  }
+  PixelCodec::RgbBgrSwap(dim[0], dim[1], (unsigned char*)frame->GetScalarPointer(), image.data);
 
   // detect markers in frame
   MDetector.detect(image, markers);
