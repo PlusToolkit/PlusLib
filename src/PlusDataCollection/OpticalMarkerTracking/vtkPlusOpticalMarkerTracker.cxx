@@ -287,7 +287,10 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
 
   // converting trackedFrame (vtkImageData) to cv::Mat
   cv::Mat image(dim[1], dim[0], CV_8UC3, cv::Scalar(0, 0, 255));
-  PixelCodec::RgbBgrSwap(dim[0], dim[1], (unsigned char*)frame->GetScalarPointer(), image.data);
+
+  // Plus image uses RGB and OpenCV uses BGR, swapping is only necessary for colored markers
+  //PixelCodec::RgbBgrSwap(dim[0], dim[1], (unsigned char*)frame->GetScalarPointer(), image.data);
+  image.data = (unsigned char*)frame->GetScalarPointer();
 
   // detect markers in frame
   MDetector.detect(image, markers);
