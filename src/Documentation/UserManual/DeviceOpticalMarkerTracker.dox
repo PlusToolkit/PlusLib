@@ -16,7 +16,7 @@ OpticalMarkerTracker is virtual device that provides position tracking of marker
 To get started, print a set of markers and create a configuration file. It is recommended to use "PlusServer: Optical marker tracker using MMF video" configuration file that is included in your Plus installation package (see also at the bottom of this page) and print this sheet that contains a number of markers with different sizes (make sure to print in actual size: scaling should be 100%):
 <a href="https://app.assembla.com/spaces/plus/subversion/source/HEAD/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/marker_sheet_36h12.pdf?_format=raw">marker_sheet_36h12.pdf</a>. If you put the sheet in the field of view of your camera, the device will detect position and orientation of the markers.
 
-To improve tracking accuracy, you need to create a calibration file for your camera as described below. If you need more calibration markers, you can print more by following instructions below.
+To improve tracking accuracy, you need to create a calibration file for your camera as described below.  If you need more tracking markers, you can print more by following instructions below.
 
 \subsection DeviceOpticalMarkerTrackerCameraCalibration Calibration
 
@@ -24,7 +24,10 @@ Camera calibration determines optical properties of your camera (distortion, foc
 
 - <strong>WARNING: Camera calibration uses an external application, which uses meters as unit for length. This is the ONLY place length should be specified in meters.  Everywhere else in Plus it is millimeter.</strong>
 - Print the <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/aruco_calibration_board_a4.pdf">aruco calibration chessboard</a> and measure the side length of the markers.
-- To generate a calibration file, run aruco_calibration.exe using the command
+- To generate a calibration file, run aruco_calibration.exe \n
+  Example: \n
+  \code aruco_calibration.exe live:0 camera_calibration.yml -size 0.03556 \endcode
+  Reference: \n
   \code aruco_calibration.exe live:<camera-index> <output-file-name>.yml -size <marker-size-m> \endcode
   where:
   - <camera-index> is the integer index of the camera you want to use (usually 0 or 1).
@@ -45,16 +48,24 @@ Camera calibration determines optical properties of your camera (distortion, foc
     \image html ../images/DeviceOpticalMarkerTracker/Oblique2.png
 
 \subsection DeviceOpticalMarkerTrackerMarkerGeneration Creating printable marker images
+- A premade sheet of ARUCO_36h12 markers in three standard sizes (80mm, 50mm, and 30mm) is located at
+  <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/marker_sheet_36h12.pdf">/ConfigFiles/OpticalMarkerTracker/marker_sheet_36h12.pdf</a>.
 - Some pre-generated marker images from the ARUCO_MIP_36h12 dictionary are included at
   <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/markers">/ConfigFiles/OpticalMarkerTracker/markers</a>.
-- To print a \b single \b image, run aruco_print_marker.exe using the command
+- To generate a \b single \b image for printing, run aruco_print_marker.exe \n
+  Example: \n
+  \code aruco_print_marker.exe 0 marker0.png -bs 75 -d ARUCO_MIP_36h12 \endcode
+  Reference: \n
   \code aruco_print_marker.exe <marker-id> <output-file-name>(.jpg|.png|.ppm|.bmp) -bs <bit-size> -d <dictionary> \endcode
   where:
   - <marker-id> is the integer ID of the marker you wish to print.
   - <output-file-name> is the desired marker image filename.
   - <bit-size> is the number of pixels per interior image bit \OptionalAtt{50px}.
   - <dictionary> is the marker dictionary you wish to use (we suggest ARUCO_MIP_36h12).
-- To print an \b entire \b dictionary at once, run aruco_print_dictionary.exe using the command
+- To generate printable markers for an \b entire \b dictionary at once, run aruco_print_dictionary.exe \n
+  Example: \n
+  \code aruco_print_dictionary.exe markers_36h12 ARUCO_MIP_36h12 -s 75 \endcode
+  Reference: \n
   \code aruco_print_dictionary.exe <output-directory> <dictionary> -s <bit-size> \endcode
   where:
   - <output-directory> is the directory to output the marker images to (must already exist).
@@ -67,7 +78,7 @@ Camera calibration determines optical properties of your camera (distortion, foc
   <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/realsense_gen2_calibration.yml">/ConfigFiles/OpticalMarkerTracker/realsense_gen2_calibration.yml</a>
 - The creation of a custom calibration file for your camera is \b strongly recommended.  Failure to do so can result in erroneous and/or unstable measurements. \n \n
 - \xmlAtt \ref DeviceType "Type" = \c "OpticalMarkerTracker" \RequiredAtt
-- \xmlAtt \b CameraCalibrationFile Camera calibration file containing device-specific parameters measured by the camera calibration utility.a Path is relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
+- \xmlAtt \b CameraCalibrationFile Camera calibration file containing device-specific parameters measured by the camera calibration utility. Path is relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 - \xmlAtt \b TrackingMethod Tracking method. \OptionalAtt{OPTICAL}
     - \c OPTICAL uses just RGB video.
