@@ -1,9 +1,11 @@
 /*!
 \page DeviceOpticalMarkerTracker Optical Marker Tracker
 
+OpticalMarkerTracker is virtual device that provides position tracking of markers using any webcam or camcorder. You can print your own markers on any regular printer and attach to a flat surface on an object. The device uses algorithms implemented in OpenCV and ArUco software libraries.
+
 \section DeviceOpticalMarkerTrackerSupportedHwDevices Supported hardware devices
 
-- Any external webcam or laptop camera (forward or rear facing).
+- This is a virtual (software-only) device, which uses images taken by any optical imaging device that Plus supports, such as external webcam, built-in laptop camera - either forward or rear facing, camcorder connected through framegrabber, etc.
 
 \section DeviceOpticalMarkerTrackerSupportedPlatforms Included in packages
 
@@ -14,9 +16,19 @@
 - \ref PackageStealthLink
 - \ref PackageThorLabs
 
-\section DeviceOpticalMarkerTrackerCalibration Calibration
-- <strong>WARNING: This is an external application and is the ONLY place distance should be specified in meters.  Everywhere else it is mm.</strong>
-- Print the <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/aruco_calibration_board_a4.pdf">aruco calibration chessboard</a> and measure the side length of the markers in meters.
+\section DeviceOpticalMarkerTrackerInstallation Installation
+
+To get started, print a set of markers and create a configuration file. It is recommended to use "PlusServer: Optical marker tracker using MMF video" configuration file that is included in your Plus installation package (see also at the bottom of this page) and print this sheet that contains a number of markers with different sizes (make sure to print in actual size: scaling should be 100%):
+<a href="https://app.assembla.com/spaces/plus/subversion/source/HEAD/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/marker_sheet_36h12.pdf?_format=raw">marker_sheet_36h12.pdf</a>. If you put the sheet in the field of view of your camera, the device will detect position and orientation of the markers.
+
+To improve tracking accuracy, you need to create a calibration file for your camera as described below. If you need more calibration markers, you can print more by following instructions below.
+
+\subsection DeviceOpticalMarkerTrackerCameraCalibration Calibration
+
+Camera calibration determines optical properties of your camera (distortion, focal length, etc) to improve tracking accuracy.
+
+- <strong>WARNING: Camera calibration uses an external application, which uses meters as unit for length. This is the ONLY place length should be specified in meters.  Everywhere else in Plus it is millimeter.</strong>
+- Print the <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/aruco_calibration_board_a4.pdf">aruco calibration chessboard</a> and measure the side length of the markers.
 - To generate a calibration file, run aruco_calibration.exe using the command
   \code aruco_calibration.exe live:<camera-index> <output-file-name>.yml -size <marker-size-m> \endcode
   where:
@@ -37,7 +49,7 @@
     \image html ../images/DeviceOpticalMarkerTracker/Oblique1.png
     \image html ../images/DeviceOpticalMarkerTracker/Oblique2.png
 
-\section DeviceOpticalMarkerTrackerImages Creating images for printing
+\subsection DeviceOpticalMarkerTrackerMarkerGeneration Creating printable marker images
 - Some pre-generated marker images from the ARUCO_MIP_36h12 dictionary are included at
   <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/markers">/ConfigFiles/OpticalMarkerTracker/markers</a>.
 - To print a \b single \b image, run aruco_print_marker.exe using the command
@@ -60,16 +72,17 @@
   <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/realsense_gen2_calibration.yml">/ConfigFiles/OpticalMarkerTracker/realsense_gen2_calibration.yml</a>
 - The creation of a custom calibration file for your camera is \b strongly recommended.  Failure to do so can result in erroneous and/or unstable measurements. \n \n
 - \xmlAtt \ref DeviceType "Type" = \c "OpticalMarkerTracker" \RequiredAtt
-- \xmlAtt \b CameraCalibrationFile   Relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
+- \xmlAtt \b CameraCalibrationFile Camera calibration file containing device-specific parameters measured by the camera calibration utility.a Path is relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 - \xmlAtt \b TrackingMethod Tracking method. \OptionalAtt{OPTICAL}
     - \c OPTICAL uses just RGB video.
-    - \c OPTICAL_AND_DEPTH uses depth data and RGB video.
+    - \c OPTICAL_AND_DEPTH uses depth data and RGB video (work in progress).
 - \xmlAtt \ref MarkerDictionary The dictionary whose markers are being used. \RequiredAtt
+    - \c \b ARUCO_MIP_36h12 Use of this dictionary is recommended. Some pre-generated marker images are included at
+  <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/markers">/ConfigFiles/OpticalMarkerTracker/markers</a>.
     - \c ARUCO
     - \c ARUCO_MIP_16h3
     - \c ARUCO_MIP_25h7
-    - \c \b ARUCO_MIP_36h12 Use is recommended.  Some <a href="https://www.assembla.com/spaces/plus/documents/b11NfOt6Sr54Nddmr6CpXy/download/b11NfOt6Sr54Nddmr6CpXy">ARUCO_MIP_36h12 markers (.zip)</a>.
     - \c ARTAG
     - \c ARTOOLKITPLUS
     - \c ARTOOLKITPLUSBCH
@@ -78,7 +91,6 @@
     - \c TAG25h9
     - \c TAG36h10
     - \c TAG36h11
-
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
    - \xmlAtt \b MarkerId The integer identifier of the marker representing this tool. \RequiredAtt
