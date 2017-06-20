@@ -486,12 +486,6 @@ IF(PLUS_USE_aruco)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     aruco2019
     )
-  SET(External_Libraries_Install ${External_Libraries_Install}
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/aruco2019${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  SET(External_Libraries_Debug ${External_Libraries_Debug}
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/aruco2019${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
 ENDIF()
 
 IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
