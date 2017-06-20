@@ -867,25 +867,16 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   // If we are to perform any morphological operations, we must binarize the image
   if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled || this->ReconvertBinaryToGreyscale)
   {
-    ImageBinarizer->SetInputData(this->ConversionImage);
+    this->ImageBinarizer->SetInputData(this->ConversionImage);
     this->AddIntermediateFromFilter("_05BinaryImageForMorphology_1FilterEnd", this->ImageBinarizer);
-
+    
     lastFilter = ImageBinarizer;
-
-
 
     if (this->IslandRemovalEnabled)
     {
       this->IslandRemover->SetInputConnection(lastFilter->GetOutputPort()); //TODO: Connect to ImageBinarizer in final version
-      this->IslandRemover->SetOutput(this->BinaryImageForMorphology);
-      this->IslandRemover->Update();
 
-      this->AddIntermediateImage("_06Island_1PostUpdate", this->IslandRemover->GetOutput());
-
-      this->RemoveImagesPrecedingShadow(this->BinaryImageForMorphology);
-      this->AddIntermediateImage("_06Island_2PostRemovePreImages", this->BinaryImageForMorphology);
-
-      this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
+      this->AddIntermediateFromFilter("_06Island_1FilterEnd", this->IslandRemover);
 
       lastFilter = IslandRemover;
     }
@@ -896,19 +887,13 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageEroder->SetDilateValue(0);             // We must dilate that which isn't eroded, for erosion to be possible
       this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
 
-      this->ImageEroder->SetInputData(this->IntermediateImage);
-      this->ImageEroder->SetOutput(this->BinaryImageForMorphology);
-      this->ImageEroder->Update();
+      this->ImageEroder->SetInputConnection(lastFilter->GetOutputPort());
 
-      this->AddIntermediateImage("_07Erosion_1PostUpdate", this->BinaryImageForMorphology);
-      this->RemoveOffCameraBones(this->BinaryImageForMorphology);
-      this->AddIntermediateImage("_07Erosion_2PostRemoveOffCamera", this->BinaryImageForMorphology);
+      this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
 
       //reset the values
       this->ImageEroder->SetErodeValue(100);
       this->ImageEroder->SetDilateValue(100);
-
-      this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
 
       lastFilter = ImageEroder;
     }
@@ -919,10 +904,15 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageDialator->SetErodeValue(0);
       this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
 
-      this->ImageDialator->SetInputData(this->IntermediateImage);
+      this->ImageDialator->SetInputConnection(lastFilter->GetOutputPort());
       this->ImageDialator->SetOutput(this->BinaryImageForMorphology);
       this->ImageDialator->Update();
-      this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
+      this->AddIntermediateImage("_08Dilation_1PostUpdate", this->BinaryImageForMorphology);
+
+      this->RemoveImagesPrecedingShadow(this->BinaryImageForMorphology);
+      this->AddIntermediateImage("_08Dilation_2PostRemoveAfterImage", this->BinaryImageForMorphology);
+      this->RemoveOffCameraBones(this->BinaryImageForMorphology);
+      this->AddIntermediateImage("_08Dilation_3PostRemoveOffCameraBones", this->BinaryImageForMorphology);
 
       //reset the values
       this->ImageDialator->SetDilateValue(100);
