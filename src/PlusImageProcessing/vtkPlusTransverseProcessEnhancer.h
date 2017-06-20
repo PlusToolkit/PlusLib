@@ -12,6 +12,7 @@ See License.txt for details.
 // Local includes
 #include "vtkPlusImageProcessingExport.h"
 #include "vtkPlusTrackedFrameProcessor.h"
+#include "vtkImageAlgorithm.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -51,6 +52,9 @@ public:
   virtual PlusStatus ProcessImageExtents();
 
   void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
+  void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
+
+  std::map<int, std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
 
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
@@ -139,8 +143,6 @@ public:
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
 
-  std::vector<char*> IntermediatePostfixes;
-
 protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
@@ -152,9 +154,10 @@ protected:
 
   void ComputeHistogram(vtkSmartPointer<vtkImageData> imageData);
 
-  void ImageConjunction(vtkSmartPointer<vtkImageData> InputImage, vtkSmartPointer<vtkImageData> MaskImage);
+  void ImageConjunction(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> maskImage);
 
   void AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image);
+  void AddIntermediateFromFilter(char* fileNamePostfix, vtkImageAlgorithm* imageAlgorithm);
 
 protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
@@ -165,6 +168,7 @@ protected:
   vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
   vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
+  vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
   bool ConvertToLinesImage;
   int NumberOfScanLines;
@@ -221,10 +225,7 @@ protected:
   /// Image after some of the processing operations have been applied
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
 
-
-  std::vector<int> MaxImageElements;
-  std::vector<int> MatrixElementDiffsLoc;
-  std::vector<int[3]> SmallAreaInfos;
+  std::vector<char*> IntermediatePostfixes;
 };
 
 #endif
