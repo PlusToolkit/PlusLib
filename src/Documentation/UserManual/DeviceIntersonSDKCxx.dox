@@ -5,8 +5,9 @@
 - This device is used for image acquisition from Interson USB ultrasound systems with \c SeeMore probes with the .NET (new) interface. Probes with old C++ interface should be used with \ref DeviceInterson.
 - Link to manufacturer's website: http://www.interson.com/products/seemore-153-usb-probes
 
-\section IntersonSDKCxxSupportedPlatforms Included in packages
-- Currently not included in any standard package. Supported on 32-bit Windows systems.
+\section IntersonSDKCxxSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
 
 \section IntersonSDKCxxInstallation Installation
 - Requires SDK provided by Interson for compilation and USB drivers provided by Interson for running (otherwise Plus application will not start due to missing Interson.dll).

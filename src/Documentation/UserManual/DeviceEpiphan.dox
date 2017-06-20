@@ -7,16 +7,12 @@
 
 - Link to manufacturer's website: http://www.epiphan.com/.
 
-\section EpiphanSupportedPlatforms Included in packages
+\section EpiphanSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
-- \ref PackageMacOs
+- \ref PackageWin32XPe
+- \ref PackageMacOSX
 - \ref PackageLinux
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.

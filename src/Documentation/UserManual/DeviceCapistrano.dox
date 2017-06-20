@@ -7,9 +7,9 @@
   systems.
 - Link to manufacturer's website: http://www.capolabs.com/
 
-\section CapistranoSupportedPlatforms Included in packages
+\section CapistranoSupportedPlatforms Supported platforms
 
-- This device is not included in any of the standard packages
+- \ref PackageWin32
 
 \section CapistranoInstallation Installation
 

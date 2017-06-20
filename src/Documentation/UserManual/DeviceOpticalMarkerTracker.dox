@@ -7,14 +7,9 @@ OpticalMarkerTracker is virtual device that provides position tracking of marker
 
 - This is a virtual (software-only) device, which uses images taken by any optical imaging device that Plus supports, such as external webcam, built-in laptop camera - either forward or rear facing, camcorder connected through framegrabber, etc.
 
-\section DeviceOpticalMarkerTrackerSupportedPlatforms Included in packages
+\section DeviceOpticalMarkerTrackerSupportedPlatforms Supported platforms
 
-- \ref PackageWin32
-- \ref PackageWin64
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
+- This device can be used in combination with any device in Plus that provides a video stream. Most frequently it is used with Microsoft Media Foundation devices (webcams, framegrabbers).
 
 \section DeviceOpticalMarkerTrackerInstallation Installation
 
