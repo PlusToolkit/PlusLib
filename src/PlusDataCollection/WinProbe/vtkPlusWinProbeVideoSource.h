@@ -63,6 +63,12 @@ public:
     /* Get the pixel spacing for all 3 axes (mm) */
     const double * GetCurrentPixelSpacingMm();
 
+    /* Get the TGC value, index 0 to 7, value 0.0 to 40.0 */
+    double GetTimeGainCompensation(int index);
+
+    /* Set the TGC value, index 0 to 7, value 0.0 to 40.0 */
+    PlusStatus SetTimeGainCompensation(int index, double value);
+
     /*! Set ON/OFF of collecting US data. */
     PlusStatus FreezeDevice(bool freeze);
 
@@ -122,6 +128,7 @@ protected:
     PlusTrackedFrame::FieldMapType m_customFields;
     std::thread * m_watchdog32 = nullptr;
     double m_lastTimestamp = 0.0; //for watchdog
+    double m_timeGainCompensation[8];
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

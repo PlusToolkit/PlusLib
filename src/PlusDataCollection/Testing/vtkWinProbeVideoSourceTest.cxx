@@ -81,11 +81,10 @@ int main(int argc, char* argv[])
     vtkSmartPointer< vtkPlusWinProbeVideoSource > WinProbeDevice = vtkSmartPointer< vtkPlusWinProbeVideoSource >::New();
     WinProbeDevice->SetDeviceId("VideoDevice");
 
-    // Read config file
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
     if (STRCASECMP(inputConfigFileName.c_str(), "") != 0)
     {
         LOG_DEBUG("Reading config file...");
-        vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
 
         if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
         {
@@ -109,6 +108,12 @@ int main(int argc, char* argv[])
     std::cout << "\n" << *WinProbeDevice; //invokes PrintSelf()
     WinProbeDevice->StopRecording();
 
+    //test TGCs
+    double tgc = WinProbeDevice->GetTimeGainCompensation(7);
+    tgc = WinProbeDevice->GetTimeGainCompensation(3);
+    WinProbeDevice->SetTimeGainCompensation(3, 0.2);
+    tgc = WinProbeDevice->GetTimeGainCompensation(3);
+
     WinProbeDevice->StartRecording();
 
     if (renderingOff)
@@ -126,6 +131,19 @@ int main(int argc, char* argv[])
         vtkPlusDataSource* aSource(NULL);
         aChannel->GetVideoSource(aSource);
         aSource->WriteToSequenceFile(outputFileName.c_str());
+
+        //update and write configuration
+        WinProbeDevice->WriteConfiguration(configRootElement);
+        bool success = vtkXMLUtilities::WriteElementToFile(configRootElement, (outputFileName + ".xml").c_str());
+        if (!success)
+        {
+            LOG_ERROR("Unable to write configuration to: " << outputFileName + ".xml");
+        }
+        else
+        {
+            LOG_INFO("Configuration file written to: " << outputFileName + ".xml");
+        }
+
         WinProbeDevice->FreezeDevice(false);
     }
     else

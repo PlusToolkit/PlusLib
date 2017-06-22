@@ -27,6 +27,10 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
     os << indent << "Frequency: " << this->GetTxTxFrequency() << std::endl;
     os << indent << "Depth: " << this->GetSSDepth() << std::endl;
+    for (int i = 0; i < 8; i++)
+    {
+        os << indent << "TGC" << i << ": " << m_timeGainCompensation[i] << std::endl;
+    }
 
     os << indent << "CustomFields: " << std::endl;
     vtkIndent indent2 = indent.GetNextIndent();
@@ -54,6 +58,17 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
     {
         this->SetVoltage(tmpValue);
     }
+    
+    const char * tgcCharPtr = deviceConfig->GetAttribute("TimeGainCompensation");
+    if (tgcCharPtr)
+    {
+        std::stringstream ss(tgcCharPtr);
+        for (int i = 0; i < 8; i++)
+        {
+            ss >> m_timeGainCompensation[i];
+        }
+    }
+    
 
     return PLUS_SUCCESS;
 }
@@ -67,6 +82,14 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
     deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
     deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
     deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
+    
+    std::stringstream ss;
+    ss << m_timeGainCompensation[0];
+    for (int i = 1; i < 8; i++)
+    {
+        ss << " " << m_timeGainCompensation[i];
+    }
+    deviceConfig->SetAttribute("TimeGainCompensation", ss.str().c_str());
 
     return PLUS_SUCCESS;
 }
@@ -198,6 +221,11 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 {
     this->RequireImageOrientationInConfiguration = true;
 
+	for (int i = 1; i < 8; i++)
+	{
+		m_timeGainCompensation[i] = 0.0;
+	}
+
     AdjustSpacing();
     //AdjustBufferSize();
 
@@ -265,6 +293,11 @@ void vtkPlusWinProbeVideoSource::Watchdog()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
     //apply requested settings
+    for (int i = 0; i < 8; i++)
+    {
+        SetTGC(i, m_timeGainCompensation[i]);
+        m_timeGainCompensation[i] = GetTGC(i);
+    }
     this->SetTxTxFrequency(m_frequency);
     this->SetVoltage(m_voltage);
     this->SetSSDepth(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
@@ -401,6 +434,29 @@ float vtkPlusWinProbeVideoSource::GetTransducerWidth()
 const double * vtkPlusWinProbeVideoSource::GetCurrentPixelSpacingMm()
 {
     return this->CurrentPixelSpacingMm;
+}
+
+double vtkPlusWinProbeVideoSource::GetTimeGainCompensation(int index)
+{
+    if (Connected)
+    {
+        m_timeGainCompensation[index] = GetTGC(index);
+    }
+    return m_timeGainCompensation[index];
+}
+
+PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double value)
+{
+    assert(index >= 0 && index < 8);
+    m_timeGainCompensation[index] = value;
+    if (Connected)
+    {
+        SetTGC(index, value);
+        SetPendingRecreateTables(true);
+        //what we requested might be only approximately satisfied
+        m_timeGainCompensation[index] = GetTGC(index);
+    }
+    return PLUS_SUCCESS;
 }
 
 PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
