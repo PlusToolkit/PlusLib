@@ -1,18 +1,20 @@
+PROJECT(PlusRendering)
+
 # --------------------------------------------------------------------------
 # Sources
-SET(PlusRendering_SRCS
+SET(${PROJECT_NAME}_SRCS
   PlusPlotter.cxx
   vtkPlusToolAxesActor.cxx
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(PlusRendering_HDRS
+  SET(${PROJECT_NAME}_HDRS
     PlusPlotter.h
     vtkPlusToolAxesActor.h
     )
 ENDIF()
 
-SET(PlusRendering_INCLUDE_DIRS
+SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -20,7 +22,7 @@ SET(PlusRendering_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusRendering_LIBS 
+SET(${PROJECT_NAME}_LIBS 
   vtkPlusCommon
   vtkCommonCore
   vtkFiltersSources
@@ -34,26 +36,26 @@ SET(PlusRendering_LIBS
   vtkRenderingContext${VTK_RENDERING_BACKEND}
   )
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusRendering)
-ADD_LIBRARY(vtkPlusRendering ${PlusRendering_SRCS} ${PlusRendering_HDRS})
-FOREACH(p IN LISTS PlusRendering_INCLUDE_DIRS)
-  target_include_directories(vtkPlusRendering PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusRendering PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-TARGET_LINK_LIBRARIES(vtkPlusRendering PUBLIC ${PlusRendering_LIBS} )
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS} )
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusRendering CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusRendering vtkPlusRendering;${PlusLib_BINARY_DIR}/src/PlusRendering/vtkPlusRendering.vcxproj CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj CACHE INTERNAL "" FORCE)
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_EXECUTABLE(ModelRenderer Tools/ModelRenderer.cxx )
   SET_TARGET_PROPERTIES(ModelRenderer PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtkPlusRendering vtkIOGeometry)
+  TARGET_LINK_LIBRARIES(ModelRenderer vtkPlusCommon vtk${PROJECT_NAME} vtkIOGeometry)
 
   INSTALL(TARGETS ModelRenderer
     RUNTIME DESTINATION bin COMPONENT RuntimeExecutables
@@ -63,19 +65,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusRendering EXPORT PlusLib
-  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
-  )
-INSTALL(FILES ${PlusRendering_HDRS}
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
-  )
-IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusRendering>" OPTIONAL
-    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-    )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+PlusLibInstallLibrary(vtk${PROJECT_NAME} ${PROJECT_NAME})
 
 # --------------------------------------------------------------------------
 # Testing

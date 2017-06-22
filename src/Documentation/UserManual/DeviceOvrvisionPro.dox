@@ -5,13 +5,10 @@
 
 - Support for the <http://ovrvision.com/entop/>Ovrvision Pro USB3.0 Stereo Camera</a>.
 
-\section OvrvisionProSupportedPlatforms Included in packages
+\section OvrvisionProSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageMacOs
-- \ref PackageLinux
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

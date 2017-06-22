@@ -6,9 +6,11 @@
 - The ConoProbe is a robust optical sensor for high precision distance, 2D profiles and 3D measurements
 - Link to manufacturer's website: http://www.optimet.com/index.php
 
-\section OptimetConoProbeSupportedPlatforms Included in packages
+\section OptimetConoProbeSupportedPlatforms Supported platforms
 
-- This device is not included in any of the standard packages
+- \ref PackageWin32
+
+This device is not included in any of the standard packages
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

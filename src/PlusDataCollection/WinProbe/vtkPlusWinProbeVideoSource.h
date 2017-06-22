@@ -7,6 +7,8 @@
 #ifndef __vtkPlusWinProbeVideoSource_h
 #define __vtkPlusWinProbeVideoSource_h
 
+#include <thread>
+
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusUsDevice.h"
 #include "vtkPlusUsImagingParameters.h"
@@ -55,6 +57,18 @@ public:
     /* Get the scan depth of US probe (mm) */
     float GetSSDepth();
 
+    /* Get the width of current transducer (mm) */
+    float GetTransducerWidth();
+
+    /* Get the pixel spacing for all 3 axes (mm) */
+    const double * GetCurrentPixelSpacingMm();
+
+    /* Get the TGC value, index 0 to 7, value 0.0 to 40.0 */
+    double GetTimeGainCompensation(int index);
+
+    /* Set the TGC value, index 0 to 7, value 0.0 to 40.0 */
+    PlusStatus SetTimeGainCompensation(int index, double value);
+
     /*! Set ON/OFF of collecting US data. */
     PlusStatus FreezeDevice(bool freeze);
 
@@ -67,8 +81,7 @@ public:
     /*! Gets GUID of the probe type to be used. */
     std::string GetTransducerID();
 
-    static const unsigned lines = 128u; //number of transducers of the probe
-    static const unsigned samplesPerLine = 512;
+    static const uint32_t wraparoundTSC = 1e9;
 
 protected:
 
@@ -90,17 +103,32 @@ protected:
     /*! Device-specific recording stop */
     virtual PlusStatus InternalStopRecording() VTK_OVERRIDE;
 
-    void FrameCallback(int length, uint8_t *ptr);
-    friend int __stdcall frameCallback(int length, uint8_t *ptr);
+    /*! Updates internal spacing based on current depth */
+    void AdjustSpacing();
 
-    bool m_frozen;
-    float m_depth;
-    float m_frequency;
-    uint8_t m_voltage;
-    std::string m_transducerID;
-    double m_ADCfrequency;
-    uint8_t m_bModeBuffer[samplesPerLine][lines];
+    /*! Updates buffer size based on current depth */
+    void AdjustBufferSize();
+
+    //to be run in a separate thread
+    void Watchdog();
+
+    void FrameCallback(int length, char * ptr);
+    friend int __stdcall frameCallback(int length, char * ptr);
+
+    bool m_wrapTimeStampCounter = false;
+    float m_depth = 26.0; //mm
+    float m_width = 38.1; //mm
+    float m_frequency = 10.9; //MHz
+    uint8_t m_voltage = 40;
+    std::string m_transducerID; //GUID
+    double m_ADCfrequency = 60.0e6; //MHz
+    double m_timestampOffset = 0; //difference between program start time and latest InternalStartRecording()
+    int32_t m_transducerCount = 128;
+    int32_t m_samplesPerLine = 512;
     PlusTrackedFrame::FieldMapType m_customFields;
+    std::thread * m_watchdog32 = nullptr;
+    double m_lastTimestamp = 0.0; //for watchdog
+    double m_timeGainCompensation[8];
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

@@ -6,9 +6,10 @@
 - OptiTrack offers a high-performance optical tracking system.
 - Link to manufacturer's website: http://www.optitrack.com/
 
-\section OptitrackSupportedPlatforms Included in packages
+\section OptitrackSupportedPlatforms Supported platforms
 
-- This device is not included in any of the standard packages
+- \ref PackageWin32
+- \ref PackageWin64
 
 \section OptitrackInstallation Installation
 

@@ -18,6 +18,7 @@
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtkImageViewer.h"
+#include "vtkActor2D.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPlusDataSource.h"
 
@@ -80,11 +81,10 @@ int main(int argc, char* argv[])
     vtkSmartPointer< vtkPlusWinProbeVideoSource > WinProbeDevice = vtkSmartPointer< vtkPlusWinProbeVideoSource >::New();
     WinProbeDevice->SetDeviceId("VideoDevice");
 
-    // Read config file
+    vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
     if (STRCASECMP(inputConfigFileName.c_str(), "") != 0)
     {
         LOG_DEBUG("Reading config file...");
-        vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
 
         if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
         {
@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
         WinProbeDevice->ReadConfiguration(configRootElement);
     }
 
+    std::cout << "\n" << *WinProbeDevice; //invokes PrintSelf()
 
     if (WinProbeDevice->Connect() != PLUS_SUCCESS)
     {
@@ -102,7 +103,18 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    WinProbeDevice->StartRecording(); //start recording frame from the video
+    //test starting and stopping (pausing recording)
+    WinProbeDevice->StartRecording(); //applies the setting read from config file
+    std::cout << "\n" << *WinProbeDevice; //invokes PrintSelf()
+    WinProbeDevice->StopRecording();
+
+    //test TGCs
+    double tgc = WinProbeDevice->GetTimeGainCompensation(7);
+    tgc = WinProbeDevice->GetTimeGainCompensation(3);
+    WinProbeDevice->SetTimeGainCompensation(3, 0.2);
+    tgc = WinProbeDevice->GetTimeGainCompensation(3);
+
+    WinProbeDevice->StartRecording();
 
     if (renderingOff)
     {
@@ -115,18 +127,33 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
 
+        WinProbeDevice->FreezeDevice(true);
         vtkPlusDataSource* aSource(NULL);
         aChannel->GetVideoSource(aSource);
         aSource->WriteToSequenceFile(outputFileName.c_str());
+
+        //update and write configuration
+        WinProbeDevice->WriteConfiguration(configRootElement);
+        bool success = vtkXMLUtilities::WriteElementToFile(configRootElement, (outputFileName + ".xml").c_str());
+        if (!success)
+        {
+            LOG_ERROR("Unable to write configuration to: " << outputFileName + ".xml");
+        }
+        else
+        {
+            LOG_INFO("Configuration file written to: " << outputFileName + ".xml");
+        }
+
+        WinProbeDevice->FreezeDevice(false);
     }
     else
     {
         vtkSmartPointer<vtkImageViewer> viewer = vtkSmartPointer<vtkImageViewer>::New();
-        viewer->SetInputConnection(WinProbeDevice->GetOutputPort());   //set image to the render and window
+        viewer->SetInputConnection(WinProbeDevice->GetOutputPort()); //set image to the render and window
         viewer->SetColorWindow(255);
         viewer->SetColorLevel(127.5);
         viewer->SetZSlice(0);
-        viewer->SetSize(128, 512);
+        viewer->SetSize(512,1024);
 
         //Create the interactor that handles the event loop
         vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
@@ -149,7 +176,6 @@ int main(int argc, char* argv[])
 
     WinProbeDevice->StopRecording();
     WinProbeDevice->Disconnect();
-    
+
     return EXIT_SUCCESS;
 }
-

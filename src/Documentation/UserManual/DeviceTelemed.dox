@@ -7,8 +7,10 @@
 - Tested only with MicrUs devices (http://www.pcultrasound.com/products/micrus/index.html) but other Telemed devices should be compatible, too.
 - Link to manufacturer's website: http://www.pcultrasound.com
 
-\section TelemedSupportedPlatforms Included in packages
-- \ref PackageTelemed
+\section TelemedSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
 
 \section TelemedInstallation Installation
 

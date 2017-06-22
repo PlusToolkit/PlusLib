@@ -1,6 +1,8 @@
+PROJECT(PlusServer)
+
 # --------------------------------------------------------------------------
 # Sources
-SET(PlusServer_SRCS
+SET(${PROJECT_NAME}_SRCS
   vtkPlusOpenIGTLinkServer.cxx
   vtkPlusOpenIGTLinkClient.cxx
   vtkPlusCommandResponse.cxx
@@ -18,7 +20,7 @@ SET(PlusServer_SRCS
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(PlusServer_HDRS
+  SET(${PROJECT_NAME}_HDRS
     vtkPlusOpenIGTLinkServer.h
     vtkPlusOpenIGTLinkClient.h
     vtkPlusCommandResponse.h
@@ -37,20 +39,20 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
 ENDIF()
 
 IF(PLUS_USE_STEALTHLINK)
-  LIST(APPEND PlusServer_SRCS Commands/vtkPlusStealthLinkCommand.cxx)
+  LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusStealthLinkCommand.cxx)
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND PlusServer_HDRS Commands/vtkPlusStealthLinkCommand.h)
+    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusStealthLinkCommand.h)
   ENDIF()
 ENDIF()
 
 IF(PLUS_USE_OPTIMET_CONOPROBE)
-  LIST(APPEND PlusServer_SRCS Commands/vtkPlusConoProbeLinkCommand.cxx)
+  LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusConoProbeLinkCommand.cxx)
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    LIST(APPEND PlusServer_HDRS Commands/vtkPlusConoProbeLinkCommand.h)
+    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusConoProbeLinkCommand.h)
   ENDIF()
 ENDIF()
 
-SET(PlusServer_INCLUDE_DIRS 
+SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR} 
   ${CMAKE_CURRENT_SOURCE_DIR}/Commands 
@@ -58,12 +60,12 @@ SET(PlusServer_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusServer_LIBS
+SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkPlusDataCollection
   vtkPlusVolumeReconstruction
   )
-SET(PlusServer_PRIVATE_LIBS
+SET(${PROJECT_NAME}_PRIVATE_LIBS
   igtlioConverter
   )
 
@@ -77,58 +79,46 @@ IF(NOT IGTLIO_LIB_TYPE STREQUAL "STATIC_LIBRARY")
     FIND_PACKAGE(OpenIGTLinkIO NO_MODULE REQUIRED)]=])
 ENDIF()
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusServer)
-ADD_LIBRARY(vtkPlusServer ${PlusServer_SRCS} ${PlusServer_HDRS})
-FOREACH(p IN LISTS PlusServer_INCLUDE_DIRS)
-  target_include_directories(vtkPlusServer PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusServer PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
-  target_compile_options(vtkPlusServer PRIVATE -ftemplate-depth=5000)
+  target_compile_options(vtk${PROJECT_NAME} PRIVATE -ftemplate-depth=5000)
 ENDIF()
-TARGET_LINK_LIBRARIES(vtkPlusServer PUBLIC ${PlusServer_LIBS})
-TARGET_LINK_LIBRARIES(vtkPlusServer PRIVATE ${PlusServer_PRIVATE_LIBS})
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusServer CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusServer vtkPlusServer;${PlusLib_BINARY_DIR}/src/PlusServer/vtkPlusServer.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
-# Executables built by PlusServer project
+# Executables built by ${PROJECT_NAME} project
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
-  ADD_EXECUTABLE(PlusServer Tools/PlusServer.cxx)
-  SET_TARGET_PROPERTIES(PlusServer PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(PlusServer vtkPlusServer vtkPlusDataCollection)
+  ADD_EXECUTABLE(${PROJECT_NAME} Tools/${PROJECT_NAME}.cxx)
+  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER Tools)
+  TARGET_LINK_LIBRARIES(${PROJECT_NAME} vtk${PROJECT_NAME} vtkPlusDataCollection)
 
-  ADD_EXECUTABLE(PlusServerRemoteControl Tools/PlusServerRemoteControl.cxx )
-  SET_TARGET_PROPERTIES(PlusServerRemoteControl PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(PlusServerRemoteControl vtkPlusDataCollection vtkPlusServer)
+  ADD_EXECUTABLE(${PROJECT_NAME}RemoteControl Tools/${PROJECT_NAME}RemoteControl.cxx )
+  SET_TARGET_PROPERTIES(${PROJECT_NAME}RemoteControl PROPERTIES FOLDER Tools)
+  TARGET_LINK_LIBRARIES(${PROJECT_NAME}RemoteControl vtkPlusDataCollection vtk${PROJECT_NAME})
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusServer EXPORT PlusLib
-  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
-  )
-INSTALL(FILES ${PlusServer_HDRS}
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
-  )
-IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusServer>" OPTIONAL
-    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-    )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+PlusLibInstallLibrary(vtk${PROJECT_NAME} ${PROJECT_NAME})
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   INSTALL(TARGETS 
-      PlusServer 
-      PlusServerRemoteControl 
+      ${PROJECT_NAME} 
+      ${PROJECT_NAME}RemoteControl 
     EXPORT PlusLib
     DESTINATION "${PLUSLIB_BINARY_INSTALL}" 
     COMPONENT RuntimeExecutables

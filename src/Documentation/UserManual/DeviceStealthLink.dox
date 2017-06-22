@@ -14,9 +14,10 @@ Nomenclature:
 - Medtronic StealthStation that has StealthLink licence.
 - Link to manufacturer's website: http://www.medtronic.com/for-healthcare-professionals/products-therapies/spinal/surgical-navigation-imaging/surgical-navigation-systems/systems-software-instruments/
 
-\section StealthLinkSupportedPlatforms Included in packages
+\section StealthLinkSupportedPlatforms Supported platforms
 
-- \ref PackageStealthLink
+- \ref PackageWin32
+- \ref PackageLinux
 
 This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
 If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.

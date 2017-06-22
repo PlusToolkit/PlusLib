@@ -8,11 +8,12 @@ This class acquires 4D (3D+t) image data from Philips ultrasound systems.
 - Philips iE33 3D ultrasound imaging devices.
 - Link to manufacturer's website: http://www.healthcare.philips.com/main/products/ultrasound/systems/ie33/
 
-\section PhilipsSupportedPlatforms Included in packages
+\section PhilipsSupportedPlatforms Supported platforms
 
-- This device is not included in any of the standard packages, as it requires the Philips API, which is not available publicly.
-- If the software is obtained from Philips then Plus have to be built with PLUS_USE_PHILIPS_3D_ULTRASOUND.
-- The device is for Windows only.
+- \ref PackageWin32
+
+This device is not included in any of the standard packages, as it requires the Philips API, which is not available publicly.
+If the software is obtained from Philips then Plus have to be built with PLUS_USE_PHILIPS_3D_ULTRASOUND.
 
 \section PhilipsConfigSettings Device configuration settings
 

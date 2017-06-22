@@ -169,10 +169,15 @@ void QPlusDeviceSetSelectorWidget::InvokeConnect()
     return;
   }
 
+  // Save selected device set configuration file name
+  std::string configFile = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toStdString();
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(configFile);
+  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+
   ui.pushButton_Connect->setEnabled(false);
   QCoreApplication::processEvents();
 
-  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toStdString());
+  emit ConnectToDevicesByConfigFileInvoked(configFile);
 }
 
 //-----------------------------------------------------------------------------

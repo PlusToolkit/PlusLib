@@ -105,7 +105,7 @@ protected:
   std::string TemplateDirectory;
   std::string IniFile;
 
-#ifdef USE_MICRONTRACKER_TIMESTAMPS
+#ifdef USE_MicronTracker_TIMESTAMPS
   double TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
 #endif

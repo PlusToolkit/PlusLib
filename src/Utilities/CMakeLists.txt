@@ -1,7 +1,7 @@
-SET (Utilities_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE) 
+SET(Utilities_INCLUDE_DIRS "" CACHE INTERNAL "" FORCE) 
 
 # These are third-party libraries. Don't perform their tests as part of PlusLib tests.
-SET (BUILD_TESTING OFF)
+SET(BUILD_TESTING OFF)
 
 # Generic utilities
 SUBDIRS(

@@ -62,10 +62,6 @@ public:
   PlusStatus SetPulseVoltage(unsigned char voltage);
   vtkGetMacro(PulseVoltage, unsigned char);
 
-  /* Set whether the RF decimator is used.  If enabled, the sampling rate is
-   * halved, but the imaged depth is doubled. */
-  PlusStatus SetRfDecimation(int enableDecimation);
-
   typedef unsigned char  BmodePixelType;
   typedef short          RfPixelType;
 
@@ -97,8 +93,6 @@ protected:
   vtkPlusUsImagingParameters* ImagingParameters;
 
   unsigned char PulseVoltage;
-
-  int RfDecimation;
 
 private:
   vtkPlusIntersonArraySDKCxxVideoSource(const vtkPlusIntersonArraySDKCxxVideoSource&);  // Not implemented.

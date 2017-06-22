@@ -32,7 +32,8 @@ enum OperationType
   DELETE_FIELD,
   ADD_TRANSFORM,
   TRIM,
-  MERGE,
+  APPEND,
+  MIX,
   FILL_IMAGE_RECTANGLE,
   CROP,
   REMOVE_IMAGE_DATA,
@@ -80,6 +81,124 @@ namespace
   const std::string FIELD_VALUE_FRAME_TRANSFORM = "{frame-transform}";
 }
 
+// Fuse all fields in sequence files into the first sequence
+//----------------------------------------------------------------------------
+PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames)
+{
+  if (inputFileNames.size() == 0)
+  {
+    LOG_ERROR("No --source-seq-files specified");
+    return PLUS_FAIL;
+  }
+
+  LOG_INFO("Read master sequence file: " << inputFileNames[0]);
+  if (vtkPlusSequenceIO::Read(inputFileNames[0], trackedFrameList) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't read sequence file: " << inputFileNames[0]);
+    return PLUS_FAIL;
+  }
+  if (trackedFrameList->GetNumberOfTrackedFrames() == 0)
+  {
+    LOG_ERROR("No frames in sequence file: " << inputFileNames[0]);
+    return PLUS_FAIL;
+  }
+
+  for (unsigned int i = 1; i < inputFileNames.size(); i++)
+  {
+    LOG_INFO("Read input sequence file: " << inputFileNames[i]);
+    vtkSmartPointer<vtkPlusTrackedFrameList> additionalTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    if (vtkPlusSequenceIO::Read(inputFileNames[i], additionalTrackedFrameList) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Couldn't read sequence file: " << inputFileNames[0]);
+      return PLUS_FAIL;
+    }
+    if (additionalTrackedFrameList->GetNumberOfTrackedFrames() == 0)
+    {
+      continue;
+    }
+
+    unsigned int additionalFrameIndex = 0;
+    double maxTimestampValueForCurrentAdditionalFrame = additionalTrackedFrameList->GetTrackedFrame(0)->GetTimestamp();
+    if (additionalTrackedFrameList->GetNumberOfTrackedFrames() >= 2)
+    {
+      maxTimestampValueForCurrentAdditionalFrame = (additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex + 1)->GetTimestamp() + additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex)->GetTimestamp()) / 2.0;
+    }
+    for (unsigned int f = 0; f < trackedFrameList->GetNumberOfTrackedFrames(); ++f)
+    {
+      PlusTrackedFrame* masterTrackedFrame = trackedFrameList->GetTrackedFrame(f);
+
+      // Determine which additional frame belongs to this master frame
+      while (masterTrackedFrame->GetTimestamp() > maxTimestampValueForCurrentAdditionalFrame
+        && additionalFrameIndex + 1 < additionalTrackedFrameList->GetNumberOfTrackedFrames())
+      {
+        if (additionalFrameIndex == additionalTrackedFrameList->GetNumberOfTrackedFrames() - 1)
+        {
+          // last frame, all remaining frames are assigned to it
+          break;
+        }
+        additionalFrameIndex++;
+        // use this frame index until timestamp is closest to this frame's timestamp
+        maxTimestampValueForCurrentAdditionalFrame = (additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex)->GetTimestamp() +
+          additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex + 1)->GetTimestamp()) / 2.0;
+      }
+
+      // Copy frame fields
+      PlusTrackedFrame* additionalFrame = additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex);
+      auto customFrameFields = additionalFrame->GetCustomFields();
+      for (auto fieldIter = customFrameFields.begin(); fieldIter != customFrameFields.end(); ++fieldIter)
+      {
+        if (!fieldIter->first.compare("FrameNumber") ||
+          !fieldIter->first.compare("Timestamp") ||
+          !fieldIter->first.compare("UnfilteredTimestamp") ||
+          !fieldIter->first.compare("ImageStatus"))
+        {
+          // Timing and image information is taken from the first sequence
+          continue;
+        }
+        masterTrackedFrame->SetCustomFrameField(fieldIter->first, fieldIter->second);
+      }
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Append tracked frame list (one after the other)
+PlusStatus AppendTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames, bool incrementTimestamps)
+{
+  double lastTimestamp = 0;
+  for (unsigned int i = 0; i < inputFileNames.size(); i++)
+  {
+    LOG_INFO("Read input sequence file: " << inputFileNames[i]);
+    vtkSmartPointer<vtkPlusTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    if (vtkPlusSequenceIO::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Couldn't read sequence file: " << inputFileNames[0]);
+      return PLUS_FAIL;
+    }
+
+    if (incrementTimestamps)
+    {
+      vtkPlusTrackedFrameList* tfList = timestampFrameList;
+      for (unsigned int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f)
+      {
+        PlusTrackedFrame* tf = tfList->GetTrackedFrame(f);
+        tf->SetTimestamp(lastTimestamp + tf->GetTimestamp());
+      }
+
+      lastTimestamp = tfList->GetTrackedFrame(tfList->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
+    }
+
+    if (trackedFrameList->AddTrackedFrameList(timestampFrameList) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to append tracked frame list!");
+      return PLUS_FAIL;
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   // Parse command-line arguments
@@ -208,7 +327,11 @@ int main(int argc, char** argv)
     std::cout << "  Requires --first-frame-index and --last-frame-index." << std::endl;
     std::cout << "- DECIMATE: Keep every N-th frame of the sequence file." << std::endl;
     std::cout << "  Requires --decimation-factor." << std::endl;
-    std::cout << "- MERGE: Merge multiple sequence files into one." << std::endl;
+    std::cout << "- APPEND: Append multiple sequence files (one after the other)." << std::endl;
+    std::cout << "  Set input files with the --source-seq-files parameter." << std::endl;
+    std::cout << "- MIX: Merge fields stored in multiple sequence files." << std::endl;
+    std::cout << "  Timepoints are defined by the first sequence. Image data is taken from the first sequence." << std::endl;
+    std::cout << "  No interpolation is performed, fields are copied from the frame with the closest timestamp." << std::endl;
     std::cout << "  Set input files with the --source-seq-files parameter." << std::endl;
 
     std::cout << "- FILL_IMAGE_RECTANGLE: Fill a rectangle in the image (useful for removing patient data from sequences)." << std::endl;
@@ -278,9 +401,18 @@ int main(int argc, char** argv)
   {
     operation = DECIMATE;
   }
+  else if (PlusCommon::IsEqualInsensitive(strOperation, "APPEND"))
+  {
+    operation = APPEND;
+  }
   else if (PlusCommon::IsEqualInsensitive(strOperation, "MERGE"))
   {
-    operation = MERGE;
+    LOG_WARNING("MERGE operation name is deprecated. Use APPEND instead.")
+      operation = APPEND;
+  }
+  else if (PlusCommon::IsEqualInsensitive(strOperation, "MIX"))
+  {
+    operation = MIX;
   }
   else if (PlusCommon::IsEqualInsensitive(strOperation, "FILL_IMAGE_RECTANGLE"))
   {
@@ -289,10 +421,10 @@ int main(int argc, char** argv)
   else if (PlusCommon::IsEqualInsensitive(strOperation, "CROP"))
   {
     if (rectOriginPix.size() != 2 && rectOriginPix.size() != 3 &&
-        rectSizePix.size() != 2 && rectSizePix.size() != 3)
+      rectSizePix.size() != 2 && rectSizePix.size() != 3)
     {
       LOG_ERROR("--rect-origin and --rect-size must be of the form --rect-origin X Y <Z> and --rect-size I J <K>")
-      return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
     operation = CROP;
   }
@@ -323,7 +455,6 @@ int main(int argc, char** argv)
   // Read input files
 
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  vtkSmartPointer<vtkPlusTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   if (!inputFileName.empty())
   {
@@ -331,36 +462,20 @@ int main(int argc, char** argv)
     inputFileNames.insert(inputFileNames.begin(), inputFileName);
   }
 
-  double lastTimestamp = 0;
-  for (unsigned int i = 0; i < inputFileNames.size(); i++)
+  // Multiple input files are appended unless sequences are mixed
+  PlusStatus status = PLUS_SUCCESS;
+  if (operation == MIX)
   {
-    LOG_INFO("Read input sequence file: " << inputFileNames[i]);
-
-    if (vtkPlusSequenceIO::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Couldn't read sequence file: " <<  inputFileName);
-      return EXIT_FAILURE;
-    }
-
-    if (incrementTimestamps)
-    {
-      vtkPlusTrackedFrameList* tfList = timestampFrameList;
-      for (unsigned int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f)
-      {
-        PlusTrackedFrame* tf = tfList->GetTrackedFrame(f);
-        tf->SetTimestamp(lastTimestamp + tf->GetTimestamp());
-      }
-
-      lastTimestamp = tfList->GetTrackedFrame(tfList->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
-    }
-
-    if (trackedFrameList->AddTrackedFrameList(timestampFrameList) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to append tracked frame list!");
-      return EXIT_SUCCESS;
-    }
+    status = MixTrackedFrameLists(trackedFrameList, inputFileNames);
   }
-
+  else
+  {
+    status = AppendTrackedFrameLists(trackedFrameList, inputFileNames, incrementTimestamps);
+  }
+  if (status == PLUS_FAIL)
+  {
+    return EXIT_FAILURE;
+  }
 
   ///////////////////////////////////////////////////////////////////
   // Make the operation
@@ -368,7 +483,8 @@ int main(int argc, char** argv)
   switch (operation)
   {
   case NO_OPERATION:
-  case MERGE:
+  case APPEND:
+  case MIX:
   {
     // No need to do anything just save into output file
   }
@@ -544,7 +660,7 @@ int main(int argc, char** argv)
     break;
   default:
   {
-    LOG_WARNING("Unknown operation is specified");
+    LOG_WARNING("Unknown operation is specified: " << strOperation);
     return EXIT_FAILURE;
   }
   }
@@ -652,7 +768,7 @@ int main(int argc, char** argv)
   LOG_INFO("Save output sequence file to: " << outputFileName);
   if (vtkPlusSequenceIO::Write(outputFileName, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression, operation != REMOVE_IMAGE_DATA) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Couldn't write sequence file: " <<  outputFileName);
+    LOG_ERROR("Couldn't write sequence file: " << outputFileName);
     return EXIT_FAILURE;
   }
 
@@ -734,7 +850,7 @@ PlusStatus DeleteFrameField(vtkPlusTrackedFrameList* trackedFrameList, std::stri
     // Delete field name
     const char* fieldValue = trackedFrame->GetCustomFrameField(fieldName.c_str());
     if (fieldValue != NULL
-        && trackedFrame->DeleteCustomFrameField(fieldName.c_str()) != PLUS_SUCCESS)
+      && trackedFrame->DeleteCustomFrameField(fieldName.c_str()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to delete custom frame field '" << fieldName << "' for frame #" << i);
       numberOfErrors++;
@@ -803,7 +919,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
       {
         // Update it as a transform variable
 
-        double transformMatrix[16] = {0};
+        double transformMatrix[16] = { 0 };
         if (fieldUpdate.FrameTransformIndexFieldName.empty())
         {
           vtkMatrix4x4::DeepCopy(transformMatrix, frameTransform->GetMatrix());
@@ -827,11 +943,11 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         }
 
         std::ostringstream strTransform;
-        strTransform  << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits)
-                      << transformMatrix[0]  << " " << transformMatrix[1]  << " " << transformMatrix[2]  << " " << transformMatrix[3]  << " "
-                      << transformMatrix[4]  << " " << transformMatrix[5]  << " " << transformMatrix[6]  << " " << transformMatrix[7]  << " "
-                      << transformMatrix[8]  << " " << transformMatrix[9]  << " " << transformMatrix[10] << " " << transformMatrix[11] << " "
-                      << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " ";
+        strTransform << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits)
+          << transformMatrix[0] << " " << transformMatrix[1] << " " << transformMatrix[2] << " " << transformMatrix[3] << " "
+          << transformMatrix[4] << " " << transformMatrix[5] << " " << transformMatrix[6] << " " << transformMatrix[7] << " "
+          << transformMatrix[8] << " " << transformMatrix[9] << " " << transformMatrix[10] << " " << transformMatrix[11] << " "
+          << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " ";
         trackedFrame->SetCustomFrameField(fieldName.c_str(), strTransform.str().c_str());
 
         if (fieldUpdate.FrameTransformIndexFieldName.empty())
@@ -862,7 +978,7 @@ PlusStatus ConvertStringToMatrix(std::string& strMatrix, vtkMatrix4x4* matrix)
 
   if (!strMatrix.empty())
   {
-    double transformMatrix[16] = {0};
+    double transformMatrix[16] = { 0 };
     std::istringstream transform(strMatrix);
     double item;
     int i = 0;
@@ -967,24 +1083,24 @@ PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::v
   {
     PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
-    unsigned int frameSize[3] = {0, 0, 0};
+    unsigned int frameSize[3] = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame " << i << ". Fill rectangle failed.");
       continue;
     }
     if (fillRectOrigin[0] >= frameSize[0] ||
-        fillRectOrigin[1] >= frameSize[1])
+      fillRectOrigin[1] >= frameSize[1])
     {
       LOG_ERROR("Invalid fill rectangle origin is specified (" << fillRectOrigin[0] << ", " << fillRectOrigin[1] << "). The image size is ("
-                << frameSize[0] << ", " << frameSize[1] << ").");
+        << frameSize[0] << ", " << frameSize[1] << ").");
       continue;
     }
     if (fillRectSize[0] <= 0 || fillRectOrigin[0] + fillRectSize[0] > frameSize[0] ||
-        fillRectSize[1] <= 0 || fillRectOrigin[1] + fillRectSize[1] > frameSize[1])
+      fillRectSize[1] <= 0 || fillRectOrigin[1] + fillRectSize[1] > frameSize[1])
     {
       LOG_ERROR("Invalid fill rectangle size is specified (" << fillRectSize[0] << ", " << fillRectSize[1] << "). The specified fill rectangle origin is ("
-                << fillRectOrigin[0] << ", " << fillRectOrigin[1] << ") and the image size is (" << frameSize[0] << ", " << frameSize[1] << ").");
+        << fillRectOrigin[0] << ", " << fillRectOrigin[1] << ") and the image size is (" << frameSize[0] << ", " << frameSize[1] << ").");
       continue;
     }
     if (videoFrame->GetVTKScalarPixelType() != VTK_UNSIGNED_CHAR)
@@ -1021,8 +1137,8 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
     LOG_ERROR("Tracked frame list is NULL!");
     return PLUS_FAIL;
   }
-  int rectOrigin[3] = {cropRectOrigin[0], cropRectOrigin[1], cropRectOrigin.size() == 3 ? cropRectOrigin[2] : 0};
-  int rectSize[3] = {cropRectSize[0], cropRectSize[1], cropRectSize.size() == 3 ? cropRectSize[2] : 1};
+  int rectOrigin[3] = { cropRectOrigin[0], cropRectOrigin[1], cropRectOrigin.size() == 3 ? cropRectOrigin[2] : 0 };
+  int rectSize[3] = { cropRectSize[0], cropRectSize[1], cropRectSize.size() == 3 ? cropRectSize[2] : 1 };
 
   vtkSmartPointer<vtkMatrix4x4> tfmMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   tfmMatrix->Identity();
@@ -1036,7 +1152,7 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
     PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
 
-    unsigned int frameSize[3] = {0, 0, 0};
+    unsigned int frameSize[3] = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame " << i << ". Crop rectangle failed.");
@@ -1053,7 +1169,3 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
 
   return PLUS_SUCCESS;
 }
-
-
-
-

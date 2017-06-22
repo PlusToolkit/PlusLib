@@ -2,7 +2,7 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
-IF (PLUS_USE_BRACHY_TRACKER)
+IF(PLUS_USE_BRACHY_TRACKER)
   ADD_EXECUTABLE(vtkTRUSCalibrationTest vtkTRUSCalibrationTest.cxx)
   SET_TARGET_PROPERTIES(vtkTRUSCalibrationTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkTRUSCalibrationTest itkvnl itkvnl_algo vtkPlusCalibration vtkPlusDataCollection )
@@ -15,7 +15,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly.xml
     --baseline-file=${TestDataDir}/UsTemplateCalibration.results.xml 
     )
-  SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkTRUSCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkTRUSCalibrationTest_FrameGrabber
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
@@ -25,7 +25,7 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_FrameGrabber.xml
     --baseline-file=${TestDataDir}/UsTemplateCalibration_FrameGrabber.results.xml 
     )
-  SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkTRUSCalibrationTest_FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkTRUSCalibrationTest_3NWires
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkTRUSCalibrationTest
@@ -36,9 +36,9 @@ IF (PLUS_USE_BRACHY_TRACKER)
     --baseline-file=${TestDataDir}/UsTemplateCalibration_3NWires.results.xml 
     )
   # A warning is expected for non-orthogonal ImageToProbeTransform axes, so don't include "WARNING" in the FAIL_REGULAR_EXPRESSION
-  SET_TESTS_PROPERTIES( vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+  SET_TESTS_PROPERTIES(vtkTRUSCalibrationTest_3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
-ENDIF ()
+ENDIF()
         
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkStylusCalibrationTest vtkStylusCalibrationTest.cxx)
@@ -51,7 +51,7 @@ ADD_TEST(vtkStylusCalibrationTest
   --baseline-file=${TestDataDir}/StylusCalibration.results.xml 
   --outlier-generation-probability=0.05
   )
-SET_TESTS_PROPERTIES( vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkStylusCalibrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationTest vtkPhantomRegistrationTest.cxx)
@@ -63,7 +63,7 @@ ADD_TEST(vtkPhantomRegistrationTest
   --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Sim_RecordPhantomLandmarks_1.2.xml
   --baseline-file=${TestDataDir}/PhantomRegistration.results.xml
   )
-SET_TESTS_PROPERTIES( vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkPhantomRegistrationTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPhantomRegistrationLandmarkDetectionTest vtkPhantomRegistrationLandmarkDetectionTest.cxx)
@@ -76,7 +76,7 @@ ADD_TEST(vtkPhantomRegistrationLandmarkDetectionTest
   --seq-file=${TestDataDir}/EightLandmarkPointsTrackedForPhantomRegistration.mha
   --baseline-file=${TestDataDir}/PhantomRegistrationLandmarkDetection.results.xml
   )
-SET_TESTS_PROPERTIES( vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkPhantomRegistrationLandmarkDetectionTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires.mha 
     --baseline-file=${TestDataDir}/FreehandCalibration3NWires.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibration3NWiresfCal20Test
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -101,7 +101,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/fCal_Test_Validation_3NWires_fCal2.0.mha 
     --baseline-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibration3NWiresTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibrationIPEIOptimizationMethodTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -110,7 +110,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
     --baseline-file=${TestDataDir}/IPEI_OptimizationMethod_Calibration.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibrationIPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibrationIPEAOptimizationMethodTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -119,7 +119,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
     --baseline-file=${TestDataDir}/IPEA_OptimizationMethod_Calibration.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibrationIPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibrationOPEIOptimizationMethodTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -128,7 +128,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
     --baseline-file=${TestDataDir}/OPEI_OptimizationMethod_Calibration.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibrationOPEIOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(vtkFreehandCalibrationOPEAOptimizationMethodTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ProbeCalibration
@@ -137,7 +137,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --validation-seq-file=${TestDataDir}/FreehandCalibration3NWires_fCal2.0_Depth15_2.mha 
     --baseline-file=${TestDataDir}/OPEA_OptimizationMethod_Calibration.results.xml
     )
-  SET_TESTS_PROPERTIES( vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkFreehandCalibrationOPEAOptimizationMethodTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #--------------------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ ADD_TEST(CenterOfRotationCalibration-Ulterius
   --source-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha
   --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES( CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(CenterOfRotationCalibration-FrameGrabber
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -159,7 +159,7 @@ ADD_TEST(CenterOfRotationCalibration-FrameGrabber
   --source-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha
   --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES( CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(CenterOfRotationCalibration-3NWires
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -167,7 +167,7 @@ ADD_TEST(CenterOfRotationCalibration-3NWires
   --source-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
   --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
   )
-SET_TESTS_PROPERTIES( CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
@@ -180,7 +180,7 @@ ADD_TEST(SpacingCalibAlgoTest-Ulterius
   --source-seq-files ${TestDataDir}/USTC_Ulterius_ProbeRotationData.mha 
   --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(SpacingCalibAlgoTest-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
@@ -188,7 +188,7 @@ ADD_TEST(SpacingCalibAlgoTest-FrameGrabber
   --source-seq-files ${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.mha 
   --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(SpacingCalibAlgoTest-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(SpacingCalibAlgoTest-3NWires
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
@@ -196,7 +196,7 @@ ADD_TEST(SpacingCalibAlgoTest-3NWires
   --source-seq-files ${TestDataDir}/USTC_3NWires_ProbeRotation.mha 
   --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
   )
-SET_TESTS_PROPERTIES( SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
@@ -209,7 +209,7 @@ ADD_TEST(vtkLineSegmentationAlgoTest1
   --baseline-file=${TestDataDir}/LineSegmentationResultsBaseline.xml
   --clip-rect-origin 225 40 --clip-rect-size 350 510
   )
-SET_TESTS_PROPERTIES( vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkLineSegmentationAlgoTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 
 ###################################################
@@ -222,7 +222,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --testcase=ila5
     --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
     )
-  SET_TESTS_PROPERTIES( ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(ConvertFcsvToXml PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ###################################################
   ADD_TEST(ConvertXmlToFcsv
@@ -230,7 +230,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg.xml
     --output-xml-file=${CMAKE_CURRENT_BINARY_DIR}/UsTestSeqIla5ManualFidSeg2.xml
     )
-  SET_TESTS_PROPERTIES( ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(ConvertXmlToFcsv PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
   ADD_TEST(TemporalPlusCalibrationTest1 
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/TemporalCalibration
@@ -240,7 +240,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --sampling-resolution-sec=0.001
     --baseline-file=${TestDataDir}/TemporalCalibrationResultsBaseline.xml
     )
-  SET_TESTS_PROPERTIES( TemporalPlusCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(TemporalPlusCalibrationTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 ###################################################
@@ -266,7 +266,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShort
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_SonixRP_Ulterius.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_UsTestSeqBaselineThomasShortened PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PatternLocTest
@@ -277,7 +277,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotio
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_BKMedical_FrameGrabber.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_BKMedical_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PatternLocTest
@@ -288,7 +288,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionDat
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_VLCUS_FrameGrabber.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_VLCUS_RandomStepperMotionData2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PatternLocTest
@@ -299,7 +299,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotat
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_SonixRP_FrameGrabber.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_FrameGrabber_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PatternLocTest
@@ -310,7 +310,7 @@ ADD_TEST(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationD
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_iCal_CalibrationOnly_SonixRP_Ulterius.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CALIBRATION_PHANTOM_6_POINT_USTC_Ulterius_ProbeRotationData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ADD_TEST(PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PatternLocTest
@@ -321,7 +321,7 @@ ADD_TEST(PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1
   --output-xml-file=testcomparisons.xml
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_CalibrationOnly_Ultrasonix_CIRS_Phantom.xml
   )
-SET_TESTS_PROPERTIES( PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(PatternLocTest_CIRS_PHANTOM_13_POINT_TranslationData1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 ###################################################
 ADD_EXECUTABLE( vtkSegmentedWiresPositionsTest vtkSegmentedWiresPositionsTest.cxx)
@@ -332,4 +332,4 @@ TARGET_LINK_LIBRARIES( vtkSegmentedWiresPositionsTest
   vtkPlusCalibration
   ITKCommon
   vtkPlusDataCollection
-  ) 
+  )

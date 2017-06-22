@@ -22,7 +22,7 @@ ADD_TEST(TimestampFilteringTest
   --min-stdev-reduction-factor=3.0
   --transform=IdentityToIdentityTransform
   )
-SET_TESTS_PROPERTIES( TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #*************************** vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
@@ -36,16 +36,16 @@ ADD_TEST(vtkDataCollectorTest1
   --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   --rendering-off
   )
-SET_TESTS_PROPERTIES( vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
-IF (PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
+IF(PLUS_USE_ULTRASONIX_VIDEO AND PLUS_TEST_ULTRASONIX)
   ADD_TEST(vtkDataCollectorTest1_SonixVideo
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SonixVideo_FakeTracker.xml 
     --rendering-off
     --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
     )
-  SET_TESTS_PROPERTIES( vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkDataCollectorTest1_SonixVideo PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
  
 #*************************** vtkDataCollectorTest2 ***************************
@@ -60,7 +60,7 @@ ADD_TEST(vtkDataCollectorTest2
   --acq-time-length=5
   --verbose=3
   )
-SET_TESTS_PROPERTIES( vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkDataCollectorTest2 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #*************************** vtk3DDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtk3DDataCollectorTest1 vtk3DDataCollectorTest1.cxx)
@@ -79,19 +79,19 @@ ADD_TEST(vtk3DDataCollectorTest1
   --zDimension=48
   --verbose=3
   )
-SET_TESTS_PROPERTIES( vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtk3DDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #*************************** vtkDataCollectorVideoAcqTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorVideoAcqTest vtkDataCollectorVideoAcqTest.cxx)
 SET_TARGET_PROPERTIES(vtkDataCollectorVideoAcqTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorVideoAcqTest vtkPlusDataCollection )
-# IF (PLUS_USE_ULTRASONIX_VIDEO)
+# IF(PLUS_USE_ULTRASONIX_VIDEO)
   # ADD_TEST(vtkDataCollectorVideoAcqTest 
     # ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorVideoAcqTest
     # --config-file=${ConfigFilesDir}/USDataCollectionConfig_TrackerNone.xml 
     # --verbose=2
     # )
-    # SET_TESTS_PROPERTIES( vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    # SET_TESTS_PROPERTIES(vtkDataCollectorVideoAcqTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 # ENDIF()
 
 #*************************** vtkDataCollectorTest2 ***************************
@@ -102,7 +102,7 @@ ADD_TEST( ReplayRecordedDataTest
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/ReplayRecordedDataTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTestServer.xml
   )
-SET_TESTS_PROPERTIES( ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
+SET_TESTS_PROPERTIES(ReplayRecordedDataTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 #*************************** vtkDataCollectorFileTest ***************************
 ADD_EXECUTABLE(vtkDataCollectorFileTest vtkDataCollectorFileTest.cxx)
@@ -112,7 +112,7 @@ ADD_TEST(vtkDataCollectorFileTest
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorFileTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_File.xml 
   )
-SET_TESTS_PROPERTIES( vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkDataCollectorFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
@@ -130,7 +130,7 @@ ADD_TEST(vtkMetaImageSequenceIOTest
   --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.mhd
   --output-img-seq-file=MetaImageSequenceIOTest1Output.mha
   )
-SET_TESTS_PROPERTIES( vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
  
 #*************************** ViewSequenceFile  ***************************
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
@@ -141,7 +141,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --image-to-reference-transform=ImageToTracker
     --rendering-off
     )
-  SET_TESTS_PROPERTIES( ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(ViewSequenceFileTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkFcsvReaderTest1.cxx ***************************
@@ -151,7 +151,7 @@ TARGET_LINK_LIBRARIES(vtkFcsvReaderTest1 vtkPlusDataCollection )
 ADD_TEST(vtkFcsvReaderTest1 ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkFcsvReaderTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv 
   )
-SET_TESTS_PROPERTIES( vtkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #*************************** vtkFcsvWriterTest1.cxx ***************************
 ADD_EXECUTABLE(vtkFcsvWriterTest1 vtkFcsvWriterTest1.cxx )
@@ -160,7 +160,7 @@ TARGET_LINK_LIBRARIES(vtkFcsvWriterTest1 vtkPlusDataCollection )
 ADD_TEST(vtkFcsvWriterTest1 ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkFcsvWriterTest1
   ${TestDataDir}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
   )
-SET_TESTS_PROPERTIES( vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #*************************** vtkSonixVideoSourceTest1.cxx ***************************
 IF(PLUS_USE_ULTRASONIX_VIDEO)
@@ -175,7 +175,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
       --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SonixVideoSourceTest.xml
       --sonix-ip=${PLUS_TEST_ULTRASONIX_IP_ADDRESS}
       )
-    SET_TESTS_PROPERTIES( vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES(vtkSonixVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ENDIF()
 ENDIF()
 
@@ -192,7 +192,7 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
       --philips-ip=${PLUS_TEST_PHILIPS_3D_ULTRASOUND_IP_ADDRESS}
       --verbose=3
       )
-    SET_TESTS_PROPERTIES( vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES(vtkPhilips3DProbeVideoSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ENDIF()
 ENDIF()
 
@@ -227,12 +227,12 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
     --rendering-off 
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonSDKCxxVideoSourceRfDecimationBmodeTest.xml
     )
-  SET_TESTS_PROPERTIES( vtkIntersonSDKCxxVideoSourceTest
+  SET_TESTS_PROPERTIES(vtkIntersonSDKCxxVideoSourceTest
     vtkIntersonSDKCxxVideoSourceScanConvertTest
     vtkIntersonSDKCxxVideoSourceRfTest
     vtkIntersonSDKCxxVideoSourceRfBmodeTest
     vtkIntersonSDKCxxVideoSourceRfDecimationBmodeTest
-  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkIntersonArraySDKCxxVideoSourceTest.cxx ***************************
@@ -261,17 +261,11 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
     --rendering-off
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfBmodeTest.xml
     )
-  ADD_TEST(NAME vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
-    COMMAND $<TARGET_FILE:vtkIntersonArraySDKCxxVideoSourceTest>
-    --rendering-off
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_IntersonArraySDKCxxVideoSourceRfDecimationBmodeTest.xml
-    )
-  SET_TESTS_PROPERTIES( vtkIntersonArraySDKCxxVideoSourceTest
+  SET_TESTS_PROPERTIES(vtkIntersonArraySDKCxxVideoSourceTest
     vtkIntersonArraySDKCxxVideoSourceScanConvertTest
     vtkIntersonArraySDKCxxVideoSourceRfTest
     vtkIntersonArraySDKCxxVideoSourceRfBmodeTest
-    vtkIntersonArraySDKCxxVideoSourceRfDecimationBmodeTest
-  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 
@@ -286,7 +280,7 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
       ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusOemVideoSourceTest
       --rendering-off
       )
-    SET_TESTS_PROPERTIES( vtkBkProFocusOemVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES(vtkBkProFocusOemVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ENDIF()
 
   #*************************** vtkBkProFocusCameraLinkVideoSourceTest.cxx ***************************
@@ -300,7 +294,7 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
         ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkBkProFocusCameraLinkVideoSourceTest
         --rendering-off
         )
-      SET_TESTS_PROPERTIES( vtkBkProFocusCameraLinkVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+      SET_TESTS_PROPERTIES(vtkBkProFocusCameraLinkVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
     ENDIF()
   ENDIF()
 ENDIF()
@@ -314,7 +308,7 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
   #   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkICCapturingSourceTest1
   #   --rendering-off
   #   )
-  #SET_TESTS_PROPERTIES( vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  #SET_TESTS_PROPERTIES(vtkICCapturingSourceTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkSonixVolumeReaderTest1.cxx ***************************
@@ -328,7 +322,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     --baseline=${TestDataDir}/UltrasonixFrame5Baseline.tiff
     --frame-number=5 
     )
-  SET_TESTS_PROPERTIES( vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkCapistranoVideoSourceTest.cxx ***************************
@@ -352,10 +346,10 @@ IF(PLUS_USE_WINPROBE_VIDEO)
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
     --rendering-off
     --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_WinProbeVideoSourceTest.xml
+    --config-file=${ConfigFilesDir}/PlusDeviceSet_Server_WinProbe.xml
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
-  SET_TESTS_PROPERTIES( vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkIntersonVideoSourceTest.cxx ***************************
@@ -371,12 +365,12 @@ IF(PLUS_USE_TELEMED_VIDEO)
   SET_TARGET_PROPERTIES(vtkTelemedVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkTelemedVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 
-  IF (PLUS_TEST_TELEMED)
+  IF(PLUS_TEST_TELEMED)
     ADD_TEST(vtkTelemedVideoSourceTest
       ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkTelemedVideoSourceTest
       --rendering-off
       )
-    SET_TESTS_PROPERTIES( vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+    SET_TESTS_PROPERTIES(vtkTelemedVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ENDIF()
 ENDIF()
 
@@ -389,7 +383,7 @@ IF(PLUS_USE_THORLABS_VIDEO)
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkThorLabsVideoSourceTest
     --rendering-off
     )
-  SET_TESTS_PROPERTIES( vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  SET_TESTS_PROPERTIES(vtkThorLabsVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #************************ vtkSonixPortaVideoSourceTest.cxx ************************
@@ -406,7 +400,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
   # --lut-path=C:/luts
   # --rendering-off
   # )
-  # SET_TESTS_PROPERTIES( vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+  # SET_TESTS_PROPERTIES(vtkSonixPortaVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 #*************************** vtkURFSavedVideoSourceTest1.cxx ***************************
@@ -430,7 +424,7 @@ IF(PLUS_USE_MMF_VIDEO)
   SET_TARGET_PROPERTIES(vtkMmfVideoSourceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkMmfVideoSourceTest vtkPlusDataCollection vtkInteractionImage)
 
-  IF (PLUS_TEST_MMF_VIDEO)
+  IF(PLUS_TEST_MMF_VIDEO)
     ADD_TEST(MmfVideoSourceTest 
       ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkMmfVideoSourceTest
       --rendering-off
