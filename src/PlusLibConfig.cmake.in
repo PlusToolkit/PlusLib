@@ -155,7 +155,8 @@ ENDIF()
 IF(@PLUS_USE_aruco@)
   SET(aruco_DIR @aruco_DIR@)
   # Instead of calling FIND_PACKAGE(aruco), set target properties manually,
-  # because it is too difficult to fix aruco's CMake files.  
+  # because it is too difficult to fix aruco's CMake files.
+
   ADD_LIBRARY(aruco SHARED IMPORTED)
   SET_PROPERTY(TARGET aruco PROPERTY INTERFACE_INCLUDE_DIRECTORIES 
     "@aruco_DIR@/src"
@@ -182,4 +183,17 @@ IF(@PLUS_USE_aruco@)
     IMPORTED_LOCATION_RELWITHDEBINFO "@PLUS_EXECUTABLE_OUTPUT_PATH@/RelWithDebInfo/aruco2019@CMAKE_SHARED_LIBRARY_SUFFIX@"
     )
   LIST(APPEND PlusLib_LIBRARIES aruco)
+
+  ADD_EXECUTABLE(aruco_calibration IMPORTED)
+  ADD_EXECUTABLE(aruco_calibration_fromimages IMPORTED)
+  ADD_EXECUTABLE(aruco_create_markermap IMPORTED)
+  ADD_EXECUTABLE(aruco_markermap_pix2meters IMPORTED)
+  ADD_EXECUTABLE(aruco_print_dictionary IMPORTED)
+  ADD_EXECUTABLE(aruco_print_marker IMPORTED)
+  ADD_EXECUTABLE(aruco_simple IMPORTED)
+  ADD_EXECUTABLE(aruco_simple_markermap IMPORTED)
+  ADD_EXECUTABLE(aruco_test IMPORTED)
+  ADD_EXECUTABLE(aruco_test_markermap IMPORTED)
+  ADD_EXECUTABLE(aruco_tracker IMPORTED)
+
 ENDIF()
