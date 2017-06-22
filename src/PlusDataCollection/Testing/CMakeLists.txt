@@ -346,7 +346,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
     --rendering-off
     --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_WinProbeVideoSourceTest.xml
+    --config-file=${ConfigFilesDir}/PlusDeviceSet_Server_WinProbe.xml
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
   SET_TESTS_PROPERTIES(vtkWinProbeVideoSourceTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
