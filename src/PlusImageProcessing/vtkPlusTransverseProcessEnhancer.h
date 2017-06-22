@@ -51,11 +51,6 @@ public:
 
   virtual PlusStatus ProcessImageExtents();
 
-  void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
-  void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
-
-  std::map<int, std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
-
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
@@ -135,10 +130,16 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
-
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   vtkImageData* GetShadowImage() { return this->ShadowImage; };
-  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); } 
+  vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
+
+  void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
+  void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
+  void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
+
+  std::map<int, std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
+  int FindBoneLength(vtkSmartPointer<vtkImageData> inputImage, int x, int y, int currentDepth);
 
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
@@ -226,6 +227,9 @@ protected:
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
 
   std::vector<char*> IntermediatePostfixes;
+
+  std::vector<std::vector<bool>> FoundBoneGrid;
+  std::vector<int> BoneLocationsResults;
 };
 
 #endif
