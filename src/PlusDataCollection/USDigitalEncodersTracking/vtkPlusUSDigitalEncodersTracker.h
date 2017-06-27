@@ -144,6 +144,7 @@ protected:
  
 private:  // Variables.
   bool                                            coreXY;
+  bool                                            configurationViaSerialNumbers = false;
   long                                            NumberOfEncoders; // Number of connected A2 Encoders
   long                                            COMPort;
   long                                            BaudRate;

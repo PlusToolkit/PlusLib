@@ -1170,7 +1170,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-              << ", probe sample frequency (Hz): " << this->Internal->USProbeParams.probetype.SampleFrequency,
+              << ", probe sample frequency (Hz): " << this->Internal->USProbeParams.probetype.SampleFrequency
               << ", probe name: " << probeName
               << ", display zoom: " << bmDisplayZoom()
               << ", probe depth scale (mm/sample):" << depthScale

@@ -231,7 +231,14 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       return PLUS_FAIL;
     }
 
-    encoderinfopos = this->USDigitalEncoderInfoList.find(lSerialNumber);
+    if (configurationViaSerialNumbers)
+    {
+        encoderinfopos = this->USDigitalEncoderInfoList.find(lSerialNumber);
+    }
+    else
+    {
+        encoderinfopos = this->USDigitalEncoderInfoList.find(lAddress);
+    }
 
     if (encoderinfopos == this->USDigitalEncoderInfoList.end())
     {
@@ -239,7 +246,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     }
     else
     {
-      if (encoderinfopos->second->Encoder_SN == lSerialNumber)
+      if (configurationViaSerialNumbers && encoderinfopos->second->Encoder_SN == lSerialNumber
+          || !configurationViaSerialNumbers && encoderinfopos->second->Encoder_SN == lAddress)
       {
         encoderinfopos->second->Encoder_Connected = true;
         encoderinfopos->second->Encoder_Model = lModel;
@@ -248,13 +256,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
         retVal = ::A2SetMode(encoderinfopos->second->Encoder_Addr, encoderinfopos->second->Encoder_Mode);
         if (retVal != 0)
         {
-          LOG_ERROR("Failed to set SEI device mode for device SN: " << lSerialNumber);
+          LOG_ERROR("Failed to set SEI device mode for device SN: " << lSerialNumber << ", address: " << lAddress);
           return PLUS_FAIL;
         }
         retVal = ::A2SetPosition(encoderinfopos->second->Encoder_Addr, 0); // Initialize the value of the first encoder
         if (retVal != 0)
         {
-          LOG_ERROR("Failed to set initial position for SEI device SN: " << lSerialNumber);
+          LOG_ERROR("Failed to set initial position for SEI device SN: " << lSerialNumber << ", address: " << lAddress);
           return PLUS_FAIL;
         }
       }
@@ -267,13 +275,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
         retVal = ::A2SetMode(encoderinfopos->second->Encoder_Addr2, encoderinfopos->second->Encoder_Mode);
         if (retVal != 0)
         {
-          LOG_ERROR("Failed to set SEI device mode for device SN: " << lSerialNumber);
+          LOG_ERROR("Failed to set SEI device mode for device SN: " << lSerialNumber << ", address: " << lAddress);
           return PLUS_FAIL;
         }
         retVal = ::A2SetPosition(encoderinfopos->second->Encoder_Addr2, 0); // Initialize the value of the second encoder
         if (retVal != 0)
         {
-          LOG_ERROR("Failed to set initial position for SEI device SN: " << lSerialNumber);
+          LOG_ERROR("Failed to set initial position for SEI device SN: " << lSerialNumber << ", address: " << lAddress);
           return PLUS_FAIL;
         }
       }
@@ -613,32 +621,34 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     // Reading the serial number of an US Digital Encoder
     const char* sn = EncoderInfoElement->GetAttribute("SN");
-    if (sn == NULL)
-    {
-      this->USDigitalEncoderTrackingInfoList.push_back(encodertrackingInfo);
-      //LOG_ERROR("Cannot read the serial number of an US Digital Encoder");
-      continue;
-    }
-
+    this->USDigitalEncoderTrackingInfoList.push_back(encodertrackingInfo);
     vtkPlusUSDigitalEncoderInfo* encoderinfoPointer = new vtkPlusUSDigitalEncoderInfo;
     vtkPlusUSDigitalEncoderInfo& encoderinfo = *encoderinfoPointer;
     encoderinfo.Encoder_TrackingInfo = encodertrackingInfo;
-    encoderinfo.Encoder_SN = atol(sn);
 
-    if (coreXY)
+    if (sn != NULL)
     {
-      // Reading second (Y-direction) serial number of an US Digital Encoder
-      const char* sn = EncoderInfoElement->GetAttribute("SN2");
-      if (sn == NULL)
+      encoderinfo.Encoder_SN = atol(sn);
+      if (coreXY)
       {
-        this->USDigitalEncoderTrackingInfoList.push_back(encodertrackingInfo);
-        //LOG_ERROR("Cannot read the serial number of an US Digital Encoder");
-        continue;
+          // Reading second (Y-direction) serial number of an US Digital Encoder
+          const char* sn = EncoderInfoElement->GetAttribute("SN2");
+          if (sn != NULL)
+          {
+              encoderinfo.Encoder_SN2 = atol(sn);
+              configurationViaSerialNumbers = true;
+          }
+          else
+          {
+              LOG_WARNING("Attribute 'SN' provided, but 'SN2' not provided (coreXY mode)");
+          }
       }
-
-      encoderinfo.Encoder_SN2 = atol(sn);
     }
-
+    else //configuration is not being controlled by serial numbers (encoder with lower serial number gets a lower index)
+    {
+        encoderinfo.Encoder_SN = 0;
+        encoderinfo.Encoder_SN2 = 1;
+    }
 
     // Reading the MotionType of an US Digital Encoder
     std::string motiontype = EncoderInfoElement->GetAttribute("MotionType");

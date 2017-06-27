@@ -6,8 +6,7 @@ See License.txt for details.
 
 /*!
 \file vtkUSDigitalEncodersTrackerTest.cxx
-\brief This a simple test program to acquire a tracking data and optionally
-writes the buffer to a metafile and displays the live transform in a 3D view.
+\brief This a simple test program to acquire tracking data.
 */
 
 #include "PlusConfigure.h"
@@ -87,7 +86,7 @@ int main(int argc, char **argv)
   // Connect
   if ( usDigitalEncodersTracker->Connect() != PLUS_SUCCESS )
   {
-    LOG_ERROR( "Unable to connect to Capistrano Probe" );
+    LOG_ERROR( "Unable to connect to US Digital encoders!" );
     exit(EXIT_FAILURE);
   }
   ///////////////
