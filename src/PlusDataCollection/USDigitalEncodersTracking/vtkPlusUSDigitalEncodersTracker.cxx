@@ -692,7 +692,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
             // Linear Motion : mm /pulses
             // Rotation      : rad/pulses
             const char* pulseSpacing = EncoderInfoElement->GetAttribute("PulseSpacing2");
-            if (sn == NULL)
+            if (pulseSpacing == NULL)
             {
                 LOG_ERROR("Cannot read the second PulseSpacing of an US Digital Encoder in coreXY mode");
                 continue;

@@ -25,7 +25,7 @@ See License.txt for details.
 int main(int argc, char **argv)
 {
     bool printHelp(false);
-    std::string inputConfigFileName;
+    std::string inputConfigFileName = "USDigitalEncodersTracker.xml";
     std::string inputToolSourceId;
     double inputAcqTimeLength(60);
     std::string outputTrackerBufferSequenceFileName;
@@ -58,9 +58,6 @@ int main(int argc, char **argv)
     }
 
     vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
-
-
-    inputConfigFileName = "USDigitalEncodersTracker.xml";
 
     if (inputConfigFileName.empty())
     {
