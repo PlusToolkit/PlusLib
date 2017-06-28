@@ -26,6 +26,8 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusVersionCommand.h"
+#include "vtkPlusSetUsParameterCommand.h"
+#include "vtkXMLUtilities.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -54,6 +56,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusVersionCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusSetUsParameterCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif

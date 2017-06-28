@@ -77,6 +77,11 @@ public:
   vtkGetStringMacro(TextRecognizerInputChannelName);
   vtkSetStringMacro(TextRecognizerInputChannelName);
 
+  /*!
+    Get current imaging parameters
+  */
+  vtkGetObjectMacro(CurrentImagingParameters, vtkPlusUsImagingParameters);
+
 protected:
   void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
 

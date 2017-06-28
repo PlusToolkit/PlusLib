@@ -9,7 +9,7 @@
 
 #include "vtkPlusDataCollectionExport.h"
 
-#include "vtkPlusDevice.h"
+#include "vtkPlusUsDevice.h"
 #include "vtkPlusUsSimulatorAlgo.h"
 
 class vtkPlusDataBuffer; 
@@ -21,11 +21,11 @@ class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource;
   \brief Class for providing VTK video input interface from simulated ultrasound
   \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource : public vtkPlusUsDevice
 {
 public:
   static vtkPlusUsSimulatorVideoSource* New();
-  vtkTypeMacro(vtkPlusUsSimulatorVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkPlusUsSimulatorVideoSource, vtkPlusUsDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */

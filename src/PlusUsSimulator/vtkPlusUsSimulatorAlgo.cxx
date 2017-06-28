@@ -349,7 +349,7 @@ void vtkPlusUsSimulatorAlgo::ConvertLineModelIntersectionsToSegmentDescriptor( s
   //  Decision:
   //   if we are in background+spine segment => it's spine
   //   if we are in background+spine+needle segment => it's needle
-  // It is assumed that the SpatialModels are listed in the config file in increaseing cohesiveness order (background is the first).
+  // It is assumed that the SpatialModels are listed in the config file in increasing cohesiveness order (background is the first).
   std::map< PlusSpatialModel*, int > cohesiveness;
   for ( unsigned int i = 0; i < this->SpatialModels.size(); i++ )
   {
