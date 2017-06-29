@@ -36,6 +36,7 @@ class vtkPlusUsScanConvert;
 class vtkPlusImageProcessingExport vtkPlusTransverseProcessEnhancer : public vtkPlusTrackedFrameProcessor
 {
 public:
+
   static vtkPlusTransverseProcessEnhancer* New();
   vtkTypeMacro(vtkPlusTransverseProcessEnhancer, vtkPlusTrackedFrameProcessor);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -130,6 +131,8 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
+  void StdDeviationThreshold(vtkSmartPointer<vtkImageData> inputImage);
+
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   vtkImageData* GetShadowImage() { return this->ShadowImage; };
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
@@ -138,7 +141,7 @@ public:
   void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
   void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
 
-  std::map<int, std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
+  std::vector<std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
   int FindBoneLength(vtkSmartPointer<vtkImageData> inputImage, int x, int y, int currentDepth);
 
   PlusStatus SaveAllIntermediateResultsToFile();
@@ -230,6 +233,9 @@ protected:
 
   std::vector<std::vector<bool>> FoundBoneGrid;
   std::vector<int> BoneLocationsResults;
+
+
+  int FrameCounter = -1;
 };
 
 #endif
