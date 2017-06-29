@@ -24,9 +24,7 @@ See License.txt for details.
 #include <vtkImageThreshold.h>
 #include <vtkObjectFactory.h>
 
-
 #include "vtkImageAlgorithm.h"
-
 
 #include <cmath>
 
@@ -81,6 +79,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   IntermediateImage(NULL),
   LinesImage(NULL),
+  ProcessedLinesImage(NULL),
   UnprocessedLinesImage(NULL),
   ShadowImage(NULL)
 {
@@ -122,11 +121,13 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->IntermediateImage = vtkSmartPointer<vtkImageData>::New();
   this->LinesImage = vtkSmartPointer<vtkImageData>::New();
+  this->ProcessedLinesImage = vtkSmartPointer<vtkImageData>::New();
   this->UnprocessedLinesImage = vtkSmartPointer<vtkImageData>::New();
   this->ShadowImage = vtkSmartPointer<vtkImageData>::New();
 
   this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
+  this->ProcessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->UnprocessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
 
@@ -359,6 +360,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
   return PLUS_SUCCESS;
 }
 
+
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 {
 
@@ -381,12 +383,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 
   this->IntermediateImage->SetExtent(linesImageExtent);
   this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-  //Set up variables relating to image sizes
-  int dims[3] = { 0, 0, 0 };
-  this->LinesImage->GetDimensions(dims);
-  this->BoneLocationsResults.resize(dims[1]);
-  this->FoundBoneGrid.resize(dims[0], std::vector<bool>());
 
   return PLUS_SUCCESS;
 }
@@ -600,6 +596,7 @@ that have a bone shadow behind it are removed
 */
 void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage)
 {
+
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
@@ -609,7 +606,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPoint
   for (int y = dims[1] - 1; y >= 0; y--)
   { 
     //When an image is detected, keep up to this many pixles after it
-    keepInfoCounter = 4;
+    keepInfoCounter = 3; //Megic Number, Replace with parameter in mm
 
     for (int x = dims[0] - 1; x >= 0; x--)
     {
@@ -638,38 +635,41 @@ argument and modifies it so the bone areas that are too close to the camera's ed
 */
 void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage)
 {
+
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
   unsigned char* vOutput = 0;
 
   int distanceBuffer = 10;
-  std::map<int, std::vector<int>> boneAreas = this->FindBoneAreas(inputImage);
+  std::vector<std::vector<int>> boneAreas = this->FindBoneAreas(inputImage);
   int boneHalfLen;
   bool clearArea;
 
-  for (auto const& bonePos : boneAreas)
+  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; areaIndex--)
   {
+    std::vector<int> currentArea = boneAreas.at(areaIndex);
+
     clearArea = false;
-    boneHalfLen = (bonePos.second.at(0) - bonePos.second.at(1)) / 2;
+    boneHalfLen = (currentArea.at(1) - currentArea.at(2)) / 2;
 
     //check if the bone is to close too the scan's edge
-    if (bonePos.second.at(0) + distanceBuffer >= dims[1] || bonePos.second.at(1) - distanceBuffer <= 0)
+    if (currentArea.at(1) + distanceBuffer >= dims[1] || currentArea.at(2) - distanceBuffer <= 0)
     {
-      clearArea = true;
+      //clearArea = true;
     }
     //check if given the size, the bone is too close to the scan's edge
-    else if (boneHalfLen + bonePos.second.at(0) >= dims[1] - 1 || (bonePos.second.at(1) - 1) - boneHalfLen <= 0)
+    else if (boneHalfLen + currentArea.at(1) >= dims[1] - 1 || (currentArea.at(2) - 1) - boneHalfLen <= 0)
     {
       clearArea = true;
     }
     //check if the bone is too close/far from the transducer 
-    else if (bonePos.first < 20 || bonePos.first > dims[0] - 20)
+    else if (currentArea.at(0) < 20 || currentArea.at(0) > dims[0] - 20)
     {
       clearArea = true;
     }
     //check if the bone is to small
-    else if (bonePos.second.at(0) - bonePos.second.at(1) <= 10)
+    else if (currentArea.at(1) - currentArea.at(2) <= 10)
     {
       clearArea = true;
     }
@@ -677,7 +677,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     //If it dosnt meet the criteria, remove the bones in this area
     if (clearArea == true)
     {
-      for (int y = bonePos.second.at(0); y >= bonePos.second.at(1); y--)
+      for (int y = currentArea.at(1); y >= currentArea.at(2); y--)
       {
         for (int x = dims[0] - 1; x >= 0; x--)
         {
@@ -701,6 +701,7 @@ amount of bone potential in the areas next to it than there is within the areas 
 */
 void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage)
 {
+
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
@@ -714,40 +715,42 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
   float areaSum;
   float belowSum;
 
-  std::map<int, std::vector<int>> boneAreas = this->FindBoneAreas(inputImage);
+  std::vector<std::vector<int>> boneAreas = this->FindBoneAreas(inputImage);
 
-  for (auto const& bonePos : boneAreas)
+  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; areaIndex--)
   {
+    std::vector<int> currentArea = boneAreas.at(areaIndex);
+
     aboveSum = 0;
     areaSum = 0;
     belowSum = 0;
 
-    boneLen = bonePos.second.at(0) - (bonePos.second.at(1) + 1);
+    boneLen = currentArea.at(1) - (currentArea.at(2) + 1);
     boneHalfLen = boneLen / 2;
-    sideArea = (boneLen * bonePos.first) / 2;
+    sideArea = (boneLen * currentArea.at(0)) / 2;
 
     //gather sum of shadow areas from above the area
-    for (int y = std::min(bonePos.second.at(0) + boneHalfLen, dims[1] - 1); y > bonePos.second.at(0); y--)
+    for (int y = std::min(currentArea.at(1) + boneHalfLen, dims[1] - 1); y > currentArea.at(1); y--)
     {
-      for (int x = dims[0] - 1; x > bonePos.first; x--)
+      for (int x = dims[0] - 1; x > currentArea.at(0); x--)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         aboveSum += vInput;
       }
     }
     //gather sum of shadow areas from the area
-    for (int y = bonePos.second.at(0); y >= bonePos.second.at(1); y--)
+    for (int y = currentArea.at(1); y >= currentArea.at(2); y--)
     {
-      for (int x = dims[0] - 1; x > bonePos.first; x--)
+      for (int x = dims[0] - 1; x > currentArea.at(0); x--)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         areaSum += vInput;
       }
     }
     //gather sum of shadow areas from below the area
-    for (int y = std::max(bonePos.second.at(1) - boneHalfLen, 0); y < bonePos.second.at(1); y++)
+    for (int y = std::max(currentArea.at(2) - boneHalfLen, 0); y < currentArea.at(2); y++)
     {
-      for (int x = dims[0] - 1; x > bonePos.first; x--)
+      for (int x = dims[0] - 1; x > currentArea.at(0); x--)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         belowSum += vInput;
@@ -755,13 +758,13 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
     }
 
     float aboveAvgShadow = aboveSum / sideArea;
-    float areaAvgShadow = areaSum / (boneLen * bonePos.first);
+    float areaAvgShadow = areaSum / (boneLen * currentArea.at(0));
     float belowAvgShadow = belowSum / sideArea;
 
     //If there is a higher amount of bones around it, remove the area
     if (aboveAvgShadow - areaAvgShadow <= (areaAvgShadow / 2) || belowAvgShadow - areaAvgShadow <= (areaAvgShadow / 2))
     {
-      for (int y = bonePos.second.at(0); y >= bonePos.second.at(1); y--)
+      for (int y = currentArea.at(1); y >= currentArea.at(2); y--)
       {
         for (int x = dims[0] - 1; x >= 0; x--)
         {
@@ -848,16 +851,20 @@ int vtkPlusTransverseProcessEnhancer::FindBoneLength(vtkSmartPointer<vtkImageDat
 
 /*
 Finds all the bone areas in the given vtkSmartPointer<vtkImageData>
-The output is a map whereby the key is the average bone depth, and the map value is a two element
-vector refering to the start and end points of the bone area.
+The output is a vector whereby the first element is the average bone depth, and the second and 
+thrid elements refer to the start and end points of the bone area.
 */
-std::map<int, std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage)
+std::vector<std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage)
 {
+
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
+  this->BoneLocationsResults.resize(dims[1]);
+  this->FoundBoneGrid.resize(dims[0], std::vector<bool>());
+
   unsigned char* vInput = 0;
-  std::map<int, std::vector<int>> output;
+  std::vector<std::vector<int>> output;
 
   std::fill(begin(this->FoundBoneGrid), end(this->FoundBoneGrid), std::vector<bool>(dims[1], false));
   for (int y = dims[1] - 1; y >= 0; y--)
@@ -885,14 +892,74 @@ std::map<int, std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(
 
           //save this data to the output
           std::vector<int> boneDim;
+          boneDim.push_back(boneDepthSum / boneDepth);
           boneDim.push_back(y);
           boneDim.push_back(y - (boneDepth - 1));
-          output[boneDepthSum / boneDepth] = boneDim;
+          output.push_back(boneDim);
         }
       }
     }
   }
   return output;
+}
+
+
+void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtkImageData> inputImage) //Note: this method is closer then normal way of threashold
+{
+
+  float vInput = 0;
+  unsigned char* vOutput = 0;
+
+
+  int dims[3] = { 0, 0, 0 };
+  inputImage->GetDimensions(dims);
+
+  int max;
+
+  int pixelSum1;
+  float avg1;
+  float pixelSum2;
+  float avg2;
+  float thresholdValue;
+  for (int y = dims[1] - 1; y >= 0; y--)
+  {
+    max = 0;
+
+    pixelSum1 = 0;
+    avg1 = 0;
+
+    for (int x = dims[0] - 1; x >= 0; x--)
+    {
+      vInput = inputImage->GetScalarComponentAsFloat(x, y, 0, 0);
+      pixelSum1 += vInput;
+
+      if (vInput > max)
+      {
+        max = vInput;
+      }
+    }
+    avg1 = pixelSum1 / dims[0] - 1;
+
+    pixelSum2 = 0;
+    avg2 = 0;
+    for (int x = dims[0] - 1; x >= 0; x--)
+    {
+      vInput = inputImage->GetScalarComponentAsFloat(x, y, 0, 0);
+      pixelSum2 += pow(vInput - avg1, 2);
+    }
+    avg2 = pixelSum2 / dims[0] - 1;
+
+    thresholdValue = max - 3 * pow(avg2, 0.5);
+
+    for (int x = dims[0] - 1; x >= 0; x--)
+    {
+      vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
+      if (*vOutput < thresholdValue && *vOutput != 0)
+      {
+        *vOutput = 0;
+      }
+    }
+  }
 }
 
 
@@ -902,7 +969,6 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
 {
   // Images must be of the same dimension, an should already be, I should check this though
   unsigned char* inputPixelPointer = 0;
-  unsigned char* maskImagePixel = 0;
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);      // This will be the same as InputImage, as long as InputImage is converted to linesImage previously
@@ -911,11 +977,11 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
   {
     // Initialize variables for a new scan line.
 
-    for (int x = dims[0] - 1; x >= 0; x--)   // Go towards transducer
+    for (int x = 0; x < dims[0]; x++)   // Go towards transducer
     {
       if (static_cast<unsigned char>(MaskImage->GetScalarComponentAsFloat(x, y, 0, 0)) > 0)
       {
-        // Do nothing
+        //do nothing
       }
       else
       {
@@ -929,6 +995,8 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame)
 {
+  this->FrameCounter += 1;
+
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
 
   int dims[3] = { 0, 0, 0 };
@@ -960,14 +1028,19 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 
   if (this->ThresholdingEnabled)
   {
-    this->Thresholder->SetInputData(this->IntermediateImage);
-    this->Thresholder->Update();
-    this->AddIntermediateImage("_02Threshold_1FilterEnd", this->Thresholder->GetOutput());
+    this->StdDeviationThreshold(this->IntermediateImage);
+    this->AddIntermediateImage("_02Threshold_1StdDeviationVersionFilterEnd", this->IntermediateImage);
+
+    //this->Thresholder->SetInputData(this->IntermediateImage);
+    //this->Thresholder->Update();
+    //this->AddIntermediateImage("_02Threshold_1FilterEnd", this->Thresholder->GetOutput());
   }
 
   if (this->GaussianEnabled)
   {
-    this->GaussianSmooth->SetInputConnection(this->Thresholder->GetOutputPort());
+    //this->GaussianSmooth->SetInputConnection(this->Thresholder->GetOutputPort());
+    this->GaussianSmooth->SetInputData(this->IntermediateImage);
+
     this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
   }
 
@@ -1031,19 +1104,29 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
   }
+  this->ProcessedLinesImage->DeepCopy(this->IntermediateImage);
+  PlusVideoFrame processedVideoFrame;
+  processedVideoFrame.DeepCopyFrom(this->ProcessedLinesImage);
+  PlusTrackedFrame* processedTrackedFrame = inputFrame;
+  processedTrackedFrame->SetImageData(processedVideoFrame);
 
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
   if (this->ReturnToFanImage)
   {
-    this->ScanConverter->SetInputDataObject(this->IntermediateImage);
+    this->ScanConverter->SetInputData(this->ProcessedLinesImage);
+    this->ScanConverter->SetOutput(this->IntermediateImage);
     this->ScanConverter->Update();
+
     outputImage->DeepCopyFrom(this->IntermediateImage);
+
     this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->IntermediateImage);
   }
   else
   {
     outputImage->DeepCopyFrom(this->IntermediateImage);
   }
+
+  //TODO: Move output back by a number of pixels
 
   return PLUS_SUCCESS;
 }
@@ -1075,7 +1158,6 @@ Returns PLUS_FAIL if an error occured during this process, returns PLUS_SUCCESS 
 */
 PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(char* fileNamePostfix)
 {
-
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
   if (indexIterator != this->IntermediateImageMap.end())
   {
@@ -1135,7 +1217,6 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateFromFilter(char* fileNameP
 
   if (this->SaveIntermediateResults) //TODO: Do this check when calling this method, not inside it
   {
-
     imageFilter->SetOutput(this->IntermediateImage);
     imageFilter->Update();
 
