@@ -43,6 +43,11 @@ protected:
   /*! Set ultrasound simulator */
   vtkSetObjectMacro(UsSimulator, vtkPlusUsSimulatorAlgo); 
 
+  /*!
+  Set changed imaging parameter to device
+  */
+  virtual PlusStatus RequestImagingParameterChange();
+
 protected:
   /*! Constructor */
   vtkPlusUsSimulatorVideoSource();

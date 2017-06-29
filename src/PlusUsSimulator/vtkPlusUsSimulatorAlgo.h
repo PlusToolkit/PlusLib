@@ -42,6 +42,9 @@ public:
   /*! Get transform repository */
   vtkGetObjectMacro( TransformRepository, vtkPlusTransformRepository );
 
+  /*! Get RF processor */
+  vtkGetObjectMacro( RfProcessor, vtkPlusRfProcessor );
+
   /*! Set image frame name */
   vtkSetStringMacro( ImageCoordinateFrame );
   /*! Get image frame name */

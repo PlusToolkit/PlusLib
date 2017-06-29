@@ -137,6 +137,12 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters( const vtkPlusUsImagingParam
     return PLUS_FAIL;
   }
 
+  if (this->RequestImagingParameterChange() == PLUS_FAIL)
+  {
+    LOG_ERROR( "Failed to request change of imaging parameters in the device." );
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 

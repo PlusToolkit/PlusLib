@@ -12,6 +12,7 @@
 #include "vtkPlusDataSource.h"
 #include "vtkPlusUsSimulatorVideoSource.h"
 #include "vtkPlusTransformRepository.h"
+#include "vtkPlusUsImagingParameters.h"
 
 vtkStandardNewMacro(vtkPlusUsSimulatorVideoSource);
 
@@ -227,6 +228,23 @@ PlusStatus vtkPlusUsSimulatorVideoSource::NotifyConfigured()
     LOG_ERROR("No output channels defined for vtkPlusUsSimulatorVideoSource. Cannot proceed." );
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
+{
+  //TODO: Make this dynamic
+  if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
+  {
+    LOG_WARNING("vtkPlusUsSimulatorVideoSource does not support the depth parameter");
+    return PLUS_FAIL;
+  }
+  else if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  {
+    this->UsSimulator->SetFrequencyMhz(this->RequestedImagingParameters->GetFrequencyMhz());
   }
 
   return PLUS_SUCCESS;

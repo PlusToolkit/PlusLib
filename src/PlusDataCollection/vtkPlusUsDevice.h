@@ -83,11 +83,17 @@ public:
   vtkGetObjectMacro(CurrentImagingParameters, vtkPlusUsImagingParameters);
 
 protected:
+  /*!
+  Set changed imaging parameter to device
+  */
+  virtual PlusStatus RequestImagingParameterChange() { return PLUS_FAIL; };
+
   void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
 
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();
 
+protected:
   /// Store the requested imaging parameters
   vtkPlusUsImagingParameters* RequestedImagingParameters;
   /// Store the current imaging parameters
