@@ -42,16 +42,11 @@ public:
   /*! Gets the description for the specified command name. */
   virtual std::string GetDescription(const std::string& commandName);
 
-  /*! Floating point parameter value */
-  vtkGetMacro(ParameterDoubleValue, double);
-  vtkSetMacro(ParameterDoubleValue, double);
-
   /*! Id of the ultrasound device to change the parameters of at the next Execute */
   vtkGetStdStringMacro(UsDeviceId);
   vtkSetStdStringMacro(UsDeviceId);
 
-  void SetNameToSetDepth();
-  void SetNameToSetFrequency();
+  void SetNameToSetUsParameter();
 
 protected:
   vtkPlusUsDevice* GetUsDevice();
@@ -62,8 +57,12 @@ protected:
 protected:
   std::string UsDeviceId;
 
-  /// Value of floating-point type parameters (e.g. depth, gain)
-  double ParameterDoubleValue;
+  /*!
+     List of requested parameter changes.
+     Key is the parameter name (e.g. DepthMm), value is the parameter value.
+     The Execute function traverses this map and requests the parameter changes from the device.
+  */
+  std::map<std::string, std::string> RequestedParameterChanges;
 
   vtkPlusSetUsParameterCommand(const vtkPlusSetUsParameterCommand&);
   void operator=(const vtkPlusSetUsParameterCommand&);

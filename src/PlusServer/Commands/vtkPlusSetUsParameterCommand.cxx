@@ -15,37 +15,33 @@ See License.txt for details.
 #include "vtkPlusUsDevice.h"
 
 #include <vtkVariant.h>
+#include <vtkSmartPointer.h>
 #include <limits>
 
 namespace
 {
-  static const double UNDEFINED_VALUE = std::numeric_limits<double>::max();
-  static const std::string SET_DEPTH_CMD = std::string("Set") + std::string(vtkPlusUsImagingParameters::KEY_DEPTH);
-  static const std::string SET_FREQUENCY_CMD = std::string("Set") + std::string(vtkPlusUsImagingParameters::KEY_FREQUENCY);
+  static const std::string SET_US_PARAMETER_CMD = "SetUsParameter";
 }
 
 vtkStandardNewMacro(vtkPlusSetUsParameterCommand);
 
 //----------------------------------------------------------------------------
 vtkPlusSetUsParameterCommand::vtkPlusSetUsParameterCommand()
-  : ParameterDoubleValue(UNDEFINED_VALUE)
 {
   this->UsDeviceId = "";
+  this->RequestedParameterChanges.clear();
 }
 
 //----------------------------------------------------------------------------
 vtkPlusSetUsParameterCommand::~vtkPlusSetUsParameterCommand()
 {
+  this->RequestedParameterChanges.clear();
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSetUsParameterCommand::SetNameToSetDepth()
+void vtkPlusSetUsParameterCommand::SetNameToSetUsParameter()
 {
-  SetName(SET_DEPTH_CMD);
-}
-void vtkPlusSetUsParameterCommand::SetNameToSetFrequency()
-{
-  SetName(SET_FREQUENCY_CMD);
+  SetName(SET_US_PARAMETER_CMD);
 }
 
 //----------------------------------------------------------------------------
@@ -58,23 +54,18 @@ void vtkPlusSetUsParameterCommand::PrintSelf(ostream& os, vtkIndent indent)
 void vtkPlusSetUsParameterCommand::GetCommandNames(std::list<std::string>& cmdNames)
 {
   cmdNames.clear();
-  cmdNames.push_back(SET_DEPTH_CMD);
-  cmdNames.push_back(SET_FREQUENCY_CMD);
+  cmdNames.push_back(SET_US_PARAMETER_CMD);
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusSetUsParameterCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SET_DEPTH_CMD))
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SET_US_PARAMETER_CMD))
   {
-    desc += SET_DEPTH_CMD;
+    desc += SET_US_PARAMETER_CMD;
+    //TODO:
     desc += ": Set depth image parameter. Attributes: UsDeviceId: ID of the ultrasound device.";
-  }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SET_FREQUENCY_CMD))
-  {
-    desc += SET_FREQUENCY_CMD;
-    desc += ": Set frequency image parameter. Attributes: UsDeviceId: ID of the ultrasound device.";
   }
 
   return desc;
@@ -83,14 +74,31 @@ std::string vtkPlusSetUsParameterCommand::GetDescription(const std::string& comm
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
+  this->RequestedParameterChanges.clear();
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ParameterDoubleValue, aConfig);
-
   this->SetUsDeviceId(aConfig->GetAttribute("UsDeviceId"));
+
+  // Parse nested elements and store requested parameter changes
+  for (int elemIndex=0; elemIndex<aConfig->GetNumberOfNestedElements(); ++elemIndex)
+  {
+    vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
+    if (PlusCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
+    {
+      const char* parameterName = currentElem->GetAttribute("Name");
+      const char* parameterValue = currentElem->GetAttribute("Value");
+      if (!parameterName || !parameterValue)
+      {
+        LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in SetUsParameter command");
+        continue;
+      }
+      
+      this->RequestedParameterChanges[parameterName] = parameterValue;
+    }
+  }
 
   return PLUS_SUCCESS;
 }
@@ -103,12 +111,17 @@ PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
     return PLUS_FAIL;
   }
 
-  if (this->ParameterDoubleValue != UNDEFINED_VALUE)
-  {
-    aConfig->SetDoubleAttribute("ParameterDoubleValue", ParameterDoubleValue);
-  }
-
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(UsDeviceId, aConfig);
+
+  // Write parameters as nested elements
+  std::map<std::string, std::string>::iterator paramIt;
+  for (paramIt=this->RequestedParameterChanges.begin(); paramIt!=this->RequestedParameterChanges.end(); ++paramIt)
+  {
+    vtkSmartPointer<vtkXMLDataElement> paramElem = vtkSmartPointer<vtkXMLDataElement>::New();
+    paramElem->SetAttribute("Name", paramIt->first.c_str());
+    paramElem->SetAttribute("Value", paramIt->second.c_str());
+    aConfig->AddNestedElement(paramElem);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -124,6 +137,11 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
   }
+  else if (!PlusCommon::IsEqualInsensitive(this->Name, SET_US_PARAMETER_CMD))
+  {
+    this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "Unknown command name: " + this->Name + ".");
+    return PLUS_FAIL;
+  }
 
   vtkPlusUsDevice* usDevice = GetUsDevice();
   if (usDevice == NULL)
@@ -134,49 +152,57 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
   }
 
   std::string usDeviceId = (usDevice->GetDeviceId().empty() ? "(unknown)" : usDevice->GetDeviceId());
+  vtkPlusUsImagingParameters* imagingParameters = usDevice->GetCurrentImagingParameters();
+  std::string message = this->Name + std::string("(") + usDeviceId + std::string(")");
+  PlusStatus status = PLUS_SUCCESS;
 
-  std::string baseMessage = this->Name + std::string("(") + usDeviceId + std::string(")");
-  if (PlusCommon::IsEqualInsensitive(this->Name, SET_DEPTH_CMD))
+  std::map<std::string, std::string>::iterator paramIt;
+  for (paramIt=this->RequestedParameterChanges.begin(); paramIt!=this->RequestedParameterChanges.end(); ++paramIt)
   {
-    if (this->ParameterDoubleValue == UNDEFINED_VALUE)
+    message += " Parameter " + paramIt->first + "=" + paramIt->second + ": ";
+
+    if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_DEPTH))
     {
-      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " failed: undefined parameter value");
-      return PLUS_FAIL;
+      bool valid=false;
+      double depth = vtkVariant(paramIt->second).ToDouble(&valid);
+      imagingParameters->SetDepthMm(depth);
+      if (valid == false)
+      {
+        message += "Failed to parse";
+        status = PLUS_FAIL;
+        continue;
+      }
+      if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
+      {
+        message += "Failed to set";
+        status = PLUS_FAIL;
+        continue;
+      }
+      message += "Success";
     }
-
-    vtkPlusUsImagingParameters* imagingParameters = usDevice->GetCurrentImagingParameters();
-    imagingParameters->SetDepthMm(this->ParameterDoubleValue);
-    if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
+    else if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_FREQUENCY))
     {
-      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " failed: unable to set new parameter to ultrasound device");
-      return PLUS_FAIL;
+      bool valid=false;
+      double frequency = vtkVariant(paramIt->second).ToDouble(&valid);
+      imagingParameters->SetFrequencyMhz(frequency);
+      if (valid == false)
+      {
+        message += "Failed to parse";
+        status = PLUS_FAIL;
+        continue;
+      }
+      if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
+      {
+        message += "Failed to set";
+        status = PLUS_FAIL;
+        continue;
+      }
+      message += "Success";
     }
+  } // For each parameter
 
-    this->QueueCommandResponse(PLUS_SUCCESS, std::string("Request successfully sent to change depth to ") + vtkVariant(ParameterDoubleValue).ToString());
-    return PLUS_SUCCESS;
-  }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, SET_FREQUENCY_CMD))
-  {
-    if (this->ParameterDoubleValue == UNDEFINED_VALUE)
-    {
-      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " failed: undefined parameter value");
-      return PLUS_FAIL;
-    }
-
-    vtkPlusUsImagingParameters* imagingParameters = usDevice->GetCurrentImagingParameters();
-    imagingParameters->SetFrequencyMhz(this->ParameterDoubleValue);
-    if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
-    {
-      this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + " failed: unable to set new parameter to ultrasound device");
-      return PLUS_FAIL;
-    }
-
-    this->QueueCommandResponse(PLUS_SUCCESS, std::string("Request successfully sent to change frequency to ") + vtkVariant(ParameterDoubleValue).ToString());
-    return PLUS_SUCCESS;
-  }
-
-  this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", baseMessage + "Unknown command name: " + this->Name + ".");
-  return PLUS_FAIL;
+  this->QueueCommandResponse(status, "Command " + std::string(status==PLUS_SUCCESS ? "succeeded" : "failed. See error message."), message);
+  return status;
 }
 
 //----------------------------------------------------------------------------

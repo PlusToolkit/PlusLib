@@ -254,7 +254,7 @@ PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
         curvilinearScanConverter->GetRadiusStartMm() + this->RequestedImagingParameters->GetDepthMm() );
     }
   }
-  else if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
   {
     this->UsSimulator->SetFrequencyMhz(this->RequestedImagingParameters->GetFrequencyMhz());
   }
