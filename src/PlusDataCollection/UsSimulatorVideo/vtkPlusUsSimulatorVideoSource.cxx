@@ -13,6 +13,8 @@
 #include "vtkPlusUsSimulatorVideoSource.h"
 #include "vtkPlusTransformRepository.h"
 #include "vtkPlusUsImagingParameters.h"
+#include "vtkPlusUsScanConvertLinear.h"
+#include "vtkPlusUsScanConvertCurvilinear.h"
 
 vtkStandardNewMacro(vtkPlusUsSimulatorVideoSource);
 
@@ -239,8 +241,18 @@ PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
   //TODO: Make this dynamic
   if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
-    LOG_WARNING("vtkPlusUsSimulatorVideoSource does not support the depth parameter");
-    return PLUS_FAIL;
+    vtkPlusUsScanConvert* scanConverter = this->UsSimulator->GetRfProcessor()->GetScanConverter();
+    vtkPlusUsScanConvertLinear* linearScanConverter = vtkPlusUsScanConvertLinear::SafeDownCast(scanConverter);
+    vtkPlusUsScanConvertCurvilinear* curvilinearScanConverter = vtkPlusUsScanConvertCurvilinear::SafeDownCast(scanConverter);
+    if (linearScanConverter)
+    {
+      linearScanConverter->SetImagingDepthMm(this->RequestedImagingParameters->GetDepthMm());
+    }
+    else if (curvilinearScanConverter)
+    {
+      curvilinearScanConverter->SetRadiusStopMm(
+        curvilinearScanConverter->GetRadiusStartMm() + this->RequestedImagingParameters->GetDepthMm() );
+    }
   }
   else if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
   {
