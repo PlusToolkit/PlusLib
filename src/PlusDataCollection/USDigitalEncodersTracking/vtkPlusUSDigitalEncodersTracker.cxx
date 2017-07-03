@@ -153,8 +153,6 @@ vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncodersTracker()
 {
     this->SetDeviceId("TrackerDevice");
     this->USDigitalEncoderTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-    this->USDigitalEncoderInfoList.clear();
-    this->USDigitalEncoderTrackingInfoList.clear();
 
     //// No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
     this->StartThreadForInternalUpdates = true;
