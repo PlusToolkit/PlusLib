@@ -77,16 +77,13 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    //  Reading configuration XML file
     usDigitalEncodersTracker->ReadConfiguration(configRootElement);
 
-    // Connect
     if (usDigitalEncodersTracker->Connect() != PLUS_SUCCESS)
     {
         LOG_ERROR("Unable to connect to US Digital encoders!");
         exit(EXIT_FAILURE);
     }
-    ///////////////
 
     usDigitalEncodersTracker->StartRecording();
 
