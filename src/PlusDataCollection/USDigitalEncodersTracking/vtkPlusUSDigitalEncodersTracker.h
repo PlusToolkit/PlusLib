@@ -150,7 +150,6 @@ private:  // Variables.
     bool configurationViaSerialNumbers = false;
     long NumberOfEncoders = 0; // Number of connected A2 Encoders
     long COMPort = 0;
-    long BaudRate = 9600;
 
     class vtkPlusEncoderTrackingInfo;
     class vtkPlusUSDigitalEncoderInfo;

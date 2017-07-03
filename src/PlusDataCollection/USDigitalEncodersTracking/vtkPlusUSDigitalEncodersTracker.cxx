@@ -200,13 +200,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
         return PLUS_FAIL;
     }
 
-    // Do we need to change the baudrate of the RS232C communication?
-    /*if ( this->SetBaudRate(this->BaudRate) != PLUS_SUCCESS )
-       {
-       LOG_ERROR("Failed to set baud rate for SEI!");
-       return PLUS_FAIL;
-       }*/
-
     long numberofConnectedEncoders = ::GetNumberOfDevices();
     EncoderInfoMapType::iterator encoderinfopos;
     for (long deviceID = 0; deviceID < numberofConnectedEncoders; ++deviceID)
