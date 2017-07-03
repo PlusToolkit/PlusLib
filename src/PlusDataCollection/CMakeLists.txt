@@ -325,12 +325,12 @@ IF(PLUS_USE_NDI)
   FIND_PACKAGE(ndicapi REQUIRED NO_MODULE)
 
   SET(NDICAPI_SRCS
-    PolarisTracking/vtkPlusNDITracker.cxx
+    NDICAPITracking/vtkPlusNDITracker.cxx
     )
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(NDICAPI_HDRS
-      PolarisTracking/vtkPlusNDITracker.h
+      NDICAPITracking/vtkPlusNDITracker.h
       )
   ENDIF()
 
@@ -343,7 +343,7 @@ IF(PLUS_USE_NDI)
     )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/PolarisTracking
+    ${CMAKE_CURRENT_SOURCE_DIR}/NDICAPITracking
     )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS

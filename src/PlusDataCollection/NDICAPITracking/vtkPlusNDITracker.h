@@ -16,7 +16,7 @@ conditions are met:
 1) Redistribution of the source code, in verbatim or modified
    form, must retain the above copyright notice, this license,
    the following disclaimer, and any notices that refer to this
-   license and/or the following disclaimer.  
+   license and/or the following disclaimer.
 
 2) Redistribution in binary form must include the above copyright
    notice, a copy of this license and the following disclaimer
@@ -102,10 +102,10 @@ struct ndicapi;
 class vtkPlusDataCollectionExport vtkPlusNDITracker : public vtkPlusDevice
 {
 public:
-  static vtkPlusNDITracker *New();
-  vtkTypeMacro(vtkPlusNDITracker,vtkPlusDevice);
+  static vtkPlusNDITracker* New();
+  vtkTypeMacro(vtkPlusNDITracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
+
   /*! Flags for tool LEDs */
   enum LedState
   {
@@ -113,7 +113,7 @@ public:
     TR_LED_ON    = 1,
     TR_LED_FLASH = 2
   };
- 
+
   virtual bool IsTracker() const { return true; }
 
   /*! Hardware device SDK version. */
@@ -133,7 +133,7 @@ public:
     The text reply from the NDI is returned, without the CRC or
     final carriage return.
   */
-  char *Command(const char *command);
+  char* Command(const char* format, ...);
 
   /*!
     Get the a string (perhaps a long one) describing the type and version
@@ -157,20 +157,20 @@ public:
     See VSEL command in the NDI API documentation for details.
   */
   vtkSetMacro(MeasurementVolumeNumber, int);
-  vtkGetMacro(MeasurementVolumeNumber, int);  
+  vtkGetMacro(MeasurementVolumeNumber, int);
 
   /*!
     Get an update from the tracking system and push the new transforms
     to the tools.  This should only be used within vtkTracker.cxx.
   */
   PlusStatus InternalUpdate();
-  
-  /*! Read NDI tracker configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Read NDI tracker configuration from xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
-  
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+
+  /*! Read NDI tracker configuration from xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
   /*! Set the specified tool LED to the specified state */
   PlusStatus SetToolLED(const char* portName, int led, LedState state);
 
@@ -181,7 +181,7 @@ protected:
   struct NdiToolDescriptor
   {
     int WiredPortNumber; // >=0 for wired tools
-    unsigned char *VirtualSROM; // nonzero for wireless tools
+    unsigned char* VirtualSROM; // nonzero for wireless tools
     bool PortEnabled; // true if the tool is successfully enabled in the tracker
     int PortHandle; // this number identifies the tool in the tracker
   };
@@ -212,7 +212,7 @@ protected:
   PlusStatus Beep(int n);
 
   /*! Read a virtual SROM from file and store it in the tool descriptor */
-  PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char *filename);
+  PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char* filename);
 
   /*!
     Sets the port handle in the descriptor. For wired tools it
@@ -252,11 +252,11 @@ protected:
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long LastFrameNumber;
 
-  ndicapi *Device;
-  char *Version;
-  char *SerialDevice;
+  ndicapi* Device;
+  char* Version;
+  char* SerialDevice;
 
-  int SerialPort; 
+  int SerialPort;
   int BaudRate;
   int IsDeviceTracking;
 
@@ -270,7 +270,7 @@ protected:
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);
-  void operator=(const vtkPlusNDITracker&);  
+  void operator=(const vtkPlusNDITracker&);
 };
 
 #endif
