@@ -65,7 +65,7 @@ See License.txt for details.
 #include "vtkPlusOptimetConoProbeMeasurer.h"
 #endif
 #ifdef PLUS_USE_OPTITRACK
-#include "vtkPlusOptiTrackTracker.h"
+#include "vtkPlusOptiTrack.h"
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
 #include "vtkPlusPhidgetSpatialTracker.h"
@@ -233,7 +233,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
   RegisterDevice("OptimetConoProbe", "vtkPlusOptimetConoProbeMeasurer", (PointerToDevice)&vtkPlusOptimetConoProbeMeasurer::New);
 #endif
 #ifdef PLUS_USE_OPTITRACK
-  RegisterDevice("OptiTrack", "vtkPlusOptiTrackTracker", (PointerToDevice)&vtkPlusOptiTrackTracker::New);
+  RegisterDevice("OptiTrack", "vtkPlusOptiTrack", (PointerToDevice)&vtkPlusOptiTrack::New);
 #endif
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
   RegisterDevice("SonixVideo", "vtkPlusSonixVideoSource", (PointerToDevice)&vtkPlusSonixVideoSource::New);

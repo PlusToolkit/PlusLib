@@ -185,51 +185,32 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF(PLUS_USE_OPTITRACK)
-  IF(WIN32)
-    # PlusLib Files
-    SET(OptiTrack_SRCS
-      OptiTrack/vtkPlusOptiTrackTracker.cxx
-      )
-
-    IF(MSVC)
-      SET(OptiTrack_HDRS
-        OptiTrack/vtkPlusOptiTrackTracker.h
-        )
-    ENDIF()
-
-    LIST(APPEND ${PROJECT_NAME}_HDRS
-      ${OptiTrack_HDRS}
-      )
-
-    LIST(APPEND ${PROJECT_NAME}_SRCS
-      ${OptiTrack_SRCS}
-      )
-
-    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-         ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack 
-         )
-
-    # Find BiiGOptitrackControl Library
-    FIND_PACKAGE(BiiGOptitrackControl REQUIRED)
-    LIST(APPEND External_Libraries_Install 
-      ${BiiGOptitrackControl_INSTALL_DIR}/bin/BiiGOptitrackControl${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${BiiGOptitrackControl_INSTALL_DIR}/lib/BiiGOptitrackControl${CMAKE_STATIC_LIBRARY_SUFFIX}
-      )
-    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${BiiGOptitrackControl_INSTALL_DIR}/inc)
-
-    # Find NPTrackingTools Library
-    FIND_PACKAGE(NPTrackingTools REQUIRED)
-    LIST(APPEND External_Libraries_Install 
-      ${NPTrackingTools_INSTALL_DIR}/bin/${NPTrackingTools_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${NPTrackingTools_INSTALL_DIR}/lib/${NPTrackingTools_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX}
-      )
-    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${NPTrackingTools_INCLUDE_DIR})
-
-    LIST(APPEND ${PROJECT_NAME}_LIBS 
-      BiiGOptitrackControl 
-      ${NPTrackingTools_LIBRARY}
+  SET(OptiTrack_SRCS
+    OptiTrack/vtkPlusOptiTrack.cxx
+    )
+    
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OptiTrack_HDRS
+      OptiTrack/vtkPlusOptiTrack.h
       )
   ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${OptiTrack_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${OptiTrack_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack
+    ${OPTITRACK_INCLUDE_DIR}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${OPTITRACK_LIBRARY}
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
