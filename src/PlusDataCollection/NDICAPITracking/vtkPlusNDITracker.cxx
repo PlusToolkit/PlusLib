@@ -175,25 +175,6 @@ PlusStatus vtkPlusNDITracker::Probe()
   return PLUS_SUCCESS;
 }
 
-static const int oddparity[16] = { 0, 1, 1, 0, 1, 0, 0, 1,
-                                   1, 0, 0, 1, 0, 1, 1, 0
-                                 };
-
-#define CalcCRC16(nextchar, puCRC16) \
-{ \
-    int data; \
-    data = nextchar; \
-    data = (data ^ (*(puCRC16) & 0xff)) & 0xff; \
-    *puCRC16 >>= 8; \
-    if ( oddparity[data & 0x0f] ^ oddparity[data >> 4] ) { \
-      *(puCRC16) ^= 0xc001; \
-    } \
-    data <<= 6; \
-    *puCRC16 ^= data; \
-    data <<= 1; \
-    *puCRC16 ^= data; \
-}
-
 //----------------------------------------------------------------------------
 // Send a raw command to the tracking unit.
 // If communication has already been opened with the NDI,
@@ -294,6 +275,9 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     this->Device = 0;
     return PLUS_FAIL;
   }
+
+  // Wait 100ms as recommended by NDI documentation
+  vtkPlusAccurateTimer::Delay(0.1);
 
   // initialize Device
   bool resetOccurred = false;
