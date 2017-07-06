@@ -384,6 +384,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
   this->IntermediateImage->SetExtent(linesImageExtent);
   this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
+  //Set up variables related to image extents
+  int dims[3] = { 0, 0, 0 };
+  this->LinesImage->GetDimensions(dims);
+
+  this->FoundBoneGrid.resize(dims[0], std::vector<int>());
+
   return PLUS_SUCCESS;
 }
 
@@ -539,9 +545,9 @@ void vtkPlusTransverseProcessEnhancer::FillShadowValues()
       nSoFar++;
       float diffFromMean = inputValue - lineMeanSoFar;
       lineMeanSoFar = lineMeanSoFar + diffFromMean / nSoFar;
-      if (inputValue > lineMaxSoFar) 
-      { 
-        lineMaxSoFar = inputValue; 
+      if (inputValue > lineMaxSoFar)
+      {
+        lineMaxSoFar = inputValue;
       }
 
       shadowValue = 1.0 - (lineMaxSoFar / this->CurrentFrameScalarComponentMax);
@@ -565,7 +571,7 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
   unsigned char edgeDetectorOutput0;
   unsigned char edgeDetectorOutput1;
   float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
-  float output2 = 0.0; 
+  float output2 = 0.0;
 
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);
@@ -591,7 +597,7 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
 
 
 /*
-Takes a vtkSmartPointer<vtkImageData> as an argument and modifies it such that all images in a row 
+Takes a vtkSmartPointer<vtkImageData> as an argument and modifies it such that all images in a row
 that have a bone shadow behind it are removed
 */
 void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage)
@@ -604,9 +610,9 @@ void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPoint
   unsigned char*  vOutput;
 
   for (int y = dims[1] - 1; y >= 0; y--)
-  { 
+  {
     //When an image is detected, keep up to this many pixles after it
-    keepInfoCounter = 3; //Megic Number, Replace with parameter in mm
+    keepInfoCounter = 3; //TODO: replace this Megic Number with parameter in mm
 
     for (int x = dims[0] - 1; x >= 0; x--)
     {
@@ -624,6 +630,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPoint
           keepInfoCounter--;
         }
       }
+
     }
   }
 }
@@ -651,12 +658,12 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     std::vector<int> currentArea = boneAreas.at(areaIndex);
 
     clearArea = false;
-    boneHalfLen = (currentArea.at(1) - currentArea.at(2)) / 2;
+    boneHalfLen = ((currentArea.at(1) - currentArea.at(2)) + 1)  / 2;
 
     //check if the bone is to close too the scan's edge
     if (currentArea.at(1) + distanceBuffer >= dims[1] || currentArea.at(2) - distanceBuffer <= 0)
     {
-      //clearArea = true;
+      clearArea = true;
     }
     //check if given the size, the bone is too close to the scan's edge
     else if (boneHalfLen + currentArea.at(1) >= dims[1] - 1 || (currentArea.at(2) - 1) - boneHalfLen <= 0)
@@ -725,7 +732,7 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
     areaSum = 0;
     belowSum = 0;
 
-    boneLen = currentArea.at(1) - (currentArea.at(2) + 1);
+    boneLen = (currentArea.at(1) - currentArea.at(2)) + 1;
     boneHalfLen = boneLen / 2;
     sideArea = (boneLen * currentArea.at(0)) / 2;
 
@@ -780,78 +787,11 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
 }
 
 
-/*
-Takes a vtkSmartPointer<vtkImageData> that is known to have a bone in or adgacent to a
-specific point. The second two paramaters refer to the x and y coordinates of this point.
-Determines how far the furthest point is from the inital given point.
-The last paramater is used to check how far the current point is from the initial starting position.
-*/
-int vtkPlusTransverseProcessEnhancer::FindBoneLength(vtkSmartPointer<vtkImageData> inputImage, int x, int y, int currentDepth)
-{
-  int output = 0;
-  unsigned char* vInput = 0;
-
-  //check to see if a bone was already found here
-  if (this->FoundBoneGrid[x][y] == false)
-  {
-
-    vInput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
-
-    //check if there is a bone in this location
-    if (*vInput != 0)
-    {
-      output = currentDepth;
-      this->FoundBoneGrid[x][y] = true;
-
-      //check to see if this position is the furthest point on its row
-      if (this->BoneLocationsResults.at(currentDepth - 1) < x)
-      {
-        this->BoneLocationsResults.at(currentDepth - 1) = x;
-      }
-
-      int dims[3] = { 0, 0, 0 };
-      inputImage->GetDimensions(dims);
-
-      if (x != 0)
-      {
-        //check the position to the left
-        int leftDepth = this->FindBoneLength(inputImage, x - 1, y, currentDepth);
-        output = std::max(output, leftDepth);
-      }
-      if (x + 1 != dims[0])
-      {
-        //check the position to the right
-        int rightDepth = this->FindBoneLength(inputImage, x + 1, y, currentDepth);
-        output = std::max(output, rightDepth);
-      }
-      if (y != 0)
-      {
-        //check the position above
-        int lowerDepth = this->FindBoneLength(inputImage, x, y - 1, currentDepth + 1);
-        output = std::max(output, lowerDepth);
-
-        if (x != 0)
-        {
-          //check the position to the top left
-          int lowerLeftDepth = this->FindBoneLength(inputImage, x - 1, y - 1, currentDepth + 1);
-          output = std::max(output, lowerLeftDepth);
-        }
-        if (x + 1 != dims[0])
-        {
-          //check the position to the top right
-          int lowerRightDepth = this->FindBoneLength(inputImage, x + 1, y - 1, currentDepth + 1);
-          output = std::max(output, lowerRightDepth);
-        }
-      }
-    }
-  }
-  return output;
-}
-
+//Note: (1) is a bigger number than (2)
 
 /*
 Finds all the bone areas in the given vtkSmartPointer<vtkImageData>
-The output is a vector whereby the first element is the average bone depth, and the second and 
+The output is a vector whereby the first element is the average bone depth, and the second and
 thrid elements refer to the start and end points of the bone area.
 */
 std::vector<std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage)
@@ -860,44 +800,214 @@ std::vector<std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(vt
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
-  this->BoneLocationsResults.resize(dims[1]);
-  this->FoundBoneGrid.resize(dims[0], std::vector<bool>());
-
   unsigned char* vInput = 0;
+  std::vector<std::vector<int>> intermediateOutput;
   std::vector<std::vector<int>> output;
 
-  std::fill(begin(this->FoundBoneGrid), end(this->FoundBoneGrid), std::vector<bool>(dims[1], false));
+  std::vector<std::vector<int>> boneMaxAreas;
+  int bonesFoundCounter = 0;
+  std::vector<int> boneNumIndexes;
+
+  std::fill(begin(this->FoundBoneGrid), end(this->FoundBoneGrid), std::vector<int>(dims[1], -1));
   for (int y = dims[1] - 1; y >= 0; y--)
   {
     for (int x = dims[0] - 1; x >= 0; x--)
     {
-      //check if the bone has already been logged
-      if (this->FoundBoneGrid[x][y] == false)
-      {
-        vInput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
-        if (*vInput != 0)
-        {
-          //a bone was found, find its dimensions
-          std::fill(begin(this->BoneLocationsResults), end(this->BoneLocationsResults), 0);
-          int boneDepth = this->FindBoneLength(inputImage, x, y, 1);
 
-          //find the total max distace each row of bones is from the camera
-          int boneDepthSum = 0;
-          int depthIndex = 0;
-          while (depthIndex <= dims[1] && this->BoneLocationsResults.at(depthIndex) != 0)
+      vInput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
+      if (*vInput != 0)
+      {
+        std::vector<int> attachedIndex;
+
+        //right
+        if (x != dims[0] - 1)
+        {
+          if (FoundBoneGrid[x + 1][y] != -1)
           {
-            boneDepthSum += this->BoneLocationsResults.at(depthIndex);
-            depthIndex += 1;
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x + 1][y]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x + 1][y]);
+            }
+          }
+        }
+
+        //left
+        if (x != 0)
+        {
+          if (FoundBoneGrid[x - 1][y] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x - 1][y]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x - 1][y]);
+            }
+          }
+        }
+
+        //down
+        if (y != dims[1] - 1)
+        {
+          if (FoundBoneGrid[x][y + 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x][y + 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x][y + 1]);
+            }
+          }
+        }
+
+        //up
+        if (y != 0)
+        {
+          if (FoundBoneGrid[x][y - 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x][y - 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x][y - 1]);
+            }
+          }
+        }
+
+        /*
+        //diagonals
+        if (x != dims[0] - 1 && y != dims[1] - 1)
+        {
+          if (FoundBoneGrid[x + 1][y + 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x + 1][y + 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x + 1][y + 1]);
+            }
+          }
+        }
+        if (x != 0 && y != dims[1] - 1)
+        {
+          if (FoundBoneGrid[x - 1][y + 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x - 1][y + 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x - 1][y + 1]);
+            }
+          }
+        }
+        if (x != dims[0] - 1 && y != 0)
+        {
+          if (FoundBoneGrid[x + 1][y - 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x + 1][y - 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x + 1][y - 1]);
+            }
+          }
+        }
+        if (x != 0 && y != 0)
+        {
+          if (FoundBoneGrid[x - 1][y - 1] != -1)
+          {
+            if (std::find(attachedIndex.begin(), attachedIndex.end(), FoundBoneGrid[x - 1][y - 1]) == attachedIndex.end())
+            {
+              attachedIndex.push_back(FoundBoneGrid[x - 1][y - 1]);
+            }
+          }
+        }
+        */
+
+        if (attachedIndex.size() == 0)
+        {
+          //If there are no bones around, mark off the new area
+          FoundBoneGrid[x][y] = bonesFoundCounter;
+          std::vector<int> tempOutputVect;
+          std::vector<int> tempBoneDepthVect;
+          tempOutputVect.push_back(0);
+          tempOutputVect.push_back(y);
+          tempOutputVect.push_back(y);
+          intermediateOutput.push_back(tempOutputVect);
+          tempBoneDepthVect.push_back(x);
+          boneNumIndexes.push_back(bonesFoundCounter);
+
+          boneMaxAreas.push_back(tempBoneDepthVect);
+          bonesFoundCounter += 1;
+        }
+        else if (attachedIndex.size() == 1)
+        {
+          //If there is one marked bone nearby, have this pixel join that area
+          FoundBoneGrid[x][y] = attachedIndex[0];
+
+          //mark off the bone depth
+          if (intermediateOutput[boneNumIndexes[attachedIndex[0]]][2] > y)
+          {
+            boneMaxAreas[boneNumIndexes[attachedIndex[0]]].push_back(x);
+            intermediateOutput[boneNumIndexes[attachedIndex[0]]][2] = y;
+          }
+          else
+          {
+            if (boneMaxAreas[boneNumIndexes[attachedIndex[0]]][y - intermediateOutput[boneNumIndexes[attachedIndex[0]]][2]] < x)
+            {
+              boneMaxAreas[boneNumIndexes[attachedIndex[0]]][y - intermediateOutput[boneNumIndexes[attachedIndex[0]]][2]] = x;
+            }
+          }
+        }
+        else
+        {
+          //If there are multiple different nearby bone areas, combine them into one area
+
+          //determine what section they should all fuse to
+          int sectionMin = boneNumIndexes[attachedIndex[attachedIndex.size() - 1]];
+          for (int sectionsIndex = attachedIndex.size() - 1; sectionsIndex >= 0; sectionsIndex--)
+          {
+            if (intermediateOutput[boneNumIndexes[attachedIndex[sectionsIndex]]][1] > intermediateOutput[sectionMin][1])
+            {
+              sectionMin = boneNumIndexes[attachedIndex[sectionsIndex]];
+            }
           }
 
-          //save this data to the output
-          std::vector<int> boneDim;
-          boneDim.push_back(boneDepthSum / boneDepth);
-          boneDim.push_back(y);
-          boneDim.push_back(y - (boneDepth - 1));
-          output.push_back(boneDim);
+          //fuse to the section
+          for (int sectionsIndex = attachedIndex.size() - 1; sectionsIndex >= 0; sectionsIndex--)
+          {
+            if (boneNumIndexes[attachedIndex[sectionsIndex]] != sectionMin)
+            {
+              boneNumIndexes[attachedIndex[sectionsIndex]] = sectionMin;
+            }
+            if (boneNumIndexes[attachedIndex[sectionsIndex]] == sectionMin)
+            {
+              FoundBoneGrid[x][y] = attachedIndex[sectionsIndex];
+            }
+          }
+
+          //mark off the bone depth
+          if (intermediateOutput[boneNumIndexes[sectionMin]][2] > y)
+          {
+            boneMaxAreas[boneNumIndexes[sectionMin]].push_back(x);
+            intermediateOutput[boneNumIndexes[sectionMin]][2] = y;
+          }
+          else
+          {
+            if (boneMaxAreas[boneNumIndexes[sectionMin]][y - intermediateOutput[boneNumIndexes[sectionMin]][2]] < x)
+            {
+              boneMaxAreas[boneNumIndexes[sectionMin]][y - intermediateOutput[boneNumIndexes[sectionMin]][2]] = x;
+            }
+          }
         }
       }
+    }
+  }
+
+  int boneDepthSum;
+
+
+  std::vector<int> alreadyAdded;
+  for (int finalPosIndex = boneNumIndexes.size() - 1; finalPosIndex >= 0; finalPosIndex--)
+  {
+    if (std::find(alreadyAdded.begin(), alreadyAdded.end(), boneNumIndexes[finalPosIndex]) == alreadyAdded.end())
+    {
+      boneDepthSum = 0;
+      for (int boneDepthIndex = boneMaxAreas[boneNumIndexes[finalPosIndex]].size() - 1; boneDepthIndex >= 0; boneDepthIndex--)
+      {
+        boneDepthSum += boneMaxAreas[boneNumIndexes[finalPosIndex]][boneDepthIndex];
+      }
+      intermediateOutput[boneNumIndexes[finalPosIndex]][0] = boneDepthSum / ((intermediateOutput[boneNumIndexes[finalPosIndex]][1] - intermediateOutput[boneNumIndexes[finalPosIndex]][2]) + 1);
+
+      output.push_back(intermediateOutput[boneNumIndexes[finalPosIndex]]);
+      alreadyAdded.push_back(boneNumIndexes[finalPosIndex]);
     }
   }
   return output;
@@ -909,7 +1019,6 @@ void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtk
 
   float vInput = 0;
   unsigned char* vOutput = 0;
-
 
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
@@ -938,7 +1047,7 @@ void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtk
         max = vInput;
       }
     }
-    avg1 = pixelSum1 / dims[0] - 1;
+    avg1 = pixelSum1 / dims[0];
 
     pixelSum2 = 0;
     avg2 = 0;
@@ -947,7 +1056,7 @@ void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtk
       vInput = inputImage->GetScalarComponentAsFloat(x, y, 0, 0);
       pixelSum2 += pow(vInput - avg1, 2);
     }
-    avg2 = pixelSum2 / dims[0] - 1;
+    avg2 = pixelSum2 / dims[0];
 
     thresholdValue = max - 3 * pow(avg2, 0.5);
 
@@ -995,6 +1104,16 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame)
 {
+
+  if (this->FirstFrame == true)
+  {
+    //set up variables for future loops
+    this->ProcessImageExtents();
+    this->FirstFrame = false;
+  }
+
+
+
   this->FrameCounter += 1;
 
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
@@ -1038,8 +1157,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 
   if (this->GaussianEnabled)
   {
-    //this->GaussianSmooth->SetInputConnection(this->Thresholder->GetOutputPort());
     this->GaussianSmooth->SetInputData(this->IntermediateImage);
+    //this->GaussianSmooth->SetInputConnection(this->Thresholder->GetOutputPort());
 
     this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
   }
@@ -1061,7 +1180,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     if (this->IslandRemovalEnabled)
     {
       this->IslandRemover->SetInputConnection(this->ImageBinarizer->GetOutputPort());
-      
+
       this->IslandRemover->Update();
       this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
     }
@@ -1069,6 +1188,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     if (this->ErosionEnabled)
     {
       this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
+      
       this->ImageEroder->SetInputConnection(this->IslandRemover->GetOutputPort());
       this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
     }
@@ -1104,6 +1224,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
   }
+
   this->ProcessedLinesImage->DeepCopy(this->IntermediateImage);
   PlusVideoFrame processedVideoFrame;
   processedVideoFrame.DeepCopyFrom(this->ProcessedLinesImage);
