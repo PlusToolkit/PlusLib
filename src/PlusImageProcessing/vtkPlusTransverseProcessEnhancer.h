@@ -50,8 +50,6 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
-  virtual PlusStatus ProcessImageExtents();
-
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
@@ -142,7 +140,6 @@ public:
   void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
 
   std::vector<std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
-  int FindBoneLength(vtkSmartPointer<vtkImageData> inputImage, int x, int y, int currentDepth);
 
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
@@ -231,11 +228,18 @@ protected:
 
   std::vector<char*> IntermediatePostfixes;
 
-  std::vector<std::vector<bool>> FoundBoneGrid;
-  std::vector<int> BoneLocationsResults;
+  std::vector<std::vector<int>> FoundBoneGrid;
 
 
   int FrameCounter = -1;
+
+
+private:
+  virtual PlusStatus ProcessImageExtents();
+
+private:
+  bool FirstFrame = true;
+
 };
 
 #endif

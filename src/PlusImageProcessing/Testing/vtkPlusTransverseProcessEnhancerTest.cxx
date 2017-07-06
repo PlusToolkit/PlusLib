@@ -145,14 +145,6 @@ int main(int argc, char** argv)
   }
   LOG_INFO("Reading config file finished.");
 
-
-  if (enhancer->ProcessImageExtents() == PLUS_FAIL)
-  {
-    LOG_ERROR("Unable to process Image Extents.");
-    return EXIT_FAILURE;
-  }
-  LOG_INFO("Processed Image Extents.");
-
   //Process the frames for the input file
   enhancer->SetSaveIntermediateResults(saveIntermediateResults);
   LOG_INFO("Attempting to Process Frames.");
