@@ -9,6 +9,7 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "NatNetTypes.h"
 
 /*!
 \class vtkPlusOptiTrack
@@ -33,11 +34,14 @@ public:
   virtual PlusStatus InternalDisconnect();
 
   /*!
-  Get an update from the tracking system and push the new transforms
-  to the tools.  This should only be used within vtkTracker.cxx.
-  This method is called by the tracker thread.
+  Should not be called, update is done using InternalCallback
   */
   PlusStatus InternalUpdate();
+
+  /*! 
+  Receive updated tracking information from the server and push the new transforms to the tools
+  */
+  PlusStatus InternalCallback(sFrameOfMocapData* data);
   
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
@@ -45,14 +49,13 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Get the transformation for a connected tool given the tool name = PortName (PLUS) */
-  void GetTransformMatrix(std::string toolName, vtkMatrix4x4* transformMatrix);
-
 protected:
   vtkPlusOptiTrack();
   ~vtkPlusOptiTrack();
   
 private:  // Functions.
+  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  void MatchTrackedTools();
 
   vtkPlusOptiTrack( const vtkPlusOptiTrack& );
   void operator=( const vtkPlusOptiTrack& ); 
@@ -60,6 +63,21 @@ private:  // Functions.
 private:  // Variables.  
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long LastFrameNumber;
+  /*! IP of the computer running the client. Defaults to "127.0.0.1" */
+  std::string IPClient = "127.0.0.1";
+  vtkGetMacro(IPClient, std::string);
+  vtkSetMacro(IPClient, std::string);
+  /*! IP of the computer running the server. Defaults to "127.0.0.1" */
+  std::string IPServer = "127.0.0.1";
+  vtkGetMacro(IPServer, std::string);
+  vtkSetMacro(IPServer, std::string);
+
+  /*! Scale factor for converting camera units to Mm */
+  float UnitsToMm;
+  /*! List of tracked tools defined by the config file */
+  std::set<std::string> TrackedTools;
+  /*! Map from the numerical id of tool rigidbody to tool name */
+  std::map<int, std::string> TrackedToolMap;
 
 };
 

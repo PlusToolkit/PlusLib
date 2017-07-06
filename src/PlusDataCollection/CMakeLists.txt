@@ -209,8 +209,13 @@ IF(PLUS_USE_OPTITRACK)
     )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${OPTITRACK_LIBRARY}
+    ${OPTITRACK_LIBRARY_DIR}/NatNetLib.lib
     )
+  
+  LIST(APPEND External_Libraries_Install
+    ${OPTITRACK_BINARY_DIR}/NatNetLib.dll
+    )
+    
 ENDIF()
 
 # --------------------------------------------------------------------------
