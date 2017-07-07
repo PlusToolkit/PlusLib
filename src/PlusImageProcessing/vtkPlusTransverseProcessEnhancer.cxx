@@ -57,8 +57,9 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   EdgeDetector(NULL),
   ImageBinarizer(NULL),
   BinaryImageForMorphology(NULL),
-  IslandRemover(NULL),
+  IslandRemoverPreErode(NULL),
   ImageEroder(NULL),
+  IslandRemoverPostErode(NULL),
   ImageDialator(NULL),
 
   ReturnToFanImage(true),
@@ -89,8 +90,9 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();
   this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();
   this->BinaryImageForMorphology = vtkSmartPointer<vtkImageData>::New();
-  this->IslandRemover = vtkSmartPointer<vtkImageIslandRemoval2D>::New();
+  this->IslandRemoverPreErode = vtkSmartPointer<vtkImageIslandRemoval2D>::New();
   this->ImageEroder = vtkSmartPointer<vtkImageDilateErode3D>::New();
+  this->IslandRemoverPostErode = vtkSmartPointer<vtkImageIslandRemoval2D>::New();
   this->ImageDialator = vtkSmartPointer<vtkImageDilateErode3D>::New();
 
   this->SetDilationKernelSize(1, 1);
@@ -107,13 +109,17 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ImageBinarizer->SetInValue(255);
   this->ImageBinarizer->SetOutValue(0);
   this->ImageBinarizer->ThresholdBetween(55, 255);
-  this->IslandRemover->SetIslandValue(255);
-  this->IslandRemover->SetReplaceValue(0);
-  this->IslandRemover->SetAreaThreshold(0);
+  this->IslandRemoverPreErode->SetIslandValue(255);
+  this->IslandRemoverPreErode->SetReplaceValue(0);
+  this->IslandRemoverPreErode->SetAreaThreshold(0);
 
   this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
   this->ImageEroder->SetErodeValue(255);
   this->ImageEroder->SetDilateValue(0);
+
+  this->IslandRemoverPostErode->SetIslandValue(255);
+  this->IslandRemoverPostErode->SetReplaceValue(0);
+  this->IslandRemoverPostErode->SetAreaThreshold(0);
 
   this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
   this->ImageDialator->SetErodeValue(0);
@@ -609,6 +615,12 @@ void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPoint
   int keepInfoCounter;
   unsigned char*  vOutput;
 
+  int lastVistedValue = 0;
+
+  std::vector<int> currentBoneArea;
+  int boneAreaStart = dims[1] - 1;
+  int boneAreaSum = 0;
+
   for (int y = dims[1] - 1; y >= 0; y--)
   {
     //When an image is detected, keep up to this many pixles after it
@@ -627,12 +639,60 @@ void vtkPlusTransverseProcessEnhancer::RemoveImagesPrecedingShadow(vtkSmartPoint
         }
         else
         {
+          if (keepInfoCounter == 3) //same as magic number
+          {
+
+            //TODO: Is this correct?
+            if (std::abs(x - lastVistedValue) >= 3 && y != dims[1] - 1)
+            {
+              if (boneAreaSum != 0)
+              {
+                currentBoneArea.push_back(boneAreaSum / (boneAreaStart - y));
+                currentBoneArea.push_back(boneAreaStart);
+                currentBoneArea.push_back(y + 1);
+                this->BoneAreasInfo.push_back(currentBoneArea);
+                currentBoneArea.clear();
+              }
+              boneAreaStart = y;
+              boneAreaSum = 0;
+            }
+            else
+            {
+
+            }
+            boneAreaSum += x;
+            lastVistedValue = x;
+          }
           keepInfoCounter--;
         }
       }
 
     }
+    if (keepInfoCounter == 3) //same as magic number
+    {
+      lastVistedValue = 0;
+      if (boneAreaSum != 0)
+      {
+        currentBoneArea.push_back(boneAreaSum / (boneAreaStart - y));
+        currentBoneArea.push_back(boneAreaStart);
+        currentBoneArea.push_back(y + 1);
+        this->BoneAreasInfo.push_back(currentBoneArea);
+        boneAreaSum = 0;
+        currentBoneArea.clear();
+      }
+      boneAreaStart = y - 1;
+    }
   }
+
+  if (boneAreaSum != 0)
+  {
+    currentBoneArea.push_back(boneAreaSum / (boneAreaStart + 1));
+    currentBoneArea.push_back(boneAreaStart);
+    currentBoneArea.push_back(0);
+    this->BoneAreasInfo.push_back(currentBoneArea);
+    currentBoneArea.clear();
+  }
+
 }
 
 
@@ -663,12 +723,12 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     //check if the bone is to close too the scan's edge
     if (currentArea.at(1) + distanceBuffer >= dims[1] || currentArea.at(2) - distanceBuffer <= 0)
     {
-      clearArea = true;
+      //clearArea = true; //TODO: Figure out if this is worth keeping
     }
     //check if given the size, the bone is too close to the scan's edge
     else if (boneHalfLen + currentArea.at(1) >= dims[1] - 1 || (currentArea.at(2) - 1) - boneHalfLen <= 0)
     {
-      clearArea = true;
+      //clearArea = true; //TODO: Figure out if this is worth keeping
     }
     //check if the bone is too close/far from the transducer 
     else if (currentArea.at(0) < 20 || currentArea.at(0) > dims[0] - 20)
@@ -678,7 +738,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     //check if the bone is to small
     else if (currentArea.at(1) - currentArea.at(2) <= 10)
     {
-      clearArea = true;
+      //clearArea = true; //TODO: Figure out if this is worth keeping
     }
 
     //If it dosnt meet the criteria, remove the bones in this area
@@ -694,6 +754,23 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
             *vOutput = 0;
           }
         }
+      }
+
+      bool foundToRemove = false;
+      int boneRemoveIndex = this->BoneAreasInfo.size();
+      std::vector<int> currentRemoveArea;
+      while (foundToRemove == false && boneRemoveIndex > 0)
+      {
+        boneRemoveIndex--;
+        currentRemoveArea = BoneAreasInfo.at(boneRemoveIndex);
+        if (currentArea.at(0) == currentRemoveArea.at(0) && currentArea.at(1) == currentRemoveArea.at(1) && currentArea.at(2) == currentRemoveArea.at(2))
+        {
+          foundToRemove = true;
+        }
+      }
+      if (foundToRemove == true)
+      {
+        this->BoneAreasInfo.erase(this->BoneAreasInfo.begin() + boneRemoveIndex);
       }
     }
   }
@@ -717,16 +794,23 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
 
   int boneLen;
   int boneHalfLen;
-  int sideArea;
+  float boneArea;
+  float aboveArea;
+  float belowArea;
   float aboveSum;
   float areaSum;
   float belowSum;
+
+  float aboveToAreaRatio;
+  float belowToAreaRatio;
+
+  std::vector<int> currentArea;
 
   std::vector<std::vector<int>> boneAreas = this->FindBoneAreas(inputImage);
 
   for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; areaIndex--)
   {
-    std::vector<int> currentArea = boneAreas.at(areaIndex);
+    currentArea = boneAreas.at(areaIndex);
 
     aboveSum = 0;
     areaSum = 0;
@@ -734,7 +818,27 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
 
     boneLen = (currentArea.at(1) - currentArea.at(2)) + 1;
     boneHalfLen = boneLen / 2;
-    sideArea = (boneLen * currentArea.at(0)) / 2;
+    boneArea = boneLen * currentArea.at(0);
+
+    if (currentArea.at(1) + boneHalfLen > dims[1] - 1)
+    {
+      aboveToAreaRatio = (float)boneLen / (float)((dims[1] - 1) - currentArea.at(1));
+    }
+    else
+    {
+      aboveToAreaRatio = 2;
+    }
+    aboveArea = boneArea / aboveToAreaRatio;
+
+    if (currentArea.at(2) < boneHalfLen)
+    {
+      belowToAreaRatio = (float)boneLen / (float)currentArea.at(2);
+    }
+    else
+    {
+      belowToAreaRatio = 2;
+    }
+    belowArea = boneArea / belowToAreaRatio;
 
     //gather sum of shadow areas from above the area
     for (int y = std::min(currentArea.at(1) + boneHalfLen, dims[1] - 1); y > currentArea.at(1); y--)
@@ -764,12 +868,12 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
       }
     }
 
-    float aboveAvgShadow = aboveSum / sideArea;
-    float areaAvgShadow = areaSum / (boneLen * currentArea.at(0));
-    float belowAvgShadow = belowSum / sideArea;
+    float aboveAvgShadow = aboveSum / aboveArea;
+    float areaAvgShadow = areaSum / boneArea;
+    float belowAvgShadow = belowSum / belowArea;
 
     //If there is a higher amount of bones around it, remove the area
-    if (aboveAvgShadow - areaAvgShadow <= (areaAvgShadow / 2) || belowAvgShadow - areaAvgShadow <= (areaAvgShadow / 2))
+    if (aboveAvgShadow - areaAvgShadow <= (areaAvgShadow / aboveToAreaRatio) || belowAvgShadow - areaAvgShadow <= (areaAvgShadow / belowToAreaRatio))
     {
       for (int y = currentArea.at(1); y >= currentArea.at(2); y--)
       {
@@ -782,12 +886,29 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
           }
         }
       }
+
+      bool foundToRemove = false;
+      int boneRemoveIndex = this->BoneAreasInfo.size();
+      std::vector<int> currentRemoveArea;
+      while (foundToRemove == false && boneRemoveIndex > 0)
+      {
+        boneRemoveIndex--;
+        currentRemoveArea = BoneAreasInfo.at(boneRemoveIndex);
+        if (currentArea.at(0) == currentRemoveArea.at(0) && currentArea.at(1) == currentRemoveArea.at(1) && currentArea.at(2) == currentRemoveArea.at(2))
+        {
+          foundToRemove = true;
+        }
+      }
+      if (foundToRemove == true)
+      {
+        this->BoneAreasInfo.erase(this->BoneAreasInfo.begin() + boneRemoveIndex);
+      }
     }
   }
 }
 
 
-//Note: (1) is a bigger number than (2)
+//Note: position (1) is a bigger number than position (2)
 
 /*
 Finds all the bone areas in the given vtkSmartPointer<vtkImageData>
@@ -796,6 +917,13 @@ thrid elements refer to the start and end points of the bone area.
 */
 std::vector<std::vector<int>> vtkPlusTransverseProcessEnhancer::FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage)
 {
+  if (true)
+  {
+    return this->BoneAreasInfo;
+  }
+
+
+
 
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
@@ -1112,9 +1240,9 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->FirstFrame = false;
   }
 
-
-
   this->FrameCounter += 1;
+
+  this->BoneAreasInfo.clear();
 
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
 
@@ -1179,25 +1307,35 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 
     if (this->IslandRemovalEnabled)
     {
-      this->IslandRemover->SetInputConnection(this->ImageBinarizer->GetOutputPort());
+      this->IslandRemoverPreErode->SetInputConnection(this->ImageBinarizer->GetOutputPort());
 
-      this->IslandRemover->Update();
-      this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
+      this->IslandRemoverPreErode->Update();
+      this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemoverPreErode->GetOutput());
     }
 
     if (this->ErosionEnabled)
     {
       this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
       
-      this->ImageEroder->SetInputConnection(this->IslandRemover->GetOutputPort());
+      this->ImageEroder->SetInputConnection(this->IslandRemoverPreErode->GetOutputPort());
       this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
+      
+      if (this->IslandRemovalEnabled)
+      {
+        this->IslandRemoverPostErode->SetInputConnection(this->ImageEroder->GetOutputPort());
+
+        this->IslandRemoverPostErode->Update();
+        this->AddIntermediateImage("_07IslandPostErode_2FilterEnd", this->IslandRemoverPostErode->GetOutput());
+      }
+      
+      
     }
 
     if (this->DilationEnabled)
     {
       this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
 
-      this->ImageDialator->SetInputConnection(this->ImageEroder->GetOutputPort());
+      this->ImageDialator->SetInputConnection(this->IslandRemoverPostErode->GetOutputPort());
       this->ImageDialator->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageDialator->GetOutput());
       this->AddIntermediateImage("_08Dilation_1PostUpdate", this->BinaryImageForMorphology);
@@ -1408,18 +1546,20 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   this->IslandAreaThreshold = islandAreaThreshold;
   if (islandAreaThreshold < 0)
   {
-    this->IslandRemover->SetAreaThreshold(0);
+    this->IslandRemoverPreErode->SetAreaThreshold(0);
+    this->IslandRemoverPostErode->SetAreaThreshold(0);
   }
   // Apparently, below statement always evaluates to true, nullifying the island removal process
   /*
   else if ( islandAreaThreshold > ( boundaries[0]*boundaries[1] ) )
   {
-  this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
+  this->IslandRemoverPreErode->SetIslandValue( boundaries[0] * boundaries[1] );
   }
   */
   else
   {
-    this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
+    this->IslandRemoverPreErode->SetAreaThreshold(islandAreaThreshold);
+    this->IslandRemoverPostErode->SetAreaThreshold(20); //TODO: change magic number to a parameter
   }
 }
 
