@@ -167,8 +167,9 @@ protected:
   vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
   vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
   vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
-  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
+  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemoverPreErode;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
+  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemoverPostErode;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
   bool ConvertToLinesImage;
@@ -229,6 +230,7 @@ protected:
   std::vector<char*> IntermediatePostfixes;
 
   std::vector<std::vector<int>> FoundBoneGrid;
+  std::vector<std::vector<int>> BoneAreasInfo;
 
 
   int FrameCounter = -1;
