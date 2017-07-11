@@ -63,7 +63,7 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, 
 
   if (!valid)
   {
-    LOG_WARNING("Skipped transformation matrix - Invalid transform in the transform repository (" << transformName.From() << " to " << transformName.To() << ")");
+    LOG_DEBUG("Skipped transformation matrix - Invalid transform in the transform repository (" << transformName.From() << " to " << transformName.To() << ")");
     return PLUS_FAIL;
   }
 

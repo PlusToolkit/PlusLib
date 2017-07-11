@@ -104,6 +104,8 @@ Camera calibration determines optical properties of your camera (distortion, foc
 
 \section DeviceOpticalMarkerTrackerExampleConfigFile Example configuration file PlusDeviceSet_Server_OpticalMarkerTracker_Mmf.xml
 
+This configuration file can be used with this example 3D Slicer scene: <a href="https://app.assembla.com/spaces/plus/subversion/source/HEAD/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/OpticalMarkerTracker_Scene.mrb?_format=raw">OpticalMarkerTracker_Scene.mrb</a>
+
 \include "ConfigFiles/PlusDeviceSet_Server_OpticalMarkerTracker_Mmf.xml"
 
 */
