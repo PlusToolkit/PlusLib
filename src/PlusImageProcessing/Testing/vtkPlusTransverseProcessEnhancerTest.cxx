@@ -176,7 +176,6 @@ int main(int argc, char** argv)
       startOutputFileNameIndex = outputFileName.rfind("\\") + 1;
     }
 
-    LOG_INFO(outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));
     //Saves the intermediate results that were recorded during the call to enhancer->Update()
 
     enhancer->SetIntermediateImageFileName(outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));

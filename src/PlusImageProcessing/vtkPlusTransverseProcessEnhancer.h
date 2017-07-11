@@ -138,6 +138,7 @@ public:
   void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
   void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
   void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
+  void CompareBoneSlopes(vtkSmartPointer<vtkImageData> inputImage);
 
   std::vector<std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
 
@@ -169,7 +170,6 @@ protected:
   vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
   vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemoverPreErode;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
-  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemoverPostErode;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
   bool ConvertToLinesImage;
