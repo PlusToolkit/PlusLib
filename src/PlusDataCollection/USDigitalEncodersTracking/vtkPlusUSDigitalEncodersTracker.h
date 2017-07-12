@@ -149,9 +149,10 @@ protected:
 
 protected:
   bool CoreXY;
-  bool ConfigurationViaSerialNumbers = false;
-  long NumberOfEncoders = 0; // Number of connected A2 Encoders
-  long COMPort = 0;
+  bool ConfigurationViaSerialNumbers;
+  /*! Number of connected A2 Encoders */
+  long NumberOfEncoders;
+  long COMPort;
 
   class vtkPlusEncoderTrackingInfo;
   class vtkPlusUSDigitalEncoderInfo;
