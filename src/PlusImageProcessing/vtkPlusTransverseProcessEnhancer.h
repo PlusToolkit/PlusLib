@@ -135,12 +135,9 @@ public:
   vtkImageData* GetShadowImage() { return this->ShadowImage; };
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
 
-  void RemoveImagesPrecedingShadow(vtkSmartPointer<vtkImageData> inputImage);
+  void MarkShadowOutline(vtkSmartPointer<vtkImageData> inputImage);
   void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
   void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
-  void CompareBoneSlopes(vtkSmartPointer<vtkImageData> inputImage);
-
-  std::vector<std::vector<int>> FindBoneAreas(vtkSmartPointer<vtkImageData> inputImage);
 
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
@@ -168,7 +165,7 @@ protected:
   vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
   vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
   vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
-  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemoverPreErode;
+  vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
@@ -229,9 +226,7 @@ protected:
 
   std::vector<char*> IntermediatePostfixes;
 
-  std::vector<std::vector<int>> FoundBoneGrid;
-  std::vector<std::vector<int>> BoneAreasInfo;
-
+  std::vector<std::map<std::string, int>> BoneAreasInfo;
 
   int FrameCounter = -1;
 
