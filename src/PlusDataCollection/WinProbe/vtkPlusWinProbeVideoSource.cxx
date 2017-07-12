@@ -335,11 +335,11 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
 
     if (IsRecording())
     {
-        this->InternalStopRecording();
+        this->StopRecording();
     }
     else
     {
-        this->InternalStartRecording();
+        this->StartRecording();
     }
 
     return PLUS_SUCCESS;
