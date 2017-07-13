@@ -246,8 +246,16 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived
       if (vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDurationSec)
       {
         // waiting time expired
-        LOG_ERROR("Failed to read complete line from serial device. Received: " << textReceived);
-        return PLUS_FAIL;
+        if (textReceived.empty())
+        {
+          LOG_ERROR("Failed to get a response within configured time (" << this->MaximumReplyDurationSec << " sec)");
+          return PLUS_FAIL;
+        }
+        else
+        {
+          LOG_WARNING("Failed to read a complete line from serial device. Received: " << textReceived);
+          return PLUS_SUCCESS;
+        }
       }
     }
     textReceived.push_back(d);
