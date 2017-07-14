@@ -56,6 +56,8 @@ vtkPlusGenericSerialDevice::vtkPlusGenericSerialDevice()
   : Serial(new SerialLine())
   , SerialPort(1)
   , BaudRate(9600)
+  , DTR(false)
+  , RTS(false)
   , MaximumReplyDelaySec(0.100)
   , MaximumReplyDurationSec(0.300)
   , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
@@ -133,6 +135,18 @@ PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
     return PLUS_FAIL;
   }
 
+  if (!this->SetDTR(this->DTR)) //re-set it in case we are reconnecting
+  {
+    LOG_ERROR("Could not re-establish DTR (data-terminal-ready) line ");
+    return PLUS_FAIL;
+  }
+
+  if (!this->SetRTS(this->RTS)) //re-set it in case we are reconnecting
+  {
+    LOG_ERROR("Could not re-establish RTS (request-to-send) line ");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -168,6 +182,70 @@ PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
     }
   }
   return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool OnOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
+  PlusStatus retval;
+
+  if (OnOff == DTR)
+  {
+    return PLUS_SUCCESS; //already the desired value
+  }
+  else if (OnOff == true)
+  {
+    retval = this->Serial->SetDTR();
+    if (retval == PLUS_SUCCESS)
+    {
+      DTR = true;
+    }
+  }
+  else
+  {
+    assert(OnOff == false);
+    retval = this->Serial->ClearDTR();
+    if (retval == PLUS_SUCCESS)
+    {
+      DTR = false;
+    }
+  }
+
+  return retval;
+}
+
+PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool OnOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
+  PlusStatus retval;
+
+  if (OnOff == RTS)
+  {
+    return PLUS_SUCCESS; //already the desired value
+  }
+  else if (OnOff == true)
+  {
+    retval = this->Serial->SetRTS();
+    if (retval == PLUS_SUCCESS)
+    {
+      RTS = true;
+    }
+  }
+  else
+  {
+    assert(OnOff == false);
+    retval = this->Serial->ClearRTS();
+    if (retval == PLUS_SUCCESS)
+    {
+      RTS = false;
+    }
+  }
+
+  return retval;
 }
 
 //-------------------------------------------------------------------------

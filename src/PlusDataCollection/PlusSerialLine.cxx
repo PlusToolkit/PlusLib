@@ -235,3 +235,71 @@ unsigned int SerialLine::GetNumberOfBytesAvailableForReading() const
   return 0;
 #endif
 }
+
+PlusStatus SerialLine::SetDTR()
+{
+#ifdef _WIN32
+  if (EscapeCommFunction(CommHandle, SETDTR))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::SetDTR() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+PlusStatus SerialLine::ClearDTR()
+{
+#ifdef _WIN32
+  if (EscapeCommFunction(CommHandle, CLRDTR))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::ClearDTR() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+PlusStatus SerialLine::SetRTS()
+{
+#ifdef _WIN32
+  if (EscapeCommFunction(CommHandle, SETRTS))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::SetRTS() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+PlusStatus SerialLine::ClearRTS()
+{
+#ifdef _WIN32
+  if (EscapeCommFunction(CommHandle, CLRRTS))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::ClearRTS() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}

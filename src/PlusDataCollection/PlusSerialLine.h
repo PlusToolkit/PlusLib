@@ -80,6 +80,18 @@ public:
   /*! Check the handle alive status */
   unsigned int GetNumberOfBytesAvailableForReading() const;
 
+  /*! Sends the DTR (data-terminal-ready) signal. */
+  PlusStatus SetDTR();
+
+  /*! Clears the DTR (data-terminal-ready) signal. */
+  PlusStatus ClearDTR();
+
+  /*! Sends the RTS (request-to-send) signal. */
+  PlusStatus SetRTS();
+
+  /*! Clears the RTS (request-to-send) signal. */
+  PlusStatus ClearRTS();
+
   /*! Clears the device's error flag to enable additional input and output (I/O) operations  */
   DWORD ClearError();
 

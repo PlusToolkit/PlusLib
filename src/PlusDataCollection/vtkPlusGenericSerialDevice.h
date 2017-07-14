@@ -73,6 +73,18 @@ public:
 
   virtual PlusStatus NotifyConfigured();
 
+  /*! Sets or clears the DTR (data-terminal-ready) line. */
+  PlusStatus SetDTR(bool OnOff);
+
+  /*! Gets the DTR (data-terminal-ready) line. */
+  vtkGetMacro(DTR, bool);
+
+  /*! Sets the RTS (request-to-send) line. */
+  PlusStatus SetRTS(bool OnOff);
+
+  /*! Gets the RTS (request-to-send) line. */
+  vtkGetMacro(RTS, bool);
+
 protected:
   vtkPlusGenericSerialDevice();
   ~vtkPlusGenericSerialDevice();
@@ -93,6 +105,12 @@ protected:
 
   /*! Baud rate for serial communication. */
   unsigned long BaudRate;
+
+  /*! Data Terminal Ready */
+  bool DTR;
+
+  /*! Request To Send */
+  bool RTS;
 
   /*! Characters that indicate end of sent or received text data. Each character is encoded in 2-digit hexadecimal, separate by spaces. */
   std::string LineEnding;
