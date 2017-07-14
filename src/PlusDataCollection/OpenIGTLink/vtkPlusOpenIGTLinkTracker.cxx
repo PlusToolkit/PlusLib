@@ -129,8 +129,8 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     // We've received valid header data
     headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
 
-    bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
-    if (typeid(bodyMsg) == typeid(igtl::TransformMessage))
+    bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    if (typeid(*bodyMsg) == typeid(igtl::TrackingDataMessage))
     {
       // received a TDATA message
       break;
