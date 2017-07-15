@@ -21,6 +21,9 @@ See License.txt for details.
 // OpenIGTLink includes
 #include <igtl_tdata.h>
 
+// OpenIGTLinkIO includes
+#include <igtlioPolyDataConverter.h>
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusIgtlMessageCommon);
@@ -85,7 +88,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFr
 {
   if (trackedFrameMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack tracked frame message - input tracked frame message is NULL"); ;
+    LOG_ERROR("Failed to pack tracked frame message - input tracked frame message is NULL");
     return PLUS_FAIL;
   }
 
@@ -156,7 +159,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer 
 {
   if (usMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack US message - input US message is NULL"); ;
+    LOG_ERROR("Failed to pack US message - input US message is NULL");
     return PLUS_FAIL;
   }
 
@@ -207,7 +210,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 {
   if (imageMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack image message - input image message is NULL"); ;
+    LOG_ERROR("Failed to pack image message - input image message is NULL");
     return PLUS_FAIL;
   }
 
@@ -419,7 +422,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 {
   if (imageMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack image message - input image message is NULL"); ;
+    LOG_ERROR("Failed to pack image message - input image message is NULL");
     return PLUS_FAIL;
   }
 
@@ -532,7 +535,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
 {
   if (imageMetaMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack image message - input image message is NULL"); ;
+    LOG_ERROR("Failed to pack image message - input image message is NULL");
     return PLUS_FAIL;
   }
   for (PlusCommon::ImageMetaDataList::iterator it = imageMetaDataList.begin(); it != imageMetaDataList.end(); it++)
@@ -576,7 +579,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
 {
   if (transformMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack transform message - input transform message is NULL"); ;
+    LOG_ERROR("Failed to pack transform message - input transform message is NULL");
     return PLUS_FAIL;
   }
 
@@ -594,13 +597,32 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp)
+{
+  if (polydataMessage.IsNull())
+  {
+    LOG_ERROR("Failed to pack poly data message - input polydata message is NULL");
+    return PLUS_FAIL;
+  }
+
+  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  igtlTime->SetTime(timestamp);
+
+  igtlio::PolyDataConverter::VTKPolyDataToIGTL(polyData, polydataMessage);
+  polydataMessage->SetTimeStamp(igtlTime);
+  polydataMessage->Pack();
+
+  return PLUS_SUCCESS;
+}
+
 //-------------------------------------------------------------------------------
 // static
 PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer trackingDataMessage, const std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& transforms, double timestamp)
 {
   if (trackingDataMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack tracking data message - input tracking data message is NULL"); ;
+    LOG_ERROR("Failed to pack tracking data message - input tracking data message is NULL");
     return PLUS_FAIL;
   }
 
@@ -772,7 +794,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
 {
   if (positionMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack position message - input position message is NULL"); ;
+    LOG_ERROR("Failed to pack position message - input position message is NULL");
     return PLUS_FAIL;
   }
 
@@ -866,7 +888,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Poin
 {
   if (stringMessage.IsNull())
   {
-    LOG_ERROR("Failed to pack string message - input string message is NULL"); ;
+    LOG_ERROR("Failed to pack string message - input string message is NULL");
     return PLUS_FAIL;
   }
 

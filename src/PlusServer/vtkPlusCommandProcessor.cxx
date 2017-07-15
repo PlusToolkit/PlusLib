@@ -13,10 +13,10 @@ See License.txt for details.
 #include "vtkPlusGetImageCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
-#include "vtkPlusStealthLinkCommand.h"
+  #include "vtkPlusStealthLinkCommand.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-#include "vtkPlusConoProbeLinkCommand.h"
+  #include "vtkPlusConoProbeLinkCommand.h"
 #endif
 #include "igtl_header.h"
 #include "vtkPlusGetTransformCommand.h"
@@ -40,13 +40,14 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   , CommandExecutionThreadId(-1)
 {
   // Register default commands
-  RegisterPlusCommand(vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetImageCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusRequestIdsCommand>::New());
-  RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
-  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSaveConfigCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSendTextCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusVersionCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
@@ -66,18 +67,11 @@ vtkPlusCommandProcessor::~vtkPlusCommandProcessor()
 void vtkPlusCommandProcessor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "Available Commands : ";
-  // TODO: print registered commands
-  /*
-  if( AvailableCommands )
+  os << indent << "Registered commands: ";
+  for (auto iter = this->RegisteredCommands.begin(); iter != this->RegisteredCommands.end(); ++iter)
   {
-    AvailableCommands->PrintSelf( os, indent );
+    os << indent << "  " << iter->first << std::endl;
   }
-  else
-  {
-    os << "None.";
-  }
-  */
 }
 
 //----------------------------------------------------------------------------

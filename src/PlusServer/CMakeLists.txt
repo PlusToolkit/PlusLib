@@ -16,6 +16,7 @@ SET(${PROJECT_NAME}_SRCS
   Commands/vtkPlusSaveConfigCommand.cxx
   Commands/vtkPlusSendTextCommand.cxx
   Commands/vtkPlusGetImageCommand.cxx
+  Commands/vtkPlusGetPolydataCommand.cxx
   Commands/vtkPlusGetTransformCommand.cxx
   )
 
@@ -34,6 +35,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     Commands/vtkPlusSaveConfigCommand.h
     Commands/vtkPlusSendTextCommand.h
     Commands/vtkPlusGetImageCommand.h
+    Commands/vtkPlusGetPolydataCommand.h
     Commands/vtkPlusGetTransformCommand.h
     )
 ENDIF()

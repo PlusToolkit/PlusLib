@@ -740,66 +740,6 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       rtsMsg->Pack();
       self->QueueMessageResponseForClient(client->ClientId, msg);
     }
-    else if (typeid(*bodyMessage) == typeid(igtl::GetPolyDataMessage))
-    {
-      igtl::GetPolyDataMessage::Pointer polyDataMessage = dynamic_cast<igtl::GetPolyDataMessage*>(bodyMessage.GetPointer());
-      polyDataMessage->SetMessageHeader(headerMsg);
-      polyDataMessage->AllocateBuffer();
-
-      clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
-
-      std::string fileName;
-      // Check metadata for requisite parameters, if absent, check deviceName
-      if (polyDataMessage->GetHeaderVersion() > IGTL_HEADER_VERSION_1)
-      {
-        if (!polyDataMessage->GetMetaDataElement("filename", fileName))
-        {
-          fileName = polyDataMessage->GetDeviceName();
-          if (fileName.empty())
-          {
-            LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
-            continue;
-          }
-        }
-      }
-      else
-      {
-        fileName = polyDataMessage->GetDeviceName();
-        if (fileName.empty())
-        {
-          LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
-          continue;
-        }
-      }
-
-      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-      reader->SetFileName(fileName.c_str());
-      reader->Update();
-
-      auto polyData = reader->GetOutput();
-      if (polyData != nullptr)
-      {
-        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", polyDataMessage->GetHeaderVersion());
-        igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
-
-        igtlio::PolyDataConverter::MessageContent content;
-        content.deviceName = "PlusServer";
-        content.polydata = polyData;
-        igtlio::PolyDataConverter::VTKToIGTL(content, (igtl::PolyDataMessage::Pointer*)&msg);
-        if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
-        {
-          LOG_ERROR("Filename too long to be sent back to client. Aborting.");
-          continue;
-        }
-        self->QueueMessageResponseForClient(client->ClientId, msg);
-        continue;
-      }
-
-      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", polyDataMessage->GetHeaderVersion());
-      igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
-      rtsPolyMsg->SetStatus(false);
-      self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
-    }
     else if (typeid(*bodyMessage) == typeid(igtl::StatusMessage))
     {
       // status message is used as a keep-alive, don't do anything
@@ -1187,6 +1127,34 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
         imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to create image mesage from command response");
+      return NULL;
+    }
+    return igtlMessage.GetPointer();
+  }
+
+  vtkPlusCommandPolydataResponse* polydataResponse = vtkPlusCommandPolydataResponse::SafeDownCast(response);
+  if (polydataResponse)
+  {
+    std::string polydataName = polydataResponse->GetPolyDataName();
+    if (polydataName.empty())
+    {
+      polydataName = "UnknownFile";
+    }
+
+    vtkSmartPointer<vtkPolyData> polyData = polydataResponse->GetPolyData();
+    if (polyData == NULL)
+    {
+      LOG_ERROR("Missing polydata in command response");
+      return NULL;
+    }
+
+    igtl::PolyDataMessage::Pointer igtlMessage = dynamic_cast<igtl::PolyDataMessage*>(this->IgtlMessageFactory->CreateSendMessage("POLYDATA", IGTL_HEADER_VERSION_2).GetPointer());
+    igtlMessage->SetDeviceName("PlusServer");
+    igtlMessage->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, polydataName);
+
+    if (vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtlMessage, polyData, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to create polydata mesage from command response");
       return NULL;
     }
     return igtlMessage.GetPointer();

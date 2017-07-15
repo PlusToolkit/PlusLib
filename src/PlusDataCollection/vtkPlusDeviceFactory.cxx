@@ -21,7 +21,7 @@ See License.txt for details.
 #include "vtkPlusImageProcessorVideoSource.h"
 #include "vtkPlusGenericSerialDevice.h"
 #ifdef PLUS_USE_tesseract
-#include "vtkPlusVirtualTextRecognizer.h"
+  #include "vtkPlusVirtualTextRecognizer.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -29,56 +29,56 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusBuffer.h"
 #ifdef PLUS_USE_OpenIGTLink
-#include "vtkPlusOpenIGTLinkTracker.h"
+  #include "vtkPlusOpenIGTLinkTracker.h"
 #endif
 #ifdef PLUS_USE_NDI
-#include "vtkPlusNDITracker.h"
+  #include "vtkPlusNDITracker.h"
 #endif
 #ifdef PLUS_USE_NDI_CERTUS
-#include "vtkPlusNDICertusTracker.h"
+  #include "vtkPlusNDICertusTracker.h"
 #endif
 #ifdef PLUS_USE_MICRONTRACKER
-#include "vtkPlusMicronTracker.h"
+  #include "vtkPlusMicronTracker.h"
 #endif
 #ifdef PLUS_USE_INTELREALSENSE
-#include "vtkPlusIntelRealSenseTracker.h"
+  #include "vtkPlusIntelRealSenseTracker.h"
 #endif
 #ifdef PLUS_USE_OPTICAL_MARKER_TRACKER
-#include "vtkPlusOpticalMarkerTracker.h"
+  #include "vtkPlusOpticalMarkerTracker.h"
 #endif
 #ifdef PLUS_USE_STEALTHLINK
-#include "vtkPlusStealthLinkTracker.h"
+  #include "vtkPlusStealthLinkTracker.h"
 #endif
 #ifdef PLUS_USE_BRACHY_TRACKER
-#include "vtkPlusBrachyTracker.h"
+  #include "vtkPlusBrachyTracker.h"
 #endif
 #ifdef PLUS_USE_USDIGITALENCODERS_TRACKER
-#include "vtkPlusUSDigitalEncodersTracker.h"
+  #include "vtkPlusUSDigitalEncodersTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DG
-#include "vtkPlusAscension3DGTracker.h"
+  #include "vtkPlusAscension3DGTracker.h"
 #endif
 #ifdef PLUS_USE_Ascension3DGm
-#include "vtkAscension3DGmTracker.h"
+  #include "vtkAscension3DGmTracker.h"
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
-#include "vtkPlusOptimetConoProbeMeasurer.h"
+  #include "vtkPlusOptimetConoProbeMeasurer.h"
 #endif
 #ifdef PLUS_USE_OPTITRACK
-#include "vtkPlusOptiTrack.h"
+  #include "vtkPlusOptiTrack.h"
 #endif
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
-#include "vtkPlusPhidgetSpatialTracker.h"
+  #include "vtkPlusPhidgetSpatialTracker.h"
 #endif
 #include "vtkPlusFakeTracker.h"
 #include "vtkPlusChRoboticsTracker.h"
 #include "vtkPlusMicrochipTracker.h"
 #ifdef PLUS_USE_3dConnexion_TRACKER
-// 3dConnexion tracker is supported on Windows only
-#include "vtkPlus3dConnexionTracker.h"
+  // 3dConnexion tracker is supported on Windows only
+  #include "vtkPlus3dConnexionTracker.h"
 #endif
 #ifdef PLUS_USE_AGILENT
-#include "vtkPlusAgilentScopeTracker.h"
+  #include "vtkPlusAgilentScopeTracker.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -87,85 +87,89 @@ See License.txt for details.
 #include "vtkPlusUsSimulatorVideoSource.h"
 
 #ifdef PLUS_USE_VFW_VIDEO
-#include "vtkPlusWin32VideoSource2.h"
+  #include "vtkPlusWin32VideoSource2.h"
 #endif
 
 #ifdef PLUS_USE_MMF_VIDEO
-#include "vtkPlusMmfVideoSource.h"
+  #include "vtkPlusMmfVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-#include "vtkPlusSonixVideoSource.h"
-#include "vtkPlusSonixPortaVideoSource.h"
+  #include "vtkPlusSonixVideoSource.h"
+  #include "vtkPlusSonixPortaVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_BKPROFOCUS_VIDEO
-#include "vtkPlusBkProFocusOemVideoSource.h"
-#ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
-#include "vtkPlusBkProFocusCameraLinkVideoSource.h"
-#endif
+  #include "vtkPlusBkProFocusOemVideoSource.h"
+  #ifdef PLUS_USE_BKPROFOCUS_CAMERALINK
+    #include "vtkPlusBkProFocusCameraLinkVideoSource.h"
+  #endif
 #endif
 
 #ifdef PLUS_USE_ICCAPTURING_VIDEO
-#include "vtkPlusICCapturingSource.h"
+  #include "vtkPlusICCapturingSource.h"
 #endif
 
 #ifdef PLUS_USE_INTERSON_VIDEO
-#include "vtkPlusIntersonVideoSource.h"
+  #include "vtkPlusIntersonVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_INTERSONSDKCXX_VIDEO
-#include "vtkPlusIntersonSDKCxxVideoSource.h"
+  #include "vtkPlusIntersonSDKCxxVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_INTERSONARRAYSDKCXX_VIDEO
-#include "vtkPlusIntersonArraySDKCxxVideoSource.h"
+  #include "vtkPlusIntersonArraySDKCxxVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_TELEMED_VIDEO
-#include "Telemed\vtkPlusTelemedVideoSource.h"
+  #include "Telemed\vtkPlusTelemedVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_THORLABS_VIDEO
-#include "ThorLabs\vtkPlusThorLabsVideoSource.h"
+  #include "ThorLabs\vtkPlusThorLabsVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_OpenIGTLink
-#include "vtkPlusOpenIGTLinkVideoSource.h"
+  #include "vtkPlusOpenIGTLinkVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_EPIPHAN
-#include "vtkPlusEpiphanVideoSource.h"
+  #include "vtkPlusEpiphanVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_IntuitiveDaVinci
-#include "vtkPlusIntuitiveDaVinciTracker.h"
+  #include "vtkPlusIntuitiveDaVinciTracker.h"
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
-#include "vtkPlusPhilips3DProbeVideoSource.h"
+  #include "vtkPlusPhilips3DProbeVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_CAPISTRANO_VIDEO
-#include "Capistrano\vtkPlusCapistranoVideoSource.h"
+  #include "Capistrano\vtkPlusCapistranoVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_WINPROBE_VIDEO
-#include "WinProbe\vtkPlusWinProbeVideoSource.h"
+  #include "WinProbe\vtkPlusWinProbeVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_NVIDIA_DVP
-#if WIN32
-#include "vtkPlusNVidiaDVPVideoSourceWin32.h"
-#elif __linux__
-#include "vtkPlusNVidiaDVPVideoSourceLinux.h"
-#else
-// TODO : add mac support
-#endif
+  #if WIN32
+    #include "vtkPlusNVidiaDVPVideoSourceWin32.h"
+  #elif __linux__
+    #include "vtkPlusNVidiaDVPVideoSourceLinux.h"
+  #else
+    // TODO : add mac support
+  #endif
 #endif
 
 #ifdef PLUS_USE_OvrvisionPro
-#include "vtkPlusOvrvisionProVideoSource.h"
+  #include "vtkPlusOvrvisionProVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_RTSP_VIDEO
+  #include "vtkPlusRTSPVideoSource.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -302,6 +306,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_AGILENT
   RegisterDevice("AgilentScope", "vtkPlusAgilentScopeTracker", (PointerToDevice)&vtkPlusAgilentScopeTracker::New);
+#endif
+#ifdef PLUS_USE_RTSP_VIDEO
+  RegisterDevice("RTSPVideo", "vtkPlusRTSPVideoSource", (PointerToDevice)&vtkPlusRTSPVideoSource::New);
 #endif
 
   // Virtual Devices

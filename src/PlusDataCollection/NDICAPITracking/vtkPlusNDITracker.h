@@ -101,6 +101,17 @@ struct ndicapi;
 */
 class vtkPlusDataCollectionExport vtkPlusNDITracker : public vtkPlusDevice
 {
+  struct NdiToolDescriptor
+  {
+    int             WiredPortNumber;  // >= 0 for wired tools
+    unsigned char*  VirtualSROM;      // nonzero for wireless tools
+    bool            PortEnabled;      // true if the tool is successfully enabled in the tracker
+    int             PortHandle;       // this number identifies the tool in the tracker
+  };
+
+  typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
+  typedef std::map<int, std::map<std::string, std::string>> VolumeInformation;
+
 public:
   static vtkPlusNDITracker* New();
   vtkTypeMacro(vtkPlusNDITracker, vtkPlusDevice);
@@ -133,13 +144,7 @@ public:
     The text reply from the NDI is returned, without the CRC or
     final carriage return.
   */
-  char* Command(const char* format, ...);
-
-  /*!
-    Get the a string (perhaps a long one) describing the type and version
-    of the device.
-  */
-  vtkGetStringMacro(Version);
+  std::string Command(const char* format, ...);
 
   /*! Set which serial port to use, 1 through 4 */
   vtkSetMacro(SerialPort, int);
@@ -177,17 +182,6 @@ public:
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
-
-  struct NdiToolDescriptor
-  {
-    int WiredPortNumber; // >=0 for wired tools
-    unsigned char* VirtualSROM; // nonzero for wireless tools
-    bool PortEnabled; // true if the tool is successfully enabled in the tracker
-    int PortHandle; // this number identifies the tool in the tracker
-  };
-
-  /*! Set the version information */
-  vtkSetStringMacro(Version);
 
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
@@ -247,26 +241,19 @@ protected:
   void DisableToolPorts();
 
   /*! Parse and log available volume list response */
-  void LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+  void LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
 
-  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  unsigned long LastFrameNumber;
-
-  ndicapi* Device;
-  char* Version;
-  char* SerialDevice;
-
-  int SerialPort;
-  int BaudRate;
-  int IsDeviceTracking;
-
-  int MeasurementVolumeNumber;
-
-  typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
-  /*! Maps Plus tool source IDs to NDI tool descriptors */
-  NdiToolDescriptorsType NdiToolDescriptors;
-
-  char CommandReply[VTK_NDI_REPLY_LEN];
+protected:
+  unsigned long             LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
+  ndicapi*                  Device;
+  char*                     SerialDevice;
+  int                       SerialPort;
+  int                       BaudRate;
+  int                       IsDeviceTracking;
+  int                       MeasurementVolumeNumber;
+  bool                      LeaveDeviceOpenAfterProbe;
+  NdiToolDescriptorsType    NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
+  char                      CommandReply[VTK_NDI_REPLY_LEN];
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);

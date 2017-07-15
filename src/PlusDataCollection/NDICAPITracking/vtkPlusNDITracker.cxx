@@ -78,11 +78,11 @@ vtkStandardNewMacro(vtkPlusNDITracker);
 vtkPlusNDITracker::vtkPlusNDITracker()
   : LastFrameNumber(0)
   , Device(nullptr)
-  , Version(nullptr)
   , SerialDevice(nullptr)
   , SerialPort(-1)
   , BaudRate(9600)
   , IsDeviceTracking(0)
+  , LeaveDeviceOpenAfterProbe(false)
   , MeasurementVolumeNumber(0)
 {
   memset(this->CommandReply, 0, VTK_NDI_REPLY_LEN);
@@ -106,13 +106,33 @@ vtkPlusNDITracker::~vtkPlusNDITracker()
     delete [] toolDescriptorIt->second.VirtualSROM;
     toolDescriptorIt->second.VirtualSROM = NULL;
   }
-  this->SetVersion(NULL);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
+
+  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
+  char ndiLog[USHRT_MAX];
+  ndiLogState(this->Device, ndiLog);
+
+  os << indent << "SerialDevice: " << this->SerialDevice << std::endl;
+  os << indent << "SerialPort: " << this->SerialPort << std::endl;
+  os << indent << "BaudRate: " << this->BaudRate << std::endl;
+  os << indent << "IsDeviceTracking: " << this->IsDeviceTracking << std::endl;
+  os << indent << "MeasurementVolumeNumber: " << this->MeasurementVolumeNumber << std::endl;
+  os << indent << "CommandReply: " << this->CommandReply << std::endl;
+  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
+  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
+  for (auto iter = this->NdiToolDescriptors.begin(); iter != this->NdiToolDescriptors.end(); ++iter)
+  {
+    os << indent << iter->first << ": " << std::endl;
+    os << indent << "  " << "PortEnabled: " << iter->second.PortEnabled << std::endl;
+    os << indent << "  " << "PortHandle: " << iter->second.PortHandle << std::endl;
+    os << indent << "  " << "VirtualSROM: " << iter->second.VirtualSROM << std::endl;
+    os << indent << "  " << "WiredPortNumber: " << iter->second.WiredPortNumber << std::endl;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -142,7 +162,7 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
   else
   {
-    // if SerialPort is set to -1, then probe the first N serial ports
+    // if SerialPort is set to -1 (default), then probe the first N serial ports
     const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
     for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
     {
@@ -166,9 +186,8 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
 
   this->Device = ndiOpen(devicename);
-  if (this->Device)
+  if (this->Device && !this->LeaveDeviceOpenAfterProbe)
   {
-    this->SetVersion(ndiVER(this->Device, 0));
     ndiClose(this->Device);
     this->Device = 0;
   }
@@ -182,12 +201,23 @@ PlusStatus vtkPlusNDITracker::Probe()
 // send the command.
 // Otherwise, open communication with the unit, send the command,
 // and close communication.
-char* vtkPlusNDITracker::Command(const char* format, ...)
+std::string vtkPlusNDITracker::Command(const char* format, ...)
 {
   va_list ap;            // see stdarg.h
   va_start(ap, format);
 
   this->CommandReply[0] = '\0';
+
+  char command[2048];
+  if (format != nullptr)
+  {
+    vsprintf(command, format, ap);
+    LOG_DEBUG("NDI Command:" << command);
+  }
+  else
+  {
+    LOG_DEBUG("NDI Command:send serial break");
+  }
 
   if (this->Device)
   {
@@ -253,11 +283,10 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  char* devicename = ndiDeviceName(this->SerialPort - 1);
-  this->Device = ndiOpen(devicename);
-  if (this->Device == 0)
+  this->LeaveDeviceOpenAfterProbe = true;
+  if (this->Probe() == PLUS_FAIL)
   {
-    LOG_ERROR("Failed to open port: " << (devicename == NULL ? "unknown" : devicename) << " - " << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + std::to_string(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
 
@@ -281,8 +310,8 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
 
   // initialize Device
   bool resetOccurred = false;
-  const char* initCommandReply = this->Command("INIT:");
-  if (initCommandReply != NULL && strncmp(initCommandReply, "RESET", 5) == 0)
+  std::string initCommandReply = this->Command("INIT:");
+  if (!initCommandReply.empty() && initCommandReply.find("RESET") != std::string::npos)
   {
     // The tracker device was left in high-speed mode after exiting debugger. When the INIT was sent at 9600 baud,
     // the device reset back to default 9600 and returned status RESET.
@@ -305,43 +334,45 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     }
   }
 
-  if (this->MeasurementVolumeNumber != 0)
+  if (this->MeasurementVolumeNumber > 0)
   {
-    const char* volumeSelectCommandReply = this->Command("VSEL:%d", this->MeasurementVolumeNumber);
-    errnum = ndiGetError(this->Device);
-    if (errnum)
-    {
-      LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
+    std::string reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
+    auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
+    auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
 
-      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
-      const char* volumeListCommandReply = this->Command("SFLIST:%02X", MODE_GET_VOLUMES_LIST);
-      errnum = ndiGetError(this->Device);
-      if (errnum || volumeListCommandReply == NULL)
-      {
-        LOG_ERROR("Failed to retrieve list of available volumes: " << ndiErrorString(errnum));
-      }
-      else
-      {
-        LogVolumeList(volumeListCommandReply, 0, vtkPlusLogger::LOG_LEVEL_INFO);
-      }
-      ndiClose(this->Device);
-      this->Device = 0;
-      return PLUS_FAIL;
+    // <Value>;<Type>;<Attribute>;<Minimum>;<Maximum>;<Enumeration>;<Description>
+    if (static_cast<unsigned int>(this->MeasurementVolumeNumber) - 1 > dataFields.size() / 7)
+    {
+      LOG_ERROR("Selected measurement volume does not exist. Using default.");
+      LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
     }
     else
     {
-      const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
-      const char* volumeListCommandReply = this->Command("SFLIST:%02X", MODE_GET_VOLUMES_LIST);
+      // Use SET command with parameter
+      std::string volumeSelectCommandReply = this->Command("VSEL:%d", this->MeasurementVolumeNumber);
       errnum = ndiGetError(this->Device);
-      if (!errnum || volumeListCommandReply != NULL)
+      if (errnum)
       {
-        LogVolumeList(volumeListCommandReply, this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+        LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
+
+        // Use GET command instead of SFLIST
+        const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+        std::string volumeListCommandReply = this->Command("SFLIST:%02X", MODE_GET_VOLUMES_LIST);
+        errnum = ndiGetError(this->Device);
+        if (errnum || volumeListCommandReply.empty())
+        {
+          LOG_ERROR("Failed to retrieve list of available volumes: " << ndiErrorString(errnum));
+        }
+        else
+        {
+          LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
+        }
+        ndiClose(this->Device);
+        this->Device = 0;
+        return PLUS_FAIL;
       }
     }
   }
-
-  // get information about the device
-  this->SetVersion(ndiVER(this->Device, 0));
 
   if (this->EnableToolPorts() != PLUS_SUCCESS)
   {
@@ -1057,21 +1088,39 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
+void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
 {
-  unsigned long numberOfVolumes = ndiHexToUnsignedLong(ndiVolumeListCommandReply, 1);
+  auto reply = this->Command("GET:Param.Tracking.Available Volumes");
+  auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
+  auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
+
+  unsigned int numVolumes = dataFields.size() / 7;
+
   if (selectedVolume == 0)
   {
-    LOG_DYNAMIC("Number of available measurement volumes: " << numberOfVolumes, logLevel);
+    LOG_DYNAMIC("Number of available measurement volumes: " << numVolumes, logLevel);
   }
-  for (unsigned long volIndex = 0; volIndex < numberOfVolumes; volIndex++)
+
+  reply = this->Command("GET:Features.Volumes.*");
+  tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
+
+  for (unsigned int volIndex = 0; volIndex < numVolumes; volIndex++)
   {
     if (selectedVolume > 0 && selectedVolume != volIndex + 1)
     {
       continue;
     }
+
+    auto reply = this->Command("GET:Features.Volumes.*");
+
+    // Features.Volumes.Index Indicates the volume that is being referred to Read
+    // Features.Volumes.Name The volume name Read
+    // Features.Volumes.Shape The shape type Read
+    // Features.Volumes.Wavelengths Which wavelengths are supported in the volume Read
+    // Features.Volumes.Paramn Shape parameters as described in SFLIST Read
+
+    /*
     LOG_DYNAMIC("Measurement volume " << volIndex + 1, logLevel);
-    const char* volDescriptor = ndiVolumeListCommandReply + 1 + volIndex * 74;
 
     std::string shapeType;
     switch (volDescriptor[0])
@@ -1116,5 +1165,6 @@ void vtkPlusNDITracker::LogVolumeList(const char* ndiVolumeListCommandReply, int
       metalResistant = "unknown";
     }
     LOG_DYNAMIC(" Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel);
+    */
   }
 }

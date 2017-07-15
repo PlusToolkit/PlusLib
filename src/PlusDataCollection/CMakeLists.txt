@@ -1529,7 +1529,7 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
       ${Philips_INCLUDE_DIRS}
       )
 
-    SET( ${PROJECT_NAME}_LIBS ${${PROJECT_NAME}_LIBS}
+    LIST(APPEND ${PROJECT_NAME}_LIBS
       ${Philips_LIBRARY_DIR}/PipelineComDll${CMAKE_STATIC_LIBRARY_SUFFIX}
       ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
       ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -1718,6 +1718,39 @@ IF(PLUS_USE_OvrvisionPro)
     )
 ENDIF()
 
+IF(PLUS_USE_RTSP_VIDEO)
+  SET(RTSP_Video_SRCS
+    RTSPVideo/vtkPlusRTSPVideoSource.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(RTSP_Video_HDRS
+      RTSPVideo/vtkPlusRTSPVideoSource.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${RTSP_Video_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${RTSP_Video_SRCS}
+    )
+
+  # Add FFMPEG include directory
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${FFMPEG_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/RTSPVideo
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${FFMPEG_LIBRARIES}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${FFMPEG_BINARIES}
+    )
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
@@ -1795,6 +1828,7 @@ source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
 source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
+source_group("RTSP" FILES ${RTSP_Video_HDRS} ${RTSP_Video_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

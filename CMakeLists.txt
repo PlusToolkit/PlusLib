@@ -53,13 +53,6 @@ IF(WIN32)
   # This method adds the necessary compiler flag
   SET(RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
   ADD_DEFINITIONS(-D_MSC_PLATFORM_TOOLSET_$(PlatformToolset))
-  
-  # Correct the incoming windows sdk variables, as they have been manipulated to be passed to this project
-  # as # separated strings
-  STRING(REPLACE "#" ";" WINDOWS_SDK_INCLUDE_DIRS "${WINDOWS_SDK_INCLUDE_DIRS}")
-  SET(WINDOWS_SDK_INCLUDE_DIRS ${WINDOWS_SDK_INCLUDE_DIRS} CACHE PATH "Path to the Windows SDK include dirs" FORCE)
-  STRING(REPLACE "#" ";" WINDOWS_SDK_LIBRARY_DIRS "${WINDOWS_SDK_LIBRARY_DIRS}")
-  SET(WINDOWS_SDK_LIBRARY_DIRS ${WINDOWS_SDK_LIBRARY_DIRS} CACHE PATH "Path to the Windows SDK library dirs" FORCE)
 ENDIF()
 
 # --------------------------------------------------------------------------
