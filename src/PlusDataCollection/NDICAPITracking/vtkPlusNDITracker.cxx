@@ -254,33 +254,33 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
   int baud = NDI_9600;
   switch (this->BaudRate)
   {
-  case 9600:
-    baud = NDI_9600;
-    break;
-  case 14400:
-    baud = NDI_14400;
-    break;
-  case 19200:
-    baud = NDI_19200;
-    break;
-  case 38400:
-    baud = NDI_38400;
-    break;
-  case 57600:
-    baud = NDI_57600;
-    break;
-  case 115200:
-    baud = NDI_115200;
-    break;
-  case 921600:
-    baud = NDI_921600;
-    break;
-  case 1228739:
-    baud = NDI_1228739;
-    break;
-  default:
-    LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
-    return PLUS_FAIL;
+    case 9600:
+      baud = NDI_9600;
+      break;
+    case 14400:
+      baud = NDI_14400;
+      break;
+    case 19200:
+      baud = NDI_19200;
+      break;
+    case 38400:
+      baud = NDI_38400;
+      break;
+    case 57600:
+      baud = NDI_57600;
+      break;
+    case 115200:
+      baud = NDI_115200;
+      break;
+    case 921600:
+      baud = NDI_921600;
+      break;
+    case 1228739:
+      baud = NDI_1228739;
+      break;
+    default:
+      LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
+      return PLUS_FAIL;
   }
 
   this->LeaveDeviceOpenAfterProbe = true;
@@ -354,19 +354,7 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
       if (errnum)
       {
         LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
-
-        // Use GET command instead of SFLIST
-        const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
-        std::string volumeListCommandReply = this->Command("SFLIST:%02X", MODE_GET_VOLUMES_LIST);
-        errnum = ndiGetError(this->Device);
-        if (errnum || volumeListCommandReply.empty())
-        {
-          LOG_ERROR("Failed to retrieve list of available volumes: " << ndiErrorString(errnum));
-        }
-        else
-        {
-          LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
-        }
+        LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
         ndiClose(this->Device);
         this->Device = 0;
         return PLUS_FAIL;
@@ -872,18 +860,18 @@ PlusStatus  vtkPlusNDITracker::SetToolLED(const char* sourceId, int led, LedStat
   int plstate = NDI_BLANK;
   switch (state)
   {
-  case TR_LED_OFF:
-    plstate = NDI_BLANK;
-    break;
-  case TR_LED_ON:
-    plstate = NDI_SOLID;
-    break;
-  case TR_LED_FLASH:
-    plstate = NDI_FLASH;
-    break;
-  default:
-    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
-    return PLUS_FAIL;
+    case TR_LED_OFF:
+      plstate = NDI_BLANK;
+      break;
+    case TR_LED_ON:
+      plstate = NDI_SOLID;
+      break;
+    case TR_LED_FLASH:
+      plstate = NDI_FLASH;
+      break;
+    default:
+      LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
+      return PLUS_FAIL;
   }
 
   this->Command("LED:%02X%d%c", portHandle, led + 1, plstate);
@@ -1090,7 +1078,7 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 //----------------------------------------------------------------------------
 void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
 {
-  auto reply = this->Command("GET:Param.Tracking.Available Volumes");
+  auto reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
   auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
   auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
 
@@ -1101,70 +1089,134 @@ void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkPlusLogger::LogLeve
     LOG_DYNAMIC("Number of available measurement volumes: " << numVolumes, logLevel);
   }
 
-  reply = this->Command("GET:Features.Volumes.*");
-  tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
-
-  for (unsigned int volIndex = 0; volIndex < numVolumes; volIndex++)
+  reply = this->Command("GETINFO:Features.Volumes.*");
+  if (reply.find("ERROR") != std::string::npos)
   {
-    if (selectedVolume > 0 && selectedVolume != volIndex + 1)
+    // Most likely error 34 "Parameter not found", revert to SFLIST method
+    LogVolumeListSFLIST(numVolumes, selectedVolume, logLevel);
+    return;
+  }
+
+  auto lines = PlusCommon::SplitStringIntoTokens(reply, '\n', false);
+
+  for (auto iter = begin(lines); iter != end(lines); ++iter)
+  {
+    auto tokens = PlusCommon::SplitStringIntoTokens(*iter, '=', true);
+    auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
+    if (selectedVolume > 0 &&
+        tokens[0].find("Features.Volumes.Index") != std::string::npos &&
+        dataFields[0][0] - '0' == selectedVolume - 1) // NDI index by 0, Plus index by 1
     {
-      continue;
+      LOG_DYNAMIC("Measurement volume " << selectedVolume, logLevel);
+
+      // Selected index, next 13 lines are details about the selected volume
+      // Features.Volumes.Name        The volume name                                   Read
+      // Features.Volumes.Shape       The shape type                                    Read
+      // Features.Volumes.Wavelengths Which wavelengths are supported in the volume     Read
+      // Features.Volumes.Paramn      Shape parameters as described in SFLIST           Read
+      for (int i = 0; i < 13; ++i)
+      {
+        auto tokens = PlusCommon::SplitStringIntoTokens(*(iter + i), '=', true);
+        auto names = PlusCommon::SplitStringIntoTokens(tokens[0], '.', false);
+        auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
+        LOG_DYNAMIC(" " << names[2] << ": " << dataFields[0], logLevel);
+      }
+
+      return;
     }
 
-    auto reply = this->Command("GET:Features.Volumes.*");
+    auto names = PlusCommon::SplitStringIntoTokens(tokens[0], '.', false);
+    LOG_DYNAMIC(names[2] << ": " << dataFields[0], logLevel);
+  }
+}
 
-    // Features.Volumes.Index Indicates the volume that is being referred to Read
-    // Features.Volumes.Name The volume name Read
-    // Features.Volumes.Shape The shape type Read
-    // Features.Volumes.Wavelengths Which wavelengths are supported in the volume Read
-    // Features.Volumes.Paramn Shape parameters as described in SFLIST Read
+//----------------------------------------------------------------------------
+void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
+{
+  std::string volumeListCommandReply = this->Command("SFLIST:03");
+  for (unsigned int volIndex = 0; volIndex < numVolumes; ++volIndex)
+  {
+    const char* volDescriptor = volumeListCommandReply.c_str() + 1 + volIndex * 74;
 
-    /*
     LOG_DYNAMIC("Measurement volume " << volIndex + 1, logLevel);
 
     std::string shapeType;
+    bool isOptical(false);
     switch (volDescriptor[0])
     {
-    case '9':
-      shapeType = "Cube volume";
-      break;
-    case 'A':
-      shapeType = "Dome volume";
-      break;
-    default:
-      shapeType = "unknown";
+      case '9':
+        shapeType = "Cube";
+        break;
+      case 'A':
+        shapeType = "Dome";
+        break;
+      case '5':
+        shapeType = "Polaris (Pyramid or extended pyramid)";
+        isOptical = true;
+        break;
+      case '7':
+        shapeType = "Vicra (Pyramid)";
+        isOptical = true;
+        break;
+      default:
+        shapeType = "unknown";
     }
     LOG_DYNAMIC(" Shape type: " << shapeType << " (" << volDescriptor[0] << ")", logLevel);
 
-    LOG_DYNAMIC(" D1 (minimum x value) = " << ndiSignedToLong(volDescriptor + 1, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D2 (maximum x value) = " << ndiSignedToLong(volDescriptor + 8, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D3 (minimum y value) = " << ndiSignedToLong(volDescriptor + 15, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D4 (maximum y value) = " << ndiSignedToLong(volDescriptor + 22, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D5 (minimum z value) = " << ndiSignedToLong(volDescriptor + 29, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D6 (maximum z value) = " << ndiSignedToLong(volDescriptor + 36, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D7 (reserved) = " << ndiSignedToLong(volDescriptor + 43, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D8 (reserved) = " << ndiSignedToLong(volDescriptor + 50, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D9 (reserved) = " << ndiSignedToLong(volDescriptor + 57, 7) / 100, logLevel);
-    LOG_DYNAMIC(" D10 (reserved) = " << ndiSignedToLong(volDescriptor + 64, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D1  = " << ndiSignedToLong(volDescriptor + 1, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D2  = " << ndiSignedToLong(volDescriptor + 8, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D3  = " << ndiSignedToLong(volDescriptor + 15, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D4  = " << ndiSignedToLong(volDescriptor + 22, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D5  = " << ndiSignedToLong(volDescriptor + 29, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D6  = " << ndiSignedToLong(volDescriptor + 36, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D7  = " << ndiSignedToLong(volDescriptor + 43, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D8  = " << ndiSignedToLong(volDescriptor + 50, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D9  = " << ndiSignedToLong(volDescriptor + 57, 7) / 100, logLevel);
+    LOG_DYNAMIC(" D10 = " << ndiSignedToLong(volDescriptor + 64, 7) / 100, logLevel);
 
-    LOG_DYNAMIC(" Reserved: " << volDescriptor[71], logLevel);
-
-    std::string metalResistant;
-    switch (volDescriptor[72])
+    if (!isOptical)
     {
-    case '0':
-      metalResistant = "no information";
-      break;
-    case '1':
-      metalResistant = "metal resistant";
-      break;
-    case '2':
-      metalResistant = "not metal resistant";
-      break;
-    default:
-      metalResistant = "unknown";
+      LOG_DYNAMIC(" Reserved: " << volDescriptor[71], logLevel);
+
+      std::string metalResistant;
+      switch (volDescriptor[72])
+      {
+        case '0':
+          metalResistant = "no information";
+          break;
+        case '1':
+          metalResistant = "metal resistant";
+          break;
+        case '2':
+          metalResistant = "not metal resistant";
+          break;
+        default:
+          metalResistant = "unknown";
+      }
+      LOG_DYNAMIC(" Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel);
     }
-    LOG_DYNAMIC(" Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel);
-    */
+    else
+    {
+      unsigned int numWavelengths = volDescriptor[71] - '0';
+      LOG_DYNAMIC(" Number of wavelengths supported: " << numWavelengths, logLevel);
+      for (unsigned int i = 0; i < numWavelengths; ++i)
+      {
+        switch (volDescriptor[72 + i])
+        {
+          case '0':
+            LOG_DYNAMIC("  Wavelength " << i << ": 930nm", logLevel);
+            break;
+          case '1':
+            LOG_DYNAMIC("  Wavelength " << i << ": 880nm", logLevel);
+            break;
+          case '4':
+            LOG_DYNAMIC("  Wavelength " << i << ": 870nm", logLevel);
+            break;
+          default:
+            LOG_DYNAMIC("  Wavelength " << i << ": unknown (" << volDescriptor[72 + i] << ")", logLevel);
+            break;
+        }
+      }
+    }
   }
 }

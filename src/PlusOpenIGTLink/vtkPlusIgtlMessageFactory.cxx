@@ -168,8 +168,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         //Set transform name to [Name]To[CoordinateFrame]
         PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
 
-        igtl::Matrix4x4 igtlMatrix;
-        if (vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, imageTransformName) != PLUS_SUCCESS)
+        vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+        bool isValid;
+        if (transformRepository->GetTransform(imageTransformName, matrix.Get(), &isValid) != PLUS_SUCCESS)
         {
           LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
           numberOfErrors++;
@@ -185,7 +186,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str());
-        if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, igtlMatrix) != PLUS_SUCCESS)
+        if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
           numberOfErrors++;

@@ -22,7 +22,9 @@ See License.txt for details.
 #include <igtl_tdata.h>
 
 // OpenIGTLinkIO includes
+#include <igtlioImageConverter.h>
 #include <igtlioPolyDataConverter.h>
+#include <igtlioTransformConverter.h>
 
 //----------------------------------------------------------------------------
 
@@ -45,8 +47,9 @@ void vtkPlusIgtlMessageCommon::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkPlusTransformRepository* transformRepository, PlusTransformName& transformName)
+PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix,
+    vtkPlusTransformRepository* transformRepository,
+    PlusTransformName& transformName)
 {
   igtl::IdentityMatrix(igtlMatrix);
 
@@ -70,21 +73,17 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, 
     return PLUS_FAIL;
   }
 
-  // Copy vtk matrix to igt matrix
-  for (int r = 0; r < 4; ++r)
-  {
-    for (int c = 0; c < 4; ++c)
-    {
-      igtlMatrix[r][c] = vtkMatrix->GetElement(r, c);
-    }
-  }
+  // Copy VTK matrix to IGTL matrix
+  igtlio::TransformConverter::VTKToIGTLTransform(*vtkMatrix, igtlMatrix);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform, const std::vector<PlusTransformName>& requestedTransforms)
+PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage,
+    PlusTrackedFrame& trackedFrame,
+    vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform,
+    const std::vector<PlusTransformName>& requestedTransforms)
 {
   if (trackedFrameMessage.IsNull())
   {
@@ -109,8 +108,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(igtl::PlusTrackedFr
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    PlusTrackedFrame& trackedFrame,
+    const PlusTransformName& embeddedTransformName,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -154,7 +156,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(igtl::MessageHead
 }
 
 //----------------------------------------------------------------------------
-// static
 PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, PlusTrackedFrame& trackedFrame)
 {
   if (usMessage.IsNull())
@@ -170,8 +171,10 @@ PlusStatus vtkPlusIgtlMessageCommon::PackUsMessage(igtl::PlusUsMessage::Pointer 
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    PlusTrackedFrame& trackedFrame,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -205,8 +208,9 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix)
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage,
+    PlusTrackedFrame& trackedFrame,
+    const vtkMatrix4x4& matrix)
 {
   if (imageMessage.IsNull())
   {
@@ -226,7 +230,9 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
 
-  int imageSizePixels[3] = {0}, subSizePixels[3] = {0}, subOffset[3] = {0};
+  int imageSizePixels[3] = { 0 };
+  int subSizePixels[3] = { 0 };
+  int subOffset[3] = { 0 };
   double imageSpacingMm[3] = {0};
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(trackedFrame.GetImageData()->GetVTKScalarPixelType());
   int numScalarComponents = trackedFrame.GetImageData()->GetNumberOfScalarComponents();
@@ -254,82 +260,25 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
 
-
   // Convert VTK transform to IGTL transform.
-  // VTK and Plus: corner image origin
-  // OpenIGTLink image message: center image origin
-
-  int* isize = imageSizePixels;
-  double* spacing = imageSpacingMm;
-  vtkSmartPointer< vtkMatrix4x4 > rtimgTransform = vtkSmartPointer< vtkMatrix4x4 >::New();
-  for (int row = 0; row < 4; ++ row)
+  if (igtlio::ImageConverter::VTKTransformToIGTLImage(matrix, imageSizePixels, imageSpacingMm, imageMessage) != 1)
   {
-    for (int col = 0; col < 4; ++ col)
-    {
-      rtimgTransform->SetElement(row, col, igtlMatrix[ row ][ col ]);
-    }
+    LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
+    return PLUS_FAIL;
   }
 
-  //--- Adopted from OpenIGTLinkIF\MRML\vtkIGTLToMRMLImage.cxx ---//
-
-  float ntx = rtimgTransform->Element[0][0] / (float)spacing[0];
-  float nty = rtimgTransform->Element[1][0] / (float)spacing[0];
-  float ntz = rtimgTransform->Element[2][0] / (float)spacing[0];
-  float nsx = rtimgTransform->Element[0][1] / (float)spacing[1];
-  float nsy = rtimgTransform->Element[1][1] / (float)spacing[1];
-  float nsz = rtimgTransform->Element[2][1] / (float)spacing[1];
-  float nnx = rtimgTransform->Element[0][2] / (float)spacing[2];
-  float nny = rtimgTransform->Element[1][2] / (float)spacing[2];
-  float nnz = rtimgTransform->Element[2][2] / (float)spacing[2];
-  float px  = rtimgTransform->Element[0][3];
-  float py  = rtimgTransform->Element[1][3];
-  float pz  = rtimgTransform->Element[2][3];
-
-  // Shift the center
-  // NOTE: The center of the image should be shifted due to different
-  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
-  // OpenIGTLink image has its origin at the center, while VTK image
-  // has one at the corner.
-
-  float hfovi = (float)spacing[0] * (float)(isize[0] - 1) / 2.0;
-  float hfovj = (float)spacing[1] * (float)(isize[1] - 1) / 2.0;
-  float hfovk = (float)spacing[2] * (float)(isize[2] - 1) / 2.0;
-
-  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
-  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
-  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
-
-  px = px + cx;
-  py = py + cy;
-  pz = pz + cz;
-
-  igtl::Matrix4x4 matrix; // Image origin and orientation matrix
-  matrix[0][0] = ntx;
-  matrix[1][0] = nty;
-  matrix[2][0] = ntz;
-  matrix[0][1] = nsx;
-  matrix[1][1] = nsy;
-  matrix[2][1] = nsz;
-  matrix[0][2] = nnx;
-  matrix[1][2] = nny;
-  matrix[2][2] = nnz;
-  matrix[0][3] = px;
-  matrix[1][3] = py;
-  matrix[2][3] = pz;
-
-  //////
-
-  imageMessage->SetMatrix(matrix);
   imageMessage->SetTimeStamp(igtlFrameTime);
-
   imageMessage->Pack();
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    PlusTrackedFrame& trackedFrame,
+    const PlusTransformName& embeddedTransformName,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -391,25 +340,12 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
 
   if (embeddedTransformName.IsValid())
   {
-    // Save the transform that is embedded in the IMAGE message into the tracked frame
-    // igtlMatrix origin is in the image center
-    // vtkMatrix origin is in the image corner
-    vtkSmartPointer<vtkMatrix4x4> igtlMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if (igtlio::ImageConverter::IGTLImageToVTKTransform(imgMsg, vtkMatrix) != 1)
     {
-      igtl::Matrix4x4 igtlMatrixSource;
-      imgMsg->GetMatrix(igtlMatrixSource);
-      for (int row = 0; row < 4; ++ row)
-      {
-        for (int col = 0; col < 4; ++ col)
-        {
-          igtlMatrix->SetElement(row, col, igtlMatrixSource[row][col]);
-        }
-      }
+      LOG_ERROR("Failed to unpack image message - unable to extract IJKToRAS transform");
+      return PLUS_FAIL;
     }
-    vtkSmartPointer<vtkTransform> igtlToVtkTransform = vtkSmartPointer<vtkTransform>::New();
-    igtlToVtkTransform->Translate(-imgSize[ 0 ] / 2.0, -imgSize[ 1 ] / 2.0, -imgSize[ 2 ] / 2.0);
-    vtkSmartPointer< vtkMatrix4x4 > vtkMatrix = vtkSmartPointer< vtkMatrix4x4 >::New();
-    vtkMatrix4x4::Multiply4x4(igtlMatrix, igtlToVtkTransform->GetMatrix(), vtkMatrix);
     trackedFrame.SetCustomFrameTransform(embeddedTransformName, vtkMatrix);
   }
 
@@ -417,8 +353,10 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage,
+    vtkImageData* volume,
+    vtkMatrix4x4* volumeToReferenceTransform,
+    double timestamp)
 {
   if (imageMessage.IsNull())
   {
@@ -446,7 +384,6 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   double volumeOriginMm[3] = {0};
   volume->GetOrigin(volumeOriginMm);
-  // imageMessage->SetOrigin() is not used, because origin and normal is set later by imageMessage->SetMatrix()
 
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(volume->GetScalarType());
   imageMessage->SetScalarType(scalarType);
@@ -460,63 +397,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
 
-  ////// Adopted from OpenIGTLinkIF\MRML\vtkIGTLToMRMLImage.cxx
-
-  vtkSmartPointer<vtkMatrix4x4> ijkToVolumeTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  ijkToVolumeTransform->Identity();
-  ijkToVolumeTransform->Element[0][0] = volumeSpacingMm[0];
-  ijkToVolumeTransform->Element[1][1] = volumeSpacingMm[1];
-  ijkToVolumeTransform->Element[2][2] = volumeSpacingMm[2];
-  ijkToVolumeTransform->Element[0][3] = volumeOriginMm[0];
-  ijkToVolumeTransform->Element[1][3] = volumeOriginMm[1];
-  ijkToVolumeTransform->Element[2][3] = volumeOriginMm[2];
-  vtkSmartPointer<vtkMatrix4x4> ijkToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMatrix4x4::Multiply4x4(volumeToReferenceTransform, ijkToVolumeTransform, ijkToReferenceTransform);
-  float ntx = ijkToReferenceTransform->Element[0][0] / (float)volumeSpacingMm[0];
-  float nty = ijkToReferenceTransform->Element[1][0] / (float)volumeSpacingMm[0];
-  float ntz = ijkToReferenceTransform->Element[2][0] / (float)volumeSpacingMm[0];
-  float nsx = ijkToReferenceTransform->Element[0][1] / (float)volumeSpacingMm[1];
-  float nsy = ijkToReferenceTransform->Element[1][1] / (float)volumeSpacingMm[1];
-  float nsz = ijkToReferenceTransform->Element[2][1] / (float)volumeSpacingMm[1];
-  float nnx = ijkToReferenceTransform->Element[0][2] / (float)volumeSpacingMm[2];
-  float nny = ijkToReferenceTransform->Element[1][2] / (float)volumeSpacingMm[2];
-  float nnz = ijkToReferenceTransform->Element[2][2] / (float)volumeSpacingMm[2];
-  float px  = ijkToReferenceTransform->Element[0][3];
-  float py  = ijkToReferenceTransform->Element[1][3];
-  float pz  = ijkToReferenceTransform->Element[2][3];
-
-  // Shift the center
-  // NOTE: The center of the image should be shifted due to different
-  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
-  // OpenIGTLink image has its origin at the center, while VTK image
-  // has one at the corner.
-  float hfovi = (float)volumeSpacingMm[0] * (float)(volumeSizePixels[0] - 1) / 2.0;
-  float hfovj = (float)volumeSpacingMm[1] * (float)(volumeSizePixels[1] - 1) / 2.0;
-  float hfovk = (float)volumeSpacingMm[2] * (float)(volumeSizePixels[2] - 1) / 2.0;
-  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
-  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
-  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
-  px = px + cx;
-  py = py + cy;
-  pz = pz + cz;
-
-  igtl::Matrix4x4 matrix; // Image origin and orientation matrix
-  matrix[0][0] = ntx;
-  matrix[1][0] = nty;
-  matrix[2][0] = ntz;
-  matrix[0][1] = nsx;
-  matrix[1][1] = nsy;
-  matrix[2][1] = nsz;
-  matrix[0][2] = nnx;
-  matrix[1][2] = nny;
-  matrix[2][2] = nnz;
-  matrix[0][3] = px;
-  matrix[1][3] = py;
-  matrix[2][3] = pz;
-
-  imageMessage->SetMatrix(matrix);
-
-  ///////
+  if (igtlio::ImageConverter::VTKTransformToIGTLImage(*volumeToReferenceTransform, volumeSizePixels, volumeSpacingMm, imageMessage) != 1)
+  {
+    LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
+    return PLUS_FAIL;
+  }
 
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
@@ -525,13 +410,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   imageMessage->Pack();
 
   return PLUS_SUCCESS;
-
 }
 
 //----------------------------------------------------------------------------
-//static
-//--------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList)
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage,
+    PlusCommon::ImageMetaDataList& imageMetaDataList)
 {
   if (imageMetaMessage.IsNull())
   {
@@ -572,10 +455,12 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
   imageMetaMessage->Pack();
   return PLUS_SUCCESS;
 }
+
 //-------------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName,
-    igtl::Matrix4x4& igtlMatrix, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage::Pointer transformMessage,
+    PlusTransformName& transformName,
+    igtl::Matrix4x4& igtlMatrix,
+    double timestamp)
 {
   if (transformMessage.IsNull())
   {
@@ -598,7 +483,9 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage,
+    vtkSmartPointer<vtkPolyData> polyData,
+    double timestamp)
 {
   if (polydataMessage.IsNull())
   {
@@ -617,8 +504,9 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::
 }
 
 //-------------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer trackingDataMessage, const std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& transforms, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer trackingDataMessage,
+    const std::map<std::string, vtkSmartPointer<vtkMatrix4x4>>& transforms,
+    double timestamp)
 {
   if (trackingDataMessage.IsNull())
   {
@@ -629,19 +517,17 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
-  for (std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >::const_iterator transformIterator = transforms.begin(); transformIterator != transforms.end(); ++transformIterator)
+  for (auto it = transforms.begin(); it != transforms.end(); ++it)
   {
     igtl::Matrix4x4 matrix;
-    for (int i = 0; i < 4; ++i)
+    if (igtlio::TransformConverter::VTKToIGTLTransform(*(it->second), matrix) != 1)
     {
-      for (int j = 0; j < 4; ++j)
-      {
-        matrix[i][j] = transformIterator->second->GetElement(i, j);
-      }
+      LOG_ERROR("Unable to convert from VTK to IGTL transform.");
+      continue;
     }
 
     igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
-    std::string shortenedName = transformIterator->first.empty() ? "UnknownToUnknown" : transformIterator->first.substr(0, IGTL_TDATA_LEN_NAME);
+    std::string shortenedName = it->first.empty() ? "UnknownToUnknown" : it->first.substr(0, IGTL_TDATA_LEN_NAME);
     trackElement->SetName(shortenedName.c_str());
     trackElement->SetType(igtl::TrackingDataElement::TYPE_6D);
     trackElement->SetMatrix(matrix);
@@ -655,9 +541,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-    std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& outTransforms, double& timestamp, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    std::map<std::string, vtkSmartPointer<vtkMatrix4x4>>& outTransforms,
+    double& timestamp,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -699,19 +587,14 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
     std::string name = currentTrackingData->GetName();
 
     igtl::Matrix4x4 igtlMatrix;
-    igtl::IdentityMatrix(igtlMatrix);
     currentTrackingData->GetMatrix(igtlMatrix);
 
-    // convert igtl matrix to vtk matrix
     vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-    for (int r = 0; r < 4; r++)
+    if (igtlio::TransformConverter::IGTLToVTKTransform(igtlMatrix, mat) != 1)
     {
-      for (int c = 0; c < 4; c++)
-      {
-        mat->SetElement(r, c, igtlMatrix[r][c]);
-      }
+      LOG_ERROR("Unable to unpack transform message - cannot convert from IGTL to VTK");
+      continue;
     }
-
     outTransforms[name] = mat;
   }
 
@@ -724,9 +607,12 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-    vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    vtkMatrix4x4* transformMatrix,
+    std::string& transformName,
+    double& timestamp,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -768,12 +654,11 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
   transMsg->GetMatrix(igtlMatrix);
 
   // convert igtl matrix to vtk matrix
-  for (int r = 0; r < 4; r++)
+  vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (igtlio::TransformConverter::IGTLToVTKTransform(igtlMatrix, transformMatrix) != 1)
   {
-    for (int c = 0; c < 4; c++)
-    {
-      transformMatrix->SetElement(r, c, igtlMatrix[r][c]);
-    }
+    LOG_ERROR("Unable to unpack transform message - cannot convert from IGTL to VTK");
+    return PLUS_FAIL;
   }
 
   // Get timestamp
@@ -788,9 +673,11 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName,
-    float position[3], float quaternion[4], double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::Pointer positionMessage,
+    PlusTransformName& transformName,
+    float position[3],
+    float quaternion[4],
+    double timestamp)
 {
   if (positionMessage.IsNull())
   {
@@ -814,9 +701,12 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPositionMessage(igtl::PositionMessage::
 }
 
 //----------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-    vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck)
+PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg,
+    igtl::Socket* socket,
+    vtkMatrix4x4* transformMatrix,
+    std::string& transformName,
+    double& timestamp,
+    int crccheck)
 {
   if (headerMsg.IsNull())
   {
@@ -883,8 +773,10 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
 }
 
 //-------------------------------------------------------------------------------
-// static
-PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp)
+PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Pointer stringMessage,
+    const char* stringName,
+    const char* stringValue,
+    double timestamp)
 {
   if (stringMessage.IsNull())
   {
@@ -902,4 +794,3 @@ PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Poin
 
   return PLUS_SUCCESS;
 }
-
