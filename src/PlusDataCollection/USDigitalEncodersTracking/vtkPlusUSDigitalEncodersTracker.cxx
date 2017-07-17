@@ -562,12 +562,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encodertrackingInfo.Encoder_PortName = portName;
 
     // ---- Get a name of transformation
-    const char* fromAttribute = EncoderInfoElement->GetAttribute("From");
-    const char* toAttribute = EncoderInfoElement->GetAttribute("To");
+    const char* fromAttribute = EncoderInfoElement->GetAttribute("Id");
+    const char* toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
 
     if (!fromAttribute || !toAttribute)
     {
-      LOG_ERROR("Failed to read transform of CoordinateDefinitions (nested element index: " << EncoderInfoElement << ") - check 'From' and 'To' attributes in the configuration file!");
+      LOG_ERROR("Device's attribute 'ToolReferenceFrame' and DataSource's attribute 'Id' are required!");
       continue;
     }
 
