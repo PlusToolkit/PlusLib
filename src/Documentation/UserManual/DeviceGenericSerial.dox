@@ -6,7 +6,8 @@ It does not collect tracking or image data, only allows sending and receiving da
 using OpenIGTLink commands (see \ref PlusServerCommands).
 
 A (customizable) newline string is appended after each sent command and the device listens
-for reponse that is terminated by the same newline string.
+for reponse that is terminated by the same newline string by default.
+The default can be modified by specifying "acceptReply" parameter of ReplyTermination type.
 
 
 \section GenericSerialSupportedHwDevices Supported hardware devices
