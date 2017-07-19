@@ -184,64 +184,64 @@ PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool OnOff)
+PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool onOff)
 {
   // Either update or send commands - but not simultaneously
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   PlusStatus retval;
 
-  if (OnOff == DTR)
+  if (onOff == this->DTR)
   {
     return PLUS_SUCCESS; //already the desired value
   }
-  else if (OnOff == true)
+  else if (onOff == true)
   {
     retval = this->Serial->SetDTR();
     if (retval == PLUS_SUCCESS)
     {
-      DTR = true;
+      this->DTR = true;
     }
   }
   else
   {
-    assert(OnOff == false);
+    assert(onOff == false);
     retval = this->Serial->ClearDTR();
     if (retval == PLUS_SUCCESS)
     {
-      DTR = false;
+      this->DTR = false;
     }
   }
 
   return retval;
 }
 
-PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool OnOff)
+PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
 {
   // Either update or send commands - but not simultaneously
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   PlusStatus retval;
 
-  if (OnOff == RTS)
+  if (onOff == this->RTS)
   {
     return PLUS_SUCCESS; //already the desired value
   }
-  else if (OnOff == true)
+  else if (onOff == true)
   {
     retval = this->Serial->SetRTS();
     if (retval == PLUS_SUCCESS)
     {
-      RTS = true;
+      this->RTS = true;
     }
   }
   else
   {
-    assert(OnOff == false);
+    assert(onOff == false);
     retval = this->Serial->ClearRTS();
     if (retval == PLUS_SUCCESS)
     {
-      RTS = false;
+      this->RTS = false;
     }
   }
 

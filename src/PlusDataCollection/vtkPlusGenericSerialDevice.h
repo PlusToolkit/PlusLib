@@ -74,13 +74,13 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   /*! Sets or clears the DTR (data-terminal-ready) line. */
-  PlusStatus SetDTR(bool OnOff);
+  PlusStatus SetDTR(bool onOff);
 
   /*! Gets the DTR (data-terminal-ready) line. */
   vtkGetMacro(DTR, bool);
 
   /*! Sets the RTS (request-to-send) line. */
-  PlusStatus SetRTS(bool OnOff);
+  PlusStatus SetRTS(bool onOff);
 
   /*! Gets the RTS (request-to-send) line. */
   vtkGetMacro(RTS, bool);
