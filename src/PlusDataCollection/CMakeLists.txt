@@ -1736,18 +1736,8 @@ IF(PLUS_USE_RTSP_VIDEO)
     ${RTSP_Video_SRCS}
     )
 
-  # Add FFMPEG include directory
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${FFMPEG_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/RTSPVideo
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${FFMPEG_LIBRARIES}
-    )
-
-  LIST(APPEND External_Libraries_Install
-    ${FFMPEG_BINARIES}
     )
 ENDIF()
 

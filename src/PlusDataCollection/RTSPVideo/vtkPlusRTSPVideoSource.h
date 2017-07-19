@@ -15,17 +15,16 @@
   \brief Class for interfacing an RTSP stream (rtsp://127.0.0.1/...) and capturing frames into a Plus buffer
 
   Requires the PLUS_USE_RTSP_VIDEO option in CMake.
-  Requires FFMPEG
+  Requires OpenCV with FFMPEG built (RTSP support)
 
   \ingroup PlusLibDataCollection
 */
-struct SwsContext;
-struct AVFormatContext;
-struct AVCodecContext;
-struct AVPacket;
-struct AVCodec;
-struct AVStream;
-struct AVFrame;
+
+namespace cv
+{
+  class VideoCapture;
+  class Mat;
+}
 
 class vtkPlusDataCollectionExport vtkPlusRTSPVideoSource : public vtkPlusDevice
 {
@@ -55,9 +54,7 @@ public:
   vtkSetStdStringMacro(StreamURL);
 
 protected:
-  /*! Constructor */
   vtkPlusRTSPVideoSource();
-  /*! Destructor */
   ~vtkPlusRTSPVideoSource();
 
   /*! Device-specific connect */
@@ -66,19 +63,9 @@ protected:
   PlusStatus InternalDisconnect();
 
 protected:
-  SwsContext*       ImageConvertContext;
-  AVFormatContext*  FormatContext;
-  AVCodecContext*   CodecContext;
-  int               VideoStreamIndex;
-  std::string       StreamURL;
-  AVPacket*         Packet;
-  AVCodec*          Codec;
-  AVStream*         Stream;
-  AVFormatContext*  OutputContext;
-  AVFrame*          FrameYUV;
-  uint8_t*          FrameBufferYUV;
-  AVFrame*          FrameRGB;
-  uint8_t*          FrameBufferRGB;
+  std::string                       StreamURL;
+  std::shared_ptr<cv::VideoCapture> Capture;
+  std::shared_ptr<cv::Mat>          Frame;
 };
 
 #endif // __vtkPlusRTSPVideoSource_h
