@@ -179,6 +179,12 @@ public:
   /*! Set the specified tool LED to the specified state */
   PlusStatus SetToolLED(const char* portName, int led, LedState state);
 
+  vtkSetStdStringMacro(NetworkHostname);
+  vtkGetStdStringMacro(NetworkHostname);
+
+  vtkSetMacro(NetworkPort, int);
+  vtkGetMacro(NetworkPort, int);
+
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
@@ -247,7 +253,7 @@ protected:
 protected:
   unsigned long             LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
   ndicapi*                  Device;
-  char*                     SerialDevice;
+  std::string               SerialDevice;
   int                       SerialPort;
   int                       BaudRate;
   int                       IsDeviceTracking;
@@ -255,6 +261,9 @@ protected:
   bool                      LeaveDeviceOpenAfterProbe;
   NdiToolDescriptorsType    NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
   char                      CommandReply[VTK_NDI_REPLY_LEN];
+
+  std::string               NetworkHostname;
+  int                       NetworkPort;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);

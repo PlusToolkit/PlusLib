@@ -78,7 +78,7 @@ vtkStandardNewMacro(vtkPlusNDITracker);
 vtkPlusNDITracker::vtkPlusNDITracker()
   : LastFrameNumber(0)
   , Device(nullptr)
-  , SerialDevice(nullptr)
+  , SerialDevice("")
   , SerialPort(-1)
   , BaudRate(9600)
   , IsDeviceTracking(0)
@@ -150,26 +150,27 @@ PlusStatus vtkPlusNDITracker::Probe()
   {
     return PLUS_SUCCESS;
   }
+
   int errnum = NDI_OPEN_ERROR;
   char* devicename = NULL;
   if (this->SerialPort > 0)
   {
-    devicename = ndiDeviceName(this->SerialPort - 1);
+    devicename = ndiSerialDeviceName(this->SerialPort - 1);
     if (devicename)
     {
-      errnum = ndiProbe(devicename);
+      errnum = ndiSerialProbe(devicename);
     }
   }
-  else
+  else if (this->NetworkHostname.empty())
   {
     // if SerialPort is set to -1 (default), then probe the first N serial ports
     const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
     for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
     {
-      devicename = ndiDeviceName(i);
+      devicename = ndiSerialDeviceName(i);
       if (devicename)
       {
-        errnum = ndiProbe(devicename);
+        errnum = ndiSerialProbe(devicename);
         if (errnum == NDI_OKAY)
         {
           this->SerialPort = i + 1;
@@ -178,6 +179,10 @@ PlusStatus vtkPlusNDITracker::Probe()
       }
     }
   }
+  else
+  {
+    // TODO: probe network?
+  }
 
   // if probe was okay, then send VER:0 to identify device
   if (errnum != NDI_OKAY)
@@ -185,10 +190,10 @@ PlusStatus vtkPlusNDITracker::Probe()
     return PLUS_FAIL;
   }
 
-  this->Device = ndiOpen(devicename);
+  this->Device = ndiOpenSerial(devicename);
   if (this->Device && !this->LeaveDeviceOpenAfterProbe)
   {
-    ndiClose(this->Device);
+    ndiCloseSerial(this->Device);
     this->Device = 0;
   }
   return PLUS_SUCCESS;
@@ -225,23 +230,6 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
     strncpy(this->CommandReply, ndiCommandVA(this->Device, format, ap), VTK_NDI_REPLY_LEN - 1);
     this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
   }
-  else
-  {
-    char* devicename = ndiDeviceName(this->SerialPort - 1);
-    this->Device = ndiOpen(devicename);
-    if (this->Device == 0)
-    {
-      LOG_ERROR(ndiErrorString(NDI_OPEN_ERROR));
-    }
-    else
-    {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
-      strncpy(this->CommandReply, ndiCommandVA(this->Device, format, ap), VTK_NDI_REPLY_LEN - 1);
-      this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
-      ndiClose(this->Device);
-    }
-    this->Device = 0;
-  }
 
   va_end(ap);
 
@@ -251,9 +239,21 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalConnect()
 {
-  int baud = NDI_9600;
-  switch (this->BaudRate)
+  if (!this->NetworkHostname.empty())
   {
+    this->Device = ndiOpenNetwork(this->NetworkHostname.c_str(), this->NetworkPort);
+
+    if (this->Device == nullptr)
+    {
+      LOG_ERROR("Unable to connect to " << this->NetworkHostname << ":" << this->NetworkPort);
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    int baud = NDI_9600;
+    switch (this->BaudRate)
+    {
     case 9600:
       baud = NDI_9600;
       break;
@@ -281,32 +281,33 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     default:
       LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
       return PLUS_FAIL;
+    }
+
+    this->LeaveDeviceOpenAfterProbe = true;
+    if (this->Probe() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + std::to_string(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
+      return PLUS_FAIL;
+    }
+
+    // send serial break
+    this->Command(nullptr);
+
+    // set the baud rate
+    // also: NOHANDSHAKE cuts down on CRC errs and timeouts
+    if (this->NetworkHostname.empty())
+    {
+      this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
+      int errnum = ndiGetError(this->Device);
+      if (errnum)
+      {
+        LOG_ERROR(ndiErrorString(errnum));
+        ndiSerialClose(this->Device);
+        this->Device = nullptr;
+        return PLUS_FAIL;
+      }
+    }
   }
-
-  this->LeaveDeviceOpenAfterProbe = true;
-  if (this->Probe() == PLUS_FAIL)
-  {
-    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + std::to_string(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
-    return PLUS_FAIL;
-  }
-
-  // send serial break
-  this->Command(nullptr);
-
-  // set the baud rate
-  // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-  this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
-  int errnum = ndiGetError(this->Device);
-  if (errnum)
-  {
-    LOG_ERROR(ndiErrorString(errnum));
-    ndiClose(this->Device);
-    this->Device = 0;
-    return PLUS_FAIL;
-  }
-
-  // Wait 100ms as recommended by NDI documentation
-  vtkPlusAccurateTimer::Delay(0.1);
 
   // initialize Device
   bool resetOccurred = false;
@@ -318,18 +319,24 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     // Re-issue the INIT command to avoid 'command not valid in current mode' errors.
     resetOccurred = true;
   }
-  errnum = 0;
+  int errnum = 0;
   if (ndiGetError(this->Device) || resetOccurred)
   {
     ndiRESET(this->Device);
-    //ndiGetError(this->Device); // ignore the error
     this->Command("INIT:");
     errnum = ndiGetError(this->Device);
     if (errnum)
     {
       LOG_ERROR(ndiErrorString(errnum));
-      ndiClose(this->Device);
-      this->Device = 0;
+      if (this->NetworkHostname.empty())
+      {
+        ndiCloseSerial(this->Device);
+      }
+      else
+      {
+        ndiCloseNetwork(this->Device);
+      }
+      this->Device = nullptr;
       return PLUS_FAIL;
     }
   }
@@ -355,8 +362,15 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
       {
         LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
         LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
-        ndiClose(this->Device);
-        this->Device = 0;
+        if (this->NetworkHostname.empty())
+        {
+          ndiCloseSerial(this->Device);
+        }
+        else
+        {
+          ndiCloseNetwork(this->Device);
+        }
+        this->Device = nullptr;
         return PLUS_FAIL;
       }
     }
@@ -388,8 +402,15 @@ PlusStatus vtkPlusNDITracker::InternalDisconnect()
   {
     LOG_ERROR(ndiErrorString(errnum));
   }
-  ndiClose(this->Device);
-  this->Device = 0;
+  if (this->NetworkHostname.empty())
+  {
+    ndiCloseSerial(this->Device);
+  }
+  else
+  {
+    ndiCloseNetwork(this->Device);
+  }
+  this->Device = nullptr;
 
   return PLUS_SUCCESS;
 }
@@ -408,7 +429,14 @@ PlusStatus vtkPlusNDITracker::InternalStartRecording()
   if (errnum)
   {
     LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum));
-    ndiClose(this->Device);
+    if (this->NetworkHostname.empty())
+    {
+      ndiCloseSerial(this->Device);
+    }
+    else
+    {
+      ndiCloseNetwork(this->Device);
+    }
     this->Device = 0;
     return PLUS_FAIL;
   }
@@ -553,7 +581,7 @@ PlusStatus vtkPlusNDITracker::ReadSromFromFile(NdiToolDescriptor& toolDescriptor
   FILE* file = fopen(filename, "rb");
   if (file == NULL)
   {
-    LOG_ERROR("couldn't find srom file " << filename);
+    LOG_ERROR("Couldn't find srom file " << filename);
     return PLUS_FAIL;
   }
 
@@ -674,7 +702,7 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   // splitters (two 5-DOF tools with one connector) only appear after the tool is enabled.
   for (NdiToolDescriptorsType::iterator toolDescriptorIt = this->NdiToolDescriptors.begin(); toolDescriptorIt != this->NdiToolDescriptors.end(); ++toolDescriptorIt)
   {
-    if (toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == 0)   //wired tool, no virtual rom
+    if (toolDescriptorIt->second.WiredPortNumber >= 0 && toolDescriptorIt->second.VirtualSROM == NULL)   //wired tool, no virtual ROM
     {
       if (this->UpdatePortHandle(toolDescriptorIt->second) != PLUS_SUCCESS)
       {
@@ -826,13 +854,7 @@ PlusStatus vtkPlusNDITracker::Beep(int n)
   }
   this->Command("BEEP:%i", n);
   int errnum = ndiGetError(this->Device);
-  /*
-  if (errnum && errnum != NDI_NO_TOOL)
-  {
-    LOG_ERROR(ndiErrorString(errnum));
-    return PLUS_FAIL;
-  }
-  */
+
   return PLUS_SUCCESS;
 }
 
@@ -860,29 +882,22 @@ PlusStatus  vtkPlusNDITracker::SetToolLED(const char* sourceId, int led, LedStat
   int plstate = NDI_BLANK;
   switch (state)
   {
-    case TR_LED_OFF:
-      plstate = NDI_BLANK;
-      break;
-    case TR_LED_ON:
-      plstate = NDI_SOLID;
-      break;
-    case TR_LED_FLASH:
-      plstate = NDI_FLASH;
-      break;
-    default:
-      LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
-      return PLUS_FAIL;
+  case TR_LED_OFF:
+    plstate = NDI_BLANK;
+    break;
+  case TR_LED_ON:
+    plstate = NDI_SOLID;
+    break;
+  case TR_LED_FLASH:
+    plstate = NDI_FLASH;
+    break;
+  default:
+    LOG_ERROR("vtkPlusNDITracker::InternalSetToolLED failed: unsupported LED state: " << state);
+    return PLUS_FAIL;
   }
 
   this->Command("LED:%02X%d%c", portHandle, led + 1, plstate);
   int errnum = ndiGetError(this->Device);
-  /*
-  if (errnum && errnum != NDI_NO_TOOL)
-  {
-  LOG_ERROR(ndiErrorString(errnum));
-  return 0;
-  }
-  */
 
   return PLUS_SUCCESS;
 }
@@ -1000,6 +1015,9 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
 
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NetworkPort, deviceConfig);
+
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -1050,7 +1068,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
     const char* romFileName = toolDataElement->GetAttribute("RomFile");
     if (romFileName)
     {
-      // Passive (wireless) tool or wired tool with virtual rom
+      // Passive (wireless) tool or wired tool with virtual ROM
       if (wiredPortNumber >= 0)
       {
         LOG_WARNING("NDI PortName and RomFile are both specified for tool " << toolSourceId << ". Assuming broken wired rom, using virtual rom instead");
@@ -1069,7 +1087,16 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfig);
-  trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
+  if (this->SerialPort > 0)
+  {
+    trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
+  }
+  if (!this->NetworkHostname.empty())
+  {
+    trackerConfig->SetAttribute("NetworkHostname", this->NetworkHostname.c_str());
+    trackerConfig->SetIntAttribute("NetworkPort", this->NetworkPort);
+  }
+
   trackerConfig->SetIntAttribute("BaudRate", this->BaudRate);
   trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
   return PLUS_SUCCESS;
@@ -1144,22 +1171,22 @@ void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selecte
     bool isOptical(false);
     switch (volDescriptor[0])
     {
-      case '9':
-        shapeType = "Cube";
-        break;
-      case 'A':
-        shapeType = "Dome";
-        break;
-      case '5':
-        shapeType = "Polaris (Pyramid or extended pyramid)";
-        isOptical = true;
-        break;
-      case '7':
-        shapeType = "Vicra (Pyramid)";
-        isOptical = true;
-        break;
-      default:
-        shapeType = "unknown";
+    case '9':
+      shapeType = "Cube";
+      break;
+    case 'A':
+      shapeType = "Dome";
+      break;
+    case '5':
+      shapeType = "Polaris (Pyramid or extended pyramid)";
+      isOptical = true;
+      break;
+    case '7':
+      shapeType = "Vicra (Pyramid)";
+      isOptical = true;
+      break;
+    default:
+      shapeType = "unknown";
     }
     LOG_DYNAMIC(" Shape type: " << shapeType << " (" << volDescriptor[0] << ")", logLevel);
 
@@ -1181,17 +1208,17 @@ void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selecte
       std::string metalResistant;
       switch (volDescriptor[72])
       {
-        case '0':
-          metalResistant = "no information";
-          break;
-        case '1':
-          metalResistant = "metal resistant";
-          break;
-        case '2':
-          metalResistant = "not metal resistant";
-          break;
-        default:
-          metalResistant = "unknown";
+      case '0':
+        metalResistant = "no information";
+        break;
+      case '1':
+        metalResistant = "metal resistant";
+        break;
+      case '2':
+        metalResistant = "not metal resistant";
+        break;
+      default:
+        metalResistant = "unknown";
       }
       LOG_DYNAMIC(" Metal resistant: " << metalResistant << " (" << volDescriptor[72] << ")", logLevel);
     }
@@ -1203,18 +1230,18 @@ void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selecte
       {
         switch (volDescriptor[72 + i])
         {
-          case '0':
-            LOG_DYNAMIC("  Wavelength " << i << ": 930nm", logLevel);
-            break;
-          case '1':
-            LOG_DYNAMIC("  Wavelength " << i << ": 880nm", logLevel);
-            break;
-          case '4':
-            LOG_DYNAMIC("  Wavelength " << i << ": 870nm", logLevel);
-            break;
-          default:
-            LOG_DYNAMIC("  Wavelength " << i << ": unknown (" << volDescriptor[72 + i] << ")", logLevel);
-            break;
+        case '0':
+          LOG_DYNAMIC("  Wavelength " << i << ": 930nm", logLevel);
+          break;
+        case '1':
+          LOG_DYNAMIC("  Wavelength " << i << ": 880nm", logLevel);
+          break;
+        case '4':
+          LOG_DYNAMIC("  Wavelength " << i << ": 870nm", logLevel);
+          break;
+        default:
+          LOG_DYNAMIC("  Wavelength " << i << ": unknown (" << volDescriptor[72 + i] << ")", logLevel);
+          break;
         }
       }
     }
