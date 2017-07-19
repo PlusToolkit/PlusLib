@@ -195,21 +195,12 @@ PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool onOff)
   {
     return PLUS_SUCCESS; //already the desired value
   }
-  else if (onOff == true)
-  {
-    retval = this->Serial->SetDTR();
-    if (retval == PLUS_SUCCESS)
-    {
-      this->DTR = true;
-    }
-  }
   else
   {
-    assert(onOff == false);
-    retval = this->Serial->ClearDTR();
+    retval = this->Serial->SetDTR(onOff);
     if (retval == PLUS_SUCCESS)
     {
-      this->DTR = false;
+      this->DTR = onOff;
     }
   }
 
@@ -227,21 +218,12 @@ PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
   {
     return PLUS_SUCCESS; //already the desired value
   }
-  else if (onOff == true)
-  {
-    retval = this->Serial->SetRTS();
-    if (retval == PLUS_SUCCESS)
-    {
-      this->RTS = true;
-    }
-  }
   else
   {
-    assert(onOff == false);
-    retval = this->Serial->ClearRTS();
+    retval = this->Serial->SetRTS(onOff);
     if (retval == PLUS_SUCCESS)
     {
-      this->RTS = false;
+      this->RTS = onOff;
     }
   }
 

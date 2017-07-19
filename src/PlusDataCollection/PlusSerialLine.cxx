@@ -236,10 +236,15 @@ unsigned int SerialLine::GetNumberOfBytesAvailableForReading() const
 #endif
 }
 
-PlusStatus SerialLine::SetDTR()
+PlusStatus SerialLine::SetDTR(bool onOff)
 {
 #ifdef _WIN32
-  if (EscapeCommFunction(CommHandle, SETDTR))
+  DWORD dwFunc = CLRDTR;
+  if (onOff)
+  {
+    dwFunc = SETDTR;
+  }
+  if (EscapeCommFunction(CommHandle, dwFunc))
   {
     return PLUS_SUCCESS;
   }
@@ -253,27 +258,15 @@ PlusStatus SerialLine::SetDTR()
 #endif
 }
 
-PlusStatus SerialLine::ClearDTR()
+PlusStatus SerialLine::SetRTS(bool onOff)
 {
 #ifdef _WIN32
-  if (EscapeCommFunction(CommHandle, CLRDTR))
+  DWORD dwFunc = CLRRTS;
+  if (onOff)
   {
-    return PLUS_SUCCESS;
+    dwFunc = SETRTS;
   }
-  else
-  {
-    return PLUS_FAIL;
-  }
-#else
-  LOG_ERROR("SerialLine::ClearDTR() is only implemented on Windows");
-  return PLUS_FAIL;
-#endif
-}
-
-PlusStatus SerialLine::SetRTS()
-{
-#ifdef _WIN32
-  if (EscapeCommFunction(CommHandle, SETRTS))
+  if (EscapeCommFunction(CommHandle, dwFunc))
   {
     return PLUS_SUCCESS;
   }
@@ -283,23 +276,6 @@ PlusStatus SerialLine::SetRTS()
   }
 #else
   LOG_ERROR("SerialLine::SetRTS() is only implemented on Windows");
-  return PLUS_FAIL;
-#endif
-}
-
-PlusStatus SerialLine::ClearRTS()
-{
-#ifdef _WIN32
-  if (EscapeCommFunction(CommHandle, CLRRTS))
-  {
-    return PLUS_SUCCESS;
-  }
-  else
-  {
-    return PLUS_FAIL;
-  }
-#else
-  LOG_ERROR("SerialLine::ClearRTS() is only implemented on Windows");
   return PLUS_FAIL;
 #endif
 }
