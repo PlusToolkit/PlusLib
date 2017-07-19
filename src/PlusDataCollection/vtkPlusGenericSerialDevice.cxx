@@ -231,7 +231,8 @@ PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/)
+PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/,
+  ReplyTermination acceptReply/*=REQUIRE_LINE_ENDING*/)
 {
   LOG_DEBUG("Send to Serial device: " << textToSend);
 
@@ -258,7 +259,7 @@ PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, s
     {
       // a response is expected
       std::string line;
-      if (this->ReceiveResponse(line) != PLUS_SUCCESS)
+      if (this->ReceiveResponse(line, acceptReply) != PLUS_SUCCESS)
       {
         *textReceived += line;
         break;
@@ -290,7 +291,7 @@ bool vtkPlusGenericSerialDevice::WaitForResponse()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived)
+PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived, ReplyTermination acceptReply/*=REQUIRE_LINE_ENDING*/)
 {
   textReceived.clear();
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
@@ -306,14 +307,18 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived
       if (vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDurationSec)
       {
         // waiting time expired
-        if (textReceived.empty())
+        if (acceptReply == REQUIRE_LINE_ENDING)
         {
-          LOG_ERROR("Failed to get a response within configured time (" << this->MaximumReplyDurationSec << " sec)");
+          LOG_ERROR("Failed to get a proper response within configured time (" << this->MaximumReplyDurationSec << " sec)");
+          return PLUS_FAIL;
+        }
+        else if (textReceived.empty() && acceptReply == REQUIRE_NOT_EMPTY)
+        {
+          LOG_ERROR("Failed to read a complete line from serial device. Received: " << textReceived);
           return PLUS_FAIL;
         }
         else
         {
-          LOG_WARNING("Failed to read a complete line from serial device. Received: " << textReceived);
           return PLUS_SUCCESS;
         }
       }

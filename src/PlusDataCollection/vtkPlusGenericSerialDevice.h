@@ -60,16 +60,25 @@ public:
   void SetLineEnding(const char* lineEndingHex);
   vtkGetMacro(LineEnding, std::string);
 
+  /*! Specifies what kind of response is expected from the device */
+  enum ReplyTermination
+  {
+    REQUIRE_LINE_ENDING = 0, // only proper LineEnding termination will result in success
+    REQUIRE_NOT_EMPTY = 1, // if respnse is not empty, results in success even on timeout
+    ANY = 2 // always results in success, but waits for a timeout or LineEnding termination
+  };
+
   /*!
     Send text to the serial device. If a non-NULL pointer is passed as textReceived
     then the device waits for a response and returns it in textReceived.
   */
-  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived = NULL);
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived = NULL,
+    ReplyTermination acceptReply = REQUIRE_LINE_ENDING);
 
   /*!
     Receive a response from the serial device.
   */
-  virtual PlusStatus ReceiveResponse(std::string& textReceived);
+  virtual PlusStatus ReceiveResponse(std::string& textReceived, ReplyTermination acceptReply = REQUIRE_LINE_ENDING);
 
   virtual PlusStatus NotifyConfigured();
 
