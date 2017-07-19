@@ -52,7 +52,7 @@ PlusStatus vtkPlusGetPolydataCommand::ReadConfiguration(vtkXMLDataElement* aConf
     return PLUS_FAIL;
   }
 
-  Superclass::ReadConfiguration(aConfig);
+  return Superclass::ReadConfiguration(aConfig);
 }
 
 //----------------------------------------------------------------------------
