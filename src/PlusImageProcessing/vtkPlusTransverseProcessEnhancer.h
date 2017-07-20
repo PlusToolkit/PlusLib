@@ -79,6 +79,9 @@ public:
   vtkSetMacro(ThetaStopDeg, int);
   vtkGetMacro(ThetaStopDeg, int);
 
+  vtkSetMacro(ThresholdingEnabled, bool);
+  vtkGetMacro(ThresholdingEnabled, bool);
+  vtkBooleanMacro(ThresholdingEnabled, bool);
 
   vtkSetMacro(GaussianEnabled, bool);
   vtkGetMacro(GaussianEnabled, bool);
@@ -86,15 +89,6 @@ public:
 
   void SetGaussianStdDev(double GaussianStdDev);
   void SetGaussianKernelSize(double GaussianKernelSize);
-
-  vtkSetMacro(ThresholdingEnabled, bool);
-  vtkGetMacro(ThresholdingEnabled, bool);
-  vtkBooleanMacro(ThresholdingEnabled, bool);
-
-  void SetThresholdInValue(double NewThresholdInValue);
-  void SetThresholdOutValue(double NewThresholdOutValue);
-  void SetLowerThreshold(double LowerThreshold);
-  void SetUpperThreshold(double UpperThreshold);
 
   vtkSetMacro(EdgeDetectorEnabled, bool);
   vtkGetMacro(EdgeDetectorEnabled, bool);
@@ -129,7 +123,7 @@ public:
   vtkGetMacro(ReturnToFanImage, bool);
   vtkBooleanMacro(ReturnToFanImage, bool);
 
-  void StdDeviationThreshold(vtkSmartPointer<vtkImageData> inputImage);
+  void ThresholdViaStdDeviation(vtkSmartPointer<vtkImageData> inputImage);
 
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   vtkImageData* GetShadowImage() { return this->ShadowImage; };
@@ -147,9 +141,7 @@ protected:
   virtual ~vtkPlusTransverseProcessEnhancer();
 
   void FillLinesImage(vtkSmartPointer<vtkImageData> inputImageData);
-  void ProcessLinesImage();
   void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage);
-  void FillShadowValues();
 
   void ComputeHistogram(vtkSmartPointer<vtkImageData> imageData);
 
@@ -160,7 +152,6 @@ protected:
 
 protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
-  vtkSmartPointer<vtkImageThreshold>        Thresholder;
   vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
   vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
   vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
@@ -192,10 +183,6 @@ protected:
   double GaussianKernelSize;
 
   bool ThresholdingEnabled;
-  double ThresholdInValue;
-  double ThresholdOutValue;
-  double LowerThreshold;
-  double UpperThreshold;
 
   bool EdgeDetectorEnabled;
   vtkSmartPointer<vtkImageData> ConversionImage;
@@ -209,17 +196,23 @@ protected:
   bool DilationEnabled;
   int DilationKernelSize[2];
 
+  int BoneOutlineDepthPx;
+
   bool ReconvertBinaryToGreyscale;
 
   bool SaveIntermediateResults;
 
   std::string IntermediateImageFileName;
-  vtkSmartPointer<vtkImageData> IntermediateImage; // Pixels (float) store probability of belonging to shadow
+  /// Pixels (float) store probability of belonging to shadow
 
-  vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-  vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
-  vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
-  vtkSmartPointer<vtkImageData> ProcessedLinesImage; // Pixels (float) store probability of belonging to shadow
+  /// Image for pixels (uchar) along scan lines only
+  vtkSmartPointer<vtkImageData> LinesImage;
+  /// Used to retrieve original pixel values from some point before binarization
+  vtkSmartPointer<vtkImageData> UnprocessedLinesImage;
+  /// Pixels (float) store probability of belonging to shadow
+  vtkSmartPointer<vtkImageData> ShadowImage;
+  /// Pixels (float) store probability of belonging to shadow
+  vtkSmartPointer<vtkImageData> ProcessedLinesImage;
 
   /// Image after some of the processing operations have been applied
   std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
@@ -228,8 +221,8 @@ protected:
 
   std::vector<std::map<std::string, int>> BoneAreasInfo;
 
-  int FrameCounter = -1;
-
+  /// Variable used for debugging
+  int FrameCounter;
 
 private:
   virtual PlusStatus ProcessImageExtents();
