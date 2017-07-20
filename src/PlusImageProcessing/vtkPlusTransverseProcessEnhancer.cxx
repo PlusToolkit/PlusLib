@@ -30,7 +30,6 @@ See License.txt for details.
 
 
 //----------------------------------------------------------------------------
-
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 //----------------------------------------------------------------------------
@@ -46,12 +45,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ThetaStartDeg(0),
   ThetaStopDeg(0),
 
-  Thresholder(NULL),
   GaussianEnabled(true),
-  ThresholdInValue(0.0),
-  ThresholdOutValue(255.0),
-  LowerThreshold(0.0),
-  UpperThreshold(0.0),
 
   GaussianSmooth(NULL),
   EdgeDetector(NULL),
@@ -75,16 +69,16 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   IslandAreaThreshold(-1),
   ErosionEnabled(true),
   DilationEnabled(true),
+  BoneOutlineDepthPx(3), //TODO: Change to mm (Note: this only changes the apperance/thickness of the 3D model. Different numbers do not change what is or isnt marked as bone.)
   ReconvertBinaryToGreyscale(true),
 
-  IntermediateImage(NULL),
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
   UnprocessedLinesImage(NULL),
-  ShadowImage(NULL)
-{
-  this->Thresholder = vtkSmartPointer<vtkImageThreshold>::New();
+  ShadowImage(NULL),
 
+  FrameCounter(-1)
+{
   this->GaussianSmooth = vtkSmartPointer<vtkImageGaussianSmooth>::New();
   this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();
   this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();
@@ -119,13 +113,11 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ImageDialator->SetErodeValue(0);
   this->ImageDialator->SetDilateValue(255);
 
-  this->IntermediateImage = vtkSmartPointer<vtkImageData>::New();
   this->LinesImage = vtkSmartPointer<vtkImageData>::New();
   this->ProcessedLinesImage = vtkSmartPointer<vtkImageData>::New();
   this->UnprocessedLinesImage = vtkSmartPointer<vtkImageData>::New();
   this->ShadowImage = vtkSmartPointer<vtkImageData>::New();
 
-  this->IntermediateImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->ProcessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->UnprocessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
@@ -139,6 +131,7 @@ vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
   // Make sure contained smart pointers are deleted
   this->IntermediateImageMap.clear();
+  this->IntermediatePostfixes.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -208,6 +201,9 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
     //read tag relavent to returning to a fan image
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReturnToFanImage, imageProcessingOperations);
 
+    //read tag relavent to Thresholding
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ThresholdingEnabled, imageProcessingOperations);
+
     //read tags relavent to the Gaussian filter
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(GaussianEnabled, imageProcessingOperations);
     if (this->GaussianEnabled)
@@ -222,25 +218,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianStdDev, gaussianParameters);
 
         XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianKernelSize, gaussianParameters);
-      }
-    }
-
-    //read tags relavent to Thresholding
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ThresholdingEnabled, imageProcessingOperations);
-    if (this->ThresholdingEnabled)
-    {
-      vtkSmartPointer<vtkXMLDataElement> thresholdingParameters = imageProcessingOperations->FindNestedElementWithName("Thresholding");
-      if (thresholdingParameters == NULL)
-      {
-        LOG_WARNING("Unable to locate Thresholding parameters element. Using default values.");
-      }
-      else
-      {
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdInValue, thresholdingParameters);
-        XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, ThresholdOutValue, thresholdingParameters);
-
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, LowerThreshold, thresholdingParameters);
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, UpperThreshold, thresholdingParameters);
       }
     }
 
@@ -346,13 +323,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
   gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
   gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 
-  XML_WRITE_BOOL_ATTRIBUTE(ThresholdingEnabled, imageProcessingOperations);
-  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(thresholdingParameters, imageProcessingOperations, "Thresholding");
-  thresholdingParameters->SetDoubleAttribute("ThresholdInValue", ThresholdInValue);
-  thresholdingParameters->SetDoubleAttribute("ThresholdOutValue", ThresholdOutValue);
-  thresholdingParameters->SetDoubleAttribute("LowerThreshold", LowerThreshold);
-  thresholdingParameters->SetDoubleAttribute("UpperThreshold", UpperThreshold);
-
   XML_WRITE_BOOL_ATTRIBUTE(EdgeDetectorEnabled, imageProcessingOperations);
 
   XML_WRITE_BOOL_ATTRIBUTE(IslandRemovalEnabled, imageProcessingOperations);
@@ -374,6 +344,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 {
   // Allocate lines image.
@@ -392,9 +363,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 
   this->ShadowImage->SetExtent(linesImageExtent);
   this->ShadowImage->AllocateScalars(VTK_FLOAT, 1);
-
-  this->IntermediateImage->SetExtent(linesImageExtent);
-  this->IntermediateImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   //Set up variables related to image extents
   int dims[3] = { 0, 0, 0 };
@@ -429,10 +397,10 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageDa
   int pixelCoordY;
 
   int* inputExtent = inputImageData->GetExtent();
-  for (int scanLine = 0; scanLine < numScanLines; scanLine++)
+  for (int scanLine = 0; scanLine < numScanLines; ++scanLine)
   {
-    double start[4] = { 0 };
-    double end[4] = { 0 };
+    double start[4] = { 0, 0, 0, 0 };
+    double end[4] = { 0, 0, 0, 0 };
     ScanConverter->GetScanLineEndPoints(scanLine, start, end);
 
     directionVectorX = static_cast<double>(end[0] - start[0]) / (lineLengthPx - 1);
@@ -441,8 +409,8 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageDa
     {
       pixelCoordX = start[0] + directionVectorX * pointIndex;
       pixelCoordY = start[1] + directionVectorY * pointIndex;
-      if (pixelCoordX < inputExtent[0] || pixelCoordX > inputExtent[1]
-        || pixelCoordY < inputExtent[2] || pixelCoordY > inputExtent[3])
+      if ( pixelCoordX < inputExtent[0] || pixelCoordX > inputExtent[1]
+        || pixelCoordY < inputExtent[2] || pixelCoordY > inputExtent[3] )
       {
         this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, 0);
         continue; // outside of the specified extent
@@ -471,119 +439,8 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageDa
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::ProcessLinesImage()
-{
-  // Parameters
-  float thresholdSdFactor = 1.8;
-  float nearFactor = 0.4;
-
-  int dims[3] = { 0, 0, 0 };
-  this->LinesImage->GetDimensions(dims);
-
-  // Define the threshold value for bone candidate points.
-  double dThreshold = this->CurrentFrameMean + thresholdSdFactor * this->CurrentFrameStDev;
-  unsigned char threshold = 255;
-  if (dThreshold < 255) { threshold = (unsigned char)dThreshold; }
-
-  // Compute mapping factor for values above threshold (T).
-  // Mapping [T,255] to [25%,100%], that is [64,255].
-  // where delta = PixelValue - T
-  float mappingFactor = 191.0 / (255.0 - threshold);
-  float mappingShift = 64.0;
-
-  // Define threshold and factor for pixel locations close to transducer.
-  int xClose = int(dims[0] * nearFactor);
-  float xFactor = 1.0 / xClose;
-
-  // Iterate all pixels.
-  unsigned char* vInput = 0;
-  unsigned char* vOutput = 0;
-  float* vShadow = 0;
-  bool foundInThisLine = false;
-  bool decreaseAfterFound = false;
-  unsigned char lastValue = 0;
-  float output = 0.0;     // Keep this in [0..255] instead [0..1] for possible future optimization.
-
-  // Populate this->ShadowImage pixel values with complement of this->LinesImage pixel relative brightness values
-  this->FillShadowValues();
-
-  // Following loop currently only serves as a bounds check, does not otherwise modify this->LinesImage pixel values before storing them in this->IntermediateImage
-  for (int y = 0; y < dims[1]; y++)
-  {
-    // Initialize variables for a new scan line.
-    for (int x = dims[0] - 1; x >= 0; x--)   // Go towards transducer
-    {
-      vInput = static_cast<unsigned char*>(this->LinesImage->GetScalarPointer(x, y, 0));
-      vOutput = static_cast<unsigned char*>(this->IntermediateImage->GetScalarPointer(x, y, 0));
-      output = (*vInput);
-
-      //Make vOutput a maximum of 255, and at minimum 0
-      if (output > 255) { (*vOutput) = 255; }
-      else if (output < 0) { (*vOutput) = 0; }
-      else { (*vOutput) = (unsigned char)output; }
-    }
-  }
-  this->IntermediateImage->Modified();
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::FillShadowValues()
-{
-  int dims[3] = { 0, 0, 0 };
-  this->LinesImage->GetDimensions(dims);
-
-  float lineMeanSoFar = 0.0;
-  float lineMaxSoFar = 0.0;
-  int nSoFar = 0;
-  float shadowValue = 0.0;
-  float diffFromMean;
-
-  unsigned char* vInput = 0;
-  unsigned char inputValue;
-  float* vOutput = 0;
-
-
-  // Go along each scan line in this->LinesImage, and set this->ShadowImage pixel values to complement of relative this->LinesImage pixel brightnesses
-  for (int y = 0; y < dims[1]; y++)
-  {
-    // Initialize variables for new scan line.
-    lineMeanSoFar = 0.0;
-    lineMaxSoFar = 0.0;
-    nSoFar = 0;
-    shadowValue = 0.0;
-
-    for (int x = dims[0] - 1; x >= 0; x--)   // Go towards transducer.
-    {
-      vInput = static_cast<unsigned char*>(this->LinesImage->GetScalarPointer(x, y, 0));
-      vOutput = static_cast<float*>(this->ShadowImage->GetScalarPointer(x, y, 0));
-
-      inputValue = (*vInput);
-
-      nSoFar++;
-      diffFromMean = inputValue - lineMeanSoFar;
-      lineMeanSoFar = lineMeanSoFar + diffFromMean / nSoFar;
-      if (inputValue > lineMaxSoFar)
-      {
-        lineMaxSoFar = inputValue;
-      }
-
-      shadowValue = 1.0 - (lineMaxSoFar / this->CurrentFrameScalarComponentMax);
-
-      *vOutput = shadowValue;
-    }
-  }
-  this->ShadowImage->Modified();
-  // Save shadow image
-  PlusVideoFrame shadowVideoFrame;
-  shadowVideoFrame.DeepCopyFrom(this->ShadowImage);
-  PlusTrackedFrame shadowTrackedFrame;
-  shadowTrackedFrame.SetImageData(shadowVideoFrame);
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage)
 {
-  unsigned char* vInput = 0;
   unsigned char* vOutput = 0;
   unsigned char edgeDetectorOutput0;
   unsigned char edgeDetectorOutput1;
@@ -594,11 +451,11 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
   this->LinesImage->GetDimensions(dims);
   this->ConversionImage->SetExtent(this->LinesImage->GetExtent());
   this->ConversionImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  for (int y = 0; y < dims[1]; y++)
+  for (int y = dims[1] - 1; y >= 0; --y)
   {
     // Initialize variables for a new scan line.
 
-    for (int x = dims[0] - 1; x >= 0; x--)   // Go towards transducer
+    for (int x = dims[0] - 1; x >= 0; --x)   // Go towards transducer
     {
       edgeDetectorOutput0 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 0));
       edgeDetectorOutput1 = static_cast<unsigned char>(inputImage->GetScalarComponentAsFloat(x, y, 0, 1));
@@ -612,6 +469,7 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
   }
 }
 
+//----------------------------------------------------------------------------
 /*
 Takes a vtkSmartPointer<vtkImageData> as an argument and modifies it such that all images in a row
 that have a bone shadow behind it are removed
@@ -621,10 +479,9 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
   int dims[3] = { 0, 0, 0 };
   inputImage->GetDimensions(dims);
 
-  int outlineDepth = 3;//TODO: Magic Number, replace with parameter in mm
   int keepInfoCounter;
   bool foundBone;
-  unsigned char*  vOutput;
+  unsigned char* vOutput;
 
   int lastVistedValue = 0;
 
@@ -635,14 +492,14 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
   int boneMinDepth = 0;
   int boneAreaDifferenceSlope = 3; //TODO: Magic Number, replace with parameter in mm
 
-  for (int y = dims[1] - 1; y >= 0; y--)
+  for (int y = dims[1] - 1; y >= 0; --y)
   {
 
     //When an image is detected, keep up to this many pixles after it
-    keepInfoCounter = outlineDepth;
+    keepInfoCounter = this->BoneOutlineDepthPx;
     foundBone = false;
 
-    for (int x = dims[0] - 1; x >= 0; x--)
+    for (int x = dims[0] - 1; x >= 0; --x)
     {
       vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
 
@@ -657,17 +514,20 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
         {
           if (foundBone == false)
           {
+            //found the first bone
             foundBone = true;
+
             //the two bone pixels are far enough appart, save them as being parts of different bone areas
             if (std::abs(x - lastVistedValue) >= boneAreaDifferenceSlope  && y != dims[1] - 1)
             {
+              //check if the preveous area had any bone
               if (boneDepthSum != 0)
               {
                 currentBoneArea["depth"] = boneDepthSum / (boneAreaStart - y);
                 currentBoneArea["yMax"] = boneAreaStart;
                 currentBoneArea["yMin"] = y + 1;
                 currentBoneArea["xMax"] = boneMaxDepth;
-                currentBoneArea["xMin"] = std::max(boneMinDepth - outlineDepth, 0);
+                currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
                 this->BoneAreasInfo.push_back(currentBoneArea);
                 currentBoneArea.clear();
               }
@@ -676,20 +536,26 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
               boneMaxDepth = x;
               boneMinDepth = x;
             }
+            else
+            {
+              if (x > boneMaxDepth)
+              {
+                boneMaxDepth = x;
+              }
+              if (x < boneMinDepth)
+              {
+                boneMinDepth = x;
+              }
+            }
             boneDepthSum += x;
             lastVistedValue = x;
 
-            if (x > boneMaxDepth)
-            {
-              boneMaxDepth = x;
-            }
-            if (x < boneMinDepth)
-            {
-              boneMinDepth = x;
-            }
           }
-          keepInfoCounter--;
         }
+      }
+      if (foundBone == true && keepInfoCounter != 0)
+      {
+          keepInfoCounter--;
       }
     }
 
@@ -703,7 +569,7 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
         currentBoneArea["yMax"] = boneAreaStart;
         currentBoneArea["yMin"] = y + 1;
         currentBoneArea["xMax"] = boneMaxDepth;
-        currentBoneArea["xMin"] = std::max(boneMinDepth - outlineDepth, 0);
+        currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
         this->BoneAreasInfo.push_back(currentBoneArea);
         boneDepthSum = 0;
         currentBoneArea.clear();
@@ -722,12 +588,13 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
     currentBoneArea["yMax"] = boneAreaStart;
     currentBoneArea["yMin"] = 0;
     currentBoneArea["xMax"] = boneMaxDepth;
-    currentBoneArea["xMin"] = std::max(boneMinDepth - outlineDepth, 0);
+    currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
     this->BoneAreasInfo.push_back(currentBoneArea);
     currentBoneArea.clear();
   }
 }
 
+//----------------------------------------------------------------------------
 /*
 Takes a vtkSmartPointer<vtkImageData> with clearly defined possible bone segments as an
 argument and modifies it so the bone areas that are too close to the camera's edge are removed.
@@ -746,10 +613,11 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
 
   int boneHalfLen;
   bool clearArea;
+  bool foundBone;
 
   this->BoneAreasInfo.clear();
 
-  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; areaIndex--)
+  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; --areaIndex)
   {
     std::map<std::string, int> currentArea = boneAreas.at(areaIndex);
 
@@ -757,22 +625,22 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     boneHalfLen = ((currentArea["yMax"] - currentArea["yMin"]) + 1)  / 2;
 
     //check if the bone is to close too the scan's edge
-    if (currentArea["yMax"] + distanceVerticalBuffer >= dims[1] || currentArea["yMin"] - distanceVerticalBuffer <= 0)
+    if (currentArea["yMax"] + distanceVerticalBuffer >= dims[1] - 1 || currentArea["yMin"] - distanceVerticalBuffer <= 0)
     {
       clearArea = true;
     }
     //check if given the size, the bone is too close to the scan's edge
-    if (boneHalfLen + currentArea["yMax"] >= dims[1] - 1 || (currentArea["yMin"] - 1) - boneHalfLen <= 0)
+    else if (boneHalfLen + currentArea["yMax"] >= dims[1] - 1 || (currentArea["yMin"] - 1) - boneHalfLen <= 0)
     {
       clearArea = true;
     }
     //check if the bone is too close/far from the transducer 
-    if (currentArea["depth"] < distanceHorizontalBuffer || currentArea["depth"] > dims[0] - distanceHorizontalBuffer)
+    else if (currentArea["depth"] < distanceHorizontalBuffer || currentArea["depth"] > dims[0] - distanceHorizontalBuffer)
     {
       clearArea = true;
     }
     //check if the bone is to small
-    if (currentArea["yMax"] - currentArea["yMin"] <= boneMinSize)
+    else if (currentArea["yMax"] - currentArea["yMin"] <= boneMinSize)
     {
       clearArea = true;
     }
@@ -780,15 +648,27 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     //If it dosnt meet the criteria, remove the bones in this area
     if (clearArea == true)
     {
-      for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; y--)
+      //search through the area where the pixels are known to be
+      for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
       {
-        for (int x = currentArea["xMax"]; x >= currentArea["xMin"]; x--)
+        int x = currentArea["xMax"];
+        foundBone = false;
+        while (x >= currentArea["xMin"] && foundBone == false)
         {
           vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
           if (*vOutput != 0)
           {
+            //remove all pixels in the outline
             *vOutput = 0;
+            for (int removeBonex = std::max(0, x - (this->BoneOutlineDepthPx - 1)); removeBonex < x; ++removeBonex)
+            {
+              vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(removeBonex, y, 0));
+              *vOutput = 0;
+            }
+
+            foundBone = true;
           }
+          x--;
         }
       }
     }
@@ -799,6 +679,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
   }
 }
 
+//----------------------------------------------------------------------------
 /*
 Takes an unmodified vtkSmartPointer<vtkImageData> of an ultrasound as its first argument, and a more
 enhanced version of said image, with clearly defined possible bone segments as the second argument.
@@ -825,11 +706,12 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
   float belowAvgShadow;
 
   std::map<std::string, int> currentArea;
-
   std::vector<std::map<std::string, int>> boneAreas = this->BoneAreasInfo;
+
+  bool foundBone;
   this->BoneAreasInfo.clear();
 
-  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; areaIndex--)
+  for (int areaIndex = boneAreas.size() - 1; areaIndex >= 0; --areaIndex)
   {
     currentArea = boneAreas.at(areaIndex);
 
@@ -842,27 +724,27 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
     boneArea = boneLen * currentArea["depth"];
 
     //gather sum of shadow areas from above the area
-    for (int y = currentArea["yMax"] + boneHalfLen; y > currentArea["yMax"]; y--)
+    for (int y = currentArea["yMax"] + boneHalfLen; y > currentArea["yMax"]; --y)
     {
-      for (int x = dims[0] - 1; x >= currentArea["depth"]; x--)
+      for (int x = dims[0] - 1; x >= currentArea["depth"]; --x)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         aboveSum += vInput;
       }
     }
     //gather sum of shadow areas from the area
-    for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; y--)
+    for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
     {
-      for (int x = dims[0] - 1; x >= currentArea["depth"]; x--)
+      for (int x = dims[0] - 1; x >= currentArea["depth"]; --x)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         areaSum += vInput;
       }
     }
     //gather sum of shadow areas from below the area
-    for (int y = currentArea["yMin"] - boneHalfLen; y < currentArea["yMin"]; y++)
+    for (int y = currentArea["yMin"] - boneHalfLen; y < currentArea["yMin"]; ++y)
     {
-      for (int x = dims[0] - 1; x >= currentArea["depth"]; x--)
+      for (int x = dims[0] - 1; x >= currentArea["depth"]; --x)
       {
         vInput = (originalImage->GetScalarComponentAsFloat(x, y, 0, 0));
         belowSum += vInput;
@@ -876,15 +758,28 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
     //If there is a higher amount of bones around it, remove the area
     if (aboveAvgShadow - areaAvgShadow <= areaAvgShadow / 2 || belowAvgShadow - areaAvgShadow <= areaAvgShadow / 2)
     {
-      for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; y--)
+
+      for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
       {
-        for (int x = currentArea["xMax"]; x >= currentArea["xMin"]; x--)
+        //search through the area where the pixels are known to be
+        int x = currentArea["xMax"];
+        foundBone = false;
+        while (x >= currentArea["xMin"] && foundBone == false)
         {
           vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
           if (*vOutput != 0)
           {
+            //remove all pixels in the outline
             *vOutput = 0;
+
+            for (int removeBonex = std::max(0, x - (this->BoneOutlineDepthPx - 1)); removeBonex < x; ++removeBonex)
+            {
+              vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(removeBonex, y, 0));
+              *vOutput = 0;
+            }
+            foundBone = true;
           }
+          x--;
         }
       }
     }
@@ -895,8 +790,9 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
   }
 }
 
+//----------------------------------------------------------------------------
 //a way of threasholding based on the standard deviation of a row
-void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtkImageData> inputImage)
+void vtkPlusTransverseProcessEnhancer::ThresholdViaStdDeviation(vtkSmartPointer<vtkImageData> inputImage)
 {
   int fatLayerToCut = 20; //TODO: Magic Number, replace with parameter in mm
 
@@ -909,22 +805,25 @@ void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtk
   int max;
 
   int pixelSum;
+  int squearSum;
   float pixelAverage;
   float meanDiffSum;
   float meanDiffAverage;
   float thresholdValue;
-  for (int y = dims[1] - 1; y >= 0; y--)
+  for (int y = dims[1] - 1; y >= 0; --y)
   {
     max = 0;
 
     pixelSum = 0;
+    squearSum = 0;
     pixelAverage = 0;
 
     //determine the average, sum, and max of the row
-    for (int x = dims[0] - 1; x >= fatLayerToCut; x--)
+    for (int x = dims[0] - 1; x >= fatLayerToCut; --x)
     {
       vInput = inputImage->GetScalarComponentAsFloat(x, y, 0, 0);
       pixelSum += vInput;
+      squearSum += vInput * vInput;
 
       if (vInput > max)
       {
@@ -934,24 +833,21 @@ void vtkPlusTransverseProcessEnhancer::StdDeviationThreshold(vtkSmartPointer<vtk
     pixelAverage = pixelSum / (dims[0] - fatLayerToCut);
 
     //determine the standard deviation of the row
-    meanDiffSum = 0;
-    meanDiffAverage = 0;
-    for (int x = dims[0] - 1; x >= fatLayerToCut; x--)
-    {
-      vInput = inputImage->GetScalarComponentAsFloat(x, y, 0, 0);
-      meanDiffSum += pow(vInput - pixelAverage, 2);
-    }
+    meanDiffSum = squearSum + (dims[0] - fatLayerToCut) * pixelAverage * pixelAverage + (-2 * pixelAverage * pixelSum);
     meanDiffAverage = meanDiffSum / (dims[0] - fatLayerToCut);
-
     thresholdValue = max - 3 * pow(meanDiffAverage, 0.5);
 
+
     //if a pixel's value is too low, remove it
-    for (int x = dims[0] - 1; x >= 0; x--)
+    if (pixelSum != 0)
     {
-      vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
-      if (*vOutput < thresholdValue && *vOutput != 0)
+      for (int x = dims[0] - 1; x >= 0; --x)
       {
-        *vOutput = 0;
+        vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
+        if (*vOutput < thresholdValue && *vOutput != 0)
+        {
+          *vOutput = 0;
+        }
       }
     }
   }
@@ -967,11 +863,11 @@ void vtkPlusTransverseProcessEnhancer::ImageConjunction(vtkSmartPointer<vtkImage
   int dims[3] = { 0, 0, 0 };
   this->LinesImage->GetDimensions(dims);      // This will be the same as InputImage, as long as InputImage is converted to linesImage previously
 
-  for (int y = 0; y < dims[1]; y++)
+  for (int y = dims[1] - 1; y >= 0; --y)
   {
     // Initialize variables for a new scan line.
 
-    for (int x = 0; x < dims[0]; x++)   // Go towards transducer
+    for (int x = dims[0] - 1; x >= 0; --x)   // Go towards transducer
     {
       if (static_cast<unsigned char>(MaskImage->GetScalarComponentAsFloat(x, y, 0, 0)) > 0)
       {
@@ -997,11 +893,13 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->FirstFrame = false;
   }
 
-  this->FrameCounter += 1; //TODO: get rid of this in final version
+  this->FrameCounter += 1;
 
   this->BoneAreasInfo.clear();
 
   PlusVideoFrame* inputImage = inputFrame->GetImageData();
+  //an image used to transport output between filters
+  vtkSmartPointer<vtkImageData> intermediateImage = vtkSmartPointer<vtkImageData>::New();
 
   int dims[3] = { 0, 0, 0 };
   inputImage->GetImage()->GetDimensions(dims);
@@ -1012,6 +910,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   }
   this->AddIntermediateImage("_00PreFilters", inputImage->GetImage());
 
+
   if (this->ConvertToLinesImage)
   {
     this->ScanConverter->SetInputData(inputImage->GetImage());
@@ -1019,26 +918,26 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->AddIntermediateFromFilter("_01Lines_1PreFillLines", this->ScanConverter);
     this->FillLinesImage(inputImage->GetImage());
     this->AddIntermediateImage("_01Lines_2FilterEnd", this->LinesImage);
-    this->IntermediateImage->DeepCopy(this->LinesImage);
+    intermediateImage->DeepCopy(this->LinesImage);
   }
   else
   {
-    this->IntermediateImage->DeepCopy(inputImage->GetImage());
+    intermediateImage->DeepCopy(inputImage->GetImage());
   }
 
   //Save this image so that it can be used for comparason with the output image
   vtkSmartPointer<vtkImageData> originalImage = vtkSmartPointer<vtkImageData>::New();
-  originalImage->DeepCopy(this->IntermediateImage);
+  originalImage->DeepCopy(intermediateImage);
 
   if (this->ThresholdingEnabled)
   {
-    this->StdDeviationThreshold(this->IntermediateImage);
-    this->AddIntermediateImage("_02Threshold_1FilterEnd", this->IntermediateImage);
+    this->ThresholdViaStdDeviation(intermediateImage);
+    this->AddIntermediateImage("_02Threshold_1FilterEnd", intermediateImage);
   }
 
   if (this->GaussianEnabled)
   {
-    this->GaussianSmooth->SetInputData(this->IntermediateImage);
+    this->GaussianSmooth->SetInputData(intermediateImage);
     this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
   }
 
@@ -1046,6 +945,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   {
     this->EdgeDetector->SetInputConnection(this->GaussianSmooth->GetOutputPort());
     this->EdgeDetector->Update();
+    this->AddIntermediateImage("_04EdgeDetector_0FilterEnd", this->EdgeDetector->GetOutput());
     this->VectorImageToUchar(this->EdgeDetector->GetOutput());
     this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->ConversionImage);
   }
@@ -1079,15 +979,15 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->ImageDialator->SetInputConnection(this->ImageEroder->GetOutputPort());
       this->ImageDialator->Update();
       this->BinaryImageForMorphology->DeepCopy(this->ImageDialator->GetOutput());
-      this->AddIntermediateImage("_08Dilation_1PostUpdate", this->BinaryImageForMorphology);
-
-      this->MarkShadowOutline(this->BinaryImageForMorphology);
-      this->AddIntermediateImage("_08Dilation_2ShadowOutline", this->BinaryImageForMorphology);
-      this->RemoveOffCameraBones(this->BinaryImageForMorphology);
-      this->AddIntermediateImage("_08Dilation_3PostRemoveOffCamera", this->BinaryImageForMorphology);
-      this->CompareShadowAreas(originalImage, this->BinaryImageForMorphology);
-      this->AddIntermediateImage("_08Dilation_4PostCompareShadowAreas", this->BinaryImageForMorphology);
+      this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
     }
+
+    this->MarkShadowOutline(this->BinaryImageForMorphology);
+    this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
+    this->RemoveOffCameraBones(this->BinaryImageForMorphology);
+    this->AddIntermediateImage("_09PostFilters_2PostRemoveOffCamera", this->BinaryImageForMorphology);
+    this->CompareShadowAreas(originalImage, this->BinaryImageForMorphology);
+    this->AddIntermediateImage("_09PostFilters_3PostCompareShadowAreas", this->BinaryImageForMorphology);
 
     if (this->ReconvertBinaryToGreyscale)
     {
@@ -1095,16 +995,16 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
       this->UnprocessedLinesImage->DeepCopy(this->GaussianSmooth->GetOutput());
       this->ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);
 
-      this->AddIntermediateImage("_09ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
-      this->IntermediateImage->DeepCopy(this->UnprocessedLinesImage);
+      this->AddIntermediateImage("_10ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
+      intermediateImage->DeepCopy(this->UnprocessedLinesImage);
     }
     else
     {
-      this->IntermediateImage->DeepCopy(this->BinaryImageForMorphology);
+      intermediateImage->DeepCopy(this->BinaryImageForMorphology);
     }
   }
 
-  this->ProcessedLinesImage->DeepCopy(this->IntermediateImage);
+  this->ProcessedLinesImage->DeepCopy(intermediateImage);
   PlusVideoFrame processedVideoFrame;
   processedVideoFrame.DeepCopyFrom(this->ProcessedLinesImage);
   PlusTrackedFrame* processedTrackedFrame = inputFrame;
@@ -1114,19 +1014,19 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   if (this->ReturnToFanImage)
   {
     this->ScanConverter->SetInputData(this->ProcessedLinesImage);
-    this->ScanConverter->SetOutput(this->IntermediateImage);
+    this->ScanConverter->SetOutput(intermediateImage);
     this->ScanConverter->Update();
 
-    outputImage->DeepCopyFrom(this->IntermediateImage);
+    outputImage->DeepCopyFrom(intermediateImage);
 
-    this->AddIntermediateImage("_10ReturnToFanImage_1FilterEnd", this->IntermediateImage);
+    this->AddIntermediateImage("_11ReturnToFanImage_1FilterEnd", intermediateImage);
   }
   else
   {
-    outputImage->DeepCopyFrom(this->IntermediateImage);
+    outputImage->DeepCopyFrom(intermediateImage);
   }
 
-  //TODO: Move output back by a number of pixels
+  //TODO: Move output back by a number of pixels (mm!)
 
   return PLUS_SUCCESS;
 }
@@ -1140,7 +1040,8 @@ process, returns PLUS_SUCCESS otherwise.
 */
 PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllIntermediateResultsToFile()
 {
-  for (int postfixIndex = this->IntermediatePostfixes.size() - 1; postfixIndex >= 0; postfixIndex -= 1){
+  for (int postfixIndex = this->IntermediatePostfixes.size() - 1; postfixIndex >= 0; postfixIndex -= 1)
+  {
     if (this->SaveIntermediateResultToFile(this->IntermediatePostfixes.at(postfixIndex)) == PLUS_FAIL)
     {
       return PLUS_FAIL;
@@ -1176,6 +1077,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveIntermediateResultToFile(char* 
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image)
 {
   if (fileNamePostfix == "")
@@ -1206,6 +1108,7 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfi
   }
 }
 
+//----------------------------------------------------------------------------
 //Given a vtk filter, get the image that would display at that point and save it
 void vtkPlusTransverseProcessEnhancer::AddIntermediateFromFilter(char* fileNamePostfix, vtkImageAlgorithm* imageFilter)
 {
@@ -1216,10 +1119,11 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateFromFilter(char* fileNameP
 
   if (this->SaveIntermediateResults) //TODO: Do this check when calling this method, not inside it
   {
-    imageFilter->SetOutput(this->IntermediateImage);
+    vtkSmartPointer<vtkImageData> tempOutputImage = vtkSmartPointer<vtkImageData>::New();
+    imageFilter->SetOutput(tempOutputImage);
     imageFilter->Update();
 
-    this->AddIntermediateImage(fileNamePostfix, this->IntermediateImage);
+    this->AddIntermediateImage(fileNamePostfix, tempOutputImage);
   }
 }
 
@@ -1235,48 +1139,6 @@ void vtkPlusTransverseProcessEnhancer::SetGaussianKernelSize(double gaussianKern
 {
   this->GaussianKernelSize = gaussianKernelSize;
   this->GaussianSmooth->SetRadiusFactor(gaussianKernelSize);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetThresholdInValue(double thresholdInValue)
-{
-  this->ThresholdInValue = thresholdInValue;
-  this->Thresholder->SetInValue(thresholdInValue);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetThresholdOutValue(double thresholdOutValue)
-{
-  this->ThresholdOutValue = thresholdOutValue;
-  this->Thresholder->SetOutValue(thresholdOutValue);
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetLowerThreshold(double lowerThreshold)
-{
-  this->LowerThreshold = lowerThreshold;
-  if (this->UpperThreshold != 0.0)
-  {
-    this->Thresholder->ThresholdBetween(this->LowerThreshold, this->UpperThreshold);
-  }
-  else
-  {
-    this->Thresholder->ThresholdByLower(this->LowerThreshold);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusTransverseProcessEnhancer::SetUpperThreshold(double upperThreshold)
-{
-  this->UpperThreshold = upperThreshold;
-  if (this->LowerThreshold != 0.0)
-  {
-    this->Thresholder->ThresholdBetween(this->LowerThreshold, this->UpperThreshold);
-  }
-  else
-  {
-    this->Thresholder->ThresholdByUpper(this->UpperThreshold);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -1299,8 +1161,6 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
   }
 }
-
-
 
 //----------------------------------------------------------------------------
 // TODO: Currently not used. If won't be used, delete.

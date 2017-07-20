@@ -21,6 +21,8 @@ This is a program meant to test vtkPlusTransverseProcessEnhancer.cxx from the co
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkImageCast.h"
 
+#include <ctime>
+
 //----------------------------------------------------------------------------
 
 

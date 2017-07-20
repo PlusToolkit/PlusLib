@@ -12,9 +12,12 @@ TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest
 
 ADD_TEST(vtkPlusTransverseProcessEnhancerTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
-  # TODO Add your test parameters here
+  --input-seq-file=${TestDataDir}/PlusTransverseProcessEnhancerTestData.mha
+  --output-seq-file=${TestDataDir}/outputPlusTransverseProcessEnhancerTest.mha
+  --input-config-file=${ConfigFilesDir}/Testing/PlusTransverseProcessEnhancerTestingParameters.xml
+  --save-intermediate-images=false
   )
-SET_TESTS_PROPERTIES( vtkPlusTransverseProcessEnhancerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES( vtkPlusTransverseProcessEnhancerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR" )
 
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   # --------------------------------------------------------------------------
