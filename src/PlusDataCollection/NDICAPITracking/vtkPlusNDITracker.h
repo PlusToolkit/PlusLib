@@ -250,6 +250,11 @@ protected:
   void LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
   void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
 
+  /*!
+    Intelligently detect which connection is used and close it
+  */
+  PlusStatus CloseDevice(ndicapi*& device);
+
 protected:
   unsigned long             LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
   ndicapi*                  Device;

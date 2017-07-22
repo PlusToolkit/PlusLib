@@ -84,6 +84,8 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , IsDeviceTracking(0)
   , LeaveDeviceOpenAfterProbe(false)
   , MeasurementVolumeNumber(0)
+  , NetworkHostname("")
+  , NetworkPort(8765)
 {
   memset(this->CommandReply, 0, VTK_NDI_REPLY_LEN);
 
@@ -150,20 +152,35 @@ PlusStatus vtkPlusNDITracker::Probe()
   {
     return PLUS_SUCCESS;
   }
-
-  int errnum = NDI_OPEN_ERROR;
-  char* devicename = NULL;
+  
   if (this->SerialPort > 0)
   {
+    char* devicename = NULL;
+    int errnum = NDI_OPEN_ERROR;
     devicename = ndiSerialDeviceName(this->SerialPort - 1);
     if (devicename)
     {
       errnum = ndiSerialProbe(devicename);
     }
+
+    if (errnum != NDI_OKAY)
+    {
+      return PLUS_FAIL;
+    }
+
+    this->Device = ndiOpenSerial(devicename);
+    if (this->Device && !this->LeaveDeviceOpenAfterProbe)
+    {
+      CloseDevice(this->Device);
+    }
+    return PLUS_SUCCESS;
   }
   else if (this->NetworkHostname.empty())
   {
     // if SerialPort is set to -1 (default), then probe the first N serial ports
+    char* devicename = NULL;
+    int errnum = NDI_OPEN_ERROR;
+
     const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
     for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
     {
@@ -174,7 +191,12 @@ PlusStatus vtkPlusNDITracker::Probe()
         if (errnum == NDI_OKAY)
         {
           this->SerialPort = i + 1;
-          break;
+          this->Device = ndiOpenSerial(devicename);
+          if (this->Device && !this->LeaveDeviceOpenAfterProbe)
+          {
+            CloseDevice(this->Device);
+          }
+          return PLUS_SUCCESS;
         }
       }
     }
@@ -184,19 +206,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     // TODO: probe network?
   }
 
-  // if probe was okay, then send VER:0 to identify device
-  if (errnum != NDI_OKAY)
-  {
-    return PLUS_FAIL;
-  }
-
-  this->Device = ndiOpenSerial(devicename);
-  if (this->Device && !this->LeaveDeviceOpenAfterProbe)
-  {
-    ndiCloseSerial(this->Device);
-    this->Device = 0;
-  }
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -290,9 +300,6 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
       return PLUS_FAIL;
     }
 
-    // send serial break
-    this->Command(nullptr);
-
     // set the baud rate
     // also: NOHANDSHAKE cuts down on CRC errs and timeouts
     if (this->NetworkHostname.empty())
@@ -306,38 +313,6 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
         this->Device = nullptr;
         return PLUS_FAIL;
       }
-    }
-  }
-
-  // initialize Device
-  bool resetOccurred = false;
-  std::string initCommandReply = this->Command("INIT:");
-  if (!initCommandReply.empty() && initCommandReply.find("RESET") != std::string::npos)
-  {
-    // The tracker device was left in high-speed mode after exiting debugger. When the INIT was sent at 9600 baud,
-    // the device reset back to default 9600 and returned status RESET.
-    // Re-issue the INIT command to avoid 'command not valid in current mode' errors.
-    resetOccurred = true;
-  }
-  int errnum = 0;
-  if (ndiGetError(this->Device) || resetOccurred)
-  {
-    ndiRESET(this->Device);
-    this->Command("INIT:");
-    errnum = ndiGetError(this->Device);
-    if (errnum)
-    {
-      LOG_ERROR(ndiErrorString(errnum));
-      if (this->NetworkHostname.empty())
-      {
-        ndiCloseSerial(this->Device);
-      }
-      else
-      {
-        ndiCloseNetwork(this->Device);
-      }
-      this->Device = nullptr;
-      return PLUS_FAIL;
     }
   }
 
@@ -356,21 +331,13 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
     else
     {
       // Use SET command with parameter
-      std::string volumeSelectCommandReply = this->Command("VSEL:%d", this->MeasurementVolumeNumber);
-      errnum = ndiGetError(this->Device);
+      std::string volumeSelectCommandReply = this->Command("SET:Param.Tracking.Selected Volume=%d", this->MeasurementVolumeNumber);
+      int errnum = ndiGetError(this->Device);
       if (errnum)
       {
         LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
         LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
-        if (this->NetworkHostname.empty())
-        {
-          ndiCloseSerial(this->Device);
-        }
-        else
-        {
-          ndiCloseNetwork(this->Device);
-        }
-        this->Device = nullptr;
+        CloseDevice(this->Device);
         return PLUS_FAIL;
       }
     }
@@ -402,15 +369,7 @@ PlusStatus vtkPlusNDITracker::InternalDisconnect()
   {
     LOG_ERROR(ndiErrorString(errnum));
   }
-  if (this->NetworkHostname.empty())
-  {
-    ndiCloseSerial(this->Device);
-  }
-  else
-  {
-    ndiCloseNetwork(this->Device);
-  }
-  this->Device = nullptr;
+  CloseDevice(this->Device);
 
   return PLUS_SUCCESS;
 }
@@ -429,15 +388,7 @@ PlusStatus vtkPlusNDITracker::InternalStartRecording()
   if (errnum)
   {
     LOG_ERROR("Failed TSTART: " << ndiErrorString(errnum));
-    if (this->NetworkHostname.empty())
-    {
-      ndiCloseSerial(this->Device);
-    }
-    else
-    {
-      ndiCloseNetwork(this->Device);
-    }
-    this->Device = 0;
+    CloseDevice(this->Device);
     return PLUS_FAIL;
   }
 
@@ -1246,4 +1197,20 @@ void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selecte
       }
     }
   }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::CloseDevice(ndicapi*& device)
+{
+  if (this->NetworkHostname.empty())
+  {
+    ndiCloseSerial(device);
+  }
+  else
+  {
+    ndiCloseNetwork(device);
+  }
+  device = nullptr;
+
+  return PLUS_SUCCESS;
 }

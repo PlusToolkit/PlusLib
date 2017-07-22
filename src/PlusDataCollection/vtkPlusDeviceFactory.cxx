@@ -200,6 +200,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
   RegisterDevice("CertusTracker", "vtkPlusNDICertusTracker", (PointerToDevice)&vtkPlusNDICertusTracker::New);
 #endif
 #ifdef PLUS_USE_NDI
+  RegisterDevice("NDITracker", "vtkPlusNDITracker", (PointerToDevice)&vtkPlusNDITracker::New);
   RegisterDevice("PolarisTracker", "vtkPlusNDITracker", (PointerToDevice)&vtkPlusNDITracker::New);
   RegisterDevice("AuroraTracker", "vtkPlusNDITracker", (PointerToDevice)&vtkPlusNDITracker::New);
 #endif

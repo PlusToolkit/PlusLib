@@ -57,9 +57,7 @@ protected:
   vtkPlusRTSPVideoSource();
   ~vtkPlusRTSPVideoSource();
 
-  /*! Device-specific connect */
   PlusStatus InternalConnect();
-  /*! Device-specific disconnect */
   PlusStatus InternalDisconnect();
 
 protected:
