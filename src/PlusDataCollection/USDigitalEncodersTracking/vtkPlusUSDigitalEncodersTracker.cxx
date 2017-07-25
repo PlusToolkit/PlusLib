@@ -565,9 +565,15 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     const char* fromAttribute = encoderInfoElement->GetAttribute("Id");
     const char* toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
 
-    if (!fromAttribute || !toAttribute)
+    if (!toAttribute)
     {
-      LOG_ERROR("Device's attribute 'ToolReferenceFrame' and DataSource's attribute 'Id' are required!");
+      toAttribute = deviceConfig->GetAttribute("Id");
+      LOG_WARNING("Device's attribute 'ToolReferenceFrame' is missing (Device Id='" << toAttribute << "')!");
+    }
+
+    if (!fromAttribute)
+    {
+      LOG_ERROR("DataSource's attribute 'Id' is required!");
       continue;
     }
 
