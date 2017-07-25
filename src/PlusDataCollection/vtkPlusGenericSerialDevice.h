@@ -71,12 +71,20 @@ public:
   /*!
     Send text to the serial device. If a non-NULL pointer is passed as textReceived
     then the device waits for a response and returns it in textReceived.
+
+    If acceptReply is not REQUIRE_NOT_EMPTY, command is considered successful if non-empty
+    reply is received within timeout, even if it not terminated by a LineEnding.
+    Some devices (e.g. Velmex VXM) has both kinds of commands, e.g. `V` command is not CR terminated:
+    http://www.velmex.com/Downloads/Spec_Sheets/VXM%20-%20%20Command%20Summary%20Rev%20B%20814.pdf
   */
   virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived = NULL,
     ReplyTermination acceptReply = REQUIRE_LINE_ENDING);
 
   /*!
     Receive a response from the serial device.
+
+    In case that a device has both terminated and unterminated responses,
+    acceptReply needs to be specified per command.
   */
   virtual PlusStatus ReceiveResponse(std::string& textReceived, ReplyTermination acceptReply = REQUIRE_LINE_ENDING);
 
