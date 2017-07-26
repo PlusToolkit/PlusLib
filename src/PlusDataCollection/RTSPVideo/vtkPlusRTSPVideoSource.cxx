@@ -70,7 +70,7 @@ PlusStatus vtkPlusRTSPVideoSource::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusRTSPVideoSource::InternalConnect()
 {
-  this->Capture = std::make_shared<cv::VideoCapture>(this->StreamURL);
+  this->Capture = std::make_shared<cv::VideoCapture>(this->StreamURL, cv::CAP_FFMPEG);
   this->Frame = std::make_shared<cv::Mat>();
 
   if (!this->Capture->isOpened())
