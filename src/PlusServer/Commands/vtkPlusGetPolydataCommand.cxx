@@ -64,7 +64,7 @@ PlusStatus vtkPlusGetPolydataCommand::WriteConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL;
   }
   aConfig->SetAttribute("fileName", this->GetPolydataId().c_str());
-  Superclass::WriteConfiguration(aConfig);
+  return Superclass::WriteConfiguration(aConfig);
 }
 
 //----------------------------------------------------------------------------
