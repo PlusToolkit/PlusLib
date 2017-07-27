@@ -256,19 +256,20 @@ protected:
   PlusStatus CloseDevice(ndicapi*& device);
 
 protected:
-  unsigned long             LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
-  ndicapi*                  Device;
-  std::string               SerialDevice;
-  int                       SerialPort;
-  int                       BaudRate;
-  int                       IsDeviceTracking;
-  int                       MeasurementVolumeNumber;
-  bool                      LeaveDeviceOpenAfterProbe;
-  NdiToolDescriptorsType    NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
-  char                      CommandReply[VTK_NDI_REPLY_LEN];
+  unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
+  ndicapi*                          Device;
+  std::string                       SerialDevice;
+  int                               SerialPort;
+  int                               BaudRate;
+  int                               IsDeviceTracking;
+  int                               MeasurementVolumeNumber;
+  bool                              LeaveDeviceOpenAfterProbe;
+  NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
+  vtkPlusRecursiveCriticalSection*  CommandMutex;
+  char                              CommandReply[VTK_NDI_REPLY_LEN];
 
-  std::string               NetworkHostname;
-  int                       NetworkPort;
+  std::string                       NetworkHostname;
+  int                               NetworkPort;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);
