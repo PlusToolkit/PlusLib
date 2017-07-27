@@ -524,8 +524,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
   for (int encoderIndex = 0; encoderIndex < dataSourcesElement->GetNumberOfNestedElements(); encoderIndex++)
   {
-    vtkXMLDataElement* EncoderInfoElement = dataSourcesElement->GetNestedElement(encoderIndex);
-    if (STRCASECMP(EncoderInfoElement->GetName(), "DataSource") != 0)
+    vtkXMLDataElement* encoderInfoElement = dataSourcesElement->GetNestedElement(encoderIndex);
+    if (STRCASECMP(encoderInfoElement->GetName(), "DataSource") != 0)
     {
       // if this is not a data source element, skip it
       continue;
@@ -534,7 +534,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     vtkPlusEncoderTrackingInfo encodertrackingInfo;
 
     // ---- Get PortName
-    const char* portName = EncoderInfoElement->GetAttribute("PortName");
+    const char* portName = encoderInfoElement->GetAttribute("PortName");
     if (portName == NULL)
     {
       LOG_ERROR("Cannot set sensor-specific parameters: tool portname is undefined");
@@ -562,12 +562,18 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encodertrackingInfo.Encoder_PortName = portName;
 
     // ---- Get a name of transformation
-    const char* fromAttribute = EncoderInfoElement->GetAttribute("From");
-    const char* toAttribute = EncoderInfoElement->GetAttribute("To");
+    const char* fromAttribute = encoderInfoElement->GetAttribute("Id");
+    const char* toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
 
-    if (!fromAttribute || !toAttribute)
+    if (!toAttribute)
     {
-      LOG_ERROR("Failed to read transform of CoordinateDefinitions (nested element index: " << EncoderInfoElement << ") - check 'From' and 'To' attributes in the configuration file!");
+      toAttribute = deviceConfig->GetAttribute("Id");
+      LOG_WARNING("Device's attribute 'ToolReferenceFrame' is missing (Device Id='" << toAttribute << "')!");
+    }
+
+    if (!fromAttribute)
+    {
+      LOG_ERROR("DataSource's attribute 'Id' is required!");
       continue;
     }
 
@@ -581,9 +587,9 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encodertrackingInfo.Encoder_TransformName = transformName;
 
     bool isPersistent = true;
-    if (EncoderInfoElement->GetAttribute("Persistent")) // if it exists, then it is non-persistent
+    if (encoderInfoElement->GetAttribute("Persistent")) // if it exists, then it is non-persistent
     {
-      if (STRCASECMP(EncoderInfoElement->GetAttribute("Persistent"), "FALSE") == 0)
+      if (STRCASECMP(encoderInfoElement->GetAttribute("Persistent"), "FALSE") == 0)
       {
         isPersistent = false;
       }
@@ -598,7 +604,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     // ---- Get PreTMatrix:
     double vectorMatrix[16] = { 0 };
-    if (EncoderInfoElement->GetVectorAttribute("PreTMatrix", 16, vectorMatrix))
+    if (encoderInfoElement->GetVectorAttribute("PreTMatrix", 16, vectorMatrix))
     {
       encodertrackingInfo.Encoder_PreTMatrix->DeepCopy(vectorMatrix);
     }
@@ -609,7 +615,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     // Reading the serial number of an US Digital Encoder
-    const char* sn = EncoderInfoElement->GetAttribute("SN");
+    const char* sn = encoderInfoElement->GetAttribute("SN");
     this->USDigitalEncoderTrackingInfoList.push_back(encodertrackingInfo);
     vtkPlusUSDigitalEncoderInfo* encoderinfoPointer = new vtkPlusUSDigitalEncoderInfo;
     vtkPlusUSDigitalEncoderInfo& encoderinfo = *encoderinfoPointer;
@@ -621,7 +627,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       if (this->CoreXY)
       {
         // Reading second (Y-direction) serial number of an US Digital Encoder
-        const char* sn = EncoderInfoElement->GetAttribute("SN2");
+        const char* sn = encoderInfoElement->GetAttribute("SN2");
         if (sn != NULL)
         {
           encoderinfo.Encoder_SN2 = atol(sn);
@@ -640,7 +646,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     // Reading the MotionType of an US Digital Encoder
-    std::string motiontype = EncoderInfoElement->GetAttribute("MotionType");
+    std::string motiontype = encoderInfoElement->GetAttribute("MotionType");
     if (motiontype.empty())
     {
       LOG_ERROR("Cannot read the MotionType of an US Digital Encoder");
@@ -665,7 +671,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     // Reading the pulse spacing of an US Digital Encoder
     // Linear Motion : mm /pulses
     // Rotation      : rad/pulses
-    const char* pulseSpacing = EncoderInfoElement->GetAttribute("PulseSpacing");
+    const char* pulseSpacing = encoderInfoElement->GetAttribute("PulseSpacing");
     if (pulseSpacing == NULL)
     {
       LOG_ERROR("Cannot read the PulseSpacing of an US Digital Encoder");
@@ -678,7 +684,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       // Reading the pulse spacing of an US Digital Encoder
       // Linear Motion : mm /pulses
       // Rotation      : rad/pulses
-      const char* pulseSpacing = EncoderInfoElement->GetAttribute("PulseSpacing2");
+      const char* pulseSpacing = encoderInfoElement->GetAttribute("PulseSpacing2");
       if (pulseSpacing == NULL)
       {
         LOG_ERROR("Cannot read the second PulseSpacing of an US Digital Encoder in coreXY mode");
@@ -687,7 +693,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       encoderinfo.Encoder_PulseSpacing2 = atof(pulseSpacing);
     }
 
-    if (!EncoderInfoElement->GetVectorAttribute("LocalAxis", 3, encoderinfo.Encoder_LocalAxis.GetData()))
+    if (!encoderInfoElement->GetVectorAttribute("LocalAxis", 3, encoderinfo.Encoder_LocalAxis.GetData()))
     {
       LOG_ERROR("Unable to find 'LocalAxis' attribute of an encoder in the configuration file");
       continue;
@@ -695,7 +701,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     if (this->CoreXY)
     {
-      if (!EncoderInfoElement->GetVectorAttribute("LocalAxis2", 3, encoderinfo.Encoder_LocalAxis2.GetData()))
+      if (!encoderInfoElement->GetVectorAttribute("LocalAxis2", 3, encoderinfo.Encoder_LocalAxis2.GetData()))
       {
         LOG_ERROR("Unable to find 'LocalAxis2' attribute of an encoder in the configuration file");
         continue;
@@ -703,7 +709,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     // Reading the mode of an US Digital Encoder
-    const char* mode = EncoderInfoElement->GetAttribute("Mode");
+    const char* mode = encoderInfoElement->GetAttribute("Mode");
     if (mode == NULL)
     {
       LOG_ERROR("Cannot read the Mode of an US Digital Encoder");
@@ -714,7 +720,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encoderinfo.Encoder_Mode = atol(mode);
 
     // Reading the resolution of an US Digital Encoder
-    const char* resolution = EncoderInfoElement->GetAttribute("Resolution");
+    const char* resolution = encoderInfoElement->GetAttribute("Resolution");
     if (resolution == NULL)
     {
       LOG_ERROR("Cannot read the Resolution of an US Digital Encoder");
