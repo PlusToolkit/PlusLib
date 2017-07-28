@@ -252,113 +252,111 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalConnect()
 {
+  PlusStatus result;
   if (!this->NetworkHostname.empty())
   {
-    this->Device = ndiOpenNetwork(this->NetworkHostname.c_str(), this->NetworkPort);
-
-    if (this->Device == nullptr)
-    {
-      LOG_ERROR("Unable to connect to " << this->NetworkHostname << ":" << this->NetworkPort);
-      return PLUS_FAIL;
-    }
-
-    // First init can take up to 5 seconds
-    ndiTimeoutSocket(this->Device, 5000);
-
-    auto reply = this->Command("INIT");
-
-    // Subsequent commands should be much faster
-    ndiTimeoutSocket(this->Device, 100);
+    result = InternalConnectNetwork();
   }
   else
   {
-    int baud = NDI_9600;
-    switch (this->BaudRate)
-    {
-      case 9600:
-        baud = NDI_9600;
-        break;
-      case 14400:
-        baud = NDI_14400;
-        break;
-      case 19200:
-        baud = NDI_19200;
-        break;
-      case 38400:
-        baud = NDI_38400;
-        break;
-      case 57600:
-        baud = NDI_57600;
-        break;
-      case 115200:
-        baud = NDI_115200;
-        break;
-      case 921600:
-        baud = NDI_921600;
-        break;
-      case 1228739:
-        baud = NDI_1228739;
-        break;
-      default:
-        LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
-        return PLUS_FAIL;
-    }
-
-    this->LeaveDeviceOpenAfterProbe = true;
-    if (this->Probe() == PLUS_FAIL)
-    {
-      LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
-      return PLUS_FAIL;
-    }
-
-    // set the baud rate
-    // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-    if (this->NetworkHostname.empty())
-    {
-      this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
-      int errnum = ndiGetError(this->Device);
-      if (errnum)
-      {
-        LOG_ERROR(ndiErrorString(errnum));
-        ndiSerialClose(this->Device);
-        this->Device = nullptr;
-        return PLUS_FAIL;
-      }
-    }
+    result = InternalConnectSerial();
   }
 
-  if (this->MeasurementVolumeNumber > 0)
+  if (result != PLUS_SUCCESS)
   {
-    std::string reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
-    auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
-    auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
-
-    // <Value>;<Type>;<Attribute>;<Minimum>;<Maximum>;<Enumeration>;<Description>
-    if (static_cast<unsigned int>(this->MeasurementVolumeNumber) - 1 > dataFields.size() / 7)
-    {
-      LOG_ERROR("Selected measurement volume does not exist. Using default.");
-      LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
-    }
-    else
-    {
-      // Use SET command with parameter
-      std::string volumeSelectCommandReply = this->Command("SET:Param.Tracking.Selected Volume=%d", this->MeasurementVolumeNumber);
-      int errnum = ndiGetError(this->Device);
-      if (errnum)
-      {
-        LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
-        LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
-        CloseDevice(this->Device);
-        return PLUS_FAIL;
-      }
-    }
+    LOG_ERROR("Unable to connect to NDI device.");
+    return result;
   }
+
+  SelectMeasurementVolume();
 
   if (this->EnableToolPorts() != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to enable tool ports");
     return PLUS_FAIL;
   }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::InternalConnectSerial()
+{
+  int baud = NDI_9600;
+  switch (this->BaudRate)
+  {
+    case 9600:
+      baud = NDI_9600;
+      break;
+    case 14400:
+      baud = NDI_14400;
+      break;
+    case 19200:
+      baud = NDI_19200;
+      break;
+    case 38400:
+      baud = NDI_38400;
+      break;
+    case 57600:
+      baud = NDI_57600;
+      break;
+    case 115200:
+      baud = NDI_115200;
+      break;
+    case 921600:
+      baud = NDI_921600;
+      break;
+    case 1228739:
+      baud = NDI_1228739;
+      break;
+    default:
+      LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
+      return PLUS_FAIL;
+  }
+
+  this->LeaveDeviceOpenAfterProbe = true;
+  if (this->Probe() == PLUS_FAIL)
+  {
+    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
+    return PLUS_FAIL;
+  }
+
+  // set the baud rate
+  // also: NOHANDSHAKE cuts down on CRC errs and timeouts
+  if (this->NetworkHostname.empty())
+  {
+    this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      LOG_ERROR(ndiErrorString(errnum));
+      ndiSerialClose(this->Device);
+      this->Device = nullptr;
+      return PLUS_FAIL;
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::InternalConnectNetwork()
+{
+  this->Device = ndiOpenNetwork(this->NetworkHostname.c_str(), this->NetworkPort);
+
+  if (this->Device == nullptr)
+  {
+    LOG_ERROR("Unable to connect to " << this->NetworkHostname << ":" << this->NetworkPort);
+    return PLUS_FAIL;
+  }
+
+  // First init can take up to 5 seconds
+  ndiTimeoutSocket(this->Device, 5000);
+
+  auto reply = this->Command("INIT");
+
+  // Subsequent commands should be much faster
+  ndiTimeoutSocket(this->Device, 100);
 
   return PLUS_SUCCESS;
 }
@@ -1068,10 +1066,21 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
 {
   auto reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
-  auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
-  auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
 
-  unsigned int numVolumes = dataFields.size() / 7;
+  unsigned int numVolumes(0);
+  int errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    const unsigned char MODE_GET_VOLUMES_LIST = 0x03; // list of volumes available
+    auto volumeListCommandReply = this->Command("SFLIST:%02X", MODE_GET_VOLUMES_LIST);
+    numVolumes = ndiHexToUnsignedInt(volumeListCommandReply.c_str(), 1);
+  }
+  else
+  {
+    auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
+    auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
+    numVolumes = dataFields.size() / 7;
+  }
 
   if (selectedVolume == 0)
   {
@@ -1222,6 +1231,63 @@ PlusStatus vtkPlusNDITracker::CloseDevice(ndicapi*& device)
     ndiCloseNetwork(device);
   }
   device = nullptr;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::SelectMeasurementVolume()
+{
+  if (this->MeasurementVolumeNumber > 0)
+  {
+    std::string reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      return SelectMeasurementVolumeDeprecated();
+    }
+    else
+    {
+      auto tokens = PlusCommon::SplitStringIntoTokens(reply, '=', false);
+      auto dataFields = PlusCommon::SplitStringIntoTokens(tokens[1], ';', true);
+
+      // <Value>;<Type>;<Attribute>;<Minimum>;<Maximum>;<Enumeration>;<Description>
+      if (static_cast<unsigned int>(this->MeasurementVolumeNumber) - 1 > dataFields.size() / 7)
+      {
+        LOG_ERROR("Selected measurement volume does not exist. Using default.");
+        LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+        return PLUS_FAIL;
+      }
+      else
+      {
+        // Use SET command with parameter
+        std::string volumeSelectCommandReply = this->Command("SET:Param.Tracking.Selected Volume=%d", this->MeasurementVolumeNumber);
+        int errnum = ndiGetError(this->Device);
+        if (errnum)
+        {
+          LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
+          LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
+          CloseDevice(this->Device);
+          return PLUS_FAIL;
+        }
+      }
+    }
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
+{
+  auto volumeSelectCommandReply = this->Command("VSEL:%d", this->MeasurementVolumeNumber);
+  int errnum = ndiGetError(this->Device);
+  if (errnum)
+  {
+    LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
+    LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }

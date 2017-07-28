@@ -191,6 +191,9 @@ protected:
 
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
+  PlusStatus InternalConnectNetwork();
+  PlusStatus InternalConnectSerial();
+
   /*! Disconnect from the tracker hardware */
   PlusStatus InternalDisconnect();
 
@@ -254,6 +257,17 @@ protected:
     Intelligently detect which connection is used and close it
   */
   PlusStatus CloseDevice(ndicapi*& device);
+
+  /*!
+    Select the measurement volume, fallback to deprecated
+  */
+  PlusStatus SelectMeasurementVolume();
+
+  /*!
+    Select the measurement volume using deprecated commands
+    Only used if newer commands are not supported by a device
+  */
+  PlusStatus SelectMeasurementVolumeDeprecated();
 
 protected:
   unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
