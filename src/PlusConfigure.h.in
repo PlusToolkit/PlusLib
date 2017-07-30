@@ -97,7 +97,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_NVIDIA_DVP
 #cmakedefine PLUS_USE_OvrvisionPro
 #cmakedefine PLUS_USE_AGILENT
-#cmakedefine PLUS_USE_RTSP_VIDEO
+#cmakedefine PLUS_USE_OpenCV_VIDEO
 
 #cmakedefine PLUS_USE_SIMPLE_TIMER
 #cmakedefine PLUS_TEST_HIGH_ACCURACY_TIMING

@@ -168,8 +168,8 @@ See License.txt for details.
   #include "vtkPlusOvrvisionProVideoSource.h"
 #endif
 
-#ifdef PLUS_USE_RTSP_VIDEO
-  #include "vtkPlusRTSPVideoSource.h"
+#ifdef PLUS_USE_OpenCV_VIDEO
+  #include "vtkPlusOpenCVCaptureVideoSource.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -308,8 +308,8 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_AGILENT
   RegisterDevice("AgilentScope", "vtkPlusAgilentScopeTracker", (PointerToDevice)&vtkPlusAgilentScopeTracker::New);
 #endif
-#ifdef PLUS_USE_RTSP_VIDEO
-  RegisterDevice("RTSPVideo", "vtkPlusRTSPVideoSource", (PointerToDevice)&vtkPlusRTSPVideoSource::New);
+#ifdef PLUS_USE_OpenCV_VIDEO
+  RegisterDevice("OpenCVVideo", "vtkPlusOpenCVCaptureVideoSource", (PointerToDevice)&vtkPlusOpenCVCaptureVideoSource::New);
 #endif
 
   // Virtual Devices

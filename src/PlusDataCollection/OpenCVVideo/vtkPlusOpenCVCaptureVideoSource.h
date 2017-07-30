@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 #ifndef __vtkPlusRTSPVideoSource_h
@@ -11,13 +11,13 @@
 #include "vtkPlusDevice.h"
 
 /*!
-  \class vtkPlusRTSPVideoSource
-  \brief Class for interfacing an RTSP stream (rtsp://127.0.0.1/...) and capturing frames into a Plus buffer
+\class vtkPlusRTSPVideoSource
+\brief Class for interfacing an RTSP stream (rtsp://127.0.0.1/...) and capturing frames into a Plus buffer
 
-  Requires the PLUS_USE_RTSP_VIDEO option in CMake.
-  Requires OpenCV with FFMPEG built (RTSP support)
+Requires the PLUS_USE_RTSP_VIDEO option in CMake.
+Requires OpenCV with FFMPEG built (RTSP support)
 
-  \ingroup PlusLibDataCollection
+\ingroup PlusLibDataCollection
 */
 
 namespace cv
@@ -42,7 +42,7 @@ public:
   PlusStatus FreezeDevice(bool freeze);
 
   /*! Is this device a tracker */
-  bool IsTracker() const {return false;}
+  bool IsTracker() const { return false; }
 
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
   PlusStatus InternalUpdate();

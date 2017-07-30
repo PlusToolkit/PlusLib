@@ -1720,26 +1720,26 @@ IF(PLUS_USE_OvrvisionPro)
     )
 ENDIF()
 
-IF(PLUS_USE_RTSP_VIDEO)
-  SET(RTSP_Video_SRCS
-    RTSPVideo/vtkPlusRTSPVideoSource.cxx
+IF(PLUS_USE_OpenCV_VIDEO)
+  SET(OpenCV_Video_SRCS
+    OpenCVVideo/vtkPlusOpenCVCaptureVideoSource.cxx
     )
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(RTSP_Video_HDRS
-      RTSPVideo/vtkPlusRTSPVideoSource.h
+    SET(OpenCV_Video_HDRS
+      OpenCVVideo/vtkPlusOpenCVCaptureVideoSource.h
       )
   ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${RTSP_Video_HDRS}
+    ${OpenCV_Video_HDRS}
     )
 
   LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${RTSP_Video_SRCS}
+    ${OpenCV_Video_SRCS}
     )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/RTSPVideo
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpenCVVideo
     )
 ENDIF()
 

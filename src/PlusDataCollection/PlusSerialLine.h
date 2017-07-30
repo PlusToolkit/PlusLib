@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
-  Program: Plus
-  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
-  See License.txt for details.
+Program: Plus
+Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+See License.txt for details.
 =========================================================Plus=header=end*/
 
 
@@ -66,16 +66,16 @@ public:
   GetStdStringMacro(PortName);
 
   /*! Set the serial port speed */
-  void SetSerialPortSpeed(DWORD speed);;
+  void SetSerialPortSpeed(DWORD speed);
 
   /*! Set the serial port max reply time */
-  void SetMaxReplyTime(int maxreply);;
+  void SetMaxReplyTime(int maxreply);
 
   /*! Get the serial port max reply time */
-  int GetMaxReplyTime() const;;
+  int GetMaxReplyTime() const;
 
   /*! Check the handle alive status */
-  bool IsHandleAlive() const;;
+  bool IsHandleAlive() const;
 
   /*! Check the handle alive status */
   unsigned int GetNumberOfBytesAvailableForReading() const;
