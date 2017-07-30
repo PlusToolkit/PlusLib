@@ -6,7 +6,7 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "vtkPlusRTSPVideoSource.h"
+#include "vtkPlusOpenCVCaptureVideoSource.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 
@@ -19,63 +19,63 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusRTSPVideoSource);
+vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
 
 //----------------------------------------------------------------------------
-vtkPlusRTSPVideoSource::vtkPlusRTSPVideoSource()
-  : StreamURL("")
+vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
+  : VideoURL("")
 {
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusRTSPVideoSource::~vtkPlusRTSPVideoSource()
+vtkPlusOpenCVCaptureVideoSource::~vtkPlusOpenCVCaptureVideoSource()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusRTSPVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusOpenCVCaptureVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "StreamURL: " << this->StreamURL << std::endl;
+  os << indent << "StreamURL: " << this->VideoURL << std::endl;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusRTSPVideoSource::ReadConfiguration");
+  LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(StreamURL, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(VideoURL, deviceConfig);
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  deviceConfig->SetAttribute("StreamURL", this->StreamURL.c_str());
+  deviceConfig->SetAttribute("StreamURL", this->VideoURL.c_str());
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::FreezeDevice(bool freeze)
+PlusStatus vtkPlusOpenCVCaptureVideoSource::FreezeDevice(bool freeze)
 {
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::InternalConnect()
+PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
 {
-  this->Capture = std::make_shared<cv::VideoCapture>(this->StreamURL, cv::CAP_FFMPEG);
+  this->Capture = std::make_shared<cv::VideoCapture>(this->VideoURL, cv::CAP_FFMPEG);
   this->Frame = std::make_shared<cv::Mat>();
 
   if (!this->Capture->isOpened())
   {
-    LOG_ERROR("Unable to open stream at " << this->StreamURL);
+    LOG_ERROR("Unable to open stream at " << this->VideoURL);
     return PLUS_FAIL;
   }
 
@@ -83,7 +83,7 @@ PlusStatus vtkPlusRTSPVideoSource::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::InternalDisconnect()
+PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalDisconnect()
 {
   this->Capture = nullptr; // automatically closes resources/connections
   this->Frame = nullptr;
@@ -92,11 +92,191 @@ PlusStatus vtkPlusRTSPVideoSource::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::InternalUpdate()
+cv::VideoCaptureAPIs vtkPlusOpenCVCaptureVideoSource::CaptureAPIFromString(const std::string& apiString)
 {
-  LOG_TRACE("vtkPlusRTSPVideoSource::InternalUpdate");
+  if (apiString.compare("CAP_ANY") == 0)
+  {
+    return cv::CAP_ANY;
+  }
+  else if (apiString.compare("CAP_VFW") == 0)
+  {
+    return cv::CAP_VFW;
+  }
+  else if (apiString.compare("CAP_V4L") == 0)
+  {
+    return cv::CAP_V4L;
+  }
+  else if (apiString.compare("CAP_V4L2") == 0)
+  {
+    return cv::CAP_V4L2;
+  }
+  else if (apiString.compare("CAP_FIREWIRE") == 0)
+  {
+    return cv::CAP_FIREWIRE;
+  }
+  else if (apiString.compare("CAP_FIREWARE") == 0)
+  {
+    return cv::CAP_FIREWARE;
+  }
+  else if (apiString.compare("CAP_IEEE1394") == 0)
+  {
+    return cv::CAP_IEEE1394;
+  }
+  else if (apiString.compare("CAP_DC1394") == 0)
+  {
+    return cv::CAP_DC1394;
+  }
+  else if (apiString.compare("CAP_CMU1394") == 0)
+  {
+    return cv::CAP_CMU1394;
+  }
+  else if (apiString.compare("CAP_QT") == 0)
+  {
+    return cv::CAP_QT;
+  }
+  else if (apiString.compare("CAP_UNICAP") == 0)
+  {
+    return cv::CAP_UNICAP;
+  }
+  else if (apiString.compare("CAP_DSHOW") == 0)
+  {
+    return cv::CAP_DSHOW;
+  }
+  else if (apiString.compare("CAP_PVAPI") == 0)
+  {
+    return cv::CAP_PVAPI;
+  }
+  else if (apiString.compare("CAP_OPENNI") == 0)
+  {
+    return cv::CAP_OPENNI;
+  }
+  else if (apiString.compare("CAP_OPENNI_ASUS") == 0)
+  {
+    return cv::CAP_OPENNI_ASUS;
+  }
+  else if (apiString.compare("CAP_ANDROID") == 0)
+  {
+    return cv::CAP_ANDROID;
+  }
+  else if (apiString.compare("CAP_XIAPI") == 0)
+  {
+    return cv::CAP_XIAPI;
+  }
+  else if (apiString.compare("CAP_AVFOUNDATION") == 0)
+  {
+    return cv::CAP_AVFOUNDATION;
+  }
+  else if (apiString.compare("CAP_GIGANETIX") == 0)
+  {
+    return cv::CAP_GIGANETIX;
+  }
+  else if (apiString.compare("CAP_MSMF") == 0)
+  {
+    return cv::CAP_MSMF;
+  }
+  else if (apiString.compare("CAP_WINRT") == 0)
+  {
+    return cv::CAP_WINRT;
+  }
+  else if (apiString.compare("CAP_INTELPERC") == 0)
+  {
+    return cv::CAP_INTELPERC;
+  }
+  else if (apiString.compare("CAP_OPENNI2") == 0)
+  {
+    return cv::CAP_OPENNI2;
+  }
+  else if (apiString.compare("CAP_OPENNI2_ASUS") == 0)
+  {
+    return cv::CAP_OPENNI2_ASUS;
+  }
+  else if (apiString.compare("CAP_GPHOTO2") == 0)
+  {
+    return cv::CAP_GPHOTO2;
+  }
+  else if (apiString.compare("CAP_GSTREAMER") == 0)
+  {
+    return cv::CAP_GSTREAMER;
+  }
+  else if (apiString.compare("CAP_FFMPEG") == 0)
+  {
+    return cv::CAP_FFMPEG;
+  }
+  else if (apiString.compare("CAP_IMAGES") == 0)
+  {
+    return cv::CAP_IMAGES;
+  }
+  else if (apiString.compare("CAP_ARAVIS") == 0)
+  {
+    return cv::CAP_ARAVIS;
+  }
 
-  // Capture one frame from the RTSP device
+  LOG_WARNING("Unable to match requested API " << apiString << ". Defaulting to CAP_ANY");
+  return cv::CAP_ANY;
+}
+
+#define _StringFromEnum(x) std::string(#x)
+//----------------------------------------------------------------------------
+std::string vtkPlusOpenCVCaptureVideoSource::StringFromCaptureAPI(cv::VideoCaptureAPIs api)
+{
+  switch (api)
+  {
+    case cv::CAP_ANY:
+      return _StringFromEnum(CAP_ANY);
+    case cv::CAP_VFW:
+      return _StringFromEnum(CAP_VFW);
+    case cv::CAP_FIREWIRE:
+      return _StringFromEnum(CAP_FIREWIRE);
+    case cv::CAP_QT:
+      return _StringFromEnum(CAP_QT);
+    case cv::CAP_UNICAP:
+      return _StringFromEnum(CAP_UNICAP);
+    case cv::CAP_DSHOW:
+      return _StringFromEnum(CAP_DSHOW);
+    case cv::CAP_PVAPI:
+      return _StringFromEnum(CAP_PVAPI);
+    case cv::CAP_OPENNI:
+      return _StringFromEnum(CAP_OPENNI);
+    case cv::CAP_OPENNI_ASUS:
+      return _StringFromEnum(CAP_OPENNI_ASUS);
+    case cv::CAP_ANDROID:
+      return _StringFromEnum(CAP_ANDROID);
+    case cv::CAP_XIAPI:
+      return _StringFromEnum(CAP_XIAPI);
+    case cv::CAP_AVFOUNDATION:
+      return _StringFromEnum(CAP_AVFOUNDATION);
+    case cv::CAP_GIGANETIX:
+      return _StringFromEnum(CAP_GIGANETIX);
+    case cv::CAP_MSMF:
+      return _StringFromEnum(CAP_MSMF);
+    case cv::CAP_WINRT:
+      return _StringFromEnum(CAP_WINRT);
+    case cv::CAP_INTELPERC:
+      return _StringFromEnum(CAP_INTELPERC);
+    case cv::CAP_OPENNI2:
+      return _StringFromEnum(CAP_OPENNI2);
+    case cv::CAP_OPENNI2_ASUS:
+      return _StringFromEnum(CAP_OPENNI2_ASUS);
+    case cv::CAP_GPHOTO2:
+      return _StringFromEnum(CAP_GPHOTO2);
+    case cv::CAP_GSTREAMER:
+      return _StringFromEnum(CAP_GSTREAMER);
+    case cv::CAP_FFMPEG:
+      return _StringFromEnum(CAP_FFMPEG);
+    case cv::CAP_IMAGES:
+      return _StringFromEnum(CAP_IMAGES);
+    case cv::CAP_ARAVIS:
+      return _StringFromEnum(CAP_ARAVIS);
+  }
+}
+#undef _StringFromEnum
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
+{
+  LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::InternalUpdate");
+
+  // Capture one frame from the OpenCV capture device
   if (!this->Capture->read(*this->Frame))
   {
     LOG_ERROR("Unable to receive frame");
@@ -132,16 +312,16 @@ PlusStatus vtkPlusRTSPVideoSource::InternalUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusRTSPVideoSource::NotifyConfigured()
+PlusStatus vtkPlusOpenCVCaptureVideoSource::NotifyConfigured()
 {
   if (this->OutputChannels.size() > 1)
   {
-    LOG_WARNING("vtkPlusRTSPVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+    LOG_WARNING("vtkPlusOpenCVCaptureVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusRTSPVideoSource. Cannot proceed.");
+    LOG_ERROR("No output channels defined for vtkPlusOpenCVCaptureVideoSource. Cannot proceed.");
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }
