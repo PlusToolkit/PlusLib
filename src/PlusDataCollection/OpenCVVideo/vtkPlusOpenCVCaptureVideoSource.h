@@ -4,18 +4,21 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusRTSPVideoSource_h
-#define __vtkPlusRTSPVideoSource_h
+#ifndef __vtkPlusOpenCVCaptureVideoSource_h
+#define __vtkPlusOpenCVCaptureVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-/*!
-\class vtkPlusRTSPVideoSource
-\brief Class for interfacing an RTSP stream (rtsp://127.0.0.1/...) and capturing frames into a Plus buffer
+// OpenCV includes
+#include <opencv2/videoio.hpp>
 
-Requires the PLUS_USE_RTSP_VIDEO option in CMake.
-Requires OpenCV with FFMPEG built (RTSP support)
+/*!
+\class vtkPlusOpenCVCaptureVideoSource
+\brief Class for interfacing an OpenCVC capture device and recording frames into a Plus buffer
+
+Requires the PLUS_USE_OpenCVCapture_VIDEO option in CMake.
+Requires OpenCV with FFMPEG built (for RTSP support)
 
 \ingroup PlusLibDataCollection
 */
@@ -26,11 +29,11 @@ namespace cv
   class Mat;
 }
 
-class vtkPlusDataCollectionExport vtkPlusRTSPVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusOpenCVCaptureVideoSource : public vtkPlusDevice
 {
 public:
-  static vtkPlusRTSPVideoSource* New();
-  vtkTypeMacro(vtkPlusRTSPVideoSource, vtkPlusDevice);
+  static vtkPlusOpenCVCaptureVideoSource* New();
+  vtkTypeMacro(vtkPlusOpenCVCaptureVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -50,20 +53,24 @@ public:
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
-  vtkGetStdStringMacro(StreamURL);
-  vtkSetStdStringMacro(StreamURL);
+  vtkGetStdStringMacro(VideoURL);
+  vtkSetStdStringMacro(VideoURL);
 
 protected:
-  vtkPlusRTSPVideoSource();
-  ~vtkPlusRTSPVideoSource();
+  vtkPlusOpenCVCaptureVideoSource();
+  ~vtkPlusOpenCVCaptureVideoSource();
 
   PlusStatus InternalConnect();
   PlusStatus InternalDisconnect();
 
+  cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
+  std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
+
 protected:
-  std::string                       StreamURL;
+  std::string                       VideoURL;
   std::shared_ptr<cv::VideoCapture> Capture;
   std::shared_ptr<cv::Mat>          Frame;
+  cv::VideoCaptureAPIs              RequestedCaptureAPI;
 };
 
-#endif // __vtkPlusRTSPVideoSource_h
+#endif // __vtkPlusOpenCVCaptureVideoSource_h

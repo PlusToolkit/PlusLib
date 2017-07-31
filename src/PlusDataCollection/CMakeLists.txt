@@ -1820,7 +1820,7 @@ source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
 source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
-source_group("RTSP" FILES ${RTSP_Video_HDRS} ${RTSP_Video_SRCS})
+source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

@@ -14,9 +14,6 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
-// OpenCV includes
-#include <opencv2/videoio.hpp>
-
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
@@ -24,6 +21,7 @@ vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
 //----------------------------------------------------------------------------
 vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
   : VideoURL("")
+  , RequestedCaptureAPI(cv::CAP_ANY)
 {
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
@@ -48,6 +46,12 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
   LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_STRING_ATTRIBUTE_REQUIRED(VideoURL, deviceConfig);
+  std::string captureApi;
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL("CaptureAPI", captureApi, deviceConfig);
+  if (!captureApi.empty())
+  {
+    this->RequestedCaptureAPI = CaptureAPIFromString(captureApi);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -56,21 +60,32 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
 PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  deviceConfig->SetAttribute("StreamURL", this->VideoURL.c_str());
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(VideoURL, rootConfigElement);
+  if (this->RequestedCaptureAPI != cv::CAP_ANY)
+  {
+    rootConfigElement->SetAttribute("CaptureAPI", StringFromCaptureAPI(this->RequestedCaptureAPI).c_str());
+  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenCVCaptureVideoSource::FreezeDevice(bool freeze)
 {
-
+  if (freeze)
+  {
+    this->Disconnect();
+  }
+  else
+  {
+    this->Connect();
+  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
 {
-  this->Capture = std::make_shared<cv::VideoCapture>(this->VideoURL, cv::CAP_FFMPEG);
+  this->Capture = std::make_shared<cv::VideoCapture>(this->VideoURL, this->RequestedCaptureAPI);
   this->Frame = std::make_shared<cv::Mat>();
 
   if (!this->Capture->isOpened())
@@ -87,6 +102,52 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalDisconnect()
 {
   this->Capture = nullptr; // automatically closes resources/connections
   this->Frame = nullptr;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
+{
+  LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::InternalUpdate");
+
+  if (!this->Capture->isOpened())
+  {
+    // No need to update if we're not able to read data
+    return PLUS_SUCCESS;
+  }
+
+  // Capture one frame from the OpenCV capture device
+  if (!this->Capture->read(*this->Frame))
+  {
+    LOG_ERROR("Unable to receive frame");
+    return PLUS_FAIL;
+  }
+
+  vtkPlusDataSource* aSource(nullptr);
+  if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
+  {
+    LOG_ERROR("Unable to grab a video source. Skipping frame.");
+    return PLUS_FAIL;
+  }
+
+  if (aSource->GetNumberOfItems() == 0)
+  {
+    // Init the buffer with the metadata from the first frame
+    aSource->SetImageType(US_IMG_RGB_COLOR);
+    aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+    aSource->SetNumberOfScalarComponents(3);
+    aSource->SetInputFrameSize(this->Frame->cols, this->Frame->rows, 1);
+  }
+
+  // Add the frame to the stream buffer
+  int frameSize[3] = { this->Frame->cols, this->Frame->rows, 1 };
+  if (aSource->AddItem(this->Frame->data, US_IMG_ORIENT_MF, frameSize, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
+  {
+    return PLUS_FAIL;
+  }
+
+  this->FrameNumber++;
 
   return PLUS_SUCCESS;
 }
@@ -267,49 +328,11 @@ std::string vtkPlusOpenCVCaptureVideoSource::StringFromCaptureAPI(cv::VideoCaptu
       return _StringFromEnum(CAP_IMAGES);
     case cv::CAP_ARAVIS:
       return _StringFromEnum(CAP_ARAVIS);
+    default:
+      return "CAP_ANY";
   }
 }
 #undef _StringFromEnum
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
-{
-  LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::InternalUpdate");
-
-  // Capture one frame from the OpenCV capture device
-  if (!this->Capture->read(*this->Frame))
-  {
-    LOG_ERROR("Unable to receive frame");
-    return PLUS_FAIL;
-  }
-
-  vtkPlusDataSource* aSource(nullptr);
-  if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
-  {
-    LOG_ERROR("Unable to grab a video source. Skipping frame.");
-    return PLUS_FAIL;
-  }
-
-  if (aSource->GetNumberOfItems() == 0)
-  {
-    // Init the buffer with the metadata from the first frame
-    aSource->SetImageType(US_IMG_RGB_COLOR);
-    aSource->SetPixelType(VTK_UNSIGNED_CHAR);
-    aSource->SetNumberOfScalarComponents(3);
-    aSource->SetInputFrameSize(this->Frame->cols, this->Frame->rows, 1);
-  }
-
-  // Add the frame to the stream buffer
-  int frameSize[3] = { this->Frame->cols, this->Frame->rows, 1 };
-  if (aSource->AddItem(this->Frame->data, US_IMG_ORIENT_MF, frameSize, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-
-  this->FrameNumber++;
-
-  return PLUS_SUCCESS;
-}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenCVCaptureVideoSource::NotifyConfigured()

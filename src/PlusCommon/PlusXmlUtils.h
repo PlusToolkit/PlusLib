@@ -192,7 +192,7 @@ public:
   }
 
 // Read a string attribute and save it to a variable.
-#define XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
+#define XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
   { \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#varName);  \
     if (destinationXmlElementVar != NULL)  \
