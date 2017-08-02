@@ -436,7 +436,7 @@ PlusStatus vtkPlusNDITracker::InternalUpdate()
 
   int errnum = 0;
   // get the transforms for all tools from the NDI
-  this->Command("BX:080B");
+  this->Command("BX:0801");
   errnum = ndiGetError(this->Device);
   if (errnum)
   {
