@@ -14,7 +14,7 @@ Files:
 - Input frames: https://subversion.assembla.com/svn/plus/trunk/PlusLibData/TestImages/SpinePhantomFreehand.mha
 - Sample reconstructed volume: https://subversion.assembla.com/svn/plus/trunk/PlusLibData/TestImages/SpinePhantomFreehandReconstructed.mha
 
-See more examples on the <a href="http://crunch.cs.queensu.ca/CDash/index.php?project=PLUS">dashboard</a> (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
+See more examples on the <a href="http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusLib">dashboard</a> (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
 
 \section ApplicationVolumeReconstructorHelp Command-line parameters reference
 
