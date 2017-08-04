@@ -25,119 +25,79 @@ vtkStandardNewMacro(vtkPlusUSDigitalEncodersTracker);
 class vtkPlusUSDigitalEncodersTracker::vtkPlusEncoderTrackingInfo
 {
 public:
-  vtkSmartPointer<vtkMatrix4x4> Encoder_PreTMatrix;
-  vtkSmartPointer<vtkMatrix4x4> Encoder_TransformationMatrix;
+  vtkSmartPointer<vtkMatrix4x4> Encoder_PreTMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> Encoder_TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName Encoder_TransformName;
   std::string Encoder_PortName;
-  bool Encoder_Persistent;
-
-  //-------------------------------------------------------------------------
-  vtkPlusUSDigitalEncodersTracker::vtkPlusEncoderTrackingInfo::vtkPlusEncoderTrackingInfo()
-  {
-    this->Encoder_PreTMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    this->Encoder_TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    this->Encoder_Persistent = true;
-  }
-
-  //-------------------------------------------------------------------------
-  virtual vtkPlusUSDigitalEncodersTracker::vtkPlusEncoderTrackingInfo::~vtkPlusEncoderTrackingInfo()
-  {
-  }
+  bool Encoder_Persistent = true;
 };
 
 class vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo
 {
 public:
-  vtkPlusUSDigitalEncodersTracker* External;
-  long Encoder_Model;
-  long Encoder_SN;
-  long Encoder_SN2;
-  long Encoder_Version;
-  long Encoder_Addr;
-  long Encoder_Addr2;
-  long Encoder_Mode;
-  long Encoder_Resolution;
-  bool Encoder_Connected;
-  int Encoder_Motion; // 0 : Linear motion , 1: Rotation
-  double Encoder_PulseSpacing;
-  double Encoder_PulseSpacing2;
-  vtkSmartPointer<vtkTransform> Encoder_LocalTransform;
+  long Encoder_Model = 0;
+  long Encoder_SN = 0;
+  long Encoder_SN2 = 0;
+  long Encoder_Version = 0;
+  long Encoder_Addr = 0;
+  long Encoder_Addr2 = 0;
+
+  // Supporting Modes:
+  /*
+    The mode is changed temporarily and will be effective until the encoder is
+    reset, powered down, or another mode change command is received. It is
+    not stored in the EEPROM. Mode byte as follows:
+
+  |7|  6 |5|  4 |  3 |  2  | 1 | 0 |
+  |0|/256|0|incr|size|multi|stb|rev|
+
+    Reverse: rev = 1, the position increases counter clockwise.
+          rev = 0, the position increases clockwise.
+    Strobe:  stb = 1, the encoder operates in strobe mode: it waits for a strobe
+                  request before reading the position; this mode is used to
+                  synchronize multiple encoders. After entering this mode, wait
+                  at least 2 msec before sending the first strobe command.
+          stb = 0, the encoder operates in asynchronous
+                  mode: it reads the position within 2 milliseconds and sends
+                  the most current position when requested. The data can be
+                  from 0 to 2 milliseconds old.
+    Multi:   multi = 1, multi-turn mode: a 32 bit counter keeps track of the
+                    position (it increases or decreases over multiple turns, i.e. 3 1/
+                    2 turns at a resolution of 100 would be 350). This counter is
+                    cleared at reset.
+          multi = 0, single-turn mode: position is between zero and the max
+                    resolution, according to the shaft angle.
+                    Note: in older versions (V1.X), this bit indicated a fast mode
+                    (3msec update rate) with a 9 bit accuracy.
+                    Also, any other command besides position inquires can corrupt
+                    the multi-turn position.
+    Size: only effective in single-turn mode:
+          size = 1: the encoder always sends the position in 2 bytes, even
+                    if the resolution is 256 decimal or less.
+          size = 0: the position is sent as 1 byte if the resolution is up to
+                    256 decimal, or as 2 bytes if above 256 decimal.
+                    In multi-turn mode, the position is always 4 bytes and this bit is
+                    ignored.
+    Incr: only effective in multi-turn mode:
+          incr = 1: the encoder sends the position change since the last
+                    request, as a 32 bit signed number.
+          incr = 0: the encoder sends the position as a 32 bit signed
+                    number.
+    /256: only available for analog version,
+       only effective in multi-turn mode:
+          /256 = 1: the encoder position is divided by 256.
+          /256 = 0: the encoder position is normal.
+  */
+  long Encoder_Mode = 4;// Defaul mode : Strobe (OFF), MultiTurn(On), Size(OFF), Incr (OFF), /256 (OFF)
+  long Encoder_Resolution = 3600;
+  bool Encoder_Connected = false;
+  int Encoder_Motion = 0; // 0 : Linear motion , 1: Rotation
+  double Encoder_PulseSpacing = 0.0;
+  double Encoder_PulseSpacing2 = 0.0;
+  vtkSmartPointer<vtkTransform> Encoder_LocalTransform = vtkSmartPointer<vtkTransform>::New();
   vtkVector3d Encoder_LocalAxis;
   vtkVector3d Encoder_LocalAxis2;
   vtkPlusEncoderTrackingInfo Encoder_TrackingInfo;
-
-  //-------------------------------------------------------------------------
-  vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo::vtkPlusUSDigitalEncoderInfo()
-  {
-    this->Encoder_Model = 0;
-    this->Encoder_SN = 0;
-    this->Encoder_SN2 = 0;
-    this->Encoder_Version = 0;
-    this->Encoder_Addr = 0;
-    this->Encoder_Addr2 = 0;
-    // Supporting Modes:
-    /*
-       The mode is changed temporarily and will be effective until the encoder is
-       reset, powered down, or another mode change command is received. It is
-       not stored in the EEPROM. Mode byte as follows:
-
-     |7|  6 |5|  4 |  3 |  2  | 1 | 0 |
-     |0|/256|0|incr|size|multi|stb|rev|
-
-       Reverse: rev = 1, the position increases counter clockwise.
-             rev = 0, the position increases clockwise.
-       Strobe:  stb = 1, the encoder operates in strobe mode: it waits for a strobe
-                     request before reading the position; this mode is used to
-                     synchronize multiple encoders. After entering this mode, wait
-                     at least 2 msec before sending the first strobe command.
-             stb = 0, the encoder operates in asynchronous
-                     mode: it reads the position within 2 milliseconds and sends
-                     the most current position when requested. The data can be
-                     from 0 to 2 milliseconds old.
-       Multi:   multi = 1, multi-turn mode: a 32 bit counter keeps track of the
-                       position (it increases or decreases over multiple turns, i.e. 3 1/
-                       2 turns at a resolution of 100 would be 350). This counter is
-                       cleared at reset.
-             multi = 0, single-turn mode: position is between zero and the max
-                       resolution, according to the shaft angle.
-                       Note: in older versions (V1.X), this bit indicated a fast mode
-                       (3msec update rate) with a 9 bit accuracy.
-                       Also, any other command besides position inquires can corrupt
-                       the multi-turn position.
-       Size: only effective in single-turn mode:
-             size = 1: the encoder always sends the position in 2 bytes, even
-                       if the resolution is 256 decimal or less.
-             size = 0: the position is sent as 1 byte if the resolution is up to
-                       256 decimal, or as 2 bytes if above 256 decimal.
-                       In multi-turn mode, the position is always 4 bytes and this bit is
-                       ignored.
-       Incr: only effective in multi-turn mode:
-             incr = 1: the encoder sends the position change since the last
-                       request, as a 32 bit signed number.
-             incr = 0: the encoder sends the position as a 32 bit signed
-                       number.
-       /256: only available for analog version,
-          only effective in multi-turn mode:
-             /256 = 1: the encoder position is divided by 256.
-             /256 = 0: the encoder position is normal.
-     */
-    this->Encoder_Mode = 4;// Defaul mode : Strobe (OFF), MultiTurn(On), Size(OFF), Incr (OFF), /256 (OFF)
-    this->Encoder_Motion = 0;
-    this->Encoder_PulseSpacing = 0.0;
-    this->Encoder_PulseSpacing2 = 0.0;
-    this->Encoder_Connected = false;
-    this->Encoder_Resolution = 3600;// Default encoder's resolution (3600)
-    this->Encoder_LocalTransform = vtkSmartPointer<vtkTransform>::New();
-
-    /// Do we need this variable
-    this->External = NULL;
-  }
-
-  //-------------------------------------------------------------------------
-  virtual vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo::~vtkPlusUSDigitalEncoderInfo()
-  {
-    this->External = NULL;
-  }
 };
 
 //-------------------------------------------------------------------------
