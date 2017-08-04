@@ -61,9 +61,6 @@ public:
    */
   PlusStatus InternalUpdate();
 
-  vtkGetMacro(NumberOfEncoders, long);
-  vtkSetMacro(NumberOfEncoders, long);
-
   /*! Return whether stepper is alive */
   virtual PlusStatus IsStepperAlive();
 
@@ -120,31 +117,25 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopRecording();
 
+  class vtkPlusUSDigitalEncoderInfo;
+  PlusStatus MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo);
+
   bool IsValidSEIAddress(long address);
 
 protected:
   bool CoreXY = false;
-  /*! Number of connected A2 Encoders */
-  long NumberOfEncoders = 0;
-  long COMPort = 0;
-
-  class vtkPlusEncoderTrackingInfo;
-  class vtkPlusUSDigitalEncoderInfo;
 
   vtkSmartPointer<vtkPlusTransformRepository> USDigitalEncoderTransformRepository
     = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
-  EncoderInfoMapType USDigitalEncoderInfoList;
-
-  typedef std::vector<vtkPlusEncoderTrackingInfo> EncoderTrackingInfoVectorType;
-  EncoderTrackingInfoVectorType USDigitalEncoderTrackingInfoList;
+  EncoderInfoMapType EncoderMap;
+  std::vector<vtkPlusUSDigitalEncoderInfo> EncoderList;
 
 
-private:  // Functions.
-  vtkPlusUSDigitalEncodersTracker(const vtkPlusUSDigitalEncodersTracker&);
-  void operator=(const vtkPlusUSDigitalEncodersTracker&);
-  PlusStatus ToolTimeStampedUpdateWithvtkPlusEncoderTrackingInfo(vtkPlusEncoderTrackingInfo& encoderTrackingInfo);
+private:
+  vtkPlusUSDigitalEncodersTracker(const vtkPlusUSDigitalEncodersTracker&) = delete;
+  void operator=(const vtkPlusUSDigitalEncodersTracker&) = delete;
 };
 
 #endif
