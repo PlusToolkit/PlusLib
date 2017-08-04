@@ -121,8 +121,6 @@ protected:
   PlusStatus MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo);
 
 protected:
-  bool CoreXY = false;
-
   vtkSmartPointer<vtkPlusTransformRepository> TransformRepository
     = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
