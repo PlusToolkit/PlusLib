@@ -323,17 +323,14 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
 
   // set the baud rate
   // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-  if (this->NetworkHostname.empty())
+  this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
+  int errnum = ndiGetError(this->Device);
+  if (errnum)
   {
-    this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
-    int errnum = ndiGetError(this->Device);
-    if (errnum)
-    {
-      LOG_ERROR(ndiErrorString(errnum));
-      ndiSerialClose(this->Device);
-      this->Device = nullptr;
-      return PLUS_FAIL;
-    }
+    LOG_ERROR(ndiErrorString(errnum));
+    ndiCloseSerial(this->Device);
+    this->Device = nullptr;
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
