@@ -36,8 +36,6 @@ class vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo
 {
 public:
   long Encoder_Model = 0;
-  long Encoder_SN = 0;
-  long Encoder_SN2 = 0;
   long Encoder_Version = 0;
   long Encoder_Addr = 0;
   long Encoder_Addr2 = 0;
@@ -102,17 +100,13 @@ public:
 
 //-------------------------------------------------------------------------
 vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncodersTracker()
-  : CoreXY(false)
-  , ConfigurationViaSerialNumbers(false)
-  , NumberOfEncoders(0)
-  , COMPort(0)
 {
   this->SetDeviceId("TrackerDevice");
-  this->USDigitalEncoderTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
-  //// No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
+  // No callback function provided by the device, so the data capture thread
+  // will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
-  this->AcquisitionRate = 50;
+  this->AcquisitionRate = 50; //increase this default (vtkPlusDevice has 30)
 }
 
 //-------------------------------------------------------------------------
@@ -173,14 +167,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       return PLUS_FAIL;
     }
 
-    if (this->ConfigurationViaSerialNumbers)
-    {
-      encoderInfoPos = this->USDigitalEncoderInfoList.find(serialNumber);
-    }
-    else
-    {
-      encoderInfoPos = this->USDigitalEncoderInfoList.find(address);
-    }
+    encoderInfoPos = this->USDigitalEncoderInfoList.find(address);
 
     if (encoderInfoPos == this->USDigitalEncoderInfoList.end())
     {
@@ -188,8 +175,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     }
     else
     {
-      if (this->ConfigurationViaSerialNumbers && encoderInfoPos->second->Encoder_SN == serialNumber
-          || !this->ConfigurationViaSerialNumbers && encoderInfoPos->second->Encoder_SN == address)
+      if (encoderInfoPos->second->Encoder_Addr == address)
       {
         encoderInfoPos->second->Encoder_Connected = true;
         encoderInfoPos->second->Encoder_Model = model;
@@ -343,7 +329,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     errorCode = ::A2GetPosition(encoders.Encoder_Addr, &encoderValue);
     if (errorCode)
     {
-      LOG_ERROR("Unable to read position of first encoder with SN: " << encoders.Encoder_SN);
+      LOG_ERROR("Unable to read position of first encoder with address: " << encoders.Encoder_Addr);
       return PLUS_FAIL;
     }
     double firstEnc = encoderValue * encoders.Encoder_PulseSpacing;
@@ -351,7 +337,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     errorCode = ::A2GetPosition(encoders.Encoder_Addr2, &encoderValue);
     if (errorCode)
     {
-      LOG_ERROR("Unable to read position of second encoder with SN: " << encoders.Encoder_SN2);
+      LOG_ERROR("Unable to read position of second encoder with address: " << encoders.Encoder_Addr2);
       return PLUS_FAIL;
     }
     double secondEnc = encoderValue * encoders.Encoder_PulseSpacing2;
@@ -574,36 +560,10 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       continue;
     }
 
-    // Reading the serial number of an US Digital Encoder
-    const char* sn = encoderInfoElement->GetAttribute("SN");
     this->USDigitalEncoderTrackingInfoList.push_back(encodertrackingInfo);
     vtkPlusUSDigitalEncoderInfo* encoderinfoPointer = new vtkPlusUSDigitalEncoderInfo;
     vtkPlusUSDigitalEncoderInfo& encoderinfo = *encoderinfoPointer;
     encoderinfo.Encoder_TrackingInfo = encodertrackingInfo;
-
-    if (sn != NULL)
-    {
-      encoderinfo.Encoder_SN = atol(sn);
-      if (this->CoreXY)
-      {
-        // Reading second (Y-direction) serial number of an US Digital Encoder
-        const char* sn = encoderInfoElement->GetAttribute("SN2");
-        if (sn != NULL)
-        {
-          encoderinfo.Encoder_SN2 = atol(sn);
-          ConfigurationViaSerialNumbers = true;
-        }
-        else
-        {
-          LOG_WARNING("Attribute 'SN' provided, but 'SN2' not provided (coreXY mode)");
-        }
-      }
-    }
-    else //configuration is not being controlled by serial numbers (encoder with lower serial number gets a lower index)
-    {
-      encoderinfo.Encoder_SN = 0;
-      encoderinfo.Encoder_SN2 = 1;
-    }
 
     // Reading the MotionType of an US Digital Encoder
     std::string motiontype = encoderInfoElement->GetAttribute("MotionType");
@@ -674,7 +634,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     {
       LOG_ERROR("Cannot read the Mode of an US Digital Encoder");
       // Using the default mode (multi-turn )
-      this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfoPointer;
+      this->USDigitalEncoderInfoList[encoderinfo.Encoder_Addr] = encoderinfoPointer;
       continue;
     }
     encoderinfo.Encoder_Mode = atol(mode);
@@ -685,16 +645,16 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     {
       LOG_ERROR("Cannot read the Resolution of an US Digital Encoder");
       // Using the default Resolution (3600 )
-      this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfoPointer;
+      this->USDigitalEncoderInfoList[encoderinfo.Encoder_Addr] = encoderinfoPointer;
       continue;
     }
     encoderinfo.Encoder_Resolution = atol(resolution);
 
     // Build the list of US Digital Encoder Info
-    this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN] = encoderinfoPointer;
-    if (this->CoreXY) //enter this encoderinfo twice (once for each SN)
+    this->USDigitalEncoderInfoList[encoderinfo.Encoder_Addr] = encoderinfoPointer;
+    if (this->CoreXY) //enter this encoderinfo twice (once for each address)
     {
-      this->USDigitalEncoderInfoList[encoderinfo.Encoder_SN2] = encoderinfoPointer;
+      this->USDigitalEncoderInfoList[encoderinfo.Encoder_Addr] = encoderinfoPointer;
       this->NumberOfEncoders = 2;
     }
   }
@@ -774,21 +734,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithAddr(
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithSN(long sn)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return SetUSDigitalA2EncoderOriginWithAddr(address);
-  }
-  else
-  {
-    LOG_ERROR("Failed to set US digital A2 Encoder's origin point as current position.");
-    return PLUS_FAIL;
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
 {
   EncoderInfoMapType::iterator it;
@@ -823,21 +768,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithAddr(lo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithSN(long sn, long mode)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return SetUSDigitalA2EncoderModeWithAddr(address, mode);
-  }
-  else
-  {
-    LOG_ERROR("Failed to set the mode of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(long address, long* mode)
 {
   if (::A2GetMode(address, mode) != 0)
@@ -846,21 +776,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(lo
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithSN(long sn, long* mode)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return GetUSDigitalA2EncoderModeWithAddr(address, mode);
-  }
-  else
-  {
-    LOG_ERROR("Failed to get the mode of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -875,21 +790,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithA
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithSN(long sn, long res)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return SetUSDigitalA2EncoderResoultionWithAddr(address, res);
-  }
-  else
-  {
-    LOG_ERROR("Failed to set the resoultion of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res)
 {
   if (::A2GetResolution(address, res) != 0)
@@ -898,21 +798,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithA
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithSN(long sn, long* res)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return GetUSDigitalA2EncoderResoultionWithAddr(address, res);
-  }
-  else
-  {
-    LOG_ERROR("Failed to get the resoultion of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -927,21 +812,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithAdd
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithSN(long sn, long pos)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return SetUSDigitalA2EncoderPositionWithAddr(address, pos);
-  }
-  else
-  {
-    LOG_ERROR("Failed to set the position of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos)
 {
   if (::A2GetPosition(address, pos) != 0)
@@ -950,40 +820,4 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithAdd
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithSN(long sn, long* pos)
-{
-  long address = this->GetUSDigitalA2EncoderAddressWithSN(sn);
-  if (IsValidSEIAddress(address))
-  {
-    return GetUSDigitalA2EncoderPositionWithAddr(address, pos);
-  }
-  else
-  {
-    LOG_ERROR("Failed to get the position of an US digital A2 Encodr.");
-    return PLUS_FAIL;
-  }
-}
-
-//----------------------------------------------------------------------------
-long vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderAddressWithSN(long sn)
-{
-  EncoderInfoMapType::iterator it;
-  it = this->USDigitalEncoderInfoList.find(sn);
-  if (it == this->USDigitalEncoderInfoList.end())
-  {
-    LOG_ERROR("Cannot find the address of an US Digital encoder with its SN number.");
-    return INVALID_SEI_ADDRESS;
-  }
-  else if (it->second->Encoder_SN == sn)
-  {
-    return it->second->Encoder_Addr;
-  }
-  else
-  {
-    assert(it->second->Encoder_SN2 == sn);
-    return it->second->Encoder_Addr2;
-  }
 }

@@ -80,10 +80,6 @@ public:
       address: SEI address 0-15*/
   PlusStatus SetUSDigitalA2EncoderOriginWithAddr(long address);
 
-  /*! Sets the absolute zero to the current position, in single-turn mode the new position is stored in EEPROM
-      with its SN number*/
-  PlusStatus SetUSDigitalA2EncoderOriginWithSN(long sn);
-
   /*! Sets the absolute zero to the current position of all connected US Digital A2 Encoders*/
   PlusStatus SetAllUSDigitalA2EncoderOrigin();
 
@@ -91,46 +87,25 @@ public:
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderModeWithAddr(long address, long mode);
 
-  /*! Sets the mode of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderModeWithSN(long sn, long mode);
-
   /*! Gets the mode of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderModeWithAddr(long address, long* mode);
-
-  /*! Gets the mode of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderModeWithSN(long sn, long* mode);
 
   /*! Sets the resolution of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderResoultionWithAddr(long address, long res);
 
-  /*! Sets the resolution of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderResoultionWithSN(long sn, long res);
-
   /*! Gets the resolution of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res);
-
-  /*! Gets the resolution of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderResoultionWithSN(long sn, long* res);
 
   /*! Sets the Position of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderPositionWithAddr(long address, long pos);
 
-  /*! Sets the Position of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderPositionWithSN(long sn, long pos);
-
   /*! Gets the Position of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos);
-
-  /*! Gets the Position of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderPositionWithSN(long sn, long* pos);
-
-  /*! Get the Address of an A2 Encoder with its SN number */
-  long GetUSDigitalA2EncoderAddressWithSN(long sn);
 
 protected:
   vtkPlusUSDigitalEncodersTracker();
@@ -148,15 +123,16 @@ protected:
   bool IsValidSEIAddress(long address);
 
 protected:
-  bool CoreXY;
-  bool ConfigurationViaSerialNumbers;
+  bool CoreXY = false;
   /*! Number of connected A2 Encoders */
-  long NumberOfEncoders;
-  long COMPort;
+  long NumberOfEncoders = 0;
+  long COMPort = 0;
 
   class vtkPlusEncoderTrackingInfo;
   class vtkPlusUSDigitalEncoderInfo;
-  vtkSmartPointer<vtkPlusTransformRepository> USDigitalEncoderTransformRepository;
+
+  vtkSmartPointer<vtkPlusTransformRepository> USDigitalEncoderTransformRepository
+    = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
   EncoderInfoMapType USDigitalEncoderInfoList;
