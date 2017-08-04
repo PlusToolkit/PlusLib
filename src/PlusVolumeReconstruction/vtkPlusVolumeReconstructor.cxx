@@ -412,12 +412,13 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
     }
   }
 
-  LOG_DEBUG("Automatic volume extent computation from frames used " << numberOfValidFrames << " out of " << numberOfFrames << " (probably wrong image or reference coordinate system was defined or all transforms were invalid)");
+  LOG_DEBUG("Automatic volume extent computation from frames used " << numberOfValidFrames << " out of " << numberOfFrames);
   if (numberOfValidFrames == 0)
   {
     std::string strImageToReferenceTransformName;
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
-    errorDescription = "Automatic volume extent computation failed, there were no valid " + strImageToReferenceTransformName + " transform available in the whole sequence";
+    errorDescription = "Automatic volume extent computation failed, there were no valid " + strImageToReferenceTransformName + " transform available in the whole sequence"
+      + " (probably wrong image or reference coordinate system was defined or all transforms were invalid)";
     LOG_ERROR(errorDescription);
     return PLUS_FAIL;
   }
