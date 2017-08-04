@@ -210,6 +210,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     if (!encoderInfoPos->second->Connected)
     {
       encoderInfoPos = EncoderMap.erase(encoderInfoPos);
+      LOG_WARNING("Removing unconnected encoder from the list, tool Id: " << encoderInfoPos->second->ToolId);
     }
     else
     {
@@ -280,12 +281,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-bool vtkPlusUSDigitalEncodersTracker::IsValidSEIAddress(long address)
-{
-  return address > INVALID_SEI_ADDRESS;
-}
-
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 {
@@ -344,7 +339,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
                               tempTransform->GetMatrix(),
                               encoders.TransformationMatrix);
 
-    this->USDigitalEncoderTransformRepository->SetTransform(encoders.TransformName,
+    this->TransformRepository->SetTransform(encoders.TransformName,
         encoders.TransformationMatrix);
     if (MyToolTimeStampedUpdate(encoders) == PLUS_FAIL)
     {
@@ -390,7 +385,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
                                   tempTransform->GetMatrix(),
                                   encoderinfopos->second->TransformationMatrix);
 
-        this->USDigitalEncoderTransformRepository->SetTransform(encoderinfopos->second->TransformName,
+        this->TransformRepository->SetTransform(encoderinfopos->second->TransformName,
             encoderinfopos->second->TransformationMatrix);
         if (MyToolTimeStampedUpdate(*encoderinfopos->second) == PLUS_FAIL)
         {
@@ -405,7 +400,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
   {
     if (!EncoderList[i].Persistent)
     {
-      this->USDigitalEncoderTransformRepository->GetTransform(EncoderList[i].TransformName,
+      this->TransformRepository->GetTransform(EncoderList[i].TransformName,
           EncoderList[i].TransformationMatrix);
       if (MyToolTimeStampedUpdate(EncoderList[i]) == PLUS_FAIL)
       {
@@ -449,7 +444,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
-  this->USDigitalEncoderTransformRepository->Clear();
+  this->TransformRepository->Clear();
   this->EncoderMap.clear();
   this->EncoderList.clear();
 
@@ -530,9 +525,9 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     encoderInfo.Persistent = isPersistent;
-    if (this->USDigitalEncoderTransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
+    if (this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
     {
-      this->USDigitalEncoderTransformRepository->SetTransform(encoderInfo.TransformName,
+      this->TransformRepository->SetTransform(encoderInfo.TransformName,
           encoderInfo.TransformationMatrix);
     }
 
@@ -709,21 +704,20 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithAddr(
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
 {
-  EncoderInfoMapType::iterator it;
-  for (it = this->EncoderMap.begin(); it != this->EncoderMap.end(); ++it)
+  EncoderListType::iterator it;
+  for (it = this->EncoderList.begin(); it != this->EncoderList.end(); ++it)
   {
-    if (this->SetUSDigitalA2EncoderOriginWithAddr(it->second->Addr) == PLUS_FAIL)
+    if (this->SetUSDigitalA2EncoderOriginWithAddr(it->Addr) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
 
     if (this->CoreXY)
     {
-      if (this->SetUSDigitalA2EncoderOriginWithAddr(it->second->Addr2) == PLUS_FAIL)
+      if (this->SetUSDigitalA2EncoderOriginWithAddr(it->Addr2) == PLUS_FAIL)
       {
         return PLUS_FAIL;
       }
-      //break; //only 2 encoders
     }
   }
   return PLUS_SUCCESS;

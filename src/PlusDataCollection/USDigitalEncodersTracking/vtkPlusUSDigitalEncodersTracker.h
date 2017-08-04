@@ -120,17 +120,16 @@ protected:
   class vtkPlusUSDigitalEncoderInfo;
   PlusStatus MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo);
 
-  bool IsValidSEIAddress(long address);
-
 protected:
   bool CoreXY = false;
 
-  vtkSmartPointer<vtkPlusTransformRepository> USDigitalEncoderTransformRepository
+  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository
     = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
   EncoderInfoMapType EncoderMap;
-  std::vector<vtkPlusUSDigitalEncoderInfo> EncoderList;
+  typedef std::vector<vtkPlusUSDigitalEncoderInfo> EncoderListType;
+  EncoderListType EncoderList;
 
 
 private:
