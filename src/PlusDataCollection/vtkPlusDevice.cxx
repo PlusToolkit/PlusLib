@@ -985,6 +985,25 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
         continue;
       }
 
+      std::string sourceId = dataSourceElement->GetAttribute("Id") != NULL ? dataSourceElement->GetAttribute("Id") : "";
+      if (sourceId.empty())
+      {
+        LOG_ERROR("Unable to find attribute \"Id\"! \"Id\" attribute is mandatory in source definition. Skipping.");
+        continue;
+      }
+
+      if (this->IsTracker() && sourceId == this->ToolReferenceFrameName)
+      {
+        LOG_ERROR("Data source \"" << this->ToolReferenceFrameName << "\" cannot have same name as the ToolReferenceFrameName. Skipping.");
+        continue;
+      }
+
+      if (this->EnsureUniqueDataSourceId(sourceId) == PLUS_FAIL)
+      {
+        LOG_ERROR("Data source name \"" << sourceId << "\" is not unique. Skipping.");
+        continue;
+      }
+
       vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New();
       bool isEqual(false);
       if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*dataSourceElement, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
@@ -2009,6 +2028,34 @@ void vtkPlusDevice::InternalWriteInputChannels(vtkXMLDataElement* rootXMLElement
     vtkXMLDataElement* streamElement = this->FindInputChannelElement(rootXMLElement, aStream->GetChannelId());
     aStream->WriteConfiguration(streamElement);
   }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::EnsureUniqueDataSourceId(const std::string& aSourceId)
+{
+  for (DataSourceContainer::iterator it = begin(this->Tools); it != end(this->Tools); ++it)
+  {
+    if (it->second->GetId() == aSourceId)
+    {
+      return PLUS_FAIL;
+    }
+  }
+  for (DataSourceContainer::iterator it = begin(this->VideoSources); it != end(this->VideoSources); ++it)
+  {
+    if (it->second->GetId() == aSourceId)
+    {
+      return PLUS_FAIL;
+    }
+  }
+  for (DataSourceContainer::iterator it = begin(this->Fields); it != end(this->Fields); ++it)
+  {
+    if (it->second->GetId() == aSourceId)
+    {
+      return PLUS_FAIL;
+    }
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

@@ -521,6 +521,9 @@ protected:
   */
   virtual void InternalWriteInputChannels(vtkXMLDataElement* rootXMLElement);
 
+  /*! Ensure uniqueness of given ID */
+  PlusStatus EnsureUniqueDataSourceId(const std::string& aSourceId);
+
   vtkSetMacro(CorrectlyConfigured, bool);
 
   vtkSetMacro(StartThreadForInternalUpdates, bool);
