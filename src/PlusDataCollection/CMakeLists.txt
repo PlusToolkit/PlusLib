@@ -498,6 +498,24 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     aruco
     )
+
+  SET(_entries)
+  GET_TARGET_PROPERTY(_configs aruco IMPORTED_CONFIGURATIONS)
+  FOREACH(_config IN LISTS _configs)
+    GET_TARGET_PROPERTY(_location ndicapi IMPORTED_LOCATION_${_config})
+    IF(${_config} STREQUAL RELEASE OR ${_config} STREQUAL NOCONFIG AND EXISTS ${_location})
+      LIST(APPEND _entries ${_config})
+      LIST(APPEND External_Libraries_Install ${_location})
+    ELSEIF(${_config} STREQUAL DEBUG AND EXISTS ${_location})
+      LIST(APPEND _entries ${_config})
+      LIST(APPEND External_Libraries_Debug ${_location})
+    ENDIF()
+  ENDFOREACH()
+
+  LIST(LENGTH _entries _size)
+  IF(_size EQUAL 0)
+    MESSAGE(FATAL_ERROR "Wanted to add ndicapi library to install, but dependent files don't exist. Do you need to build it?")
+  ENDIF()
 ENDIF()
 
 #--------------------------------------------------------------------------
