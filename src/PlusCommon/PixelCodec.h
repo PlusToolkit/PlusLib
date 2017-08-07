@@ -9,6 +9,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
+#include <iomanip>
+
 // Helper macros for YUY2 conversion (source: http://sundararajana.blogspot.ca/2007/12/yuy2-to-rgb24-conversion.html)
 #define FIXNUM 16
 #define FIX(a, b) ((int)((a)*(1<<(b))))
@@ -100,8 +102,8 @@ public:
   //----------------------------------------------------------------------------
   static std::string GetCompressionModeAsString(int inputCompression)
   {
-    char fourccHex[16] = {0};
-    sprintf_s(fourccHex, "0x%08x", inputCompression);
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::setw(8) << std::setfill('0') << inputCompression;
     std::string fourcc = "????";
     for (int i = 0; i < 4; i++)
     {
@@ -111,8 +113,7 @@ public:
         fourcc[i] = '?';
       }
     }
-    std::string output = fourcc + "(" + std::string(fourccHex) + ")";
-    return output;
+    return fourcc + "(" + std::string(ss.str().c_str()) + ")";
   }
 
   //----------------------------------------------------------------------------
