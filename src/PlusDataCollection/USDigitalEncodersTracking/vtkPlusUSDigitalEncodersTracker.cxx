@@ -86,11 +86,9 @@ public:
   vtkVector3d LocalAxis;
   vtkVector3d LocalAxis2;
 public:
-  vtkSmartPointer<vtkMatrix4x4> PreTMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
   std::string PortName;
-  bool Persistent = true;
 };
 
 //-------------------------------------------------------------------------
@@ -316,21 +314,11 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       }
     }
 
-    vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
+    it->TransformationMatrix->DeepCopy(tempTransform->GetMatrix());
     this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
     if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
     {
       LOG_ERROR("Unable to find tool with port name: " << it->PortName);
-    }
-
-    if (!it->Persistent)
-    {
-      this->TransformRepository->GetTransform(it->TransformName, it->TransformationMatrix);
-      if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
-      {
-        LOG_ERROR("Unable to find tool for transform: " << it->TransformName);
-        continue;
-      }
     }
   }
 
@@ -340,24 +328,18 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 //---------------------------------------------------------------------------
 PlusStatus vtkPlusUSDigitalEncodersTracker::MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo)
 {
-  if (!encoderInfo.Persistent)
+  vtkPlusDataSource* tool = NULL;
+  if (this->GetToolByPortName(encoderInfo.PortName.c_str(), tool) != PLUS_SUCCESS)
   {
-    vtkPlusDataSource* tool = NULL;
-    if (this->GetToolByPortName(encoderInfo.PortName.c_str(), tool) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to find tool with port name: " << encoderInfo.PortName);
-      return PLUS_FAIL;
-    }
-
-    // Devices has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = tool->GetFrameNumber() + 1;
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
-    this->ToolTimeStampedUpdate(tool->GetId(),
-                                encoderInfo.TransformationMatrix,
-                                TOOL_OK,
-                                frameNumber,
-                                unfilteredTimestamp);
+    LOG_ERROR("Unable to find tool with port name: " << encoderInfo.PortName);
+    return PLUS_FAIL;
   }
+
+  // Devices has no frame numbering, so just auto increment tool frame number
+  unsigned long frameNumber = tool->GetFrameNumber() + 1;
+  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  this->ToolTimeStampedUpdate(tool->GetId(),
+    encoderInfo.TransformationMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
   return PLUS_SUCCESS;
 }
 
@@ -430,33 +412,11 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     encoderInfo.TransformName = transformName;
 
-    bool isPersistent = true;
-    if (encoderInfoElement->GetAttribute("Persistent")) // if it exists, then it is non-persistent
-    {
-      if (STRCASECMP(encoderInfoElement->GetAttribute("Persistent"), "FALSE") == 0)
-      {
-        isPersistent = false;
-      }
-    }
-
-    encoderInfo.Persistent = isPersistent;
     if (this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
     {
       this->TransformRepository->SetTransform(encoderInfo.TransformName,
           encoderInfo.TransformationMatrix);
     }
-
-    // ---- Get PreTMatrix:
-    double vectorMatrix[16] = { 0 };
-    if (encoderInfoElement->GetVectorAttribute("PreTMatrix", 16, vectorMatrix))
-    {
-      encoderInfo.PreTMatrix->DeepCopy(vectorMatrix);
-    }
-    else
-    {
-      encoderInfo.PreTMatrix->Identity();;
-    }
-
 
     // Reading the MotionType of an US Digital Encoder
     std::string motiontype = encoderInfoElement->GetAttribute("MotionType");
