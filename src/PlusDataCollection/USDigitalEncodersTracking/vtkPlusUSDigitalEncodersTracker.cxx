@@ -395,12 +395,15 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
 
     // ---- Get a name of transformation
-    const char* toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
-
+    const char* toAttribute = encoderInfoElement->GetAttribute("ToolReferenceFrame");
     if (!toAttribute)
     {
-      toAttribute = deviceConfig->GetAttribute("Id");
-      LOG_WARNING("Device's attribute 'ToolReferenceFrame' is missing (Device Id='" << toAttribute << "')!");
+      toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
+      if (!toAttribute)
+      {
+        toAttribute = deviceConfig->GetAttribute("Id");
+        LOG_WARNING("Device's attribute 'ToolReferenceFrame' is missing (Device Id='" << toAttribute << "')!");
+      }
     }
 
     PlusTransformName transformName(id, toAttribute);
