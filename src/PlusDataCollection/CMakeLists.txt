@@ -514,7 +514,7 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
 
   LIST(LENGTH _entries _size)
   IF(_size EQUAL 0)
-    MESSAGE(FATAL_ERROR "Wanted to add ndicapi library to install, but dependent files don't exist. Do you need to build it?")
+    MESSAGE(FATAL_ERROR "Wanted to add aruco library to install, but dependent files don't exist. Do you need to build it?")
   ENDIF()
 ENDIF()
 
