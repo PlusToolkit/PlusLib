@@ -162,62 +162,21 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     }
     else
     {
-      if (encoderInfoPos->second->Addr == address)
+      encoderInfoPos->second->Connected = true;
+      encoderInfoPos->second->Model = model;
+      encoderInfoPos->second->Version = version;
+      retVal = ::A2SetMode(address, encoderInfoPos->second->Mode);
+      if (retVal != 0)
       {
-        if (encoderInfoPos->second->Addr2 == 0) //not coreXY
-        {
-          encoderInfoPos->second->Connected = true;
-        }
-        encoderInfoPos->second->Model = model;
-        encoderInfoPos->second->Version = version;
-        encoderInfoPos->second->Addr = address;
-        retVal = ::A2SetMode(encoderInfoPos->second->Addr, encoderInfoPos->second->Mode);
-        if (retVal != 0)
-        {
-          LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", address: " << address);
-          return PLUS_FAIL;
-        }
-        retVal = ::A2SetPosition(encoderInfoPos->second->Addr, 0); // Initialize the value of the first encoder
-        if (retVal != 0)
-        {
-          LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", address: " << address);
-          return PLUS_FAIL;
-        }
+        LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", address: " << address);
+        return PLUS_FAIL;
       }
-      else //coreXY second encoder
+      retVal = ::A2SetPosition(address, 0); // Initialize the value of the encoder
+      if (retVal != 0)
       {
-        encoderInfoPos->second->Connected = true;
-        encoderInfoPos->second->Model = model;
-        encoderInfoPos->second->Version = version;
-        encoderInfoPos->second->Addr2 = address;
-        retVal = ::A2SetMode(encoderInfoPos->second->Addr2, encoderInfoPos->second->Mode);
-        if (retVal != 0)
-        {
-          LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", address: " << address);
-          return PLUS_FAIL;
-        }
-        retVal = ::A2SetPosition(encoderInfoPos->second->Addr2, 0); // Initialize the value of the second encoder
-        if (retVal != 0)
-        {
-          LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", address: " << address);
-          return PLUS_FAIL;
-        }
+        LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", address: " << address);
+        return PLUS_FAIL;
       }
-    }
-  }
-
-  // Remove unconnected encoders info from the encoder info list.
-  encoderInfoPos = this->EncoderMap.begin();
-  while (encoderInfoPos != this->EncoderMap.end())
-  {
-    if (!encoderInfoPos->second->Connected)
-    {
-      encoderInfoPos = EncoderMap.erase(encoderInfoPos);
-      LOG_WARNING("Removing unconnected encoder from the list, port name: " << encoderInfoPos->second->PortName);
-    }
-    else
-    {
-      ++encoderInfoPos;
     }
   }
 
@@ -297,25 +256,27 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 
   for (auto it = EncoderList.begin(); it != EncoderList.end(); ++it)
   {
+    if (!it->Connected)
+    {
+      LOG_ERROR("USDigital encoder(s) not connected!");
+      return PLUS_FAIL;
+    }
+    
+    long encoderValue;
+    long errorCode;
+    vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
+    
+    // Read encoder positions and transform it into XY position in mm
+    errorCode = ::A2GetPosition(it->Addr, &encoderValue);
+    if (errorCode)
+    {
+      LOG_ERROR("Unable to read position of first encoder with address: " << it->Addr);
+      return PLUS_FAIL;
+    }
+    vtkVector3d localmovement = it->LocalAxis;
+
     if (it->Addr2 != 0) //coreXY
     {
-      if (!it->Connected)
-      {
-        LOG_ERROR("USDigital encoder(s) not connected!");
-        return PLUS_FAIL;
-      }
-    
-      long encoderValue;
-      long errorCode;
-      vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
-    
-      // Read encoder positions and transform it into XY position in mm
-      errorCode = ::A2GetPosition(it->Addr, &encoderValue);
-      if (errorCode)
-      {
-        LOG_ERROR("Unable to read position of first encoder with address: " << it->Addr);
-        return PLUS_FAIL;
-      }
       double firstEnc = encoderValue * it->PulseSpacing;
     
       errorCode = ::A2GetPosition(it->Addr2, &encoderValue);
@@ -330,57 +291,36 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       double secondAxis = firstEnc - secondEnc;
     
       //now make a transform matrix out of this translation and add it into PLUS system
-      vtkVector3d localmovement = it->LocalAxis;
       vtkMath::MultiplyScalar(localmovement.GetData(), firstAxis);
       tempTransform->Translate(localmovement.GetData());
       localmovement = it->LocalAxis2;
       vtkMath::MultiplyScalar(localmovement.GetData(), secondAxis);
       tempTransform->Translate(localmovement.GetData());
-    
-      vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
-    
-      this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
-      if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
+    }
+    else //single encoder
+    {
+      // Update transformation matrix of the connected US digital encoder   
+      if (it->Motion == 0)
       {
-        LOG_ERROR("Unable to find tool with port name: " << it->PortName);
+        vtkMath::MultiplyScalar(localmovement.GetData(), encoderValue * it->PulseSpacing);
+        tempTransform->Translate(localmovement.GetData());
+      }
+      else if (it->Motion == 1)
+      {
+        // Check the unit of rotation angle .... (degree or radian)
+        tempTransform->RotateWXYZ(encoderValue * it->PulseSpacing, localmovement.GetData());
+      }
+      else
+      {
+        LOG_ERROR("Un-supported motion type");
       }
     }
-    else //regular combination of stages
+
+    vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
+    this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
+    if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
     {
-      if (it->Connected)
-      {
-        long encoderValue;
-        // Get current encoder values from one connected US digital encoder
-        ::A2GetPosition(it->Addr, &encoderValue);
-    
-        // Update transformation matrix of the connected US digital encoder
-        vtkVector3d localmovement = it->LocalAxis;
-        vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
-    
-        if (it->Motion == 0)
-        {
-          vtkMath::MultiplyScalar(localmovement.GetData(), encoderValue * it->PulseSpacing);
-          tempTransform->Translate(localmovement.GetData());
-        }
-        else if (it->Motion == 1)
-        {
-          // Check the unit of rotation angle .... (degree or radian)
-          tempTransform->RotateWXYZ(encoderValue * it->PulseSpacing, localmovement.GetData());
-        }
-        else
-        {
-          LOG_ERROR("Un-supported motion type");
-        }
-    
-        vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
-    
-        this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
-        if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
-        {
-          LOG_ERROR("Unable to find tool with port name: " << it->PortName);
-          continue;
-        }
-      }
+      LOG_ERROR("Unable to find tool with port name: " << it->PortName);
     }
 
     if (!it->Persistent)
