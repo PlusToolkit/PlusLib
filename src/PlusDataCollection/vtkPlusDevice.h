@@ -1,4 +1,4 @@
-/*=P/lus=header=begin======================================================
+/*=Plus=header=begin======================================================
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
@@ -55,29 +55,13 @@ GetSdkVersion(), ReadConfiguration(), WriteConfiguration() methods.
 class vtkPlusDataCollectionExport vtkPlusDevice : public vtkImageAlgorithm
 {
 public:
-  class ParamIndexKey
-  {
-  public:
-    static const double NO_DEPTH;
-  public:
-    ParamIndexKey();
-
-  public:
-    double Depth;
-    std::string ProbeId;
-    PlusImagingMode Mode;
-  };
-
-public:
   static vtkPlusDevice* New();
   vtkTypeMacro(vtkPlusDevice, vtkImageAlgorithm);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   static const std::string BMODE_PORT_NAME;
   static const std::string RFMODE_PORT_NAME;
-  static const std::string PROBE_SWITCH_ATTRIBUTE_NAME;
-  static const std::string DEPTH_SWITCH_ATTRIBUTE_NAME;
-  static const std::string MODE_SWITCH_ATTRIBUTE_NAME;
+
   /*!
   Probe to see to see if the device is connected to the
   computer.  This method should be overridden in subclasses.
@@ -466,9 +450,6 @@ public:
 
 protected:
   static void* vtkDataCaptureThread(vtkMultiThreader::ThreadInfo* data);
-
-  /* Construct a lookup table for indexing channels by depth, mode and probe */
-  PlusStatus BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output);
 
   /*! Should be overridden to connect to the hardware */
   virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }

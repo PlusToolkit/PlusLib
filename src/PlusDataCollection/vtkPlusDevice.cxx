@@ -30,8 +30,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-#pragma warning ( disable : 4311 )
-#pragma warning ( disable : 4312 )
+  #pragma warning ( disable : 4311 )
+  #pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
@@ -113,21 +113,6 @@ const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
 const std::string vtkPlusDevice::BMODE_PORT_NAME = "B";
 const std::string vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
-const std::string vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME = "ProbeId";
-const std::string vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME = "Depth";
-const std::string vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME = "Mode";
-
-//----------------------------------------------------------------------------
-
-const double vtkPlusDevice::ParamIndexKey::NO_DEPTH = -1.0;
-
-vtkPlusDevice::ParamIndexKey::ParamIndexKey()
-  : Depth(NO_DEPTH)
-  , ProbeId("")
-  , Mode(Plus_UnknownMode)
-{
-
-}
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -2278,105 +2263,6 @@ PlusStatus vtkPlusDevice::AddOutputChannel(vtkPlusChannel* aChannel)
 void vtkPlusDevice::SetDataCollector(vtkPlusDataCollector* _arg)
 {
   this->DataCollector = _arg;
-}
-
-//------------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::BuildParameterIndexList(const ChannelContainer& channels, bool& depthSwitchingEnabled, bool& modeSwitchingEnabled, bool& probeSwitchingEnabled, std::vector<ParamIndexKey*>& output)
-{
-  std::vector<double> depthList;
-  std::vector<std::string> modeList;
-  std::vector<std::string> probeList;
-
-  for (ChannelContainerConstIterator it = channels.begin(); it != channels.end(); ++it)
-  {
-    std::string value;
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
-    {
-      double depth = 0.0;
-      PlusCommon::StringToDouble(value.c_str(), depth);
-      depthList.push_back(depth);
-    }
-
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
-    {
-      probeList.push_back(value);
-    }
-
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
-    {
-      modeList.push_back(value);
-    }
-  }
-
-  if (depthList.size() == 0 &&
-      modeList.size() == 0 &&
-      probeList.size() == 0)
-  {
-    // We have no switching going on, we're done here
-    return PLUS_SUCCESS;
-  }
-
-  depthSwitchingEnabled = depthList.size() > 1;
-  modeSwitchingEnabled = modeList.size() > 1;
-  probeSwitchingEnabled = probeList.size() > 1;
-
-  int numErrors(0);
-  for (ChannelContainerConstIterator it = channels.begin(); it != channels.end(); ++it)
-  {
-    // Create a key to index this channel element
-    ParamIndexKey* key = new ParamIndexKey();
-    // set the depth
-    std::string value;
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
-    {
-      PlusCommon::StringToDouble(value.c_str(), key->Depth);
-    }
-    else if (depthList.size() > 0)
-    {
-      LOCAL_LOG_ERROR("Channel " << (*it)->GetChannelId() << " does not have a \'" << vtkPlusDevice::DEPTH_SWITCH_ATTRIBUTE_NAME << "\' sub-attribute specified. Please specify the depth on all channels.");
-      numErrors++;
-      continue;
-    }
-
-    // set the probe id
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME), key->ProbeId) != PLUS_SUCCESS && probeList.size() > 0)
-    {
-      LOCAL_LOG_ERROR("Channel " << (*it)->GetChannelId() << " does not have a \'" << vtkPlusDevice::PROBE_SWITCH_ATTRIBUTE_NAME << "\' sub-attribute specified. Please specify the probe details for all channels.");
-      numErrors++;
-      continue;
-    }
-
-    // determine and set the mode
-    if ((*it)->GetCustomAttribute(std::string(vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME), value) == PLUS_SUCCESS)
-    {
-      if (PlusCommon::IsEqualInsensitive(value, vtkPlusDevice::RFMODE_PORT_NAME))
-      {
-        key->Mode = Plus_RfMode;
-      }
-      else if (PlusCommon::IsEqualInsensitive(value, vtkPlusDevice::BMODE_PORT_NAME))
-      {
-        key->Mode = Plus_BMode;
-      }
-      else
-      {
-        LOCAL_LOG_WARNING("Unable to determine Mode. Please specify a sub-attribute with Id \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\'=" << vtkPlusDevice::BMODE_PORT_NAME << " or " << vtkPlusDevice::RFMODE_PORT_NAME << ". Defaulting to " << vtkPlusDevice::BMODE_PORT_NAME);
-        key->Mode = Plus_BMode;
-      }
-    }
-    else if ((*it)->GetRfProcessor() == NULL)
-    {
-      key->Mode = Plus_BMode;
-      LOCAL_LOG_WARNING("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Defaulting to " << vtkPlusDevice::BMODE_PORT_NAME << ".");
-    }
-    else
-    {
-      key->Mode = Plus_RfMode;
-      LOCAL_LOG_INFO("No \'" << vtkPlusDevice::MODE_SWITCH_ATTRIBUTE_NAME << "\' tag found on channel " << (*it)->GetChannelId() << ". Found tag " << vtkPlusRfProcessor::GetRfProcessorTagName() << " so setting channel Mode to " << vtkPlusDevice::RFMODE_PORT_NAME << ".");
-    }
-    output.push_back(key);
-  }
-
-  return PLUS_SUCCESS;
 }
 
 //------------------------------------------------------------------------------

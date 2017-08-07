@@ -464,25 +464,14 @@ IF(PLUS_USE_OpenCV)
   # Installation of shared libraries is managed in PlusApp
 ENDIF()
 
-IF(PLUS_USE_aruco)
-  # Instead of calling FIND_PACKAGE(aruco), set paths manually,
-  # because it is too difficult to fix aruco's CMake files.
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${aruco_DIR}/src
-    ${aruco_DIR}/../aruco/src
-    )    
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    aruco2019
-    )
-ENDIF()
-
 IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
   IF(NOT PLUS_USE_OpenCV)
     MESSAGE(ERROR "PLUS_USE_OPTICAL_MARKER_TRACKER requires PLUS_USE_OpenCV option enabled")
   ENDIF()
-  IF(NOT PLUS_USE_aruco)
-    MESSAGE(ERROR "PLUS_USE_OPTICAL_MARKER_TRACKER requires PLUS_USE_aruco option enabled")
+  IF(NOT PLUS_USE_aruco OR NOT aruco_DIR)
+    MESSAGE(FATAL_ERROR "PLUS_USE_OPTICAL_MARKER_TRACKER requires PLUS_USE_aruco option enabled")
   ENDIF()
+  FIND_PACKAGE(aruco REQUIRED NO_MODULE)
 
   SET(OpticalMarkerTracking_SRCS
     OpticalMarkerTracking/vtkPlusOpticalMarkerTracker.cxx
@@ -494,16 +483,20 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
       )
   ENDIF()
 
-  LIST (APPEND PlusDataCollection_INCLUDE_DIRS
+  LIST(APPEND PlusDataCollection_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OpticalMarkerTracking
     )
 
-  LIST (APPEND ${PROJECT_NAME}_HDRS 
+  LIST(APPEND ${PROJECT_NAME}_HDRS 
     ${OpticalMarkerTracking_HDRS}
     )
 
-  LIST (APPEND ${PROJECT_NAME}_SRCS 
+  LIST (APPEND ${PROJECT_NAME}_SRCS
     ${OpticalMarkerTracking_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    aruco
     )
 ENDIF()
 
