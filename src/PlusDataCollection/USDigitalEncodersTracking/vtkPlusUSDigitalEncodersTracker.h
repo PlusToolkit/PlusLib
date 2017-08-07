@@ -126,7 +126,7 @@ protected:
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
   EncoderInfoMapType EncoderMap;
-  typedef std::vector<vtkPlusUSDigitalEncoderInfo> EncoderListType;
+  typedef std::list<vtkPlusUSDigitalEncoderInfo> EncoderListType;
   EncoderListType EncoderList;
 
 

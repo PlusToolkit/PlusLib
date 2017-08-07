@@ -89,7 +89,7 @@ public:
   vtkSmartPointer<vtkMatrix4x4> PreTMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
-  std::string ToolId;
+  std::string PortName;
   bool Persistent = true;
 };
 
@@ -213,7 +213,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     if (!encoderInfoPos->second->Connected)
     {
       encoderInfoPos = EncoderMap.erase(encoderInfoPos);
-      LOG_WARNING("Removing unconnected encoder from the list, tool Id: " << encoderInfoPos->second->ToolId);
+      LOG_WARNING("Removing unconnected encoder from the list, port name: " << encoderInfoPos->second->PortName);
     }
     else
     {
@@ -295,11 +295,11 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  for (unsigned int i = 0; i < EncoderList.size(); ++i)
+  for (auto it = EncoderList.begin(); it != EncoderList.end(); ++it)
   {
-    if (EncoderList[i].Addr2 != 0) //coreXY
+    if (it->Addr2 != 0) //coreXY
     {
-      if (!EncoderList[i].Connected)
+      if (!it->Connected)
       {
         LOG_ERROR("USDigital encoder(s) not connected!");
         return PLUS_FAIL;
@@ -310,95 +310,85 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
     
       // Read encoder positions and transform it into XY position in mm
-      errorCode = ::A2GetPosition(EncoderList[i].Addr, &encoderValue);
+      errorCode = ::A2GetPosition(it->Addr, &encoderValue);
       if (errorCode)
       {
-        LOG_ERROR("Unable to read position of first encoder with address: " << EncoderList[i].Addr);
+        LOG_ERROR("Unable to read position of first encoder with address: " << it->Addr);
         return PLUS_FAIL;
       }
-      double firstEnc = encoderValue * EncoderList[i].PulseSpacing;
+      double firstEnc = encoderValue * it->PulseSpacing;
     
-      errorCode = ::A2GetPosition(EncoderList[i].Addr2, &encoderValue);
+      errorCode = ::A2GetPosition(it->Addr2, &encoderValue);
       if (errorCode)
       {
-        LOG_ERROR("Unable to read position of second encoder with address: " << EncoderList[i].Addr2);
+        LOG_ERROR("Unable to read position of second encoder with address: " << it->Addr2);
         return PLUS_FAIL;
       }
-      double secondEnc = encoderValue * EncoderList[i].PulseSpacing2;
+      double secondEnc = encoderValue * it->PulseSpacing2;
     
       double firstAxis = firstEnc + secondEnc;
       double secondAxis = firstEnc - secondEnc;
     
       //now make a transform matrix out of this translation and add it into PLUS system
-      vtkVector3d localmovement = EncoderList[i].LocalAxis;
+      vtkVector3d localmovement = it->LocalAxis;
       vtkMath::MultiplyScalar(localmovement.GetData(), firstAxis);
       tempTransform->Translate(localmovement.GetData());
-      localmovement = EncoderList[i].LocalAxis2;
+      localmovement = it->LocalAxis2;
       vtkMath::MultiplyScalar(localmovement.GetData(), secondAxis);
       tempTransform->Translate(localmovement.GetData());
     
-      vtkMatrix4x4::Multiply4x4(EncoderList[i].PreTMatrix,
-                                tempTransform->GetMatrix(),
-                                EncoderList[i].TransformationMatrix);
+      vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
     
-      this->TransformRepository->SetTransform(EncoderList[i].TransformName,
-          EncoderList[i].TransformationMatrix);
-      if (MyToolTimeStampedUpdate(EncoderList[i]) == PLUS_FAIL)
+      this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
+      if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
       {
-        LOG_ERROR("Unable to find tool with ID: " << EncoderList[i].ToolId);
+        LOG_ERROR("Unable to find tool with port name: " << it->PortName);
       }
     }
     else //regular combination of stages
     {
-      if (EncoderList[i].Connected)
+      if (it->Connected)
       {
         long encoderValue;
         // Get current encoder values from one connected US digital encoder
-        ::A2GetPosition(EncoderList[i].Addr, &encoderValue);
+        ::A2GetPosition(it->Addr, &encoderValue);
     
         // Update transformation matrix of the connected US digital encoder
-        vtkVector3d localmovement = EncoderList[i].LocalAxis;
+        vtkVector3d localmovement = it->LocalAxis;
         vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
     
-        if (EncoderList[i].Motion == 0)
+        if (it->Motion == 0)
         {
-          vtkMath::MultiplyScalar(localmovement.GetData(),
-                                  encoderValue * EncoderList[i].PulseSpacing);
-    
+          vtkMath::MultiplyScalar(localmovement.GetData(), encoderValue * it->PulseSpacing);
           tempTransform->Translate(localmovement.GetData());
         }
-        else if (EncoderList[i].Motion == 1)
+        else if (it->Motion == 1)
         {
           // Check the unit of rotation angle .... (degree or radian)
-          tempTransform->RotateWXYZ(encoderValue * EncoderList[i].PulseSpacing,
-                                    localmovement.GetData());
+          tempTransform->RotateWXYZ(encoderValue * it->PulseSpacing, localmovement.GetData());
         }
         else
         {
           LOG_ERROR("Un-supported motion type");
         }
     
-        vtkMatrix4x4::Multiply4x4(EncoderList[i].PreTMatrix,
-                                  tempTransform->GetMatrix(),
-                                  EncoderList[i].TransformationMatrix);
+        vtkMatrix4x4::Multiply4x4(it->PreTMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
     
-        this->TransformRepository->SetTransform(EncoderList[i].TransformName,
-            EncoderList[i].TransformationMatrix);
-        if (MyToolTimeStampedUpdate(EncoderList[i]) == PLUS_FAIL)
+        this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
+        if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
         {
-          LOG_ERROR("Unable to find tool with ID: " << EncoderList[i].ToolId);
+          LOG_ERROR("Unable to find tool with port name: " << it->PortName);
           continue;
         }
       }
     }
 
-    if (!EncoderList[i].Persistent)
+    if (!it->Persistent)
     {
-      this->TransformRepository->GetTransform(EncoderList[i].TransformName,
-          EncoderList[i].TransformationMatrix);
-      if (MyToolTimeStampedUpdate(EncoderList[i]) == PLUS_FAIL)
+      this->TransformRepository->GetTransform(it->TransformName, it->TransformationMatrix);
+      if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
       {
-        LOG_ERROR("Unable to find tool for transform: " << EncoderList[i].TransformName);
+        LOG_ERROR("Unable to find tool for transform: " << it->TransformName);
         continue;
       }
     }
@@ -413,9 +403,9 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::MyToolTimeStampedUpdate(vtkPlusUSDig
   if (!encoderInfo.Persistent)
   {
     vtkPlusDataSource* tool = NULL;
-    if (this->GetTool(encoderInfo.ToolId.c_str(), tool) != PLUS_SUCCESS)
+    if (this->GetToolByPortName(encoderInfo.PortName.c_str(), tool) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to find tool with ID: " << encoderInfo.ToolId);
+      LOG_ERROR("Unable to find tool with port name: " << encoderInfo.PortName);
       return PLUS_FAIL;
     }
 
@@ -441,6 +431,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
   this->TransformRepository->Clear();
   this->EncoderMap.clear();
   this->EncoderList.clear();
+  long address = 0;
 
   for (int encoderIndex = 0; encoderIndex < dataSourcesElement->GetNumberOfNestedElements(); encoderIndex++)
   {
@@ -453,6 +444,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     vtkPlusUSDigitalEncoderInfo encoderInfo;
 
+    const char* portName = encoderInfoElement->GetAttribute("PortName");
+    if (portName == NULL)
+    {
+      LOG_ERROR("Tool portname is not specified");
+      continue;
+    }
+
     const char* id = encoderInfoElement->GetAttribute("Id");
     if (id == NULL)
     {
@@ -461,9 +459,9 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     vtkPlusDataSource* tool = NULL;
-    if (this->GetTool(id, tool) != PLUS_SUCCESS)
+    if (this->GetToolByPortName(portName, tool) != PLUS_SUCCESS)
     {
-      LOG_ERROR("GetTool for tool with ID " << id << " failed");
+      LOG_ERROR("GetTool for port " << portName << " failed");
       continue;
     }
     if (tool == NULL)
@@ -471,7 +469,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       LOG_ERROR("Tool with ID " << id << " was not found");
       continue;
     }
-    encoderInfo.ToolId = id;
+    encoderInfo.PortName = portName;
 
 
     // ---- Get a name of transformation
@@ -598,9 +596,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
     encoderInfo.Resolution = atol(resolution);
 
+    encoderInfo.Addr = address++;
+    if (coreXY)
+    {
+        encoderInfo.Addr2 = address++;
+    }
     EncoderList.push_back(encoderInfo);
 
-    // Build the list of US Digital Encoder Info
     this->EncoderMap[encoderInfo.Addr] = &EncoderList.back();
     if (coreXY) //enter this encoderInfo twice (once for each address)
     {
