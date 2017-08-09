@@ -244,6 +244,8 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
     this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
   }
 
+  LOG_DEBUG("NDI Reply: " << this->CommandReply);
+
   va_end(ap);
 
   return this->CommandReply;
