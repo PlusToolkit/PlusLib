@@ -65,6 +65,10 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 #include <stdarg.h>
 
+#if _MSC_VER >= 1700
+  #include <future>
+#endif
+
 namespace
 {
   const int VIRTUAL_SROM_SIZE = 1024;
@@ -180,6 +184,9 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
   else if (this->NetworkHostname.empty())
   {
+#if _MSC_VER >= 1700
+    return ProbeSerialInternal();
+#else
     // if SerialPort is set to -1 (default), then probe the first N serial ports
     char* devicename = NULL;
     int errnum = NDI_OPEN_ERROR;
@@ -203,6 +210,7 @@ PlusStatus vtkPlusNDITracker::Probe()
         }
       }
     }
+#endif
   }
   else
   {
@@ -1288,3 +1296,50 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
 
   return PLUS_SUCCESS;
 }
+
+#if _MSC_VER >= 1700
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
+{
+  const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
+  std::vector<bool> deviceExists(MAX_SERIAL_PORT_NUMBER);
+  std::fill(begin(deviceExists), end(deviceExists), false);
+  std::vector<std::future<void>> tasks;
+  for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
+  {
+    std::future<void> result = std::async([i, &deviceExists]()
+    {
+      char* devicename = ndiSerialDeviceName(i);
+      if (devicename)
+      {
+        int errnum = ndiSerialProbe(devicename);
+        if (errnum == NDI_OKAY)
+        {
+          deviceExists[i] = true;
+        }
+      }
+    });
+    tasks.push_back(std::move(result));
+  }
+  for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
+  {
+    tasks[i].wait();
+  }
+  for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
+  {
+    // use first device found
+    if (deviceExists[i] == true)
+    {
+      char* devicename = ndiSerialDeviceName(i);
+      this->SerialPort = i + 1;
+      if (this->LeaveDeviceOpenAfterProbe)
+      {
+        this->Device = ndiOpenSerial(devicename);
+      }
+      return PLUS_SUCCESS;
+    }
+  }
+
+  return PLUS_FAIL;
+}
+#endif
