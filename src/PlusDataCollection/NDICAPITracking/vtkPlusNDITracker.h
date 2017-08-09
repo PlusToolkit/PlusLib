@@ -125,7 +125,10 @@ public:
     TR_LED_FLASH = 2
   };
 
-  virtual bool IsTracker() const { return true; }
+  virtual bool IsTracker() const
+  {
+    return true;
+  }
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
@@ -268,6 +271,10 @@ protected:
     Only used if newer commands are not supported by a device
   */
   PlusStatus SelectMeasurementVolumeDeprecated();
+
+#if _MSC_VER >= 1700
+  PlusStatus ProbeSerialInternal();
+#endif
 
 protected:
   unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
