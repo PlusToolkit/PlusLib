@@ -103,7 +103,6 @@ PlusStatus vtkPlusGetPolydataCommand::Execute()
   {
     if (this->ExecutePolydataReply(errorString) != PLUS_SUCCESS)
     {
-      this->QueueCommandResponse(PLUS_FAIL, baseMessage + " Failed. See error message.", errorString);
       return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
@@ -122,6 +121,13 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   reader->Update();
 
   auto polyData = reader->GetOutput();
+
+  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> response = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
+  response->SetClientId(this->ClientId);
+  response->SetOriginalId(this->GetId());
+  response->SetStatus(PLUS_FAIL);
+  outErrorString = "PLUS cannot load polydata.";
+
   if (polyData != nullptr)
   {
     vtkSmartPointer<vtkPlusCommandPolydataResponse> response = vtkSmartPointer<vtkPlusCommandPolydataResponse>::New();
@@ -131,23 +137,10 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
     response->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
     this->CommandResponseQueue.push_back(response);
 
-    vtkSmartPointer<vtkPlusCommandCommandResponse> cmdResponse = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
-    cmdResponse->SetClientId(this->ClientId);
-    cmdResponse->SetOriginalId(this->GetId());
-    cmdResponse->SetStatus(PLUS_SUCCESS);
-    this->CommandResponseQueue.push_back(cmdResponse);
-  }
-  else
-  {
-    vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
-    response->SetClientId(this->ClientId);
-    response->SetOriginalId(this->GetId());
-    response->SetStatus(PLUS_FAIL);
-    this->CommandResponseQueue.push_back(response);
-
-    outErrorString = "PLUS cannot load polydata.";
-    return PLUS_FAIL;
+    outErrorString = "";
+    response->SetStatus(PLUS_SUCCESS);
   }
 
-  return PLUS_SUCCESS;
+  this->CommandResponseQueue.push_back(response);
+  return polyData != nullptr ? PLUS_SUCCESS : PLUS_FAIL;
 }

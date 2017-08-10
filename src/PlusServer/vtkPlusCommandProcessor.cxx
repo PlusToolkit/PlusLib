@@ -4,10 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "vtkImageData.h"
-#include "vtkMatrix4x4.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusCommand.h"
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusGetImageCommand.h"
@@ -20,6 +18,7 @@ See License.txt for details.
 #endif
 #include "igtl_header.h"
 #include "vtkPlusGetTransformCommand.h"
+#include "vtkPlusGetPolydataCommand.h"
 #include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
@@ -27,7 +26,12 @@ See License.txt for details.
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusVersionCommand.h"
-#include "vtkXMLUtilities.h"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkObjectFactory.h>
+#include <vtkXMLUtilities.h>
 
 vtkStandardNewMacro(vtkPlusCommandProcessor);
 
@@ -41,6 +45,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 {
   // Register default commands
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetImageCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetPolydataCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusGetTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusReconstructVolumeCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusRequestIdsCommand>::New());
@@ -251,7 +256,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
     }
     else
     {
-      this->QueueCommandResponse(PLUS_FAIL, deviceName, clientId, commandName, uid, std::string("Error attempting to process command."));
+      this->QueueCommandResponse(PLUS_FAIL, deviceName, clientId, commandName, uid, "Error attempting to process command.", "Unknown command type requested.");
     }
     return PLUS_FAIL;
   }
@@ -270,7 +275,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status, const std::string& deviceName, const std::string& replyString)
+PlusStatus vtkPlusCommandProcessor::QueueStringResponse(PlusStatus status, const std::string& deviceName, const std::string& replyString)
 {
   vtkSmartPointer<vtkPlusCommandStringResponse> response = vtkSmartPointer<vtkPlusCommandStringResponse>::New();
   response->SetDeviceName(deviceName);
@@ -294,19 +299,15 @@ PlusStatus vtkPlusCommandProcessor::QueueStringResponse(const PlusStatus& status
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(const PlusStatus& status, const std::string& deviceName, unsigned int clientId, const std::string& commandName, uint32_t uid, const std::string& replyString)
+PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(PlusStatus status, const std::string& deviceName, unsigned int clientId, const std::string& commandName, uint32_t uid, const std::string& replyString, const std::string& errorString)
 {
-  // TODO : determine error string syntax/standard
-  std::string errorMessage = commandName + std::string(": failure");
-  LOG_ERROR(errorMessage);
-
-  vtkSmartPointer<vtkPlusCommandCommandResponse> response = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
+  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> response = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   response->SetClientId(clientId);
   response->SetDeviceName(deviceName);
   response->SetOriginalId(uid);
   response->SetRespondWithCommandMessage(true);
-  response->SetErrorString(errorMessage);
-  response->SetStatus(PLUS_FAIL);
+  response->SetErrorString(errorString);
+  response->SetStatus(status);
 
   // Add response to the command response queue
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
