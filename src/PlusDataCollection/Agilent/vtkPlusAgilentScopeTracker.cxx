@@ -427,6 +427,12 @@ PlusStatus vtkPlusAgilentScopeTracker::InternalUpdate()
     }
   }
 
+  if (peakIdxCount == 0)
+  {
+    LOG_INFO("No peaks found. Skipping frame.");
+    return PLUS_SUCCESS;
+  }
+
   // check for distances between peaks
   ViInt32 peakIndex(0);
   ViInt32 nextIndex(0);
