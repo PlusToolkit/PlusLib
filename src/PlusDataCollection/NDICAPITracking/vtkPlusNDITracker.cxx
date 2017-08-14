@@ -252,7 +252,32 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
     this->CommandReply[VTK_NDI_REPLY_LEN - 1] = '\0';
   }
 
-  LOG_DEBUG("NDI Reply: " << this->CommandReply);
+  std::string cmd(command);
+  if (cmd.find(':') != std::string::npos)
+  {
+    cmd = cmd.substr(0, cmd.find(':'));
+  }
+  else if (cmd.find(' ') != std::string::npos)
+  {
+    cmd = cmd.substr(0, cmd.find(' '));
+  }
+  bool isBinary = (cmd == "BX" || cmd == "GETLOG" || cmd == "VGET");
+  if (!isBinary)
+  {
+    LOG_DEBUG("NDI Reply: " << this->CommandReply);
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "NDI Reply: ";
+    ss << std::hex;
+    for (unsigned short i = 0 ; i < ndiGetBXReplyLength(this->Device); ++i)
+    {
+      ss << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)this->CommandReply[i];
+    }
+    ss << std::endl;
+    LOG_DEBUG(ss.str());
+  }
 
   va_end(ap);
 
