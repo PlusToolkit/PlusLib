@@ -61,9 +61,6 @@ public:
    */
   PlusStatus InternalUpdate();
 
-  vtkGetMacro(NumberOfEncoders, long);
-  vtkSetMacro(NumberOfEncoders, long);
-
   /*! Return whether stepper is alive */
   virtual PlusStatus IsStepperAlive();
 
@@ -80,10 +77,6 @@ public:
       address: SEI address 0-15*/
   PlusStatus SetUSDigitalA2EncoderOriginWithAddr(long address);
 
-  /*! Sets the absolute zero to the current position, in single-turn mode the new position is stored in EEPROM
-      with its SN number*/
-  PlusStatus SetUSDigitalA2EncoderOriginWithSN(long sn);
-
   /*! Sets the absolute zero to the current position of all connected US Digital A2 Encoders*/
   PlusStatus SetAllUSDigitalA2EncoderOrigin();
 
@@ -91,46 +84,25 @@ public:
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderModeWithAddr(long address, long mode);
 
-  /*! Sets the mode of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderModeWithSN(long sn, long mode);
-
   /*! Gets the mode of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderModeWithAddr(long address, long* mode);
-
-  /*! Gets the mode of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderModeWithSN(long sn, long* mode);
 
   /*! Sets the resolution of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderResoultionWithAddr(long address, long res);
 
-  /*! Sets the resolution of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderResoultionWithSN(long sn, long res);
-
   /*! Gets the resolution of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res);
-
-  /*! Gets the resolution of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderResoultionWithSN(long sn, long* res);
 
   /*! Sets the Position of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus SetUSDigitalA2EncoderPositionWithAddr(long address, long pos);
 
-  /*! Sets the Position of an A2 Encoder with its SN number */
-  PlusStatus SetUSDigitalA2EncoderPositionWithSN(long sn, long pos);
-
   /*! Gets the Position of an A2 Encoder
       address: SEI address 0-14*/
   PlusStatus GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos);
-
-  /*! Gets the Position of an A2 Encoder with its SN number */
-  PlusStatus GetUSDigitalA2EncoderPositionWithSN(long sn, long* pos);
-
-  /*! Get the Address of an A2 Encoder with its SN number */
-  long GetUSDigitalA2EncoderAddressWithSN(long sn);
 
 protected:
   vtkPlusUSDigitalEncodersTracker();
@@ -145,30 +117,21 @@ protected:
   /*! Stop the tracking system and bring it back to its ground state: Initialized, not tracking, at 9600 Baud. */
   PlusStatus InternalStopRecording();
 
-  bool IsValidSEIAddress(long address);
+  class vtkPlusUSDigitalEncoderInfo;
 
 protected:
-  bool CoreXY;
-  bool ConfigurationViaSerialNumbers;
-  /*! Number of connected A2 Encoders */
-  long NumberOfEncoders;
-  long COMPort;
-
-  class vtkPlusEncoderTrackingInfo;
-  class vtkPlusUSDigitalEncoderInfo;
-  vtkSmartPointer<vtkPlusTransformRepository> USDigitalEncoderTransformRepository;
+  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository
+    = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
-  EncoderInfoMapType USDigitalEncoderInfoList;
+  EncoderInfoMapType EncoderMap;
+  typedef std::list<vtkPlusUSDigitalEncoderInfo> EncoderListType;
+  EncoderListType EncoderList;
 
-  typedef std::vector<vtkPlusEncoderTrackingInfo> EncoderTrackingInfoVectorType;
-  EncoderTrackingInfoVectorType USDigitalEncoderTrackingInfoList;
 
-
-private:  // Functions.
-  vtkPlusUSDigitalEncodersTracker(const vtkPlusUSDigitalEncodersTracker&);
-  void operator=(const vtkPlusUSDigitalEncodersTracker&);
-  PlusStatus ToolTimeStampedUpdateWithvtkPlusEncoderTrackingInfo(vtkPlusEncoderTrackingInfo& encoderTrackingInfo);
+private:
+  vtkPlusUSDigitalEncodersTracker(const vtkPlusUSDigitalEncodersTracker&) = delete;
+  void operator=(const vtkPlusUSDigitalEncodersTracker&) = delete;
 };
 
 #endif
