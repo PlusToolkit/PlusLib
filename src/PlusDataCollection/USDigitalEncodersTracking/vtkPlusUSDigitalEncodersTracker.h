@@ -118,7 +118,6 @@ protected:
   PlusStatus InternalStopRecording();
 
   class vtkPlusUSDigitalEncoderInfo;
-  PlusStatus MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo);
 
 protected:
   vtkSmartPointer<vtkPlusTransformRepository> TransformRepository

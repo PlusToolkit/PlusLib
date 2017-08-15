@@ -185,7 +185,21 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
 PlusStatus vtkPlusUSDigitalEncodersTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::Disconnect");
-  return this->StopRecording();
+  this->StopRecording();
+
+  if (::IsInitialized() != 1)
+  {
+      // Device not yet initialized
+      return PLUS_SUCCESS;
+  }
+
+  if (::CloseSEI() != 0)
+  {
+      LOG_ERROR("Failed to close SEI!");
+      return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
@@ -225,19 +239,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalStartRecording()
 PlusStatus vtkPlusUSDigitalEncodersTracker::InternalStopRecording()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::InternalStopRecording");
-
-  if (::IsInitialized() != 1)
-  {
-    // Device not yet initialized
-    return PLUS_SUCCESS;
-  }
-
-  if (::CloseSEI() != 0)
-  {
-    LOG_ERROR("Failed to close SEI!");
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -316,30 +317,20 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 
     it->TransformationMatrix->DeepCopy(tempTransform->GetMatrix());
     this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
-    if (MyToolTimeStampedUpdate(*it) == PLUS_FAIL)
+
+    vtkPlusDataSource* tool = NULL;
+    if (this->GetToolByPortName(it->PortName.c_str(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to find tool with port name: " << it->PortName);
     }
+
+    // Device has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = tool->GetFrameNumber() + 1;
+    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    this->ToolTimeStampedUpdate(tool->GetId(),
+        it->TransformationMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
-  return PLUS_SUCCESS;
-}
-
-//---------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::MyToolTimeStampedUpdate(vtkPlusUSDigitalEncoderInfo& encoderInfo)
-{
-  vtkPlusDataSource* tool = NULL;
-  if (this->GetToolByPortName(encoderInfo.PortName.c_str(), tool) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Unable to find tool with port name: " << encoderInfo.PortName);
-    return PLUS_FAIL;
-  }
-
-  // Devices has no frame numbering, so just auto increment tool frame number
-  unsigned long frameNumber = tool->GetFrameNumber() + 1;
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
-  this->ToolTimeStampedUpdate(tool->GetId(),
-    encoderInfo.TransformationMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
   return PLUS_SUCCESS;
 }
 
