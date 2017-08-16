@@ -1334,19 +1334,20 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
   std::vector<std::future<void>> tasks;
   for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
   {
-    std::future<void> result = std::async([i, &deviceExists]()
+    char* dev = ndiSerialDeviceName(i);
+    if (dev != nullptr)
     {
-      char* devicename = ndiSerialDeviceName(i);
-      if (devicename)
+      std::string devName = std::string(dev);
+      std::future<void> result = std::async([i, &deviceExists, devName]()
       {
-        int errnum = ndiSerialProbe(devicename);
+        int errnum = ndiSerialProbe(devName.c_str());
         if (errnum == NDI_OKAY)
         {
           deviceExists[i] = true;
         }
-      }
-    });
-    tasks.push_back(std::move(result));
+      });
+      tasks.push_back(std::move(result));
+    }
   }
   for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
   {
