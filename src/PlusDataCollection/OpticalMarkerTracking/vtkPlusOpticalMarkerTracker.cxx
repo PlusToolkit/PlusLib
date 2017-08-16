@@ -253,8 +253,11 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalConnect()
   this->Internal->CameraParameters->readFromXMLFile(calibFilePath);
   this->Internal->MarkerDetector->setDictionary(this->Internal->MarkerDictionary);
   // threshold tuning numbers from aruco_test
-  this->Internal->MarkerDetector->setThresholdParams(7, 7);
-  this->Internal->MarkerDetector->setThresholdParamRange(2, 0);
+  aruco::MarkerDetector::Params params;
+  params._thresParam1 = 7;
+  params._thresParam2 = 7;
+  params._thresParam1_range = 2;
+  this->Internal->MarkerDetector->setParams(params);
 
   bool lowestRateKnown = false;
   double lowestRate = 30; // just a usual value (FPS)
@@ -376,11 +379,11 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
   this->Internal->MarkerDetector->detect(image, this->Internal->Markers);
 
   // iterate through tools updating tracking
-  for (vector<TrackedTool>::iterator toolIt = begin(this->Internal->Tools); toolIt != end(this->Internal->Tools); ++toolIt)
+  for (std::vector<TrackedTool>::iterator toolIt = begin(this->Internal->Tools); toolIt != end(this->Internal->Tools); ++toolIt)
   {
     bool toolInFrame = false;
     const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
-    for (vector<aruco::Marker>::iterator markerIt = begin(this->Internal->Markers); markerIt != end(this->Internal->Markers); ++markerIt)
+    for (std::vector<aruco::Marker>::iterator markerIt = begin(this->Internal->Markers); markerIt != end(this->Internal->Markers); ++markerIt)
     {
       if (toolIt->MarkerId == markerIt->id)
       {
