@@ -13,7 +13,7 @@ See License.txt for details.
 
 // OS includes
 #ifdef _WIN32
-#include <Winsock2.h>
+  #include <Winsock2.h>
 #endif
 
 //----------------------------------------------------------------------------

@@ -170,6 +170,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
 {
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::New();
   xmldata->SetName("ClientInfo");
+  xmldata->SetAttribute("TDATARequested", (this->TDATARequested ? "TRUE" : "FALSE"));
 
   vtkSmartPointer<vtkXMLDataElement> messageTypes = vtkSmartPointer<vtkXMLDataElement>::New();
   messageTypes->SetName("MessageTypes");
