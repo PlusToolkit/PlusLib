@@ -278,35 +278,33 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     {
       igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
 
-      for (auto streamIter = clientInfo.ImageStreams.begin(); streamIter != clientInfo.ImageStreams.end(); ++streamIter)
+      for (auto nameIter = clientInfo.TransformNames.begin(); nameIter != clientInfo.TransformNames.end(); ++nameIter)
       {
-        // Set transform name to [Name]To[CoordinateFrame]
-        PlusTransformName imageTransformName = PlusTransformName(streamIter->Name, streamIter->EmbeddedTransformToFrame);
-
-        vtkSmartPointer<vtkMatrix4x4> mat(vtkSmartPointer<vtkMatrix4x4>::New());
-        bool isValid;
-        if (transformRepository->GetTransform(imageTransformName, mat, &isValid) != PLUS_SUCCESS)
-        {
-          LOG_ERROR("Unable to retrieve embedded image transform: " << imageTransformName.GetTransformName() << ".");
-          continue;
-        }
-
-        for (auto nameIter = clientInfo.TransformNames.begin(); nameIter != clientInfo.TransformNames.end(); ++nameIter)
-        {
-          vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
-          transformRepository->GetTransform(*nameIter, matrix, &isValid);
-          trackedFrame.SetCustomFrameTransform(*nameIter, matrix);
-          trackedFrame.SetCustomFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
-        }
-
-        if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, mat, clientInfo.TransformNames) != PLUS_SUCCESS)
-        {
-          LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
-          numberOfErrors++;
-          continue;
-        }
-        igtlMessages.push_back(trackedFrameMessage.GetPointer());
+        bool isValid(false);
+        vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
+        transformRepository->GetTransform(*nameIter, matrix, &isValid);
+        trackedFrame.SetCustomFrameTransform(*nameIter, matrix);
+        trackedFrame.SetCustomFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
       }
+
+      vtkSmartPointer<vtkMatrix4x4> imageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      imageMatrix->Identity();
+      if (!clientInfo.ImageStreams.empty())
+      {
+        bool isValid;
+        if (transformRepository->GetTransform(PlusTransformName(clientInfo.ImageStreams[0].Name, clientInfo.ImageStreams[0].EmbeddedTransformToFrame), imageMatrix, &isValid) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Unable to retrieve embedded image transform: " << clientInfo.ImageStreams[0].Name << "To" << clientInfo.ImageStreams[0].EmbeddedTransformToFrame << ".");
+          continue;
+        }
+      }
+      if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, imageMatrix, clientInfo.TransformNames) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
+        numberOfErrors++;
+        continue;
+      }
+      igtlMessages.push_back(trackedFrameMessage.GetPointer());
     }
     // USMESSAGE message
     else if (typeid(*igtlMessage) == typeid(igtl::PlusUsMessage))
