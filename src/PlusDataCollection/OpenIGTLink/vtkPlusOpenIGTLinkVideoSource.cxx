@@ -20,7 +20,6 @@ vtkStandardNewMacro(vtkPlusOpenIGTLinkVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkVideoSource::vtkPlusOpenIGTLinkVideoSource()
-  : IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   this->RequireImageOrientationInConfiguration = true;
 }
@@ -71,7 +70,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   PlusTrackedFrame trackedFrame;
-  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+  igtl::MessageBase::Pointer bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
 
   if (typeid(*bodyMsg) == typeid(igtl::ImageMessage))
   {
@@ -144,7 +143,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
 PlusStatus vtkPlusOpenIGTLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ImageMessageEmbeddedTransformName, deviceConfig);
   return PLUS_SUCCESS;
 }
 
@@ -173,10 +172,4 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenIGTLinkVideoSource::SetImageMessageEmbeddedTransformName(const char* nameString)
-{
-  return this->ImageMessageEmbeddedTransformName.SetTransformName(nameString);
 }
