@@ -21,11 +21,8 @@ This is a program meant to test vtkPlusTransverseProcessEnhancer.cxx from the co
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkImageCast.h"
 
-#include <ctime>
 
 //----------------------------------------------------------------------------
-
-
 int main(int argc, char** argv)
 {
 
@@ -84,8 +81,10 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
 
+  vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer;
+  enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
+    
   // Read input sequence
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   if (trackedFrameList->ReadFromSequenceMetafile(inputFileName) == PLUS_FAIL)
@@ -114,6 +113,7 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkXMLDataElement> elementToUse;
 
+  //Find the ScanConversion element in the XML file
   vtkSmartPointer<vtkXMLDataElement> processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
   if (processorElement == NULL)
   {
@@ -131,6 +131,7 @@ int main(int argc, char** argv)
     }
     else
     {
+      //If this cannot be found, the algorithm connot work
       LOG_ERROR("Cannot find device set in XML tree: Processor");
       return PLUS_FAIL;
     }
@@ -150,15 +151,17 @@ int main(int argc, char** argv)
   //Process the frames for the input file
   enhancer->SetSaveIntermediateResults(saveIntermediateResults);
   LOG_INFO("Attempting to Process Frames.");
+
   if (enhancer->Update() == PLUS_FAIL)
   {
     LOG_ERROR("Could not Process Frames.");
     return EXIT_FAILURE;
   }
-  LOG_INFO("Processed Frames terminated successfully.");
 
+  LOG_INFO("Processed Frames terminated successfully.");
   if (saveIntermediateResults)
   {
+    //Make sure the directory name has been formated correctly
     int startInputFileNameIndex = 0;
     if (inputFileName.find("/") != std::string::npos)
     {

@@ -57,15 +57,19 @@ public:
   vtkSetMacro(IntermediateImageFileName, std::string);
   vtkSetMacro(SaveIntermediateResults, bool);
 
-  vtkSetMacro(ConvertToLinesImage, bool);
-  vtkGetMacro(ConvertToLinesImage, bool);
-  vtkBooleanMacro(ConvertToLinesImage, bool);
 
+  /*! Get and Set methods for variables related to the scanner used */
   vtkSetMacro(NumberOfScanLines, int);
   vtkGetMacro(NumberOfScanLines, int);
 
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
+
+  vtkSetVector3Macro(MmToPixelFanImage, double);
+  vtkGetVector3Macro(MmToPixelFanImage, double);
+
+  vtkSetVector3Macro(MmToPixelLinesImage, double);
+  vtkGetVector3Macro(MmToPixelLinesImage, double);
 
   vtkSetMacro(RadiusStartMm, int);
   vtkGetMacro(RadiusStartMm, int);
@@ -79,60 +83,32 @@ public:
   vtkSetMacro(ThetaStopDeg, int);
   vtkGetMacro(ThetaStopDeg, int);
 
-  vtkSetMacro(ThresholdingEnabled, bool);
-  vtkGetMacro(ThresholdingEnabled, bool);
-  vtkBooleanMacro(ThresholdingEnabled, bool);
 
-  vtkSetMacro(GaussianEnabled, bool);
-  vtkGetMacro(GaussianEnabled, bool);
-  vtkBooleanMacro(GaussianEnabled, bool);
-
+  /*! Get and Set methods for variables related to filter peramaters */
   void SetGaussianStdDev(double GaussianStdDev);
   void SetGaussianKernelSize(double GaussianKernelSize);
-
-  vtkSetMacro(EdgeDetectorEnabled, bool);
-  vtkGetMacro(EdgeDetectorEnabled, bool);
-  vtkBooleanMacro(EdgeDetectorEnabled, bool);
-
-  vtkSetMacro(IslandRemovalEnabled, bool);
-  vtkGetMacro(IslandRemovalEnabled, bool);
-  vtkBooleanMacro(IslandRemovalEnabled, bool);
 
   void SetIslandAreaThreshold(int islandAreaThreshold);
   vtkGetMacro(IslandAreaThreshold, int);
 
-  vtkSetMacro(ErosionEnabled, bool);
-  vtkGetMacro(ErosionEnabled, bool);
-  vtkBooleanMacro(ErosionEnabled, bool);
-
   vtkSetVector2Macro(ErosionKernelSize, int);
   vtkGetVector2Macro(ErosionKernelSize, int);
-
-  vtkSetMacro(DilationEnabled, bool);
-  vtkGetMacro(DilationEnabled, bool);
-  vtkBooleanMacro(DilationEnabled, bool);
 
   vtkSetVector2Macro(DilationKernelSize, int);
   vtkGetVector2Macro(DilationKernelSize, int);
 
-  vtkSetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkGetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkBooleanMacro(ReconvertBinaryToGreyscale, bool);
-
-  vtkSetMacro(ReturnToFanImage, bool);
-  vtkGetMacro(ReturnToFanImage, bool);
-  vtkBooleanMacro(ReturnToFanImage, bool);
-
   void ThresholdViaStdDeviation(vtkSmartPointer<vtkImageData> inputImage);
 
-  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
-  vtkImageData* GetShadowImage() { return this->ShadowImage; };
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
 
+
+  ///Steps to note and eliminate false boen areas
   void MarkShadowOutline(vtkSmartPointer<vtkImageData> inputImage);
   void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
   void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
 
+  ///Methods related to intermediate images
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
 
@@ -142,8 +118,6 @@ protected:
 
   void FillLinesImage(vtkSmartPointer<vtkImageData> inputImageData);
   void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage);
-
-  void ComputeHistogram(vtkSmartPointer<vtkImageData> imageData);
 
   void ImageConjunction(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> maskImage);
 
@@ -160,16 +134,12 @@ protected:
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
-  bool ConvertToLinesImage;
   int NumberOfScanLines;
   int NumberOfSamplesPerScanLine;
   bool ReturnToFanImage;
 
-  // Descriptive statistics of current image intensity.
-  double CurrentFrameMean;
-  double CurrentFrameStDev;
-  float CurrentFrameScalarComponentMax;
-  float CurrentFrameScalarComponentMin;
+  double MmToPixelFanImage[3];
+  double MmToPixelLinesImage[3];
 
   // Scan Conversion parameters, defined in config file
   int RadiusStartMm;
@@ -178,39 +148,28 @@ protected:
   int ThetaStopDeg;
 
   // Image processing parameters, defined in config file
-  bool GaussianEnabled;
   double GaussianStdDev;
   double GaussianKernelSize;
 
-  bool ThresholdingEnabled;
-
-  bool EdgeDetectorEnabled;
   vtkSmartPointer<vtkImageData> ConversionImage;
 
-  bool IslandRemovalEnabled;
   int IslandAreaThreshold;
 
-  bool ErosionEnabled;
   int ErosionKernelSize[2];
 
-  bool DilationEnabled;
   int DilationKernelSize[2];
 
   int BoneOutlineDepthPx;
-
-  bool ReconvertBinaryToGreyscale;
+  int BonePushBackPx;
 
   bool SaveIntermediateResults;
 
   std::string IntermediateImageFileName;
-  /// Pixels (float) store probability of belonging to shadow
 
   /// Image for pixels (uchar) along scan lines only
   vtkSmartPointer<vtkImageData> LinesImage;
   /// Used to retrieve original pixel values from some point before binarization
   vtkSmartPointer<vtkImageData> UnprocessedLinesImage;
-  /// Pixels (float) store probability of belonging to shadow
-  vtkSmartPointer<vtkImageData> ShadowImage;
   /// Pixels (float) store probability of belonging to shadow
   vtkSmartPointer<vtkImageData> ProcessedLinesImage;
 
@@ -221,8 +180,6 @@ protected:
 
   std::vector<std::map<std::string, int>> BoneAreasInfo;
 
-  /// Variable used for debugging
-  int FrameCounter;
 
 private:
   virtual PlusStatus ProcessImageExtents();

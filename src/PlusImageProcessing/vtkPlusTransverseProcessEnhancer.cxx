@@ -33,10 +33,8 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 //----------------------------------------------------------------------------
-
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : ScanConverter(NULL),
-  ConvertToLinesImage(true),
   NumberOfScanLines(0),
   NumberOfSamplesPerScanLine(0),
 
@@ -44,8 +42,6 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   RadiusStopMm(0),
   ThetaStartDeg(0),
   ThetaStopDeg(0),
-
-  GaussianEnabled(true),
 
   GaussianSmooth(NULL),
   EdgeDetector(NULL),
@@ -55,37 +51,29 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   ImageEroder(NULL),
   ImageDialator(NULL),
 
-  ReturnToFanImage(true),
-  CurrentFrameMean(0.0),
-  CurrentFrameStDev(0.0),
-  CurrentFrameScalarComponentMax(0.0),
-  CurrentFrameScalarComponentMin(255.0),
-
-  ThresholdingEnabled(true),
-
-  EdgeDetectorEnabled(true),
   ConversionImage(NULL),
-  IslandRemovalEnabled(true),
   IslandAreaThreshold(-1),
-  ErosionEnabled(true),
-  DilationEnabled(true),
   BoneOutlineDepthPx(3), //TODO: Change to mm (Note: this only changes the apperance/thickness of the 3D model. Different numbers do not change what is or isnt marked as bone.)
-  ReconvertBinaryToGreyscale(true),
+  BonePushBackPx(9), //TODO: change to mm
 
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
-  UnprocessedLinesImage(NULL),
-  ShadowImage(NULL),
+  UnprocessedLinesImage(NULL)
 
-  FrameCounter(-1)
 {
-  this->GaussianSmooth = vtkSmartPointer<vtkImageGaussianSmooth>::New();
-  this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();
-  this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();
-  this->BinaryImageForMorphology = vtkSmartPointer<vtkImageData>::New();
-  this->IslandRemover = vtkSmartPointer<vtkImageIslandRemoval2D>::New();
-  this->ImageEroder = vtkSmartPointer<vtkImageDilateErode3D>::New();
-  this->ImageDialator = vtkSmartPointer<vtkImageDilateErode3D>::New();
+  this->SetMmToPixelFanImage(0, 0, 0);
+  this->SetMmToPixelLinesImage(0, 0, 0);
+
+  this->GaussianSmooth = vtkSmartPointer<vtkImageGaussianSmooth>::New();    //Used to smooth the image
+  this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();             //Used to outline edges of the image
+  this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();         //Used to convert into a binary image
+  this->BinaryImageForMorphology = vtkSmartPointer<vtkImageData>::New();    //The Binary image
+  this->IslandRemover = vtkSmartPointer<vtkImageIslandRemoval2D>::New();    //Used to reomve islands (small isolated groups of pixels)
+  this->ImageEroder = vtkSmartPointer<vtkImageDilateErode3D>::New();        //Used to Erode the image
+  this->ImageDialator = vtkSmartPointer<vtkImageDilateErode3D>::New();      //Used to Dilate the image
+
+
+  //Set the default parameters for the filters mentioned above
 
   this->SetDilationKernelSize(1, 1);
   this->SetErosionKernelSize(5, 5);
@@ -97,10 +85,10 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->ConversionImage->SetExtent(0, 0, 0, 0, 0, 0);
 
   this->BinaryImageForMorphology->SetExtent(0, 0, 0, 0, 0, 0);
-
   this->ImageBinarizer->SetInValue(255);
   this->ImageBinarizer->SetOutValue(0);
   this->ImageBinarizer->ThresholdBetween(55, 255);
+
   this->IslandRemover->SetIslandValue(255);
   this->IslandRemover->SetReplaceValue(0);
   this->IslandRemover->SetAreaThreshold(0);
@@ -116,12 +104,10 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   this->LinesImage = vtkSmartPointer<vtkImageData>::New();
   this->ProcessedLinesImage = vtkSmartPointer<vtkImageData>::New();
   this->UnprocessedLinesImage = vtkSmartPointer<vtkImageData>::New();
-  this->ShadowImage = vtkSmartPointer<vtkImageData>::New();
 
   this->LinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->ProcessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
   this->UnprocessedLinesImage->SetExtent(0, 0, 0, 0, 0, 0);
-  this->ShadowImage->SetExtent(0, 0, 0, 0, 0, 0);
 
   this->IntermediateImageMap.clear();
 }
@@ -191,101 +177,57 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
   vtkXMLDataElement* imageProcessingOperations = processingElement->FindNestedElementWithName("ImageProcessingOperations");
   if (imageProcessingOperations != NULL)
   {
-    //read tag(s?) relavent to the Scan Converter
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ConvertToLinesImage, imageProcessingOperations);
-    if (this->ConvertToLinesImage)
-    {
-      // ScanConverter parameters
-    }
-
-    //read tag relavent to returning to a fan image
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReturnToFanImage, imageProcessingOperations);
-
-    //read tag relavent to Thresholding
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ThresholdingEnabled, imageProcessingOperations);
 
     //read tags relavent to the Gaussian filter
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(GaussianEnabled, imageProcessingOperations);
-    if (this->GaussianEnabled)
+    vtkSmartPointer<vtkXMLDataElement> gaussianParameters = imageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
+    if (gaussianParameters == NULL)
     {
-      vtkSmartPointer<vtkXMLDataElement> gaussianParameters = imageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
-      if (gaussianParameters == NULL)
-      {
-        LOG_WARNING("Unable to locate GaussianSmoothing parameters element. Using default values.");
-      }
-      else
-      {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianStdDev, gaussianParameters);
-
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianKernelSize, gaussianParameters);
-      }
+      LOG_WARNING("Unable to locate GaussianSmoothing parameters element. Using default values.");
+    }
+    else
+    {
+      XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianStdDev, gaussianParameters);
+      XML_READ_SCALAR_ATTRIBUTE_REQUIRED(double, GaussianKernelSize, gaussianParameters);
     }
 
-    //read tag(s?) relavent to Edge detection
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EdgeDetectorEnabled, imageProcessingOperations);       // No other parameters to set?
-
     //read tags relavent to Island Removal
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(IslandRemovalEnabled, imageProcessingOperations);
-    if (this->IslandRemovalEnabled)
+    vtkSmartPointer<vtkXMLDataElement> islandRemovalParameters = imageProcessingOperations->FindNestedElementWithName("IslandRemoval");
+    if (islandRemovalParameters == NULL)
     {
-      vtkSmartPointer<vtkXMLDataElement> islandRemovalParameters = imageProcessingOperations->FindNestedElementWithName("IslandRemoval");
-      if (islandRemovalParameters == NULL)
-      {
-        LOG_WARNING("Unable to locate IslandRemoval parameters element. Using default values.");
-      }
-      else
-      {
-        XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, IslandAreaThreshold, islandRemovalParameters);
-      }
+      LOG_WARNING("Unable to locate IslandRemoval parameters element. Using default values.");
+    }
+    else
+    {
+      XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, IslandAreaThreshold, islandRemovalParameters);
     }
 
     //read tags relavent to Erosion
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ErosionEnabled, imageProcessingOperations);
-    if (this->ErosionEnabled)
+    vtkSmartPointer<vtkXMLDataElement> erosionParameters = imageProcessingOperations->FindNestedElementWithName("Erosion");
+    if (erosionParameters == NULL)
     {
-      vtkSmartPointer<vtkXMLDataElement> erosionParameters = imageProcessingOperations->FindNestedElementWithName("Erosion");
-      if (erosionParameters == NULL)
-      {
-        LOG_WARNING("Unable to locate Erosion paramters element. Using default values.");
-      }
-      else
-      {
-        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, ErosionKernelSize, erosionParameters);
-      }
+      LOG_WARNING("Unable to locate Erosion paramters element. Using default values.");
+    }
+    else
+    {
+      XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, ErosionKernelSize, erosionParameters);
     }
 
     //read tags relavent to Dialation
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DilationEnabled, imageProcessingOperations);
-    if (this->DilationEnabled)
+    vtkSmartPointer<vtkXMLDataElement> dilationParameters = imageProcessingOperations->FindNestedElementWithName("Dilation");
+    if (dilationParameters == NULL)
     {
-      vtkSmartPointer<vtkXMLDataElement> dilationParameters = imageProcessingOperations->FindNestedElementWithName("Dilation");
-      if (dilationParameters == NULL)
-      {
-        LOG_WARNING("Unable to locate Dilation parameters element. Using default values.");
-      }
-      else
-      {
-        XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
-      }
+      LOG_WARNING("Unable to locate Dilation parameters element. Using default values.");
     }
-
-    //read tags relavent to Reconverting Binary to Greyscale
-    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ReconvertBinaryToGreyscale, imageProcessingOperations);
+    else
+    {
+      XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
+    }
   }
   else
   {
     //If this section in not in the xml file, use all filters with default values
     LOG_INFO("ImageProcessingOperations section not found in config file!");
     LOG_INFO("Enabling all filters and using default values.");
-    this->ConvertToLinesImage = true;
-    this->GaussianEnabled = true;
-    this->ThresholdingEnabled = true;
-    this->EdgeDetectorEnabled = true;
-    this->IslandRemovalEnabled = true;
-    this->ErosionEnabled = true;
-    this->DilationEnabled = true;
-    this->ReconvertBinaryToGreyscale = true;
-    this->ReturnToFanImage = true;
   }
 
   //Read tags relavent to scan lines
@@ -299,10 +241,12 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
 }
 
 //----------------------------------------------------------------------------
+// Writes the perameters that were used to a config file
 PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement)
 {
   XML_VERIFY_ELEMENT(processingElement, this->GetTagName());
 
+  //Write the parameters for filters to the scanner's properties to the output config file
   processingElement->SetAttribute("Type", this->GetProcessorTypeName());
   processingElement->SetIntAttribute("NumberOfScanLines", NumberOfScanLines);
   processingElement->SetIntAttribute("NumberOfSamplesPerScanLine", NumberOfSamplesPerScanLine);
@@ -314,32 +258,21 @@ PlusStatus vtkPlusTransverseProcessEnhancer::WriteConfiguration(vtkSmartPointer<
   scanConversionElement->SetIntAttribute("ThetaStartDeg", this->ThetaStartDeg);
   scanConversionElement->SetIntAttribute("ThetaStopDeg", this->ThetaStopDeg);
 
+  //Write the parameters for filters to the output config file
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
 
-  XML_WRITE_BOOL_ATTRIBUTE(ConvertToLinesImage, imageProcessingOperations);
-
-  XML_WRITE_BOOL_ATTRIBUTE(GaussianEnabled, imageProcessingOperations);
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
   gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
   gaussianParameters->SetDoubleAttribute("GaussianKernelSize", this->GaussianKernelSize);
 
-  XML_WRITE_BOOL_ATTRIBUTE(EdgeDetectorEnabled, imageProcessingOperations);
-
-  XML_WRITE_BOOL_ATTRIBUTE(IslandRemovalEnabled, imageProcessingOperations);
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(islandRemovalParameters, imageProcessingOperations, "IslandRemoval");
   islandRemovalParameters->SetIntAttribute("IslandAreaThreshold", IslandAreaThreshold);
 
-  XML_WRITE_BOOL_ATTRIBUTE(ErosionEnabled, imageProcessingOperations);
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(erosionParameters, imageProcessingOperations, "Erosion");
   erosionParameters->SetVectorAttribute("ErosionKernelSize", 2, this->ErosionKernelSize);
 
-  XML_WRITE_BOOL_ATTRIBUTE(DilationEnabled, imageProcessingOperations);
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(dilationParameters, imageProcessingOperations, "Dilation");
   dilationParameters->SetVectorAttribute("DilationKernelSize", 2, this->DilationKernelSize);
-
-  XML_WRITE_BOOL_ATTRIBUTE(ReconvertBinaryToGreyscale, imageProcessingOperations);
-
-  XML_WRITE_BOOL_ATTRIBUTE(ReturnToFanImage, imageProcessingOperations);
 
   return PLUS_SUCCESS;
 }
@@ -360,9 +293,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessImageExtents()
 
   this->LinesImage->SetExtent(linesImageExtent);
   this->LinesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-
-  this->ShadowImage->SetExtent(linesImageExtent);
-  this->ShadowImage->AllocateScalars(VTK_FLOAT, 1);
 
   //Set up variables related to image extents
   int dims[3] = { 0, 0, 0 };
@@ -388,8 +318,6 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageDa
   long pixelCount = 0;
   double currentValue = 0.0; //temporary value for each loop. //Named value in online notes
   double valueMeanDiff = 0.0; //Named delta in online notes
-  this->CurrentFrameScalarComponentMax = 0.0;
-  this->CurrentFrameScalarComponentMin = 255.0;
 
   double directionVectorX;
   double directionVectorY;
@@ -418,24 +346,12 @@ void vtkPlusTransverseProcessEnhancer::FillLinesImage(vtkSmartPointer<vtkImageDa
       currentValue = inputImageData->GetScalarComponentAsDouble(pixelCoordX, pixelCoordY, 0, 0);
       this->LinesImage->SetScalarComponentFromFloat(pointIndex, scanLine, 0, 0, currentValue);
 
-      if (this->CurrentFrameScalarComponentMax < currentValue)
-      {
-        this->CurrentFrameScalarComponentMax = currentValue;
-      }
-      if (this->CurrentFrameScalarComponentMin > currentValue)
-      {
-        this->CurrentFrameScalarComponentMin = currentValue;
-      }
-
       ++pixelCount;
       valueMeanDiff = currentValue - mean;
       mean = mean + valueMeanDiff / pixelCount;
       sumSquareDiff = sumSquareDiff + valueMeanDiff * (currentValue - mean);
     }
   }
-
-  this->CurrentFrameMean = mean;
-  this->CurrentFrameStDev = std::sqrt(sumSquareDiff / (pixelCount - 1));
 }
 
 //----------------------------------------------------------------------------
@@ -462,9 +378,7 @@ void vtkPlusTransverseProcessEnhancer::VectorImageToUchar(vtkSmartPointer<vtkIma
       vOutput = static_cast<unsigned char*>(this->ConversionImage->GetScalarPointer(x, y, 0));
       output = (float)(edgeDetectorOutput0 + edgeDetectorOutput1) / (float)2;                                         // Not mathematically correct, but a quick approximation of sqrt(x^2 + y^2)
 
-      if (output > 255) { (*vOutput) = 255; }
-      else if (output < 0) { (*vOutput) = 0; }
-      else { (*vOutput) = (unsigned char)output; }
+      *vOutput = (unsigned char)std::max(0, std::min(255, (int)output));
     }
   }
 }
@@ -485,18 +399,19 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
 
   int lastVistedValue = 0;
 
+  //Setup variables for recording bone areas
   std::map<std::string, int> currentBoneArea;
-  int boneAreaStart = dims[1] - 1;
-  int boneDepthSum = 0;
-  int boneMaxDepth = dims[0] - 1;
-  int boneMinDepth = 0;
-  int boneAreaDifferenceSlope = 3; //TODO: Magic Number, replace with parameter in mm
+  int boneAreaStart = dims[1] - 1;  //The y coordinate of where the bone outline starts
+  int boneDepthSum = 0;             //The sum of the x coordinates of each pixel in the bone outline
+  int boneMaxDepth = dims[0] - 1;   //The x coordinate of the right-most pixel in the bone outline
+  int boneMinDepth = 0;             //The x coordinate of the left-most pixel in the bone outline
+  int boneAreaDifferenceSlope = 3;  //If two pixels are seperated by this value or greater in the x coordinate, they are marked as seperate bones TODO: Magic Number, replace with parameter in mm
 
   for (int y = dims[1] - 1; y >= 0; --y)
   {
 
     //When an image is detected, keep up to this many pixles after it
-    keepInfoCounter = this->BoneOutlineDepthPx;
+    keepInfoCounter = this->BoneOutlineDepthPx + this->BonePushBackPx;
     foundBone = false;
 
     for (int x = dims[0] - 1; x >= 0; --x)
@@ -506,11 +421,12 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
       //If an image is detected
       if (*vOutput != 0)
       {
-        if (keepInfoCounter == 0)
+        if (keepInfoCounter == 0 || keepInfoCounter > this->BoneOutlineDepthPx)
         {
           *vOutput = 0;
         }
-        else
+
+        if (keepInfoCounter == this->BoneOutlineDepthPx + this->BonePushBackPx)
         {
           if (foundBone == false)
           {
@@ -523,11 +439,12 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
               //check if the preveous area had any bone
               if (boneDepthSum != 0)
               {
-                currentBoneArea["depth"] = boneDepthSum / (boneAreaStart - y);
-                currentBoneArea["yMax"] = boneAreaStart;
-                currentBoneArea["yMin"] = y + 1;
-                currentBoneArea["xMax"] = boneMaxDepth;
-                currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
+                //Save info related to where the bone area
+                currentBoneArea["depth"] = boneDepthSum / (boneAreaStart - y);                  // Store the outline's average x-coordinate
+                currentBoneArea["xMax"] = boneMaxDepth;                                         // Store the outline's maximum x-coordinate (Used for efficiency)
+                currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0); // Store the outline's minimum x-coordinate (Used for efficiency)
+                currentBoneArea["yMax"] = boneAreaStart;                                        // Store the outline's maximum y-coordinate
+                currentBoneArea["yMin"] = y + 1;                                                // Store the outline's minimum y-coordinate
                 this->BoneAreasInfo.push_back(currentBoneArea);
                 currentBoneArea.clear();
               }
@@ -555,7 +472,11 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
       }
       if (foundBone == true && keepInfoCounter != 0)
       {
-          keepInfoCounter--;
+        if (keepInfoCounter <= this->BoneOutlineDepthPx && *vOutput == 0)
+        {
+          *vOutput = 255;
+        }
+        keepInfoCounter--;
       }
     }
 
@@ -565,11 +486,12 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
       lastVistedValue = 0;
       if (boneDepthSum != 0)
       {
-        currentBoneArea["depth"] = boneDepthSum / (boneAreaStart - y);
-        currentBoneArea["yMax"] = boneAreaStart;
-        currentBoneArea["yMin"] = y + 1;
-        currentBoneArea["xMax"] = boneMaxDepth;
-        currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
+        //Save info related to where the bone area
+        currentBoneArea["depth"] = boneDepthSum / (boneAreaStart - y);                  // Store the outline's average x-coordinate
+        currentBoneArea["xMax"] = boneMaxDepth;                                         // Store the outline's maximum x-coordinate (Used for efficiency)
+        currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0); // Store the outline's minimum x-coordinate (Used for efficiency)
+        currentBoneArea["yMax"] = boneAreaStart;                                        // Store the outline's maximum y-coordinate
+        currentBoneArea["yMin"] = y + 1;                                                // Store the outline's minimum y-coordinate
         this->BoneAreasInfo.push_back(currentBoneArea);
         boneDepthSum = 0;
         currentBoneArea.clear();
@@ -584,11 +506,12 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
   //save the last bone that goes off-screen
   if (boneDepthSum != 0)
   {
-    currentBoneArea["depth"] = boneDepthSum / (boneAreaStart + 1);
-    currentBoneArea["yMax"] = boneAreaStart;
-    currentBoneArea["yMin"] = 0;
-    currentBoneArea["xMax"] = boneMaxDepth;
-    currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0);
+    //Save info related to where the bone area
+    currentBoneArea["depth"] = boneDepthSum / (boneAreaStart + 1);                  // Store the outline's average x-coordinate
+    currentBoneArea["xMax"] = boneMaxDepth;                                         // Store the outline's maximum x-coordinate (Used for efficiency)
+    currentBoneArea["xMin"] = std::max(boneMinDepth - this->BoneOutlineDepthPx, 0); // Store the outline's minimum x-coordinate (Used for efficiency)
+    currentBoneArea["yMax"] = boneAreaStart;                                        // Store the outline's maximum y-coordinate
+    currentBoneArea["yMin"] = 0;                                                    // Store the outline's minimum y-coordinate
     this->BoneAreasInfo.push_back(currentBoneArea);
     currentBoneArea.clear();
   }
@@ -651,9 +574,9 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
       //search through the area where the pixels are known to be
       for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
       {
-        int x = currentArea["xMax"];
+        int x = currentArea["xMax"] - this->BonePushBackPx;
         foundBone = false;
-        while (x >= currentArea["xMin"] && foundBone == false)
+        while (x >= currentArea["xMin"] - this->BonePushBackPx && x >= 0 && foundBone == false)
         {
           vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
           if (*vOutput != 0)
@@ -694,6 +617,7 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
   float vInput = 0;
   unsigned char* vOutput = 0;
 
+  //Variables used for measuring the size and intensity sum for bone, above, and below areas
   int boneLen;
   int boneHalfLen;
   float boneArea;
@@ -701,9 +625,9 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
   float areaSum;
   float belowSum;
 
-  float aboveAvgShadow;
-  float areaAvgShadow;
-  float belowAvgShadow;
+  float aboveAvgShadow; //Shadow intensity of the above area
+  float areaAvgShadow;  //Shadow intensity of the area
+  float belowAvgShadow; //Shadow intensity of the below area
 
   std::map<std::string, int> currentArea;
   std::vector<std::map<std::string, int>> boneAreas = this->BoneAreasInfo;
@@ -751,6 +675,7 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
       }
     }
 
+    //Calculate average shadow intensity
     aboveAvgShadow = aboveSum / (boneArea / 2);
     areaAvgShadow = areaSum / boneArea;
     belowAvgShadow = belowSum / (boneArea / 2);
@@ -762,9 +687,9 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
       for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
       {
         //search through the area where the pixels are known to be
-        int x = currentArea["xMax"];
+        int x = currentArea["xMax"] - this->BonePushBackPx;
         foundBone = false;
-        while (x >= currentArea["xMin"] && foundBone == false)
+        while (x >= currentArea["xMin"] - this->BonePushBackPx && x >= 0 && foundBone == false)
         {
           vOutput = static_cast<unsigned char*>(inputImage->GetScalarPointer(x, y, 0));
           if (*vOutput != 0)
@@ -804,12 +729,14 @@ void vtkPlusTransverseProcessEnhancer::ThresholdViaStdDeviation(vtkSmartPointer<
 
   int max;
 
+  //values used to calculate the standard deviation
   int pixelSum;
   int squearSum;
   float pixelAverage;
   float meanDiffSum;
   float meanDiffAverage;
   float thresholdValue;
+
   for (int y = dims[1] - 1; y >= 0; --y)
   {
     max = 0;
@@ -893,7 +820,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
     this->FirstFrame = false;
   }
 
-  this->FrameCounter += 1;
+  this->ScanConverter->GetOutputImageSpacing(this->MmToPixelFanImage);
 
   this->BoneAreasInfo.clear();
 
@@ -901,132 +828,96 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   //an image used to transport output between filters
   vtkSmartPointer<vtkImageData> intermediateImage = vtkSmartPointer<vtkImageData>::New();
 
-  int dims[3] = { 0, 0, 0 };
-  inputImage->GetImage()->GetDimensions(dims);
-
   if (this->ScanConverter.GetPointer() == NULL)
   {
     return PLUS_FAIL;
   }
-  this->AddIntermediateImage("_00PreFilters", inputImage->GetImage());
 
 
-  if (this->ConvertToLinesImage)
-  {
-    this->ScanConverter->SetInputData(inputImage->GetImage());
-    // Generate lines image.
-    this->AddIntermediateFromFilter("_01Lines_1PreFillLines", this->ScanConverter);
-    this->FillLinesImage(inputImage->GetImage());
-    this->AddIntermediateImage("_01Lines_2FilterEnd", this->LinesImage);
-    intermediateImage->DeepCopy(this->LinesImage);
-  }
-  else
-  {
-    intermediateImage->DeepCopy(inputImage->GetImage());
-  }
+  //Convert the image to a readable non-fan image
+  this->ScanConverter->SetInputData(inputImage->GetImage());
+  // Generate lines image.
+  this->AddIntermediateFromFilter("_01Lines_1PreFillLines", this->ScanConverter);
+  this->FillLinesImage(inputImage->GetImage());
+  this->AddIntermediateImage("_01Lines_2FilterEnd", this->LinesImage);
+  intermediateImage->DeepCopy(this->LinesImage);
+
+  int dimsFan[3] = { 0, 0, 0 };
+  inputImage->GetImage()->GetDimensions(dimsFan);
+  int dimsLines[3] = { 0, 0, 0 };
+  this->LinesImage->GetDimensions(dimsLines);
+
+  this->SetMmToPixelLinesImage(this->MmToPixelFanImage[0] * ((double)dimsLines[0] / (double)dimsFan[1]), this->MmToPixelFanImage[1] * ((double)dimsLines[1] / (double)dimsFan[0]), this->MmToPixelFanImage[2] * ((double)dimsLines[2] / (double)dimsFan[2]));
+
 
   //Save this image so that it can be used for comparason with the output image
   vtkSmartPointer<vtkImageData> originalImage = vtkSmartPointer<vtkImageData>::New();
   originalImage->DeepCopy(intermediateImage);
 
-  if (this->ThresholdingEnabled)
-  {
-    this->ThresholdViaStdDeviation(intermediateImage);
-    this->AddIntermediateImage("_02Threshold_1FilterEnd", intermediateImage);
-  }
+  //Threashold the image based on the standard deviation of a pixel's columns
+  this->ThresholdViaStdDeviation(intermediateImage);
+  this->AddIntermediateImage("_02Threshold_1FilterEnd", intermediateImage);
 
-  if (this->GaussianEnabled)
-  {
-    this->GaussianSmooth->SetInputData(intermediateImage);
-    this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
-  }
+  //Use gaussian smoothing
+  this->GaussianSmooth->SetInputData(intermediateImage);
+  this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
 
-  if (this->EdgeDetectorEnabled)
-  {
-    this->EdgeDetector->SetInputConnection(this->GaussianSmooth->GetOutputPort());
-    this->EdgeDetector->Update();
-    this->AddIntermediateImage("_04EdgeDetector_0FilterEnd", this->EdgeDetector->GetOutput());
-    this->VectorImageToUchar(this->EdgeDetector->GetOutput());
-    this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->ConversionImage);
-  }
+  //Edge detection
+  this->EdgeDetector->SetInputConnection(this->GaussianSmooth->GetOutputPort());
+  this->EdgeDetector->Update();
+  this->VectorImageToUchar(this->EdgeDetector->GetOutput());
+  this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->ConversionImage);
 
-  // If we are to perform any morphological operations, we must binarize the image
-  if (this->IslandRemovalEnabled || this->ErosionEnabled || this->DilationEnabled || this->ReconvertBinaryToGreyscale)
-  {
-    this->ImageBinarizer->SetInputData(this->ConversionImage); //TODO: ask about the second pipeline
-    this->AddIntermediateFromFilter("_05BinaryImageForMorphology_1FilterEnd", this->ImageBinarizer);
+  // Since we perform morphological operations, we must binarize the image
+  this->ImageBinarizer->SetInputData(this->ConversionImage);
+  this->AddIntermediateFromFilter("_05BinaryImageForMorphology_1FilterEnd", this->ImageBinarizer);
 
-    if (this->IslandRemovalEnabled)
-    {
-      this->IslandRemover->SetInputConnection(this->ImageBinarizer->GetOutputPort());
+  //Remove small clusters of pixels
+  this->IslandRemover->SetInputConnection(this->ImageBinarizer->GetOutputPort());
+  this->IslandRemover->Update();
+  this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
 
-      this->IslandRemover->Update();
-      this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
-    }
+  //Erode the image
+  this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
+  this->ImageEroder->SetInputConnection(this->IslandRemover->GetOutputPort());
+  this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
 
-    if (this->ErosionEnabled)
-    {
-      this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
-      
-      this->ImageEroder->SetInputConnection(this->IslandRemover->GetOutputPort());
-      this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
-    }
+  //Dilate the image
+  this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
+  this->ImageDialator->SetInputConnection(this->ImageEroder->GetOutputPort());
+  this->ImageDialator->Update();
+  this->BinaryImageForMorphology->DeepCopy(this->ImageDialator->GetOutput());
+  this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
 
-    if (this->DilationEnabled)
-    {
-      this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
+  //Detect each possible bone area, then subject it to various tests to confirm if it is valid
+  this->MarkShadowOutline(this->BinaryImageForMorphology);
+  this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
+  this->RemoveOffCameraBones(this->BinaryImageForMorphology);
+  this->AddIntermediateImage("_09PostFilters_2PostRemoveOffCamera", this->BinaryImageForMorphology);
+  this->CompareShadowAreas(originalImage, this->BinaryImageForMorphology);
+  this->AddIntermediateImage("_09PostFilters_3PostCompareShadowAreas", this->BinaryImageForMorphology);
 
-      this->ImageDialator->SetInputConnection(this->ImageEroder->GetOutputPort());
-      this->ImageDialator->Update();
-      this->BinaryImageForMorphology->DeepCopy(this->ImageDialator->GetOutput());
-      this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
-    }
+  //Reconvert the image to greyscale
+  // Currently, inputImage is the output of the edge detector, not original pixels
+  this->UnprocessedLinesImage->DeepCopy(this->GaussianSmooth->GetOutput());
+  this->ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);
+  this->AddIntermediateImage("_10ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
+  intermediateImage->DeepCopy(this->UnprocessedLinesImage);
 
-    this->MarkShadowOutline(this->BinaryImageForMorphology);
-    this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
-    this->RemoveOffCameraBones(this->BinaryImageForMorphology);
-    this->AddIntermediateImage("_09PostFilters_2PostRemoveOffCamera", this->BinaryImageForMorphology);
-    this->CompareShadowAreas(originalImage, this->BinaryImageForMorphology);
-    this->AddIntermediateImage("_09PostFilters_3PostCompareShadowAreas", this->BinaryImageForMorphology);
-
-    if (this->ReconvertBinaryToGreyscale)
-    {
-      // Currently, inputImage is the output of the edge detector, not original pixels
-      this->UnprocessedLinesImage->DeepCopy(this->GaussianSmooth->GetOutput());
-      this->ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);
-
-      this->AddIntermediateImage("_10ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
-      intermediateImage->DeepCopy(this->UnprocessedLinesImage);
-    }
-    else
-    {
-      intermediateImage->DeepCopy(this->BinaryImageForMorphology);
-    }
-  }
-
+  //Setup so that the image can be converted into a fan-image
   this->ProcessedLinesImage->DeepCopy(intermediateImage);
   PlusVideoFrame processedVideoFrame;
   processedVideoFrame.DeepCopyFrom(this->ProcessedLinesImage);
   PlusTrackedFrame* processedTrackedFrame = inputFrame;
   processedTrackedFrame->SetImageData(processedVideoFrame);
 
+  //Setup so that the image can be converted into a fan-image
   PlusVideoFrame* outputImage = outputFrame->GetImageData();
-  if (this->ReturnToFanImage)
-  {
-    this->ScanConverter->SetInputData(this->ProcessedLinesImage);
-    this->ScanConverter->SetOutput(intermediateImage);
-    this->ScanConverter->Update();
+  this->ScanConverter->SetInputData(this->ProcessedLinesImage);
+  this->ScanConverter->SetOutput(intermediateImage);
+  this->ScanConverter->Update();
 
-    outputImage->DeepCopyFrom(intermediateImage);
-
-    this->AddIntermediateImage("_11ReturnToFanImage_1FilterEnd", intermediateImage);
-  }
-  else
-  {
-    outputImage->DeepCopyFrom(intermediateImage);
-  }
-
-  //TODO: Move output back by a number of pixels (mm!)
+  outputImage->DeepCopyFrom(intermediateImage);
 
   return PLUS_SUCCESS;
 }
@@ -1049,7 +940,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::SaveAllIntermediateResultsToFile()
   }
   return PLUS_SUCCESS;
 }
-
 
 //----------------------------------------------------------------------------
 /*
@@ -1123,7 +1013,7 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateFromFilter(char* fileNameP
     imageFilter->SetOutput(tempOutputImage);
     imageFilter->Update();
 
-    this->AddIntermediateImage(fileNamePostfix, tempOutputImage);
+    //this->AddIntermediateImage(fileNamePostfix, tempOutputImage);
   }
 }
 
@@ -1149,28 +1039,8 @@ void vtkPlusTransverseProcessEnhancer::SetIslandAreaThreshold(int islandAreaThre
   {
     this->IslandRemover->SetAreaThreshold(0);
   }
-  // Apparently, below statement always evaluates to true, nullifying the island removal process
-  /*
-  else if ( islandAreaThreshold > ( boundaries[0]*boundaries[1] ) )
-  {
-  this->IslandRemover->SetIslandValue( boundaries[0] * boundaries[1] );
-  }
-  */
   else
   {
     this->IslandRemover->SetAreaThreshold(islandAreaThreshold);
   }
-}
-
-//----------------------------------------------------------------------------
-// TODO: Currently not used. If won't be used, delete.
-void vtkPlusTransverseProcessEnhancer::ComputeHistogram(vtkSmartPointer<vtkImageData> imageData)
-{
-  vtkSmartPointer<vtkImageAccumulate> histogram = vtkSmartPointer<vtkImageAccumulate>::New();
-  histogram->SetInputData(imageData);
-  histogram->SetComponentExtent(1, 25, 0, 0, 0, 0);
-  histogram->SetComponentOrigin(1, 0, 0);
-  histogram->SetComponentSpacing(10, 0, 0);
-  histogram->SetIgnoreZero(true);
-  histogram->Update();
 }
