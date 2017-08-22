@@ -1,19 +1,21 @@
 /**
 
-\page FileSequenceMetafile Sequence Metafile
+\page FileSequenceFile Sequence file
 
-Plus uses the standard MetaIO image format with some additional custom fields to store all the acquired image data and transforms corresponding to each frame.
+Plus uses the standard MetaIO or NRRD image format with some additional custom fields to store all the acquired image data and transforms corresponding to each frame.
+
+\section FileSequenceMetafile
 
 There are two variants of the file format:
 - With .mha extension: Single file containing the header and the image data. The advantage is that all the acquired data is stored in one file. However, it is not convenient to edit the header with a text editor (the file is large and the text editor may corrupt the image data if it modifies the CR/LF line endings) 
 - With .mhd extension: separate file for the header (.mhd) and for the image data (typically .raw or .zraw) file. Safe and convenient to edit the header, but the data is stored in two separate files.
 
-\section FileSequenceMetafileFieldFormat Field format
+\subsection FileSequenceMetafileFieldFormat Field format
 - Fields are defined as: [FieldName] = [FieldValue]
 - Frame fields store data that are specific to a single frame, defined as: Seq_Frame[FrameIndex]_[SeqFieldName] = [FieldValue]. FrameIndex of the first frame is 0.
 - Transforms are typically stored for each frame (in frame fields) as described on the \ref TransformationMatrix definition page
 
-\section FileSequenceMetafileFieldDefinitions Field definitions 
+\subsection FileSequenceMetafileFieldDefinitions Field definitions 
 - ObjectType: Type of the MetaIO object. Must be \c Image. This must be the first field in the file. 
 - NDims: Number of dimensions in the image. Must be \c 3.
 - BinaryData: Defines if the data is encoded in binary format. Must be \c True.
@@ -37,15 +39,24 @@ There are two variants of the file format:
   - Example: Seq_Frame0000_ToolToTrackerTransform = -0.208747 -0.972904 0.0993168 229.828 0.481211 -0.190655 -0.855521 -44.6484 0.851242 -0.130739 0.50794 -25.0031 0 0 0 1 
 - ElementDataFile: Location of the image data. For *.mha files it must be \c LOCAL, which means that the pixel data is stored in the same file, right after this field. For *.mhd files it must contain a file name, where the image data is stored. This must be the last field in the file (all data after this field assumed to belong to the image data, therefore those fields that defined after it will be ignored and will cause a shift in the image data).
 
-\section FileSequenceMetafileMatlab Reading/writing in Matlab
-
-Use mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from:
-
-https://www.assembla.com/spaces/plus/subversion/source/HEAD/trunk/MatlabUtils
-
-\section FileSequenceMetafileCompression Compression
+\subsection FileSequenceMetafileCompression Compression
 
 Image data can be stored in a compressed way to conserve disk space, without any image quality degradation.
 Use the \ref ApplicationEditSequenceFile tool to compress/uncompress image data.
+
+\section FileSequenceNrrdfile
+
+NRRD file stores additional information in custom fields similar to those used in Sequence Metafile.
+
+\section FileSequenceFileMatlab Reading/writing in Matlab
+
+- Sequence metafiles can be read/written by mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from: https://www.assembla.com/spaces/plus/subversion/source/HEAD/trunk/MatlabUtils
+- Sequence NRRD files can be read/written by readdnrrd.m and writenrrd.m files available here: https://app.assembla.com/spaces/slicerrt/subversion/source/HEAD/trunk/MatlabBridge/src/MatlabCommander/commandserver
+
+
+\section FileSequenceFileSlicer Reading/writing in 3D Slicer
+
+Both Sequence metafiles and Sequence NRRD files can be loaded into 3D Slicer after installing Sequences extension.
+It is recommended to use .seq.nrrd extension for Sequence NRRD files, as this makes 3D Slicer automatically recognize the file as a sequence file.
 
 */

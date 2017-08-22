@@ -30,22 +30,22 @@ Camera calibration determines optical properties of your camera (distortion, foc
   Reference: \n
   \code aruco_calibration.exe live:<camera-index> <output-file-name>.yml -size <marker-size-m> \endcode
   where:
-  - <camera-index> is the integer index of the camera you want to use (usually 0 or 1).
-  - <output-file-name> is the desired output file name.
-  - <marker-size-m> is the size of a marker side in meters.
+  - \c camera-index is the integer index of the camera you want to use (usually 0 or 1).
+  - \c output-file-name is the desired output file name.
+  - \c marker-size-m is the size of a marker side in meters.
 - With the video window selected:
   - Press \b a to capture image and add to the calibration image set.
   - Press \b c to run calibration on the captured images.  "repj" is a measure of the calibration error (normal is < 1).
   - Press \b s to stop calibration.
 
 - For best results use at least 6 images including:
-  - At least one frontal image. \n
-    \image html ../images/DeviceOpticalMarkerTracker/Frontal.png
-  - Multiple images where the border of the chessboard is near the top or side image border. \n
-    \image html ../images/DeviceOpticalMarkerTracker/Edge.png
-  - Multiple images where the chessboard is held at an oblique angle to the camera. \n
-    \image html ../images/DeviceOpticalMarkerTracker/Oblique1.png
-    \image html ../images/DeviceOpticalMarkerTracker/Oblique2.png
+  - At least one frontal image.\n
+    \image html DeviceOpticalMarkerTrackerFrontal.png
+  - Multiple images where the border of the chessboard is near the top or side image border.\n
+    \image html DeviceOpticalMarkerTrackerEdge.png
+  - Multiple images where the chessboard is held at an oblique angle to the camera.\n
+    \image html DeviceOpticalMarkerTrackerOblique1.png
+    \image html DeviceOpticalMarkerTrackerOblique2.png
 
 \subsection DeviceOpticalMarkerTrackerMarkerGeneration Creating printable marker images
 - A premade sheet of ARUCO_36h12 markers in three standard sizes (80mm, 50mm, and 30mm) is located at
@@ -58,19 +58,19 @@ Camera calibration determines optical properties of your camera (distortion, foc
   Reference: \n
   \code aruco_print_marker.exe <marker-id> <output-file-name>(.jpg|.png|.ppm|.bmp) -bs <bit-size> -d <dictionary> \endcode
   where:
-  - <marker-id> is the integer ID of the marker you wish to print.
-  - <output-file-name> is the desired marker image filename.
-  - <bit-size> is the number of pixels per interior image bit \OptionalAtt{50px}.
-  - <dictionary> is the marker dictionary you wish to use (we suggest ARUCO_MIP_36h12).
+  - \c marker-id is the integer ID of the marker you wish to print.
+  - \c output-file-name is the desired marker image filename.
+  - \c bit-size is the number of pixels per interior image bit \OptionalAtt{50px}.
+  - \c dictionary is the marker dictionary you wish to use (we suggest ARUCO_MIP_36h12).
 - To generate printable markers for an \b entire \b dictionary at once, run aruco_print_dictionary.exe \n
   Example: \n
   \code aruco_print_dictionary.exe markers_36h12 ARUCO_MIP_36h12 -s 75 \endcode
   Reference: \n
   \code aruco_print_dictionary.exe <output-directory> <dictionary> -s <bit-size> \endcode
   where:
-  - <output-directory> is the directory to output the marker images to (must already exist).
-  - <dictionary> is the marker dictionary you wish to use (we suggest ARUCO_MIP_36h12).
-  - <bit-size> is the number of pixels per interior image bit \OptionalAtt{75px}.
+  - \c output-directory is the directory to output the marker images to (must already exist).
+  - \c dictionary is the marker dictionary you wish to use (we suggest ARUCO_MIP_36h12).
+  - \c bit-size is the number of pixels per interior image bit \OptionalAtt{75px}.
 
 \section DeviceOpticalMarkerTrackerConfigSettings Device configuration settings
 - Calibration files can be generated as above, under Calibration.
@@ -83,7 +83,7 @@ Camera calibration determines optical properties of your camera (distortion, foc
 - \xmlAtt \b TrackingMethod Tracking method. \OptionalAtt{OPTICAL}
     - \c OPTICAL uses just RGB video.
     - \c OPTICAL_AND_DEPTH uses depth data and RGB video (work in progress).
-- \xmlAtt \ref MarkerDictionary The dictionary whose markers are being used. \RequiredAtt
+- \xmlAtt \b MarkerDictionary The dictionary whose markers are being used. \RequiredAtt
     - \c \b ARUCO_MIP_36h12 Use of this dictionary is recommended. Some pre-generated marker images are included at
   <a href="https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/OpticalMarkerTracker/markers">/ConfigFiles/OpticalMarkerTracker/markers</a>.
     - \c ARUCO

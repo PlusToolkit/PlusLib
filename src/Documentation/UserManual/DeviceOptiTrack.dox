@@ -36,14 +36,14 @@
 
 \section OptiTrackConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceId "Id" = \c "TrackerDevice"
 - \xmlAtt \ref DeviceType "Type" = \c "OptiTrack" \RequiredAtt
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
 - \xmlAtt \b IPClient IP address of the Plus machine \OptionalAtt{127.0.0.1}
 - \xmlAtt \b IPServer IP address of the Motive machine \OptionalAtt{127.0.0.1}
 - \xmlElem \ref DataSources One \c DataSource child element is required for each rigid body to be tracked. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
-    - \xmlAtt \ref Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
+    - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
 
 \section OptiTrackExampleConfigFile Example configuration file PlusDeviceSet_Server_OptiTrack.xml
 \include "ConfigFiles/PlusDeviceSet_Server_OptiTrack.xml"

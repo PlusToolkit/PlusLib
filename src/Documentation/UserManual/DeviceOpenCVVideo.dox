@@ -21,6 +21,6 @@ Any compatible video device through the OpenCV capture interface</a>.
 
 \section OpenCVVideoExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenCVVideoSource.xml
 
-\include "ConfigFiles/Testing/PlusDeviceSet_Server_OpenCVVideoSource.xml"
+<!-- \include "ConfigFiles/Testing/PlusDeviceSet_Server_OpenCVVideoSource.xml" -->
 
 */

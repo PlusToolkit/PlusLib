@@ -1,5 +1,5 @@
 /*!
-\page DeviceFake Fake tracking system as a simulator
+\page DeviceFakeTracker Fake tracking system as a simulator
 Simulates a fake tracking system with tools that have predetermined behavior. This allows someone who doesn't have access to a tracking system to test code that relies on having one active.
 
 \section FakeTrackerConfigSettings Device configuration settings

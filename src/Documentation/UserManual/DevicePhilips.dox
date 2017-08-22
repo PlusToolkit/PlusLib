@@ -42,6 +42,5 @@ If the software is obtained from Philips then Plus have to be built with PLUS_US
 
 \section PhilipsExampleConfigFile Example configuration file PlusDeviceSet_Server_Philips_ie33.xml
 
-\include "ConfigFiles/PlusDeviceSet_Server_Phillips_ie33.xml"
-
+\include "ConfigFiles/Robarts/PlusDeviceSet_Server_Philips_ie33.xml"
 */

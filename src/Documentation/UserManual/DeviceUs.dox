@@ -15,8 +15,8 @@
 \section UsDeviceConfigSettings Configuration settings
 
 - \xmlElem \ref Device
-  - \xmlElem \ref \b InputChannels
-    - \xmlElem \ref \b InputChannel
+  - \xmlElem \ref InputChannels
+    - \xmlElem \ref InputChannel
         - \xmlAtt \b Id Identifier of the an OutputChannel of another device \RequiredAtt
         
 */

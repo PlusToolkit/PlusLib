@@ -7,19 +7,19 @@ This device can recognize text (in the language specified by \ref Language) from
 
 - \xmlElem \ref Device
   - \xmlAtt \ref DeviceType "Type" = \c "VirtualTextRecognizer" \RequiredAtt
-  - \xmlAtt \ref Language "Language" \OptionalAtt{eng} 
+  - \xmlAtt \b Language \anchor Language Language to be recognized. \OptionalAtt{eng} 
   - \xmlElem TextFields Multiple \c Field child elements are allowed, one for each parameter to recognize \RequiredAtt
-    - \xmlElem Field \RequiredAtt
-	  - \xmlAtt Channel \RequiredAtt The input channel to pull data from for recognition
-	  - \xmlAtt Name \RequiredAtt Name of the variable to broadcast on detected change
-	  - \xmlAtt InputRegionOrigin \RequiredAtt The origin in the input image to extract a sub-image
-	  - \xmlAtt InputRegionSize \RequiredAtt The size of the subimage to extract
+    - \xmlElem \b Field \RequiredAtt
+	    - \xmlAtt \b Channel The input channel to pull data from for recognition. \RequiredAtt 
+	    - \xmlAtt \b Name Name of the variable to broadcast on detected change \RequiredAtt
+	    - \xmlAtt \b InputRegionOrigin The origin in the input image to extract a sub-image \RequiredAtt
+	    - \xmlAtt \b InputRegionSize The size of the subimage to extract \RequiredAtt
   - \xmlElem \ref InputChannels Multiple \c InputChannel child elements are allowed, one for each input channel to be available to query \RequiredAtt
-    - \xmlElem \ref InputChannel \RequiredAtt
-	  - \xmlAtt \ref Id \RequiredAtt The id of this input channel
+    - \xmlElem InputChannel \RequiredAtt
+	  - \xmlAtt \b Id The id of this input channel \RequiredAtt 
 
 \section VirtualTextRecognizerExampleConfigFile Example configuration file PlusDeviceSet_PlusServer_tesseract.xml
 
-\include "ConfigFiles/PlusDeviceSet_PlusServer_tesseract.xml"
+\include "ConfigFiles/PlusDeviceSet_Server_VirtualTextRecognizer.xml"
 
 */
