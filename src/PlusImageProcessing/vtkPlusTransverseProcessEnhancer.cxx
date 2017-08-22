@@ -53,8 +53,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   ConversionImage(NULL),
   IslandAreaThreshold(-1),
-  BoneOutlineDepthPx(3), //TODO: Change to mm (Note: this only changes the apperance/thickness of the 3D model. Different numbers do not change what is or isnt marked as bone.)
-  BonePushBackPx(9), //TODO: change to mm
+  BoneOutlineDepthPx(3), //Note: this only changes the apperance/thickness of the 3D model. Different numbers do not change what is or isnt marked as bone.
+  BonePushBackPx(9),     //Horisontal distance between where a shadow is located, and where the bone begins
 
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
@@ -405,7 +405,7 @@ void vtkPlusTransverseProcessEnhancer::MarkShadowOutline(vtkSmartPointer<vtkImag
   int boneDepthSum = 0;             //The sum of the x coordinates of each pixel in the bone outline
   int boneMaxDepth = dims[0] - 1;   //The x coordinate of the right-most pixel in the bone outline
   int boneMinDepth = 0;             //The x coordinate of the left-most pixel in the bone outline
-  int boneAreaDifferenceSlope = 3;  //If two pixels are seperated by this value or greater in the x coordinate, they are marked as seperate bones TODO: Magic Number, replace with parameter in mm
+  int boneAreaDifferenceSlope = 3;  //If two pixels are seperated by this value or greater in the x coordinate, they are marked as seperate bones
 
   for (int y = dims[1] - 1; y >= 0; --y)
   {
@@ -529,9 +529,9 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
 
   unsigned char* vOutput = 0;
 
-  int distanceVerticalBuffer = 10; //TODO: Magic Number, replace with parameter in mm
-  int distanceHorizontalBuffer = 20; //TODO: Magic Number, replace with parameter in mm
-  int boneMinSize = 10; //TODO: Magic Number, replace with parameter in mm
+  int distanceVerticalBuffer = 10;    //For a bone to be valid, it must be this distance from the transducer
+  int distanceHorizontalBuffer = 20;  //For a bone to be valid, it must be this distance from thehorizontal sides of the frame
+  int boneMinSize = 10;               //Minimum bone size a bone must have to be valid
   std::vector<std::map<std::string, int>> boneAreas = this->BoneAreasInfo;
 
   int boneHalfLen;
@@ -719,7 +719,7 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
 //a way of threasholding based on the standard deviation of a row
 void vtkPlusTransverseProcessEnhancer::ThresholdViaStdDeviation(vtkSmartPointer<vtkImageData> inputImage)
 {
-  int fatLayerToCut = 20; //TODO: Magic Number, replace with parameter in mm
+  int fatLayerToCut = 20; //The area of fat too close to the transducer should not be considered
 
   float vInput = 0;
   unsigned char* vOutput = 0;
