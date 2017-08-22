@@ -837,9 +837,15 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
   //Convert the image to a readable non-fan image
   this->ScanConverter->SetInputData(inputImage->GetImage());
   // Generate lines image.
-  this->AddIntermediateFromFilter("_01Lines_1PreFillLines", this->ScanConverter);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateFromFilter("_01Lines_1PreFillLines", this->ScanConverter);
+  }
   this->FillLinesImage(inputImage->GetImage());
-  this->AddIntermediateImage("_01Lines_2FilterEnd", this->LinesImage);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_01Lines_2FilterEnd", this->LinesImage);
+  }
   intermediateImage->DeepCopy(this->LinesImage);
 
   int dimsFan[3] = { 0, 0, 0 };
@@ -856,52 +862,85 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 
   //Threashold the image based on the standard deviation of a pixel's columns
   this->ThresholdViaStdDeviation(intermediateImage);
-  this->AddIntermediateImage("_02Threshold_1FilterEnd", intermediateImage);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_02Threshold_1FilterEnd", intermediateImage);
+  }
 
   //Use gaussian smoothing
   this->GaussianSmooth->SetInputData(intermediateImage);
-  this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateFromFilter("_03Gaussian_1FilterEnd", this->GaussianSmooth);
+  }
 
   //Edge detection
   this->EdgeDetector->SetInputConnection(this->GaussianSmooth->GetOutputPort());
   this->EdgeDetector->Update();
   this->VectorImageToUchar(this->EdgeDetector->GetOutput());
-  this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->ConversionImage);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_04EdgeDetector_1FilterEnd", this->ConversionImage);
+  }
 
   // Since we perform morphological operations, we must binarize the image
   this->ImageBinarizer->SetInputData(this->ConversionImage);
-  this->AddIntermediateFromFilter("_05BinaryImageForMorphology_1FilterEnd", this->ImageBinarizer);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateFromFilter("_05BinaryImageForMorphology_1FilterEnd", this->ImageBinarizer);
+  }
 
   //Remove small clusters of pixels
   this->IslandRemover->SetInputConnection(this->ImageBinarizer->GetOutputPort());
   this->IslandRemover->Update();
-  this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_06Island_1FilterEnd", this->IslandRemover->GetOutput());
+  }
 
   //Erode the image
   this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
   this->ImageEroder->SetInputConnection(this->IslandRemover->GetOutputPort());
-  this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateFromFilter("_07Erosion_1FilterEnd", this->ImageEroder);
+  }
 
   //Dilate the image
   this->ImageDialator->SetKernelSize(this->DilationKernelSize[0], this->DilationKernelSize[1], 1);
   this->ImageDialator->SetInputConnection(this->ImageEroder->GetOutputPort());
   this->ImageDialator->Update();
   this->BinaryImageForMorphology->DeepCopy(this->ImageDialator->GetOutput());
-  this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_08Dilation_1FilterEnd", this->BinaryImageForMorphology);
+  }
 
   //Detect each possible bone area, then subject it to various tests to confirm if it is valid
   this->MarkShadowOutline(this->BinaryImageForMorphology);
-  this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
+  }
   this->RemoveOffCameraBones(this->BinaryImageForMorphology);
-  this->AddIntermediateImage("_09PostFilters_2PostRemoveOffCamera", this->BinaryImageForMorphology);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_09PostFilters_2PostRemoveOffCamera", this->BinaryImageForMorphology);
+  }
   this->CompareShadowAreas(originalImage, this->BinaryImageForMorphology);
-  this->AddIntermediateImage("_09PostFilters_3PostCompareShadowAreas", this->BinaryImageForMorphology);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_09PostFilters_3PostCompareShadowAreas", this->BinaryImageForMorphology);
+  }
 
   //Reconvert the image to greyscale
   // Currently, inputImage is the output of the edge detector, not original pixels
   this->UnprocessedLinesImage->DeepCopy(this->GaussianSmooth->GetOutput());
   this->ImageConjunction(this->UnprocessedLinesImage, this->BinaryImageForMorphology);
-  this->AddIntermediateImage("_10ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
+  if (this->SaveIntermediateResults)
+  {
+    this->AddIntermediateImage("_10ReconvertBinaryToGreyscale_1FilterEnd", this->UnprocessedLinesImage);
+  }
   intermediateImage->DeepCopy(this->UnprocessedLinesImage);
 
   //Setup so that the image can be converted into a fan-image
@@ -975,27 +1014,23 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateImage(char* fileNamePostfi
     LOG_WARNING("The empty string was given as an intermediate image file postfix.");
   }
 
-  if (this->SaveIntermediateResults) //TODO: Do this check when calling this method, not inside it
+  // See if the intermediate image should be created
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
+  if (indexIterator != this->IntermediateImageMap.end()){}
+  else
   {
+    // Create if not found
+    this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
 
-    // See if the intermediate image should be created
-    std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> >::iterator indexIterator = this->IntermediateImageMap.find(fileNamePostfix);
-    if (indexIterator != this->IntermediateImageMap.end()){}
-    else
-    {
-      // Create if not found
-      this->IntermediateImageMap[fileNamePostfix] = vtkPlusTrackedFrameList::New();
-
-      this->IntermediatePostfixes.push_back(fileNamePostfix);
-    }
-
-    //Add the current frame to its vtkPlusTrackedFrameList
-    PlusVideoFrame linesVideoFrame;
-    linesVideoFrame.DeepCopyFrom(image);
-    PlusTrackedFrame linesTrackedFrame;
-    linesTrackedFrame.SetImageData(linesVideoFrame);
-    this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
+    this->IntermediatePostfixes.push_back(fileNamePostfix);
   }
+
+  //Add the current frame to its vtkPlusTrackedFrameList
+  PlusVideoFrame linesVideoFrame;
+  linesVideoFrame.DeepCopyFrom(image);
+  PlusTrackedFrame linesTrackedFrame;
+  linesTrackedFrame.SetImageData(linesVideoFrame);
+  this->IntermediateImageMap[fileNamePostfix]->AddTrackedFrame(&linesTrackedFrame);
 }
 
 //----------------------------------------------------------------------------
@@ -1007,14 +1042,10 @@ void vtkPlusTransverseProcessEnhancer::AddIntermediateFromFilter(char* fileNameP
     LOG_WARNING("The empty string was given as an intermediate image file postfix.");
   }
 
-  if (this->SaveIntermediateResults) //TODO: Do this check when calling this method, not inside it
-  {
-    vtkSmartPointer<vtkImageData> tempOutputImage = vtkSmartPointer<vtkImageData>::New();
-    imageFilter->SetOutput(tempOutputImage);
-    imageFilter->Update();
-
-    //this->AddIntermediateImage(fileNamePostfix, tempOutputImage);
-  }
+  vtkSmartPointer<vtkImageData> tempOutputImage = vtkSmartPointer<vtkImageData>::New();
+  imageFilter->SetOutput(tempOutputImage);
+  imageFilter->Update();
+  this->AddIntermediateImage(fileNamePostfix, tempOutputImage);
 }
 
 //----------------------------------------------------------------------------

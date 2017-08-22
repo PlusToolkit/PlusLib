@@ -161,7 +161,7 @@ int main(int argc, char** argv)
   LOG_INFO("Processed Frames terminated successfully.");
   if (saveIntermediateResults)
   {
-    //Make sure the directory name has been formated correctly
+    //Finds out where to add the unique sufex for each intermediate image
     int startInputFileNameIndex = 0;
     if (inputFileName.find("/") != std::string::npos)
     {
