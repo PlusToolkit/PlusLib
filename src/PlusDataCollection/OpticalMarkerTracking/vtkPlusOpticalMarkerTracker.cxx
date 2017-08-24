@@ -77,7 +77,7 @@ namespace
   };
 }
 //----------------------------------------------------------------------------
-class vtkPlusOpticalMarkerTracker::vtkInternal : public vtkObject
+class vtkPlusOpticalMarkerTracker::vtkInternal
 {
 public:
   vtkPlusOpticalMarkerTracker* External;
@@ -95,16 +95,7 @@ public:
     CameraParameters = nullptr;
   }
 
-  vtkGetMacro(TrackingMethod, TRACKING_METHOD);
-  vtkGetStdStringMacro(CameraCalibrationFile);
-  vtkGetStdStringMacro(MarkerDictionary);
-
-public:
   PlusStatus BuildTransformMatrix(vtkSmartPointer<vtkMatrix4x4> transformMatrix, const cv::Mat& Rvec, const cv::Mat& Tvec);
-
-  vtkSetMacro(TrackingMethod, TRACKING_METHOD);
-  vtkSetStdStringMacro(CameraCalibrationFile);
-  vtkSetStdStringMacro(MarkerDictionary);
 
   std::string               CameraCalibrationFile;
   TRACKING_METHOD           TrackingMethod;
