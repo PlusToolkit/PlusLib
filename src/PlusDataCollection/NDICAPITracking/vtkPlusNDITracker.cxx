@@ -344,6 +344,9 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
     case 1228739:
       baud = NDI_1228739;
       break;
+    case 230400:
+      baud = NDI_230400;
+      break;
     default:
       LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
       return PLUS_FAIL;
@@ -358,7 +361,7 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
 
   // set the baud rate
   // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-  this->Command("COMM:%d%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
+  this->Command("COMM:%X%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
   int errnum = ndiGetError(this->Device);
   if (errnum)
   {
