@@ -461,6 +461,18 @@ IF(PLUS_USE_NVIDIA_DVP)
   TARGET_LINK_LIBRARIES(vtkNVidiaDVPVideoSourceTest vtkPlusDataCollection )
 ENDIF()
 
+#*************************** vtkOpenIGTLinkTrackerTest ***************************
+IF(PLUS_USE_OpenIGTLink) 
+  ADD_EXECUTABLE(vtkOpenIGTLinkTrackerTest vtkOpenIGTLinkTrackerTest.cxx )
+  SET_TARGET_PROPERTIES(vtkOpenIGTLinkTrackerTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkOpenIGTLinkTrackerTest vtkPlusDataCollection vtkPlusServer)
+
+  ADD_TEST(vtkOpenIGTLinkTrackerTest
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkTrackerTest
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml
+    )
+ENDIF()
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
