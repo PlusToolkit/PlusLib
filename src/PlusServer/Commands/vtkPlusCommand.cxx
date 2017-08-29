@@ -246,7 +246,7 @@ void vtkPlusCommand::PopCommandResponses(PlusCommandResponseList& responses)
 //------------------------------------------------------------------------------
 void vtkPlusCommand::QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error, const std::map<std::string, std::string>* values)
 {
-  vtkSmartPointer<vtkPlusCommandCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandCommandResponse>::New();
+  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   commandResponse->SetClientId(this->ClientId);
   commandResponse->SetOriginalId(this->Id);
   commandResponse->SetDeviceName(this->DeviceName);

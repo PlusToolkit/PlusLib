@@ -78,11 +78,11 @@ private:
 };
 
 //----------------------------------------------------------------------------
-class vtkPlusCommandCommandResponse : public vtkPlusCommandResponse
+class vtkPlusCommandRTSCommandResponse : public vtkPlusCommandResponse
 {
 public:
-  static vtkPlusCommandCommandResponse* New();
-  vtkTypeMacro(vtkPlusCommandCommandResponse, vtkPlusCommandResponse);
+  static vtkPlusCommandRTSCommandResponse* New();
+  vtkTypeMacro(vtkPlusCommandRTSCommandResponse, vtkPlusCommandResponse);
 
   vtkGetMacro(OriginalId, uint32_t);
   vtkSetMacro(OriginalId, uint32_t);
@@ -97,7 +97,7 @@ public:
   const std::map<std::string, std::string>& GetParameters() const;
 
 protected:
-  vtkPlusCommandCommandResponse()
+  vtkPlusCommandRTSCommandResponse()
   {
   }
   uint32_t OriginalId;
@@ -107,8 +107,8 @@ protected:
   std::map<std::string, std::string> Parameters;
 
 private:
-  vtkPlusCommandCommandResponse(const vtkPlusCommandCommandResponse&);
-  void operator=(const vtkPlusCommandCommandResponse&);
+  vtkPlusCommandRTSCommandResponse(const vtkPlusCommandRTSCommandResponse&);
+  void operator=(const vtkPlusCommandRTSCommandResponse&);
 };
 
 //----------------------------------------------------------------------------

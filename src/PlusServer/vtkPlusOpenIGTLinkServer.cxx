@@ -1176,7 +1176,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     return igtlMessage.GetPointer();
   }
 
-  vtkPlusCommandCommandResponse* commandResponse = vtkPlusCommandCommandResponse::SafeDownCast(response);
+  vtkPlusCommandRTSCommandResponse* commandResponse = vtkPlusCommandRTSCommandResponse::SafeDownCast(response);
   if (commandResponse)
   {
     if (!commandResponse->GetRespondWithCommandMessage())
@@ -1207,14 +1207,18 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       igtlMessage->SetCommandName(commandResponse->GetCommandName());
       igtlMessage->SetCommandId(commandResponse->GetOriginalId());
 
+      // Send command result details both in XML and in metadata, slowly phase towards metadata
       std::ostringstream replyStr;
       replyStr << "<Command><Result>" << (commandResponse->GetStatus() ? "true" : "false") << "</Result>";
       if (commandResponse->GetStatus() == PLUS_FAIL)
       {
         replyStr << "<Error>" << commandResponse->GetErrorString() << "</Error>";
+        igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
       }
       replyStr << "<Message>" << commandResponse->GetResultString() << "</Message></Command>";
+      igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
 
+      igtlMessage->SetMetaDataElement("Result", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "true" : "false"));
       for (std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it)
       {
         igtlMessage->SetMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
