@@ -317,41 +317,6 @@ PlusStatus vtkPlusNDITracker::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::InternalConnectSerial()
 {
-  int baud = NDI_9600;
-  switch (this->BaudRate)
-  {
-    case 9600:
-      baud = NDI_9600;
-      break;
-    case 14400:
-      baud = NDI_14400;
-      break;
-    case 19200:
-      baud = NDI_19200;
-      break;
-    case 38400:
-      baud = NDI_38400;
-      break;
-    case 57600:
-      baud = NDI_57600;
-      break;
-    case 115200:
-      baud = NDI_115200;
-      break;
-    case 921600:
-      baud = NDI_921600;
-      break;
-    case 1228739:
-      baud = NDI_1228739;
-      break;
-    case 230400:
-      baud = NDI_230400;
-      break;
-    default:
-      LOG_ERROR("Illegal baud rate: " << this->BaudRate << ". Valid values: 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739");
-      return PLUS_FAIL;
-  }
-
   this->LeaveDeviceOpenAfterProbe = true;
   if (this->Probe() == PLUS_FAIL)
   {
@@ -359,16 +324,24 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
     return PLUS_FAIL;
   }
 
-  // set the baud rate
-  // also: NOHANDSHAKE cuts down on CRC errs and timeouts
-  this->Command("COMM:%X%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
-  int errnum = ndiGetError(this->Device);
-  if (errnum)
+  auto baudRates = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+  for (auto baud : baudRates)
   {
-    LOG_ERROR(ndiErrorString(errnum));
-    ndiCloseSerial(this->Device);
-    this->Device = nullptr;
-    return PLUS_FAIL;
+    this->Command("COMM:%X%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
+    int errnum = ndiGetError(this->Device);
+    if (errnum != NDI_OKAY && errnum != NDI_COMM_FAIL)
+    {
+      // A real problem, abort
+      LOG_ERROR(ndiErrorString(errnum));
+      ndiCloseSerial(this->Device);
+      this->Device = nullptr;
+      return PLUS_FAIL;
+    }
+    if (errnum == NDI_OKAY)
+    {
+      // Fastest baud rate set, end
+      break;
+    }
   }
 
   return PLUS_SUCCESS;

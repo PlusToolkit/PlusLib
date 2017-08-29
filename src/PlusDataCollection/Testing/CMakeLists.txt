@@ -469,7 +469,8 @@ IF(PLUS_USE_OpenIGTLink)
 
   ADD_TEST(vtkOpenIGTLinkTrackerTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkOpenIGTLinkTrackerTest
-    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA.xml
+    --client-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA_Client.xml
+	--server-config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_OpenIGTLinkTracker_TDATA_Server.xml
     )
 ENDIF()
 
