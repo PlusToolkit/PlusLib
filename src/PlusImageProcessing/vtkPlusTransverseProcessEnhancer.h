@@ -4,12 +4,15 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+
+
 #ifndef __vtkPlusTransverseProcessEnhancer_h
 #define __vtkPlusTransverseProcessEnhancer_h
 
 // Local includes
 #include "vtkPlusImageProcessingExport.h"
 #include "vtkPlusTrackedFrameProcessor.h"
+#include "vtkImageAlgorithm.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -26,13 +29,14 @@ class vtkImageDilateErode3D;
 class vtkPlusUsScanConvert;
 
 /*!
-  \class vtkPlusTransverseProcessEnhancer
-  \brief Improves bone surface visibility in ultrasound images
-  \ingroup PlusLibImageProcessingAlgo
+\class vtkPlusTransverseProcessEnhancer
+\brief Improves bone surface visibility in ultrasound images
+\ingroup PlusLibImageProcessingAlgo
 */
 class vtkPlusImageProcessingExport vtkPlusTransverseProcessEnhancer : public vtkPlusTrackedFrameProcessor
 {
 public:
+
   static vtkPlusTransverseProcessEnhancer* New();
   vtkTypeMacro(vtkPlusTransverseProcessEnhancer, vtkPlusTrackedFrameProcessor);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
@@ -41,189 +45,147 @@ public:
   virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* processingElement);
+  virtual PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* processingElement);
+  virtual PlusStatus WriteConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
 
   /*! Get the Type attribute of the configuration element */
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
-  /*! Set optional output file name for sub-sampled input image sequence */
-  void SetLinesImageFileName(const std::string& fileName);
-  
-  /*! Set optional output file name for transverse process acoustic shadow images */
-  void SetShadowImageFileName(const std::string& fileName);
+  /*! If optional output files for intermediate images should saved */
+  vtkSetMacro(IntermediateImageFileName, std::string);
+  vtkSetMacro(SaveIntermediateResults, bool);
 
-  /*! Set optional output file name for partially process images */
-  void SetIntermediateImageFileName(const std::string& fileName);
 
-  /*! Set optional output file name for processed sub-sampled image sequence */
-  void SetProcessedLinesImageFileName(const std::string& fileName);
-
-  vtkSetMacro(ConvertToLinesImage, bool);
-  vtkGetMacro(ConvertToLinesImage, bool);
-  vtkBooleanMacro(ConvertToLinesImage, bool);
-
+  /*! Get and Set methods for variables related to the scanner used */
   vtkSetMacro(NumberOfScanLines, int);
   vtkGetMacro(NumberOfScanLines, int);
 
   vtkSetMacro(NumberOfSamplesPerScanLine, int);
   vtkGetMacro(NumberOfSamplesPerScanLine, int);
 
-  vtkSetMacro(GaussianEnabled, bool);
-  vtkGetMacro(GaussianEnabled, bool);
-  vtkBooleanMacro(GaussianEnabled, bool);
+  vtkSetVector3Macro(MmToPixelFanImage, double);
+  vtkGetVector3Macro(MmToPixelFanImage, double);
 
+  vtkSetVector3Macro(MmToPixelLinesImage, double);
+  vtkGetVector3Macro(MmToPixelLinesImage, double);
+
+  vtkSetMacro(RadiusStartMm, int);
+  vtkGetMacro(RadiusStartMm, int);
+
+  vtkSetMacro(RadiusStopMm, int);
+  vtkGetMacro(RadiusStopMm, int);
+
+  vtkSetMacro(ThetaStartDeg, int);
+  vtkGetMacro(ThetaStartDeg, int);
+
+  vtkSetMacro(ThetaStopDeg, int);
+  vtkGetMacro(ThetaStopDeg, int);
+
+
+  /*! Get and Set methods for variables related to filter peramaters */
   void SetGaussianStdDev(double GaussianStdDev);
-  void SetGaussianKernelSize(int GaussianKernelSize);
-
-  vtkSetMacro(ThresholdingEnabled, bool);
-  vtkGetMacro(ThresholdingEnabled, bool);
-  vtkBooleanMacro(ThresholdingEnabled, bool);
-
-  void SetThresholdInValue(double NewThresholdInValue);
-  void SetThresholdOutValue(double NewThresholdOutValue);
-  void SetLowerThreshold(double LowerThreshold);
-  void SetUpperThreshold(double UpperThreshold);
-
-  vtkSetMacro(EdgeDetectorEnabled, bool);
-  vtkGetMacro(EdgeDetectorEnabled, bool);
-  vtkBooleanMacro(EdgeDetectorEnabled, bool);
-
-  vtkSetMacro(IslandRemovalEnabled, bool);
-  vtkGetMacro(IslandRemovalEnabled, bool);
-  vtkBooleanMacro(IslandRemovalEnabled, bool);
+  void SetGaussianKernelSize(double GaussianKernelSize);
 
   void SetIslandAreaThreshold(int islandAreaThreshold);
-
-  vtkSetMacro(ErosionEnabled, bool);
-  vtkGetMacro(ErosionEnabled, bool);
-  vtkBooleanMacro(ErosionEnabled, bool);
+  vtkGetMacro(IslandAreaThreshold, int);
 
   vtkSetVector2Macro(ErosionKernelSize, int);
   vtkGetVector2Macro(ErosionKernelSize, int);
 
-  vtkSetMacro(DilationEnabled, bool);
-  vtkGetMacro(DilationEnabled, bool);
-  vtkBooleanMacro(DilationEnabled, bool);
-
   vtkSetVector2Macro(DilationKernelSize, int);
   vtkGetVector2Macro(DilationKernelSize, int);
 
-  vtkSetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkGetMacro(ReconvertBinaryToGreyscale, bool);
-  vtkBooleanMacro(ReconvertBinaryToGreyscale, bool);
+  void ThresholdViaStdDeviation(vtkSmartPointer<vtkImageData> inputImage);
 
-  vtkSetMacro(ReturnToFanImage, bool);
-  vtkGetMacro(ReturnToFanImage, bool);
-  vtkBooleanMacro(ReturnToFanImage, bool);
-
-  //vtkSetMacro(LinesImageFileName, string);
-  vtkPlusTrackedFrameList* LinesFrameList;
-  vtkPlusTrackedFrameList* ShadowFrameList; // For debugging and development.
-  vtkPlusTrackedFrameList* IntermediateFrameList; // For debugging and development
-  vtkPlusTrackedFrameList* ProcessedLinesFrameList;  // For debugging and development.
-  
-  vtkGetObjectMacro(LinesFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ShadowFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(IntermediateFrameList, vtkPlusTrackedFrameList);
-  vtkGetObjectMacro(ProcessedLinesFrameList, vtkPlusTrackedFrameList);
-  /*
-  vtkGetObjectMacro(LinesFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ShadowFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(IntermediateFrame, PlusTrackedFrame);
-  vtkGetObjectMacro(ProcessedLinesFrame, PlusTrackedFrame);
-
-  PlusTrackedFrame* GetLinesFrame() { return (this->LinesFrame); };
-  PlusTrackedFrame* GetShadowImageFrame() { return this->ShadowFrame; };
-  PlusTrackedFrame* GetIntermediateFrame() { return this->IntermediateFrame; };
-  PlusTrackedFrame* GetProcessedLinesFrame() { return (this->ProcessedLinesFrame); };
-  */
-  vtkImageData* GetLinesImage() { return (this->LinesImage); };
-  vtkImageData* GetShadowImage() { return this->ShadowImage; };
-  vtkImageData* GetIntermediateImage() { return this->IntermediateImage; };
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
+
+
+  ///Steps to note and eliminate false boen areas
+  void MarkShadowOutline(vtkSmartPointer<vtkImageData> inputImage);
+  void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
+  void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
+
+  ///Methods related to intermediate images
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
+  PlusStatus SaveAllIntermediateResultsToFile();
+  PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
 
 protected:
   vtkPlusTransverseProcessEnhancer();
   virtual ~vtkPlusTransverseProcessEnhancer();
 
-  void FillLinesImage(vtkPlusUsScanConvert* scanConverter, vtkImageData* inputImageData);
-  void ProcessLinesImage();
-  void VectorImageToUchar(vtkImageData* inputImage, vtkImageData* ConversionImage);
-  void FillShadowValues();
+  void FillLinesImage(vtkSmartPointer<vtkImageData> inputImageData);
+  void VectorImageToUchar(vtkSmartPointer<vtkImageData> inputImage);
 
-  void ComputeHistogram(vtkImageData* imageData);
+  void ImageConjunction(vtkSmartPointer<vtkImageData> inputImage, vtkSmartPointer<vtkImageData> maskImage);
 
-  void ImageConjunction(vtkImageData* InputImage, vtkImageData* MaskImage);
+  void AddIntermediateImage(char* fileNamePostfix, vtkSmartPointer<vtkImageData> image);
+  void AddIntermediateFromFilter(char* fileNamePostfix, vtkImageAlgorithm* imageAlgorithm);
 
-  
-
-//protected:
+protected:
   vtkSmartPointer<vtkPlusUsScanConvert>     ScanConverter;
-  vtkSmartPointer<vtkImageThreshold>        Thresholder;
   vtkSmartPointer<vtkImageGaussianSmooth>   GaussianSmooth;           // Trying to incorporate existing GaussianSmooth vtkThreadedAlgorithm class
   vtkSmartPointer<vtkImageSobel2D>          EdgeDetector;
   vtkSmartPointer<vtkImageThreshold>        ImageBinarizer;
   vtkSmartPointer<vtkImageData>             BinaryImageForMorphology;
   vtkSmartPointer<vtkImageIslandRemoval2D>  IslandRemover;
   vtkSmartPointer<vtkImageDilateErode3D>    ImageEroder;
+  vtkSmartPointer<vtkImageDilateErode3D>    ImageDialator;
 
-  bool ConvertToLinesImage;
   int NumberOfScanLines;
   int NumberOfSamplesPerScanLine;
   bool ReturnToFanImage;
 
-  // Descriptive statistics of current image intensity.
-  double CurrentFrameMean;
-  double CurrentFrameStDev;
-  float CurrentFrameMax;
-  float CurrentFrameMin;
+  double MmToPixelFanImage[3];
+  double MmToPixelLinesImage[3];
+
+  // Scan Conversion parameters, defined in config file
+  int RadiusStartMm;
+  int RadiusStopMm;
+  int ThetaStartDeg;
+  int ThetaStopDeg;
 
   // Image processing parameters, defined in config file
-  bool GaussianEnabled;
   double GaussianStdDev;
-  int GaussianKernelSize;
+  double GaussianKernelSize;
 
-  bool ThresholdingEnabled;
-  double ThresholdInValue;
-  double ThresholdOutValue;
-  double LowerThreshold;
-  double UpperThreshold;
-
-  bool EdgeDetectorEnabled;
   vtkSmartPointer<vtkImageData> ConversionImage;
 
-  bool IslandRemovalEnabled;
   int IslandAreaThreshold;
 
-  bool ErosionEnabled;
   int ErosionKernelSize[2];
 
-  bool DilationEnabled;
   int DilationKernelSize[2];
 
-  bool ReconvertBinaryToGreyscale;
+  int BoneOutlineDepthPx;
+  int BonePushBackPx;
 
-  std::string LinesImageFileName;
-  //void SetLinesImageFileName(const std::string& fileName);
-  //vtkSmartPointer<PlusTrackedFrame> LinesFrame;
-  vtkSmartPointer<vtkImageData> LinesImage; // Image for pixels (uchar) along scan lines only
-  
-  vtkSmartPointer<vtkImageData> UnprocessedLinesImage;  // Used to retrieve original pixel values from some point before binarization
+  bool SaveIntermediateResults;
 
-  std::string ShadowImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ShadowFrame;
-  vtkSmartPointer<vtkImageData> ShadowImage; // Pixels (float) store probability of belonging to shadow
-  
   std::string IntermediateImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> IntermediateFrame;
-  vtkSmartPointer<vtkImageData> IntermediateImage; // Image after some of the processing operations have been applied
 
-  std::string ProcessedLinesImageFileName;
-  //vtkSmartPointer<PlusTrackedFrame> ProcessedLinesFrame;
-  vtkSmartPointer<vtkImageData> ProcessedLinesImage;  // Image after all of the processing operations have been applied
+  /// Image for pixels (uchar) along scan lines only
+  vtkSmartPointer<vtkImageData> LinesImage;
+  /// Used to retrieve original pixel values from some point before binarization
+  vtkSmartPointer<vtkImageData> UnprocessedLinesImage;
+  /// Pixels (float) store probability of belonging to shadow
+  vtkSmartPointer<vtkImageData> ProcessedLinesImage;
+
+  /// Image after some of the processing operations have been applied
+  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
+
+  std::vector<char*> IntermediatePostfixes;
+
+  std::vector<std::map<std::string, int>> BoneAreasInfo;
+
+
+private:
+  virtual PlusStatus ProcessImageExtents();
+
+private:
+  bool FirstFrame = true;
 
 };
 
