@@ -11,36 +11,50 @@
 
 #include "vtkPlusDataCollectionExport.h"
 
-#include "vtkPlusDevice.h"
+#include "vtkPlusUsDevice.h"
 
 /*!
-  \class vtkPlusBkProFocusOemVideoSource 
+  \class vtkPlusBkProFocusOemVideoSource
   \brief Class for acquiring ultrasound images from BK ultrasound systems through the OEM interface
 
   Requires the PLUS_USE_BKPROFOCUS_VIDEO option in CMake.
-  Requires GrabbieLib (SDK provided by BK).
 
   \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusBkProFocusOemVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusBkProFocusOemVideoSource : public vtkPlusUsDevice
 {
 public:
-  static vtkPlusBkProFocusOemVideoSource *New();
-  vtkTypeMacro(vtkPlusBkProFocusOemVideoSource,vtkPlusDevice);
+
+  enum PROBE_TYPE
+  {
+    UNKNOWN,
+    SECTOR,
+    LINEAR,
+    MECHANICAL
+  };
+
+  static vtkPlusBkProFocusOemVideoSource* New();
+  vtkTypeMacro(vtkPlusBkProFocusOemVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual bool IsTracker() const { return false; }
 
-  /*! Read configuration from xml data */  
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);    
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
-  /*! Set the name of the BK ini file that stores connection and acquisition settings */
-  vtkSetStringMacro(IniFileName);
+  /*! BK scanner address */
+  vtkSetStringMacro(ScannerAddress);
+
+  /*! BK scanner address */
+  vtkGetStringMacro(ScannerAddress);
+
+  /*! BK scanner OEM port */
+  vtkSetMacro(OemPort, unsigned short);
 
   /*!
     Enable/disable continuous streaming. Continuous streaming (GRAB_FRAME command) requires extra license
@@ -60,10 +74,59 @@ public:
   */
   vtkBooleanMacro(ContinuousStreamingEnabled, bool);
 
+  /*! Enable/disable color in the streamed video */
+  vtkSetMacro(ColorEnabled, bool);
+
+  /*! Enable/disable color in the streamed video */
+  vtkGetMacro(ColorEnabled, bool);
+
+  /*! Enable/disable color in the streamed video */
+  vtkBooleanMacro(ColorEnabled, bool);
+
+  /*! Enable/disable offline testing */
+  vtkSetMacro(OfflineTesting, bool);
+
+  /*! Enable/disable offline testing */
+  vtkGetMacro(OfflineTesting, bool);
+
+  /*! Enable/disable offline testing */
+  vtkBooleanMacro(OfflineTesting, bool);
+
+  /*! Path to image file used for offline testing */
+  vtkSetStringMacro(OfflineTestingFilePath);
+
+  /*! Path to image file used for offline testing */
+  vtkGetStringMacro(OfflineTestingFilePath);
+
 protected:
-	
+  static const char* KEY_PROBE_TYPE;
+  static const char* KEY_ORIGIN;
+  static const char* KEY_ANGLES;
+  static const char* KEY_BOUNDING_BOX;
+  static const char* KEY_DEPTHS;
+  static const char* KEY_LINEAR_WIDTH;
+
+  static const char* KEY_SPACING_X;
+  static const char* KEY_SPACING_Y;
+
+  static const char* KEY_DEPTH;
+  static const char* KEY_GAIN;
+
   // Size of the ultrasound image. Only used if ContinuousStreamingEnabled is true.
-  int UltrasoundWindowSize[2];
+  unsigned int UltrasoundWindowSize[2];
+
+  //Parameter values recaived from the BK scanner.
+  double StartLineX_m, StartLineY_m, StartLineAngle_rad, StartDepth_m, StopLineX_m, StopLineY_m, StopLineAngle_rad, StopDepth_m;
+  int pixelLeft_pix, pixelTop_pix, pixelRight_pix, pixelBottom_pix;
+  int grabFramePixelLeft_pix, grabFramePixelTop_pix, grabFramePixelRight_pix, grabFramePixelBottom_pix;
+  double tissueLeft_m, tissueTop_m, tissueRight_m, tissueBottom_m;
+  int gain_percent;
+
+  //Probe type of the connected probes
+  PROBE_TYPE probeTypePortA, probeTypePortB, probeTypePortC, probeTypePortM;
+
+  //The current probe port
+  std::string probePort;
 
   /*! Constructor */
   vtkPlusBkProFocusOemVideoSource();
@@ -76,6 +139,12 @@ protected:
   /*! Device-specific disconnect */
   virtual PlusStatus InternalDisconnect();
 
+  /*! Start continuous data streaming from BK. Requires additional license from BK. */
+  PlusStatus StartContinuousDataStreaming();
+
+  /*! Stop continuous data streaming from BK. */
+  PlusStatus StopContinuousDataStreaming();
+
   /*! Device-specific recording start */
   virtual PlusStatus InternalStartRecording();
 
@@ -85,17 +154,157 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
-  /*! The internal function which ...  */
-	PlusStatus QueryImageSize();
+  /*! Read and process all received messages until an image message is read. */
+  PlusStatus ProcessMessagesAndReadNextImage();
 
-  PlusStatus GetFullIniFilePath(std::string &fullPath);
+  /*! Read Next received message from BK. */
+  PlusStatus ReadNextMessage();
+
+  /*! Remove special characters from the BK message (SOH, EOT and ESC). Also restore inverted characters.*/
+  std::vector<char> removeSpecialCharacters(std::vector<char> inMessage);
+
+  /*! Add additional binary data to the image.
+   * Tested on a BK5000 scanner:
+   * The specified size of the binary data block don't match the actual size (sizes wary a lot).
+   * The specified size are sometimes smaller than the actual image,
+   * and the data block are sometimes (much) larger than the actual image.
+   * Currently all the binary data are added to the image.
+   */
+  int addAdditionalBinaryDataToImageUntilEOTReached(char& character, std::vector<char>& rawMessage);
+
+  /*! Send a query over socket communication. */
+  PlusStatus SendQuery(std::string query);
+
+  /*! Add special characters required by the BK protocol. */
+  std::string AddSpecialCharacters(std::string query);
+
+  /*! Request all parameters from BK scanner. */
+  PlusStatus RequestParametersFromScanner();
+
+  /*! Various BK queries. */
+  PlusStatus QueryImageSize();
+  PlusStatus QueryGeometryScanarea();
+  PlusStatus QueryGeometryPixel();
+  PlusStatus QueryGeometryUsGrabFrame();
+  PlusStatus QueryGeometryTissue();
+  PlusStatus QueryGain();
+  PlusStatus QueryTransducerList();
+  PlusStatus QueryTransducer();
+
+  /*! BK commands. */
+  PlusStatus SubscribeToParameterChanges();
+  PlusStatus ConfigEventsOn();
+  //  PlusStatus CommandPowerDopplerOn();
+
+  /*! Functions that parse received BK messages, and stores the values in private variables. */
+  void ParseImageSize(std::istringstream& replyStream);
+  void ParseGeometryScanarea(std::istringstream& replyStream);
+  void ParseGeometryPixel(std::istringstream& replyStream);
+  void ParseGeometryUsGrabFrame(std::istringstream& replyStream);
+  void ParseGeometryTissue(std::istringstream& replyStream);
+  void ParseGain(std::istringstream& replyStream);
+  void ParseTransducerList(std::istringstream& replyStream);
+  void ParseTransducerData(std::istringstream& replyStream);
 
   PlusStatus DecodePngImage(unsigned char* pngBuffer, unsigned int pngBufferSize, vtkImageData* decodedImage);
 
-  /*! BK ini file storing the connection and acquisition settings */
-  char* IniFileName;
+  // Calculate values for the OpenIGTLinkIO standard.
 
+  /*! Sector origin relative to upper left corner of image in pixels */
+  std::vector<double> CalculateOrigin();
+
+  /*! Probe sector angles relative to down, in radians.
+   *  2 angles for 2D, and 4 for 3D probes.
+   * For regular imaging with linear probes these will be 0 */
+  std::vector<double> CalculateAngles();
+
+  /*! Boundaries to cut away areas outside the US sector, in pixels.
+   * 4 for 2D, and 6 for 3D. */
+  std::vector<double> CalculateBoundingBox();
+
+  /*! Start, stop depth for the imaging, in mm. */
+  std::vector<double> CalculateDepths();
+
+  /*! Width of linear probe. */
+  double CalculateLinearWidth();
+
+  //Utility functions
+
+  /*! Is the probe used to create the image a sector probe? (Not a linear probe.) */
+  bool IsSectorProbe();
+
+  /*! Find sector width in radians, for sector probes. */
+  double CalculateWidthInRadians();
+
+  /*! Calculate imaging depth in mm. */
+  double CalculateDepthMm();
+
+  /*! Calculate the gain used in the image. */
+  int CalculateGain();
+
+  /*! Calculate image start depth in mm. */
+  double GetStartDepth();
+
+  /*! Calculate image stop depth in mm. */
+  double GetStopDepth();
+
+  /*! Calculate x value of first line in sector, in mm. */
+  double GetStartLineX();
+
+  /*! Calculate y value of first line in sector, in mm. */
+  double GetStartLineY();
+
+  /*! Calculate x value of last line in sector, in mm. */
+  double GetStopLineX();
+
+  /*! Calculate y value of last line in sector, in mm. */
+  double GetStopLineY();
+
+  /*! Angle between top of ultrasound sector and first line in sector, in radians. */
+  double GetStartLineAngle();
+
+  /*! Angle between top of ultrasound sector and last line in sector, in radians. */
+  double GetStopLineAngle();
+
+  /*! Calculate spaxing in x diraction, in mm. */
+  double GetSpacingX();
+
+  /*! Calculate spacing in y direction, in mm. */
+  double GetSpacingY();
+
+  /*! Get probe type. */
+  PROBE_TYPE GetProbeType();
+
+
+  /*! Add OpenIGTLinkIO parameters to FrameFields. */
+  PlusStatus AddParametersToFrameFields();
+
+  /*! Read theOemClientReadBuffer into a string. Discards the ; at the end of the string */
+  std::string ReadBufferIntoString();
+
+  /*! Remove doube quotes from a string. E.g. "testString" -> testString */
+  std::string RemoveQuotationMarks(std::string inString);
+
+  void SetProbeTypeForPort(std::string port, std::string probeTypeString);
+
+  //Values read from the xml config file
+  /*! BK scanner address */
+  char* ScannerAddress;
+
+  /*! BK OEM port */
+  unsigned short OemPort;
+
+  /*! Enable continuous streaming. Requires a separate license from BK. */
   bool ContinuousStreamingEnabled;
+
+  /*! Enable streaming of color images. */
+  bool ColorEnabled;
+
+  /*! Turn on offline testing. Useful for simple testing without a BK scanner. */
+  bool OfflineTesting;
+
+  /*! Path to test image sent when OfflineTesting is turned on. */
+  char* OfflineTestingFilePath;
 
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
@@ -104,6 +313,14 @@ protected:
 private:
   vtkPlusBkProFocusOemVideoSource(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.
   void operator=(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.
+
+  //Special characters used in BK communication protocol
+  enum
+  {
+    SOH = 1,  ///> Start of header.
+    EOT = 4,  ///> End of header.
+    ESC = 27, ///> Escape, used for escaping the other special characters. The character itself is inverted.
+  };
 };
 
 #endif

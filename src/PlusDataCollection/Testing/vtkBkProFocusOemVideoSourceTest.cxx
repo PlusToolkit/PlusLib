@@ -76,7 +76,6 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkPlusBkProFocusOemVideoSource> frameGrabber = vtkSmartPointer<vtkPlusBkProFocusOemVideoSource>::New();
 
-  frameGrabber->SetIniFileName(iniFile.c_str());
   frameGrabber->SetAcquisitionRate(frameRate);
 
   frameGrabber->CreateDefaultOutputChannel();

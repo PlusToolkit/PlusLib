@@ -47,13 +47,13 @@ enum PlusImagingMode
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
-#if defined(__BORLANDC__)
-#define STRCASECMP stricmp
+  #if defined(__BORLANDC__)
+    #define STRCASECMP stricmp
+  #else
+    #define STRCASECMP _stricmp
+  #endif
 #else
-#define STRCASECMP _stricmp
-#endif
-#else
-#define STRCASECMP strcasecmp
+  #define STRCASECMP strcasecmp
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -386,14 +386,31 @@ namespace PlusCommon
   vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, const std::array<float, 3>& colour, const PixelLineList& scanLineEndPoints, vtkImageData* imageData);
 
   //----------------------------------------------------------------------------
-  // This method can be used for number to string conversion
-  // until std::to_string is supported by more compilers.
   template<typename T>
   static std::string ToString(T number)
   {
+#if defined(_MSC_VER) && _MSC_VER < 1700
+    // This method can be used for number to string conversion
+    // until std::to_string is supported by more compilers.
     std::ostringstream ss;
     ss << number;
     return ss.str();
+#else
+    return std::to_string(number);
+#endif
+  }
+
+  //----------------------------------------------------------------------------
+  static std::string ToString(std::vector<double> numbers)
+  {
+    std::string retval;
+    for (int i = 0; i < numbers.size(); ++i)
+    {
+      retval = retval + PlusCommon::ToString(numbers[i]);
+      if (i + 1 < numbers.size())
+      { retval += ","; }
+    }
+    return retval;
   }
 
   static const int NO_CLIP = -1;
