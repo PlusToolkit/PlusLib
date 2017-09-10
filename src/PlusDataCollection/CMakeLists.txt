@@ -1291,7 +1291,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   IF(CMAKE_SIZEOF_VOID_P EQUAL 8 )
     SET(Bitness "x64")
   ELSE()
-    SET(Bitness "x32")
+    SET(Bitness "x86")
   ENDIF() 
   
   FILE(GLOB WinProbeAssemblies "${WINPROBESDK_DIR}/${Bitness}/*.dll")
@@ -1301,11 +1301,13 @@ IF(PLUS_USE_WINPROBE_VIDEO)
     )
   LIST(APPEND External_Libraries_Install
     ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WinProbeAssemblies}
     ${WinProbeXMLFiles}
     )
   LIST(APPEND External_Libraries_Debug
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WinProbeAssemblies}
     ${WinProbeXMLFiles}
     )
