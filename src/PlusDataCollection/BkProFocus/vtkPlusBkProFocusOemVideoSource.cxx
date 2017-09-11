@@ -1077,6 +1077,7 @@ void PngWarningCallback(png_structp png_ptr, png_const_charp message)
 PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuffer, unsigned int pngBufferSize, vtkImageData* decodedImage)
 {
 
+  std::vector<unsigned char> fileReadBuffer;
   if (this->OfflineTesting)
   {
     FILE* fp = fopen(this->OfflineTestingFilePath, "rb");
@@ -1088,7 +1089,6 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuf
     fseek(fp, 0, SEEK_END);
     size_t fileSizeInBytes = ftell(fp);
     rewind(fp);
-    std::vector<unsigned char> fileReadBuffer;
     fileReadBuffer.resize(fileSizeInBytes);
     pngBuffer = &(fileReadBuffer[0]);
     fread(pngBuffer, 1, fileSizeInBytes, fp);
