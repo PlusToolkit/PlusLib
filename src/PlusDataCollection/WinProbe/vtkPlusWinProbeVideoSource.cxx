@@ -62,25 +62,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
         this->SetVoltage(tmpValue);
     }
     
-    const char * tgcCharPtr = deviceConfig->GetAttribute("TimeGainCompensation");
-    if (tgcCharPtr)
-    {
-        std::stringstream ss(tgcCharPtr);
-        for (int i = 0; i < 8; i++)
-        {
-            ss >> m_timeGainCompensation[i];
-        }
-    }
-    
-    const char * fpdCharPtr = deviceConfig->GetAttribute("FocalPointDepth");
-    if (fpdCharPtr)
-    {
-        std::stringstream ss(fpdCharPtr);
-        for (int i = 0; i < 4; i++)
-        {
-            ss >> m_focalPointDepth[i];
-        }
-    }
+    deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
+    deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
 
     return PLUS_SUCCESS;
 }
@@ -94,21 +77,9 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
     deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
     deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
     deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
-    
-    std::stringstream ss;
-    ss << m_timeGainCompensation[0];
-    for (int i = 1; i < 8; i++)
-    {
-        ss << " " << m_timeGainCompensation[i];
-    }
-    deviceConfig->SetAttribute("TimeGainCompensation", ss.str().c_str());
-    ss = std::stringstream();
-    ss << m_focalPointDepth[0];
-    for (int i = 1; i < 4; i++)
-    {
-        ss << " " << m_focalPointDepth[i];
-    }
-    deviceConfig->SetAttribute("FocalPointDepth", ss.str().c_str());
+
+    deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
+    deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
 
     return PLUS_SUCCESS;
 }
@@ -244,6 +215,11 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 	{
 		m_timeGainCompensation[i] = 0.0;
 	}
+
+    for (int i = 1; i < 4; i++)
+    {
+        m_focalPointDepth[i] = 0.0f;
+    }
 
     AdjustSpacing();
 
