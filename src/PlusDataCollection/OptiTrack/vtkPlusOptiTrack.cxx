@@ -17,9 +17,11 @@ See License.txt for details.
 // Motive API includes
 #include <NPTrackingTools.h>
 
-vtkStandardNewMacro(vtkPlusOptiTrack);
+// NatNet callback function
+//TODO: Move this out of the global namespace
+void ReceiveDataCallback(sFrameOfMocapData* data, void* pUserData);
 
-#define M_TO_MM 1000
+vtkStandardNewMacro(vtkPlusOptiTrack);
 
 //----------------------------------------------------------------------------
 class vtkPlusOptiTrack::vtkInternal
@@ -36,27 +38,68 @@ public:
   {
   }
 
+  // NatNet client, parameters, and callback function
+  NatNetClient* NNClient;
+  float UnitsToMm;
+
+  // Motive Files
   std::string ProjectFile;
   std::string CalibrationFile;
   std::vector<std::string> AdditionalRigidBodyFiles;
-  std::map<std::string, PlusTransformName> RBNameToTransformName;
 
-  void PrintMotiveErrorMessage(NPRESULT result);
+  // Maps rigid body names to transform names
+  std::map<int, PlusTransformName> MapRBNameToTransform;
+
+
+  // Flag to run Motive in background if user doesn't need GUI
+  bool RunMotiveInBackground;
+
+  /*!
+  Print user friendly Motive API message to console
+  */
+  std::string GetMotiveErrorMessage(NPRESULT result);
+
+  void MatchTrackedTools();
 };
 
 //-----------------------------------------------------------------------
-void vtkPlusOptiTrack::vtkInternal::PrintMotiveErrorMessage(NPRESULT result)
+std::string vtkPlusOptiTrack::vtkInternal::GetMotiveErrorMessage(NPRESULT result)
 {
-  LOG_ERROR("Motive error message: " << TT_GetResultString(result));
+  return std::string(TT_GetResultString(result));
 }
+
+//-----------------------------------------------------------------------
+void vtkPlusOptiTrack::vtkInternal::MatchTrackedTools()
+{
+  LOG_TRACE("vtkPlusOptiTrack::vtkInternal::MatchTrackedTools");
+  std::string referenceFrame = this->External->GetToolReferenceFrameName();
+  this->MapRBNameToTransform.clear();
+
+  sDataDescriptions* dataDescriptions;
+  this->NNClient->GetDataDescriptions(&dataDescriptions);
+  for (int i = 0; i < dataDescriptions->nDataDescriptions; ++i)
+  {
+    sDataDescription currentDescription = dataDescriptions->arrDataDescriptions[i];
+    if (currentDescription.type == Descriptor_RigidBody)
+    {
+      // Map the numerical ID of the tracked tool from motive to the name of the tool
+      PlusTransformName toolToTracker = PlusTransformName(currentDescription.Data.RigidBodyDescription->szName, referenceFrame);
+      this->MapRBNameToTransform[currentDescription.Data.RigidBodyDescription->ID] = toolToTracker;
+    }
+  }
+}
+
 
 //-----------------------------------------------------------------------
 vtkPlusOptiTrack::vtkPlusOptiTrack()
   : vtkPlusDevice()
   , Internal(new vtkInternal(this))
-{ 
+{
   this->FrameNumber = 0;
-  this->StartThreadForInternalUpdates = true;
+  // always uses NatNet's callback to update
+
+  this->InternalUpdateRate = 120;
+  this->StartThreadForInternalUpdates = false;
 }
 
 //-------------------------------------------------------------------------
@@ -75,9 +118,11 @@ void vtkPlusOptiTrack::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
+  LOG_TRACE("vtkPlusOptiTrack::ReadConfiguration")
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(RunMotiveInBackground, this->Internal->RunMotiveInBackground, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -102,16 +147,6 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
       continue;
     }
 
-    PlusTransformName toolTransformName(toolId, this->GetToolReferenceFrameName());
-    std::pair<std::string, PlusTransformName> newTool(toolId, toolTransformName);
-    bool wasInserted = this->Internal->RBNameToTransformName.insert(newTool).second;
-    if (!wasInserted)
-    {
-      // duplicate toolId
-      LOG_ERROR("Duplicate tool found in Plus config file with Id \"" << toolId << "\". All tool Id's are required to be unique.");
-      return PLUS_FAIL;
-    }
-
     if (toolDataElement->GetAttribute("RigidBodyFile") != NULL)
     {
       // this tool has an associated rigid body definition
@@ -126,6 +161,7 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
+  LOG_TRACE("vtkPlusOptiTrack::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
   return PLUS_SUCCESS;
 }
@@ -133,102 +169,107 @@ PlusStatus vtkPlusOptiTrack::WriteConfiguration(vtkXMLDataElement* rootConfigEle
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::Probe()
 {
+  LOG_TRACE("vtkPlusOptiTrack::Probe");
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalConnect()
 {
-  // initialize the API
-  if (TT_Initialize() != NPRESULT_SUCCESS)
+  LOG_TRACE("vtkPlusOptiTrack::InternalConnect");
+  if (this->Internal->RunMotiveInBackground == true)
   {
-    LOG_ERROR("Failed to start Motive.");
-    return PLUS_FAIL;
-  }
-
-  // pick up recently-arrived cameras
-  TT_Update();
-
-  // open project file
-  std::string projectFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->ProjectFile);
-  NPRESULT ttpLoad = TT_LoadProject(projectFilePath.c_str());
-  if (ttpLoad != NPRESULT_SUCCESS)
-  {
-    LOG_ERROR("Failed to load Motive project file. Motive error: " << TT_GetResultString(ttpLoad));
-    return PLUS_FAIL;
-  }
-
-  // add any additional rigid body files to project
-  std::string rbFilePath;
-  for (auto it = this->Internal->AdditionalRigidBodyFiles.begin(); it != this->Internal->AdditionalRigidBodyFiles.end(); it++)
-  {
-    rbFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(*it);
-    NPRESULT addRBResult = TT_AddRigidBodies(rbFilePath.c_str());
-    if (addRBResult != NPRESULT_SUCCESS)
+    // RUN MOTIVE IN BACKGROUND
+    // initialize the API
+    if (TT_Initialize() != NPRESULT_SUCCESS)
     {
-      LOG_ERROR("Failed to load rigid body file located at: " << rbFilePath);
-      this->Internal->PrintMotiveErrorMessage(addRBResult);
+      LOG_ERROR("Failed to start Motive.");
       return PLUS_FAIL;
     }
+
+    // pick up recently-arrived cameras
+    TT_Update();
+
+    // open project file
+    std::string projectFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->ProjectFile);
+    NPRESULT ttpLoad = TT_LoadProject(projectFilePath.c_str());
+    if (ttpLoad != NPRESULT_SUCCESS)
+    {
+      LOG_ERROR("Failed to load Motive project file. Motive error: " << TT_GetResultString(ttpLoad));
+      return PLUS_FAIL;
+    }
+
+    // add any additional rigid body files to project
+    std::string rbFilePath;
+    for (auto it = this->Internal->AdditionalRigidBodyFiles.begin(); it != this->Internal->AdditionalRigidBodyFiles.end(); it++)
+    {
+      rbFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(*it);
+      NPRESULT addRBResult = TT_AddRigidBodies(rbFilePath.c_str());
+      if (addRBResult != NPRESULT_SUCCESS)
+      {
+        LOG_ERROR("Failed to load rigid body file located at: " << rbFilePath << ". Motive error message: " << this->Internal->GetMotiveErrorMessage(addRBResult));
+        return PLUS_FAIL;
+      }
+    }
+
+    LOG_INFO("\n---------------------------------MOTIVE SETTINGS--------------------------------")
+      // list connected cameras
+      LOG_INFO("Connected cameras:")
+      for (int i = 0; i < TT_CameraCount(); i++)
+      {
+        LOG_INFO(i << ": " << TT_CameraName(i));
+      }
+    // list project file
+    LOG_INFO("\nUsing Motive project file located at:\n" << projectFilePath);
+    // list rigid bodies
+    LOG_INFO("\nTracked rigid bodies:");
+    for (int i = 0; i < TT_RigidBodyCount(); ++i)
+    {
+      LOG_INFO(TT_RigidBodyName(i));
+    }
+    LOG_INFO("--------------------------------------------------------------------------------\n");
+
+    this->StartThreadForInternalUpdates = true;
+  }
+
+  // CONFIGURE NATNET CLIENT
+  this->Internal->NNClient = new NatNetClient(ConnectionType_Multicast);
+  this->Internal->NNClient->SetVerbosityLevel(Verbosity_None);
+  this->Internal->NNClient->SetVerbosityLevel(Verbosity_Warning);
+  this->Internal->NNClient->SetDataCallback(ReceiveDataCallback, this);
+
+  int retCode = this->Internal->NNClient->Initialize("127.0.0.1", "127.0.0.1");
+
+  void* response;
+  int nBytes;
+  if (this->Internal->NNClient->SendMessageAndWait("UnitsToMillimeters", &response, &nBytes) == ErrorCode_OK)
+  {
+    this->Internal->UnitsToMm = (*(float*)response);
+  }
+  else
+  {
+    // Fail if motive is not running
+    LOG_ERROR("Failed to connect to Motive. Please either set RunMotiveInBackground=TRUE or ensure that Motive is running and streaming is enabled.");
+    return PLUS_FAIL;
   }
 
   // verify all rigid bodies in Motive have unique names
   std::set<std::string> rigidBodies;
-  bool isUnique = true;
-  for (int i = 0; i < TT_RigidBodyCount(); i++)
+  sDataDescriptions* dataDescriptions;
+  this->Internal->NNClient->GetDataDescriptions(&dataDescriptions);
+  for (int i = 0; i < dataDescriptions->nDataDescriptions; ++i)
   {
-    std::string rbName(TT_RigidBodyName(i));
-    if (!rigidBodies.insert(rbName).second)
+    sDataDescription currentDescription = dataDescriptions->arrDataDescriptions[i];
+    if (currentDescription.type == Descriptor_RigidBody)
     {
-      // non-unique tool name found in Motive project with added rigid bodies
-      isUnique = false;
-      LOG_ERROR("Duplicate Motive rigid bodies with name: " << TT_RigidBodyName(i));
+      // Map the numerical ID of the tracked tool from motive to the name of the tool
+      if (!rigidBodies.insert(currentDescription.Data.RigidBodyDescription->szName).second)
+      {
+        LOG_ERROR("Duplicate rigid bodies with name: " << currentDescription.Data.RigidBodyDescription->szName);
+        return PLUS_FAIL;
+      }
     }
   }
-  if (!isUnique)
-  {
-    LOG_ERROR("Please resolve non-unique rigid body names. Please note, if a rigid body is defined in the project file DO NOT include the markers TRA file in the tool DataSoure element.");
-    return PLUS_FAIL;
-  }
-  
-  // verify every rigid body has an associated tool
-  bool hasAssociatedTool = true;
-  for (int i = 0; i < TT_RigidBodyCount(); i++)
-  {
-    std::string rb(TT_RigidBodyName(i));
-    if (this->Internal->RBNameToTransformName.find(rb) == this->Internal->RBNameToTransformName.end())
-    {
-      // tool name found in Motive project with no associated tool in PLUS config
-      hasAssociatedTool = false;
-      LOG_ERROR("Missing data source element in PLUS config for rigid body \"" << TT_RigidBodyName(i) << "\"");
-    }
-  }
-  if (!hasAssociatedTool)
-  {
-    LOG_ERROR("A tool exists in the Motive project or additional rigid body TRA files whose name is not listed as a tool Id in the PLUS config file. Please do the following:");
-    LOG_ERROR("1) Ensure that the Motive project rigid body names of all tools you intend to track match the name of exactly one DataSource element in the PLUS config file.");
-    LOG_ERROR("2) Ensure that all tools added via TRA files have tool names that match their corresponding tool Id in the PLUS config file.");
-    LOG_ERROR("3) Remove any rigid bodies from the project file that you do not intend to track.");
-    return PLUS_FAIL;
-  }
-
-  LOG_INFO("\n---------------------------------MOTIVE SETTINGS--------------------------------")
-  // list connected cameras
-  LOG_INFO("Connected cameras:")
-  for (int i = 0; i < TT_CameraCount(); i++)
-  {
-    LOG_INFO(i << ": " << TT_CameraName(i));
-  }
-  // list project file
-  LOG_INFO("\nUsing Motive project file located at:\n" << projectFilePath);
-  // list rigid bodies
-  LOG_INFO("\nTracked rigid bodies:");
-  std::map<std::string, PlusTransformName>::iterator it;
-  for (it = this->Internal->RBNameToTransformName.begin(); it != this->Internal->RBNameToTransformName.end(); it++)
-  {
-    LOG_INFO(it->first);
-  }
-  LOG_INFO("--------------------------------------------------------------------------------\n");
 
   return PLUS_SUCCESS; 
 }
@@ -236,15 +277,19 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalDisconnect()
 {
-  TT_Shutdown();
+  LOG_TRACE("vtkPlusOptiTrack::InternalDisconnect")
+  if (this->Internal->RunMotiveInBackground)
+  {
+    TT_Shutdown();
+  }
 
   return PLUS_SUCCESS;
-
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalStartRecording()
 {
+  LOG_TRACE("vtkPlusOptiTrack::InternalStartRecording")
   return PLUS_SUCCESS;
 }
 
@@ -257,54 +302,82 @@ PlusStatus vtkPlusOptiTrack::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOptiTrack::InternalUpdate()
 {
-  if (TT_Update() == NPRESULT_SUCCESS)
+  LOG_TRACE("vtkPlusOptiTrack::InternalUpdate");
+  // internal update is only called if usign Motive API
+  TT_Update();
+  return PLUS_SUCCESS;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
+{
+  LOG_TRACE("vtkPlusOptiTrack::InternalCallback");
+
+  this->Internal->MatchTrackedTools();
+
+  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+
+  sDataDescriptions* dataDescriptions;
+  this->Internal->NNClient->GetDataDescriptions(&dataDescriptions);
+
+  int numberOfRigidBodies = data->nRigidBodies;
+  sRigidBodyData* rigidBodies = data->RigidBodies;
+
+  if (data->nOtherMarkers)
   {
-    
-    this->FrameNumber++;
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    LOG_WARNING("vtkPlusOptiTrack::InternalCallback: Untracked markers detected. Check for interference or make sure that the entire tool is in view")
+  }
 
-    for (int i = 0; i < TT_RigidBodyCount(); i++)
+  // identity transform for tools out of view
+  vtkSmartPointer<vtkMatrix4x4> rigidBodyToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  for (int rigidBodyId = 0; rigidBodyId < numberOfRigidBodies; ++rigidBodyId)
+  {
+    // TOOL IN VIEW
+    rigidBodyToTrackerMatrix->Identity();
+    sRigidBodyData currentRigidBody = rigidBodies[rigidBodyId];
+
+    if (currentRigidBody.MeanError != 0)
     {
-      std::string rbName = TT_RigidBodyName(i);
+      // convert translation to mm
+      double translation[3] = { currentRigidBody.x * this->Internal->UnitsToMm, currentRigidBody.y * this->Internal->UnitsToMm, currentRigidBody.z * this->Internal->UnitsToMm };
 
-      if (TT_IsRigidBodyTracked(i))
+      // convert rotation from quaternion to 3x3 matrix
+      double quaternion[4] = { currentRigidBody.qw, currentRigidBody.qx, currentRigidBody.qy, currentRigidBody.qz };
+      double rotation[3][3] = { 0,0,0, 0,0,0, 0,0,0 };
+      vtkMath::QuaternionToMatrix3x3(quaternion, rotation);
+
+      // construct the transformation matrix from the rotation and translation components
+      for (int i = 0; i < 3; ++i)
       {
-        // rigid body is tracked
-        // variables to store rigid body data
-        float   yaw, pitch, roll;
-        float   x, y, z;
-        float   qx, qy, qz, qw;
-        vtkSmartPointer<vtkMatrix4x4> rigidBodyToTracker = vtkSmartPointer<vtkMatrix4x4>::New();
-        rigidBodyToTracker->Identity();
-
-        // poll location of rigid body and build transform
-        TT_RigidBodyLocation(i, &x, &y, &z, &qx, &qy, &qz, &qw, &yaw, &pitch, &roll);
-        double translation[3] = { x, y, z };
-        double quaternion[4] = { qw, qx, qy, qz };
-        double rotation[3][3] = { 0,0,0, 0,0,0, 0,0,0 };
-        vtkMath::QuaternionToMatrix3x3(quaternion, rotation);
-        for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
         {
-          for (int j = 0; j < 3; ++j)
-          {
-            rigidBodyToTracker->SetElement(i, j, rotation[i][j]);
-          }
-          rigidBodyToTracker->SetElement(i, 3, M_TO_MM*translation[i]);
+          rigidBodyToTrackerMatrix->SetElement(i, j, rotation[i][j]);
         }
+        rigidBodyToTrackerMatrix->SetElement(i, 3, translation[i]);
+      }
 
-        PlusTransformName toolTransform = this->Internal->RBNameToTransformName.find(rbName)->second;
-        ToolTimeStampedUpdate(toolTransform.GetTransformName(), rigidBodyToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
-      }
-      else
-      {
-        // rigid body out of frame
-        vtkSmartPointer<vtkMatrix4x4> blankTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-        PlusTransformName toolTransform = this->Internal->RBNameToTransformName.find(rbName)->second;
-        ToolTimeStampedUpdate(toolTransform.GetTransformName(), blankTransform, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
-      }
+      // make sure the tool was specified in the Config file
+      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OK, FrameNumber, unfilteredTimestamp);
+    }
+    else
+    {
+      // TOOL OUT OF VIEW
+      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OUT_OF_VIEW, FrameNumber, unfilteredTimestamp);
     }
     
   }
 
+  this->FrameNumber++;
+  LOG_INFO("Frame: " << this->FrameNumber);
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void ReceiveDataCallback(sFrameOfMocapData* data, void* pUserData)
+{
+  vtkPlusOptiTrack* internalCallback = (vtkPlusOptiTrack*)pUserData;
+  internalCallback->InternalCallback(data);
 }
