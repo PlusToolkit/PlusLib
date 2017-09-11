@@ -35,7 +35,6 @@ int main(int argc, char** argv)
   std::string outputConfigFileName;
   std::string outputFileName;
   bool saveIntermediateResults = false;
-
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   //Get command line arguments
@@ -81,9 +80,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-
-  vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer;
-  enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
+  vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
     
   // Read input sequence
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
@@ -97,13 +94,9 @@ int main(int argc, char** argv)
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   LOG_INFO("Number of frames in input: " << numberOfFrames);
 
-  //Check methods of vtkPlusTransverseProcessEnhancer for failure
-
   enhancer->SetInputFrames(trackedFrameList);
 
-
-  //test the abillity to read to the config file
-  LOG_INFO("Reading Config file.");
+  LOG_INFO("Reading Config file");
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
   if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
   {
@@ -113,7 +106,7 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkXMLDataElement> elementToUse;
 
-  //Find the ScanConversion element in the XML file
+  // Find the ScanConversion element in the XML file
   vtkSmartPointer<vtkXMLDataElement> processorElement = configRootElement->FindNestedElementWithName("ScanConversion");
   if (processorElement == NULL)
   {
@@ -131,7 +124,7 @@ int main(int argc, char** argv)
     }
     else
     {
-      //If this cannot be found, the algorithm connot work
+      // If this cannot be found, the algorithm cannot work
       LOG_ERROR("Cannot find device set in XML tree: Processor");
       return PLUS_FAIL;
     }
@@ -146,22 +139,22 @@ int main(int argc, char** argv)
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName);
     return EXIT_FAILURE;
   }
-  LOG_INFO("Reading config file finished.");
+  LOG_INFO("Reading config file finished");
 
-  //Process the frames for the input file
+  // Process the frames for the input file
   enhancer->SetSaveIntermediateResults(saveIntermediateResults);
-  LOG_INFO("Attempting to Process Frames.");
+  LOG_INFO("Processing frames...");
 
   if (enhancer->Update() == PLUS_FAIL)
   {
-    LOG_ERROR("Could not Process Frames.");
+    LOG_ERROR("Processing frames failed!");
     return EXIT_FAILURE;
   }
 
-  LOG_INFO("Processed Frames terminated successfully.");
+  LOG_INFO("Processing frames successful");
   if (saveIntermediateResults)
   {
-    //Finds out where to add the unique sufex for each intermediate image
+    // Find out where to add the unique suffix for each intermediate image
     int startInputFileNameIndex = 0;
     if (inputFileName.find("/") != std::string::npos)
     {
@@ -181,9 +174,9 @@ int main(int argc, char** argv)
       startOutputFileNameIndex = outputFileName.rfind("\\") + 1;
     }
 
-    //Saves the intermediate results that were recorded during the call to enhancer->Update()
-
-    enhancer->SetIntermediateImageFileName(outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));
+    // Saves the intermediate results that were recorded during the call to enhancer->Update()
+    enhancer->SetIntermediateImageFileName(
+      outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex) );
     enhancer->SaveAllIntermediateResultsToFile();
   }
 
@@ -193,7 +186,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  //test the abillity to Write to the config file
+  // Test the ability to Write to the config file
   if (!outputConfigFileName.empty())
   {
     //Start the xml tree that will be written to
