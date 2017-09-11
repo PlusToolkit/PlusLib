@@ -10,6 +10,11 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
+//TODO: Move ReceiveDataCallback out of the global namespace, InternalCallback
+// into vtkInternal and move these includes to the source file.
+#include <NatNetClient.h>
+#include <NatNetTypes.h>
+
 /*!
 \class vtkPlusOptiTrack
 \brief Interface to the OptiTrack trackers
@@ -43,13 +48,18 @@ public:
   /*! Probe to see if the tracking system is present. */
   PlusStatus Probe();
 
-  /*! */
+  /*!  */
   PlusStatus InternalUpdate();
+
+  /*!
+  Receive updated tracking information from the server and push the new transforms to the tools
+  */
+  PlusStatus InternalCallback(sFrameOfMocapData* data);
 
 protected:
   vtkPlusOptiTrack();
   ~vtkPlusOptiTrack();
-  
+
 private: // Functions
   vtkPlusOptiTrack(const vtkPlusOptiTrack&);
   void operator=(const vtkPlusOptiTrack&); 
@@ -66,6 +76,7 @@ private: // Functions
 private: // Variables
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long FrameNumber;
+
 };
 
 #endif

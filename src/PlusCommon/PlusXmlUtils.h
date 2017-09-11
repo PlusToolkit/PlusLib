@@ -410,6 +410,35 @@ public:
       } \
     }
 
+// Read a bool attribute (TRUE/FALSE) and save it to a variable
+#define XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(attributeName, var, xmlElementVar)  \
+    { \
+      const char* strValue = xmlElementVar->GetAttribute(#attributeName); \
+      if (strValue != NULL) \
+      { \
+        if (PlusCommon::IsEqualInsensitive(strValue, "TRUE"))  \
+        { \
+          var = true; \
+        } \
+        else if (PlusCommon::IsEqualInsensitive(strValue, "FALSE"))  \
+        { \
+          var = false; \
+        } \
+        else  \
+        { \
+          LOG_ERROR("Failed to read boolean value from " << #attributeName \
+            <<" attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+            <<": expected 'TRUE' or 'FALSE', got '" << strValue << "'"); \
+          return PLUS_FAIL; \
+        } \
+      } \
+      else \
+      { \
+        LOG_ERROR("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration"); \
+        return PLUS_FAIL; \
+      } \
+    }
+
 #define XML_READ_ENUM1_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1)  \
   { \
     const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
