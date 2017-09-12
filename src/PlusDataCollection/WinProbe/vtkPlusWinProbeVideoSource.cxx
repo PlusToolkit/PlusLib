@@ -10,8 +10,7 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusUSImagingParameters.h"
 
-#include "TestSessionWrapper.h"
-#include "UltraVisionManagedDll.h"
+#include "WinProbe.h"
 
 #include <algorithm>
 #include <PlusMath.h>
@@ -30,6 +29,10 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
     for (int i = 0; i < 8; i++)
     {
         os << indent << "TGC" << i << ": " << m_timeGainCompensation[i] << std::endl;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        os << indent << "FocalPointDepth" << i << ": " << m_focalPointDepth[i] << std::endl;
     }
 
     os << indent << "CustomFields: " << std::endl;
@@ -69,6 +72,15 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
         }
     }
     
+    const char * fpdCharPtr = deviceConfig->GetAttribute("FocalPointDepth");
+    if (fpdCharPtr)
+    {
+        std::stringstream ss(fpdCharPtr);
+        for (int i = 0; i < 4; i++)
+        {
+            ss >> m_focalPointDepth[i];
+        }
+    }
 
     return PLUS_SUCCESS;
 }
@@ -90,6 +102,13 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
         ss << " " << m_timeGainCompensation[i];
     }
     deviceConfig->SetAttribute("TimeGainCompensation", ss.str().c_str());
+    ss = std::stringstream();
+    ss << m_focalPointDepth[0];
+    for (int i = 1; i < 4; i++)
+    {
+        ss << " " << m_focalPointDepth[i];
+    }
+    deviceConfig->SetAttribute("FocalPointDepth", ss.str().c_str());
 
     return PLUS_SUCCESS;
 }
@@ -98,14 +117,14 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 vtkPlusWinProbeVideoSource *thisPtr = NULL;
 
 //this callback function is invoked after each frame is ready
-int __stdcall frameCallback(int length, char * ptr)
+int __stdcall frameCallback(int length, char * data, char *hHeader, char *hGeometry)
 {
-    thisPtr->FrameCallback(length, ptr);
+    thisPtr->FrameCallback(length, data, hHeader, hGeometry);
     return length;
 }
 
 // ----------------------------------------------------------------------------
-void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * ptr)
+void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hHeader, char *hGeometry)
 {
     vtkPlusDataSource* aSource = NULL;
     if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
@@ -123,7 +142,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * ptr)
     //4 bytes of timestamp
     //timestamp counters are ticks since Execute on sampling frequency GetADCSamplingRate
 
-    uint32_t* timeStampCounter = reinterpret_cast<uint32_t*>(ptr + 8);
+    uint32_t* timeStampCounter = reinterpret_cast<uint32_t*>(data + 8);
     double timestamp = *timeStampCounter / m_ADCfrequency;
     if (*timeStampCounter > wraparoundTSC)
     {
@@ -139,7 +158,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * ptr)
     LOG_DEBUG("Frame: " << FrameNumber << ". Timestamp: " << m_lastTimestamp);
 
     assert(length = m_samplesPerLine*m_transducerCount*sizeof(uint16_t) + 256); //frame + header and footer
-    uint16_t * frame = reinterpret_cast<uint16_t *>(ptr + 16);
+    uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
     const float logFactor = 22.992952214167854304798799603468f; // =255/ln(2^16)
     uint8_t * bModeBuffer=new uint8_t[m_samplesPerLine*m_transducerCount];
 
@@ -227,7 +246,6 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 	}
 
     AdjustSpacing();
-    //AdjustBufferSize();
 
     Callback funcPtr = &frameCallback;
     thisPtr = this;
@@ -297,6 +315,11 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
     {
         SetTGC(i, m_timeGainCompensation[i]);
         m_timeGainCompensation[i] = GetTGC(i);
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        ::SetFocalPointDepth(i, m_focalPointDepth[i]);
+        m_focalPointDepth[i] = ::GetFocalPointDepth(i);
     }
     this->SetTxTxFrequency(m_frequency);
     this->SetVoltage(m_voltage);
@@ -438,6 +461,7 @@ const double * vtkPlusWinProbeVideoSource::GetCurrentPixelSpacingMm()
 
 double vtkPlusWinProbeVideoSource::GetTimeGainCompensation(int index)
 {
+    assert(index >= 0 && index < 8);
     if (Connected)
     {
         m_timeGainCompensation[index] = GetTGC(index);
@@ -455,6 +479,30 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double
         SetPendingRecreateTables(true);
         //what we requested might be only approximately satisfied
         m_timeGainCompensation[index] = GetTGC(index);
+    }
+    return PLUS_SUCCESS;
+}
+
+float vtkPlusWinProbeVideoSource::GetFocalPointDepth(int index)
+{
+    assert(index >= 0 && index < 4);
+    if (Connected)
+    {
+        m_focalPointDepth[index] = ::GetFocalPointDepth(index);
+    }
+    return m_timeGainCompensation[index];
+}
+
+PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth)
+{
+    assert(index >= 0 && index < 4);
+    m_focalPointDepth[index] = depth;
+    if (Connected)
+    {
+        ::SetFocalPointDepth(index, depth);
+        SetPendingRecreateTables(true);
+        //what we requested might be only approximately satisfied
+        m_timeGainCompensation[index] = ::GetFocalPointDepth(index);
     }
     return PLUS_SUCCESS;
 }

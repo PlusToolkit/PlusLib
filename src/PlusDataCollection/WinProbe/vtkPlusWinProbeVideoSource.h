@@ -69,6 +69,12 @@ public:
     /* Set the TGC value, index 0 to 7, value 0.0 to 40.0 */
     PlusStatus SetTimeGainCompensation(int index, double value);
 
+    /* Get the focal depth, index 0 to 4 */
+    float GetFocalPointDepth(int index);
+
+    /* Set the focal depth, index 0 to 4 */
+    PlusStatus SetFocalPointDepth(int index, float depth);
+
     /*! Set ON/OFF of collecting US data. */
     PlusStatus FreezeDevice(bool freeze);
 
@@ -112,8 +118,8 @@ protected:
     //to be run in a separate thread
     void Watchdog();
 
-    void FrameCallback(int length, char * ptr);
-    friend int __stdcall frameCallback(int length, char * ptr);
+    void FrameCallback(int length, char * data, char *hHeader, char *hGeometry);
+    friend int __stdcall frameCallback(int length, char * data, char *hHeader, char *hGeometry);
 
     bool m_wrapTimeStampCounter = false;
     float m_depth = 26.0; //mm
@@ -129,6 +135,7 @@ protected:
     std::thread * m_watchdog32 = nullptr;
     double m_lastTimestamp = 0.0; //for watchdog
     double m_timeGainCompensation[8];
+    float m_focalPointDepth[4];
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

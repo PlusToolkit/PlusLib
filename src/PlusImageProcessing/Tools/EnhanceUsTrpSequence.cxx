@@ -19,10 +19,7 @@ int main(int argc, char **argv)
   std::string inputFileName;
   std::string outputFileName;
   std::string configFileName;
-  std::string linesImageFileName;
-  std::string shadowImageFileName;
-  std::string intermediateImageFileName;
-  std::string processedLinesImageFileName;
+  bool saveIntermediateResults = false;
   int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.Initialize(argc, argv);
@@ -30,10 +27,7 @@ int main(int argc, char **argv)
   args.AddArgument("--input-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The filename for the input ultrasound sequence to process.");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &configFileName, "The filename for input config file.");
   args.AddArgument("--output-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputFileName, "The filename to write the processed sequence to.");
-  args.AddArgument("--lines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &linesImageFileName, "Optional output files for subsampled input image");
-  args.AddArgument("--shadow-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &shadowImageFileName, "Optional output files for shadow images");
-  args.AddArgument("--intermediate-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateImageFileName, "Optional output file");
-  args.AddArgument("--processedlines-image-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &processedLinesImageFileName, "Optional output files for processed subsampled image");
+  args.AddArgument("--save-intermediate-images", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveIntermediateResults, "If intermediate images should be saved to output files");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
   if (!args.Parse())
@@ -118,7 +112,6 @@ int main(int argc, char **argv)
 
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   LOG_INFO("Number of frames in input: " << numberOfFrames);
-  //std::cout << "Number of frames in input: " << numberOfFrames << std::endl;
 
   // Bone filter.
   
@@ -130,43 +123,44 @@ int main(int argc, char **argv)
   PlusStatus filterStatus = boneFilter->Update();
   if (filterStatus != PlusStatus::PLUS_SUCCESS)
   {
-    //std::cout << "Failed processing frames" << std::endl;
     LOG_ERROR("Failed processing frames");
     return EXIT_FAILURE;
   }
 
-  LOG_INFO("Writing output to file.");
-  vtkPlusLogger::Instance()->SetLogLevel(3);
-  if (! linesImageFileName.empty())
+  LOG_INFO("Writing output to file");
+
+  if (saveIntermediateResults)
   {
-    boneFilter->SetLinesImageFileName( linesImageFileName );
-    boneFilter->GetLinesFrameList()->SaveToSequenceMetafile(linesImageFileName.c_str());
-    //boneFilter->GetLinesImageList()->SaveToSequenceMetafile(linesImageFileName.c_str());
+    // Find out where to add the unique suffix for each intermediate image
+    int startInputFileNameIndex = 0;
+    if (inputFileName.find("/") != std::string::npos)
+    {
+      startInputFileNameIndex = inputFileName.rfind("/") + 1;
+    }
+    if (inputFileName.find("\\") != std::string::npos)
+    {
+      startInputFileNameIndex = inputFileName.rfind("\\") + 1;
+    }
+    int startOutputFileNameIndex = 0;
+    if (outputFileName.find("/") != std::string::npos)
+    {
+      startOutputFileNameIndex = outputFileName.rfind("/") + 1;
+    }
+    if (outputFileName.find("\\") != std::string::npos)
+    {
+      startOutputFileNameIndex = outputFileName.rfind("\\") + 1;
+    }
+
+    // Saves the intermediate results that were recorded during the call to boneFilter->Update()
+    boneFilter->SetIntermediateImageFileName(
+      outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex) );
+    boneFilter->SaveAllIntermediateResultsToFile();
   }
 
-  if (!shadowImageFileName.empty())
+  if (boneFilter->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)
   {
-    boneFilter->SetShadowImageFileName(shadowImageFileName);
-    boneFilter->GetShadowFrameList()->SaveToSequenceMetafile(shadowImageFileName.c_str());
-    //boneFilter->GetShadowImageList()->SaveToSequenceMetafile(shadowImageFileName.c_str());
-  }
-
-  if (!intermediateImageFileName.empty())
-  {
-    boneFilter->SetIntermediateImageFileName(intermediateImageFileName);
-    boneFilter->GetIntermediateFrameList()->SaveToSequenceMetafile(intermediateImageFileName.c_str());
-    //boneFilter->GetIntermediateImageList()->SaveToSequenceMetafile(intermediateImageFileName.c_str());
-  }
-
-  if (! processedLinesImageFileName.empty())
-  {
-    boneFilter->SetProcessedLinesImageFileName( processedLinesImageFileName );
-    boneFilter->GetProcessedLinesFrameList()->SaveToSequenceMetafile(processedLinesImageFileName.c_str());
-    //boneFilter->GetProcessedLinesImageList()->SaveToSequenceMetafile(processedLinesImageFileName.c_str());
-  }
-
-  //std::cout << "Writing output to file." << std::endl;
-  boneFilter->GetOutputFrames()->SaveToSequenceMetafile(outputFileName.c_str());
-  
+    LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
+    return EXIT_FAILURE;
+  }  
   return EXIT_SUCCESS;
 }
