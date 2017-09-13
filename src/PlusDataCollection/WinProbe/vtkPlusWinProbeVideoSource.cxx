@@ -211,12 +211,12 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 {
     this->RequireImageOrientationInConfiguration = true;
 
-	for (int i = 1; i < 8; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		m_timeGainCompensation[i] = 0.0;
 	}
 
-    for (int i = 1; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         m_focalPointDepth[i] = 0.0f;
     }
