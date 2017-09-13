@@ -1277,9 +1277,9 @@ std::vector<double> vtkPlusBkProFocusOemVideoSource::CalculateOrigin()
 {
   std::vector<double> retval;
   int* dimensions = this->Internal->DecodedImageFrame->GetDimensions();
-  double originX = dimensions[0] / 2.0; //Continuous streaming
+  double originX = dimensions[0] / 2.0; //For both continuous streaming and offline testing
 
-  if (!this->ContinuousStreamingEnabled)
+  if (!this->ContinuousStreamingEnabled && !this->OfflineTesting)
   {
     // Even if the X-value of UltrasoundWindowSize and pixelLeft_pix don't refer to the actual ultrasound boundaries,
     // they seem to refer to an area where the ultrasound is placed in the middle,
