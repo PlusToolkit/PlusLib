@@ -547,7 +547,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncodersStrobeMode()
 {
   if (::A2SetStrobe() != 0)
   {
-    LOG_ERROR("Failed to set US digital A2 Encodrs as Strobe mode.");
+    LOG_ERROR("Failed to set US digital A2 Encoders as Strobe mode.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -558,7 +558,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncodersSleep()
 {
   if (::A2SetSleep() != 0)
   {
-    LOG_ERROR("Failed to set US digital A2 Encodrs as Sleep mode.");
+    LOG_ERROR("Failed to set US digital A2 Encoders as Sleep mode.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -569,7 +569,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncodersWakeup()
 {
   if (::A2SetWakeup() != 0)
   {
-    LOG_ERROR("Failed to set US digital A2 Encodrs as Wakeup mode.");
+    LOG_ERROR("Failed to set US digital A2 Encoders as Wakeup mode.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -613,7 +613,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithAddr(lo
 {
   if (::A2SetMode(address, mode) != 0)
   {
-    LOG_ERROR("Failed to set the mode of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to set the mode of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -624,7 +624,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(lo
 {
   if (::A2GetMode(address, mode) != 0)
   {
-    LOG_ERROR("Failed to get the mode of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to get the mode of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -635,7 +635,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithA
 {
   if (::A2SetResolution(address, res) != 0)
   {
-    LOG_ERROR("Failed to set the resoultion of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to set the resoultion of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -646,7 +646,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithA
 {
   if (::A2GetResolution(address, res) != 0)
   {
-    LOG_ERROR("Failed to get the resoultion of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to get the resoultion of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -657,7 +657,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithAdd
 {
   if (::A2SetPosition(address, pos) != 0)
   {
-    LOG_ERROR("Failed to set the position of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to set the position of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -668,7 +668,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithAdd
 {
   if (::A2GetPosition(address, pos) != 0)
   {
-    LOG_ERROR("Failed to get the position of an US digital A2 Encodr.");
+    LOG_ERROR("Failed to get the position of an US digital A2 Encoder.");
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
