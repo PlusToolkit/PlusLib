@@ -19,6 +19,8 @@ See License.txt for details.
 
    This class communicates with multiple US Digital encoders through SEI (Serial Encoder Interface Bus) provided by US Digital.
 
+   IDs are assigned to devices based on serial numbers: lower SN -> lower ID. IDs start at 0.
+
    \ingroup PlusLibDataCollection
  */
 
@@ -73,36 +75,29 @@ public:
   /*! Function: wakes up all A2's on the SEI bus, wait at least 5mSec before sending the next command */
   PlusStatus SetUSDigitalA2EncodersWakeup();
 
-  /*! Sets the absolute zero to the current position, in single-turn mode the new position is stored in EEPROM
-      address: SEI address 0-15*/
-  PlusStatus SetUSDigitalA2EncoderOriginWithAddr(long address);
+  /*! Sets the absolute zero to the current position, in single-turn mode the new position is stored in EEPROM */
+  PlusStatus SetUSDigitalA2EncoderOriginWithID(long id);
 
   /*! Sets the absolute zero to the current position of all connected US Digital A2 Encoders*/
   PlusStatus SetAllUSDigitalA2EncoderOrigin();
 
-  /*! Sets the mode of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus SetUSDigitalA2EncoderModeWithAddr(long address, long mode);
+  /*! Sets the mode of an A2 Encoder */
+  PlusStatus SetUSDigitalA2EncoderModeWithID(long id, long mode);
 
-  /*! Gets the mode of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus GetUSDigitalA2EncoderModeWithAddr(long address, long* mode);
+  /*! Gets the mode of an A2 Encoder */
+  PlusStatus GetUSDigitalA2EncoderModeWithID(long id, long* mode);
 
-  /*! Sets the resolution of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus SetUSDigitalA2EncoderResoultionWithAddr(long address, long res);
+  /*! Sets the resolution of an A2 Encoder */
+  PlusStatus SetUSDigitalA2EncoderResoultionWithID(long id, long res);
 
-  /*! Gets the resolution of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res);
+  /*! Gets the resolution of an A2 Encoder */
+  PlusStatus GetUSDigitalA2EncoderResoultionWithID(long id, long* res);
 
-  /*! Sets the Position of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus SetUSDigitalA2EncoderPositionWithAddr(long address, long pos);
+  /*! Sets the Position of an A2 Encoder */
+  PlusStatus SetUSDigitalA2EncoderPositionWithID(long id, long pos);
 
-  /*! Gets the Position of an A2 Encoder
-      address: SEI address 0-14*/
-  PlusStatus GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos);
+  /*! Gets the Position of an A2 Encoder */
+  PlusStatus GetUSDigitalA2EncoderPositionWithID(long id, long* pos);
 
 protected:
   vtkPlusUSDigitalEncodersTracker();

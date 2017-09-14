@@ -578,12 +578,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncodersWakeup()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithAddr(long address)
+PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithID(long id)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -618,12 +618,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithAddr(long address, long mode)
+PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithID(long id, long mode)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -636,12 +636,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithAddr(lo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(long address, long* mode)
+PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithID(long id, long* mode)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -654,12 +654,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithAddr(lo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithAddr(long address, long res)
+PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithID(long id, long res)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -672,12 +672,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithA
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithAddr(long address, long* res)
+PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithID(long id, long* res)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -690,12 +690,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithA
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithAddr(long address, long pos)
+PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithID(long id, long pos)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
@@ -708,12 +708,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithAdd
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithAddr(long address, long* pos)
+PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithID(long id, long* pos)
 {
-  IDtoAddressType::iterator enc = IdAddress.find(address);
+  IDtoAddressType::iterator enc = IdAddress.find(id);
   if (enc == this->IdAddress.end())
   {
-    LOG_ERROR("Non-existent device ID: " << address);
+    LOG_ERROR("Non-existent device ID: " << id);
     return PLUS_FAIL;
   }
 
