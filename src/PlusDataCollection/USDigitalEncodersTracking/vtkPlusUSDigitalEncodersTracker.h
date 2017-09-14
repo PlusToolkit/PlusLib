@@ -127,6 +127,8 @@ protected:
   EncoderInfoMapType EncoderMap;
   typedef std::list<vtkPlusUSDigitalEncoderInfo> EncoderListType;
   EncoderListType EncoderList;
+  typedef std::map<long, long> IDtoAddressType;
+  IDtoAddressType IdAddress;
 
 
 private:
