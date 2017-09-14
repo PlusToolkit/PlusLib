@@ -152,7 +152,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       return PLUS_FAIL;
     }
 
-    encoderInfoPos = this->EncoderMap.find(address);
+    encoderInfoPos = this->EncoderMap.find(deviceID);
 
     if (encoderInfoPos == this->EncoderMap.end())
     {
@@ -174,6 +174,21 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       {
         LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", address: " << address);
         return PLUS_FAIL;
+      }
+      if (deviceID != address) //update address in encoderInfo
+      {
+        if (encoderInfoPos->second->Addr == deviceID)
+        {
+          encoderInfoPos->second->Addr = address;
+        }
+        else if (encoderInfoPos->second->Addr2 == deviceID)
+        {
+          encoderInfoPos->second->Addr2 = address;
+        }
+        else
+        {
+          LOG_WARNING("Could not establish configuration address to deviceID correspondence");
+        }
       }
     }
   }
@@ -344,7 +359,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
   this->TransformRepository->Clear();
   this->EncoderMap.clear();
   this->EncoderList.clear();
-  long address = 0;
+  long deviceID = 0;
 
   for (int encoderIndex = 0; encoderIndex < dataSourcesElement->GetNumberOfNestedElements(); encoderIndex++)
   {
@@ -490,15 +505,15 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
     encoderInfo.Resolution = atol(resolution);
 
-    encoderInfo.Addr = address++;
+    encoderInfo.Addr = deviceID++;
     if (coreXY)
     {
-        encoderInfo.Addr2 = address++;
+        encoderInfo.Addr2 = deviceID++;
     }
     EncoderList.push_back(encoderInfo);
 
     this->EncoderMap[encoderInfo.Addr] = &EncoderList.back();
-    if (coreXY) //enter this encoderInfo twice (once for each address)
+    if (coreXY) //enter this encoderInfo twice (once for each deviceID)
     {
       this->EncoderMap[encoderInfo.Addr2] = &EncoderList.back();
     }
