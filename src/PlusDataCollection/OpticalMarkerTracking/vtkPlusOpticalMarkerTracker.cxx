@@ -137,9 +137,9 @@ PlusStatus vtkPlusOpticalMarkerTracker::ReadConfiguration(vtkXMLDataElement* roo
   // TODO: Improve error checking
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED("CameraCalibrationFile", this->Internal->CameraCalibrationFile, deviceConfig);
-  XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL("TrackingMethod", this->Internal->TrackingMethod, deviceConfig, "OPTICAL", TRACKING_OPTICAL, "OPTICAL_AND_DEPTH", TRACKING_OPTICAL_AND_DEPTH);
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED("MarkerDictionary", this->Internal->MarkerDictionary, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(CameraCalibrationFile, this->Internal->CameraCalibrationFile, deviceConfig);
+  XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(TrackingMethod, this->Internal->TrackingMethod, deviceConfig, "OPTICAL", TRACKING_OPTICAL, "OPTICAL_AND_DEPTH", TRACKING_OPTICAL_AND_DEPTH);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(MarkerDictionary, this->Internal->MarkerDictionary, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
