@@ -134,8 +134,8 @@ protected:
     PlusTrackedFrame::FieldMapType m_customFields;
     std::thread * m_watchdog32 = nullptr;
     double m_lastTimestamp = 0.0; //for watchdog
-    double m_timeGainCompensation[8] = { 0 };
-    float m_focalPointDepth[4] = { 0 };
+    double m_timeGainCompensation[8];
+    float m_focalPointDepth[4];
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented
