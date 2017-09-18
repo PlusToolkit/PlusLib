@@ -60,13 +60,13 @@ public:
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck);
 
   /*! Pack image message from tracked frame */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, const vtkMatrix4x4& matrix);
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform);
+
+  /*! Pack image message from vtkImageData volume */
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, const vtkMatrix4x4& imageToReferenceTransform, double timestamp);
 
   /*! Unpack image message to tracked frame */
   static PlusStatus UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck);
-
-  /*! Pack image message from vtkImageData volume */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp);
 
   /*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */
   static PlusStatus PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList);
