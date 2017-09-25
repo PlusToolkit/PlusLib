@@ -86,6 +86,12 @@ public:
   /*! Sends the RTS (request-to-send) signal. */
   PlusStatus SetRTS(bool onOff);
 
+  /*! Gets status of DTR (data-set-ready) line. */
+  PlusStatus GetDSR(bool& onOff);
+
+  /*! Gets status of CTS (clear-to-send) line. */
+  PlusStatus GetCTS(bool& onOff);
+
   /*! Clears the device's error flag to enable additional input and output (I/O) operations  */
   DWORD ClearError();
 

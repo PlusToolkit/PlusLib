@@ -184,6 +184,7 @@ PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
+//-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool onOff)
 {
   // Either update or send commands - but not simultaneously
@@ -207,6 +208,7 @@ PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool onOff)
   return retval;
 }
 
+//-------------------------------------------------------------------------
 PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
 {
   // Either update or send commands - but not simultaneously
@@ -227,6 +229,24 @@ PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
     }
   }
 
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::GetDSR(bool & onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  PlusStatus retval = this->Serial->GetDSR(onOff);
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::GetCTS(bool & onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  PlusStatus retval = this->Serial->GetCTS(onOff);
   return retval;
 }
 
