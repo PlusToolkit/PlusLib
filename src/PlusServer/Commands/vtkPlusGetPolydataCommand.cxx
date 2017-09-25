@@ -15,7 +15,7 @@ See License.txt for details.
 
 namespace
 {
-  static const std::string GET_POLYDATA = "GET_POLYDATA";
+  static const std::string GET_POLYDATA = "GetPolydata";
 }
 
 vtkStandardNewMacro(vtkPlusGetPolydataCommand);
@@ -42,13 +42,13 @@ void vtkPlusGetPolydataCommand::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusGetPolydataCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   // Get filename from attribute
-  if (aConfig->GetAttribute("fileName") != nullptr)
+  if (aConfig->GetAttribute("FileName") != nullptr)
   {
-    this->PolydataId = aConfig->GetAttribute("fileName");
+    this->PolydataId = aConfig->GetAttribute("FileName");
   }
   else
   {
-    LOG_ERROR("Unable to find fileName attribute in " << this->GetName() << " command.");
+    LOG_ERROR("Unable to find FileName attribute in " << this->GetName() << " command.");
     return PLUS_FAIL;
   }
 
@@ -63,7 +63,7 @@ PlusStatus vtkPlusGetPolydataCommand::WriteConfiguration(vtkXMLDataElement* aCon
     LOG_ERROR("PolydataId not set when WriteConfiguration was called.");
     return PLUS_FAIL;
   }
-  aConfig->SetAttribute("fileName", this->GetPolydataId().c_str());
+  aConfig->SetAttribute("FileName", this->GetPolydataId().c_str());
   return Superclass::WriteConfiguration(aConfig);
 }
 
