@@ -64,6 +64,7 @@ PlusStatus vtkPlusGetPolydataCommand::WriteConfiguration(vtkXMLDataElement* aCon
     return PLUS_FAIL;
   }
   aConfig->SetAttribute("FileName", this->GetPolydataId().c_str());
+
   return Superclass::WriteConfiguration(aConfig);
 }
 
@@ -117,10 +118,6 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   bool loaded(false);
 
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-  reader->SetFileName(this->PolydataId.c_str());
-  reader->Update();
-
-  auto polyData = reader->GetOutput();
 
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> response = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   response->SetClientId(this->ClientId);
@@ -128,6 +125,28 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   response->SetStatus(PLUS_FAIL);
   outErrorString = "PLUS cannot load polydata.";
 
+  if (vtksys::SystemTools::FileExists(this->PolydataId))
+  {
+    reader->SetFileName(this->PolydataId.c_str());
+  }
+  else
+  {
+    if (vtksys::SystemTools::FileExists(vtkPlusConfig::GetInstance()->GetModelPath(this->PolydataId)))
+    {
+      reader->SetFileName(vtkPlusConfig::GetInstance()->GetModelPath(this->PolydataId).c_str());
+    }
+    else
+    {
+      LOG_ERROR("Unable to locate file with name: " << this->PolydataId);
+      outErrorString = std::string("Unable to locate file with name ") + this->PolydataId;
+      response->SetErrorString(outErrorString);
+      this->CommandResponseQueue.push_back(response);
+      return PLUS_FAIL;
+    }
+  }
+
+  reader->Update();
+  auto polyData = reader->GetOutput();
   if (polyData != nullptr)
   {
     vtkSmartPointer<vtkPlusCommandPolydataResponse> response = vtkSmartPointer<vtkPlusCommandPolydataResponse>::New();
@@ -141,6 +160,7 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
     response->SetStatus(PLUS_SUCCESS);
   }
 
+  response->SetErrorString(outErrorString);
   this->CommandResponseQueue.push_back(response);
   return polyData != nullptr ? PLUS_SUCCESS : PLUS_FAIL;
 }
