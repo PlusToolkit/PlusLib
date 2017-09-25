@@ -162,6 +162,8 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 - SendText: sends text to the device. This command can only be used for GenericSerialDevice. Returns the command response received from the serial device.
   - \xmlAtt DeviceId: Device ID of the GenericSerialDevice \RequiredAtt
   - \xmlAtt Text: String to be sent to the serial device \RequiredAtt
+- GetPolydata: requests a polydata file from the server. Returns a command response from the server with the success/fail message and if successful, the polydata.
+  - \xmlAtt FileName: The filename of the polydata to send \RequiredAtt
 
 \subsection PlusServerCommandsOpenIGTLinkRemoteExecSlicerApi OpenIGTLinkRemoteExec Slicer module API
 
