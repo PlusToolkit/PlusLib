@@ -247,7 +247,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     WPSetTransducerID(this->m_transducerID.c_str());
     m_ADCfrequency = GetADCSamplingRate();
     m_transducerCount = GetSSElementCount();
-    SetCompoundAngleCount(0);
+    SetSCCompoundAngleCount(0);
     SetPendingRecreateTables(true);
 
     return PLUS_SUCCESS;
