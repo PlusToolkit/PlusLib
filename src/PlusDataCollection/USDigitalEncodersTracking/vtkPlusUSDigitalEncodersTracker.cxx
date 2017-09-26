@@ -170,12 +170,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
         LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", address: " << address);
         return PLUS_FAIL;
       }
-      retVal = ::A2SetPosition(address, 0); // Initialize the value of the encoder
-      if (retVal != 0)
-      {
-        LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", address: " << address);
-        return PLUS_FAIL;
-      }
+
       if (deviceID != address) //update address in encoderInfo
       {
         if (encoderInfoPos->second->Addr == deviceID)
