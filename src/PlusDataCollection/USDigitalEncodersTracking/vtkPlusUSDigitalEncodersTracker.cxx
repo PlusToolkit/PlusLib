@@ -127,7 +127,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   // the zero COM port to look on all com ports, and the AUTOASSIGN means
   // that if there are address conflicts on the SEI bus, the device
   // addresses will automatically be reassigned so there are no conflicts
-  // Initialization.
   long EncoderStatus = ::InitializeSEI(0, REINITIALIZE | AUTOASSIGN | NORESET);
   if (EncoderStatus != 0)
   {
@@ -167,10 +166,26 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       retVal = ::A2SetMode(address, encoderInfoPos->second->Mode);
       if (retVal != 0)
       {
-        LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", address: " << address);
+        LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", deviceID: " << deviceID);
         return PLUS_FAIL;
       }
 
+      //check whether we need to reset the encoder
+      long pos;
+      retVal = ::A2GetPosition(address, &pos);
+      if (retVal != 0)
+      {
+        retVal = ::A2SetPosition(address, 0); // reset the value of the encoder
+        if (retVal != 0)
+        {
+          LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", deviceID: " << deviceID);
+          return PLUS_FAIL;
+        }
+        else
+        {
+          LOG_INFO("The encoder's position had to be reset to zero. SEI device SN: " << serialNumber << ", deviceID: " << deviceID);
+        }
+      }
       if (deviceID != address) //update address in encoderInfo
       {
         if (encoderInfoPos->second->Addr == deviceID)
