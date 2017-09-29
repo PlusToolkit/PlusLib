@@ -14,11 +14,14 @@ See License.txt for details.
 #include "vtkPlusTransformRepository.h"
 
 // Qt includes
-#include <QAction>
-#include <QDomDocument>
-#include <QMenu>
 #include <QString>
 #include <QWidget>
+
+class QAction;
+class QDomDocument;
+class QDragEnterEvent;
+class QDropEvent;
+class QMenu;
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -152,6 +155,9 @@ protected:
                                  const QString& secondFrame);
 
   void FixComboBoxDropDownListSizeAdjustemnt(QComboBox* cb);
+
+  virtual void dragEnterEvent(QDragEnterEvent* event);
+  virtual void dropEvent(QDropEvent* event);
 
 protected slots:
   /*!
