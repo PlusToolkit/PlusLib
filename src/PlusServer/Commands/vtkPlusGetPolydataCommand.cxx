@@ -131,9 +131,10 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   }
   else
   {
-    if (vtksys::SystemTools::FileExists(vtkPlusConfig::GetInstance()->GetModelPath(this->PolydataId)))
+    std::string absModelPath;
+    if (vtkPlusConfig::GetInstance()->FindModelPath(this->PolydataId, absModelPath) == PLUS_SUCCESS)
     {
-      reader->SetFileName(vtkPlusConfig::GetInstance()->GetModelPath(this->PolydataId).c_str());
+      reader->SetFileName(absModelPath.c_str());
     }
     else
     {
@@ -146,8 +147,15 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   }
 
   reader->Update();
-  auto polyData = reader->GetOutput();
-  if (polyData != nullptr)
+  auto errorCode = reader->GetErrorCode();
+  vtkPolyData* polyData = reader->GetOutput();
+  if (errorCode != 0)
+  {
+    std::stringstream ss;
+    ss << "Reader threw error: " << errorCode;
+    outErrorString = ss.str();
+  }
+  else if (polyData != nullptr)
   {
     vtkSmartPointer<vtkPlusCommandPolydataResponse> response = vtkSmartPointer<vtkPlusCommandPolydataResponse>::New();
     response->SetClientId(this->ClientId);
@@ -162,5 +170,5 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
 
   response->SetErrorString(outErrorString);
   this->CommandResponseQueue.push_back(response);
-  return polyData != nullptr ? PLUS_SUCCESS : PLUS_FAIL;
+  return polyData != nullptr && errorCode == 0 ? PLUS_SUCCESS : PLUS_FAIL;
 }
