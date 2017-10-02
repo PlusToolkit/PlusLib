@@ -33,9 +33,9 @@ namespace PlusCommon
   void JoinTokensIntoString(const std::vector<ElemType>& elems, std::string& output, char separator)
   {
     std::stringstream ss;
-    typedef std::vector<std::string> StringList;
+    typedef std::vector<ElemType> List;
 
-    for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
+    for (List::const_iterator it = elems.begin(); it != elems.end(); ++it)
     {
       ss << *it;
       if (it != elems.end() - 1)
