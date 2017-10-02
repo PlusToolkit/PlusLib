@@ -1257,10 +1257,15 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::AddParametersToFrameFields()
   vtkPlusUsDevice::InternalUpdate();// Move to beginning of vtkPlusBkProFocusOemVideoSource::InternalUpdate()?
 
   this->FrameFields[KEY_PROBE_TYPE]   = PlusCommon::ToString<int>(this->GetProbeType());
-  this->FrameFields[KEY_ORIGIN]       = PlusCommon::JoinTokensIntoString(this->CalculateOrigin());
-  this->FrameFields[KEY_ANGLES]       = PlusCommon::JoinTokensIntoString(this->CalculateAngles());
-  this->FrameFields[KEY_BOUNDING_BOX] = PlusCommon::JoinTokensIntoString(this->CalculateBoundingBox());
-  this->FrameFields[KEY_DEPTHS]       = PlusCommon::JoinTokensIntoString(this->CalculateDepths());
+  std::string output;
+  PlusCommon::JoinTokensIntoString(this->CalculateOrigin(), output, ',');
+  this->FrameFields[KEY_ORIGIN] = output;
+  PlusCommon::JoinTokensIntoString(this->CalculateAngles(), output, ',');
+  this->FrameFields[KEY_ANGLES] = output;
+  PlusCommon::JoinTokensIntoString(this->CalculateBoundingBox(), output, ',');
+  this->FrameFields[KEY_BOUNDING_BOX] = output;
+  PlusCommon::JoinTokensIntoString(this->CalculateDepths(), output, ',');
+  this->FrameFields[KEY_DEPTHS] = output;
   this->FrameFields[KEY_LINEAR_WIDTH] = PlusCommon::ToString<double>(this->CalculateLinearWidth());
 
   this->FrameFields[KEY_SPACING_X]    = PlusCommon::ToString<double>(this->GetSpacingX());

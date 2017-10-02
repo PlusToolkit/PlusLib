@@ -32,6 +32,7 @@ namespace PlusCommon
   template<typename ElemType>
   void JoinTokensIntoString(const std::vector<ElemType>& elems, std::string& output, char separator)
   {
+    output = "";
     std::stringstream ss;
     typedef std::vector<ElemType> List;
 
