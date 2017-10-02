@@ -15,7 +15,7 @@ See License.txt for details.
 
 namespace
 {
-  static const std::string GET_POLYDATA = "GET_POLYDATA";
+  static const std::string GET_POLYDATA = "GetPolydata";
 }
 
 vtkStandardNewMacro(vtkPlusGetPolydataCommand);
@@ -42,13 +42,13 @@ void vtkPlusGetPolydataCommand::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusGetPolydataCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
   // Get filename from attribute
-  if (aConfig->GetAttribute("fileName") != nullptr)
+  if (aConfig->GetAttribute("FileName") != nullptr)
   {
-    this->PolydataId = aConfig->GetAttribute("fileName");
+    this->PolydataId = aConfig->GetAttribute("FileName");
   }
   else
   {
-    LOG_ERROR("Unable to find fileName attribute in " << this->GetName() << " command.");
+    LOG_ERROR("Unable to find FileName attribute in " << this->GetName() << " command.");
     return PLUS_FAIL;
   }
 
@@ -63,7 +63,8 @@ PlusStatus vtkPlusGetPolydataCommand::WriteConfiguration(vtkXMLDataElement* aCon
     LOG_ERROR("PolydataId not set when WriteConfiguration was called.");
     return PLUS_FAIL;
   }
-  aConfig->SetAttribute("fileName", this->GetPolydataId().c_str());
+  aConfig->SetAttribute("FileName", this->GetPolydataId().c_str());
+
   return Superclass::WriteConfiguration(aConfig);
 }
 
@@ -117,10 +118,6 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   bool loaded(false);
 
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-  reader->SetFileName(this->PolydataId.c_str());
-  reader->Update();
-
-  auto polyData = reader->GetOutput();
 
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> response = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   response->SetClientId(this->ClientId);
@@ -128,7 +125,37 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
   response->SetStatus(PLUS_FAIL);
   outErrorString = "PLUS cannot load polydata.";
 
-  if (polyData != nullptr)
+  if (vtksys::SystemTools::FileExists(this->PolydataId))
+  {
+    reader->SetFileName(this->PolydataId.c_str());
+  }
+  else
+  {
+    std::string absModelPath;
+    if (vtkPlusConfig::GetInstance()->FindModelPath(this->PolydataId, absModelPath) == PLUS_SUCCESS)
+    {
+      reader->SetFileName(absModelPath.c_str());
+    }
+    else
+    {
+      LOG_ERROR("Unable to locate file with name: " << this->PolydataId);
+      outErrorString = std::string("Unable to locate file with name ") + this->PolydataId;
+      response->SetErrorString(outErrorString);
+      this->CommandResponseQueue.push_back(response);
+      return PLUS_FAIL;
+    }
+  }
+
+  reader->Update();
+  auto errorCode = reader->GetErrorCode();
+  vtkPolyData* polyData = reader->GetOutput();
+  if (errorCode != 0)
+  {
+    std::stringstream ss;
+    ss << "Reader threw error: " << errorCode;
+    outErrorString = ss.str();
+  }
+  else if (polyData != nullptr)
   {
     vtkSmartPointer<vtkPlusCommandPolydataResponse> response = vtkSmartPointer<vtkPlusCommandPolydataResponse>::New();
     response->SetClientId(this->ClientId);
@@ -141,6 +168,7 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
     response->SetStatus(PLUS_SUCCESS);
   }
 
+  response->SetErrorString(outErrorString);
   this->CommandResponseQueue.push_back(response);
-  return polyData != nullptr ? PLUS_SUCCESS : PLUS_FAIL;
+  return polyData != nullptr && errorCode == 0 ? PLUS_SUCCESS : PLUS_FAIL;
 }

@@ -324,9 +324,15 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
     return PLUS_FAIL;
   }
 
-  auto baudRates = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
-  for (auto baud : baudRates)
+  // TODO: use the lines in this comment to replace next 5 lines when VS2010 support is dropped:
+  //auto baudRates = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+  //for (auto baud : baudRates)
+  const unsigned int numberOfBaudRates = 9;
+  int baudRates[numberOfBaudRates] = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+  for (unsigned int baudIndex = 0; baudIndex<numberOfBaudRates; baudIndex++)
   {
+    int baud = baudRates[baudIndex];
+
     this->Command("COMM:%X%03d%d", baud, NDI_8N1, NDI_NOHANDSHAKE);
     int errnum = ndiGetError(this->Device);
     if (errnum != NDI_OKAY && errnum != NDI_COMM_FAIL)

@@ -144,10 +144,13 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters( const vtkPlusUsImagingParam
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources( const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/ )
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if( !this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL )
+  if (customFields != NULL)
   {
     localCustomFields = *customFields;
-    this->CalculateImageToTransducer( localCustomFields );
+    if (this->ImageToTransducerTransform.IsValid())
+    {
+      this->CalculateImageToTransducer(localCustomFields);
+    }
   }
 
   return Superclass::AddVideoItemToVideoSources( videoSources, frame, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields );

@@ -9,7 +9,11 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
-#include "NatNetTypes.h"
+
+//TODO: Move ReceiveDataCallback out of the global namespace, InternalCallback
+// into vtkInternal and move these includes to the source file.
+#include <NatNetClient.h>
+#include <NatNetTypes.h>
 
 /*!
 \class vtkPlusOptiTrack
@@ -25,7 +29,15 @@ public:
   vtkTypeMacro( vtkPlusOptiTrack,vtkPlusDevice );
   void PrintSelf( ostream& os, vtkIndent indent );
 
+  /* Device is a hardware tracker. */
   virtual bool IsTracker() const { return true; }
+  virtual bool IsVirtual() const { return false; }
+
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+
+  /*! Write configuration to xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Connect to device */
   PlusStatus InternalConnect();
@@ -33,51 +45,37 @@ public:
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();
 
-  /*!
-  Should not be called, update is done using InternalCallback
-  */
+  /*! Probe to see if the tracking system is present. */
+  PlusStatus Probe();
+
+  /*!  */
   PlusStatus InternalUpdate();
 
-  /*! 
+  /*!
   Receive updated tracking information from the server and push the new transforms to the tools
   */
   PlusStatus InternalCallback(sFrameOfMocapData* data);
-  
-  /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
-
-  /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
 protected:
   vtkPlusOptiTrack();
   ~vtkPlusOptiTrack();
-  
-private:  // Functions.
+
+private: // Functions
+  vtkPlusOptiTrack(const vtkPlusOptiTrack&);
+  void operator=(const vtkPlusOptiTrack&); 
+
+  /*! Start the tracking system. */
+  PlusStatus InternalStartRecording();
+
+  /*! Stop the tracking system and bring it back to its initial state. */
+  PlusStatus InternalStopRecording();
+
+  class vtkInternal;
+  vtkInternal* Internal;
+
+private: // Variables
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  void MatchTrackedTools();
-
-  vtkPlusOptiTrack( const vtkPlusOptiTrack& );
-  void operator=( const vtkPlusOptiTrack& ); 
-
-private:  // Variables.  
-  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  unsigned long LastFrameNumber;
-  /*! IP of the computer running the client. Defaults to "127.0.0.1" */
-  std::string IPClient = "127.0.0.1";
-  vtkGetMacro(IPClient, std::string);
-  vtkSetMacro(IPClient, std::string);
-  /*! IP of the computer running the server. Defaults to "127.0.0.1" */
-  std::string IPServer = "127.0.0.1";
-  vtkGetMacro(IPServer, std::string);
-  vtkSetMacro(IPServer, std::string);
-
-  /*! Scale factor for converting camera units to Mm */
-  float UnitsToMm;
-  /*! List of tracked tools defined by the config file */
-  std::set<std::string> TrackedTools;
-  /*! Map from the numerical id of tool rigidbody to tool name */
-  std::map<int, std::string> TrackedToolMap;
+  unsigned long FrameNumber;
 
 };
 

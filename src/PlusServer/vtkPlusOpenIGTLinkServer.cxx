@@ -1183,8 +1183,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", IGTL_HEADER_VERSION_1).GetPointer());
     igtlMessage->SetDeviceName(imageName.c_str());
 
-    if (vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData,
-        imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData, *imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to create image mesage from command response");
       return NULL;

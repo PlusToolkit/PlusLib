@@ -17,8 +17,9 @@
 #include <vtksys/CommandLineArguments.hxx>
 
 // STL includes
-#include <chrono>
-#include <thread>
+// TODO: uncomment the lines below when VS2010 is dropped:
+//#include <chrono>
+//#include <thread>
 
 auto server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
 
@@ -149,7 +150,13 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  // TODO: use the line below when VS2010 is dropped:
+  // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  #ifdef _WIN32
+    Sleep(2000);
+  #else
+    usleep(2000000);
+  #endif
 
   auto channel = *client->GetOutputChannelsStart();
   if (channel == nullptr)

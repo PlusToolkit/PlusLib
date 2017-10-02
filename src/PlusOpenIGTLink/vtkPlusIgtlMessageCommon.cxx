@@ -233,15 +233,17 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   int imageSizePixels[3] = { 0 };
   int subSizePixels[3] = { 0 };
   int subOffset[3] = { 0 };
-  double imageSpacingMm[3] = {0};
+  double imageSpacingMm[3] = { 0 };
+  double imageOriginMm[3] = { 0 };
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(trackedFrame.GetImageData()->GetVTKScalarPixelType());
   int numScalarComponents = trackedFrame.GetImageData()->GetNumberOfScalarComponents();
 
   frameImage->GetDimensions(imageSizePixels);
   frameImage->GetSpacing(imageSpacingMm);
+  frameImage->GetOrigin(imageOriginMm);
   frameImage->GetDimensions(subSizePixels);
 
-  float spacingFloat[3] = {0};
+  float spacingFloat[3] = { 0 };
   for (int i = 0; i < 3; ++ i)
   {
     spacingFloat[ i ] = (float)imageSpacingMm[ i ];
@@ -261,7 +263,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
 
   // Convert VTK transform to IGTL transform.
-  if (igtlio::ImageConverter::VTKTransformToIGTLImage(matrix, imageSizePixels, imageSpacingMm, imageMessage) != 1)
+  if (igtlio::ImageConverter::VTKTransformToIGTLImage(matrix, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
   {
     LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
     return PLUS_FAIL;
@@ -271,6 +273,66 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   imageMessage->Pack();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage,
+    vtkImageData* image,
+    const vtkMatrix4x4& imageToReferenceTransform,
+    double timestamp)
+{
+  if (imageMessage.IsNull())
+  {
+    LOG_ERROR("Failed to pack image message - input image message is NULL");
+    return PLUS_FAIL;
+  }
+
+  int imageSizePixels[3] = { 0 };
+  image->GetDimensions(imageSizePixels);
+  imageMessage->SetDimensions(imageSizePixels);
+
+  int subSizePixels[3] = { 0 };
+  image->GetDimensions(subSizePixels);
+  int subOffset[3] = { 0 };
+  imageMessage->SetSubVolume(subSizePixels, subOffset);
+
+  double imageSpacingMm[3] = { 0 };
+  image->GetSpacing(imageSpacingMm);
+  float spacingFloat[3] = { 0 };
+  for (int i = 0; i < 3; ++i)
+  {
+    spacingFloat[i] = (float)imageSpacingMm[i];
+  }
+  imageMessage->SetSpacing(spacingFloat);
+
+  double imageOriginMm[3] = { 0 };
+  image->GetOrigin(imageOriginMm);
+  // imageMessage->SetOrigin() is not used, because origin and normal is set later by igtlio::ImageConverter::VTKTransformToIGTLImage()
+
+  int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(image->GetScalarType());
+  imageMessage->SetScalarType(scalarType);
+  imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);
+  imageMessage->AllocateScalars();
+
+  unsigned char* igtlImagePointer = (unsigned char*)(imageMessage->GetScalarPointer());
+  unsigned char* vtkImagePointer = (unsigned char*)(image->GetScalarPointer());
+
+  memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
+
+  if (igtlio::ImageConverter::VTKTransformToIGTLImage(imageToReferenceTransform, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
+  {
+    LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
+    return PLUS_FAIL;
+  }
+
+  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
+  igtlTime->SetTime(timestamp);
+  imageMessage->SetTimeStamp(igtlTime);
+
+  imageMessage->Pack();
+
+  return PLUS_SUCCESS;
+
 }
 
 //----------------------------------------------------------------------------
@@ -348,66 +410,6 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
     }
     trackedFrame.SetCustomFrameTransform(embeddedTransformName, vtkMatrix);
   }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage,
-    vtkImageData* volume,
-    vtkMatrix4x4* volumeToReferenceTransform,
-    double timestamp)
-{
-  if (imageMessage.IsNull())
-  {
-    LOG_ERROR("Failed to pack image message - input image message is NULL");
-    return PLUS_FAIL;
-  }
-
-  int volumeSizePixels[3] = {0};
-  volume->GetDimensions(volumeSizePixels);
-  imageMessage->SetDimensions(volumeSizePixels);
-
-  int subSizePixels[3] = {0};
-  volume->GetDimensions(subSizePixels);
-  int subOffset[3] = {0};
-  imageMessage->SetSubVolume(subSizePixels, subOffset);
-
-  double volumeSpacingMm[3] = {0};
-  volume->GetSpacing(volumeSpacingMm);
-  float spacingFloat[3] = {0};
-  for (int i = 0; i < 3; ++ i)
-  {
-    spacingFloat[ i ] = (float)volumeSpacingMm[ i ];
-  }
-  imageMessage->SetSpacing(spacingFloat);
-
-  double volumeOriginMm[3] = {0};
-  volume->GetOrigin(volumeOriginMm);
-
-  int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(volume->GetScalarType());
-  imageMessage->SetScalarType(scalarType);
-
-  imageMessage->SetEndian(igtl_is_little_endian() ? igtl::ImageMessage::ENDIAN_LITTLE : igtl::ImageMessage::ENDIAN_BIG);
-
-  imageMessage->AllocateScalars();
-
-  unsigned char* igtlImagePointer = (unsigned char*)(imageMessage->GetScalarPointer());
-  unsigned char* vtkImagePointer = (unsigned char*)(volume->GetScalarPointer());
-
-  memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
-
-  if (igtlio::ImageConverter::VTKTransformToIGTLImage(*volumeToReferenceTransform, volumeSizePixels, volumeSpacingMm, imageMessage) != 1)
-  {
-    LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
-    return PLUS_FAIL;
-  }
-
-  igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
-  igtlTime->SetTime(timestamp);
-  imageMessage->SetTimeStamp(igtlTime);
-
-  imageMessage->Pack();
 
   return PLUS_SUCCESS;
 }

@@ -58,8 +58,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
-  UnprocessedLinesImage(NULL)
-
+  UnprocessedLinesImage(NULL),
+  FirstFrame(true)
 {
   this->SetMmToPixelFanImage(0, 0, 0);
   this->SetMmToPixelLinesImage(0, 0, 0);
@@ -762,7 +762,7 @@ void vtkPlusTransverseProcessEnhancer::ThresholdViaStdDeviation(vtkSmartPointer<
     //determine the standard deviation of the row
     meanDiffSum = squearSum + (dims[0] - fatLayerToCut) * pixelAverage * pixelAverage + (-2 * pixelAverage * pixelSum);
     meanDiffAverage = meanDiffSum / (dims[0] - fatLayerToCut);
-    thresholdValue = max - 3 * pow(meanDiffAverage, 0.5);
+    thresholdValue = max - 3 * pow(meanDiffAverage, 0.5f);
 
 
     //if a pixel's value is too low, remove it

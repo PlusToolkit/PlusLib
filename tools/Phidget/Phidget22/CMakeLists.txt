@@ -3,7 +3,7 @@ PROJECT(PhidgetIDE)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
 
 SET(PhidgetInterface_SRCS
-  phidget21.h
+  phidget22.h
   )
 
 ADD_CUSTOM_TARGET(PhidgetIDE SOURCES ${PhidgetInterface_SRCS})

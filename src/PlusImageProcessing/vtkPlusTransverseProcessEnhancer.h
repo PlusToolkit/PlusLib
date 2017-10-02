@@ -185,7 +185,7 @@ private:
   virtual PlusStatus ProcessImageExtents();
 
 private:
-  bool FirstFrame = true;
+  bool FirstFrame;
 
 };
 
