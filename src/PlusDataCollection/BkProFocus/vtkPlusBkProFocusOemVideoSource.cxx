@@ -1256,18 +1256,18 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::AddParametersToFrameFields()
 {
   vtkPlusUsDevice::InternalUpdate();// Move to beginning of vtkPlusBkProFocusOemVideoSource::InternalUpdate()?
 
-  this->FrameFields[KEY_PROBE_TYPE]   = PlusCommon::ToString(this->GetProbeType());
-  this->FrameFields[KEY_ORIGIN]       = PlusCommon::ToString(this->CalculateOrigin());
-  this->FrameFields[KEY_ANGLES]       = PlusCommon::ToString(this->CalculateAngles());
-  this->FrameFields[KEY_BOUNDING_BOX] = PlusCommon::ToString(this->CalculateBoundingBox());
-  this->FrameFields[KEY_DEPTHS]       = PlusCommon::ToString(this->CalculateDepths());
-  this->FrameFields[KEY_LINEAR_WIDTH] = PlusCommon::ToString(this->CalculateLinearWidth());
+  this->FrameFields[KEY_PROBE_TYPE]   = PlusCommon::ToString<int>(this->GetProbeType());
+  this->FrameFields[KEY_ORIGIN]       = PlusCommon::JoinTokensIntoString(this->CalculateOrigin());
+  this->FrameFields[KEY_ANGLES]       = PlusCommon::JoinTokensIntoString(this->CalculateAngles());
+  this->FrameFields[KEY_BOUNDING_BOX] = PlusCommon::JoinTokensIntoString(this->CalculateBoundingBox());
+  this->FrameFields[KEY_DEPTHS]       = PlusCommon::JoinTokensIntoString(this->CalculateDepths());
+  this->FrameFields[KEY_LINEAR_WIDTH] = PlusCommon::ToString<double>(this->CalculateLinearWidth());
 
-  this->FrameFields[KEY_SPACING_X]    = PlusCommon::ToString(this->GetSpacingX());
-  this->FrameFields[KEY_SPACING_Y]    = PlusCommon::ToString(this->GetSpacingY());
+  this->FrameFields[KEY_SPACING_X]    = PlusCommon::ToString<double>(this->GetSpacingX());
+  this->FrameFields[KEY_SPACING_Y]    = PlusCommon::ToString<double>(this->GetSpacingY());
 
-  this->FrameFields[KEY_DEPTH]        = PlusCommon::ToString(this->CalculateDepthMm());
-  this->FrameFields[KEY_GAIN]         = PlusCommon::ToString(this->CalculateGain());
+  this->FrameFields[KEY_DEPTH]        = PlusCommon::ToString<double>(this->CalculateDepthMm());
+  this->FrameFields[KEY_GAIN]         = PlusCommon::ToString<int>(this->CalculateGain());
 
   return PLUS_SUCCESS;
 }

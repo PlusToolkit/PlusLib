@@ -320,7 +320,7 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
   this->LeaveDeviceOpenAfterProbe = true;
   if (this->Probe() == PLUS_FAIL)
   {
-    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString<int>(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
 
@@ -329,7 +329,7 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
   //for (auto baud : baudRates)
   const unsigned int numberOfBaudRates = 9;
   int baudRates[numberOfBaudRates] = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
-  for (unsigned int baudIndex = 0; baudIndex<numberOfBaudRates; baudIndex++)
+  for (unsigned int baudIndex = 0; baudIndex < numberOfBaudRates; baudIndex++)
   {
     int baud = baudRates[baudIndex];
 

@@ -306,23 +306,23 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-    case '&':
-      os << "&amp;";
-      break;
-    case '<':
-      os << "&lt;";
-      break;
-    case '>':
-      os << "&gt;";
-      break;
-    case '"':
-      os << "&quot;";
-      break;
-    case '\'':
-      os << "&apos;";
-      break;
-    default:
-      os << data[i];
+      case '&':
+        os << "&amp;";
+        break;
+      case '<':
+        os << "&lt;";
+        break;
+      case '>':
+        os << "&gt;";
+        break;
+      case '"':
+        os << "&quot;";
+        break;
+      case '\'':
+        os << "&apos;";
+        break;
+      default:
+        os << data[i];
     }
   }
 }
@@ -480,32 +480,6 @@ vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(c
   std::vector<std::string> tokens;
   PlusCommon::SplitStringIntoTokens(s, delim, tokens, keepEmptyParts);
   return tokens;
-}
-
-//----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output)
-{
-  typedef std::vector<std::string> StringList;
-
-  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
-  {
-    output += *it;
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator)
-{
-  typedef std::vector<std::string> StringList;
-
-  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
-  {
-    output += *it;
-    if (it != elems.end() - 1)
-    {
-      output += separator;
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
