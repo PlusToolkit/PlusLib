@@ -1018,7 +1018,7 @@ PlusStatus vtkPlusStealthLinkTracker::AreInstrumentPortNamesValid(bool& valid)
     }
     if (found == false)
     {
-      LOG_ERROR(toolIterator->second->GetPortName() << " has not been found in the server. Please make sure to use correct port names for the tools\n");
+      LOG_ERROR(toolIterator->second->GetPortName() << " instrument is not available in the connected StealthStation. Please make sure that the port name matches the instrument name in StealthStation or remove the corresponding DataSource element from DataSources and OutputChannel elements in the Plus device set configuration file\n");
       valid = false;
       std::string strValidToolPortNames("Valid tool port names are:\n");
       for (unsigned int i = 0; i < validToolPortNames.size(); i++)
