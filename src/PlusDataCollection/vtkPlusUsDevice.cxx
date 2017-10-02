@@ -22,6 +22,7 @@ vtkPlusUsDevice::vtkPlusUsDevice()
   , RequestedImagingParameters( vtkPlusUsImagingParameters::New() )
   , CurrentImagingParameters( vtkPlusUsImagingParameters::New() )
   , TextRecognizerInputChannelName( NULL )
+  , InputChannel( NULL )
 {
   this->CurrentTransducerOriginPixels[0] = 0;
   this->CurrentTransducerOriginPixels[1] = 0;

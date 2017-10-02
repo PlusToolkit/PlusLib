@@ -969,24 +969,25 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
     ${BKProFocus_SRCS}
     )
 
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS 
-    ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
-    ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
-    ${GRABBIELIB_SOURCE_DIR}/cfuff
-    ${GRABBIELIB_SOURCE_DIR}/CommandAndControl
-    ${GRABBIELIB_SOURCE_DIR}/LogLibrary
-    ${GRABBIELIB_SOURCE_DIR}/OemParams
-    ${GRABBIELIB_SOURCE_DIR}/ParametersLibrary        
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus
     )
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
-    GrabbieLib
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     vtkpng
     vtkInteractionImage
     )
 
   # CameraLink interface
   IF(PLUS_USE_BKPROFOCUS_CAMERALINK)
+    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+      ${GRABBIELIB_SOURCE_DIR}/AcquisitionLibrary
+      ${GRABBIELIB_SOURCE_DIR}/BkmDataFileLib
+      ${GRABBIELIB_SOURCE_DIR}/cfuff
+      ${GRABBIELIB_SOURCE_DIR}/CommandAndControl
+      ${GRABBIELIB_SOURCE_DIR}/LogLibrary
+      ${GRABBIELIB_SOURCE_DIR}/OemParams
+      ${GRABBIELIB_SOURCE_DIR}/ParametersLibrary
+      )
     LIST(APPEND ${PROJECT_NAME}_SRCS
       BkProFocus/vtkPlusBkProFocusCameraLinkVideoSource.cxx
       BkProFocus/PlusBkProFocusCameraLinkReceiver.cxx
@@ -998,6 +999,7 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
       )
   ENDIF()
   LIST(APPEND ${PROJECT_NAME}_LIBS 
+    GrabbieLib
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   ENDIF()
