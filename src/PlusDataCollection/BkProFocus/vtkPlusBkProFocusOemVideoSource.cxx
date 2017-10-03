@@ -1258,13 +1258,13 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::AddParametersToFrameFields()
 
   this->FrameFields[KEY_PROBE_TYPE]   = PlusCommon::ToString<int>(this->GetProbeType());
   std::string output;
-  PlusCommon::JoinTokensIntoString(this->CalculateOrigin(), output, ',');
+  PlusCommon::JoinTokensIntoString<double>(this->CalculateOrigin(), output, ' ');
   this->FrameFields[KEY_ORIGIN]       = output;
-  PlusCommon::JoinTokensIntoString(this->CalculateAngles(), output, ',');
+  PlusCommon::JoinTokensIntoString<double>(this->CalculateAngles(), output, ' ');
   this->FrameFields[KEY_ANGLES]       = output;
-  PlusCommon::JoinTokensIntoString(this->CalculateBoundingBox(), output, ',');
+  PlusCommon::JoinTokensIntoString<double>(this->CalculateBoundingBox(), output, ' ');
   this->FrameFields[KEY_BOUNDING_BOX] = output;
-  PlusCommon::JoinTokensIntoString(this->CalculateDepths(), output, ',');
+  PlusCommon::JoinTokensIntoString<double>(this->CalculateDepths(), output, ' ');
   this->FrameFields[KEY_DEPTHS]       = output;
   this->FrameFields[KEY_LINEAR_WIDTH] = PlusCommon::ToString<double>(this->CalculateLinearWidth());
 

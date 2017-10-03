@@ -36,7 +36,7 @@ namespace PlusCommon
     std::stringstream ss;
     typedef std::vector<ElemType> List;
 
-    for (List::const_iterator it = elems.begin(); it != elems.end(); ++it)
+    for (typename List::const_iterator it = elems.begin(); it != elems.end(); ++it)
     {
       ss << *it;
       if (it != elems.end() - 1)
@@ -44,5 +44,7 @@ namespace PlusCommon
         ss << separator;
       }
     }
+
+    output = ss.str();
   }
 }
