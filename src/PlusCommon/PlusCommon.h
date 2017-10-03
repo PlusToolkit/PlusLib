@@ -400,27 +400,14 @@ namespace PlusCommon
 #endif
   }
 
-  //----------------------------------------------------------------------------
-  static std::string ToString(std::vector<double> numbers)
-  {
-    std::string retval;
-    for (int i = 0; i < numbers.size(); ++i)
-    {
-      retval = retval + PlusCommon::ToString(numbers[i]);
-      if (i + 1 < numbers.size())
-      { retval += ","; }
-    }
-    return retval;
-  }
-
   static const int NO_CLIP = -1;
   vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
   vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts = true);
   vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts = true);
-  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
-  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
+  template<typename ElemType>
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<ElemType>& elems, std::string& output, char separator = ' ');
 
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename(std::string& aString, const std::string& anOutputDirectory);
 

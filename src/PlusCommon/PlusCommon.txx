@@ -8,12 +8,14 @@ namespace PlusCommon
 {
   namespace XML
   {
+    //----------------------------------------------------------------------------
     template<typename T>
     PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, T& value)
     {
       return PlusCommon::XML::SafeGetAttributeValueInsensitive(element, std::string(begin(attributeName), end(attributeName)), value);
     }
 
+    //----------------------------------------------------------------------------
     template<typename T>
     PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::string& attributeName, T& value)
     {
@@ -24,5 +26,25 @@ namespace PlusCommon
       element.GetScalarAttribute(attributeName.c_str(), value);
       return PLUS_SUCCESS;
     }
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename ElemType>
+  void JoinTokensIntoString(const std::vector<ElemType>& elems, std::string& output, char separator)
+  {
+    output = "";
+    std::stringstream ss;
+    typedef std::vector<ElemType> List;
+
+    for (typename List::const_iterator it = elems.begin(); it != elems.end(); ++it)
+    {
+      ss << *it;
+      if (it != elems.end() - 1)
+      {
+        ss << separator;
+      }
+    }
+
+    output = ss.str();
   }
 }
