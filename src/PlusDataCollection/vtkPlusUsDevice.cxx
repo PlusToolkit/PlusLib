@@ -144,13 +144,10 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters( const vtkPlusUsImagingParam
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources( const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/ )
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if (customFields != NULL)
+  if ( !this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL )
   {
     localCustomFields = *customFields;
-    if (this->ImageToTransducerTransform.IsValid())
-    {
-      this->CalculateImageToTransducer(localCustomFields);
-    }
+    this->CalculateImageToTransducer( localCustomFields );
   }
 
   return Superclass::AddVideoItemToVideoSources( videoSources, frame, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields );
@@ -173,10 +170,13 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources( const std::vector<vtkPlu
 PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources( const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const unsigned int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/ )
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
-  if ( this->ImageToTransducerTransform.IsValid() && customFields != NULL )
+  if ( customFields != NULL )
   {
     localCustomFields = *customFields;
-    this->CalculateImageToTransducer( localCustomFields );
+    if ( this->ImageToTransducerTransform.IsValid() )
+    {
+      this->CalculateImageToTransducer( localCustomFields );
+    }
   }
 
   return Superclass::AddVideoItemToVideoSources( videoSources, imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields );
