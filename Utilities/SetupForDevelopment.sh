@@ -54,8 +54,8 @@ setup_user() {
 }
 
 # Copy hooks
-echo cp hooks/commit-msg $gitDir/hooks
-cp hooks/commit-msg $gitDir/hooks
+echo cp Utilities/hooks/commit-msg $gitDir/hooks
+cp Utilities/hooks/commit-msg $gitDir/hooks
 
 if [ "$1" == "copyOnly" ]; then
   exit 0
