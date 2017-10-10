@@ -636,7 +636,9 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
       errnum = ndiGetError(this->Device);
       if (errnum)
       {
-        LOG_ERROR(ndiErrorString(errnum));
+        std::stringstream ss;
+        ss << ndiErrorString(errnum) << ". errnum: " << errnum;
+        LOG_ERROR(ss.str());
         status = PLUS_FAIL;
       }
     }
@@ -948,8 +950,9 @@ PlusStatus vtkPlusNDITracker::SendSromToTracker(const NdiToolDescriptor& toolDes
   int errnum = ndiGetError(this->Device);
   if (errnum)
   {
-    LOG_ERROR("Failed to send SROM to NDI tracker");
-    LOG_ERROR(ndiErrorString(errnum));
+    std::stringstream ss;
+    ss << "Failed to send SROM to NDI tracker: " << ndiErrorString(errnum);
+    LOG_ERROR(ss.str());
     return PLUS_FAIL;
   }
 
