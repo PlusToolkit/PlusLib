@@ -60,8 +60,8 @@ protected:
   vtkPlusOpenCVCaptureVideoSource();
   ~vtkPlusOpenCVCaptureVideoSource();
 
-  PlusStatus InternalConnect();
-  PlusStatus InternalDisconnect();
+  virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalDisconnect();
 
   cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
   std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);

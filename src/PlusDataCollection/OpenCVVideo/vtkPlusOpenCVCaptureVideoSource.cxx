@@ -14,6 +14,9 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
+// OpenCV includes
+#include <opencv2/imgproc/imgproc.hpp>
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
@@ -123,6 +126,9 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
     LOG_ERROR("Unable to receive frame");
     return PLUS_FAIL;
   }
+
+  // BGR -> RGB color
+  cv::cvtColor(*this->Frame, *this->Frame, cv::COLOR_BGR2RGB);
 
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
