@@ -68,6 +68,7 @@ ENDIF()
 
 OPTION(PLUS_USE_OpenCV "Provide support for optical marker tracking and other features using OpenCV." OFF)
 OPTION(PLUS_USE_aruco "Provide support for optical marker tracking using aruco." OFF)
+OPTION(PLUS_USE_OpenCV_VIDEO "Provide support for capturing an OpenCV capture stream" OFF)
 
 OPTION(PLUS_USE_NVIDIA_DVP "Provide support for the NVidia Digital Video Pipeline" OFF)
 IF(PLUS_USE_NVIDIA_DVP)
@@ -1737,6 +1738,13 @@ IF(PLUS_USE_OvrvisionPro)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     OvrvisionPro
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# openCV_VIDEO
+IF(PLUS_USE_OpenCV_VIDEO AND NOT PLUS_USE_OpenCV)
+  MESSAGE("PLUS_USE_OpenCV_VIDEO requires PLUS_USE_OpenCV option enabled, enabling.")
+  SET(PLUS_USE_OpenCV ON CACHE BOOL "Use OpenCV for optical marker tracking and other features." FORCE)
 ENDIF()
 
 IF(PLUS_USE_OpenCV_VIDEO)
