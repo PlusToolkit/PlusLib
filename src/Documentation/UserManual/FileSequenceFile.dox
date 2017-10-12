@@ -50,8 +50,8 @@ NRRD file stores additional information in custom fields similar to those used i
 
 \section FileSequenceFileMatlab Reading/writing in Matlab
 
-- Sequence metafiles can be read/written by mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from: https://www.assembla.com/spaces/plus/subversion/source/HEAD/trunk/MatlabUtils
-- Sequence NRRD files can be read/written by readdnrrd.m and writenrrd.m files available here: https://app.assembla.com/spaces/slicerrt/subversion/source/HEAD/trunk/MatlabBridge/src/MatlabCommander/commandserver
+- Sequence metafiles can be read/written by mha_read_transforms.m, mha_read_volume.m, and mha_write_volume.m functions, available from: https://github.com/PlusToolkit/PlusMatlabUtils
+- Sequence NRRD files can be read/written by readdnrrd.m and writenrrd.m files available here: https://github.com/PerkLab/SlicerMatlabBridge/tree/master/MatlabCommander/commandserver
 
 
 \section FileSequenceFileSlicer Reading/writing in 3D Slicer

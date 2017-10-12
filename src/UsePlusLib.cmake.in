@@ -35,7 +35,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   IF(ITK_FOUND)
     INCLUDE("@ITK_USE_FILE@")
   ELSE()
-    MESSAGE(FATAL_ERROR "ITK not found in UsePlusLib.cmake. Please report this to the developers at https://app.assembla.com/spaces/plus/wiki.")
+    MESSAGE(FATAL_ERROR "ITK not found in UsePlusLib.cmake. Please report this to the developers at https://github.com/PlusToolkit/PlusLib.")
   ENDIF()
 
   ## Find VTK
@@ -43,7 +43,7 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
   IF (VTK_FOUND)
     INCLUDE("@VTK_USE_FILE@")
   ELSE()
-    MESSAGE(FATAL_ERROR "VTK not found in UsePlusLib.cmake. Please report this to the developers at https://app.assembla.com/spaces/plus/wiki.")
+    MESSAGE(FATAL_ERROR "VTK not found in UsePlusLib.cmake. Please report this to the developers at https://github.com/PlusToolkit/PlusLib.")
   ENDIF()
 
   SET(PLUS_USE_OpenIGTLink @PLUS_USE_OpenIGTLink@)

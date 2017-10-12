@@ -186,7 +186,7 @@ public:
 
   Warning: The class was part of the SynchroGrab library and ported into
   Plus, but has not been tested and probably needs some work to fill the holes correctly.
-  See https://www.assembla.com/spaces/plus/tickets/285-hole-filling-after-volume-reconstruction-doesn-t-seem-to-be-effective
+  See #285 in https://plustoolkit.github.io/legacytickets
 
   \sa vtkPlusPasteSliceIntoVolume
   \ingroup PlusLibVolumeReconstruction

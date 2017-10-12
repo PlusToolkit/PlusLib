@@ -20,7 +20,7 @@ Nomenclature:
 - \ref PackageLinux
 
 This device is not included in any of the standard packages, as it requires StealthLink library from Medtronic.
-If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://www.assembla.com/spaces/plus/wiki/Windows_Build_Instructions.
+If the StealthLink library is obtained from Medtronic then Plus have to be built with the StealthLink option enabled as described at https://github.com/PlusToolkit/PlusBuild/blob/master/Docs/BuildInstructionsWindows.md.
 The device is tested on Windows, but should also work on other platforms.
 
 \section StealthLinkInstallation Installation

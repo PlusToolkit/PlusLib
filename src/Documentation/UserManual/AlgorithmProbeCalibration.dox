@@ -52,7 +52,7 @@ This algorithm determines the transformation between the ultrasound image and a 
 
 \section AlgorithmProbeCalibrationPhantomDefinition Phantom definition
 
-We recommend using 3 N-wires as we have found this to be more robust and accurate than using just 2 N-wires but still can be robustly detected and kept in the field of view. Specification of the wire pattern is available at https://app.assembla.com/spaces/plus/subversion/source/HEAD/trunk/doc/tutorials/PlusTutorialBuildingfCalPrintedPhantom.pptx?_format=raw. XML description can be found in the example device set configuration files. 
+We recommend using 3 N-wires as we have found this to be more robust and accurate than using just 2 N-wires but still can be robustly detected and kept in the field of view. Specification of the wire pattern is available at https://github.com/PlusToolkit/PlusDoc/raw/master/tutorials/PlusTutorialBuildingfCalPrintedPhantom.pptx. XML description can be found in the example device set configuration files. 
 
 You can add any number of N-wires with any angles between the side and middle wires (angle can be different for each N-wire) with the following conditions:
 - all N-wires shall be completely visible at the same time in the ultrasound image

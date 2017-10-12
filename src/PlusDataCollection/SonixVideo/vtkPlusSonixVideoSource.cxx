@@ -648,7 +648,7 @@ PlusStatus vtkPlusSonixVideoSource::WriteConfiguration(vtkXMLDataElement* rootCo
   {
     deviceConfig->SetAttribute("ImagingMode", "BMode");
   }
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) // RF acquisition mode is not supported on Ultrasonix SDK 6.x and above - see https://www.assembla.com/spaces/plus/tickets/489-add-rf-image-acquisition-support-on-ulterius-6-x
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) // RF acquisition mode is not supported on Ultrasonix SDK 6.x and above - see #489 in https://plustoolkit.github.io/legacytickets
   else if (this->ImagingMode == RfMode)
   {
     deviceConfig->SetAttribute("ImagingMode", "RfMode");
