@@ -72,11 +72,6 @@ private: // Functions
 
   class vtkInternal;
   vtkInternal* Internal;
-
-private: // Variables
-  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  unsigned long FrameNumber;
-
 };
 
 #endif
