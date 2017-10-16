@@ -50,16 +50,19 @@ public:
   // Maps rigid body names to transform names
   std::map<int, PlusTransformName> MapRBNameToTransform;
 
-
   // Flag to run Motive in background if user doesn't need GUI
   bool RunMotiveInBackground;
+
+  // Time of last tool update
+  double LastMotiveDataDescriptionsUpdateTimestamp;
+  double MotiveDataDescriptionsUpdateTimeSec;
 
   /*!
   Print user friendly Motive API message to console
   */
   std::string GetMotiveErrorMessage(NPRESULT result);
 
-  void MatchTrackedTools();
+  void UpdateMotiveDataDescriptions();
 };
 
 //-----------------------------------------------------------------------
@@ -69,12 +72,12 @@ std::string vtkPlusOptiTrack::vtkInternal::GetMotiveErrorMessage(NPRESULT result
 }
 
 //-----------------------------------------------------------------------
-void vtkPlusOptiTrack::vtkInternal::MatchTrackedTools()
+void vtkPlusOptiTrack::vtkInternal::UpdateMotiveDataDescriptions()
 {
   LOG_TRACE("vtkPlusOptiTrack::vtkInternal::MatchTrackedTools");
+
   std::string referenceFrame = this->External->GetToolReferenceFrameName();
   this->MapRBNameToTransform.clear();
-
   sDataDescriptions* dataDescriptions;
   this->NNClient->GetDataDescriptions(&dataDescriptions);
   for (int i = 0; i < dataDescriptions->nDataDescriptions; ++i)
@@ -87,8 +90,9 @@ void vtkPlusOptiTrack::vtkInternal::MatchTrackedTools()
       this->MapRBNameToTransform[currentDescription.Data.RigidBodyDescription->ID] = toolToTracker;
     }
   }
-}
 
+  this->LastMotiveDataDescriptionsUpdateTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+}
 
 //-----------------------------------------------------------------------
 vtkPlusOptiTrack::vtkPlusOptiTrack()
@@ -102,14 +106,14 @@ vtkPlusOptiTrack::vtkPlusOptiTrack()
   this->StartThreadForInternalUpdates = false;
 }
 
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 vtkPlusOptiTrack::~vtkPlusOptiTrack() 
 {
   delete Internal;
   Internal = nullptr;
 }
 
-//-------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void vtkPlusOptiTrack::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
@@ -123,6 +127,8 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
 
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(RunMotiveInBackground, this->Internal->RunMotiveInBackground, deviceConfig);
+  this->Internal->MotiveDataDescriptionsUpdateTimeSec = 1.0;
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(double, MotiveDataDescriptionsUpdateTimeSec, this->Internal->MotiveDataDescriptionsUpdateTimeSec, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -271,6 +277,9 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     }
   }
 
+  // cause update of tools from Motive
+  this->Internal->LastMotiveDataDescriptionsUpdateTimestamp = -1;
+
   return PLUS_SUCCESS; 
 }
 
@@ -312,21 +321,22 @@ PlusStatus vtkPlusOptiTrack::InternalUpdate()
 PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalCallback");
-
-  this->Internal->MatchTrackedTools();
-
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  sDataDescriptions* dataDescriptions;
-  this->Internal->NNClient->GetDataDescriptions(&dataDescriptions);
+  if (this->Internal->LastMotiveDataDescriptionsUpdateTimestamp < 0)
+  {
+    // do an initial match of tracked tools
+    this->Internal->UpdateMotiveDataDescriptions();
+  }
+
+  double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - this->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
+  if (!this->Internal->RunMotiveInBackground && timeSinceMotiveDataDescriptionsUpdate > this->Internal->MotiveDataDescriptionsUpdateTimeSec)
+  {
+    this->Internal->UpdateMotiveDataDescriptions();
+  }
 
   int numberOfRigidBodies = data->nRigidBodies;
   sRigidBodyData* rigidBodies = data->RigidBodies;
-
-  if (data->nOtherMarkers)
-  {
-    LOG_WARNING("vtkPlusOptiTrack::InternalCallback: Untracked markers detected. Check for interference or make sure that the entire tool is in view")
-  }
 
   // identity transform for tools out of view
   vtkSmartPointer<vtkMatrix4x4> rigidBodyToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -371,7 +381,6 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
   }
 
   this->FrameNumber++;
-  LOG_INFO("Frame: " << this->FrameNumber);
   return PLUS_SUCCESS;
 }
 

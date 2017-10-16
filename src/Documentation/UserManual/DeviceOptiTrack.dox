@@ -46,6 +46,7 @@
 
 - \xmlAtt \b ProjectFile The Motive project file (.TTP) to load. \RequiredAtt
 - \xmlAtt \b RunMotiveInBackground If true, will run Motive in the background. If false, you must run Motive on the same PC as PLUS is running on. \RequiredAtt
+- \xmlAtt \b MotiveDataDescriptionsUpdateTimeSec If Motive is run in the foreground, defines time between updating the tools (i.e. to reflect new Id, etc.). \OptionalAtt{1.0}
 - \xmlElem \ref DataSources One \c DataSource child element is required for each rigid body to be tracked. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
