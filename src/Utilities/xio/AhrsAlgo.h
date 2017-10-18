@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef AhrsAlgo_h
 #define AhrsAlgo_h
 
+#include <math.h>
+
 /*!
 \class AhrsAlgo 
 \brief Common base class for AHRS algorithms
@@ -92,6 +94,7 @@ protected:
   
   float InvSqrt(float x) 
   {
+  #if defined(_WIN32)
     float halfx = 0.5f * x;
     float y = x;
     long i = *(long*)&y;
@@ -99,6 +102,9 @@ protected:
     y = *(float*)&i;
     y = y * (1.5f - (halfx * y * y));
     return y;
+  #else
+    return 1.0f / sqrtf(x);
+  #endif
   }
 
   float sampleFreq; // sample frequency in Hz
