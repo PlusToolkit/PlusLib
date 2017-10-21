@@ -72,6 +72,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_ICCAPTURING_VIDEO
 #cmakedefine PLUS_USE_INTELREALSENSE
 #cmakedefine PLUS_USE_OPTICAL_MARKER_TRACKER
+#cmakedefine PLUS_USE_ATRACSYS
 #cmakedefine PLUS_USE_CAPISTRANO_VIDEO
 #cmakedefine PLUS_USE_WINPROBE_VIDEO
 #cmakedefine PLUS_USE_INTERSON_VIDEO

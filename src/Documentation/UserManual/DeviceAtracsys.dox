@@ -1,0 +1,22 @@
+/*!
+\page DeviceAtracsys Atracsys
+
+\section AtracsysSupportedHwDevices Supported hardware devices
+
+\section AtracsysSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+
+\section AtracsysInstallation Installation
+
+\section AtracsysSettingUpTracking Setting up Tracking
+
+\section AtracsysConfigSettings Device configuration settings
+- \xmlAtt \ref DeviceType "Type" = \c "Atracsys" \RequiredAtt
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+\section AtracsysExampleConfigFile Config File
+\include "ConfigFiles/PlusDeviceSet_Server_Atracsys.xml"
+
+*/

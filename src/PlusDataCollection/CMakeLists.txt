@@ -592,6 +592,43 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
 ENDIF()
 
 #--------------------------------------------------------------------------
+# Atracsys support
+IF(PLUS_USE_ATRACSYS)
+  SET(Atracsys_SRCS
+    Atracsys/vtkPlusAtracsysTracker.cxx
+  )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Atracsys_HDRS
+      Atracsys/vtkPlusAtracsysTracker.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Atracsys_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Atracsys_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Atracsys
+    ${ATRACSYS_SDK_INCLUDE_DIR}
+    )
+  message(${ATRACSYS_SDK_INCLUDE_DIR})
+  
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${ATRACSYS_SDK_LIBRARY_DIR}/fusionTrack32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${ATRACSYS_SDK_BINARY_DIR}/fusionTrack32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    
+ENDIF()
+
+#--------------------------------------------------------------------------
 # BrachyTracker support
 IF(PLUS_USE_BRACHY_TRACKER)
   SET(BrachyTracker_SRCS
