@@ -50,7 +50,7 @@
 - \xmlElem \ref DataSources One \c DataSource child element is required for each rigid body to be tracked. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
-    - \xmlAtt \b Id The filename of the TRA file that defines the rigid body. \OptionalAtt
+    - \xmlAtt \b RigidBodyFile The filename of the TRA file that defines the rigid body. \OptionalAtt{NULL}
 
 \section OptiTrackExampleConfigFileTTPOnly Simple Configuration
 Example configuration file with all rigid bodies saved in the Motive project (PlusDeviceSet_Server_OptiTrack_TTPOnly.xml)
