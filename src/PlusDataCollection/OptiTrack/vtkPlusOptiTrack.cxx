@@ -55,7 +55,7 @@ public:
   std::map<int, PlusTransformName> MapRBNameToTransform;
 
   // Flag to run Motive in background if user doesn't need GUI
-  bool RunMotiveInBackground;
+  bool AttachToRunningMotive;
 
   // Time of last tool update
   double LastMotiveDataDescriptionsUpdateTimestamp;
@@ -129,7 +129,7 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(RunMotiveInBackground, this->Internal->RunMotiveInBackground, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(AttachToRunningMotive, this->Internal->AttachToRunningMotive, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(double, MotiveDataDescriptionsUpdateTimeSec, this->Internal->MotiveDataDescriptionsUpdateTimeSec, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
@@ -185,7 +185,7 @@ PlusStatus vtkPlusOptiTrack::Probe()
 PlusStatus vtkPlusOptiTrack::InternalConnect()
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalConnect");
-  if (this->Internal->RunMotiveInBackground == true)
+  if (!this->Internal->AttachToRunningMotive)
   {
     // RUN MOTIVE IN BACKGROUND
     // initialize the API
@@ -257,7 +257,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   else
   {
     // Fail if motive is not running
-    LOG_ERROR("Failed to connect to Motive. Please either set RunMotiveInBackground=TRUE or ensure that Motive is running and streaming is enabled.");
+    LOG_ERROR("Failed to connect to Motive. Please either set AttachToRunningMotive=FALSE or ensure that Motive is running and streaming is enabled.");
     return PLUS_FAIL;
   }
 
@@ -289,7 +289,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
 PlusStatus vtkPlusOptiTrack::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalDisconnect")
-  if (this->Internal->RunMotiveInBackground)
+  if (!this->Internal->AttachToRunningMotive)
   {
     TT_Shutdown();
   }
@@ -331,7 +331,7 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
     this->Internal->UpdateMotiveDataDescriptions();
   }
 
-  if (!this->Internal->RunMotiveInBackground && this->Internal->MotiveDataDescriptionsUpdateTimeSec >= 0)
+  if (this->Internal->AttachToRunningMotive && this->Internal->MotiveDataDescriptionsUpdateTimeSec >= 0)
   {
     double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - this->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
     if (timeSinceMotiveDataDescriptionsUpdate > this->Internal->MotiveDataDescriptionsUpdateTimeSec)
