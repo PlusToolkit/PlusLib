@@ -32,6 +32,10 @@ public:
   vtkInternal(vtkPlusOptiTrack* external)
     : External(external)
   {
+    this->NNClient = NULL;
+    this->UnitsToMm = 1.0;
+    this->MotiveDataDescriptionsUpdateTimeSec = 1.0;
+    this->LastMotiveDataDescriptionsUpdateTimestamp = -1;
   }
 
   virtual ~vtkInternal()
@@ -101,13 +105,12 @@ vtkPlusOptiTrack::vtkPlusOptiTrack()
 {
   this->FrameNumber = 0;
   // always uses NatNet's callback to update
-
   this->InternalUpdateRate = 120;
   this->StartThreadForInternalUpdates = false;
 }
 
 //----------------------------------------------------------------------------
-vtkPlusOptiTrack::~vtkPlusOptiTrack() 
+vtkPlusOptiTrack::~vtkPlusOptiTrack()
 {
   delete Internal;
   Internal = nullptr;
@@ -127,7 +130,6 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
 
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(RunMotiveInBackground, this->Internal->RunMotiveInBackground, deviceConfig);
-  this->Internal->MotiveDataDescriptionsUpdateTimeSec = 1.0;
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(double, MotiveDataDescriptionsUpdateTimeSec, this->Internal->MotiveDataDescriptionsUpdateTimeSec, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
@@ -280,7 +282,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   // cause update of tools from Motive
   this->Internal->LastMotiveDataDescriptionsUpdateTimestamp = -1;
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
@@ -329,10 +331,13 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
     this->Internal->UpdateMotiveDataDescriptions();
   }
 
-  double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - this->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
-  if (!this->Internal->RunMotiveInBackground && timeSinceMotiveDataDescriptionsUpdate > this->Internal->MotiveDataDescriptionsUpdateTimeSec)
+  if (!this->Internal->RunMotiveInBackground && this->Internal->MotiveDataDescriptionsUpdateTimeSec >= 0)
   {
-    this->Internal->UpdateMotiveDataDescriptions();
+    double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - this->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
+    if (timeSinceMotiveDataDescriptionsUpdate > this->Internal->MotiveDataDescriptionsUpdateTimeSec)
+    {
+      this->Internal->UpdateMotiveDataDescriptions();
+    }
   }
 
   int numberOfRigidBodies = data->nRigidBodies;
@@ -377,7 +382,7 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
       PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
       ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OUT_OF_VIEW, FrameNumber, unfilteredTimestamp);
     }
-    
+
   }
 
   this->FrameNumber++;
