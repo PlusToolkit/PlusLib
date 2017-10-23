@@ -37,7 +37,7 @@
     - 2: Save the calibration as a Motive project file.
     - 2: In Motive's 3D view, select all the markers corresponding to a rigid body and right click. Cursor "Rigid Body" then click "Create From Selected Markers".
     - 3: Select the newly created rigid body in the "Project" tab and change the rigid body's "Name" attribute to something descriptive of the rigid body. This will be the rigid body's ID in the PLUS config file.
-    - 4: Right click the rigid body's name in the "Project" tab and click "Export Rigid Body". Save the resulting file in the PLUS config file directory. We reccomend naming this file <Motive-name>.tra, replacing <Motive-name> with the name attribute of the rigid body.
+    - 4: Right click the rigid body's name in the "Project" tab and click "Export Rigid Body". Save the resulting file in the PLUS config file directory. We recommend naming this file <Motive-name>.tra, replacing <Motive-name> with the name attribute of the rigid body.
     - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml to reflect the name of your Motive project file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute, and TRA file containing the relative path of the rigid body's associated TRA file).
 
 \section OptiTrackConfigSettings Device configuration settings
@@ -45,8 +45,8 @@
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 - \xmlAtt \b ProjectFile The Motive project file (.TTP) to load. \RequiredAtt
-- \xmlAtt \b RunMotiveInBackground If true, will run Motive in the background. If false, you must run Motive on the same PC as PLUS is running on. \RequiredAtt
-- \xmlAtt \b MotiveDataDescriptionsUpdateTimeSec Only used if Motive GUI is shown. Defines time how frequently list of tools is queried from Motive. Each update consumes a small amount of memory, therefore it is recommended to only use >=0 value only during development. If set to a negative value, tool descriptions are only updated when connecting to the device.\OptionalAtt{1.0}
+- \xmlAtt \b AttachToRunningMotive Set to TRUE to make Plus connect to an already running instance of Motive application (on the same computer where Plus is running). If set to FALSE, PLUS will internally start Motive application with its graphical user interface hidden. \RequiredAtt
+- \xmlAtt \b MotiveDataDescriptionsUpdateTimeSec Only used if Motive GUI is shown. Defines time how frequently list of tools is queried from Motive. Each update consumes a small amount of memory, therefore it is recommended to use >=0 value only during development. If set to a negative value, tool descriptions are only updated when connecting to the device.\OptionalAtt{1.0}
 - \xmlElem \ref DataSources One \c DataSource child element is required for each rigid body to be tracked. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
