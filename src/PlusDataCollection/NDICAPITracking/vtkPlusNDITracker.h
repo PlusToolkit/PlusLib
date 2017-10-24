@@ -272,6 +272,9 @@ protected:
   */
   PlusStatus SelectMeasurementVolumeDeprecated();
 
+  /*! Lookup table function to convert from baudrate to enum */
+  static int ConvertBaudToNDIEnum(int baudRate);
+
 #if _MSC_VER >= 1700
   PlusStatus ProbeSerialInternal();
 #endif

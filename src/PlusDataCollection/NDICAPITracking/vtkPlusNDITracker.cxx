@@ -84,7 +84,7 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , Device(nullptr)
   , SerialDevice("")
   , SerialPort(-1)
-  , BaudRate(9600)
+  , BaudRate(0)
   , IsDeviceTracking(0)
   , LeaveDeviceOpenAfterProbe(false)
   , MeasurementVolumeNumber(0)
@@ -322,6 +322,22 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
   {
     LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString<int>(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
+  }
+
+  if (this->BaudRate != 0)
+  {
+    int baudVal = vtkPlusNDITracker::ConvertBaudToNDIEnum(this->BaudRate);
+    // BaudRate has been requested, let's attempt it before falling back to best available
+    this->Command("COMM:%X%03d%d", baudVal, NDI_8N1, NDI_NOHANDSHAKE);
+    int errnum = ndiGetError(this->Device);
+    if (errnum == NDI_OKAY)
+    {
+      return PLUS_SUCCESS;
+    }
+    else
+    {
+      LOG_WARNING("Unable to set requested baud rate. Reverting to auto-select.");
+    }
   }
 
   // TODO: use the lines in this comment to replace next 5 lines when VS2010 support is dropped:
@@ -990,6 +1006,11 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
+  if (vtkPlusNDITracker::ConvertBaudToNDIEnum(this->BaudRate) == -1)
+  {
+    LOG_WARNING("Invalid baud rate specified, reverting to auto-select.");
+    this->BaudRate = 0;
+  }
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MeasurementVolumeNumber, deviceConfig);
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
@@ -1309,6 +1330,34 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+int vtkPlusNDITracker::ConvertBaudToNDIEnum(int baudRate)
+{
+  switch (baudRate)
+  {
+  case 9600:
+    return NDI_9600;
+  case 14400:
+    return NDI_14400;
+  case 19200:
+    return NDI_19200;
+  case 38400:
+    return NDI_38400;
+  case 57600:
+    return NDI_57600;
+  case 115200:
+    return NDI_115200;
+  case 230400:
+    return NDI_230400;
+  case 921600:
+    return NDI_921600;
+  case 1228739:
+    return NDI_1228739;
+  default:
+    return -1;
+  }
+}
+
 #if _MSC_VER >= 1700
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
@@ -1320,12 +1369,14 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
   for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
   {
     char* dev = ndiSerialDeviceName(i);
+    LOG_DEBUG("Testing serial port: " << dev);
     if (dev != nullptr)
     {
       std::string devName = std::string(dev);
       std::future<void> result = std::async([i, &deviceExists, devName]()
       {
         int errnum = ndiSerialProbe(devName.c_str());
+        LOG_DEBUG("Serial port probe error: " << errnum);
         if (errnum == NDI_OKAY)
         {
           deviceExists[i] = true;
