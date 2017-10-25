@@ -959,17 +959,19 @@ PlusStatus vtkPlusNDITracker::SendSromToTracker(const NdiToolDescriptor& toolDes
   char hexbuffer[TRANSFER_BLOCK_SIZE * 2];
   for (int i = 0; i < VIRTUAL_SROM_SIZE; i += TRANSFER_BLOCK_SIZE)
   {
-    this->Command("PVWR:%02X%04X%.128s", toolDescriptor.PortHandle, i,
-                  ndiHexEncode(hexbuffer, &(toolDescriptor.VirtualSROM[i]), TRANSFER_BLOCK_SIZE));
-  }
+    RETRY_UNTIL_TRUE(
+      strcmp(this->Command("PVWR:%02X%04X%.128s", toolDescriptor.PortHandle, i,
+                           ndiHexEncode(hexbuffer, &(toolDescriptor.VirtualSROM[i]), TRANSFER_BLOCK_SIZE)).c_str(), "OKAY") == 0,
+      10, 0.1);
 
-  int errnum = ndiGetError(this->Device);
-  if (errnum)
-  {
-    std::stringstream ss;
-    ss << "Failed to send SROM to NDI tracker: " << ndiErrorString(errnum);
-    LOG_ERROR(ss.str());
-    return PLUS_FAIL;
+    int errnum = ndiGetError(this->Device);
+    if (errnum)
+    {
+      std::stringstream ss;
+      ss << "Failed to send SROM to NDI tracker: " << ndiErrorString(errnum);
+      LOG_ERROR(ss.str());
+      return PLUS_FAIL;
+    }
   }
 
   return PLUS_SUCCESS;
