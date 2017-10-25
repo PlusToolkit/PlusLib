@@ -1,0 +1,95 @@
+/*=Plus=header=begin======================================================
+  Program: Plus
+  Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
+  See License.txt for details.
+=========================================================Plus=header=end*/
+
+#ifndef __vtkPlusOpenHapticsDevice_h
+#define __vtkPlusOpenHapticsDevice_h
+
+#include "vtkPlusDataCollectionExport.h"
+
+#include "vtkPlusDevice.h"
+#include <HD/hd.h>
+
+class vtkMatrix4x4;
+
+struct HD_state
+{
+  HDdouble pos[3];
+  HDdouble vel[3];
+  HDdouble trans[16];
+  HDint buttons;
+};
+
+/*!
+  \class vtkPlusOpenHapticsDevice
+  \brief Device interface for Open Haptics devices
+  \ingroup PlusLibDataCollection
+*/
+class vtkPlusDataCollectionExport vtkPlusOpenHapticsDevice : public vtkPlusDevice
+{
+public:
+
+  static vtkPlusOpenHapticsDevice* New();
+  vtkTypeMacro( vtkPlusOpenHapticsDevice, vtkPlusDevice );
+
+  /*! Hardware device SDK version. */
+  virtual std::string GetSdkVersion();
+
+  virtual bool IsTracker() const { return true; }
+
+  /*!
+    Probe to see if the device is present.
+  */
+  PlusStatus Probe();
+
+  /*!
+    Get an update from the device and push the new transforms
+    to the tools.  This should only be used within vtkTracker.cxx.
+  */
+  PlusStatus InternalUpdate();
+
+
+  /*! Connect to the device hardware */
+  PlusStatus InternalConnect();
+  /*! Disconnect from the device hardware */
+  PlusStatus InternalDisconnect();
+
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+
+  /*! Read configuration from xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
+  vtkSetMacro(DeviceName, std::string);
+  vtkGetMacro(DeviceName, std::string);
+
+
+protected:
+  vtkPlusOpenHapticsDevice();
+  ~vtkPlusOpenHapticsDevice();
+
+  
+  PlusStatus InternalStartRecording();
+  PlusStatus InternalStopRecording();
+
+  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
+  double LastFrameNumber;
+
+  unsigned int FrameNumber;
+
+  std::string DeviceName;
+  
+  bool isHapticDeviceInitialized;
+
+private:
+  vtkPlusOpenHapticsDevice( const vtkPlusOpenHapticsDevice& );
+  void operator=( const vtkPlusOpenHapticsDevice& );
+  static HDCallbackCode HDCALLBACK positionCallback(void* pData);
+
+  HHD DeviceHandle;     ///< device handle
+  HD_state DeviceState; ///< device reading state
+};
+
+#endif

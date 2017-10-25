@@ -50,6 +50,7 @@ OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D u
 OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
+OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -409,6 +410,47 @@ IF(PLUS_USE_MICRONTRACKER)
       ${MicronTracker_BINARY_DIR}/Windist/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
   ENDIF()
+ENDIF()
+
+#--------------------------------------------------------------------------
+#OpenHaptics support
+
+IF(PLUS_USE_OPENHAPTICS)
+
+  SET(OpenHaptics_SRCS
+    OpenHaptics/vtkPlusOpenHapticsDevice.cxx
+  )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(OpenHaptics_HDRS
+      OpenHaptics/vtkPlusOpenHapticsDevice.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${OpenHaptics_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${OpenHaptics_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${OPENHAPTICS_INCLUDE_DIR}
+    ${OPENHAPTICS_INCLUDE_UTIL_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/OpenHaptics
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    optimized ${OPENHAPTICS_HD_LIBRARY_RELEASE}
+    optimized ${OPENHAPTICS_HL_LIBRARY_RELEASE}
+    optimized ${OPENHAPTICS_HDU_LIBRARY_RELEASE}
+    optimized ${OPENHAPTICS_HLU_LIBRARY_RELEASE}
+    debug ${OPENHAPTICS_HD_LIBRARY_DEBUG}
+    debug ${OPENHAPTICS_HL_LIBRARY_DEBUG}
+    debug ${OPENHAPTICS_HDU_LIBRARY_DEBUG}
+    debug ${OPENHAPTICS_HLU_LIBRARY_DEBUG}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -1848,6 +1890,7 @@ source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
 source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
 source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
+source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
