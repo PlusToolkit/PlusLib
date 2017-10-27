@@ -1008,7 +1008,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SerialPort, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, BaudRate, deviceConfig);
-  if (vtkPlusNDITracker::ConvertBaudToNDIEnum(this->BaudRate) == -1)
+  if (deviceConfig->GetAttribute("BaudRate") != NULL && vtkPlusNDITracker::ConvertBaudToNDIEnum(this->BaudRate) == -1)
   {
     LOG_WARNING("Invalid baud rate specified, reverting to auto-select.");
     this->BaudRate = 0;
