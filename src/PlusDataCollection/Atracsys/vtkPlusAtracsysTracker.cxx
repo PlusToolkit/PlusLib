@@ -294,7 +294,7 @@ public:
   std::map<std::string, std::string> IdMappedToGeometryFilename;
 
   // matches tool id to ftkGeometry for updating tools
-  std::map<std::string, ftkGeometry> IdMappedToFtkGeometry;
+  std::map<int, std::string> FtkGeometryIdMappedToToolId;
 
   // main library handle for Atracsys sTk Passive Tracking SDK
   ftkLibrary ftkLib;
@@ -458,6 +458,7 @@ vtkPlusAtracsysTracker::vtkPlusAtracsysTracker()
 
   this->FrameNumber = 0;
   this->StartThreadForInternalUpdates = true;
+  this->InternalUpdateRate = 60;
 }
 
 
@@ -616,7 +617,9 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       LOG_ERROR("Failed to load geometry " << it->second);
       LOG_ERROR(this->Internal->GetFtkErrorString());
     }
-    //cout << it->first << " " << it->second;
+    
+    std::pair<int, std::string> newTool(geom.geometryId, it->first);
+    this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   }
 
   return PLUS_SUCCESS;
@@ -662,5 +665,110 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 90, 255); // red
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 91, 0); // green
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 92, 255); // blue
+  
+  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+
+  ftkFrameQuery* frame = ftkCreateFrame();
+
+  if (frame == 0)
+  {
+    cerr << "Cannot create frame instance" << endl;
+    //checkError(lib);
+  }
+
+  ftkError err(ftkSetFrameOptions(false, false, 128u, 128u,
+    4u * FTK_MAX_FIDUCIALS, 4u, frame));
+
+  if (err != FTK_OK)
+  {
+    ftkDeleteFrame(frame);
+    cerr << "Cannot initialise frame" << endl;
+    //checkError(lib);
+  }
+
+
+  if (ftkGetLastFrame(this->Internal->ftkLib, this->Internal->TrackerSN, frame, 0) != FTK_OK)
+    /* block until next frame is available */
+  {
+    return PLUS_SUCCESS;
+  }
+
+  switch (frame->markersStat)
+  {
+  case QS_WAR_SKIPPED:
+    ftkDeleteFrame(frame);
+    cerr << "marker fields in the frame are not set correctly" << endl;
+    //checkError(lib);
+
+  case QS_ERR_INVALID_RESERVED_SIZE:
+    ftkDeleteFrame(frame);
+    cerr << "frame -> markersVersionSize is invalid" << endl;
+    //checkError(lib);
+
+  default:
+    ftkDeleteFrame(frame);
+    cerr << "invalid status" << endl;
+    //checkError(lib);
+
+  case QS_OK:
+    break;
+  }
+
+  if (frame->markersStat == QS_ERR_OVERFLOW)
+  {
+    cerr <<
+      "WARNING: marker overflow. Please increase cstMarkersCount"
+      << endl;
+  }
+
+  std::map<int, std::string>::iterator it;
+  for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
+  {
+
+    ftkMarker* marker;
+    bool toolUpdated = false;
+
+    for (size_t m = 0; m < frame->markersCount; m++)
+    {
+      if (it->first != frame->markers[m].geometryId)
+      {
+        continue;
+      }
+      LOG_INFO(it->second << " in view.");
+      marker = &(frame->markers[m]);
+      toolUpdated = true;
+      vtkSmartPointer<vtkMatrix4x4> toolToTracker = vtkSmartPointer<vtkMatrix4x4>::New();
+      toolToTracker->Identity();
+      for (int i = 0; i < 3; i++)
+      {
+        toolToTracker->SetElement(i, 3, marker->translationMM[i]);
+        for (int j = 0; j < 3; j++)
+        {
+          toolToTracker->SetElement(i, j, marker->rotation[i][j]);
+        }
+      }
+      PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      std::string toolSourceId = toolTransformName.GetTransformName();
+
+      ToolTimeStampedUpdate(toolSourceId, toolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+    }
+
+    if (!toolUpdated)
+    {
+      LOG_INFO(it->second << " not in view.");
+      vtkSmartPointer<vtkMatrix4x4> emptyTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+      emptyTransform->Identity();
+      PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      std::string toolSourceId = toolTransformName.GetTransformName();
+      ToolTimeStampedUpdate(toolSourceId, emptyTransform, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
+    }
+  }
+
+  LOG_INFO(this->FrameNumber);
+  this->FrameNumber++;
+  
+  // close frame
+  ftkDeleteFrame(frame);
+
   return PLUS_SUCCESS;
 }
