@@ -805,6 +805,34 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       // status message is used as a keep-alive, don't do anything
       clientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
     }
+    else if (typeid(*bodyMessage) == typeid(igtl::GetImageMetaMessage))
+    {
+
+      // Image meta message
+      std::string deviceName("");
+      if (headerMsg->GetDeviceName() != NULL)
+      {
+        deviceName = headerMsg->GetDeviceName();
+      }
+      self->PlusCommandProcessor->QueueGetImageMetaData(clientId, deviceName);
+    }
+    else if (typeid(*bodyMessage) == typeid(igtl::GetImageMessage))
+    {
+
+      // Image meta message
+      std::string deviceName("");
+      if (headerMsg->GetDeviceName() != NULL)
+      {
+        deviceName = headerMsg->GetDeviceName();
+      }
+      else
+      {
+        LOG_ERROR("Please select the image you want to acquire");
+        return NULL;
+      }
+      self->PlusCommandProcessor->QueueGetImage(clientId, deviceName);
+
+    }
     else
     {
       // if the device type is unknown, skip reading.

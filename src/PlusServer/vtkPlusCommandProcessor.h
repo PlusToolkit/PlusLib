@@ -72,6 +72,16 @@ public:
   virtual PlusStatus QueueCommandResponse(PlusStatus status, const std::string& deviceName, unsigned int clientId, const std::string& commandName, uint32_t uid, const std::string& replyString, const std::string& errorString);
 
   /*!
+  Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA
+  !*/
+  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
+
+  /*!
+  Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE
+  !*/
+  PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
+
+  /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
     The caller is responsible for deleting the returned response objects.
     Can be called from any thread.

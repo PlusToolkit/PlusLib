@@ -94,9 +94,9 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateReceiveMessage(const
   {
     aMessageBase = this->IgtlFactory->CreateReceiveMessage(aIgtlMessageHdr);
   }
-  catch (std::invalid_argument* e)
+  catch (std::invalid_argument& e)
   {
-    LOG_ERROR("Unable to create message: " << e);
+    LOG_ERROR("Unable to create message: " << e.what());
     return NULL;
   }
 
@@ -117,9 +117,9 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const st
   {
     aMessageBase = this->IgtlFactory->CreateSendMessage(messageType, headerVersion);
   }
-  catch (std::invalid_argument* e)
+  catch (std::invalid_argument& e)
   {
-    LOG_ERROR("Unable to create message: " << e);
+    LOG_ERROR("Unable to create message: " << e.what());
     return NULL;
   }
   return aMessageBase;
@@ -145,9 +145,9 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     {
       igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.ClientHeaderVersion);
     }
-    catch (std::invalid_argument* e)
+    catch (std::invalid_argument& e)
     {
-      LOG_ERROR("Unable to create message: " << e);
+      LOG_ERROR("Unable to create message: " << e.what());
       continue;
     }
 
