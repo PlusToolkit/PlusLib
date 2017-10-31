@@ -317,6 +317,41 @@ PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(PlusStatus status, cons
 }
 
 //------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName)
+{
+
+  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+  cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+  cmdGetImage->SetDeviceName(deviceName.c_str());
+  cmdGetImage->SetNameToGetImageMeta();
+  cmdGetImage->SetImageId(deviceName.c_str());
+  {
+    // Add command to the execution queue
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    this->CommandQueue.push_back(cmdGetImage);
+  }
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
+PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string &deviceName)
+{
+  vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
+  cmdGetImage->SetCommandProcessor(this);
+  cmdGetImage->SetClientId(clientId);
+  cmdGetImage->SetDeviceName(deviceName.c_str());
+  cmdGetImage->SetNameToGetImage();
+  cmdGetImage->SetImageId(deviceName.c_str());
+  {
+    // Add command to the execution queue
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+    this->CommandQueue.push_back(cmdGetImage);
+  }
+  return PLUS_SUCCESS;
+}
+
+//------------------------------------------------------------------------------
 void vtkPlusCommandProcessor::PopCommandResponses(PlusCommandResponseList& responses)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
