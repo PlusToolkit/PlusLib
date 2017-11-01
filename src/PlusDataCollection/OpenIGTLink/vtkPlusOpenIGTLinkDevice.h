@@ -56,10 +56,11 @@ public:
   vtkGetStdStringMacro(MessageType);
 
   /*! Set image streams to be sent when message type is a type that sends an image */
-  vtkSetMacro(ImageStream, PlusTransformName);
+  vtkSetMacro(ImageMessageEmbeddedTransformName, PlusTransformName);
+  vtkSetMacro(ImageMessageEmbeddedTransformName, std::string);
 
   /*! Get image streams to be sent when message type is a type that sends an image */
-  vtkGetMacro(ImageStream, PlusTransformName);
+  vtkGetMacro(ImageMessageEmbeddedTransformName, PlusTransformName);
 
   /*! Set OpenIGTLink server address */
   vtkSetStdStringMacro(ServerAddress);
@@ -126,7 +127,7 @@ protected:
   std::string MessageType;
 
   /*! Image stream to send when message type wants to send an image */
-  PlusTransformName ImageStream;
+  PlusTransformName ImageMessageEmbeddedTransformName;
 
   /*! OpenIGTLink server address */
   std::string ServerAddress;

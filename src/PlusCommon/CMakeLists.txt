@@ -1,8 +1,9 @@
+PROJECT(PlusCommon)
+
 # --------------------------------------------------------------------------
 # Sources
-
-SET(PlusCommon_SRCS
-  PlusCommon.cxx
+SET(${PROJECT_NAME}_SRCS
+  ${PROJECT_NAME}.cxx
   vtkPlusAccurateTimer.cxx
   vtkPlusLogger.cxx
   vtkPlusHTMLGenerator.cxx
@@ -20,8 +21,8 @@ SET(PlusCommon_SRCS
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET(PlusCommon_HDRS
-    PlusCommon.h
+  SET(${PROJECT_NAME}_HDRS
+    ${PROJECT_NAME}.h
     vtkPlusAccurateTimer.h
     WindowsAccurateTimer.h
     vtkPlusLogger.h
@@ -44,7 +45,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     )
 ENDIF()
 
-SET(PlusCommon_INCLUDE_DIRS
+SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -53,7 +54,7 @@ SET(PlusCommon_INCLUDE_DIRS
 
 # --------------------------------------------------------------------------
 # Build the library
-SET(PlusCommon_LIBS 
+SET(${PROJECT_NAME}_LIBS
   vtkCommonCore
   vtkCommonDataModel
   vtkImagingCore
@@ -84,39 +85,39 @@ SET(PlusCommon_LIBS
   )
 
 IF(WIN32)
-  LIST(APPEND PlusCommon_LIBS Winmm)
+  LIST(APPEND ${PROJECT_NAME}_LIBS Winmm)
 ENDIF(WIN32)
 
 IF(PLUS_USE_OpenIGTLink)
-  LIST(APPEND PlusCommon_LIBS OpenIGTLink)
+  LIST(APPEND ${PROJECT_NAME}_LIBS OpenIGTLink)
 ENDIF()
 
-GENERATE_EXPORT_DIRECTIVE_FILE(vtkPlusCommon)
-ADD_LIBRARY(vtkPlusCommon ${PlusCommon_SRCS} ${PlusCommon_HDRS})
-FOREACH(p IN LISTS PlusCommon_INCLUDE_DIRS)
-  target_include_directories(vtkPlusCommon PUBLIC $<BUILD_INTERFACE:${p}>)
+GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
+ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(vtkPlusCommon PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-TARGET_LINK_LIBRARIES(vtkPlusCommon ${PlusCommon_LIBS})
+target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
 
 IF(MSVC)
   # enable parallel in-target build
   # do not add to interface defines as downstream targets don't necessarily need MP
-  target_compile_options(vtkPlusCommon PRIVATE /MP)
+  target_compile_options(vtk${PROJECT_NAME} PRIVATE /MP)
 ENDIF()
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtkPlusCommon CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtkPlusCommon vtkPlusCommon;${PlusLib_BINARY_DIR}/src/PlusCommon/vtkPlusCommon.vcxproj CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj CACHE INTERNAL "" FORCE)
 
 #--------------------------------------------------------------------------------------------
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_EXECUTABLE(EditSequenceFile Tools/EditSequenceFile.cxx)
   SET_TARGET_PROPERTIES(EditSequenceFile PROPERTIES FOLDER Tools)
-  TARGET_LINK_LIBRARIES(EditSequenceFile vtkPlusCommon)
+  TARGET_LINK_LIBRARIES(EditSequenceFile vtk${PROJECT_NAME})
   GENERATE_HELP_DOC(EditSequenceFile)
 
   INSTALL(TARGETS EditSequenceFile EXPORT PlusLib
@@ -127,19 +128,7 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Install
 #
-INSTALL(TARGETS vtkPlusCommon EXPORT PlusLib
-  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" COMPONENT Development
-  )
-INSTALL(FILES ${PlusCommon_HDRS}
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" COMPONENT Development
-  )
-IF(MSVC AND BUILD_SHARED_LIBS)
-  INSTALL(FILES "$<TARGET_PDB_FILE:vtkPlusCommon>" OPTIONAL
-    DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
-    )
-ENDIF(MSVC AND BUILD_SHARED_LIBS)
+PlusLibInstallLibrary(vtk${PROJECT_NAME} ${PROJECT_NAME})
 
 # --------------------------------------------------------------------------
 # Testing

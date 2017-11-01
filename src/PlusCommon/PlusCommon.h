@@ -47,13 +47,13 @@ enum PlusImagingMode
 
 /* Define case insensitive string compare for Windows. */
 #if defined( _WIN32 ) && !defined(__CYGWIN__)
-#if defined(__BORLANDC__)
-#define STRCASECMP stricmp
+  #if defined(__BORLANDC__)
+    #define STRCASECMP stricmp
+  #else
+    #define STRCASECMP _stricmp
+  #endif
 #else
-#define STRCASECMP _stricmp
-#endif
-#else
-#define STRCASECMP strcasecmp
+  #define STRCASECMP strcasecmp
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -386,14 +386,18 @@ namespace PlusCommon
   vtkPlusCommonExport PlusStatus DrawScanLines(int* inputImageExtent, const std::array<float, 3>& colour, const PixelLineList& scanLineEndPoints, vtkImageData* imageData);
 
   //----------------------------------------------------------------------------
-  // This method can be used for number to string conversion
-  // until std::to_string is supported by more compilers.
   template<typename T>
   static std::string ToString(T number)
   {
+#if defined(_MSC_VER) && _MSC_VER < 1700
+    // This method can be used for number to string conversion
+    // until std::to_string is supported by more compilers.
     std::ostringstream ss;
     ss << number;
     return ss.str();
+#else
+    return std::to_string(number);
+#endif
   }
 
   static const int NO_CLIP = -1;
@@ -402,8 +406,8 @@ namespace PlusCommon
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts = true);
   vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts = true);
-  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output);
-  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator);
+  template<typename ElemType>
+  vtkPlusCommonExport void JoinTokensIntoString(const std::vector<ElemType>& elems, std::string& output, char separator = ' ');
 
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename(std::string& aString, const std::string& anOutputDirectory);
 

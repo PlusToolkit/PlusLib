@@ -483,32 +483,6 @@ vtkPlusCommonExport std::vector<std::string> PlusCommon::SplitStringIntoTokens(c
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output)
-{
-  typedef std::vector<std::string> StringList;
-
-  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
-  {
-    output += *it;
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkPlusCommonExport void PlusCommon::JoinTokensIntoString(const std::vector<std::string>& elems, std::string& output, char separator)
-{
-  typedef std::vector<std::string> StringList;
-
-  for (StringList::const_iterator it = elems.begin(); it != elems.end(); ++it)
-  {
-    output += *it;
-    if (it != elems.end() - 1)
-    {
-      output += separator;
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, const std::array<float, 3>& colour, LINE_STYLE style,
                                 const std::array<int, 3>& startPixel, const std::array<int, 3>& endPixel,
                                 unsigned int numberOfPoints, ALPHA_BEHAVIOR alphaBehavior /*= ALPHA_BEHAVIOR_OPAQUE */)
@@ -642,18 +616,18 @@ bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::string const& a, 
   std::string lowerB(b);
   std::transform(begin(lowerB), end(lowerB), lowerB.begin(), ::tolower);
 
-  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+  return lowerA.find(lowerB) != std::string::npos;
 }
 
 //----------------------------------------------------------------------------
 bool vtkPlusCommonExport PlusCommon::HasSubstrInsensitive(std::wstring const& a, std::wstring const& b)
 {
-  std::wstring lowerA;
-  std::transform(begin(a), end(a), lowerA.begin(), ::towlower);
-  std::wstring lowerB;
-  std::transform(begin(b), end(b), lowerB.begin(), ::towlower);
+  std::wstring lowerA(a);
+  std::transform(begin(lowerA), end(lowerA), begin(lowerA), ::towlower);
+  std::wstring lowerB(b);
+  std::transform(begin(lowerB), end(lowerB), begin(lowerB), ::towlower);
 
-  return lowerA.compare(0, lowerB.length(), lowerB) == 0;
+  return lowerA.find(lowerB) != std::wstring::npos;
 }
 
 //----------------------------------------------------------------------------

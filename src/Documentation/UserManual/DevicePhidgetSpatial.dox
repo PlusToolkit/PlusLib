@@ -7,14 +7,10 @@
 - Small (few centimeters by few centimeters), low-cost (about $150) device
 - Link to manufacturer's website: http://www.phidgets.com/products.php?product_id=1044_0
 
-\section PhidgetSpatialSupportedPlatforms Included in packages
+\section PhidgetSpatialSupportedPlatforms Supported platforms
 - \ref PackageWin32
 - \ref PackageWin64
-- \ref PackageUltrasonixWin32
-- \ref PackageInterson
-- \ref PackageBk
-- \ref PackageStealthLink
-- \ref PackageThorLabs
+- \ref PackageWin32XPe
 
 The device manufacturer supports additional platforms. On request, Plus toolkit will be extended to support this device on other platforms, too.
 

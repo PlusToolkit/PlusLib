@@ -284,7 +284,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Video format
   std::string videoFormat;
-  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoFormat, videoFormat, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoFormat, videoFormat, deviceConfig);
   if (videoFormat == "487i5994_259")
   {
     VideoHeight = 487;
@@ -488,7 +488,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Data format
   std::string dataFormat;
-  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DataFormat, dataFormat, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DataFormat, dataFormat, deviceConfig);
   if (dataFormat == "r8g8b8_to_ycrcb444")
   {
     NvOptions.dataFormat = NVVIODATAFORMAT_R8G8B8_TO_YCRCB444;
@@ -685,7 +685,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // Sampling
   std::string sampling;
-  XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Sampling, sampling, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Sampling, sampling, deviceConfig);
   if (sampling == "422")
   {
     NvOptions.sampling = NVVIOCOMPONENTSAMPLING_422;
@@ -712,67 +712,67 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   switch (NvOptions.sampling)
   {
-  case NVVIOCOMPONENTSAMPLING_422:
-    if (NvOptions.bitsPerComponent == 8)
-    {
-      VideoBufferFormat = GL_YCBYCR8_422_NV;
-    }
-    else if (NvOptions.bitsPerComponent == 10)
-    {
-      VideoBufferFormat = GL_Z6Y10Z6CB10Z6Y10Z6CR10_422_NV;
-    }
-    else //12 bit
-    {
+    case NVVIOCOMPONENTSAMPLING_422:
+      if (NvOptions.bitsPerComponent == 8)
+      {
+        VideoBufferFormat = GL_YCBYCR8_422_NV;
+      }
+      else if (NvOptions.bitsPerComponent == 10)
+      {
+        VideoBufferFormat = GL_Z6Y10Z6CB10Z6Y10Z6CR10_422_NV;
+      }
+      else //12 bit
+      {
+        NvOptions.dualLink = true;
+        VideoBufferFormat = GL_Z4Y12Z4CB12Z4Y12Z4CR12_422_NV;
+      }
+      break;
+    case NVVIOCOMPONENTSAMPLING_4224:
       NvOptions.dualLink = true;
-      VideoBufferFormat = GL_Z4Y12Z4CB12Z4Y12Z4CR12_422_NV;
-    }
-    break;
-  case NVVIOCOMPONENTSAMPLING_4224:
-    NvOptions.dualLink = true;
-    if (NvOptions.bitsPerComponent == 8)
-    {
-      VideoBufferFormat = GL_YCBAYCR8A_4224_NV;
-    }
-    else if (NvOptions.bitsPerComponent == 10)
-    {
-      VideoBufferFormat = GL_Z6Y10Z6CB10Z6A10Z6Y10Z6CR10Z6A10_4224_NV;
-    }
-    else //12 bit
-    {
-      VideoBufferFormat = GL_Z4Y12Z4CB12Z4A12Z4Y12Z4CR12Z4A12_4224_NV;
-    }
-    break;
-  case NVVIOCOMPONENTSAMPLING_444:
-    NvOptions.dualLink = true;
-    if (NvOptions.bitsPerComponent == 8)
-    {
+      if (NvOptions.bitsPerComponent == 8)
+      {
+        VideoBufferFormat = GL_YCBAYCR8A_4224_NV;
+      }
+      else if (NvOptions.bitsPerComponent == 10)
+      {
+        VideoBufferFormat = GL_Z6Y10Z6CB10Z6A10Z6Y10Z6CR10Z6A10_4224_NV;
+      }
+      else //12 bit
+      {
+        VideoBufferFormat = GL_Z4Y12Z4CB12Z4A12Z4Y12Z4CR12Z4A12_4224_NV;
+      }
+      break;
+    case NVVIOCOMPONENTSAMPLING_444:
+      NvOptions.dualLink = true;
+      if (NvOptions.bitsPerComponent == 8)
+      {
+        VideoBufferFormat = GL_RGB8;
+      }
+      else if (NvOptions.bitsPerComponent == 10)
+      {
+        VideoBufferFormat = GL_RGB10;
+      }
+      else //12 bit
+      {
+        VideoBufferFormat = GL_Z4Y12Z4CB12Z4CR12_444_NV;
+      }
       VideoBufferFormat = GL_RGB8;
-    }
-    else if (NvOptions.bitsPerComponent == 10)
-    {
-      VideoBufferFormat = GL_RGB10;
-    }
-    else //12 bit
-    {
-      VideoBufferFormat = GL_Z4Y12Z4CB12Z4CR12_444_NV;
-    }
-    VideoBufferFormat = GL_RGB8;
-    break;
-  case NVVIOCOMPONENTSAMPLING_4444:
-    NvOptions.dualLink = true;
-    if (NvOptions.bitsPerComponent == 8)
-    {
-      VideoBufferFormat = GL_RGBA8;
-    }
-    else if (NvOptions.bitsPerComponent == 10)
-    {
-      VideoBufferFormat = GL_RGBA12;
-    }
-    else //12 bit
-    {
-      VideoBufferFormat = GL_RGBA12;
-    }
-    break;
+      break;
+    case NVVIOCOMPONENTSAMPLING_4444:
+      NvOptions.dualLink = true;
+      if (NvOptions.bitsPerComponent == 8)
+      {
+        VideoBufferFormat = GL_RGBA8;
+      }
+      else if (NvOptions.bitsPerComponent == 10)
+      {
+        VideoBufferFormat = GL_RGBA12;
+      }
+      else //12 bit
+      {
+        VideoBufferFormat = GL_RGBA12;
+      }
+      break;
   }
 
   if (NvOptions.captureDevice >= numCaptureDevices)
@@ -985,21 +985,21 @@ GLenum vtkPlusNvidiaDVPVideoSource::CaptureVideo()
     prevSequenceNum = sequenceNum;
     switch (ret)
     {
-    case GL_SUCCESS_NV:
-      LOG_DEBUG("Frame: " << sequenceNum << ". gpuTime: " << NvSDIin.m_gpuTime  << ". gviTime: " << NvSDIin.m_gviTime << ".");
-      numFails = 0;
-      break;
-    case GL_PARTIAL_SUCCESS_NV:
-      LOG_WARNING("glVideoCaptureNV: GL_PARTIAL_SUCCESS_NV.");
-      numFails = 0;
-      break;
-    case GL_FAILURE_NV:
-      LOG_ERROR("glVideoCaptureNV: GL_FAILURE_NV - Video capture failed.");
-      numFails++;
-      break;
-    default:
-      LOG_ERROR("glVideoCaptureNV: Unknown return value.");
-      break;
+      case GL_SUCCESS_NV:
+        LOG_DEBUG("Frame: " << sequenceNum << ". gpuTime: " << NvSDIin.m_gpuTime  << ". gviTime: " << NvSDIin.m_gviTime << ".");
+        numFails = 0;
+        break;
+      case GL_PARTIAL_SUCCESS_NV:
+        LOG_WARNING("glVideoCaptureNV: GL_PARTIAL_SUCCESS_NV.");
+        numFails = 0;
+        break;
+      case GL_FAILURE_NV:
+        LOG_ERROR("glVideoCaptureNV: GL_FAILURE_NV - Video capture failed.");
+        numFails++;
+        break;
+      default:
+        LOG_ERROR("glVideoCaptureNV: Unknown return value.");
+        break;
     }
   }
   // The incoming signal format or some other error occurred during

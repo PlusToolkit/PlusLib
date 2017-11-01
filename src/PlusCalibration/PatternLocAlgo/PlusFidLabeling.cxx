@@ -642,7 +642,7 @@ void PlusFidLabeling::FindPattern()
       }
 
       // Sort result lines according to middlePoint Y's
-      // TODO: If the wire pattern is asymmetric then use the pattern geometry to match the lines to the intersection points instead of just sort them by Y value (https://www.assembla.com/spaces/plus/tickets/435)
+      // TODO: If the wire pattern is asymmetric then use the pattern geometry to match the lines to the intersection points instead of just sort them by Y value (https://plustoolkit.github.io/legacytickets #435)
       std::vector<double>::iterator middlePointYsBeginIt = resultLineMiddlePointYs.begin();
       for ( int i = 0; i < numberOfLines; ++i )
       {

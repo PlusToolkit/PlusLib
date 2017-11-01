@@ -1,44 +1,63 @@
 /*!
-\page DeviceOptitrack OptiTrack optical pose tracker
+\page DeviceOptiTrack OptiTrack
 
-\section OptitrackSupportedHwDevices Supported hardware devices
+\section OptiTrackSupportedHwDevices Supported hardware devices
+- Any OptiTrack tracker which is compatible with Motive.
+- OptiTrack trackers can be purchased at <a href="https://www.optitrack.com/">www.optitrack.com</a>
 
-- OptiTrack offers a high-performance optical tracking system.
-- Link to manufacturer's website: http://www.optitrack.com/
+\section OptitrackSupportedPlatforms Supported platforms
 
-\section OptitrackSupportedPlatforms Included in packages
+- \ref PackageWin32
+- \ref PackageWin64
 
-- This device is not included in any of the standard packages
+\section OptiTrackInstallation Installation
+- Download and install <a href="http://optitrack.com/downloads/">Motive 1.10.3</a>.
 
-\section OptitrackInstallation Installation
+\section OptiTrackDocumentation Important sections of OptiTrack Motive Documentation
+  - Read the following sections of the <a href="http://v110.wiki.optitrack.com/index.php?title=OptiTrack_Documentation_Wiki">Motive User Manual</a>
+    - <a href="http://v110.wiki.optitrack.com/index.php?title=Motive_Basics">Motive basics</a>: This will give you a basic understanding of how the Motive software works.
+    - <a href="http://v110.wiki.optitrack.com/index.php?title=Calibration">Calibration</a>: This process defines the positions of the cameras in multi-camera systems with respect to each other. This is not necessary if using a tracking bar camera.
+    - <a href="http://v110.wiki.optitrack.com/index.php?title=Rigid_Body_Tracking">Rigid body tracking</a>: This section gives essential information about creating rigid bodies for tracking. It also provides helpful background on selecting good marker positions.
 
-- Need to install Tacking Tools from <a href= "http://www.optitrack.com/downloads/tracking-tools.html">here</a>, and perform spatial calibration of cameras.
-- For additional information about how to use the tools configuration files ,you can check <a href= "https://github.com/HGGM-LIM/BiiGOptitrack">here</a>, <a href= "http://hggm-lim.github.io/BiiGOptitrack/">BiiGOptitrack documentation</a> and <a href= "https://github.com/HGGM-LIM/BiiGOptitrack/tree/master/BiiGOptitrackControl/install">diagrams</a>.
+\section OptiTrackFileTypes Motive File Types
+  - <strong>Project file</strong>: .ttp files saved from Motive which contain the camera parameters, calibration (if using multi-camera systems) and rigid body definitions
+  - <strong>Calibration file</strong> .cal files saved from Motive which contain the camera calibration
+  - <strong>Rigid body file</strong> .tra files saved from Motive which contain the definition of a single rigid body asset
 
-\section OptitrackConfigSettings Device configuration settings
+\section OptiTrackSettingUpTracking Setting up Tracking
+  - <strong>Simple Configuration</strong> (using only a Motive project file)
+    - 1: Run Motive and perform a calibration
+    - 2: In Motive's 3D view, select all the markers corresponding to a rigid body and right click. Cursor "Rigid Body" then click "Create From Selected Markers".
+    - 3: Select the newly created rigid body in the "Project" tab and change the rigid body's "Name" attribute to something descriptive of the rigid body. This will be the rigid body's ID in the PLUS config file.
+    - 4: Repeat steps 2 & 3 for each rigid body to be tracked.
+    - 5: Save the Motive project to the same directory as the PLUS config file using File->Save Motive Project As.
+    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_TTPOnly.xml to reflect the name of your Motive project file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute).
+  - <strong>Flexible Configuration</strong> (using a project file for the calibration, providing the rigid bodies as TRA files)
+    - 1: Run Motive and perform a calibration
+    - 2: Save the calibration as a Motive project file.
+    - 2: In Motive's 3D view, select all the markers corresponding to a rigid body and right click. Cursor "Rigid Body" then click "Create From Selected Markers".
+    - 3: Select the newly created rigid body in the "Project" tab and change the rigid body's "Name" attribute to something descriptive of the rigid body. This will be the rigid body's ID in the PLUS config file.
+    - 4: Right click the rigid body's name in the "Project" tab and click "Export Rigid Body". Save the resulting file in the PLUS config file directory. We reccomend naming this file <Motive-name>.tra, replacing <Motive-name> with the name attribute of the rigid body.
+    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml to reflect the name of your Motive project file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute, and TRA file containing the relative path of the rigid body's associated TRA file).
 
-- \xmlAtt \ref DeviceId "Id" = \c "TrackerDevice"
+\section OptiTrackConfigSettings Device configuration settings
 - \xmlAtt \ref DeviceType "Type" = \c "OptiTrack" \RequiredAtt
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{100}
-- \xmlAtt \b CalibrationFileDirectory Path to the file that contains the calibration of the cameras. \RequiredAtt Previously performed with TrackingTools software "path/calibration.cal".
-- \xmlAtt \b Exposition Exposition value used when calibrating the cameras. \RequiredAtt
-- \xmlAtt \b Threshold Threshold value used when calibrating the cameras. \RequiredAtt
-- \xmlAtt \b Illumination Illumination value used when calibrating the cameras. \RequiredAtt
 
-
-- \xmlElem \ref DataSources One \c DataSource child element is required for each tool or rigid body used. \RequiredAtt
+- \xmlAtt \b ProjectFile The Motive project file (.TTP) to load. \RequiredAtt
+- \xmlAtt \b RunMotiveInBackground If true, will run Motive in the background. If false, you must run Motive on the same PC as PLUS is running on. \RequiredAtt
+- \xmlAtt \b MotiveDataDescriptionsUpdateTimeSec Only used if Motive GUI is shown. Defines time how frequently list of tools is queried from Motive. Each update consumes a small amount of memory, therefore it is recommended to only use >=0 value only during development. If set to a negative value, tool descriptions are only updated when connecting to the device.\OptionalAtt{1.0}
+- \xmlElem \ref DataSources One \c DataSource child element is required for each rigid body to be tracked. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
-    - \xmlAtt \ref ConfFile \RequiredAtt Path to the file that contains the tool definition or rigid body used.
-     
-    
-    
-\section OptiTrackExampleConfigFile Example configuration file PlusDeviceSet_Server_OptiTrack.xml
-\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack.xml" 
+    - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
+    - \xmlAtt \b RigidBodyFile The filename of the TRA file that defines the rigid body. \OptionalAtt{NULL}
 
-\section RigidBpdyDefinitionExampleConfigFile Example configuration file RigidBodyXML.xml
-\include "ConfigFiles/RigidBodyOptitrack.xml" 
+\section OptiTrackExampleConfigFileTTPOnly Simple Configuration
+Example configuration file with all rigid bodies saved in the Motive project (PlusDeviceSet_Server_OptiTrack_TTPOnly.xml)
+\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack_TTPOnly.xml"
 
+\section OptiTrackExampleConfigFileTTPandTRA Flexible Configuration
+Example configuration file with rigid bodies supplied as .TRA files (PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml)
+\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml"
 
 */

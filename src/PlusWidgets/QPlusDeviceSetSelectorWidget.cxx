@@ -16,8 +16,10 @@ See License.txt for details.
 #include <QDesktopWidget>
 #include <QDomDocument>
 #include <QFileDialog>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QProcess>
 #include <QUrl>
 
@@ -41,6 +43,9 @@ QPlusDeviceSetSelectorWidget::QPlusDeviceSetSelectorWidget(QWidget* aParent)
   , m_EditApplicationConfigFileAction(NULL)
   , m_DeviceSetComboBoxMaximumSizeRatio(-1)
 {
+  // Accept drop of files from explorer (and others)
+  setAcceptDrops(true);
+
   ui.setupUi(this);
 
   // Make the directory and configuration selector textbox/combobox the same height as the pushbuttons
@@ -169,10 +174,15 @@ void QPlusDeviceSetSelectorWidget::InvokeConnect()
     return;
   }
 
+  // Save selected device set configuration file name
+  std::string configFile = ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toStdString();
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(configFile);
+  vtkPlusConfig::GetInstance()->SaveApplicationConfigurationToFile();
+
   ui.pushButton_Connect->setEnabled(false);
   QCoreApplication::processEvents();
 
-  emit ConnectToDevicesByConfigFileInvoked(ui.comboBox_DeviceSet->itemData(ui.comboBox_DeviceSet->currentIndex(), FileNameRole).toString().toStdString());
+  emit ConnectToDevicesByConfigFileInvoked(configFile);
 }
 
 //-----------------------------------------------------------------------------
@@ -540,6 +550,33 @@ QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument&
   }
 
   return "";
+}
+
+//----------------------------------------------------------------------------
+void QPlusDeviceSetSelectorWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+  {
+    QString filename = event->mimeData()->urls()[0].toLocalFile();
+    if (filename.lastIndexOf('.') == -1)
+    {
+      return;
+    }
+    QString extension = filename.mid(filename.lastIndexOf('.'));
+    if (extension.contains("xml"))
+    {
+      event->acceptProposedAction();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void QPlusDeviceSetSelectorWidget::dropEvent(QDropEvent* event)
+{
+  QUrl url = event->mimeData()->urls().first();
+  QString fileName = url.toLocalFile();
+
+  this->SetConfigurationFile(fileName);
 }
 
 //----------------------------------------------------------------------------

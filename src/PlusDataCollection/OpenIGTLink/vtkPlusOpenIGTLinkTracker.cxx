@@ -19,17 +19,15 @@ vtkStandardNewMacro(vtkPlusOpenIGTLinkTracker);
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkTracker::vtkPlusOpenIGTLinkTracker()
-  : TrackerInternalCoordinateSystemName(NULL)
-  , UseLastTransformsOnReceiveTimeout(false)
+  : UseLastTransformsOnReceiveTimeout(false)
   , IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
-  SetTrackerInternalCoordinateSystemName("Reference");
+  SetToolReferenceFrameName("Reference");
 }
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkTracker::~vtkPlusOpenIGTLinkTracker()
 {
-  SetTrackerInternalCoordinateSystemName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -129,8 +127,8 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     // We've received valid header data
     headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
 
-    bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
-    if (typeid(bodyMsg) == typeid(igtl::TransformMessage))
+    bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    if (typeid(*bodyMsg) == typeid(igtl::TrackingDataMessage))
     {
       // received a TDATA message
       break;
@@ -188,7 +186,18 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     std::string igtlTransformName = tdataElem->GetName();
 
     // Set internal transform name
-    PlusTransformName transformName(igtlTransformName.c_str(), this->TrackerInternalCoordinateSystemName);
+    PlusTransformName transformName;
+    if (igtlTransformName.find("To") != std::string::npos)
+    {
+      // Plus style transform name sent
+      transformName = igtlTransformName;
+    }
+    else
+    {
+      // Brainlab style transform name sent
+      transformName = PlusTransformName(igtlTransformName.c_str(), this->ToolReferenceFrameName);
+    }
+
     if (this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS)
     {
       identifiedToolSourceIds.insert(transformName.GetTransformName());
@@ -355,13 +364,21 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenIGTLinkTracker::SendRequestedMessageTypes()
 {
+  if (this->Superclass::SendRequestedMessageTypes() != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+
+  // NOTE: Command above sends clientinfo message, which implicitly stops TDATA sending
+  // Command below must be sent after the clientinfo message is sent
+
   // If we need TDATA, request server to start streaming.
   if (this->IsTDataMessageType())
   {
     igtl::StartTrackingDataMessage::Pointer sttMsg = igtl::StartTrackingDataMessage::New();
     sttMsg->SetDeviceName("");
     sttMsg->SetResolution(50);
-    sttMsg->SetCoordinateName(this->TrackerInternalCoordinateSystemName);
+    sttMsg->SetCoordinateName(this->ToolReferenceFrameName.c_str());
     sttMsg->Pack();
 
     int retValue = 0;
@@ -379,7 +396,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::SendRequestedMessageTypes()
     }
   }
 
-  return this->Superclass::SendRequestedMessageTypes();
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -481,7 +498,6 @@ PlusStatus vtkPlusOpenIGTLinkTracker::StoreInvalidTransforms(double unfilteredTi
 PlusStatus vtkPlusOpenIGTLinkTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TrackerInternalCoordinateSystemName, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseLastTransformsOnReceiveTimeout, deviceConfig);
   return PLUS_SUCCESS;
 }
@@ -490,7 +506,6 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ReadConfiguration(vtkXMLDataElement* rootC
 PlusStatus vtkPlusOpenIGTLinkTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  deviceConfig->SetAttribute("TrackerInternalCoordinateSystemName", this->TrackerInternalCoordinateSystemName);
   deviceConfig->SetAttribute("UseLastTransformsOnReceiveTimeout", this->UseLastTransformsOnReceiveTimeout ? "true" : "false");
   return PLUS_SUCCESS;
 }

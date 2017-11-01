@@ -1,0 +1,59 @@
+/*!
+\page DeviceAgilent Oscilloscope interface
+
+\section AgilentSupportedHwDevices Supported hardware devices
+
+- Acquiris D310 Oscilloscope
+
+\section AgilentSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+
+\section Agilent3DGConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "AgilentScope" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{50}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b SampleFrequencyHz The frequency to collect samples. \OptionalAtt{420000000}
+- \xmlAtt \b DelayTimeSec The time to delay before processing data \OptionalAtt{0.000002}
+- \xmlAtt \b SampleCountPerAcquisition \OptionalAtt{11350}
+- \xmlAtt \b FullScale \OptionalAtt{1.0}
+- \xmlAtt \b Offset \OptionalAtt{0.0}
+- \xmlAtt \b Coupling \OptionalAtt{3}
+- \xmlAtt \b SpeedOfSound Used for processing peak distance (m/s) \OptionalAtt{1480}
+- \xmlAtt \b Bandwidth \OptionalAtt{0}
+- \xmlAtt \b TrigCoupling \OptionalAtt{0}
+- \xmlAtt \b Slope \OptionalAtt{0}
+- \xmlAtt \b Level \OptionalAtt{20.0}
+- \xmlAtt \b MinPeakDistance The minimum allowed distance between detected peaks \OptionalAtt{280.0}
+
+- \xmlElem \ref DataSources One \c DataSource child element for each entry. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+   - \xmlAtt \b Type = \c "Video" \RequiredAtt
+   - \xmlAtt \b Id Must be \c "1DSignal" to collect the raw data signal \RequiredAtt
+   - \xmlAtt \ref BufferSize \OptionalAtt{150}
+   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+  - \xmlElem \ref DataSource \RequiredAtt
+   - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+   - \xmlAtt \b Id Must be \c "FirstPeak" to collect the first peak transform \RequiredAtt
+   - \xmlAtt \ref BufferSize \OptionalAtt{150}
+   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+  - \xmlElem \ref DataSource \RequiredAtt
+   - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+   - \xmlAtt \b Id Must be \c "SecondPeak" to collect the second peak transform \RequiredAtt
+   - \xmlAtt \ref BufferSize \OptionalAtt{150}
+   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+  - \xmlElem \ref DataSource \RequiredAtt
+   - \xmlAtt \b Type = \c "Tool" \RequiredAtt
+   - \xmlAtt \b Id Must be \c "ThirdPeak" to collect the third peak transform \RequiredAtt
+   - \xmlAtt \ref BufferSize \OptionalAtt{150}
+   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section AgilentExampleConfigFile Example configuration file PlusDeviceSet_Server_Agilent.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_Agilent.xml"
+    
+*/

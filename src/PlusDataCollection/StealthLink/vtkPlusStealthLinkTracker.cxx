@@ -88,18 +88,32 @@ public:
     return this->ExamValid;
   }
 
+  //----------------------------------------------------------------------------
   // Get for Navigation Data. It is called each time internalupdate is called
   PlusStatus GetCurrentNavigationData(MNavStealthLink::NavData& navData)
   {
     MNavStealthLink::Error err;
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
+    if (!this->StealthLinkServer->get(navData, myDateTime, err))
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
-      MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
-      if (!this->StealthLinkServer->get(navData, myDateTime, err))
-      {
-        LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
-        return PLUS_FAIL;
-      }
+      LOG_ERROR(" Failed to acquire the navigation data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  // Get for Instrument Data. It is called each time internalupdate is called for any additional instruments that need to be tracked
+  PlusStatus GetInstrumentData(MNavStealthLink::Instrument& instrument, const std::string toolname)
+  {
+    MNavStealthLink::Error err;
+    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
+    if (!this->StealthLinkServer->get(toolname, instrument, myDateTime, err))
+    {
+      LOG_ERROR(" Failed to acquire the instrument data from StealthLink Server: " <<  err.reason() << " " << err.what() << "\n");
+      return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
@@ -402,16 +416,36 @@ private:
   }
 
   /*! Update the transformation maxtrix of the current instrument !*/
-  static void GetInstrumentInformation(MNavStealthLink::NavData navData, bool& instrumentOutOfView, vtkMatrix4x4* insToTrackerTransform)
+  static void GetInstrumentInformation(MNavStealthLink::Instrument instrument, ToolStatus& instrumentStatus, vtkMatrix4x4* insToTrackerTransform)
   {
-    if (!(navData.instVisibility == MNavStealthLink::Instrument::VISIBLE) && !(navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
+    if (!(instrument.visibility == MNavStealthLink::Instrument::VISIBLE) && !(instrument.visibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
     {
-      instrumentOutOfView = true;
+      instrumentStatus = TOOL_OUT_OF_VIEW;
       return;
     }
     else
     {
-      instrumentOutOfView = false;
+      instrumentStatus = TOOL_OK;
+    }
+    for (int col = 0; col < 4; col++)
+    {
+      for (int row = 0; row < 4; row++)
+      {
+        insToTrackerTransform->SetElement(row, col, instrument.localizer_T_instrument [row][col]);
+      }
+    }
+  }
+  /*! Update the transformation maxtrix of the current instrument !*/
+  static void GetInstrumentInformation(MNavStealthLink::NavData navData, ToolStatus& instrumentStatus, vtkMatrix4x4* insToTrackerTransform)
+  {
+    if (!(navData.instVisibility == MNavStealthLink::Instrument::VISIBLE) && !(navData.instVisibility == MNavStealthLink::Instrument::ALMOST_BLOCKED))
+    {
+      instrumentStatus = TOOL_OUT_OF_VIEW;
+      return;
+    }
+    else
+    {
+      instrumentStatus = TOOL_OK;
     }
     for (int col = 0; col < 4; col++)
     {
@@ -760,6 +794,38 @@ PlusStatus vtkPlusStealthLinkTracker::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerPort, deviceConfig);
 
+  XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
+  for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
+  {
+    vtkXMLDataElement* toolDataElement = dataSourcesElement->GetNestedElement(nestedElementIndex);
+    if (STRCASECMP(toolDataElement->GetName(), "DataSource") != 0)
+    {
+      // if this is not a data source element, skip it
+      continue;
+    }
+    if (toolDataElement->GetAttribute("Type") != NULL && STRCASECMP(toolDataElement->GetAttribute("Type"), "Tool") != 0)
+    {
+      // if this is not a Tool element, skip it
+      continue;
+    }
+
+    const char* portName = toolDataElement->GetAttribute("PortName");
+    vtkPlusDataSource* trackerTool = NULL;
+    this->GetToolByPortName(portName, trackerTool);
+    if (trackerTool)
+    {
+      const char* alwaysTrackTool = toolDataElement->GetAttribute("AlwaysTrack");
+      if (alwaysTrackTool)
+      {
+        trackerTool->SetCustomProperty("AlwaysTrack", alwaysTrackTool);
+      }
+      else
+      {
+        trackerTool->SetCustomProperty("AlwaysTrack", "FALSE");
+      }
+    }
+  }
+
   if (this->GetDeviceId().size() > MAX_DEVICE_ID_LENGTH)
   {
     LOG_WARNING("The device id " << this->GetDeviceId() << " might be too long, as it may be used for generating identifiers for images that will be sent through OpenIGTLink. Consider choosing a shorter device Id. Example: SLD1");
@@ -866,10 +932,6 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkMatrix4x4> instrumentToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool instrumentOutOfView = true;
-  vtkPlusStealthLinkTracker::vtkInternal::GetInstrumentInformation(navData, instrumentOutOfView, instrumentToTrackerTransform);
-
   vtkSmartPointer<vtkMatrix4x4> frameToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   bool frameOutOfView = true;
   vtkPlusStealthLinkTracker::vtkInternal::GetFrameInformation(navData, frameOutOfView, frameToTrackerTransform);
@@ -905,22 +967,41 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
         this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), rasToTrackerTransform, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
       }
     }
-    // if the wanted Transform is any tool to Tracker example sytlusToTracker, probeToTracker etc
+    // if the wanted Transform is the current tool to Tracker example sytlusToTracker, probeToTracker, etc
+    // the current tool is considered by the StealthStation to be the tool that is closest to the reference frame
     else if (toolIterator->second->GetPortName() == navData.instrumentName)
     {
-      if (instrumentOutOfView == false)
-      {
-        this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), instrumentToTrackerTransform, TOOL_OK, unfilteredTime, timeSystemSec);
-      }
-      else if (instrumentOutOfView == true)
-      {
-        this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), instrumentToTrackerTransform, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
-      }
+      vtkSmartPointer<vtkMatrix4x4> instrumentToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+      ToolStatus instrumentStatus = TOOL_OUT_OF_VIEW;
+      vtkPlusStealthLinkTracker::vtkInternal::GetInstrumentInformation(navData, instrumentStatus, instrumentToTrackerTransform);
+      this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), instrumentToTrackerTransform, instrumentStatus, unfilteredTime, timeSystemSec);
     }
+    // if the wanted Transform is any tool to Tracker that is not the closest to the reference frame
     else
     {
-      vtkSmartPointer<vtkMatrix4x4> transformMatrixForNotTrackedTool = vtkSmartPointer<vtkMatrix4x4>::New();
-      this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), transformMatrixForNotTrackedTool, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
+      // navData returned from stealthstation only contains updated information for the tool that is closest to the reference frame
+      // if the tool is specified to always be tracked, another query is made to get updated information
+      // making this extra query is an expensive operation, so it is only attempted if the user has specified that they would like a tool to be tracked at all times
+      if (STRCASECMP(toolIterator->second->GetCustomProperty("AlwaysTrack").c_str(), "TRUE") == 0)
+      {
+        MNavStealthLink::Instrument instrument;
+        if (this->InternalShared->GetInstrumentData(instrument, toolIterator->second->GetPortName()) == PLUS_FAIL)    //thread safe
+        {
+          return PLUS_FAIL;
+        }
+
+        vtkSmartPointer<vtkMatrix4x4> instrumentToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+        ToolStatus instrumentStatus = TOOL_OUT_OF_VIEW;
+        vtkPlusStealthLinkTracker::vtkInternal::GetInstrumentInformation(instrument, instrumentStatus, instrumentToTrackerTransform);
+        this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), instrumentToTrackerTransform, instrumentStatus, unfilteredTime, timeSystemSec);
+      }
+      // tools that are not closest to the reference frame and are not always tracked are considered to be out of view
+      else
+      {
+        vtkSmartPointer<vtkMatrix4x4> transformMatrixForNotTrackedTool = vtkSmartPointer<vtkMatrix4x4>::New();
+        this->ToolTimeStampedUpdateWithoutFiltering(toolIterator->second->GetSourceId(), transformMatrixForNotTrackedTool, TOOL_OUT_OF_VIEW, unfilteredTime, timeSystemSec);
+      }
+
     }
   }
   return PLUS_SUCCESS;
@@ -1018,7 +1099,7 @@ PlusStatus vtkPlusStealthLinkTracker::AreInstrumentPortNamesValid(bool& valid)
     }
     if (found == false)
     {
-      LOG_ERROR(toolIterator->second->GetPortName() << " has not been found in the server. Please make sure to use correct port names for the tools\n");
+      LOG_ERROR(toolIterator->second->GetPortName() << " instrument is not available in the connected StealthStation. Please make sure that the port name matches the instrument name in StealthStation or remove the corresponding DataSource element from DataSources and OutputChannel elements in the Plus device set configuration file\n");
       valid = false;
       std::string strValidToolPortNames("Valid tool port names are:\n");
       for (unsigned int i = 0; i < validToolPortNames.size(); i++)

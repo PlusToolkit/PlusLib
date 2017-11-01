@@ -56,6 +56,8 @@ vtkPlusGenericSerialDevice::vtkPlusGenericSerialDevice()
   : Serial(new SerialLine())
   , SerialPort(1)
   , BaudRate(9600)
+  , DTR(false)
+  , RTS(false)
   , MaximumReplyDelaySec(0.100)
   , MaximumReplyDurationSec(0.300)
   , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
@@ -133,6 +135,18 @@ PlusStatus vtkPlusGenericSerialDevice::InternalConnect()
     return PLUS_FAIL;
   }
 
+  if (!this->SetDTR(this->DTR)) //re-set it in case we are reconnecting
+  {
+    LOG_ERROR("Could not re-establish DTR (data-terminal-ready) line ");
+    return PLUS_FAIL;
+  }
+
+  if (!this->SetRTS(this->RTS)) //re-set it in case we are reconnecting
+  {
+    LOG_ERROR("Could not re-establish RTS (request-to-send) line ");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -171,7 +185,74 @@ PlusStatus vtkPlusGenericSerialDevice::InternalUpdate()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/)
+PlusStatus vtkPlusGenericSerialDevice::SetDTR(bool onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
+  PlusStatus retval;
+
+  if (onOff == this->DTR)
+  {
+    return PLUS_SUCCESS; //already the desired value
+  }
+  else
+  {
+    retval = this->Serial->SetDTR(onOff);
+    if (retval == PLUS_SUCCESS)
+    {
+      this->DTR = onOff;
+    }
+  }
+
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+
+  PlusStatus retval;
+
+  if (onOff == this->RTS)
+  {
+    return PLUS_SUCCESS; //already the desired value
+  }
+  else
+  {
+    retval = this->Serial->SetRTS(onOff);
+    if (retval == PLUS_SUCCESS)
+    {
+      this->RTS = onOff;
+    }
+  }
+
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::GetDSR(bool & onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  PlusStatus retval = this->Serial->GetDSR(onOff);
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::GetCTS(bool & onOff)
+{
+  // Either update or send commands - but not simultaneously
+  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  PlusStatus retval = this->Serial->GetCTS(onOff);
+  return retval;
+}
+
+//-------------------------------------------------------------------------
+PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/,
+  ReplyTermination acceptReply/*=REQUIRE_LINE_ENDING*/)
 {
   LOG_DEBUG("Send to Serial device: " << textToSend);
 
@@ -198,7 +279,7 @@ PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, s
     {
       // a response is expected
       std::string line;
-      if (this->ReceiveResponse(line) != PLUS_SUCCESS)
+      if (this->ReceiveResponse(line, acceptReply) != PLUS_SUCCESS)
       {
         *textReceived += line;
         break;
@@ -230,7 +311,7 @@ bool vtkPlusGenericSerialDevice::WaitForResponse()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived)
+PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived, ReplyTermination acceptReply/*=REQUIRE_LINE_ENDING*/)
 {
   textReceived.clear();
   double startTime = vtkPlusAccurateTimer::GetSystemTime();
@@ -246,8 +327,20 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived
       if (vtkPlusAccurateTimer::GetSystemTime() - startTime > this->MaximumReplyDurationSec)
       {
         // waiting time expired
-        LOG_ERROR("Failed to read complete line from serial device. Received: " << textReceived);
-        return PLUS_FAIL;
+        if (acceptReply == REQUIRE_LINE_ENDING)
+        {
+          LOG_ERROR("Failed to get a proper response within configured time (" << this->MaximumReplyDurationSec << " sec)");
+          return PLUS_FAIL;
+        }
+        else if (acceptReply == REQUIRE_NOT_EMPTY && textReceived.empty())
+        {
+          LOG_ERROR("Failed to read a complete line from serial device. Received: " << textReceived);
+          return PLUS_FAIL;
+        }
+        else
+        {
+          return PLUS_SUCCESS;
+        }
       }
     }
     textReceived.push_back(d);

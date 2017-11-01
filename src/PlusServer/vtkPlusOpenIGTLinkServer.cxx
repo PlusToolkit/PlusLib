@@ -1183,10 +1183,37 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", IGTL_HEADER_VERSION_1).GetPointer());
     igtlMessage->SetDeviceName(imageName.c_str());
 
-    if (vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData,
-        imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData, *imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to create image mesage from command response");
+      return NULL;
+    }
+    return igtlMessage.GetPointer();
+  }
+
+  vtkPlusCommandPolydataResponse* polydataResponse = vtkPlusCommandPolydataResponse::SafeDownCast(response);
+  if (polydataResponse)
+  {
+    std::string polydataName = polydataResponse->GetPolyDataName();
+    if (polydataName.empty())
+    {
+      polydataName = "UnknownFile";
+    }
+
+    vtkSmartPointer<vtkPolyData> polyData = polydataResponse->GetPolyData();
+    if (polyData == NULL)
+    {
+      LOG_ERROR("Missing polydata in command response");
+      return NULL;
+    }
+
+    igtl::PolyDataMessage::Pointer igtlMessage = dynamic_cast<igtl::PolyDataMessage*>(this->IgtlMessageFactory->CreateSendMessage("POLYDATA", IGTL_HEADER_VERSION_2).GetPointer());
+    igtlMessage->SetDeviceName("PlusServer");
+    igtlMessage->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, polydataName);
+
+    if (vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtlMessage, polyData, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to create polydata mesage from command response");
       return NULL;
     }
     return igtlMessage.GetPointer();
@@ -1208,7 +1235,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     return igtlMessage.GetPointer();
   }
 
-  vtkPlusCommandCommandResponse* commandResponse = vtkPlusCommandCommandResponse::SafeDownCast(response);
+  vtkPlusCommandRTSCommandResponse* commandResponse = vtkPlusCommandRTSCommandResponse::SafeDownCast(response);
   if (commandResponse)
   {
     if (!commandResponse->GetRespondWithCommandMessage())
@@ -1239,14 +1266,18 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       igtlMessage->SetCommandName(commandResponse->GetCommandName());
       igtlMessage->SetCommandId(commandResponse->GetOriginalId());
 
+      // Send command result details both in XML and in metadata, slowly phase towards metadata
       std::ostringstream replyStr;
       replyStr << "<Command><Result>" << (commandResponse->GetStatus() ? "true" : "false") << "</Result>";
       if (commandResponse->GetStatus() == PLUS_FAIL)
       {
         replyStr << "<Error>" << commandResponse->GetErrorString() << "</Error>";
+        igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
       }
       replyStr << "<Message>" << commandResponse->GetResultString() << "</Message></Command>";
+      igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
 
+      igtlMessage->SetMetaDataElement("Result", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "true" : "false"));
       for (std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it)
       {
         igtlMessage->SetMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);

@@ -142,6 +142,21 @@ public:
     this->Set##memberVar(std::string(destinationXmlElementVar));  \
   }
 
+// Read a string attribute and save it to a variable.
+#define XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(varName, var, xmlElementVar)  \
+  { \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#varName);  \
+    if (destinationXmlElementVar == NULL)  \
+    { \
+      LOG_ERROR("Unable to find required " << #varName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
+      return PLUS_FAIL; \
+    } \
+    if (destinationXmlElementVar != NULL)  \
+    { \
+      var = std::string(destinationXmlElementVar); \
+    } \
+  }
+
 // Read a string attribute and save it to a class member variable. If not found return with fail.
 #define XML_READ_CSTRING_ATTRIBUTE_REQUIRED(memberVar, xmlElementVar)  \
   { \
@@ -192,7 +207,7 @@ public:
   }
 
 // Read a string attribute and save it to a variable.
-#define XML_READ_CSTRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
+#define XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
   { \
     const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#varName);  \
     if (destinationXmlElementVar != NULL)  \
@@ -395,6 +410,35 @@ public:
       } \
     }
 
+// Read a bool attribute (TRUE/FALSE) and save it to a variable
+#define XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(attributeName, var, xmlElementVar)  \
+    { \
+      const char* strValue = xmlElementVar->GetAttribute(#attributeName); \
+      if (strValue != NULL) \
+      { \
+        if (PlusCommon::IsEqualInsensitive(strValue, "TRUE"))  \
+        { \
+          var = true; \
+        } \
+        else if (PlusCommon::IsEqualInsensitive(strValue, "FALSE"))  \
+        { \
+          var = false; \
+        } \
+        else  \
+        { \
+          LOG_ERROR("Failed to read boolean value from " << #attributeName \
+            <<" attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+            <<": expected 'TRUE' or 'FALSE', got '" << strValue << "'"); \
+          return PLUS_FAIL; \
+        } \
+      } \
+      else \
+      { \
+        LOG_ERROR("Unable to find required " << #attributeName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration"); \
+        return PLUS_FAIL; \
+      } \
+    }
+
 #define XML_READ_ENUM1_ATTRIBUTE_OPTIONAL(memberVar, xmlElementVar, enumString1, enumValue1)  \
   { \
     const char* strValue = xmlElementVar->GetAttribute(#memberVar); \
@@ -429,6 +473,28 @@ public:
       else  \
       { \
         LOG_WARNING("Failed to read enumerated value from " << #memberVar \
+          << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+          << ": expected '" << enumString1 << "' or '" << enumString2 << "', got '" << strValue << "'"); \
+      } \
+    } \
+  }
+
+#define XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar, enumString1, enumValue1, enumString2, enumValue2)  \
+  { \
+    const char* strValue = xmlElementVar->GetAttribute(#varName); \
+    if (strValue != NULL) \
+    { \
+      if (PlusCommon::IsEqualInsensitive(strValue, enumString1))  \
+      { \
+        var = enumValue1; \
+      } \
+      else if (PlusCommon::IsEqualInsensitive(strValue, enumString2))  \
+      { \
+        var = enumValue2;  \
+      } \
+      else  \
+      { \
+        LOG_WARNING("Failed to read enumerated value from " << #varName \
           << " attribute of element " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
           << ": expected '" << enumString1 << "' or '" << enumString2 << "', got '" << strValue << "'"); \
       } \

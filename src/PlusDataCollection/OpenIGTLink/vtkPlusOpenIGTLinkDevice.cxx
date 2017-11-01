@@ -13,7 +13,7 @@ See License.txt for details.
 
 // OS includes
 #ifdef _WIN32
-#include <Winsock2.h>
+  #include <Winsock2.h>
 #endif
 
 //----------------------------------------------------------------------------
@@ -59,9 +59,9 @@ void vtkPlusOpenIGTLinkDevice::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "Message type: " << this->MessageType << "\n";
   }
-  if (this->ImageStream.IsValid())
+  if (this->ImageMessageEmbeddedTransformName.IsValid())
   {
-    os << indent << "Image stream: " << this->ImageStream.GetTransformName() << "\n";
+    os << indent << "Image stream: " << this->ImageMessageEmbeddedTransformName.GetTransformName() << "\n";
   }
 }
 //----------------------------------------------------------------------------
@@ -180,11 +180,11 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   clientInfo.IgtlMessageTypes.push_back(this->MessageType);
 
   // Set any requested image streams
-  if (this->ImageStream.IsValid())
+  if (this->ImageMessageEmbeddedTransformName.IsValid())
   {
     PlusIgtlClientInfo::ImageStream is;
-    is.Name = this->ImageStream.From();
-    is.EmbeddedTransformToFrame = this->ImageStream.To();
+    is.Name = this->ImageMessageEmbeddedTransformName.From();
+    is.EmbeddedTransformToFrame = this->ImageMessageEmbeddedTransformName.To();
     clientInfo.ImageStreams.push_back(is);
   }
 

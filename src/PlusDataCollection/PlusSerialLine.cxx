@@ -235,3 +235,83 @@ unsigned int SerialLine::GetNumberOfBytesAvailableForReading() const
   return 0;
 #endif
 }
+
+//----------------------------------------------------------------------------
+PlusStatus SerialLine::SetDTR(bool onOff)
+{
+#ifdef _WIN32
+  DWORD dwFunc = CLRDTR;
+  if (onOff)
+  {
+    dwFunc = SETDTR;
+  }
+  if (EscapeCommFunction(CommHandle, dwFunc))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::SetDTR() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+//----------------------------------------------------------------------------
+PlusStatus SerialLine::SetRTS(bool onOff)
+{
+#ifdef _WIN32
+  DWORD dwFunc = CLRRTS;
+  if (onOff)
+  {
+    dwFunc = SETRTS;
+  }
+  if (EscapeCommFunction(CommHandle, dwFunc))
+  {
+    return PLUS_SUCCESS;
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+#else
+  LOG_ERROR("SerialLine::SetRTS() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+//----------------------------------------------------------------------------
+PlusStatus SerialLine::GetDSR(bool & onOff)
+{
+#ifdef _WIN32
+  DWORD dwStatus = 0;
+  if (!GetCommModemStatus(CommHandle, &dwStatus))
+  {
+    return PLUS_FAIL;
+  }
+  onOff = MS_DSR_ON & dwStatus;
+  return PLUS_SUCCESS;
+#else
+  LOG_ERROR("SerialLine::GetDSR() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}
+
+//----------------------------------------------------------------------------
+PlusStatus SerialLine::GetCTS(bool & onOff)
+{
+#ifdef _WIN32
+  DWORD dwStatus = 0;
+  if (!GetCommModemStatus(CommHandle, &dwStatus))
+  {
+    return PLUS_FAIL;
+  }
+  onOff = MS_CTS_ON & dwStatus;
+  return PLUS_SUCCESS;
+#else
+  LOG_ERROR("SerialLine::GetCTS() is only implemented on Windows");
+  return PLUS_FAIL;
+#endif
+}

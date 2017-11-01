@@ -63,7 +63,7 @@ struct InsertSliceThreadFunctionInfoStruct
   vtkMatrix4x4* TransformImageToReference;
   vtkImageData* OutputVolume;
   vtkImageData* Accumulator;
-  vtkImageData* Importance;
+  vtkImageData* ImportanceImage;
   vtkPlusPasteSliceIntoVolume::OptimizationType Optimization;
   vtkPlusPasteSliceIntoVolume::InterpolationType InterpolationMode;
   vtkPlusPasteSliceIntoVolume::CompoundingType CompoundingMode;
@@ -312,7 +312,7 @@ PlusStatus vtkPlusPasteSliceIntoVolume::InsertSlice( vtkImageData* image, vtkMat
   str.TransformImageToReference = transformImageToReference;
   str.OutputVolume = this->ReconstructedVolume;
   str.Accumulator = this->AccumulationBuffer;
-  str.Importance = this->ImportanceMask;
+  str.ImportanceImage = this->ImportanceMask;
   str.InterpolationMode = this->InterpolationMode;
   str.CompoundingMode = this->CompoundingMode;
   str.Optimization = this->Optimization;
@@ -402,13 +402,13 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
 
   if (str->CompoundingMode == IMPORTANCE_MASK_COMPOUNDING_MODE)
   {
-    if (!str->Importance)
+    if (!str->ImportanceImage)
     {
       LOG_ERROR( "OptimizedInsertSlice: IMPORTANCE_MASK_COMPOUNDING_MODE was selected but importance mask has not been defined" );
       return VTK_THREAD_RETURN_VALUE;
     }
     int importanceMaskExtent[6];
-    str->Importance->GetExtent( importanceMaskExtent );
+    str->ImportanceImage->GetExtent( importanceMaskExtent );
     for (int i = 0; i < 6; i++)
     {
       if (inputFrameExtent[i]!=importanceMaskExtent[i])
@@ -422,18 +422,18 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
         return VTK_THREAD_RETURN_VALUE;
       }
     }
-    if (str->Importance->GetNumberOfScalarComponents() != 1)
+    if (str->ImportanceImage->GetNumberOfScalarComponents() != 1)
     {
       LOG_ERROR("OptimizedInsertSlice: number of scalar components in importance mask is invalid (1 expected, actual value is "
-        << str->Importance->GetNumberOfScalarComponents() << ")");
+        << str->ImportanceImage->GetNumberOfScalarComponents() << ")");
       return VTK_THREAD_RETURN_VALUE;
     }
-    if (str->Importance->GetScalarType() != VTK_UNSIGNED_CHAR)
+    if (str->ImportanceImage->GetScalarType() != VTK_UNSIGNED_CHAR)
     {
       LOG_ERROR( "OptimizedInsertSlice: importance mask extent must have unsigned char scalar type");
       return VTK_THREAD_RETURN_VALUE;
     }
-    importancePtr = static_cast<unsigned char*>(str->Importance->GetScalarPointerForExtent(inputFrameExtentForCurrentThread));
+    importancePtr = static_cast<unsigned char*>(str->ImportanceImage->GetScalarPointerForExtent(inputFrameExtentForCurrentThread));
   }
 
   // this filter expects that input is the same type as output.
@@ -492,7 +492,7 @@ VTK_THREAD_RETURN_TYPE vtkPlusPasteSliceIntoVolume::InsertSliceThreadFunction( v
   vtkPlusPasteSliceIntoVolumeInsertSliceParams insertionParams;
   insertionParams.accOverflowCount = accumulationBufferSaturationErrorsThread;
   insertionParams.accPtr = accPtr;
-  insertionParams.importanceMask = str->Importance;
+  insertionParams.importanceMask = str->ImportanceImage;
   insertionParams.importancePtr = importancePtr;
   insertionParams.compoundingMode = str->CompoundingMode;
   insertionParams.clipRectangleOrigin = str->ClipRectangleOrigin;

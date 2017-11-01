@@ -56,7 +56,7 @@ PlusStatus ConnectClients(int listeningPort, std::vector< vtkSmartPointer<vtkPlu
     client->SetBufferSize(*aChannel, 10);
     client->SetMessageType("TrackedFrame");
     PlusTransformName name("Image", "Reference");
-    client->SetImageStream(name);
+    client->SetImageMessageEmbeddedTransformName(name);
     aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
 
     if (client->Connect() != PLUS_SUCCESS)

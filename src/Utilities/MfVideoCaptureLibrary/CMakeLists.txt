@@ -5,7 +5,7 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}
   )
 
-SET(MfVideoCaptureLibrary_SRCS
+SET(${PROJECT_NAME}_SRCS
   FormatReader.cpp
   MediaFoundationVideoCaptureApi.cpp
   MediaFoundationVideoDevice.cpp
@@ -14,8 +14,8 @@ SET(MfVideoCaptureLibrary_SRCS
   MfVideoCaptureLogger.cpp
   )
 
-if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  SET (MfVideoCaptureLibrary_HDRS
+IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  SET(${PROJECT_NAME}_HDRS
     FormatReader.h
     MediaFoundationVideoCaptureApi.h
     MediaFoundationVideoDevice.h
@@ -26,9 +26,9 @@ if (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     )
 endif()
 
-SET (Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${MfVideoCaptureLibrary_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
+SET(Utilities_INCLUDE_DIRS ${Utilities_INCLUDE_DIRS} ${${PROJECT_NAME}_INCLUDE_DIRS} ${WINDOWS_SDK_INCLUDE_DIRS} CACHE INTERNAL "")
 
-SET (MfVideoCaptureLibrary_LIBS
+SET(${PROJECT_NAME}_LIBS
   Evr
   Mf
   Mfplat
@@ -38,26 +38,22 @@ SET (MfVideoCaptureLibrary_LIBS
   Strmiids
   )
 
-ADD_LIBRARY(MfVideoCaptureLibrary STATIC ${MfVideoCaptureLibrary_SRCS} ${MfVideoCaptureLibrary_HDRS})
-SET_TARGET_PROPERTIES(MfVideoCaptureLibrary PROPERTIES FOLDER Utilities)
-TARGET_LINK_LIBRARIES(MfVideoCaptureLibrary PRIVATE ${MfVideoCaptureLibrary_LIBS})
-FOREACH(p IN LISTS MfVideoCaptureLibrary_INCLUDE_DIRS)
-  target_include_directories(MfVideoCaptureLibrary PUBLIC $<BUILD_INTERFACE:${p}>)
+ADD_LIBRARY(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
+SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER Utilities)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_LIBS})
+FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
-target_include_directories(MfVideoCaptureLibrary PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}> ${WINDOWS_SDK_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}> ${WINDOWS_SDK_INCLUDE_DIRS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
-SET (PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} MfVideoCaptureLibrary CACHE INTERNAL "" FORCE)
+SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} ${PROJECT_NAME} CACHE INTERNAL "" FORCE)
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_MfVideoCaptureLibrary MfVideoCaptureLibrary;${PlusLib_BINARY_DIR}/src/Utilities/MfVideoCaptureLibrary/MfVideoCaptureLibrary.vcxproj CACHE INTERNAL "" FORCE)
+SET(vcProj_${PROJECT_NAME} ${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/Utilities/${PROJECT_NAME}/${PROJECT_NAME}.vcxproj CACHE INTERNAL "" FORCE)
 
-INSTALL(TARGETS MfVideoCaptureLibrary EXPORT PlusLib
-  RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION "${PLUSLIB_LIBRARY_INSTALL}" CONFIGURATIONS Release COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION "${PLUSLIB_ARCHIVE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
-  )
-INSTALL(FILES ${MfVideoCaptureLibrary_HDRS}
-  DESTINATION "${PLUSLIB_INCLUDE_INSTALL}" CONFIGURATIONS Release COMPONENT Development
-  )
+# --------------------------------------------------------------------------
+# Install
+#
+PlusLibInstallLibrary(${PROJECT_NAME} ${PROJECT_NAME})

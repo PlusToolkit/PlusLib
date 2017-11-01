@@ -192,7 +192,14 @@ public:
   double GetPixelRejectionThreshold();
 
   vtkGetStdStringMacro(ImportanceMaskFilename);
-  void SetImportanceMaskFilename(const std::string& filename);
+  vtkSetStdStringMacro(ImportanceMaskFilename);
+
+  /*!
+    Force re-reading of image importance mask from ImportanceMaskFilename.
+    Volume reconstructor reads the importance mask automatically once, so calling this method
+    is only needed if the file is changed since it is last used by the reconstructor.
+  */
+  PlusStatus UpdateImportanceMask();
 
 protected:
   vtkPlusVolumeReconstructor();
@@ -239,7 +246,10 @@ protected:
   */
   double FanAnglesDeg[2];
 
+  /*! ImportanceMaskFilename set in the configuration */
   std::string ImportanceMaskFilename;
+  /*! ImportanceMaskFilename set in the volume reconstuctor */
+  std::string ImportanceMaskFilenameInReconstructor;
 
 private:
   vtkPlusVolumeReconstructor(const vtkPlusVolumeReconstructor&);  // Not implemented.

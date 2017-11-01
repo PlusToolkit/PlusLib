@@ -53,11 +53,11 @@ public:
   /*! Set the id of the client that requested the command */
   vtkSetMacro(ClientId, int);
   vtkGetMacro(ClientId, int);
-  
+
   /*!
     Gets the description for the specified command name. Command name is specified because a command object
     may be able to execute different commands.
-    \param commandName Command name to provide the description for. If the pointer is NULL then all the supported commands shal be described.
+    \param commandName Command name to provide the description for. If the pointer is NULL then all the supported commands shall be described.
   */
   virtual std::string GetDescription(const std::string& commandName) = 0;
 

@@ -9,6 +9,8 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
+#include <iomanip>
+
 // Helper macros for YUY2 conversion (source: http://sundararajana.blogspot.ca/2007/12/yuy2-to-rgb24-conversion.html)
 #define FIXNUM 16
 #define FIX(a, b) ((int)((a)*(1<<(b))))
@@ -28,6 +30,13 @@ See License.txt for details.
 // VFW compressed formats are listed at http://www.webartz.com/fourcc/
 static const long VTK_BI_UYVY = 0x59565955;
 static const long VTK_BI_YUY2 = 0x32595559;
+
+#ifndef BI_RGB
+  #define BI_RGB        0L
+#endif
+#ifndef BI_JPEG
+  #define BI_JPEG       4L
+#endif
 
 /*!
 \class PixelCodec
@@ -59,14 +68,14 @@ public:
   {
     switch (inputCompression)
     {
-    case VTK_BI_YUY2:
-      return true;
-    case BI_RGB:
-      return true;
-    case BI_JPEG:
-      return true;
-    default:
-      return false;
+      case VTK_BI_YUY2:
+        return true;
+      case BI_RGB:
+        return true;
+      case BI_JPEG:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -75,26 +84,26 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_RGB24:
-      return true;
-    case PixelEncoding_BGR24:
-      return true;
-    case PixelEncoding_RGBA32:
-      return true;
-    case PixelEncoding_YUY2:
-      return true;
-    case PixelEncoding_MJPG:
-      return true;
-    default:
-      return false;
+      case PixelEncoding_RGB24:
+        return true;
+      case PixelEncoding_BGR24:
+        return true;
+      case PixelEncoding_RGBA32:
+        return true;
+      case PixelEncoding_YUY2:
+        return true;
+      case PixelEncoding_MJPG:
+        return true;
+      default:
+        return false;
     }
   }
 
   //----------------------------------------------------------------------------
   static std::string GetCompressionModeAsString(int inputCompression)
   {
-    char fourccHex[16] = {0};
-    sprintf_s(fourccHex, "0x%08x", inputCompression);
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::setw(8) << std::setfill('0') << inputCompression;
     std::string fourcc = "????";
     for (int i = 0; i < 4; i++)
     {
@@ -104,8 +113,7 @@ public:
         fourcc[i] = '?';
       }
     }
-    std::string output = fourcc + "(" + std::string(fourccHex) + ")";
-    return output;
+    return fourcc + "(" + std::string(ss.str().c_str()) + ")";
   }
 
   //----------------------------------------------------------------------------
@@ -113,24 +121,24 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_RGB24:
-      return "RGB24";
-      break;
-    case PixelEncoding_BGR24:
-      return "BGR24";
-      break;
-    case PixelEncoding_RGBA32:
-      return "RGBA32";
-      break;
-    case PixelEncoding_YUY2:
-      return "YUY2";
-      break;
-    case PixelEncoding_MJPG:
-      return "MJPG";
-      break;
-    default:
-      LOG_ERROR("Unknown pixel format.");
-      return "Unknown";
+      case PixelEncoding_RGB24:
+        return "RGB24";
+        break;
+      case PixelEncoding_BGR24:
+        return "BGR24";
+        break;
+      case PixelEncoding_RGBA32:
+        return "RGBA32";
+        break;
+      case PixelEncoding_YUY2:
+        return "YUY2";
+        break;
+      case PixelEncoding_MJPG:
+        return "MJPG";
+        break;
+      default:
+        LOG_ERROR("Unknown pixel format.");
+        return "Unknown";
     }
   }
 
@@ -139,20 +147,20 @@ public:
   {
     switch (inputCompression)
     {
-    case BI_RGB:
-      // decode the grabbed image to the requested output image type
-      Rgb24ToGray(width, height, s, d);
-      break;
-    case VTK_BI_YUY2:
-      // decode the grabbed image to the requested output image type
-      Yuv422pToGray(width, height, s, d);
-      break;
-    case BI_JPEG:
-      // TODO
-      break;
-    default:
-      LOG_ERROR("Unknown compression type: " << inputCompression);
-      return PLUS_FAIL;
+      case BI_RGB:
+        // decode the grabbed image to the requested output image type
+        Rgb24ToGray(width, height, s, d);
+        break;
+      case VTK_BI_YUY2:
+        // decode the grabbed image to the requested output image type
+        Yuv422pToGray(width, height, s, d);
+        break;
+      case BI_JPEG:
+        // TODO
+        break;
+      default:
+        LOG_ERROR("Unknown compression type: " << inputCompression);
+        return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
@@ -162,25 +170,25 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_RGB24:
-    case PixelEncoding_BGR24:
-      // decode the grabbed image to the requested output image type
-      Rgb24ToGray(width, height, s, d);
-      break;
-    case PixelEncoding_RGBA32:
-      // decode the grabbed image to the requested output image type
-      Rgba32ToGray(width, height, s, d);
-      break;
-    case PixelEncoding_YUY2:
-      // decode the grabbed image to the requested output image type
-      Yuv422pToGray(width, height, s, d);
-      break;
-    case PixelEncoding_MJPG:
-      LOG_ERROR("MJPG to grayscale conversion is not yet supported");
-      break;
-    default:
-      LOG_ERROR("Unknown compression type: " << inputCompression);
-      return PLUS_FAIL;
+      case PixelEncoding_RGB24:
+      case PixelEncoding_BGR24:
+        // decode the grabbed image to the requested output image type
+        Rgb24ToGray(width, height, s, d);
+        break;
+      case PixelEncoding_RGBA32:
+        // decode the grabbed image to the requested output image type
+        Rgba32ToGray(width, height, s, d);
+        break;
+      case PixelEncoding_YUY2:
+        // decode the grabbed image to the requested output image type
+        Yuv422pToGray(width, height, s, d);
+        break;
+      case PixelEncoding_MJPG:
+        LOG_ERROR("MJPG to grayscale conversion is not yet supported");
+        break;
+      default:
+        LOG_ERROR("Unknown compression type: " << inputCompression);
+        return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }
@@ -190,48 +198,48 @@ public:
   {
     switch (inputCompression)
     {
-    case PixelEncoding_RGB24:
-      if (outputOrdering == ComponentOrder_RGB)
-      {
-        // Nothing to do, copy out
-        memcpy(d, s, width * height * 3);
-      }
-      else
-      {
-        RgbBgrSwap(width, height, s, d);
-      }
-      break;
-    case PixelEncoding_BGR24:
-      if (outputOrdering == ComponentOrder_BGR)
-      {
-        // Nothing to do, copy out
-        memcpy(d, s, width * height * 3);
-      }
-      else
-      {
-        RgbBgrSwap(width, height, s, d);
-      }
-      break;
-    case PixelEncoding_RGBA32:
-      if (outputOrdering == ComponentOrder_RGBA)
-      {
-        Rgba32ToRgb24(width, height, s, d);
-      }
-      else
-      {
-        Rgba32ToBgr24(width, height, s, d);
-      }
-      break;
-    case PixelEncoding_YUY2:
-      // decode the grabbed image to the requested output image type
-      return Yuv422pToBmp24(outputOrdering, width, height, s, d);
-      break;
-    case PixelEncoding_MJPG:
-      return MjpgToRgb24(outputOrdering, width, height, s, d);
-      break;
-    default:
-      LOG_ERROR("Unknown compression type: " << inputCompression);
-      return PLUS_FAIL;
+      case PixelEncoding_RGB24:
+        if (outputOrdering == ComponentOrder_RGB)
+        {
+          // Nothing to do, copy out
+          memcpy(d, s, width * height * 3);
+        }
+        else
+        {
+          RgbBgrSwap(width, height, s, d);
+        }
+        break;
+      case PixelEncoding_BGR24:
+        if (outputOrdering == ComponentOrder_BGR)
+        {
+          // Nothing to do, copy out
+          memcpy(d, s, width * height * 3);
+        }
+        else
+        {
+          RgbBgrSwap(width, height, s, d);
+        }
+        break;
+      case PixelEncoding_RGBA32:
+        if (outputOrdering == ComponentOrder_RGBA)
+        {
+          Rgba32ToRgb24(width, height, s, d);
+        }
+        else
+        {
+          Rgba32ToBgr24(width, height, s, d);
+        }
+        break;
+      case PixelEncoding_YUY2:
+        // decode the grabbed image to the requested output image type
+        return Yuv422pToBmp24(outputOrdering, width, height, s, d);
+        break;
+      case PixelEncoding_MJPG:
+        return MjpgToRgb24(outputOrdering, width, height, s, d);
+        break;
+      default:
+        LOG_ERROR("Unknown compression type: " << inputCompression);
+        return PLUS_FAIL;
     }
     return PLUS_SUCCESS;
   }

@@ -19,6 +19,12 @@
 
 class vtkMatrix;
 
+class vtkDoubleArray;
+class vtkPlot;
+class vtkView;
+class vtkChartXY;
+class vtkContextView;
+
 /*!
   \class vtkPlusAgilentScopeTracker
   \brief Interface class for Agilent oscilloscope devices
@@ -29,7 +35,7 @@ class vtkMatrix;
 class vtkPlusDataCollectionExport vtkPlusAgilentScopeTracker : public vtkPlusDevice
 {
 public:
-  static vtkPlusAgilentScopeTracker *New();
+  static vtkPlusAgilentScopeTracker* New();
   vtkTypeMacro(vtkPlusAgilentScopeTracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -82,6 +88,12 @@ public:
   vtkSetMacro(SpeedOfSound, ViInt32);
   vtkGetMacro(SpeedOfSound, ViInt32);
 
+  vtkSetMacro(KernelSize, ViInt32);
+  vtkGetMacro(KernelSize, ViInt32);
+
+  vtkSetMacro(MinPeakDistance, ViInt32);
+  vtkGetMacro(MinPeakDistance, ViInt32);
+
 protected:
   vtkPlusAgilentScopeTracker();
   virtual ~vtkPlusAgilentScopeTracker();
@@ -115,7 +127,11 @@ protected:
   ViInt32 TrigCoupling;
   ViInt32 Slope;
   ViReal64 Level; // In % of vertical full scale when using internal trigger
-  vtkSmartPointer<vtkMatrix4x4> ZOffsetToTracker;
+  ViInt32 MinPeakDistance;
+
+  vtkSmartPointer<vtkMatrix4x4> FirstPeakToNeedleTip;
+  vtkSmartPointer<vtkMatrix4x4> SecondPeakToNeedleTip;
+  vtkSmartPointer<vtkMatrix4x4> ThirdPeakToNeedleTip;
 
   // 1D signal is packaged into an image with data type int16
   vtkSmartPointer<vtkImageData> SignalImage;
@@ -127,6 +143,15 @@ protected:
 
   // Data buffer for data that is read
   ViInt16* DataArray;
+  ViInt16* EnvelopeArray;
+
+  // Envelope detection via a moving average filter
+  ViReal64* HannWindow;
+  ViInt32 KernelSize; // an odd integer
+
+  // Peak detection
+  ViInt32*                                  PeakIdxArray;
+  std::vector<std::pair<ViInt16, ViInt32>>  PeakEntries;
 
 private:
   vtkPlusAgilentScopeTracker(const vtkPlusAgilentScopeTracker&);

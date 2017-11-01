@@ -4,6 +4,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 
 SET(CMAKE_CXX_STANDARD 11)
 
+INCLUDE(CMake/PlusLibMacros.cmake)
+
 # ------------------------------------------------------------------------
 # Set project version number
 SET(PLUSLIB_VERSION_MAJOR "2")
@@ -30,16 +32,16 @@ ENDIF()
 MESSAGE(STATUS "Configuring PLUS toolkit version ${PLUSLIB_VERSION}.")
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-  IF( ${CMAKE_GENERATOR} MATCHES "Win64" )
+  IF( ${CMAKE_GENERATOR} MATCHES "Win64")
     SET(PLUSLIB_PLATFORM "Win64" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ELSE()
     SET(PLUSLIB_PLATFORM "Win32" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ENDIF()
 ELSE()
   IF(APPLE)
-    SET (PLUSLIB_PLATFORM "OSX" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+    SET(PLUSLIB_PLATFORM "OSX" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ELSE()
-    SET (PLUSLIB_PLATFORM "Linux" CACHE STRING "Name of the platform this instance of PlusLib is built on")
+    SET(PLUSLIB_PLATFORM "Linux" CACHE STRING "Name of the platform this instance of PlusLib is built on")
   ENDIF()
 ENDIF()
 
@@ -49,15 +51,8 @@ MESSAGE(STATUS "Detected platform: ${PLUSLIB_PLATFORM}.")
 # System Settings
 IF(WIN32)
   # This method adds the necessary compiler flag
-  SET (RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
+  SET(RUNTIME_MINIMUM_WINDOWS_VERSION "0x0602")
   ADD_DEFINITIONS(-D_MSC_PLATFORM_TOOLSET_$(PlatformToolset))
-  
-  # Correct the incoming windows sdk variables, as they have been manipulated to be passed to this project
-  # as # separated strings
-  STRING(REPLACE "#" ";" WINDOWS_SDK_INCLUDE_DIRS "${WINDOWS_SDK_INCLUDE_DIRS}")
-  SET(WINDOWS_SDK_INCLUDE_DIRS ${WINDOWS_SDK_INCLUDE_DIRS} CACHE PATH "Path to the Windows SDK include dirs" FORCE)
-  STRING(REPLACE "#" ";" WINDOWS_SDK_LIBRARY_DIRS "${WINDOWS_SDK_LIBRARY_DIRS}")
-  SET(WINDOWS_SDK_LIBRARY_DIRS ${WINDOWS_SDK_LIBRARY_DIRS} CACHE PATH "Path to the Windows SDK library dirs" FORCE)
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -82,6 +77,8 @@ ENDIF()
 IF(PLUS_OFFLINE_BUILD)
   SET(PLUSLIB_REVISION "NA")
   SET(PLUSLIB_SHORT_REVISION "NA")
+  SET(PLUSLIB_COMMIT_DATE_NO_DASHES "NA")
+  SET(PLUSLIB_COMMIT_DATE "NA")
 ELSE()
   # Need git for the automatic update of the repository
   FIND_PACKAGE(Git)
@@ -101,6 +98,14 @@ ELSE()
       )
     STRING(REGEX REPLACE "\n$" "" PLUSLIB_SHORT_REVISION "${PLUSLIB_SHORT_REVISION}")
     STRING(REGEX REPLACE "\r$" "" PLUSLIB_SHORT_REVISION "${PLUSLIB_SHORT_REVISION}")
+
+    EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} show ${PLUSLIB_REVISION} --date=iso8601 
+      OUTPUT_VARIABLE _git_show_output
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      )
+    STRING(REGEX MATCH "([0-9])+-([0-9]+)-([0-9]+)" PLUSLIB_COMMIT_DATE ${_git_show_output})
+    STRING(REPLACE "-" "" PLUSLIB_COMMIT_DATE_NO_DASHES ${PLUSLIB_COMMIT_DATE})
+
   ELSE()
     MESSAGE(WARNING "Git tool not found. Cannot retrieve revision information from repository")
     SET(PLUSLIB_REVISION "NA")
@@ -158,7 +163,7 @@ IF(PLUS_USE_Ascension3DGm)
  ADD_SUBDIRECTORY(${ATC_MEDSAFE_BASE_DIR})
 ENDIF()
 
-SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/PhidgetSpatial-2.1.8)
+SET(PHIDGET_SPATIAL_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Phidget/Phidget22)
 SET(PHIDGET_SPATIAL_INCLUDE_DIR ${PHIDGET_SPATIAL_BASE_DIR} CACHE PATH "Path to the Phidget Spatial include folder" FORCE )
 IF(MSVC AND ${CMAKE_GENERATOR} MATCHES "Win64")
   SET(PHIDGET_SPATIAL_LIB_DIR ${PHIDGET_SPATIAL_BASE_DIR}/x64 CACHE PATH "Path to the Phidget Spatial 64-bit lib folder" FORCE )
@@ -173,7 +178,7 @@ MARK_AS_ADVANCED(PHIDGET_SPATIAL_BASE_DIR
   PHIDGET_SPATIAL_BINARY_DIR
   )
 IF(PLUS_USE_PHIDGET_SPATIAL_TRACKER)
-  ADD_SUBDIRECTORY(tools/Phidget/PhidgetSpatial-2.1.8)
+  ADD_SUBDIRECTORY(tools/Phidget/Phidget22)
 ENDIF()
 
 SET(EPIPHAN_SDK_BASE_DIR ${PLUSLIB_TOOLS_DIR}/Epiphan)
@@ -236,22 +241,22 @@ ADD_SUBDIRECTORY(src)
 # Generate convenience files for automatic build, test, and packaging
 #
 IF(WIN32)
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.bat.in
     ${CMAKE_CURRENT_BINARY_DIR}/BuildAndTest.bat
     )
 
   # Documentation generator
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/CreateApiReference.bat.in
     ${CMAKE_CURRENT_BINARY_DIR}/CreateApiReference.bat
     )
 ELSE()
-  configure_file(
+  CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/BuildAndTest.sh.in
     ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
     )
-  file(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
+  FILE(COPY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/BuildAndTest.sh
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
     FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ WORLD_READ
     )

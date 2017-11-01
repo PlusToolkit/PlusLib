@@ -10,11 +10,11 @@ See description of volume reconstruction parameters on the \ref AlgorithmVolumeR
     VolumeReconstructor.exe --config-file=PlusConfiguration_SpinePhantomFreehandReconstructionOnly.xml --source-seq-file=SpinePhantomFreehand.mha --output-volume-file=vtkPlusVolumeReconstructorWithHoleFillingTest1Output.mha --image-to-reference-transform=ImageToReference
 
 Files:
-- Device set config file: https://subversion.assembla.com/svn/plus/trunk/PlusLibData/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
-- Input frames: https://subversion.assembla.com/svn/plus/trunk/PlusLibData/TestImages/SpinePhantomFreehand.mha
-- Sample reconstructed volume: https://subversion.assembla.com/svn/plus/trunk/PlusLibData/TestImages/SpinePhantomFreehandReconstructed.mha
+- Device set config file: https://github.com/PlusToolkit/PlusLibData/blob/master/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
+- Input frames: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehand.mha
+- Sample reconstructed volume: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehandReconstructed.mha
 
-See more examples on the <a href="http://crunch.cs.queensu.ca/CDash/index.php?project=PLUS">dashboard</a> (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
+See more examples on the <a href="http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusLib">dashboard</a> (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
 
 \section ApplicationVolumeReconstructorHelp Command-line parameters reference
 

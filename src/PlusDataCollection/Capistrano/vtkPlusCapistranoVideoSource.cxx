@@ -657,7 +657,6 @@ PlusStatus vtkPlusCapistranoVideoSource::ReadConfiguration(vtkXMLDataElement* ro
 }
 
 // ----------------------------------------------------------------------------
-// ToDo: Need to implement
 PlusStatus vtkPlusCapistranoVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
@@ -1129,7 +1128,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 
   WaitForFrame();
 
-  int frameNum = usbCineFrameNumber();
+  this->FrameNumber = usbCineFrameNumber();
 
   this->Internal->RfDataBuffer = usbCurrentCineFrame();
 
@@ -1140,8 +1139,6 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
                                              NULL, bmDI_DRAW, 0, TRUE);
 
   GetObject(this->Internal->DataHandle, sizeof(BITMAP), &this->Internal->Bitmap);
-
-  this->FrameNumber++;
 
   vtkPlusDataSource* aSource=NULL;
   if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
@@ -1170,7 +1167,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 
     LOG_INFO("Frame size: " << frameSizeInPx[0] << "x" << frameSizeInPx[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-              << ", probe sample frequency (Hz): " << this->Internal->USProbeParams.probetype.SampleFrequency,
+              << ", probe sample frequency (Hz): " << this->Internal->USProbeParams.probetype.SampleFrequency
               << ", probe name: " << probeName
               << ", display zoom: " << bmDisplayZoom()
               << ", probe depth scale (mm/sample):" << depthScale

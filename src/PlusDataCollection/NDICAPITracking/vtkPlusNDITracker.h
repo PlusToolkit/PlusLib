@@ -16,7 +16,7 @@ conditions are met:
 1) Redistribution of the source code, in verbatim or modified
    form, must retain the above copyright notice, this license,
    the following disclaimer, and any notices that refer to this
-   license and/or the following disclaimer.  
+   license and/or the following disclaimer.
 
 2) Redistribution in binary form must include the above copyright
    notice, a copy of this license and the following disclaimer
@@ -101,11 +101,22 @@ struct ndicapi;
 */
 class vtkPlusDataCollectionExport vtkPlusNDITracker : public vtkPlusDevice
 {
+  struct NdiToolDescriptor
+  {
+    int             WiredPortNumber;  // >= 0 for wired tools
+    unsigned char*  VirtualSROM;      // nonzero for wireless tools
+    bool            PortEnabled;      // true if the tool is successfully enabled in the tracker
+    int             PortHandle;       // this number identifies the tool in the tracker
+  };
+
+  typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
+  typedef std::map<int, std::map<std::string, std::string>> VolumeInformation;
+
 public:
-  static vtkPlusNDITracker *New();
-  vtkTypeMacro(vtkPlusNDITracker,vtkPlusDevice);
+  static vtkPlusNDITracker* New();
+  vtkTypeMacro(vtkPlusNDITracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
+
   /*! Flags for tool LEDs */
   enum LedState
   {
@@ -113,8 +124,11 @@ public:
     TR_LED_ON    = 1,
     TR_LED_FLASH = 2
   };
- 
-  virtual bool IsTracker() const { return true; }
+
+  virtual bool IsTracker() const
+  {
+    return true;
+  }
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
@@ -133,13 +147,7 @@ public:
     The text reply from the NDI is returned, without the CRC or
     final carriage return.
   */
-  char *Command(const char *command);
-
-  /*!
-    Get the a string (perhaps a long one) describing the type and version
-    of the device.
-  */
-  vtkGetStringMacro(Version);
+  std::string Command(const char* format, ...);
 
   /*! Set which serial port to use, 1 through 4 */
   vtkSetMacro(SerialPort, int);
@@ -157,40 +165,38 @@ public:
     See VSEL command in the NDI API documentation for details.
   */
   vtkSetMacro(MeasurementVolumeNumber, int);
-  vtkGetMacro(MeasurementVolumeNumber, int);  
+  vtkGetMacro(MeasurementVolumeNumber, int);
 
   /*!
     Get an update from the tracking system and push the new transforms
     to the tools.  This should only be used within vtkTracker.cxx.
   */
   PlusStatus InternalUpdate();
-  
-  /*! Read NDI tracker configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
 
   /*! Read NDI tracker configuration from xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config); 
-  
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+
+  /*! Read NDI tracker configuration from xml data */
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+
   /*! Set the specified tool LED to the specified state */
   PlusStatus SetToolLED(const char* portName, int led, LedState state);
+
+  vtkSetStdStringMacro(NetworkHostname);
+  vtkGetStdStringMacro(NetworkHostname);
+
+  vtkSetMacro(NetworkPort, int);
+  vtkGetMacro(NetworkPort, int);
 
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
 
-  struct NdiToolDescriptor
-  {
-    int WiredPortNumber; // >=0 for wired tools
-    unsigned char *VirtualSROM; // nonzero for wireless tools
-    bool PortEnabled; // true if the tool is successfully enabled in the tracker
-    int PortHandle; // this number identifies the tool in the tracker
-  };
-
-  /*! Set the version information */
-  vtkSetStringMacro(Version);
-
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
+  PlusStatus InternalConnectNetwork();
+  PlusStatus InternalConnectSerial();
+
   /*! Disconnect from the tracker hardware */
   PlusStatus InternalDisconnect();
 
@@ -212,7 +218,7 @@ protected:
   PlusStatus Beep(int n);
 
   /*! Read a virtual SROM from file and store it in the tool descriptor */
-  PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char *filename);
+  PlusStatus ReadSromFromFile(NdiToolDescriptor& toolDescriptor, const char* filename);
 
   /*!
     Sets the port handle in the descriptor. For wired tools it
@@ -247,30 +253,51 @@ protected:
   void DisableToolPorts();
 
   /*! Parse and log available volume list response */
-  void LogVolumeList(const char* ndiVolumeListCommandReply, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+  void LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+  void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
 
-  /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  unsigned long LastFrameNumber;
+  /*!
+    Intelligently detect which connection is used and close it
+  */
+  PlusStatus CloseDevice(ndicapi*& device);
 
-  ndicapi *Device;
-  char *Version;
-  char *SerialDevice;
+  /*!
+    Select the measurement volume, fallback to deprecated
+  */
+  PlusStatus SelectMeasurementVolume();
 
-  int SerialPort; 
-  int BaudRate;
-  int IsDeviceTracking;
+  /*!
+    Select the measurement volume using deprecated commands
+    Only used if newer commands are not supported by a device
+  */
+  PlusStatus SelectMeasurementVolumeDeprecated();
 
-  int MeasurementVolumeNumber;
+  /*! Lookup table function to convert from baudrate to enum */
+  static int ConvertBaudToNDIEnum(int baudRate);
 
-  typedef std::map<std::string, NdiToolDescriptor> NdiToolDescriptorsType;
-  /*! Maps Plus tool source IDs to NDI tool descriptors */
-  NdiToolDescriptorsType NdiToolDescriptors;
+#if _MSC_VER >= 1700
+  PlusStatus ProbeSerialInternal();
+#endif
 
-  char CommandReply[VTK_NDI_REPLY_LEN];
+protected:
+  unsigned long                     LastFrameNumber; // Index of the last frame number, used for providing a frame number when the tracker doesn't return any transform
+  ndicapi*                          Device;
+  std::string                       SerialDevice;
+  int                               SerialPort;
+  int                               BaudRate;
+  int                               IsDeviceTracking;
+  int                               MeasurementVolumeNumber;
+  bool                              LeaveDeviceOpenAfterProbe;
+  NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
+  vtkPlusRecursiveCriticalSection*  CommandMutex;
+  char                              CommandReply[VTK_NDI_REPLY_LEN];
+
+  std::string                       NetworkHostname;
+  int                               NetworkPort;
 
 private:
   vtkPlusNDITracker(const vtkPlusNDITracker&);
-  void operator=(const vtkPlusNDITracker&);  
+  void operator=(const vtkPlusNDITracker&);
 };
 
 #endif

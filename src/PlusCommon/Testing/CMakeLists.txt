@@ -2,6 +2,28 @@ SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
+function(ADD_COMPARE_FILES_TEST TestName DependsOnTestName TestFileName)
+
+  # If a platform-specific reference file is found then use that
+  IF(WIN32)
+    SET(PLATFORM "Windows")
+  ELSE()
+    SET(PLATFORM "Linux")
+  ENDIF()
+  SET(CommonFilePath "${TestDataDir}/${TestFileName}")
+  SET(PlatformSpecificFilePath "${TestDataDir}/${PLATFORM}/${TestFileName}")
+  if(EXISTS "${PlatformSpecificFilePath}")
+    SET(FoundReferenceFilePath ${PlatformSpecificFilePath})
+  ELSE()
+    SET(FoundReferenceFilePath ${CommonFilePath})
+  endif()
+
+  ADD_TEST(${TestName} ${CMAKE_COMMAND} -E compare_files "${TEST_OUTPUT_PATH}/${TestFileName}" "${FoundReferenceFilePath}")
+  SET_TESTS_PROPERTIES(${TestName} PROPERTIES DEPENDS ${DependsOnTestName})
+
+endfunction()
+
+#--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkPlusLoggerTest vtkPlusLoggerTest.cxx )
 SET_TARGET_PROPERTIES(vtkPlusLoggerTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkPlusLoggerTest vtkPlusCommon )
@@ -43,7 +65,7 @@ ADD_TEST(AccurateTimerTest
   --numberOfThreads=3
   --verbose=3
   )
-SET_TESTS_PROPERTIES( AccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
+SET_TESTS_PROPERTIES(AccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkTransformRepositoryTest vtkTransformRepositoryTest.cxx )
@@ -70,14 +92,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --verbose=3
     WORKING_DIRECTORY ${PLUS_EXECUTABLE_OUTPUT_PATH}
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  ADD_TEST(EditSequenceFileTrimCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
-     ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileTrimCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileTrim )
+  SET_TESTS_PROPERTIES(EditSequenceFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_COMPARE_FILES_TEST(EditSequenceFileTrimCompareToBaselineTest EditSequenceFileTrim
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteNrrd
@@ -87,14 +104,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
- 
-  ADD_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest
-     ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/NrrdSample.nrrd
-     ${TestDataDir}/NrrdSample.nrrd
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteNrrd )
+  SET_TESTS_PROPERTIES(EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest EditSequenceFileReadWriteNrrd
+    NrrdSample.nrrd)
  
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
@@ -104,14 +116,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
- 
-  ADD_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest
-     ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/ColorNrrdSample.nrrd
-     ${TestDataDir}/ColorNrrdSample.nrrd
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileReadWriteColorNrrdCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileReadWriteColorNrrd )
+  SET_TESTS_PROPERTIES(EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest EditSequenceFileReadWriteColorNrrd
+    ColorNrrdSample.nrrd)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileFillImageRectangle
@@ -125,15 +132,10 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
-
-  ADD_TEST(EditSequenceFileFillImageRectangleCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
-     ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileFillImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileFillImageRectangle )
+  SET_TESTS_PROPERTIES(EditSequenceFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(EditSequenceFileFillImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
+  ADD_COMPARE_FILES_TEST(EditSequenceFileFillImageRectangleCompareToBaselineTest EditSequenceFileFillImageRectangle
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileCropImageRectangle
@@ -146,15 +148,10 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
-
-  ADD_TEST(EditSequenceFileCropImageRectangleCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
-     ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileCropImageRectangle )
+  SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
+  ADD_COMPARE_FILES_TEST(EditSequenceFileCropImageRectangleCompareToBaselineTest EditSequenceFileCropImageRectangle
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileCropImageRectangleFlipX
@@ -168,15 +165,10 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSequenceFileTrim)
-
-  ADD_TEST(EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
-     ${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileCropImageRectangleFlipX )
+  SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSequenceFileTrim)
+  ADD_COMPARE_FILES_TEST(EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest EditSequenceFileCropImageRectangleFlipX
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileRemoveImageData
@@ -186,14 +178,9 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  ADD_TEST(EditSequenceFileRemoveImageDataCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
-     ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
-    )
-  SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageData )
+  SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_COMPARE_FILES_TEST(EditSequenceFileRemoveImageDataCompareToBaselineTest EditSequenceFileRemoveImageData
+    UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileRemoveImageDataCompressed
@@ -204,15 +191,21 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
-
-  ADD_TEST(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest
-    ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
-     ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
+  SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_COMPARE_FILES_TEST(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest EditSequenceFileRemoveImageDataCompressed
+     UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha)
+    
+  ADD_TEST(NAME EditSequenceFileMix 
+    COMMAND $<TARGET_FILE:EditSequenceFile>
+    --operation=MIX
+    --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --output-seq-file=WaterTankBottomTranslationTrackedVideo.mha
+    --use-compression
+    --verbose=3
     )
-  SET_TESTS_PROPERTIES( EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest PROPERTIES DEPENDS EditSequenceFileRemoveImageDataCompressed )
-ENDIF()
+  SET_TESTS_PROPERTIES(EditSequenceFileMix PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+
+ENDIF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
 # --------------------------------------------------------------------------
 # Install
@@ -223,3 +216,4 @@ INSTALL(
   DESTINATION "${PLUSLIB_BINARY_INSTALL}"
   COMPONENT RuntimeExecutables
   )
+ 

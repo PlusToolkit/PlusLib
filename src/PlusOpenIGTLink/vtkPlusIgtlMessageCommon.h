@@ -7,25 +7,29 @@ See License.txt for details.
 #ifndef __vtkPlusIgtlMessageCommon_h
 #define __vtkPlusIgtlMessageCommon_h
 
+// Local includes
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkExport.h"
 
-#include "vtkObject.h"
-#include "igtlMessageBase.h"
-#include "igtlSocket.h"
-//----------------------------------------------------------------------------
-// IGT message types
-#include "igtlImageMessage.h"
-#include "igtlImageMetaMessage.h"
-#include "igtlPlusTrackedFrameMessage.h"
-#include "igtlPlusUsMessage.h"
-#include "igtlPositionMessage.h"
-#include "igtlStringMessage.h"
-#include "igtlTrackingDataMessage.h"
-#include "igtlTransformMessage.h"
+// VTK includes
+#include <vtkObject.h>
+
+// OpenIGTLink includes
+#include <igtlImageMessage.h>
+#include <igtlImageMetaMessage.h>
+#include <igtlMessageBase.h>
+#include <igtlPlusTrackedFrameMessage.h>
+#include <igtlPlusUsMessage.h>
+#include <igtlPolyDataMessage.h>
+#include <igtlPositionMessage.h>
+#include <igtlSocket.h>
+#include <igtlStringMessage.h>
+#include <igtlTrackingDataMessage.h>
+#include <igtlTransformMessage.h>
 
 class vtkXMLDataElement;
 class PlusTrackedFrame;
+class vtkPolyData;
 class vtkPlusTransformRepository;
 
 /*!
@@ -56,13 +60,13 @@ public:
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck);
 
   /*! Pack image message from tracked frame */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, igtl::Matrix4x4& igtlMatrix);
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform);
+
+  /*! Pack image message from vtkImageData volume */
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, const vtkMatrix4x4& imageToReferenceTransform, double timestamp);
 
   /*! Unpack image message to tracked frame */
   static PlusStatus UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck);
-
-  /*! Pack image message from vtkImageData volume */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* volume, vtkMatrix4x4* volumeToReferenceTransform, double timestamp);
 
   /*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */
   static PlusStatus PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList);
@@ -70,6 +74,9 @@ public:
   /*! Pack transform message from tracked frame */
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName,
                                          igtl::Matrix4x4& igtlMatrix, double timestamp);
+
+  /*! Pack poly data message from polydata */
+  static PlusStatus PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp);
 
   /*! Pack data message from tracked frame */
   static PlusStatus PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer tdataMessage, const std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& transforms, double timestamp);

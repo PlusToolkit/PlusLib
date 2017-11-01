@@ -3,7 +3,7 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # --------------------------------------------------------------------------
 # ToolStateDisplayWidgetTest
-SET (ToolStateDisplayWidgetTest_LIBS 
+SET(ToolStateDisplayWidgetTest_LIBS 
   Qt5::Widgets
   Qt5::Core
   Qt5::Test
