@@ -59,7 +59,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
   UnprocessedLinesImage(NULL),
-  FirstFrame(true)
+  FirstFrame(true),
+  SaveIntermediateResults(false)
 {
   this->SetMmToPixelFanImage(0, 0, 0);
   this->SetMmToPixelLinesImage(0, 0, 0);
@@ -177,6 +178,8 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
   vtkXMLDataElement* imageProcessingOperations = processingElement->FindNestedElementWithName("ImageProcessingOperations");
   if (imageProcessingOperations != NULL)
   {
+    // read whether to save intermediate images
+    XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateResults, imageProcessingOperations);
 
     //read tags relavent to the Gaussian filter
     vtkSmartPointer<vtkXMLDataElement> gaussianParameters = imageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
@@ -222,6 +225,7 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ReadConfiguration(vtkSmartPointer<v
     {
       XML_READ_VECTOR_ATTRIBUTE_REQUIRED(int, 2, DilationKernelSize, dilationParameters);
     }
+
   }
   else
   {
@@ -557,7 +561,7 @@ void vtkPlusTransverseProcessEnhancer::RemoveOffCameraBones(vtkSmartPointer<vtkI
     {
       clearArea = true;
     }
-    //check if the bone is too close/far from the transducer 
+    //check if the bone is too close/far from the transducer
     else if (currentArea["depth"] < distanceHorizontalBuffer || currentArea["depth"] > dims[0] - distanceHorizontalBuffer)
     {
       clearArea = true;
@@ -681,7 +685,7 @@ void vtkPlusTransverseProcessEnhancer::CompareShadowAreas(vtkSmartPointer<vtkIma
     belowAvgShadow = belowSum / (boneArea / 2);
 
     //If there is a higher amount of bones around it, remove the area
-    if (aboveAvgShadow - areaAvgShadow <= areaAvgShadow / 2 || belowAvgShadow - areaAvgShadow <= areaAvgShadow / 2)
+    if (aboveAvgShadow < (areaAvgShadow/2) || belowAvgShadow < (areaAvgShadow/2))
     {
 
       for (int y = currentArea["yMax"]; y >= currentArea["yMin"]; --y)
