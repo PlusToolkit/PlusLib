@@ -35,13 +35,15 @@ vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
   : ScanConverter(NULL),
-  NumberOfScanLines(0),
-  NumberOfSamplesPerScanLine(0),
 
-  RadiusStartMm(0),
-  RadiusStopMm(0),
-  ThetaStartDeg(0),
-  ThetaStopDeg(0),
+  NumberOfScanLines(128),
+  NumberOfSamplesPerScanLine(1000),
+
+ // Use default parameters for Ultrasonix C5-2
+  RadiusStartMm(50.0),
+  RadiusStopMm(120.0),
+  ThetaStartDeg(-24),
+  ThetaStopDeg(24),
 
   GaussianSmooth(NULL),
   EdgeDetector(NULL),
@@ -78,8 +80,8 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->SetDilationKernelSize(1, 1);
   this->SetErosionKernelSize(5, 5);
-  this->SetGaussianStdDev(7.0);
-  this->SetGaussianKernelSize(7.0);
+  this->SetGaussianStdDev(3.0);
+  this->SetGaussianKernelSize(5.0);
   this->GaussianSmooth->SetDimensionality(2);
 
   this->ConversionImage = vtkSmartPointer<vtkImageData>::New();
@@ -92,7 +94,7 @@ vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 
   this->IslandRemover->SetIslandValue(255);
   this->IslandRemover->SetReplaceValue(0);
-  this->IslandRemover->SetAreaThreshold(0);
+  this->IslandRemover->SetAreaThreshold(700);
 
   this->ImageEroder->SetKernelSize(this->ErosionKernelSize[0], this->ErosionKernelSize[1], 1);
   this->ImageEroder->SetErodeValue(255);

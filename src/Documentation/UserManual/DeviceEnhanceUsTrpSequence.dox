@@ -1,0 +1,53 @@
+/*!
+\page EnhanceUsTrpSequence Enhance US sequence (EnhanceUsTrpSequence)
+
+This device applies a series of vtk image filter processing steps to US images.
+Filter parameters are read from the ImageProcessingOperations element of the config file.
+
+\section EnhanceUsTrpSequenceConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "ImageProcessor" \RequiredAtt
+
+  -\xmlElem \b Processor
+    -\xmlAtt \b Type = "vtkPlusTransverseProcessEnhancer"
+    -\xmlAtt \b NumberOfScanlines \RequiredAtt
+    -\xmlAtt \b NumberOfSamplesPerScanline \RequiredAtt
+
+    -\xmlElem \b ScanConversion
+      -\xmlAtt \b TransducerName \RequiredAtt
+      -\xmlAtt \b TransducerGeometry \RequiredAtt
+      -\xmlAtt \b RadiusStartMm \OptionalAtt{50}
+      -\xmlAtt \b RadiusStopMm \OptionalAtt{120}
+      -\xmlAtt \b ThetaStartDeg \OptionalAtt{-24}
+      -\xmlAtt \b ThetaStopDeg \OptionalAtt{24}
+      -\xmlAtt \b OutputImageSizePixel \OptionalAtt{820 616}
+      -\xmlAtt \b TransducerCenterPixel \OptionalAtt{410 35}
+      -\xmlAtt \b OutputImageSpacingMmPerPixel \OptionalAtt{0.1526 0.1526}
+
+    -\xmlElem \b ImageProcessingOperations
+      -\xmlAtt \b SaveIntermediateResults \OptionalAtt{False}
+      -\xmlAtt \b ReturnToFanImage \OptionalAtt{True}
+
+      -\xmlElem \b GaussianSmoothing
+        -\xmlAtt \b GaussianStdDev \OptionalAtt{3.0}
+        -\xmlAtt \b GaussianKernelSize \OptionalAtt{5.0}
+
+      -\xmlElem \b Thresholding
+        -\xmlAtt \b ThresholdOutValue \OptionalAtt{0.0}
+        -\xmlAtt \b LowerThreshold \OptionalAtt{30.0}
+        -\xmlAtt \b UpperThreshold \OptionalAtt{255.0}
+
+      -\xmlElem \b IslandRemoval
+        -\xmlAtt \b IslandAreaThreshold \OptionalAtt{700}
+
+      -\xmlElem \b Erosion
+        -\xmlAtt \b ErosionKernelSize \OptionalAtt{5 5}
+
+      -\xmlElem \b Dilation
+        -\xmlAtt \b DilationKernelSize \OptionalAtt{10 5}
+
+\section EnhanceUsTrpSequenceExampleConfigFile Example configuration file PlusDeviceSet_Server_Ultrasonix_C5-2_TransverseProcessEnhancer_2Processing.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_Ultrasonix_C5-2_TransverseProcessEnhancer_2Processing.xml"
+
+*/

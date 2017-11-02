@@ -6,8 +6,9 @@ Filter parameters are read from the ImageProcessingOperations element of the con
 
 \section ApplicationEnhanceUsTrpSequenceExamples Examples
 
-    EnhanceUsTrpSequence.exe --input-seq-file="SpineUltrasound-Lumbar-C5.mha" --config-file="ImageProcessing\PlusDeviceSet_Server_TransverseProcessEnhancerConfig.xml" --output-seq-file="TrialOutput.mha" --lines-image-file="LinesImages.mha" --intermediate-image-file="IntermediateImages.mha" --verbose=3
+    EnhanceUsTrpSequence.exe --config-file="PlusDeviceSet_Server_Ultrasonix_C5-2_TransverseProcessEnhancer_2Processing.xml" --input-seq-file="SpineUltrasound-Lumbar-C5.mha" --output-seq-file="EnhancedTrps.mha" --verbose=3
 
 \section ApplicationEnhanceUsTrpSequenceHelp Command-line parameters reference
 
+\verbinclude "EnhanceUsTrpSequenceHelp.txt"
 */
