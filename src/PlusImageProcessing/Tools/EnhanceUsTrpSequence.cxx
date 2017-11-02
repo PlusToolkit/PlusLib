@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 
   if (printHelp)
   {
-    //std::cout << args.GetHelp() << std::endl;
-    LOG_ERROR(args.GetHelp());
+    std::cout << args.GetHelp() << std::endl;
+    //LOG_ERROR(args.GetHelp());
     return EXIT_SUCCESS;
   }
 
