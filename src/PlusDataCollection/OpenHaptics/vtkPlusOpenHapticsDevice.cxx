@@ -226,32 +226,28 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   HDdouble trans[16];
   HDdouble pos[3];  
   HDdouble vel[3];
+  HDint buttonVals = 0;
+  HDboolean inkwell = 0;
   hdBeginFrame(handle);
   hdMakeCurrentDevice(handle);  
   hdGetDoublev(HD_CURRENT_TRANSFORM, trans);
   hdGetDoublev(HD_CURRENT_POSITION, pos);
   hdGetDoublev(HD_CURRENT_VELOCITY, vel);
   hdSetDoublev(HD_CURRENT_FORCE, force);
+  hdGetIntegerv(HD_CURRENT_BUTTONS, &buttonVals);
+  hdGetBooleanv(HD_CURRENT_INKWELL_SWITCH, &inkwell);
   hdEndFrame(handle);
 
   vtkPlusDataSource* stylus = NULL;
   vtkPlusDataSource* velocity = NULL;
-
-  if (client->GetToolByPortName("Stylus", stylus) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Stylus not found!");    
-  }
-
-  if (client->GetToolByPortName("StylusVelocity", velocity) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Stylus velocity not found!");
-  }
+  vtkPlusDataSource* buttons = NULL;
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkTransform> rotation = vtkSmartPointer<vtkTransform>::New();
   vtkSmartPointer<vtkTransform> velTrans = vtkSmartPointer<vtkTransform>::New();
   vtkSmartPointer<vtkMatrix4x4> velMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> buttonMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double orient[3];
 
   //Arrange transformations in correct order
@@ -268,8 +264,34 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   vtkMatrix4x4::Multiply4x4(rasCorrection, velMatrix, velMatrix);
   vtkMatrix4x4::Multiply4x4(rasCorrection,toolMatrix,toolMatrix);
 
-  client->ToolTimeStampedUpdate(velocity->GetId(), velMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
-  client->ToolTimeStampedUpdate(stylus->GetId(), toolMatrix, TOOL_OK, client->FrameNumber,unfilteredTimestamp);
+
+  buttonMatrix->SetElement(0,0,0);
+  buttonMatrix->SetElement(1, 1, 0);
+  buttonMatrix->SetElement(2, 2, 0);
+  buttonMatrix->SetElement(0, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_1));
+  buttonMatrix->SetElement(1, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_2));
+  buttonMatrix->SetElement(2, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_3));
+  buttonMatrix->SetElement(3, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_4));
+  buttonMatrix->SetElement(0, 1, (int)inkwell);
+
+
+  if (client->GetToolByPortName("Stylus", stylus) == PLUS_SUCCESS)
+  {
+    client->ToolTimeStampedUpdate(stylus->GetId(), toolMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+
+  }
+
+  if (client->GetToolByPortName("StylusVelocity", velocity) == PLUS_SUCCESS)
+  {
+    client->ToolTimeStampedUpdate(velocity->GetId(), velMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+
+  }
+
+  if (client->GetToolByPortName("Buttons", buttons) == PLUS_SUCCESS)
+  {
+    client->ToolTimeStampedUpdate(buttons->GetId(), buttonMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+  }
+
   return HD_CALLBACK_DONE;
 }
 
