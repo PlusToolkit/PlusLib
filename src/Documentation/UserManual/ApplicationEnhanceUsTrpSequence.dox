@@ -6,8 +6,52 @@ Filter parameters are read from the ImageProcessingOperations element of the con
 
 \section ApplicationEnhanceUsTrpSequenceExamples Examples
 
-    EnhanceUsTrpSequence.exe --input-seq-file="SpineUltrasound-Lumbar-C5.mha" --config-file="ImageProcessing\PlusDeviceSet_Server_TransverseProcessEnhancerConfig.xml" --output-seq-file="TrialOutput.mha" --lines-image-file="LinesImages.mha" --intermediate-image-file="IntermediateImages.mha" --verbose=3
+    EnhanceUsTrpSequence.exe --config-file="PlusDeviceSet_Server_Ultrasonix_C5-2_TransverseProcessEnhancer_2Processing.xml" --input-seq-file="SpineUltrasound-Lumbar-C5.mha" --output-seq-file="EnhancedTrps.mha" --verbose=3
 
 \section ApplicationEnhanceUsTrpSequenceHelp Command-line parameters reference
+
+\verbinclude "EnhanceUsTrpSequenceHelp.txt"
+
+\section EnhanceUsTrpSequenceConfigSettings Scan conversion config
+
+Required processor elements (defaults shown for Ultrasonix C5-2):
+-\xmlElem \ref ScanConversion
+  -\xmlAtt \ref TransducerName \RequiredAtt{Ultrasonix_C5-2}
+  -\xmlAtt \ref TransducerGeometry \RequiredAtt{CURVILINEAR}
+  -\xmlAtt \ref RadiusStartMm \OptionalAtt{50}
+  -\xmlAtt \ref RadiusStopMm \OptionalAtt{120}
+  -\xmlAtt \ref ThetaStartDeg \OptionalAtt{-24}
+  -\xmlAtt \ref ThetaStopDeg \OptionalAtt{24}
+  -\xmlAtt \ref OutputImageSizePixel \OptionalAtt{820 616}
+  -\xmlAtt \ref TransducerCenterPixel \OptionalAtt{410 35}
+  -\xmlAtt \ref OutputImageSpacingMmPerPixel \OptionalAtt{0.1526 0.1526}
+
+-\xmlElem \b ImageProcessingOperations
+  -\xmlAtt \b SaveIntermediateResults \OptionalAtt{False}
+  -\xmlAtt \b ReturnToFanImage \OptionalAtt{True}
+  
+  -\xmlElem \b GaussianSmoothing
+    -\xmlAtt \b GaussianStdDev \OptionalAtt{3.0}
+    -\xmlAtt \b GaussianKernelSize \OptionalAtt{5.0}
+  
+  -\xmlElem \b Thresholding
+    -\xmlAtt \b ThresholdOutValue \OptionalAtt{0.0}
+    -\xmlAtt \b LowerThreshold \OptionalAtt{30.0}
+    -\xmlAtt \b UpperThreshold \OptionalAtt{255.0}
+  
+  -\xmlElem \b IslandRemoval
+    -\xmlAtt \b IslandAreaThreshold \OptionalAtt{700}
+  
+  -\xmlElem \b Erosion
+    -\xmlAtt \b ErosionKernelSize \OptionalAtt{5 5}
+  
+  -\xmlElem \b Dilation 
+    -\xmlAtt \b DilationKernelSize \OptionalAtt{10 5}
+  
+  
+-\xmlElem \ref vtkPlusUsSimulatorAlgo
+  -\xmlAtt \ref NumberOfScanlines \RequiredAtt{128}
+  -\xmlAtt \ref NumberOfSamplesPerScanline \RequiredAtt{1000}
+  
 
 */
