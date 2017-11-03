@@ -50,8 +50,8 @@ vtkPlusAccurateTimer* vtkPlusAccurateTimer::GetInstance()
       vtkPlusAccurateTimer::Instance = new vtkPlusAccurateTimer;
     }
     vtkPlusAccurateTimer::Instance->SystemStartTime = vtkPlusAccurateTimer::Instance->GetInternalSystemTime();
-    LOG_INFO("System start timestamp: " << vtkPlusAccurateTimer::Instance->SystemStartTime);
     vtkPlusAccurateTimer::Instance->UniversalStartTime = vtkTimerLog::GetUniversalTime();
+    LOG_INFO("System start timestamp: " << std::fixed << std::setprecision(0) << vtkPlusAccurateTimer::Instance->SystemStartTime);
     LOG_DEBUG("AccurateTimer universal start time: " << GetDateAndTimeString(DTF_DATE_TIME_MSEC, vtkPlusAccurateTimer::UniversalStartTime));
   }
   return vtkPlusAccurateTimer::Instance;
