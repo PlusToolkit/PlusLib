@@ -1141,11 +1141,8 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   GetObject(this->Internal->DataHandle, sizeof(BITMAP), &this->Internal->Bitmap);
 
   vtkPlusDataSource* aSource=NULL;
-  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
-    return PLUS_FAIL;
-  }
+  ERROR_FAIL_IF(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS,
+      "Unable to retrieve the video source in the Capistrano device.");
 
   std::vector<int> frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
   int frameSize[3] = {frameSizeInPx[0], frameSizeInPx[1], 1 } ;//frameSizeInPx[2]};
@@ -1178,18 +1175,16 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   //PlusTrackedFrame::FieldMapType customFields;
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  if( aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
-                        aSource->GetInputImageOrientation(),
-                        frameSize, VTK_UNSIGNED_CHAR,
-                        1, US_IMG_BRIGHTNESS, 0,
-                        this->FrameNumber,
-                        unfilteredTimestamp,
-                        unfilteredTimestamp,
-                        &this->CustomFields) != PLUS_SUCCESS )
-  {
-    LOG_ERROR("Error adding item to video source " << aSource->GetSourceId());
-    return PLUS_FAIL;
-  }
+  ERROR_FAIL_IF(aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
+                                 aSource->GetInputImageOrientation(),
+                                 frameSize, VTK_UNSIGNED_CHAR,
+                                 1, US_IMG_BRIGHTNESS, 0,
+                                 this->FrameNumber,
+                                 unfilteredTimestamp,
+                                 unfilteredTimestamp,
+                                 &this->CustomFields
+                                 ) != PLUS_SUCCESS,
+      "Error adding item to video source " << aSource->GetSourceId());
 
   this->Modified();
 
@@ -1199,17 +1194,10 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
 {
-  if (this->Internal->ProbeHandle==NULL)
-  {
-    LOG_ERROR("vtkPlusIntersonVideoSource::FreezeDevice failed: device not connected");
-    return PLUS_FAIL;
-  }
-
-  if (!usbHardwareDetected())
-  {
-    LOG_ERROR("Freeze failed, no hardware is detected");
-    return PLUS_FAIL;
-  }
+  ERROR_FAIL_IF(this->Internal->ProbeHandle == NULL,
+      "vtkPlusIntersonVideoSource::FreezeDevice failed: device not connected");
+  ERROR_FAIL_IF(!usbHardwareDetected(),
+      "Freeze failed, no hardware is detected");
 
   if (this->Frozen == freeze) //already in desired mode
   {
@@ -1225,11 +1213,8 @@ PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
   {
     usbClearCineBuffers();
     this->FrameNumber = 0;
-    if(this->UpdateUSParameters() == PLUS_FAIL)
-    {
-      LOG_ERROR("Failed to update US parameters");
-      return PLUS_FAIL;
-    }
+    ERROR_FAIL_IF(this->UpdateUSParameters() == PLUS_FAIL,
+        "Failed to update US parameters");
     usbProbe(RUN);
   }
 
@@ -1253,12 +1238,19 @@ PlusStatus vtkPlusCapistranoVideoSource::WaitForFrame()
     return PLUS_SUCCESS;
   }
 
+  static bool messagePrinted = false;
+
   switch (usbErrorCode)
   {
   case USB_SUCCESS:
+    messagePrinted = false;
     break;
   case USB_FAILED:
-    LOG_ERROR("USB: FAILURE. Probe was removed?");
+    if (!messagePrinted)
+    {
+      LOG_ERROR("USB: FAILURE. Probe was removed?");
+      messagePrinted = true;
+    }
     return PLUS_FAIL;
   case USB_TIMEOUT2A:
   case USB_TIMEOUT2B:
@@ -1270,15 +1262,27 @@ PlusStatus vtkPlusCapistranoVideoSource::WaitForFrame()
     }
   break;
   case USB_NOTSEQ:
-    LOG_ERROR("Lost Probe Synchronization. Please check probe cables and restart.");
+    if (!messagePrinted)
+    {
+      LOG_ERROR("Lost Probe Synchronization. Please check probe cables and restart.");
+      messagePrinted = true;
+    }
 	FreezeDevice(true);
 	FreezeDevice(false);
     break;
   case USB_STOPPED:
-    LOG_ERROR("USB: Stopped. Check probe and restart.");
+    if (!messagePrinted)
+    {
+      LOG_ERROR("USB: Stopped. Check probe and restart.");
+      messagePrinted = true;
+    }
     break;
   default:
-    LOG_ERROR("USB: Unknown USB error: "<<usbErrorCode);
+    if (!messagePrinted)
+    {
+      LOG_ERROR("USB: Unknown USB error: " << usbErrorCode);
+      messagePrinted = true;
+    }
 	FreezeDevice(true);
 	FreezeDevice(false);
     break;
@@ -1578,18 +1582,10 @@ PlusStatus vtkPlusCapistranoVideoSource::SetDepthMm(float depthMm)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::UpdateUSParameters()
 {
-  if(this->UpdateUSProbeParameters() == PLUS_FAIL)
-  {
-    LOG_ERROR("Failed to Update US probe parameters");
-    return PLUS_FAIL;
-  }
-
-  if(this->UpdateUSBModeParameters() == PLUS_FAIL)
-  {
-    LOG_ERROR("Failed to Update US BMode parameters");
-    return PLUS_FAIL;
-  }
-
+  ERROR_FAIL_IF(this->UpdateUSProbeParameters() == PLUS_FAIL,
+      "Failed to Update US probe parameters");
+  ERROR_FAIL_IF(this->UpdateUSBModeParameters() == PLUS_FAIL,
+      "Failed to Update US BMode parameters");
   return PLUS_SUCCESS;
 }
 

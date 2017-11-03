@@ -104,6 +104,30 @@ enum PlusImagingMode
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
 
+// If condition is satisfied, logs error only the first time
+// and returns PLUS_FAIL each time
+#define ERROR_FAIL_IF(condition, msg) \
+  { \
+  static bool messagePrinted = false; \
+  if (condition) \
+  { \
+    if (!messagePrinted) \
+    { \
+      LOG_ERROR(msg); \
+      messagePrinted = true; \
+    } \
+    return PLUS_FAIL; \
+  } \
+  else \
+  { \
+    if (messagePrinted) \
+    { \
+      LOG_INFO("The following error has just been resolved: " << msg); \
+    } \
+    messagePrinted = false; \
+  } \
+  }
+
 #define LOG_ERROR_W(msg) \
   { \
   std::wostringstream msgStream; \
@@ -147,6 +171,30 @@ enum PlusImagingMode
   std::wostringstream msgStream; \
   msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+// If condition is satisfied, logs error only the first time
+// and returns PLUS_FAIL each time
+#define ERROR_FAIL_IF_W(condition, msg) \
+  { \
+  static bool messagePrinted = false; \
+  if (condition) \
+  { \
+    if (!messagePrinted) \
+    { \
+      LOG_ERROR_W(msg); \
+      messagePrinted = true; \
+    } \
+    return PLUS_FAIL; \
+  } \
+  else \
+  { \
+    if (messagePrinted) \
+    { \
+      LOG_INFO_W("The following error has just been resolved: " << msg); \
+    } \
+    messagePrinted = false; \
+  } \
   }
 
 ///////////////////////////////////////////////////////////////////
