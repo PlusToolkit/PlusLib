@@ -474,6 +474,13 @@ IF(PLUS_USE_OpenIGTLink)
     )
 ENDIF()
 
+#*************************** OpenHapticsDeviceTest *******************************
+IF(PLUS_USE_OPENHAPTICS)
+  ADD_EXECUTABLE(vtkOpenHapticsDeviceTest vtkOpenHapticsDeviceTest.cxx)
+  SET_TARGET_PROPERTIES(vtkOpenHapticsDeviceTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkOpenHapticsDeviceTest vtkPlusDataCollection vtkPlusCommon)
+ENDIF()
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
