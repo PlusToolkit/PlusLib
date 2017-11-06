@@ -81,7 +81,7 @@ int main(int argc, char** argv)
   }
 
   vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
-    
+
   // Read input sequence
   vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   if (trackedFrameList->ReadFromSequenceMetafile(inputFileName) == PLUS_FAIL)
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
 
     // Saves the intermediate results that were recorded during the call to enhancer->Update()
     enhancer->SetIntermediateImageFileName(
-      outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex) );
+      outputFileName.substr(0, startOutputFileNameIndex) + inputFileName.substr(startInputFileNameIndex, inputFileName.find(".") - startInputFileNameIndex));
     enhancer->SaveAllIntermediateResultsToFile();
   }
 
