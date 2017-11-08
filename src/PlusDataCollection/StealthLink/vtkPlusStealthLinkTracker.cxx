@@ -656,18 +656,29 @@ PlusStatus vtkPlusStealthLinkTracker::GetImage(const std::string& requestedImage
     examImageDirectoryToDelete = examImageDirectory;
 
     vtkSmartPointer<vtkDICOMImageReader> reader = vtkSmartPointer<vtkDICOMImageReader>::New();
-    reader->SetDirectoryName(examImageDirectory.c_str());
+    try
+    {
+      reader->SetDirectoryName(examImageDirectory.c_str());
+      reader->ReleaseDataFlagOn();
 
-    //to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
-    vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipYFilter->SetFilteredAxis(1);   // flip y axis
-    flipYFilter->SetInputConnection(reader->GetOutputPort());
+      //to go from the vtk orientation to lps orientation, the vtk image has to be flipped around y and z axis
+      vtkSmartPointer<vtkImageFlip> flipYFilter = vtkSmartPointer<vtkImageFlip>::New();
+      flipYFilter->SetFilteredAxis(1);   // flip y axis
+      flipYFilter->ReleaseDataFlagOn();
+      flipYFilter->SetInputConnection(reader->GetOutputPort());
 
-    vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
-    flipZFilter->SetFilteredAxis(2);   // flip z axis
-    flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
-    flipZFilter->Update();
-    imageData->DeepCopy(flipZFilter->GetOutput());
+      vtkSmartPointer<vtkImageFlip> flipZFilter = vtkSmartPointer<vtkImageFlip>::New();
+      flipZFilter->SetFilteredAxis(2);   // flip z axis
+      flipZFilter->ReleaseDataFlagOn();
+      flipZFilter->SetInputConnection(flipYFilter->GetOutputPort());
+      flipZFilter->Update();
+      imageData->DeepCopy(flipZFilter->GetOutput());
+    }
+    catch (const std::bad_alloc& e)
+    {
+      LOG_ERROR("Error when downloading image from StealthLink: " << e.what() << ". Image may be too large");
+      return PLUS_FAIL;
+    }
 
     float*  ijkOrigin_LPS = reader->GetImagePositionPatient(); //(0020,0032) ImagePositionPatient
     double* ijkVectorMagnitude_LPS = reader->GetPixelSpacing(); //(0020,0037) ImageOrientationPatient
