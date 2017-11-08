@@ -136,6 +136,9 @@ protected:
     double m_lastTimestamp = 0.0; //for watchdog
     double m_timeGainCompensation[8];
     float m_focalPointDepth[4];
+    uint16_t m_MinValue = 16; //noise floor
+    uint16_t m_MaxValue = 16384; //maximum typical value
+    uint16_t m_Knee = 4096; // threshold value for switching from log to linear
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

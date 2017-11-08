@@ -130,19 +130,40 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
 
     assert(length = m_samplesPerLine*m_transducerCount*sizeof(uint16_t) + 256); //frame + header and footer
     uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
-    const float logFactor = 22.992952214167854304798799603468f; // =255/ln(2^16)
     uint8_t * bModeBuffer=new uint8_t[m_samplesPerLine*m_transducerCount];
+    const float logFactor = 128 / std::log(1 + m_Knee);
 
 #pragma omp parallel for
     for (int t = 0; t < m_transducerCount; t++)
     {
         for (int s = 0; s < m_samplesPerLine; s++)
         {
-            bModeBuffer[s*m_transducerCount + t] = static_cast<uint8_t>
-                (logFactor*std::log(float(1 + frame[t*m_samplesPerLine + s])));
+            uint16_t val = frame[t*m_samplesPerLine + s];
+            if (val <= m_MinValue) // subtract noise floor
+            {
+                val = 0;
+            }
+            else
+            {
+                val -= m_MinValue;
+            }
+            if (val > m_MaxValue) //apply ceiling
+            {
+                val = m_MaxValue;
+            }
+
+            float cVal;
+            if (val < m_Knee)
+            {
+                cVal = logFactor*std::log(float(1 + val));
+            }
+            else //linear mapping
+            {
+                cVal = 128 + (val - m_Knee) * 127.0f / (m_MaxValue - m_Knee);
+            }
+            bModeBuffer[s*m_transducerCount + t] = static_cast<uint8_t>(cVal);
         }
     }
-
 
     int frameSize[3] = { m_transducerCount,m_samplesPerLine,1 };
 
