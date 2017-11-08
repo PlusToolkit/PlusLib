@@ -27,23 +27,29 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusOpenHapticsDevice);
 
 vtkPlusOpenHapticsDevice::vtkPlusOpenHapticsDevice()
+  :FrameNumber(-1)
+  , DeviceHandle(-1)
+  , DeviceName("PLUS")
+  , toolTransform(vtkSmartPointer<vtkTransform>::New())
+  , rotation(vtkSmartPointer<vtkTransform>::New())
+  , velMatrix(vtkSmartPointer<vtkMatrix4x4>::New())
+  , buttonMatrix(vtkSmartPointer<vtkMatrix4x4>::New())
+  , toolMatrix(vtkSmartPointer<vtkMatrix4x4>::New())
 {
-  this->FrameNumber = 0;
-  this->isHapticDeviceInitialized = false;
-  this->DeviceHandle = -1;
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 20;
-  this->DeviceName = "PLUS";
+
+  this->rasCorrection = vtkSmartPointer<vtkMatrix4x4>::New();
+  this->rasCorrection->Identity();
+  this->rasCorrection->SetElement(0, 0, -1);
+  this->rasCorrection->SetElement(1, 1, 0);
+  this->rasCorrection->SetElement(1, 2, 1);
+  this->rasCorrection->SetElement(2, 2, 0);
+  this->rasCorrection->SetElement(2, 1, 1);
 }
 
-vtkPlusOpenHapticsDevice::~vtkPlusOpenHapticsDevice()
-{
-  if (this->isHapticDeviceInitialized)
-  {
-    this->isHapticDeviceInitialized = false;
-  }
-}
+vtkPlusOpenHapticsDevice::~vtkPlusOpenHapticsDevice(){}
 
 std::string vtkPlusOpenHapticsDevice::GetSdkVersion()
 {
@@ -54,7 +60,7 @@ std::string vtkPlusOpenHapticsDevice::GetSdkVersion()
 
 PlusStatus vtkPlusOpenHapticsDevice::Probe()
 {
-  if (this->isHapticDeviceInitialized)
+  if (this->Connected)
   {
     LOG_ERROR("vtkPlusOpenHapticsDevice::Probe should not be called while the device is already initialized");
     return PLUS_FAIL;
@@ -84,39 +90,17 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalUpdate()
 
 PlusStatus vtkPlusOpenHapticsDevice::InternalConnect()
 {
-  if (this->isHapticDeviceInitialized)
-  {
-    LOG_DEBUG("Already connected - " << this->DeviceName);
-    return PLUS_SUCCESS;
-  }
-
-  if (this->InputChannels.empty())
-  {
-    LOG_WARNING("No force input has been provided");
-  }
-  else
-  {
-    if (this->InputChannels.size() > 1)
-    {
-      LOG_WARNING("Multiple input channels present.  Only first channel will be checked for force data");
-    }
-    vtkPlusDataSource* forceInput;
-    if (!this->InputChannels[0]->GetOwnerDevice()->GetToolByPortName("Force", forceInput))
-    {
-      LOG_WARNING("No Force tool in input channel.  Forces will not be available");
-    }
-  }
 
   HDErrorInfo errorFlush;
   while (HD_DEVICE_ERROR(errorFlush = hdGetError())) {}
 
-  DeviceHandle = hdInitDevice(this->DeviceName.c_str());
+  this->DeviceHandle = hdInitDevice(this->DeviceName.c_str());
 
   HDErrorInfo error;
   if (HD_DEVICE_ERROR(error = hdGetError()))
   {
     LOG_ERROR( "Failed to initialize Phantom Omni " << this->DeviceName);
-    DeviceHandle = -1;
+    this->DeviceHandle = -1;
     return PLUS_FAIL;
   }
 
@@ -124,8 +108,7 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalConnect()
   hdEnable(HD_FORCE_OUTPUT);
   hdEnable(HD_FORCE_RAMPING);
 
-  this->isHapticDeviceInitialized = true;
-  LOG_INFO("Phantom initialized: " << this->DeviceName)
+  LOG_DEBUG("Phantom initialized: " << this->DeviceName)
 
   hdStartScheduler();
 
@@ -134,12 +117,8 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalConnect()
 
 PlusStatus vtkPlusOpenHapticsDevice::InternalDisconnect()
 {
-  if (this->isHapticDeviceInitialized)
-  {
-    hdDisableDevice(DeviceHandle);
-    hdStopScheduler();
-    this->isHapticDeviceInitialized=false;
-  }
+  hdDisableDevice(DeviceHandle);
+  hdStopScheduler();
   return PLUS_SUCCESS;
 }
 
@@ -174,6 +153,27 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
+PlusStatus vtkPlusOpenHapticsDevice::NotifyConfigured()
+{
+  if (this->InputChannels.empty())
+  {
+    LOG_INFO("No force input has been provided");
+  }
+  else
+  {
+    if (this->InputChannels.size() > 1)
+    {
+      LOG_INFO("Multiple input channels present.  Only first channel will be checked for force data");
+    }
+    vtkPlusDataSource* forceInput;
+    if (this->InputChannels[0]->GetToolByPortName(forceInput, "Force") != PLUS_SUCCESS)
+    {
+      LOG_INFO("No Force tool in input channel.  Forces will not be available");
+    }
+  }
+  return PLUS_SUCCESS;
+}
+
 HDCallbackCode HDCALLBACK
 vtkPlusOpenHapticsDevice::positionCallback(void* pData)
 {
@@ -190,36 +190,36 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   force[1] = 0;
   force[2] = 0;
 
-  //Transform to RAS coordinate system
-  vtkSmartPointer<vtkMatrix4x4> rasCorrection = vtkSmartPointer<vtkMatrix4x4>::New();
-  rasCorrection->Identity();
-  rasCorrection->SetElement(0, 0, -1);
-  rasCorrection->SetElement(1, 1, 0);
-  rasCorrection->SetElement(1, 2, 1);
-  rasCorrection->SetElement(2, 2, 0);
-  rasCorrection->SetElement(2, 1, 1);
 
   //assemble force data
-  auto inputChannels = client->InputChannels;
   vtkPlusDataSource* forceInput;
-  if (!inputChannels.empty() && inputChannels[0]->GetOwnerDevice()->GetToolByPortName("Force", forceInput))
+  if (!client->InputChannels.empty() && (client->InputChannels[0]->GetToolByPortName(forceInput, "Force") == PLUS_SUCCESS))
   {
-    StreamBufferItem* item = new StreamBufferItem();
-    if (forceInput->GetLatestItemUidInBuffer() > 0)
+    StreamBufferItem item;
+    if (forceInput->GetLatestStreamBufferItem(&item) == ITEM_OK)
     {
-      forceInput->GetLatestStreamBufferItem(item);
-      vtkSmartPointer<vtkMatrix4x4> forceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      item->GetMatrix(forceMatrix);
-      vtkMatrix4x4::Multiply4x4(rasCorrection, forceMatrix, forceMatrix);
-      force[0] = forceMatrix->GetElement(0,3);
-      force[1] = forceMatrix->GetElement(1,3);
-      force[2] = forceMatrix->GetElement(2,3);
+      if (item.GetStatus() == TOOL_OK)
+      {
+        vtkSmartPointer<vtkMatrix4x4> forceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+        item.GetMatrix(forceMatrix);
+        vtkMatrix4x4::Multiply4x4(client->rasCorrection, forceMatrix, forceMatrix);
+        force[0] = forceMatrix->GetElement(0,3);
+        force[1] = forceMatrix->GetElement(1,3);
+        force[2] = forceMatrix->GetElement(2,3);
+      }
+      else
+      {
+        LOG_ERROR("OpenHaptics Force data tool is not valid")
+      }
+     }
+    else
+    {
+      LOG_ERROR("OpenHaptics Force data tool info not recevied")
     }
-    delete item;
   }
   else
   {
-    LOG_TRACE("No force data available");
+    LOG_TRACE("No force data tool has been provided");
   }
 
   //Current position data is pulled here
@@ -236,60 +236,57 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   hdSetDoublev(HD_CURRENT_FORCE, force);
   hdGetIntegerv(HD_CURRENT_BUTTONS, &buttonVals);
   hdGetBooleanv(HD_CURRENT_INKWELL_SWITCH, &inkwell);
-  hdEndFrame(handle);
-
   vtkPlusDataSource* stylus = NULL;
   vtkPlusDataSource* velocity = NULL;
   vtkPlusDataSource* buttons = NULL;
+  hdEndFrame(handle);
 
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkTransform> rotation = vtkSmartPointer<vtkTransform>::New();
-  vtkSmartPointer<vtkTransform> velTrans = vtkSmartPointer<vtkTransform>::New();
-  vtkSmartPointer<vtkMatrix4x4> velMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> buttonMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double orient[3];
 
   //Arrange transformations in correct order
-  transform->Identity();
-  transform->Translate(pos);
-  rotation->SetMatrix(trans);
-  rotation->GetOrientation(orient);
-  transform->RotateX(-1* orient[0] + 180);
-  transform->RotateY(orient[1]);
-  transform->RotateZ(orient[2]);  
-  transform->GetMatrix(toolMatrix);
-  velTrans->Translate(vel);
-  velTrans->GetMatrix(velMatrix);
-  vtkMatrix4x4::Multiply4x4(rasCorrection, velMatrix, velMatrix);
-  vtkMatrix4x4::Multiply4x4(rasCorrection,toolMatrix,toolMatrix);
+  client->toolTransform->Identity();
+  client->toolTransform->Translate(pos);
+  client->rotation->SetMatrix(trans);
+  client->rotation->GetOrientation(orient);
+  client->toolTransform->RotateX(-1 * orient[0] + 180);
+  client->toolTransform->RotateY(orient[1]);
+  client->toolTransform->RotateZ(orient[2]);
+  client->velMatrix->SetElement(0, 3, vel[0]);
+  client->velMatrix->SetElement(1, 3, vel[1]);
+  client->velMatrix->SetElement(2, 3, vel[2]);
+
+  client->toolMatrix = client->toolTransform->GetMatrix();
+  vtkMatrix4x4::Multiply4x4(client->rasCorrection, client->velMatrix, client->velMatrix);
+  vtkMatrix4x4::Multiply4x4(client->rasCorrection, client->toolMatrix, client->toolMatrix);
 
 
-  buttonMatrix->SetElement(0,0,0);
-  buttonMatrix->SetElement(1, 1, 0);
-  buttonMatrix->SetElement(2, 2, 0);
-  buttonMatrix->SetElement(0, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_1));
-  buttonMatrix->SetElement(1, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_2));
-  buttonMatrix->SetElement(2, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_3));
-  buttonMatrix->SetElement(3, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_4));
-  buttonMatrix->SetElement(0, 1, (int)inkwell);
-
+  //Setting the button values in the matrix
+  //The four button occupy the 1st column
+  //The inkwell switch is at the top of the second column.
+  client->buttonMatrix->SetElement(0, 0, 0);
+  client->buttonMatrix->SetElement(1, 1, 0);
+  client->buttonMatrix->SetElement(2, 2, 0);
+  client->buttonMatrix->SetElement(0, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_1));
+  client->buttonMatrix->SetElement(1, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_2));
+  client->buttonMatrix->SetElement(2, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_3));
+  client->buttonMatrix->SetElement(3, 0, (bool)(buttonVals & HD_DEVICE_BUTTON_4));
+  client->buttonMatrix->SetElement(0, 1, (int)inkwell);
 
   if (client->GetToolByPortName("Stylus", stylus) == PLUS_SUCCESS)
   {
-    client->ToolTimeStampedUpdate(stylus->GetId(), toolMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+    client->ToolTimeStampedUpdate(stylus->GetId(), client->toolMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
 
   }
 
   if (client->GetToolByPortName("StylusVelocity", velocity) == PLUS_SUCCESS)
   {
-    client->ToolTimeStampedUpdate(velocity->GetId(), velMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+    client->ToolTimeStampedUpdate(velocity->GetId(), client->velMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
 
   }
 
   if (client->GetToolByPortName("Buttons", buttons) == PLUS_SUCCESS)
   {
-    client->ToolTimeStampedUpdate(buttons->GetId(), buttonMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
+    client->ToolTimeStampedUpdate(buttons->GetId(), client->buttonMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
   }
 
   return HD_CALLBACK_DONE;

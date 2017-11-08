@@ -11,6 +11,7 @@
 
 #include "vtkPlusDevice.h"
 #include <HD/hd.h>
+#include "vtkTransform.h"
 
 class vtkMatrix4x4;
 
@@ -65,6 +66,8 @@ public:
   vtkSetMacro(DeviceName, std::string);
   vtkGetMacro(DeviceName, std::string);
 
+  PlusStatus NotifyConfigured();
+
 
 protected:
   vtkPlusOpenHapticsDevice();
@@ -90,6 +93,12 @@ private:
 
   HHD DeviceHandle;     ///< device handle
   HD_state DeviceState; ///< device reading state
+  vtkSmartPointer<vtkTransform> toolTransform;
+  vtkSmartPointer<vtkTransform> rotation;
+  vtkSmartPointer<vtkMatrix4x4> velMatrix;
+  vtkSmartPointer<vtkMatrix4x4> buttonMatrix;
+  vtkSmartPointer<vtkMatrix4x4> toolMatrix;
+  vtkSmartPointer<vtkMatrix4x4> rasCorrection;
 };
 
 #endif
