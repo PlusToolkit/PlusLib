@@ -65,6 +65,7 @@ public:
   PlusStatus AddTool(vtkPlusDataSource* aTool);
   PlusStatus RemoveTool(const std::string& toolSourceId);
   PlusStatus GetTool(vtkPlusDataSource*& aTool, const std::string& toolSourceId);
+  PlusStatus GetToolByPortName(vtkPlusDataSource*& aTool, const std::string& portName);
   PlusStatus RemoveTools();
   inline DataSourceContainerIterator GetToolsStartIterator() { return this->Tools.begin(); };
   inline DataSourceContainerIterator GetToolsEndIterator() { return this->Tools.end(); };

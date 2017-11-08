@@ -252,6 +252,27 @@ PlusStatus vtkPlusChannel::GetTool(vtkPlusDataSource*& aTool, const std::string&
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusChannel::GetToolByPortName(vtkPlusDataSource*& aTool, const std::string& portName)
+{
+  if (portName.empty())
+  {
+    LOG_ERROR("vtkPlusChannel::GetToolByPortName failed: portName is invalid");
+    return PLUS_FAIL;
+  }
+
+  for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  {
+    if (portName == it->second->GetPortName())
+    {
+      aTool = it->second;
+      return PLUS_SUCCESS;
+    }
+  }
+
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::AddTool(vtkPlusDataSource* aTool)
 {
   if (aTool == NULL)
@@ -813,16 +834,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }
@@ -860,16 +881,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }
