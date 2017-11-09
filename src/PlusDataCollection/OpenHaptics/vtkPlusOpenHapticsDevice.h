@@ -11,17 +11,10 @@
 
 #include "vtkPlusDevice.h"
 #include <HD/hd.h>
-#include "vtkTransform.h"
 
 class vtkMatrix4x4;
+class vtkTransform;
 
-struct HD_state
-{
-  HDdouble pos[3];
-  HDdouble vel[3];
-  HDdouble trans[16];
-  HDint buttons;
-};
 
 /*!
   \class vtkPlusOpenHapticsDevice
@@ -63,8 +56,8 @@ public:
   /*! Read configuration from xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  vtkSetMacro(DeviceName, std::string);
-  vtkGetMacro(DeviceName, std::string);
+  vtkSetStdStringMacro(DeviceName);
+  vtkGetStdStringMacro(DeviceName);
 
   PlusStatus NotifyConfigured();
 
@@ -73,18 +66,13 @@ protected:
   vtkPlusOpenHapticsDevice();
   ~vtkPlusOpenHapticsDevice();
 
-
-  PlusStatus InternalStartRecording();
-  PlusStatus InternalStopRecording();
-
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  double LastFrameNumber;
+  unsigned int LastFrameNumber;
 
   unsigned int FrameNumber;
 
   std::string DeviceName;
 
-  bool isHapticDeviceInitialized;
 
 private:
   vtkPlusOpenHapticsDevice(const vtkPlusOpenHapticsDevice&);
@@ -92,7 +80,6 @@ private:
   static HDCallbackCode HDCALLBACK positionCallback(void* pData);
 
   HHD DeviceHandle;     ///< device handle
-  HD_state DeviceState; ///< device reading state
   vtkSmartPointer<vtkTransform> toolTransform;
   vtkSmartPointer<vtkTransform> rotation;
   vtkSmartPointer<vtkMatrix4x4> velMatrix;

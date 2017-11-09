@@ -15,11 +15,11 @@
 
 \section DeviceOpenHapticsConfigSettings Device configuration settings
 
-The device will output three transforms: the tracking transform of the the stylus,, the stylus velocity, and the stylus buttons.  In order to
+The device will output three transforms: the tracking transform of the the stylus, the stylus velocity, and the stylus buttons.  In order to
 transmit forces to the device, an input channel with a single tool DataSource (with portname "Force") should be provided.  The force vector should be stored in the
-translation portion of the transformation  matrix (RAS coordinates).
+translation portion of the transformation matrix (RAS coordinates).
 
-- \xmlAtt \ref DeviceType "Type" = \c "OpenHapticsDevice" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "OpenHaptics" \RequiredAtt
 - \xmlAtt \b DeviceName Device Name. Name of device to connect to \RequiredAtt
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
@@ -33,13 +33,15 @@ translation portion of the transformation  matrix (RAS coordinates).
      - \c Buttons States for buttons. The button values are stored in the first column of the matrix.  The inkwell switch is the first element in the second column.
    - \xmlAtt \ref BufferSize \OptionalAtt{150}
    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
-- \xmlElem \ref InputChannelsList An Input channel is required to send force data to the device \RequiredAtt
+- \xmlElem \ref InputChannels An Input channel is required to send force data to the device \RequiredAtt
    - \xmlElem \ref InputChannel \RequiredAtt
      -\xmlElem \ref Id Identifier of an output channel of another device containing a tool with PortName="Force" \RequiredAtt
 
 
 \section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics_WithForces.xml
-
 \include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics_WithForces.xml"
+
+\section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics.xml
+\include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics.xml"
 
 */

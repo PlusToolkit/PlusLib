@@ -317,7 +317,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 
 #ifdef PLUS_USE_OPENHAPTICS
-  RegisterDevice("OpenHapticsDevice", "vtkPlusOpenHapticsDevice", (PointerToDevice)&vtkPlusOpenHapticsDevice::New);
+  RegisterDevice("OpenHaptics", "vtkPlusOpenHapticsDevice", (PointerToDevice)&vtkPlusOpenHapticsDevice::New);
 #endif
 
   // Virtual Devices

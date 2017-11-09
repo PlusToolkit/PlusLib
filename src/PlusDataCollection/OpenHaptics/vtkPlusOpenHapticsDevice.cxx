@@ -1,5 +1,6 @@
 /*=Plus=header=begin======================================================
 Program: Plus
+Author: Sam Horvath, Kitware, Inc.
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
@@ -26,6 +27,7 @@ See License.txt for details.
 
 vtkStandardNewMacro(vtkPlusOpenHapticsDevice);
 
+//----------------------------------------------------------------------------
 vtkPlusOpenHapticsDevice::vtkPlusOpenHapticsDevice()
   : FrameNumber(-1)
   , DeviceHandle(-1)
@@ -49,8 +51,10 @@ vtkPlusOpenHapticsDevice::vtkPlusOpenHapticsDevice()
   this->rasCorrection->SetElement(2, 1, 1);
 }
 
+//----------------------------------------------------------------------------
 vtkPlusOpenHapticsDevice::~vtkPlusOpenHapticsDevice() {}
 
+//----------------------------------------------------------------------------
 std::string vtkPlusOpenHapticsDevice::GetSdkVersion()
 {
   std::stringstream ss;
@@ -58,6 +62,7 @@ std::string vtkPlusOpenHapticsDevice::GetSdkVersion()
   return ss.str();
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::Probe()
 {
   if(this->Connected)
@@ -79,6 +84,7 @@ PlusStatus vtkPlusOpenHapticsDevice::Probe()
 
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::InternalUpdate()
 {
   //schedule the internal callback - must be done each time device is polled
@@ -88,6 +94,7 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalUpdate()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::InternalConnect()
 {
 
@@ -115,6 +122,7 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalConnect()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::InternalDisconnect()
 {
   hdDisableDevice(DeviceHandle);
@@ -122,13 +130,15 @@ PlusStatus vtkPlusOpenHapticsDevice::InternalDisconnect()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(DeviceName, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(DeviceName, deviceConfig);
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
@@ -136,23 +146,7 @@ PlusStatus vtkPlusOpenHapticsDevice::WriteConfiguration(vtkXMLDataElement* rootC
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkPlusOpenHapticsDevice::InternalStartRecording()
-{
-  if(!this->isHapticDeviceInitialized)
-  {
-    LOG_ERROR("InternalStartRecording failed: OpenHaptics device has not been initialized");
-    return PLUS_FAIL;
-  }
-  LOG_TRACE("vtkPlusOpenHapticsDevice::InternalStartRecording");
-  return PLUS_SUCCESS;
-}
-
-PlusStatus vtkPlusOpenHapticsDevice::InternalStopRecording()
-{
-  LOG_TRACE("vtkPlusOpenHapticsDevice::InternalStopRecording");
-  return PLUS_SUCCESS;
-}
-
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenHapticsDevice::NotifyConfigured()
 {
   if(this->InputChannels.empty())
@@ -174,13 +168,13 @@ PlusStatus vtkPlusOpenHapticsDevice::NotifyConfigured()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 HDCallbackCode HDCALLBACK
 vtkPlusOpenHapticsDevice::positionCallback(void* pData)
 {
 
   vtkPlusOpenHapticsDevice* client = reinterpret_cast<vtkPlusOpenHapticsDevice*>(pData);
   HHD handle = client->DeviceHandle;
-  HD_state state = client->DeviceState;
 
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
   ++client->FrameNumber;
@@ -275,13 +269,11 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   if(client->GetToolByPortName("Stylus", stylus) == PLUS_SUCCESS)
   {
     client->ToolTimeStampedUpdate(stylus->GetId(), client->toolMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
-
   }
 
   if(client->GetToolByPortName("StylusVelocity", velocity) == PLUS_SUCCESS)
   {
     client->ToolTimeStampedUpdate(velocity->GetId(), client->velMatrix, TOOL_OK, client->FrameNumber, unfilteredTimestamp);
-
   }
 
   if(client->GetToolByPortName("Buttons", buttons) == PLUS_SUCCESS)
