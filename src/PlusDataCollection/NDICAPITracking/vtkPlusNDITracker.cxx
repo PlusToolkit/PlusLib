@@ -244,6 +244,10 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
   {
     LOG_DEBUG("NDI Command:send serial break");
   }
+  
+  // Linux and MacOSX require resetting of va parameters
+  va_end(ap);
+  va_start(ap, format);
 
   if (this->Device)
   {
@@ -340,11 +344,22 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
     }
   }
 
+#if defined(WIN32)
   // TODO: use the lines in this comment to replace next 5 lines when VS2010 support is dropped:
   //auto baudRates = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
   //for (auto baud : baudRates)
   const unsigned int numberOfBaudRates = 9;
   int baudRates[numberOfBaudRates] = { NDI_1228739, NDI_921600, NDI_230400, NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+#elif defined(__APPLE__)
+  const unsigned int numberOfBaudRates = 6;
+  int baudRates[numberOfBaudRates] = { NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+#elif defined(__linux__)
+  const unsigned int numberOfBaudRates = 6;
+  int baudRates[numberOfBaudRates] = { NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+#else
+  const unsigned int numberOfBaudRates = 6;
+  int baudRates[numberOfBaudRates] = { NDI_115200, NDI_57600, NDI_38400, NDI_19200, NDI_14400, NDI_9600 };
+#endif
   for (unsigned int baudIndex = 0; baudIndex < numberOfBaudRates; baudIndex++)
   {
     int baud = baudRates[baudIndex];
@@ -605,6 +620,13 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
 
   // free ports that are waiting to be freed
   this->Command("PHSR:01");
+  int errnum = ndiGetError(this->Device);
+  if(errnum != NDI_OKAY)
+  {
+    LOG_ERROR("Unable to get the number of handles. Error: " << ndiErrorString(errnum));
+    return PLUS_FAIL;
+  }
+  
   int ntools = ndiGetPHSRNumberOfHandles(this->Device);
   for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
   {
@@ -639,7 +661,7 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   }
 
   // initialize ports waiting to be initialized
-  int errnum = 0;
+  errnum = 0;
   ntools = 0;
   do // repeat as necessary (in case multi-channel tools are used)
   {
