@@ -8,7 +8,7 @@
 \section DeviceOpenHapticsSupportedPlatforms Supported platforms
 
 - \ref PackageWin64
-- \ref PackageLinux
+- \ref PackageWin32
 
 \section DeviceOpenHapticsInstallation Installation
 - Install OpenHaptics Developer SDK from: http://developer.geomagic.com/
