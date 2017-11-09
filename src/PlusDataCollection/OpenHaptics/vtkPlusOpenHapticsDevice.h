@@ -33,7 +33,7 @@ class vtkPlusDataCollectionExport vtkPlusOpenHapticsDevice : public vtkPlusDevic
 public:
 
   static vtkPlusOpenHapticsDevice* New();
-  vtkTypeMacro( vtkPlusOpenHapticsDevice, vtkPlusDevice );
+  vtkTypeMacro(vtkPlusOpenHapticsDevice, vtkPlusDevice);
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
@@ -73,7 +73,7 @@ protected:
   vtkPlusOpenHapticsDevice();
   ~vtkPlusOpenHapticsDevice();
 
-  
+
   PlusStatus InternalStartRecording();
   PlusStatus InternalStopRecording();
 
@@ -83,12 +83,12 @@ protected:
   unsigned int FrameNumber;
 
   std::string DeviceName;
-  
+
   bool isHapticDeviceInitialized;
 
 private:
-  vtkPlusOpenHapticsDevice( const vtkPlusOpenHapticsDevice& );
-  void operator=( const vtkPlusOpenHapticsDevice& );
+  vtkPlusOpenHapticsDevice(const vtkPlusOpenHapticsDevice&);
+  void operator=(const vtkPlusOpenHapticsDevice&);
   static HDCallbackCode HDCALLBACK positionCallback(void* pData);
 
   HHD DeviceHandle;     ///< device handle
