@@ -1141,7 +1141,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   GetObject(this->Internal->DataHandle, sizeof(BITMAP), &this->Internal->Bitmap);
 
   vtkPlusDataSource* aSource=NULL;
-  ERROR_FAIL_IF(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS,
+  RETURN_WITH_FAIL_IF(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS,
       "Unable to retrieve the video source in the Capistrano device.");
 
   std::vector<int> frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
@@ -1175,7 +1175,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   //PlusTrackedFrame::FieldMapType customFields;
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  ERROR_FAIL_IF(aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
+  RETURN_WITH_FAIL_IF(aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
                                  aSource->GetInputImageOrientation(),
                                  frameSize, VTK_UNSIGNED_CHAR,
                                  1, US_IMG_BRIGHTNESS, 0,
@@ -1194,9 +1194,9 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
 {
-  ERROR_FAIL_IF(this->Internal->ProbeHandle == NULL,
+  RETURN_WITH_FAIL_IF(this->Internal->ProbeHandle == NULL,
       "vtkPlusIntersonVideoSource::FreezeDevice failed: device not connected");
-  ERROR_FAIL_IF(!usbHardwareDetected(),
+  RETURN_WITH_FAIL_IF(!usbHardwareDetected(),
       "Freeze failed, no hardware is detected");
 
   if (this->Frozen == freeze) //already in desired mode
@@ -1213,7 +1213,7 @@ PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
   {
     usbClearCineBuffers();
     this->FrameNumber = 0;
-    ERROR_FAIL_IF(this->UpdateUSParameters() == PLUS_FAIL,
+    RETURN_WITH_FAIL_IF(this->UpdateUSParameters() == PLUS_FAIL,
         "Failed to update US parameters");
     usbProbe(RUN);
   }
@@ -1582,9 +1582,9 @@ PlusStatus vtkPlusCapistranoVideoSource::SetDepthMm(float depthMm)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::UpdateUSParameters()
 {
-  ERROR_FAIL_IF(this->UpdateUSProbeParameters() == PLUS_FAIL,
+  RETURN_WITH_FAIL_IF(this->UpdateUSProbeParameters() == PLUS_FAIL,
       "Failed to Update US probe parameters");
-  ERROR_FAIL_IF(this->UpdateUSBModeParameters() == PLUS_FAIL,
+  RETURN_WITH_FAIL_IF(this->UpdateUSBModeParameters() == PLUS_FAIL,
       "Failed to Update US BMode parameters");
   return PLUS_SUCCESS;
 }
