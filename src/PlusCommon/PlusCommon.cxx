@@ -26,8 +26,8 @@ bool vtkPlusLogHelper::ShouldWeLog(bool errorPresent)
   {
     ++m_Count;
     double timeStamp = vtkPlusAccurateTimer::GetSystemTime();
-    if (timeStamp - m_LastError > this->MinimumTimeBetweenLogging
-        || m_Count > this->MinimumCountBetweenLogging)
+    if (timeStamp - m_LastError > m_MinimumTimeBetweenLoggingSec
+        || m_Count > m_MinimumCountBetweenLogging)
     {
       //log the error this time
       m_LastError = timeStamp;

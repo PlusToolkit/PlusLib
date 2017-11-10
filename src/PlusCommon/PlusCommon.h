@@ -62,17 +62,17 @@ enum PlusImagingMode
 class vtkPlusLogHelper
 {
 public:
-  double MinimumTimeBetweenLogging = 60.0;
-  unsigned long MinimumCountBetweenLogging = 5000;
-  vtkPlusLogger::LogLevelType LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+  double m_MinimumTimeBetweenLoggingSec = 60.0;
+  unsigned long m_MinimumCountBetweenLogging = 5000;
+  vtkPlusLogger::LogLevelType m_LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
-  // the parameters provide the maximum frequently the messages should be logged
-  vtkPlusLogHelper(double minimumTimeBetweenLogging = 60.0,
+  // the parameters provide the maximum frequency of logging
+  vtkPlusLogHelper(double minimumTimeBetweenLoggingSec = 60.0,
       unsigned long minimumCountBetweenLogging = 5000,
       vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::LOG_LEVEL_ERROR)
-      :MinimumTimeBetweenLogging(minimumTimeBetweenLogging),
-      MinimumCountBetweenLogging(minimumCountBetweenLogging),
-      LogLevel(logLevel)
+      :m_MinimumTimeBetweenLoggingSec(minimumTimeBetweenLoggingSec),
+      m_MinimumCountBetweenLogging(minimumCountBetweenLogging),
+      m_LogLevel(logLevel)
   {}
   bool ShouldWeLog(bool errorPresent); //should the error be logged this time?
 private:
