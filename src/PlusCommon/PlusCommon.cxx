@@ -20,14 +20,14 @@ See License.txt for details.
 #include <string>
 
 //-------------------------------------------------------
-bool vtkPlusLogHelper::shouldWeLog(bool errorPresent)
+bool vtkPlusLogHelper::ShouldWeLog(bool errorPresent)
 {
   if (errorPresent)
   {
     ++m_Count;
     double timeStamp = vtkPlusAccurateTimer::GetSystemTime();
-    if (timeStamp - m_LastError > m_MinimumTimeBetweenLogging
-        || m_Count > m_MinimumCountBetweenLogging)
+    if (timeStamp - m_LastError > this->MinimumTimeBetweenLogging
+        || m_Count > this->MinimumCountBetweenLogging)
     {
       //log the error this time
       m_LastError = timeStamp;
@@ -41,7 +41,7 @@ bool vtkPlusLogHelper::shouldWeLog(bool errorPresent)
   }
   else //error has just been removed, reset to initial state
   {
-    m_LastError = -DBL_MAX / 2;
+    m_LastError = -std::numeric_limits<double>::max() / 2;
     m_Count = -2;
     return false;
   }

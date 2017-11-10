@@ -62,21 +62,21 @@ enum PlusImagingMode
 class vtkPlusLogHelper
 {
 public:
-  double m_MinimumTimeBetweenLogging = 60.0;
-  unsigned long m_MinimumCountBetweenLogging = 5000;
-  vtkPlusLogger::LogLevelType m_LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+  double MinimumTimeBetweenLogging = 60.0;
+  unsigned long MinimumCountBetweenLogging = 5000;
+  vtkPlusLogger::LogLevelType LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
   // the parameters provide the maximum frequently the messages should be logged
   vtkPlusLogHelper(double minimumTimeBetweenLogging = 60.0,
       unsigned long minimumCountBetweenLogging = 5000,
       vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::LOG_LEVEL_ERROR)
-      :m_MinimumTimeBetweenLogging(minimumTimeBetweenLogging),
-      m_MinimumCountBetweenLogging(minimumCountBetweenLogging),
-      m_LogLevel(logLevel)
+      :MinimumTimeBetweenLogging(minimumTimeBetweenLogging),
+      MinimumCountBetweenLogging(minimumCountBetweenLogging),
+      LogLevel(logLevel)
   {}
-  bool shouldWeLog(bool errorPresent); //should the error be logged this time?
+  bool ShouldWeLog(bool errorPresent); //should the error be logged this time?
 private:
-  double m_LastError = -DBL_MAX / 2; //last time an error was logged
+  double m_LastError = -std::numeric_limits<double>::max() / 2; //last time an error was logged
   unsigned long m_Count = -2; //how many times the error was encountered
 
 };
@@ -132,7 +132,7 @@ private:
   { \
   static vtkPlusLogHelper logHelper; \
   bool result = condition; \
-  if (logHelper.shouldWeLog(result)) \
+  if (logHelper.ShouldWeLog(result)) \
   { \
     LOG_ERROR(msg); \
   } \
@@ -153,7 +153,7 @@ private:
 #define CUSTOM_RETURN_WITH_FAIL_IF(condition, msg) \
   { \
   bool result = condition; \
-  if (logHelper.shouldWeLog(result)) \
+  if (logHelper.ShouldWeLog(result)) \
   { \
     LOG_ERROR(msg); \
   } \
@@ -219,7 +219,7 @@ private:
   { \
   static vtkPlusLogHelper logHelper; \
   bool result = condition; \
-  if (logHelper.shouldWeLog(result)) \
+  if (logHelper.ShouldWeLog(result)) \
   { \
     LOG_ERROR_W(msg); \
   } \
@@ -240,7 +240,7 @@ private:
 #define CUSTOM_RETURN_WITH_FAIL_IF_W(condition, msg) \
   { \
   bool result = condition; \
-  if (logHelper.shouldWeLog(result)) \
+  if (logHelper.ShouldWeLog(result)) \
   { \
     LOG_ERROR_W(msg); \
   } \
