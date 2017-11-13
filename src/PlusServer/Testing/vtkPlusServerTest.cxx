@@ -5,8 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusCommon.h"
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkPlusDataCollector.h"
