@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 
+
 #ifndef __vtkPlusTransverseProcessEnhancer_h
 #define __vtkPlusTransverseProcessEnhancer_h
 
@@ -37,12 +38,21 @@ class vtkPlusImageProcessingExport vtkPlusTransverseProcessEnhancer : public vtk
 {
 public:
 
-  static vtkPlusTransverseProcessEnhancer* New();
+	static vtkPlusTransverseProcessEnhancer* New();
+  vtkTypeMacro(vtkPlusTransverseProcessEnhancer, vtkPlusBoneEnhancer);
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
-  PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
-  void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
-  void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
+	PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
+	void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
+	void CompareShadowAreas(vtkSmartPointer<vtkImageData> originalImage, vtkSmartPointer<vtkImageData> inputImage);
+
+protected:
+  vtkPlusTransverseProcessEnhancer();
+  virtual ~vtkPlusTransverseProcessEnhancer();
+
+private:
+  vtkPlusTransverseProcessEnhancer(const vtkPlusTransverseProcessEnhancer&);  // Not implemented.
+  void operator=(const vtkPlusTransverseProcessEnhancer&);  // Not implemented.
 };
-
 
 #endif
