@@ -105,6 +105,12 @@ public:
     /*! Gets the threshold value for switching from log to linear mapping for intensity range compression. */
     uint16_t GetLogLinearKnee() const { return m_Knee; }
 
+    /*! Sets the maximum output value for log mapping of intensity range. */
+    void SetLogMax(const uint8_t threshold) { m_OutputKnee = threshold; }
+
+    /*! Gets the maximum output value for log mapping of intensity range. */
+    uint8_t GetLogMax() const { return m_OutputKnee; }
+
     static const uint32_t wraparoundTSC = 1e9;
 
 protected:
@@ -156,6 +162,7 @@ protected:
     uint16_t m_MinValue = 16; //noise floor
     uint16_t m_MaxValue = 16384; //maximum typical value
     uint16_t m_Knee = 4096; // threshold value for switching from log to linear
+    uint8_t m_OutputKnee = 64; // log-linear knee in output range
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

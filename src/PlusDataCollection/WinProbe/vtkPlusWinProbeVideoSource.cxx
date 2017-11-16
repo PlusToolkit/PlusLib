@@ -26,6 +26,7 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "MinValue: " << this->m_MinValue << std::endl;
     os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
     os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
+    os << indent << "LogMax: " << this->m_OutputKnee << std::endl;
     os << indent << "TransducerID: " << this->m_transducerID << std::endl;
     os << indent << "Frozen: " << this->IsFrozen() << std::endl;
     os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
@@ -62,6 +63,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MinValue, deviceConfig); //implicit type conversion
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
 
     deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
@@ -81,6 +83,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
     deviceConfig->SetUnsignedLongAttribute("MinValue", this->GetMinValue());
     deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
     deviceConfig->SetUnsignedLongAttribute("LogLinearKnee", this->GetLogLinearKnee());
+    deviceConfig->SetUnsignedLongAttribute("LogMax", this->GetLogMax());
 
     deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
@@ -136,7 +139,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     assert(length = m_samplesPerLine*m_transducerCount*sizeof(uint16_t) + 256); //frame + header and footer
     uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
     uint8_t * bModeBuffer=new uint8_t[m_samplesPerLine*m_transducerCount];
-    const float logFactor = 128 / std::log(1 + m_Knee);
+    const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
 
 #pragma omp parallel for
     for (int t = 0; t < m_transducerCount; t++)
@@ -164,7 +167,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             }
             else //linear mapping
             {
-                cVal = 128 + (val - m_Knee) * 127.0f / (m_MaxValue - m_Knee);
+                cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
             }
             bModeBuffer[s*m_transducerCount + t] = static_cast<uint8_t>(cVal);
         }
