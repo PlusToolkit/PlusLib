@@ -292,12 +292,12 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 // ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::Watchdog()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     while (this->Recording)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(15));
         double now = vtkPlusAccurateTimer::GetSystemTime();
-        if (now - m_lastTimestamp > 1.0)
+        if (now - m_lastTimestamp > 0.2)
         {
             SetPendingRecreateTables(true);
             LOG_INFO("Called SetPendingRecreateTables");
@@ -327,9 +327,9 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 
     m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
     WPExecute();
-    if (sizeof(void *) == 4) //32 bits
+    //if (sizeof(void *) == 4) //32 bits
     {
-        m_watchdog32 = new std::thread(&vtkPlusWinProbeVideoSource::Watchdog, this);
+        m_watchdog = new std::thread(&vtkPlusWinProbeVideoSource::Watchdog, this);
     }
     return PLUS_SUCCESS;
 }
@@ -338,10 +338,10 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
     WPStopScanning();
-    if (sizeof(void *) == 4) //32 bits
+    //if (sizeof(void *) == 4) //32 bits
     {
-        m_watchdog32->join();
-        delete m_watchdog32;
+        m_watchdog->join();
+        delete m_watchdog;
     }
 
     return PLUS_SUCCESS;
