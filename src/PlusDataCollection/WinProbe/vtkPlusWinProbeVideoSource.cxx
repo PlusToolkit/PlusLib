@@ -23,6 +23,9 @@ vtkStandardNewMacro(vtkPlusWinProbeVideoSource);
 void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
     this->Superclass::PrintSelf(os, indent);
+    os << indent << "MinValue: " << this->m_MinValue << std::endl;
+    os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
+    os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
     os << indent << "TransducerID: " << this->m_transducerID << std::endl;
     os << indent << "Frozen: " << this->IsFrozen() << std::endl;
     os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
@@ -55,14 +58,11 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
     XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TxTxFrequency, deviceConfig);
     XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SSDepth, deviceConfig);
-    //XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(uint8_t, Voltage, deviceConfig);
-    //above macro is not defined for uint8_t, so we implement it manually below:
-    unsigned long tmpValue = 0;
-    if (deviceConfig->GetScalarAttribute("Voltage", tmpValue))
-    {
-        this->SetVoltage(tmpValue);
-    }
-    
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MinValue, deviceConfig); //implicit type conversion
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
+    XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
+
     deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
 
@@ -78,6 +78,9 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
     deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
     deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
     deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
+    deviceConfig->SetUnsignedLongAttribute("MinValue", this->GetMinValue());
+    deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
+    deviceConfig->SetUnsignedLongAttribute("LogLinearKnee", this->GetLogLinearKnee());
 
     deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
