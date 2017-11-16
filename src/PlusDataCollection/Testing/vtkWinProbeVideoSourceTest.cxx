@@ -114,6 +114,11 @@ int main(int argc, char* argv[])
     WinProbeDevice->SetTimeGainCompensation(3, 0.2);
     tgc = WinProbeDevice->GetTimeGainCompensation(3);
 
+    //test intensity compression
+    uint16_t uVal = WinProbeDevice->GetLogLinearKnee();
+    WinProbeDevice->SetLogLinearKnee(123);
+    uVal = WinProbeDevice->GetLogLinearKnee();
+
     WinProbeDevice->StartRecording();
 
     if (renderingOff)

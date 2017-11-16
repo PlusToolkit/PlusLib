@@ -87,6 +87,24 @@ public:
     /*! Gets GUID of the probe type to be used. */
     std::string GetTransducerID();
 
+    /*! Sets the noise floor for intensity range compression. */
+    void SetMinValue(const uint16_t minValue) { m_MinValue = minValue; }
+
+    /*! Gets the noise floor for intensity range compression. */
+    uint16_t GetMinValue() const { return m_MinValue; }
+
+    /*! Sets the typical high value for intensity range compression. */
+    void SetMaxValue(const uint16_t maxValue) { m_MaxValue = maxValue; }
+
+    /*! Gets the typical high value for intensity range compression. */
+    uint16_t GetMaxValue() const { return m_MaxValue; }
+
+    /*! Sets the threshold value for switching from log to linear mapping for intensity range compression. */
+    void SetLogLinearKnee(const uint16_t threshold) { m_Knee = threshold; }
+
+    /*! Gets the threshold value for switching from log to linear mapping for intensity range compression. */
+    uint16_t GetLogLinearKnee() const { return m_Knee; }
+
     static const uint32_t wraparoundTSC = 1e9;
 
 protected:
