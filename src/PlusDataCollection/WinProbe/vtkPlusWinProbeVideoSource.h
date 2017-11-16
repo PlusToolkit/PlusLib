@@ -149,7 +149,7 @@ protected:
     int32_t m_transducerCount = 128;
     int32_t m_samplesPerLine = 512;
     PlusTrackedFrame::FieldMapType m_customFields;
-    std::thread * m_watchdog32 = nullptr;
+    std::thread * m_watchdog = nullptr;
     double m_lastTimestamp = 0.0; //for watchdog
     double m_timeGainCompensation[8];
     float m_focalPointDepth[4];
