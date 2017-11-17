@@ -37,6 +37,9 @@ No need to install any extra software. The StealthStation needs to be connected 
 
 - \xmlAtt \b ServerAddress. IP address of the StealthStation. \RequiredAtt
 - \xmlAtt \b ServerPort. Port number of the StealthStation. \RequiredAtt
+- \xmlAtt \b ImageTransferRequiresPatientRegistration \OptionalAtt{TRUE}
+  - If TRUE, the process of downloading an image from the StealthStation will fail if there is no registration.
+  - If FALSE, the process of downloading an image from the StealthStation will continue using a default transform if there is no registration.
 
 - \xmlElem \ref DataSources One \c DataSource child element is required for each tool or reference marker \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

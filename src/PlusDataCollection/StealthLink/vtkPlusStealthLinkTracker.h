@@ -62,6 +62,10 @@ public:
   /*! Set StealthStation IP address */
   void SetServerAddress( const char* serverAddress );
 
+  /*Set ImageTransferRequiresPatientRegistration */
+  bool ImageTransferRequiresPatientRegistration;
+  vtkSetMacro(ImageTransferRequiresPatientRegistration, bool);
+
   /*! Set StealthStation IP port number */
   void SetServerPort( const char* serverPort );
 
