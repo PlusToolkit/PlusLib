@@ -176,7 +176,7 @@ public:
       MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
       if (!this->StealthLinkServer->get(this->CurrentExam, myDateTime, err))
       {
-        LOG_ERROR(" Failed to acquire the current registration: " <<  err.what() << "\n");
+        LOG_ERROR(" Failed to acquire the current exam: " <<  err.what() << "\n");
         return PLUS_FAIL;
       }
     }
@@ -186,7 +186,7 @@ public:
   //----------------------------------------------------------------------------
   // Get for current registration. The registration is only acquired from the server when GET_IMAGE or GET_EXAM_DATA commands are requested. This function will make sure that different threads
   // do not modify the registration at the same time. Use GetCurrentRegistration function everytime the current registration is used.
-  PlusStatus UpdateCurrentRegistration()
+  PlusStatus UpdateCurrentRegistration(bool imageTransferRequiresPatientRegistration)
   {
     PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
     MNavStealthLink::Error err;
@@ -195,8 +195,15 @@ public:
       MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
       if (!this->StealthLinkServer->get(this->CurrentRegistration, myDateTime, err))
       {
-        LOG_ERROR(" Failed to acquire the current registration: " <<  err.what() << "\n");
-        return PLUS_FAIL;
+        if (imageTransferRequiresPatientRegistration)
+        {
+          LOG_ERROR(" Failed to acquire the current registration: " <<  err.what() << "\n");
+          return PLUS_FAIL;
+        }
+        else
+        {
+          LOG_WARNING(" Failed to acquire the current registration: " <<  err.what() << "\n Using default registration");
+        }
       }
     }
     return PLUS_SUCCESS;
@@ -551,6 +558,8 @@ vtkPlusStealthLinkTracker::vtkPlusStealthLinkTracker()
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 30;
+
+  this->ImageTransferRequiresPatientRegistration = true;
 }
 
 // Public Functions
@@ -623,7 +632,7 @@ PlusStatus vtkPlusStealthLinkTracker::GetImage(const std::string& requestedImage
     {
       return PLUS_FAIL;
     }
-    if (!this->InternalShared->UpdateCurrentRegistration())
+    if (imageReferencFrameName.compare("Ras") != 0 && !this->InternalShared->UpdateCurrentRegistration(this->ImageTransferRequiresPatientRegistration))
     {
       return PLUS_FAIL;
     }
@@ -804,6 +813,7 @@ PlusStatus vtkPlusStealthLinkTracker::ReadConfiguration(vtkXMLDataElement* rootC
 
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerAddress, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ServerPort, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImageTransferRequiresPatientRegistration, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
