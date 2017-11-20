@@ -46,9 +46,13 @@ PlusStatus vtkPlusGetPolydataCommand::ReadConfiguration(vtkXMLDataElement* aConf
   {
     this->PolydataId = aConfig->GetAttribute("FileName");
   }
+  else if (this->MetaData.find("FileName") != this->MetaData.end())
+  {
+    this->PolydataId = this->MetaData["FileName"].second;
+  }
   else
   {
-    LOG_ERROR("Unable to find FileName attribute in " << this->GetName() << " command.");
+    LOG_ERROR("Unable to find FileName attribute or metadata in " << this->GetName() << " command.");
     return PLUS_FAIL;
   }
 

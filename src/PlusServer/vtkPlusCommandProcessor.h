@@ -57,7 +57,7 @@ public:
   virtual PlusStatus RegisterPlusCommand(vtkPlusCommand* cmd);
 
   /*! Adds a command to the queue for execution. Can be called from any thread.  */
-  virtual PlusStatus QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string& commandString, const std::string& deviceName, uint32_t uid);
+  virtual PlusStatus QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string& commandString, const std::string& deviceName, uint32_t uid, const igtl::MessageBase::MetaDataMap& metaData);
 
   /*!
     Adds a response to the response queue for reply. Can be called from any thread.
@@ -74,12 +74,12 @@ public:
   /*!
   Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMGMETA
   !*/
-  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName);
+  PlusStatus QueueGetImageMetaData(unsigned int clientId, const std::string& deviceName);
 
   /*!
   Adds a command to the queue for execution of the vtkGetImageCommand with the name GET_IMAGE
   !*/
-  PlusStatus QueueGetImage(unsigned int clientId, const std::string &deviceName);
+  PlusStatus QueueGetImage(unsigned int clientId, const std::string& deviceName);
 
   /*!
     Return the queued command responses and removes the items from the queue (so that each item is returned only once) and clears the response queue.
@@ -92,7 +92,7 @@ public:
   vtkSetObjectMacro(PlusServer, vtkPlusOpenIGTLinkServer);
 
 protected:
-  vtkPlusCommand* CreatePlusCommand(const std::string& commandName, const std::string& commandStr);
+  vtkPlusCommand* CreatePlusCommand(const std::string& commandName, const std::string& commandStr, const igtl::MessageBase::MetaDataMap& metaData);
 
   /*! Thread for client connection handling */
   static void* CommandExecutionThread(vtkMultiThreader::ThreadInfo* data);

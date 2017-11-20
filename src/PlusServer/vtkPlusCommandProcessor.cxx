@@ -199,7 +199,7 @@ PlusStatus vtkPlusCommandProcessor::RegisterPlusCommand(vtkPlusCommand* cmd)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& commandName, const std::string& commandStr)
+vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& commandName, const std::string& commandStr, const igtl::MessageBase::MetaDataMap& metaData)
 {
   vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(commandStr.c_str()));
   if (cmdElement.GetPointer() == NULL)
@@ -222,6 +222,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& co
   }
 
   vtkPlusCommand* cmd = (this->RegisteredCommands[commandName])->Clone();
+  cmd->SetMetaData(metaData);
   if (cmd->ReadConfiguration(cmdElement) != PLUS_SUCCESS)
   {
     cmd->Delete();
@@ -233,7 +234,7 @@ vtkPlusCommand* vtkPlusCommandProcessor::CreatePlusCommand(const std::string& co
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string& commandString, const std::string& deviceName, uint32_t uid)
+PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, unsigned int clientId, const std::string& commandName, const std::string& commandString, const std::string& deviceName, uint32_t uid, const igtl::MessageBase::MetaDataMap& metaData)
 {
   if (commandString.empty())
   {
@@ -247,7 +248,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandName, commandString));
+  vtkSmartPointer<vtkPlusCommand> cmd = vtkSmartPointer<vtkPlusCommand>::Take(CreatePlusCommand(commandName, commandString, metaData));
   if (cmd.GetPointer() == NULL)
   {
     if (!respondUsingIGTLCommand)
@@ -317,7 +318,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(PlusStatus status, cons
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string &deviceName)
+PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string& deviceName)
 {
 
   vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
@@ -335,7 +336,7 @@ PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId,
 }
 
 //------------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string &deviceName)
+PlusStatus vtkPlusCommandProcessor::QueueGetImage(unsigned int clientId, const std::string& deviceName)
 {
   vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
   cmdGetImage->SetCommandProcessor(this);

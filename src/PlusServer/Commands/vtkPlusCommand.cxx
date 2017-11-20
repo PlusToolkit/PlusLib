@@ -84,6 +84,12 @@ void vtkPlusCommand::SetCommandProcessor(vtkPlusCommandProcessor* processor)
 }
 
 //----------------------------------------------------------------------------
+void vtkPlusCommand::SetMetaData(const igtl::MessageBase::MetaDataMap& metaData)
+{
+  this->MetaData = metaData;
+}
+
+//----------------------------------------------------------------------------
 vtkPlusDataCollector* vtkPlusCommand::GetDataCollector()
 {
   if (this->CommandProcessor == NULL)
