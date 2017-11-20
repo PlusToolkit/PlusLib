@@ -59,6 +59,28 @@ enum PlusImagingMode
 ///////////////////////////////////////////////////////////////////
 // Logging
 
+class vtkPlusLogHelper
+{
+public:
+  double m_MinimumTimeBetweenLoggingSec = 60.0;
+  unsigned long m_MinimumCountBetweenLogging = 5000;
+  vtkPlusLogger::LogLevelType m_LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+
+  // the parameters provide the maximum frequency of logging
+  vtkPlusLogHelper(double minimumTimeBetweenLoggingSec = 60.0,
+      unsigned long minimumCountBetweenLogging = 5000,
+      vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::LOG_LEVEL_ERROR)
+      :m_MinimumTimeBetweenLoggingSec(minimumTimeBetweenLoggingSec),
+      m_MinimumCountBetweenLogging(minimumCountBetweenLogging),
+      m_LogLevel(logLevel)
+  {}
+  bool ShouldWeLog(bool errorPresent); //should the error be logged this time?
+private:
+  double m_LastError = -std::numeric_limits<double>::max() / 2; //last time an error was logged
+  unsigned long m_Count = -2; //how many times the error was encountered
+
+};
+
 #define LOG_ERROR(msg) \
   { \
   std::ostringstream msgStream; \
@@ -104,6 +126,48 @@ enum PlusImagingMode
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str().c_str(), __FILE__, __LINE__); \
   }
 
+// If condition is satisfied, logs error periodically
+// and returns PLUS_FAIL each time
+#define RETURN_WITH_FAIL_IF(condition, msg) \
+  { \
+  static vtkPlusLogHelper logHelper; \
+  bool result = condition; \
+  if (logHelper.ShouldWeLog(result)) \
+  { \
+    LOG_ERROR(msg); \
+  } \
+  else \
+  { \
+    LOG_TRACE(msg); \
+  } \
+  \
+  if (result) \
+  { \
+    return PLUS_FAIL; \
+  } \
+  }
+
+// If condition is satisfied, logs error periodically
+// and returns PLUS_FAIL each time. Uses a vtkPlusLogHelper logHelper,
+// which needs to be available in current scope.
+#define CUSTOM_RETURN_WITH_FAIL_IF(condition, msg) \
+  { \
+  bool result = condition; \
+  if (logHelper.ShouldWeLog(result)) \
+  { \
+    LOG_ERROR(msg); \
+  } \
+  else \
+  { \
+    LOG_TRACE(msg); \
+  } \
+  \
+  if (result) \
+  { \
+    return PLUS_FAIL; \
+  } \
+  }
+
 #define LOG_ERROR_W(msg) \
   { \
   std::wostringstream msgStream; \
@@ -147,6 +211,48 @@ enum PlusImagingMode
   std::wostringstream msgStream; \
   msgStream << msg << std::ends; \
   vtkPlusLogger::Instance()->LogMessage(logLevel, msgStream.str(), __FILE__, __LINE__); \
+  }
+
+// If condition is satisfied, logs error periodically
+// and returns PLUS_FAIL each time
+#define RETURN_WITH_FAIL_IF_W(condition, msg) \
+  { \
+  static vtkPlusLogHelper logHelper; \
+  bool result = condition; \
+  if (logHelper.ShouldWeLog(result)) \
+  { \
+    LOG_ERROR_W(msg); \
+  } \
+  else \
+  { \
+    LOG_TRACE_W(msg); \
+  } \
+  \
+  if (result) \
+  { \
+    return PLUS_FAIL; \
+  } \
+  }
+
+// If condition is satisfied, logs error periodically
+// and returns PLUS_FAIL each time. Uses a vtkPlusLogHelper logHelper,
+// which needs to be available in current scope.
+#define CUSTOM_RETURN_WITH_FAIL_IF_W(condition, msg) \
+  { \
+  bool result = condition; \
+  if (logHelper.ShouldWeLog(result)) \
+  { \
+    LOG_ERROR_W(msg); \
+  } \
+  else \
+  { \
+    LOG_TRACE_W(msg); \
+  } \
+  \
+  if (result) \
+  { \
+    return PLUS_FAIL; \
+  } \
   }
 
 ///////////////////////////////////////////////////////////////////
