@@ -1,0 +1,47 @@
+/*!
+\page DeviceOpenHaptics OpenHaptics Device
+
+\section DeviceOpenHapticsSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: https://www.3dsystems.com/haptics-devices/openhaptics
+
+\section DeviceOpenHapticsSupportedPlatforms Supported platforms
+
+- \ref PackageWin64
+- \ref PackageWin32
+
+\section DeviceOpenHapticsInstallation Installation
+- Install OpenHaptics Developer SDK from: http://developer.geomagic.com/
+
+\section DeviceOpenHapticsConfigSettings Device configuration settings
+
+The device will output three transforms: the tracking transform of the the stylus, the stylus velocity, and the stylus buttons.  In order to
+transmit forces to the device, an input channel with a single tool DataSource (with portname "Force") should be provided.  The force vector should be stored in the
+translation portion of the transformation matrix (RAS coordinates).
+
+- \xmlAtt \ref DeviceType "Type" = \c "OpenHaptics" \RequiredAtt
+- \xmlAtt \b DeviceName Device Name. Name of device to connect to \RequiredAtt
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Base}
+
+- \xmlElem \ref DataSources Three \c DataSource child elements are required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+   - \xmlAtt \ref PortName \RequiredAtt
+     - \c Stylus Tracking transform for stylus (RAS).
+     - \c StylusVelocity Stylus velocity measurement (RAS). The values are stored in the translation part of the transformation matrix. The rotation part is identity.
+     - \c Buttons States for buttons. The button values are stored in the first column of the matrix.  The inkwell switch is the first element in the second column.
+   - \xmlAtt \ref BufferSize \OptionalAtt{150}
+   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+- \xmlElem \ref InputChannels An Input channel is required to send force data to the device \RequiredAtt
+   - \xmlElem \ref InputChannel \RequiredAtt
+     -\xmlElem \ref Id Identifier of an output channel of another device containing a tool with PortName="Force" \RequiredAtt
+
+
+\section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics_WithForces.xml
+\include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics_WithForces.xml"
+
+\section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics.xml
+\include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics.xml"
+
+*/
