@@ -16,6 +16,9 @@ class vtkImageData;
 
 #include "vtkPlusCommandResponse.h"
 
+// igtl includes
+#include "igtlMessageBase.h"
+
 /*!
   \class vtkPlusCommand
   \brief This is an abstract superclass for commands in the OpenIGTLink network interface for Plus.
@@ -63,6 +66,8 @@ public:
 
   /*! Returns the list of command names that this command can process */
   virtual void GetCommandNames(std::list<std::string>& cmdNames) = 0;
+
+  void SetMetaData(const igtl::MessageBase::MetaDataMap& metaData);
 
   vtkGetMacro(RespondWithCommandMessage, bool);
   vtkSetMacro(RespondWithCommandMessage, bool);
@@ -134,7 +139,7 @@ protected:
   PlusStatus ValidateName();
 
   /*! Helper method to add a command response to the response queue */
-  void QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error = "", const std::map<std::string, std::string>* keyValuePairs = NULL);
+  void QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error = "", const std::map<std::string, std::string>* metaData = nullptr);
 
   vtkPlusCommand();
   virtual ~vtkPlusCommand();
@@ -158,6 +163,11 @@ protected:
     which of the supported command should be executed.
   */
   std::string Name;
+
+  /*!
+    Meta data passed in from the igtl message
+  */
+  igtl::MessageBase::MetaDataMap MetaData;
 
   // Contains a list of command responses that should be forwarded to the caller
   PlusCommandResponseList CommandResponseQueue;

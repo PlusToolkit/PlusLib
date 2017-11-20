@@ -655,7 +655,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         vtkSmartPointer<vtkXMLDataElement> cmdElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromString(stringMsg->GetString()));
         std::string commandName = std::string(cmdElement->GetAttribute("Name") == NULL ? "" : cmdElement->GetAttribute("Name"));
 
-        self->PlusCommandProcessor->QueueCommand(false, clientId, commandName, stringMsg->GetString(), deviceName, uid);
+        self->PlusCommandProcessor->QueueCommand(false, clientId, commandName, stringMsg->GetString(), deviceName, uid, stringMsg->GetMetaData());
       }
 
     }
@@ -690,7 +690,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         LOG_DEBUG("Received header version " << commandMsg->GetHeaderVersion() << " command " << commandMsg->GetCommandName()
                   << " from client " << clientId << ", device " << deviceName << " with UID " << uid << ": " << commandMsg->GetCommandContent());
 
-        self->PlusCommandProcessor->QueueCommand(true, clientId, commandMsg->GetCommandName(), commandMsg->GetCommandContent(), deviceName, uid);
+        self->PlusCommandProcessor->QueueCommand(true, clientId, commandMsg->GetCommandName(), commandMsg->GetCommandContent(), deviceName, uid, commandMsg->GetMetaData());
       }
       else
       {
