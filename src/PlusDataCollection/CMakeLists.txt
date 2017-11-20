@@ -437,8 +437,7 @@ IF(PLUS_USE_OPENHAPTICS)
     )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${OpenHaptics_INCLUDE_DIR}
-    ${OpenHaptics_INCLUDE_UTIL_DIR}
+    ${OpenHaptics_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/OpenHaptics
     )
 
