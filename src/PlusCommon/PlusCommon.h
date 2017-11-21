@@ -59,7 +59,7 @@ enum PlusImagingMode
 ///////////////////////////////////////////////////////////////////
 // Logging
 
-class vtkPlusLogHelper
+class vtkPlusCommonExport vtkPlusLogHelper
 {
 public:
   double m_MinimumTimeBetweenLoggingSec = 60.0;
