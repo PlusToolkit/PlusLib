@@ -10,8 +10,11 @@ See License.txt for details.
 #include "vtkPlusGetPolydataCommand.h"
 
 // VTK includes
+#include <vtkOBJReader.h>
+#include <vtkPLYReader.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
+#include <vtkSTLReader.h>
 
 namespace
 {
@@ -123,41 +126,62 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
 
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
 
-  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> response = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
-  response->SetClientId(this->ClientId);
-  response->SetOriginalId(this->GetId());
-  response->SetStatus(PLUS_FAIL);
-  outErrorString = "PLUS cannot load polydata.";
-
+  std::string finalFileName(this->PolydataId);
   if (vtksys::SystemTools::FileExists(this->PolydataId))
   {
     reader->SetFileName(this->PolydataId.c_str());
   }
   else
   {
-    std::string absModelPath;
-    if (vtkPlusConfig::GetInstance()->FindModelPath(this->PolydataId, absModelPath) == PLUS_SUCCESS)
+    if (vtkPlusConfig::GetInstance()->FindModelPath(this->PolydataId, finalFileName) == PLUS_SUCCESS)
     {
-      reader->SetFileName(absModelPath.c_str());
+      reader->SetFileName(finalFileName.c_str());
     }
     else
     {
-      LOG_ERROR("Unable to locate file with name: " << this->PolydataId);
-      outErrorString = std::string("Unable to locate file with name ") + this->PolydataId;
-      response->SetErrorString(outErrorString);
-      this->CommandResponseQueue.push_back(response);
+      LOG_ERROR("Unable to locate file with name " << this->PolydataId);
+      this->QueueCommandResponse(PLUS_FAIL, "Command failed.", std::string("Unable to locate file with name ") + this->PolydataId);
       return PLUS_FAIL;
     }
   }
 
-  reader->Update();
-  auto errorCode = reader->GetErrorCode();
-  vtkPolyData* polyData = reader->GetOutput();
+  vtkSmartPointer<vtkAbstractPolyDataReader> polyReader = vtkSmartPointer<vtkSTLReader>::New();
+  if (!reader->IsFilePolyData())
+  {
+    reader = nullptr; // This flags later code to recognize that it's not a .vtk file
+    polyReader->SetFileName(finalFileName.c_str());
+    polyReader->Update();
+    if (polyReader->GetOutput() == nullptr)
+    {
+      polyReader = vtkSmartPointer<vtkOBJReader>::New();
+      polyReader->SetFileName(finalFileName.c_str());
+      polyReader->Update();
+      if (polyReader->GetOutput() == nullptr)
+      {
+        polyReader = vtkSmartPointer<vtkPLYReader>::New();
+        polyReader->SetFileName(finalFileName.c_str());
+        polyReader->Update();
+        if (polyReader->GetOutput() == nullptr)
+        {
+          LOG_ERROR("Unrecognized polydata file type: " << this->PolydataId);
+          this->QueueCommandResponse(PLUS_FAIL, "Command failed.", std::string("Unrecognized polydata file type: ") + this->PolydataId);
+          return PLUS_FAIL;
+        }
+      }
+    }
+  }
+  else
+  {
+    reader->Update();
+  }
+
+  auto errorCode = (reader == nullptr ? polyReader->GetErrorCode() : reader->GetErrorCode());
+  vtkPolyData* polyData = (reader == nullptr ? polyReader->GetOutput() : reader->GetOutput());
   if (errorCode != 0)
   {
     std::stringstream ss;
     ss << "Reader threw error: " << errorCode;
-    outErrorString = ss.str();
+    this->QueueCommandResponse(PLUS_FAIL, "PlusServer", ss.str());
   }
   else if (polyData != nullptr)
   {
@@ -168,11 +192,11 @@ PlusStatus vtkPlusGetPolydataCommand::ExecutePolydataReply(std::string& outError
     response->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
     this->CommandResponseQueue.push_back(response);
 
-    outErrorString = "";
-    response->SetStatus(PLUS_SUCCESS);
+    std::string name = vtksys::SystemTools::GetFilenameName(this->PolydataId);
+    this->QueueCommandResponse(PLUS_SUCCESS, name, "Command succeeded.");
+    return PLUS_SUCCESS;
   }
 
-  response->SetErrorString(outErrorString);
-  this->CommandResponseQueue.push_back(response);
-  return polyData != nullptr && errorCode == 0 ? PLUS_SUCCESS : PLUS_FAIL;
+  this->QueueCommandResponse(PLUS_FAIL, "Unable to load polydata.");
+  return PLUS_FAIL;
 }

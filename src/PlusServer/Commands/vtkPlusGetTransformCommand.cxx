@@ -140,11 +140,11 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
   }
   else
   {
-    std::map<std::string, std::string> parameters;
-    parameters[aName.GetTransformName()] = valueStringStream.str();
-    parameters["persistent"] = persistent ? "true" : "false";
-    parameters["date"] = date;
-    parameters["error"] = errorStringStream.str();
+    igtl::MessageBase::MetaDataMap parameters;
+    parameters[aName.GetTransformName()] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, valueStringStream.str());
+    parameters["persistent"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, persistent ? "true" : "false");
+    parameters["date"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, date);
+    parameters["error"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, errorStringStream.str());
     this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + " Command successful.", "", &parameters);
   }
   return PLUS_SUCCESS;

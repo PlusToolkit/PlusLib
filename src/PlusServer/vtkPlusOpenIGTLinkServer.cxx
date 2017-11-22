@@ -408,7 +408,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
           self.LastSentTrackedFrameTimestamp = oldestDataTimestamp + SAMPLING_SKIPPING_MARGIN_SEC;
         }
         RETURN_WITH_FAIL_IF(self.BroadcastChannel->GetTrackedFrameList(self.LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS,
-            "Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp);
+                            "Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp);
       }
     }
   }
@@ -1307,9 +1307,9 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
 
       igtlMessage->SetMetaDataElement("Result", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "true" : "false"));
-      for (std::map<std::string, std::string>::const_iterator it = commandResponse->GetParameters().begin(); it != commandResponse->GetParameters().end(); ++it)
+      for (igtl::MessageBase::MetaDataMap::const_iterator it = begin(commandResponse->GetParameters()); it != end(commandResponse->GetParameters()); ++it)
       {
-        igtlMessage->SetMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
+        igtlMessage->SetMetaDataElement(it->first, it->second.first, it->second.second);
       }
 
       LOG_DEBUG("Command response: " << replyStr.str());

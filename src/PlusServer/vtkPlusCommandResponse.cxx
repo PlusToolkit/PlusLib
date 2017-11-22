@@ -15,13 +15,13 @@ vtkStandardNewMacro(vtkPlusCommandResponse);
 vtkStandardNewMacro(vtkPlusCommandStringResponse);
 
 //----------------------------------------------------------------------------
-void vtkPlusCommandRTSCommandResponse::SetParameters(const std::map<std::string, std::string>& values)
+void vtkPlusCommandRTSCommandResponse::SetParameters(const igtl::MessageBase::MetaDataMap& values)
 {
   this->Parameters = values;
 }
 
 //----------------------------------------------------------------------------
-const std::map<std::string, std::string>& vtkPlusCommandRTSCommandResponse::GetParameters() const
+const igtl::MessageBase::MetaDataMap& vtkPlusCommandRTSCommandResponse::GetParameters() const
 {
   return Parameters;
 }

@@ -139,7 +139,7 @@ protected:
   PlusStatus ValidateName();
 
   /*! Helper method to add a command response to the response queue */
-  void QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error = "", const std::map<std::string, std::string>* metaData = nullptr);
+  void QueueCommandResponse(PlusStatus status, const std::string& message, const std::string& error = "", const igtl::MessageBase::MetaDataMap* metaData = nullptr);
 
   vtkPlusCommand();
   virtual ~vtkPlusCommand();

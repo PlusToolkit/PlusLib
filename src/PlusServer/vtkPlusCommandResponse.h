@@ -16,6 +16,9 @@
 #include <vtkMatrix4x4.h>
 #include <vtkPolyData.h>
 
+// IGTL includes
+#include <igtlMessageBase.h>
+
 #if (_MSC_VER == 1500)
   #include <stdint.h>
 #endif
@@ -93,8 +96,8 @@ public:
   vtkGetMacro(ResultString, std::string);
   vtkSetMacro(ResultString, std::string);
 
-  void SetParameters(const std::map<std::string, std::string>& values);
-  const std::map<std::string, std::string>& GetParameters() const;
+  void SetParameters(const igtl::MessageBase::MetaDataMap& values);
+  const igtl::MessageBase::MetaDataMap& GetParameters() const;
 
 protected:
   vtkPlusCommandRTSCommandResponse()
@@ -104,7 +107,7 @@ protected:
   std::string CommandName;
   std::string ErrorString;
   std::string ResultString;
-  std::map<std::string, std::string> Parameters;
+  igtl::MessageBase::MetaDataMap Parameters;
 
 private:
   vtkPlusCommandRTSCommandResponse(const vtkPlusCommandRTSCommandResponse&);

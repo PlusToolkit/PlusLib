@@ -57,11 +57,11 @@ std::string vtkPlusVersionCommand::GetDescription(const std::string& commandName
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVersionCommand::Execute()
 {
-  std::map<std::string, std::string> metadata;
+  igtl::MessageBase::MetaDataMap metadata;
 #if defined(_MSC_VER) && _MSC_VER < 1700
-  metadata["Version"] = PlusCommon::ToString<int>(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
+  metadata["Version"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, PlusCommon::ToString<int>(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion()));
 #else
-  metadata["Version"] = std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion());
+  metadata["Version"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion()));
 #endif
   this->QueueCommandResponse(PLUS_SUCCESS, "Success.", "", &metadata);
   return PLUS_SUCCESS;
