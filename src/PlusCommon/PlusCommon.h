@@ -62,9 +62,9 @@ enum PlusImagingMode
 class vtkPlusCommonExport vtkPlusLogHelper
 {
 public:
-  double m_MinimumTimeBetweenLoggingSec = 60.0;
-  unsigned long m_MinimumCountBetweenLogging = 5000;
-  vtkPlusLogger::LogLevelType m_LogLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+  double m_MinimumTimeBetweenLoggingSec;
+  unsigned long m_MinimumCountBetweenLogging;
+  vtkPlusLogger::LogLevelType m_LogLevel;
 
   // the parameters provide the maximum frequency of logging
   vtkPlusLogHelper(double minimumTimeBetweenLoggingSec = 60.0,
