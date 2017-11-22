@@ -73,11 +73,14 @@ public:
       :m_MinimumTimeBetweenLoggingSec(minimumTimeBetweenLoggingSec),
       m_MinimumCountBetweenLogging(minimumCountBetweenLogging),
       m_LogLevel(logLevel)
-  {}
+  {
+    m_LastError = -std::numeric_limits<double>::max() / 2;
+    m_Count = -2;
+  }
   bool ShouldWeLog(bool errorPresent); //should the error be logged this time?
 private:
-  double m_LastError = -std::numeric_limits<double>::max() / 2; //last time an error was logged
-  unsigned long m_Count = -2; //how many times the error was encountered
+  double m_LastError; //last time an error was logged
+  unsigned long m_Count; //how many times the error was encountered
 
 };
 
