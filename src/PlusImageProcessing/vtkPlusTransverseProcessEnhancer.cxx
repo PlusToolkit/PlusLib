@@ -32,7 +32,6 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
-
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
 {
@@ -254,7 +253,6 @@ PlusStatus vtkPlusTransverseProcessEnhancer::ProcessFrame(PlusTrackedFrame* inpu
 {
 
 	this->BoneAreasInfo.clear();
-
 
 	vtkSmartPointer<vtkImageData> intermediateImage = vtkPlusBoneEnhancer::UnprocessedFrameToLinearImage(inputFrame);
 	intermediateImage->DeepCopy(this->LinesImage);
