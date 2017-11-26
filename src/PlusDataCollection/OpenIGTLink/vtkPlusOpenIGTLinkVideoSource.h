@@ -48,9 +48,6 @@ protected:
   vtkPlusOpenIGTLinkVideoSource();
   virtual ~vtkPlusOpenIGTLinkVideoSource();
 
-  /*! igtl Factory for message handling */
-  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
-
 private:
   vtkPlusOpenIGTLinkVideoSource(const vtkPlusOpenIGTLinkVideoSource&);   // Not implemented.
   void operator=(const vtkPlusOpenIGTLinkVideoSource&);   // Not implemented.

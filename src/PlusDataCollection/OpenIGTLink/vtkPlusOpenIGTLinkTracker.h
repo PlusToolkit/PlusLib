@@ -78,9 +78,6 @@ protected:
   /*! Use the last known transform value if not received a new value. Useful for servers that only notify about changes in the transforms. */
   bool UseLastTransformsOnReceiveTimeout;
 
-  /*! igtl Factory for message handling */
-  vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
-
 private:
   vtkPlusOpenIGTLinkTracker(const vtkPlusOpenIGTLinkTracker&);
   void operator=(const vtkPlusOpenIGTLinkTracker&);

@@ -20,7 +20,6 @@ vtkStandardNewMacro(vtkPlusOpenIGTLinkTracker);
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkTracker::vtkPlusOpenIGTLinkTracker()
   : UseLastTransformsOnReceiveTimeout(false)
-  , IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
 {
   SetToolReferenceFrameName("Reference");
 }
@@ -33,6 +32,8 @@ vtkPlusOpenIGTLinkTracker::~vtkPlusOpenIGTLinkTracker()
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
+  os << indent << "UseLastTransformsOnReceiveTimeout: " << this->UseLastTransformsOnReceiveTimeout;
+
   Superclass::PrintSelf(os, indent);
 }
 
@@ -127,7 +128,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     // We've received valid header data
     headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
 
-    bodyMsg = this->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+    bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
     if (typeid(*bodyMsg) == typeid(igtl::TrackingDataMessage))
     {
       // received a TDATA message
@@ -301,7 +302,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   std::string igtlTransformName;
 
-  igtl::MessageBase::Pointer bodyMsg = IgtlMessageFactory->CreateReceiveMessage(headerMsg);
+  igtl::MessageBase::Pointer bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
   if (typeid(*bodyMsg) == typeid(igtl::TransformMessage))
   {
     if (vtkPlusIgtlMessageCommon::UnpackTransformMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
