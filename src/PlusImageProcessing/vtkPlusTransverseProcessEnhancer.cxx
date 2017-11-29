@@ -30,15 +30,13 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusTransverseProcessEnhancer);
 
 //----------------------------------------------------------------------------
-vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer()
+vtkPlusTransverseProcessEnhancer::vtkPlusTransverseProcessEnhancer() : vtkPlusBoneEnhancer()
 {
-  this->Superclass::vtkPlusBoneEnhancer();
 }
 
 //----------------------------------------------------------------------------
 vtkPlusTransverseProcessEnhancer::~vtkPlusTransverseProcessEnhancer()
 {
-  this->Superclass::~vtkPlusBoneEnhancer();
 }
 
 //----------------------------------------------------------------------------
