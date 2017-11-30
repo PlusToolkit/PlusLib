@@ -50,6 +50,23 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 // ----------------------------------------------------------------------------
+const char* vtkPlusWinProbeVideoSource::GetImagingModeAsString(ImagingMode mode) const
+{
+    switch (mode)
+    {
+    case B_MODE:
+        return "B";
+    case RF_MODE:
+        return "RF";
+    case CFD_MODE:
+        return "CFD";
+    default:
+        LOG_ERROR("Unknown imaging mode: " << mode);
+        return "unknown";
+    }
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
     LOG_TRACE("vtkPlusWinProbeVideoSource::ReadConfiguration");
@@ -66,6 +83,11 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
 
     deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
+
+    XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig,
+        this->GetImagingModeAsString(B_MODE), B_MODE,
+        this->GetImagingModeAsString(RF_MODE), RF_MODE,
+        this->GetImagingModeAsString(CFD_MODE), CFD_MODE);
 
     return PLUS_SUCCESS;
 }
@@ -87,6 +109,8 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
     deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
     deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
 
+    deviceConfig->SetAttribute("ImagingMode", this->GetImagingModeAsString(m_ImagingMode));
+
     return PLUS_SUCCESS;
 }
 
@@ -100,6 +124,18 @@ int __stdcall frameCallback(int length, char * data, char *hHeader, char *hGeome
     return length;
 }
 
+unsigned vtkPlusWinProbeVideoSource::DecimationToMultiple(int decimationCode) const
+{
+    if (decimationCode == 0xf) //1111
+    {
+        return 32;
+    }
+    else
+    {
+        return decimationCode + 2;
+    }
+}
+
 // ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hHeader, char *hGeometry)
 {
@@ -107,6 +143,27 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
     {
         LOG_ERROR("Unable to retrieve the video source in the capturing device.");
+        return;
+    }
+
+    CineModeFrameHeader* header = (CineModeFrameHeader*)hHeader;
+    CFDGeometryStruct* cfdGeometry = (CFDGeometryStruct*)hGeometry;
+    GeometryStruct* brfGeometry = (GeometryStruct*)hGeometry; //B-mode and RF
+    if (header->InputSourceBinding == InputSourceBindings::CFD)
+    {
+        m_transducerCount = cfdGeometry->LineCount;
+        m_samplesPerLine = cfdGeometry->SamplesPerKernel;
+    }
+    else if (header->InputSourceBinding == InputSourceBindings::B
+        || header->InputSourceBinding == InputSourceBindings::RF)
+    {
+        m_transducerCount = brfGeometry->LineCount;
+        m_samplesPerLine = brfGeometry->SamplesPerLine
+            *this->DecimationToMultiple(brfGeometry->Decimation);
+    }
+    else
+    {
+        LOG_ERROR("Unsupported frame type");
         return;
     }
 
@@ -134,58 +191,80 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     m_lastTimestamp = timestamp + m_timestampOffset;
     LOG_DEBUG("Frame: " << FrameNumber << ". Timestamp: " << m_lastTimestamp);
 
-    assert(length = m_samplesPerLine*m_transducerCount*sizeof(uint16_t) + 256); //frame + header and footer
-    uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
-    uint8_t * bModeBuffer=new uint8_t[m_samplesPerLine*m_transducerCount];
-    const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
-
-#pragma omp parallel for
-    for (int t = 0; t < m_transducerCount; t++)
-    {
-        for (int s = 0; s < m_samplesPerLine; s++)
-        {
-            uint16_t val = frame[t*m_samplesPerLine + s];
-            if (val <= m_MinValue) // subtract noise floor
-            {
-                val = 0;
-            }
-            else
-            {
-                val -= m_MinValue;
-            }
-            if (val > m_MaxValue) //apply ceiling
-            {
-                val = m_MaxValue;
-            }
-
-            float cVal;
-            if (val < m_Knee)
-            {
-                cVal = logFactor*std::log(float(1 + val));
-            }
-            else //linear mapping
-            {
-                cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
-            }
-            bModeBuffer[s*m_transducerCount + t] = static_cast<uint8_t>(cVal);
-        }
-    }
-
     int frameSize[3] = { m_transducerCount,m_samplesPerLine,1 };
 
-    if (aSource->AddItem(bModeBuffer,
-        aSource->GetInputImageOrientation(),
-        frameSize, VTK_UNSIGNED_CHAR,
-        1, US_IMG_BRIGHTNESS, 0,
-        this->FrameNumber,
-        m_lastTimestamp,
-        m_lastTimestamp, //no timestamp filtering needed
-        &this->m_customFields) != PLUS_SUCCESS)
+    if (header->InputSourceBinding == InputSourceBindings::B)
     {
-        LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
+        assert(length = m_samplesPerLine*m_transducerCount * sizeof(uint16_t) + 256); //frame + header and footer
+        uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
+        uint8_t * bModeBuffer = new uint8_t[m_samplesPerLine*m_transducerCount];
+        const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
+
+#pragma omp parallel for
+        for (int t = 0; t < m_transducerCount; t++)
+        {
+            for (int s = 0; s < m_samplesPerLine; s++)
+            {
+                uint16_t val = frame[t*m_samplesPerLine + s];
+                if (val <= m_MinValue) // subtract noise floor
+                {
+                    val = 0;
+                }
+                else
+                {
+                    val -= m_MinValue;
+                }
+                if (val > m_MaxValue) //apply ceiling
+                {
+                    val = m_MaxValue;
+                }
+
+                float cVal;
+                if (val < m_Knee)
+                {
+                    cVal = logFactor*std::log(float(1 + val));
+                }
+                else //linear mapping
+                {
+                    cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
+                }
+                bModeBuffer[s*m_transducerCount + t] = static_cast<uint8_t>(cVal);
+            }
+        }
+
+        if (aSource->AddItem(bModeBuffer,
+            aSource->GetInputImageOrientation(),
+            frameSize, VTK_UNSIGNED_CHAR,
+            1, US_IMG_BRIGHTNESS, 0,
+            this->FrameNumber,
+            m_lastTimestamp,
+            m_lastTimestamp, //no timestamp filtering needed
+            &this->m_customFields) != PLUS_SUCCESS)
+        {
+            LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
+        }
+
+        delete bModeBuffer;
+    }
+    else if (header->InputSourceBinding == InputSourceBindings::RF)
+    {
+        if (aSource->AddItem(data,
+            aSource->GetInputImageOrientation(),
+            frameSize, VTK_INT,
+            1, US_IMG_RF_REAL, 0,
+            this->FrameNumber,
+            m_lastTimestamp,
+            m_lastTimestamp, //no timestamp filtering needed
+            &this->m_customFields) != PLUS_SUCCESS)
+        {
+            LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
+        }
+    }
+    else if (header->InputSourceBinding == InputSourceBindings::CFD)
+    {
+        //TODO
     }
 
-    delete bModeBuffer;
     this->FrameNumber++;
     this->Modified();
 }
@@ -524,4 +603,15 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
     return this->m_transducerID;
+}
+
+PlusStatus vtkPlusWinProbeVideoSource::SetImagingMode(ImagingMode mode)
+{
+    m_ImagingMode = mode;
+    return PLUS_SUCCESS;
+}
+
+vtkPlusWinProbeVideoSource::ImagingMode vtkPlusWinProbeVideoSource::GetImagingMode()
+{
+    return m_ImagingMode;
 }

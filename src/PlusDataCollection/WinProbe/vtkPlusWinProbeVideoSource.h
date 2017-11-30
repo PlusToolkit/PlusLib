@@ -87,6 +87,21 @@ public:
     /*! Gets GUID of the probe type to be used. */
     std::string GetTransducerID();
 
+    enum ImagingMode
+    {
+        B_MODE,
+        RF_MODE,
+        CFD_MODE
+    };
+
+    const char * GetImagingModeAsString(ImagingMode mode) const;
+
+    /*! Sets GUID of the probe type to be used. */
+    PlusStatus SetImagingMode(ImagingMode);
+
+    /*! Gets GUID of the probe type to be used. */
+    ImagingMode GetImagingMode();
+
     /*! Sets the noise floor for intensity range compression. */
     void SetMinValue(const uint16_t minValue) { m_MinValue = minValue; }
 
@@ -142,6 +157,7 @@ protected:
     //to be run in a separate thread
     void Watchdog();
 
+    unsigned DecimationToMultiple(int decimationCode) const;
     void FrameCallback(int length, char * data, char *hHeader, char *hGeometry);
     friend int __stdcall frameCallback(int length, char * data, char *hHeader, char *hGeometry);
 
@@ -164,6 +180,7 @@ protected:
     uint16_t m_MaxValue = 16384; //maximum typical value
     uint16_t m_Knee = 4096; // threshold value for switching from log to linear
     uint8_t m_OutputKnee = 64; // log-linear knee in output range
+    ImagingMode m_ImagingMode;
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented
