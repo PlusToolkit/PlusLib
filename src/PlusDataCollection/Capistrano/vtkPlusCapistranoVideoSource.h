@@ -52,6 +52,9 @@ public:
   /* Set the scan directional mode of US probe */
   PlusStatus SetBidirectionalMode(bool mode);
 
+  /* Get the scan directional mode of US probe */
+  bool GetBidirectionalMode();
+
   /* Set the size of cinebuffer of US probe */
   PlusStatus SetCineBuffers(int cinebuffer);
 
