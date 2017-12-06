@@ -1308,6 +1308,12 @@ PlusStatus vtkPlusCapistranoVideoSource::SetBidirectionalMode(bool mode)
 }
 
 // ----------------------------------------------------------------------------
+bool vtkPlusCapistranoVideoSource::GetBidirectionalMode()
+{
+  return this->BidirectionalMode;
+}
+
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetCineBuffers(int cinebuffer)
 {
   this->CineBuffers = cinebuffer;
