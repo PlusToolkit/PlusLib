@@ -180,7 +180,7 @@ protected:
     uint16_t m_MaxValue = 16384; //maximum typical value
     uint16_t m_Knee = 4096; // threshold value for switching from log to linear
     uint8_t m_OutputKnee = 64; // log-linear knee in output range
-    ImagingMode m_ImagingMode;
+    ImagingMode m_ImagingMode = B_MODE;
 
 private:
     vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource &); // Not implemented

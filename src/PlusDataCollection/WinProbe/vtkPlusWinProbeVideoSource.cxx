@@ -25,6 +25,7 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
     os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
     os << indent << "LogMax: " << this->m_OutputKnee << std::endl;
+    os << indent << "ImagingMode: " << this->m_ImagingMode << std::endl;
     os << indent << "TransducerID: " << this->m_transducerID << std::endl;
     os << indent << "Frozen: " << this->IsFrozen() << std::endl;
     os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
@@ -149,21 +150,21 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     CineModeFrameHeader* header = (CineModeFrameHeader*)hHeader;
     CFDGeometryStruct* cfdGeometry = (CFDGeometryStruct*)hGeometry;
     GeometryStruct* brfGeometry = (GeometryStruct*)hGeometry; //B-mode and RF
-    if (header->InputSourceBinding == InputSourceBindings::CFD)
+    InputSourceBindings usMode = header->InputSourceBinding;
+    if (usMode == CFD)
     {
         m_transducerCount = cfdGeometry->LineCount;
         m_samplesPerLine = cfdGeometry->SamplesPerKernel;
     }
-    else if (header->InputSourceBinding == InputSourceBindings::B
-        || header->InputSourceBinding == InputSourceBindings::RF)
+    else if (usMode == B || usMode == RF || usMode == BFRFALineImage_RFData)
     {
         m_transducerCount = brfGeometry->LineCount;
         m_samplesPerLine = brfGeometry->SamplesPerLine
-            *this->DecimationToMultiple(brfGeometry->Decimation);
+            * brfGeometry->Decimation;
     }
     else
     {
-        LOG_ERROR("Unsupported frame type");
+        LOG_INFO("Unsupported frame type: " << std::hex << usMode);
         return;
     }
 
@@ -191,11 +192,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     m_lastTimestamp = timestamp + m_timestampOffset;
     LOG_DEBUG("Frame: " << FrameNumber << ". Timestamp: " << m_lastTimestamp);
 
-    int frameSize[3] = { m_transducerCount,m_samplesPerLine,1 };
-
-    if (header->InputSourceBinding == InputSourceBindings::B)
+    if (usMode == B)
     {
-        assert(length = m_samplesPerLine*m_transducerCount * sizeof(uint16_t) + 256); //frame + header and footer
+        assert(length == m_samplesPerLine*m_transducerCount * sizeof(uint16_t) + 256); //frame + header and footer
         uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
         uint8_t * bModeBuffer = new uint8_t[m_samplesPerLine*m_transducerCount];
         const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
@@ -232,6 +231,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             }
         }
 
+        int frameSize[3] = { m_transducerCount, m_samplesPerLine, 1 };
         if (aSource->AddItem(bModeBuffer,
             aSource->GetInputImageOrientation(),
             frameSize, VTK_UNSIGNED_CHAR,
@@ -246,8 +246,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
 
         delete bModeBuffer;
     }
-    else if (header->InputSourceBinding == InputSourceBindings::RF)
+    else if (usMode == RF || usMode == BFRFALineImage_RFData)
     {
+        assert(length == m_samplesPerLine*m_transducerCount * sizeof(int32_t)); //header and footer not appended to data
+        int frameSize[3] = { m_samplesPerLine, m_transducerCount, 1 };
         if (aSource->AddItem(data,
             aSource->GetInputImageOrientation(),
             frameSize, VTK_INT,
@@ -260,7 +262,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
         }
     }
-    else if (header->InputSourceBinding == InputSourceBindings::CFD)
+    else if (usMode == CFD)
     {
         //TODO
     }
@@ -354,6 +356,23 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     m_ADCfrequency = GetADCSamplingRate();
     m_transducerCount = GetSSElementCount();
     SetSCCompoundAngleCount(0);
+
+    if (m_ImagingMode == RF_MODE)
+    {
+        SetHandleBRFInternally(false);
+        SetBFRFImageCaptureMode(2);
+    }
+    else if (m_ImagingMode == CFD_MODE)
+    {
+        //TODO
+    }
+    else
+    {
+        assert(m_ImagingMode == B_MODE);
+        SetHandleBRFInternally(true);
+        SetBFRFImageCaptureMode(0);
+    }
+
     SetPendingRecreateTables(true);
 
     return PLUS_SUCCESS;
@@ -398,6 +417,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
         SetTGC(i, m_timeGainCompensation[i]);
         m_timeGainCompensation[i] = GetTGC(i);
     }
+    //SetPendingTGCUpdate(true);
     for (int i = 0; i < 4; i++)
     {
         ::SetFocalPointDepth(i, m_focalPointDepth[i]);
@@ -559,6 +579,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double
     {
         SetTGC(index, value);
         SetPendingRecreateTables(true);
+        //SetPendingTGCUpdate(true);
         //what we requested might be only approximately satisfied
         m_timeGainCompensation[index] = GetTGC(index);
     }
