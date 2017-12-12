@@ -192,7 +192,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     m_lastTimestamp = timestamp + m_timestampOffset;
     LOG_DEBUG("Frame: " << FrameNumber << ". Timestamp: " << m_lastTimestamp);
 
-    if (usMode == B)
+    if (usMode == B && m_ImagingMode == B_MODE)
     {
         assert(length == m_samplesPerLine*m_transducerCount * sizeof(uint16_t) + 256); //frame + header and footer
         uint16_t * frame = reinterpret_cast<uint16_t *>(data + 16);
@@ -246,7 +246,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
 
         delete bModeBuffer;
     }
-    else if (usMode == RF || usMode == BFRFALineImage_RFData)
+    else if ((usMode == RF || usMode == BFRFALineImage_RFData) && m_ImagingMode == RF_MODE)
     {
         assert(length == m_samplesPerLine*m_transducerCount * sizeof(int32_t)); //header and footer not appended to data
         int frameSize[3] = { m_samplesPerLine, m_transducerCount, 1 };
@@ -262,9 +262,14 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
         }
     }
-    else if (usMode == CFD)
+    else if (usMode == CFD && m_ImagingMode == CFD_MODE)
     {
         //TODO
+    }
+    else
+    {
+        LOG_INFO("Frame ignored (expected " << this->GetImagingModeAsString(m_ImagingMode) << "). Got: " << std::hex << usMode);
+        return;
     }
 
     this->FrameNumber++;
@@ -283,8 +288,24 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
     int frameSize[3] = { m_transducerCount,m_samplesPerLine,1 };
 
     LOG_DEBUG("Set up image buffer for WinProbe");
-    aSource->SetPixelType(VTK_UNSIGNED_CHAR);
-    aSource->SetImageType(US_IMG_BRIGHTNESS);
+    if (m_ImagingMode == B_MODE)
+    {
+        aSource->SetPixelType(VTK_UNSIGNED_CHAR);
+        aSource->SetImageType(US_IMG_BRIGHTNESS);
+    }
+    else if (m_ImagingMode == RF_MODE)
+    {
+        frameSize[0] = m_samplesPerLine*::GetSSDecimation();
+        frameSize[1] = m_transducerCount;
+        aSource->SetPixelType(VTK_INT);
+        aSource->SetImageType(US_IMG_RF_REAL);
+    }
+    else
+    {
+        LOG_ERROR("AdjustBufferSize is not implemented for " << this->GetImagingModeAsString(m_ImagingMode));
+        return;
+    }
+
     aSource->SetInputFrameSize(frameSize);
 
     LOG_INFO("Frame size: " << frameSize[0] << "x" << frameSize[1]
