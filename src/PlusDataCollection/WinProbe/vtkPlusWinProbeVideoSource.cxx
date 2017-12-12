@@ -24,8 +24,8 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "MinValue: " << this->m_MinValue << std::endl;
     os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
     os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
-    os << indent << "LogMax: " << this->m_OutputKnee << std::endl;
-    os << indent << "ImagingMode: " << this->m_ImagingMode << std::endl;
+    os << indent << "LogMax: " << static_cast<unsigned>(this->m_OutputKnee) << std::endl;
+    os << indent << "ImagingMode: " << this->GetImagingModeAsString(m_ImagingMode) << std::endl;
     os << indent << "TransducerID: " << this->m_transducerID << std::endl;
     os << indent << "Frozen: " << this->IsFrozen() << std::endl;
     os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
@@ -292,6 +292,8 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
     {
         aSource->SetPixelType(VTK_UNSIGNED_CHAR);
         aSource->SetImageType(US_IMG_BRIGHTNESS);
+        aSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+        aSource->SetInputImageOrientation(US_IMG_ORIENT_MF);
     }
     else if (m_ImagingMode == RF_MODE)
     {
@@ -299,6 +301,8 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
         frameSize[1] = m_transducerCount;
         aSource->SetPixelType(VTK_INT);
         aSource->SetImageType(US_IMG_RF_REAL);
+        aSource->SetOutputImageOrientation(US_IMG_ORIENT_FM);
+        aSource->SetInputImageOrientation(US_IMG_ORIENT_FM);
     }
     else
     {

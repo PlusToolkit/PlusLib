@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 
     if (renderingOff)
     {
-        Sleep(500); //allow some time to buffer frames
+        Sleep(2500); //allow some time to buffer frames
 
         vtkPlusChannel* aChannel(NULL);
         if (WinProbeDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS)
