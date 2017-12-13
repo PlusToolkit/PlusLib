@@ -257,7 +257,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             this->FrameNumber,
             m_lastTimestamp,
             m_lastTimestamp, //no timestamp filtering needed
-            &this->m_customFields) != PLUS_SUCCESS)
+            nullptr) != PLUS_SUCCESS)
         {
             LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
         }
