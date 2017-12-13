@@ -104,14 +104,13 @@ PlusStatus vtkInfraredSeekCam::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::InternalUpdate()
 {
- // TODO
- // Pendiente de añadir la nueva funcionalidad en la librería de la Seek.
- /* if (!this->Capture->isOpen())
+
+  if (!this->Capture->isOpened())
   {
     // No need to update if we're not able to read data
     LOG_ERROR("vtkInfraredSeekCam::InternalUpdate Unable to read date");
     return PLUS_SUCCESS;
-  }*/
+  }
 
   // Capture one frame from the SeekPro capture device
   if (!this->Capture->read(*this->Frame))
@@ -131,7 +130,7 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
   if (aSource->GetNumberOfItems() == 0)
   {
     // Init the buffer with the metadata from the first frame
-    aSource->SetImageType(US_IMG_RGB_COLOR);
+    aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetPixelType(VTK_TYPE_UINT16);
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->Frame->cols, this->Frame->rows, 1);
@@ -139,7 +138,7 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
 
   // Add the frame to the stream buffer
   int frameSize[3] = { this->Frame->cols, this->Frame->rows, 1 };
-  if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
+  if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
