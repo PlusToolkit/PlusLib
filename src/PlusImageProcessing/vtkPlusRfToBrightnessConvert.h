@@ -74,14 +74,21 @@ protected:
   /*! Compute the Hilbert transform coefficients. Used by the ComputeHilbertTransform method. */
   virtual void ComputeHilbertTransformCoeffs();
 
+  /*! Essentialy, a templated version of ThreadedRequestData */
+  template<typename ScalarType>
+  void ThreadedLineByLineHilbertTransform(int inExt[6], int outExt[6], vtkImageData ***inData, vtkImageData **outData, int threadId);
+
   /*! Compute the Hilbert transform (90 deg phase shift) of a signal */
-  virtual PlusStatus ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt);
+  template<typename ScalarType>
+  PlusStatus ComputeHilbertTransform(ScalarType *hilbertTransformOutput, ScalarType *input, int npt);
   
   /*! Compute amplitude from the original and Hilbert transformed RF data. npt is the number of samples in the input signal */
-  virtual void ComputeAmplitudeILineQLine(unsigned char *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt);
+  template<typename ScalarType>
+  void ComputeAmplitudeILineQLine(unsigned char *ampl, ScalarType *inputSignal, ScalarType *inputSignalHilbertTransformed, int npt);
   
   /*! Compute amplitude from IQ encoded RF data. npt is the number of IQ pairs * 2. */
-  virtual void ComputeAmplitudeIqLine(unsigned char *ampl, short *inputSignal, const int npt);
+  template<typename ScalarType>
+  void ComputeAmplitudeIqLine(unsigned char *ampl, ScalarType *inputSignal, const int npt);
 
   /*! Scaling of the brightness output. Higher value means brighter image. */
   double BrightnessScale;
