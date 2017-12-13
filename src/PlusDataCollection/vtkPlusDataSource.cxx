@@ -224,6 +224,30 @@ void vtkPlusDataSource::DeepCopy(const vtkPlusDataSource& aSource)
   this->CustomProperties = aSource.CustomProperties;
 }
 
+//----------------------------------------------------------------------------
+std::array<int, 3> vtkPlusDataSource::GetClipRectangleSize() const
+{
+  return this->ClipRectangleSize;
+}
+
+//----------------------------------------------------------------------------
+std::array<int, 3> vtkPlusDataSource::GetClipRectangleOrigin() const
+{
+  return this->ClipRectangleOrigin;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDataSource::SetClipRectangleSize(const std::array<int, 3> _arg)
+{
+  this->ClipRectangleSize = _arg;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusDataSource::SetClipRectangleOrigin(const std::array<int, 3> _arg)
+{
+  this->ClipRectangleOrigin = _arg;
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement, bool requirePortNameInSourceConfiguration, bool requireImageOrientationInSourceConfiguration, const std::string& aDescriptiveNameForBuffer)
 {
@@ -319,7 +343,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     if (clipRectangleOriginComponents == 2)
     {
       // Only 2D data is provided
-      XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleOrigin, sourceElement);
+      XML_READ_STD_ARRAY_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleOrigin, sourceElement);
       if (this->ClipRectangleOrigin[0] == PlusCommon::NO_CLIP || this->ClipRectangleOrigin[1] == PlusCommon::NO_CLIP)
       {
         this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
@@ -331,13 +355,13 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     }
     else
     {
-      XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleOrigin, sourceElement);
+      XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleOrigin, sourceElement);
     }
     int clipRectangleSizeComponents = sourceElement->GetVectorAttribute("ClipRectangleSize", 3, tmpValue);
     if (clipRectangleSizeComponents == 2)
     {
       // Only 2D data is provided
-      XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleSize, sourceElement);
+      XML_READ_STD_ARRAY_ATTRIBUTE_EXACT_OPTIONAL(int, 2, ClipRectangleSize, sourceElement);
       if (this->ClipRectangleSize[0] == PlusCommon::NO_CLIP || this->ClipRectangleSize[1] == PlusCommon::NO_CLIP)
       {
         this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
@@ -349,7 +373,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     }
     else
     {
-      XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleSize, sourceElement);
+      XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 3, ClipRectangleSize, sourceElement);
     }
   }
   else
@@ -458,8 +482,14 @@ PlusStatus vtkPlusDataSource::WriteConfiguration(vtkXMLDataElement* aSourceEleme
 
   if (PlusCommon::IsClippingRequested(this->ClipRectangleOrigin, this->ClipRectangleSize))
   {
-    aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 3, this->GetClipRectangleOrigin());
-    aSourceElement->SetVectorAttribute("ClipRectangleSize", 3, this->GetClipRectangleSize());
+    {
+      int tmpValue[3] = { this->ClipRectangleOrigin[0], this->ClipRectangleOrigin[1], this->ClipRectangleOrigin[2] };
+      aSourceElement->SetVectorAttribute("ClipRectangleOrigin", 3, tmpValue);
+    }
+    {
+      int tmpValue[3] = { this->ClipRectangleSize[0], this->ClipRectangleSize[1], this->ClipRectangleSize[2] };
+      aSourceElement->SetVectorAttribute("ClipRectangleSize", 3, tmpValue);
+    }
   }
 
   return PLUS_SUCCESS;
@@ -529,8 +559,8 @@ PlusStatus vtkPlusDataSource::AddItem(const PlusVideoFrame* frame, long frameNum
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType,
-                                      int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
+PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
+                                      unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                       double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   if (frameSizeInPx[0] < 0 || frameSizeInPx[1] < 0 || frameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
@@ -539,7 +569,7 @@ PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION u
     return PLUS_FAIL;
   }
 
-  unsigned int frameSizeInPxUint[3] = { static_cast<unsigned int>(frameSizeInPx[0]), static_cast<unsigned int>(frameSizeInPx[1]), static_cast<unsigned int>(frameSizeInPx[2]) };
+  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(frameSizeInPx[0]), static_cast<unsigned int>(frameSizeInPx[1]), static_cast<unsigned int>(frameSizeInPx[2]) };
   return this->AddItem(imageDataPtr, usImageOrientation, frameSizeInPxUint, pixelType, static_cast<unsigned int>(numberOfScalarComponents), imageType,
                        numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
 }
@@ -552,7 +582,7 @@ PlusStatus vtkPlusDataSource::AddItem(const PlusTrackedFrame::FieldMapType& cust
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const unsigned int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType,
+PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
                                       unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
                                       double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
@@ -634,7 +664,7 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int x, unsigned int y, 
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(int frameSize[3])
+PlusStatus vtkPlusDataSource::SetInputFrameSize(const std::array<int, 3>& frameSize)
 {
   if (frameSize[0] < 0 || frameSize[1] < 0 || frameSize[2] < 0)
   {
@@ -658,31 +688,31 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int frameSize[3])
+PlusStatus vtkPlusDataSource::SetInputFrameSize(const std::array<unsigned int, 3>& frameSize)
 {
   return this->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]);
 }
 
+//----------------------------------------------------------------------------
+std::array<unsigned int, 3> vtkPlusDataSource::GetInputFrameSize() const
+{
+  return this->InputFrameSize;
+}
+
 //-----------------------------------------------------------------------------
-unsigned int* vtkPlusDataSource::GetOutputFrameSize()
+std::array<unsigned int, 3> vtkPlusDataSource::GetOutputFrameSize() const
 {
   return this->GetBuffer()->GetFrameSize();
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::GetOutputFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3)
+PlusStatus vtkPlusDataSource::GetOutputFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const
 {
   return this->GetBuffer()->GetFrameSize(_arg1, _arg2, _arg3);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::GetOutputFrameSize(unsigned int _arg[3])
-{
-  return this->GetBuffer()->GetFrameSize(_arg);
-}
-
-//-----------------------------------------------------------------------------
-vtkPlusBuffer* vtkPlusDataSource::GetBuffer()
+vtkPlusBuffer* vtkPlusDataSource::GetBuffer() const
 {
   return this->Buffer;
 }

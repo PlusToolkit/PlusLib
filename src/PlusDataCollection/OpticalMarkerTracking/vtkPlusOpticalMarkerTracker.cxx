@@ -356,7 +356,7 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
   LOG_TRACE("Image to be processed: timestamp=" << trackedFrame.GetTimestamp());
 
   // get dimensions & data
-  unsigned int* dim = trackedFrame.GetFrameSize();
+  std::array<unsigned int, 3> dim = trackedFrame.GetFrameSize();
   PlusVideoFrame* frame = trackedFrame.GetImageData();
 
   // converting trackedFrame (vtkImageData) to cv::Mat

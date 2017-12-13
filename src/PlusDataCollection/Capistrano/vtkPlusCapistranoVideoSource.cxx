@@ -1461,9 +1461,9 @@ PlusStatus vtkPlusCapistranoVideoSource::SetBModeViewOption(unsigned int bModeVi
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(int imageSize[3])
+PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(const std::array<int, 3>& imageSize)
 {
-  return this->Internal->ImagingParameters->SetImageSize(imageSize, 3);
+  return this->Internal->ImagingParameters->SetImageSize(imageSize);
 }
 
 // ----------------------------------------------------------------------------

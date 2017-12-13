@@ -12,7 +12,7 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Siddharth Vikal (Queen's University),
 Elvis Chen (Queen's University), Danielle Pace (Robarts Research Institute
 and The University of Western Ontario)
-=========================================================================*/  
+=========================================================================*/
 
 #include "PlusConfigure.h"
 
@@ -28,7 +28,7 @@ and The University of Western Ontario)
   #include "Objbase.h" // required for CoInitialize
 #endif
 
-#include "PlusTrackedFrame.h" 
+#include "PlusTrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -48,14 +48,14 @@ and The University of Western Ontario)
 
 // because of warnings in windows header push and pop the warning level
 #ifdef _MSC_VER
-#pragma warning (push, 3)
+  #pragma warning (push, 3)
 #endif
 
 #include <vector>
 #include <string>
 
 #ifdef _MSC_VER
-#pragma warning (pop)
+  #pragma warning (pop)
 #endif
 
 //vtkStandardNewMacro(vtkWin32VideoSource);
@@ -68,28 +68,28 @@ vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::Instance = 0;
 vtkPlusSonixPortaVideoSourceCleanup vtkPlusSonixPortaVideoSource::Cleanup;
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-#pragma warning ( disable : 4311 )
-#pragma warning ( disable : 4312 )
-#  define vtkGetWindowLong GetWindowLongPtr
-#  define vtkSetWindowLong SetWindowLongPtr
-#  define vtkGWL_USERDATA GWLP_USERDATA
+  #pragma warning ( disable : 4311 )
+  #pragma warning ( disable : 4312 )
+  #define vtkGetWindowLong GetWindowLongPtr
+  #define vtkSetWindowLong SetWindowLongPtr
+  #define vtkGWL_USERDATA GWLP_USERDATA
 #else // regular Visual studio
-#  define vtkGetWindowLong GetWindowLong
-#  define vtkSetWindowLong SetWindowLong
-#  define vtkGWL_USERDATA GWL_USERDATA
+  #define vtkGetWindowLong GetWindowLong
+  #define vtkSetWindowLong SetWindowLong
+  #define vtkGWL_USERDATA GWL_USERDATA
 #endif //
 
-#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6) 
+#if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION >= 6)
 
-  // This is a workaround to avoid linker error due to missing portaImportChromaMap (caused by Ultrasonix SDK 6.1.0 bug)
-  int portaImportChromaMap(int index, const unsigned int* lut)
-  {
-    LOG_ERROR("portaImportChromaMap function is missing from Ultrasonix Porta SDK");
-    return 0;
-  }
+// This is a workaround to avoid linker error due to missing portaImportChromaMap (caused by Ultrasonix SDK 6.1.0 bug)
+int portaImportChromaMap(int index, const unsigned int* lut)
+{
+  LOG_ERROR("portaImportChromaMap function is missing from Ultrasonix Porta SDK");
+  return 0;
+}
 
-  // The porta wrapper implementation is not included in porta.lib, so we have to include it here
-  #include "porta_wrapper.cpp"
+// The porta wrapper implementation is not included in porta.lib, so we have to include it here
+#include "porta_wrapper.cpp"
 
 #endif
 
@@ -107,11 +107,11 @@ vtkPlusSonixPortaVideoSourceCleanup::~vtkPlusSonixPortaVideoSourceCleanup()
 
 //----------------------------------------------------------------------------
 vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSource()
-: DisplayIndex(0)
-, AutoClipEnabled(false)
-, CurrentDepthMm(-1)
-, ImageGeometryChanged(false)
-, ImageToTransducerTransformName(NULL)
+  : DisplayIndex(0)
+  , AutoClipEnabled(false)
+  , CurrentDepthMm(-1)
+  , ImageGeometryChanged(false)
+  , ImageToTransducerTransformName(NULL)
 {
   this->Porta = new porta;
   this->PortaConnected = false;
@@ -148,7 +148,7 @@ vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSource()
   // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
-vtkPlusSonixPortaVideoSource::~vtkPlusSonixPortaVideoSource() 
+vtkPlusSonixPortaVideoSource::~vtkPlusSonixPortaVideoSource()
 {
   // clean up porta related sources
   // this->vtkPlusSonixPortaVideoSource::ReleaseSystemResources();
@@ -173,74 +173,75 @@ vtkPlusSonixPortaVideoSource::~vtkPlusSonixPortaVideoSource()
 
 //----------------------------------------------------------------------------
 // up the reference count so it behaves like New
-vtkPlusSonixPortaVideoSource *vtkPlusSonixPortaVideoSource::New() 
+vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::New()
 {
-  vtkPlusSonixPortaVideoSource *ret = vtkPlusSonixPortaVideoSource::GetInstance();
-  ret->Register( NULL );
-  return( ret );
+  vtkPlusSonixPortaVideoSource* ret = vtkPlusSonixPortaVideoSource::GetInstance();
+  ret->Register(NULL);
+  return (ret);
 }
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
-vtkPlusSonixPortaVideoSource *vtkPlusSonixPortaVideoSource::GetInstance() 
+vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::GetInstance()
 {
 
-  if ( !vtkPlusSonixPortaVideoSource::Instance ) 
+  if (!vtkPlusSonixPortaVideoSource::Instance)
   {
     // try the factory first
-    vtkPlusSonixPortaVideoSource::Instance = (vtkPlusSonixPortaVideoSource *)vtkObjectFactory::CreateInstance( "vtkPlusSonixPortaVideoSource" );
+    vtkPlusSonixPortaVideoSource::Instance = (vtkPlusSonixPortaVideoSource*)vtkObjectFactory::CreateInstance("vtkPlusSonixPortaVideoSource");
 
-    if ( !vtkPlusSonixPortaVideoSource::Instance ) 
+    if (!vtkPlusSonixPortaVideoSource::Instance)
     {
       vtkPlusSonixPortaVideoSource::Instance = new vtkPlusSonixPortaVideoSource();
     }
 
-    if ( !vtkPlusSonixPortaVideoSource::Instance ) 
+    if (!vtkPlusSonixPortaVideoSource::Instance)
     {
       int error = 0;
     }
   }
 
-  return( vtkPlusSonixPortaVideoSource::Instance );
+  return (vtkPlusSonixPortaVideoSource::Instance);
 }
 
-void vtkPlusSonixPortaVideoSource::SetInstance( vtkPlusSonixPortaVideoSource *instance ) 
+void vtkPlusSonixPortaVideoSource::SetInstance(vtkPlusSonixPortaVideoSource* instance)
 {
-  if ( vtkPlusSonixPortaVideoSource::Instance == instance ) 
+  if (vtkPlusSonixPortaVideoSource::Instance == instance)
   {
     return;
   }
 
   // preferably this will be NULL
-  if ( vtkPlusSonixPortaVideoSource::Instance ) 
+  if (vtkPlusSonixPortaVideoSource::Instance)
   {
     vtkPlusSonixPortaVideoSource::Instance->Delete();
-    vtkPlusSonixPortaVideoSource::Instance=NULL;
+    vtkPlusSonixPortaVideoSource::Instance = NULL;
   }
 
   vtkPlusSonixPortaVideoSource::Instance = instance;
 
-  if ( !instance ) 
+  if (!instance)
   {
     return;
   }
 
   //user will call ->Delete() after setting instance
-  instance->Register( NULL );
+  instance->Register(NULL);
 }
 
 
 //----------------------------------------------------------------------------
 std::string vtkPlusSonixPortaVideoSource::GetSdkVersion()
 {
-  std::ostringstream version; 
-  version << "UltrasonixSDK-" << PLUS_ULTRASONIX_SDK_MAJOR_VERSION << "." << PLUS_ULTRASONIX_SDK_MINOR_VERSION << "." << PLUS_ULTRASONIX_SDK_PATCH_VERSION; 
-  return version.str(); 
+  std::ostringstream version;
+  version << "UltrasonixSDK-" << PLUS_ULTRASONIX_SDK_MAJOR_VERSION << "." << PLUS_ULTRASONIX_SDK_MINOR_VERSION << "." << PLUS_ULTRASONIX_SDK_PATCH_VERSION;
+  return version.str();
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
-  this->Superclass::PrintSelf(os,indent);
+void vtkPlusSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
   os << indent << "Imaging mode: " << this->ImagingMode << "\n";
   os << indent << "Frequency: " << this->Frequency << "MHz\n";
 }
@@ -248,26 +249,26 @@ void vtkPlusSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent) {
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 5) || (PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 5 && PLUS_ULTRASONIX_SDK_MINOR_VERSION < 7)
-//  SDK version < 5.7.x 
-bool vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback( void *param, int id )
-#elif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6) 
-//  5.7.x <= SDK version < 6.x
-bool vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback( void *param, int id, int header )
+  //  SDK version < 5.7.x
+  bool vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(void* param, int id)
+#elif (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
+  //  5.7.x <= SDK version < 6.x
+  bool vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
 #else
-int vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
+  int vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
 #endif
 {
 
-  if ( id == 0 )  
+  if (id == 0)
   {
     // no actual data received
-    return ( false );
+    return (false);
   }
 
   bool motorRotationCcw = (header & 0x00000002) > 0;
-  int motorStepCount = (header & 0xFFFC)>>2; // always starts from 0, no matter what the starting angle was (not an absolute position but from the FOV start position)
-  
-  vtkPlusSonixPortaVideoSource::GetInstance()->AddFrameToBuffer( param, id, motorRotationCcw, motorStepCount );
+  int motorStepCount = (header & 0xFFFC) >> 2; // always starts from 0, no matter what the starting angle was (not an absolute position but from the FOV start position)
+
+  vtkPlusSonixPortaVideoSource::GetInstance()->AddFrameToBuffer(param, id, motorRotationCcw, motorStepCount);
 
   return true;
 }
@@ -275,7 +276,7 @@ int vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(v
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, bool motorRotationCcw, int motorStepCount ) 
+PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, bool motorRotationCcw, int motorStepCount)
 {
   if (!this->Recording)
   {
@@ -283,30 +284,30 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
     return PLUS_SUCCESS;
   }
 
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusSonixPortaVideoSource" );
+    LOG_ERROR("No output channels defined for vtkPlusSonixPortaVideoSource");
     return PLUS_FAIL;
   }
-  vtkPlusChannel* outputChannel=this->OutputChannels[0];
+  vtkPlusChannel* outputChannel = this->OutputChannels[0];
 
-  unsigned int frameSize[3] = {0,0,0};
+  std::array<unsigned int, 3> frameSize = {0, 0, 0};
   this->GetInputFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
-  if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source in the SonixPorta device.");
     return PLUS_FAIL;
   }
 
   // for frame containing FC (frame count) in the beginning for data coming from cine, jump 2 bytes
-  int numberOfBytesToSkip = 4; 
+  int numberOfBytesToSkip = 4;
 
   // Aligns the motor for correct acquisition of its angle
-  if (this->FirstCallToAddFrameToBuffer && this->MotorRotationRangeDeg>0)
+  if (this->FirstCallToAddFrameToBuffer && this->MotorRotationRangeDeg > 0)
   {
-    this->Porta->setParam( prmMotorStatus, 0 );
-    this->Porta->setParam( prmMotorStatus, 1 );
+    this->Porta->setParam(prmMotorStatus, 0);
+    this->Porta->setParam(prmMotorStatus, 1);
     this->FirstCallToAddFrameToBuffer = false;
     this->LastRotationCcw = !motorRotationCcw; // force initialization of a new volume
     // First volume index will be 0 for CCW rotation, 1 for CW rotation.
@@ -315,17 +316,17 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
     this->FrameIndexInVolume = 0;
   }
 
-  if( this->ImageBuffer == NULL )
+  if (this->ImageBuffer == NULL)
   {
-    LOG_ERROR("vtkPlusSonixPortaVideoSource::AddFrameToBuffer failed: no image buffer is allocated" );
+    LOG_ERROR("vtkPlusSonixPortaVideoSource::AddFrameToBuffer failed: no image buffer is allocated");
     return PLUS_FAIL;
   }
-  this->Porta->getBwImage( 0, this->ImageBuffer, false );
+  this->Porta->getBwImage(0, this->ImageBuffer, false);
 
   // get the pointer to the actual incoming data onto a local pointer
-  unsigned char *deviceDataPtr = static_cast<unsigned char*>( this->ImageBuffer );
+  unsigned char* deviceDataPtr = static_cast<unsigned char*>(this->ImageBuffer);
 
-  double motorAngleDeg=0;
+  double motorAngleDeg = 0;
   if (this->ProbeInformation->motorized)
   {
     if (motorRotationCcw)
@@ -348,21 +349,21 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
   if (this->ImageGeometryChanged)
   {
     this->ImageGeometryChanged = false;
-    int currentDepth=-1;
+    int currentDepth = -1;
     if (!this->Porta->getParam("b-depth", currentDepth))
     {
       LOG_WARNING("Failed to retrieve b-depth parameter");
     }
 
-    int currentPixelSpacingMicron[2]={-1,-1};
+    int currentPixelSpacingMicron[2] = {-1, -1};
     if (!this->Porta->getMicronsPerPixel(this->DisplayIndex, currentPixelSpacingMicron[0], currentPixelSpacingMicron[1]))
     {
       LOG_WARNING("Failed to retrieve pixel spacing from Porta");
     }
 
-    int line=this->ProbeInformation->elements/2; // middle transducer element
-    int sample=0; // transducer surface
-    int currentTransducerOriginPixels[2]={-1,-1};
+    int line = this->ProbeInformation->elements / 2; // middle transducer element
+    int sample = 0; // transducer surface
+    int currentTransducerOriginPixels[2] = {-1, -1};
     if (!this->Porta->getPixelCoordinates(this->DisplayIndex, line, sample, currentTransducerOriginPixels[0], currentTransducerOriginPixels[1], false))
     {
       LOG_WARNING("Failed to retrieve transducer origin parameter from Porta");
@@ -370,12 +371,12 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
 
     this->CurrentDepthMm = currentDepth;
 
-    this->CurrentPixelSpacingMm[0] = 0.001*currentPixelSpacingMicron[0];
-    this->CurrentPixelSpacingMm[1] = 0.001*currentPixelSpacingMicron[1];
+    this->CurrentPixelSpacingMm[0] = 0.001 * currentPixelSpacingMicron[0];
+    this->CurrentPixelSpacingMm[1] = 0.001 * currentPixelSpacingMicron[1];
 
-    int *clipRectangleOrigin = aSource->GetClipRectangleOrigin();
-    this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels[0]-clipRectangleOrigin[0];
-    this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels[1]-clipRectangleOrigin[1];
+    std::array<int, 3> clipRectangleOrigin = aSource->GetClipRectangleOrigin();
+    this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels[0] - clipRectangleOrigin[0];
+    this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels[1] - clipRectangleOrigin[1];
   }
 
   PlusTrackedFrame::FieldMapType customFields;
@@ -389,56 +390,56 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer( void *param, int id, 
   std::ostringstream motorAngleDegStr;
   motorAngleDegStr << motorAngleDeg;
   customFields["MotorAngleDeg"] = motorAngleDegStr.str();
-  customFields["MotorToMotorRotatedTransform"] = this->GetMotorToMotorRotatedTransform( motorAngleDeg );
+  customFields["MotorToMotorRotatedTransform"] = this->GetMotorToMotorRotatedTransform(motorAngleDeg);
   customFields["MotorToMotorRotatedTransformStatus"] = "OK";
   std::ostringstream motorRotatedToTransducerTransformStr;
-  motorRotatedToTransducerTransformStr << "1 0 0 0 0 1 0 " << -this->ProbeInformation->motorRadius*0.001 << " 0 0 1 0 0 0 0 1";
+  motorRotatedToTransducerTransformStr << "1 0 0 0 0 1 0 " << -this->ProbeInformation->motorRadius * 0.001 << " 0 0 1 0 0 0 0 1";
   customFields["MotorRotatedToTransducerTransform"] = motorRotatedToTransducerTransformStr.str();
   customFields["MotorRotatedToTransducerTransformStatus"] = "OK";
 
-  if (this->ImageToTransducerTransformName!=NULL && strlen(this->ImageToTransducerTransformName)>0)
+  if (this->ImageToTransducerTransformName != NULL && strlen(this->ImageToTransducerTransformName) > 0)
   {
     std::ostringstream imageToTransducerTransformStr;
-    double zPixelSpacingMm = (this->CurrentPixelSpacingMm[0]+this->CurrentPixelSpacingMm[1])/2.0; // set to non-zero to keep the matrix as a 3D-3D transformation
-    imageToTransducerTransformStr << this->CurrentPixelSpacingMm[0] << " 0 0 " << -1.0*this->CurrentTransducerOriginPixels[0]*this->CurrentPixelSpacingMm[0];
-    imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0*this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
+    double zPixelSpacingMm = (this->CurrentPixelSpacingMm[0] + this->CurrentPixelSpacingMm[1]) / 2.0; // set to non-zero to keep the matrix as a 3D-3D transformation
+    imageToTransducerTransformStr << this->CurrentPixelSpacingMm[0] << " 0 0 " << -1.0 * this->CurrentTransducerOriginPixels[0]*this->CurrentPixelSpacingMm[0];
+    imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0 * this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
     imageToTransducerTransformStr << " 0 0 " << zPixelSpacingMm << " 0";
     imageToTransducerTransformStr << " 0 0 0 1";
     customFields["ImageToTransducerTransform"] = imageToTransducerTransformStr.str();
     customFields["ImageToTransducerTransformStatus"] = "OK";
   }
 
-  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields); 
+  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
 
   this->Modified();
   return status;
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusSonixPortaVideoSource::GetMotorToMotorRotatedTransform( double angle )
+std::string vtkPlusSonixPortaVideoSource::GetMotorToMotorRotatedTransform(double angle)
 {
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->SetMatrix( matrix );
-  transform->RotateX( angle ); 
+  transform->SetMatrix(matrix);
+  transform->RotateX(angle);
   transform->GetMatrix(matrix);
-  
+
   std::ostringstream matrixToString;
-  matrixToString << 
-    matrix->GetElement(0,0) <<" "<< matrix->GetElement(0,1) <<" "<< matrix->GetElement(0,2) <<" "<< matrix->GetElement(0,3) << " " <<
-    matrix->GetElement(1,0) <<" "<< matrix->GetElement(1,1) <<" "<< matrix->GetElement(1,2) <<" "<< matrix->GetElement(1,3) << " " <<
-    matrix->GetElement(2,0) <<" "<< matrix->GetElement(2,1) <<" "<< matrix->GetElement(2,2) <<" "<< matrix->GetElement(2,3) << " " <<
-    matrix->GetElement(3,0) <<" "<< matrix->GetElement(3,1) <<" "<< matrix->GetElement(3,2) <<" "<< matrix->GetElement(3,3) ;
+  matrixToString <<
+                 matrix->GetElement(0, 0) << " " << matrix->GetElement(0, 1) << " " << matrix->GetElement(0, 2) << " " << matrix->GetElement(0, 3) << " " <<
+                 matrix->GetElement(1, 0) << " " << matrix->GetElement(1, 1) << " " << matrix->GetElement(1, 2) << " " << matrix->GetElement(1, 3) << " " <<
+                 matrix->GetElement(2, 0) << " " << matrix->GetElement(2, 1) << " " << matrix->GetElement(2, 2) << " " << matrix->GetElement(2, 3) << " " <<
+                 matrix->GetElement(3, 0) << " " << matrix->GetElement(3, 1) << " " << matrix->GetElement(3, 2) << " " << matrix->GetElement(3, 3) ;
 
   return matrixToString.str();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect() 
+PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
 {
   vtkPlusDataSource* aSource(NULL);
-  if( this->GetFirstVideoSource(aSource) != PLUS_SUCCESS )
+  if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
@@ -447,19 +448,19 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
   // Set B-mode image size
   delete [] this->ImageBuffer;
   this->ImageBuffer = new unsigned char [ this->PortaBModeWidth * this->PortaBModeHeight * 4 ];
-  if (this->ImageBuffer == NULL) 
+  if (this->ImageBuffer == NULL)
   {
-    LOG_ERROR("vtkPlusSonixPortaVideoSource constructor: not enough memory for ImageBuffer" );
+    LOG_ERROR("vtkPlusSonixPortaVideoSource constructor: not enough memory for ImageBuffer");
     return PLUS_FAIL;
   }
 
   LOG_TRACE("InternalConnect start");
-  if ( this->PortaSettingPath == 0 ||
-    this->PortaFirmwarePath == 0 ||
-    this->PortaLicensePath == 0 ||
-    this->PortaLUTPath == 0 ) 
+  if (this->PortaSettingPath == 0 ||
+      this->PortaFirmwarePath == 0 ||
+      this->PortaLicensePath == 0 ||
+      this->PortaLUTPath == 0)
   {
-    LOG_ERROR("One of the Porta paths has not been set (check PortaSettingPath, PortaFirmwarePath, PortaLicensePath, PortaLUTPath attributes)" );
+    LOG_ERROR("One of the Porta paths has not been set (check PortaSettingPath, PortaFirmwarePath, PortaLicensePath, PortaLUTPath attributes)");
     return PLUS_FAIL;
   }
 
@@ -469,34 +470,34 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
 #endif
 
   int channels = (this->Usm == 2) ? 32 : 64; // from Ultrasonix SDK PortaDemo.cpp
-  
+
   LOG_TRACE("Porta initialization:"
-    << " PortaFirmwarePath="<<this->PortaFirmwarePath
-    << " PortaSettingPath="<<this->PortaSettingPath
-    << " PortaLicensePath="<<this->PortaLicensePath
-    << " PortaLUTPath="<<this->PortaLUTPath
-    << " Usm="<<this->Usm
-    << " Pci="<<this->Pci
-    << " channels="<<channels);
-  if ( !this->Porta->init( this->PortaCineSize,
-    this->PortaFirmwarePath,
-    this->PortaSettingPath,
-    this->PortaLicensePath,
-    this->PortaLUTPath,
-    this->Usm, 
-    this->Pci,
-    0, // high voltage (from Ultrasonix SDK PortaDemo.cpp)
-    1, // DDR (from Ultrasonix SDK PortaDemo.cpp)
-    channels) )
+            << " PortaFirmwarePath=" << this->PortaFirmwarePath
+            << " PortaSettingPath=" << this->PortaSettingPath
+            << " PortaLicensePath=" << this->PortaLicensePath
+            << " PortaLUTPath=" << this->PortaLUTPath
+            << " Usm=" << this->Usm
+            << " Pci=" << this->Pci
+            << " channels=" << channels);
+  if (!this->Porta->init(this->PortaCineSize,
+                         this->PortaFirmwarePath,
+                         this->PortaSettingPath,
+                         this->PortaLicensePath,
+                         this->PortaLUTPath,
+                         this->Usm,
+                         this->Pci,
+                         0, // high voltage (from Ultrasonix SDK PortaDemo.cpp)
+                         1, // DDR (from Ultrasonix SDK PortaDemo.cpp)
+                         channels))
   {
     LOG_ERROR("Initialize: Porta could not be initialized: (" << this->GetLastPortaError() << ")"
-		<< " PortaFirmwarePath="<<this->PortaFirmwarePath
-		<< " PortaSettingPath="<<this->PortaSettingPath
-		<< " PortaLicensePath="<<this->PortaLicensePath
-		<< " PortaLUTPath="<<this->PortaLUTPath
-		<< " Usm="<<this->Usm
-		<< " Pci="<<this->Pci
-		<< " channels="<<channels);
+              << " PortaFirmwarePath=" << this->PortaFirmwarePath
+              << " PortaSettingPath=" << this->PortaSettingPath
+              << " PortaLicensePath=" << this->PortaLicensePath
+              << " PortaLUTPath=" << this->PortaLUTPath
+              << " Usm=" << this->Usm
+              << " Pci=" << this->Pci
+              << " channels=" << channels);
     this->PortaConnected = false;
     return PLUS_FAIL;
   }
@@ -507,61 +508,61 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
   this->ImageGeometryChanged = true; // trigger an initial update of geometry info
 
   // select the probe
-  
-  if ( !this->Porta->isConnected() )
+
+  if (!this->Porta->isConnected())
   {
     LOG_ERROR("Porta is not connected");
     this->InternalDisconnect();
     return PLUS_FAIL;
   }
-  
+
   // the 3D/4D probe is always connected to port 0
   const int connectorId = 0;
-  int probeId = (char)this->Porta->getProbeID( connectorId );
-  if ( !this->Porta->selectProbe( probeId ) )
+  int probeId = (char)this->Porta->getProbeID(connectorId);
+  if (!this->Porta->selectProbe(probeId))
   {
-    LOG_ERROR("Porta connect error: failed to select probe plugged into connector "<<connectorId);
+    LOG_ERROR("Porta connect error: failed to select probe plugged into connector " << connectorId);
     this->InternalDisconnect();
     return PLUS_FAIL;
   }
 
   // select the probeId read and see if it is motorized
-  if (!this->Porta->getProbeInfo( *this->ProbeInformation ))
+  if (!this->Porta->getProbeInfo(*this->ProbeInformation))
   {
     LOG_ERROR("Porta connect error: failed to get probe information");
     this->InternalDisconnect();
     return PLUS_FAIL;
   }
 
-  const int MAX_NAME_LENGTH=100;
-  char name[MAX_NAME_LENGTH+1];
-  name[MAX_NAME_LENGTH]=0;
-  this->Porta->activateProbeConnector( connectorId );
-  this->Porta->getProbeName( name, MAX_NAME_LENGTH, probeId );  
-  LOG_DEBUG("Probe connected to connector "<<probeId<<": "<<name);
+  const int MAX_NAME_LENGTH = 100;
+  char name[MAX_NAME_LENGTH + 1];
+  name[MAX_NAME_LENGTH] = 0;
+  this->Porta->activateProbeConnector(connectorId);
+  this->Porta->getProbeName(name, MAX_NAME_LENGTH, probeId);
+  LOG_DEBUG("Probe connected to connector " << probeId << ": " << name);
 
   // store the probe name
   SetPortaProbeName(name);
-  if ( !this->Porta->findMasterPreset( name, MAX_NAME_LENGTH, probeId ) ) 
+  if (!this->Porta->findMasterPreset(name, MAX_NAME_LENGTH, probeId))
   {
-    LOG_ERROR("Porta connect error: master preset cannot be found" );
+    LOG_ERROR("Porta connect error: master preset cannot be found");
     this->InternalDisconnect();
     return PLUS_FAIL;
   }
 
-  if ( !this->Porta->loadPreset( name ) )
+  if (!this->Porta->loadPreset(name))
   {
-    LOG_ERROR("Porta connect error: master preset could not be loaded" );
+    LOG_ERROR("Porta connect error: master preset could not be loaded");
     this->InternalDisconnect();
     return PLUS_FAIL;
   }
 
-  if( !this->SetInputFrameSize( *aSource, this->PortaBModeWidth, this->PortaBModeHeight, 1 )  )
+  if (!this->SetInputFrameSize(*aSource, this->PortaBModeWidth, this->PortaBModeHeight, 1))
   {
-    LOG_ERROR("Initializer: can not set the frame size" );
+    LOG_ERROR("Initializer: can not set the frame size");
   }
 
-  // It is necessary to enclose the portaInitMode and custom display initialization by 
+  // It is necessary to enclose the portaInitMode and custom display initialization by
   // a freeze-unfreeze for proper operation. This is because if the imaging was
   // running prior to the call to portaInitMode, the function will try to restart
   // imaging at the end of the call, but the custom displays are not initialized
@@ -569,26 +570,26 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
   int isRunning = this->Porta->isImaging();
   if (isRunning)
   {
-      this->Porta->stopImage();
+    this->Porta->stopImage();
   }
 
   // this is from propello
-  if( !this->Porta->initImagingMode( BMode ) ) 
-  {    
-    LOG_ERROR("Initialize: cannot initialize imagingMode (" << this->GetLastPortaError() << ")" );
+  if (!this->Porta->initImagingMode(BMode))
+  {
+    LOG_ERROR("Initialize: cannot initialize imagingMode (" << this->GetLastPortaError() << ")");
     return PLUS_FAIL;
   }
 
-  this->Porta->setDisplayDimensions( this->DisplayIndex, this->PortaBModeWidth, this->PortaBModeHeight );
-  
+  this->Porta->setDisplayDimensions(this->DisplayIndex, this->PortaBModeWidth, this->PortaBModeHeight);
+
   // successfully set to bmode
 
   // Set up imaging parameters
   // Parameter value <0 means that the parameter should be kept unchanged
   if (this->Frequency >= 0) { SetFrequency(this->Frequency); }
   if (this->Depth >= 0) { SetDepth(this->Depth); }
-  if (this->Gain >= 0 ) { SetGain(this->Gain); }
-  if (this->Zoom >= 0 ) { SetZoom(this->Zoom); }
+  if (this->Gain >= 0) { SetGain(this->Gain); }
+  if (this->Zoom >= 0) { SetZoom(this->Zoom); }
 
   this->MotorRotationPerStepDeg = 0;
   this->MotorRotationStartAngleDeg = 0;
@@ -611,7 +612,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
       GetStepPerFrame(actualStepPerFrame);
       double actualMotorRotationRangeDeg = 0;
       GetMotorRotationRangeDeg(actualMotorRotationRangeDeg);
-      this->MotorRotationStartAngleDeg = (actualFramePerVolume - 1) / 2 * actualStepPerFrame*this->MotorRotationPerStepDeg;
+      this->MotorRotationStartAngleDeg = (actualFramePerVolume - 1) / 2 * actualStepPerFrame * this->MotorRotationPerStepDeg;
       LOG_INFO("actual values in hw: FramePerVolume=" << actualFramePerVolume << "    StepPerFrame=" << actualStepPerFrame << "    MotorRotationRangeDeg=" << actualMotorRotationRangeDeg << "    MotorRotationPerStepDeg=" << this->MotorRotationPerStepDeg << "   MotorRotationStartAngleDeg=" << this->MotorRotationStartAngleDeg);
 
       // Turn on the motor
@@ -632,13 +633,13 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
   }
 
   // finally, update all the parameters
-  if ( !this->UpdateSonixPortaParams() ) 
+  if (!this->UpdateSonixPortaParams())
   {
-    LOG_ERROR("Initialize: cannot update sonix params" ); 
+    LOG_ERROR("Initialize: cannot update sonix params");
   }
 
   // Set up the callback function which is invocked upon arrival of a new frame
-  this->Porta->setDisplayCallback( 0, vtkPlusSonixPortaVideoSourceNewFrameCallback,(void*)this ); 
+  this->Porta->setDisplayCallback(0, vtkPlusSonixPortaVideoSourceNewFrameCallback, (void*)this);
 
   LOG_DEBUG("Successfully connected to sonix porta video device");
   return PLUS_SUCCESS;
@@ -647,7 +648,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSonixPortaVideoSource::InternalDisconnect()
 {
-  this->Porta->setParam( prmMotorStatus, 0 );
+  this->Porta->setParam(prmMotorStatus, 0);
   this->Porta->stopImage();
   this->PortaConnected = false;
   this->Porta->shutdown();
@@ -657,9 +658,9 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalDisconnect()
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::InternalStartRecording() 
+PlusStatus vtkPlusSonixPortaVideoSource::InternalStartRecording()
 {
-  if ( !this->Porta->isImaging() )
+  if (!this->Porta->isImaging())
   {
     this->Porta->runImage();
   }
@@ -667,9 +668,9 @@ PlusStatus vtkPlusSonixPortaVideoSource::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::InternalStopRecording() 
+PlusStatus vtkPlusSonixPortaVideoSource::InternalStopRecording()
 {
-  if ( this->Porta->isImaging() )
+  if (this->Porta->isImaging())
   {
     this->Porta->stopImage();
   }
@@ -708,11 +709,11 @@ PlusStatus vtkPlusSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
 
   double obsolete = 0;
-  if ( deviceConfig->GetScalarAttribute("HighVoltage", obsolete)) 
+  if (deviceConfig->GetScalarAttribute("HighVoltage", obsolete))
   {
     LOG_WARNING("SonixPortaVideo HighVoltage attribute is ignored (HighVoltage is always disabled)");
   }
-  if ( deviceConfig->GetScalarAttribute("Channels", obsolete)) 
+  if (deviceConfig->GetScalarAttribute("Channels", obsolete))
   {
     LOG_WARNING("SonixPortaVideo Channels attribute is ignored (number of channels is now automatically determined from USM (ultrasound module version) attribute.");
   }
@@ -742,11 +743,11 @@ PlusStatus vtkPlusSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetIntAttribute("StepPerFrame", this->StepPerFrame);
   // only save frame per volume or rotation range if specified (depends on SDK version
   // which one is actually used)
-  if (this->FramePerVolume>=0)
+  if (this->FramePerVolume >= 0)
   {
     deviceConfig->SetIntAttribute("FramePerVolume", this->FramePerVolume);
   }
-  if (this->MotorRotationRangeDeg>=0)
+  if (this->MotorRotationRangeDeg >= 0)
   {
     deviceConfig->SetDoubleAttribute("MotorRotationRangeDeg", this->MotorRotationRangeDeg);
   }
@@ -767,47 +768,47 @@ PlusStatus vtkPlusSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* r
 std::string vtkPlusSonixPortaVideoSource::GetLastPortaError()
 {
 #if (PLUS_ULTRASONIX_SDK_MAJOR_VERSION < 6)
-  const unsigned int MAX_PORTA_ERROR_MSG_LENGTH=256;
-  char err[MAX_PORTA_ERROR_MSG_LENGTH+1];
-  err[MAX_PORTA_ERROR_MSG_LENGTH]=0; // make sure the string is null-terminated
-  this->Porta->getLastError(err,MAX_PORTA_ERROR_MSG_LENGTH);
-  return err; 
+  const unsigned int MAX_PORTA_ERROR_MSG_LENGTH = 256;
+  char err[MAX_PORTA_ERROR_MSG_LENGTH + 1];
+  err[MAX_PORTA_ERROR_MSG_LENGTH] = 0; // make sure the string is null-terminated
+  this->Porta->getLastError(err, MAX_PORTA_ERROR_MSG_LENGTH);
+  return err;
 #else
   return "unknown";
 #endif
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::SetParamValue(char* paramId, int paramValue, int &validatedParamValue)
+PlusStatus vtkPlusSonixPortaVideoSource::SetParamValue(char* paramId, int paramValue, int& validatedParamValue)
 {
   if (!this->PortaConnected)
   {
     // Connection has not been established yet. Parameter value will be set upon connection.
-    validatedParamValue=paramValue;
+    validatedParamValue = paramValue;
     return PLUS_SUCCESS;
   }
   if (!this->Porta->setParam(paramId, paramValue))
   {
-    LOG_ERROR("vtkPlusSonixPortaVideoSource::SetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
+    LOG_ERROR("vtkPlusSonixPortaVideoSource::SetParamValue failed (paramId=" << paramId << ", paramValue=" << paramValue << ") " << GetLastPortaError());
     return PLUS_FAIL;
   }
-  validatedParamValue=paramValue;
+  validatedParamValue = paramValue;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::GetParamValue(char* paramId, int& paramValue, int &validatedParamValue)
+PlusStatus vtkPlusSonixPortaVideoSource::GetParamValue(char* paramId, int& paramValue, int& validatedParamValue)
 {
   if (!this->PortaConnected)
   {
     // Connection has not been established yet. Returned the cached value.
-    paramValue=validatedParamValue;
+    paramValue = validatedParamValue;
     return PLUS_SUCCESS;
   }
-  paramValue=-1;
+  paramValue = -1;
   if (!this->Porta->getParam(paramId, paramValue))
   {
-    LOG_ERROR("vtkPlusSonixPortaVideoSource::GetParamValue failed (paramId="<<paramId<<", paramValue="<<paramValue<<") "<<GetLastPortaError());
+    LOG_ERROR("vtkPlusSonixPortaVideoSource::GetParamValue failed (paramId=" << paramId << ", paramValue=" << paramValue << ") " << GetLastPortaError());
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
@@ -884,9 +885,9 @@ PlusStatus vtkPlusSonixPortaVideoSource::SetMotorRotationRangeDeg(double aMotorR
   LOG_WARNING("MotorRotationRangeDeg parameter is not available in Ultrasonix SDK-6.x. Use FramePerVolume parameter instead.");
   return PLUS_FAIL;
 #else
-  int aMotorRotationRangeMilliDeg = int(aMotorRotationRangeDeg*1000);
-  int aMotorRotationRangeMilliDegStored = int(this->MotorRotationRangeDeg*1000);
-  if (SetParamValue(prmMotorFOV, aMotorRotationRangeMilliDeg, aMotorRotationRangeMilliDegStored)==PLUS_FAIL)
+  int aMotorRotationRangeMilliDeg = int(aMotorRotationRangeDeg * 1000);
+  int aMotorRotationRangeMilliDegStored = int(this->MotorRotationRangeDeg * 1000);
+  if (SetParamValue(prmMotorFOV, aMotorRotationRangeMilliDeg, aMotorRotationRangeMilliDegStored) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
@@ -902,9 +903,9 @@ PlusStatus vtkPlusSonixPortaVideoSource::GetMotorRotationRangeDeg(double& aMotor
   LOG_WARNING("MotorRotationRangeDeg parameter is not available in Ultrasonix SDK-6.x. Use FramePerVolume parameter instead.");
   return PLUS_FAIL;
 #else
-  int aMotorRotationRangeMilliDeg = int(aMotorRotationRangeDeg*1000);
-  int aMotorRotationRangeMilliDegStored = int(this->MotorRotationRangeDeg*1000);
-  if (GetParamValue(prmMotorFOV, aMotorRotationRangeMilliDeg, aMotorRotationRangeMilliDegStored)==PLUS_FAIL)
+  int aMotorRotationRangeMilliDeg = int(aMotorRotationRangeDeg * 1000);
+  int aMotorRotationRangeMilliDegStored = int(this->MotorRotationRangeDeg * 1000);
+  if (GetParamValue(prmMotorFOV, aMotorRotationRangeMilliDeg, aMotorRotationRangeMilliDegStored) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
@@ -927,11 +928,11 @@ PlusStatus vtkPlusSonixPortaVideoSource::GetStepPerFrame(int& aStepPerFrame)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixPortaVideoSource::UpdateSonixPortaParams() 
+PlusStatus vtkPlusSonixPortaVideoSource::UpdateSonixPortaParams()
 {
   bool bRunning = this->Porta->isImaging();
 
-  if ( bRunning ) 
+  if (bRunning)
   {
     this->Porta->stopImage();
   }
@@ -942,9 +943,9 @@ PlusStatus vtkPlusSonixPortaVideoSource::UpdateSonixPortaParams()
   // frame rate is a function of several parameters, such as
   // bline density and image-depths.
   //
-  this->AcquisitionRate = (float)(this->Porta->getFrameRate() );
+  this->AcquisitionRate = (float)(this->Porta->getFrameRate());
 
-  if ( bRunning ) 
+  if (bRunning)
   {
     this->Porta->runImage();
   }
@@ -957,15 +958,15 @@ PlusStatus vtkPlusSonixPortaVideoSource::UpdateSonixPortaParams()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSonixPortaVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("vtkPlusSonixPortaVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusSonixPortaVideoSource. Cannot proceed." );
+    LOG_ERROR("No output channels defined for vtkPlusSonixPortaVideoSource. Cannot proceed.");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }

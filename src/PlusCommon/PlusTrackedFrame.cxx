@@ -102,7 +102,13 @@ PlusStatus PlusTrackedFrame::PrintToXML(vtkXMLDataElement* trackedFrame, const s
   if (this->GetImageData()->IsImageValid())
   {
     trackedFrame->SetIntAttribute("NumberOfBits", this->GetNumberOfBitsPerScalar());
-    trackedFrame->SetIntAttribute("NumberOfScalarComponents", this->GetNumberOfScalarComponents());
+    unsigned int numberOfScalarComponents(1);
+    if (this->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+    {
+      LOG_ERROR("Unable to retrieve number of scalar components.");
+      return PLUS_FAIL;
+    }
+    trackedFrame->SetIntAttribute("NumberOfScalarComponents", numberOfScalarComponents);
     if (FrameSize[0] > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
         FrameSize[1] > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
         FrameSize[2] > static_cast<unsigned int>(std::numeric_limits<int>::max()))
@@ -262,19 +268,10 @@ PlusStatus PlusTrackedFrame::SetTrackedFrameFromXmlData(const char* strXmlData)
 }
 
 //----------------------------------------------------------------------------
-unsigned int* PlusTrackedFrame::GetFrameSize()
+std::array<unsigned int, 3> PlusTrackedFrame::GetFrameSize()
 {
   this->ImageData.GetFrameSize(this->FrameSize);
   return this->FrameSize;
-}
-
-//----------------------------------------------------------------------------
-void PlusTrackedFrame::GetFrameSize(unsigned int dim[3])
-{
-  this->ImageData.GetFrameSize(this->FrameSize);
-  dim[0] = this->FrameSize[0];
-  dim[1] = this->FrameSize[1];
-  dim[2] = this->FrameSize[2];
 }
 
 //----------------------------------------------------------------------------
@@ -307,14 +304,20 @@ int PlusTrackedFrame::GetNumberOfBitsPerScalar()
 int PlusTrackedFrame::GetNumberOfBitsPerPixel()
 {
   int numberOfBitsPerScalar(0);
-  numberOfBitsPerScalar = this->ImageData.GetNumberOfBytesPerScalar() * 8 * this->ImageData.GetNumberOfScalarComponents();
+  unsigned int numberOfScalarComponents(1);
+  if (this->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return -1;
+  }
+  numberOfBitsPerScalar = this->ImageData.GetNumberOfBytesPerScalar() * 8 * numberOfScalarComponents;
   return numberOfBitsPerScalar;
 }
 
 //----------------------------------------------------------------------------
-int PlusTrackedFrame::GetNumberOfScalarComponents()
+PlusStatus PlusTrackedFrame::GetNumberOfScalarComponents(unsigned int& numberOfScalarComponents)
 {
-  return this->ImageData.GetNumberOfScalarComponents();
+  return this->ImageData.GetNumberOfScalarComponents(numberOfScalarComponents);
 }
 
 //----------------------------------------------------------------------------

@@ -722,7 +722,7 @@ PlusStatus PlusCommon::DrawLine(vtkImageData& imageData, float greyValue, LINE_S
 }
 
 //-------------------------------------------------------
-bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize[3])
+bool PlusCommon::IsClippingRequested(const std::array<int, 3>& clipOrigin, const std::array<int, 3>& clipSize)
 {
   return (
            clipOrigin[0] != PlusCommon::NO_CLIP &&
@@ -735,7 +735,7 @@ bool PlusCommon::IsClippingRequested(const int clipOrigin[3], const int clipSize
 }
 
 //-------------------------------------------------------
-bool PlusCommon::IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6])
+bool PlusCommon::IsClippingWithinExtents(const const std::array<int, 3>& clipOrigin, const const std::array<int, 3>& clipSize, const int extents[6])
 {
   return (clipOrigin[0] >= extents[0] && clipOrigin[0] <= extents[1]) &&
          (clipOrigin[1] >= extents[2] && clipOrigin[1] <= extents[3]) &&   // Verify that the origin is within the image

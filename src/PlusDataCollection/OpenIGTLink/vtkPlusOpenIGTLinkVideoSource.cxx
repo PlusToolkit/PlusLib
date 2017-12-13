@@ -128,7 +128,13 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
       return PLUS_FAIL;
     }
     aSource->SetPixelType(videoFrame->GetVTKScalarPixelType());
-    aSource->SetNumberOfScalarComponents(videoFrame->GetNumberOfScalarComponents());
+    unsigned int numberOfScalarComponents(1);
+    if (videoFrame->GetNumberOfScalarComponents(numberOfScalarComponents) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to retrieve number of scalar components.");
+      return PLUS_FAIL;
+    }
+    aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
     aSource->SetImageType(videoFrame->GetImageType());
     aSource->SetInputFrameSize(trackedFrame.GetFrameSize());
   }

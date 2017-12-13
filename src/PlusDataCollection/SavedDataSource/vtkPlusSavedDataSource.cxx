@@ -476,8 +476,20 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkPlusTrackedFrameList*
   this->LocalVideoBuffer = vtkPlusBuffer::New();
   this->LocalVideoBuffer->SetImageOrientation(savedDataBuffer->GetImageOrientation());
   this->LocalVideoBuffer->SetImageType(savedDataBuffer->GetImageType());
-  this->LocalVideoBuffer->SetFrameSize(savedDataBuffer->GetFrameSize());
-  this->LocalVideoBuffer->SetNumberOfScalarComponents(savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents());
+  std::array<unsigned int, 3> frameSize;
+  if (savedDataBuffer->GetFrameSize(frameSize) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve frame size.");
+    return PLUS_FAIL;
+  }
+  this->LocalVideoBuffer->SetFrameSize(frameSize);
+  unsigned int numberOfScalarComponents;
+  if (savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents(numberOfScalarComponents) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return PLUS_FAIL;
+  }
+  this->LocalVideoBuffer->SetNumberOfScalarComponents(numberOfScalarComponents);
   this->LocalVideoBuffer->SetPixelType(savedDataBuffer->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
   this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames());
   this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0);   // the time offset is copied from the output, so reset it to 0

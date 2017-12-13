@@ -449,17 +449,16 @@ PlusStatus vtkPlusMmfVideoSource::UpdateFrameSize()
 {
   if (this->MmfSourceReader->CaptureSourceReader != NULL)
   {
-    unsigned int currentFrameSize[3] = {0, 0, 1};
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstVideoSource(videoSource);
-    videoSource->GetInputFrameSize(currentFrameSize);
+    std::array<unsigned int, 3> currentFrameSize = videoSource->GetInputFrameSize();
     if (currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1)
     {
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
       videoSource->SetInputFrameSize(currentFrameSize);
       videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
-      int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
+      unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
       videoSource->SetNumberOfScalarComponents(numberOfScalarComponents);
       this->UncompressedVideoFrame.SetImageType(videoSource->GetImageType());
       this->UncompressedVideoFrame.SetImageOrientation(videoSource->GetInputImageOrientation());
@@ -605,13 +604,12 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
     return PLUS_SUCCESS;
   }
 
-  unsigned int frameSize[3] = {0, 0, 0};
   vtkPlusDataSource* videoSource(NULL);
   if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
-  videoSource->GetInputFrameSize(frameSize);
+  std::array<unsigned int, 3> frameSize = videoSource->GetInputFrameSize();
 
   PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);

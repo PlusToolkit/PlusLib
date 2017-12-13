@@ -68,9 +68,9 @@ public:
 
   // the parameters provide the maximum frequency of logging
   vtkPlusLogHelper(double minimumTimeBetweenLoggingSec = 60.0,
-      unsigned long minimumCountBetweenLogging = 5000,
-      vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::LOG_LEVEL_ERROR)
-      :m_MinimumTimeBetweenLoggingSec(minimumTimeBetweenLoggingSec),
+                   unsigned long minimumCountBetweenLogging = 5000,
+                   vtkPlusLogger::LogLevelType logLevel = vtkPlusLogger::LOG_LEVEL_ERROR)
+    : m_MinimumTimeBetweenLoggingSec(minimumTimeBetweenLoggingSec),
       m_MinimumCountBetweenLogging(minimumCountBetweenLogging),
       m_LogLevel(logLevel)
   {
@@ -510,8 +510,8 @@ namespace PlusCommon
   }
 
   static const int NO_CLIP = -1;
-  vtkPlusCommonExport bool IsClippingRequested(const int clipOrigin[3], const int clipSize[3]);
-  vtkPlusCommonExport bool IsClippingWithinExtents(const int clipOrigin[3], const int clipSize[3], const int extents[6]);
+  vtkPlusCommonExport bool IsClippingRequested(const std::array<int, 3>& clipOrigin, const std::array<int, 3>& clipSize);
+  vtkPlusCommonExport bool IsClippingWithinExtents(const std::array<int, 3>& clipOrigin, const std::array<int, 3>& clipSize, const int extents[6]);
 
   vtkPlusCommonExport void SplitStringIntoTokens(const std::string& s, char delim, std::vector<std::string>& elems, bool keepEmptyParts = true);
   vtkPlusCommonExport std::vector<std::string> SplitStringIntoTokens(const std::string& s, char delim, bool keepEmptyParts = true);

@@ -193,7 +193,7 @@ PlusStatus PlusFidSegmentation::ReadConfiguration(vtkXMLDataElement* configData)
 
 //-----------------------------------------------------------------------------
 
-void PlusFidSegmentation::SetFrameSize(unsigned int frameSize[3])
+void PlusFidSegmentation::SetFrameSize(const std::array<unsigned int, 3>&  frameSize)
 {
   LOG_TRACE("FidSegmentation::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
 

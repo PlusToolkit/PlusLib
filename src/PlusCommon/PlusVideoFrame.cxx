@@ -4,24 +4,31 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusVideoFrame.h"
-#include "itkImageBase.h"
-#include "vtkBMPReader.h"
-#include "vtkExtractVOI.h"
-#include "vtkImageData.h"
-#include "vtkImageImport.h"
-#include "vtkImageReader.h"
-#include "vtkObjectFactory.h"
-#include "vtkPNMReader.h"
-#include "vtkTIFFReader.h"
-#include "vtkTrivialProducer.h"
 
+// VTK includes
+#include <vtkBMPReader.h>
+#include <vtkExtractVOI.h>
+#include <vtkImageData.h>
+#include <vtkImageImport.h>
+#include <vtkImageReader.h>
+#include <vtkObjectFactory.h>
+#include <vtkPNMReader.h>
+#include <vtkTIFFReader.h>
+#include <vtkTrivialProducer.h>
+
+// ITK includes
+#include <itkImageBase.h>
+
+// STL includes
 #include <algorithm>
 #include <string>
 
 #ifdef PLUS_USE_OpenIGTLink
-#include "igtlImageMessage.h"
+  // IGTL includes
+  #include <igtlImageMessage.h>
 #endif
 
 //----------------------------------------------------------------------------
@@ -30,7 +37,7 @@ namespace
 {
   //----------------------------------------------------------------------------
   template<class ScalarType>
-  PlusStatus FlipClipImageGeneric(vtkImageData* inputImage, const PlusVideoFrame::FlipInfoType& flipInfo, const int clipRectangleOrigin[3], const int clipRectangleSize[3], vtkImageData* outputImage)
+  PlusStatus FlipClipImageGeneric(vtkImageData* inputImage, const PlusVideoFrame::FlipInfoType& flipInfo, const std::array<int, 3>& clipRectangleOrigin, const std::array<int, 3>& clipRectangleSize, vtkImageData* outputImage)
   {
     const int numberOfScalarComponents = inputImage->GetNumberOfScalarComponents();
 
@@ -374,10 +381,15 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const& videoItem)
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
   if (videoItem.GetFrameSizeInBytes() > 0)
   {
-    unsigned int frameSize[3] = {0, 0, 0};
+    std::array<unsigned int, 3> frameSize = {0, 0, 0};
     videoItem.GetFrameSize(frameSize);
 
-    if (this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), videoItem.GetNumberOfScalarComponents()) != PLUS_SUCCESS)
+    unsigned int numberOfScalarComponents(1);
+    if (videoItem.GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+    {
+      LOG_ERROR("Unable to retrieve number of scalar components.");
+    }
+    if (this->AllocateFrame(frameSize, videoItem.GetVTKScalarPixelType(), numberOfScalarComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate memory for the new frame in the buffer!");
     }
@@ -421,7 +433,7 @@ PlusStatus PlusVideoFrame::FillBlank()
 
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {
   if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
   {
@@ -450,7 +462,7 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const int imageSiz
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
   if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
   {
@@ -479,8 +491,14 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const unsigned int
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(const int imageSize[3], PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
 {
+  if (imageSize[0] < 0 || imageSize[1] < 0 || imageSize[2] < 0)
+  {
+    LOG_ERROR("Negative image size sent to PlusVideoFrame::AllocateFrame. Aborting.");
+    return PLUS_FAIL;
+  }
+
   if (this->GetImage() == NULL)
   {
     this->SetImageData(vtkImageData::New());
@@ -490,7 +508,7 @@ PlusStatus PlusVideoFrame::AllocateFrame(const int imageSize[3], PlusCommon::VTK
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
   if (this->GetImage() == NULL)
   {
@@ -507,7 +525,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     return 0;
   }
-  unsigned int frameSize[3] = {0, 0, 0};
+  std::array<unsigned int, 3> frameSize = {0, 0, 0};
   this->GetFrameSize(frameSize);
 
   int bytesPerScalar = GetNumberOfBytesPerScalar();
@@ -515,7 +533,13 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     LOG_ERROR("Unsupported scalar size: " << bytesPerScalar << " bytes/scalar component");
   }
-  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * frameSize[2] * bytesPerScalar * this->GetNumberOfScalarComponents();
+  unsigned int numberOfScalarComponents(1);
+  if (this->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return 0;
+  }
+  unsigned long frameSizeInBytes = frameSize[0] * frameSize[1] * frameSize[2] * bytesPerScalar * numberOfScalarComponents;
   return frameSizeInBytes;
 }
 
@@ -529,7 +553,7 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
   }
 
   int* frameExtent = frame->GetExtent();
-  int frameSize[3] = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) };
+  std::array<int, 3> frameSize = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) };
 
   if (this->AllocateFrame(frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents()) != PLUS_SUCCESS)
   {
@@ -563,7 +587,13 @@ int PlusVideoFrame::GetNumberOfBytesPerScalar() const
 //----------------------------------------------------------------------------
 int PlusVideoFrame::GetNumberOfBytesPerPixel() const
 {
-  return this->GetNumberOfBytesPerScalar() * this->GetNumberOfScalarComponents();
+  unsigned int numberOfScalarComponents(1);
+  if (this->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return -1;
+  }
+  return this->GetNumberOfBytesPerScalar() * numberOfScalarComponents;
 }
 
 //----------------------------------------------------------------------------
@@ -579,14 +609,15 @@ void PlusVideoFrame::SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation)
 }
 
 //----------------------------------------------------------------------------
-int PlusVideoFrame::GetNumberOfScalarComponents() const
+PlusStatus PlusVideoFrame::GetNumberOfScalarComponents(unsigned int& scalarComponents) const
 {
   if (IsImageValid())
   {
-    return this->Image->GetNumberOfScalarComponents();
+    scalarComponents = static_cast<unsigned int>(this->Image->GetNumberOfScalarComponents());
+    return PLUS_SUCCESS;
   }
 
-  return -1;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -614,7 +645,7 @@ void* PlusVideoFrame::GetScalarPointer() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetFrameSize(unsigned int frameSize[3]) const
+PlusStatus PlusVideoFrame::GetFrameSize(std::array<unsigned int, 3>& frameSize) const
 {
   if (!this->IsImageValid())
   {
@@ -744,34 +775,34 @@ std::string PlusVideoFrame::GetStringFromUsImageOrientation(US_IMAGE_ORIENTATION
 {
   switch (imgOrientation)
   {
-  case US_IMG_ORIENT_FM:
-    return "FM";
-  case US_IMG_ORIENT_NM:
-    return "NM";
-  case US_IMG_ORIENT_FU:
-    return "FU";
-  case US_IMG_ORIENT_NU:
-    return "NU";
-  case US_IMG_ORIENT_UFA:
-    return "UFA";
-  case US_IMG_ORIENT_UNA:
-    return "UNA";
-  case US_IMG_ORIENT_MFA:
-    return "MFA";
-  case US_IMG_ORIENT_MNA:
-    return "MNA";
-  case US_IMG_ORIENT_AMF:
-    return "AMF";
-  case US_IMG_ORIENT_UFD:
-    return "UFD";
-  case US_IMG_ORIENT_UND:
-    return "UND";
-  case US_IMG_ORIENT_MFD:
-    return "MFD";
-  case US_IMG_ORIENT_MND:
-    return "MND";
-  default:
-    return "XX";
+    case US_IMG_ORIENT_FM:
+      return "FM";
+    case US_IMG_ORIENT_NM:
+      return "NM";
+    case US_IMG_ORIENT_FU:
+      return "FU";
+    case US_IMG_ORIENT_NU:
+      return "NU";
+    case US_IMG_ORIENT_UFA:
+      return "UFA";
+    case US_IMG_ORIENT_UNA:
+      return "UNA";
+    case US_IMG_ORIENT_MFA:
+      return "MFA";
+    case US_IMG_ORIENT_MNA:
+      return "MNA";
+    case US_IMG_ORIENT_AMF:
+      return "AMF";
+    case US_IMG_ORIENT_UFD:
+      return "UFD";
+    case US_IMG_ORIENT_UND:
+      return "UND";
+    case US_IMG_ORIENT_MFD:
+      return "MFD";
+    case US_IMG_ORIENT_MND:
+      return "MND";
+    default:
+      return "XX";
   }
 }
 
@@ -816,18 +847,18 @@ std::string PlusVideoFrame::GetStringFromUsImageType(US_IMAGE_TYPE imgType)
 {
   switch (imgType)
   {
-  case US_IMG_BRIGHTNESS:
-    return "BRIGHTNESS";
-  case US_IMG_RF_REAL:
-    return "RF_REAL";
-  case US_IMG_RF_IQ_LINE:
-    return "RF_IQ_LINE";
-  case US_IMG_RF_I_LINE_Q_LINE:
-    return "RF_I_LINE_Q_LINE";
-  case US_IMG_RGB_COLOR:
-    return "RGB_COLOR";
-  default:
-    return "XX";
+    case US_IMG_BRIGHTNESS:
+      return "BRIGHTNESS";
+    case US_IMG_RF_REAL:
+      return "RF_REAL";
+    case US_IMG_RF_IQ_LINE:
+      return "RF_IQ_LINE";
+    case US_IMG_RF_I_LINE_Q_LINE:
+      return "RF_I_LINE_Q_LINE";
+    case US_IMG_RGB_COLOR:
+      return "RGB_COLOR";
+    default:
+      return "XX";
   }
 }
 
@@ -986,7 +1017,7 @@ PlusStatus PlusVideoFrame::GetFlipAxes(US_IMAGE_ORIENTATION usImageOrientation1,
     (usImageOrientation1 == US_IMG_ORIENT_MFA && usImageOrientation2 == US_IMG_ORIENT_AMF)
   )
   {
-    // Tranpose J KI images to K IJ images
+    // Transpose J KI images to K IJ images
     flipInfo.tranpose = TRANSPOSE_IJKtoKIJ;
     return PLUS_SUCCESS;
   }
@@ -1003,8 +1034,8 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(vtkImageData* inUsImage,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     vtkImageData* outUsOrientedImage,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3])
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize)
 {
   if (inUsImage == NULL)
   {
@@ -1031,18 +1062,16 @@ int* WholeExtentCallback_1_1_1(void*)
   return defaultextent;
 }
 
-
-
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType pixType,
-    int numberOfScalarComponents,
-    const int inputFrameSizeInPx[3],
+    unsigned int numberOfScalarComponents,
+    const std::array<int, 3>& inputFrameSizeInPx,
     PlusVideoFrame& outBufferItem,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3])
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize)
 {
   return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType,
          numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
@@ -1053,10 +1082,10 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo, US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
     unsigned int numberOfScalarComponents,
-    const unsigned int inputFrameSizeInPx[3],
+    const std::array<unsigned int, 3>& inputFrameSizeInPx,
     PlusVideoFrame& outBufferItem,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3])
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize)
 {
   return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, inUsImagePixelType,
          numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
@@ -1067,11 +1096,11 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType pixType,
-    int numberOfScalarComponents,
-    const int inputFrameSizeInPx[3],
+    unsigned int numberOfScalarComponents,
+    const std::array<int, 3>& inputFrameSizeInPx,
     vtkImageData* outUsOrientedImage,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3])
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize)
 {
   if (inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
   {
@@ -1079,7 +1108,7 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     return PLUS_FAIL;
   }
 
-  unsigned int frameSizeInPxUint[3] = { static_cast<unsigned int>(inputFrameSizeInPx[0]), static_cast<unsigned int>(inputFrameSizeInPx[1]), static_cast<unsigned int>(inputFrameSizeInPx[2]) };
+  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(inputFrameSizeInPx[0]), static_cast<unsigned int>(inputFrameSizeInPx[1]), static_cast<unsigned int>(inputFrameSizeInPx[2]) };
   return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType, static_cast<unsigned int>(numberOfScalarComponents), frameSizeInPxUint, outUsOrientedImage,
          clipRectangleOrigin, clipRectangleSize);
 }
@@ -1090,10 +1119,10 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
     unsigned int numberOfScalarComponents,
-    const unsigned int inputFrameSizeInPx[3],
+    const std::array<unsigned int, 3>& inputFrameSizeInPx,
     vtkImageData* outUsOrientedImage,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3])
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize)
 {
   if (imageDataPtr == NULL)
   {
@@ -1135,8 +1164,8 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
     const PlusVideoFrame::FlipInfoType& flipInfo,
-    const int clipRectangleOrigin[3],
-    const int clipRectangleSize[3],
+    const std::array<int, 3>& clipRectangleOrigin,
+    const std::array<int, 3>& clipRectangleSize,
     vtkImageData* outUsOrientedImage)
 {
   if (inUsImage == NULL)
@@ -1180,8 +1209,8 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
   // Validate output image is correct dimensions to receive final oriented and/or clipped result
   int inputDimensions[3] = {0, 0, 0};
   inUsImage->GetDimensions(inputDimensions);
-  int finalClipOrigin[3] = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
-  int finalClipSize[3] = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
+  std::array<int, 3> finalClipOrigin = {clipRectangleOrigin[0], clipRectangleOrigin[1], clipRectangleOrigin[2]};
+  std::array<int, 3> finalClipSize = {clipRectangleSize[0], clipRectangleSize[1], clipRectangleSize[2]};
   int finalOutputSize[3] = {inputDimensions[0], inputDimensions[1], inputDimensions[2]};
   if (PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize))
   {
@@ -1247,20 +1276,20 @@ PlusStatus PlusVideoFrame::FlipClipImage(vtkImageData* inUsImage,
   PlusStatus status(PLUS_FAIL);
   switch (numberOfBytesPerScalar)
   {
-  case 1:
-    status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-    break;
-  case 2:
-    status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-    break;
-  case 4:
-    status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-    break;
-  case 8:
-    status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
-    break;
-  default:
-    LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
+    case 1:
+      status = FlipClipImageGeneric<vtkTypeUInt8>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+      break;
+    case 2:
+      status = FlipClipImageGeneric<vtkTypeUInt16>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+      break;
+    case 4:
+      status = FlipClipImageGeneric<vtkTypeUInt32>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+      break;
+    case 8:
+      status = FlipClipImageGeneric<vtkTypeUInt64>(inUsImage, flipInfo, finalClipOrigin, finalClipSize, outUsOrientedImage);
+      break;
+    default:
+      LOG_ERROR("Unsupported bit depth: " << numberOfBytesPerScalar << " bytes per scalar");
   }
   return status;
 }
@@ -1322,29 +1351,29 @@ int PlusVideoFrame::GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pix
 {
   switch (pixelType)
   {
-  case VTK_UNSIGNED_CHAR:
-    return sizeof(vtkTypeUInt8);
-  case VTK_CHAR:
-    return sizeof(vtkTypeInt8);
-  case VTK_UNSIGNED_SHORT:
-    return sizeof(vtkTypeUInt16);
-  case VTK_SHORT:
-    return sizeof(vtkTypeInt16);
-  case VTK_UNSIGNED_INT:
-    return sizeof(vtkTypeUInt32);
-  case VTK_INT:
-    return sizeof(vtkTypeInt32);
-  case VTK_UNSIGNED_LONG:
-    return sizeof(unsigned long);
-  case VTK_LONG:
-    return sizeof(long);
-  case VTK_FLOAT:
-    return sizeof(vtkTypeFloat32);
-  case VTK_DOUBLE:
-    return sizeof(vtkTypeFloat64);
-  default:
-    LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type " << pixelType);
-    return VTK_VOID;
+    case VTK_UNSIGNED_CHAR:
+      return sizeof(vtkTypeUInt8);
+    case VTK_CHAR:
+      return sizeof(vtkTypeInt8);
+    case VTK_UNSIGNED_SHORT:
+      return sizeof(vtkTypeUInt16);
+    case VTK_SHORT:
+      return sizeof(vtkTypeInt16);
+    case VTK_UNSIGNED_INT:
+      return sizeof(vtkTypeUInt32);
+    case VTK_INT:
+      return sizeof(vtkTypeInt32);
+    case VTK_UNSIGNED_LONG:
+      return sizeof(unsigned long);
+    case VTK_LONG:
+      return sizeof(long);
+    case VTK_FLOAT:
+      return sizeof(vtkTypeFloat32);
+    case VTK_DOUBLE:
+      return sizeof(vtkTypeFloat64);
+    default:
+      LOG_ERROR("GetNumberOfBytesPerPixel: unknown pixel type " << pixelType);
+      return VTK_VOID;
   }
 }
 
@@ -1353,29 +1382,29 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelType(PlusCommon:
 {
   switch (pixelType)
   {
-  case itk::ImageIOBase::UCHAR:
-    return VTK_UNSIGNED_CHAR;
-  case itk::ImageIOBase::CHAR:
-    return VTK_CHAR;
-  case itk::ImageIOBase::USHORT:
-    return VTK_UNSIGNED_SHORT;
-  case itk::ImageIOBase::SHORT:
-    return VTK_SHORT;
-  case itk::ImageIOBase::UINT:
-    return VTK_UNSIGNED_INT;
-  case itk::ImageIOBase::INT:
-    return VTK_INT;
-  case itk::ImageIOBase::ULONG:
-    return VTK_UNSIGNED_LONG;
-  case itk::ImageIOBase::LONG:
-    return VTK_LONG;
-  case itk::ImageIOBase::FLOAT:
-    return VTK_FLOAT;
-  case itk::ImageIOBase::DOUBLE:
-    return VTK_DOUBLE;
-  case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-  default:
-    return VTK_VOID;
+    case itk::ImageIOBase::UCHAR:
+      return VTK_UNSIGNED_CHAR;
+    case itk::ImageIOBase::CHAR:
+      return VTK_CHAR;
+    case itk::ImageIOBase::USHORT:
+      return VTK_UNSIGNED_SHORT;
+    case itk::ImageIOBase::SHORT:
+      return VTK_SHORT;
+    case itk::ImageIOBase::UINT:
+      return VTK_UNSIGNED_INT;
+    case itk::ImageIOBase::INT:
+      return VTK_INT;
+    case itk::ImageIOBase::ULONG:
+      return VTK_UNSIGNED_LONG;
+    case itk::ImageIOBase::LONG:
+      return VTK_LONG;
+    case itk::ImageIOBase::FLOAT:
+      return VTK_FLOAT;
+    case itk::ImageIOBase::DOUBLE:
+      return VTK_DOUBLE;
+    case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
+    default:
+      return VTK_VOID;
   }
 }
 
@@ -1386,24 +1415,24 @@ PlusCommon::VTKScalarPixelType PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(Plu
 {
   switch (igtlPixelType)
   {
-  case igtl::ImageMessage::TYPE_INT8:
-    return VTK_CHAR;
-  case igtl::ImageMessage::TYPE_UINT8:
-    return VTK_UNSIGNED_CHAR;
-  case igtl::ImageMessage::TYPE_INT16:
-    return VTK_SHORT;
-  case igtl::ImageMessage::TYPE_UINT16:
-    return VTK_UNSIGNED_SHORT;
-  case igtl::ImageMessage::TYPE_INT32:
-    return VTK_INT;
-  case igtl::ImageMessage::TYPE_UINT32:
-    return VTK_UNSIGNED_INT;
-  case igtl::ImageMessage::TYPE_FLOAT32:
-    return VTK_FLOAT;
-  case igtl::ImageMessage::TYPE_FLOAT64:
-    return VTK_DOUBLE;
-  default:
-    return VTK_VOID;
+    case igtl::ImageMessage::TYPE_INT8:
+      return VTK_CHAR;
+    case igtl::ImageMessage::TYPE_UINT8:
+      return VTK_UNSIGNED_CHAR;
+    case igtl::ImageMessage::TYPE_INT16:
+      return VTK_SHORT;
+    case igtl::ImageMessage::TYPE_UINT16:
+      return VTK_UNSIGNED_SHORT;
+    case igtl::ImageMessage::TYPE_INT32:
+      return VTK_INT;
+    case igtl::ImageMessage::TYPE_UINT32:
+      return VTK_UNSIGNED_INT;
+    case igtl::ImageMessage::TYPE_FLOAT32:
+      return VTK_FLOAT;
+    case igtl::ImageMessage::TYPE_FLOAT64:
+      return VTK_DOUBLE;
+    default:
+      return VTK_VOID;
   }
 }
 
@@ -1413,26 +1442,26 @@ PlusCommon::IGTLScalarPixelType PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(Pl
 {
   switch (pixelType)
   {
-  case VTK_CHAR:
-    return igtl::ImageMessage::TYPE_INT8;
-  case VTK_UNSIGNED_CHAR:
-    return igtl::ImageMessage::TYPE_UINT8;
-  case VTK_SHORT:
-    return igtl::ImageMessage::TYPE_INT16;
-  case VTK_UNSIGNED_SHORT:
-    return igtl::ImageMessage::TYPE_UINT16;
-  case VTK_INT:
-    return igtl::ImageMessage::TYPE_INT32;
-  case VTK_UNSIGNED_INT:
-    return igtl::ImageMessage::TYPE_UINT32;
-  case VTK_FLOAT:
-    return igtl::ImageMessage::TYPE_FLOAT32;
-  case VTK_DOUBLE:
-    return igtl::ImageMessage::TYPE_FLOAT64;
-  default:
-    // There is no unknown IGT scalar pixel type, so display an error message
-    LOG_ERROR("Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!");
-    return igtl::ImageMessage::TYPE_INT8;
+    case VTK_CHAR:
+      return igtl::ImageMessage::TYPE_INT8;
+    case VTK_UNSIGNED_CHAR:
+      return igtl::ImageMessage::TYPE_UINT8;
+    case VTK_SHORT:
+      return igtl::ImageMessage::TYPE_INT16;
+    case VTK_UNSIGNED_SHORT:
+      return igtl::ImageMessage::TYPE_UINT16;
+    case VTK_INT:
+      return igtl::ImageMessage::TYPE_INT32;
+    case VTK_UNSIGNED_INT:
+      return igtl::ImageMessage::TYPE_UINT32;
+    case VTK_FLOAT:
+      return igtl::ImageMessage::TYPE_FLOAT32;
+    case VTK_DOUBLE:
+      return igtl::ImageMessage::TYPE_FLOAT64;
+    default:
+      // There is no unknown IGT scalar pixel type, so display an error message
+      LOG_ERROR("Unknown conversion between VTK scalar pixel type (" << pixelType << ") and IGT pixel type - return igtl::ImageMessage::TYPE_INT8 by default!");
+      return igtl::ImageMessage::TYPE_INT8;
   }
 }
 
@@ -1456,16 +1485,16 @@ std::string PlusVideoFrame::GetStringFromVTKPixelType(PlusCommon::VTKScalarPixel
 {
   switch (vtkScalarPixelType)
   {
-    VTK_TO_STRING(VTK_CHAR);
-    VTK_TO_STRING(VTK_UNSIGNED_CHAR);
-    VTK_TO_STRING(VTK_SHORT);
-    VTK_TO_STRING(VTK_UNSIGNED_SHORT);
-    VTK_TO_STRING(VTK_INT);
-    VTK_TO_STRING(VTK_UNSIGNED_INT);
-    VTK_TO_STRING(VTK_FLOAT);
-    VTK_TO_STRING(VTK_DOUBLE);
-  default:
-    return "Unknown";
+      VTK_TO_STRING(VTK_CHAR);
+      VTK_TO_STRING(VTK_UNSIGNED_CHAR);
+      VTK_TO_STRING(VTK_SHORT);
+      VTK_TO_STRING(VTK_UNSIGNED_SHORT);
+      VTK_TO_STRING(VTK_INT);
+      VTK_TO_STRING(VTK_UNSIGNED_INT);
+      VTK_TO_STRING(VTK_FLOAT);
+      VTK_TO_STRING(VTK_DOUBLE);
+    default:
+      return "Unknown";
   }
 }
 
@@ -1476,11 +1505,11 @@ std::string PlusVideoFrame::TransposeToString(TransposeType type)
 {
   switch (type)
   {
-  case TRANSPOSE_NONE:
-    return "TRANPOSE_NONE";
-  case TRANSPOSE_IJKtoKIJ:
-    return "TRANSPOSE_KIJtoIJK";
-  default:
-    return "ERROR";
+    case TRANSPOSE_NONE:
+      return "TRANPOSE_NONE";
+    case TRANSPOSE_IJKtoKIJ:
+      return "TRANSPOSE_KIJtoIJK";
+    default:
+      return "ERROR";
   }
 }

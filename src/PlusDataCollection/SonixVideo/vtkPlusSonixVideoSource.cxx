@@ -234,8 +234,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
 
   vtkPlusDataSource* aSource = sources[0];
 
-  unsigned int frameSize[3] = {0, 0, 0};
-  aSource->GetInputFrameSize(frameSize);
+  std::array<unsigned int, 3> frameSize = aSource->GetInputFrameSize();
   int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel();
   const unsigned int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel;
 
@@ -299,7 +298,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
     // when using this information for transforming non-planar objects
     this->CurrentPixelSpacingMm[2] = (this->CurrentPixelSpacingMm[0] + this->CurrentPixelSpacingMm[1]) / 2.0;
 
-    int* clipRectangleOrigin = aSource->GetClipRectangleOrigin();
+    std::array<int, 3> clipRectangleOrigin = aSource->GetClipRectangleOrigin();
     this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels.x - clipRectangleOrigin[0];
     this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels.y - clipRectangleOrigin[1];
     this->CurrentTransducerOriginPixels[2] = 0;
@@ -1352,10 +1351,10 @@ PlusStatus vtkPlusSonixVideoSource::ConfigureVideoSource(uData aValue)
 
   if (this->AutoClipEnabled)
   {
-    int clipRectangleOrigin[3] = {0, 0, 0};
+    std::array<int, 3> clipRectangleOrigin = {0, 0, 0};
     clipRectangleOrigin[0] = std::min(aDataDescriptor.roi.ulx, aDataDescriptor.roi.blx);
     clipRectangleOrigin[1] = std::min(aDataDescriptor.roi.uly, aDataDescriptor.roi.ury);
-    int clipRectangleSize[3] = {0, 0, 1};
+    std::array<int, 3> clipRectangleSize = {0, 0, 1};
     clipRectangleSize[0] = std::max(aDataDescriptor.roi.urx - aDataDescriptor.roi.ulx, aDataDescriptor.roi.brx - aDataDescriptor.roi.blx);
     clipRectangleSize[1] = std::max(aDataDescriptor.roi.bly - aDataDescriptor.roi.uly, aDataDescriptor.roi.bry - aDataDescriptor.roi.ury);
     aSource->SetClipRectangleOrigin(clipRectangleOrigin);

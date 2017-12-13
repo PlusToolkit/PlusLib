@@ -16,11 +16,11 @@ class vtkPlusTrackedFrameList;
 class PlusTrackedFrame;
 
 #ifndef Z_BUFSIZE
-#  ifdef MAXSEG_64K
-#    define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
-#  else
-#    define Z_BUFSIZE 16384
-#  endif
+  #ifdef MAXSEG_64K
+    #define Z_BUFSIZE 4096 /* minimize memory usage for 16-bit DOS */
+  #else
+    #define Z_BUFSIZE 16384
+  #endif
 #endif
 
 /*!
@@ -31,7 +31,7 @@ class PlusTrackedFrame;
 class vtkPlusCommonExport vtkPlusSequenceIOBase : public vtkObject
 {
 public:
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Write object contents into file */
   virtual PlusStatus Write();
@@ -49,9 +49,9 @@ public:
   virtual PlusStatus AppendImagesToHeader() = 0;
 
   /*! Set the TrackedFrameList where the images are stored */
-  virtual void SetTrackedFrameList( vtkPlusTrackedFrameList* trackedFrameList );
+  virtual void SetTrackedFrameList(vtkPlusTrackedFrameList* trackedFrameList);
   /*! Get the TrackedFrameList where the images are stored */
-  vtkGetObjectMacro( TrackedFrameList, vtkPlusTrackedFrameList );
+  vtkGetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
 
   /*!
     Set/get the ultrasound image orientation for file storage (as the result of writing).
@@ -60,7 +60,7 @@ public:
     * x axis: points towards the x coordinate increase direction
     * y axis: points towards the y coordinate increase direction
   */
-  vtkSetMacro( ImageOrientationInFile, US_IMAGE_ORIENTATION );
+  vtkSetMacro(ImageOrientationInFile, US_IMAGE_ORIENTATION);
 
   /*!
     Set/get the ultrasound image orientation for memory storage (as the result of reading).
@@ -69,13 +69,13 @@ public:
     * x axis: points towards the x coordinate increase direction
     * y axis: points towards the y coordinate increase direction
   */
-  vtkSetMacro( ImageOrientationInMemory, US_IMAGE_ORIENTATION );
+  vtkSetMacro(ImageOrientationInMemory, US_IMAGE_ORIENTATION);
 
   /*!
     Set input/output file name. The file contains only the image header in case of
     MHD images and the full image (including pixel data) in case of MHA images.
   */
-  virtual PlusStatus SetFileName( const std::string& aFilename ) = 0;
+  virtual PlusStatus SetFileName(const std::string& aFilename) = 0;
   vtkGetStdStringMacro(FileName);
 
   /*! Generate frame size related custom strings and store them
@@ -84,16 +84,16 @@ public:
       /param numberOfFrames the new number of frames to write
       /param isData3D is the data 3D or 2D?
       */
-  virtual PlusStatus UpdateDimensionsCustomStrings( int numberOfFrames, bool isData3D ) = 0;
+  virtual PlusStatus UpdateDimensionsCustomStrings(int numberOfFrames, bool isData3D) = 0;
 
   /*! Update a field in the image header with its current value */
-  virtual PlusStatus UpdateFieldInImageHeader( const char* fieldName ) = 0;
+  virtual PlusStatus UpdateFieldInImageHeader(const char* fieldName) = 0;
 
   /*! Finalize the header */
   virtual PlusStatus FinalizeHeader() = 0;
 
   /*! Returns a pointer to a single frame */
-  virtual PlusTrackedFrame* GetTrackedFrame( int frameNumber );
+  virtual PlusTrackedFrame* GetTrackedFrame(int frameNumber);
 
   /*! Close the sequence */
   virtual PlusStatus Close();
@@ -113,11 +113,11 @@ public:
   virtual const char* GetDimensionKindsString() = 0;
 
   /*! Flag to enable/disable compression of image data */
-  vtkGetMacro( UseCompression, bool );
+  vtkGetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-  vtkSetMacro( UseCompression, bool );
+  vtkSetMacro(UseCompression, bool);
   /*! Flag to enable/disable compression of image data */
-  vtkBooleanMacro( UseCompression, bool );
+  vtkBooleanMacro(UseCompression, bool);
 
   /*! Flag to indicate that there is a time dimension */
   vtkGetMacro(IsDataTimeSeries, bool);
@@ -127,14 +127,14 @@ public:
   vtkBooleanMacro(IsDataTimeSeries, bool);
 
   /*! Return the dimensions of the sequence */
-  vtkGetVector4Macro( Dimensions, unsigned int );
+  std::array<unsigned int, 4> GetDimensions() const;
 
   /*! Flag to enable/disable writing of image data */
-  vtkGetMacro( EnableImageDataWrite, bool );
+  vtkGetMacro(EnableImageDataWrite, bool);
   /*! Flag to enable/disable writing of image data */
-  vtkSetMacro( EnableImageDataWrite, bool );
+  vtkSetMacro(EnableImageDataWrite, bool);
   /*! Flag to enable/disable writing of image data */
-  vtkBooleanMacro( EnableImageDataWrite, bool );
+  vtkBooleanMacro(EnableImageDataWrite, bool);
 
 protected:
   /*! Read all the fields in the image file header */
@@ -150,47 +150,47 @@ protected:
   virtual PlusStatus PrepareImageFile() = 0;
 
   /*! Move file */
-  virtual PlusStatus MoveFileInternal( const char* oldname, const char* newname );
+  virtual PlusStatus MoveFileInternal(const char* oldname, const char* newname);
 
   /*! Append content of source file to the end of destination file and then delete source file */
-  virtual PlusStatus AppendFile( const std::string& sourceFilename, const std::string& destFilename );
+  virtual PlusStatus AppendFile(const std::string& sourceFilename, const std::string& destFilename);
 
   /*!
     Writes the compressed pixel data directly into file.
     The compression is performed in chunks, so no excessive memory is used for the compression.
     \param compressedDataSize returns the size of the total compressed data that is written to the file.
   */
-  virtual PlusStatus WriteCompressedImagePixelsToFile( int& compressedDataSize ) = 0;
+  virtual PlusStatus WriteCompressedImagePixelsToFile(int& compressedDataSize) = 0;
 
   /*! Opens a file. Doesn't log error if it fails because it may be expected. */
-  static PlusStatus FileOpen( FILE** stream, const char* filename, const char* flags );
+  static PlusStatus FileOpen(FILE** stream, const char* filename, const char* flags);
 
   /*! Get full path to the file for storing the pixel data */
   std::string GetPixelDataFilePath();
 
   /*! Get the largest possible image size in the tracked frame list */
-  virtual void GetMaximumImageDimensions( unsigned int maxFrameSize[3] );
+  virtual std::array<unsigned int, 3> GetMaximumImageDimensions();
 
   /*! Set a custom string field value for a specific frame */
-  PlusStatus SetCustomFrameString( int frameNumber, const char* fieldName,  const char* fieldValue );
+  PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
 
   /*! Delete custom frame field from tracked frame */
-  PlusStatus DeleteCustomFrameString( int frameNumber, const char* fieldName );
+  PlusStatus DeleteCustomFrameString(int frameNumber, const char* fieldName);
 
   /*! Get a custom string field value for a specific frame */
-  bool SetCustomString( const char* fieldName, const char* fieldValue );
-  bool SetCustomString( const std::string& fieldName, const std::string& fieldValue );
+  bool SetCustomString(const char* fieldName, const char* fieldValue);
+  bool SetCustomString(const std::string& fieldName, const std::string& fieldValue);
   bool SetCustomString(const std::string& fieldName, int fieldValue);
 
   /*! Get a custom string field value (global, not for a specific frame) */
-  const char* GetCustomString( const char* fieldName );
-  std::string GetCustomString( const std::string& fieldName );
+  const char* GetCustomString(const char* fieldName);
+  std::string GetCustomString(const std::string& fieldName);
 
   /*!
     Convenience function that extends the tracked frame list (if needed) to make sure
     that the requested frame is included in the list
   */
-  virtual void CreateTrackedFrameIfNonExisting( unsigned int frameNumber );
+  virtual void CreateTrackedFrameIfNonExisting(unsigned int frameNumber);
 
 protected:
 #ifdef _WIN32
@@ -219,13 +219,13 @@ protected:
   /*! Integer/float, short/long, signed/unsigned */
   PlusCommon::VTKScalarPixelType PixelType;
   /*! Number of components (or channels) */
-  int NumberOfScalarComponents;
+  unsigned int NumberOfScalarComponents;
   /*! True if there is a time dimension */
   bool IsDataTimeSeries;
   /*! Number of image dimensions. Only 2 (single frame) or 3 (sequence of frames) or 4 (sequence of volumes) are supported. */
   int NumberOfDimensions;
   /*! Frame size (first three elements) and number of frames (last element) */
-  unsigned int Dimensions[4];
+  std::array<unsigned int, 4> Dimensions;
   /*! Current frame offset, this is used to build up frames one addition at a time */
   int CurrentFrameOffset;
   /*! Total bytes written */

@@ -115,7 +115,7 @@ PlusStatus vtkPlusUsImagingParameters::SetGainPercent(double aGainPercent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::GetGainPercent(double aGainPercent) const
 {
- return this->GetValue<double>(KEY_GAIN, aGainPercent);
+  return this->GetValue<double>(KEY_GAIN, aGainPercent);
 }
 
 //----------------------------------------------------------------------------
@@ -139,7 +139,7 @@ PlusStatus vtkPlusUsImagingParameters::SetTimeGainCompensation(const std::vector
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::SetTimeGainCompensation(double* tgc, int length)
 {
-  std::vector<double> tgcVec(tgc, tgc+length);
+  std::vector<double> tgcVec(tgc, tgc + length);
   return this->SetTimeGainCompensation(tgcVec);
 }
 
@@ -147,11 +147,11 @@ PlusStatus vtkPlusUsImagingParameters::SetTimeGainCompensation(double* tgc, int 
 PlusStatus vtkPlusUsImagingParameters::GetTimeGainCompensation(std::vector<double>& tgc) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_TGC);
-  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  if (keyIt != this->ParameterSet.end() && keyIt->second == false)
   {
     return PLUS_FAIL;
   }
-  else if( keyIt == this->ParameterSet.end() )
+  else if (keyIt == this->ParameterSet.end())
   {
     return PLUS_FAIL;
   }
@@ -160,7 +160,7 @@ PlusStatus vtkPlusUsImagingParameters::GetTimeGainCompensation(std::vector<doubl
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_TGC);
   ss.str(it->second);
   std::vector<double> numbers((std::istream_iterator<double>(ss)),
-    std::istream_iterator<double>());
+                              std::istream_iterator<double>());
   tgc = numbers;
   return PLUS_SUCCESS;
 }
@@ -327,19 +327,10 @@ float vtkPlusUsImagingParameters::GetProbeVoltage() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetImageSize(const std::vector<int>& imageSize)
+PlusStatus vtkPlusUsImagingParameters::SetImageSize(const std::array<unsigned int, 3>& imageSize)
 {
-  if( imageSize.size() != 2 && imageSize.size() != 3 )
-  {
-    LOG_ERROR("Invalid image dimensions.");
-    return PLUS_FAIL;
-  }
   std::stringstream result;
   std::copy(imageSize.begin(), imageSize.end(), std::ostream_iterator<double>(result, " "));
-  if( imageSize.size() == 2 )
-  {
-    result << " " << 1;
-  }
 
   this->ParameterValues[KEY_IMAGESIZE] = result.str();
   this->ParameterSet[KEY_IMAGESIZE] = true;
@@ -348,19 +339,9 @@ PlusStatus vtkPlusUsImagingParameters::SetImageSize(const std::vector<int>& imag
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetImageSize(int* imageSize, int length)
+PlusStatus vtkPlusUsImagingParameters::SetImageSize(unsigned int x, unsigned int y, unsigned int z)
 {
-  std::vector<int> imageSizeVec(imageSize, imageSize+length);
-  return this->SetImageSize(imageSizeVec);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetImageSize(int x, int y, int z)
-{
-  std::vector<int> imageSizeVec;
-  imageSizeVec.push_back(x);
-  imageSizeVec.push_back(y);
-  imageSizeVec.push_back(z);
+  std::array<unsigned int, 3> imageSizeVec{ x, y, z };
   return this->SetImageSize(imageSizeVec);
 }
 
@@ -368,11 +349,11 @@ PlusStatus vtkPlusUsImagingParameters::SetImageSize(int x, int y, int z)
 PlusStatus vtkPlusUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
-  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  if (keyIt != this->ParameterSet.end() && keyIt->second == false)
   {
     return PLUS_FAIL;
   }
-  else if( keyIt == this->ParameterSet.end() )
+  else if (keyIt == this->ParameterSet.end())
   {
     return PLUS_FAIL;
   }
@@ -381,7 +362,7 @@ PlusStatus vtkPlusUsImagingParameters::GetImageSize(std::vector<int>& imageSize)
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
   ss.str(it->second);
   std::vector<int> numbers((std::istream_iterator<int>(ss)),
-    std::istream_iterator<int>());
+                           std::istream_iterator<int>());
   imageSize = numbers;
   return PLUS_SUCCESS;
 }
@@ -399,9 +380,9 @@ void vtkPlusUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
+  for (ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it)
   {
-    if( this->ParameterSet[it->first] == true )
+    if (this->ParameterSet[it->first] == true)
     {
       os << indent << it->first << ": " << it->second << std::endl;
     }
@@ -412,23 +393,23 @@ void vtkPlusUsImagingParameters::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusUsImagingParameters::ReadConfiguration(vtkXMLDataElement* deviceConfig)
 {
   vtkXMLDataElement* parameterList(NULL);
-  for( int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i )
+  for (int i = 0; i < deviceConfig->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* element = deviceConfig->GetNestedElement(i);
-    if( STRCASECMP(element->GetName(), XML_ELEMENT_TAG) == 0 )
+    if (STRCASECMP(element->GetName(), XML_ELEMENT_TAG) == 0)
     {
       parameterList = element;
       break;
     }
   }
 
-  if( parameterList == NULL )
+  if (parameterList == NULL)
   {
     LOG_ERROR("Unable to locate UsImagingParameters tag in device config. Unable to read imaging parameters. Device defaults will probably be used.");
     return PLUS_FAIL;
   }
 
-  for( int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i )
+  for (int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* element = parameterList->GetNestedElement(i);
     this->ParameterValues[element->GetAttribute("name")] = element->GetAttribute("value");
@@ -457,9 +438,9 @@ PlusStatus vtkPlusUsImagingParameters::WriteConfiguration(vtkXMLDataElement* dev
   // Clear the list before writing new elements
   parameterList->RemoveAllNestedElements();
 
-  for( ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it )
+  for (ParameterNameMap::iterator it = this->ParameterValues.begin(); it != this->ParameterValues.end(); ++it)
   {
-    if( this->ParameterSet[it->first] == false )
+    if (this->ParameterSet[it->first] == false)
     {
       // Don't write out parameters that are defaults
       continue;
@@ -480,7 +461,7 @@ PlusStatus vtkPlusUsImagingParameters::WriteConfiguration(vtkXMLDataElement* dev
 bool vtkPlusUsImagingParameters::IsSet(const std::string& paramName) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(paramName);
-  if( keyIt != this->ParameterSet.end() )
+  if (keyIt != this->ParameterSet.end())
   {
     return keyIt->second;
   }
@@ -494,11 +475,11 @@ template <typename T>
 PlusStatus vtkPlusUsImagingParameters::GetValue(const std::string& paramName, T& outputValue) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(paramName);
-  if( keyIt != this->ParameterSet.end() && keyIt->second == false )
+  if (keyIt != this->ParameterSet.end() && keyIt->second == false)
   {
     return PLUS_FAIL;
   }
-  else if( keyIt == this->ParameterSet.end() )
+  else if (keyIt == this->ParameterSet.end())
   {
     return PLUS_FAIL;
   }
@@ -525,12 +506,12 @@ PlusStatus vtkPlusUsImagingParameters::SetValue(const std::string& paramName, T 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::DeepCopy(const vtkPlusUsImagingParameters& otherParameters)
 {
-  for( ParameterNameMap::const_iterator it = otherParameters.ParameterValues.begin(); it != otherParameters.ParameterValues.end(); ++it )
+  for (ParameterNameMap::const_iterator it = otherParameters.ParameterValues.begin(); it != otherParameters.ParameterValues.end(); ++it)
   {
     this->ParameterValues[it->first] = it->second;
   }
 
-  for( ParameterSetMap::const_iterator it = otherParameters.ParameterSet.begin(); it != otherParameters.ParameterSet.end(); ++it )
+  for (ParameterSetMap::const_iterator it = otherParameters.ParameterSet.begin(); it != otherParameters.ParameterSet.end(); ++it)
   {
     this->ParameterSet[it->first] = it->second;
   }

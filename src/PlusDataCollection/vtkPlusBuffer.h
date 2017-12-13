@@ -68,8 +68,8 @@ public:
                              US_IMAGE_ORIENTATION usImageOrientation,
                              US_IMAGE_TYPE imageType,
                              long frameNumber,
-                             const int clipRectangleOrigin[3],
-                             const int clipRectangleSize[3],
+                             const std::array<int, 3>& clipRectangleOrigin,
+                             const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
@@ -82,8 +82,8 @@ public:
   */
   virtual PlusStatus AddItem(const PlusVideoFrame* frame,
                              long frameNumber,
-                             const int clipRectangleOrigin[3],
-                             const int clipRectangleSize[3],
+                             const std::array<int, 3>& clipRectangleOrigin,
+                             const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
@@ -98,27 +98,27 @@ public:
   */
   virtual PlusStatus AddItem(void* imageDataPtr,
                              US_IMAGE_ORIENTATION  usImageOrientation,
-                             const int inputFrameSizeInPx[3],
+                             const std::array<int, 3>& inputFrameSizeInPx,
                              PlusCommon::VTKScalarPixelType pixelType,
                              int numberOfScalarComponents,
                              US_IMAGE_TYPE imageType,
-                             int  numberOfBytesToSkip,
+                             int numberOfBytesToSkip,
                              long frameNumber,
-                             const int clipRectangleOrigin[3],
-                             const int clipRectangleSize[3],
+                             const std::array<int, 3>& clipRectangleOrigin,
+                             const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
   virtual PlusStatus AddItem(void* imageDataPtr,
                              US_IMAGE_ORIENTATION  usImageOrientation,
-                             const unsigned int inputFrameSizeInPx[3],
+                             const std::array<unsigned int, 3>& inputFrameSizeInPx,
                              PlusCommon::VTKScalarPixelType pixelType,
                              unsigned int numberOfScalarComponents,
                              US_IMAGE_TYPE imageType,
-                             int  numberOfBytesToSkip,
+                             int numberOfBytesToSkip,
                              long frameNumber,
-                             const int clipRectangleOrigin[3],
-                             const int clipRectangleSize[3],
+                             const std::array<int, 3>& clipRectangleOrigin,
+                             const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
@@ -180,7 +180,7 @@ public:
 
   /*!
     Given a timestamp, compute the nearest buffer index
-    This assumes that the times motonically increase
+    This assumes that the times monotonically increase
   */
   ItemStatus GetBufferIndexFromTime(const double time, int& bufferIndex);
 
@@ -264,11 +264,10 @@ public:
   /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z);
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(unsigned int frameSize[3]);
+  PlusStatus SetFrameSize(const std::array<unsigned int, 3>& frameSize);
   /*! Get the frame size in pixel  */
-  virtual unsigned int* GetFrameSize();
-  virtual PlusStatus GetFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3);
-  virtual PlusStatus GetFrameSize(unsigned int _arg[3]);
+  virtual std::array<unsigned int, 3> GetFrameSize() const;
+  virtual PlusStatus GetFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;
 
   /*! Set the pixel type */
   PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType);
@@ -319,7 +318,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat(const unsigned int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents);
+  virtual bool CheckFrameFormat(const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents);
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -339,7 +338,7 @@ protected:
 
 protected:
   /*! Image frame size in pixel */
-  unsigned int FrameSize[3];
+  std::array<unsigned int, 3> FrameSize;
 
   /*! Image pixel type */
   PlusCommon::VTKScalarPixelType PixelType;
