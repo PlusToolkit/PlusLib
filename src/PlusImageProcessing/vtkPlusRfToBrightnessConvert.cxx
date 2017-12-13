@@ -116,41 +116,17 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
     return;
   }  
 
-/*
-  if (this->ImageType==US_IMG_BRIGHTNESS)
-  {
-    // just copy the input to the output without any changes
-    if (inData[0][0]->GetScalarType() != VTK_UNSIGNED_CHAR)
-    {
-      vtkErrorMacro("Expecting VTK_SHORT input pixel type");
-      return;
-    }
-    outData[0]->DeepCopy(inData[0][0]);
-    return;
-  }
-*/
-
   // Check input and output parameters
   if (inData[0][0]->GetNumberOfScalarComponents() != 1)
   {
     vtkErrorMacro("Expecting 1 components not " << inData[0][0]->GetNumberOfScalarComponents());
     return;
   }
-  if (this->ImageType!=US_IMG_BRIGHTNESS && inData[0][0]->GetScalarType() != VTK_SHORT)
+  if (this->ImageType!=US_IMG_BRIGHTNESS && inData[0][0]->GetScalarType() != VTK_SHORT && inData[0][0]->GetScalarType() != VTK_INT)
   {
-    vtkErrorMacro("Expecting VTK_SHORT input pixel type");
+    vtkErrorMacro("Expecting VTK_SHORT or VTK_INT as input pixel type, or US_IMG_BRIGHTNESS as image type");
     return;
   }
-
-  int wholeExtent[6]={0};
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);  
-  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), wholeExtent);
-
-  vtkIdType outInc0=0;
-  vtkIdType outInc1=0;
-  vtkIdType outInc2=0;
-  outData[0]->GetContinuousIncrements(outExt, outInc0, outInc1, outInc2);  
-  unsigned char *outPtr = static_cast<unsigned char*>(outData[0]->GetScalarPointerForExtent(outExt));
 
   int inExt[6]={outExt[0], outExt[1], outExt[2], outExt[3], outExt[4], outExt[5]};
   // Get the input extent for the output extent
@@ -193,11 +169,35 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
   default:
     vtkErrorMacro("Unknown RF image type: " << this->ImageType);
     }
+
+  if (inData[0][0]->GetScalarType() == VTK_SHORT)
+  {
+    ThreadedLineByLineHilbertTransform<short>(inExt, outExt, inData, outData, id);
+  }
+  else if (inData[0][0]->GetScalarType() == VTK_INT)
+  {
+    ThreadedLineByLineHilbertTransform<int>(inExt, outExt, inData, outData, id);
+  }
+  else
+  {
+    vtkErrorMacro("Internal error: unexpected branching");
+  }
+}
+
+template<typename ScalarType>
+void vtkPlusRfToBrightnessConvert::ThreadedLineByLineHilbertTransform(int inExt[6], int outExt[6], vtkImageData ***inData, vtkImageData **outData, int threadId)
+{
   vtkIdType inInc0=0;
   vtkIdType inInc1=0;
   vtkIdType inInc2=0;
   inData[0][0]->GetContinuousIncrements(inExt, inInc0, inInc1, inInc2);
-  short *inPtr = static_cast<short*>(inData[0][0]->GetScalarPointerForExtent(inExt));
+  ScalarType *inPtr = static_cast<ScalarType*>(inData[0][0]->GetScalarPointerForExtent(inExt));
+
+  vtkIdType outInc0 = 0;
+  vtkIdType outInc1 = 0;
+  vtkIdType outInc2 = 0;
+  outData[0]->GetContinuousIncrements(outExt, outInc0, outInc1, outInc2);
+  unsigned char *outPtr = static_cast<unsigned char*>(outData[0]->GetScalarPointerForExtent(outExt));
 
   unsigned long target = static_cast<unsigned long>((outExt[5]-outExt[4]+1)*(outExt[3]-outExt[2]+1)/50.0);
   target++;
@@ -205,11 +205,6 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
   // Temporary buffer to hold Hilbert transform results
   int numberOfRfSamplesInScanline=inExt[1]-inExt[0]+1;
   int numberOfBmodeSamplesInScanline=outExt[1]-outExt[0]+1;
-  short* hilbertTransformBuffer=new short[numberOfRfSamplesInScanline+1];
-  /*
-  std::vector<short> hilbertTransformBuffer;
-  hilbertTransformBuffer.resize(numberOfSamplesInScanline);
-  */
 
   bool imageTypeValid=true;
   unsigned long count = 0;
@@ -222,7 +217,7 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
     {
       for (int idx1 = outExt[2]; !this->AbortExecute && idx1 <= outExt[3]; ++idx1)    
       {
-        if (id==0)
+        if (threadId==0)
         {
           // it is the first thread, report progress
           if (!(count%target))
@@ -238,12 +233,15 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
       inPtrByte += inInc2;
       outPtr += outInc2;    
     }
+    return;
   }
-  else for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
+
+  ScalarType* hilbertTransformBuffer = new ScalarType[numberOfRfSamplesInScanline + 1];
+  for (int idx2 = outExt[4]; idx2 <= outExt[5]; ++idx2)
   {
     for (int idx1 = outExt[2]; !this->AbortExecute && idx1 <= outExt[3]; ++idx1)    
     {
-      if (id==0)
+      if (threadId==0)
       {
         // it is the first thread, report progress
         if (!(count%target))
@@ -259,16 +257,12 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
         {
           // e.g., Ultrasonix
           // RF data: IIIIIII..., QQQQQQ...., IIIIIII..., QQQQQQ....
-          //ComputeHilbertTransform(hilbertTransformBuffer, inPtr, numberOfRfSamplesInScanline);
-          //short *phaseShiftedSignal=hilbertTransformBuffer;
-          short *originalSignal=inPtr;
+          ScalarType *originalSignal=inPtr;
           inPtr += numberOfRfSamplesInScanline+inInc1;
-          short *phaseShiftedSignal=inPtr;
+          ScalarType *phaseShiftedSignal=inPtr;
           inPtr += numberOfRfSamplesInScanline+inInc1;
           ComputeAmplitudeILineQLine(outPtr, originalSignal, phaseShiftedSignal, numberOfRfSamplesInScanline);
-          outPtr += numberOfBmodeSamplesInScanline+outInc1;
-          //inPtr += 2*(numberOfRfSamplesInScanline+inInc1);
-          
+          outPtr += numberOfBmodeSamplesInScanline+outInc1;          
         }
         break;
       case US_IMG_RF_REAL:
@@ -369,7 +363,8 @@ void vtkPlusRfToBrightnessConvert::ComputeHilbertTransformCoeffs()
   }
 }
 
-PlusStatus vtkPlusRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertTransformOutput, short *input, int npt)
+template<typename ScalarType>
+PlusStatus vtkPlusRfToBrightnessConvert::ComputeHilbertTransform(ScalarType *hilbertTransformOutput, ScalarType *input, int npt)
 {
   ComputeHilbertTransformCoeffs(); // update the transform coefficients if needed
 
@@ -410,7 +405,8 @@ PlusStatus vtkPlusRfToBrightnessConvert::ComputeHilbertTransform(short *hilbertT
   return PLUS_SUCCESS;
 }
 
-void vtkPlusRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, short *inputSignal, short *inputSignalHilbertTransformed, int npt)
+template<typename ScalarType>
+void vtkPlusRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *ampl, ScalarType *inputSignal, ScalarType *inputSignalHilbertTransformed, int npt)
 {
   for (int i=0; i<this->NumberOfHilbertFilterCoeffs/2+1; i++)
   {
@@ -440,7 +436,8 @@ void vtkPlusRfToBrightnessConvert::ComputeAmplitudeILineQLine(unsigned char *amp
   }
 }
 
-void vtkPlusRfToBrightnessConvert::ComputeAmplitudeIqLine(unsigned char *ampl, short *inputSignal, const int npt)
+template<typename ScalarType>
+void vtkPlusRfToBrightnessConvert::ComputeAmplitudeIqLine(unsigned char *ampl, ScalarType *inputSignal, const int npt)
 {
   int inputIndex=0;
   int outputIndex=0;
