@@ -45,16 +45,14 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 IF(NOT (CMAKE_VERSION VERSION_LESS "3.8"))
   # CMake 3.8 and later puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
   # .../PlusLib-bin/src/PlusWidgets/PlusWidgets_autogen/include
-  IF(IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
-    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
-  ENDIF()
-  
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include)
+
   # CMake 3.10 puts generated headers (such as ui_QPlusDeviceSetSelectorWidget.h) into
   # .../PlusLib-bin/src/PlusWidgets/PlusWidgets_autogen/include_<Config>
   FOREACH(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
-    IF(IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include_${CONFIG_TYPE})
-      LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include_${CONFIG_TYPE})
-    ENDIF()
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include_${CONFIG_TYPE})
+    LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include_${CONFIG_TYPE})
   ENDFOREACH()
 ENDIF()
 
