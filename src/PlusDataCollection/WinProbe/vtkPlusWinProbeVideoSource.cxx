@@ -159,8 +159,11 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
     else if (usMode == B || usMode == RF || usMode == BFRFALineImage_RFData)
     {
         m_transducerCount = brfGeometry->LineCount;
-        m_samplesPerLine = brfGeometry->SamplesPerLine
-            * brfGeometry->Decimation;
+        m_samplesPerLine = brfGeometry->SamplesPerLine;
+        if (usMode != B)
+        {
+            m_samplesPerLine *= brfGeometry->Decimation;
+        }
     }
     else
     {
@@ -255,9 +258,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char * data, char *hH
             frameSize, VTK_INT,
             1, US_IMG_RF_REAL, 0,
             this->FrameNumber,
-            m_lastTimestamp,
-            m_lastTimestamp, //no timestamp filtering needed
-            nullptr) != PLUS_SUCCESS)
+            vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
         {
             LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
         }
