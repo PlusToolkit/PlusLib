@@ -302,8 +302,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 
       double secondEnc = encoderValue * it->PulseSpacing2;
     
-      double firstAxis = firstEnc + secondEnc;
-      double secondAxis = firstEnc - secondEnc;
+      double firstAxis = secondEnc + firstEnc;
+      double secondAxis = secondEnc - firstEnc;
     
       //now make a transform matrix out of this translation and add it into PLUS system
       vtkMath::MultiplyScalar(localmovement.GetData(), firstAxis);
