@@ -238,7 +238,7 @@ PlusStatus vtkPlusUsSimulatorVideoSource::NotifyConfigured()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
 {
-  //TODO: Make this dynamic
+  //TODO: Make this dynamic (only set those that actually changed)
   if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
     vtkPlusUsScanConvert* scanConverter = this->UsSimulator->GetRfProcessor()->GetScanConverter();
@@ -258,6 +258,9 @@ PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
   {
     this->UsSimulator->SetFrequencyMhz(this->RequestedImagingParameters->GetFrequencyMhz());
   }
+  //TODO: Add
+  // KEY_INTENSITY: IncomingIntensityMwPerCm2
+  // KEY_CONTRAST: BrightnessConversionGamma? Scale?
 
   return PLUS_SUCCESS;
 }

@@ -16,7 +16,10 @@ See License.txt for details.
 
 #include <vtkVariant.h>
 #include <vtkSmartPointer.h>
+
 #include <limits>
+#include <iterator>
+#include <string>
 
 namespace
 {
@@ -161,44 +164,52 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
   {
     message += " Parameter " + paramIt->first + "=" + paramIt->second + ": ";
 
-    if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_DEPTH))
+    if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_TGC))
     {
-      bool valid=false;
-      double depth = vtkVariant(paramIt->second).ToDouble(&valid);
-      imagingParameters->SetDepthMm(depth);
-      if (valid == false)
+      std::stringstream ss;
+      ss.str(paramIt->second);
+      std::vector<double> numbers((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
+      if (numbers.size() != 3)
       {
         message += "Failed to parse";
         status = PLUS_FAIL;
         continue;
       }
-      if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
-      {
-        message += "Failed to set";
-        status = PLUS_FAIL;
-        continue;
-      }
-      message += "Success";
+      imagingParameters->SetTimeGainCompensation(numbers);
     }
-    else if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_FREQUENCY))
+    else if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_IMAGESIZE))
     {
-      bool valid=false;
-      double frequency = vtkVariant(paramIt->second).ToDouble(&valid);
-      imagingParameters->SetFrequencyMhz(frequency);
-      if (valid == false)
+      std::stringstream ss;
+      ss.str(paramIt->second);
+      std::vector<int> numbers((std::istream_iterator<int>(ss)), std::istream_iterator<int>());
+      if (numbers.size() != 3)
       {
         message += "Failed to parse";
         status = PLUS_FAIL;
         continue;
       }
-      if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
+      imagingParameters->SetImageSize(numbers[0], numbers[1], numbers[2]);
+    }
+    else // double type parameter
+    {
+      bool valid = false;
+      double parameterValue = vtkVariant(paramIt->second).ToDouble(&valid);
+      if (!valid)
       {
-        message += "Failed to set";
+        message += "Failed to parse";
         status = PLUS_FAIL;
         continue;
       }
-      message += "Success";
+      imagingParameters->SetValue<double>(paramIt->first, parameterValue);
     }
+
+    if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
+    {
+      message += "Failed to set";
+      status = PLUS_FAIL;
+      continue;
+    }
+    message += "Success";
   } // For each parameter
 
   this->QueueCommandResponse(status, "Command " + std::string(status==PLUS_SUCCESS ? "succeeded" : "failed. See error message."), message);

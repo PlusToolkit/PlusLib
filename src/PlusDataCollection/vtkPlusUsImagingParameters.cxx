@@ -8,7 +8,6 @@ See License.txt for details.
 #include "vtkPlusUsImagingParameters.h"
 
 #include <iterator>
-#include <string>
 
 //----------------------------------------------------------------------------
 
@@ -508,18 +507,6 @@ PlusStatus vtkPlusUsImagingParameters::GetValue(const std::string& paramName, T&
   ss.str(it->second);
   ss >> outputValue;
   return PLUS_FAIL;
-}
-
-//-----------------------------------------------------------------------------
-template <typename T>
-PlusStatus vtkPlusUsImagingParameters::SetValue(const std::string& paramName, T aValue)
-{
-  std::stringstream ss;
-  ss << aValue;
-  this->ParameterValues[paramName] = ss.str();
-  this->ParameterSet[paramName] = true;
-
-  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

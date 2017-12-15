@@ -65,19 +65,31 @@ public:
   /*! Get max intensity in mW/cm2 */
   vtkGetMacro( IncomingIntensityMwPerCm2, double );
 
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkGetMacro( BrightnessConversionGamma, double );
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkSetMacro( BrightnessConversionGamma, double );
 
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkGetMacro( BrightnessConversionOffset, double );
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkSetMacro( BrightnessConversionOffset, double );
 
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkGetMacro( BrightnessConversionScale, double );
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   vtkSetMacro( BrightnessConversionScale, double );
 
   /*! Set number of simulated scanlines */
@@ -126,7 +138,9 @@ private:
   /*! Frequency of the ultrasound image to be generated*/
   double FrequencyMhz;
 
-  /*! A non-linear function is used for mapping intensities to pixel values: pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma */
+  /*! A non-linear function is used for mapping intensities to pixel values:
+      pixel = BrightnessConversionOffset + BrightnessConversionScale * intensity ^ BrightnessConversionGamma
+  */
   double BrightnessConversionGamma;
 
   /*! A non-linear function is used for mapping intensities to pixel values. See also BrightnessConversionGamma. */

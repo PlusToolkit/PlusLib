@@ -91,10 +91,18 @@ public:
   template<typename T> PlusStatus GetValue(const std::string& paramName, T& outputValue) const;
   /*!
   Set a stored value by key name
+  Defined in the header to make it available externally
   \param paramName the key value to retrieve
   \param aValue the value to write
   */
-  template<typename T> PlusStatus SetValue(const std::string& paramName, T aValue);
+  template<typename T> PlusStatus SetValue(const std::string& paramName, T aValue)
+  {
+    std::stringstream ss;
+    ss << aValue;
+    this->ParameterValues[paramName] = ss.str();
+    this->ParameterSet[paramName] = true;
+    return PLUS_SUCCESS;
+  };
   /*!
   Request the status of a member
   \param paramName the key value to retrieve
