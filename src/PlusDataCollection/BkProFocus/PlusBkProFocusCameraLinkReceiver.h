@@ -5,7 +5,7 @@
 #include "vtkPlusBkProFocusCameraLinkVideoSource.h"
 
 /*!
-\class PlusBkProFocusCameraLinkReceiver 
+\class PlusBkProFocusCameraLinkReceiver
 \brief Class for receiving images through the BK ProFocus SDK (Grabbie)
 \ingroup PlusLibDataCollection
 */
@@ -17,7 +17,7 @@ public:
   virtual ~PlusBkProFocusCameraLinkReceiver();
 
   /*! Set the video source that will be notified when a new frame is received */
-  virtual void SetPlusVideoSource(vtkPlusBkProFocusCameraLinkVideoSource *videoSource);
+  virtual void SetPlusVideoSource(vtkPlusBkProFocusCameraLinkVideoSource* videoSource);
 
   /*!
     Set what kind of images are sent to the video source. The default is RF mode,
@@ -35,7 +35,7 @@ public:
   */
   virtual void SetDecimation(int decimation);
 
-  /*! 
+  /*!
     Callback functions called by the BK ProFocus SDK when starting the acquisition
     \param samples Number of bytes of one RF line, including the line header
     \param lines Number of RF lines
@@ -43,8 +43,8 @@ public:
   */
   virtual bool Prepare(int samples, int lines, int pitch);
 
-  /*! 
-    Callback functions called by the BK ProFocus SDK when a frame is acquired 
+  /*!
+    Callback functions called by the BK ProFocus SDK when a frame is acquired
     \param lines Number of RF lines
     \param pitch Number of bytes between the start of two consecutive lines in frame data
     \param frameData Pixel data
@@ -52,10 +52,10 @@ public:
   virtual bool DataAvailable(int lines, int pitch, void const* frameData);
 
   /*! Callback functions called by the BK ProFocus SDK when stopping the acquisition */
-  virtual bool Cleanup();  
+  virtual bool Cleanup();
 
 protected:
-  
+
   /*! Video source that is notified about each new frame */
   vtkPlusBkProFocusCameraLinkVideoSource* m_CallbackVideoSource;
 
@@ -64,7 +64,7 @@ protected:
 
   /*! Buffer storing the RF lines that can be converted to brightness lines, after decimation */
   unsigned char* m_Frame;
-  
+
   /*! Paramter to reduce the amount of processed and stored data. The receiver uses only 1 out of m_Decimation samples in a line.*/
   int m_Decimation;
 
@@ -74,8 +74,8 @@ protected:
     The number of RF "sample pairs" = number of RF "samples" / 2.
     The number does not include the RF line header.
   */
-  int m_NumberOfRfSamplesPerLine;
+  unsigned int m_NumberOfRfSamplesPerLine;
 
   /*! Number RF lines that can be stored in m_Frame */
-  int m_MaxNumberOfLines;
+  unsigned int m_MaxNumberOfLines;
 };

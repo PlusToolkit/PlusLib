@@ -12,24 +12,24 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Adam Rankin
 =========================================================================*/
 
+// Local includes
 #include "PlusConfigure.h"
-
 #include "PixelCodec.h"
-#include "vtkPlusMmfVideoSource.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
+#include "vtkPlusMmfVideoSource.h"
 
-#include "MediaFoundationVideoCaptureApi.h"
-#include "FormatReader.h"
+// VTK includes
+#include <vtkObjectFactory.h>
+
+// VideoCapture API includes
+#include <MediaFoundationVideoCaptureApi.h>
+#include <FormatReader.h>
 
 // Media foundation includes - require Microsoft Windows SDK 7.1 or later.
 // Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfapi.h>
 #include <Mferror.h>
-
-// Media foundation includes - require Microsoft Windows SDK 7.1 or later.
-// Download from: http://www.microsoft.com/en-us/download/details.aspx?id=8279
 #include <Mfidl.h>
 #include <Mfreadwrite.h>
 
@@ -44,7 +44,7 @@ Authors include: Adam Rankin
 namespace
 {
   const unsigned int DEFAULT_DEVICE_ID = 0;
-  const int DEFAULT_FRAME_SIZE[2] = {640, 480};
+  const FrameSizeType DEFAULT_FRAME_SIZE = {640, 480, 1};
   const double DEFAULT_ACQUISITION_RATE = 30;
   const std::wstring DEFAULT_PIXEL_TYPE_NAME = L"YUY2";
   const GUID DEFAULT_PIXEL_TYPE = MFVideoFormat_YUY2; // see http://msdn.microsoft.com/en-us/library/windows/desktop/aa370819(v=vs.85).aspx
@@ -111,7 +111,6 @@ STDMETHODIMP_(ULONG) MmfVideoSourceReader::AddRef()
 }
 
 //----------------------------------------------------------------------------
-
 STDMETHODIMP_(ULONG) MmfVideoSourceReader::Release()
 {
   ULONG uCount = InterlockedDecrement(&RefCount);
@@ -130,14 +129,12 @@ STDMETHODIMP MmfVideoSourceReader::OnEvent(DWORD, IMFMediaEvent*)
 }
 
 //----------------------------------------------------------------------------
-
 STDMETHODIMP MmfVideoSourceReader::OnFlush(DWORD)
 {
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
-
 STDMETHODIMP MmfVideoSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->PlusDevice->Mutex);
@@ -259,11 +256,13 @@ vtkPlusMmfVideoSource::vtkPlusMmfVideoSource()
   this->RequestedVideoFormat.StreamIndex = 0;
   this->RequestedVideoFormat.FrameSize[0] = DEFAULT_FRAME_SIZE[0];
   this->RequestedVideoFormat.FrameSize[1] = DEFAULT_FRAME_SIZE[1];
+  this->RequestedVideoFormat.FrameSize[2] = DEFAULT_FRAME_SIZE[2];
   this->RequestedVideoFormat.PixelFormatName = DEFAULT_PIXEL_TYPE_NAME;
 
   this->ActiveVideoFormat.DeviceId = DEFAULT_DEVICE_ID;
   this->ActiveVideoFormat.FrameSize[0] = 0;
   this->ActiveVideoFormat.FrameSize[1] = 0;
+  this->ActiveVideoFormat.FrameSize[2] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -325,6 +324,7 @@ PlusStatus vtkPlusMmfVideoSource::InternalConnect()
     this->ActiveVideoFormat.DeviceId = DEFAULT_DEVICE_ID;
     this->ActiveVideoFormat.FrameSize[0] = DEFAULT_FRAME_SIZE[0];
     this->ActiveVideoFormat.FrameSize[1] = DEFAULT_FRAME_SIZE[1];
+    this->ActiveVideoFormat.FrameSize[2] = DEFAULT_FRAME_SIZE[2];
     this->ActiveVideoFormat.PixelFormatName = DEFAULT_PIXEL_TYPE_NAME;
 
     LOG_INFO_W("Backing up to connecting with default capture settings:"
@@ -425,7 +425,6 @@ PlusStatus vtkPlusMmfVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-
 PlusStatus vtkPlusMmfVideoSource::NotifyConfigured()
 {
   if (this->OutputChannels.size() > 1)
@@ -451,11 +450,12 @@ PlusStatus vtkPlusMmfVideoSource::UpdateFrameSize()
   {
     vtkPlusDataSource* videoSource(NULL);
     this->GetFirstVideoSource(videoSource);
-    std::array<unsigned int, 3> currentFrameSize = videoSource->GetInputFrameSize();
+    FrameSizeType currentFrameSize = videoSource->GetInputFrameSize();
     if (currentFrameSize[0] != this->ActiveVideoFormat.FrameSize[0] || currentFrameSize[1] != this->ActiveVideoFormat.FrameSize[1] || currentFrameSize[2] != 1)
     {
       currentFrameSize[0] = this->ActiveVideoFormat.FrameSize[0];
       currentFrameSize[1] = this->ActiveVideoFormat.FrameSize[1];
+      currentFrameSize[2] = this->ActiveVideoFormat.FrameSize[2];
       videoSource->SetInputFrameSize(currentFrameSize);
       videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
       unsigned int numberOfScalarComponents = (videoSource->GetImageType() == US_IMG_RGB_COLOR ? 3 : 1);
@@ -486,11 +486,17 @@ PlusStatus vtkPlusMmfVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfi
     this->RequestedVideoFormat.StreamIndex = (DWORD)streamIndex;
   }
 
-  int requestedFrameSize[2] = {DEFAULT_FRAME_SIZE[0], DEFAULT_FRAME_SIZE[1]};
+  int requestedFrameSize[2] = {static_cast<int>(DEFAULT_FRAME_SIZE[0]), static_cast<int>(DEFAULT_FRAME_SIZE[1])};
   if (deviceConfig->GetVectorAttribute("FrameSize", 2, requestedFrameSize))
   {
-    this->RequestedVideoFormat.FrameSize[0] = requestedFrameSize[0];
-    this->RequestedVideoFormat.FrameSize[1] = requestedFrameSize[1];
+    if (requestedFrameSize[0] < 0 || requestedFrameSize[1] < 0)
+    {
+      LOG_ERROR("Negative frame size defined in config file. Cannot continue.");
+      return PLUS_FAIL;
+    }
+    this->RequestedVideoFormat.FrameSize[0] = static_cast<unsigned int>(requestedFrameSize[0]);
+    this->RequestedVideoFormat.FrameSize[1] = static_cast<unsigned int>(requestedFrameSize[1]);
+    this->RequestedVideoFormat.FrameSize[2] = 1;
   }
 
   this->RequestedVideoFormat.PixelFormatName.clear();
@@ -538,10 +544,9 @@ void vtkPlusMmfVideoSource::SetRequestedStreamIndex(unsigned int streamIndex)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusMmfVideoSource::SetRequestedFrameSize(unsigned int frameSize[2])
+void vtkPlusMmfVideoSource::SetRequestedFrameSize(const FrameSizeType& frameSize)
 {
-  this->RequestedVideoFormat.FrameSize[0] = frameSize[0];
-  this->RequestedVideoFormat.FrameSize[1] = frameSize[1];
+  this->RequestedVideoFormat.FrameSize = frameSize;
 }
 
 //----------------------------------------------------------------------------
@@ -609,7 +614,7 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
   {
     return PLUS_FAIL;
   }
-  std::array<unsigned int, 3> frameSize = videoSource->GetInputFrameSize();
+  FrameSizeType frameSize = videoSource->GetInputFrameSize();
 
   PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);

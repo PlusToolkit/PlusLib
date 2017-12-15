@@ -182,7 +182,7 @@ public:
   US_IMAGE_TYPE GetImageType();
 
   /*! Get tracked frame image size*/
-  PlusStatus GetFrameSize(std::array<unsigned int, 3>& outFrameSize);
+  PlusStatus GetFrameSize(FrameSizeType& outFrameSize);
 
   /*! Get the value of the custom field. If we couldn't find it, return NULL */
   virtual const char* GetCustomString(const char* fieldName);

@@ -8,6 +8,7 @@
 #define __vtkPlusEpiphanVideoSource_h
 
 // Local includes
+#include "PlusCommon.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
@@ -41,32 +42,32 @@ public:
     sn:SERIAL Specifies a local or network frame grabber with the specified serial number. Checks the local framegrabbers first.
     id:INDEX Specifies a local frame grabber with the specified index.
   */
-  vtkSetStringMacro(GrabberLocation);
+  vtkSetStdStringMacro(GrabberLocation);
   /*! Get the Epiphan device location */
-  vtkGetStringMacro(GrabberLocation);
+  vtkGetStdStringMacro(GrabberLocation);
 
   /*!
     Set the clip rectangle size to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
     Width of the ClipRectangle typically have to be a multiple of 4.
   */
-  vtkSetVector2Macro(ClipRectangleSize, int);
+  void SetClipRectangleSize(const std::array<int, 3>& size);
   /*!
     Get the clip rectangle size to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
   */
-  vtkGetVector2Macro(ClipRectangleSize, int);
+  std::array<int, 3> GetClipRectangleSize() const;
 
   /*!
     Set the clip rectangle origin to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
-  vtkSetVector2Macro(ClipRectangleOrigin, int);
+  void SetClipRectangleOrigin(const std::array<int, 3>& origin);
   /*!
     Get the clip rectangle origin to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
-  vtkGetVector2Macro(ClipRectangleOrigin, int);
+  std::array<int, 3> GetClipRectangleOrigin() const;
 
   /*!
     Perform any completion tasks once configured
@@ -94,22 +95,22 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
-  vtkSetStringMacro(ScaleMode);
-  vtkSetStringMacro(RotationMode);
+  vtkSetStdStringMacro(ScaleMode);
+  vtkSetStdStringMacro(RotationMode);
 
 protected:
-  int ClipRectangleOrigin[2];     // Crop rectangle origin for the grabber (in pixels, done in hardware)
-  int ClipRectangleSize[2];       // Crop rectangle size for the grabber (in pixels, done in hardware). If it is (0,0) then the whole frame will be captured.
-  char* GrabberLocation;          // String to specify the framegrabber to connect to (auto-detection is attempted if unspecified)
-  void* FrameGrabber;             // Epiphan Pointer to the grabber
-  int FrameSize[3];               // Frame size of the captured image, third dimension is set to 1
-  US_IMAGE_TYPE CaptureImageType; // The type of image to capture from the hardware
-  V2URect* CropRectangle;         // Dimensions to request from framegrabber
+  std::array<int, 3> ClipRectangleOrigin;   // Crop rectangle origin for the grabber (in pixels, done in hardware)
+  std::array<int, 3> ClipRectangleSize;     // Crop rectangle size for the grabber (in pixels, done in hardware). If it is (0,0) then the whole frame will be captured.
+  std::string GrabberLocation;              // String to specify the framegrabber to connect to (auto-detection is attempted if unspecified)
+  void* FrameGrabber;                       // Epiphan Pointer to the grabber
+  FrameSizeType FrameSize;                  // Frame size of the captured image, third dimension is set to 1
+  US_IMAGE_TYPE CaptureImageType;           // The type of image to capture from the hardware
+  V2URect* CropRectangle;                   // Dimensions to request from framegrabber
 
-  char* RotationMode;
-  V2URotationMode Rotation;       // Rotation of the acquired image
-  char* ScaleMode;
-  V2UScaleMode Scale;             // Scaling of the acquired image
+  std::string RotationMode;
+  V2URotationMode Rotation;                 // Rotation of the acquired image
+  std::string ScaleMode;
+  V2UScaleMode Scale;                       // Scaling of the acquired image
 
 private:
   vtkPlusEpiphanVideoSource(const vtkPlusEpiphanVideoSource&);  // Not implemented.

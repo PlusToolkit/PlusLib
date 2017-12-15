@@ -558,22 +558,6 @@ PlusStatus vtkPlusDataSource::AddItem(const PlusVideoFrame* frame, long frameNum
   return this->GetBuffer()->AddItem(frame, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
-                                      unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                      double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
-{
-  if (frameSizeInPx[0] < 0 || frameSizeInPx[1] < 0 || frameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
-  {
-    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(frameSizeInPx[0]), static_cast<unsigned int>(frameSizeInPx[1]), static_cast<unsigned int>(frameSizeInPx[2]) };
-  return this->AddItem(imageDataPtr, usImageOrientation, frameSizeInPxUint, pixelType, static_cast<unsigned int>(numberOfScalarComponents), imageType,
-                       numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
-}
-
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(const PlusTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                       double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
@@ -582,7 +566,7 @@ PlusStatus vtkPlusDataSource::AddItem(const PlusTrackedFrame::FieldMapType& cust
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
+PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
                                       unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
                                       double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
@@ -609,7 +593,7 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int x, unsigned int y, 
   this->InputFrameSize[1] = y;
   this->InputFrameSize[2] = z;
 
-  unsigned int outputFrameSizeInPx[3] = {x, y, z};
+  FrameSizeType outputFrameSizeInPx = {x, y, z};
 
   if (x > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
       y > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
@@ -654,7 +638,7 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int x, unsigned int y, 
 
   if (flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ)
   {
-    int temp = outputFrameSizeInPx[0];
+    unsigned int temp = outputFrameSizeInPx[0];
     outputFrameSizeInPx[0] = outputFrameSizeInPx[2];
     outputFrameSizeInPx[2] = outputFrameSizeInPx[1];
     outputFrameSizeInPx[1] = temp;
@@ -663,44 +647,20 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int x, unsigned int y, 
   return this->GetBuffer()->SetFrameSize(outputFrameSizeInPx[0], outputFrameSizeInPx[1], outputFrameSizeInPx[2]);
 }
 
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(const std::array<int, 3>& frameSize)
-{
-  if (frameSize[0] < 0 || frameSize[1] < 0 || frameSize[2] < 0)
-  {
-    LOG_ERROR("Negative frame size is not allowed.");
-    return PLUS_FAIL;
-  }
-
-  return this->SetInputFrameSize(static_cast<unsigned int>(frameSize[0]), static_cast<unsigned int>(frameSize[1]), static_cast<unsigned int>(frameSize[2]));
-}
-
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(int x, int y, int z)
-{
-  if (x < 0 || y < 0 || z < 0)
-  {
-    LOG_ERROR("Negative frame size is not allowed.");
-    return PLUS_FAIL;
-  }
-
-  return this->SetInputFrameSize(static_cast<unsigned int>(x), static_cast<unsigned int>(y), static_cast<unsigned int>(z));
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetInputFrameSize(const std::array<unsigned int, 3>& frameSize)
+PlusStatus vtkPlusDataSource::SetInputFrameSize(const FrameSizeType& frameSize)
 {
   return this->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]);
 }
 
 //----------------------------------------------------------------------------
-std::array<unsigned int, 3> vtkPlusDataSource::GetInputFrameSize() const
+FrameSizeType vtkPlusDataSource::GetInputFrameSize() const
 {
   return this->InputFrameSize;
 }
 
 //-----------------------------------------------------------------------------
-std::array<unsigned int, 3> vtkPlusDataSource::GetOutputFrameSize() const
+FrameSizeType vtkPlusDataSource::GetOutputFrameSize() const
 {
   return this->GetBuffer()->GetFrameSize();
 }
@@ -765,13 +725,13 @@ US_IMAGE_ORIENTATION vtkPlusDataSource::GetInputImageOrientation()
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::SetNumberOfScalarComponents(int numberOfScalarComponents)
+PlusStatus vtkPlusDataSource::SetNumberOfScalarComponents(unsigned int numberOfScalarComponents)
 {
   return this->GetBuffer()->SetNumberOfScalarComponents(numberOfScalarComponents);
 }
 
 //-----------------------------------------------------------------------------
-int vtkPlusDataSource::GetNumberOfScalarComponents()
+unsigned int vtkPlusDataSource::GetNumberOfScalarComponents()
 {
   return this->GetBuffer()->GetNumberOfScalarComponents();
 }

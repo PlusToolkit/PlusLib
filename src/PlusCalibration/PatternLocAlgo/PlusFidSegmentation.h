@@ -60,7 +60,7 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* rootConfigElement);
 
   /*! Set the Frame Size of the image */
-  void SetFrameSize(const std::array<unsigned int, 3>& frameSize);
+  void SetFrameSize(const FrameSizeType& frameSize);
   void SetFiducialGeometry(FiducialGeometryType geometryType);
 
   /*! Update the parameters, especially the circle need for morphological operations */
@@ -155,7 +155,7 @@ public:
   unsigned int GetMorphologicalOpeningBarSizePx();
 
   /*! Get the size of the frame as an array */
-  std::array<unsigned int, 3> GetFrameSize() { return m_FrameSize; };
+  FrameSizeType GetFrameSize() { return m_FrameSize; };
 
   /*! Get the vector that contains all the dots that have been segmented */
   std::vector<PlusFidDot>& GetDotsVector() {return m_DotsVector; };
@@ -200,7 +200,7 @@ public:
   void  SetUseOriginalImageIntensityForDotIntensityScore(bool value) { m_UseOriginalImageIntensityForDotIntensityScore = value; };
 
 protected:
-  std::array<unsigned int, 3> m_FrameSize;
+  FrameSizeType m_FrameSize;
   std::array<unsigned int, 4> m_RegionOfInterest; // xmin, ymin; xmax, ymax
   bool m_UseOriginalImageIntensityForDotIntensityScore;
 

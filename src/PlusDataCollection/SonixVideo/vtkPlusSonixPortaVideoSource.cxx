@@ -291,7 +291,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, b
   }
   vtkPlusChannel* outputChannel = this->OutputChannels[0];
 
-  std::array<unsigned int, 3> frameSize = {0, 0, 0};
+  FrameSizeType frameSize = {0, 0, 0};
   this->GetInputFrameSize(*outputChannel, frameSize);
   vtkPlusDataSource* aSource(NULL);
   if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS)

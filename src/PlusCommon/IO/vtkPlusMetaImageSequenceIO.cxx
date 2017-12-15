@@ -432,7 +432,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
     trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
     trackedFrame->GetImageData()->SetImageType(this->ImageType);
 
-    std::array<unsigned int, 3> frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+    FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
     if (trackedFrame->GetImageData()->AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame " << frameNumber);
@@ -460,7 +460,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      std::array<unsigned int, 3> frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!");
@@ -470,7 +470,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      std::array<unsigned int, 3> frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (PlusVideoFrame::GetOrientedClippedImage(&(allFramesPixelBuffer[0]) + frameNumber * frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!");
@@ -627,7 +627,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     SetCustomString(SEQMETA_FIELD_COMPRESSED_DATA_SIZE, (const char*)(NULL));
   }
 
-  std::array<unsigned int, 3> frameSize = {0, 0, 0};
+  FrameSizeType frameSize = {0, 0, 0};
   if (this->EnableImageDataWrite)
   {
     frameSize = this->GetMaximumImageDimensions();
@@ -652,7 +652,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     // but then, we need to save the original frame size for each frame and crop the image when we read it
     for (unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
-      std::array<unsigned int, 3> currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
+      FrameSizeType currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
       if (this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid()
           && (frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] || frameSize[2] != currFrameSize[2]))
       {
@@ -947,7 +947,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int& com
 
   // Create a blank frame if we have to write an invalid frame to metafile
   PlusVideoFrame blankFrame;
-  std::array<unsigned int, 3> frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+  FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
   if (blankFrame.AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate space for blank image.");

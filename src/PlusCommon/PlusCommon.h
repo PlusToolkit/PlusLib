@@ -43,6 +43,8 @@ enum PlusImagingMode
   Plus_RfMode
 };
 
+typedef std::array<unsigned int, 3> FrameSizeType;
+
 #define UNDEFINED_TIMESTAMP DBL_MAX
 
 /* Define case insensitive string compare for Windows. */
@@ -392,6 +394,24 @@ namespace PlusCommon
     }
     char* pEnd = NULL;
     result = static_cast<int>(strtol(strPtr, &pEnd, 10));
+    if (pEnd != strPtr + strlen(strPtr))
+    {
+      return PLUS_FAIL;
+    }
+    return PLUS_SUCCESS;
+  }
+
+  //----------------------------------------------------------------------------
+  /*! Quick and robust string to int conversion */
+  template<class T>
+  PlusStatus StringToUInt(const char* strPtr, T& result)
+  {
+    if (strPtr == NULL || strlen(strPtr) == 0)
+    {
+      return PLUS_FAIL;
+    }
+    char* pEnd = NULL;
+    result = static_cast<unsigned int>(strtol(strPtr, &pEnd, 10));
     if (pEnd != strPtr + strlen(strPtr))
     {
       return PLUS_FAIL;

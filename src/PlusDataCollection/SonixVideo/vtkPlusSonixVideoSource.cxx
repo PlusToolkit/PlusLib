@@ -234,7 +234,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
 
   vtkPlusDataSource* aSource = sources[0];
 
-  std::array<unsigned int, 3> frameSize = aSource->GetInputFrameSize();
+  FrameSizeType frameSize = aSource->GetInputFrameSize();
   int frameBufferBytesPerPixel = aSource->GetNumberOfBytesPerPixel();
   const unsigned int frameSizeInBytes = frameSize[0] * frameSize[1] * frameBufferBytesPerPixel;
 

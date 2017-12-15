@@ -22,6 +22,7 @@ PlusFidLineFinder::PlusFidLineFinder()
 {
   m_FrameSize[0] = -1;
   m_FrameSize[1] = -1;
+  m_FrameSize[2] = -1;
   m_ApproximateSpacingMmPerPixel = -1.0;
 
   for (int i = 0 ; i < 6 ; i++)
@@ -229,7 +230,7 @@ std::vector<PlusNWire> PlusFidLineFinder::GetNWires()
 
 //-----------------------------------------------------------------------------
 
-void PlusFidLineFinder::SetFrameSize(const std::array<unsigned int, 3>& frameSize)
+void PlusFidLineFinder::SetFrameSize(const FrameSizeType& frameSize)
 {
   LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
 
@@ -240,6 +241,7 @@ void PlusFidLineFinder::SetFrameSize(const std::array<unsigned int, 3>& frameSiz
 
   m_FrameSize[0] = frameSize[0];
   m_FrameSize[1] = frameSize[1];
+  m_FrameSize[2] = 1;
 }
 
 //-----------------------------------------------------------------------------

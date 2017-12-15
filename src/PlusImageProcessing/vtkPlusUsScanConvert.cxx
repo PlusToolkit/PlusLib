@@ -129,10 +129,10 @@ PlusStatus vtkPlusUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConve
 }
 
 //-----------------------------------------------------------------------------
-std::array<unsigned int, 3> vtkPlusUsScanConvert::GetOutputImageSizePixel()
+FrameSizeType vtkPlusUsScanConvert::GetOutputImageSizePixel()
 {
-  return std::array<unsigned int, 3> {static_cast<unsigned int>(this->OutputImageExtent[1] - this->OutputImageExtent[0] + 1),
-                                      static_cast<unsigned int>(this->OutputImageExtent[3] - this->OutputImageExtent[2] + 1),
-                                      static_cast<unsigned int>(this->OutputImageExtent[5] - this->OutputImageExtent[4] + 1)
-                                     };
+  return FrameSizeType{static_cast<unsigned int>(this->OutputImageExtent[1] - this->OutputImageExtent[0] + 1),
+                       static_cast<unsigned int>(this->OutputImageExtent[3] - this->OutputImageExtent[2] + 1),
+                       static_cast<unsigned int>(this->OutputImageExtent[5] - this->OutputImageExtent[4] + 1)
+                      };
 }

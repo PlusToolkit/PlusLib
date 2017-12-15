@@ -694,7 +694,7 @@ PlusStatus vtkPlusDevice::WriteToolsToSequenceFile(const std::string& filename, 
     // Create fake image
     PlusTrackedFrame trackedFrame;
     PlusVideoFrame videoFrame;
-    std::array<int, 3> frameSize = {1, 1, 1};
+    FrameSizeType frameSize = {1, 1, 1};
     // Don't waste space, create a greyscale image
     videoFrame.AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1);
     trackedFrame.SetImageData(videoFrame);
@@ -1600,20 +1600,7 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<int, 3>&  frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
-{
-  if (frameSizeInPx[0] < 0 || frameSizeInPx[1] < 0 || frameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
-  {
-    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(frameSizeInPx[0]), static_cast<unsigned int>(frameSizeInPx[1]), static_cast<unsigned int>(frameSizeInPx[2]) };
-  return this->AddVideoItemToVideoSources(videoSources, imageDataPtr, usImageOrientation, frameSizeInPxUint, pixelType, static_cast<unsigned int>(numberOfScalarComponents), imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
   for (std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
@@ -1682,7 +1669,7 @@ int vtkPlusDevice::RequestInformation(vtkInformation* vtkNotUsed(request), vtkIn
     return 0;
   }
 
-  std::array<unsigned int, 3> frameSize = aSource->GetOutputFrameSize();
+  FrameSizeType frameSize = aSource->GetOutputFrameSize();
   // TODO : determine another mechanism to see if device has data yet or not
 
   int extent[6] = { 0, static_cast<int>(frameSize[0]) - 1, 0, static_cast<int>(frameSize[1]) - 1, 0, static_cast<int>(frameSize[2]) - 1 };
@@ -1726,7 +1713,7 @@ int vtkPlusDevice::RequestData(vtkInformation* vtkNotUsed(request), vtkInformati
   {
     LOCAL_LOG_DEBUG("Cannot request data from video source, the video buffer is empty or does not exist!");
     vtkImageData* data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    std::array<unsigned int, 3> frameSize = aSource->GetOutputFrameSize();
+    FrameSizeType frameSize = aSource->GetOutputFrameSize();
     data->SetExtent(0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2] - 1);
     data->AllocateScalars(aSource->GetPixelType(), aSource->GetNumberOfScalarComponents());
 
@@ -1762,7 +1749,7 @@ int vtkPlusDevice::RequestData(vtkInformation* vtkNotUsed(request), vtkInformati
   // The whole image buffer is copied, regardless of the UPDATE_EXTENT value to make the copying implementation simpler
   // For a more efficient implementation, we should only update the requested part of the image.
   vtkImageData* data = vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-  std::array<unsigned int, 3> frameSize = { 0, 0, 0 };
+  FrameSizeType frameSize = { 0, 0, 0 };
   this->CurrentStreamBufferItem->GetFrame().GetFrameSize(frameSize);
   data->SetExtent(0, frameSize[0] - 1, 0, frameSize[1] - 1, 0, frameSize[2] - 1);
   data->AllocateScalars(aSource->GetPixelType(), aSource->GetNumberOfScalarComponents());
@@ -1780,21 +1767,9 @@ int vtkPlusDevice::GetConnected() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y, int z)
-{
-  if (x < 0 || y < 0 || z < 0)
-  {
-    LOCAL_LOG_ERROR("Negative frame size sent to SetInputFrameSize. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  return this->SetInputFrameSize(aSource, static_cast<unsigned int>(x), static_cast<unsigned int>(y), static_cast<unsigned int>(z));
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::SetInputFrameSize(vtkPlusDataSource& aSource, unsigned int x, unsigned int y, unsigned int z)
 {
-  std::array<unsigned int, 3> frameSize = aSource.GetInputFrameSize();
+  FrameSizeType frameSize = aSource.GetInputFrameSize();
   if (x == frameSize[0] && y == frameSize[1] && z == frameSize[2])
   {
     return PLUS_SUCCESS;
@@ -1823,7 +1798,7 @@ PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned 
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetOutputFrameSize");
 
-  std::array<unsigned int, 3> dim = {0, 0, 0};
+  FrameSizeType dim = {0, 0, 0};
   if (this->GetOutputFrameSize(aChannel, dim) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Unable to get frame size from the device.");
@@ -1837,7 +1812,7 @@ PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, std::array<unsigned int, 3>& dim) const
+PlusStatus vtkPlusDevice::GetOutputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetOutputFrameSize");
 
@@ -1857,7 +1832,7 @@ PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, unsigned i
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetInputFrameSize");
 
-  std::array<unsigned int, 3> dim = {0, 0, 0};
+  FrameSizeType dim = {0, 0, 0};
   if (this->GetInputFrameSize(aChannel, dim) != PLUS_SUCCESS)
   {
     LOCAL_LOG_ERROR("Unable to get frame size from the device.");
@@ -1871,7 +1846,7 @@ PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, unsigned i
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, std::array<unsigned int, 3>& dim) const
+PlusStatus vtkPlusDevice::GetInputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const
 {
   LOCAL_LOG_TRACE("vtkPlusDevice::GetInputFrameSize");
 

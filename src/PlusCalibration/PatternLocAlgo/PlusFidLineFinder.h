@@ -27,7 +27,7 @@ public:
   virtual ~PlusFidLineFinder();
 
   /*! Set the size of the frame as an array */
-  void SetFrameSize(const std::array<unsigned int, 3>& frameSize);
+  void SetFrameSize(const FrameSizeType& frameSize);
 
   /*! Set the values of the candidate fiducials */
   void SetCandidateFidValues(const std::vector<PlusFidDot>& value) { m_CandidateFidValues = value; };
@@ -117,7 +117,7 @@ protected:
   double* GetImageToPhantomTransform() { return m_ImageToPhantomTransform; };
 
 protected:
-  std::array<unsigned int, 3> m_FrameSize;
+  FrameSizeType m_FrameSize;
   double m_ApproximateSpacingMmPerPixel;
   double m_ImageNormalVectorInPhantomFrameMaximumRotationAngleDeg[6];
   double m_ImageToPhantomTransform[16];

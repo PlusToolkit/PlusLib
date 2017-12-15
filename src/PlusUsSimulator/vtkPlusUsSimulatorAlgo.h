@@ -83,7 +83,7 @@ public:
   /*! Set the length of scanlines in pixels */
   vtkSetMacro(NumberOfSamplesPerScanline, int);
 
-  PlusStatus GetFrameSize(std::array<unsigned int, 3>& frameSize);
+  PlusStatus GetFrameSize(FrameSizeType& frameSize);
 
   vtkSetMacro(NoiseAmplitude, double);
   vtkSetVector3Macro(NoiseFrequency, double);

@@ -106,11 +106,9 @@ public:
   PlusVideoFrame& operator=(PlusVideoFrame const& videoItem);
 
   /*! Allocate memory for the image. The image object must be already created. */
-  static PlusStatus AllocateFrame(vtkImageData* image, const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents);
-  static PlusStatus AllocateFrame(vtkImageData* image, const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
+  static PlusStatus AllocateFrame(vtkImageData* image, const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
   /*! Allocate memory for the image. */
-  PlusStatus AllocateFrame(const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents);
-  PlusStatus AllocateFrame(const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
+  PlusStatus AllocateFrame(const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
 
   /*! Return the pixel type using VTK enums. */
   PlusCommon::VTKScalarPixelType GetVTKScalarPixelType() const;
@@ -162,7 +160,7 @@ public:
   static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);
 
   /*! Get the dimensions of the frame in pixels */
-  PlusStatus GetFrameSize(std::array<unsigned int, 3>& frameSize) const;
+  PlusStatus GetFrameSize(FrameSizeType& frameSize) const;
 
   /*! Get the pointer to the pixel buffer */
   void* GetScalarPointer() const;
@@ -223,16 +221,7 @@ public:
       US_IMAGE_TYPE inUsImageType,
       PlusCommon::VTKScalarPixelType inUsImagePixelType,
       unsigned int numberOfScalarComponents,
-      const std::array<unsigned int, 3>& inputFrameSizeInPx,
-      vtkImageData* outUsOrientedImage,
-      const std::array<int, 3>& clipRectangleOrigin,
-      const std::array<int, 3>& clipRectangleSize);
-  static PlusStatus GetOrientedClippedImage(unsigned char* imageDataPtr,
-      FlipInfoType flipInfo,
-      US_IMAGE_TYPE inUsImageType,
-      PlusCommon::VTKScalarPixelType inUsImagePixelType,
-      unsigned int numberOfScalarComponents,
-      const std::array<int, 3>& inputFrameSizeInPx,
+      const FrameSizeType& inputFrameSizeInPx,
       vtkImageData* outUsOrientedImage,
       const std::array<int, 3>& clipRectangleOrigin,
       const std::array<int, 3>& clipRectangleSize);
@@ -253,16 +242,7 @@ public:
       US_IMAGE_TYPE inUsImageType,
       PlusCommon::VTKScalarPixelType inUsImagePixelType,
       unsigned int numberOfScalarComponents,
-      const std::array<int, 3>& inputFrameSizeInPx,
-      PlusVideoFrame& outBufferItem,
-      const std::array<int, 3>& clipRectangleOrigin,
-      const std::array<int, 3>& clipRectangleSize);
-  static PlusStatus GetOrientedClippedImage(unsigned char* imageDataPtr,
-      FlipInfoType flipInfo,
-      US_IMAGE_TYPE inUsImageType,
-      PlusCommon::VTKScalarPixelType inUsImagePixelType,
-      unsigned int numberOfScalarComponents,
-      const std::array<unsigned int, 3>& inputFrameSizeInPx,
+      const FrameSizeType& inputFrameSizeInPx,
       PlusVideoFrame& outBufferItem,
       const std::array<int, 3>& clipRectangleOrigin,
       const std::array<int, 3>& clipRectangleSize);

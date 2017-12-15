@@ -431,7 +431,7 @@ PlusStatus vtkPlusUsSimulatorAlgo::ReadConfiguration(vtkXMLDataElement* config)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsSimulatorAlgo::GetFrameSize(std::array<unsigned int, 3>& frameSize)
+PlusStatus vtkPlusUsSimulatorAlgo::GetFrameSize(FrameSizeType& frameSize)
 {
   vtkPlusUsScanConvert* scanConverter = this->RfProcessor->GetScanConverter();
   if (scanConverter == NULL)

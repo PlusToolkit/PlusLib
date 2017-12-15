@@ -44,7 +44,7 @@ public:
   vtkSetVector6Macro(InputImageExtent, int);
 
   /*! Get the output image size (in pixel) */
-  virtual std::array<unsigned int, 3> GetOutputImageSizePixel();
+  virtual FrameSizeType GetOutputImageSizePixel();
 
   /*!
     Get the scan converted image. Need to set the inputs and call Update() before calling this method.

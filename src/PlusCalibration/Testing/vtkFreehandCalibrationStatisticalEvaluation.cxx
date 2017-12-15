@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
   std::vector<double> calibError;
   std::vector<double> validError;
   vnl_matrix_fixed<double, 4, 4> imageToProbeTransformMatrix;
-  std::array<unsigned int, 3> frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
+  FrameSizeType frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
   outputFile << "Frame size = "  << frameSize[0] << " " << frameSize[1] << "\n";
   for (int i = 0; i < numberOfConfigurations; i++)
   {

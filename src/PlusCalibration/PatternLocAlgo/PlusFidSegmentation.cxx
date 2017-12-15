@@ -47,6 +47,7 @@ PlusFidSegmentation::PlusFidSegmentation()
   //Initialization of member variables
   m_FrameSize[0] = 0;
   m_FrameSize[1] = 0;
+  m_FrameSize[2] = 0;
 
   m_RegionOfInterest[0] = 0;
   m_RegionOfInterest[1] = 0;
@@ -193,7 +194,7 @@ PlusStatus PlusFidSegmentation::ReadConfiguration(vtkXMLDataElement* configData)
 
 //-----------------------------------------------------------------------------
 
-void PlusFidSegmentation::SetFrameSize(const std::array<unsigned int, 3>&  frameSize)
+void PlusFidSegmentation::SetFrameSize(const FrameSizeType& frameSize)
 {
   LOG_TRACE("FidSegmentation::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
 
@@ -212,6 +213,7 @@ void PlusFidSegmentation::SetFrameSize(const std::array<unsigned int, 3>&  frame
 
   m_FrameSize[0] = frameSize[0];
   m_FrameSize[1] = frameSize[1];
+  m_FrameSize[2] = 1;
 
   // Create working images (after deleting them in case they were already created)
   long size = m_FrameSize[0] * m_FrameSize[1];

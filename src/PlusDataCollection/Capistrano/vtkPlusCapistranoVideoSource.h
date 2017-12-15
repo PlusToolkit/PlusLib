@@ -24,7 +24,7 @@ class vtkPlusDataCollectionExport vtkPlusCapistranoVideoSource: public vtkPlusUs
 {
 public:
   /*! Constructor for a smart pointer of this class*/
-  static vtkPlusCapistranoVideoSource * New();
+  static vtkPlusCapistranoVideoSource* New();
   vtkTypeMacro(vtkPlusCapistranoVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
@@ -162,7 +162,7 @@ public:
   PlusStatus SetNewImagingParametersDevice(const vtkPlusUsImagingParameters& newImagingParameters);
 
   /*! Set Current Pixel Spacing values Of US Image (mm) */
-  vtkSetVector3Macro(CurrentPixelSpacingMm, double); 
+  vtkSetVector3Macro(CurrentPixelSpacingMm, double);
 
   /*! Get Current Pixel Spacing values Of US Image (mm) */
   vtkGetVector3Macro(CurrentPixelSpacingMm, double);
@@ -174,7 +174,6 @@ public:
   bool IsFrozen();
 
 protected:
-
   /*! Constructor */
   vtkPlusCapistranoVideoSource();
 
@@ -270,8 +269,8 @@ protected:
   PlusTrackedFrame::FieldMapType CustomFields;
 
 private:
-  vtkPlusCapistranoVideoSource(const vtkPlusCapistranoVideoSource &); // Not implemented
-  void operator=(const vtkPlusCapistranoVideoSource &); // Not implemented
+  vtkPlusCapistranoVideoSource(const vtkPlusCapistranoVideoSource&);  // Not implemented
+  void operator=(const vtkPlusCapistranoVideoSource&);  // Not implemented
 };
 
 #endif

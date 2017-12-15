@@ -181,7 +181,7 @@ PlusStatus vtkPlusBuffer::SetBufferSize(int bufsize)
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlusBuffer::CheckFrameFormat(const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents)
+bool vtkPlusBuffer::CheckFrameFormat(const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents)
 {
   // don't add a frame if it doesn't match the buffer frame format
   if (frameSizeInPx[0] != this->GetFrameSize()[0] ||
@@ -216,32 +216,6 @@ bool vtkPlusBuffer::CheckFrameFormat(const std::array<unsigned int, 3>& frameSiz
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
-                                  US_IMAGE_ORIENTATION usImageOrientation,
-                                  const std::array<int, 3>& inputFrameSizeInPx,
-                                  PlusCommon::VTKScalarPixelType pixelType,
-                                  int numberOfScalarComponents,
-                                  US_IMAGE_TYPE imageType,
-                                  int numberOfBytesToSkip,
-                                  long frameNumber,
-                                  const std::array<int, 3>& clipRectangleOrigin,
-                                  const std::array<int, 3>& clipRectangleSize,
-                                  double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
-                                  const PlusTrackedFrame::FieldMapType* customFields /*=NULL*/)
-{
-  if (inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
-  {
-    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddItem. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(inputFrameSizeInPx[0]), static_cast<unsigned int>(inputFrameSizeInPx[1]), static_cast<unsigned int>(inputFrameSizeInPx[2]) };
-  return this->AddItem(imageDataPtr, usImageOrientation, frameSizeInPxUint, pixelType, static_cast<unsigned int>(numberOfScalarComponents), imageType, numberOfBytesToSkip, frameNumber,
-                       clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
                                   US_IMAGE_ORIENTATION usImageOrientation,
                                   US_IMAGE_TYPE imageType,
@@ -265,7 +239,7 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
     return PLUS_FAIL;
   }
 
-  std::array<unsigned int, 3> frameSize = {static_cast<unsigned int>(frameExtent[1] - frameExtent[0] + 1), static_cast<unsigned int>(frameExtent[3] - frameExtent[2] + 1), static_cast<unsigned int>(frameExtent[5] - frameExtent[4] + 1)};
+  FrameSizeType frameSize = {static_cast<unsigned int>(frameExtent[1] - frameExtent[0] + 1), static_cast<unsigned int>(frameExtent[3] - frameExtent[2] + 1), static_cast<unsigned int>(frameExtent[5] - frameExtent[4] + 1)};
   return this->AddItem(reinterpret_cast<unsigned char*>(frame->GetScalarPointer()), usImageOrientation, frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents(), imageType, 0, frameNumber, clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
@@ -358,7 +332,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusTrackedFrame::FieldMapType& fields,
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
                                   US_IMAGE_ORIENTATION usImageOrientation,
-                                  const std::array<unsigned int, 3>& inputFrameSizeInPx,
+                                  const FrameSizeType& inputFrameSizeInPx,
                                   PlusCommon::VTKScalarPixelType pixelType,
                                   unsigned int numberOfScalarComponents,
                                   US_IMAGE_TYPE imageType,
@@ -410,7 +384,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   }
 
   // Calculate the output frame size to validate that buffer is correctly setup
-  std::array<unsigned int, 3> outputFrameSizeInPx = { inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2] };
+  FrameSizeType outputFrameSizeInPx = { inputFrameSizeInPx[0], inputFrameSizeInPx[1], inputFrameSizeInPx[2] };
   if (PlusCommon::IsClippingRequested(clipRectangleOrigin, clipRectangleSize))
   {
     outputFrameSizeInPx[0] = clipRectangleSize[0];
@@ -420,7 +394,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
 
   if (flipInfo.tranpose == PlusVideoFrame::TRANSPOSE_IJKtoKIJ)
   {
-    int temp = outputFrameSizeInPx[0];
+    unsigned int temp = outputFrameSizeInPx[0];
     outputFrameSizeInPx[0] = outputFrameSizeInPx[2];
     outputFrameSizeInPx[2] = outputFrameSizeInPx[1];
     outputFrameSizeInPx[1] = temp;
@@ -451,7 +425,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
     return PLUS_FAIL;
   }
 
-  std::array<unsigned int, 3> receivedFrameSize = { 0, 0, 0 };
+  FrameSizeType receivedFrameSize = { 0, 0, 0 };
   newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize);
 
   if (outputFrameSizeInPx[0] != receivedFrameSize[0]
@@ -704,7 +678,7 @@ PlusStatus vtkPlusBuffer::SetFrameSize(unsigned int x, unsigned int y, unsigned 
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetFrameSize(const std::array<unsigned int, 3>& frameSize)
+PlusStatus vtkPlusBuffer::SetFrameSize(const FrameSizeType& frameSize)
 {
   return SetFrameSize(frameSize[0], frameSize[1], frameSize[2]);
 }
@@ -722,7 +696,7 @@ PlusStatus vtkPlusBuffer::SetPixelType(PlusCommon::VTKScalarPixelType pixelType)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetNumberOfScalarComponents(int numberOfScalarComponents)
+PlusStatus vtkPlusBuffer::SetNumberOfScalarComponents(unsigned int numberOfScalarComponents)
 {
   if (numberOfScalarComponents == this->NumberOfScalarComponents)
   {
@@ -781,7 +755,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
   const int numberOfVideoFrames = sourceTrackedFrameList->GetNumberOfTrackedFrames();
   LOCAL_LOG_DEBUG("CopyImagesFromTrackedFrameList will copy " << numberOfVideoFrames << " frames");
 
-  std::array<unsigned int, 3> frameSize = {0, 0, 0};
+  FrameSizeType frameSize = {0, 0, 0};
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
   this->SetFrameSize(frameSize);
   this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
@@ -1506,7 +1480,7 @@ PlusStatus vtkPlusBuffer::GetFrameSize(unsigned int& _arg1, unsigned int& _arg2,
 }
 
 //-----------------------------------------------------------------------------
-std::array<unsigned int, 3> vtkPlusBuffer::GetFrameSize() const
+FrameSizeType vtkPlusBuffer::GetFrameSize() const
 {
   return this->FrameSize;
 }

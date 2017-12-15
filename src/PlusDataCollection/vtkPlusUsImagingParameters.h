@@ -169,11 +169,11 @@ public:
   float GetProbeVoltage() const;
 
   /*! Set the image size [width, heigh, depth(elevational dimension)] of the B-mode ultrasound */
-  PlusStatus SetImageSize(const std::array<unsigned int, 3>& imageSize);
+  PlusStatus SetImageSize(const FrameSizeType& imageSize);
   PlusStatus SetImageSize(unsigned int x, unsigned int y, unsigned int z);
   /*! Get the image size of B-mode ultrasound */
-  PlusStatus GetImageSize(std::vector<int>& imageSize) const;
-  std::vector<int> GetImageSize() const;
+  PlusStatus GetImageSize(FrameSizeType& imageSize) const;
+  FrameSizeType GetImageSize() const;
 
   /*! Return an iterator to the beginning of the parameter space */
   ParameterNameMapConstIterator begin() const;

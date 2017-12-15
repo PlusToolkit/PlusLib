@@ -476,7 +476,7 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkPlusTrackedFrameList*
   this->LocalVideoBuffer = vtkPlusBuffer::New();
   this->LocalVideoBuffer->SetImageOrientation(savedDataBuffer->GetImageOrientation());
   this->LocalVideoBuffer->SetImageType(savedDataBuffer->GetImageType());
-  std::array<unsigned int, 3> frameSize;
+  FrameSizeType frameSize;
   if (savedDataBuffer->GetFrameSize(frameSize) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve frame size.");

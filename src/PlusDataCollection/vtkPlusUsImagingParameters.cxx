@@ -327,7 +327,7 @@ float vtkPlusUsImagingParameters::GetProbeVoltage() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::SetImageSize(const std::array<unsigned int, 3>& imageSize)
+PlusStatus vtkPlusUsImagingParameters::SetImageSize(const FrameSizeType& imageSize)
 {
   std::stringstream result;
   std::copy(imageSize.begin(), imageSize.end(), std::ostream_iterator<double>(result, " "));
@@ -341,12 +341,12 @@ PlusStatus vtkPlusUsImagingParameters::SetImageSize(const std::array<unsigned in
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::SetImageSize(unsigned int x, unsigned int y, unsigned int z)
 {
-  std::array<unsigned int, 3> imageSizeVec{ x, y, z };
+  FrameSizeType imageSizeVec{ x, y, z };
   return this->SetImageSize(imageSizeVec);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsImagingParameters::GetImageSize(std::vector<int>& imageSize) const
+PlusStatus vtkPlusUsImagingParameters::GetImageSize(FrameSizeType& imageSize) const
 {
   ParameterSetMap::const_iterator keyIt = this->ParameterSet.find(KEY_IMAGESIZE);
   if (keyIt != this->ParameterSet.end() && keyIt->second == false)
@@ -361,16 +361,26 @@ PlusStatus vtkPlusUsImagingParameters::GetImageSize(std::vector<int>& imageSize)
   std::stringstream ss;
   ParameterNameMapConstIterator it = this->ParameterValues.find(KEY_IMAGESIZE);
   ss.str(it->second);
-  std::vector<int> numbers((std::istream_iterator<int>(ss)),
-                           std::istream_iterator<int>());
-  imageSize = numbers;
+  std::vector<unsigned int> numbers((std::istream_iterator<unsigned int>(ss)),
+                                    std::istream_iterator<unsigned int>());
+
+  imageSize[0] = numbers[0];
+  imageSize[1] = numbers[1];
+  if (numbers.size() > 2)
+  {
+    imageSize[2] = numbers[2];
+  }
+  else
+  {
+    imageSize[2] = 1;
+  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-std::vector<int> vtkPlusUsImagingParameters::GetImageSize() const
+FrameSizeType vtkPlusUsImagingParameters::GetImageSize() const
 {
-  std::vector<int> imageSize;
+  FrameSizeType imageSize;
   this->GetImageSize(imageSize);
   return imageSize;
 }

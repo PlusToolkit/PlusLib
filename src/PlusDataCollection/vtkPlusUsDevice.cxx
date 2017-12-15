@@ -154,20 +154,7 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields/*= NULL*/)
-{
-  if (frameSizeInPx[0] < 0 || frameSizeInPx[1] < 0 || frameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
-  {
-    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  const std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(frameSizeInPx[0]), static_cast<unsigned int>(frameSizeInPx[1]), static_cast<unsigned int>(frameSizeInPx[2]) };
-  return this->AddVideoItemToVideoSources(videoSources, imageDataPtr, usImageOrientation, frameSizeInPxUint, pixelType, static_cast<unsigned int>(numberOfScalarComponents), imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
 {
   PlusTrackedFrame::FieldMapType localCustomFields;
   if (customFields != NULL)

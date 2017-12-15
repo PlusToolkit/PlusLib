@@ -381,7 +381,7 @@ PlusVideoFrame& PlusVideoFrame::operator=(PlusVideoFrame const& videoItem)
   // Copy the pixels. Don't use image duplicator, because that wouldn't reuse the existing buffer
   if (videoItem.GetFrameSizeInBytes() > 0)
   {
-    std::array<unsigned int, 3> frameSize = {0, 0, 0};
+    FrameSizeType frameSize = {0, 0, 0};
     videoItem.GetFrameSize(frameSize);
 
     unsigned int numberOfScalarComponents(1);
@@ -431,38 +431,8 @@ PlusStatus PlusVideoFrame::FillBlank()
   return PLUS_SUCCESS;
 }
 
-
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
-{
-  if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
-  {
-    LOG_WARNING("Single slice images should have a dimension of z=1");
-  }
-
-  if (image != NULL)
-  {
-    int imageExtents[6] = {0, 0, 0, 0, 0, 0};
-    image->GetExtent(imageExtents);
-    if (imageSize[0] == imageExtents[1] - imageExtents[0] + 1 &&
-        imageSize[1] == imageExtents[3] - imageExtents[2] + 1 &&
-        imageSize[2] == imageExtents[5] - imageExtents[4] + 1 &&
-        image->GetScalarType() == pixType &&
-        image->GetNumberOfScalarComponents() == numberOfScalarComponents)
-    {
-      // already allocated, no change
-      return PLUS_SUCCESS;
-    }
-  }
-
-  image->SetExtent(0, imageSize[0] - 1, 0, imageSize[1] - 1, 0, imageSize[2] - 1);
-  image->AllocateScalars(pixType, numberOfScalarComponents);
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
   if (imageSize[0] > 0 && imageSize[1] > 0 && imageSize[2] == 0)
   {
@@ -491,24 +461,7 @@ PlusStatus PlusVideoFrame::AllocateFrame(vtkImageData* image, const std::array<u
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(const std::array<int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, int numberOfScalarComponents)
-{
-  if (imageSize[0] < 0 || imageSize[1] < 0 || imageSize[2] < 0)
-  {
-    LOG_ERROR("Negative image size sent to PlusVideoFrame::AllocateFrame. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  if (this->GetImage() == NULL)
-  {
-    this->SetImageData(vtkImageData::New());
-  }
-  PlusStatus allocStatus = PlusVideoFrame::AllocateFrame(this->GetImage(), imageSize, pixType, numberOfScalarComponents);
-  return allocStatus;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::AllocateFrame(const std::array<unsigned int, 3>& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
+PlusStatus PlusVideoFrame::AllocateFrame(const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType pixType, unsigned int numberOfScalarComponents)
 {
   if (this->GetImage() == NULL)
   {
@@ -525,7 +478,7 @@ unsigned long PlusVideoFrame::GetFrameSizeInBytes() const
   {
     return 0;
   }
-  std::array<unsigned int, 3> frameSize = {0, 0, 0};
+  FrameSizeType frameSize = {0, 0, 0};
   this->GetFrameSize(frameSize);
 
   int bytesPerScalar = GetNumberOfBytesPerScalar();
@@ -553,7 +506,12 @@ PlusStatus PlusVideoFrame::DeepCopyFrom(vtkImageData* frame)
   }
 
   int* frameExtent = frame->GetExtent();
-  std::array<int, 3> frameSize = {(frameExtent[1] - frameExtent[0] + 1), (frameExtent[3] - frameExtent[2] + 1), (frameExtent[5] - frameExtent[4] + 1) };
+  if ((frameExtent[1] - frameExtent[0] + 1) < 0 || (frameExtent[3] - frameExtent[2] + 1) < 0 || (frameExtent[5] - frameExtent[4] + 1) < 0)
+  {
+    LOG_ERROR("Negative frame extents. Cannot DeepCopy frame.");
+    return PLUS_FAIL;
+  }
+  FrameSizeType frameSize = {static_cast<unsigned int>(frameExtent[1] - frameExtent[0] + 1), static_cast<unsigned int>(frameExtent[3] - frameExtent[2] + 1), static_cast<unsigned int>(frameExtent[5] - frameExtent[4] + 1) };
 
   if (this->AllocateFrame(frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents()) != PLUS_SUCCESS)
   {
@@ -645,7 +603,7 @@ void* PlusVideoFrame::GetScalarPointer() const
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetFrameSize(std::array<unsigned int, 3>& frameSize) const
+PlusStatus PlusVideoFrame::GetFrameSize(FrameSizeType& frameSize) const
 {
   if (!this->IsImageValid())
   {
@@ -1064,25 +1022,10 @@ int* WholeExtentCallback_1_1_1(void*)
 
 //----------------------------------------------------------------------------
 PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
-    FlipInfoType flipInfo,
-    US_IMAGE_TYPE inUsImageType,
-    PlusCommon::VTKScalarPixelType pixType,
-    unsigned int numberOfScalarComponents,
-    const std::array<int, 3>& inputFrameSizeInPx,
-    PlusVideoFrame& outBufferItem,
-    const std::array<int, 3>& clipRectangleOrigin,
-    const std::array<int, 3>& clipRectangleSize)
-{
-  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType,
-         numberOfScalarComponents, inputFrameSizeInPx, outBufferItem.GetImage(), clipRectangleOrigin, clipRectangleSize);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo, US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
     unsigned int numberOfScalarComponents,
-    const std::array<unsigned int, 3>& inputFrameSizeInPx,
+    const FrameSizeType& inputFrameSizeInPx,
     PlusVideoFrame& outBufferItem,
     const std::array<int, 3>& clipRectangleOrigin,
     const std::array<int, 3>& clipRectangleSize)
@@ -1095,31 +1038,9 @@ PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
 PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
     FlipInfoType flipInfo,
     US_IMAGE_TYPE inUsImageType,
-    PlusCommon::VTKScalarPixelType pixType,
-    unsigned int numberOfScalarComponents,
-    const std::array<int, 3>& inputFrameSizeInPx,
-    vtkImageData* outUsOrientedImage,
-    const std::array<int, 3>& clipRectangleOrigin,
-    const std::array<int, 3>& clipRectangleSize)
-{
-  if (inputFrameSizeInPx[0] < 0 || inputFrameSizeInPx[1] < 0 || inputFrameSizeInPx[2] < 0 || numberOfScalarComponents < 0)
-  {
-    LOG_ERROR("Invalid negative values sent to vtkPlusUsDevice::AddVideoItemToVideoSources. Aborting.");
-    return PLUS_FAIL;
-  }
-
-  std::array<unsigned int, 3> frameSizeInPxUint = { static_cast<unsigned int>(inputFrameSizeInPx[0]), static_cast<unsigned int>(inputFrameSizeInPx[1]), static_cast<unsigned int>(inputFrameSizeInPx[2]) };
-  return PlusVideoFrame::GetOrientedClippedImage(imageDataPtr, flipInfo, inUsImageType, pixType, static_cast<unsigned int>(numberOfScalarComponents), frameSizeInPxUint, outUsOrientedImage,
-         clipRectangleOrigin, clipRectangleSize);
-}
-
-//----------------------------------------------------------------------------
-PlusStatus PlusVideoFrame::GetOrientedClippedImage(unsigned char* imageDataPtr,
-    FlipInfoType flipInfo,
-    US_IMAGE_TYPE inUsImageType,
     PlusCommon::VTKScalarPixelType inUsImagePixelType,
     unsigned int numberOfScalarComponents,
-    const std::array<unsigned int, 3>& inputFrameSizeInPx,
+    const FrameSizeType& inputFrameSizeInPx,
     vtkImageData* outUsOrientedImage,
     const std::array<int, 3>& clipRectangleOrigin,
     const std::array<int, 3>& clipRectangleSize)
@@ -1302,7 +1223,7 @@ PlusStatus PlusVideoFrame::ReadImageFromFile(PlusVideoFrame& frame, const char* 
   std::string extension = vtksys::SystemTools::GetFilenameExtension(std::string(fileName));
   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-  std::vector< std::string > readerExtensions;
+  std::vector<std::string> readerExtensions;
 
   if (reader == NULL)
   {

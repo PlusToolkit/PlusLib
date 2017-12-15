@@ -49,7 +49,7 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* rootConfigElement, double minThetaRad, double maxThetaRad);
 
   /*! Set the size of the frame as an array */
-  void SetFrameSize(const std::array<unsigned int, 3>& frameSize);
+  void SetFrameSize(const FrameSizeType& frameSize);
 
   /*! Compute the shortest distance from a point: dot, to a line: line */
   double ComputeDistancePointLine(PlusFidDot& dot, PlusFidLine& line);
@@ -144,7 +144,7 @@ public:
   void SetInclinedLineAngleDegrees(double inclinedLineAngleDegrees);
 
 protected:
-  int m_FrameSize[2];
+  std::array<unsigned int, 3> m_FrameSize;
 
   double m_ApproximateSpacingMmPerPixel;
   double m_MaxAngleDiff; // not used

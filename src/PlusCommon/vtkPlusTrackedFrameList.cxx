@@ -632,7 +632,7 @@ US_IMAGE_TYPE vtkPlusTrackedFrameList::GetImageType()
 
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTrackedFrameList::GetFrameSize(std::array<unsigned int, 3>& outFrameSize)
+PlusStatus vtkPlusTrackedFrameList::GetFrameSize(FrameSizeType& outFrameSize)
 {
   if (this->GetNumberOfTrackedFrames() < 1)
   {

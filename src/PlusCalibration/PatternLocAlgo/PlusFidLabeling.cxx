@@ -4,15 +4,18 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
 #include "PlusFidLabeling.h"
 #include "PlusMath.h"
-#include "float.h"
-#include "vtkPlane.h"
-#include "vtkTriangle.h"
+
+// VTK includes
+#include <vtkPlane.h>
+#include <vtkTriangle.h>
+
+// STL includes
 #include <algorithm>
 
-//#define DEBUG_LABELING
 //-----------------------------------------------------------------------------
 PlusFidLabeling::PlusFidLabeling()
   : m_ApproximateSpacingMmPerPixel(-1.0)
@@ -30,28 +33,28 @@ PlusFidLabeling::PlusFidLabeling()
   , m_InclinedLineAngleRad(-1.0)
   , m_PatternIntensity(-1.0)
 {
-  memset(m_FrameSize, 0, sizeof(int[2]));
+  m_FrameSize[0] = 0;
+  m_FrameSize[1] = 0;
+  m_FrameSize[2] = 1;
 }
 
 //-----------------------------------------------------------------------------
-
 PlusFidLabeling::~PlusFidLabeling()
 {
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::UpdateParameters()
 {
   LOG_TRACE("FidLabeling::UpdateParameters");
 
   // Distance between lines (= distance between planes of the N-wires)
-  int numOfPatterns = m_Patterns.size();
+  std::vector<PlusFidPattern*>::size_type numOfPatterns = m_Patterns.size();
   double epsilon = 0.001;
 
   // Compute normal of each pattern and evaluate the other wire endpoints if they are on the computed plane
-  std::vector<vtkSmartPointer<vtkPlane> > planes;
-  for (int i = 0; i < numOfPatterns; ++i)
+  std::vector<vtkSmartPointer<vtkPlane>> planes;
+  for (std::vector<PlusFidPattern*>::size_type i = 0; i < numOfPatterns; ++i)
   {
     double normal[3] = {0, 0, 0};
     double v1[3], v2[3], v3[3];
@@ -65,24 +68,27 @@ void PlusFidLabeling::UpdateParameters()
     plane->SetOrigin(v1);
     planes.push_back(plane);
 
-    // *sigh* I don't like const_cast, but not my classes...
-    double distance1F = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[1].EndPointFront));
-    double distance1B = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[1].EndPointBack));
-    double distance2B = plane->DistanceToPlane(const_cast<double*>(m_Patterns[i]->GetWires()[2].EndPointBack));
+    std::array<double, 3> point = { m_Patterns[i]->GetWires()[1].EndPointFront[0], m_Patterns[i]->GetWires()[1].EndPointFront[1], m_Patterns[i]->GetWires()[1].EndPointFront[2] };
+    double distance1F = plane->DistanceToPlane(point.data());
+    point = std::array<double, 3> { m_Patterns[i]->GetWires()[1].EndPointBack[0], m_Patterns[i]->GetWires()[1].EndPointBack[1], m_Patterns[i]->GetWires()[1].EndPointBack[2] };
+    double distance1B = plane->DistanceToPlane(point.data());
+    point = std::array<double, 3> { m_Patterns[i]->GetWires()[2].EndPointBack[0], m_Patterns[i]->GetWires()[2].EndPointBack[1], m_Patterns[i]->GetWires()[2].EndPointBack[2] };
+    double distance2B = plane->DistanceToPlane(point.data());
 
     if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
     {
       LOG_ERROR("Pattern number " << i << " is invalid: the endpoints are not on the same plane");
     }
   }
+
   // Compute distances between each NWire pairs and determine the smallest and the largest distance
   double maxNPlaneDistance = -1.0;
-  double minNPlaneDistance = FLT_MAX;
+  double minNPlaneDistance = std::numeric_limits<double>::max();
   m_MinLinePairAngleRad = vtkMath::Pi() / 2.0;
   m_MaxLinePairAngleRad = 0;
-  for (int i = numOfPatterns - 1; i > 0; --i)
+  for (std::vector<PlusFidPattern*>::size_type i = numOfPatterns - 1; i > 0; --i)
   {
-    for (int j = i - 1; j >= 0; --j)
+    for (std::vector<PlusFidPattern*>::size_type j = i - 1; j >= 0; --j)
     {
       double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
       if (maxNPlaneDistance < distance)
@@ -124,7 +130,6 @@ void PlusFidLabeling::UpdateParameters()
 }
 
 //-----------------------------------------------------------------------------
-
 PlusStatus PlusFidLabeling::ReadConfiguration(vtkXMLDataElement* configData, double minThetaRad, double maxThetaRad)
 {
   LOG_TRACE("FidLabeling::ReadConfiguration");
@@ -158,7 +163,6 @@ PlusStatus PlusFidLabeling::ReadConfiguration(vtkXMLDataElement* configData, dou
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::Clear()
 {
   //LOG_TRACE("FidLabeling::Clear");
@@ -174,8 +178,7 @@ void PlusFidLabeling::Clear()
 }
 
 //-----------------------------------------------------------------------------
-
-void PlusFidLabeling::SetFrameSize(const std::array<unsigned int, 3>& frameSize)
+void PlusFidLabeling::SetFrameSize(const FrameSizeType& frameSize)
 {
   LOG_TRACE("FidLineFinder::SetFrameSize(" << frameSize[0] << ", " << frameSize[1] << ")");
 
@@ -186,6 +189,7 @@ void PlusFidLabeling::SetFrameSize(const std::array<unsigned int, 3>& frameSize)
 
   m_FrameSize[0] = frameSize[0];
   m_FrameSize[1] = frameSize[1];
+  m_FrameSize[2] = 1;
 
   if (m_FrameSize[0] < 0 || m_FrameSize[1] < 0)
   {
@@ -195,14 +199,12 @@ void PlusFidLabeling::SetFrameSize(const std::array<unsigned int, 3>& frameSize)
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::SetAngleToleranceDeg(double value)
 {
   m_AngleToleranceRad = vtkMath::RadiansFromDegrees(value);
 }
 
 //-----------------------------------------------------------------------------
-
 bool PlusFidLabeling::SortCompare(const std::vector<double>& temporaryLine1, const std::vector<double>& temporaryLine2)
 {
   //used for SortPointsByDistanceFromOrigin
@@ -210,10 +212,9 @@ bool PlusFidLabeling::SortCompare(const std::vector<double>& temporaryLine1, con
 }
 
 //-----------------------------------------------------------------------------
-
 PlusFidLine PlusFidLabeling::SortPointsByDistanceFromStartPoint(PlusFidLine& fiducials)
 {
-  std::vector<std::vector<double> > temporaryLine;
+  std::vector<std::vector<double>> temporaryLine;
   PlusFidDot startPointIndex = m_DotsVector[fiducials.GetStartPointIndex()];
 
   for (unsigned int i = 0 ; i < fiducials.GetNumberOfPoints() ; i++)
@@ -245,7 +246,6 @@ std::vector<PlusFidPattern*>& PlusFidLabeling::GetPatterns()
 }
 
 //-----------------------------------------------------------------------------
-
 double PlusFidLabeling::ComputeSlope(PlusFidLine& line)
 {
   //LOG_TRACE("FidLineFinder::ComputeSlope");
@@ -284,7 +284,6 @@ double PlusFidLabeling::ComputeSlope(PlusFidLine& line)
 }
 
 //-----------------------------------------------------------------------------
-
 double PlusFidLabeling::ComputeDistancePointLine(PlusFidDot& dot, PlusFidLine& line)
 {
   double x[3], y[3], z[3];
@@ -305,7 +304,6 @@ double PlusFidLabeling::ComputeDistancePointLine(PlusFidDot& dot, PlusFidLine& l
 }
 
 //-----------------------------------------------------------------------------
-
 double PlusFidLabeling::ComputeShift(PlusFidLine& line1, PlusFidLine& line2)
 {
   //middle of the line 1
@@ -342,7 +340,6 @@ double PlusFidLabeling::ComputeShift(PlusFidLine& line1, PlusFidLine& line2)
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::UpdateNWiresResults(std::vector<PlusFidLine*>& resultLines)
 {
   int numberOfLines = m_Patterns.size(); //the number of lines in the pattern
@@ -382,13 +379,12 @@ void PlusFidLabeling::UpdateNWiresResults(std::vector<PlusFidLine*>& resultLines
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::UpdateCirsResults(const PlusFidLine& resultLine1, const PlusFidLine& resultLine2, const PlusFidLine& resultLine3)
 {
   //resultLine1 is the left line, resultLine2 is the diagonal, resultLine3 is the right line
   double intensity = 0;
   std::vector<double> dotCoords;
-  std::vector< std::vector<double> > foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
+  std::vector<std::vector<double>> foundDotsCoordinateValues = m_FoundDotsCoordinateValue;
 
   for (unsigned int i = 0 ; i < resultLine1.GetNumberOfPoints() ; i++)
   {
@@ -445,7 +441,6 @@ void PlusFidLabeling::UpdateCirsResults(const PlusFidLine& resultLine1, const Pl
 }
 
 //-----------------------------------------------------------------------------
-
 void PlusFidLabeling::FindPattern()
 {
   //LOG_TRACE("FidLabeling::FindPattern");
@@ -455,27 +450,6 @@ void PlusFidLabeling::FindPattern()
   int numberOfCandidateLines = maxPointsLines.size();
   std::vector<int> lineIndices(numberOfLines);
   std::vector<PlusLabelingResults> results;
-
-#ifdef DEBUG_LABELING
-  LOG_DEBUG("Number of lines in the pattern: " << numberOfLines);
-  LOG_DEBUG("Number of candidate lines: " << numberOfCandidateLines);
-  for (int lineIndex = 0; lineIndex < numberOfCandidateLines; lineIndex++)
-  {
-    std::ostringstream linePermutationStr;
-    linePermutationStr.clear();
-    std::vector<int>* pointIndices = maxPointsLines[lineIndex].GetPoints();
-    for (int pointIndex = 0; pointIndex < pointIndices->size(); pointIndex++)
-    {
-      if (pointIndex > 0)
-      {
-        linePermutationStr << ", ";
-      }
-      linePermutationStr << (*pointIndices)[pointIndex];
-    }
-    linePermutationStr << std::ends;
-    LOG_DEBUG("  Line " << lineIndex << ": " << linePermutationStr.str());
-  }
-#endif
 
   m_DotsFound = false;
 
@@ -514,21 +488,6 @@ void PlusFidLabeling::FindPattern()
       }
     }
 
-#ifdef DEBUG_LABELING
-    std::ostringstream linePermutationStr;
-    for (int lineIndex = 0; lineIndex < numberOfLines; lineIndex++)
-    {
-      if (lineIndex > 0)
-      {
-        linePermutationStr << ", ";
-      }
-      linePermutationStr << lineIndices[lineIndex];
-    }
-    linePermutationStr << std::ends;
-    LOG_DEBUG("Try permutation: (" << linePermutationStr.str() << ")");
-#endif
-
-
     // We have a new permutation in lineIndices.
     // Check if the distance and angle between each possible line pairs within the permutation are within the allowed range.
     // This is a quick filtering to keep only those line combinations for further processing that may form a valid pattern.
@@ -552,10 +511,6 @@ void PlusFidLabeling::FindPattern()
           if ((distance > maxLinePairDistPx) || (distance < minLinePairDistPx))
           {
             // The distance between the lines is smaller or larger than the allowed range
-#ifdef DEBUG_LABELING
-            LOG_DEBUG("The distance between the lines is smaller or larger than the allowed range: distance=" << distance
-                      << ", min=" << minLinePairDistPx << ", max=" << maxLinePairDistPx);
-#endif
             foundPattern = false;
             break;
           }
@@ -567,10 +522,6 @@ void PlusFidLabeling::FindPattern()
           if (fabs(shift) > maxLineShiftDistPx)
           {
             // The shift between the is larger than the allowed value
-#ifdef DEBUG_LABELING
-            LOG_DEBUG("The shift between the is larger than the allowed value: shift=" << shift
-                      << ", maxLineShiftDistPx=" << maxLineShiftDistPx);
-#endif
             foundPattern = false;
             break;
           }
@@ -578,18 +529,11 @@ void PlusFidLabeling::FindPattern()
         else
         {
           // Non-parallel lines
-#ifdef DEBUG_LABELING
-          LOG_DEBUG("Non-parallel lines");
-#endif
           double minAngle = m_MinLinePairAngleRad - m_AngleToleranceRad;
           double maxAngle = m_MaxLinePairAngleRad + m_AngleToleranceRad;
           if ((angleBetweenLinesRad > maxAngle) || (angleBetweenLinesRad < minAngle))
           {
             // The angle between the patterns are not in the valid range
-#ifdef DEBUG_LABELING
-            LOG_DEBUG("The angle between the patterns are not in the valid range: angleBetweenLinesRad=" << angleBetweenLinesRad
-                      << ", min=" << minAngle << ", max=" << maxAngle);
-#endif
             foundPattern = false;
             break;
           }
@@ -613,10 +557,6 @@ void PlusFidLabeling::FindPattern()
             if ((angleBetweenLinesRad > maxAngle) || (angleBetweenLinesRad < minAngle))
             {
               // The angle between the patterns are not in the valid range
-#ifdef DEBUG_LABELING
-              LOG_DEBUG("The angle between the patterns are not in the valid range: angleBetweenLinesRad=" << angleBetweenLinesRad
-                        << ", min=" << minAngle << ", max=" << maxAngle);
-#endif
               foundPattern = false;
               break;
             }
@@ -624,20 +564,15 @@ void PlusFidLabeling::FindPattern()
         }
       }
     }
-
   }
   while ((lineIndices[numberOfLines - 1] != numberOfCandidateLines - numberOfLines + 2) && (!foundPattern));
-
-#ifdef DEBUG_LABELING
-  LOG_DEBUG("Found a valid pattern");
-#endif
 
   if (foundPattern)   //We have the right permutation of lines in lineIndices
   {
     //Update the results, this part is not generic but depends on the FidPattern we are looking for
     PlusNWire* nWire = dynamic_cast<PlusNWire*>(m_Patterns.at(0));
     PlusCoplanarParallelWires* coplanarParallelWire = dynamic_cast<PlusCoplanarParallelWires*>(m_Patterns.at(0));
-    if (nWire)   // NWires
+    if (nWire != nullptr)   // NWires
     {
       std::vector<PlusFidLine*> resultLines(numberOfLines);
       std::vector<double> resultLineMiddlePointYs;

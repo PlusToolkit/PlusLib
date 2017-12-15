@@ -14,13 +14,16 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #ifndef __vtkPlusDataBuffer_h
 #define __vtkPlusDataBuffer_h
 
+// Local includes
+#include "PlusCommon.h"
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
-
 #include "PlusStreamBufferItem.h"
 #include "PlusTrackedFrame.h"
-#include "vtkObject.h"
 #include "vtkPlusTimestampedCircularBuffer.h"
+
+// VTK includes
+#include <vtkObject.h>
 
 class vtkPlusDevice;
 enum ToolStatus;
@@ -98,20 +101,7 @@ public:
   */
   virtual PlusStatus AddItem(void* imageDataPtr,
                              US_IMAGE_ORIENTATION  usImageOrientation,
-                             const std::array<int, 3>& inputFrameSizeInPx,
-                             PlusCommon::VTKScalarPixelType pixelType,
-                             int numberOfScalarComponents,
-                             US_IMAGE_TYPE imageType,
-                             int numberOfBytesToSkip,
-                             long frameNumber,
-                             const std::array<int, 3>& clipRectangleOrigin,
-                             const std::array<int, 3>& clipRectangleSize,
-                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
-  virtual PlusStatus AddItem(void* imageDataPtr,
-                             US_IMAGE_ORIENTATION  usImageOrientation,
-                             const std::array<unsigned int, 3>& inputFrameSizeInPx,
+                             const FrameSizeType& inputFrameSizeInPx,
                              PlusCommon::VTKScalarPixelType pixelType,
                              unsigned int numberOfScalarComponents,
                              US_IMAGE_TYPE imageType,
@@ -264,9 +254,9 @@ public:
   /*! Set the frame size in pixel  */
   PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z);
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(const std::array<unsigned int, 3>& frameSize);
+  PlusStatus SetFrameSize(const FrameSizeType& frameSize);
   /*! Get the frame size in pixel  */
-  virtual std::array<unsigned int, 3> GetFrameSize() const;
+  virtual FrameSizeType GetFrameSize() const;
   virtual PlusStatus GetFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;
 
   /*! Set the pixel type */
@@ -275,9 +265,9 @@ public:
   vtkGetMacro(PixelType, PlusCommon::VTKScalarPixelType);
 
   /*! Set the number of scalar components */
-  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents);
+  PlusStatus SetNumberOfScalarComponents(unsigned int numberOfScalarComponents);
   /*! Get the number of scalar components*/
-  vtkGetMacro(NumberOfScalarComponents, int);
+  vtkGetMacro(NumberOfScalarComponents, unsigned int);
 
   /*! Set the image type. Does not convert the pixel values. */
   PlusStatus SetImageType(US_IMAGE_TYPE imageType);
@@ -318,7 +308,7 @@ protected:
     Compares frame format with new frame imaging parameters.
     \return true if current buffer frame format matches the method arguments, otherwise false
   */
-  virtual bool CheckFrameFormat(const std::array<unsigned int, 3>& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents);
+  virtual bool CheckFrameFormat(const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imgType, int numberOfScalarComponents);
 
   /*! Returns the two buffer items that are closest previous and next buffer items relative to the specified time. itemA is the closest item */
   PlusStatus GetPrevNextBufferItemFromTime(double time, StreamBufferItem& itemA, StreamBufferItem& itemB);
@@ -338,13 +328,13 @@ protected:
 
 protected:
   /*! Image frame size in pixel */
-  std::array<unsigned int, 3> FrameSize;
+  FrameSizeType FrameSize;
 
   /*! Image pixel type */
   PlusCommon::VTKScalarPixelType PixelType;
 
   /*! Number of scalar components */
-  int NumberOfScalarComponents;
+  unsigned int NumberOfScalarComponents;
 
   /*! Image type (B-Mode, RF, ...) */
   US_IMAGE_TYPE ImageType;

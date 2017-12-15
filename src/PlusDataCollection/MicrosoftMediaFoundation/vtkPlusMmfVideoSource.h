@@ -16,13 +16,14 @@ Authors include: Danielle Pace
 #ifndef __vtkPlusMmfVideoSource_h
 #define __vtkPlusMmfVideoSource_h
 
-#include "vtkPlusDataCollectionExport.h"
-
-#include "vtkPlusRecursiveCriticalSection.h"
-#include "vtkSmartPointer.h"
-
+// Local includes
 #include "PlusVideoFrame.h"
+#include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include "vtkPlusRecursiveCriticalSection.h"
+
+// VTK includes
+#include <vtkSmartPointer.h>
 
 class MmfVideoSourceReader;
 
@@ -43,7 +44,7 @@ class vtkPlusDataCollectionExport vtkPlusMmfVideoSource : public vtkPlusDevice
   {
     unsigned int DeviceId;
     unsigned int StreamIndex;
-    unsigned int FrameSize[2];
+    FrameSizeType FrameSize;
     std::wstring PixelFormatName; // e.g., YUY2
   };
 
@@ -55,7 +56,7 @@ public:
   virtual void SetRequestedDeviceId(unsigned int deviceId);
   virtual void SetRequestedVideoFormat(const std::wstring& pixelFormatName);
   virtual void SetRequestedStreamIndex(unsigned int streamIndex);
-  virtual void SetRequestedFrameSize(unsigned int frameSize[2]);
+  virtual void SetRequestedFrameSize(const FrameSizeType& frameSize);
 
   std::wstring GetRequestedDeviceName();
   std::wstring GetActiveDeviceName();

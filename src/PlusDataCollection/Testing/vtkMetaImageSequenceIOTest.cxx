@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 
   vtkSmartPointer<vtkPlusTrackedFrameList> dummyTrackedFrame = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   PlusTrackedFrame validFrame;
-  std::array<unsigned int, 3> frameSize = {200, 200, 1};
+  FrameSizeType frameSize = {200, 200, 1};
   validFrame.GetImageData()->AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1);
   validFrame.GetImageData()->FillBlank();
   validFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix);
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
   // Test metafile writting with different sized images
 
   PlusTrackedFrame differentSizeFrame;
-  std::array<unsigned int, 3> frameSizeSmaller = {150, 150, 1};
+  FrameSizeType frameSizeSmaller = {150, 150, 1};
   differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, VTK_UNSIGNED_CHAR, 1);
   differentSizeFrame.GetImageData()->FillBlank();
   differentSizeFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix);

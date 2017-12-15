@@ -346,7 +346,7 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
     {
       // Create a blank frame if we have to write an invalid frame to sequence file
       PlusVideoFrame blankFrame;
-      std::array<unsigned int, 3> frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (blankFrame.AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to allocate space for blank image.");
@@ -480,16 +480,16 @@ PlusTrackedFrame* vtkPlusSequenceIOBase::GetTrackedFrame(int frameNumber)
 }
 
 //----------------------------------------------------------------------------
-std::array<unsigned int, 3> vtkPlusSequenceIOBase::GetMaximumImageDimensions()
+FrameSizeType vtkPlusSequenceIOBase::GetMaximumImageDimensions()
 {
-  std::array<unsigned int, 3> maxFrameSize;
+  FrameSizeType maxFrameSize;
   maxFrameSize[0] = 0;
   maxFrameSize[1] = 0;
   maxFrameSize[2] = 0;
 
   for (unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
   {
-    std::array<unsigned int, 3> currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
+    FrameSizeType currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
     if (maxFrameSize[0] < currFrameSize[0])
     {
       maxFrameSize[0] = currFrameSize[0];

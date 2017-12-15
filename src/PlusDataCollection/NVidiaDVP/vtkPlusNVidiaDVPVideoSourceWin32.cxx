@@ -29,6 +29,7 @@ vtkStandardNewMacro(vtkPlusNvidiaDVPVideoSource);
 vtkPlusNvidiaDVPVideoSource::vtkPlusNvidiaDVPVideoSource()
   : FrameNumber(0)
   , EnableGPUCPUCopy(false)
+  , VideoSize( { 0, 0, 1 })
 {
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
@@ -74,7 +75,7 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  CPUFrame = new unsigned char[NvSDIin.GetBufferObjectPitch(0) * VideoHeight];
+  CPUFrame = new unsigned char[NvSDIin.GetBufferObjectPitch(0) * VideoSize[1]];
 
   return PLUS_SUCCESS;
 }
@@ -287,197 +288,197 @@ PlusStatus vtkPlusNvidiaDVPVideoSource::ReadConfiguration(vtkXMLDataElement* roo
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoFormat, videoFormat, deviceConfig);
   if (videoFormat == "487i5994_259")
   {
-    VideoHeight = 487;
+    VideoSize[1] = 487;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_487I_59_94_SMPTE259_NTSC;
   }
   else if (videoFormat == "576i5000_259")
   {
-    VideoHeight = 576;
+    VideoSize[1] = 576;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_576I_50_00_SMPTE259_PAL;
   }
   else if (videoFormat == "720p2398_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_23_98_SMPTE296;
   }
   else if (videoFormat == "720p2400_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_24_00_SMPTE296;
   }
   else if (videoFormat == "720p2500_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_25_00_SMPTE296;
   }
   else if (videoFormat == "720p2997_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_29_97_SMPTE296;
   }
   else if (videoFormat == "720p3000_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_30_00_SMPTE296;
   }
   else if (videoFormat == "720p5000_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_50_00_SMPTE296;
   }
   else if (videoFormat == "720p5994_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_59_94_SMPTE296;
   }
   else if (videoFormat == "720p6000_296")
   {
-    VideoHeight = 720;
+    VideoSize[1] = 720;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_720P_60_00_SMPTE296;
   }
   else if (videoFormat == "1035i5994_260")
   {
-    VideoHeight = 1035;
+    VideoSize[1] = 1035;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1035I_59_94_SMPTE260;
   }
   else if (videoFormat == "1035i6000_260")
   {
-    VideoHeight = 1035;
+    VideoSize[1] = 1035;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1035I_60_00_SMPTE260;
   }
   else if (videoFormat == "1080i4796_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_47_96_SMPTE274;
   }
   else if (videoFormat == "1080i4800_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_48_00_SMPTE274;
   }
   else if (videoFormat == "1080i5000_295")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_50_00_SMPTE295;
   }
   else if (videoFormat == "1080i5000_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_50_00_SMPTE274;
   }
   else if (videoFormat == "1080i5994_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_59_94_SMPTE274;
   }
   else if (videoFormat == "1080i6000_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080I_60_00_SMPTE274;
   }
   else if (videoFormat == "1080psf23976_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_23_98_SMPTE274;
   }
   else if (videoFormat == "1080psf2398_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_23_98_SMPTE274;
   }
   else if (videoFormat == "1080psf2400_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_24_00_SMPTE274;
   }
   else if (videoFormat == "1080psf2500_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_25_00_SMPTE274;
   }
   else if (videoFormat == "1080psf2997_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_29_97_SMPTE274;
   }
   else if (videoFormat == "1080psf3000_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080PSF_30_00_SMPTE274;
   }
   else if (videoFormat == "1080p23976_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080P_23_976_SMPTE274;
   }
   else if (videoFormat == "1080p2400_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080P_24_00_SMPTE274;
   }
   else if (videoFormat == "1080p2500_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080P_25_00_SMPTE274;
   }
   else if (videoFormat == "1080p2997_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080P_29_97_SMPTE274;
   }
   else if (videoFormat == "1080p3000_274")
   {
-    VideoHeight = 1080;
+    VideoSize[1] = 1080;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_1080P_30_00_SMPTE274;
   }
   else if (videoFormat == "2048i4796_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048I_47_96_SMPTE372;
   }
   else if (videoFormat == "2048i4800_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048I_48_00_SMPTE372;
   }
   else if (videoFormat == "2048i5000_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048I_50_00_SMPTE372;
   }
   else if (videoFormat == "2048i5994_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048I_59_94_SMPTE372;
   }
   else if (videoFormat == "2048i6000_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048I_60_00_SMPTE372;
   }
   else if (videoFormat == "2048p2398_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048P_23_98_SMPTE372;
   }
   else if (videoFormat == "2048p2400_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048P_24_00_SMPTE372;
   }
   else if (videoFormat == "2048p2500_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048P_25_00_SMPTE372;
   }
   else if (videoFormat == "2048p2997_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048P_29_97_SMPTE372;
   }
   else if (videoFormat == "2048p3000_372")
   {
-    VideoHeight = 2048;
+    VideoSize[1] = 2048;
     NvOptions.videoFormat = NVVIOSIGNALFORMAT_2048P_30_00_SMPTE372;
   }
   else
@@ -869,8 +870,8 @@ HRESULT vtkPlusNvidiaDVPVideoSource::SetupSDIinDevices()
     return E_FAIL;
   }
 
-  VideoWidth = NvSDIin.GetWidth();
-  VideoHeight = NvSDIin.GetHeight();
+  VideoSize[0] = NvSDIin.GetWidth();
+  VideoSize[1] = NvSDIin.GetHeight();
 
   return S_OK;
 }
@@ -1072,7 +1073,7 @@ HRESULT vtkPlusNvidiaDVPVideoSource::CopyGPUToCPU()
   glBindBuffer(GL_VIDEO_BUFFER_NV, VideoBufferObject[0]);
 
   // Transfer contents of video buffer(s) to system memory
-  glGetBufferSubData(GL_VIDEO_BUFFER_NV, 0, NvSDIin.GetBufferObjectPitch(0) * VideoHeight, CPUFrame);
+  glGetBufferSubData(GL_VIDEO_BUFFER_NV, 0, NvSDIin.GetBufferObjectPitch(0) * VideoSize[1], CPUFrame);
 
   return S_OK;
 }

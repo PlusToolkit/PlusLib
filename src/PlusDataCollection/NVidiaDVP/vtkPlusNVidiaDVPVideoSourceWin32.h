@@ -83,8 +83,7 @@ protected:
   /// Capture interface class
   CNvSDIin NvSDIin;
 
-  int VideoWidth;
-  int VideoHeight;
+  FrameSizeType VideoSize;
 
   /// CPU memory storage of image
   unsigned char* CPUFrame;

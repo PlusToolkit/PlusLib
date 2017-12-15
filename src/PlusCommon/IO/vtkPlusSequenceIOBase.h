@@ -169,7 +169,7 @@ protected:
   std::string GetPixelDataFilePath();
 
   /*! Get the largest possible image size in the tracked frame list */
-  virtual std::array<unsigned int, 3> GetMaximumImageDimensions();
+  virtual FrameSizeType GetMaximumImageDimensions();
 
   /*! Set a custom string field value for a specific frame */
   PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);

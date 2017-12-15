@@ -41,7 +41,7 @@ See License.txt for details.
 void CreateSliceModels(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, vtkPolyData* outputPolyData)
 {
   // Prepare the output polydata.
-  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
+  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer<vtkAppendPolyData>::New();
 
   // Loop over each tracked image slice.
   for (unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex)
@@ -64,23 +64,23 @@ void CreateSliceModels(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransfo
       continue;
     }
 
-    vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer< vtkTransform> tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
     tUserDefinedTransform->SetMatrix(tUserDefinedMatrix);
 
-    std::array<unsigned int, 3> frameSize = frame->GetFrameSize();
+    FrameSizeType frameSize = frame->GetFrameSize();
 
-    vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer<vtkTransform> tCubeToImage = vtkSmartPointer<vtkTransform>::New();
     tCubeToImage->Scale(frameSize[ 0 ], frameSize[ 1 ], 1);
     tCubeToImage->Translate(0.5, 0.5, 0.5);    // Moving the corner to the origin.
 
-    vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer<vtkTransform> tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
     tCubeToTracker->Identity();
     tCubeToTracker->Concatenate(tUserDefinedTransform);
     tCubeToTracker->Concatenate(tCubeToImage);
 
-    vtkSmartPointer< vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+    vtkSmartPointer<vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     cubeToTracker->SetTransform(tCubeToTracker);
-    vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
+    vtkSmartPointer<vtkCubeSource> source = vtkSmartPointer<vtkCubeSource>::New();
     cubeToTracker->SetInputConnection(source->GetOutputPort());
     cubeToTracker->Update();
 

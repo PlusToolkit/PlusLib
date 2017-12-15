@@ -268,7 +268,7 @@ PlusStatus PlusTrackedFrame::SetTrackedFrameFromXmlData(const char* strXmlData)
 }
 
 //----------------------------------------------------------------------------
-std::array<unsigned int, 3> PlusTrackedFrame::GetFrameSize()
+FrameSizeType PlusTrackedFrame::GetFrameSize()
 {
   this->ImageData.GetFrameSize(this->FrameSize);
   return this->FrameSize;

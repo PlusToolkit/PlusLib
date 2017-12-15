@@ -103,12 +103,12 @@ namespace igtl
     igtlFrameTime->SetTime(timestamp);
 
     std::array<int, 3> offset = {0};
-    std::array<unsigned int, 3> imageSizePixels = {0};
+    FrameSizeType imageSizePixels = {0};
 
     // NOTE: MUSiiC library expects the frame size in the format
     // as Ultrasonix provide, not like Plus (Plus: if vector data switch width and
     // height, because the image is not rasterized like a bitmap, but written rayline by rayline)
-    std::array<unsigned int, 3> size = this->m_TrackedFrame.GetFrameSize();
+    FrameSizeType size = this->m_TrackedFrame.GetFrameSize();
     imageSizePixels[0] = size[1];
     imageSizePixels[1] = size[0];
     imageSizePixels[2] = 1;

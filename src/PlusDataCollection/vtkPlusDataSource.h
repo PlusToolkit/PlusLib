@@ -14,10 +14,13 @@
 #ifndef __vtkPlusDataSource_h
 #define __vtkPlusDataSource_h
 
+// Local includes
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkObject.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
+
+// VTK includes
+#include <vtkObject.h>
 
 /*!
 \class vtkPlusDataSource
@@ -83,18 +86,16 @@ public:
 
   /*! Set the non-clipped input frame size in pixel  */
   PlusStatus SetInputFrameSize(unsigned int x, unsigned int y, unsigned int z);
-  PlusStatus SetInputFrameSize(int x, int y, int z);
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(const std::array<unsigned int, 3>& frameSize);
-  PlusStatus SetInputFrameSize(const std::array<int, 3>& frameSize);
+  PlusStatus SetInputFrameSize(const FrameSizeType& frameSize);
   /*! Get the input frame size in pixel  */
-  std::array<unsigned int, 3> GetInputFrameSize() const;
+  FrameSizeType GetInputFrameSize() const;
 
   /*!
   Get the output frame size in pixel. If no clipping rectangle is set then the output
   frame size is the clipping rectangle size; otherwise it is the input frame size
   */
-  virtual std::array<unsigned int, 3> GetOutputFrameSize() const;
+  virtual FrameSizeType GetOutputFrameSize() const;
   virtual PlusStatus GetOutputFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;
 
   /*! Set recording start time */
@@ -187,8 +188,13 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus AddItem(vtkImageData* frame,
+                             US_IMAGE_ORIENTATION usImageOrientation,
+                             US_IMAGE_TYPE imageType,
+                             long frameNumber,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
+                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -212,18 +218,7 @@ public:
   */
   virtual PlusStatus AddItem(void* imageDataPtr,
                              US_IMAGE_ORIENTATION usImageOrientation,
-                             const std::array<int, 3>& frameSizeInPx,
-                             PlusCommon::VTKScalarPixelType pixelType,
-                             unsigned int numberOfScalarComponents,
-                             US_IMAGE_TYPE imageType,
-                             int numberOfBytesToSkip,
-                             long frameNumber,
-                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
-  virtual PlusStatus AddItem(void* imageDataPtr,
-                             US_IMAGE_ORIENTATION usImageOrientation,
-                             const std::array<unsigned int, 3>& frameSizeInPx,
+                             const FrameSizeType& frameSizeInPx,
                              PlusCommon::VTKScalarPixelType pixelType,
                              unsigned int numberOfScalarComponents,
                              US_IMAGE_TYPE imageType,
@@ -265,9 +260,9 @@ public:
   virtual PlusCommon::VTKScalarPixelType GetPixelType();
 
   /*! Set the number of scalar components */
-  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents);
+  PlusStatus SetNumberOfScalarComponents(unsigned int numberOfScalarComponents);
   /*! Get the number of scalar components*/
-  virtual int GetNumberOfScalarComponents();
+  virtual unsigned int GetNumberOfScalarComponents();
 
   /*!
   Get the number of bytes per pixel
@@ -374,7 +369,7 @@ protected:
   /*! Crop rectangle size for this data source */
   std::array<int, 3> ClipRectangleSize;
 
-  std::array<unsigned int, 3> InputFrameSize;
+  FrameSizeType InputFrameSize;
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);

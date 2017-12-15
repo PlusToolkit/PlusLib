@@ -84,7 +84,7 @@ PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const c
   unsigned int sampleSizeInBytes = static_cast<unsigned int>(hdr.ss / 8);
   unsigned int numberOfFrames = static_cast<unsigned int>(hdr.frames);
   unsigned int frameSizeInBytes = static_cast<unsigned int>(hdr.w * hdr.h * sampleSizeInBytes);
-  std::array<unsigned int, 3> frameSize = { static_cast<unsigned int>(hdr.w), static_cast<unsigned int>(hdr.h), 1};
+  FrameSizeType frameSize = { static_cast<unsigned int>(hdr.w), static_cast<unsigned int>(hdr.h), 1};
 
   // Custom frame fields
   std::ostringstream strDataType;

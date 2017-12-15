@@ -1083,7 +1083,7 @@ PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::v
   {
     PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
-    std::array<unsigned int, 3> frameSize = { 0, 0, 0 };
+    FrameSizeType frameSize = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame " << i << ". Fill rectangle failed.");
@@ -1152,7 +1152,7 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
     PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
     PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
 
-    std::array<unsigned int, 3> frameSize = { 0, 0, 0 };
+    FrameSizeType frameSize = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to retrieve pixel data from frame " << i << ". Crop rectangle failed.");

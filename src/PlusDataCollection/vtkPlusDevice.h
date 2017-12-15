@@ -355,30 +355,19 @@ public:
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y,  int z);
   virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, unsigned int x, unsigned int y, unsigned int z);
-
-  /*!
-  Set the full-frame size.  This must be an allowed size for the device,
-  the device may either refuse a request for an illegal frame size or
-  automatically choose a new frame size.
-  */
-  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, const std::array<int, 3>& dim)
-  {
-    return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]);
-  };
 
   /*! Get the full-frame size */
   virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z) const;
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, std::array<unsigned int, 3>& dim) const;
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const;
 
   /*! Get the full-frame size */
   virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z) const;
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, std::array<unsigned int, 3>& dim) const;
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const;
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);
@@ -483,10 +472,7 @@ protected:
   /*!
   This function can be called to add a video item to the specified video data sources
   */
-  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<int, 3>& frameSizeInPx,
-      PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
-  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const std::array<unsigned int, 3>& frameSizeInPx,
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
