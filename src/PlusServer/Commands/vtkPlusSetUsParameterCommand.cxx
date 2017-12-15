@@ -164,7 +164,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
   {
     message += " Parameter " + paramIt->first + "=" + paramIt->second + ": ";
 
-    if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_TGC))
+    if (paramIt->first == vtkPlusUsImagingParameters::KEY_TGC)
     {
       std::stringstream ss;
       ss.str(paramIt->second);
@@ -177,7 +177,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
       }
       imagingParameters->SetTimeGainCompensation(numbers);
     }
-    else if (PlusCommon::IsEqualInsensitive(paramIt->first, vtkPlusUsImagingParameters::KEY_IMAGESIZE))
+    else if (paramIt->first == vtkPlusUsImagingParameters::KEY_IMAGESIZE)
     {
       std::stringstream ss;
       ss.str(paramIt->second);
@@ -190,8 +190,17 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
       }
       imagingParameters->SetImageSize(numbers[0], numbers[1], numbers[2]);
     }
-    else // double type parameter
-    {
+    else if (paramIt->first == vtkPlusUsImagingParameters::KEY_FREQUENCY
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_DEPTH
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_SECTOR
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_GAIN
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_INTENSITY
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_CONTRAST
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_DYNRANGE
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_ZOOM
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
+          || paramIt->first == vtkPlusUsImagingParameters::KEY_VOLTAGE)
+    { // double type parameter
       bool valid = false;
       double parameterValue = vtkVariant(paramIt->second).ToDouble(&valid);
       if (!valid)
@@ -201,6 +210,12 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
         continue;
       }
       imagingParameters->SetValue<double>(paramIt->first, parameterValue);
+    }
+    else
+    {
+      message += "Invalid parameter name";
+      status = PLUS_FAIL;
+      continue;
     }
 
     if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)

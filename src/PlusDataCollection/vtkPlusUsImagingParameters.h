@@ -39,11 +39,28 @@ Currently contains the following items
 class vtkPlusDataCollectionExport vtkPlusUsImagingParameters : public vtkObject
 {
 protected:
-  typedef std::map<std::string, bool> ParameterSetMap;
-public:
-  typedef std::map<std::string, std::string> ParameterNameMap;
-  typedef ParameterNameMap::iterator ParameterNameMapIterator;
-  typedef ParameterNameMap::const_iterator ParameterNameMapConstIterator;
+  class ParameterInfo
+  {
+  public:
+    ParameterInfo() : Value(""), Set(false), Changed(false) {};
+    ParameterInfo(std::string defaultValue) : Value(defaultValue), Set(false), Changed(false) {};
+
+    /// Serialized parameter value
+    std::string Value;
+    /// Flag indicating whether the invalid default has been changed to meaningful value
+    /// (Note: sound velocity has a meaningful default)
+    bool Set;
+    /// Flag indicating whether the parameter is changed but has not been set to device
+    bool Changed;
+  };
+  typedef std::map<std::string, ParameterInfo> ParameterMap;
+  typedef ParameterMap::iterator ParameterMapIterator;
+  typedef ParameterMap::const_iterator ParameterMapConstIterator;
+
+  /*! Return an iterator to the beginning of the parameter space */
+  ParameterMapConstIterator begin() const;
+  /*! Return an iterator to the end of the parameter space */
+  ParameterMapConstIterator end() const;
 
 public:
   static const char* XML_ELEMENT_TAG;
@@ -99,15 +116,20 @@ public:
   {
     std::stringstream ss;
     ss << aValue;
-    this->ParameterValues[paramName] = ss.str();
-    this->ParameterSet[paramName] = true;
+    this->Parameters[paramName] = ParameterInfo(ss.str());
+    this->Parameters[paramName].Set = true;
     return PLUS_SUCCESS;
   };
   /*!
-  Request the status of a member
+  Request the set status of a member (whether it is not the default value)
   \param paramName the key value to retrieve
   */
   bool IsSet(const std::string& paramName) const;
+  /*!
+  Request the changed status of a member
+  \param paramName the key value to retrieve
+  */
+  bool IsChanged(const std::string& paramName) const;
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
@@ -176,18 +198,13 @@ public:
   PlusStatus GetProbeVoltage(float& aVoltage) const;
   float GetProbeVoltage() const;
 
-  /*! Set the image size [width, heigh, depth(elevational dimension)] of the B-mode ultrasound */
+  /*! Set the image size [width, height, depth(elevational dimension)] of the B-mode ultrasound */
   PlusStatus SetImageSize(const std::vector<int>& imageSize);
   PlusStatus SetImageSize(int* imageSize, int length);
   PlusStatus SetImageSize(int x, int y, int z);
   /*! Get the image size of B-mode ultrasound */
   PlusStatus GetImageSize(std::vector<int>& imageSize) const;
   std::vector<int> GetImageSize() const;
-
-  /*! Return an iterator to the beginning of the parameter space */
-  ParameterNameMapConstIterator begin() const;
-  /*! Return an iterator to the end of the parameter space */
-  ParameterNameMapConstIterator end() const;
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -258,8 +275,7 @@ protected:
   vtkPlusUsImagingParameters();
   virtual ~vtkPlusUsImagingParameters();
 
-  ParameterNameMap ParameterValues;
-  ParameterSetMap ParameterSet;
+  ParameterMap Parameters;
 };
 
 #endif
