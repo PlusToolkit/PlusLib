@@ -155,7 +155,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
   }
 
   std::string usDeviceId = (usDevice->GetDeviceId().empty() ? "(unknown)" : usDevice->GetDeviceId());
-  vtkPlusUsImagingParameters* imagingParameters = usDevice->GetCurrentImagingParameters();
+  vtkPlusUsImagingParameters* imagingParameters = usDevice->GetImagingParameters();
   std::string message = this->Name + std::string("(") + usDeviceId + std::string(")");
   PlusStatus status = PLUS_SUCCESS;
 

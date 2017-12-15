@@ -42,8 +42,8 @@ protected:
   class ParameterInfo
   {
   public:
-    ParameterInfo() : Value(""), Set(false), Changed(false) {};
-    ParameterInfo(std::string defaultValue) : Value(defaultValue), Set(false), Changed(false) {};
+    ParameterInfo() : Value(""), Set(false), Pending(false) {};
+    ParameterInfo(std::string defaultValue) : Value(defaultValue), Set(false), Pending(false) {};
 
     /// Serialized parameter value
     std::string Value;
@@ -51,7 +51,7 @@ protected:
     /// (Note: sound velocity has a meaningful default)
     bool Set;
     /// Flag indicating whether the parameter is changed but has not been set to device
-    bool Changed;
+    bool Pending;
   };
   typedef std::map<std::string, ParameterInfo> ParameterMap;
   typedef ParameterMap::iterator ParameterMapIterator;
@@ -116,20 +116,28 @@ public:
   {
     std::stringstream ss;
     ss << aValue;
-    this->Parameters[paramName] = ParameterInfo(ss.str());
+    if (this->Parameters[paramName].Value != ss.str())
+    {
+      this->Parameters[paramName].Pending = true;
+    }
+    this->Parameters[paramName].Value = ss.str();
     this->Parameters[paramName].Set = true;
     return PLUS_SUCCESS;
   };
   /*!
-  Request the set status of a member (whether it is not the default value)
+  Request the set status of a parameter (whether it is not the default value)
   \param paramName the key value to retrieve
   */
   bool IsSet(const std::string& paramName) const;
   /*!
-  Request the changed status of a member
+  Request the pending status of a parameter
   \param paramName the key value to retrieve
   */
-  bool IsChanged(const std::string& paramName) const;
+  bool IsPending(const std::string& paramName) const;
+  /*!
+  Set the pending status of a parameter
+  */
+  PlusStatus SetPending(const std::string& paramName, bool pending);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);

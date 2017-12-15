@@ -80,7 +80,7 @@ public:
   /*!
     Get current imaging parameters
   */
-  vtkGetObjectMacro(CurrentImagingParameters, vtkPlusUsImagingParameters);
+  vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
 
 protected:
   /*!
@@ -94,10 +94,8 @@ protected:
   virtual ~vtkPlusUsDevice();
 
 protected:
-  /// Store the requested imaging parameters
-  vtkPlusUsImagingParameters* RequestedImagingParameters;
   /// Store the current imaging parameters
-  vtkPlusUsImagingParameters* CurrentImagingParameters;
+  vtkPlusUsImagingParameters* ImagingParameters;
 
   /// Values used in calculation of image to transducer matrix
   double CurrentPixelSpacingMm[3];

@@ -133,9 +133,6 @@ public:
 
   /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
-
-  /*! Set the parameters in bulk */
-  PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
   
   /*!
     Request a particular data type from sonix machine by means of a bitmask.
@@ -299,6 +296,11 @@ protected:
     Returns a combination of vtkPlusUsImagingParameters::DataType enum flags.
   */
   virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
+
+  /*!
+  Set changed imaging parameter to device
+  */
+  virtual PlusStatus RequestImagingParameterChange();
 
 protected:
   vtkPlusSonixVideoSource();

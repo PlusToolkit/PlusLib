@@ -238,29 +238,44 @@ PlusStatus vtkPlusUsSimulatorVideoSource::NotifyConfigured()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
 {
-  //TODO: Make this dynamic (only set those that actually changed)
-  if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH))
+  if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH) )
   {
     vtkPlusUsScanConvert* scanConverter = this->UsSimulator->GetRfProcessor()->GetScanConverter();
     vtkPlusUsScanConvertLinear* linearScanConverter = vtkPlusUsScanConvertLinear::SafeDownCast(scanConverter);
     vtkPlusUsScanConvertCurvilinear* curvilinearScanConverter = vtkPlusUsScanConvertCurvilinear::SafeDownCast(scanConverter);
     if (linearScanConverter)
     {
-      linearScanConverter->SetImagingDepthMm(this->RequestedImagingParameters->GetDepthMm());
+      linearScanConverter->SetImagingDepthMm(this->ImagingParameters->GetDepthMm());
     }
     else if (curvilinearScanConverter)
     {
       curvilinearScanConverter->SetRadiusStopMm(
-        curvilinearScanConverter->GetRadiusStartMm() + this->RequestedImagingParameters->GetDepthMm() );
+        curvilinearScanConverter->GetRadiusStartMm() + this->ImagingParameters->GetDepthMm() );
     }
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_DEPTH, false);
   }
-  if (this->RequestedImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY) )
   {
-    this->UsSimulator->SetFrequencyMhz(this->RequestedImagingParameters->GetFrequencyMhz());
+    this->UsSimulator->SetFrequencyMhz(this->ImagingParameters->GetFrequencyMhz());
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FREQUENCY, false);
   }
-  //TODO: Add
-  // KEY_INTENSITY: IncomingIntensityMwPerCm2
-  // KEY_CONTRAST: BrightnessConversionGamma? Scale?
+  if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_INTENSITY) )
+  {
+    this->UsSimulator->SetIncomingIntensityMwPerCm2(this->ImagingParameters->GetIntensity());
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_INTENSITY, false);
+  }
+  if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_CONTRAST) )
+  {
+    this->UsSimulator->SetBrightnessConversionGamma(this->ImagingParameters->GetContrast());
+    this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_CONTRAST, false);
+  }
+
+  //TODO: Acknowledge parameter change
+  //      (if here then need to trust developer, or do it everywhere this function is called)
 
   return PLUS_SUCCESS;
 }
