@@ -2,6 +2,8 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
+
+Developed by MACBIOIDI & IACTEC group 
 =========================================================Plus=header=end*/
 
 // Local includes
@@ -119,7 +121,6 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
     return PLUS_FAIL;
   }
   
-  // TODO: check these sentences
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {

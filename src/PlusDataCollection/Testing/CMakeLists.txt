@@ -481,6 +481,13 @@ IF(PLUS_USE_OPENHAPTICS)
   TARGET_LINK_LIBRARIES(vtkOpenHapticsDeviceTest vtkPlusDataCollection vtkPlusCommon)
 ENDIF()
 
+#*********************** InfraredSeekCameraDeviceTest *****************************
+IF(PLUS_USE_INFRARED_SEEK_CAM)
+  ADD_EXECUTABLE(vtkInfraredSeekCamTest vtkInfraredSeekCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkInfraredSeekCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkInfraredSeekCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+ENDIF()
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )

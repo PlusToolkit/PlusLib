@@ -2,6 +2,8 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
+
+Developed by MACBIOIDI & IACTEC group 
 =========================================================Plus=header=end*/
 
 #ifndef __vtkInfraredSeekCam_h
