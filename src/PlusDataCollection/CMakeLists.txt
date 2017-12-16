@@ -1915,27 +1915,31 @@ SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PRO
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
 IF( ${CMAKE_GENERATOR} MATCHES "Visual Studio" OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   FILE(COPY ${External_Libraries_Install}
-      DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
-      )
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/Release
+    )
+  FILE(COPY ${External_Libraries_Install}
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/RelWithDebInfo
+    )
+  FILE(COPY ${External_Libraries_Install}
+    DESTINATION ${PLUS_EXECUTABLE_OUTPUT_PATH}/MinSizeRel
+    )
 
   # If debug and release dll has the same name then the debug dll would be
   # overwritten by the file copy. To prevent this, copy only those release dlls
   # that has no corresponding debug dll with the same filename.
-  SET(External_Libraries_Install_Minus_Debug)
-  SET(External_Libraries_Debug_FileName)
 
   # Find the file names of the debug shared libraries
-  FOREACH (DEBUG ${External_Libraries_Debug})
-    get_filename_component(FileName ${DEBUG} NAME)
-    SET(External_Libraries_Debug_FileName ${External_Libraries_Debug_FileName} ${FileName})
+  FOREACH(_debug_lib ${External_Libraries_Debug})
+    GET_FILENAME_COMPONENT(_file_name ${_debug_lib} NAME)
+    LIST(APPEND External_Libraries_Debug_FileName ${_file_name})
   ENDFOREACH()
 
   # Extract the release shared libraries that have the same name as debug shared libraries
-  FOREACH (RELEASE ${External_Libraries_Install})
-    get_filename_component(FileName ${RELEASE} NAME)
-    list(FIND External_Libraries_Debug_FileName ${FileName} HasTheFileName)
-    IF(HasTheFileName EQUAL -1)
-        SET(External_Libraries_Install_Minus_Debug ${External_Libraries_Install_Minus_Debug} ${RELEASE})
+  FOREACH(_release_lib ${External_Libraries_Install})
+    GET_FILENAME_COMPONENT(_file_name ${_release_lib} NAME)
+    LIST(FIND External_Libraries_Debug_FileName ${_file_name} _has_file_name)
+    IF(_has_file_name EQUAL -1)
+      LIST(APPEND External_Libraries_Install_Minus_Debug ${_release_lib})
     ENDIF()
   ENDFOREACH()
 
