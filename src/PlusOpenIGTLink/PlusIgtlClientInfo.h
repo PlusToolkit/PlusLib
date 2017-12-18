@@ -23,8 +23,9 @@ class vtkPlusCommandProcessor;
 
   \ingroup PlusLibOpenIGTLink
 */
-struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
+class vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 {
+public:
   /*! Helper struct for storing image stream and embedded transform frame names
   IGTL image message device name: [Name]_[EmbeddedTransformToFrame]
   */
@@ -50,11 +51,19 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   int GetClientHeaderVersion() const;
-
   void SetClientHeaderVersion(int version);
 
-  /*! IGTL header version supported by the client */
-  int ClientHeaderVersion;
+  bool GetSendBlocking() const;
+  void SetSendBlocking(bool val);
+
+  int GetResolution() const;
+  void SetResolution(int val);
+
+  bool GetTDATARequested() const;
+  void SetTDATARequested(bool val);
+
+  double GetLastTDATASentTimeStamp() const;
+  void SetLastTDATASentTimeStamp(double val);
 
   /*! Message types that client expects from the server */
   std::vector<std::string> IgtlMessageTypes;
@@ -63,21 +72,28 @@ struct vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
   std::vector<PlusTransformName> TransformNames;
 
   /*! String field names to send with IGT STRING message */
-  std::vector< std::string > StringNames;
+  std::vector<std::string> StringNames;
 
   /*! Transform names to send with IGT image message */
   std::vector<ImageStream> ImageStreams;
 
-  /*! A new TDATA is only sent if the time elapsed is at least the resolution
-     value (otherwise we don't send this tracking data to the client) */
-  int Resolution;
+protected:
+  /*! IGTL header version supported by the client */
+  int ClientHeaderVersion;
+
+  /*! Flag for send blocking or not (default no) */
+  bool SendBlocking;
 
   /*! flag for start TDATA transmission request: true on STT, false on STP.
-     If the start requested flag is false then don't send TDATA to the client. */
+  If the start requested flag is false then don't send TDATA to the client. */
   bool TDATARequested;
 
   /*! timestamp of the last sent TDATA message. */
   double LastTDATASentTimeStamp;
+
+  /*! A new TDATA is only sent if the time elapsed is at least the resolution
+  value (otherwise we don't send this tracking data to the client) */
+  int Resolution;
 };
 
 #endif

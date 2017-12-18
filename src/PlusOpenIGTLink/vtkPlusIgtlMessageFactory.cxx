@@ -143,7 +143,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     igtl::MessageBase::Pointer igtlMessage;
     try
     {
-      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.ClientHeaderVersion);
+      igtlMessage = this->IgtlFactory->CreateSendMessage(messageType, clientInfo.GetClientHeaderVersion());
     }
     catch (std::invalid_argument& e)
     {
@@ -221,7 +221,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
     // Tracking data message
     else if (typeid(*igtlMessage) == typeid(igtl::TrackingDataMessage))
     {
-      if (clientInfo.TDATARequested && clientInfo.LastTDATASentTimeStamp + clientInfo.Resolution < trackedFrame.GetTimestamp())
+      if (clientInfo.GetTDATARequested() && clientInfo.GetLastTDATASentTimeStamp() + clientInfo.GetResolution() < trackedFrame.GetTimestamp())
       {
         std::map<std::string, vtkSmartPointer<vtkMatrix4x4> > transforms;
         for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)

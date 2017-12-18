@@ -16,6 +16,7 @@ PlusIgtlClientInfo::PlusIgtlClientInfo()
   , Resolution(0)
   , TDATARequested(false)
   , LastTDATASentTimeStamp(-1)
+  , SendBlocking(false)
 {
 
 }
@@ -53,12 +54,19 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
 
   if (xmldata->GetAttribute("TDATARequested") != NULL)
   {
-    clientInfo.TDATARequested = STRCASECMP(xmldata->GetAttribute("TDATARequested"), "TRUE") == 0;
+    clientInfo.SetTDATARequested(STRCASECMP(xmldata->GetAttribute("TDATARequested"), "TRUE") == 0);
   }
 
   if (xmldata->GetAttribute("Resolution") != NULL)
   {
-    xmldata->GetScalarAttribute("Resolution", clientInfo.Resolution);
+    int resolution;
+    xmldata->GetScalarAttribute("Resolution", resolution);
+    clientInfo.SetResolution(resolution);
+  }
+
+  if (xmldata->GetAttribute("SendBlocking") != NULL)
+  {
+    clientInfo.SetSendBlocking(STRCASECMP(xmldata->GetAttribute("SendBlocking"), "TRUE") == 0);
   }
 
   // Get message types
@@ -170,7 +178,8 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
 {
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::New();
   xmldata->SetName("ClientInfo");
-  xmldata->SetAttribute("TDATARequested", (this->TDATARequested ? "TRUE" : "FALSE"));
+  xmldata->SetAttribute("TDATARequested", (this->GetTDATARequested() ? "TRUE" : "FALSE"));
+  xmldata->SetAttribute("SendBlocking", (this->GetSendBlocking() ? "TRUE" : "FALSE"));
 
   vtkSmartPointer<vtkXMLDataElement> messageTypes = vtkSmartPointer<vtkXMLDataElement>::New();
   messageTypes->SetName("MessageTypes");
@@ -187,7 +196,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
   transformNames->SetName("TransformNames");
   for (unsigned int i = 0; i < TransformNames.size(); ++i)
   {
-    if (! TransformNames[i].IsValid())
+    if (!TransformNames[i].IsValid())
     {
       std::string transformName;
       TransformNames[i].GetTransformName(transformName);
@@ -257,6 +266,10 @@ void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
     os << "(none)";
   }
 
+  os << indent << "TDATARequested: " << this->GetTDATARequested() ? "TRUE" : "FALSE";
+  os << indent << "LastTDATASentTimeStamp: " << this->GetLastTDATASentTimeStamp();
+  os << indent << "SendBlocking: " << this->GetSendBlocking() ? "TRUE" : "FALSE";
+
   os << ". Transforms: ";
   if (!this->TransformNames.empty())
   {
@@ -323,4 +336,52 @@ int PlusIgtlClientInfo::GetClientHeaderVersion() const
 void PlusIgtlClientInfo::SetClientHeaderVersion(int version)
 {
   this->ClientHeaderVersion = version;
+}
+
+//----------------------------------------------------------------------------
+bool PlusIgtlClientInfo::GetSendBlocking() const
+{
+  return SendBlocking;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetSendBlocking(bool val)
+{
+  SendBlocking = val;
+}
+
+//----------------------------------------------------------------------------
+int PlusIgtlClientInfo::GetResolution() const
+{
+  return Resolution;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetResolution(int val)
+{
+  Resolution = val;
+}
+
+//----------------------------------------------------------------------------
+bool PlusIgtlClientInfo::GetTDATARequested() const
+{
+  return TDATARequested;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetTDATARequested(bool val)
+{
+  TDATARequested = val;
+}
+
+//----------------------------------------------------------------------------
+double PlusIgtlClientInfo::GetLastTDATASentTimeStamp() const
+{
+  return LastTDATASentTimeStamp;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetLastTDATASentTimeStamp(double val)
+{
+  LastTDATASentTimeStamp = val;
 }
