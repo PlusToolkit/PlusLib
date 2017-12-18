@@ -246,10 +246,6 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
       client->ClientSocket->SetReceiveTimeout(self->DefaultClientReceiveTimeoutSec * 1000);
       client->ClientSocket->SetSendTimeout(self->DefaultClientSendTimeoutSec * 1000);
       client->ClientInfo = self->DefaultClientInfo;
-      if (client->ClientInfo.GetSendBlocking())
-      {
-        client->ClientSocket->SetSendBlocking(1);
-      }
       client->Server = self;
 
       int port = 0;

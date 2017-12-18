@@ -16,7 +16,6 @@ PlusIgtlClientInfo::PlusIgtlClientInfo()
   , TDATAResolution(0)
   , TDATARequested(false)
   , LastTDATASentTimeStamp(-1)
-  , SendBlocking(false)
 {
 
 }
@@ -64,7 +63,6 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
     xmldata->RemoveAttribute("Resolution");
     xmldata->SetIntAttribute("TDATAResolution", resolution);
   }
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SendBlocking, xmldata);
 
   // Get message types
   vtkXMLDataElement* messageTypes = xmldata->FindNestedElementWithName("MessageTypes");
@@ -185,7 +183,6 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::New();
   xmldata->SetName("ClientInfo");
   xmldata->SetAttribute("TDATARequested", (this->GetTDATARequested() ? "TRUE" : "FALSE"));
-  xmldata->SetAttribute("SendBlocking", (this->GetSendBlocking() ? "TRUE" : "FALSE"));
   xmldata->SetIntAttribute("TDATAResolution", this->GetTDATAResolution());
 
   vtkSmartPointer<vtkXMLDataElement> messageTypes = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -277,7 +274,6 @@ void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "TDATARequested: " << (this->GetTDATARequested() ? "TRUE" : "FALSE") << ". ";
   os << indent << "LastTDATASentTimeStamp: " << this->GetLastTDATASentTimeStamp() << ". ";
   os << indent << "TDATAResolution: " << this->GetTDATAResolution() << ". ";
-  os << indent << "SendBlocking: " << this->GetSendBlocking() ? "TRUE" : "FALSE";
 
   os << ". Transforms: ";
   if (!this->TransformNames.empty())
@@ -348,49 +344,37 @@ void PlusIgtlClientInfo::SetClientHeaderVersion(int version)
 }
 
 //----------------------------------------------------------------------------
-bool PlusIgtlClientInfo::GetSendBlocking() const
-{
-  return SendBlocking;
-}
-
-//----------------------------------------------------------------------------
-void PlusIgtlClientInfo::SetSendBlocking(bool val)
-{
-  SendBlocking = val;
-}
-
-//----------------------------------------------------------------------------
 int PlusIgtlClientInfo::GetTDATAResolution() const
 {
-  return TDATAResolution;
+  return this->TDATAResolution;
 }
 
 //----------------------------------------------------------------------------
 void PlusIgtlClientInfo::SetTDATAResolution(int val)
 {
-  TDATAResolution = val;
+  this->TDATAResolution = val;
 }
 
 //----------------------------------------------------------------------------
 bool PlusIgtlClientInfo::GetTDATARequested() const
 {
-  return TDATARequested;
+  return this->TDATARequested;
 }
 
 //----------------------------------------------------------------------------
 void PlusIgtlClientInfo::SetTDATARequested(bool val)
 {
-  TDATARequested = val;
+  this->TDATARequested = val;
 }
 
 //----------------------------------------------------------------------------
 double PlusIgtlClientInfo::GetLastTDATASentTimeStamp() const
 {
-  return LastTDATASentTimeStamp;
+  return this->LastTDATASentTimeStamp;
 }
 
 //----------------------------------------------------------------------------
 void PlusIgtlClientInfo::SetLastTDATASentTimeStamp(double val)
 {
-  LastTDATASentTimeStamp = val;
+  this->LastTDATASentTimeStamp = val;
 }

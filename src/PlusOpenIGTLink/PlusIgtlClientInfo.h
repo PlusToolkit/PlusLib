@@ -62,11 +62,6 @@ public:
   /*! IGTL header version supported by the client */
   void SetClientHeaderVersion(int version);
 
-  /*! Flag for whether or not the client socket blocks when sending data (wait for all data to be sent) (default no) */
-  bool GetSendBlocking() const;
-  /*! Flag for whether or not the client socket blocks when sending data (wait for all data to be sent) (default no) */
-  void SetSendBlocking(bool val);
-
   /*! Minimum time between two TDATA frames. Use 0 for as fast as possible. If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. */
   int GetTDATAResolution() const;
   /*! Minimum time between two TDATA frames. Use 0 for as fast as possible. If e.g. 50 ms is specified, the maximum update rate will be 20 Hz. */
@@ -98,7 +93,6 @@ public:
 
 protected:
   int     ClientHeaderVersion;
-  bool    SendBlocking;
   bool    TDATARequested;
   double  LastTDATASentTimeStamp;
   int     TDATAResolution;
