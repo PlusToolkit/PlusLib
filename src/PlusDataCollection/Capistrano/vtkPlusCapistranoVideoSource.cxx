@@ -1303,7 +1303,21 @@ PlusStatus vtkPlusCapistranoVideoSource::SetUpdateParameters(bool b)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetBidirectionalMode(bool mode)
 {
-  this->BidirectionalMode = mode;
+  if (mode!= this->BidirectionalMode)
+  {
+    this->BidirectionalMode = mode;
+    if (this->Connected)
+    {
+      if (mode)
+      {
+        usbSetBidirectionalMode();
+      }
+      else
+      {
+        usbSetUnidirectionalMode();
+      }
+    }
+  }
   return PLUS_SUCCESS;
 }
 
