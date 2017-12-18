@@ -8,3 +8,5 @@ Then, you have to execute install.sh with sudo privileges to grant the privilege
 
 Then, you can use the Infrared Thermal Seek Pro module to use the camera.
 
+
+Developed by MACBIOIDI-ULPGC & IACTEC-IAC group

@@ -3,7 +3,7 @@ Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 
-Developed by MACBIOIDI & IACTEC group 
+Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 =========================================================Plus=header=end*/
 
 // Local includes
