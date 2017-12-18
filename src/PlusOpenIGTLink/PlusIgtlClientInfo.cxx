@@ -4,16 +4,16 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "PlusConfigure.h"
-
+// Local includes
 #include "PlusIgtlClientInfo.h"
 
-#include "igtl_header.h"
+// IGTL includes
+#include <igtl_header.h>
 
 //----------------------------------------------------------------------------
 PlusIgtlClientInfo::PlusIgtlClientInfo()
   : ClientHeaderVersion(IGTL_HEADER_VERSION_1)
-  , Resolution(0)
+  , TDATAResolution(0)
   , TDATARequested(false)
   , LastTDATASentTimeStamp(-1)
 {
@@ -51,14 +51,17 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
 
   PlusIgtlClientInfo clientInfo;
 
-  if (xmldata->GetAttribute("TDATARequested") != NULL)
-  {
-    clientInfo.TDATARequested = STRCASECMP(xmldata->GetAttribute("TDATARequested"), "TRUE") == 0;
-  }
-
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TDATARequested, xmldata);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TDATAResolution, xmldata);
   if (xmldata->GetAttribute("Resolution") != NULL)
   {
-    xmldata->GetScalarAttribute("Resolution", clientInfo.Resolution);
+    int resolution;
+    XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, Resolution, resolution, xmldata);
+    clientInfo.SetTDATAResolution(resolution);
+
+    LOG_WARNING("Old parameter name \"Resolution\" detected. Please replace with \"TDATAResolution\".");
+    xmldata->RemoveAttribute("Resolution");
+    xmldata->SetIntAttribute("TDATAResolution", resolution);
   }
 
   // Get message types
@@ -72,11 +75,10 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      const char* type = messageTypes->GetNestedElement(i)->GetAttribute("Type");
-      if (type != NULL)
-      {
-        clientInfo.IgtlMessageTypes.push_back(type);
-      }
+      vtkXMLDataElement* typeElem = messageTypes->GetNestedElement(i);
+      std::string type;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Type, type, typeElem);
+      clientInfo.IgtlMessageTypes.push_back(type);
     }
   }
 
@@ -91,12 +93,15 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      const char* name = transformNames->GetNestedElement(i)->GetAttribute("Name");
-      if (name == NULL)
+      vtkXMLDataElement* transformElem = messageTypes->GetNestedElement(i);
+      std::string name;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, transformElem);
+      if (name.empty())
       {
-        LOG_WARNING("In TransformNames child Transform #" << i << " definition is incomplete: required Name attribute is missing");
+        LOG_WARNING("In TransformNames child transform #" << i << " definition is incomplete: required Name attribute is missing.");
         continue;
       }
+
       PlusTransformName tName;
       if (tName.SetTransformName(name) != PLUS_SUCCESS)
       {
@@ -104,7 +109,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
         continue;
       }
       clientInfo.TransformNames.push_back(tName);
-    } // transformNames
+    }
   }
 
   // Get image streams
@@ -118,16 +123,20 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      const char* embeddedTransformToFrame = imageNames->GetNestedElement(i)->GetAttribute("EmbeddedTransformToFrame");
-      if (embeddedTransformToFrame == NULL)
+      vtkXMLDataElement* imageElem = messageTypes->GetNestedElement(i);
+      std::string embeddedTransformToFrame;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EmbeddedTransformToFrame, embeddedTransformToFrame, imageElem);
+      if (embeddedTransformToFrame.empty())
       {
-        LOG_WARNING("EmbeddedTransformToFrame attribute of ImageNames/Image element is missing. This element will be ignored.");
+        LOG_WARNING("EmbeddedTransformToFrame attribute of ImageNames/Image element #" << i << " is missing. This element will be ignored.");
         continue;
       }
-      const char* name = imageNames->GetNestedElement(i)->GetAttribute("Name");
-      if (name == NULL)
+
+      std::string name;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, imageElem);
+      if (name.empty())
       {
-        LOG_WARNING("Name attribute of ImageNames/Image element is missing. This element will be ignored.");
+        LOG_WARNING("Name attribute of ImageNames/Image element # " << i << " is missing. This element will be ignored.");
         continue;
       }
 
@@ -149,12 +158,15 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      const char* name = stringNames->GetNestedElement(i)->GetAttribute("Name");
-      if (name == NULL)
+      vtkXMLDataElement* stringElem = messageTypes->GetNestedElement(i);
+      std::string name;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, stringElem);
+      if (name.empty())
       {
         LOG_WARNING("In StringNames child element #" << i << " definition is incomplete: required Name attribute is missing");
         continue;
       }
+
       clientInfo.StringNames.push_back(name);
     }
   }
@@ -170,7 +182,8 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
 {
   vtkSmartPointer<vtkXMLDataElement> xmldata = vtkSmartPointer<vtkXMLDataElement>::New();
   xmldata->SetName("ClientInfo");
-  xmldata->SetAttribute("TDATARequested", (this->TDATARequested ? "TRUE" : "FALSE"));
+  xmldata->SetAttribute("TDATARequested", (this->GetTDATARequested() ? "TRUE" : "FALSE"));
+  xmldata->SetIntAttribute("TDATAResolution", this->GetTDATAResolution());
 
   vtkSmartPointer<vtkXMLDataElement> messageTypes = vtkSmartPointer<vtkXMLDataElement>::New();
   messageTypes->SetName("MessageTypes");
@@ -187,7 +200,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
   transformNames->SetName("TransformNames");
   for (unsigned int i = 0; i < TransformNames.size(); ++i)
   {
-    if (! TransformNames[i].IsValid())
+    if (!TransformNames[i].IsValid())
     {
       std::string transformName;
       TransformNames[i].GetTransformName(transformName);
@@ -256,6 +269,11 @@ void PlusIgtlClientInfo::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << "(none)";
   }
+  os << indent << ". ";
+
+  os << indent << "TDATARequested: " << (this->GetTDATARequested() ? "TRUE" : "FALSE") << ". ";
+  os << indent << "LastTDATASentTimeStamp: " << this->GetLastTDATASentTimeStamp() << ". ";
+  os << indent << "TDATAResolution: " << this->GetTDATAResolution() << ". ";
 
   os << ". Transforms: ";
   if (!this->TransformNames.empty())
@@ -323,4 +341,40 @@ int PlusIgtlClientInfo::GetClientHeaderVersion() const
 void PlusIgtlClientInfo::SetClientHeaderVersion(int version)
 {
   this->ClientHeaderVersion = version;
+}
+
+//----------------------------------------------------------------------------
+int PlusIgtlClientInfo::GetTDATAResolution() const
+{
+  return this->TDATAResolution;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetTDATAResolution(int val)
+{
+  this->TDATAResolution = val;
+}
+
+//----------------------------------------------------------------------------
+bool PlusIgtlClientInfo::GetTDATARequested() const
+{
+  return this->TDATARequested;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetTDATARequested(bool val)
+{
+  this->TDATARequested = val;
+}
+
+//----------------------------------------------------------------------------
+double PlusIgtlClientInfo::GetLastTDATASentTimeStamp() const
+{
+  return this->LastTDATASentTimeStamp;
+}
+
+//----------------------------------------------------------------------------
+void PlusIgtlClientInfo::SetLastTDATASentTimeStamp(double val)
+{
+  this->LastTDATASentTimeStamp = val;
 }
