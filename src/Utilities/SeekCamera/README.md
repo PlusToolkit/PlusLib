@@ -1,6 +1,8 @@
 This module allow you to use the Infrared Thermal Seek Pro Camera.
 
-First, you have to execute install.sh with sudo privileges to grant the privileges to access to the camera.
+To use the Seek Camera you have to install libusb library.
+
+Then, you have to execute install.sh with sudo privileges to grant the privileges to access to the camera.
 
 ./sudo install.sh 
 
