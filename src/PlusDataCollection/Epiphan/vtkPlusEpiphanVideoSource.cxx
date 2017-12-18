@@ -411,7 +411,7 @@ PlusStatus vtkPlusEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* root
   XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
 
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
-  XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
+  XML_REMOVE_ATTRIBUTE("SerialNumber", imageAcquisitionConfig);
 
   // Epiphan hardware clipping parameters
   imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());

@@ -711,7 +711,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY)
       {
-        client->ClientInfo.SetResolution(startTracking->GetResolution());
+        client->ClientInfo.SetTDATAResolution(startTracking->GetResolution());
         client->ClientInfo.SetTDATARequested(true);
       }
       else
@@ -1103,7 +1103,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->DefaultClientInfo.TransformNames.clear();
   this->DefaultClientInfo.ImageStreams.clear();
   this->DefaultClientInfo.StringNames.clear();
-  this->DefaultClientInfo.SetResolution(0);
+  this->DefaultClientInfo.SetTDATAResolution(0);
   this->DefaultClientInfo.SetTDATARequested(false);
 
   vtkXMLDataElement* defaultClientInfo = serverElement->FindNestedElementWithName("DefaultClientInfo");
@@ -1117,8 +1117,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, DefaultClientSendTimeoutSec, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, DefaultClientReceiveTimeoutSec, serverElement);
-
-  // TODO : how come default client info isn't mandatory? send nothing?
 
   return PLUS_SUCCESS;
 }
