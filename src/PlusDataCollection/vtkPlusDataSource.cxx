@@ -574,6 +574,12 @@ PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION u
                                     this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, const FrameSizeType& frameSize, unsigned int frameSizeInBytes, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  return this->GetBuffer()->AddItem(imageDataPtr, frameSize, frameSizeInBytes, imageType, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
+}
+
 //-----------------------------------------------------------------------------
 US_IMAGE_TYPE vtkPlusDataSource::GetImageType()
 {
