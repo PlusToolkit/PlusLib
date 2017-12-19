@@ -93,7 +93,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      vtkXMLDataElement* transformElem = messageTypes->GetNestedElement(i);
+      vtkXMLDataElement* transformElem = transformNames->GetNestedElement(i);
       std::string name;
       XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, transformElem);
       if (name.empty())
@@ -123,7 +123,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      vtkXMLDataElement* imageElem = messageTypes->GetNestedElement(i);
+      vtkXMLDataElement* imageElem = imageNames->GetNestedElement(i);
       std::string embeddedTransformToFrame;
       XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EmbeddedTransformToFrame, embeddedTransformToFrame, imageElem);
       if (embeddedTransformToFrame.empty())
@@ -158,7 +158,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       {
         continue;
       }
-      vtkXMLDataElement* stringElem = messageTypes->GetNestedElement(i);
+      vtkXMLDataElement* stringElem = stringNames->GetNestedElement(i);
       std::string name;
       XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, stringElem);
       if (name.empty())
