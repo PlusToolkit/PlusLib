@@ -88,7 +88,7 @@ void PlusFidLabeling::UpdateParameters()
   m_MaxLinePairAngleRad = 0;
   for (std::vector<PlusFidPattern*>::size_type i = numOfPatterns - 1; i > 0; --i)
   {
-    for (std::vector<PlusFidPattern*>::size_type j = i - 1; j >= 0; --j)
+    for (int j = static_cast<int>(i) - 1; j >= 0; --j)
     {
       double distance = planes.at(i)->DistanceToPlane(planes.at(j)->GetOrigin());
       if (maxNPlaneDistance < distance)
