@@ -90,6 +90,7 @@ public:
 
   /*! Set the frame size that will be requested when setting the video format. Acquired image frames may be smaller if clipping is applied in the video source. */
   void SetFrameSize(const FrameSizeType& frameSize);
+  void SetFrameSize(unsigned int i, unsigned int j, unsigned int k);
   /*! Get the frame size requested from the framegrabber. */
   FrameSizeType GetFrameSize() const;
 

@@ -192,8 +192,8 @@ PlusStatus vtkPlusICCapturingSource::AddFrameToBuffer(unsigned char* dataPtr, un
 
   this->FrameNumber = frameNumber;
 
-  grabber = static_cast<DShowLib::Grabber*>(FrameGrabber);
-  if (grabber->getAcqSizeMaxX() < 0 || grabber->getAcqSizeMaxY() < 0)
+  DShowLib::Grabber* grabber = static_cast<DShowLib::Grabber*>(this->FrameGrabber);
+  if (grabber == nullptr || grabber->getAcqSizeMaxX() < 0 || grabber->getAcqSizeMaxY() < 0)
   {
     LOG_ERROR("Negative frame size sent from ICC device. Cannot continue.");
     return PLUS_FAIL;
@@ -277,7 +277,7 @@ PlusStatus vtkPlusICCapturingSource::InternalConnect()
   }
   aSource->SetPixelType(VTK_UNSIGNED_CHAR);
 
-  FrameSizeType frameSize[3] = {0, 0, 1};
+  FrameSizeType frameSize = {0, 0, 1};
   frameSize[0] = static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
   frameSize[1] = static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY();
   frameSize[2] = 1;
@@ -387,7 +387,8 @@ PlusStatus vtkPlusICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootCo
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
+  XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
+  FrameSize[2] = 1;
 
   // Only for backward compatibility
   // VideoFormat used to contain both video format and frame size, so in case frame size is defined
@@ -408,7 +409,10 @@ PlusStatus vtkPlusICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootC
   imageAcquisitionConfig->SetAttribute("DeviceName", this->DeviceName);
   imageAcquisitionConfig->SetAttribute("VideoNorm", this->VideoNorm);
   imageAcquisitionConfig->SetAttribute("VideoFormat", this->VideoFormat);
-  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->FrameSize);
+  int frameSize[2];
+  frameSize[0] = static_cast<int>(this->FrameSize[0]);
+  frameSize[1] = static_cast<int>(this->FrameSize[1]);
+  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, frameSize);
   imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
   imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
 
@@ -419,6 +423,16 @@ PlusStatus vtkPlusICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootC
 void vtkPlusICCapturingSource::SetFrameSize(const FrameSizeType& frameSize)
 {
   this->FrameSize = FrameSize;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusICCapturingSource::SetFrameSize(unsigned int i, unsigned int j, unsigned int k)
+{
+  FrameSizeType t;
+  t[0] = i;
+  t[1] = j;
+  t[2] = k;
+  this->SetFrameSize(t);
 }
 
 //----------------------------------------------------------------------------
@@ -498,7 +512,7 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
 
   // Parsing successful, save results
   this->SetVideoFormat(splitVideoFormatFrameSize[0].c_str());
-  this->SetFrameSize(frameSizeX, frameSizeY);
+  this->SetFrameSize(frameSizeX, frameSizeY, 1);
 }
 
 //----------------------------------------------------------------------------
