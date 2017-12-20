@@ -126,7 +126,7 @@ public:
   PlusStatus SetBModeViewOption(unsigned int bmodeviewoption);
 
   /* Set the size of US B-mode image */
-  PlusStatus SetImageSize(const std::array<int, 3>& imageSize);
+  PlusStatus SetImageSize(const FrameSizeType& imageSize);
 
   /* Set the Intensity (Brightness) of US B-mode image */
   PlusStatus SetIntensity(double value);

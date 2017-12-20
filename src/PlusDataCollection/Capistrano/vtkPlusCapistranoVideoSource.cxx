@@ -738,8 +738,8 @@ vtkPlusCapistranoVideoSource::vtkPlusCapistranoVideoSource()
   this->Interpolate                            = true;
   this->AverageMode                            = true;
   this->CurrentBModeViewOption                 = STANDARDVIEW;
-  int imageSize[2] = {640, 800};
-  this->Internal->ImagingParameters->SetImageSize(imageSize, 2);
+  FrameSizeType imageSize = {640, 800, 1};
+  this->Internal->ImagingParameters->SetImageSize(imageSize);
   this->Internal->ImagingParameters->SetIntensity(128);
   this->Internal->ImagingParameters->SetContrast(256);
   this->Internal->ImagingParameters->SetZoomFactor(1.0);
@@ -813,7 +813,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoProbe()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
 {
-  std::vector<int> imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
 
   // Get ProbeID of an attached Capistrano US Probe ------------------------
   this->ProbeID = usbAttachedProbeID();
@@ -989,7 +989,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
   // Clear buffer on connect because the new frames that we will
   // acquire might have a different size
   aSource->Clear();
-  std::vector<int> frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType frameSizeInPx = this->Internal->ImagingParameters->GetImageSize();
   //aSource->SetInputImageOrientation(US_IMG_ORIENT_NU);
   aSource->SetImageType(US_IMG_BRIGHTNESS);
   aSource->SetPixelType(VTK_UNSIGNED_CHAR);
@@ -1154,7 +1154,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
     LOG_DEBUG("Set up image buffer for Interson");
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetInputFrameSize(frameSize);
+    aSource->SetInputFrameSize(frameSizeInPx);
 
     float depthScale = -1;
     usbProbeDepthScale(this->Internal->ProbeHandle, &depthScale);
@@ -1177,7 +1177,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 
   RETURN_WITH_FAIL_IF(aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
                                        aSource->GetInputImageOrientation(),
-                                       frameSize, VTK_UNSIGNED_CHAR,
+                                       frameSizeInPx, VTK_UNSIGNED_CHAR,
                                        1, US_IMG_BRIGHTNESS, 0,
                                        this->FrameNumber,
                                        unfilteredTimestamp,
@@ -1475,9 +1475,9 @@ PlusStatus vtkPlusCapistranoVideoSource::SetBModeViewOption(unsigned int bModeVi
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(const std::array<int, 3>& imageSize)
+PlusStatus vtkPlusCapistranoVideoSource::SetImageSize(const FrameSizeType& imageSize)
 {
-  return this->Internal->ImagingParameters->SetImageSize(imageSize);
+  return this->Internal->ImagingParameters->SetImageSize(imageSize[0], imageSize[1], imageSize[2]);
 }
 
 // ----------------------------------------------------------------------------
@@ -1668,45 +1668,24 @@ PlusStatus vtkPlusCapistranoVideoSource::UpdateUSBModeParameters()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay()
 {
-  POINT ptCenter;        // Points for Zoomed Display
-  std::vector<int> imageSize = this->Internal->ImagingParameters->GetImageSize();
-  ptCenter.x                   = imageSize[0] / 2;
-  ptCenter.y                   = imageSize[1] / 2;
-
-  this->CurrentBModeViewOption = OPTHALMICVIEW;
-
-  this->Internal->USProbeParams.probetype.OversampleRate = 2048.0f / imageSize[1];
-
-  if (bmCalculateZoomDisplay(imageSize[0], imageSize[1],
-                             ptCenter,
-                             this->Internal->USProbeParams.probetype,
-                             (unsigned int)imageSize[0], STANDARDVIEW)
-      == ERROR)
-  {
-    LOG_ERROR("CalculateDisplay ERROR: Bad Theta Value");
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
+  return this->CalculateDisplay(STANDARDVIEW);
 }
 
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay(unsigned int bBModeViewOption)
 {
-  POINT ptCenter;        // Points for Zoomed Display
-  std::vector<int> imageSize = this->Internal->ImagingParameters->GetImageSize();
-  ptCenter.x                   = imageSize[0] / 2;
-  ptCenter.y                   = imageSize[1] / 2;
+  POINT ptCenter; // Points for Zoomed Display
+  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
+  ptCenter.x = imageSize[0] / 2;
+  ptCenter.y = imageSize[1] / 2;
 
   this->CurrentBModeViewOption = bBModeViewOption;
 
   this->Internal->USProbeParams.probetype.OversampleRate = 2048.0f / imageSize[1];
 
-  if (bmCalculateZoomDisplay(imageSize[0], imageSize[1],
-                             ptCenter,
-                             this->Internal->USProbeParams.probetype,
-                             (unsigned int)imageSize[0], this->CurrentBModeViewOption)
-      == ERROR)
+  if (bmCalculateZoomDisplay(imageSize[0], imageSize[1], ptCenter,
+    this->Internal->USProbeParams.probetype, (unsigned int)imageSize[0],
+    this->CurrentBModeViewOption) == ERROR)
   {
     LOG_ERROR("CalculateDisplay ERROR: Bad Theta Value");
     return PLUS_FAIL;
@@ -1719,14 +1698,13 @@ PlusStatus vtkPlusCapistranoVideoSource::CalculateDisplay(unsigned int bBModeVie
 PlusStatus vtkPlusCapistranoVideoSource::UpdateDepthMode()
 {
   // Update the values of ProbeType structure
-  std::vector<int> imageSize = this->Internal->ImagingParameters->GetImageSize();
+  FrameSizeType imageSize = this->Internal->ImagingParameters->GetImageSize();
   Internal->USProbeParams.probetype.OversampleRate  = 2048.0f / imageSize[1];
   Internal->USProbeParams.probetype.SampleFrequency = 80.f / usbSampleClockDivider();
   Internal->USProbeParams.probetype.PivFaceSamples  =
     Internal->USProbeParams.probetype.PFDistance * 1000.0f *
     Internal->USProbeParams.probetype.SampleFrequency /
     (0.5f * Internal->USProbeParams.probetype.Velocity);
-
 
   this->SampleFrequency = Internal->USProbeParams.probetype.SampleFrequency;
 
@@ -1845,11 +1823,10 @@ PlusStatus vtkPlusCapistranoVideoSource::SetNewImagingParametersDevice(const vtk
 
   if (this->Internal->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_IMAGESIZE))
   {
-    std::vector<int> imageSizeVec;
+    FrameSizeType imageSizeVec;
     this->Internal->ImagingParameters->GetImageSize(imageSizeVec);
-    int imageSize[3] = {imageSizeVec[0], imageSizeVec[1], 1};
 
-    if (this->SetImageSize(imageSize) == PLUS_FAIL)
+    if (this->SetImageSize(imageSizeVec) == PLUS_FAIL)
     {
       return PLUS_FAIL;
     }
