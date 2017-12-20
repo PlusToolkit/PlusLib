@@ -7,9 +7,8 @@
 #ifndef __vtkPlusTelemedVideoSource_h
 #define __vtkPlusTelemedVideoSource_h
 
-#include "vtkPlusDataCollectionExport.h"
-
 #include "TelemedUltrasound.h"
+#include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
 class vtkImageImport;
@@ -29,8 +28,8 @@ class vtkPlusUsImagingParameters;
 class vtkPlusDataCollectionExport vtkPlusTelemedVideoSource : public vtkPlusDevice
 {
 public:
-  static vtkPlusTelemedVideoSource *New();
-  vtkTypeMacro(vtkPlusTelemedVideoSource,vtkPlusDevice);
+  static vtkPlusTelemedVideoSource* New();
+  vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -77,28 +76,26 @@ public:
 
   virtual std::string GetSdkVersion();
 
-    /*! Request a particular frame size */
-  virtual PlusStatus SetFrameSize(int frameSize[2]);
+  /*! Request a particular frame size */
+  virtual PlusStatus SetFrameSize(const FrameSizeType& frameSize);
 
 protected:
-
   /*! Constructor */
   vtkPlusTelemedVideoSource();
   /*! Destructor */
   ~vtkPlusTelemedVideoSource();
-
 
   /*! Device-specific connect */
   PlusStatus InternalConnect();
   /*! Device-specific disconnect */
   PlusStatus InternalDisconnect();
 
-  TelemedUltrasound *Device;
+  TelemedUltrasound* Device;
   bool ConnectedToDevice;
 
   PlusVideoFrame UncompressedVideoFrame;
 
-  int FrameSize[3];
+  FrameSizeType FrameSize;
 
   double FrequencyMhz;
   double DepthMm;
@@ -107,10 +104,7 @@ protected:
   double PowerPercent;
 
 private:
-
   vtkImageImport* importer;
-
-
 };
 
 #endif // __vtkPlusTelemedVideoSource_h

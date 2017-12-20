@@ -94,7 +94,7 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
   this->RegionOfInterest.width = this->Resolution[0];
   this->RegionOfInterest.height = this->Resolution[1];
 
-  int frameSize[3] = { Resolution[0], Resolution[1], 1 };
+  FrameSizeType frameSize = { Resolution[0], Resolution[1], 1 };
   LeftEyeDataSource->SetInputFrameSize(frameSize);
   LeftEyeDataSource->SetNumberOfScalarComponents(3);
   RightEyeDataSource->SetInputFrameSize(frameSize);
@@ -399,4 +399,10 @@ PlusStatus vtkPlusOvrvisionProVideoSource::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::array<unsigned int, 2> vtkPlusOvrvisionProVideoSource::GetResolution() const
+{
+  return this->Resolution;
 }

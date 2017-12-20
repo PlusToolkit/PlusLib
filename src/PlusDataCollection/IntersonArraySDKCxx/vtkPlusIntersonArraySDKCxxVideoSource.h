@@ -36,8 +36,8 @@ class vtkPlusDataCollectionExport vtkPlusIntersonArraySDKCxxVideoSource;
 class vtkPlusDataCollectionExport vtkPlusIntersonArraySDKCxxVideoSource : public vtkPlusDevice
 {
 public:
-  static vtkPlusIntersonArraySDKCxxVideoSource *New();
-  vtkTypeMacro(vtkPlusIntersonArraySDKCxxVideoSource,vtkPlusDevice);
+  static vtkPlusIntersonArraySDKCxxVideoSource* New();
+  vtkTypeMacro(vtkPlusIntersonArraySDKCxxVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual bool IsTracker() const { return false; }
@@ -98,10 +98,10 @@ private:
   vtkPlusIntersonArraySDKCxxVideoSource(const vtkPlusIntersonArraySDKCxxVideoSource&);  // Not implemented.
   void operator=(const vtkPlusIntersonArraySDKCxxVideoSource&);  // Not implemented.
 
-  static void __stdcall vtkPlusIntersonArraySDKCxxVideoSource::NewBmodeImageCallback( BmodePixelType * buffer, void * clientData );
-  static void __stdcall vtkPlusIntersonArraySDKCxxVideoSource::NewRfImageCallback( RfPixelType * buffer, void * clientData );
-  PlusStatus AddBmodeFrameToBuffer( BmodePixelType * buffer, void * clientData );
-  PlusStatus AddRfFrameToBuffer( RfPixelType * buffer, void * clientData );
+  static void __stdcall vtkPlusIntersonArraySDKCxxVideoSource::NewBmodeImageCallback(BmodePixelType* buffer, void* clientData);
+  static void __stdcall vtkPlusIntersonArraySDKCxxVideoSource::NewRfImageCallback(RfPixelType* buffer, void* clientData);
+  PlusStatus AddBmodeFrameToBuffer(BmodePixelType* buffer, void* clientData);
+  PlusStatus AddRfFrameToBuffer(RfPixelType* buffer, void* clientData);
 };
 
 #endif

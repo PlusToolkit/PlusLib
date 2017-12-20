@@ -223,8 +223,8 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImageHeader()
 
   // sizes = 640 480 1 1, sizes = 640 480 1 567, sizes = 640 480 40 567
   std::istringstream issDimSize(this->TrackedFrameList->GetCustomString(SEQUENCE_FIELD_SIZES));
-  int dimSize(0);
-  int spatialDomainCount(0);
+  unsigned int dimSize(0);
+  unsigned int spatialDomainCount(0);
   for (unsigned int i = 0; i < kinds.size(); i++)
   {
     issDimSize >> dimSize;
@@ -459,15 +459,16 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
     trackedFrame->GetImageData()->SetImageType(this->ImageType);
 
-    if (trackedFrame->GetImageData()->AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
+    FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+    if (trackedFrame->GetImageData()->AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame " << frameNumber);
       numberOfErrors++;
       continue;
     }
 
-    int clipRectOrigin[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
-    int clipRectSize[3] = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+    std::array<int, 3> clipRectOrigin = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
+    std::array<int, 3> clipRectSize = {PlusCommon::NO_CLIP, PlusCommon::NO_CLIP, PlusCommon::NO_CLIP};
 
     PlusVideoFrame::FlipInfoType flipInfo;
     if (PlusVideoFrame::GetFlipAxes(this->ImageOrientationInFile, this->ImageType, this->ImageOrientationInMemory, flipInfo) != PLUS_SUCCESS)
@@ -486,7 +487,8 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      if (PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
+      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      if (PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence file (frame number: " << frameNumber << ")!");
         numberOfErrors++;
@@ -495,7 +497,8 @@ PlusStatus vtkPlusNrrdSequenceIO::ReadImagePixels()
     }
     else
     {
-      if (PlusVideoFrame::GetOrientedClippedImage(gzAllFramesPixelBuffer + frameNumber * frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, this->Dimensions, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
+      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      if (PlusVideoFrame::GetOrientedClippedImage(gzAllFramesPixelBuffer + frameNumber * frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence file (frame number: " << frameNumber << ")!");
         numberOfErrors++;
@@ -576,7 +579,12 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
   // First, is this 2D or 3D?
   bool isData3D = (this->TrackedFrameList->GetTrackedFrame(0)->GetFrameSize()[2] > 1);
   bool isDataTimeSeries = this->IsDataTimeSeries; // don't compute it from the number of frames because we may still have only one frame but acquire more frames later
-  this->NumberOfScalarComponents = this->TrackedFrameList->GetTrackedFrame(0)->GetNumberOfScalarComponents();
+
+  if (this->TrackedFrameList->GetTrackedFrame(0)->GetNumberOfScalarComponents(this->NumberOfScalarComponents) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return PLUS_FAIL;
+  }
 
   // Override fields
   this->NumberOfDimensions = isData3D ? 3 : 2;
@@ -594,10 +602,10 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
   // CompressedData
   SetCustomString("encoding", GetUseCompression() ? "gz" : "raw");
 
-  unsigned int frameSize[3] = {0, 0, 0};
+  FrameSizeType frameSize = {0, 0, 0};
   if (this->EnableImageDataWrite)
   {
-    this->GetMaximumImageDimensions(frameSize);
+    frameSize = this->GetMaximumImageDimensions();
   }
   else
   {
@@ -619,7 +627,7 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
     // but then, we need to save the original frame size for each frame and crop the image when we read it
     for (unsigned int frameNumber = 0; frameNumber < this->TrackedFrameList->GetNumberOfTrackedFrames(); frameNumber++)
     {
-      unsigned int* currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
+      FrameSizeType currFrameSize = this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameSize();
       if (this->TrackedFrameList->GetTrackedFrame(frameNumber)->GetImageData()->IsImageValid()
           && (frameSize[0] != currFrameSize[0] || frameSize[1] != currFrameSize[1] || frameSize[2] != currFrameSize[2]))
       {
@@ -868,7 +876,8 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteCompressedImagePixelsToFile(int& compress
 
   // Create a blank frame if we have to write an invalid frame to file
   PlusVideoFrame blankFrame;
-  if (blankFrame.AllocateFrame(this->Dimensions, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
+  FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+  if (blankFrame.AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate space for blank image.");
     return PLUS_FAIL;

@@ -632,24 +632,25 @@ US_IMAGE_TYPE vtkPlusTrackedFrameList::GetImageType()
 
 
 //----------------------------------------------------------------------------
-unsigned int* vtkPlusTrackedFrameList::GetFrameSize()
+PlusStatus vtkPlusTrackedFrameList::GetFrameSize(FrameSizeType& outFrameSize)
 {
   if (this->GetNumberOfTrackedFrames() < 1)
   {
     LOG_ERROR("Unable to get image type: there are no frames in the tracked frame list!");
-    return NULL;
+    return PLUS_FAIL;
   }
 
   for (unsigned int i = 0; i < this->GetNumberOfTrackedFrames(); ++i)
   {
     if (this->GetTrackedFrame(i)->GetImageData() && this->GetTrackedFrame(i)->GetImageData()->IsImageValid())
     {
-      return this->GetTrackedFrame(i)->GetFrameSize();
+      outFrameSize = this->GetTrackedFrame(i)->GetFrameSize();
+      return PLUS_SUCCESS;
     }
   }
 
   LOG_WARNING("There are no valid images in the tracked frame list.");
-  return NULL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------

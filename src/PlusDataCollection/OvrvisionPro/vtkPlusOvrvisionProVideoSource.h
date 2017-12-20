@@ -46,7 +46,7 @@ public:
   vtkGetStdStringMacro(ProcessingModeName);
   vtkGetStdStringMacro(Vendor);
 
-  vtkGetVector2Macro(Resolution, int);
+  std::array<unsigned int, 2> GetResolution() const;
   vtkGetMacro(Framerate, int);
   vtkGetMacro(CameraSync, bool);
   vtkSetMacro(Exposure, int);
@@ -87,7 +87,7 @@ protected:
   bool CameraSync;
 
   // Cache variables from the config file
-  int Resolution[2];
+  std::array<unsigned int, 2> Resolution;
   int Framerate;
   std::string ProcessingModeName;
   bool IsCapturingRGB;

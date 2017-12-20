@@ -28,10 +28,10 @@ Authors include:
 
 // System includes
 #ifdef _WIN32
-#include <inaddr.h>
-#include <WS2tcpip.h>
+  #include <inaddr.h>
+  #include <WS2tcpip.h>
 #else
-#include <arpa/inet.h>
+  #include <arpa/inet.h>
 #endif
 
 //----------------------------------------------------------------------------
@@ -87,7 +87,12 @@ bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray*
 
     vtkPlusDataSource* videoSource(NULL);
     vtkPlusPhilips3DProbeVideoSource::ActiveDevice->GetFirstVideoSource(videoSource);
-    videoSource->SetInputFrameSize(dimensions[0], dimensions[1], dimensions[2]);
+    if (dimensions[0] < 0 || dimensions[1] < 0 || dimensions[2] < 0)
+    {
+      LOG_ERROR("Negative dimensions received from Philips ultrasound device.");
+      return false;
+    }
+    videoSource->SetInputFrameSize(static_cast<unsigned int>(dimensions[0]), static_cast<unsigned int>(dimensions[1]), static_cast<unsigned int>(dimensions[2]));
     videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
     videoSource->SetNumberOfScalarComponents(1);
   }

@@ -2,7 +2,7 @@
   Program: Plus
   Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
   See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 /*=========================================================================
 The following copyright notice is applicable to parts of this file:
@@ -11,7 +11,7 @@ All rights reserved.
 See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 Authors include: Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
-=========================================================================*/ 
+=========================================================================*/
 
 #ifndef __vtkPlusWin32VideoSource2_h
 #define __vtkPlusWin32VideoSource2_h
@@ -24,7 +24,7 @@ Authors include: Danielle Pace
 class vtkPlusWin32VideoSource2Internal;
 
 /*!
-  \class vtkPlusWin32VideoSource2 
+  \class vtkPlusWin32VideoSource2
   \brief Video-for-Windows video digitizer
 
   vtkPlusWin32VideoSource2 grabs frames or streaming video from a
@@ -33,24 +33,24 @@ class vtkPlusWin32VideoSource2Internal;
   vtkPlusDevice instead of vtkVideoSource.
 
   Caveats:
-  With some capture cards, if this class is leaked and ReleaseSystemResources 
+  With some capture cards, if this class is leaked and ReleaseSystemResources
   is not called, you may have to reboot before you can capture again.
   vtkPlusDevice used to keep a global list and delete the video sources
   if your program leaked, due to exit crashes that was removed.
 
   \sa vtkPlusDevice vtkMILVideoSource2 vtkWin32VideoSource
   \ingroup PlusLibDataCollection
-*/ 
+*/
 class vtkPlusDataCollectionExport vtkPlusWin32VideoSource2 : public vtkPlusDevice
 {
 public:
-  static vtkPlusWin32VideoSource2 *New();
-  vtkTypeMacro(vtkPlusWin32VideoSource2,vtkPlusDevice);
+  static vtkPlusWin32VideoSource2* New();
+  vtkTypeMacro(vtkPlusWin32VideoSource2, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Request a particular frame size */
-  virtual PlusStatus SetFrameSize(int x, int y);
-  
+  virtual PlusStatus SetFrameSize(const FrameSizeType& frameSize);
+
   /*! Request a particular frame rate (default 30 frames per second). */
   virtual PlusStatus SetAcquisitionRate(double rate);
 
@@ -59,9 +59,9 @@ public:
 
   /*! Turn on/off the preview (overlay) window. */
   void SetPreview(int showPreview);
-  vtkBooleanMacro(Preview,int);
+  vtkBooleanMacro(Preview, int);
   /*! Get state of preview (overlay) window */
-  vtkGetMacro(Preview,int);
+  vtkGetMacro(Preview, int);
 
   /*! Bring up a modal dialog box for video format selection. */
   PlusStatus VideoFormatDialog();
@@ -73,7 +73,7 @@ public:
   void OnParentWndDestroy();
 
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. Public to allow calling from static function. */
-  PlusStatus AddFrameToBuffer(void *lpVideoHeader);
+  PlusStatus AddFrameToBuffer(void* lpVideoHeader);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -106,7 +106,6 @@ protected:
   */
   virtual PlusStatus InternalUpdate();
 
-
   /*! Set the capture window class name */
   vtkSetStringMacro(WndClassName);
 
@@ -115,7 +114,7 @@ protected:
 
   int FrameIndex;
 
-  vtkPlusWin32VideoSource2Internal *Internal;
+  vtkPlusWin32VideoSource2Internal* Internal;
 
   /*! Update the buffer format to match the capture settings */
   PlusStatus UpdateFrameBuffer();

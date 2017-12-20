@@ -50,7 +50,7 @@ int main(int argc, char** argv)
   bool printHelp(false);
   bool renderingOff(false);
   bool showDialogs(false);
-  std::vector<int> frameSize;
+  FrameSizeType frameSize;
   int deviceId = 0;
   int streamIndex = 0;
   std::string pixelFormatName;
@@ -62,11 +62,13 @@ int main(int argc, char** argv)
 
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
+  std::vector<int> frameSizeInt;
+
   args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices and exit");
   args.AddArgument("--list-video-formats", vtksys::CommandLineArguments::NO_ARGUMENT, &listVideoFormats, "Show the list of supported video formats for the selected device and exit");
   args.AddArgument("--device-id", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &deviceId, "Capture device ID (default: 0)");
   args.AddArgument("--stream-index", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &streamIndex, "Stream index (default=0; see --list-devices for available streams");
-  args.AddArgument("--frame-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &frameSize, "Requested frame size from the capture device");
+  args.AddArgument("--frame-size", vtksys::CommandLineArguments::MULTI_ARGUMENT, &frameSizeInt, "Requested frame size from the capture device");
   args.AddArgument("--video-format", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &pixelFormatName, "Requested video format (YUY2, ...)");
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");
@@ -87,6 +89,11 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
+  if (frameSize.size() < 2 || frameSize[0] < 0 || frameSize[1] < 0)
+  {
+    LOG_ERROR("Invalid frame size inputted. At least two non-negative entries required.");
+    exit(EXIT_SUCCESS);
+  }
   vtkSmartPointer<vtkPlusMmfVideoSource> frameGrabber = vtkSmartPointer<vtkPlusMmfVideoSource>::New();
 
   if (listDevices)
@@ -121,12 +128,12 @@ int main(int argc, char** argv)
       LOG_ERROR("Frame size shall contain two numbers, separated by a space");
       return EXIT_FAILURE;
     }
-    std::vector<unsigned int> size;
+    FrameSizeType size;
     for (unsigned int i = 0; i < frameSize.size(); ++i)
     {
-      size.push_back(static_cast<unsigned int>(frameSize[i]));
+      size[i] = frameSize[i];
     }
-    frameGrabber->SetRequestedFrameSize(size.data());
+    frameGrabber->SetRequestedFrameSize(frameSize);
   }
 
   frameGrabber->CreateDefaultOutputChannel();
@@ -144,7 +151,6 @@ int main(int argc, char** argv)
     LOG_ERROR("Unable to disconnect from media foundation capture device.");
     exit(EXIT_FAILURE);
   }
-
 
   if (renderingOff)
   {
@@ -188,5 +194,4 @@ int main(int argc, char** argv)
 
   LOG_INFO("Exit successfully");
   return EXIT_SUCCESS;
-
 }

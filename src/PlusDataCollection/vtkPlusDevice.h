@@ -7,15 +7,20 @@ See License.txt for details.
 #ifndef __vtkPlusDevice_h
 #define __vtkPlusDevice_h
 
+// Local includes
 #include "PlusCommon.h"
 #include "PlusConfigure.h"
 #include "PlusStreamBufferItem.h"
 #include "PlusTrackedFrame.h"
-#include "vtkImageAlgorithm.h"
-#include "vtkMultiThreader.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkStdString.h"
+
+// VTK includes
+#include <vtkImageAlgorithm.h>
+#include <vtkMultiThreader.h>
+#include <vtkStdString.h>
+
+// STL includes
 #include <string>
 
 class PlusTrackedFrame;
@@ -350,30 +355,19 @@ public:
   the device may either refuse a request for an illegal frame size or
   automatically choose a new frame size.
   */
-  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int x, int y,  int z);
   virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, unsigned int x, unsigned int y, unsigned int z);
 
-  /*!
-  Set the full-frame size.  This must be an allowed size for the device,
-  the device may either refuse a request for an illegal frame size or
-  automatically choose a new frame size.
-  */
-  virtual PlusStatus SetInputFrameSize(vtkPlusDataSource& aSource, int dim[3])
-  {
-    return this->SetInputFrameSize(aSource, dim[0], dim[1], dim[3]);
-  };
+  /*! Get the full-frame size */
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z) const;
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z);
+  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const;
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetInputFrameSize(vtkPlusChannel& aChannel, unsigned int dim[3]);
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z) const;
 
   /*! Get the full-frame size */
-  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int& x, unsigned int& y, unsigned int& z);
-
-  /*! Get the full-frame size */
-  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, unsigned int dim[3]);
+  virtual PlusStatus GetOutputFrameSize(vtkPlusChannel& aChannel, FrameSizeType& dim) const;
 
   /*! Set the pixel type (char, unsigned short, ...) */
   virtual PlusStatus SetPixelType(vtkPlusChannel& aChannel, PlusCommon::VTKScalarPixelType pixelType);
@@ -478,10 +472,7 @@ protected:
   /*!
   This function can be called to add a video item to the specified video data sources
   */
-  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const int frameSizeInPx[3],
-      PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
-  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const unsigned int frameSizeInPx[3],
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
@@ -609,7 +600,7 @@ protected:
     This list is used to only report an unknown tool once (after the connection has been established), not at each
     attempt to access it.
   */
-  std::set< std::string > ReportedUnknownTools;
+  std::set<std::string> ReportedUnknownTools;
 
   static const int VIRTUAL_DEVICE_FRAME_RATE;
 
