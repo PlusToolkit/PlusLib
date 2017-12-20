@@ -18,6 +18,7 @@ SET(${PROJECT_NAME}_SRCS
   Commands/vtkPlusGetImageCommand.cxx
   Commands/vtkPlusGetPolydataCommand.cxx
   Commands/vtkPlusGetTransformCommand.cxx
+  Commands/vtkPlusSetUsParameterCommand.cxx
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
@@ -37,6 +38,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     Commands/vtkPlusGetImageCommand.h
     Commands/vtkPlusGetPolydataCommand.h
     Commands/vtkPlusGetTransformCommand.h
+    Commands/vtkPlusSetUsParameterCommand.h
     )
 ENDIF()
 

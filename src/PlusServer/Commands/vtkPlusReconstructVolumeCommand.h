@@ -81,7 +81,7 @@ public:
     This is required to be set, otherwise the reconstructed volume will be empty.
   */
   vtkSetVector6Macro(OutputExtent, int);
-  /*! Get extentof the output data in Reference coordinate system  */
+  /*! Get extent of the output data in Reference coordinate system  */
   vtkGetVector6Macro(OutputExtent, int);
 
   vtkGetMacro(ApplyHoleFilling, bool);

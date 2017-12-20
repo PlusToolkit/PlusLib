@@ -19,10 +19,9 @@ vtkStandardNewMacro(vtkPlusUsDevice);
 //----------------------------------------------------------------------------
 vtkPlusUsDevice::vtkPlusUsDevice()
   : vtkPlusDevice()
-  , RequestedImagingParameters(vtkPlusUsImagingParameters::New())
-  , CurrentImagingParameters(vtkPlusUsImagingParameters::New())
-  , TextRecognizerInputChannelName(NULL)
-  , InputChannel(NULL)
+  , ImagingParameters( vtkPlusUsImagingParameters::New() )
+  , TextRecognizerInputChannelName( NULL )
+  , InputChannel( NULL )
 {
   this->CurrentTransducerOriginPixels[0] = 0;
   this->CurrentTransducerOriginPixels[1] = 0;
@@ -36,18 +35,15 @@ vtkPlusUsDevice::vtkPlusUsDevice()
 //----------------------------------------------------------------------------
 vtkPlusUsDevice::~vtkPlusUsDevice()
 {
-  RequestedImagingParameters->Delete();
-  CurrentImagingParameters->Delete();
+  ImagingParameters->Delete();
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusUsDevice::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "Requested imaging parameters: " << std::endl;
-  this->RequestedImagingParameters->PrintSelf(os, indent);
-  os << indent << "Current imaging parameters: " << std::endl;
-  this->CurrentImagingParameters->PrintSelf(os, indent);
+  os << indent << "Imaging parameters: " << std::endl;
+  this->ImagingParameters->PrintSelf( os, indent );
 }
 
 //----------------------------------------------------------------------------
@@ -70,7 +66,13 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
 
   if (imagingParams != NULL)
   {
-    this->RequestedImagingParameters->ReadConfiguration(deviceConfig);
+    this->ImagingParameters->ReadConfiguration( deviceConfig );
+
+    if (this->RequestImagingParameterChange() == PLUS_FAIL)
+    {
+      LOG_ERROR("Failed to change imaging parameters in the device");
+      return PLUS_FAIL;
+    }
   }
 
   return Superclass::ReadConfiguration(rootConfigElement);
@@ -86,7 +88,7 @@ PlusStatus vtkPlusUsDevice::WriteConfiguration(vtkXMLDataElement* deviceConfig)
     deviceConfig->SetAttribute("ImageToTransducerTransformName", this->ImageToTransducerTransform.GetTransformName().c_str());
   }
 
-  return this->CurrentImagingParameters->WriteConfiguration(deviceConfig);
+  return this->ImagingParameters->WriteConfiguration( deviceConfig );
 }
 
 //----------------------------------------------------------------------------
@@ -131,9 +133,15 @@ PlusStatus vtkPlusUsDevice::NotifyConfigured()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters)
 {
-  if (this->RequestedImagingParameters->DeepCopy(newImagingParameters) == PLUS_FAIL)
+  if( this->ImagingParameters->DeepCopy( newImagingParameters ) == PLUS_FAIL )
   {
-    LOG_ERROR("Unable to deep copy new imaging parameters.");
+    LOG_ERROR("Unable to deep copy new imaging parameters");
+    return PLUS_FAIL;
+  }
+
+  if (this->RequestImagingParameterChange() == PLUS_FAIL)
+  {
+    LOG_ERROR("Failed to change imaging parameters in the device");
     return PLUS_FAIL;
   }
 

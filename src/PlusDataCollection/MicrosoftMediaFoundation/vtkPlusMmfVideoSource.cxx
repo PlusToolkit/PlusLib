@@ -521,7 +521,7 @@ PlusStatus vtkPlusMmfVideoSource::WriteConfiguration(vtkXMLDataElement* rootConf
   }
   else
   {
-    XML_REMOVE_ATTRIBUTE(deviceConfig, "CaptureStreamIndex");
+    XML_REMOVE_ATTRIBUTE("CaptureStreamIndex", deviceConfig);
   }
   int frameSize[2] = { static_cast<int>(this->RequestedVideoFormat.FrameSize[0]), static_cast<int>(this->RequestedVideoFormat.FrameSize[1]) };
   deviceConfig->SetVectorAttribute("FrameSize", 2, frameSize);

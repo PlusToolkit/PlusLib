@@ -628,7 +628,7 @@ public:
     } \
   }
 
-#define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
+#define XML_REMOVE_ATTRIBUTE(attributeName, xmlElementVar)  xmlElementVar->RemoveAttribute(attributeName);
 
 #define XML_WRITE_STRING_ATTRIBUTE(memberVar, xmlElementVar)  \
   xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar().c_str()); \
@@ -652,7 +652,7 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, memberVar.c_str()); \
+    XML_REMOVE_ATTRIBUTE(memberVar.c_str(), xmlElementVar); \
   }
 
 #define XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
@@ -662,7 +662,7 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, #memberVar); \
+    XML_REMOVE_ATTRIBUTE(#memberVar, xmlElementVar); \
   }
 
 #define XML_WRITE_BOOL_ATTRIBUTE(memberVar, xmlElementVar)  \

@@ -39,11 +39,28 @@ Currently contains the following items
 class vtkPlusDataCollectionExport vtkPlusUsImagingParameters : public vtkObject
 {
 protected:
-  typedef std::map<std::string, bool> ParameterSetMap;
-public:
-  typedef std::map<std::string, std::string> ParameterNameMap;
-  typedef ParameterNameMap::iterator ParameterNameMapIterator;
-  typedef ParameterNameMap::const_iterator ParameterNameMapConstIterator;
+  class ParameterInfo
+  {
+  public:
+    ParameterInfo() : Value(""), Set(false), Pending(false) {};
+    ParameterInfo(std::string defaultValue) : Value(defaultValue), Set(false), Pending(false) {};
+
+    /// Serialized parameter value
+    std::string Value;
+    /// Flag indicating whether the invalid default has been changed to meaningful value
+    /// (Note: sound velocity has a meaningful default)
+    bool Set;
+    /// Flag indicating whether the parameter is changed but has not been set to device
+    bool Pending;
+  };
+  typedef std::map<std::string, ParameterInfo> ParameterMap;
+  typedef ParameterMap::iterator ParameterMapIterator;
+  typedef ParameterMap::const_iterator ParameterMapConstIterator;
+
+  /*! Return an iterator to the beginning of the parameter space */
+  ParameterMapConstIterator begin() const;
+  /*! Return an iterator to the end of the parameter space */
+  ParameterMapConstIterator end() const;
 
 public:
   static const char* XML_ELEMENT_TAG;
@@ -91,15 +108,36 @@ public:
   template<typename T> PlusStatus GetValue(const std::string& paramName, T& outputValue) const;
   /*!
   Set a stored value by key name
+  Defined in the header to make it available externally
   \param paramName the key value to retrieve
   \param aValue the value to write
   */
-  template<typename T> PlusStatus SetValue(const std::string& paramName, T aValue);
+  template<typename T> PlusStatus SetValue(const std::string& paramName, T aValue)
+  {
+    std::stringstream ss;
+    ss << aValue;
+    if (this->Parameters[paramName].Value != ss.str())
+    {
+      this->Parameters[paramName].Pending = true;
+    }
+    this->Parameters[paramName].Value = ss.str();
+    this->Parameters[paramName].Set = true;
+    return PLUS_SUCCESS;
+  };
   /*!
-  Request the status of a member
+  Request the set status of a parameter (whether it is not the default value)
   \param paramName the key value to retrieve
   */
   bool IsSet(const std::string& paramName) const;
+  /*!
+  Request the pending status of a parameter
+  \param paramName the key value to retrieve
+  */
+  bool IsPending(const std::string& paramName) const;
+  /*!
+  Set the pending status of a parameter
+  */
+  PlusStatus SetPending(const std::string& paramName, bool pending);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
@@ -168,17 +206,12 @@ public:
   PlusStatus GetProbeVoltage(float& aVoltage) const;
   float GetProbeVoltage() const;
 
-  /*! Set the image size [width, heigh, depth(elevational dimension)] of the B-mode ultrasound */
+  /*! Set the image size [width, height, depth(elevational dimension)] of the B-mode ultrasound */
   PlusStatus SetImageSize(const FrameSizeType& imageSize);
   PlusStatus SetImageSize(unsigned int x, unsigned int y, unsigned int z);
   /*! Get the image size of B-mode ultrasound */
   PlusStatus GetImageSize(FrameSizeType& imageSize) const;
   FrameSizeType GetImageSize() const;
-
-  /*! Return an iterator to the beginning of the parameter space */
-  ParameterNameMapConstIterator begin() const;
-  /*! Return an iterator to the end of the parameter space */
-  ParameterNameMapConstIterator end() const;
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -249,8 +282,7 @@ protected:
   vtkPlusUsImagingParameters();
   virtual ~vtkPlusUsImagingParameters();
 
-  ParameterNameMap ParameterValues;
-  ParameterSetMap ParameterSet;
+  ParameterMap Parameters;
 };
 
 #endif

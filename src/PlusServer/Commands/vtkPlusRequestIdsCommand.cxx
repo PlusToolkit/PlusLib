@@ -183,7 +183,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     {
       LOG_WARNING("Unable to locate client data for client id: " << this->GetClientId());
     }
-    if (info.ClientHeaderVersion <= IGTL_HEADER_VERSION_2)
+    if (info.GetClientHeaderVersion() <= IGTL_HEADER_VERSION_2)
     {
       oss << responseMessage;
     }
@@ -237,7 +237,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     {
       LOG_WARNING("Unable to locate client data for client id: " << this->GetClientId());
     }
-    if (info.ClientHeaderVersion <= IGTL_HEADER_VERSION_2)
+    if (info.GetClientHeaderVersion() <= IGTL_HEADER_VERSION_2)
     {
       oss << responseMessage;
     }

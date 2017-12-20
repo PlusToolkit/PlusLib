@@ -74,16 +74,25 @@ public:
   vtkGetStringMacro(TextRecognizerInputChannelName);
   vtkSetStringMacro(TextRecognizerInputChannelName);
 
+  /*!
+    Get current imaging parameters
+  */
+  vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
+
 protected:
+  /*!
+  Set changed imaging parameter to device
+  */
+  virtual PlusStatus RequestImagingParameterChange() { return PLUS_FAIL; };
+
   void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
 
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();
 
-  /// Store the requested imaging parameters
-  vtkPlusUsImagingParameters* RequestedImagingParameters;
+protected:
   /// Store the current imaging parameters
-  vtkPlusUsImagingParameters* CurrentImagingParameters;
+  vtkPlusUsImagingParameters* ImagingParameters;
 
   /// Values used in calculation of image to transducer matrix
   double CurrentPixelSpacingMm[3];

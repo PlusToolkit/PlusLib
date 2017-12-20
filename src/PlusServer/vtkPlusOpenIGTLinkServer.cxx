@@ -558,7 +558,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
     {
       PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
-      client->ClientInfo.ClientHeaderVersion = std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion());
+      client->ClientInfo.SetClientHeaderVersion(std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion()));
     }
 
     igtl::MessageBase::Pointer bodyMessage = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
@@ -707,8 +707,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY)
       {
-        client->ClientInfo.Resolution = startTracking->GetResolution();
-        client->ClientInfo.TDATARequested = true;
+        client->ClientInfo.SetTDATAResolution(startTracking->GetResolution());
+        client->ClientInfo.SetTDATARequested(true);
       }
       else
       {
@@ -730,7 +730,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
       clientSocket->Receive(stopTracking->GetBufferBodyPointer(), stopTracking->GetBufferBodySize());
 
-      client->ClientInfo.TDATARequested = false;
+      client->ClientInfo.SetTDATARequested(false);
       igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
       igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
       rtsMsg->SetStatus(0);
@@ -909,7 +909,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
         }
 
         // Update the TDATA timestamp, even if TDATA isn't sent (cheaper than checking for existing TDATA message type)
-        clientIterator->ClientInfo.LastTDATASentTimeStamp = trackedFrame.GetTimestamp();
+        clientIterator->ClientInfo.SetLastTDATASentTimeStamp(trackedFrame.GetTimestamp());
       }
     }
   }
@@ -1099,8 +1099,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->DefaultClientInfo.TransformNames.clear();
   this->DefaultClientInfo.ImageStreams.clear();
   this->DefaultClientInfo.StringNames.clear();
-  this->DefaultClientInfo.Resolution = 0;
-  this->DefaultClientInfo.TDATARequested = false;
+  this->DefaultClientInfo.SetTDATAResolution(0);
+  this->DefaultClientInfo.SetTDATARequested(false);
 
   vtkXMLDataElement* defaultClientInfo = serverElement->FindNestedElementWithName("DefaultClientInfo");
   if (defaultClientInfo != NULL)
@@ -1113,8 +1113,6 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
 
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, DefaultClientSendTimeoutSec, serverElement);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, DefaultClientReceiveTimeoutSec, serverElement);
-
-  // TODO : how come default client info isn't mandatory? send nothing?
 
   return PLUS_SUCCESS;
 }
