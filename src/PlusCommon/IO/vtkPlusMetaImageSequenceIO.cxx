@@ -432,7 +432,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
     trackedFrame->GetImageData()->SetImageOrientation(this->ImageOrientationInMemory);
     trackedFrame->GetImageData()->SetImageType(this->ImageType);
 
-    FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+    FrameSizeType frameSize = { this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
     if (trackedFrame->GetImageData()->AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Cannot allocate memory for frame " << frameNumber);
@@ -460,7 +460,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
         //LOG_ERROR("Could not read "<<frameSizeInBytes<<" bytes from "<<GetPixelDataFilePath());
         //numberOfErrors++;
       }
-      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize = { this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (PlusVideoFrame::GetOrientedClippedImage(&(pixelBuffer[0]), flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!");
@@ -470,7 +470,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
     }
     else
     {
-      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize = { this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (PlusVideoFrame::GetOrientedClippedImage(&(allFramesPixelBuffer[0]) + frameNumber * frameSizeInBytes, flipInfo, this->ImageType, this->PixelType, this->NumberOfScalarComponents, frameSize, *trackedFrame->GetImageData(), clipRectOrigin, clipRectSize) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to get oriented image from sequence metafile (frame number: " << frameNumber << ")!");
@@ -947,7 +947,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteCompressedImagePixelsToFile(int& com
 
   // Create a blank frame if we have to write an invalid frame to metafile
   PlusVideoFrame blankFrame;
-  FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+  FrameSizeType frameSize = { this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
   if (blankFrame.AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate space for blank image.");

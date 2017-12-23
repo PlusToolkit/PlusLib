@@ -201,7 +201,7 @@ PlusStatus vtkPlusThorLabsVideoSource::InternalUpdate()
       return PLUS_FAIL;
     }
     this->FrameIndex++;
-    int frameSizeInPx[3] = {TLCCS_NUM_PIXELS, 2, 1};
+    FrameSizeType frameSizeInPx = {TLCCS_NUM_PIXELS, 2, 1};
     aSource->AddItem(this->Internal->WavelengthIntensityDataBuffer, US_IMG_ORIENT_MF, frameSizeInPx, VTK_DOUBLE, 1, US_IMG_BRIGHTNESS, 0, this->FrameIndex);
     this->Modified();
   }

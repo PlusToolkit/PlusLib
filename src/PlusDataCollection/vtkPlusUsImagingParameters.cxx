@@ -338,7 +338,7 @@ PlusStatus vtkPlusUsImagingParameters::SetImageSize(const FrameSizeType& imageSi
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusUsImagingParameters::SetImageSize(unsigned int x, unsigned int y, unsigned int z)
 {
-  FrameSizeType imageSize{ x, y, z };
+  FrameSizeType imageSize = { x, y, z };
   return this->SetImageSize(imageSize);
 }
 

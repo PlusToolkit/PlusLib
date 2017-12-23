@@ -346,7 +346,7 @@ PlusStatus vtkPlusSequenceIOBase::WriteImages()
     {
       // Create a blank frame if we have to write an invalid frame to sequence file
       PlusVideoFrame blankFrame;
-      FrameSizeType frameSize{ this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
+      FrameSizeType frameSize = { this->Dimensions[0], this->Dimensions[1], this->Dimensions[2] };
       if (blankFrame.AllocateFrame(frameSize, this->PixelType, this->NumberOfScalarComponents) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to allocate space for blank image.");

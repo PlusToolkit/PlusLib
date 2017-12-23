@@ -91,8 +91,10 @@ int main(int argc, char** argv)
       LOG_ERROR("Invalid clip rectangle origin and/or size");
       exit(EXIT_FAILURE);
     }
-    frameGrabber->SetClipRectangleOrigin(std::array<int, 3> {clipRectOrigin[0], clipRectOrigin[1], PlusCommon::NO_CLIP});
-    frameGrabber->SetClipRectangleSize(std::array<int, 3> {clipRectSize[0], clipRectSize[1], PlusCommon::NO_CLIP});
+    std::array<int, 3> clipRectangleOrigin = {clipRectOrigin[0], clipRectOrigin[1], PlusCommon::NO_CLIP};
+    frameGrabber->SetClipRectangleOrigin(clipRectangleOrigin);
+    std::array<int, 3> clipRectangleSize = {clipRectSize[0], clipRectSize[1], PlusCommon::NO_CLIP};
+    frameGrabber->SetClipRectangleSize(clipRectangleSize);
   }
 
   frameGrabber->CreateDefaultOutputChannel();

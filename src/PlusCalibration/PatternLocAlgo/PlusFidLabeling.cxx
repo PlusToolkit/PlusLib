@@ -68,12 +68,12 @@ void PlusFidLabeling::UpdateParameters()
     plane->SetOrigin(v1);
     planes.push_back(plane);
 
-    std::array<double, 3> point = { m_Patterns[i]->GetWires()[1].EndPointFront[0], m_Patterns[i]->GetWires()[1].EndPointFront[1], m_Patterns[i]->GetWires()[1].EndPointFront[2] };
-    double distance1F = plane->DistanceToPlane(point.data());
-    point = std::array<double, 3> { m_Patterns[i]->GetWires()[1].EndPointBack[0], m_Patterns[i]->GetWires()[1].EndPointBack[1], m_Patterns[i]->GetWires()[1].EndPointBack[2] };
-    double distance1B = plane->DistanceToPlane(point.data());
-    point = std::array<double, 3> { m_Patterns[i]->GetWires()[2].EndPointBack[0], m_Patterns[i]->GetWires()[2].EndPointBack[1], m_Patterns[i]->GetWires()[2].EndPointBack[2] };
-    double distance2B = plane->DistanceToPlane(point.data());
+    std::array<double, 3> point1 = { m_Patterns[i]->GetWires()[1].EndPointFront[0], m_Patterns[i]->GetWires()[1].EndPointFront[1], m_Patterns[i]->GetWires()[1].EndPointFront[2] };
+    double distance1F = plane->DistanceToPlane(point1.data());
+    std::array<double, 3> point2 = { m_Patterns[i]->GetWires()[1].EndPointBack[0], m_Patterns[i]->GetWires()[1].EndPointBack[1], m_Patterns[i]->GetWires()[1].EndPointBack[2] };
+    double distance1B = plane->DistanceToPlane(point2.data());
+    std::array<double, 3> point3 = { m_Patterns[i]->GetWires()[2].EndPointBack[0], m_Patterns[i]->GetWires()[2].EndPointBack[1], m_Patterns[i]->GetWires()[2].EndPointBack[2] };
+    double distance2B = plane->DistanceToPlane(point3.data());
 
     if (distance1F > epsilon || distance1B > epsilon || distance2B > epsilon)
     {
