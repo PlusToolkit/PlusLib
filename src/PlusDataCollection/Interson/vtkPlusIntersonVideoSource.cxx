@@ -129,7 +129,7 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  PlusStatus vtkPlusIntersonVideoSource::vtkInternal::InitializeDIB(const std::vector<int>& imageSize)
+  PlusStatus vtkPlusIntersonVideoSource::vtkInternal::InitializeDIB(const FrameSizeType imageSize)
   {
     this->BitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     this->BitmapInfo.bmiHeader.biWidth = imageSize[0];
@@ -212,9 +212,9 @@ public:
     int left = this->LutCenter - center;        // left of window
     int right = this->LutCenter + center;       // right of window
     double contrast;
-    this->External->RequestedImagingParameters->GetContrast(contrast);
+    this->External->ImagingParameters->GetContrast(contrast);
     double brightness;
-    this->External->RequestedImagingParameters->GetIntensity(brightness);
+    this->External->ImagingParameters->GetIntensity(brightness);
     for (int x = 0; x <= 255; x++)
     {
       int y = (int)((float)contrast / 256.0f * (float)(x - 128) + brightness);
@@ -245,13 +245,13 @@ vtkPlusIntersonVideoSource::vtkPlusIntersonVideoSource()
   this->Internal->ClockDivider = 1;
   this->Internal->PulseFrequencyDivider = 2;
 
-  this->RequestedImagingParameters->SetIntensity(128.0);
-  this->RequestedImagingParameters->SetContrast(256.0);
+  this->ImagingParameters->SetIntensity(128.0);
+  this->ImagingParameters->SetContrast(256.0);
   this->Internal->LutCenter = 128;
   this->Internal->LutWindow = 256;
 
-  this->RequestedImagingParameters->SetImageSize(800, 512, 1);
-  this->RequestedImagingParameters->SetProbeVoltage(30.0f);
+  this->ImagingParameters->SetImageSize(800, 512, 1);
+  this->ImagingParameters->SetProbeVoltage(30.0f);
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
@@ -335,7 +335,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   }
 
   FrameSizeType imageSize;
-  this->RequestedImagingParameters->GetImageSize(imageSize);
+  this->ImagingParameters->GetImageSize(imageSize);
 
   PVOID display = bmInitializeDisplay(imageSize[0] * imageSize[1]);
   if (display == NULL)
@@ -360,13 +360,13 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   usbSetWindowDepth(this->Internal->ProbeHandle, imageSize[1]);
   // set the assumed velocity (m/s)
   float soundVelocity = -1 ;
-  this->RequestedImagingParameters->GetSoundVelocity(soundVelocity);
+  this->ImagingParameters->GetSoundVelocity(soundVelocity);
   if (soundVelocity > 0)
   {
     this->SetSoundVelocityDevice(soundVelocity);
   }
   double depth = -1;
-  this->RequestedImagingParameters->GetDepthMm(depth);
+  this->ImagingParameters->GetDepthMm(depth);
   if (depth > 0)
   {
     this->SetDepthMmDevice(depth);
@@ -383,7 +383,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   this->Internal->RfDataBuffer = usbCurrentCineFrame();
 
   usbSetUnidirectionalMode();
-  usbSetPulseVoltage(this->RequestedImagingParameters->GetProbeVoltage());
+  usbSetPulseVoltage(this->ImagingParameters->GetProbeVoltage());
 
   POINT ptCenter;   // Points for Zoomed Display
   ptCenter.x = imageSize[0] / 2;
@@ -462,14 +462,14 @@ PlusStatus vtkPlusIntersonVideoSource::InternalConnect()
   this->Internal->MemoryBitmapBuffer.resize(toAllocate, 0);
 
   std::vector<double> gain;
-  this->RequestedImagingParameters->GetTimeGainCompensation(gain);
+  this->ImagingParameters->GetTimeGainCompensation(gain);
   if (gain.size() == 3)
   {
     double tgc[3] = {gain[0], gain[1], gain[2]};
     this->SetTimeGainCompensationPercentDevice(tgc);
   }
 
-  this->SetLookupTableDevice(this->RequestedImagingParameters->GetIntensity(), this->RequestedImagingParameters->GetContrast());
+  this->SetLookupTableDevice(this->ImagingParameters->GetIntensity(), this->ImagingParameters->GetContrast());
   return PLUS_SUCCESS;
 }
 
@@ -576,7 +576,7 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
   sources.push_back(aSource);
 
   FrameSizeType imageSize;
-  this->RequestedImagingParameters->GetImageSize(imageSize);
+  this->ImagingParameters->GetImageSize(imageSize);
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
   if (aSource->GetNumberOfItems() == 0)
@@ -848,13 +848,14 @@ PlusStatus vtkPlusIntersonVideoSource::SetFrequencyMhzDevice(float aFreq)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetDepthMm(double depthMm)
 {
-  return this->RequestedImagingParameters->SetDepthMm(depthMm);
+  return this->ImagingParameters->SetDepthMm(depthMm);
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetImageSize(int imageSize[2])
 {
-  return this->RequestedImagingParameters->SetImageSize(imageSize, 2);
+    FrameSizeType frameSize = { imageSize[0], imageSize[1], 1 };
+    return this->ImagingParameters->SetImageSize(frameSize);
 }
 
 //----------------------------------------------------------------------------
@@ -878,7 +879,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetSoundVelocityDevice(double value)
     return PLUS_FAIL;
   }
 
-  this->CurrentImagingParameters->SetSoundVelocity(value);
+  this->ImagingParameters->SetSoundVelocity(value);
   usbSetVelocity(this->Internal->ProbeHandle, value);
   return PLUS_SUCCESS;
 }
@@ -886,42 +887,42 @@ PlusStatus vtkPlusIntersonVideoSource::SetSoundVelocityDevice(double value)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetSoundVelocity(double value)
 {
-  this->CurrentImagingParameters->SetSoundVelocity(value);
+  this->ImagingParameters->SetSoundVelocity(value);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetFrequencyMhz(float freq)
 {
-  this->RequestedImagingParameters->SetFrequencyMhz(freq);
+  this->ImagingParameters->SetFrequencyMhz(freq);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetSectorPercent(double value)
 {
-  this->RequestedImagingParameters->SetSectorPercent(value);
+  this->ImagingParameters->SetSectorPercent(value);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetIntensity(int value)
 {
-  this->RequestedImagingParameters->SetIntensity(value);
+  this->ImagingParameters->SetIntensity(value);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetContrast(int value)
 {
-  this->RequestedImagingParameters->SetContrast(value);
+  this->ImagingParameters->SetContrast(value);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetDynRangeDb(double value)
 {
-  this->RequestedImagingParameters->SetDynRangeDb(value);
+  this->ImagingParameters->SetDynRangeDb(value);
   return PLUS_SUCCESS;
 }
 
@@ -936,7 +937,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercent(double gai
 
   std::vector<double> tgc;
   tgc.assign(gainPercent, gainPercent + 3);
-  this->RequestedImagingParameters->SetTimeGainCompensation(tgc);
+  this->ImagingParameters->SetTimeGainCompensation(tgc);
   return PLUS_SUCCESS;
 }
 
@@ -989,7 +990,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercentDevice(doub
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntersonVideoSource::SetZoomFactor(float zoomFactor)
 {
-  this->RequestedImagingParameters->SetZoomFactor(zoomFactor);
+  this->ImagingParameters->SetZoomFactor(zoomFactor);
   return PLUS_SUCCESS;
 }
 
@@ -1013,8 +1014,8 @@ PlusStatus vtkPlusIntersonVideoSource::SetLookupTableDevice(double intensity, do
   BYTE lut[256];
   this->Internal->CreateLUT(lut);
   bmCreatebLUT(lut);
-  this->CurrentImagingParameters->SetIntensity(intensity);
-  this->CurrentImagingParameters->SetContrast(contrast);
+  this->ImagingParameters->SetIntensity(intensity);
+  this->ImagingParameters->SetContrast(contrast);
   return PLUS_SUCCESS;
 }
 
