@@ -2,14 +2,14 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "PlusTrackedFrame.h"
 #include "vtkAppendPolyData.h"
 #include "vtkCubeSource.h"
-#include "vtkImageData.h" 
+#include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPointData.h"
 #include "vtkSTLWriter.h"
@@ -38,54 +38,54 @@ See License.txt for details.
 #include "vtkInteractorStyleImage.h"
 
 //-----------------------------------------------------------------------------
-void CreateSliceModels(vtkPlusTrackedFrameList *trackedFrameList, vtkPlusTransformRepository *transformRepository, PlusTransformName &imageToReferenceTransformName, vtkPolyData *outputPolyData)
+void CreateSliceModels(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepository* transformRepository, PlusTransformName& imageToReferenceTransformName, vtkPolyData* outputPolyData)
 {
   // Prepare the output polydata.
-  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
+  vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer<vtkAppendPolyData>::New();
 
   // Loop over each tracked image slice.
-  for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
+  for (unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex)
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
-    // Update transform repository 
-    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    // Update transform repository
+    if (transformRepository->SetTransforms(*frame) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
-      continue; 
+      LOG_ERROR("Failed to set repository transforms from tracked frame!");
+      continue;
     }
 
     vtkSmartPointer<vtkMatrix4x4> tUserDefinedMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if ( transformRepository->GetTransform(imageToReferenceTransformName, tUserDefinedMatrix) != PLUS_SUCCESS )
+    if (transformRepository->GetTransform(imageToReferenceTransformName, tUserDefinedMatrix) != PLUS_SUCCESS)
     {
-      std::string strTransformName; 
-      imageToReferenceTransformName.GetTransformName(strTransformName); 
-      LOG_ERROR("Failed to get transform from repository: " << strTransformName ); 
-      continue; 
+      std::string strTransformName;
+      imageToReferenceTransformName.GetTransformName(strTransformName);
+      LOG_ERROR("Failed to get transform from repository: " << strTransformName);
+      continue;
     }
 
-    vtkSmartPointer< vtkTransform > tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
-    tUserDefinedTransform->SetMatrix( tUserDefinedMatrix );    
+    vtkSmartPointer< vtkTransform> tUserDefinedTransform = vtkSmartPointer< vtkTransform >::New();
+    tUserDefinedTransform->SetMatrix(tUserDefinedMatrix);
 
-    unsigned int* frameSize = frame->GetFrameSize();
+    FrameSizeType frameSize = frame->GetFrameSize();
 
-    vtkSmartPointer< vtkTransform > tCubeToImage = vtkSmartPointer< vtkTransform >::New();
-    tCubeToImage->Scale( frameSize[ 0 ], frameSize[ 1 ], 1 );
-    tCubeToImage->Translate( 0.5, 0.5, 0.5 );  // Moving the corner to the origin.
+    vtkSmartPointer<vtkTransform> tCubeToImage = vtkSmartPointer<vtkTransform>::New();
+    tCubeToImage->Scale(frameSize[ 0 ], frameSize[ 1 ], 1);
+    tCubeToImage->Translate(0.5, 0.5, 0.5);    // Moving the corner to the origin.
 
-    vtkSmartPointer< vtkTransform > tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
+    vtkSmartPointer<vtkTransform> tCubeToTracker = vtkSmartPointer< vtkTransform >::New();
     tCubeToTracker->Identity();
-    tCubeToTracker->Concatenate( tUserDefinedTransform );
-    tCubeToTracker->Concatenate( tCubeToImage );
+    tCubeToTracker->Concatenate(tUserDefinedTransform);
+    tCubeToTracker->Concatenate(tCubeToImage);
 
-    vtkSmartPointer< vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer< vtkTransformPolyDataFilter >::New();
-    cubeToTracker->SetTransform( tCubeToTracker );
-    vtkSmartPointer< vtkCubeSource > source = vtkSmartPointer< vtkCubeSource >::New();
-    cubeToTracker->SetInputConnection( source->GetOutputPort() );
+    vtkSmartPointer<vtkTransformPolyDataFilter > cubeToTracker = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+    cubeToTracker->SetTransform(tCubeToTracker);
+    vtkSmartPointer<vtkCubeSource> source = vtkSmartPointer<vtkCubeSource>::New();
+    cubeToTracker->SetInputConnection(source->GetOutputPort());
     cubeToTracker->Update();
 
-    appender->AddInputConnection( cubeToTracker->GetOutputPort() );
-  }  
+    appender->AddInputConnection(cubeToTracker->GetOutputPort());
+  }
 
   appender->Update();
   outputPolyData->DeepCopy(appender->GetOutput());
@@ -100,7 +100,7 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
   renderWindowPoly->AddRenderer(rendererPoly);
   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractorPoly = vtkSmartPointer<vtkRenderWindowInteractor>::New();
   renderWindowInteractorPoly->SetRenderWindow(renderWindowPoly);
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New(); 
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   renderWindowInteractorPoly->SetInteractorStyle(style);
 
   // Visualization of the surface model
@@ -108,7 +108,7 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
   /*
   TODO: add surface model of each SpatialModel in the simulator
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData((vtkPolyData*)usSimulator->GetInput());  
+  mapper->SetInputData((vtkPolyData*)usSimulator->GetInput());
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
   rendererPoly->AddActor(actor);
@@ -118,12 +118,12 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
   vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
   CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
 
-  if(!intersectionFile.empty()) 
+  if (!intersectionFile.empty())
   {
-    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
-    surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
+    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New();
+    surfaceModelWriter->SetFileName(intersectionFile.c_str());
     surfaceModelWriter->SetInputData(slicesPolyData);
-    surfaceModelWriter->Write(); 
+    surfaceModelWriter->Write();
   }
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -139,7 +139,7 @@ void ShowResults(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepo
 //-----------------------------------------------------------------------------
 void ShowImage(vtkImageData* simOutput)
 {
-  vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New(); 
+  vtkSmartPointer<vtkImageData> usImage = vtkSmartPointer<vtkImageData>::New();
   usImage->DeepCopy(simOutput);
 
   // Display output of filter
@@ -165,42 +165,42 @@ void ShowImage(vtkImageData* simOutput)
 }
 
 //-----------------------------------------------------------------------------
-int main(int argc, char **argv)
-{  
-  bool printHelp=false;
+int main(int argc, char** argv)
+{
+  bool printHelp = false;
   std::string inputTransformsFile;
   std::string inputConfigFileName;
   std::string outputUsImageFile;
   std::string intersectionFile;
-  bool showResults=false;
+  bool showResults = false;
   bool useCompression(true);
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
+  args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
   args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the image to probe and phantom to reference transformations");
   args.AddArgument("--transforms-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTransformsFile, "Input file containing coordinate frames and the associated model to image transformations");
   args.AddArgument("--use-compression", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &useCompression, "Use compression when outputting data");
   args.AddArgument("--output-us-img-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &outputUsImageFile, "File name of the generated output ultrasound image");
   args.AddArgument("--output-slice-model-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intersectionFile, "Name of STL output file containing the model of all the frames (optional)");
-  args.AddArgument("--show-results",vtksys::CommandLineArguments::NO_ARGUMENT, &showResults,"Show the simulated image on the screen");
+  args.AddArgument("--show-results", vtksys::CommandLineArguments::NO_ARGUMENT, &showResults, "Show the simulated image on the screen");
 
   // Input arguments error checking
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  if ( printHelp ) 
+  if (printHelp)
   {
     std::cout << args.GetHelp() << std::endl;
-    exit(EXIT_SUCCESS); 
+    exit(EXIT_SUCCESS);
   }
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
@@ -221,81 +221,81 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  // Read transformations data 
-  LOG_DEBUG("Reading input meta file..."); 
-  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();         
-  if( vtkPlusSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS )
+  // Read transformations data
+  LOG_DEBUG("Reading input meta file...");
+  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
+  if (vtkPlusSequenceIO::Read(inputTransformsFile, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to load input sequences file.");
     exit(EXIT_FAILURE);
   }
-  LOG_DEBUG("Reading input meta file completed"); 
+  LOG_DEBUG("Reading input meta file completed");
 
   // Create repository for ultrasound images correlated to the iput tracked frames
-  vtkSmartPointer<vtkPlusTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
+  vtkSmartPointer<vtkPlusTrackedFrameList> simulatedUltrasoundFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   // Read config file
   LOG_DEBUG("Reading config file...")
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
-  {  
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
   }
   LOG_DEBUG("Reading config file finished.");
 
   // Create transform repository
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New(); 
-  if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to read transforms for transform repository!"); 
-    exit(EXIT_FAILURE); 
+    LOG_ERROR("Failed to read transforms for transform repository!");
+    exit(EXIT_FAILURE);
   }
 
   // Create simulator
-  vtkSmartPointer<vtkPlusUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkPlusUsSimulatorAlgo>::New(); 
-  if ( usSimulator->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkPlusUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkPlusUsSimulatorAlgo>::New();
+  if (usSimulator->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to read US simulator configuration!"); 
-    exit(EXIT_FAILURE); 
-  } 
+    LOG_ERROR("Failed to read US simulator configuration!");
+    exit(EXIT_FAILURE);
+  }
   usSimulator->SetTransformRepository(transformRepository);
   PlusTransformName imageToReferenceTransformName(usSimulator->GetImageCoordinateFrame(), usSimulator->GetReferenceCoordinateFrame());
 
   // Write slice model file
-  if(!intersectionFile.empty()) 
+  if (!intersectionFile.empty())
   {
     vtkSmartPointer< vtkPolyData > slicesPolyData = vtkSmartPointer< vtkPolyData >::New();
     CreateSliceModels(trackedFrameList, transformRepository, imageToReferenceTransformName, slicesPolyData);
-    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New(); 
-    surfaceModelWriter->SetFileName(intersectionFile.c_str()); 
+    vtkSmartPointer<vtkSTLWriter> surfaceModelWriter = vtkSmartPointer<vtkSTLWriter>::New();
+    surfaceModelWriter->SetFileName(intersectionFile.c_str());
     surfaceModelWriter->SetInputData(slicesPolyData);
-    surfaceModelWriter->Write(); 
+    surfaceModelWriter->Write();
   }
 
-  if (showResults) 
-  {     
+  if (showResults)
+  {
     ShowResults(trackedFrameList, transformRepository, imageToReferenceTransformName, intersectionFile);
   }
 
   std::vector<double> timeElapsedPerFrameSec;
-  double startTimeSec = 0; 
+  double startTimeSec = 0;
   double endTimeSec = 0;
 
   // TODO: remove this, it's just for testing
-  trackedFrameList->RemoveTrackedFrameRange(15,trackedFrameList->GetNumberOfTrackedFrames()-1);
+  trackedFrameList->RemoveTrackedFrameRange(15, trackedFrameList->GetNumberOfTrackedFrames() - 1);
 
-  for (unsigned int i = 0; i<trackedFrameList->GetNumberOfTrackedFrames(); i++)      
+  for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); i++)
   {
-    startTimeSec = vtkTimerLog::GetUniversalTime(); 
+    startTimeSec = vtkTimerLog::GetUniversalTime();
 
-    LOG_DEBUG("Processing frame "<<i);
+    LOG_DEBUG("Processing frame " << i);
     PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(i);
 
-    // Update transform repository 
-    if ( transformRepository->SetTransforms(*frame) != PLUS_SUCCESS )
+    // Update transform repository
+    if (transformRepository->SetTransforms(*frame) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to set repository transforms from tracked frame!"); 
+      LOG_ERROR("Failed to set repository transforms from tracked frame!");
       return EXIT_FAILURE;
     }
 
@@ -304,8 +304,8 @@ int main(int argc, char **argv)
     usSimulator->Update();
     vtkImageData* simOutput = usSimulator->GetOutput();
 
-    PlusVideoFrame * simulatorOutputPlusVideoFrame = new PlusVideoFrame(); 
-    simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput); 
+    PlusVideoFrame* simulatorOutputPlusVideoFrame = new PlusVideoFrame();
+    simulatorOutputPlusVideoFrame->DeepCopyFrom(simOutput);
 
     frame->SetImageData(*simulatorOutputPlusVideoFrame);
 
@@ -336,27 +336,27 @@ int main(int argc, char **argv)
       ShowImage(simOutput);
     }
 
-    endTimeSec = vtkTimerLog::GetUniversalTime(); 
-    timeElapsedPerFrameSec.push_back(endTimeSec-startTimeSec); 
+    endTimeSec = vtkTimerLog::GetUniversalTime();
+    timeElapsedPerFrameSec.push_back(endTimeSec - startTimeSec);
   }
 
-  if( vtkPlusSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Write(outputUsImageFile, trackedFrameList, trackedFrameList->GetImageOrientation(), useCompression) != PLUS_SUCCESS)
   {
     // Error has already been logged
     return EXIT_FAILURE;
   }
 
-  LOG_INFO( "Computation time for the fits frame (not included in the statistics because of BSP Tree Building, in sec): "<< timeElapsedPerFrameSec.at(0)); 
+  LOG_INFO("Computation time for the fits frame (not included in the statistics because of BSP Tree Building, in sec): " << timeElapsedPerFrameSec.at(0));
 
   // Remove the first frame from the statistics computation because extra processing is done for the first frame
   timeElapsedPerFrameSec.erase(timeElapsedPerFrameSec.begin());
 
-  double meanTimeElapsedPerFrameSec=0;
-  double stdevTimeElapsedPerFrameSec=0;
+  double meanTimeElapsedPerFrameSec = 0;
+  double stdevTimeElapsedPerFrameSec = 0;
   PlusMath::ComputeMeanAndStdev(timeElapsedPerFrameSec, meanTimeElapsedPerFrameSec, stdevTimeElapsedPerFrameSec);
-  LOG_INFO(" Average computation time per frame (sec): " << meanTimeElapsedPerFrameSec ) ; 
-  LOG_INFO(" Standard dev computation time per frame (sec): " << stdevTimeElapsedPerFrameSec ) ; 
-  LOG_INFO(" Average fps:  " << 1/meanTimeElapsedPerFrameSec ) ; 
+  LOG_INFO(" Average computation time per frame (sec): " << meanTimeElapsedPerFrameSec) ;
+  LOG_INFO(" Standard dev computation time per frame (sec): " << stdevTimeElapsedPerFrameSec) ;
+  LOG_INFO(" Average fps:  " << 1 / meanTimeElapsedPerFrameSec) ;
 
-  return EXIT_SUCCESS; 
+  return EXIT_SUCCESS;
 }

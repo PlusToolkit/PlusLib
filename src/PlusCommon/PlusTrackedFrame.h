@@ -105,17 +105,14 @@ public:
   /*! Get the list of the transform name of all custom frame transforms*/
   void GetCustomFrameTransformNameList(std::vector<PlusTransformName>& transformNames);
 
-  /*! Get tracked frame size in pixel. Returns: unsigned int[3].  */
-  unsigned int* GetFrameSize();
-
-  /*! Get tracked frame size in pixels */
-  void GetFrameSize(unsigned int dim[3]);
+  /*! Get tracked frame size in pixel. Returns: FrameSizeType.  */
+  FrameSizeType GetFrameSize();
 
   /*! Get tracked frame pixel size in bits (scalar size * number of scalar components) */
   int GetNumberOfBitsPerScalar();
 
   /*! Get number of scalar components in a pixel */
-  int GetNumberOfScalarComponents();
+  PlusStatus GetNumberOfScalarComponents(unsigned int& numberOfScalarComponents);
 
   /*! Get number of bits in a pixel */
   int GetNumberOfBitsPerPixel();
@@ -170,7 +167,7 @@ protected:
 
   FieldMapType CustomFrameFields;
 
-  unsigned int FrameSize[3];
+  FrameSizeType FrameSize;
 
   /*! Stores segmented fiducial point pixel coordinates */
   vtkPoints* FiducialPointsCoordinatePx;

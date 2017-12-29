@@ -58,8 +58,7 @@ namespace igtl
       return PLUS_FAIL;
     }
 
-    unsigned int frameSize[3];
-    this->m_TrackedFrame.GetFrameSize(frameSize);
+    FrameSizeType frameSize = this->m_TrackedFrame.GetFrameSize();
     if (frameSize[0] > static_cast<unsigned int>(std::numeric_limits<igtl_uint16>::max()) ||
         frameSize[1] > static_cast<unsigned int>(std::numeric_limits<igtl_uint16>::max()) ||
         frameSize[2] > static_cast<unsigned int>(std::numeric_limits<igtl_uint16>::max()))
@@ -73,7 +72,14 @@ namespace igtl
     this->m_MessageHeader.m_FrameSize[2] = frameSize[2];
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size();
     this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType());
-    this->m_MessageHeader.m_NumberOfComponents = m_TrackedFrame.GetImageData()->GetNumberOfScalarComponents();
+
+    unsigned int numberOfScalarComponents(1);
+    if (m_TrackedFrame.GetImageData()->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
+    {
+      LOG_ERROR("Unable to retrieve number of scalar components.");
+      return PLUS_FAIL;
+    }
+    this->m_MessageHeader.m_NumberOfComponents = numberOfScalarComponents;
     this->m_MessageHeader.m_ImageType = m_TrackedFrame.GetImageData()->GetImageType();
     this->m_MessageHeader.m_ImageDataSizeInBytes = this->m_TrackedFrame.GetImageData()->GetFrameSizeInBytes();
     this->m_MessageHeader.m_ImageOrientation = (igtl_uint16)this->m_TrackedFrame.GetImageData()->GetImageOrientation();
@@ -192,7 +198,7 @@ namespace igtl
 
     // Copy image data
     void* imageData = (void*)(this->m_Content + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes);
-    int frameSize[3] = { header->m_FrameSize[0], header->m_FrameSize[1], header->m_FrameSize[2] };
+    FrameSizeType frameSize = { header->m_FrameSize[0], header->m_FrameSize[1], header->m_FrameSize[2] };
     if (this->m_TrackedFrame.GetImageData()->AllocateFrame(frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType), header->m_NumberOfComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate memory for frame received in Plus TrackedFrame message");

@@ -16,9 +16,9 @@
 class PlusBkProFocusCameraLinkReceiver;
 
 /*!
-\class vtkPlusBkProFocusCameraLinkVideoSource 
+\class vtkPlusBkProFocusCameraLinkVideoSource
 \brief Class for acquiring ultrasound images from BK ProFocus scanners
-  
+
 Requires the PLUS_USE_BKPROFOCUS_VIDEO and PLUS_USE_BKPROFOCUS_CAMERALINK options in CMake.
 
 Need to install the DALSA Sapera package, otherwise the applications will not start because of missing the SapClassBasic72.dll.
@@ -31,7 +31,7 @@ Requires GrabbieLib (SDK provided by BK).
 */
 class vtkPlusDataCollectionExport vtkPlusBkProFocusCameraLinkVideoSource : public vtkPlusDevice
 {
-public:  
+public:
   enum ImagingModeType
   {
     BMode,
@@ -44,7 +44,7 @@ public:
     Sagittal
   };
 
-  vtkTypeMacro(vtkPlusBkProFocusCameraLinkVideoSource,vtkPlusDevice);
+  vtkTypeMacro(vtkPlusBkProFocusCameraLinkVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   static vtkPlusBkProFocusCameraLinkVideoSource* New();
@@ -56,17 +56,17 @@ public:
 
   /*! Show Sapera grabbing window while connected. For debug purposes only. The state must not be changed while the video source is connected. */
   vtkSetMacro(ShowSaperaWindow, bool);
-  
+
   /*! Show live BMode image while connected. For debug purposes only. The state must not be changed while the video source is connected. */
   vtkSetMacro(ShowBModeWindow, bool);
 
-  PlusStatus GetFullIniFilePath(std::string &fullPath);
+  PlusStatus GetFullIniFilePath(std::string& fullPath);
 
   void SetImagingMode(ImagingModeType imagingMode);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
-  
+
 protected:
   /*! Constructor */
   vtkPlusBkProFocusCameraLinkVideoSource();
@@ -80,22 +80,22 @@ protected:
   virtual PlusStatus InternalDisconnect();
 
   /*! Read main configuration from/to xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  void NewFrameCallback(void* pixelDataPtr, const int frameSizeInPix[2], PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType);
+  void NewFrameCallback(void* pixelDataPtr, const FrameSizeType& frameSizeInPix, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType);
   friend PlusBkProFocusCameraLinkReceiver;
 
   /*! Called by BK to log information messages */
-  static void LogInfoMessageCallback(char *msg);
+  static void LogInfoMessageCallback(char* msg);
 
   /*! Called by BK to log debug messages */
-  static void LogDebugMessageCallback(char *msg);
+  static void LogDebugMessageCallback(char* msg);
 
   /*!
     Record incoming video.  The recording
-    continues indefinitely until StopRecording() is called. 
+    continues indefinitely until StopRecording() is called.
   */
   virtual PlusStatus InternalStartRecording();
 
@@ -110,20 +110,18 @@ protected:
   char* IniFileName;
 
   bool ShowSaperaWindow;
-  bool ShowBModeWindow; 
+  bool ShowBModeWindow;
 
   ImagingModeType ImagingMode;
 
   std::map<vtkPlusChannel*, bool> ChannelConfiguredMap;
-  
+
 private:
-
-
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
-  vtkInternal* Internal;  
+  vtkInternal* Internal;
 
-  static bool vtkPlusBkProFocusCameraLinkVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
+  static bool vtkPlusBkProFocusCameraLinkVideoSourceNewFrameCallback(void* data, int type, int sz, bool cine, int frmnum);
   vtkPlusBkProFocusCameraLinkVideoSource(const vtkPlusBkProFocusCameraLinkVideoSource&);  // Not implemented.
   void operator=(const vtkPlusBkProFocusCameraLinkVideoSource&);  // Not implemented.
 };

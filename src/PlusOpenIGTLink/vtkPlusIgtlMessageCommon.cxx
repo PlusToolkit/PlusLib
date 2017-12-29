@@ -236,7 +236,12 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   double imageSpacingMm[3] = { 0 };
   double imageOriginMm[3] = { 0 };
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(trackedFrame.GetImageData()->GetVTKScalarPixelType());
-  int numScalarComponents = trackedFrame.GetImageData()->GetNumberOfScalarComponents();
+  unsigned int numScalarComponents(1);
+  if (trackedFrame.GetImageData()->GetNumberOfScalarComponents(numScalarComponents) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to retrieve number of scalar components.");
+    return PLUS_FAIL;
+  }
 
   frameImage->GetDimensions(imageSizePixels);
   frameImage->GetSpacing(imageSpacingMm);
@@ -379,10 +384,17 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
   int imgSize[3] = {0}; // image dimension in pixels
   imgMsg->GetDimensions(imgSize);
 
+  if (imgSize[0] < 0 || imgSize[1] < 0 || imgSize[2] < 0)
+  {
+    LOG_ERROR("Image with negative dimension. Aborting.");
+    return PLUS_FAIL;
+  }
+  FrameSizeType imageSize = {static_cast<unsigned int>(imgSize[0]), static_cast<unsigned int>(imgSize[1]), static_cast<unsigned int>(imgSize[2]) };
+
   // Set scalar pixel type
   PlusCommon::VTKScalarPixelType pixelType = PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(imgMsg->GetScalarType());
   PlusVideoFrame frame;
-  if (frame.AllocateFrame(imgSize, pixelType, imgMsg->GetNumComponents()) != PLUS_SUCCESS)
+  if (frame.AllocateFrame(imageSize, pixelType, imgMsg->GetNumComponents()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to allocate image data for tracked frame!");
     return PLUS_FAIL;

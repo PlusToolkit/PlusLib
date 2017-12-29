@@ -4,54 +4,64 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
 #include "ICCapturingListener.h"
-#include "vtkPlusICCapturingSource.h"
-#include "vtkImageData.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkMultiThreader.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtksys/SystemTools.hxx"
+#include "vtkPlusICCapturingSource.h"
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkMultiThreader.h>
+#include <vtkObjectFactory.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtksys/SystemTools.hxx>
+
+// ICC includes
 #include <tisudshl.h>
 
+// OS includes
 #include <ctype.h>
 
+// STL includes
 #include <vector>
 #include <string>
 
-
+//----------------------------------------------------------------------------
 
 vtkPlusICCapturingSource* vtkPlusICCapturingSource::Instance = 0;
 vtkPlusICCapturingSourceCleanup vtkPlusICCapturingSource::Cleanup;
 
-vtkPlusICCapturingSourceCleanup::vtkPlusICCapturingSourceCleanup(){}
+//----------------------------------------------------------------------------
+vtkPlusICCapturingSourceCleanup::vtkPlusICCapturingSourceCleanup()
+{
+}
 
+//----------------------------------------------------------------------------
 vtkPlusICCapturingSourceCleanup::~vtkPlusICCapturingSourceCleanup()
 {
   // Destroy any remaining output window.
   vtkPlusICCapturingSource::SetInstance(NULL);
 }
 
-
 //----------------------------------------------------------------------------
 vtkPlusICCapturingSource::vtkPlusICCapturingSource()
 {
-  this->ICBufferSize = 50; 
+  this->ICBufferSize = 50;
 
-  this->DeviceName = NULL; 
-  this->VideoNorm = NULL; 
+  this->DeviceName = NULL;
+  this->VideoNorm = NULL;
   this->VideoFormat = NULL;
   this->FrameSize[0] = 640;
   this->FrameSize[1] = 480;
-  this->InputChannel = NULL; 
+  this->FrameSize[2] = 1;
+  this->InputChannel = NULL;
 
   this->FrameGrabber = NULL;
-  this->FrameGrabberListener = NULL; 
+  this->FrameGrabberListener = NULL;
 
   this->Modified();
 
@@ -62,18 +72,18 @@ vtkPlusICCapturingSource::vtkPlusICCapturingSource()
 
 //----------------------------------------------------------------------------
 vtkPlusICCapturingSource::~vtkPlusICCapturingSource()
-{ 
+{
   this->Disconnect();
 
-  if ( this->FrameGrabber != NULL) 
+  if (this->FrameGrabber != NULL)
   {
-    delete this->FrameGrabber; 
+    delete this->FrameGrabber;
     this->FrameGrabber = NULL;
   }
 
-  if ( this->FrameGrabberListener != NULL) 
+  if (this->FrameGrabberListener != NULL)
   {
-    delete this->FrameGrabberListener; 
+    delete this->FrameGrabberListener;
     this->FrameGrabberListener = NULL;
   }
 
@@ -95,15 +105,15 @@ vtkPlusICCapturingSource* vtkPlusICCapturingSource::New()
 // Return the single instance of the vtkOutputWindow
 vtkPlusICCapturingSource* vtkPlusICCapturingSource::GetInstance()
 {
-  if(!vtkPlusICCapturingSource::Instance)
+  if (!vtkPlusICCapturingSource::Instance)
   {
     // Try the factory first
-    vtkPlusICCapturingSource::Instance = (vtkPlusICCapturingSource*)vtkObjectFactory::CreateInstance("vtkPlusICCapturingSource");    
-    if(!vtkPlusICCapturingSource::Instance)
+    vtkPlusICCapturingSource::Instance = (vtkPlusICCapturingSource*)vtkObjectFactory::CreateInstance("vtkPlusICCapturingSource");
+    if (!vtkPlusICCapturingSource::Instance)
     {
-      vtkPlusICCapturingSource::Instance = new vtkPlusICCapturingSource();     
+      vtkPlusICCapturingSource::Instance = new vtkPlusICCapturingSource();
     }
-    if(!vtkPlusICCapturingSource::Instance)
+    if (!vtkPlusICCapturingSource::Instance)
     {
       int error = 0;
     }
@@ -115,7 +125,7 @@ vtkPlusICCapturingSource* vtkPlusICCapturingSource::GetInstance()
 //----------------------------------------------------------------------------
 void vtkPlusICCapturingSource::SetInstance(vtkPlusICCapturingSource* instance)
 {
-  if (vtkPlusICCapturingSource::Instance==instance)
+  if (vtkPlusICCapturingSource::Instance == instance)
   {
     return;
   }
@@ -136,29 +146,28 @@ void vtkPlusICCapturingSource::SetInstance(vtkPlusICCapturingSource* instance)
 //----------------------------------------------------------------------------
 std::string vtkPlusICCapturingSource::GetSdkVersion()
 {
-  std::ostringstream version; 
-  version << "The Imaging Source UDSHL-" << UDSHL_LIB_VERSION_MAJOR << "." << UDSHL_LIB_VERSION_MINOR; 
-  return version.str(); 
+  std::ostringstream version;
+  version << "The Imaging Source UDSHL-" << UDSHL_LIB_VERSION_MAJOR << "." << UDSHL_LIB_VERSION_MINOR;
+  return version.str();
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusICCapturingSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
-
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
 // the callback function used when there is a new frame of data received
-bool vtkPlusICCapturingSource::vtkPlusICCapturingSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber)
-{    
-  if(data==NULL || size==0)
+bool vtkPlusICCapturingSource::vtkPlusICCapturingSourceNewFrameCallback(unsigned char* data, unsigned long size, unsigned long frameNumber)
+{
+  if (data == NULL || size == 0)
   {
     LOG_ERROR("No actual frame data received from the framegrabber");
     return false;
   }
 
-  vtkPlusICCapturingSource::GetInstance()->AddFrameToBuffer(data, size, frameNumber);    
+  vtkPlusICCapturingSource::GetInstance()->AddFrameToBuffer(data, size, frameNumber);
 
   return true;
 }
@@ -166,7 +175,7 @@ bool vtkPlusICCapturingSource::vtkPlusICCapturingSourceNewFrameCallback(unsigned
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
 // vtkVideoSource framebuffer (don't do the unpacking yet)
-PlusStatus vtkPlusICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, unsigned long size, unsigned long frameNumber)
+PlusStatus vtkPlusICCapturingSource::AddFrameToBuffer(unsigned char* dataPtr, unsigned long size, unsigned long frameNumber)
 {
   if (!this->Recording)
   {
@@ -174,34 +183,42 @@ PlusStatus vtkPlusICCapturingSource::AddFrameToBuffer(unsigned char * dataPtr, u
     return PLUS_SUCCESS;
   }
 
-  vtkPlusDataSource* aSource=NULL;
-  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* aSource = NULL;
+  if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
   }
 
-  this->FrameNumber = frameNumber; 
+  this->FrameNumber = frameNumber;
 
-  const int frameSize[3] = {static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX(), static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY(),1}; 
-  int frameBufferBitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel(); 
-  if (frameBufferBitsPerPixel!=8)
+  DShowLib::Grabber* grabber = static_cast<DShowLib::Grabber*>(this->FrameGrabber);
+  if (grabber == nullptr || grabber->getAcqSizeMaxX() < 0 || grabber->getAcqSizeMaxY() < 0)
   {
-    LOG_ERROR("vtkPlusICCapturingSource::AddFrameToBuffer: only 8-bit acquisition is supported, current frameBufferBitsPerPixel="<<frameBufferBitsPerPixel);
+    LOG_ERROR("Negative frame size sent from ICC device. Cannot continue.");
     return PLUS_FAIL;
   }
 
-  PlusStatus status = aSource->AddItem(dataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber); 
+  FrameSizeType frameSize = {static_cast<unsigned int>(grabber->getAcqSizeMaxX()), static_cast<unsigned int>(grabber->getAcqSizeMaxY()), 1};
+
+  int frameBufferBitsPerPixel = grabber->getVideoFormat().getBitsPerPixel();
+  if (frameBufferBitsPerPixel != 8)
+  {
+    LOG_ERROR("vtkPlusICCapturingSource::AddFrameToBuffer: only 8-bit acquisition is supported, current frameBufferBitsPerPixel=" << frameBufferBitsPerPixel);
+    return PLUS_FAIL;
+  }
+
+  PlusStatus status = aSource->AddItem(dataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber);
   this->Modified();
 
   return status;
 }
 
- 
+
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusICCapturingSource::InternalConnect()
 {
-  if( !DShowLib::InitLibrary() )
+  if (!DShowLib::InitLibrary())
   {
     LOG_ERROR("The IC capturing library could not be initialized");
     return PLUS_FAIL;
@@ -209,96 +226,97 @@ PlusStatus vtkPlusICCapturingSource::InternalConnect()
 
   // Add DShowLib::ExitLibrary to the list of functions that are called on application exit.
   // It is useful because when the application is forced to exit then the destructor may not be called.
-  static bool exitFunctionAdded=false;
+  static bool exitFunctionAdded = false;
   if (!exitFunctionAdded)
   {
-    atexit( DShowLib::ExitLibrary );
-    exitFunctionAdded=true;
+    atexit(DShowLib::ExitLibrary);
+    exitFunctionAdded = true;
   }
 
-  if ( this->FrameGrabber == NULL ) 
+  if (this->FrameGrabber == NULL)
   {
-    this->FrameGrabber = new DShowLib::Grabber; 
+    this->FrameGrabber = new DShowLib::Grabber;
   }
 
   // Set the device name (e.g. DFG/USB2-lt)
-  if ( this->GetDeviceName() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->openDev(this->GetDeviceName() ) ) 
+  if (this->GetDeviceName() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->openDev(this->GetDeviceName()))
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName() ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid device name: " << this->GetDeviceName());
     LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
   // Set the video norm (e.g. PAL_B or NTSC_M)
-  if ( this->GetVideoNorm() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoNorm( this->GetVideoNorm() ) ) 
+  if (this->GetVideoNorm() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoNorm(this->GetVideoNorm()))
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm() ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid video norm: " << this->GetVideoNorm());
     LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
-  // The Y800 color format is an 8 bit monochrome format. 
-  if ( !static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat( this->GetDShowLibVideoFormatString().c_str() ) )
+  // The Y800 color format is an 8 bit monochrome format.
+  if (!static_cast<DShowLib::Grabber*>(FrameGrabber)->setVideoFormat(this->GetDShowLibVideoFormatString().c_str()))
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetDShowLibVideoFormatString() );
+    LOG_ERROR("The IC capturing library could not be initialized - invalid video format: " << this->GetDShowLibVideoFormatString());
     LogListOfCaptureDevices();
     return PLUS_FAIL;
   }
 
-  int bitsPerPixel=static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel();
-  if (bitsPerPixel!=8)
+  int bitsPerPixel = static_cast<DShowLib::Grabber*>(FrameGrabber)->getVideoFormat().getBitsPerPixel();
+  if (bitsPerPixel != 8)
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel );
-    return PLUS_FAIL;    
+    LOG_ERROR("The IC capturing library could not be initialized - invalid bits per pixel: " << bitsPerPixel);
+    return PLUS_FAIL;
   }
 
-  vtkPlusDataSource* aSource=NULL;
-  if( this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS )
+  vtkPlusDataSource* aSource = NULL;
+  if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source in the ICCapturing device.");
     return PLUS_FAIL;
   }
-  aSource->SetPixelType( VTK_UNSIGNED_CHAR );  
+  aSource->SetPixelType(VTK_UNSIGNED_CHAR);
 
-  int frameSize[3]={0,0,1};
-  frameSize[0]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
-  frameSize[1]=static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY();
+  FrameSizeType frameSize = {0, 0, 1};
+  frameSize[0] = static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxX();
+  frameSize[1] = static_cast<DShowLib::Grabber*>(FrameGrabber)->getAcqSizeMaxY();
+  frameSize[2] = 1;
   aSource->SetInputFrameSize(frameSize);
 
-  if ( this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel( this->GetInputChannel() ) ) 
+  if (this->GetInputChannel() == NULL || !static_cast<DShowLib::Grabber*>(FrameGrabber)->setInputChannel(this->GetInputChannel()))
   {
-    LOG_ERROR("The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel() ); 
+    LOG_ERROR("The IC capturing library could not be initialized - invalid input channel: " << this->GetInputChannel());
     return PLUS_FAIL;
   }
 
-  if (this->FrameGrabberListener==NULL)
+  if (this->FrameGrabberListener == NULL)
   {
-    this->FrameGrabberListener = new ICCapturingListener(); 
+    this->FrameGrabberListener = new ICCapturingListener();
   }
 
-  this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkPlusICCapturingSource::vtkPlusICCapturingSourceNewFrameCallback); 
+  this->FrameGrabberListener->SetICCapturingSourceNewFrameCallback(vtkPlusICCapturingSource::vtkPlusICCapturingSourceNewFrameCallback);
 
   // Assign the number of buffers to the cListener object.
-  this->FrameGrabberListener->setBufferSize( this->GetICBufferSize() );
+  this->FrameGrabberListener->setBufferSize(this->GetICBufferSize());
 
-  // Register the FrameGrabberListener object for the frame ready 
+  // Register the FrameGrabberListener object for the frame ready
   // TODO: check if the listener should be removed (in disconnect, when reconnecting, ...)
-  static_cast<DShowLib::Grabber*>(FrameGrabber)->addListener( FrameGrabberListener, DShowLib::GrabberListener::eFRAMEREADY );
+  static_cast<DShowLib::Grabber*>(FrameGrabber)->addListener(FrameGrabberListener, DShowLib::GrabberListener::eFRAMEREADY);
 
   // Create a FrameTypeInfoArray data structure describing the allowed color formats.
   DShowLib::FrameTypeInfoArray acceptedTypes = DShowLib::FrameTypeInfoArray::createRGBArray();
 
-  // Create the frame handler sink: 8 bit monochrome format. 
-  smart_ptr<DShowLib::FrameHandlerSink> pSink = DShowLib::FrameHandlerSink::create( DShowLib::eRGB8, 1);
+  // Create the frame handler sink: 8 bit monochrome format.
+  smart_ptr<DShowLib::FrameHandlerSink> pSink = DShowLib::FrameHandlerSink::create(DShowLib::eRGB8, 1);
   //smart_ptr<DShowLib::FrameHandlerSink> pSink = DShowLib::FrameHandlerSink::create( DShowLib::eY800, 1);
 
   // Disable snap mode.
-  pSink->setSnapMode( false );
+  pSink->setSnapMode(false);
 
   // Apply the sink to the grabber.
-  static_cast<DShowLib::Grabber*>(FrameGrabber)->setSinkType( pSink );
+  static_cast<DShowLib::Grabber*>(FrameGrabber)->setSinkType(pSink);
 
-  return PLUS_SUCCESS; 
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -306,12 +324,12 @@ PlusStatus vtkPlusICCapturingSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from IC capturing");
 
-  static_cast<DShowLib::Grabber*>(FrameGrabber)->removeListener( FrameGrabberListener );
-  delete this->FrameGrabberListener; 
-  this->FrameGrabberListener=NULL;
+  static_cast<DShowLib::Grabber*>(FrameGrabber)->removeListener(FrameGrabberListener);
+  delete this->FrameGrabberListener;
+  this->FrameGrabberListener = NULL;
 
   delete FrameGrabber;
-  this->FrameGrabber=NULL;
+  this->FrameGrabber = NULL;
 
   DShowLib::ExitLibrary();
 
@@ -343,33 +361,34 @@ PlusStatus vtkPlusICCapturingSource::InternalStopRecording()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusICCapturingSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusICCapturingSource::ReadConfiguration"); 
+  LOG_TRACE("vtkPlusICCapturingSource::ReadConfiguration");
 
   // This is a singleton class, so some input channels, output channels, or tools might have been already
   // defined. Clean them up before creating the new ones from XML.
-  for( ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
+  for (ChannelContainerIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
   {
     (*it)->UnRegister(this);
   }
   this->InputChannels.clear();
   this->OutputChannels.clear();
-  for( DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+  for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
   {
     it->second->UnRegister(this);
   }
   this->Tools.clear();
-  for( DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
+  for (DataSourceContainerIterator it = this->VideoSources.begin(); it != this->VideoSources.end(); ++it)
   {
     it->second->UnRegister(this);
   }
   this->VideoSources.clear();
 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  
+
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(DeviceName, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoNorm, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
+  XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 2, FrameSize, deviceConfig);
+  FrameSize[2] = 1;
 
   // Only for backward compatibility
   // VideoFormat used to contain both video format and frame size, so in case frame size is defined
@@ -390,7 +409,10 @@ PlusStatus vtkPlusICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootC
   imageAcquisitionConfig->SetAttribute("DeviceName", this->DeviceName);
   imageAcquisitionConfig->SetAttribute("VideoNorm", this->VideoNorm);
   imageAcquisitionConfig->SetAttribute("VideoFormat", this->VideoFormat);
-  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, this->FrameSize);
+  int frameSize[2];
+  frameSize[0] = static_cast<int>(this->FrameSize[0]);
+  frameSize[1] = static_cast<int>(this->FrameSize[1]);
+  imageAcquisitionConfig->SetVectorAttribute("FrameSize", 2, frameSize);
   imageAcquisitionConfig->SetAttribute("InputChannel", this->InputChannel);
   imageAcquisitionConfig->SetIntAttribute("ICBufferSize", this->ICBufferSize);
 
@@ -398,17 +420,39 @@ PlusStatus vtkPlusICCapturingSource::WriteConfiguration(vtkXMLDataElement* rootC
 }
 
 //----------------------------------------------------------------------------
+void vtkPlusICCapturingSource::SetFrameSize(const FrameSizeType& frameSize)
+{
+  this->FrameSize = FrameSize;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusICCapturingSource::SetFrameSize(unsigned int i, unsigned int j, unsigned int k)
+{
+  FrameSizeType t;
+  t[0] = i;
+  t[1] = j;
+  t[2] = k;
+  this->SetFrameSize(t);
+}
+
+//----------------------------------------------------------------------------
+FrameSizeType vtkPlusICCapturingSource::GetFrameSize() const
+{
+  return this->FrameSize;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusICCapturingSource::NotifyConfigured()
 {
-  if( this->OutputChannels.size() > 1 )
+  if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("ICCapturingSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusICCapturingSource. Cannot proceed." );
+    LOG_ERROR("No output channels defined for vtkPlusICCapturingSource. Cannot proceed.");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
@@ -419,7 +463,7 @@ PlusStatus vtkPlusICCapturingSource::NotifyConfigured()
 //----------------------------------------------------------------------------
 void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoFormatFrameSizeString)
 {
-  if (videoFormatFrameSizeString==NULL)
+  if (videoFormatFrameSizeString == NULL)
   {
     // parsing failed
     return;
@@ -428,7 +472,7 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
   // videoFormatFrameSizeString sample: "Y800 (640x480)"
   std::vector<std::string> splitVideoFormatFrameSize;
   PlusCommon::SplitStringIntoTokens(videoFormatFrameSizeString, ' ', splitVideoFormatFrameSize);
-  if (splitVideoFormatFrameSize.size()!=2)
+  if (splitVideoFormatFrameSize.size() != 2)
   {
     // parsing failed
     return;
@@ -440,137 +484,137 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
   // parse frame size
   std::vector<std::string> splitFrameSize;
   PlusCommon::SplitStringIntoTokens(splitVideoFormatFrameSize[1], 'x', splitFrameSize);
-  if (splitFrameSize.size()!=2 || splitFrameSize[0].empty() || splitFrameSize[1].empty()) // (640 480)
+  if (splitFrameSize.size() != 2 || splitFrameSize[0].empty() || splitFrameSize[1].empty()) // (640 480)
   {
     // parsing failed
     return;
   }
-  if (splitFrameSize[0][0]!='(' || splitFrameSize[1][splitFrameSize[1].size()-1]!=')')
+  if (splitFrameSize[0][0] != '(' || splitFrameSize[1][splitFrameSize[1].size() - 1] != ')')
   {
     // parsing failed
     return;
   }
   // Remove parentheses
   splitFrameSize[0].erase(splitFrameSize[0].begin());
-  splitFrameSize[1].erase(splitFrameSize[1].end()-1);
-  // Convert to integer
-  int frameSizeX=0;
-  int frameSizeY=0;
-  if (PlusCommon::StringToInt(splitFrameSize[0].c_str(), frameSizeX)==PLUS_FAIL)
+  splitFrameSize[1].erase(splitFrameSize[1].end() - 1);
+
+  // Convert to unsigned integer
+  unsigned int frameSizeX = 0;
+  unsigned int frameSizeY = 0;
+  if (PlusCommon::StringToUInt(splitFrameSize[0].c_str(), frameSizeX) == PLUS_FAIL)
   {
     return;
   }
-  if (PlusCommon::StringToInt(splitFrameSize[1].c_str(), frameSizeY)==PLUS_FAIL)
+  if (PlusCommon::StringToUInt(splitFrameSize[1].c_str(), frameSizeY) == PLUS_FAIL)
   {
     return;
   }
 
   // Parsing successful, save results
   this->SetVideoFormat(splitVideoFormatFrameSize[0].c_str());
-  this->SetFrameSize(frameSizeX, frameSizeY);
+  this->SetFrameSize(frameSizeX, frameSizeY, 1);
 }
-
 
 //----------------------------------------------------------------------------
 std::string vtkPlusICCapturingSource::GetDShowLibVideoFormatString()
 {
   std::ostringstream ss;
-  ss << (this->GetVideoFormat()?this->GetVideoFormat():"Y800");
+  ss << (this->GetVideoFormat() ? this->GetVideoFormat() : "Y800");
   ss << " (" << this->FrameSize[0] << "x" << this->FrameSize[1] << ")" << std::ends;
   std::string formatString = ss.str();
   return formatString;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusICCapturingSource::GetListOfCaptureDevices(std::vector< std::string > &deviceNames)
+void vtkPlusICCapturingSource::GetListOfCaptureDevices(std::vector< std::string >& deviceNames)
 {
   deviceNames.clear();
 
-  if( !DShowLib::InitLibrary() )
+  if (!DShowLib::InitLibrary())
   {
     LOG_ERROR("The IC capturing library could not be initialized");
     return;
   }
-  DShowLib::Grabber grabber; 
+  DShowLib::Grabber grabber;
   DShowLib::Grabber::tVidCapDevListPtr pVidCapDevList = grabber.getAvailableVideoCaptureDevices();
   DShowLib::ExitLibrary();
 
-  if( pVidCapDevList == 0)
+  if (pVidCapDevList == 0)
   {
     // no devices are found
     return;
   }
-  for( DShowLib::Grabber::tVidCapDevList::iterator it = pVidCapDevList->begin(); it != pVidCapDevList->end(); ++it )
+  for (DShowLib::Grabber::tVidCapDevList::iterator it = pVidCapDevList->begin(); it != pVidCapDevList->end(); ++it)
   {
     deviceNames.push_back(it->toString());
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusICCapturingSource::GetListOfCaptureVideoNorms(std::vector< std::string > &videoNorms, const std::string& deviceName)
+void vtkPlusICCapturingSource::GetListOfCaptureVideoNorms(std::vector< std::string >& videoNorms, const std::string& deviceName)
 {
   videoNorms.clear();
 
-  if( !DShowLib::InitLibrary() )
+  if (!DShowLib::InitLibrary())
   {
     LOG_ERROR("The IC capturing library could not be initialized");
     return;
   }
-  DShowLib::Grabber grabber; 
-  if ( !grabber.openDev(deviceName) ) 
+  DShowLib::Grabber grabber;
+  if (!grabber.openDev(deviceName))
   {
-    LOG_ERROR("Could not connect to device: " << deviceName ); 
+    LOG_ERROR("Could not connect to device: " << deviceName);
     DShowLib::ExitLibrary();
     return;
   }
   DShowLib::Grabber::tVidNrmListPtr pVidNrmList = grabber.getAvailableVideoNorms();
   DShowLib::ExitLibrary();
 
-  if( pVidNrmList == 0 )
+  if (pVidNrmList == 0)
   {
-    LOG_ERROR("Error getting list of capture video norms for device: "<<grabber.getLastError().toString());
+    LOG_ERROR("Error getting list of capture video norms for device: " << grabber.getLastError().toString());
     return;
   }
 
-  for( DShowLib::Grabber::tVidNrmList::iterator it = pVidNrmList->begin(); it != pVidNrmList->end(); ++it )
+  for (DShowLib::Grabber::tVidNrmList::iterator it = pVidNrmList->begin(); it != pVidNrmList->end(); ++it)
   {
     videoNorms.push_back(it->toString());
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusICCapturingSource::GetListOfCaptureVideoModes(std::vector< std::string > &videoFormats, const std::string& deviceName, const std::string& videoNorm)
+void vtkPlusICCapturingSource::GetListOfCaptureVideoModes(std::vector< std::string >& videoFormats, const std::string& deviceName, const std::string& videoNorm)
 {
   videoFormats.clear();
 
-  if( !DShowLib::InitLibrary() )
+  if (!DShowLib::InitLibrary())
   {
     LOG_ERROR("The IC capturing library could not be initialized");
     return;
   }
-  DShowLib::Grabber grabber; 
-  if ( !grabber.openDev(deviceName) ) 
+  DShowLib::Grabber grabber;
+  if (!grabber.openDev(deviceName))
   {
-    LOG_ERROR("Could not connect to device: " << deviceName ); 
+    LOG_ERROR("Could not connect to device: " << deviceName);
     DShowLib::ExitLibrary();
     return;
   }
-  if ( !grabber.setVideoNorm( videoNorm ) ) 
+  if (!grabber.setVideoNorm(videoNorm))
   {
-    LOG_ERROR("Failed to set video norm: " << videoNorm ); 
+    LOG_ERROR("Failed to set video norm: " << videoNorm);
     DShowLib::ExitLibrary();
     return;
   }
-  DShowLib::Grabber::tVidFmtListPtr pVidFmtList = grabber.getAvailableVideoFormats(); 
+  DShowLib::Grabber::tVidFmtListPtr pVidFmtList = grabber.getAvailableVideoFormats();
   DShowLib::ExitLibrary();
 
-  if( pVidFmtList == 0 )
+  if (pVidFmtList == 0)
   {
-    LOG_ERROR("Error getting list of capture video formats for device "<<grabber.getLastError().toString());
+    LOG_ERROR("Error getting list of capture video formats for device " << grabber.getLastError().toString());
     return;
   }
 
-  for( DShowLib::Grabber::tVidFmtList::iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); ++it )
+  for (DShowLib::Grabber::tVidFmtList::iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); ++it)
   {
     videoFormats.push_back(it->toString());
   }
@@ -580,21 +624,21 @@ void vtkPlusICCapturingSource::GetListOfCaptureVideoModes(std::vector< std::stri
 void vtkPlusICCapturingSource::LogListOfCaptureDevices()
 {
   LOG_INFO("Available video formats and frame sizes for all available capture devices:");
-  std::vector< std::string > deviceNames;
+  std::vector<std::string> deviceNames;
   GetListOfCaptureDevices(deviceNames);
-  for (std::vector< std::string > :: iterator deviceNameIt=deviceNames.begin(); deviceNameIt!=deviceNames.end(); ++deviceNameIt)
+  for (std::vector<std::string>::iterator deviceNameIt = deviceNames.begin(); deviceNameIt != deviceNames.end(); ++deviceNameIt)
   {
-    LOG_INFO(" Device name: "<<(*deviceNameIt));
-    std::vector< std::string > videoNorms;
+    LOG_INFO(" Device name: " << (*deviceNameIt));
+    std::vector<std::string> videoNorms;
     GetListOfCaptureVideoNorms(videoNorms, (*deviceNameIt));
-    for (std::vector< std::string > :: iterator videoNormIt=videoNorms.begin(); videoNormIt!=videoNorms.end(); ++videoNormIt)
+    for (std::vector<std::string>::iterator videoNormIt = videoNorms.begin(); videoNormIt != videoNorms.end(); ++videoNormIt)
     {
-      LOG_INFO("  Video norm: "<<(*videoNormIt));
-      std::vector< std::string > videoModes;
+      LOG_INFO("  Video norm: " << (*videoNormIt));
+      std::vector<std::string> videoModes;
       GetListOfCaptureVideoModes(videoModes, (*deviceNameIt), (*videoNormIt));
-      for (std::vector< std::string > :: iterator videoModeIt=videoModes.begin(); videoModeIt!=videoModes.end(); ++videoModeIt)
+      for (std::vector<std::string>::iterator videoModeIt = videoModes.begin(); videoModeIt != videoModes.end(); ++videoModeIt)
       {
-        LOG_INFO("   "<<(*videoModeIt));
+        LOG_INFO("   " << (*videoModeIt));
       }
     }
   }

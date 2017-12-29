@@ -11,7 +11,7 @@
 #include "vtkPlusUsDevice.h"
 
 /*!
-  \class vtkPlusIntersonVideoSource 
+  \class vtkPlusIntersonVideoSource
   \brief Class for acquiring ultrasound images from Interson USB ultrasound systems
 
   Requires the PLUS_USE_INTERSON option in CMake.
@@ -22,16 +22,16 @@
 class vtkPlusDataCollectionExport vtkPlusIntersonVideoSource : public vtkPlusUsDevice
 {
 public:
-  static vtkPlusIntersonVideoSource *New();
-  vtkTypeMacro(vtkPlusIntersonVideoSource,vtkPlusUsDevice);
+  static vtkPlusIntersonVideoSource* New();
+  vtkTypeMacro(vtkPlusIntersonVideoSource, vtkPlusUsDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual bool IsTracker() const { return false; }
 
-  /*! Read configuration from xml data */  
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
-  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);    
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -84,7 +84,7 @@ protected:
   /*! The internal function which actually does the grab.  */
   PlusStatus InternalUpdate();
 
-  PlusStatus GetFullIniFilePath(std::string &fullPath);
+  PlusStatus GetFullIniFilePath(std::string& fullPath);
 
   PlusStatus FreezeDevice(bool freeze);
 
@@ -108,11 +108,11 @@ protected:
   /*! Set the lookup table from intensity and contrast */
   PlusStatus SetLookupTableDevice(double intensity, double contrast);
 
-  /*! Each probe has a defined set of allowed modes. 
+  /*! Each probe has a defined set of allowed modes.
   These modes are combinations of pulse frequency and sample rate that yield acceptable results
-  with that particular probe. While there is no enforcement to use only these modes, one should 
+  with that particular probe. While there is no enforcement to use only these modes, one should
   understand the implications on image quality if one of the allowed modes is not selected.*/
-  PlusStatus GetProbeAllowedModes(std::vector< std::pair<double,double> > &allowedModes);
+  PlusStatus GetProbeAllowedModes(std::vector< std::pair<double, double> >& allowedModes);
 
   /*! Get probe name from the device */
   PlusStatus GetProbeNameDevice(std::string& probeName);

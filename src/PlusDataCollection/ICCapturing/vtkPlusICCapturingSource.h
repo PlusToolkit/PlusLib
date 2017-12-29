@@ -10,12 +10,12 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-class ICCapturingListener; 
+class ICCapturingListener;
 
 class vtkPlusDataCollectionExport vtkPlusICCapturingSource;
 
 /*!
-\class vtkPlusICCapturingSourceCleanup 
+\class vtkPlusICCapturingSourceCleanup
 \brief Class that cleans up (deletes singleton instance of) vtkPlusICCapturingSource when destroyed
 \ingroup PlusLibDataCollection
 */
@@ -27,14 +27,14 @@ public:
 };
 
 /*!
-\class vtkPlusICCapturingSource 
+\class vtkPlusICCapturingSource
 \brief Class for providing video input interfaces between VTK and ICCapturing frame grabber device
 \ingroup PlusLibDataCollection
 */
 class vtkPlusDataCollectionExport vtkPlusICCapturingSource : public vtkPlusDevice
 {
 public:
-  vtkTypeMacro(vtkPlusICCapturingSource,vtkPlusDevice);
+  vtkTypeMacro(vtkPlusICCapturingSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
   /*! This is a singleton pattern New.  There will only be ONE
   reference to a vtkOutputWindow object per process.  Clients that
@@ -47,7 +47,7 @@ public:
   static vtkPlusICCapturingSource* GetInstance();
 
   /*! Supply a user defined output window. Call ->Delete() on the supplied instance after setting it. */
-  static void SetInstance(vtkPlusICCapturingSource *instance);
+  static void SetInstance(vtkPlusICCapturingSource* instance);
 
   //BTX
   /*! Use this as a way of memory management when the
@@ -59,55 +59,56 @@ public:
 
   /*! Hardware device SDK version. */
   virtual std::string GetSdkVersion();
-  /*! Read configuration from xml data */  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  /*! Read configuration from xml data */  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Set the IC capturing device name (e.g. "DFG/USB2-lt") */
-  vtkSetStringMacro(DeviceName); 
+  vtkSetStringMacro(DeviceName);
   /*! Get the IC capturing device name (e.g. "DFG/USB2-lt") */
-  vtkGetStringMacro(DeviceName); 
+  vtkGetStringMacro(DeviceName);
 
   /*! Set the IC capturing device video norm (e.g. "PAL_B", "NTSC_M") */
-  vtkSetStringMacro(VideoNorm); 
+  vtkSetStringMacro(VideoNorm);
   /*! Get the IC capturing device video norm (e.g. "PAL_B", "NTSC_M") */
-  vtkGetStringMacro(VideoNorm); 
+  vtkGetStringMacro(VideoNorm);
 
   /*! Set the IC capturing device video format (e.g. "Y800 (640x480)" ) */
-  vtkSetStringMacro(VideoFormat); 
+  vtkSetStringMacro(VideoFormat);
   /*! Get the IC capturing device video format (e.g. "Y800 (640x480)" ) */
-  vtkGetStringMacro(VideoFormat); 
+  vtkGetStringMacro(VideoFormat);
 
   /*! Set the IC capturing device input channel (e.g. "01 Video: SVideo" ) */
-  vtkSetStringMacro(InputChannel); 
+  vtkSetStringMacro(InputChannel);
   /*! Get the IC capturing device input channel (e.g. "01 Video: SVideo" ) */
-  vtkGetStringMacro(InputChannel); 
+  vtkGetStringMacro(InputChannel);
 
   /*! Set the IC capturing device buffer size ( Default: 50 frame ) */
-  vtkSetMacro(ICBufferSize, int); 
+  vtkSetMacro(ICBufferSize, int);
   /*! Get the IC capturing device buffer size ( Default: 50 frame ) */
   vtkGetMacro(ICBufferSize, int);
 
   /*! Set the frame size that will be requested when setting the video format. Acquired image frames may be smaller if clipping is applied in the video source. */
-  vtkSetVector2Macro(FrameSize,int);
+  void SetFrameSize(const FrameSizeType& frameSize);
+  void SetFrameSize(unsigned int i, unsigned int j, unsigned int k);
   /*! Get the frame size requested from the framegrabber. */
-  vtkGetVector2Macro(FrameSize,int);
+  FrameSizeType GetFrameSize() const;
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
   virtual bool IsTracker() const { return false; }
 
-  void GetListOfCaptureDevices(std::vector< std::string > &deviceNames);
+  void GetListOfCaptureDevices(std::vector< std::string >& deviceNames);
 
-  void GetListOfCaptureVideoNorms(std::vector< std::string > &videoNorms, const std::string& deviceName);
+  void GetListOfCaptureVideoNorms(std::vector< std::string >& videoNorms, const std::string& deviceName);
 
   /*! Get list of available video modes (video format & frame size) */
-  void GetListOfCaptureVideoModes(std::vector< std::string > &videoModes, const std::string& deviceName, const std::string& videoNorm);
+  void GetListOfCaptureVideoModes(std::vector< std::string >& videoModes, const std::string& deviceName, const std::string& videoNorm);
 
   /*! Print the name of all supported video modes (video format & frame size) for available capture devices and video norms */
   void LogListOfCaptureDevices();
-  
+
 protected:
   /*! Constructor */
   vtkPlusICCapturingSource();
@@ -127,7 +128,7 @@ protected:
   virtual PlusStatus InternalStopRecording();
 
   /*! Adds a frame to the frame buffer. Called whenever the driver notified a new frame acquisition. */
-  PlusStatus AddFrameToBuffer(unsigned char * data, unsigned long size, unsigned long frameNumber);
+  PlusStatus AddFrameToBuffer(unsigned char* data, unsigned long size, unsigned long frameNumber);
 
   /*! Parse DShowLib video format string (format + frame size) and if successful set VideoFormat and FrameSize */
   void ParseDShowLibVideoFormatString(const char* videoFormatFrameSizeString);
@@ -137,7 +138,7 @@ protected:
 
   /*! Frame grabber device - DShowLib::Grabber type */
   void* FrameGrabber;
-  ICCapturingListener* FrameGrabberListener; 
+  ICCapturingListener* FrameGrabberListener;
 
   /*! Device name (e.g. DFG/USB2-lt) */
   char* DeviceName;
@@ -149,18 +150,17 @@ protected:
   char* VideoFormat;
 
   /*! Input channel name */
-  char* InputChannel; 
+  char* InputChannel;
 
   /*! IC buffer size */
-  int ICBufferSize; 
+  int ICBufferSize;
 
   /*! Frame size of the captured image */
-  int FrameSize[2];
+  FrameSizeType FrameSize;
 
 private:
-
   static vtkPlusICCapturingSource* Instance;
-  static bool vtkPlusICCapturingSourceNewFrameCallback(unsigned char * data, unsigned long size, unsigned long frameNumber);
+  static bool vtkPlusICCapturingSourceNewFrameCallback(unsigned char* data, unsigned long size, unsigned long frameNumber);
   vtkPlusICCapturingSource(const vtkPlusICCapturingSource&);  // Not implemented.
   void operator=(const vtkPlusICCapturingSource&);  // Not implemented.
 };

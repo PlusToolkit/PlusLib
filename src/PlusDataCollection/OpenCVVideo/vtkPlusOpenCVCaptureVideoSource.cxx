@@ -147,7 +147,7 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
   }
 
   // Add the frame to the stream buffer
-  int frameSize[3] = { this->Frame->cols, this->Frame->rows, 1 };
+  FrameSizeType frameSize = { static_cast<unsigned int>(this->Frame->cols), static_cast<unsigned int>(this->Frame->rows), 1 };
   if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;

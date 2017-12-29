@@ -25,17 +25,19 @@ vtkStandardNewMacro(vtkPlusEpiphanVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusEpiphanVideoSource::vtkPlusEpiphanVideoSource()
-  : GrabberLocation(NULL)
-  , CropRectangle(NULL)
-  , ScaleMode(NULL)
-  , RotationMode(NULL)
+  : GrabberLocation("")
+  , CropRectangle(nullptr)
+  , ScaleMode("")
+  , RotationMode("")
   , Rotation(V2URotationNone)
   , Scale(V2UScaleNone)
 {
-  this->ClipRectangleOrigin[0] = 0;
-  this->ClipRectangleOrigin[1] = 0;
-  this->ClipRectangleSize[0] = 0;
-  this->ClipRectangleSize[1] = 0;
+  this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
+  this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
+  this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
+  this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
+  this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
+  this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
 
   this->FrameSize[0] = 0;
   this->FrameSize[1] = 0;
@@ -56,16 +58,16 @@ vtkPlusEpiphanVideoSource::~vtkPlusEpiphanVideoSource()
     this->Disconnect();
   }
 
-  if (this->FrameGrabber != NULL)
+  if (this->FrameGrabber != nullptr)
   {
     FrmGrab_Deinit();
-    this->FrameGrabber = NULL;
+    this->FrameGrabber = nullptr;
   }
 
-  if (this->CropRectangle != NULL)
+  if (this->CropRectangle != nullptr)
   {
     delete this->CropRectangle;
-    this->CropRectangle = NULL;
+    this->CropRectangle = nullptr;
   }
 }
 
@@ -89,9 +91,9 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
   // Initialize frmgrab library
   FrmGrabNet_Init();
 
-  if (this->GrabberLocation != NULL)
+  if (!this->GrabberLocation.empty())
   {
-    if ((this->FrameGrabber = FrmGrab_Open(this->GrabberLocation)) == NULL)
+    if ((this->FrameGrabber = FrmGrab_Open(this->GrabberLocation.c_str())) == NULL)
     {
       if ((this->FrameGrabber = FrmGrabLocal_Open()) == NULL)
       {
@@ -130,13 +132,13 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
   {
     this->SetAcquisitionRate(maxPossibleAcquisitionRate);
   }
-  if (vm.width == 0 || vm.height == 0)
+  if (vm.width <= 0 || vm.height <= 0)
   {
     LOG_ERROR("No valid signal detected. Invalid frame size is received from the framegrabber: " << vm.width << "x" << vm.height);
     return PLUS_FAIL;
   }
-  this->FrameSize[0] = vm.width;
-  this->FrameSize[1] = vm.height;
+  this->FrameSize[0] = static_cast<unsigned int>(vm.width);
+  this->FrameSize[1] = static_cast<unsigned int>(vm.height);
 
   if ((this->ClipRectangleSize[0] > 0) && (this->ClipRectangleSize[1] > 0))
   {
@@ -150,8 +152,8 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalConnect()
                 << "), size: " << this->ClipRectangleSize[0] << "," << this->ClipRectangleSize[1] << ". Image size: " << vm.width << "x" << vm.height);
       return PLUS_FAIL;
     }
-    this->FrameSize[0] = this->ClipRectangleSize[0];
-    this->FrameSize[1] = this->ClipRectangleSize[1];
+    this->FrameSize[0] = static_cast<unsigned int>(this->ClipRectangleSize[0]);
+    this->FrameSize[1] = static_cast<unsigned int>(this->ClipRectangleSize[1]);
   }
 
   if (this->GetNumberOfVideoSources() == 1)
@@ -259,7 +261,13 @@ PlusStatus vtkPlusEpiphanVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  if (frame->crop.width != this->FrameSize[0] || frame->crop.height != this->FrameSize[1])
+  if (frame->crop.width < 0 || frame->crop.height < 0)
+  {
+    LOG_ERROR("Negative cropping values passed in from epiphan.");
+    return PLUS_FAIL;
+  }
+
+  if (static_cast<unsigned int>(frame->crop.width) != this->FrameSize[0] || static_cast<unsigned int>(frame->crop.height) != this->FrameSize[1])
   {
     LOG_ERROR("Image size received from Epiphan (" << frame->crop.width << "x" << frame->crop.height << ") does not match the clip rectangle size (" <<
               this->FrameSize[0] << "x" << this->FrameSize[1] << ")");
@@ -314,7 +322,7 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   else if (serialNumber != NULL)
   {
     std::string grabberLocationString = std::string("sn:") + serialNumber;
-    SetGrabberLocation(grabberLocationString.c_str());
+    SetGrabberLocation(grabberLocationString);
     LOG_WARNING("Epiphan SerialNumber is specified. This attribute is deprecated, please use GrabberLocation=\"sn:SERIAL\" attribute instead.");
   }
   else
@@ -322,83 +330,83 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
     LOG_DEBUG("Epiphan device location is not specified in the configuration");
   }
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
-  if (this->RotationMode != NULL)
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
+  if (!this->RotationMode.empty())
   {
-    if (STRCASECMP(this->RotationMode, "Left90") == 0)
+    if (PlusCommon::IsEqualInsensitive(this->RotationMode, "Left90") == 0)
     {
       this->Rotation = V2URotationLeft90;
     }
-    else if (STRCASECMP(this->RotationMode, "Right90") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->RotationMode, "Right90") == 0)
     {
       this->Rotation = V2URotationRight90;
     }
-    else if (STRCASECMP(this->RotationMode, "180") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->RotationMode, "180") == 0)
     {
       this->Rotation = V2URotation180;
     }
   }
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
-  if (this->ScaleMode != NULL)
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
+  if (!this->ScaleMode.empty())
   {
-    if (STRCASECMP(this->ScaleMode, "NearestNeighbor") == 0)
+    if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "NearestNeighbor") == 0)
     {
       this->Scale = V2UScaleModeNearestNeighbor;
     }
-    else if (STRCASECMP(this->ScaleMode, "WeightedAverage") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "WeightedAverage") == 0)
     {
       this->Scale = V2UScaleModeWeightedAverage;
     }
-    else if (STRCASECMP(this->ScaleMode, "FastBilinear") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "FastBilinear") == 0)
     {
       this->Scale = V2UScaleModeFastBilinear;
     }
-    else if (STRCASECMP(this->ScaleMode, "Bilinear") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Bilinear") == 0)
     {
       this->Scale = V2UScaleModeBilinear;
     }
-    else if (STRCASECMP(this->ScaleMode, "Bicubic") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Bicubic") == 0)
     {
       this->Scale = V2UScaleModeBicubic;
     }
-    else if (STRCASECMP(this->ScaleMode, "Experimental") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Experimental") == 0)
     {
       this->Scale = V2UScaleModeExperimental;
     }
-    else if (STRCASECMP(this->ScaleMode, "Point") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Point") == 0)
     {
       this->Scale = V2UScaleModePoint;
     }
-    else if (STRCASECMP(this->ScaleMode, "Area") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Area") == 0)
     {
       this->Scale = V2UScaleModeArea;
     }
-    else if (STRCASECMP(this->ScaleMode, "BicubLin") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "BicubLin") == 0)
     {
       this->Scale = V2UScaleModeBicubLin;
     }
-    else if (STRCASECMP(this->ScaleMode, "Sinc") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Sinc") == 0)
     {
       this->Scale = V2UScaleModeSinc;
     }
-    else if (STRCASECMP(this->ScaleMode, "Lanczos") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Lanczos") == 0)
     {
       this->Scale = V2UScaleModeLanczos;
     }
-    else if (STRCASECMP(this->ScaleMode, "Spline") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Spline") == 0)
     {
       this->Scale = V2UScaleModeSpline;
     }
-    else if (STRCASECMP(this->ScaleMode, "Hardware") == 0)
+    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Hardware") == 0)
     {
       this->Scale = V2UScaleModeHardware;
     }
   }
 
   // Epiphan hardware clipping parameters
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
-  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
+  XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleOrigin, deviceConfig);
+  XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 2, ClipRectangleSize, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -408,16 +416,40 @@ PlusStatus vtkPlusEpiphanVideoSource::WriteConfiguration(vtkXMLDataElement* root
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(imageAcquisitionConfig, rootConfigElement);
 
-  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(GrabberLocation, imageAcquisitionConfig);
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(GrabberLocation, imageAcquisitionConfig);
 
   // SerialNumber is an obsolete attribute, the information is stored now in GrabberLocation
-  XML_REMOVE_ATTRIBUTE(imageAcquisitionConfig, "SerialNumber");
+  XML_REMOVE_ATTRIBUTE("SerialNumber", imageAcquisitionConfig);
 
   // Epiphan hardware clipping parameters
-  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin());
-  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize());
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleOrigin", 2, this->GetClipRectangleOrigin().data());
+  imageAcquisitionConfig->SetVectorAttribute("ClipRectangleSize", 2, this->GetClipRectangleSize().data());
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusEpiphanVideoSource::SetClipRectangleSize(const std::array<int, 3>& size)
+{
+  this->ClipRectangleSize = size;
+}
+
+//----------------------------------------------------------------------------
+std::array<int, 3> vtkPlusEpiphanVideoSource::GetClipRectangleSize() const
+{
+  return this->ClipRectangleSize;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusEpiphanVideoSource::SetClipRectangleOrigin(const std::array<int, 3>& origin)
+{
+  this->ClipRectangleOrigin = origin;
+}
+
+//----------------------------------------------------------------------------
+std::array<int, 3> vtkPlusEpiphanVideoSource::GetClipRectangleOrigin() const
+{
+  return this->ClipRectangleOrigin;
 }
 
 //-----------------------------------------------------------------------------

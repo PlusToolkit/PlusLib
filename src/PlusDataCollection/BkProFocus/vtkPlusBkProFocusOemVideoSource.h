@@ -113,7 +113,7 @@ protected:
   static const char* KEY_GAIN;
 
   // Size of the ultrasound image. Only used if ContinuousStreamingEnabled is true.
-  unsigned int UltrasoundWindowSize[2];
+  std::array<unsigned int, 2> UltrasoundWindowSize;
 
   //Parameter values recaived from the BK scanner.
   double StartLineX_m, StartLineY_m, StartLineAngle_rad, StartDepth_m, StopLineX_m, StopLineY_m, StopLineAngle_rad, StopDepth_m;
@@ -266,7 +266,7 @@ protected:
   /*! Angle between top of ultrasound sector and last line in sector, in radians. */
   double GetStopLineAngle();
 
-  /*! Calculate spaxing in x diraction, in mm. */
+  /*! Calculate spacing in x direction, in mm. */
   double GetSpacingX();
 
   /*! Calculate spacing in y direction, in mm. */
@@ -275,21 +275,20 @@ protected:
   /*! Get probe type. */
   PROBE_TYPE GetProbeType();
 
-
   /*! Add OpenIGTLinkIO parameters to FrameFields. */
   PlusStatus AddParametersToFrameFields();
 
   /*! Read theOemClientReadBuffer into a string. Discards the ; at the end of the string */
   std::string ReadBufferIntoString();
 
-  /*! Remove doube quotes from a string. E.g. "testString" -> testString */
+  /*! Remove double quotes from a string. E.g. "testString" -> testString */
   std::string RemoveQuotationMarks(std::string inString);
 
   void SetProbeTypeForPort(std::string port, std::string probeTypeString);
 
   //Values read from the xml config file
   /*! BK scanner address */
-  char* ScannerAddress;
+  std::string ScannerAddress;
 
   /*! BK OEM port */
   unsigned short OemPort;

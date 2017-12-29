@@ -291,6 +291,19 @@ public:
   }
 
 // Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
+#define XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
+  { \
+    memberVarType tmpValue[vectorSize] = {0}; \
+    if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize, tmpValue) )  \
+    { \
+      for(int i = 0; i < vectorSize+1; ++i) \
+      { \
+        memberVar[i] = tmpValue[i]; \
+      } \
+    } \
+  }
+
+// Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
 // If number of parameters in the attribute is not exactly the same as expected then return with error.
 #define XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
   { \
@@ -300,6 +313,30 @@ public:
       if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize+1, tmpValue) == vectorSize)  \
       { \
         this->Set##memberVar(tmpValue); \
+      } \
+      else \
+      { \
+        LOG_ERROR("Unable to parse " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+        <<" element in device set configuration. Expected exactly " << vectorSize << " values separated by spaces, instead got this: "<< \
+        xmlElementVar->GetAttribute(#memberVar));  \
+        return PLUS_FAIL; \
+      } \
+    } \
+  }
+
+// Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
+// If number of parameters in the attribute is not exactly the same as expected then return with error.
+#define XML_READ_STD_ARRAY_ATTRIBUTE_EXACT_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \
+  { \
+    memberVarType tmpValue[vectorSize+1] = {0}; /* try to read one more value to detect if more values are specified */ \
+    if ( xmlElementVar->GetAttribute(#memberVar) ) \
+    { \
+      if ( xmlElementVar->GetVectorAttribute(#memberVar, vectorSize+1, tmpValue) == vectorSize)  \
+      { \
+        for(int i = 0; i < vectorSize+1; ++i) \
+        { \
+          memberVar[i] = tmpValue[i]; \
+        } \
       } \
       else \
       { \
@@ -591,7 +628,7 @@ public:
     } \
   }
 
-#define XML_REMOVE_ATTRIBUTE(xmlElementVar, attributeName)  xmlElementVar->RemoveAttribute(attributeName);
+#define XML_REMOVE_ATTRIBUTE(attributeName, xmlElementVar)  xmlElementVar->RemoveAttribute(attributeName);
 
 #define XML_WRITE_STRING_ATTRIBUTE(memberVar, xmlElementVar)  \
   xmlElementVar->SetAttribute(#memberVar, this->Get##memberVar().c_str()); \
@@ -615,7 +652,7 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, memberVar.c_str()); \
+    XML_REMOVE_ATTRIBUTE(memberVar.c_str(), xmlElementVar); \
   }
 
 #define XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(memberVar, xmlElementVar)  \
@@ -625,7 +662,7 @@ public:
   } \
   else \
   { \
-    XML_REMOVE_ATTRIBUTE(xmlElementVar, #memberVar); \
+    XML_REMOVE_ATTRIBUTE(#memberVar, xmlElementVar); \
   }
 
 #define XML_WRITE_BOOL_ATTRIBUTE(memberVar, xmlElementVar)  \

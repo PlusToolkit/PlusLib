@@ -24,7 +24,7 @@ Authors include: Danielle Pace
 
 // because of warnings in windows header push and pop the warning level
 #ifdef _MSC_VER
-#pragma warning (push, 3)
+  #pragma warning (push, 3)
 #endif
 
 #include "vtkWindows.h"
@@ -32,7 +32,7 @@ Authors include: Danielle Pace
 #include <winuser.h>
 
 #ifdef _MSC_VER
-#pragma warning (pop)
+  #pragma warning (pop)
 #endif
 
 class vtkPlusWin32VideoSource2Internal
@@ -98,16 +98,16 @@ public:
 vtkStandardNewMacro(vtkPlusWin32VideoSource2);
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-#pragma warning ( disable : 4311 )
-#pragma warning ( disable : 4312 )
-#  define vtkGetWindowLong GetWindowLongPtr
-#  define vtkSetWindowLong SetWindowLongPtr
-#  define vtkGWL_USERDATA GWLP_USERDATA
-#else // regular Visual studio 
-#  define vtkGetWindowLong GetWindowLong
-#  define vtkSetWindowLong SetWindowLong
-#  define vtkGWL_USERDATA GWL_USERDATA
-#endif // 
+  #pragma warning ( disable : 4311 )
+  #pragma warning ( disable : 4312 )
+  #define vtkGetWindowLong GetWindowLongPtr
+  #define vtkSetWindowLong SetWindowLongPtr
+  #define vtkGWL_USERDATA GWLP_USERDATA
+#else // regular Visual studio
+  #define vtkGetWindowLong GetWindowLong
+  #define vtkSetWindowLong SetWindowLong
+  #define vtkGWL_USERDATA GWL_USERDATA
+#endif //
 
 //----------------------------------------------------------------------------
 vtkPlusWin32VideoSource2::vtkPlusWin32VideoSource2()
@@ -144,20 +144,20 @@ LONG FAR PASCAL vtkPlusWin32VideoSource2WinProc(HWND hwnd, UINT message, WPARAM 
   vtkPlusWin32VideoSource2* self = (vtkPlusWin32VideoSource2*)(vtkGetWindowLong(hwnd, vtkGWL_USERDATA));
   switch (message)
   {
-  case WM_MOVE:
-    LOG_TRACE("WM_MOVE");
-    break;
-  case WM_SIZE:
-    LOG_TRACE("WM_SIZE");
-    break;
-  case WM_DESTROY:
-    LOG_TRACE("WM_DESTROY");
-    self->OnParentWndDestroy();
-    break;
-  case WM_CLOSE:
-    LOG_TRACE("WM_CLOSE");
-    self->PreviewOff();
-    return 0;
+    case WM_MOVE:
+      LOG_TRACE("WM_MOVE");
+      break;
+    case WM_SIZE:
+      LOG_TRACE("WM_SIZE");
+      break;
+    case WM_DESTROY:
+      LOG_TRACE("WM_DESTROY");
+      self->OnParentWndDestroy();
+      break;
+    case WM_CLOSE:
+      LOG_TRACE("WM_CLOSE");
+      self->PreviewOff();
+      return 0;
   }
   return DefWindowProc(hwnd, message, wParam, lParam);
 }
@@ -267,14 +267,13 @@ PlusStatus vtkPlusWin32VideoSource2::InternalConnect()
   }
 
   // set up the parent window, but don't show it
-  unsigned int frameSize[3] = {0, 0, 0};
   vtkPlusDataSource* aSource(NULL);
   if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source in the Win32Video device.");
     return PLUS_FAIL;
   }
-  aSource->GetInputFrameSize(frameSize);
+  FrameSizeType frameSize = aSource->GetInputFrameSize();
 
   this->Internal->ParentWnd = CreateWindow(this->WndClassName, "Plus video capture window", style, 0, 0,
                               frameSize[0] + 2 * GetSystemMetrics(SM_CXFIXEDFRAME),
@@ -537,8 +536,12 @@ PlusStatus vtkPlusWin32VideoSource2::AddFrameToBuffer(void* lpVideoHeader)
 
   unsigned char* inputPixelsPtr = lpVHdr->lpData;
 
-  unsigned int outputFrameSize[3] = {0, 0, 0};
-  this->UncompressedVideoFrame.GetFrameSize(outputFrameSize);
+  FrameSizeType outputFrameSize;
+  if (this->UncompressedVideoFrame.GetFrameSize(outputFrameSize) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve frame size.");
+    return PLUS_FAIL;
+  }
 
   if (PixelCodec::ConvertToGray(inputCompression, outputFrameSize[0], outputFrameSize[1], inputPixelsPtr, (unsigned char*)this->UncompressedVideoFrame.GetScalarPointer()) != PLUS_SUCCESS)
   {
@@ -662,7 +665,7 @@ PlusStatus vtkPlusWin32VideoSource2::VideoSourceDialog()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusWin32VideoSource2::SetFrameSize(int x, int y)
+PlusStatus vtkPlusWin32VideoSource2::SetFrameSize(const FrameSizeType& frameSize)
 {
   vtkPlusDataSource* aSource(NULL);
   if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
@@ -670,7 +673,7 @@ PlusStatus vtkPlusWin32VideoSource2::SetFrameSize(int x, int y)
     LOG_ERROR(this->GetDeviceId() << ": Unable to retrieve video source.");
     return PLUS_FAIL;
   }
-  if (this->Superclass::SetInputFrameSize(*aSource, x, y, 1) != PLUS_SUCCESS)
+  if (this->Superclass::SetInputFrameSize(*aSource, frameSize[0], frameSize[1], 1) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
@@ -678,8 +681,8 @@ PlusStatus vtkPlusWin32VideoSource2::SetFrameSize(int x, int y)
   {
     // set up the video capture format
     this->Internal->GetBitmapInfoFromCaptureDevice();
-    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = x;
-    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = y;
+    this->Internal->BitMapInfoPtr->bmiHeader.biWidth = frameSize[0];
+    this->Internal->BitMapInfoPtr->bmiHeader.biHeight = frameSize[1];
     if (this->Internal->SetBitmapInfoInCaptureDevice() != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set requested frame size in the capture device");
@@ -722,22 +725,22 @@ PlusStatus vtkPlusWin32VideoSource2::SetAcquisitionRate(double rate)
 PlusStatus vtkPlusWin32VideoSource2::SetOutputFormat(int format)
 {
   // convert color format to number of scalar components
-  int numberOfScalarComponents = 0;
+  unsigned int numberOfScalarComponents = 0;
   switch (format)
   {
-  case VTK_RGBA:
-    numberOfScalarComponents = 4;
-    break;
-  case VTK_RGB:
-    numberOfScalarComponents = 3;
-    break;
-  case VTK_LUMINANCE:
-    numberOfScalarComponents = 1;
-    break;
-  default:
-    numberOfScalarComponents = 0;
-    LOG_ERROR("SetOutputFormat: Unrecognized color format.");
-    return PLUS_FAIL;
+    case VTK_RGBA:
+      numberOfScalarComponents = 4;
+      break;
+    case VTK_RGB:
+      numberOfScalarComponents = 3;
+      break;
+    case VTK_LUMINANCE:
+      numberOfScalarComponents = 1;
+      break;
+    default:
+      numberOfScalarComponents = 0;
+      LOG_ERROR("SetOutputFormat: Unrecognized color format.");
+      return PLUS_FAIL;
   }
 
   if (numberOfScalarComponents != 1)
@@ -780,10 +783,10 @@ PlusStatus vtkPlusWin32VideoSource2::UpdateFrameBuffer()
   // get the real video format
   this->Internal->GetBitmapInfoFromCaptureDevice();
 
-  int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
-  int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
+  unsigned int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
+  unsigned int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
   PlusCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR);   // always convert output to 8-bit grayscale
-  int numberOfScalarComponents = 1;
+  unsigned int numberOfScalarComponents = 1;
 
   vtkPlusDataSource* aSource(NULL);
   if (this->GetFirstVideoSource(aSource) != PLUS_SUCCESS)
@@ -795,7 +798,7 @@ PlusStatus vtkPlusWin32VideoSource2::UpdateFrameBuffer()
   aSource->SetPixelType(pixelType);
   aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
 
-  int frameSize[3] = {width, height, 1};
+  FrameSizeType frameSize = {width, height, 1};
   this->UncompressedVideoFrame.AllocateFrame(frameSize, pixelType, numberOfScalarComponents);
 
   return PLUS_SUCCESS;

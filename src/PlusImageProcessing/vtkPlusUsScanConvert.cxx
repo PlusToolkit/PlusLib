@@ -38,13 +38,13 @@ vtkPlusUsScanConvert::vtkPlusUsScanConvert()
 //----------------------------------------------------------------------------
 vtkPlusUsScanConvert::~vtkPlusUsScanConvert()
 {
-  SetTransducerName( NULL );
+  SetTransducerName(NULL);
 }
 
-void vtkPlusUsScanConvert::PrintSelf( ostream& os, vtkIndent indent )
+void vtkPlusUsScanConvert::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf( os, indent );
-  os << indent << "TransducerName: (" << ( this->TransducerName == NULL ? "" : this->TransducerName ) << "\n";
+  this->Superclass::PrintSelf(os, indent);
+  os << indent << "TransducerName: (" << (this->TransducerName == NULL ? "" : this->TransducerName) << "\n";
   os << indent << "OutputImageExtent: ("
      << this->OutputImageExtent[0] << ", " << this->OutputImageExtent[1] << ", "
      << this->OutputImageExtent[2] << ", " << this->OutputImageExtent[3] << ")\n";
@@ -52,28 +52,28 @@ void vtkPlusUsScanConvert::PrintSelf( ostream& os, vtkIndent indent )
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsScanConvert::ReadConfiguration( vtkXMLDataElement* scanConversionElement )
+PlusStatus vtkPlusUsScanConvert::ReadConfiguration(vtkXMLDataElement* scanConversionElement)
 {
-  LOG_TRACE( "vtkPlusUsScanConvert::ReadConfiguration" );
-  XML_VERIFY_ELEMENT( scanConversionElement, "ScanConversion" );
+  LOG_TRACE("vtkPlusUsScanConvert::ReadConfiguration");
+  XML_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
 
-  const char* transducerGeometry = scanConversionElement->GetAttribute( "TransducerGeometry" );
-  if ( transducerGeometry == NULL )
+  const char* transducerGeometry = scanConversionElement->GetAttribute("TransducerGeometry");
+  if (transducerGeometry == NULL)
   {
-    LOG_ERROR( "Cannot read vtkPlusUsScanConvert configuration: TransducerGeometry is unknown" );
+    LOG_ERROR("Cannot read vtkPlusUsScanConvert configuration: TransducerGeometry is unknown");
     return PLUS_FAIL;
   }
-  if ( STRCASECMP( transducerGeometry, this->GetTransducerGeometry() ) != 0 )
+  if (STRCASECMP(transducerGeometry, this->GetTransducerGeometry()) != 0)
   {
-    LOG_ERROR( "Cannot read vtkPlusUsScanConvert configuration: TransducerGeometry is expected to be " << this->GetTransducerGeometry()
-               << ", but found " << transducerGeometry << " instead" );
+    LOG_ERROR("Cannot read vtkPlusUsScanConvert configuration: TransducerGeometry is expected to be " << this->GetTransducerGeometry()
+              << ", but found " << transducerGeometry << " instead");
     return PLUS_FAIL;
   }
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL( TransducerName, scanConversionElement );
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TransducerName, scanConversionElement);
 
   double outputImageSpacing[2] = {0};
-  if ( scanConversionElement->GetVectorAttribute( "OutputImageSpacingMmPerPixel", 2, outputImageSpacing ) )
+  if (scanConversionElement->GetVectorAttribute("OutputImageSpacingMmPerPixel", 2, outputImageSpacing))
   {
     this->OutputImageSpacing[0] = outputImageSpacing[0];
     this->OutputImageSpacing[1] = outputImageSpacing[1];
@@ -81,7 +81,7 @@ PlusStatus vtkPlusUsScanConvert::ReadConfiguration( vtkXMLDataElement* scanConve
   }
 
   int outputImageSize[2] = {0};
-  if ( scanConversionElement->GetVectorAttribute( "OutputImageSizePixel", 2, outputImageSize ) )
+  if (scanConversionElement->GetVectorAttribute("OutputImageSizePixel", 2, outputImageSize))
   {
     this->OutputImageExtent[0] = 0;
     this->OutputImageExtent[1] = outputImageSize[0] - 1;
@@ -92,7 +92,7 @@ PlusStatus vtkPlusUsScanConvert::ReadConfiguration( vtkXMLDataElement* scanConve
   }
 
   double transducerCenterPixel[2] = {0};
-  if ( scanConversionElement->GetVectorAttribute( "TransducerCenterPixel", 2, transducerCenterPixel ) )
+  if (scanConversionElement->GetVectorAttribute("TransducerCenterPixel", 2, transducerCenterPixel))
   {
     this->TransducerCenterPixelSpecified = true;
     this->TransducerCenterPixel[0] = transducerCenterPixel[0];
@@ -103,34 +103,37 @@ PlusStatus vtkPlusUsScanConvert::ReadConfiguration( vtkXMLDataElement* scanConve
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusUsScanConvert::WriteConfiguration( vtkXMLDataElement* scanConversionElement )
+PlusStatus vtkPlusUsScanConvert::WriteConfiguration(vtkXMLDataElement* scanConversionElement)
 {
-  LOG_TRACE( "vtkPlusUsScanConvert::WriteConfiguration" );
+  LOG_TRACE("vtkPlusUsScanConvert::WriteConfiguration");
 
-  XML_VERIFY_ELEMENT( scanConversionElement, "ScanConversion" );
+  XML_VERIFY_ELEMENT(scanConversionElement, "ScanConversion");
 
-  scanConversionElement->SetAttribute( "TransducerGeometry", GetTransducerGeometry() );
-  scanConversionElement->SetAttribute( "TransducerName", this->TransducerName );
-  scanConversionElement->SetVectorAttribute( "OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing );
+  scanConversionElement->SetAttribute("TransducerGeometry", GetTransducerGeometry());
+  scanConversionElement->SetAttribute("TransducerName", this->TransducerName);
+  scanConversionElement->SetVectorAttribute("OutputImageSpacingMmPerPixel", 2, this->OutputImageSpacing);
 
   int outputImageSize[2] =
   {
     this->OutputImageExtent[1] - this->OutputImageExtent[0] + 1,
     this->OutputImageExtent[3] - this->OutputImageExtent[2] + 1
   };
-  scanConversionElement->SetVectorAttribute( "OutputImageSizePixel", 2, outputImageSize );
+  scanConversionElement->SetVectorAttribute("OutputImageSizePixel", 2, outputImageSize);
 
-  if ( this->TransducerCenterPixelSpecified )
+  if (this->TransducerCenterPixelSpecified)
   {
-    scanConversionElement->SetVectorAttribute( "TransducerCenterPixel", 2, this->TransducerCenterPixel );
+    scanConversionElement->SetVectorAttribute("TransducerCenterPixel", 2, this->TransducerCenterPixel);
   }
 
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusUsScanConvert::GetOutputImageSizePixel( int imageSize[2] )
+FrameSizeType vtkPlusUsScanConvert::GetOutputImageSizePixel()
 {
-  imageSize[0] = this->OutputImageExtent[1] - this->OutputImageExtent[0] + 1;
-  imageSize[1] = this->OutputImageExtent[3] - this->OutputImageExtent[2] + 1;
+  FrameSizeType frameSize = {static_cast<unsigned int>(this->OutputImageExtent[1] - this->OutputImageExtent[0] + 1),
+                             static_cast<unsigned int>(this->OutputImageExtent[3] - this->OutputImageExtent[2] + 1),
+                             static_cast<unsigned int>(this->OutputImageExtent[5] - this->OutputImageExtent[4] + 1)
+                            };
+  return frameSize;
 }

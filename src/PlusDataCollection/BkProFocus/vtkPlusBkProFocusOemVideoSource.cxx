@@ -6,28 +6,31 @@ See License.txt for details.
 
 // GRAB_FRAME API was partly contributed by by Xin Kang at SZI, Children's National Medical Center
 
+// Local includes
 #include "PlusConfigure.h"
+#include "PixelCodec.h"
 #include "vtkPlusBkProFocusOemVideoSource.h"
-
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
-#include "vtk_png.h"
-#include "vtksys/SystemTools.hxx"
-
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkClientSocket.h"
-#include "vtkMath.h"
 
-#include "PixelCodec.h"
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkObjectFactor.h>
+#include <vtk_png.h>
+#include <vtksys/SystemTools.hxx>
+#include <vtkClientSocket.h>
+#include <vtkMath.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+// STL includes
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "stdint.h"
+
+// System includes
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const int TIMESTAMP_SIZE = 4;
 
@@ -87,7 +90,7 @@ vtkPlusBkProFocusOemVideoSource::vtkPlusBkProFocusOemVideoSource()
 {
   this->Internal = new vtkInternal(this);
 
-  this->ScannerAddress = NULL;
+  this->ScannerAddress = "";
   this->OemPort = 0;
 
   this->UltrasoundWindowSize[0] = 0;
@@ -250,8 +253,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::StopContinuousDataStreaming()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBkProFocusOemVideoSource::InternalDisconnect()
 {
-
-  LOG_DEBUG("Disconnect from BKProFocusOem");
+  LOG_TRACE("Disconnect from BKProFocusOem");
 
   if (!this->OfflineTesting && this->ContinuousStreamingEnabled)
   {
@@ -303,7 +305,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
         return PLUS_FAIL;
       }
     }
-    //Process all incomming messages until an image message is found
+    //Process all incoming messages until an image message is found
     if (!this->ProcessMessagesAndReadNextImage())
     {
       return PLUS_FAIL;
@@ -387,8 +389,13 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
   if (aSource->GetNumberOfItems() == 0)
   {
     LOG_DEBUG("Set up BK ProFocus image buffer");
-    int* frameExtent = this->Internal->DecodedImageFrame->GetExtent();
-    int frameSizeInPix[2] = { frameExtent[1] - frameExtent[0] + 1, frameExtent[3] - frameExtent[2] + 1 };
+    int* frameDimensions = this->Internal->DecodedImageFrame->GetDimensions();
+    if (frameDimensions[0] < 0 || frameDimensions[1] < 0 || frameDimensions[2] < 0)
+    {
+      LOG_ERROR("Invalid frame dimensions.");
+      return PLUS_FAIL;
+    }
+    FrameSizeType frameSizeInPix = { static_cast<unsigned int>(frameDimensions[0]), static_cast<unsigned int>(frameDimensions[1]), static_cast<unsigned int>(frameDimensions[2]) };
     aSource->SetPixelType(this->Internal->DecodedImageFrame->GetScalarType());
     if (this->Internal->DecodedImageFrame->GetNumberOfScalarComponents() == 1)
     {
@@ -399,7 +406,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
       aSource->SetNumberOfScalarComponents(this->Internal->DecodedImageFrame->GetNumberOfScalarComponents());
       aSource->SetImageType(US_IMG_RGB_COLOR);
     }
-    aSource->SetInputFrameSize(frameSizeInPix[0], frameSizeInPix[1], 1);
+    aSource->SetInputFrameSize(frameSizeInPix[0], frameSizeInPix[1], frameSizeInPix[2]);
 
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
@@ -443,7 +450,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ProcessMessagesAndReadNextImage()
     std::istringstream messageStream(messageString);
     std::string messageType;
     std::string messageName;
-    std::string messageSubtype;//Typically A or B (view A or B on the scanner). Currently only view A is handeled.
+    std::string messageSubtype;//Typically A or B (view A or B on the scanner). Currently only view A is handled.
     std::getline(messageStream, messageType, ':');
     std::getline(messageStream, messageName, ':');
     std::getline(messageStream, messageSubtype, ':');
@@ -847,7 +854,7 @@ void vtkPlusBkProFocusOemVideoSource::ParseGain(std::istringstream& replyStream)
 
 //-----------------------------------------------------------------------------
 // QUERY:TRANSDUCER_LIST;
-// Get list of transducers, connected to which port, and tranducer type
+// Get list of transducers, connected to which port, and transducer type
 PlusStatus vtkPlusBkProFocusOemVideoSource::QueryTransducerList()
 {
   std::string query = "QUERY:TRANSDUCER_LIST;";
@@ -885,20 +892,34 @@ void vtkPlusBkProFocusOemVideoSource::SetProbeTypeForPort(std::string port, std:
   PROBE_TYPE probeTypeEnum = UNKNOWN;
 
   if (probeTypeString.compare("C") == 0)
-  { probeTypeEnum = SECTOR; }
+  {
+    probeTypeEnum = SECTOR;
+  }
   else if (probeTypeString.compare("L") == 0)
-  { probeTypeEnum = LINEAR; }
+  {
+    probeTypeEnum = LINEAR;
+  }
   else if (probeTypeString.compare("M") == 0)
-  { probeTypeEnum = MECHANICAL; }
+  {
+    probeTypeEnum = MECHANICAL;
+  }
 
   if (port.compare("A") == 0)
-  { probeTypePortA = probeTypeEnum; }
+  {
+    probeTypePortA = probeTypeEnum;
+  }
   else if (port.compare("B") == 0)
-  { probeTypePortB = probeTypeEnum; }
+  {
+    probeTypePortB = probeTypeEnum;
+  }
   else if (port.compare("C") == 0)
-  { probeTypePortC = probeTypeEnum; }
+  {
+    probeTypePortC = probeTypeEnum;
+  }
   else if (port.compare("M") == 0)
-  { probeTypePortM = probeTypeEnum; }
+  {
+    probeTypePortM = probeTypeEnum;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -922,6 +943,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::QueryTransducer()
   return SendQuery(query);
 }
 
+//-----------------------------------------------------------------------------
 void vtkPlusBkProFocusOemVideoSource::ParseTransducerData(std::istringstream& replyStream)
 {
   std::string probePortString;
@@ -1003,7 +1025,7 @@ std::string vtkPlusBkProFocusOemVideoSource::AddSpecialCharacters(std::string qu
 PlusStatus vtkPlusBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ScannerAddress, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_REQUIRED(ScannerAddress, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, OemPort, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ContinuousStreamingEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ColorEnabled, deviceConfig);
@@ -1016,7 +1038,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement*
 PlusStatus vtkPlusBkProFocusOemVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(ScannerAddress, deviceConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(ScannerAddress, deviceConfig);
   std::stringstream ss;
   ss << this->OemPort;
   deviceConfig->SetAttribute("OemPort", ss.str().c_str());
@@ -1047,6 +1069,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::NotifyConfigured()
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 void ReadDataFromByteArray(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead)
 {
   if (png_ptr->io_ptr == NULL)
@@ -1063,11 +1086,13 @@ void ReadDataFromByteArray(png_structp png_ptr, png_bytep outBytes, png_size_t b
   png_ptr->io_ptr = bufferPointer;
 }
 
+//----------------------------------------------------------------------------
 void PngErrorCallback(png_structp png_ptr, png_const_charp message)
 {
   LOG_ERROR("PNG error: " << (message ? message : "no details available"));
 }
 
+//----------------------------------------------------------------------------
 void PngWarningCallback(png_structp png_ptr, png_const_charp message)
 {
   LOG_WARNING("PNG warning: " << (message ? message : "no details available"));
@@ -1076,7 +1101,6 @@ void PngWarningCallback(png_structp png_ptr, png_const_charp message)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuffer, unsigned int pngBufferSize, vtkImageData* decodedImage)
 {
-
   std::vector<unsigned char> fileReadBuffer;
   if (this->OfflineTesting)
   {
@@ -1358,7 +1382,7 @@ std::vector<double> vtkPlusBkProFocusOemVideoSource::CalculateDepths()
   }
 
   double originDistanceToStartLine_mm = 0.0;
-  if (!ContinuousStreamingEnabled)
+  if (!this->ContinuousStreamingEnabled)
   {
     originDistanceToStartLine_mm = pixelTop_pix * this->GetSpacingY();
   }
@@ -1538,5 +1562,3 @@ vtkPlusBkProFocusOemVideoSource::PROBE_TYPE vtkPlusBkProFocusOemVideoSource::Get
     return UNKNOWN;
   }
 }
-
-

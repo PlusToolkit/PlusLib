@@ -23,18 +23,18 @@ vtkStandardNewMacro(vtkPlusImageProcessorVideoSource);
 
 //----------------------------------------------------------------------------
 vtkPlusImageProcessorVideoSource::vtkPlusImageProcessorVideoSource()
-: vtkPlusDevice()
-, LastProcessedInputDataTimestamp(0)
-, EnableProcessing(true)
-, ProcessingAlgorithmAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-, GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
-, ProcessorAlgorithm(NULL)
+  : vtkPlusDevice()
+  , LastProcessedInputDataTimestamp(0)
+  , EnableProcessing(true)
+  , ProcessingAlgorithmAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  , ProcessorAlgorithm(NULL)
 {
-  this->MissingInputGracePeriodSec=2.0;
+  this->MissingInputGracePeriodSec = 2.0;
 
   // Create transform repository
   this->TransformRepository = vtkPlusTransformRepository::New();
-  
+
   // The data capture thread will be used to regularly read the frames and process them
   this->StartThreadForInternalUpdates = true;
 }
@@ -57,17 +57,17 @@ vtkPlusImageProcessorVideoSource::~vtkPlusImageProcessorVideoSource()
 //----------------------------------------------------------------------------
 void vtkPlusImageProcessorVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableProcessing, deviceConfig);
 
   // Read transform repository configuration
-  if (this->TransformRepository->ReadConfiguration(rootConfigElement) != PLUS_SUCCESS )
+  if (this->TransformRepository->ReadConfiguration(rootConfigElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read transform repository configuration");
     return PLUS_FAIL;
@@ -80,11 +80,11 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
     this->ProcessorAlgorithm = NULL;
   }
   int numberOfNestedElements = deviceConfig->GetNumberOfNestedElements();
-  for (int nestedElemIndex=0; nestedElemIndex<numberOfNestedElements; ++nestedElemIndex) 
+  for (int nestedElemIndex = 0; nestedElemIndex < numberOfNestedElements; ++nestedElemIndex)
   {
     vtkXMLDataElement* processorElement = deviceConfig->GetNestedElement(nestedElemIndex);
 
-    if ((processorElement == NULL) || (STRCASECMP(vtkPlusTrackedFrameProcessor::GetTagName(), processorElement->GetName()))) 
+    if ((processorElement == NULL) || (STRCASECMP(vtkPlusTrackedFrameProcessor::GetTagName(), processorElement->GetName())))
     {
       // not a processor element, ignore it
       continue;
@@ -92,13 +92,13 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
 
     if (this->ProcessorAlgorithm != NULL)
     {
-      LOG_WARNING("Multiple "<<processorElement->GetName()<<" elements found in ImageProcessor configuration. Only the first one is used, all others are ignored");
+      LOG_WARNING("Multiple " << processorElement->GetName() << " elements found in ImageProcessor configuration. Only the first one is used, all others are ignored");
       break;
     }
 
     // Verify type
     const char* processorType = processorElement->GetAttribute("Type");
-    if (processorType==NULL)
+    if (processorType == NULL)
     {
       LOG_ERROR("Type attribute of Processor element is missing");
       return PLUS_FAIL;
@@ -107,7 +107,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
     // Instantiate processor corresponding to the specified type
     vtkSmartPointer<vtkPlusBoneEnhancer> boneEnhancer = vtkSmartPointer<vtkPlusBoneEnhancer>::New();
     vtkSmartPointer<vtkPlusTransverseProcessEnhancer> TransverseProcessEnhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
-    if (!(STRCASECMP(boneEnhancer->GetProcessorTypeName(), processorType))) 
+    if (!(STRCASECMP(boneEnhancer->GetProcessorTypeName(), processorType)))
     {
       boneEnhancer->SetTransformRepository(this->TransformRepository);
       boneEnhancer->ReadConfiguration(processorElement);
@@ -115,7 +115,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
       this->ProcessorAlgorithm->Register(this);
       break;                  // If only one processor is allowed per ImageProcessor class, we can break out when we find it.
     }
-    else if(!(STRCASECMP(TransverseProcessEnhancer->GetProcessorTypeName(), processorType)))
+    else if (!(STRCASECMP(TransverseProcessEnhancer->GetProcessorTypeName(), processorType)))
     {
       TransverseProcessEnhancer->SetTransformRepository(this->TransformRepository);
       TransverseProcessEnhancer->ReadConfiguration(processorElement);
@@ -125,36 +125,36 @@ PlusStatus vtkPlusImageProcessorVideoSource::ReadConfiguration( vtkXMLDataElemen
     }
     else
     {
-      LOG_ERROR("Unknown processor type: "<<processorType);
+      LOG_ERROR("Unknown processor type: " << processorType);
       return PLUS_FAIL;
     }
   }
-  
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusImageProcessorVideoSource::WriteConfiguration( vtkXMLDataElement* rootConfig)
+PlusStatus vtkPlusImageProcessorVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfig)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceElement, rootConfig);
-  deviceElement->SetAttribute("EnableCapturing", this->EnableProcessing ? "TRUE" : "FALSE" );
-  
+  deviceElement->SetAttribute("EnableCapturing", this->EnableProcessing ? "TRUE" : "FALSE");
+
   // Write processor elements
-  if (this->ProcessorAlgorithm!=NULL)
+  if (this->ProcessorAlgorithm != NULL)
   {
-     vtkXMLDataElement* processorElement = PlusXmlUtils::GetNestedElementWithName(deviceElement,vtkPlusTrackedFrameProcessor::GetTagName());
-     if (processorElement == NULL)
-     {
-       LOG_ERROR("Cannot find "<<vtkPlusTrackedFrameProcessor::GetTagName()<<" element in XML tree!");
-       return PLUS_FAIL;
-     }
-     this->ProcessorAlgorithm->WriteConfiguration(processorElement);
+    vtkXMLDataElement* processorElement = PlusXmlUtils::GetNestedElementWithName(deviceElement, vtkPlusTrackedFrameProcessor::GetTagName());
+    if (processorElement == NULL)
+    {
+      LOG_ERROR("Cannot find " << vtkPlusTrackedFrameProcessor::GetTagName() << " element in XML tree!");
+      return PLUS_FAIL;
+    }
+    this->ProcessorAlgorithm->WriteConfiguration(processorElement);
   }
   else
   {
     // Remove processor elements
     vtkXMLDataElement* processorElement = NULL;
-    while ( (processorElement = deviceElement->FindNestedElementWithName(vtkPlusTrackedFrameProcessor::GetTagName())))
+    while ((processorElement = deviceElement->FindNestedElementWithName(vtkPlusTrackedFrameProcessor::GetTagName())))
     {
       deviceElement->RemoveNestedElement(processorElement);
     }
@@ -166,15 +166,15 @@ PlusStatus vtkPlusImageProcessorVideoSource::WriteConfiguration( vtkXMLDataEleme
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusImageProcessorVideoSource::InternalConnect()
 {
-  bool lowestRateKnown=false;
-  double lowestRate=30; // just a usual value (FPS)
-  for( ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it )
+  bool lowestRateKnown = false;
+  double lowestRate = 30; // just a usual value (FPS)
+  for (ChannelContainerConstIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
   {
     vtkPlusChannel* anInputStream = (*it);
-    if( anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
+    if (anInputStream->GetOwnerDevice()->GetAcquisitionRate() < lowestRate || !lowestRateKnown)
     {
       lowestRate = anInputStream->GetOwnerDevice()->GetAcquisitionRate();
-      lowestRateKnown=true;
+      lowestRateKnown = true;
     }
   }
   if (lowestRateKnown)
@@ -193,9 +193,9 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalConnect()
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusImageProcessorVideoSource::InternalDisconnect()
-{ 
+{
   PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->ProcessingAlgorithmAccessMutex);
-  this->EnableProcessing = false;  
+  this->EnableProcessing = false;
   return PLUS_SUCCESS;
 }
 
@@ -208,13 +208,13 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  if( this->InputChannels.size() != 1 )
+  if (this->InputChannels.size() != 1)
   {
     LOG_ERROR("ImageProcessor device requires exactly 1 input stream (that contains video data). Check configuration.");
     return PLUS_FAIL;
   }
 
-  if( this->HasGracePeriodExpired() )
+  if (this->HasGracePeriodExpired())
   {
     this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
   }
@@ -222,7 +222,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
   if (!this->InputChannels[0]->GetVideoDataAvailable())
   {
-    LOG_DYNAMIC("Processed data is not generated, as no video data is available yet. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel ); 
+    LOG_DYNAMIC("Processed data is not generated, as no video data is available yet. Device ID: " << this->GetDeviceId(), this->GracePeriodLogLevel);
     return PLUS_SUCCESS;
   }
   double oldestTrackingTimestamp(0);
@@ -231,31 +231,31 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     if (this->LastProcessedInputDataTimestamp < oldestTrackingTimestamp)
     {
       LOG_INFO("Processed image generation started. No tracking data was available between " << this->LastProcessedInputDataTimestamp << "-" << oldestTrackingTimestamp <<
-        "sec, therefore no processed images were generated during this time period.");
+               "sec, therefore no processed images were generated during this time period.");
       this->LastProcessedInputDataTimestamp = oldestTrackingTimestamp;
     }
   }
   PlusTrackedFrame trackedFrame;
-  if ( this->InputChannels[0]->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS )
+  if (this->InputChannels[0]->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId() ); 
+    LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId());
     this->LastProcessedInputDataTimestamp = vtkPlusAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
 
   LOG_TRACE("Image to be processed: timestamp=" << trackedFrame.GetTimestamp());
-  
-  if( this->OutputChannels.empty() )
+
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined" );
+    LOG_ERROR("No output channels defined");
     return PLUS_FAIL;
   }
-  vtkPlusChannel* outputChannel=this->OutputChannels[0];
-  double latestFrameAlreadyAddedTimestamp=0;
+  vtkPlusChannel* outputChannel = this->OutputChannels[0];
+  double latestFrameAlreadyAddedTimestamp = 0;
   outputChannel->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
 
   double frameTimestamp = trackedFrame.GetTimestamp();
-  if (latestFrameAlreadyAddedTimestamp>=frameTimestamp)
+  if (latestFrameAlreadyAddedTimestamp >= frameTimestamp)
   {
     // processed data has been already generated for this timestamp
     return PLUS_SUCCESS;
@@ -264,13 +264,13 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
   vtkSmartPointer<vtkPlusTrackedFrameList> trackingFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
   trackingFrames->AddTrackedFrame(&trackedFrame);
   this->ProcessorAlgorithm->SetInputFrames(trackingFrames);
-  if (this->ProcessorAlgorithm->Update()!=PLUS_SUCCESS)
+  if (this->ProcessorAlgorithm->Update() != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
   vtkPlusDataSource* aSource(NULL);
-  if( outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS )
+  if (outputChannel->GetVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve the video source in the image processor device.");
     return PLUS_FAIL;
@@ -279,7 +279,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
   PlusStatus status = PLUS_SUCCESS;
 
   vtkPlusTrackedFrameList* processedFrames = this->ProcessorAlgorithm->GetOutputFrames();
-  if (processedFrames==NULL || processedFrames->GetNumberOfTrackedFrames()<1)
+  if (processedFrames == NULL || processedFrames->GetNumberOfTrackedFrames() < 1)
   {
     LOG_ERROR("Failed to retrieve processed frame");
     return PLUS_FAIL;
@@ -289,23 +289,29 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
   // Generate unique frame number (not used for filtering, so the actual increment value does not matter)
   this->FrameNumber++;
 
-  // If the buffer is empty, set the pixel type and frame size to the first received properties 
-  if ( aSource->GetNumberOfItems() == 0 )
+  // If the buffer is empty, set the pixel type and frame size to the first received properties
+  if (aSource->GetNumberOfItems() == 0)
   {
-    PlusVideoFrame* videoFrame=processedTrackedFrame->GetImageData();
-    if (videoFrame==NULL)
+    PlusVideoFrame* videoFrame = processedTrackedFrame->GetImageData();
+    if (videoFrame == NULL)
     {
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
       return PLUS_FAIL;
     }
-    aSource->SetPixelType( videoFrame->GetVTKScalarPixelType() );
-    aSource->SetNumberOfScalarComponents( videoFrame->GetNumberOfScalarComponents() );
-    aSource->SetImageType( videoFrame->GetImageType() );
-    aSource->SetInputFrameSize( processedTrackedFrame->GetFrameSize() );
+    aSource->SetPixelType(videoFrame->GetVTKScalarPixelType());
+    unsigned int numberOfScalarComponents(1);
+    if (videoFrame->GetNumberOfScalarComponents(numberOfScalarComponents) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to retrieve number of scalar components.");
+      return PLUS_FAIL;
+    }
+    aSource->SetNumberOfScalarComponents(numberOfScalarComponents);
+    aSource->SetImageType(videoFrame->GetImageType());
+    aSource->SetInputFrameSize(processedTrackedFrame->GetFrameSize());
   }
 
-  PlusTrackedFrame::FieldMapType customFields=processedTrackedFrame->GetCustomFields();
-  if (aSource->AddItem(processedTrackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields)!=PLUS_SUCCESS)
+  PlusTrackedFrame::FieldMapType customFields = processedTrackedFrame->GetCustomFields();
+  if (aSource->AddItem(processedTrackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields) != PLUS_SUCCESS)
   {
     status = PLUS_FAIL;
   }
@@ -317,19 +323,19 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusImageProcessorVideoSource::NotifyConfigured()
 {
-  if( this->OutputChannels.empty() )
+  if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for ImageProcessor" );
+    LOG_ERROR("No output channels defined for ImageProcessor");
     this->SetCorrectlyConfigured(false);
     return PLUS_FAIL;
   }
 
-  if( this->OutputChannels.size() > 1 )
+  if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("ImageProcessor is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
-  if( this->InputChannels.empty() )
+  if (this->InputChannels.empty())
   {
     LOG_ERROR("No input channel is set for ImageProcessor");
     return PLUS_FAIL;
@@ -339,11 +345,11 @@ PlusStatus vtkPlusImageProcessorVideoSource::NotifyConfigured()
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusImageProcessorVideoSource::SetEnableProcessing( bool aValue )
+void vtkPlusImageProcessorVideoSource::SetEnableProcessing(bool aValue)
 {
   bool processingStartsNow = (!this->EnableProcessing && aValue);
   this->EnableProcessing = aValue;
-  
+
   if (processingStartsNow)
   {
     this->LastProcessedInputDataTimestamp = 0.0;

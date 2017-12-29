@@ -14,10 +14,13 @@
 #ifndef __vtkPlusDataSource_h
 #define __vtkPlusDataSource_h
 
+// Local includes
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkObject.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
+
+// VTK includes
+#include <vtkObject.h>
 
 /*!
 \class vtkPlusDataSource
@@ -83,20 +86,17 @@ public:
 
   /*! Set the non-clipped input frame size in pixel  */
   PlusStatus SetInputFrameSize(unsigned int x, unsigned int y, unsigned int z);
-  PlusStatus SetInputFrameSize(int x, int y, int z);
   /*! Set the non-clipped input frame size in pixel  */
-  PlusStatus SetInputFrameSize(unsigned int frameSize[3]);
-  PlusStatus SetInputFrameSize(int frameSize[3]);
+  PlusStatus SetInputFrameSize(const FrameSizeType& frameSize);
   /*! Get the input frame size in pixel  */
-  vtkGetVector3Macro(InputFrameSize, unsigned int);
+  FrameSizeType GetInputFrameSize() const;
 
   /*!
   Get the output frame size in pixel. If no clipping rectangle is set then the output
   frame size is the clipping rectangle size; otherwise it is the input frame size
   */
-  virtual unsigned int* GetOutputFrameSize();
-  virtual PlusStatus GetOutputFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3);
-  virtual PlusStatus GetOutputFrameSize(unsigned int _arg[3]);
+  virtual FrameSizeType GetOutputFrameSize() const;
+  virtual PlusStatus GetOutputFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;
 
   /*! Set recording start time */
   virtual void SetStartTime(double startTime);
@@ -188,8 +188,13 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus AddItem(vtkImageData* frame,
+                             US_IMAGE_ORIENTATION usImageOrientation,
+                             US_IMAGE_TYPE imageType,
+                             long frameNumber,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
+                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -197,8 +202,11 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus AddItem(const PlusVideoFrame* frame,
+                             long frameNumber,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
+                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -208,12 +216,17 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType, int numberOfScalarComponents,
-                             US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP, double filteredTimestamp = UNDEFINED_TIMESTAMP,
+  virtual PlusStatus AddItem(void* imageDataPtr,
+                             US_IMAGE_ORIENTATION usImageOrientation,
+                             const FrameSizeType& frameSizeInPx,
+                             PlusCommon::VTKScalarPixelType pixelType,
+                             unsigned int numberOfScalarComponents,
+                             US_IMAGE_TYPE imageType,
+                             int numberOfBytesToSkip,
+                             long frameNumber,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
-  virtual PlusStatus AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION  usImageOrientation, const unsigned int frameSizeInPx[3], PlusCommon::VTKScalarPixelType pixelType,
-                             unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int  numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-                             double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add custom fields to the new item
@@ -247,9 +260,9 @@ public:
   virtual PlusCommon::VTKScalarPixelType GetPixelType();
 
   /*! Set the number of scalar components */
-  PlusStatus SetNumberOfScalarComponents(int numberOfScalarComponents);
+  PlusStatus SetNumberOfScalarComponents(unsigned int numberOfScalarComponents);
   /*! Get the number of scalar components*/
-  virtual int GetNumberOfScalarComponents();
+  virtual unsigned int GetNumberOfScalarComponents();
 
   /*!
   Get the number of bytes per pixel
@@ -305,30 +318,30 @@ public:
     Get the clip rectangle size to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
   */
-  vtkGetVector3Macro(ClipRectangleSize, int);
+  std::array<int, 3> GetClipRectangleSize() const;
 
   /*!
     Get the clip rectangle origin to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
-  vtkGetVector3Macro(ClipRectangleOrigin, int);
+  std::array<int, 3> GetClipRectangleOrigin() const;
 
   /*!
     Set the clip rectangle size to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the values are ignored and the whole frame is captured.
     Width of the ClipRectangle typically have to be a multiple of 4.
   */
-  vtkSetVector3Macro(ClipRectangleSize, int);
+  void SetClipRectangleSize(const std::array<int, 3> _arg);
 
   /*!
     Set the clip rectangle origin to apply to the image in pixel coordinates.
     If the ClipRectangleSize is (0,0) then the whole frame is captured.
   */
-  vtkSetVector3Macro(ClipRectangleOrigin, int);
+  void SetClipRectangleOrigin(const std::array<int, 3> _arg);
 
 protected:
   /*! Access the data buffer */
-  virtual vtkPlusBuffer* GetBuffer();
+  virtual vtkPlusBuffer* GetBuffer() const;
 
 protected:
   vtkPlusDataSource();
@@ -352,11 +365,11 @@ protected:
   CustomPropertyMap CustomProperties;
 
   /*! Crop rectangle origin for this data source */
-  int ClipRectangleOrigin[3];
+  std::array<int, 3> ClipRectangleOrigin;
   /*! Crop rectangle size for this data source */
-  int ClipRectangleSize[3];
+  std::array<int, 3> ClipRectangleSize;
 
-  unsigned int InputFrameSize[3];
+  FrameSizeType InputFrameSize;
 
 private:
   vtkPlusDataSource(const vtkPlusDataSource&);

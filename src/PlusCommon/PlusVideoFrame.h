@@ -106,11 +106,9 @@ public:
   PlusVideoFrame& operator=(PlusVideoFrame const& videoItem);
 
   /*! Allocate memory for the image. The image object must be already created. */
-  static PlusStatus AllocateFrame(vtkImageData* image, const int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents);
-  static PlusStatus AllocateFrame(vtkImageData* image, const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
+  static PlusStatus AllocateFrame(vtkImageData* image, const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
   /*! Allocate memory for the image. */
-  PlusStatus AllocateFrame(const int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, int numberOfScalarComponents);
-  PlusStatus AllocateFrame(const unsigned int imageSize[3], PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
+  PlusStatus AllocateFrame(const FrameSizeType& imageSize, PlusCommon::VTKScalarPixelType vtkScalarPixelType, unsigned int numberOfScalarComponents);
 
   /*! Return the pixel type using VTK enums. */
   PlusCommon::VTKScalarPixelType GetVTKScalarPixelType() const;
@@ -136,7 +134,7 @@ public:
   void SetImageOrientation(US_IMAGE_ORIENTATION imgOrientation);
 
   /*! Return the number of components */
-  int GetNumberOfScalarComponents() const;
+  PlusStatus GetNumberOfScalarComponents(unsigned int& scalarComponents) const;
 
   /*! Return the image type */
   US_IMAGE_TYPE GetImageType() const;
@@ -162,7 +160,7 @@ public:
   static int GetNumberOfBytesPerScalar(PlusCommon::VTKScalarPixelType pixelType);
 
   /*! Get the dimensions of the frame in pixels */
-  PlusStatus GetFrameSize(unsigned int frameSize[3]) const;
+  PlusStatus GetFrameSize(FrameSizeType& frameSize) const;
 
   /*! Get the pointer to the pixel buffer */
   void* GetScalarPointer() const;
@@ -222,20 +220,11 @@ public:
       FlipInfoType flipInfo,
       US_IMAGE_TYPE inUsImageType,
       PlusCommon::VTKScalarPixelType inUsImagePixelType,
-      int numberOfScalarComponents,
-      const int inputFrameSizeInPx[3],
-      vtkImageData* outUsOrientedImage,
-      const int clipRectangleOrigin[3],
-      const int clipRectangleSize[3]);
-  static PlusStatus GetOrientedClippedImage(unsigned char* imageDataPtr,
-      FlipInfoType flipInfo,
-      US_IMAGE_TYPE inUsImageType,
-      PlusCommon::VTKScalarPixelType inUsImagePixelType,
       unsigned int numberOfScalarComponents,
-      const unsigned int inputFrameSizeInPx[3],
+      const FrameSizeType& inputFrameSizeInPx,
       vtkImageData* outUsOrientedImage,
-      const int clipRectangleOrigin[3],
-      const int clipRectangleSize[3]);
+      const std::array<int, 3>& clipRectangleOrigin,
+      const std::array<int, 3>& clipRectangleSize);
 
   /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping
   \param imageDataPtr the source data to analyze for possible clipping and reorienting
@@ -252,20 +241,11 @@ public:
       FlipInfoType flipInfo,
       US_IMAGE_TYPE inUsImageType,
       PlusCommon::VTKScalarPixelType inUsImagePixelType,
-      int numberOfScalarComponents,
-      const int inputFrameSizeInPx[3],
-      PlusVideoFrame& outBufferItem,
-      const int clipRectangleOrigin[3],
-      const int clipRectangleSize[3]);
-  static PlusStatus GetOrientedClippedImage(unsigned char* imageDataPtr,
-      FlipInfoType flipInfo,
-      US_IMAGE_TYPE inUsImageType,
-      PlusCommon::VTKScalarPixelType inUsImagePixelType,
       unsigned int numberOfScalarComponents,
-      const unsigned int inputFrameSizeInPx[3],
+      const FrameSizeType& inputFrameSizeInPx,
       PlusVideoFrame& outBufferItem,
-      const int clipRectangleOrigin[3],
-      const int clipRectangleSize[3]);
+      const std::array<int, 3>& clipRectangleOrigin,
+      const std::array<int, 3>& clipRectangleSize);
 
   /*! Convert oriented image to MF oriented ultrasound image and perform any requested clipping
   \param inUsImage the source image to analyze for possible clipping and reorienting
@@ -279,8 +259,8 @@ public:
       FlipInfoType flipInfo,
       US_IMAGE_TYPE inUsImageType,
       vtkImageData* outUsOrientedImage,
-      const int clipRectangleOrigin[3],
-      const int clipRectangleSize[3]);
+      const std::array<int, 3>& clipRectangleOrigin,
+      const std::array<int, 3>& clipRectangleSize);
 
   /*!
   Flip a 2D image along one or two axes. This is a performance optimized version of flipping that does not use ITK filters
@@ -289,8 +269,8 @@ public:
   */
   static PlusStatus FlipClipImage(vtkImageData* inUsImage,
                                   const FlipInfoType& flipInfo,
-                                  const int clipRectangleOrigin[3],
-                                  const int clipRectangleSize[3],
+                                  const std::array<int, 3>& clipRectangleOrigin,
+                                  const std::array<int, 3>& clipRectangleSize,
                                   vtkImageData* outUsOrientedImage);
 
   /*! Return true if the image data is valid (e.g. not NULL) */

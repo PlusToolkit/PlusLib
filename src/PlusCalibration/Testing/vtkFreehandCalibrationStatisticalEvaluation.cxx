@@ -33,8 +33,8 @@ See License.txt for details.
 #include <iostream>
 #include <stdlib.h>
 
-PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames );
-PlusStatus SetOptimizationMethod( vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method );
+PlusStatus SubSequenceMetafile(vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
+PlusStatus SetOptimizationMethod(vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method);
 
 enum OperationType
 {
@@ -45,7 +45,7 @@ enum OperationType
   NO_OPERATION
 };
 
-int main ( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
   std::string inputCalibrationSeqMetafile;
   std::string inputValidationSeqMetafile;
@@ -66,117 +66,117 @@ int main ( int argc, char* argv[] )
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
-  cmdargs.Initialize( argc, argv );
+  cmdargs.Initialize(argc, argv);
 
-  cmdargs.AddArgument( "--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset." );
-  cmdargs.AddArgument( "--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset." );
+  cmdargs.AddArgument("--calibration-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputCalibrationSeqMetafile, "Sequence metafile name of input calibration dataset.");
+  cmdargs.AddArgument("--validation-seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputValidationSeqMetafile, "Sequence metafile name of input validation dataset.");
 
-  cmdargs.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name prefix" );
-  cmdargs.AddArgument( "--save-results-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveResultsFilename, "Save results file name" );
-  cmdargs.AddArgument( "--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Type of experiment to perform" );
+  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name prefix");
+  cmdargs.AddArgument("--save-results-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &saveResultsFilename, "Save results file name");
+  cmdargs.AddArgument("--operation", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &strOperation, "Type of experiment to perform");
 
-  cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  if ( !cmdargs.Parse() )
+  if (!cmdargs.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  LOG_INFO( "Initialize" );
+  LOG_INFO("Initialize");
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if ( PlusXmlUtils::ReadDeviceSetConfigurationFromFile( configRootElement, inputConfigFileName.c_str() ) == PLUS_FAIL )
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
   {
-    LOG_ERROR( "Unable to read configuration from file " << inputConfigFileName.c_str() );
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
   }
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configRootElement );
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   // Read coordinate definitions
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-  if ( transformRepository->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to read CoordinateDefinitions!" );
+    LOG_ERROR("Failed to read CoordinateDefinitions!");
     return EXIT_FAILURE;
   }
 
   vtkSmartPointer<vtkPlusProbeCalibrationAlgo> freehandCalibration = vtkSmartPointer<vtkPlusProbeCalibrationAlgo>::New();
-  freehandCalibration->ReadConfiguration( configRootElement );
+  freehandCalibration->ReadConfiguration(configRootElement);
 
   PlusFidPatternRecognition patternRecognition;
   PlusFidPatternRecognition::PatternRecognitionError error;
-  patternRecognition.ReadConfiguration( configRootElement );
+  patternRecognition.ReadConfiguration(configRootElement);
 
   bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
-  patternRecognition.GetFidSegmentation()->SetDebugOutput( debugOutput );
+  patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   // Load and segment calibration image
   vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read( inputCalibrationSeqMetafile, calibrationTrackedFrameList ) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!" );
+    LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!");
     return EXIT_FAILURE;
   }
 
   int numberOfSuccessfullySegmentedCalibrationImages = 0;
   std::vector<unsigned int> segmentedCalibrationFramesIndices;
-  if ( patternRecognition.RecognizePattern( calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages, &segmentedCalibrationFramesIndices ) != PLUS_SUCCESS )
+  if (patternRecognition.RecognizePattern(calibrationTrackedFrameList, error, &numberOfSuccessfullySegmentedCalibrationImages, &segmentedCalibrationFramesIndices) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Error occured during segmentation of calibration images!" );
+    LOG_ERROR("Error occured during segmentation of calibration images!");
     return EXIT_FAILURE;
   }
 
-  LOG_INFO( "Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames() );
+  LOG_INFO("Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Load and segment validation image
   vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read( inputValidationSeqMetafile, validationTrackedFrameList ) != PLUS_SUCCESS )
+  if (vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Reading validation images from '" << inputValidationSeqMetafile << "' failed!" );
+    LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!");
     return EXIT_FAILURE;
   }
 
   int numberOfSuccessfullySegmentedValidationImages = 0;
-  if ( patternRecognition.RecognizePattern( validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages ) != PLUS_SUCCESS )
+  if (patternRecognition.RecognizePattern(validationTrackedFrameList, error, &numberOfSuccessfullySegmentedValidationImages) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Error occured during segmentation of validation images!" );
+    LOG_ERROR("Error occured during segmentation of validation images!");
     return EXIT_FAILURE;
   }
 
-  LOG_INFO( "Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames() );
+  LOG_INFO("Segmentation success rate of validation images: " << numberOfSuccessfullySegmentedValidationImages << " out of " << validationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Keep only the images properly segmented
-  SubSequenceMetafile( calibrationTrackedFrameList, segmentedCalibrationFramesIndices );
+  SubSequenceMetafile(calibrationTrackedFrameList, segmentedCalibrationFramesIndices);
 
 
   ofstream outputFile;
-  outputFile.open( saveResultsFilename.c_str(), std::ios_base::app );
+  outputFile.open(saveResultsFilename.c_str(), std::ios_base::app);
 
 
   OperationType operation(NO_OPERATION);
   // Set operation
-  if ( strOperation.empty() )
+  if (strOperation.empty())
   {
-    LOG_INFO( "No modification operation has been specified (specify --operation parameter to change the input sequence)." );
+    LOG_INFO("No modification operation has been specified (specify --operation parameter to change the input sequence).");
   }
-  else if ( STRCASECMP( strOperation.c_str(), "INCREMENTAL_FRAME_DISTANCE" ) == 0 )
+  else if (STRCASECMP(strOperation.c_str(), "INCREMENTAL_FRAME_DISTANCE") == 0)
   {
     operation = INCREMENTAL_FRAME_DISTANCE;
   }
-  else if ( STRCASECMP( strOperation.c_str(), "INCREMENTAL_NUMBER_OF_FRAMES" ) == 0 )
+  else if (STRCASECMP(strOperation.c_str(), "INCREMENTAL_NUMBER_OF_FRAMES") == 0)
   {
     operation = INCREMENTAL_NUMBER_OF_FRAMES;
   }
-  else if ( STRCASECMP( strOperation.c_str(), "SAME_NUMBER_OF_FRAMES" ) == 0 )
+  else if (STRCASECMP(strOperation.c_str(), "SAME_NUMBER_OF_FRAMES") == 0)
   {
     operation = SAME_NUMBER_OF_FRAMES;
   }
-  else if ( STRCASECMP( strOperation.c_str(), "MOBILE_WINDOW" ) == 0 )
+  else if (STRCASECMP(strOperation.c_str(), "MOBILE_WINDOW") == 0)
   {
     operation = MOBILE_WINDOW;
   }
@@ -188,141 +188,141 @@ int main ( int argc, char* argv[] )
   std::vector<int> numberOfCalibrationFrames;
   std::vector< std::vector<int> > selectedFrames;
 
-  if ( operation == INCREMENTAL_NUMBER_OF_FRAMES )
+  if (operation == INCREMENTAL_NUMBER_OF_FRAMES)
   {
-    for ( int i = 0; i < numberOfConfigurations; i++ )
+    for (int i = 0; i < numberOfConfigurations; i++)
     {
-      numberOfCalibrationFrames.push_back( 5 + i * 5 );
+      numberOfCalibrationFrames.push_back(5 + i * 5);
       std::vector<int> frames;
-      for ( int j = 0; j < numberOfCalibrationFrames.at( i ) ; j++ )
+      for (int j = 0; j < numberOfCalibrationFrames.at(i) ; j++)
       {
-        int randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
-        while( std::find( frames.begin(), frames.end(), randomIndex ) != frames.end() )
+        int randomIndex = rand() % (maxFrame - minFrame) + minFrame;
+        while (std::find(frames.begin(), frames.end(), randomIndex) != frames.end())
         {
           /* frames contains randomIndex */
-          randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
+          randomIndex = rand() % (maxFrame - minFrame) + minFrame;
         }
-        frames.push_back( randomIndex );
+        frames.push_back(randomIndex);
       }
-      selectedFrames.push_back( frames );
+      selectedFrames.push_back(frames);
     }
   }
 
 
-  if ( operation == SAME_NUMBER_OF_FRAMES )
+  if (operation == SAME_NUMBER_OF_FRAMES)
   {
     int numberOfFrames = 80;
-    for ( int i = 0; i < numberOfConfigurations; i++ )
+    for (int i = 0; i < numberOfConfigurations; i++)
     {
-      numberOfCalibrationFrames.push_back( numberOfFrames );
+      numberOfCalibrationFrames.push_back(numberOfFrames);
       std::vector<int> frames;
-      for ( int j = 0; j < numberOfCalibrationFrames.at( i ) ; j++ )
+      for (int j = 0; j < numberOfCalibrationFrames.at(i) ; j++)
       {
-        int randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
-        while( std::find( frames.begin(), frames.end(), randomIndex ) != frames.end() )
+        int randomIndex = rand() % (maxFrame - minFrame) + minFrame;
+        while (std::find(frames.begin(), frames.end(), randomIndex) != frames.end())
         {
           /* frames contains randomIndex */
-          randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
+          randomIndex = rand() % (maxFrame - minFrame) + minFrame;
         }
-        frames.push_back( randomIndex );
+        frames.push_back(randomIndex);
       }
-      selectedFrames.push_back( frames );
+      selectedFrames.push_back(frames);
     }
   }
 
-  if ( operation == INCREMENTAL_FRAME_DISTANCE )
+  if (operation == INCREMENTAL_FRAME_DISTANCE)
   {
     int numberOfFrames = 10;
-    for ( int i = 0; i < numberOfConfigurations; i++ )
+    for (int i = 0; i < numberOfConfigurations; i++)
     {
-      maxFrame = ( 2 + i ) * numberOfFrames;
+      maxFrame = (2 + i) * numberOfFrames;
       std::vector<int> frames;
-      for ( int j = 0; j < numberOfFrames ; j++ )
+      for (int j = 0; j < numberOfFrames ; j++)
       {
-        int randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
-        while( std::find( frames.begin(), frames.end(), randomIndex ) != frames.end() )
+        int randomIndex = rand() % (maxFrame - minFrame) + minFrame;
+        while (std::find(frames.begin(), frames.end(), randomIndex) != frames.end())
         {
           /* frames contains randomIndex */
-          randomIndex = rand() % ( maxFrame - minFrame ) + minFrame;
+          randomIndex = rand() % (maxFrame - minFrame) + minFrame;
         }
-        frames.push_back( randomIndex );
+        frames.push_back(randomIndex);
       }
-      selectedFrames.push_back( frames );
+      selectedFrames.push_back(frames);
     }
   }
 
-  if ( operation == MOBILE_WINDOW )
+  if (operation == MOBILE_WINDOW)
   {
     int width = 40;
     int numberOfFrames = 2 * width + 1;
-    for ( int i = 0; i < numberOfConfigurations; i++ )
+    for (int i = 0; i < numberOfConfigurations; i++)
     {
-      int center = rand() % ( maxFrame - minFrame - numberOfFrames ) + width ;
+      int center = rand() % (maxFrame - minFrame - numberOfFrames) + width ;
       std::vector<int> frames;
-      for ( int j = 0; j < numberOfFrames ; j++ )
+      for (int j = 0; j < numberOfFrames ; j++)
       {
-        frames.push_back( center - width + j );
+        frames.push_back(center - width + j);
       }
-      selectedFrames.push_back( frames );
+      selectedFrames.push_back(frames);
     }
   }
 
   vtkSmartPointer<vtkPlusTrackedFrameList> sequenceTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
 
   std::string methods[] = {"NO_OPTIMIZATION", "7param2D", "7param3D", "8param2D", "8param3D"};
-  int numberOfMethods = sizeof( methods ) / sizeof( methods[0] );
+  int numberOfMethods = sizeof(methods) / sizeof(methods[0]);
   outputFile << "Number of methods = "  << numberOfMethods << "\n";
   std::vector<double> calibError;
   std::vector<double> validError;
   vnl_matrix_fixed<double, 4, 4> imageToProbeTransformMatrix;
-  unsigned int* frameSize = calibrationTrackedFrameList->GetTrackedFrame( 0 )->GetFrameSize();
+  FrameSizeType frameSize = calibrationTrackedFrameList->GetTrackedFrame(0)->GetFrameSize();
   outputFile << "Frame size = "  << frameSize[0] << " " << frameSize[1] << "\n";
-  for ( int i = 0; i < numberOfConfigurations; i++ )
+  for (int i = 0; i < numberOfConfigurations; i++)
   {
     bool calibrationFail = false;
-    int numberOfFramesOfTheSequence = selectedFrames.at( i ).size();
+    int numberOfFramesOfTheSequence = selectedFrames.at(i).size();
     outputFile << "Frames of the sequence = ";
-    for ( int j = 0; j < numberOfFramesOfTheSequence; j++ )
+    for (int j = 0; j < numberOfFramesOfTheSequence; j++)
     {
-      int indexInCalibrationSequence = selectedFrames.at( i ).at( j );
-      sequenceTrackedFrameList->AddTrackedFrame( calibrationTrackedFrameList->GetTrackedFrame( indexInCalibrationSequence ) );
+      int indexInCalibrationSequence = selectedFrames.at(i).at(j);
+      sequenceTrackedFrameList->AddTrackedFrame(calibrationTrackedFrameList->GetTrackedFrame(indexInCalibrationSequence));
       outputFile << indexInCalibrationSequence << " ";
     }
     outputFile << " \n ";
 
-    for ( int k = 0; k < numberOfMethods; k++ )
+    for (int k = 0; k < numberOfMethods; k++)
     {
       outputFile << "Method = " << methods[k] << " \n ";
-      if ( !calibrationFail )
+      if (!calibrationFail)
       {
-        SetOptimizationMethod( freehandCalibration, methods[k] );
+        SetOptimizationMethod(freehandCalibration, methods[k]);
 
         // Calibrate
-        if ( freehandCalibration->Calibrate( validationTrackedFrameList, sequenceTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires() ) != PLUS_SUCCESS )
+        if (freehandCalibration->Calibrate(validationTrackedFrameList, sequenceTrackedFrameList, transformRepository, patternRecognition.GetFidLineFinder()->GetNWires()) != PLUS_SUCCESS)
         {
-          LOG_ERROR( "Calibration failed!" );
-          calibError.push_back( -1 );
-          calibError.push_back( -1 );
-          validError.push_back( -1 );
-          validError.push_back( -1 );
+          LOG_ERROR("Calibration failed!");
+          calibError.push_back(-1);
+          calibError.push_back(-1);
+          validError.push_back(-1);
+          validError.push_back(-1);
           calibrationFail = true;
           //return EXIT_FAILURE;
         }
 
-        freehandCalibration->GetCalibrationReport( &calibError, &validError, &imageToProbeTransformMatrix );
+        freehandCalibration->GetCalibrationReport(&calibError, &validError, &imageToProbeTransformMatrix);
         // TODO: double-check if the reported values matches the expected values
 
         outputFile << "Calibration error = ";
-        outputFile << calibError.at( 0 ) << " " << calibError.at( 1 ) << " ";
-        outputFile << validError.at( 0 ) << " " << validError.at( 1 )  << " \n ";
+        outputFile << calibError.at(0) << " " << calibError.at(1) << " ";
+        outputFile << validError.at(0) << " " << validError.at(1)  << " \n ";
 
         outputFile << "\n ";
         outputFile << "Image to Probe transform matrix = \n ";
-        for ( int m = 0; m < 4; m++ )
+        for (int m = 0; m < 4; m++)
         {
-          for ( int n = 0; n < 4; n++ )
+          for (int n = 0; n < 4; n++)
           {
-            outputFile << imageToProbeTransformMatrix( m, n ) << " ";
+            outputFile << imageToProbeTransformMatrix(m, n) << " ";
           }
           outputFile << "\n ";
         }
@@ -344,63 +344,63 @@ int main ( int argc, char* argv[] )
 
 //-------------------------------------------------------------------------------------------------
 
-PlusStatus SubSequenceMetafile( vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames )
+PlusStatus SubSequenceMetafile(vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
 {
-  LOG_INFO( "Create a sub sequence using" << selectedFrames.size() << " frames" );
-  std::sort( selectedFrames.begin(), selectedFrames.end() );
-  unsigned int FirstFrameIndex = selectedFrames.at( 0 );
-  unsigned int LastFrameIndex = selectedFrames.at( selectedFrames.size() - 1 );
-  if ( LastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || FirstFrameIndex > LastFrameIndex )
+  LOG_INFO("Create a sub sequence using" << selectedFrames.size() << " frames");
+  std::sort(selectedFrames.begin(), selectedFrames.end());
+  unsigned int FirstFrameIndex = selectedFrames.at(0);
+  unsigned int LastFrameIndex = selectedFrames.at(selectedFrames.size() - 1);
+  if (LastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || FirstFrameIndex > LastFrameIndex)
   {
-    LOG_ERROR( "Invalid input range: (" << FirstFrameIndex << ", " << LastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")" );
+    LOG_ERROR("Invalid input range: (" << FirstFrameIndex << ", " << LastFrameIndex << ")" << " Permitted range within (0, " << aTrackedFrameList->GetNumberOfTrackedFrames() - 1 << ")");
     return PLUS_FAIL;
   }
 
-  if ( LastFrameIndex != aTrackedFrameList->GetNumberOfTrackedFrames() - 1 )
+  if (LastFrameIndex != aTrackedFrameList->GetNumberOfTrackedFrames() - 1)
   {
-    aTrackedFrameList->RemoveTrackedFrameRange( LastFrameIndex + 1, aTrackedFrameList->GetNumberOfTrackedFrames() - 1 );
+    aTrackedFrameList->RemoveTrackedFrameRange(LastFrameIndex + 1, aTrackedFrameList->GetNumberOfTrackedFrames() - 1);
   }
 
-  for ( int i = selectedFrames.size() - 2; i > 0; i-- )
+  for (int i = selectedFrames.size() - 2; i > 0; i--)
   {
-    aTrackedFrameList->RemoveTrackedFrameRange( selectedFrames.at( i ) + 1, selectedFrames.at( i + 1 ) - 1 );
+    aTrackedFrameList->RemoveTrackedFrameRange(selectedFrames.at(i) + 1, selectedFrames.at(i + 1) - 1);
   }
 
-  if ( FirstFrameIndex != 0 )
+  if (FirstFrameIndex != 0)
   {
-    aTrackedFrameList->RemoveTrackedFrameRange( 0, FirstFrameIndex - 1 );
+    aTrackedFrameList->RemoveTrackedFrameRange(0, FirstFrameIndex - 1);
   }
   return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------
-PlusStatus SetOptimizationMethod( vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method )
+PlusStatus SetOptimizationMethod(vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method)
 {
   vtkPlusProbeCalibrationOptimizerAlgo* optimizer = freehandCalibration->GetOptimizer();
 
-  if ( STRCASECMP( method.c_str(), "NO_OPTIMIZATION" ) == 0 )
+  if (STRCASECMP(method.c_str(), "NO_OPTIMIZATION") == 0)
   {
-    optimizer->SetOptimizationMethod( vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_NONE );
+    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_NONE);
   }
-  else if ( STRCASECMP( method.c_str(), "7param2D" ) == 0 )
+  else if (STRCASECMP(method.c_str(), "7param2D") == 0)
   {
-    optimizer->SetOptimizationMethod( vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D );
-    optimizer->SetIsotropicPixelSpacing( true );
+    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetIsotropicPixelSpacing(true);
   }
-  else if ( STRCASECMP( method.c_str(), "7param3D" ) == 0 )
+  else if (STRCASECMP(method.c_str(), "7param3D") == 0)
   {
-    optimizer->SetOptimizationMethod( vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D );
-    optimizer->SetIsotropicPixelSpacing( true );
+    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetIsotropicPixelSpacing(true);
   }
-  else if ( STRCASECMP( method.c_str(), "8param2D" ) == 0 )
+  else if (STRCASECMP(method.c_str(), "8param2D") == 0)
   {
-    optimizer->SetOptimizationMethod( vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D );
-    optimizer->SetIsotropicPixelSpacing( false );
+    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_ALL_WIRES_IN_2D);
+    optimizer->SetIsotropicPixelSpacing(false);
   }
-  else if ( STRCASECMP( method.c_str(), "8param3D" ) == 0 )
+  else if (STRCASECMP(method.c_str(), "8param3D") == 0)
   {
-    optimizer->SetOptimizationMethod( vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D );
-    optimizer->SetIsotropicPixelSpacing( false );
+    optimizer->SetOptimizationMethod(vtkPlusProbeCalibrationOptimizerAlgo::MINIMIZE_DISTANCE_OF_MIDDLE_WIRES_IN_3D);
+    optimizer->SetIsotropicPixelSpacing(false);
   }
   return PLUS_SUCCESS;
 }

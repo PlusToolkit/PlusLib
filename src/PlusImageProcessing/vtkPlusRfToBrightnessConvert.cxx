@@ -178,6 +178,10 @@ void vtkPlusRfToBrightnessConvert::ThreadedRequestData(
   {
     ThreadedLineByLineHilbertTransform<int>(inExt, outExt, inData, outData, id);
   }
+  else if (inData[0][0]->GetScalarType() == VTK_UNSIGNED_CHAR)
+  {
+    ThreadedLineByLineHilbertTransform<unsigned char>(inExt, outExt, inData, outData, id);
+  }
   else
   {
     vtkErrorMacro("Internal error: unexpected branching");
