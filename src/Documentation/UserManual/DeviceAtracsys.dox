@@ -2,18 +2,19 @@
 \page DeviceAtracsys Atracsys
 
 \section AtracsysSupportedHwDevices Supported hardware devices
+- Right now this PLUS device only supports the spryTrack180, but fusionTrack support is currently under development.
 
 \section AtracsysSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
-- \ref PackageWin64
 
 \section AtracsysInstallation Installation
-
-\section AtracsysSettingUpTracking Setting up Tracking
+- To build the software, please download Atracsys' spryTrack SDK from the web link provided when you purchased the system.
 
 \section AtracsysConfigSettings Device configuration settings
 - \xmlAtt \ref DeviceType "Type" = \c "Atracsys" \RequiredAtt
+- \xmlAtt \ref MaxMissingFiducials Max number of missing fiducials to still track a marker with. \OptionalAtt{1}
+- \xmlAtt \ref ActiveMarkerPairingTimeSec Time tracker waits for active markers to pair before beginning tracking. \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
 
 \section AtracsysExampleConfigFile Config File
