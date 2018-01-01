@@ -127,19 +127,6 @@ int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeomet
 }
 
 //----------------------------------------------------------------------------
-unsigned vtkPlusWinProbeVideoSource::DecimationToMultiple(int decimationCode) const
-{
-  if(decimationCode == 0xf) //1111
-  {
-    return 32;
-  }
-  else
-  {
-    return decimationCode + 2;
-  }
-}
-
-//----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHeader, char* hGeometry)
 {
   vtkPlusDataSource* aSource = NULL;

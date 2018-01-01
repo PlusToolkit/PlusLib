@@ -156,7 +156,6 @@ protected:
   //to be run in a separate thread
   void Watchdog();
 
-  unsigned DecimationToMultiple(int decimationCode) const;
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
