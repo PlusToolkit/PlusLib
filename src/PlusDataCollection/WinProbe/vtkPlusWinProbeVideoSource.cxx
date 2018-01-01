@@ -261,7 +261,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                         frameSize, VTK_INT,
                         1, US_IMG_RF_REAL, 0,
                         this->FrameNumber,
-                        vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
+                        vtkPlusAccurateTimer::GetSystemTime(),
+                        UNDEFINED_TIMESTAMP, //PlusLib will do time filtering
+                        &m_customFields) != PLUS_SUCCESS)
     {
       LOG_WARNING("Error adding item to video source " << aSource->GetSourceId());
     }
@@ -330,7 +332,6 @@ void vtkPlusWinProbeVideoSource::AdjustSpacing()
   this->CurrentPixelSpacingMm[1] = m_depth / (m_samplesPerLine - 1);
   this->CurrentPixelSpacingMm[2] = 1.0;
 
-  this->m_customFields.clear();
   std::ostringstream spacingStream;
   unsigned int numSpaceDimensions = 3;
   for(unsigned int i = 0; i < numSpaceDimensions; ++i)
@@ -385,6 +386,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   WPLoadDefault();
   WPSetTransducerID(this->m_transducerID.c_str());
   m_ADCfrequency = GetADCSamplingRate();
+  this->m_customFields["SamplingRate"] = std::to_string(m_ADCfrequency);
   m_transducerCount = GetSSElementCount();
   SetSCCompoundAngleCount(0);
 
