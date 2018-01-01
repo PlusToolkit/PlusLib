@@ -179,6 +179,8 @@ protected:
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
   uint8_t m_OutputKnee = 64; // log-linear knee in output range
   ImagingMode m_ImagingMode = B_MODE;
+  std::vector<vtkPlusDataSource *> m_bSources;
+  std::vector<vtkPlusDataSource *> m_rfSources;
 
 private:
   vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&);  // Not implemented
