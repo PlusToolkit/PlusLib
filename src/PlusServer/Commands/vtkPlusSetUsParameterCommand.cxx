@@ -4,9 +4,9 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+#include "PlusConfigure.h"
 #include "vtkPlusSetUsParameterCommand.h"
 
-#include "PlusConfigure.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
@@ -86,7 +86,7 @@ PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aC
   this->SetUsDeviceId(aConfig->GetAttribute("UsDeviceId"));
 
   // Parse nested elements and store requested parameter changes
-  for (int elemIndex=0; elemIndex<aConfig->GetNumberOfNestedElements(); ++elemIndex)
+  for (int elemIndex = 0; elemIndex < aConfig->GetNumberOfNestedElements(); ++elemIndex)
   {
     vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
     if (PlusCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
@@ -98,7 +98,7 @@ PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aC
         LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in SetUsParameter command");
         continue;
       }
-      
+
       this->RequestedParameterChanges[parameterName] = parameterValue;
     }
   }
@@ -118,7 +118,7 @@ PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
 
   // Write parameters as nested elements
   std::map<std::string, std::string>::iterator paramIt;
-  for (paramIt=this->RequestedParameterChanges.begin(); paramIt!=this->RequestedParameterChanges.end(); ++paramIt)
+  for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
   {
     vtkSmartPointer<vtkXMLDataElement> paramElem = vtkSmartPointer<vtkXMLDataElement>::New();
     paramElem->SetAttribute("Name", paramIt->first.c_str());
@@ -133,7 +133,7 @@ PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
 PlusStatus vtkPlusSetUsParameterCommand::Execute()
 {
   LOG_DEBUG("vtkPlusSetUsParameterCommand::Execute: " << (!this->Name.empty() ? this->Name : "(undefined)")
-            << ", device: " << (this->UsDeviceId.empty() ? "(undefined)" : this->UsDeviceId) );
+            << ", device: " << (this->UsDeviceId.empty() ? "(undefined)" : this->UsDeviceId));
 
   if (this->Name.empty())
   {
@@ -160,7 +160,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
   PlusStatus status = PLUS_SUCCESS;
 
   std::map<std::string, std::string>::iterator paramIt;
-  for (paramIt=this->RequestedParameterChanges.begin(); paramIt!=this->RequestedParameterChanges.end(); ++paramIt)
+  for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
   {
     message += " Parameter " + paramIt->first + "=" + paramIt->second + ": ";
 
@@ -191,16 +191,17 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
       imagingParameters->SetImageSize(numbers[0], numbers[1], numbers[2]);
     }
     else if (paramIt->first == vtkPlusUsImagingParameters::KEY_FREQUENCY
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_DEPTH
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_SECTOR
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_GAIN
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_INTENSITY
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_CONTRAST
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_DYNRANGE
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_ZOOM
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
-          || paramIt->first == vtkPlusUsImagingParameters::KEY_VOLTAGE)
-    { // double type parameter
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_DEPTH
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_SECTOR
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_GAIN
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_INTENSITY
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_CONTRAST
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_DYNRANGE
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_ZOOM
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
+             || paramIt->first == vtkPlusUsImagingParameters::KEY_VOLTAGE)
+    {
+      // double type parameter
       bool valid = false;
       double parameterValue = vtkVariant(paramIt->second).ToDouble(&valid);
       if (!valid)
@@ -227,7 +228,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     message += "Success";
   } // For each parameter
 
-  this->QueueCommandResponse(status, "Command " + std::string(status==PLUS_SUCCESS ? "succeeded" : "failed. See error message."), message);
+  this->QueueCommandResponse(status, "Command " + std::string(status == PLUS_SUCCESS ? "succeeded" : "failed. See error message."), message);
   return status;
 }
 
