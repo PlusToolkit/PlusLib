@@ -960,11 +960,9 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile(const char* filename, bool useComp
 
     // Add custom fields
     const PlusTrackedFrame::FieldMapType& customFields = bufferItem.GetCustomFrameFieldMap();
-    PlusTrackedFrame::FieldMapType::const_iterator cf = customFields.begin();
-    while (cf != customFields.end())
+    for (PlusTrackedFrame::FieldMapType::const_iterator cf = customFields.begin(); cf != customFields.end(); ++cf)
     {
       trackedFrame->SetCustomFrameField(cf->first, cf->second);
-      ++cf;
     }
 
     // Add tracked frame to the list
