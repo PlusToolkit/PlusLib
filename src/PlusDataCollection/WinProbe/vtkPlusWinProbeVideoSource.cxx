@@ -133,19 +133,15 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   CFDGeometryStruct* cfdGeometry = (CFDGeometryStruct*)hGeometry;
   GeometryStruct* brfGeometry = (GeometryStruct*)hGeometry; //B-mode and RF
   InputSourceBindings usMode = header->InputSourceBinding;
-  if(usMode == CFD)
+  if(usMode & CFD)
   {
     m_transducerCount = cfdGeometry->LineCount;
     m_samplesPerLine = cfdGeometry->SamplesPerKernel;
   }
-  else if(usMode == B || usMode == RF || usMode == BFRFALineImage_RFData)
+  else if(usMode & B || usMode & BFRFALineImage_RFData)
   {
     m_transducerCount = brfGeometry->LineCount;
     m_samplesPerLine = brfGeometry->SamplesPerLine;
-    if(usMode != B)
-    {
-      m_samplesPerLine *= brfGeometry->Decimation;
-    }
   }
   else
   {
@@ -237,7 +233,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & BFRFALineImage_RFData)
   {
-    assert(length == m_samplesPerLine * m_transducerCount * sizeof(int32_t)); //header and footer not appended to data
+    assert(length == m_samplesPerLine * brfGeometry->Decimation * m_transducerCount * sizeof(int32_t)); //header and footer not appended to data
     FrameSizeType frameSize = { m_samplesPerLine*brfGeometry->Decimation, m_transducerCount, 1 };
     for (unsigned i = 0; i < m_rfSources.size(); i++)
     {
@@ -281,7 +277,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
     m_bSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
     m_bSources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
     m_bSources[i]->SetInputFrameSize(frameSize);
-    LOG_INFO("SourceID: " << m_rfSources[i]->GetId()<<", "
+    LOG_INFO("SourceID: " << m_bSources[i]->GetId()<<", "
         << "Frame size: " << frameSize[0] << "x" << frameSize[1]
         << ", pixel type: " << vtkImageScalarTypeNameMacro(m_bSources[i]->GetPixelType())
         << ", buffer image orientation: "
@@ -388,15 +384,12 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     SetHandleBRFInternally(true);
     SetBFRFImageCaptureMode(0);
   }
-  else if(!m_rfSources.empty()) //overwrite B-mode settings
+  if(!m_rfSources.empty()) //overwrite B-mode settings
   {
     SetHandleBRFInternally(false);
     SetBFRFImageCaptureMode(2);
   }
-  else
-  {
-    //TODO handle additional modes
-  }
+  //TODO handle additional modes
 
   SetPendingRecreateTables(true);
 

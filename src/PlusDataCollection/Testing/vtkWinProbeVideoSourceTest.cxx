@@ -125,17 +125,29 @@ int main(int argc, char* argv[])
     {
         Sleep(2500); //allow some time to buffer frames
 
-        vtkPlusChannel* aChannel(NULL);
-        if (WinProbeDevice->GetOutputChannelByName(aChannel, "VideoStream") != PLUS_SUCCESS)
+        vtkPlusChannel* bChannel(NULL);
+        if (WinProbeDevice->GetOutputChannelByName(bChannel, "VideoStream") != PLUS_SUCCESS)
         {
             LOG_ERROR("Unable to locate the channel with Id=\"VideoStream\". Check config file.");
             exit(EXIT_FAILURE);
         }
 
+        vtkPlusChannel* rfChannel(NULL);
+        if (WinProbeDevice->GetOutputChannelByName(rfChannel, "RfStream") != PLUS_SUCCESS)
+        {
+            LOG_ERROR("Unable to locate the channel with Id=\"RFStream\". Check config file.");
+            exit(EXIT_FAILURE);
+        }
+
         WinProbeDevice->FreezeDevice(true);
-        vtkPlusDataSource* aSource(NULL);
-        aChannel->GetVideoSource(aSource);
-        aSource->WriteToSequenceFile(outputFileName.c_str());
+
+        vtkPlusDataSource* bSource(NULL);
+        bChannel->GetVideoSource(bSource);
+        bSource->WriteToSequenceFile(outputFileName.c_str());
+
+        vtkPlusDataSource* rfSource(NULL);
+        rfChannel->GetVideoSource(rfSource);
+        rfSource->WriteToSequenceFile((outputFileName+"_RF.mha").c_str());
 
         //update and write configuration
         WinProbeDevice->WriteConfiguration(configRootElement);
