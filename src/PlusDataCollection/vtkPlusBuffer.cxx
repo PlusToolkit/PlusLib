@@ -958,6 +958,13 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile(const char* filename, bool useComp
     frameNumberFieldValue << std::fixed << frameNumber;
     trackedFrame->SetCustomFrameField("FrameNumber", frameNumberFieldValue.str());
 
+    // Add custom fields
+    const PlusTrackedFrame::FieldMapType& customFields = bufferItem.GetCustomFrameFieldMap();
+    for (PlusTrackedFrame::FieldMapType::const_iterator cf = customFields.begin(); cf != customFields.end(); ++cf)
+    {
+      trackedFrame->SetCustomFrameField(cf->first, cf->second);
+    }
+
     // Add tracked frame to the list
     trackedFrameList->TakeTrackedFrame(trackedFrame);
   }
