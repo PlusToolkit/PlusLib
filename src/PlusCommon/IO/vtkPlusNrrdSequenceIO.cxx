@@ -556,8 +556,8 @@ bool vtkPlusNrrdSequenceIO::CanReadFile(const std::string& filename)
 //----------------------------------------------------------------------------
 bool vtkPlusNrrdSequenceIO::CanWriteFile(const std::string& filename)
 {
-  if (PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".nrrd")  ||
-      PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".nhdr"))
+  if (PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameLastExtension(filename), ".nrrd")  ||
+      PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameLastExtension(filename), ".nhdr"))
   {
     return true;
   }
