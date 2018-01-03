@@ -570,8 +570,8 @@ bool vtkPlusMetaImageSequenceIO::CanReadFile(const std::string& filename)
 //----------------------------------------------------------------------------
 bool vtkPlusMetaImageSequenceIO::CanWriteFile(const std::string& filename)
 {
-  if (PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".mha")  ||
-      PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameExtension(filename), ".mhd"))
+  if (PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameLastExtension(filename), ".mha")  ||
+      PlusCommon::IsEqualInsensitive(vtksys::SystemTools::GetFilenameLastExtension(filename), ".mhd"))
   {
     return true;
   }
