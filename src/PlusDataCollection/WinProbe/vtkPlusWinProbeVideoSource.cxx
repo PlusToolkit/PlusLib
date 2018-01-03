@@ -26,7 +26,6 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
   os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
   os << indent << "LogMax: " << static_cast<unsigned>(this->m_OutputKnee) << std::endl;
-  os << indent << "ImagingMode: " << this->GetImagingModeAsString(m_ImagingMode) << std::endl;
   os << indent << "TransducerID: " << this->m_transducerID << std::endl;
   os << indent << "Frozen: " << this->IsFrozen() << std::endl;
   os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
@@ -51,23 +50,6 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-const char* vtkPlusWinProbeVideoSource::GetImagingModeAsString(ImagingMode mode) const
-{
-  switch(mode)
-  {
-  case B_MODE:
-    return "B";
-  case RF_MODE:
-    return "RF";
-  case CFD_MODE:
-    return "CFD";
-  default:
-    LOG_ERROR("Unknown imaging mode: " << mode);
-    return "unknown";
-  }
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusWinProbeVideoSource::ReadConfiguration");
@@ -84,11 +66,6 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
   deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
-
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(ImagingMode, deviceConfig,
-                                    this->GetImagingModeAsString(B_MODE), B_MODE,
-                                    this->GetImagingModeAsString(RF_MODE), RF_MODE,
-                                    this->GetImagingModeAsString(CFD_MODE), CFD_MODE);
 
   return PLUS_SUCCESS;
 }
@@ -109,8 +86,6 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
   deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
-
-  deviceConfig->SetAttribute("ImagingMode", this->GetImagingModeAsString(m_ImagingMode));
 
   return PLUS_SUCCESS;
 }
@@ -256,7 +231,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else
   {
-    LOG_INFO("Frame ignored (expected " << this->GetImagingModeAsString(m_ImagingMode) << "). Got: " << std::hex << usMode);
+    LOG_INFO("Frame ignored. Got mode: " << std::hex << usMode);
     return;
   }
 
@@ -653,15 +628,4 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
   return this->m_transducerID;
-}
-
-PlusStatus vtkPlusWinProbeVideoSource::SetImagingMode(ImagingMode mode)
-{
-  m_ImagingMode = mode;
-  return PLUS_SUCCESS;
-}
-
-vtkPlusWinProbeVideoSource::ImagingMode vtkPlusWinProbeVideoSource::GetImagingMode()
-{
-  return m_ImagingMode;
 }
