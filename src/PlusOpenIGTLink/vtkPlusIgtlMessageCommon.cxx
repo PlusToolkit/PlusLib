@@ -474,6 +474,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
 PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage::Pointer transformMessage,
     PlusTransformName& transformName,
     igtl::Matrix4x4& igtlMatrix,
+    bool transformValid,
     double timestamp)
 {
   if (transformMessage.IsNull())
@@ -487,6 +488,8 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
 
   std::string strTransformName;
   transformName.GetTransformName(strTransformName);
+
+  transformMessage->SetMetaDataElement("TransformValid", transformValid);
 
   transformMessage->SetMatrix(igtlMatrix);
   transformMessage->SetTimeStamp(igtlTime);

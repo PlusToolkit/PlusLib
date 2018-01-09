@@ -73,7 +73,7 @@ public:
 
   /*! Pack transform message from tracked frame */
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName,
-                                         igtl::Matrix4x4& igtlMatrix, double timestamp);
+                                         igtl::Matrix4x4& igtlMatrix, bool transformValid, double timestamp);
 
   /*! Pack poly data message from polydata */
   static PlusStatus PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp);
