@@ -15,6 +15,7 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 // Seek Cam
 #include <seek.h>
 #include <SeekCam.h>
+
 /*!
 \class vtkInfraredSeekCam
 \brief Class for interfacing an Infrared Seek capture device and recording frames into a Plus buffer

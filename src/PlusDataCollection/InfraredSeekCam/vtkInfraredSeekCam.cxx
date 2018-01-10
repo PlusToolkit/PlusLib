@@ -16,9 +16,6 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
-// OpenCV includes
-#include <opencv2/highgui/highgui.hpp>
-
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkInfraredSeekCam);
@@ -38,10 +35,10 @@ vtkInfraredSeekCam::~vtkInfraredSeekCam()
 //----------------------------------------------------------------------------
 void vtkInfraredSeekCam::PrintSelf(ostream& os, vtkIndent indent)
 {
- 
-   this->Superclass::PrintSelf(os, indent);
 
-   os << indent << "InfraredSeekCam: Pro Seek Camera" << std::endl;
+  this->Superclass::PrintSelf(os, indent);
+
+  os << indent << "InfraredSeekCam: Pro Seek Camera" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -63,7 +60,6 @@ PlusStatus vtkInfraredSeekCam::WriteConfiguration(vtkXMLDataElement* rootConfigE
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::FreezeDevice(bool freeze)
 {
-    
   if (freeze)
   {
     this->Disconnect();
@@ -78,13 +74,10 @@ PlusStatus vtkInfraredSeekCam::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::InternalConnect()
 {
-
   // Select the camera. Seek Pro is default.
-
   this->Capture = std::make_shared<LibSeek::SeekThermalPro>();
-
   this->Frame = std::make_shared<cv::Mat>();
-   
+
   if (!this->Capture->open())
   {
     LOG_ERROR("Failed to open seek pro");
@@ -106,7 +99,6 @@ PlusStatus vtkInfraredSeekCam::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::InternalUpdate()
 {
-
   if (!this->Capture->isOpened())
   {
     // No need to update if we're not able to read data
@@ -120,7 +112,7 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
     LOG_ERROR("Unable to receive frame");
     return PLUS_FAIL;
   }
-  
+
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {
@@ -138,7 +130,7 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
   }
 
   // Add the frame to the stream buffer
-  int frameSize[3] = { this->Frame->cols, this->Frame->rows, 1 };
+  FrameSizeType frameSize = { static_cast<unsigned int>(this->Frame->cols), static_cast<unsigned int>(this->Frame->rows), 1 };
   if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;

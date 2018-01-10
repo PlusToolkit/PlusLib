@@ -1828,30 +1828,7 @@ ENDIF()
 #---------------------------------------------------------------------------
 # InfraredSeekCam
 IF(PLUS_USE_INFRARED_SEEK_CAM)
-  # Check OpenCV 
-  IF(NOT PLUS_USE_OpenCV)
-    MESSAGE("PLUS_USE_INFRARED_SEEK_CAM requires PLUS_USE_OpenCV option enabled, enabling.")
-    SET(PLUS_USE_OpenCV ON CACHE BOOL "Use OpenCV for Thermal Infrared Seek Camera." FORCE)
-  ENDIF()
-
-  # Check if the LibUSB is installed
-  if (NOT LIBUSB_INCLUDE_DIR)
-    find_path(LIBUSB_INCLUDE_DIR
-      NAMES libusb.h
-      PATH_SUFFIXES "include" "libusb" "libusb-1.0"
-    )
-  endif()
-
-  if (NOT LIBUSB_LIBRARY)
-    find_library(LIBUSB_LIBRARY
-      NAMES usb-1.0
-      PATH_SUFFIXES "lib" "lib32" "lib64"
-    )
-  endif()
-
-  if (NOT LIBUSB_LIBRARY OR NOT LIBUSB_INCLUDE_DIR)
-    message(FATAL_ERROR "PLUS_USE_INFRARED_SEEK_CAM requires LIBUSB which is not found.")
-  endif()
+  FIND_PACKAGE(SeekCameraLib REQUIRED NO_MODULE)
 
   # Compile
   SET(Infrared_SeekCam_SRCS
@@ -1959,6 +1936,7 @@ source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
 source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
 source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
+source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
