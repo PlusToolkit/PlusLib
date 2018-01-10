@@ -409,7 +409,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendLatestFramesToClients(vtkPlusOpenIGTLin
         }
         static vtkPlusLogHelper logHelper(60.0, 500000);
         CUSTOM_RETURN_WITH_FAIL_IF(self.BroadcastChannel->GetTrackedFrameList(self.LastSentTrackedFrameTimestamp, trackedFrameList, numberOfFramesToGet) != PLUS_SUCCESS,
-                            "Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp);
+                                   "Failed to get tracked frame list from data collector (last recorded timestamp: " << std::fixed << self.LastSentTrackedFrameTimestamp);
       }
     }
   }
@@ -559,7 +559,12 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
     {
       PlusLockGuard<vtkPlusRecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
-      client->ClientInfo.SetClientHeaderVersion(std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion()));
+      // Keep track of the highest known version of message ever sent by this client, this is the version that we reply with
+      // (upper bounded by the servers version)
+      if (headerMsg->GetHeaderVersion() > client->ClientInfo.GetClientHeaderVersion())
+      {
+        client->ClientInfo.SetClientHeaderVersion(std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion()));
+      }
     }
 
     igtl::MessageBase::Pointer bodyMessage = self->IgtlMessageFactory->CreateReceiveMessage(headerMsg);
