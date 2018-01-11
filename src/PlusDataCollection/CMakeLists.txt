@@ -51,6 +51,7 @@ OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultr
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
+OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -1824,6 +1825,38 @@ IF(PLUS_USE_OpenCV_VIDEO)
     )
 ENDIF()
 
+#---------------------------------------------------------------------------
+# InfraredSeekCam
+IF(PLUS_USE_INFRARED_SEEK_CAM)
+  FIND_PACKAGE(SeekCameraLib REQUIRED NO_MODULE)
+
+  # Compile
+  SET(Infrared_SeekCam_SRCS
+      InfraredSeekCam/vtkInfraredSeekCam.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Infrared_SeekCam_HDRS 
+     InfraredSeekCam/vtkInfraredSeekCam.h
+    )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Infrared_SeekCam_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Infrared_SeekCam_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/InfraredSeekCam
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS 
+    SeekCameraLib
+  )
+ENDIF()
+
 # --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
@@ -1903,6 +1936,7 @@ source_group("Agilent" FILES ${Agilent_HDRS} ${Agilent_SRCS})
 source_group("OpticalMarkerTracking" FILES ${OpticalMarkerTracking_HDRS} ${OpticalMarkerTracking_SRCS})
 source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
 source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
+source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

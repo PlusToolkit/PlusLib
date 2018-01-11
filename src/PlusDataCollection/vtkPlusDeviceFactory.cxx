@@ -176,6 +176,9 @@ See License.txt for details.
   #include "vtkPlusOpenHapticsDevice.h"
 #endif
 
+#ifdef PLUS_USE_INFRARED_SEEK_CAM
+  #include "vtkInfraredSeekCam.h" 
+#endif
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
@@ -318,6 +321,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_OPENHAPTICS
   RegisterDevice("OpenHaptics", "vtkPlusOpenHapticsDevice", (PointerToDevice)&vtkPlusOpenHapticsDevice::New);
+#endif
+
+#ifdef PLUS_USE_INFRARED_SEEK_CAM
+  RegisterDevice("InfraredSeekCam", "vtkInfraredSeekCam", (PointerToDevice)&vtkInfraredSeekCam::New);
 #endif
 
   // Virtual Devices
