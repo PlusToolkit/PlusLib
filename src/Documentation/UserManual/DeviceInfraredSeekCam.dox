@@ -11,8 +11,8 @@ This device only works in Linux. We hope in the next months to integrate in Wind
 \section InfraredSeekCamConfigInstallation
 
 To use the camera you have to grant privileges to write to the camera. We have made a small script that you hace to execute with root privileges and you have to execute only just one time.
-You can found the script in the next folder:
- "PlusLib/src/Utilities/InfraredSeekCam/install.sh"
+You can found the instructions in:
+ "PlusLib/src/Utilities/InfraredSeekCamera/README.md"
 
 \section InfraredSeekCamConfigSettings Device configuration settings
 
