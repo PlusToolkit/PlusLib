@@ -22,9 +22,6 @@ double vtkPlusAccurateTimer::SystemStartTime = 0;
 double vtkPlusAccurateTimer::UniversalStartTime = 0;
 
 //----------------------------------------------------------------------------
-vtkInstantiatorNewMacro(vtkPlusAccurateTimer);
-
-//----------------------------------------------------------------------------
 // The singleton, and the singleton cleanup
 
 vtkPlusAccurateTimer* vtkPlusAccurateTimer::Instance = NULL;

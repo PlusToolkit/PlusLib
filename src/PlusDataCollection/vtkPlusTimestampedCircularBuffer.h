@@ -10,7 +10,6 @@
 #include "PlusConfigure.h"
 #include "PlusStreamBufferItem.h"
 #include "vtkObject.h"
-#include "vtkTypeTemplate.h"
 #include <deque>
 
 #include "vnl/vnl_matrix.h"
