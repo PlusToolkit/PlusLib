@@ -151,8 +151,8 @@ void vtkPlusConfig::SetProgramDirectory()
   this->ProgramDirectory = vtksys::SystemTools::GetProgramPath(cProgramPath);
 #elif defined(__linux__)
   const unsigned int cProgramPathSize = 2048;
-  char cProgramPath[cProgramPathSize + 1];
-  cProgramPath[cProgramPathSize] = 0;
+  char cProgramPath[cProgramPathSize] = {'\0'};
+
   // linux
   if (readlink("/proc/self/exe", cProgramPath, cProgramPathSize) != -1)
   {
