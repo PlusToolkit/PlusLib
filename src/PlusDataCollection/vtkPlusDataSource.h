@@ -229,6 +229,23 @@ public:
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    Additionally an optional field name&value can be added,
+    which will be saved as a custom field of the added item.
+    If the timestamp is  less than or equal to the previous timestamp,
+    or if the frame's format doesn't match the buffer's frame format,
+    then the frame is not added to the buffer.
+  */
+  virtual PlusStatus AddItem(void* imageDataPtr,
+                             const FrameSizeType& frameSize,
+                             unsigned int frameSizeInBytes,
+                             US_IMAGE_TYPE imageType,
+                             long frameNumber,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
+                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+
+  /*!
     Add custom fields to the new item
     If the timestamp is  less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
