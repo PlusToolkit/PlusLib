@@ -557,7 +557,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, const FrameSizeType& frame
     }
   }
 
-  newObjectInBuffer->SetCustomFrameField("FrameSizeInBytes", std::to_string(inputFrameSizeInBytes));
+  newObjectInBuffer->SetCustomFrameField("FrameSizeInBytes", PlusCommon::ToString<unsigned int>(inputFrameSizeInBytes));
 
   return PLUS_SUCCESS;
 }
