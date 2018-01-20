@@ -220,7 +220,14 @@ IF(PLUS_USE_OPTITRACK)
     ${OPTITRACK_NATNET_BINARY_DIR}/NatNetLib${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${OPTITRACK_OPENMP_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-    
+
+  IF (OPTITRACK_MSVC80_OPENMP_DIR)
+    LIST(APPEND External_Libraries_Install
+      ${OPTITRACK_MSVC80_OPENMP_DIR}/Microsoft.VC80.OpenMP.manifest
+      ${OPTITRACK_MSVC80_OPENMP_DIR}/vcomp.dll
+      )
+  ENDIF()
+
 ENDIF()
 
 # --------------------------------------------------------------------------
