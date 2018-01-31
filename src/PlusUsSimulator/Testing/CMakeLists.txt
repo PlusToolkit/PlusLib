@@ -1,4 +1,3 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 ADD_EXECUTABLE(vtkPlusUsSimulatorTest vtkUsSimulatorAlgoTest.cxx )
@@ -8,7 +7,7 @@ TARGET_LINK_LIBRARIES(vtkPlusUsSimulatorTest vtkPlusUsSimulator vtkFiltersGenera
 ADD_TEST(vtkPlusUsSimulatorRunTestLinear
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestLinear.xml
-  --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
+  --transforms-seq-file=${PlusLib_VOLUMES_DIR}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputLinear.mha 
   --use-compression=false
   )
@@ -17,14 +16,14 @@ SET_TESTS_PROPERTIES( vtkPlusUsSimulatorRunTestLinear PROPERTIES FAIL_REGULAR_EX
 ADD_TEST(vtkPlusUsSimulatorCompareToBaselineTestLinear
   ${CMAKE_COMMAND} -E compare_files 
    ${TEST_OUTPUT_PATH}/simulatorOutputLinear.mha 
-   ${TestDataDir}/UsSimulatorOutputSpinePhantom2LinearBaseline.mha
+   ${PlusLib_VOLUMES_DIR}/UsSimulatorOutputSpinePhantom2LinearBaseline.mha
   )
 SET_TESTS_PROPERTIES(vtkPlusUsSimulatorCompareToBaselineTestLinear PROPERTIES DEPENDS vtkPlusUsSimulatorRunTestLinear)
 
 ADD_TEST(vtkPlusUsSimulatorRunTestCurvilinear
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusUsSimulatorTest
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_UsSimulatorAlgoTestCurvilinear.xml
-  --transforms-seq-file=${TestDataDir}/SpinePhantom2Freehand.mha
+  --transforms-seq-file=${PlusLib_VOLUMES_DIR}/SpinePhantom2Freehand.mha
   --output-us-img-file=simulatorOutputCurvilinear.mha 
   --use-compression=false
   )
@@ -33,7 +32,7 @@ SET_TESTS_PROPERTIES( vtkPlusUsSimulatorRunTestCurvilinear PROPERTIES FAIL_REGUL
 ADD_TEST(vtkPlusUsSimulatorCompareToBaselineTestCurvilinear  
   ${CMAKE_COMMAND} -E compare_files 
   ${TEST_OUTPUT_PATH}/simulatorOutputCurvilinear.mha
-  ${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
+  ${PlusLib_VOLUMES_DIR}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
   )
 SET_TESTS_PROPERTIES(vtkPlusUsSimulatorCompareToBaselineTestCurvilinear PROPERTIES DEPENDS vtkPlusUsSimulatorRunTestCurvilinear)
 

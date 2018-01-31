@@ -1,4 +1,3 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #*************************** TrackingTest ***************************
@@ -16,7 +15,7 @@ TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkPlusDataCollection
 
 ADD_TEST(TimestampFilteringTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/TimestampFilteringTest
-  --source-seq-file=${TestDataDir}/TimestampFilteringTest.mha 
+  --source-seq-file=${PlusLib_VOLUMES_DIR}/TimestampFilteringTest.mha 
   --averaged-items-for-filtering=20
   --max-timestamp-difference=0.08
   --min-stdev-reduction-factor=3.0
@@ -32,8 +31,8 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection vtkInteraction
 ADD_TEST(vtkDataCollectorTest1 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
-  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
+  --video-buffer-seq-file=${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationVideoBuffer.mha
+  --tracker-buffer-seq-file=${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   --rendering-off
   )
 SET_TESTS_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
@@ -54,8 +53,8 @@ SET_TARGET_PROPERTIES(vtkDataCollectorTest2 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkPlusDataCollection )
 ADD_TEST(vtkDataCollectorTest2 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
-  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
+  --video-buffer-seq-file=${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationVideoBuffer.mha
+  --tracker-buffer-seq-file=${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
   --acq-time-length=5
   --verbose=3
@@ -127,7 +126,7 @@ SET_TARGET_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkPlusDataCollection )
 ADD_TEST(vtkMetaImageSequenceIOTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
-  --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.mhd
+  --img-seq-file=${PlusLib_VOLUMES_DIR}/MetaImageSequenceIOTest1.mhd
   --output-img-seq-file=MetaImageSequenceIOTest1Output.mha
   )
 SET_TESTS_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
@@ -136,7 +135,7 @@ SET_TESTS_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSI
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(ViewSequenceFileTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/SpinePhantomFreehand.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
     --image-to-reference-transform=ImageToTracker
     --rendering-off
@@ -149,7 +148,7 @@ ADD_EXECUTABLE(vtkFcsvReaderTest1 vtkFcsvReaderTest1.cxx )
 SET_TARGET_PROPERTIES(vtkFcsvReaderTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkFcsvReaderTest1 vtkPlusDataCollection )
 ADD_TEST(vtkFcsvReaderTest1 ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkFcsvReaderTest1
-  ${TestDataDir}/FcsvReaderTest1.fcsv 
+  ${PlusLib_VOLUMES_DIR}/FcsvReaderTest1.fcsv 
   )
 SET_TESTS_PROPERTIES(vtkFcsvReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
@@ -158,7 +157,7 @@ ADD_EXECUTABLE(vtkFcsvWriterTest1 vtkFcsvWriterTest1.cxx )
 SET_TARGET_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkFcsvWriterTest1 vtkPlusDataCollection )
 ADD_TEST(vtkFcsvWriterTest1 ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkFcsvWriterTest1
-  ${TestDataDir}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
+  ${PlusLib_VOLUMES_DIR}/FcsvReaderTest1.fcsv ${CMAKE_CURRENT_BINARY_DIR}/FcsvWriterTest1.fcsv
   )
 SET_TESTS_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 
@@ -318,8 +317,8 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
   TARGET_LINK_LIBRARIES(vtkSonixVolumeReaderTest1 vtkPlusDataCollection )
   ADD_TEST(vtkSonixVolumeReaderTest1 
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSonixVolumeReaderTest1
-    --volume-file=${TestDataDir}/UltrasonixVolume.b8
-    --baseline=${TestDataDir}/UltrasonixFrame5Baseline.tiff
+    --volume-file=${PlusLib_VOLUMES_DIR}/UltrasonixVolume.b8
+    --baseline=${PlusLib_VOLUMES_DIR}/UltrasonixFrame5Baseline.tiff
     --frame-number=5 
     )
   SET_TESTS_PROPERTIES(vtkSonixVolumeReaderTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
@@ -539,7 +538,7 @@ TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkPlusCommon vtkPlusDataCollec
 
 ADD_TEST(TransformInterpolationTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/TransformInterpolationTest
-  --source-seq-file=${TestDataDir}/TransformInterpolationTest.mha 
+  --source-seq-file=${PlusLib_VOLUMES_DIR}/TransformInterpolationTest.mha 
   --transform=ProbeToTracker
   --max-rotation-difference=1.0
   --max-translation-difference=0.5

@@ -121,7 +121,7 @@ int main( int argc, char** argv )
   vtkPlusAccurateTimer::Delay(5.0); // wait for 5s until the frames are acquired into the buffer
 
   // Check some transforms to ensure that the correct data is returned by the data collector
-  // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\TestImages\fCal_Test_Calibration.mha
+  // THIS TEST ONLY WORKS WITH THIS SEQUENCE METAFILE: PlusLib\data\Volumes\fCal_Test_Calibration.mha
 
   // Replay starts with the first frame, acquired at SystemTime=0, therefore there is an offset between
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
