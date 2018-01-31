@@ -1,14 +1,13 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNameFragment)
   ADD_TEST(vtkVolumeReconstructorTestRun${TestName}
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_${ConfigFileNameFragment}.xml
-    --source-seq-file=${TestDataDir}/${InputSeqFile}.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/${InputSeqFile}.mha
     --output-volume-file=vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     --image-to-reference-transform=ImageToReference
-    --importance-mask-file=${TestDataDir}/ImportanceMask.png
+    --importance-mask-file=${PlusLib_VOLUMES_DIR}/ImportanceMask.png
     --disable-compression
     )
   SET_TESTS_PROPERTIES( vtkVolumeReconstructorTestRun${TestName} PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -19,8 +18,8 @@ function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNa
   ELSE()
     SET(PLATFORM "Linux")
   ENDIF()
-  SET(CommonExpectedVolumeFileName "${TestDataDir}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha")
-  SET(PlatformSpecificExpectedVolumeFileName "${TestDataDir}/${PLATFORM}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha")
+  SET(CommonExpectedVolumeFileName "${PlusLib_VOLUMES_DIR}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha")
+  SET(PlatformSpecificExpectedVolumeFileName "${PlusLib_VOLUMES_DIR}/${PLATFORM}/vtkVolumeReconstructorTest${OutNameFragment}volumeRef.mha")
   if(EXISTS "${PlatformSpecificExpectedVolumeFileName}")
     SET(ExpectedVolumeFileName ${PlatformSpecificExpectedVolumeFileName})
   ELSE()
@@ -53,7 +52,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   ADD_TEST(CreateSliceModelsTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
-    --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/NwirePhantomFreehand.mha
     --output-model-file=GeneratedSliceModels.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
     --image-to-reference-transform=ProbeToReference
@@ -63,7 +62,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(DrawClipRegionRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Ultrasonix_C5-2_NDIPolaris_fCal3.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/SpinePhantomPartialSurfaceContact.mha
     --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
     )
   SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -71,7 +70,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(DrawClipRegionCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files
      ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
-     ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
+     ${PlusLib_VOLUMES_DIR}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
     )
   SET_TESTS_PROPERTIES(DrawClipRegionCompareToBaselineTest PROPERTIES DEPENDS DrawClipRegionRunTest)
 ENDIF()

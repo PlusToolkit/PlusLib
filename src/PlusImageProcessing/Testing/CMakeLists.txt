@@ -1,4 +1,3 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 # -----------------  vtkPlusTransverseProcessEnhancerTest -------------------
@@ -12,8 +11,8 @@ TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest
 
 ADD_TEST(vtkPlusTransverseProcessEnhancerTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
-  --input-seq-file=${TestDataDir}/PlusTransverseProcessEnhancerTestData.mha
-  --output-seq-file=${TestDataDir}/outputPlusTransverseProcessEnhancerTest.mha
+  --input-seq-file=${PlusLib_VOLUMES_DIR}/PlusTransverseProcessEnhancerTestData.mha
+  --output-seq-file=${PlusLib_VOLUMES_DIR}/outputPlusTransverseProcessEnhancerTest.mha
   --input-config-file=${ConfigFilesDir}/Testing/PlusTransverseProcessEnhancerTestingParameters.xml
   --save-intermediate-images=false
   )
@@ -24,7 +23,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusRfToBrightnessConvertRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
-    --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
+    --rf-file=${PlusLib_VOLUMES_DIR}/UltrasonixCurvilinearRfData.mha
     --output-img-file=outputUltrasonixCurvilinearBrightnessData.mha 
     --use-compression=false
     --operation=BRIGHTNESS_CONVERT
@@ -34,7 +33,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusRfToBrightnessConvertCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files 
      ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearBrightnessData_OutputChannel_ScanConvertOutput.mha
-     ${TestDataDir}/UltrasonixCurvilinearBrightnessData.mha
+     ${PlusLib_VOLUMES_DIR}/UltrasonixCurvilinearBrightnessData.mha
     )
   SET_TESTS_PROPERTIES(vtkPlusRfToBrightnessConvertCompareToBaselineTest PROPERTIES DEPENDS vtkPlusRfToBrightnessConvertRunTest)
 
@@ -42,7 +41,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertCurvilinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
-    --rf-file=${TestDataDir}/UltrasonixCurvilinearRfData.mha
+    --rf-file=${PlusLib_VOLUMES_DIR}/UltrasonixCurvilinearRfData.mha
     --output-img-file=outputUltrasonixCurvilinearScanConvertedData.mha 
     --use-compression=false
     --operation=BRIGHTNESS_SCAN_CONVERT
@@ -52,7 +51,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files 
      ${TEST_OUTPUT_PATH}/outputUltrasonixCurvilinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
-     ${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+     ${PlusLib_VOLUMES_DIR}/UltrasonixCurvilinearScanConvertedData.mha
     )
   SET_TESTS_PROPERTIES(vtkPlusUsScanConvertCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertCurvilinearRunTest)
 
@@ -60,7 +59,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertLinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
-    --rf-file=${TestDataDir}/UltrasonixLinearRfData.mha
+    --rf-file=${PlusLib_VOLUMES_DIR}/UltrasonixLinearRfData.mha
     --output-img-file=outputUltrasonixLinearScanConvertedData.mha 
     --operation=BRIGHTNESS_SCAN_CONVERT
     --use-compression=false
@@ -70,7 +69,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertLinearCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files 
      ${TEST_OUTPUT_PATH}/outputUltrasonixLinearScanConvertedData_OutputChannel_ScanConvertOutput.mha
-     ${TestDataDir}/UltrasonixLinearScanConvertedData.mha
+     ${PlusLib_VOLUMES_DIR}/UltrasonixLinearScanConvertedData.mha
     )
   SET_TESTS_PROPERTIES(vtkPlusUsScanConvertLinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertLinearRunTest)
 
@@ -78,7 +77,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertBkCurvilinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/RfProcessor
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_BkProFocus_OpenIGTLinkTracker.xml
-    --rf-file=${TestDataDir}/BkCurvilinearRfData.mhd
+    --rf-file=${PlusLib_VOLUMES_DIR}/BkCurvilinearRfData.mhd
     --output-img-file=outputBkCurvilinearScanConvertedData.mha 
     --operation=BRIGHTNESS_SCAN_CONVERT
     --use-compression=false
@@ -88,7 +87,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(vtkPlusUsScanConvertBkCurvilinearCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files 
      ${TEST_OUTPUT_PATH}/outputBkCurvilinearScanConvertedData_OutputChannel_VideoStream.mha
-     ${TestDataDir}/BkCurvilinearScanConvertedData.mha
+     ${PlusLib_VOLUMES_DIR}/BkCurvilinearScanConvertedData.mha
     )
   SET_TESTS_PROPERTIES(vtkPlusUsScanConvertBkCurvilinearCompareToBaselineTest PROPERTIES DEPENDS vtkPlusUsScanConvertBkCurvilinearRunTest)
 
@@ -96,7 +95,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(DrawScanLinesCurvilinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawScanLines
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoCurvilinearTest.xml
-    --source-seq-file=${TestDataDir}/UltrasonixCurvilinearScanConvertedData.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/UltrasonixCurvilinearScanConvertedData.mha
     --output-seq-file=UltrasonixCurvilinearScanConvertedDataWithScanlines.mha
     )
   SET_TESTS_PROPERTIES( DrawScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -105,7 +104,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(DrawScanLinesLinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawScanLines
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_RfProcessingAlgoLinearTest.xml
-    --source-seq-file=${TestDataDir}/UltrasonixLinearScanConvertedData.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/UltrasonixLinearScanConvertedData.mha
     --output-seq-file=UltrasonixLinearScanConvertedDataWithScanlines.mha
     )
   SET_TESTS_PROPERTIES( vtkPlusUsScanConvertLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
@@ -114,7 +113,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(ExtractScanLinesCurvilinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
     --config-file=${ConfigFilesDir}/Testing/SpineUltrasound-Lumbar-C5_config.xml
-    --input-seq-file=${TestDataDir}/SpineUltrasound-Lumbar-C5.mha
+    --input-seq-file=${PlusLib_VOLUMES_DIR}/SpineUltrasound-Lumbar-C5.mha
     --output-seq-file=SpineUltrasound-Lumbar-C5_ScanLines.mha 
     )
   SET_TESTS_PROPERTIES(ExtractScanLinesCurvilinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
@@ -123,7 +122,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(ExtractScanLinesLinearRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ExtractScanLines
     --config-file=${ConfigFilesDir}/Testing/BoneUltrasound_L14_config.xml
-    --input-seq-file=${TestDataDir}/BoneUltrasound_L14.mha
+    --input-seq-file=${PlusLib_VOLUMES_DIR}/BoneUltrasound_L14.mha
     --output-seq-file=BoneUltrasound_L14_ScanLines.mha 
     )
   SET_TESTS_PROPERTIES(ExtractScanLinesLinearRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")

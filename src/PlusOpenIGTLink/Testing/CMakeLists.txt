@@ -1,4 +1,3 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------

@@ -184,6 +184,22 @@ INCLUDE_DIRECTORIES(${BASIC_INCLUDE_DIRS})
 SET(PLUSLIB_INCLUDE_DIRS ${PLUSLIB_INCLUDE_DIRS} ${BASIC_INCLUDE_DIRS} CACHE INTERNAL "")
 
 # --------------------------------------------------------------------------
+# Data directories
+IF(EXISTS ${PLUSLIB_DATA_DIR}/Volumes)
+  SET(PlusLib_VOLUMES_DIR ${PLUSLIB_DATA_DIR}/Volumes)
+ELSEIF(EXISTS ${PLUSLIB_DATA_DIR}/TestImages)
+  SET(PlusLib_VOLUMES_DIR ${PLUSLIB_DATA_DIR}/TestImages)
+ENDIF()
+
+IF(EXISTS ${PLUSLIB_DATA_DIR}/CADModels)
+  SET(PlusLib_MODELS_DIR ${PLUSLIB_DATA_DIR}/CADModels)
+ELSEIF(EXISTS ${PLUSLIB_DATA_DIR}/Models)
+  SET(PlusLib_MODELS_DIR ${PLUSLIB_DATA_DIR}/Models)
+ENDIF()
+
+SET(PlusLib_CONFIGS_DIR ${PLUSLIB_DATA_DIR}/ConfigFiles)
+
+# --------------------------------------------------------------------------
 # Subdirectories
 
 # Variables sent back from subdirectories (through CACHE):
@@ -346,8 +362,8 @@ write_basic_package_version_file(
 #-----------------------------------------------------------------------------
 # Generate default application configuration files in the non-installed executable directories (Release and Debug too)
 SET(PLUSCONFIG_DEVICESET_CONFIG_DIR "${PLUSLIB_DATA_DIR}/ConfigFiles")
-SET(PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/TestImages")
-SET(PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/CADModels")
+SET(PLUSCONFIG_IMAGE_DIR "${PLUSLIB_DATA_DIR}/Volumes")
+SET(PLUSCONFIG_MODEL_DIR "${PLUSLIB_DATA_DIR}/Models")
 SET(PLUSCONFIG_SCRIPTS_DIR "${PLUSLIB_SCRIPTS_DIR}")
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")

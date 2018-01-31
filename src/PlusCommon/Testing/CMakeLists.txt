@@ -1,4 +1,3 @@
-SET( TestDataDir ${PLUSLIB_DATA_DIR}/TestImages )
 SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 
 #--------------------------------------------------------------------------------------------
@@ -10,8 +9,8 @@ function(ADD_COMPARE_FILES_TEST TestName DependsOnTestName TestFileName)
   ELSE()
     SET(PLATFORM "Linux")
   ENDIF()
-  SET(CommonFilePath "${TestDataDir}/${TestFileName}")
-  SET(PlatformSpecificFilePath "${TestDataDir}/${PLATFORM}/${TestFileName}")
+  SET(CommonFilePath "${PlusLib_VOLUMES_DIR}/${TestFileName}")
+  SET(PlatformSpecificFilePath "${PlusLib_VOLUMES_DIR}/${PLATFORM}/${TestFileName}")
   if(EXISTS "${PlatformSpecificFilePath}")
     SET(FoundReferenceFilePath ${PlatformSpecificFilePath})
   ELSE()
@@ -49,7 +48,7 @@ TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )
 
 ADD_TEST(PlusMathTest
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusMathTest
-  --xml-file=${TestDataDir}/PlusMathTestData.xml
+  --xml-file=${PlusLib_VOLUMES_DIR}/PlusMathTestData.xml
   )
 
 #--------------------------------------------------------------------------------------------
@@ -86,7 +85,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --operation=TRIM
     --first-frame-index=0
     --last-frame-index=5
-    --source-seq-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/SegmentationTest_BKMedical_RandomStepperMotionData2.mha
     --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
     --use-compression
     --verbose=3
@@ -99,7 +98,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/NrrdSample.nrrd
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/NrrdSample.nrrd
     --output-seq-file=NrrdSample.nrrd
     --use-compression
     --verbose=3
@@ -111,7 +110,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/ColorNrrdSample.nrrd
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/ColorNrrdSample.nrrd
     --output-seq-file=ColorNrrdSample.nrrd
     --use-compression
     --verbose=3
@@ -174,7 +173,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(NAME EditSequenceFileRemoveImageData
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=REMOVE_IMAGE_DATA
-    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
     --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
     --verbose=3
     )
@@ -186,7 +185,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(NAME EditSequenceFileRemoveImageDataCompressed
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=REMOVE_IMAGE_DATA
-    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
+    --source-seq-file=${PlusLib_VOLUMES_DIR}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
     --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
     --use-compression
     --verbose=3
@@ -198,7 +197,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(NAME EditSequenceFileMix 
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=MIX
-    --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
+    --source-seq-files ${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationVideoBuffer.mha ${PlusLib_VOLUMES_DIR}/WaterTankBottomTranslationTrackerBuffer.mha
     --output-seq-file=WaterTankBottomTranslationTrackedVideo.mha
     --use-compression
     --verbose=3

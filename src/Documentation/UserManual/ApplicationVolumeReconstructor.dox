@@ -11,8 +11,8 @@ See description of volume reconstruction parameters on the \ref AlgorithmVolumeR
 
 Files:
 - Device set config file: https://github.com/PlusToolkit/PlusLibData/blob/master/ConfigFiles/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
-- Input frames: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehand.mha
-- Sample reconstructed volume: https://github.com/PlusToolkit/PlusLibData/blob/master/TestImages/SpinePhantomFreehandReconstructed.mha
+- Input frames: https://github.com/PlusToolkit/PlusLibData/blob/master/Volumes/SpinePhantomFreehand.mha
+- Sample reconstructed volume: https://github.com/PlusToolkit/PlusLibData/blob/master/Volumes/SpinePhantomFreehandReconstructed.mha
 
 See more examples on the <a href="http://perkdata.cs.queensu.ca/CDash/index.php?project=PlusLib">dashboard</a> (all the test cases starting with "vtkPlusVolumeReconstructor" perform volume reconstruction or verify volume reconstruction results).
 
