@@ -232,6 +232,12 @@ IF(WIN32)
   ENDIF()
 ENDIF()
 
+INCLUDE (CheckCXXSourceCompiles)
+CHECK_CXX_SOURCE_COMPILES("#include <future>
+  int main(){ return 0; }" 
+  HAVE_FUTURE
+  )
+
 # --------------------------------------------------------------------------
 # Subdirs
 #

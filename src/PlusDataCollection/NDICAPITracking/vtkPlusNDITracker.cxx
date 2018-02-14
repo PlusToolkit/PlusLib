@@ -65,7 +65,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 #include <stdarg.h>
 
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
   #include <future>
 #endif
 
@@ -184,7 +184,7 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
   else if (this->NetworkHostname.empty())
   {
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
     return ProbeSerialInternal();
 #else
     // if SerialPort is set to -1 (default), then probe the first N serial ports
@@ -244,7 +244,7 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
   {
     LOG_DEBUG("NDI Command:send serial break");
   }
-  
+
   // Linux and MacOSX require resetting of va parameters
   va_end(ap);
   va_start(ap, format);
@@ -621,12 +621,12 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   // free ports that are waiting to be freed
   this->Command("PHSR:01");
   int errnum = ndiGetError(this->Device);
-  if(errnum != NDI_OKAY)
+  if (errnum != NDI_OKAY)
   {
     LOG_ERROR("Unable to get the number of handles. Error: " << ndiErrorString(errnum));
     return PLUS_FAIL;
   }
-  
+
   int ntools = ndiGetPHSRNumberOfHandles(this->Device);
   for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
   {
@@ -1359,30 +1359,30 @@ int vtkPlusNDITracker::ConvertBaudToNDIEnum(int baudRate)
 {
   switch (baudRate)
   {
-  case 9600:
-    return NDI_9600;
-  case 14400:
-    return NDI_14400;
-  case 19200:
-    return NDI_19200;
-  case 38400:
-    return NDI_38400;
-  case 57600:
-    return NDI_57600;
-  case 115200:
-    return NDI_115200;
-  case 230400:
-    return NDI_230400;
-  case 921600:
-    return NDI_921600;
-  case 1228739:
-    return NDI_1228739;
-  default:
-    return -1;
+    case 9600:
+      return NDI_9600;
+    case 14400:
+      return NDI_14400;
+    case 19200:
+      return NDI_19200;
+    case 38400:
+      return NDI_38400;
+    case 57600:
+      return NDI_57600;
+    case 115200:
+      return NDI_115200;
+    case 230400:
+      return NDI_230400;
+    case 921600:
+      return NDI_921600;
+    case 1228739:
+      return NDI_1228739;
+    default:
+      return -1;
   }
 }
 
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
 {

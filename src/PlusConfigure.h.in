@@ -117,6 +117,8 @@ typedef unsigned long int vtkMTimeType;
 #define LINUXTOLERANCE 0.5
 #define LINUXTOLERANCEPERCENT 8
 
+#cmakedefine HAVE_FUTURE
+
 // Frequently needed STL includes
 #include <sstream>
 #include <iostream>
