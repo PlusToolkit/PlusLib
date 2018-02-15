@@ -195,7 +195,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
     {
       devicename = ndiSerialDeviceName(i);
-      LOG_DEBUG("Testing serial port: " << dev);
+      LOG_DEBUG("Testing serial port: " << devicename);
       if (devicename)
       {
         errnum = ndiSerialProbe(devicename);
@@ -204,7 +204,7 @@ PlusStatus vtkPlusNDITracker::Probe()
         {
           this->SerialPort = i + 1;
           this->Device = ndiOpenSerial(devicename);
-          LOG_DEBUG("device: " << this->Device == nullptr);
+          LOG_DEBUG("device: " << (this->Device == nullptr));
           if (this->Device && !this->LeaveDeviceOpenAfterProbe)
           {
             CloseDevice(this->Device);
