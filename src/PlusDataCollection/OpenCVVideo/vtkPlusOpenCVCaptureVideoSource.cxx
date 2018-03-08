@@ -25,6 +25,7 @@ vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
 vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
   : VideoURL("")
   , RequestedCaptureAPI(cv::CAP_ANY)
+  , DeviceIndex(-1)
 {
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
@@ -40,7 +41,9 @@ void vtkPlusOpenCVCaptureVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "StreamURL: " << this->VideoURL << std::endl;
+  os << indent << "VideoURL: " << this->VideoURL << std::endl;
+  os << indent << "DeviceIndex: " << this->DeviceIndex << std::endl;
+  os << indent << "RequestedCaptureAPI: " << vtkPlusOpenCVCaptureVideoSource::StringFromCaptureAPI(this->RequestedCaptureAPI) << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -48,7 +51,8 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
 {
   LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_STRING_ATTRIBUTE_REQUIRED(VideoURL, deviceConfig);
+
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoURL, deviceConfig);
   std::string captureApi;
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL("CaptureAPI", captureApi, deviceConfig);
   if (!captureApi.empty())
@@ -56,17 +60,25 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
     this->RequestedCaptureAPI = CaptureAPIFromString(captureApi);
   }
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, DeviceIndex, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
+  LOG_TRACE("vtkPlusOpenCVCaptureVideoSource::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(VideoURL, rootConfigElement);
+
+  XML_WRITE_STRING_ATTRIBUTE_REMOVE_IF_EMPTY(VideoURL, deviceConfig);
   if (this->RequestedCaptureAPI != cv::CAP_ANY)
   {
-    rootConfigElement->SetAttribute("CaptureAPI", StringFromCaptureAPI(this->RequestedCaptureAPI).c_str());
+    deviceConfig->SetAttribute("CaptureAPI", StringFromCaptureAPI(this->RequestedCaptureAPI).c_str());
+  }
+  if (this->DeviceIndex > 0)
+  {
+    deviceConfig->SetIntAttribute("DeviceIndex", this->DeviceIndex);
   }
   return PLUS_SUCCESS;
 }
@@ -88,12 +100,31 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
 {
-  this->Capture = std::make_shared<cv::VideoCapture>(this->VideoURL, this->RequestedCaptureAPI);
+  if (!this->VideoURL.empty())
+  {
+    this->Capture = std::make_shared<cv::VideoCapture>(this->VideoURL, this->RequestedCaptureAPI);
+  }
+  else if (this->DeviceIndex > 0)
+  {
+    this->Capture = std::make_shared<cv::VideoCapture>(this->DeviceIndex);
+  }
+  else
+  {
+    LOG_ERROR("No device identification method defined. Please add either \"VideoURL\" or \"DeviceIndex\" attribute to configuration.");
+    return PLUS_FAIL;
+  }
   this->Frame = std::make_shared<cv::Mat>();
 
   if (!this->Capture->isOpened())
   {
-    LOG_ERROR("Unable to open stream at " << this->VideoURL);
+    if (!this->VideoURL.empty())
+    {
+      LOG_ERROR("Unable to open device at URL: " << this->VideoURL);
+    }
+    else
+    {
+      LOG_ERROR("Unable to open device at device index: " << this->DeviceIndex);
+    }
     return PLUS_FAIL;
   }
 
@@ -154,6 +185,24 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalUpdate()
   }
 
   this->FrameNumber++;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusOpenCVCaptureVideoSource::NotifyConfigured()
+{
+  if (this->OutputChannels.size() > 1)
+  {
+    LOG_WARNING("vtkPlusOpenCVCaptureVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
+  }
+
+  if (this->OutputChannels.empty())
+  {
+    LOG_ERROR("No output channels defined for vtkPlusOpenCVCaptureVideoSource. Cannot proceed.");
+    this->CorrectlyConfigured = false;
+    return PLUS_FAIL;
+  }
 
   return PLUS_SUCCESS;
 }
@@ -339,21 +388,3 @@ std::string vtkPlusOpenCVCaptureVideoSource::StringFromCaptureAPI(cv::VideoCaptu
   }
 }
 #undef _StringFromEnum
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusOpenCVCaptureVideoSource::NotifyConfigured()
-{
-  if (this->OutputChannels.size() > 1)
-  {
-    LOG_WARNING("vtkPlusOpenCVCaptureVideoSource is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
-  }
-
-  if (this->OutputChannels.empty())
-  {
-    LOG_ERROR("No output channels defined for vtkPlusOpenCVCaptureVideoSource. Cannot proceed.");
-    this->CorrectlyConfigured = false;
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}

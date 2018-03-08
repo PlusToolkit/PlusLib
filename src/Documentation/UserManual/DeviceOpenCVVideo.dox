@@ -7,8 +7,9 @@ Any compatible video device through the OpenCV capture interface</a>.
 \section OpenCVVideoConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenCVVideo" \RequiredAtt
-- \xmlAtt \b VideoURL Complete URL of the file or stream to capture \RequiredAtt
+- \xmlAtt \b VideoURL Complete URL of the file or stream to capture. Either VideoURL or DeviceIndex must be specified. \OptionalAtt
 - \xmlAtt CaptureAPI The capture API to use for this device. \OptionalAtt{CAP_ANY}
+- \xmlAtt \b DeviceIndex Index of the video device to use. Either VideoURL or DeviceIndex must be specified. \OptionalAtt
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
