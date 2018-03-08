@@ -56,6 +56,12 @@ public:
   vtkGetStdStringMacro(VideoURL);
   vtkSetStdStringMacro(VideoURL);
 
+  vtkGetMacro(DeviceIndex, int);
+  vtkSetMacro(DeviceIndex, int);
+
+  static cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
+  static std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
+
 protected:
   vtkPlusOpenCVCaptureVideoSource();
   ~vtkPlusOpenCVCaptureVideoSource();
@@ -63,11 +69,9 @@ protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
-  cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
-  std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
-
 protected:
   std::string                       VideoURL;
+  int                               DeviceIndex;
   std::shared_ptr<cv::VideoCapture> Capture;
   std::shared_ptr<cv::Mat>          Frame;
   cv::VideoCaptureAPIs              RequestedCaptureAPI;
