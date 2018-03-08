@@ -48,10 +48,10 @@ public:
   virtual PlusStatus NotifyConfigured();
 
   /*! BK scanner address */
-  vtkSetStringMacro(ScannerAddress);
+  vtkSetMacro(ScannerAddress, std::string);
 
   /*! BK scanner address */
-  vtkGetStringMacro(ScannerAddress);
+  vtkGetMacro(ScannerAddress, std::string);
 
   /*! BK scanner OEM port */
   vtkSetMacro(OemPort, unsigned short);

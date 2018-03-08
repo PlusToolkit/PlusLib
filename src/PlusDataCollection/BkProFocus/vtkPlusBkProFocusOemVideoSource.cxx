@@ -15,7 +15,7 @@ See License.txt for details.
 
 // VTK includes
 #include <vtkImageData.h>
-#include <vtkObjectFactor.h>
+#include <vtkObjectFactory.h>
 #include <vtk_png.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkClientSocket.h>
@@ -139,7 +139,7 @@ vtkPlusBkProFocusOemVideoSource::~vtkPlusBkProFocusOemVideoSource()
 
   delete this->Internal;
   this->Internal = NULL;
-  this->ScannerAddress = NULL;
+  this->ScannerAddress = "";
   this->OfflineTestingFilePath = NULL;
 }
 
@@ -180,7 +180,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
   else
   {
     LOG_DEBUG("Connecting to BK scanner");
-    bool connected = (this->Internal->VtkSocket->ConnectToServer(this->ScannerAddress, this->OemPort) == 0);
+    bool connected = (this->Internal->VtkSocket->ConnectToServer(this->ScannerAddress.c_str(), this->OemPort) == 0);
     if (!connected)
     {
       LOG_ERROR("Could not connect to BKProFocusOem:"
