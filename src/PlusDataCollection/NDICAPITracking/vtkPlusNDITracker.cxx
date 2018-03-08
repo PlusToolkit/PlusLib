@@ -199,7 +199,7 @@ PlusStatus vtkPlusNDITracker::Probe()
       if (devicename)
       {
         errnum = ndiSerialProbe(devicename);
-        LOG_DEBUG("Serial port probe error: " << ndiErrorString(errnum));
+        LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {
           this->SerialPort = i + 1;
@@ -1403,7 +1403,7 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
       std::future<void> result = std::async([i, &deviceExists, devName]()
       {
         int errnum = ndiSerialProbe(devName.c_str());
-        LOG_DEBUG("Serial port probe error: " << ndiErrorString(errnum));
+        LOG_DEBUG("Serial port " << devName << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {
           deviceExists[i] = true;
