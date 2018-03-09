@@ -122,7 +122,6 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   char ndiLog[USHRT_MAX];
   ndiLogState(this->Device, ndiLog);
 
@@ -132,7 +131,6 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "IsDeviceTracking: " << this->IsDeviceTracking << std::endl;
   os << indent << "MeasurementVolumeNumber: " << this->MeasurementVolumeNumber << std::endl;
   os << indent << "CommandReply: " << this->CommandReply << std::endl;
-  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   for (auto iter = this->NdiToolDescriptors.begin(); iter != this->NdiToolDescriptors.end(); ++iter)
   {
@@ -168,6 +166,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     if (devicename)
     {
       errnum = ndiSerialProbe(devicename);
+      LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
     }
 
     if (errnum != NDI_OKAY)
