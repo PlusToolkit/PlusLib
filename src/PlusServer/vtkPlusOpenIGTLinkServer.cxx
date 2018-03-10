@@ -1296,13 +1296,15 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
 
       // Send command result details both in XML and in metadata, slowly phase towards metadata
       std::ostringstream replyStr;
-      replyStr << "<Command><Result>" << (commandResponse->GetStatus() ? "true" : "false") << "</Result>";
+      replyStr << "<CommandReply";
+      replyStr << " Name=\"" << commandResponse->GetCommandName() << "\"";
+      replyStr << " Status=\"" << (commandResponse->GetStatus() ? "SUCCESS" : "FAIL") << "\"";
       if (commandResponse->GetStatus() == PLUS_FAIL)
       {
-        replyStr << "<Error>" << commandResponse->GetErrorString() << "</Error>";
+        replyStr << " Error=\"" << commandResponse->GetErrorString() << "\"";
         igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
       }
-      replyStr << "<Message>" << commandResponse->GetResultString() << "</Message></Command>";
+      replyStr << " Message=\"" << commandResponse->GetResultString() << "\"></CommandReply>";
       igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
 
       igtlMessage->SetMetaDataElement("Result", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "true" : "false"));
