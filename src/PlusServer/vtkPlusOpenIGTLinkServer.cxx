@@ -1304,6 +1304,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       replyStr << "<CommandReply";
       replyStr << " Name=\"" << commandResponse->GetCommandName() << "\"";
       replyStr << " Status=\"" << (commandResponse->GetStatus() ? "SUCCESS" : "FAIL") << "\"";
+      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));
       if (commandResponse->GetStatus() == PLUS_FAIL)
       {
         replyStr << " Error=\"" << commandResponse->GetErrorString() << "\"";
