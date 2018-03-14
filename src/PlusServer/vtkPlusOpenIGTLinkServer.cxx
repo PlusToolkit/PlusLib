@@ -1313,7 +1313,6 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       replyStr << " Message=\"" << commandResponse->GetResultString() << "\"></CommandReply>";
       igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
 
-      igtlMessage->SetMetaDataElement("Result", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "true" : "false"));
       for (igtl::MessageBase::MetaDataMap::const_iterator it = begin(commandResponse->GetParameters()); it != end(commandResponse->GetParameters()); ++it)
       {
         igtlMessage->SetMetaDataElement(it->first, it->second.first, it->second.second);
