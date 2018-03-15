@@ -55,8 +55,11 @@ vtkPlusBoneEnhancer::vtkPlusBoneEnhancer()
 
   LinesImage(NULL),
   ProcessedLinesImage(NULL),
-  FirstFrame(true)
+  FirstFrame(true),
+
+  SaveIntermediateResults(false)
 {
+
   this->GaussianSmooth = vtkSmartPointer<vtkImageGaussianSmooth>::New();    // Used to smooth the image
   this->EdgeDetector = vtkSmartPointer<vtkImageSobel2D>::New();             // Used to outline edges of the image
   this->ImageBinarizer = vtkSmartPointer<vtkImageThreshold>::New();         // Used to convert into a binary image
@@ -168,6 +171,17 @@ PlusStatus vtkPlusBoneEnhancer::ReadConfiguration(vtkSmartPointer<vtkXMLDataElem
   if (imageProcessingOperations != NULL)
   {
 
+    // Read SaveIntermediateResults tag
+    vtkSmartPointer<vtkXMLDataElement> saveIntermediateResultsBool = imageProcessingOperations->FindNestedElementWithName("SaveIntermediateResults");
+    if (saveIntermediateResultsBool == NULL)
+    {
+      LOG_WARNING("Unable to locate SaveIntermediateResults element. Using default value: " << std::boolalpha << (this->SaveIntermediateResults));
+    }
+    else
+    {
+      XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SaveIntermediateResults, saveIntermediateResultsBool);
+    }
+    
     // Read tags related to the Gaussian filter
     vtkSmartPointer<vtkXMLDataElement> gaussianParameters = imageProcessingOperations->FindNestedElementWithName("GaussianSmoothing");
     if (gaussianParameters == NULL)
@@ -250,6 +264,9 @@ PlusStatus vtkPlusBoneEnhancer::WriteConfiguration(vtkSmartPointer<vtkXMLDataEle
 
   //Write the parameters for filters to the output config file
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imageProcessingOperations, processingElement, "ImageProcessingOperations");
+
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(saveIntermediateResultsBool, imageProcessingOperations, "SaveIntermediateResults");
+  XML_WRITE_BOOL_ATTRIBUTE(SaveIntermediateResults, saveIntermediateResultsBool)
 
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(gaussianParameters, imageProcessingOperations, "GaussianSmoothing");
   gaussianParameters->SetDoubleAttribute("GaussianStdDev", this->GaussianStdDev);
@@ -730,6 +747,12 @@ void vtkPlusBoneEnhancer::RemoveNoise(vtkSmartPointer<vtkImageData> inputImage)
     this->AddIntermediateImage("_09PostFilters_1ShadowOutline", this->BinaryImageForMorphology);
   }
 
+  // Save all stored intermediate images to mha files in output
+  if (this->SaveIntermediateResults)
+  {
+    this->SaveAllIntermediateResultsToFile();
+  }
+  
   inputImage->DeepCopy(this->BinaryImageForMorphology);
 }
 

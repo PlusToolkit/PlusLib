@@ -51,7 +51,8 @@ public:
   /*! If optional output files for intermediate images should saved */
   vtkSetMacro(IntermediateImageFileName, std::string);
   vtkSetMacro(SaveIntermediateResults, bool);
-
+  vtkGetMacro(SaveIntermediateResults, bool);
+  
   /*! Get and Set methods for variables related to the scanner used */
   vtkSetMacro(NumberOfScanLines, int);
   vtkGetMacro(NumberOfScanLines, int);

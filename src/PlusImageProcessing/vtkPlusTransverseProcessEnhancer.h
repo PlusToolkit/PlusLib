@@ -29,6 +29,8 @@ public:
   vtkTypeMacro(vtkPlusTransverseProcessEnhancer, vtkPlusBoneEnhancer);
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
+  virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
+
   /*! Process input frame to localize transverse process bone surfaces */
   PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
 
