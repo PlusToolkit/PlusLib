@@ -7,6 +7,8 @@ See License.txt for details.
 // Local includes
 #include "PlusConfigure.h"
 #include "vtkPlusAtracsysTracker.h"
+#include "AtracsysTracker.h"
+#include "AtracsysMarker.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -312,12 +314,16 @@ public:
 
   PlusStatus LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
   bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
+
+  // here begins the new interface
+  Atracsys::Tracker* Tracker = new Atracsys::Tracker();
 };
 
 //----------------------------------------------------------------------------
 std::string vtkPlusAtracsysTracker::vtkInternal::GetFtkErrorString()
 {
   char message[1024u];
+  /*
   ftkError err(ftkGetLastErrorString(this->ftkLib, 1024u, message));
   if (err == FTK_OK)
   {
@@ -326,7 +332,8 @@ std::string vtkPlusAtracsysTracker::vtkInternal::GetFtkErrorString()
   else
   {
     return std::string("ftkLib is uninitialized.");
-  }
+  }*/
+  return std::string(message);
 }
 
 struct DeviceData
@@ -556,6 +563,10 @@ PlusStatus vtkPlusAtracsysTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
+  //TODO: testing AtracsysTracker class
+  this->Internal->Tracker->Connect();
+
+
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
   // initialize SDK
@@ -581,8 +592,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  std::string deviceType;
-  switch (device.Type)
+  std::string deviceType("fusionTrack500");
+  /*switch (device.Type)
   {
   case DEV_SPRYTRACK_180:
     deviceType = "sTk 180";
@@ -598,7 +609,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     break;
   default:
     deviceType = " UNKNOWN";
-  }
+  }*/
 
   this->Internal->TrackerSN = device.SerialNumber;
 
@@ -606,6 +617,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     << std::setfill('0') << std::hex << device.SerialNumber << std::dec
     << std::endl << std::setfill('\0'));
 
+  /*
   // set spryTrack to do onboard image processing
   if (device.Type == DEV_SPRYTRACK_180)
   {
@@ -623,6 +635,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       return PLUS_FAIL;
     }
   }
+  */
 
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;

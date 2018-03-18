@@ -228,14 +228,7 @@ IF(PLUS_USE_OPTITRACK)
     ${OPTITRACK_NATNET_BINARY_DIR}/NatNetLib${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${OPTITRACK_OPENMP_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
-
-  IF (OPTITRACK_MSVC80_OPENMP_DIR)
-    LIST(APPEND External_Libraries_Install
-      ${OPTITRACK_MSVC80_OPENMP_DIR}/Microsoft.VC80.OpenMP.manifest
-      ${OPTITRACK_MSVC80_OPENMP_DIR}/vcomp.dll
-      )
-  ENDIF()
-
+    
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -596,11 +589,16 @@ ENDIF()
 IF(PLUS_USE_ATRACSYS)
   SET(Atracsys_SRCS
     Atracsys/vtkPlusAtracsysTracker.cxx
+    Atracsys/AtracsysMarker.cxx
+    Atracsys/AtracsysTracker.cxx
   )
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(Atracsys_HDRS
       Atracsys/vtkPlusAtracsysTracker.h
+      Atracsys/AtracsysConstants.h
+      Atracsys/AtracsysMarker.h
+      Atracsys/AtracsysTracker.h
       )
   ENDIF()
 
@@ -619,14 +617,14 @@ IF(PLUS_USE_ATRACSYS)
   message(${ATRACSYS_SDK_INCLUDE_DIR})
   
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${ATRACSYS_SDK_LIBRARY_DIR}/fusionTrack32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${ATRACSYS_SDK_LIBRARY_DIR}/fusionTrack64${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 
-  LIST(APPEND External_Libraries_Install
-    ${ATRACSYS_SDK_BINARY_DIR}/fusionTrack32${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${ATRACSYS_SDK_BINARY_DIR}/device32${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${ATRACSYS_SDK_BINARY_DIR}/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
+  # LIST(APPEND External_Libraries_Install
+    # ${ATRACSYS_SDK_BINARY_DIR}/fusionTrack32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    # ${ATRACSYS_SDK_BINARY_DIR}/device32${CMAKE_SHARED_LIBRARY_SUFFIX}
+    # ${ATRACSYS_SDK_BINARY_DIR}/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    # )
     
 ENDIF()
 
