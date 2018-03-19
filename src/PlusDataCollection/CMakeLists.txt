@@ -54,6 +54,7 @@ OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker track
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_BLACKMAGIC_DECKLINK "Provide support for BlackMagic DeckLink capture cards." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
+OPTION(PLUS_USE_ANDOR_CAMERA "Provide support for capturing images from Andor Camera. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
@@ -2335,6 +2336,46 @@ IF(PLUS_USE_V4L2)
     v4l2
     )
 ENDIF()
+
+# --------------------------------------------------------------------------
+# Andor Cam support
+IF(PLUS_USE_ANDOR_CAMERA)
+  IF(NOT PLUS_USE_OpenCV)
+    MESSAGE(ERROR "PLUS_USE_ANDOR_CAMERA requires PLUS_USE_OpenCV option enabled")
+  ENDIF()
+  SET(Andor_SRCS
+    Andor/vtkPlusAndorCamera.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Andor_HDRS
+      Andor/vtkPlusAndorCamera.h
+      )
+  ENDIF()
+  
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Andor_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Andor_SRCS}
+    )
+  
+  LIST(APPEND ${PROJECT_NAME}_LIBS 
+    ${ANDOR_LIBRARY_DIR}/${ANDOR_LIBRARY}${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${ANDOR_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Andor
+	${OpenCV_INCLUDE_DIRS}
+    )
+  LIST(APPEND External_Libraries_Install
+    ${ANDOR_BINARY_DIR}/${ANDOR_DLL}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  LIST(APPEND External_Libraries_Debug
+    ${ANDOR_BINARY_DIR}/${ANDOR_DLL}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
 
 # --------------------------------------------------------------------------
 # WitMotion

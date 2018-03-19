@@ -578,6 +578,19 @@ IF(PLUS_TEST_TextRecognizer)
     )
 ENDIF()
 
+#*************************** vtkAndorCameraTest.cxx ***************************
+IF(PLUS_USE_ANDOR_CAMERA)
+  ADD_EXECUTABLE(vtkAndorCameraTest vtkAndorCameraTest.cxx )
+  SET_TARGET_PROPERTIES(vtkAndorCameraTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkAndorCameraTest vtkPlusDataCollection vtkInteractionImage) 
+  ADD_TEST(NAME vtkAndorCameraTest 
+    COMMAND $<TARGET_FILE:vtkAndorCameraTest>
+    --rendering-off 
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_AndorCameraTest.xml
+    )
+  SET_TESTS_PROPERTIES(vtkAndorCameraTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+ENDIF()
+
 #*************************** LeapMotionTest1 ***************************
 IF(PLUS_USE_LEAPMOTION AND PLUS_TEST_LEAPMOTION)
   ADD_EXECUTABLE(LeapMotionTest1 vtkLeapMotionTest1.cxx)
