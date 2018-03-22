@@ -41,6 +41,20 @@ public:
 class vtkPlusCalibrationExport PlusFidSegmentation
 {
 public:
+  static const double DEFAULT_APPROXIMATE_SPACING_MM_PER_PIXEL;
+  static const double DEFAULT_MORPHOLOGICAL_OPENING_CIRCLE_RADIUS_MM;
+  static const double DEFAULT_MORPHOLOGICAL_OPENING_BAR_SIZE_MM;
+  static const int DEFAULT_CLIP_ORIGIN[2];
+  static const int DEFAULT_CLIP_SIZE[2];
+  static const double DEFAULT_MAX_LINE_PAIR_DISTANCE_ERROR_PERCENT;
+  static const double DEFAULT_ANGLE_TOLERANCE_DEGREES;
+  static const double DEFAULT_MAX_ANGLE_DIFFERENCE_DEGREES;
+  static const double DEFAULT_MIN_THETA_DEGREES;
+  static const double DEFAULT_MAX_THETA_DEGREES;
+  static const double DEFAULT_MAX_LINE_SHIFT_MM;
+  static const double DEFAULT_THRESHOLD_IMAGE_PERCENT;
+  static const double DEFAULT_COLLINEAR_POINTS_MAX_DISTANCE_FROM_LINE_MM;
+  static const char* DEFAULT_USE_ORIGINAL_IMAGE_INTENSITY_FOR_DOT_INTENSITY_SCORE;
   static const int DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES;
 
   typedef unsigned char PixelType;
@@ -130,6 +144,9 @@ public:
 
   /*! Utility function to write image to file */
   static void WritePng(PlusFidSegmentation::PixelType* modifiedImage, std::string outImageName, int cols, int rows);
+
+  /*! Utility function to set parameters in segmentation XML data element to default values */
+  static void SetDefaultSegmentationParameters(vtkXMLDataElement* segmentationElement);
 
   /*! Check if shape (structuring element) contains the new element (a point) */
   bool ShapeContains(std::vector<PlusCoordinate2D>& shape, PlusCoordinate2D point);
