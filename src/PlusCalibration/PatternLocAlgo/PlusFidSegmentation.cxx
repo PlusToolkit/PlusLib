@@ -23,6 +23,20 @@ static const short BLACK            = 0;
 static const short MIN_WINDOW_DIST  = 8;
 static const short MAX_CLUSTER_VALS = 16384;
 
+const double PlusFidSegmentation::DEFAULT_APPROXIMATE_SPACING_MM_PER_PIXEL = 0.078;
+const double PlusFidSegmentation::DEFAULT_MORPHOLOGICAL_OPENING_CIRCLE_RADIUS_MM = 0.27;
+const double PlusFidSegmentation::DEFAULT_MORPHOLOGICAL_OPENING_BAR_SIZE_MM = 2.0;
+const int PlusFidSegmentation::DEFAULT_CLIP_ORIGIN[2] = { 27, 27 };
+const int PlusFidSegmentation::DEFAULT_CLIP_SIZE[2] = { 766, 562 };
+const double PlusFidSegmentation::DEFAULT_MAX_LINE_PAIR_DISTANCE_ERROR_PERCENT = 10.0;
+const double PlusFidSegmentation::DEFAULT_ANGLE_TOLERANCE_DEGREES = 10.0;
+const double PlusFidSegmentation::DEFAULT_MAX_ANGLE_DIFFERENCE_DEGREES = 10.0;
+const double PlusFidSegmentation::DEFAULT_MIN_THETA_DEGREES = -70.0;
+const double PlusFidSegmentation::DEFAULT_MAX_THETA_DEGREES = 70.0;
+const double PlusFidSegmentation::DEFAULT_MAX_LINE_SHIFT_MM = 10.0;
+const double PlusFidSegmentation::DEFAULT_THRESHOLD_IMAGE_PERCENT = 10.0;
+const double PlusFidSegmentation::DEFAULT_COLLINEAR_POINTS_MAX_DISTANCE_FROM_LINE_MM = 0.6;
+const char* PlusFidSegmentation::DEFAULT_USE_ORIGINAL_IMAGE_INTENSITY_FOR_DOT_INTENSITY_SCORE = "FALSE";
 const int PlusFidSegmentation::DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES = 20;
 
 //-----------------------------------------------------------------------------
@@ -119,7 +133,13 @@ PlusStatus PlusFidSegmentation::ReadConfiguration(vtkXMLDataElement* configData)
   XML_FIND_NESTED_ELEMENT_REQUIRED(description, phantomDefinition, "Description");
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(FiducialGeometry, description, "Multi-N", CALIBRATION_PHANTOM_MULTI_NWIRE, "CIRS", CIRS_PHANTOM_13_POINT, "Double-N", CALIBRATION_PHANTOM_6_POINT);
 
-  XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(segmentationParameters, configData, "Segmentation");
+  if (!segmentationParameters)
+  {
+    segmentationParameters = PlusXmlUtils::GetNestedElementWithName(configData, "Segmentation");
+    PlusFidSegmentation::SetDefaultSegmentationParameters(segmentationParameters);
+  }
+
   XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
   XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningCircleRadiusMm, segmentationParameters);
   XML_READ_SCALAR_ATTRIBUTE_WARNING(double, MorphologicalOpeningBarSizeMm, segmentationParameters);
@@ -1028,6 +1048,40 @@ void PlusFidSegmentation::WritePng(PlusFidSegmentation::PixelType* modifiedImage
   }
   // end output
 
+}
+
+//-----------------------------------------------------------------------------
+void PlusFidSegmentation::SetDefaultSegmentationParameters(vtkXMLDataElement* segmentationDataElement)
+{
+  if (!segmentationDataElement)
+  {
+    return;
+  }
+
+  segmentationDataElement->SetName("Segmentation");
+  segmentationDataElement->SetDoubleAttribute("ApproximateSpacingMmPerPixel", DEFAULT_APPROXIMATE_SPACING_MM_PER_PIXEL);
+  segmentationDataElement->SetDoubleAttribute("MorphologicalOpeningCircleRadiusMm", DEFAULT_MORPHOLOGICAL_OPENING_CIRCLE_RADIUS_MM);
+  segmentationDataElement->SetDoubleAttribute("MorphologicalOpeningBarSizeMm", DEFAULT_MORPHOLOGICAL_OPENING_BAR_SIZE_MM);
+  segmentationDataElement->SetDoubleAttribute("MaxLinePairDistanceErrorPercent", DEFAULT_MAX_LINE_PAIR_DISTANCE_ERROR_PERCENT);
+  segmentationDataElement->SetDoubleAttribute("AngleToleranceDegrees", DEFAULT_ANGLE_TOLERANCE_DEGREES);
+  segmentationDataElement->SetDoubleAttribute("MaxAngleDifferenceDegrees", DEFAULT_MAX_ANGLE_DIFFERENCE_DEGREES);
+  segmentationDataElement->SetDoubleAttribute("MinThetaDegrees", DEFAULT_MIN_THETA_DEGREES);
+  segmentationDataElement->SetDoubleAttribute("MaxThetaDegrees", DEFAULT_MAX_THETA_DEGREES);
+  segmentationDataElement->SetDoubleAttribute("MaxLineShiftMm", DEFAULT_MAX_LINE_SHIFT_MM);
+  segmentationDataElement->SetDoubleAttribute("ThresholdImagePercent", DEFAULT_THRESHOLD_IMAGE_PERCENT);
+  segmentationDataElement->SetDoubleAttribute("CollinearPointsMaxDistanceFromLineMm", DEFAULT_COLLINEAR_POINTS_MAX_DISTANCE_FROM_LINE_MM);
+  segmentationDataElement->SetAttribute("UseOriginalImageIntensityForDotIntensityScore", DEFAULT_USE_ORIGINAL_IMAGE_INTENSITY_FOR_DOT_INTENSITY_SCORE);
+  segmentationDataElement->SetDoubleAttribute("NumberOfMaximumFiducialPointCandidates", DEFAULT_NUMBER_OF_MAXIMUM_FIDUCIAL_POINT_CANDIDATES);
+
+  std::stringstream clipOriginSS;
+  clipOriginSS << DEFAULT_CLIP_ORIGIN[0] << " " << DEFAULT_CLIP_ORIGIN[1];
+  std::string clipOriginString = clipOriginSS.str();
+  segmentationDataElement->SetAttribute("ClipRectangleOrigin", clipOriginString.c_str());
+
+  std::stringstream clipSizeSS;
+  clipSizeSS << DEFAULT_CLIP_SIZE[0] << " " << DEFAULT_CLIP_SIZE[1];
+  std::string clipSizeString = clipSizeSS.str();
+  segmentationDataElement->SetAttribute("ClipRectangleSize", clipSizeString.c_str());
 }
 
 //-----------------------------------------------------------------------------
