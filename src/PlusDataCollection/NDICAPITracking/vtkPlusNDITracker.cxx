@@ -326,7 +326,7 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
   this->LeaveDeviceOpenAfterProbe = true;
   if (this->Probe() == PLUS_FAIL)
   {
-    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString<int>(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + std::string(ndiSerialDeviceName(this->SerialPort)) + " (index " + PlusCommon::ToString<int>(this->SerialPort) + "). ") << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
 
