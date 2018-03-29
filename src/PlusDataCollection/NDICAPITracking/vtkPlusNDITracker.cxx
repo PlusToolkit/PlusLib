@@ -87,6 +87,7 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , BaudRate(0)
   , IsDeviceTracking(0)
   , LeaveDeviceOpenAfterProbe(false)
+  , CheckDSR(true)
   , MeasurementVolumeNumber(0)
   , NetworkHostname("")
   , NetworkPort(8765)
@@ -132,6 +133,8 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MeasurementVolumeNumber: " << this->MeasurementVolumeNumber << std::endl;
   os << indent << "CommandReply: " << this->CommandReply << std::endl;
   os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
+  os << indent << "LeaveDeviceOpenAfterProbe: " << this->LeaveDeviceOpenAfterProbe << std::endl;
+  os << indent << "CheckDSR: " << this->CheckDSR << std::endl;
   for (auto iter = this->NdiToolDescriptors.begin(); iter != this->NdiToolDescriptors.end(); ++iter)
   {
     os << indent << iter->first << ": " << std::endl;
@@ -165,7 +168,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     devicename = ndiSerialDeviceName(this->SerialPort - 1);
     if (devicename)
     {
-      errnum = ndiSerialProbe(devicename);
+      errnum = ndiSerialProbe(devicename, this->CheckDSR);
       LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
     }
 
@@ -197,7 +200,7 @@ PlusStatus vtkPlusNDITracker::Probe()
       LOG_DEBUG("Testing serial port: " << devicename);
       if (devicename)
       {
-        errnum = ndiSerialProbe(devicename);
+        errnum = ndiSerialProbe(devicename, this->CheckDSR);
         LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {
@@ -1041,6 +1044,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NetworkPort, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(CheckDSR, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
@@ -1115,14 +1119,23 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   {
     trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
   }
+
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(NetworkHostname, trackerConfig);
   if (!this->NetworkHostname.empty())
   {
-    trackerConfig->SetAttribute("NetworkHostname", this->NetworkHostname.c_str());
     trackerConfig->SetIntAttribute("NetworkPort", this->NetworkPort);
   }
 
-  trackerConfig->SetIntAttribute("BaudRate", this->BaudRate);
-  trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
+  if (this->BaudRate > 0)
+  {
+    trackerConfig->SetIntAttribute("BaudRate", this->BaudRate);
+  }
+  if (this->MeasurementVolumeNumber > 0)
+  {
+    trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
+  }
+  trackerConfig->SetAttribute("CheckDSR", this->CheckDSR ? "true" : "false");
+
   return PLUS_SUCCESS;
 }
 
@@ -1399,9 +1412,9 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
     if (dev != nullptr)
     {
       std::string devName = std::string(dev);
-      std::future<void> result = std::async([i, &deviceExists, devName]()
+      std::future<void> result = std::async([this, i, &deviceExists, devName]()
       {
-        int errnum = ndiSerialProbe(devName.c_str());
+        int errnum = ndiSerialProbe(devName.c_str(), this->CheckDSR);
         LOG_DEBUG("Serial port " << devName << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {

@@ -188,6 +188,9 @@ public:
   vtkSetMacro(NetworkPort, int);
   vtkGetMacro(NetworkPort, int);
 
+  vtkSetMacro(CheckDSR, bool);
+  vtkGetMacro(CheckDSR, bool);
+
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
@@ -288,6 +291,7 @@ protected:
   int                               IsDeviceTracking;
   int                               MeasurementVolumeNumber;
   bool                              LeaveDeviceOpenAfterProbe;
+  bool                              CheckDSR;
   NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
   vtkPlusRecursiveCriticalSection*  CommandMutex;
   char                              CommandReply[VTK_NDI_REPLY_LEN];
