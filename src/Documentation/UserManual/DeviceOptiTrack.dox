@@ -11,7 +11,8 @@
 - \ref PackageWin64
 
 \section OptiTrackInstallation Installation
-- Download and install <a href="http://optitrack.com/downloads/">Motive 1.10.3</a>.
+- For PLUS v2.6 or below: download and install <a href="http://optitrack.com/downloads/">Motive 1.10.3</a>.
+- For newer versions: download and install <a href="http://optitrack.com/downloads/">Motive 2.0.2</a>.
 
 \section OptiTrackDocumentation Important sections of OptiTrack Motive Documentation
   - Read the following sections of the <a href="http://v110.wiki.optitrack.com/index.php?title=OptiTrack_Documentation_Wiki">Motive User Manual</a>
@@ -20,8 +21,7 @@
     - <a href="http://v110.wiki.optitrack.com/index.php?title=Rigid_Body_Tracking">Rigid body tracking</a>: This section gives essential information about creating rigid bodies for tracking. It also provides helpful background on selecting good marker positions.
 
 \section OptiTrackFileTypes Motive File Types
-  - <strong>Project file</strong>: .ttp files saved from Motive which contain the camera parameters, calibration (if using multi-camera systems) and rigid body definitions
-  - <strong>Calibration file</strong> .cal files saved from Motive which contain the camera calibration
+  - <strong>Profile file</strong>: .xml files saved from Motive which contain the camera parameters, calibration (if using multi-camera systems) and rigid body definitions
   - <strong>Rigid body file</strong> .tra files saved from Motive which contain the definition of a single rigid body asset
 
 \section OptiTrackSettingUpTracking Setting up Tracking
@@ -31,14 +31,14 @@
     - 3: Select the newly created rigid body in the "Project" tab and change the rigid body's "Name" attribute to something descriptive of the rigid body. This will be the rigid body's ID in the PLUS config file.
     - 4: Repeat steps 2 & 3 for each rigid body to be tracked.
     - 5: Save the Motive project to the same directory as the PLUS config file using File->Save Motive Project As.
-    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_TTPOnly.xml to reflect the name of your Motive project file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute).
+    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_Profile.xml to reflect the name of your Motive profile file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute).
   - <strong>Flexible Configuration</strong> (using a project file for the calibration, providing the rigid bodies as TRA files)
     - 1: Run Motive and perform a calibration
-    - 2: Save the calibration as a Motive project file.
+    - 2: Save the calibration as a Motive profile xml file.
     - 2: In Motive's 3D view, select all the markers corresponding to a rigid body and right click. Cursor "Rigid Body" then click "Create From Selected Markers".
     - 3: Select the newly created rigid body in the "Project" tab and change the rigid body's "Name" attribute to something descriptive of the rigid body. This will be the rigid body's ID in the PLUS config file.
     - 4: Right click the rigid body's name in the "Project" tab and click "Export Rigid Body". Save the resulting file in the PLUS config file directory. We recommend naming this file <Motive-name>.tra, replacing <Motive-name> with the name attribute of the rigid body.
-    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml to reflect the name of your Motive project file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute, and TRA file containing the relative path of the rigid body's associated TRA file).
+    - 6: Modify the sample PLUS calibration file PlusDeviceSet_Server_OptiTrack_AddMarkersUsingTRA.xml to reflect the name of your Motive profile xml file and update the DataSources element to contain one entry for each rigid body (with the same ID as the rigid body's Motive name attribute, and TRA file containing the relative path of the rigid body's associated TRA file).
 
 \section OptiTrackConfigSettings Device configuration settings
 - \xmlAtt \ref DeviceType "Type" = \c "OptiTrack" \RequiredAtt
@@ -52,12 +52,12 @@
     - \xmlAtt \b Id The rigid body name. The same name should be assigned to the rigid body in Motive. \RequiredAtt
     - \xmlAtt \b RigidBodyFile The filename of the TRA file that defines the rigid body. \OptionalAtt{NULL}
 
-\section OptiTrackExampleConfigFileTTPOnly Simple Configuration
-Example configuration file with all rigid bodies saved in the Motive project (PlusDeviceSet_Server_OptiTrack_TTPOnly.xml)
-\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack_TTPOnly.xml"
+\section OptiTrackExampleConfigProfileOnly Simple Configuration
+Example configuration file with all rigid bodies saved in the Motive profile xml file (PlusDeviceSet_Server_OptiTrack_Profile.xml)
+\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack_Profile.xml"
 
-\section OptiTrackExampleConfigFileTTPandTRA Flexible Configuration
-Example configuration file with rigid bodies supplied as .TRA files (PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml)
-\include "ConfigFiles/PlusDeviceSet_Server_OptiTrack_TTPandTRA.xml"
+\section OptiTrackExampleConfigProfileandTRA Flexible Configuration
+Example configuration file with rigid bodies supplied as .TRA files (PlusDeviceSet_Server_OptiTrack_AddMarkersUsingTRA.xml)
+\include "PlusDeviceSet_Server_OptiTrack_AddMarkersUsingTRA.xml"
 
 */
