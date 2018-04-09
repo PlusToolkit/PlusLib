@@ -60,7 +60,8 @@ QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 
   // Set callback for logger to display errors
   vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
-  m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkCommand::UserEvent, cb);
+  m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkPlusLogger::MessageLogged, cb);
+  m_DisplayWideMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkPlusLogger::WideMessageLogged, cb);
 
   connect(cb, SIGNAL(AddMessage(QString)), this, SLOT(AddMessage(QString)));
 
@@ -78,6 +79,7 @@ QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 QPlusStatusIcon::~QPlusStatusIcon()
 {
   vtkPlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
+  vtkPlusLogger::Instance()->RemoveObserver(m_DisplayWideMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
@@ -400,10 +402,16 @@ void QPlusStatusIcon::SetMaxMessageCount(int count)
 //-----------------------------------------------------------------------------
 void vtkDisplayMessageCallback::Execute(vtkObject* caller, unsigned long eventId, void* callData)
 {
-  if (vtkCommand::UserEvent == eventId)
+  if (vtkPlusLogger::MessageLogged == eventId)
   {
     char* callDataChars = reinterpret_cast<char*>(callData);
 
     emit AddMessage(QString::fromLatin1(callDataChars));
+  }
+  else if (vtkPlusLogger::WideMessageLogged == eventId)
+  {
+    wchar_t* callDataChars = reinterpret_cast<wchar_t*>(callData);
+
+    emit AddMessage(QString::fromWCharArray(callDataChars));
   }
 }
