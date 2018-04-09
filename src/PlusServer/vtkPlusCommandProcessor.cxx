@@ -6,8 +6,11 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "vtkPlusCommand.h"
+#include "vtkPlusRecursiveCriticalSection.h"
 #include "vtkPlusCommandProcessor.h"
+
+// Command includes
+#include "vtkPlusCommand.h"
 #include "vtkPlusGetImageCommand.h"
 #include "vtkPlusReconstructVolumeCommand.h"
 #ifdef PLUS_USE_STEALTHLINK
@@ -16,18 +19,19 @@ See License.txt for details.
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   #include "vtkPlusConoProbeLinkCommand.h"
 #endif
-#include "igtl_header.h"
-#include "vtkPlusGetTransformCommand.h"
+#include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGetPolydataCommand.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkPlusGetTransformCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusSendTextCommand.h"
+#include "vtkPlusSetUsParameterCommand.h"
 #include "vtkPlusStartStopRecordingCommand.h"
 #include "vtkPlusUpdateTransformCommand.h"
 #include "vtkPlusVersionCommand.h"
-#include "vtkPlusSetUsParameterCommand.h"
-#include "vtkXMLUtilities.h"
+
+// IGTL includes
+#include "igtl_header.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -57,6 +61,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusVersionCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSetUsParameterCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
 #endif
