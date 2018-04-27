@@ -12,6 +12,8 @@ See License.txt for details.
 #include <vector>
 
 // Atracsys includes
+
+// Atracsys includes
 #include "ftkErrors.h"
 #include "ftkEvent.h"
 #include "ftkInterface.h"
@@ -67,9 +69,16 @@ namespace Atracsys
 
     /*! */
     ATRACSYS_ERROR GetMarkersInFrame(std::vector<Marker>& markers);
+
+    /*! */
+    std::string GetFtkLastErrorString();
+
   private:
     ftkLibrary FtkLib = 0;
     uint64 TrackerSN = 0;
+  
+    //----------------------------------------------------------------------------
+
 
   };
 }

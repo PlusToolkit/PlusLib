@@ -580,19 +580,9 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   DeviceData device;
   device.SerialNumber = 0uLL;
 
-  // scan for devices
-  ftkError err(FTK_OK);
-  err = ftkEnumerateDevices(this->Internal->ftkLib, fusionTrackEnumerator, &device);
-  LOG_WARNING(std::endl << this->Internal->GetFtkErrorString());
-
-  if (device.SerialNumber == 0uLL)
-  {
-    LOG_ERROR("No Atracsys device connected.");
-    ftkClose(&this->Internal->ftkLib);
-    return PLUS_FAIL;
-  }
-
   std::string deviceType("fusionTrack500");
+
+  this->Internal->Tracker->SetUserLEDState(255, 0, 0, 0);
   /*switch (device.Type)
   {
   case DEV_SPRYTRACK_180:
@@ -611,11 +601,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     deviceType = " UNKNOWN";
   }*/
 
-  this->Internal->TrackerSN = device.SerialNumber;
 
-  LOG_INFO("Detected " << deviceType << " with serial number 0x" << std::setw(16u)
-    << std::setfill('0') << std::hex << device.SerialNumber << std::dec
-    << std::endl << std::setfill('\0'));
 
   /*
   // set spryTrack to do onboard image processing
@@ -637,6 +623,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   }
   */
 
+  /*
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
   for (it = begin(this->Internal->IdMappedToGeometryFilename); it != end(this->Internal->IdMappedToGeometryFilename); it++)
@@ -709,7 +696,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 90, 0); // red
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 91, 255); // green
   ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 92, 0); // blue
-
+  */
   return PLUS_SUCCESS;
 }
 

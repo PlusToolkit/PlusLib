@@ -10,25 +10,25 @@ using namespace Atracsys;
 
 ATRACSYS_ERROR Marker::GetID(int& id)
 {
-  return ERROR_NONE;
+  return SUCCESS;
 }
 
 ATRACSYS_ERROR Marker::GetGeometryID(int& geometryID)
 {
-  return ERROR_NONE;
+  return SUCCESS;
 }
 
 ATRACSYS_ERROR Marker::GetGeometryPrecsenceMask(int& geometryMask)
 {
-  return ERROR_NONE;
+  return SUCCESS;
 }
 
 ATRACSYS_ERROR Marker::GetTransformToTracker(vtkSmartPointer<vtkMatrix4x4> MarkerToTracker)
 {
-  return ERROR_NONE;
+  return SUCCESS;
 }
 
 ATRACSYS_ERROR Marker::GetFiducialRegistrationErrorMm(float& fre)
 {
-  return ERROR_NONE;
+  return SUCCESS;
 }
