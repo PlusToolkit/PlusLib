@@ -35,12 +35,19 @@ namespace Atracsys
 
     /*! */
     ATRACSYS_ERROR Connect();
+    /*! */
+    ATRACSYS_ERROR Disconnect();
 
     /*! */
-    ATRACSYS_ERROR EnableDataSending();
+    ATRACSYS_ERROR EnableOnboardProcessing();
     /*! */
-    ATRACSYS_ERROR DisableDataSending();
+    ATRACSYS_ERROR DisableOnboardProcessing();
 
+    /*! */
+    ATRACSYS_ERROR EnableImageStreaming();
+    /*! */
+    ATRACSYS_ERROR DisableImageStreaming();
+    
     /*! */
     ATRACSYS_ERROR EnableIRStrobe();
     /*! */
@@ -61,7 +68,7 @@ namespace Atracsys
     ATRACSYS_ERROR DisableUserLED();
 
     /*! */
-    ATRACSYS_ERROR LoadMarkerGeometry(std::string filePath);
+    ATRACSYS_ERROR LoadMarkerGeometry(std::string filePath, int& geometryId);
     /*! */
     ATRACSYS_ERROR EnableWirelessMarkerPairing();
     /*! */
@@ -73,13 +80,18 @@ namespace Atracsys
     /*! */
     std::string GetFtkLastErrorString();
 
+    /*! */
+    ATRACSYS_ERROR LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
+
   private:
     ftkLibrary FtkLib = 0;
     uint64 TrackerSN = 0;
-  
+    DEVICE_TYPE DeviceType = UNKNOWN;
+
+    bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
     //----------------------------------------------------------------------------
-
-
+  
+    ATRACSYS_ERROR SetSTKOnlyOption(OPTIONS option, int value);
   };
 }
 #endif

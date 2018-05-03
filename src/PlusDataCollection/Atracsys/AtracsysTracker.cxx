@@ -272,8 +272,8 @@ namespace
 std::string Tracker::GetFtkLastErrorString()
 {
   char message[1024u];
-  /*
-  ftkError err(ftkGetLastErrorString(this->ftkLib, 1024u, message));
+  
+  ftkError err(ftkGetLastErrorString(this->FtkLib, 1024u, message));
   if (err == FTK_OK)
   {
   return std::string(message);
@@ -281,7 +281,7 @@ std::string Tracker::GetFtkLastErrorString()
   else
   {
   return std::string("ftkLib is uninitialized.");
-  }*/
+  }
   return std::string(message);
 }
 
@@ -291,6 +291,115 @@ struct DeviceData
   ftkDeviceType Type;
 };
 
+
+//----------------------------------------------------------------------------
+ATRACSYS_ERROR Tracker::LoadFtkGeometry(const std::string& filename, ftkGeometry& geom)
+{
+  std::ifstream input;
+  input.open(filename.c_str());
+
+  if (!input.fail() && this->LoadIniFile(input, geom))
+  {
+    return ERROR_FAILURE_TO_LOAD;
+  }
+  else
+  {
+    ftkBuffer buffer;
+    buffer.reset();
+    if (ftkGetData(this->FtkLib, this->TrackerSN, FTK_OPT_DATA_DIR, &buffer) != FTK_OK || buffer.size < 1u)
+    {
+      return ERROR_FAILURE_TO_LOAD;
+    }
+
+    std::string fullFile(reinterpret_cast< char* >(buffer.data));
+    fullFile += "\\" + filename;
+
+    input.open(fullFile.c_str());
+
+    if (!input.fail() && this->LoadIniFile(input, geom))
+    {
+      return SUCCESS;
+    }
+  }
+
+  return ERROR_FAILURE_TO_LOAD;
+}
+
+//----------------------------------------------------------------------------
+bool Tracker::LoadIniFile(std::ifstream& is, ftkGeometry& geometry)
+{
+  std::string line, fileContent("");
+
+  while (!is.eof())
+  {
+    getline(is, line);
+    fileContent += line + "\n";
+  }
+
+  IniFile parser;
+
+  if (!parser.parse(const_cast< char* >(fileContent.c_str()),
+    fileContent.size()))
+  {
+    return false;
+  }
+
+  if (!checkSection(parser, "geometry"))
+  {
+    return false;
+  }
+
+  uint32 tmp;
+
+  if (!assignUint32(parser, "geometry", "count", &tmp))
+  {
+    return false;
+  }
+  geometry.version = 0u;
+  geometry.pointsCount = tmp;
+  if (!assignUint32(parser, "geometry", "id", &geometry.geometryId))
+  {
+    return false;
+  }
+
+  std::cout << "Loading geometry " << geometry.geometryId << ", composed of "
+    << geometry.pointsCount << " fiducials";
+
+  char sectionName[10u];
+
+  for (uint32 i(0u); i < geometry.pointsCount; ++i)
+  {
+    sprintf(sectionName, "fiducial%u", i);
+
+    if (!checkSection(parser, sectionName))
+    {
+      return false;
+    }
+
+    if (!assignFloatXX(parser, sectionName, "x",
+      &geometry.positions[i].x))
+    {
+      return false;
+    }
+    if (!assignFloatXX(parser, sectionName, "y",
+      &geometry.positions[i].y))
+    {
+      return false;
+    }
+    if (!assignFloatXX(parser, sectionName, "z",
+      &geometry.positions[i].z))
+    {
+      return false;
+    }
+
+    std::cout << "Loaded fiducial " << i << " ("
+      << geometry.positions[i].x << ", "
+      << geometry.positions[i].y << ", "
+      << geometry.positions[i].z << ")";
+  }
+
+  return true;
+}
 
 //----------------------------------------------------------------------------
 void FusionTrackEnumerator(uint64 sn, void* user, ftkDeviceType devType)
@@ -340,21 +449,85 @@ ATRACSYS_ERROR Tracker::Connect()
 
   this->TrackerSN = device.SerialNumber;
 
+  switch (device.Type)
+  {
+  case DEV_SPRYTRACK_180:
+    this->DeviceType = SPRYTRACK_180;
+    break;
+  case DEV_FUSIONTRACK_500:
+    this->DeviceType = FUSIONTRACK_500;
+    break;
+  case DEV_FUSIONTRACK_250:
+    this->DeviceType = FUSIONTRACK_250;
+    break;
+  default:
+    this->DeviceType = UNKNOWN;
+  }
+
+
   // testing
   std::cout << "connected to tracker" << std::endl;
   return SUCCESS;
 }
 
-ATRACSYS_ERROR Tracker::EnableDataSending()
+ATRACSYS_ERROR Tracker::Disconnect()
 {
+  ftkError err(FTK_OK);
+  err = ftkClose(&this->FtkLib);
+  if (err != FTK_OK)
+  {
+    return ERROR_FAILED_TO_CLOSE_SDK;
+  }
   return SUCCESS;
 }
 
-ATRACSYS_ERROR Tracker::DisableDataSending()
+//----------------------------------------------------------------------------
+// Some spryTrack 180 only options
+
+ATRACSYS_ERROR Tracker::SetSTKOnlyOption(OPTIONS option, int value)
 {
-  return SUCCESS;
+  // this option is only available on spryTrack
+  if (this->DeviceType == SPRYTRACK_180)
+  {
+    if (ftkSetInt32(this->FtkLib, this->TrackerSN, option, value) != FTK_OK)
+    {
+      return ERROR_FAILED_TO_SET_OPTION;
+    }
+  }
+  return ERROR_OPTION_NOT_AVAILABLE_ON_FTK;
 }
 
+ATRACSYS_ERROR Tracker::EnableOnboardProcessing()
+{
+  return this->SetSTKOnlyOption(OPTION_ONBOARD_PROCESSING, 1);
+}
+
+ATRACSYS_ERROR Tracker::DisableOnboardProcessing()
+{
+  return this->SetSTKOnlyOption(OPTION_ONBOARD_PROCESSING, 0);
+}
+
+ATRACSYS_ERROR Tracker::EnableImageStreaming()
+{
+  return this->SetSTKOnlyOption(OPTION_IMAGE_STREAMING, 1);
+}
+
+ATRACSYS_ERROR Tracker::DisableImageStreaming()
+{
+  return this->SetSTKOnlyOption(OPTION_IMAGE_STREAMING, 0);
+}
+
+ATRACSYS_ERROR Tracker::EnableWirelessMarkerPairing()
+{
+  return this->SetSTKOnlyOption(OPTION_WIRELESS_MARKER_PAIRING, 1);
+}
+
+ATRACSYS_ERROR Tracker::DisableWirelessMarkerPairing()
+{
+  return this->SetSTKOnlyOption(OPTION_WIRELESS_MARKER_PAIRING, 0);
+}
+
+//----------------------------------------------------------------------------
 ATRACSYS_ERROR Tracker::EnableIRStrobe()
 {
   return SUCCESS;
@@ -400,18 +573,15 @@ ATRACSYS_ERROR Tracker::DisableUserLED()
   return SUCCESS;
 }
 
-ATRACSYS_ERROR Tracker::LoadMarkerGeometry(std::string filePath)
+ATRACSYS_ERROR Tracker::LoadMarkerGeometry(std::string filePath, int& geometryId)
 {
-  return SUCCESS;
-}
-
-ATRACSYS_ERROR Tracker::EnableWirelessMarkerPairing()
-{
-  return SUCCESS;
-}
-
-ATRACSYS_ERROR Tracker::DisableWirelessMarkerPairing()
-{
+  ftkGeometry geom;
+  this->LoadFtkGeometry(filePath, geom);
+  if (ftkSetGeometry(this->FtkLib, this->TrackerSN, &geom) != FTK_OK)
+  {
+    return ERROR_FAILED_TO_LOAD_GEOMETRY;
+  }
+  geometryId = geom.geometryId;
   return SUCCESS;
 }
 

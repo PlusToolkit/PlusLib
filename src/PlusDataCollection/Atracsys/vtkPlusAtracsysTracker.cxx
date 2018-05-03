@@ -37,249 +37,6 @@ static const unsigned MAXIMUM_MISSING_POINTS_OPTION = 10004;
 
 vtkStandardNewMacro(vtkPlusAtracsysTracker);
 
-namespace
-{
-  class IniFile
-  {
-  protected:
-
-    long findEOL(char& c, char* addr, size_t size)
-    {
-      for (long u = 0; u < (long)size; u++)
-      {
-        c = addr[u];
-        if (c == 0 || c == '\n') // note that MAX may only have a '\r'
-        {
-          return u;
-        }
-      }
-      return -1;
-    }
-    bool parseLine(std::string& line)
-    {
-      size_t first_bracket = line.find_first_of("["),
-        last_bracket = line.find_last_of("]"),
-        equal = line.find_first_of("=");
-
-      if (first_bracket != std::string::npos &&
-        last_bracket != std::string::npos)
-      {
-        // Found section
-        _currentSection = line.substr(first_bracket + 1,
-          last_bracket - first_bracket - 1);
-        sections[_currentSection] = KeyValues();
-      }
-      else
-        if (equal != std::string::npos && _currentSection != "")
-        {
-          // Found property in a section
-          std::string key = line.substr(0, equal),
-            val = line.substr(equal + 1);
-          sections[_currentSection][key] = val;
-        }
-        else
-        {
-          // If the line is empty, just skip it, if not and is a comment, just
-          // skip it
-          // as well, otherwise the parsing cannot be done.
-          line.erase(remove_if(line.begin(),
-            line.end(), isspace), line.end());
-          if (!line.empty() && line.substr(0, 1) != ";")
-          {
-            return false;
-          }
-        }
-      return true;
-    }
-    std::string _currentSection;
-
-  public:
-
-    typedef std::map< std::string, std::string > KeyValues;
-    typedef std::map< std::string, KeyValues > Sections;
-
-    Sections sections;
-
-    bool parse(char* addr, size_t size)
-    {
-      sections.clear();
-      _currentSection = "";
-
-      std::string strLine;
-
-      while (size)
-      {
-        char c;
-        long lineSize = findEOL(c, addr, size);
-
-        if (lineSize != 0)
-        {
-          if (lineSize > 0)
-          {
-            strLine = std::string(addr, lineSize);
-          }
-          else
-          {
-            strLine = std::string(addr);
-          }
-
-          strLine.erase(remove(strLine.begin(),
-            strLine.end(), '\r'), strLine.end());
-          if (!parseLine(strLine))
-          {
-            return false;
-          }
-
-          if (lineSize < 0)
-          {
-            return true; // EOF at the end of the line
-          }
-        }
-        if (c == 0 || size == size_t(lineSize))
-        {
-          return true; // !!! eof not reached
-        }
-        addr += lineSize + 1;
-        size -= lineSize + 1;
-      }
-      return true;
-    } // Return false in case of syntax error
-    bool save(std::string str)
-    {
-      FILE* file = fopen(str.c_str(), "wb");
-      if (!file)
-      {
-        return false;
-      }
-
-      Sections::iterator iterS = sections.begin();
-
-      while (iterS != sections.end())
-      {
-        fprintf(file, "[%s]\n", iterS->first.c_str());
-
-        KeyValues& kw = iterS->second;
-        KeyValues::iterator iterK = kw.begin();
-
-        while (iterK != kw.end())
-        {
-          fprintf(file, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
-          iterK++;
-        }
-        iterS++;
-      }
-      fclose(file);
-      return true;
-    }
-    bool toBuffer(char** out, size_t& outSize)
-    {
-      if (!out)
-      {
-        return false;
-      }
-
-      std::string buffer;
-      char temp[1024];
-
-      Sections::iterator iterS = sections.begin();
-
-      while (iterS != sections.end())
-      {
-        sprintf(temp, "[%s]\n", iterS->first.c_str());
-        buffer += temp;
-
-        KeyValues& kw = iterS->second;
-        KeyValues::iterator iterK = kw.begin();
-
-        while (iterK != kw.end())
-        {
-          sprintf(temp, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
-          buffer += temp;
-          iterK++;
-        }
-        iterS++;
-      }
-
-      outSize = buffer.length() + 1;
-      char* str = new (std::nothrow) char[outSize];
-
-      if (!str)
-      {
-        return false;
-      }
-
-      strncpy(str, buffer.c_str(), outSize - 1);
-      str[outSize - 1] = 0;
-      *out = str;
-
-      return true;
-    } // Buffer must be unallocated by user
-  };
-
-  bool checkSection(IniFile& p, const std::string& section)
-  {
-    if (p.sections.find(section) == p.sections.end())
-    {
-      LOG_ERROR("Cannot find section \"" << section << "\"");
-      return false;
-    }
-    return true;
-  }
-
-  // ----------------------------------------------------------------------------
-
-  bool checkKey(IniFile& p, const std::string& section, const std::string& key)
-  {
-    if (p.sections[section].find(key) == p.sections[section].end())
-    {
-      LOG_ERROR("Cannot find key \"" << key << "\" in section \"" << section << "\"");
-      return false;
-    }
-
-    return true;
-  }
-
-  // ----------------------------------------------------------------------------
-
-  bool assignUint32(IniFile& p, const std::string& section,
-    const std::string& key,
-    uint32* variable)
-  {
-    if (!checkKey(p, section, key))
-    {
-      return false;
-    }
-
-    char* pEnd;
-    std::string val(p.sections[section][key]);
-
-    *variable = uint32(strtol(val.c_str(), &pEnd, 10));
-
-    return true;
-  }
-
-  // ----------------------------------------------------------------------------
-
-  bool assignFloatXX(IniFile& p, const std::string& section,
-    const std::string& key,
-    floatXX* variable)
-  {
-    if (!checkKey(p, section, key))
-    {
-      return false;
-    }
-
-    char* pEnd;
-
-    *variable =
-      floatXX(strtod(p.sections[section][key].c_str(), &pEnd));
-
-    return true;
-  }
-}
-
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal
 {
@@ -307,160 +64,17 @@ public:
   // tracker serial number
   uint64 TrackerSN;
 
-  std::string GetFtkErrorString();
+  //std::string GetFtkErrorString();
 
   int MaxMissingFiducials = 1;
   int ActiveMarkerPairingTimeSec = 0;
 
-  PlusStatus LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
-  bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
+  //PlusStatus LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
+  //bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
 
   // here begins the new interface
   Atracsys::Tracker* Tracker = new Atracsys::Tracker();
 };
-
-//----------------------------------------------------------------------------
-std::string vtkPlusAtracsysTracker::vtkInternal::GetFtkErrorString()
-{
-  char message[1024u];
-  /*
-  ftkError err(ftkGetLastErrorString(this->ftkLib, 1024u, message));
-  if (err == FTK_OK)
-  {
-    return std::string(message);
-  }
-  else
-  {
-    return std::string("ftkLib is uninitialized.");
-  }*/
-  return std::string(message);
-}
-
-struct DeviceData
-{
-  uint64 SerialNumber;
-  ftkDeviceType Type;
-};
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusAtracsysTracker::vtkInternal::LoadFtkGeometry(const std::string& filename, ftkGeometry& geom)
-{
-  std::ifstream input;
-  input.open(filename.c_str());
-
-  if (!input.fail() && this->LoadIniFile(input, geom))
-  {
-    return PLUS_FAIL;
-  }
-  else
-  {
-    ftkBuffer buffer;
-    buffer.reset();
-    if (ftkGetData(this->ftkLib, this->TrackerSN, FTK_OPT_DATA_DIR, &buffer) != FTK_OK || buffer.size < 1u)
-    {
-      return PLUS_FAIL;
-    }
-
-    std::string fullFile(reinterpret_cast< char* >(buffer.data));
-    fullFile += "\\" + filename;
-
-    input.open(fullFile.c_str());
-
-    if (!input.fail() && this->LoadIniFile(input, geom))
-    {
-      return PLUS_SUCCESS;
-    }
-  }
-
-  return PLUS_FAIL;
-}
-
-//----------------------------------------------------------------------------
-bool vtkPlusAtracsysTracker::vtkInternal::LoadIniFile(std::ifstream& is, ftkGeometry& geometry)
-{
-  std::string line, fileContent("");
-
-  while (!is.eof())
-  {
-    getline(is, line);
-    fileContent += line + "\n";
-  }
-
-  IniFile parser;
-
-  if (!parser.parse(const_cast< char* >(fileContent.c_str()),
-    fileContent.size()))
-  {
-    return false;
-  }
-
-  if (!checkSection(parser, "geometry"))
-  {
-    return false;
-  }
-
-  uint32 tmp;
-
-  if (!assignUint32(parser, "geometry", "count", &tmp))
-  {
-    return false;
-  }
-  geometry.version = 0u;
-  geometry.pointsCount = tmp;
-  if (!assignUint32(parser, "geometry", "id", &geometry.geometryId))
-  {
-    return false;
-  }
-
-  LOG_INFO("Loading geometry " << geometry.geometryId << ", composed of "
-    << geometry.pointsCount << " fiducials");
-
-  char sectionName[10u];
-
-  for (uint32 i(0u); i < geometry.pointsCount; ++i)
-  {
-    sprintf(sectionName, "fiducial%u", i);
-
-    if (!checkSection(parser, sectionName))
-    {
-      return false;
-    }
-
-    if (!assignFloatXX(parser, sectionName, "x",
-      &geometry.positions[i].x))
-    {
-      return false;
-    }
-    if (!assignFloatXX(parser, sectionName, "y",
-      &geometry.positions[i].y))
-    {
-      return false;
-    }
-    if (!assignFloatXX(parser, sectionName, "z",
-      &geometry.positions[i].z))
-    {
-      return false;
-    }
-
-    LOG_INFO("Loaded fiducial " << i << " ("
-      << geometry.positions[i].x << ", "
-      << geometry.positions[i].y << ", "
-      << geometry.positions[i].z << ")")
-  }
-
-  return true;
-}
-
-//----------------------------------------------------------------------------
-void fusionTrackEnumerator(uint64 sn, void* user, ftkDeviceType devType)
-{
-  if (user != 0)
-  {
-    DeviceData* ptr = reinterpret_cast<DeviceData*>(user);
-    ptr->SerialNumber = sn;
-    ptr->Type = devType;
-  }
-}
 
 //----------------------------------------------------------------------------
 vtkPlusAtracsysTracker::vtkPlusAtracsysTracker()
@@ -563,67 +177,14 @@ PlusStatus vtkPlusAtracsysTracker::Probe()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
-  //TODO: testing AtracsysTracker class
-  this->Internal->Tracker->Connect();
-
-
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
-  // initialize SDK
-  this->Internal->ftkLib = ftkInit();
+  this->Internal->Tracker->Connect();
 
-  if (this->Internal->ftkLib == NULL)
-  {
-    LOG_ERROR("Failed to open Atracys sTK Passive Tracking SDK.");
-  }
+  // TODO: add onboard processing and image streaming to config file and add error checking
+  this->Internal->Tracker->EnableOnboardProcessing();
+  this->Internal->Tracker->DisableImageStreaming();
 
-  DeviceData device;
-  device.SerialNumber = 0uLL;
-
-  std::string deviceType("fusionTrack500");
-
-  this->Internal->Tracker->SetUserLEDState(255, 0, 0, 0);
-  /*switch (device.Type)
-  {
-  case DEV_SPRYTRACK_180:
-    deviceType = "sTk 180";
-    break;
-  case DEV_FUSIONTRACK_500:
-    deviceType = "fTk 500";
-    break;
-  case DEV_FUSIONTRACK_250:
-    deviceType = "fTk 250";
-    break;
-  case DEV_SIMULATOR:
-    deviceType = "fTk simulator";
-    break;
-  default:
-    deviceType = " UNKNOWN";
-  }*/
-
-
-
-  /*
-  // set spryTrack to do onboard image processing
-  if (device.Type == DEV_SPRYTRACK_180)
-  {
-    LOG_INFO("Enable onboard processing");
-    if (ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, ENABLE_ONBOARD_PROCESSING_OPTION, 1) != FTK_OK)
-    {
-      LOG_ERROR("Cannot process data directly on the SpryTrack.");
-      return PLUS_FAIL;
-    }
-
-    LOG_INFO("Disable images sending");
-    if (ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, SENDING_IMAGES_OPTION, 0) != FTK_OK)
-    {
-      LOG_ERROR("Cannot disable image sending on the SpryTrack.");
-      return PLUS_FAIL;
-    }
-  }
-  */
-
-  /*
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
   for (it = begin(this->Internal->IdMappedToGeometryFilename); it != end(this->Internal->IdMappedToGeometryFilename); it++)
@@ -637,52 +198,38 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     else
     {
       // load user defined geometry file
-      ftkGeometry geom;
+      // TODO: add check for conflicting marker IDs
       std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
-      this->Internal->LoadFtkGeometry(geomFilePath, geom);
-      if (ftkSetGeometry(this->Internal->ftkLib, this->Internal->TrackerSN, &geom) != FTK_OK)
-      {
-        LOG_ERROR("Failed to load geometry " << it->second);
-        LOG_ERROR(this->Internal->GetFtkErrorString());
-      }
-
-      std::pair<int, std::string> newTool(geom.geometryId, it->first);
+      int geometryId;
+      this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId);
+      std::pair<int, std::string> newTool(geometryId, it->first);
       this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
     }
   }
 
-  // ensure markers can be tracked with only 3 visible fiducials
-  // TODO: make this a parameter in config file
-  if (ftkSetInt32(Internal->ftkLib, Internal->TrackerSN, MAXIMUM_MISSING_POINTS_OPTION, this->Internal->MaxMissingFiducials) != FTK_OK)
+  // TODO: add ability to set number of missing fiducials for a validly tracked marker
+  /*if (ftkSetInt32(Internal->ftkLib, Internal->TrackerSN, MAXIMUM_MISSING_POINTS_OPTION, this->Internal->MaxMissingFiducials) != FTK_OK)
   {
     std::cout << "Cannot enable markers with hidden fiducials to be tracked.";
-  }
+  }*/
 
   // make LED blue during pairing
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 94, 1);
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 90, 0); // red
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 91, 0); // green
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 92, 255); // blue
+  this->Internal->Tracker->SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  // TODO: check number of active markers paired
-  cout << "Enable Pairing" << endl;
-  if (ftkSetInt32(Internal->ftkLib, Internal->TrackerSN, DEV_ENABLE_PAIRING, 1) != FTK_OK)
-  {
-    std::cout << "Cannot enable pairing.";
-  }
-  cout << endl << " *** Put marker in front of the device to pair ***" << endl;
-
+  this->Internal->Tracker->EnableImageStreaming();
+  LOG_INFO(endl << " *** Put marker in front of the device to pair ***" << endl);
   Sleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
+  LOG_INFO(" *** End of wireless pairing window ***" << endl);
+  this->Internal->Tracker->DisableWirelessMarkerPairing();
 
-  cout << "Disable Pairing" << endl;
-  if (ftkSetInt32(Internal->ftkLib, Internal->TrackerSN, DEV_ENABLE_PAIRING, 0) != FTK_OK)
-  {
-    std::cout << "Cannot disable pairing.";
-  }
+  // make LED green, pairing is complete
+  this->Internal->Tracker->SetUserLEDState(0, 255, 0, 0);
 
+  // TODO: check number of active markers paired
+  // TODO: print info about paired markers here
+  /*
   cout << "Additional info about paired markers:" << endl;
-
   ftkBuffer buffer;
   if (ftkGetData(Internal->ftkLib, Internal->TrackerSN, DEV_MARKERS_INFO, &buffer) != FTK_OK)
   {
@@ -690,13 +237,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   }
   std::string info(buffer.data, buffer.data + buffer.size);
   cout << info << endl;
-
-  // make LED green once pairing is over
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 94, 1);
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 90, 0); // red
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 91, 255); // green
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 92, 0); // blue
   */
+
   return PLUS_SUCCESS;
 }
 
@@ -704,16 +246,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 PlusStatus vtkPlusAtracsysTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalDisconnect");
-
-  // turn off led
-  ftkSetInt32(this->Internal->ftkLib, this->Internal->TrackerSN, 94, 0);
-
-  ftkError err(FTK_OK);
-  err = ftkClose(&this->Internal->ftkLib);
-  if (err != FTK_OK)
-  {
-    LOG_ERROR("Failed to close Atracys sTK Passive Tracking SDK.");
-  }
+  this->Internal->Tracker->SetUserLEDState(0, 0, 0, 0);
+  this->Internal->Tracker->Disconnect();
   return PLUS_SUCCESS;
 }
 
@@ -734,6 +268,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 {
+  /*
   LOG_TRACE("vtkPlusAtracsysTracker::InternalUpdate");
   
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
@@ -743,7 +278,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   if (frame == 0)
   {
     LOG_ERROR("Cannot create frame instance");
-    LOG_ERROR(this->Internal->GetFtkErrorString());
+    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
     return PLUS_FAIL;
   }
 
@@ -754,7 +289,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   {
     ftkDeleteFrame(frame);
     LOG_ERROR("Cannot initialize frame");
-    LOG_ERROR(this->Internal->GetFtkErrorString());
+    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
   }
 
   if (ftkGetLastFrame(this->Internal->ftkLib, this->Internal->TrackerSN, frame, 0) != FTK_OK)
@@ -769,19 +304,19 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   case QS_WAR_SKIPPED:
     ftkDeleteFrame(frame);
     LOG_ERROR("marker fields in the frame are not set correctly");
-    LOG_ERROR(this->Internal->GetFtkErrorString());
+    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
     return PLUS_FAIL;
 
   case QS_ERR_INVALID_RESERVED_SIZE:
     ftkDeleteFrame(frame);
     LOG_ERROR("frame -> markersVersionSize is invalid");
-    LOG_ERROR(this->Internal->GetFtkErrorString());
+    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
     return PLUS_FAIL;
     
   default:
     ftkDeleteFrame(frame);
     LOG_ERROR("invalid status");
-    LOG_ERROR(this->Internal->GetFtkErrorString());
+    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
     return PLUS_FAIL;
 
   case QS_OK:
@@ -838,6 +373,6 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   
   // close frame
   ftkDeleteFrame(frame);
-
+  */
   return PLUS_SUCCESS;
 }
