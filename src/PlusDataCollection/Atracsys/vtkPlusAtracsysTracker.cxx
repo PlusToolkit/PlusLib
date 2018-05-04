@@ -21,6 +21,13 @@ See License.txt for details.
 #include <fstream>
 #include <iostream>
 
+#ifdef LINUX
+#include <unistd.h>
+#endif
+#ifdef WINDOWS
+#include <windows.h>
+#endif
+
 // Atracsys includes
 #include "ftkErrors.h"
 #include "ftkEvent.h"
@@ -219,7 +226,15 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   // pair active markers
   this->Internal->Tracker->EnableImageStreaming();
   LOG_INFO(endl << " *** Put marker in front of the device to pair ***" << endl);
-  Sleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
+
+  // sleep while waiting for tracker to pair active markers
+  #ifdef LINUX
+    usleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
+  #endif
+  #ifdef WINDOWS
+    Sleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
+  #endif
+  
   LOG_INFO(" *** End of wireless pairing window ***" << endl);
   this->Internal->Tracker->DisableWirelessMarkerPairing();
 
