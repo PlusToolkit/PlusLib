@@ -183,6 +183,10 @@ See License.txt for details.
 #ifdef PLUS_USE_INFRARED_SEEK_CAM
   #include "vtkInfraredSeekCam.h" 
 #endif
+
+#ifdef PLUS_USE_INFRARED_TEQ1_CAM
+  #include "vtkInfraredTEQ1Cam.h" 
+#endif
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
@@ -333,6 +337,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_INFRARED_SEEK_CAM
   RegisterDevice("InfraredSeekCam", "vtkInfraredSeekCam", (PointerToDevice)&vtkInfraredSeekCam::New);
+#endif
+
+#ifdef PLUS_USE_INFRARED_TEQ1_CAM
+  RegisterDevice("InfraredTEQ1Cam", "vtkInfraredTEQ1Cam", (PointerToDevice)&vtkInfraredTEQ1Cam::New);
 #endif
 
   // Virtual Devices

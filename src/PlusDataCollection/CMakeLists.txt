@@ -52,6 +52,7 @@ OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
+OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -1868,6 +1869,60 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
   )
 ENDIF()
 
+#---------------------------------------------------------------------------
+# InfraredTEQ1Cam
+IF(PLUS_USE_INFRARED_TEQ1_CAM)
+  FIND_PACKAGE(TEQ1SDK REQUIRED)
+
+  # Compile
+  SET(Infrared_TEQ1_SRCS
+		InfraredTEQ1Cam/vtkInfraredTEQ1Cam.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Infrared_TEQ1_HDRS 
+		InfraredTEQ1Cam/vtkInfraredTEQ1Cam.h
+    )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Infrared_TEQ1_HDRS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Infrared_TEQ1_SRCS}
+  )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/InfraredTEQ1Cam
+	${TEQ1_SDK_LIBRARY}
+	${TEQ1_SDK_INCLUDE_DIR}
+  )
+
+  MESSAGE("TEQ1_SDK_LIBRARY")
+  MESSAGE("${TEQ1_SDK_LIBRARY}")
+  MESSAGE("TEQ1_SDK_BINARY")
+  MESSAGE("${TEQ1_SDK_BINARY}")
+  MESSAGE("External Libraries")
+  MESSAGE("${External_Libraries_Install}")
+  MESSAGE("External Libraries")
+  
+  LIST(APPEND ${PROJECT_NAME}_LIBS 
+    ${TEQ1_SDK_LIBRARY}
+  )
+  
+  LIST(APPEND External_Libraries_Install
+    ${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  LIST(APPEND External_Libraries_Debug
+    ${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  MESSAGE("External Libraries")
+  MESSAGE("${External_Libraries_Install}")
+ENDIF()
 # --------------------------------------------------------------------------
 # V4L2
 IF(PLUS_USE_V4L2)
