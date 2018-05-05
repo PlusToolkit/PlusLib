@@ -24,7 +24,7 @@ See License.txt for details.
 #ifdef LINUX
 #include <unistd.h>
 #endif
-#ifdef WINDOWS
+#ifdef WIN32
 #include <windows.h>
 #endif
 
@@ -35,12 +35,6 @@ See License.txt for details.
 #include "ftkOptions.h"
 #include "ftkPlatform.h"
 #include "ftkTypes.h"
-
-static const unsigned ENABLE_ONBOARD_PROCESSING_OPTION = 6000;
-static const unsigned SENDING_IMAGES_OPTION = 6003;
-static const unsigned DEV_ENABLE_PAIRING = 7000;
-static const unsigned DEV_MARKERS_INFO = 7005;
-static const unsigned MAXIMUM_MISSING_POINTS_OPTION = 10004;
 
 vtkStandardNewMacro(vtkPlusAtracsysTracker);
 
@@ -191,6 +185,8 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   // TODO: add onboard processing and image streaming to config file and add error checking
   this->Internal->Tracker->EnableOnboardProcessing();
   this->Internal->Tracker->DisableImageStreaming();
+  this->Internal->Tracker->DisableWirelessMarkerStatusStreaming();
+  this->Internal->Tracker->DisableWirelessMarkerBatteryStreaming();
 
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
@@ -199,7 +195,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     if (it->second == "ATRACSYS_ACTIVE_BOOMERANG")
     {
       // tool is white boomerang
-      std::pair<int, std::string> newTool(37100000, it->first);
+      std::pair<int, std::string> newTool(371000, it->first);
       this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
     }
     else
@@ -209,7 +205,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
       std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
       int geometryId;
       this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId);
-      std::pair<int, std::string> newTool(geometryId, it->first);
+      std::pair<int, std::string> newTool(geometryId, it->first); 
       this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
     }
   }
@@ -224,14 +220,14 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker->SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  this->Internal->Tracker->EnableImageStreaming();
+  this->Internal->Tracker->EnableWirelessMarkerPairing();
   LOG_INFO(endl << " *** Put marker in front of the device to pair ***" << endl);
 
   // sleep while waiting for tracker to pair active markers
   #ifdef LINUX
     usleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
   #endif
-  #ifdef WINDOWS
+  #ifdef WIN32
     Sleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
   #endif
   
@@ -243,16 +239,9 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // TODO: check number of active markers paired
   // TODO: print info about paired markers here
-  /*
-  cout << "Additional info about paired markers:" << endl;
-  ftkBuffer buffer;
-  if (ftkGetData(Internal->ftkLib, Internal->TrackerSN, DEV_MARKERS_INFO, &buffer) != FTK_OK)
-  {
-    std::cout << "Cannot get additional infos on the markers.";
-  }
-  std::string info(buffer.data, buffer.data + buffer.size);
-  cout << info << endl;
-  */
+  
+  cout << "Additional info about paired markers:" << this->Internal->Tracker->GetMarkerInfo() << std::endl;
+  LOG_ERROR(this->Internal->FtkGeometryIdMappedToToolId.size());
 
   return PLUS_SUCCESS;
 }
@@ -283,95 +272,28 @@ PlusStatus vtkPlusAtracsysTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 {
-  /*
   LOG_TRACE("vtkPlusAtracsysTracker::InternalUpdate");
-  
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  ftkFrameQuery* frame = ftkCreateFrame();
-
-  if (frame == 0)
-  {
-    LOG_ERROR("Cannot create frame instance");
-    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
-    return PLUS_FAIL;
-  }
-
-  ftkError err(ftkSetFrameOptions(false, false, 128u, 128u,
-    4u * FTK_MAX_FIDUCIALS, 4u, frame));
-
-  if (err != FTK_OK)
-  {
-    ftkDeleteFrame(frame);
-    LOG_ERROR("Cannot initialize frame");
-    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
-  }
-
-  if (ftkGetLastFrame(this->Internal->ftkLib, this->Internal->TrackerSN, frame, 0) != FTK_OK)
-  {
-    // block until next frame is available from camera
-    LOG_INFO("No frame avialable from camera.");
-    return PLUS_SUCCESS;
-  }
-
-  switch (frame->markersStat)
-  {
-  case QS_WAR_SKIPPED:
-    ftkDeleteFrame(frame);
-    LOG_ERROR("marker fields in the frame are not set correctly");
-    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
-    return PLUS_FAIL;
-
-  case QS_ERR_INVALID_RESERVED_SIZE:
-    ftkDeleteFrame(frame);
-    LOG_ERROR("frame -> markersVersionSize is invalid");
-    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
-    return PLUS_FAIL;
-    
-  default:
-    ftkDeleteFrame(frame);
-    LOG_ERROR("invalid status");
-    LOG_ERROR(this->Internal->Tracker->GetFtkLastErrorString());
-    return PLUS_FAIL;
-
-  case QS_OK:
-    break;
-  }
-
-  if (frame->markersStat == QS_ERR_OVERFLOW)
-  {
-    LOG_ERROR("Marker overflow. Too many markers in frame.");
-    return PLUS_FAIL;
-  }
+  std::vector<Atracsys::Marker> markers;
+  this->Internal->Tracker->GetMarkersInFrame(markers);
 
   std::map<int, std::string>::iterator it;
   for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
   {
-    ftkMarker* marker;
     bool toolUpdated = false;
 
-    for (size_t m = 0; m < frame->markersCount; m++)
+    std::vector<Atracsys::Marker>::iterator mit;
+    for (mit = begin(markers); mit != end(markers); mit++)
     {
-      if (it->first != frame->markers[m].geometryId)
+      if (it->first != mit->GetGeometryID())
       {
         continue;
       }
-      marker = &(frame->markers[m]);
       toolUpdated = true;
-      vtkSmartPointer<vtkMatrix4x4> toolToTracker = vtkSmartPointer<vtkMatrix4x4>::New();
-      toolToTracker->Identity();
-      for (int i = 0; i < 3; i++)
-      {
-        toolToTracker->SetElement(i, 3, marker->translationMM[i]);
-        for (int j = 0; j < 3; j++)
-        {
-          toolToTracker->SetElement(i, j, marker->rotation[i][j]);
-        }
-      }
       PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
-
-      ToolTimeStampedUpdate(toolSourceId, toolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+      ToolTimeStampedUpdate(toolSourceId, mit->GetTransformToTracker(), TOOL_OK, this->FrameNumber, unfilteredTimestamp);
     }
 
     if (!toolUpdated)
@@ -382,12 +304,10 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       std::string toolSourceId = toolTransformName.GetTransformName();
       ToolTimeStampedUpdate(toolSourceId, emptyTransform, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
     }
+
   }
 
   this->FrameNumber++;
-  
-  // close frame
-  ftkDeleteFrame(frame);
-  */
+ 
   return PLUS_SUCCESS;
 }

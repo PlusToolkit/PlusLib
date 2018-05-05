@@ -8,27 +8,30 @@ See License.txt for details.
 
 using namespace Atracsys;
 
-ATRACSYS_ERROR Marker::GetID(int& id)
+Marker::Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, int freMm)
 {
-  return SUCCESS;
+  this->GeometryId = geometryId;
+  this->ToolToTracker = toolToTracker;
+  this->GeometryPresenceMask = gpm;
+  this->FreMm = freMm;
 }
 
-ATRACSYS_ERROR Marker::GetGeometryID(int& geometryID)
+int Marker::GetGeometryID()
 {
-  return SUCCESS;
+  return this->GeometryId;
 }
 
-ATRACSYS_ERROR Marker::GetGeometryPrecsenceMask(int& geometryMask)
+int Marker::GetGeometryPrecsenceMask()
 {
-  return SUCCESS;
+  return this->GeometryPresenceMask;
 }
 
-ATRACSYS_ERROR Marker::GetTransformToTracker(vtkSmartPointer<vtkMatrix4x4> MarkerToTracker)
+vtkSmartPointer<vtkMatrix4x4> Marker::GetTransformToTracker()
 {
-  return SUCCESS;
+  return this->ToolToTracker;
 }
 
-ATRACSYS_ERROR Marker::GetFiducialRegistrationErrorMm(float& fre)
+float Marker::GetFiducialRegistrationErrorMm()
 {
-  return SUCCESS;
+  return this->FreMm;
 }

@@ -75,7 +75,16 @@ namespace Atracsys
     ATRACSYS_ERROR DisableWirelessMarkerPairing();
 
     /*! */
+    ATRACSYS_ERROR DisableWirelessMarkerStatusStreaming();
+
+    /*! */
+    ATRACSYS_ERROR DisableWirelessMarkerBatteryStreaming();
+
+    /*! */
     ATRACSYS_ERROR GetMarkersInFrame(std::vector<Marker>& markers);
+
+    /*! */
+    std::string GetMarkerInfo();
 
     /*! */
     std::string GetFtkLastErrorString();
@@ -91,7 +100,7 @@ namespace Atracsys
     bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
     //----------------------------------------------------------------------------
   
-    ATRACSYS_ERROR SetSTKOnlyOption(OPTIONS option, int value);
+    ATRACSYS_ERROR SetSTKOnlyOption(int option, int value);
   };
 }
 #endif

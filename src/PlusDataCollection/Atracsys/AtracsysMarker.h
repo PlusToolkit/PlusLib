@@ -9,31 +9,25 @@ See License.txt for details.
 
 #include "AtracsysConstants.h"
 #include <vtkSmartPointer.h>
-#include "vtkMatrix4x4.h"
+#include <vtkMatrix4x4.h>
 
 namespace Atracsys
 {
   class Marker
   {
   public:
-    ATRACSYS_ERROR GetID(int& id);
-    ATRACSYS_ERROR GetGeometryID(int& geometryID);
-    ATRACSYS_ERROR GetGeometryPrecsenceMask(int& geometryMask);
-    ATRACSYS_ERROR GetTransformToTracker(vtkSmartPointer<vtkMatrix4x4> MarkerToTracker);
-    ATRACSYS_ERROR GetFiducialRegistrationErrorMm(float& fre);
+    Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, int freMm);
+    int GetGeometryID();
+    int GetGeometryPrecsenceMask();
+    vtkSmartPointer<vtkMatrix4x4> GetTransformToTracker();
+    float GetFiducialRegistrationErrorMm();
   private:
-    int id; /*!< Tracking id */
-    int geometryId; /*!< Geometric id, i.e. the unique id of the used
-                       * geometry. */
-    int geometryPresenceMask; /*!< Presence mask of fiducials expressed as
+    int Id; /*!< Tracking id */
+    int GeometryId;
+    vtkSmartPointer<vtkMatrix4x4> ToolToTracker;
+    int GeometryPresenceMask; /*!< Presence mask of fiducials expressed as
                                  * their geometrical indexes */
-    int fiducialCorresp[FTK_MAX_FIDUCIALS]; /*!< Correspondence between
-                                               * geometry index and 3D
-                                               * fiducials indexes or
-                                               * INVALID_ID */
-    float rotation[3][3]; /*!< Rotation matrix: format [row][column] */
-    float translationMM[3]; /*!< translation vector (unit mm) */
-    float registrationErrorMM; /*!< Registration mean ATRACSYS_ERROR (unit mm) */
+    float FreMm; /*!< Registration mean ATRACSYS_ERROR (unit mm) */
   };
 }
 
