@@ -785,14 +785,14 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", polyDataMessage->GetHeaderVersion());
         igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
 
-        igtlio::PolyDataConverter::ContentData data;
+        igtlioPolyDataConverter::ContentData data;
         data.deviceName = "PlusServer";
         data.polydata = polyData;
 
-        igtlio::BaseConverter::HeaderData header;
+        igtlioBaseConverter::HeaderData header;
         header.deviceName = "PlusServer";
 
-        igtlio::PolyDataConverter::toIGTL(header, data, (igtl::PolyDataMessage::Pointer*)&msg);
+        igtlioPolyDataConverter::toIGTL(header, data, (igtl::PolyDataMessage::Pointer*)&msg);
         if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
         {
           LOG_ERROR("Filename too long to be sent back to client. Aborting.");
