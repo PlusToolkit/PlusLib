@@ -53,27 +53,17 @@ public:
   {
   }
 
-  // matches tool id to .ini geometry file names/paths
-  std::map<std::string, std::string> IdMappedToGeometryFilename;
-
-  // matches tool id to ftkGeometry for updating tools
-  std::map<int, std::string> FtkGeometryIdMappedToToolId;
-
-  // main library handle for Atracsys sTk Passive Tracking SDK
-  ftkLibrary ftkLib;
-
-  // tracker serial number
-  uint64 TrackerSN;
-
-  //std::string GetFtkErrorString();
-
-  int MaxMissingFiducials = 1;
+  int MaxMissingFiducials = 0;
+  float MaxMeanRegistrationErrorMm = 2.0;
   int ActiveMarkerPairingTimeSec = 0;
 
-  //PlusStatus LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
-  //bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
+  // matches plus tool id to .ini geometry file names/paths
+  std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
 
-  // here begins the new interface
+  // matches fusionTrack internal tool geometry ID to Plus tool ID for updating tools
+  std::map<int, std::string> FtkGeometryIdMappedToToolId;
+
+  // Atracsys API wrapper class handle
   Atracsys::Tracker* Tracker = new Atracsys::Tracker();
 };
 
@@ -114,8 +104,15 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MaxMissingFiducials, this->Internal->MaxMissingFiducials, deviceConfig);
   if (this->Internal->MaxMissingFiducials < 0 || this->Internal->MaxMissingFiducials > 3)
   {
-    LOG_WARNING("Invalid maximum number of missing fiducials provided. Must be between 0 and 3 inclusive. Maximum missing fiducials has been set to it's default value of 0.");
+    LOG_WARNING("Invalid maximum number of missing fiducials provided. Must be between 0 and 3 inclusive. Maximum missing fiducials has been set to its default value of 0.");
     this->Internal->MaxMissingFiducials = 0;
+  }
+
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(float, MaxMeanRegistrationErrorMm, this->Internal->MaxMeanRegistrationErrorMm, deviceConfig);
+  if (this->Internal->MaxMeanRegistrationErrorMm < 0.1 || this->Internal->MaxMeanRegistrationErrorMm > 5.0)
+  {
+    LOG_WARNING("Invalid maximum mean registration error provided. Must be between 0.1 and 5 mm inclusive. Maximum mean registration error has been set to its default value of 5.0mm.");
+    this->Internal->MaxMeanRegistrationErrorMm = 2.0;
   }
 
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, ActiveMarkerPairingTimeSec, this->Internal->ActiveMarkerPairingTimeSec, deviceConfig);
@@ -123,6 +120,12 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
   {
     LOG_WARNING("Are you sure you want to leave active marker pairing enabled for more than 60 seconds?");
   }
+
+  enum TRACKING_TYPE
+  {
+    ACTIVE,
+    PASSIVE
+  };
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -145,15 +148,39 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
       LOG_ERROR("Failed to initialize Atracsys tool: DataSource Id is missing.");
       continue;
     }
-    const char* geometryFile;
-    if ((geometryFile = toolDataElement->GetAttribute("GeometryFile")) != NULL)
+    
+    TRACKING_TYPE toolTrackingType;
+    XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(TrackingType, toolTrackingType, toolDataElement, "ACTIVE", ACTIVE, "PASSIVE", PASSIVE);
+    if (toolTrackingType == ACTIVE)
     {
-      std::pair<std::string, std::string> thisTool(toolId, geometryFile);
-      this->Internal->IdMappedToGeometryFilename.insert(thisTool);
+      // active tool, can be loaded directly into FtkGeometryIdMappedToToolId
+      int ftkGeometryId = -1;
+      XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, GeometryId, ftkGeometryId, toolDataElement);
+      if (ftkGeometryId != -1)
+      {
+        std::pair<int, std::string> thisTool(ftkGeometryId, toolId);
+        this->Internal->FtkGeometryIdMappedToToolId.insert(thisTool);
+      }
+      else
+      {
+        LOG_ERROR("Active tool with Id " << toolId << " is missing a GeometryId");
+        return PLUS_FAIL;
+      }
     }
-    else
+    else if (toolTrackingType == PASSIVE)
     {
-      LOG_ERROR("Failed to initialize Atracsys tool " << toolId << ": GeometryFile is missing.")
+      // passive tool, load into PlusIdMappedToGeometryFilename to have geometry loaded in InternalConnect
+      const char* geometryFile;
+      if ((geometryFile = toolDataElement->GetAttribute("GeometryFile")) != NULL)
+      {
+        std::pair<std::string, std::string> thisTool(toolId, geometryFile);
+        this->Internal->PlusIdMappedToGeometryFilename.insert(thisTool);
+      }
+      else
+      {
+        LOG_ERROR("Passive tool with Id " << toolId << " is missing GeometryFile (.ini).");
+        return PLUS_FAIL;
+      }
     }
   }
 
@@ -190,24 +217,15 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
-  for (it = begin(this->Internal->IdMappedToGeometryFilename); it != end(this->Internal->IdMappedToGeometryFilename); it++)
+  for (it = begin(this->Internal->PlusIdMappedToGeometryFilename); it != end(this->Internal->PlusIdMappedToGeometryFilename); it++)
   {
-    if (it->second == "ATRACSYS_ACTIVE_BOOMERANG")
-    {
-      // tool is white boomerang
-      std::pair<int, std::string> newTool(371000, it->first);
-      this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
-    }
-    else
-    {
-      // load user defined geometry file
-      // TODO: add check for conflicting marker IDs
-      std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
-      int geometryId;
-      this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId);
-      std::pair<int, std::string> newTool(geometryId, it->first); 
-      this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
-    }
+    // load user defined geometry file
+    // TODO: add check for conflicting marker IDs
+    std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
+    int geometryId;
+    this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId);
+    std::pair<int, std::string> newTool(geometryId, it->first); 
+    this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   }
 
   // TODO: add ability to set number of missing fiducials for a validly tracked marker
@@ -241,7 +259,6 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   // TODO: print info about paired markers here
   
   cout << "Additional info about paired markers:" << this->Internal->Tracker->GetMarkerInfo() << std::endl;
-  LOG_ERROR(this->Internal->FtkGeometryIdMappedToToolId.size());
 
   return PLUS_SUCCESS;
 }
