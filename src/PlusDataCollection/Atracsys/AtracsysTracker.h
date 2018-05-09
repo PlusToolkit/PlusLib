@@ -33,10 +33,42 @@ namespace Atracsys
     Tracker();
     ~Tracker();
 
-    /*! */
+    /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
     ATRACSYS_ERROR Connect();
-    /*! */
+    /*! Closes connections to Atracsys tracker, must be called at end of application. */
     ATRACSYS_ERROR Disconnect();
+
+    /*! */
+    ATRACSYS_ERROR GetDeviceType(DEVICE_TYPE& deviceType);
+
+    /*! */
+    ATRACSYS_ERROR LoadMarkerGeometry(std::string filePath, int& geometryId);
+
+    /*! */
+    std::string GetMarkerInfo();
+
+    /*! */
+    ATRACSYS_ERROR GetMarkersInFrame(std::vector<Marker>& markers);
+
+    /*! */
+    std::string GetLastErrorString();
+
+    /*! */
+    ATRACSYS_ERROR EnableIRStrobe();
+    /*! */
+    ATRACSYS_ERROR DisableIRStrobe();
+
+    /*! */
+    ATRACSYS_ERROR SetUserLEDState(int red, int green, int blue, int frequency);
+
+    /*! */
+    ATRACSYS_ERROR EnableUserLED();
+    /*! */
+    ATRACSYS_ERROR DisableUserLED();
+
+    // ------------------------------------------
+    // spryTrack only options
+    // ------------------------------------------
 
     /*! */
     ATRACSYS_ERROR EnableOnboardProcessing();
@@ -47,60 +79,49 @@ namespace Atracsys
     ATRACSYS_ERROR EnableImageStreaming();
     /*! */
     ATRACSYS_ERROR DisableImageStreaming();
-    
-    /*! */
-    ATRACSYS_ERROR EnableIRStrobe();
-    /*! */
-    ATRACSYS_ERROR DisableIRStrobe();
 
-    /*! */
-    ATRACSYS_ERROR GetDroppedFrameCount();
-    /*! */
-    ATRACSYS_ERROR ResetLostFrameCount();
-
-    /*! */
-    ATRACSYS_ERROR SetUserLEDState(int red, int green, int blue, int frequency);
-    /*! */
-    ATRACSYS_ERROR GetUserLEDState(int& red, int& green, int& blue, int& frequency);
-    /*! */
-    ATRACSYS_ERROR EnableUserLED();
-    /*! */
-    ATRACSYS_ERROR DisableUserLED();
-
-    /*! */
-    ATRACSYS_ERROR LoadMarkerGeometry(std::string filePath, int& geometryId);
     /*! */
     ATRACSYS_ERROR EnableWirelessMarkerPairing();
     /*! */
     ATRACSYS_ERROR DisableWirelessMarkerPairing();
 
     /*! */
+    ATRACSYS_ERROR EnableWirelessMarkerStatusStreaming();
+    /*! */
     ATRACSYS_ERROR DisableWirelessMarkerStatusStreaming();
 
     /*! */
+    ATRACSYS_ERROR EnableWirelessMarkerBatteryStreaming();
+    /*! */
     ATRACSYS_ERROR DisableWirelessMarkerBatteryStreaming();
 
-    /*! */
-    ATRACSYS_ERROR GetMarkersInFrame(std::vector<Marker>& markers);
+    // ------------------------------------------
+    // fusionTrack only options
+    // ------------------------------------------
 
     /*! */
-    std::string GetMarkerInfo();
+    ATRACSYS_ERROR Tracker::GetDroppedFrameCount(int& droppedFrameCount);
 
     /*! */
-    std::string GetFtkLastErrorString();
-
-    /*! */
-    ATRACSYS_ERROR LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
+    ATRACSYS_ERROR Tracker::ResetLostFrameCount();
 
   private:
     ftkLibrary FtkLib = 0;
     uint64 TrackerSN = 0;
     DEVICE_TYPE DeviceType = UNKNOWN;
-
+    std::string LastError;
+    
+    // load Atracsys marker geometry ini file
     bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
-    //----------------------------------------------------------------------------
-  
-    ATRACSYS_ERROR SetSTKOnlyOption(int option, int value);
+
+    // helper function to load ftkGeometry
+    ATRACSYS_ERROR LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
+
+    // helper function to set spryTrack only options
+    ATRACSYS_ERROR SetSpryTrackOnlyOption(int option, int value);
+
+    // helper function to set fusionTrack only options
+    ATRACSYS_ERROR SetFusionTrackOnlyOption(int option, int value);
   };
 }
 #endif

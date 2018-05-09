@@ -57,6 +57,9 @@ public:
   float MaxMeanRegistrationErrorMm = 2.0;
   int ActiveMarkerPairingTimeSec = 0;
 
+  // type of tracker connected
+  Atracsys::DEVICE_TYPE DeviceType = Atracsys::UNKNOWN;
+
   // matches plus tool id to .ini geometry file names/paths
   std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
 
@@ -209,6 +212,9 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 
   this->Internal->Tracker->Connect();
 
+  // get device type
+  this->Internal->Tracker->GetDeviceType(this->Internal->DeviceType);
+
   // TODO: add onboard processing and image streaming to config file and add error checking
   this->Internal->Tracker->EnableOnboardProcessing();
   this->Internal->Tracker->DisableImageStreaming();
@@ -267,7 +273,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 PlusStatus vtkPlusAtracsysTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalDisconnect");
-  this->Internal->Tracker->SetUserLEDState(0, 0, 0, 0);
+  this->Internal->Tracker->DisableUserLED();
   this->Internal->Tracker->Disconnect();
   return PLUS_SUCCESS;
 }
@@ -307,6 +313,14 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       {
         continue;
       }
+      // check if tool marker registration falls above maximum
+      if (mit->GetFiducialRegistrationErrorMm() > this->Internal->MaxMeanRegistrationErrorMm)
+      {
+        LOG_WARNING("Maximum mean marker fiducial registration error exceeded for tool: " << it->second);
+        continue;
+      }
+
+      // tool is seen with acceptable registration error
       toolUpdated = true;
       PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
@@ -315,6 +329,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 
     if (!toolUpdated)
     {
+      // tool is not seen in this frame
       vtkSmartPointer<vtkMatrix4x4> emptyTransform = vtkSmartPointer<vtkMatrix4x4>::New();
       emptyTransform->Identity();
       PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());

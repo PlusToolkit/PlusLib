@@ -16,7 +16,7 @@ namespace Atracsys
   class Marker
   {
   public:
-    Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, int freMm);
+    Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, float freMm);
     int GetGeometryID();
     int GetGeometryPrecsenceMask();
     vtkSmartPointer<vtkMatrix4x4> GetTransformToTracker();

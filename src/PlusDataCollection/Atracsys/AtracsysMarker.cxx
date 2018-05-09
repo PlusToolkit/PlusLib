@@ -8,7 +8,7 @@ See License.txt for details.
 
 using namespace Atracsys;
 
-Marker::Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, int freMm)
+Marker::Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, float freMm)
 {
   this->GeometryId = geometryId;
   this->ToolToTracker = toolToTracker;
