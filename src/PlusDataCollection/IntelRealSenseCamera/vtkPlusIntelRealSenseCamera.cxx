@@ -38,6 +38,8 @@ void vtkPlusIntelRealSenseCamera::PrintSelf(ostream& os, vtkIndent indent)
 	this->Superclass::PrintSelf(os, indent);
 
 	os << indent << "Intel RealSense 3d Camera: D415" << std::endl;
+	os << indent << "RgbDataSourceName: " << RgbDataSourceName << std::endl;
+	os << indent << "DepthDataSourceName: " << DepthDataSourceName << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -46,9 +48,8 @@ PlusStatus vtkPlusIntelRealSenseCamera::ReadConfiguration(vtkXMLDataElement* roo
 	XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 	XML_READ_STRING_ATTRIBUTE_REQUIRED(RgbDataSourceName, deviceConfig);
 	XML_READ_STRING_ATTRIBUTE_REQUIRED(DepthDataSourceName, deviceConfig);
-	
 
-	LOG_DEBUG("Configure Pro Seek Camera");
+	LOG_DEBUG("Configure RealSense Camera");
 
 	return PLUS_SUCCESS;
 }
