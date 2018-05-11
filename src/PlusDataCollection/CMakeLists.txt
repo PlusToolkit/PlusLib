@@ -1898,30 +1898,20 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM)
 	${TEQ1_SDK_INCLUDE_DIR}
   )
 
-  MESSAGE("TEQ1_SDK_LIBRARY")
-  MESSAGE("${TEQ1_SDK_LIBRARY}")
-  MESSAGE("TEQ1_SDK_BINARY")
-  MESSAGE("${TEQ1_SDK_BINARY}")
-  MESSAGE("External Libraries")
-  MESSAGE("${External_Libraries_Install}")
-  MESSAGE("External Libraries")
-  
   LIST(APPEND ${PROJECT_NAME}_LIBS 
     ${TEQ1_SDK_LIBRARY}
   )
-  
   LIST(APPEND External_Libraries_Install
-    ${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
+	${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
   LIST(APPEND External_Libraries_Debug
-    ${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  MESSAGE("External Libraries")
-  MESSAGE("${External_Libraries_Install}")
+	${TEQ1_SDK_BINARY}/i3system_TE_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${TEQ1_SDK_BINARY}/i3system_USB_DLL_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${TEQ1_SDK_BINARY}/i3system_imgproc_x64${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  
 ENDIF()
 # --------------------------------------------------------------------------
 # V4L2
