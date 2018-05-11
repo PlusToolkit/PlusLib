@@ -44,6 +44,10 @@ void vtkPlusIntelRealSenseCamera::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusIntelRealSenseCamera::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
 	XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+	XML_READ_STRING_ATTRIBUTE_REQUIRED(RgbDataSourceName, deviceConfig);
+	XML_READ_STRING_ATTRIBUTE_REQUIRED(DepthDataSourceName, deviceConfig);
+	
+
 	LOG_DEBUG("Configure Pro Seek Camera");
 
 	return PLUS_SUCCESS;
@@ -65,16 +69,32 @@ PlusStatus vtkPlusIntelRealSenseCamera::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSenseCamera::InternalConnect()
 {
-	this->pipe.start();
-	// Select the camera. Seek Pro is default.
-	/*this->Capture = std::make_shared<LibSeek::SeekThermalPro>();
-	this->Frame = std::make_shared<cv::Mat>();
-
-	if (!this->Capture->open())
-	{
-		LOG_ERROR("Failed to open seek pro");
+	
+	rs2::context ctx;
+	auto list = ctx.query_devices(); // Get a snapshot of currently connected devices
+	if (list.size() == 0) { 
+		LOG_ERROR("No Intel RealSense camera detected");
 		return PLUS_FAIL;
-	}*/
+	}
+	
+	this->num_devices = list.size();
+
+	rs2::config cfg;
+	cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 30);
+	cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+    
+	this->profile = pipe.start(cfg);
+	// Each depth camera might have different units for depth pixels, so we get it here
+	// Using the pipeline's profile, we can retrieve the device that the pipeline uses
+	//float depth_scale = get_depth_scale(profile.get_device());
+
+	//Pipeline could choose a device that does not have a color stream
+	//If there is no color stream, choose to align depth to another stream
+	this->align_to = this->find_stream_to_align(profile.get_streams());
+	// Create a rs2::align object.
+	// rs2::align allows us to perform alignment of depth frames to others frames
+	//The "align_to" is the stream type to which we plan to align depth frames.
+	rs2::align align(align_to);
 
 	return PLUS_SUCCESS;
 }
@@ -82,60 +102,77 @@ PlusStatus vtkPlusIntelRealSenseCamera::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSenseCamera::InternalDisconnect()
 {
-	/*this->Capture = nullptr; // automatically closes resources/connections
-	this->Frame = nullptr;*/
-
+	pipe.stop();
+	
 	return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSenseCamera::InternalUpdate()
 {
-	rs2::colorizer color_map;
+	rs2::frameset frameset;
 
-	rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
-
-	rs2::frame depth = color_map(data.get_depth_frame()); // Find and colorize the depth data
-	rs2::frame color = data.get_color_frame();
-
-	/*if (!this->Capture->isOpened())
-	{
-		// No need to update if we're not able to read data
-		LOG_ERROR("vtkInfraredSeekCam::InternalUpdate Unable to read date");
+	if (this->num_devices < 1) {
+		LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to read date");
 		return PLUS_SUCCESS;
 	}
-
-	// Capture one frame from the SeekPro capture device
-	if (!this->Capture->read(*this->Frame))
+	
+	frameset = pipe.wait_for_frames(); // Wait for next set of frames from the camera
+	
+	if (this->profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
 	{
-		LOG_ERROR("Unable to receive frame");
+		//If the profile was changed, update the align object, and also get the new device's depth scale
+		this->profile = pipe.get_active_profile();
+		this->align_to = this->find_stream_to_align(profile.get_streams());
+	}
+
+	rs2::align align(align_to);
+	//Get processed aligned frame
+	auto processed = align.process(frameset);
+
+	rs2::video_frame color = processed.first(align_to);
+	rs2::depth_frame depth = processed.get_depth_frame();
+
+	vtkPlusDataSource* aSourceRGB(nullptr);
+	if (this->GetDataSource(this->RgbDataSourceName, aSourceRGB) == PLUS_FAIL || aSourceRGB == nullptr)
+	{
+		LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to grab a RGB video source. Skipping frame.");
 		return PLUS_FAIL;
 	}
 
-	vtkPlusDataSource* aSource(nullptr);
-	if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
+	if (aSourceRGB->GetNumberOfItems() == 0)
 	{
-		LOG_ERROR("Unable to grab a video source. Skipping frame.");
+	// Init the buffer with the metadata from the first frame
+		aSourceRGB->SetImageType(US_IMG_RGB_COLOR);
+		aSourceRGB->SetPixelType(VTK_UNSIGNED_CHAR);
+		aSourceRGB->SetNumberOfScalarComponents(3);
+		aSourceRGB->SetInputFrameSize(depth.get_width(), depth.get_height(), 1);
+	}
+	
+	FrameSizeType frameSizeColor = { static_cast<unsigned int>(color.get_width()), static_cast<unsigned int>(color.get_height()), 1 };
+	if (aSourceRGB->AddItem((void *)color.get_data(), aSourceRGB->GetInputImageOrientation(), frameSizeColor, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
+	{
+		LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to send a DEPTH image.");
 		return PLUS_FAIL;
 	}
 
-	if (aSource->GetNumberOfItems() == 0)
+	FrameSizeType frameSize = { static_cast<unsigned int>(depth.get_width()), static_cast<unsigned int>(depth.get_height()), 1 };
+	if (this->aSourceDEPTH->GetNumberOfItems() == 0)
 	{
 		// Init the buffer with the metadata from the first frame
-		aSource->SetImageType(US_IMG_BRIGHTNESS);
-		aSource->SetPixelType(VTK_TYPE_UINT16);
-		aSource->SetNumberOfScalarComponents(1);
-		aSource->SetInputFrameSize(this->Frame->cols, this->Frame->rows, 1);
+		this->aSourceDEPTH->SetImageType(US_IMG_BRIGHTNESS);
+		this->aSourceDEPTH->SetPixelType(VTK_TYPE_UINT16);
+		this->aSourceDEPTH->SetNumberOfScalarComponents(1);
+		this->aSourceDEPTH->SetInputFrameSize(depth.get_width(), depth.get_height(), 1);
 	}
 
-	// Add the frame to the stream buffer
-	FrameSizeType frameSize = { static_cast<unsigned int>(this->Frame->cols), static_cast<unsigned int>(this->Frame->rows), 1 };
-	if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+	if (this->aSourceDEPTH->AddItem((void *)depth.get_data(), this->aSourceDEPTH->GetInputImageOrientation(),frameSize,	VTK_TYPE_UINT16, 1,	US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
 	{
-		return PLUS_FAIL;
+			LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to send a DEPTH image.");
+			return PLUS_FAIL;
 	}
 
-	this->FrameNumber++; */
+	this->FrameNumber++; 
 
 	return PLUS_SUCCESS;
 }
@@ -154,6 +191,68 @@ PlusStatus vtkPlusIntelRealSenseCamera::NotifyConfigured()
 		this->CorrectlyConfigured = false;
 		return PLUS_FAIL;
 	}
+	
+	if (this->GetDataSource(this->RgbDataSourceName, this->aSourceRGB) != PLUS_SUCCESS)
+	{
+		LOG_ERROR("Unable to locate data source for RGB camera: " << this->RgbDataSourceName);
+		return PLUS_FAIL;
+	}
+
+	if (this->GetDataSource(this->DepthDataSourceName, this->aSourceDEPTH) != PLUS_SUCCESS)
+	{
+		LOG_ERROR("Unable to locate data source for DEPTH camera: " << this->DepthDataSourceName);
+		return PLUS_FAIL;
+	}
 
 	return PLUS_SUCCESS;
+}
+
+rs2_stream vtkPlusIntelRealSenseCamera::find_stream_to_align(const std::vector<rs2::stream_profile>& streams)
+{
+	//Given a vector of streams, we try to find a depth stream and another stream to align depth with.
+	//We prioritize color streams to make the view look better.
+	//If color is not available, we take another stream that (other than depth)
+	rs2_stream align_to = RS2_STREAM_ANY;
+	bool depth_stream_found = false;
+	bool color_stream_found = false;
+	for (rs2::stream_profile sp : streams)
+	{
+		rs2_stream profile_stream = sp.stream_type();
+		if (profile_stream != RS2_STREAM_DEPTH)
+		{
+			if (!color_stream_found)         //Prefer color
+				align_to = profile_stream;
+
+			if (profile_stream == RS2_STREAM_COLOR)
+			{
+				color_stream_found = true;
+			}
+		}
+		else
+		{
+			depth_stream_found = true;
+		}
+	}
+
+	if (!depth_stream_found)
+		throw std::runtime_error("No Depth stream available");
+
+	if (align_to == RS2_STREAM_ANY)
+		throw std::runtime_error("No stream found to align with Depth");
+
+	return align_to;
+}
+
+bool vtkPlusIntelRealSenseCamera::profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev)
+{
+	for (auto&& sp : prev)
+	{
+		//If previous profile is in current (maybe just added another)
+		auto itr = std::find_if(std::begin(current), std::end(current), [&sp](const rs2::stream_profile& current_sp) { return sp.unique_id() == current_sp.unique_id(); });
+		if (itr == std::end(current)) //If it previous stream wasn't found in current
+		{
+			return true;
+		}
+	}
+	return false;
 }
