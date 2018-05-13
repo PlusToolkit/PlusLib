@@ -20,7 +20,7 @@ See License.txt for details.
 #include <fstream>
 #include <iostream>
 
-#ifdef LINUX
+#ifdef __linux__
 #include <unistd.h>
 #endif
 #ifdef WIN32
@@ -36,6 +36,10 @@ See License.txt for details.
 #include "ftkTypes.h"
 
 vtkStandardNewMacro(vtkPlusAtracsysTracker);
+
+// for convenience
+#define ATR_SUCCESS AtracsysTracker::ATRACSYS_RESULT::SUCCESS
+typedef AtracsysTracker::ATRACSYS_RESULT ATRACSYS_RESULT;
 
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal
@@ -146,11 +150,11 @@ PlusStatus vtkPlusAtracsysTracker::ReadConfiguration(vtkXMLDataElement* rootConf
     std::string toolId(toolDataElement->GetAttribute("Id"));
     if (toolId.empty())
     {
-      // tool doesn't have ID needed to generate transform
-      LOG_ERROR("Failed to initialize Atracsys tool: DataSource Id is missing.");
-      continue;
+    // tool doesn't have ID needed to generate transform
+    LOG_ERROR("Failed to initialize Atracsys tool: DataSource Id is missing.");
+    continue;
     }
-    
+
     TRACKING_TYPE toolTrackingType;
     XML_READ_ENUM2_ATTRIBUTE_NONMEMBER_OPTIONAL(TrackingType, toolTrackingType, toolDataElement, "ACTIVE", ACTIVE, "PASSIVE", PASSIVE);
     if (toolTrackingType == ACTIVE)
@@ -209,16 +213,36 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalConnect");
 
-  this->Internal->Tracker->Connect();
+  ATRACSYS_RESULT result;
+
+  // Connect to tracker
+  result = this->Internal->Tracker->Connect();
+  if (result != ATR_SUCCESS && result != AtracsysTracker::ATRACSYS_RESULT::WARNING_CONNECTED_IN_USB2)
+  {
+    LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+    return PLUS_FAIL;
+  }
+  else if (result == AtracsysTracker::ATRACSYS_RESULT::WARNING_CONNECTED_IN_USB2)
+  {
+    LOG_WARNING(this->Internal->Tracker->ResultToString(result));
+  }
 
   // get device type
   this->Internal->Tracker->GetDeviceType(this->Internal->DeviceType);
 
-  // TODO: add onboard processing and image streaming to config file and add error checking
-  this->Internal->Tracker->EnableOnboardProcessing();
-  this->Internal->Tracker->DisableImageStreaming();
-  this->Internal->Tracker->DisableWirelessMarkerStatusStreaming();
-  this->Internal->Tracker->DisableWirelessMarkerBatteryStreaming();
+  // if spryTrack, setup for onboard processing and disable extraneous marker info streaming
+  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+  {
+    bool succeeded = true;
+    succeeded = succeeded && (this->Internal->Tracker->EnableOnboardProcessing(true) == ATR_SUCCESS);
+    succeeded = succeeded && (this->Internal->Tracker->EnableImageStreaming(false) == ATR_SUCCESS);
+    succeeded = succeeded && (this->Internal->Tracker->EnableWirelessMarkerStatusStreaming(false) == ATR_SUCCESS);
+    succeeded = succeeded && (this->Internal->Tracker->EnableWirelessMarkerBatteryStreaming(false) == ATR_SUCCESS);
+    if (!succeeded)
+    {
+      LOG_WARNING("Failed to setup spryTrack for onboard processing.");
+    }
+  }
 
   // load passive geometries onto Atracsys
   std::map<std::string, std::string>::iterator it;
@@ -228,26 +252,33 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     // TODO: add check for conflicting marker IDs
     std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
     int geometryId;
-    this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId);
-    std::pair<int, std::string> newTool(geometryId, it->first); 
+    if ((result = this->Internal->Tracker->LoadMarkerGeometry(geomFilePath, geometryId)) != ATR_SUCCESS)
+    {
+      LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+      return PLUS_FAIL;
+    }
+    std::pair<int, std::string> newTool(geometryId, it->first);
     this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   }
 
-  // TODO: add ability to set number of missing fiducials for a validly tracked marker
-  /*if (ftkSetInt32(Internal->ftkLib, Internal->TrackerSN, MAXIMUM_MISSING_POINTS_OPTION, this->Internal->MaxMissingFiducials) != FTK_OK)
+  if ((result = this->Internal->Tracker->SetMaxMissingFiducials(this->Internal->MaxMissingFiducials)) != ATR_SUCCESS)
   {
-    std::cout << "Cannot enable markers with hidden fiducials to be tracked.";
-  }*/
+    LOG_WARNING(this->Internal->Tracker->ResultToString(result));
+  }
 
   // make LED blue during pairing
   this->Internal->Tracker->SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  this->Internal->Tracker->EnableWirelessMarkerPairing();
-  LOG_INFO(endl << " *** Put marker in front of the device to pair ***" << endl);
+  if ((result = this->Internal->Tracker->EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+    return PLUS_FAIL;
+  }
+  LOG_INFO(endl << " *** Put active markers in front of the tracker to pair ***" << endl);
 
   // sleep while waiting for tracker to pair active markers
-  #ifdef LINUX
+  #ifdef __linux__
     usleep(1000*this->Internal->ActiveMarkerPairingTimeSec);
   #endif
   #ifdef WIN32
@@ -255,7 +286,12 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   #endif
   
   LOG_INFO(" *** End of wireless pairing window ***" << endl);
-  this->Internal->Tracker->DisableWirelessMarkerPairing();
+
+  if ((result = this->Internal->Tracker->EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+    return PLUS_FAIL;
+  }
 
   // make LED green, pairing is complete
   this->Internal->Tracker->SetUserLEDState(0, 255, 0, 0);
@@ -272,8 +308,14 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
 PlusStatus vtkPlusAtracsysTracker::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalDisconnect");
-  this->Internal->Tracker->DisableUserLED();
-  this->Internal->Tracker->Disconnect();
+  this->Internal->Tracker->EnableUserLED(false);
+
+  ATRACSYS_RESULT result;
+  if ((result = this->Internal->Tracker->Disconnect()) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+    return PLUS_FAIL;
+  }
   return PLUS_SUCCESS;
 }
 
@@ -298,7 +340,18 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
   std::vector<AtracsysTracker::Marker> markers;
-  this->Internal->Tracker->GetMarkersInFrame(markers);
+
+  ATRACSYS_RESULT result = result = this->Internal->Tracker->GetMarkersInFrame(markers);
+  if (result != ATR_SUCCESS && result != AtracsysTracker::ATRACSYS_RESULT::ERROR_NO_FRAME_AVAILABLE)
+  {
+    LOG_ERROR(this->Internal->Tracker->ResultToString(result));
+    return PLUS_FAIL;
+  }
+  else if (result == AtracsysTracker::ATRACSYS_RESULT::ERROR_NO_FRAME_AVAILABLE)
+  {
+    // waiting for frame
+    return PLUS_SUCCESS;
+  }
 
   std::map<int, std::string>::iterator it;
   for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
@@ -335,7 +388,6 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
       std::string toolSourceId = toolTransformName.GetTransformName();
       ToolTimeStampedUpdate(toolSourceId, emptyTransform, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
     }
-
   }
 
   this->FrameNumber++;

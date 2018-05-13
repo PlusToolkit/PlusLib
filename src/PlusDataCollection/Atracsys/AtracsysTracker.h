@@ -34,18 +34,26 @@ public:
     SUCCESS = 0,
     ERROR_UNABLE_TO_GET_FTK_HANDLE,
     ERROR_NO_DEVICE_CONNECTED,
+    WARNING_CONNECTED_IN_USB2,
     ERROR_UNABLE_TO_LOAD_MARKER,
-    ERROR_FAILURE_TO_LOAD,
-    ERROR_OPTION_NOT_AVAILABLE_ON_FTK,
-    ERROR_FAILED_TO_SET_OPTION,
-    ERROR_FAILED_TO_LOAD_GEOMETRY,
+    ERROR_FAILURE_TO_LOAD_INI,
+    ERROR_OPTION_AVAILABLE_ONLY_ON_FTK,
+    ERROR_OPTION_AVAILABLE_ONLY_ON_STK,
     ERROR_FAILED_TO_CLOSE_SDK,
     ERROR_CANNOT_CREATE_FRAME_INSTANCE,
     ERROR_CANNOT_INITIALIZE_FRAME,
     ERROR_NO_FRAME_AVAILABLE,
     ERROR_INVALID_FRAME,
     ERROR_TOO_MANY_MARKERS,
-    ERROR_OPTION_NOT_AVAILABLE
+    ERROR_ENABLE_IR_STROBE,
+    ERROR_SET_USER_LED,
+    ERROR_ENABLE_USED_LED,
+    ERROR_SET_MAX_MISSING_FIDUCIALS,
+    ERROR_ENABLE_ONBOARD_PROCESSING,
+    ERROR_ENABLE_IMAGE_STREAMING,
+    ERROR_ENABLE_WIRELESS_MARKER_PAIRING,
+    ERROR_ENABLE_WIRELESS_MARKER_STATUS_STREAMING,
+    ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING
   };
 
   enum DEVICE_TYPE
@@ -88,52 +96,44 @@ public:
   std::string GetMarkerInfo();
 
   /*! */
+  std::string ResultToString(ATRACSYS_RESULT result);
+
+  /*! */
   ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers);
 
   /*! */
   std::string GetLastErrorString();
 
   /*! */
-  ATRACSYS_RESULT EnableIRStrobe();
-  /*! */
-  ATRACSYS_RESULT DisableIRStrobe();
+  ATRACSYS_RESULT EnableIRStrobe(bool enabled);
 
   /*! */
   ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency);
 
   /*! */
-  ATRACSYS_RESULT EnableUserLED();
+  ATRACSYS_RESULT EnableUserLED(bool enabled);
+
   /*! */
-  ATRACSYS_RESULT DisableUserLED();
+  ATRACSYS_RESULT SetMaxMissingFiducials(int maxMissingFids);
 
   // ------------------------------------------
   // spryTrack only options
   // ------------------------------------------
 
   /*! */
-  ATRACSYS_RESULT EnableOnboardProcessing();
-  /*! */
-  ATRACSYS_RESULT DisableOnboardProcessing();
+  ATRACSYS_RESULT EnableOnboardProcessing(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT EnableImageStreaming();
-  /*! */
-  ATRACSYS_RESULT DisableImageStreaming();
+  ATRACSYS_RESULT EnableImageStreaming(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerPairing();
-  /*! */
-  ATRACSYS_RESULT DisableWirelessMarkerPairing();
+  ATRACSYS_RESULT EnableWirelessMarkerPairing(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerStatusStreaming();
-  /*! */
-  ATRACSYS_RESULT DisableWirelessMarkerStatusStreaming();
+  ATRACSYS_RESULT EnableWirelessMarkerStatusStreaming(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming();
-  /*! */
-  ATRACSYS_RESULT DisableWirelessMarkerBatteryStreaming();
+  ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming(bool enabled);
 
   // ------------------------------------------
   // fusionTrack only options
@@ -160,7 +160,7 @@ public:
     OPTION_EPIPOLAR_MIN_DISTANCE = 2001,
     OPTION_MATCHING_TOLERANCE = 3002,
     OPTION_MAX_MEAN_REGISTRATION_ERROR = 3003,
-    OPTION_MAX_MISSION_POINTS = 3004,
+    OPTION_MAX_MISSING_POINTS = 3004,
     OPTION_MAX_TRACKING_RANGE = 3005,
     OPTION_ONBOARD_PROCESSING = 6000,
     OPTION_IMAGE_STREAMING = 6003,
@@ -168,7 +168,6 @@ public:
     OPTION_WIRELESS_MARKER_STATUS_STREAMING = 7001,
     OPTION_WIRELESS_MARKER_BATTERY_STREAMING = 7002,
     OPTION_DEV_MARKERS_INFO = 7005,
-    OPTION_MAXIMUM_MISSING_POINTS = 10004
   };
 
   enum IMAGE_PROCESSING_TYPE
@@ -177,17 +176,8 @@ public:
     PROCESSING_ON_PC
   };
 
-  enum
-  {
-    ON = 1,
-    OFF = 0
-  };
-
 private:
-  ftkLibrary FtkLib = 0;
-  uint64 TrackerSN = 0;
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
-  std::string LastError;
   
   class AtracsysInternal;
   AtracsysInternal* Internal;
@@ -199,10 +189,10 @@ private:
   ATRACSYS_RESULT LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
 
   // helper function to set spryTrack only options
-  ATRACSYS_RESULT SetSpryTrackOnlyOption(int option, int value);
+  ATRACSYS_RESULT SetSpryTrackOnlyOption(int option, int value, ATRACSYS_RESULT errorResult);
 
   // helper function to set fusionTrack only options
-  ATRACSYS_RESULT SetFusionTrackOnlyOption(int option, int value);
+  ATRACSYS_RESULT SetFusionTrackOnlyOption(int option, int value, ATRACSYS_RESULT errorResult);
 };
 
 #endif
