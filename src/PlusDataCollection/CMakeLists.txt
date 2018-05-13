@@ -589,15 +589,12 @@ ENDIF()
 IF(PLUS_USE_ATRACSYS)
   SET(Atracsys_SRCS
     Atracsys/vtkPlusAtracsysTracker.cxx
-    Atracsys/AtracsysMarker.cxx
     Atracsys/AtracsysTracker.cxx
   )
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(Atracsys_HDRS
       Atracsys/vtkPlusAtracsysTracker.h
-      Atracsys/AtracsysConstants.h
-      Atracsys/AtracsysMarker.h
       Atracsys/AtracsysTracker.h
       )
   ENDIF()

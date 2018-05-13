@@ -8,7 +8,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusAtracsysTracker.h"
 #include "AtracsysTracker.h"
-#include "AtracsysMarker.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -58,7 +57,7 @@ public:
   int ActiveMarkerPairingTimeSec = 0;
 
   // type of tracker connected
-  Atracsys::DEVICE_TYPE DeviceType = Atracsys::UNKNOWN;
+  AtracsysTracker::DEVICE_TYPE DeviceType = AtracsysTracker::UNKNOWN_DEVICE;
 
   // matches plus tool id to .ini geometry file names/paths
   std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
@@ -67,7 +66,7 @@ public:
   std::map<int, std::string> FtkGeometryIdMappedToToolId;
 
   // Atracsys API wrapper class handle
-  Atracsys::Tracker* Tracker = new Atracsys::Tracker();
+  AtracsysTracker* Tracker = new AtracsysTracker();
 };
 
 //----------------------------------------------------------------------------
@@ -298,7 +297,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   LOG_TRACE("vtkPlusAtracsysTracker::InternalUpdate");
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  std::vector<Atracsys::Marker> markers;
+  std::vector<AtracsysTracker::Marker> markers;
   this->Internal->Tracker->GetMarkersInFrame(markers);
 
   std::map<int, std::string>::iterator it;
@@ -306,7 +305,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   {
     bool toolUpdated = false;
 
-    std::vector<Atracsys::Marker>::iterator mit;
+    std::vector<AtracsysTracker::Marker>::iterator mit;
     for (mit = begin(markers); mit != end(markers); mit++)
     {
       if (it->first != mit->GetGeometryID())
