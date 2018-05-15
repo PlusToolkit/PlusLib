@@ -134,20 +134,19 @@ PlusStatus vtkPlusIntelRealSenseCamera::InternalUpdate()
 	rs2::video_frame color = processed.first(align_to);
 	rs2::depth_frame depth = processed.get_depth_frame();
 
-	vtkPlusDataSource* aSourceRGB(nullptr);
-	if (this->GetDataSource(this->RgbDataSourceName, aSourceRGB) == PLUS_FAIL || aSourceRGB == nullptr)
+	if (aSourceRGB == nullptr)
 	{
 		LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to grab a RGB video source. Skipping frame.");
 		return PLUS_FAIL;
 	}
-
+	
 	if (aSourceRGB->GetNumberOfItems() == 0)
 	{
 	// Init the buffer with the metadata from the first frame
 		aSourceRGB->SetImageType(US_IMG_RGB_COLOR);
 		aSourceRGB->SetPixelType(VTK_UNSIGNED_CHAR);
 		aSourceRGB->SetNumberOfScalarComponents(3);
-		aSourceRGB->SetInputFrameSize(depth.get_width(), depth.get_height(), 1);
+		aSourceRGB->SetInputFrameSize(color.get_width(), color.get_height(), 1);
 	}
 	
 	FrameSizeType frameSizeColor = { static_cast<unsigned int>(color.get_width()), static_cast<unsigned int>(color.get_height()), 1 };
@@ -157,17 +156,23 @@ PlusStatus vtkPlusIntelRealSenseCamera::InternalUpdate()
 		return PLUS_FAIL;
 	}
 
+	if (aSourceDEPTH == nullptr)
+	{
+		LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to grab a RGB video source. Skipping frame.");
+		return PLUS_FAIL;
+	} 
+
 	FrameSizeType frameSize = { static_cast<unsigned int>(depth.get_width()), static_cast<unsigned int>(depth.get_height()), 1 };
-	if (this->aSourceDEPTH->GetNumberOfItems() == 0)
+	if (aSourceDEPTH->GetNumberOfItems() == 0)
 	{
 		// Init the buffer with the metadata from the first frame
-		this->aSourceDEPTH->SetImageType(US_IMG_BRIGHTNESS);
-		this->aSourceDEPTH->SetPixelType(VTK_TYPE_UINT16);
-		this->aSourceDEPTH->SetNumberOfScalarComponents(1);
-		this->aSourceDEPTH->SetInputFrameSize(depth.get_width(), depth.get_height(), 1);
+		aSourceDEPTH->SetImageType(US_IMG_BRIGHTNESS);
+		aSourceDEPTH->SetPixelType(VTK_TYPE_UINT16);
+		aSourceDEPTH->SetNumberOfScalarComponents(1);
+		aSourceDEPTH->SetInputFrameSize(depth.get_width(), depth.get_height(), 1);
 	}
 
-	if (this->aSourceDEPTH->AddItem((void *)depth.get_data(), this->aSourceDEPTH->GetInputImageOrientation(),frameSize,	VTK_TYPE_UINT16, 1,	US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+	if (aSourceDEPTH->AddItem((void *)depth.get_data(), this->aSourceDEPTH->GetInputImageOrientation(),frameSize,	VTK_TYPE_UINT16, 1,	US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
 	{
 			LOG_ERROR("vtkPlusIntelRealSenseCamera::InternalUpdate Unable to send a DEPTH image.");
 			return PLUS_FAIL;
@@ -193,13 +198,13 @@ PlusStatus vtkPlusIntelRealSenseCamera::NotifyConfigured()
 		return PLUS_FAIL;
 	}
 	
-	if (this->GetDataSource(this->RgbDataSourceName, this->aSourceRGB) != PLUS_SUCCESS)
+	if (this->GetDataSource(this->RgbDataSourceName, aSourceRGB) != PLUS_SUCCESS)
 	{
 		LOG_ERROR("Unable to locate data source for RGB camera: " << this->RgbDataSourceName);
 		return PLUS_FAIL;
 	}
 
-	if (this->GetDataSource(this->DepthDataSourceName, this->aSourceDEPTH) != PLUS_SUCCESS)
+	if (this->GetDataSource(this->DepthDataSourceName, aSourceDEPTH) != PLUS_SUCCESS)
 	{
 		LOG_ERROR("Unable to locate data source for DEPTH camera: " << this->DepthDataSourceName);
 		return PLUS_FAIL;
