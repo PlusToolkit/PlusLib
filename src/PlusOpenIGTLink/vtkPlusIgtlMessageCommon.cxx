@@ -74,7 +74,7 @@ PlusStatus vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix,
   }
 
   // Copy VTK matrix to IGTL matrix
-  igtlio::TransformConverter::VTKToIGTLTransform(*vtkMatrix, igtlMatrix);
+  igtlioTransformConverter::VTKToIGTLTransform(*vtkMatrix, igtlMatrix);
 
   return PLUS_SUCCESS;
 }
@@ -268,7 +268,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
 
   // Convert VTK transform to IGTL transform.
-  if (igtlio::ImageConverter::VTKTransformToIGTLImage(matrix, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
+  if (igtlioImageConverter::VTKTransformToIGTLImage(matrix, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
   {
     LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
     return PLUS_FAIL;
@@ -312,7 +312,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   double imageOriginMm[3] = { 0 };
   image->GetOrigin(imageOriginMm);
-  // imageMessage->SetOrigin() is not used, because origin and normal is set later by igtlio::ImageConverter::VTKTransformToIGTLImage()
+  // imageMessage->SetOrigin() is not used, because origin and normal is set later by igtlioImageConverter::VTKTransformToIGTLImage()
 
   int scalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(image->GetScalarType());
   imageMessage->SetScalarType(scalarType);
@@ -324,7 +324,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
 
   memcpy(igtlImagePointer, vtkImagePointer, imageMessage->GetImageSize());
 
-  if (igtlio::ImageConverter::VTKTransformToIGTLImage(imageToReferenceTransform, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
+  if (igtlioImageConverter::VTKTransformToIGTLImage(imageToReferenceTransform, imageSizePixels, imageSpacingMm, imageOriginMm, imageMessage) != 1)
   {
     LOG_ERROR("Failed to pack image message - unable to compute IJKToRAS transform");
     return PLUS_FAIL;
@@ -415,7 +415,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
   if (embeddedTransformName.IsValid())
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (igtlio::ImageConverter::IGTLImageToVTKTransform(imgMsg, vtkMatrix) != 1)
+    if (igtlioImageConverter::IGTLImageToVTKTransform(imgMsg, vtkMatrix) != 1)
     {
       LOG_ERROR("Failed to unpack image message - unable to extract IJKToRAS transform");
       return PLUS_FAIL;
@@ -513,7 +513,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackPolyDataMessage(igtl::PolyDataMessage::
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
-  igtlio::PolyDataConverter::VTKPolyDataToIGTL(polyData, polydataMessage);
+  igtlioPolyDataConverter::VTKPolyDataToIGTL(polyData, polydataMessage);
   polydataMessage->SetTimeStamp(igtlTime);
   polydataMessage->Pack();
 
@@ -537,7 +537,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
   for (auto it = transforms.begin(); it != transforms.end(); ++it)
   {
     igtl::Matrix4x4 matrix;
-    if (igtlio::TransformConverter::VTKToIGTLTransform(*(it->second), matrix) != 1)
+    if (igtlioTransformConverter::VTKToIGTLTransform(*(it->second), matrix) != 1)
     {
       LOG_ERROR("Unable to convert from VTK to IGTL transform.");
       continue;
@@ -607,7 +607,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
     currentTrackingData->GetMatrix(igtlMatrix);
 
     vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (igtlio::TransformConverter::IGTLToVTKTransform(igtlMatrix, mat) != 1)
+    if (igtlioTransformConverter::IGTLToVTKTransform(igtlMatrix, mat) != 1)
     {
       LOG_ERROR("Unable to unpack transform message - cannot convert from IGTL to VTK");
       continue;
@@ -672,7 +672,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
 
   // convert igtl matrix to vtk matrix
   vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (igtlio::TransformConverter::IGTLToVTKTransform(igtlMatrix, transformMatrix) != 1)
+  if (igtlioTransformConverter::IGTLToVTKTransform(igtlMatrix, transformMatrix) != 1)
   {
     LOG_ERROR("Unable to unpack transform message - cannot convert from IGTL to VTK");
     return PLUS_FAIL;
