@@ -454,6 +454,13 @@ IF(PLUS_USE_INTELREALSENSE)
   TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
 ENDIF()
 
+#*************************** IntelRealSenseCamTest ***************************
+IF(PLUS_USE_INTELREALSENSE_CAM)
+  ADD_EXECUTABLE(vtkIntelRealSenseCamTest vtkIntelRealSenseCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkIntelRealSenseCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkIntelRealSenseCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+ENDIF()
+
 #*************************** vtkNVidiaDVPVideoSourceTest ***************************
 IF(PLUS_USE_NVIDIA_DVP)
   ADD_EXECUTABLE(vtkNVidiaDVPVideoSourceTest vtkNVidiaDVPVideoSourceTest.cxx )
