@@ -1,0 +1,26 @@
+/*!
+\page DeviceInfraredTEQ1Cam Infrared Thermal Expert Q1 camera
+
+\section DeviceInfraredTEQ1Camera 
+This device allow you to use a Infrared TEQ1 Pro Camera to capture and send infrared thermal images.
+
+This device only works in Windows. We hope in the next months to integrate in Linux. 
+
+\section InfraredTEQ1CamConfigInstallation
+
+You can found the license in:
+ "PlusLib/src/Utilities/InfraredTEQ1Camera/README.md"
+
+\section InfraredTEQ1CamConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "InfraredTEQ1Cam" \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+
+\section InfraredTEQ1CamExampleConfigFile Example configuration file PlusDeviceSet_Server_InfraredTEQ1Camera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_InfraredTEQ1Camera.xml"
+
+*/
