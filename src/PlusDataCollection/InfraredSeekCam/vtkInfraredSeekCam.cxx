@@ -23,6 +23,9 @@ vtkStandardNewMacro(vtkInfraredSeekCam);
 //----------------------------------------------------------------------------
 vtkInfraredSeekCam::vtkInfraredSeekCam()
 {
+  temp = true;
+  existsBias = false;
+  existsFlat = false;
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
 }
@@ -44,10 +47,48 @@ void vtkInfraredSeekCam::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  LOG_DEBUG("Configure Pro Seek Camera");
+  std::string flatFile;
+  std::string biasFile;
 
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  // XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FlatFile, flatFile, deviceConfig);
+  // XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(BiasFile, biasFile, deviceConfig);
+  // XML_READ_BOOL_ATTRIBUTE_OPTIONAL(temp, deviceConfig);
+  //
+  // if (!flatFile.empty()) {
+  //   LOG_INFO("Detected Flat File: " << flatFile);
+  //   existsFlat = readImage(Flat, flatFile);
+  // }
+  //
+  // if (!biasFile.empty()) {
+  //   LOG_INFO("Detected Bias File: " << biasFile);
+  //   existsBias = readImage(Bias, biasFile);;
+  // }
+  //
+  // if (!existsBias || !existsFlat) {
+  //   return PLUS_FAIL;
+  // }
+
+  LOG_DEBUG("Configure Pro Seek Camera");
   return PLUS_SUCCESS;
+}
+
+void vtkInfraredSeekCam::Settemp(bool value) {
+  temp = value;
+}
+
+bool vtkInfraredSeekCam::readImage(cv::Mat &output, const std::string& filename) const {
+  // Try to read with opencv read function
+  cv::Mat aux = cv::imread(filename, 0);
+  if (aux.data) {
+    aux.convertTo(output, CV_32F);
+    return true;
+  }
+  // If that didnt work, try to read as a binary file
+  if (!readBinaryFile(filename, output)) {
+    LOG_ERROR("Failed to open " << filename << " file");
+    return false;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -61,13 +102,10 @@ PlusStatus vtkInfraredSeekCam::WriteConfiguration(vtkXMLDataElement* rootConfigE
 PlusStatus vtkInfraredSeekCam::FreezeDevice(bool freeze)
 {
   if (freeze)
-  {
     this->Disconnect();
-  }
   else
-  {
     this->Connect();
-  }
+
   return PLUS_SUCCESS;
 }
 
@@ -112,6 +150,28 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
     LOG_ERROR("Unable to receive frame");
     return PLUS_FAIL;
   }
+  // if (!this->Capture->read(FrameInt))
+  // {
+  //   LOG_ERROR("Unable to receive frame");
+  //   return PLUS_FAIL;
+  // }
+  //
+  // FrameInt.convertTo(FrameFloat, CV_32F);
+  //
+  // if (existsFlat) {
+  //   FrameFloat = FrameFloat.mul(Flat);
+  // }
+  //
+  // if (existsBias) {
+  //   FrameFloat -= Bias;
+  // }
+  //
+  // if (temp) {
+  //   FrameFloat *= CALIBRATION1;
+  //   FrameFloat -= CALIBRATION2;
+  // }
+  //
+  // *this->Frame = FrameFloat;
 
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
@@ -157,4 +217,30 @@ PlusStatus vtkInfraredSeekCam::NotifyConfigured()
   }
 
   return PLUS_SUCCESS;
+}
+
+bool vtkInfraredSeekCam::readBinaryFile(const std::string& filename, cv::Mat& mat) const {
+    float rows, cols;
+    try {
+
+      std::ifstream ifs(filename, std::ios::binary);
+      if(!ifs.is_open()) {
+        return false;
+      }
+
+      ifs.read((char*)(&rows), sizeof(float));
+      ifs.read((char*)(&cols), sizeof(float));
+      if (rows == 0 || cols == 0) {
+        return false;
+      }
+
+      mat.release();
+      mat.create(rows, cols, CV_32F);
+      ifs.read((char*)(mat.data), mat.elemSize() * mat.total());
+      return true;
+
+    } catch (const std::ifstream::failure& ex) {
+      LOG_ERROR(ex.what() << " at " << filename);
+      return false;
+    }
 }
