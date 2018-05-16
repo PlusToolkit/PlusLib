@@ -1864,9 +1864,12 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
     ${SeekCameraLib_INCLUDE_DIRS}
   )
 
+  get_target_property(seek_static_release seek_static IMPORTED_LOCATION_RELEASE)
+  get_target_property(seek_static_debug seek_static  IMPORTED_LOCATION_DEBUG)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${LIBUSB_LIBRARY}
-    seek_static
+    optimized ${seek_static_release}
+    debug ${seek_static_debug}
   )
 ENDIF()
 
