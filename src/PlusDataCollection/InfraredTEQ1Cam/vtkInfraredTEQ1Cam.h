@@ -14,10 +14,6 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 
 // TEQ1
 #include "i3system_TE.h"
-using namespace i3;
-
-// OpenCV
-#include <opencv2/opencv.hpp>
 
 /*!
 \class vtkInfraredTEQ1Cam
@@ -58,11 +54,10 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
-  //std::shared_ptr<LibSeek::SeekThermalPro>         Capture;
-  //std::shared_ptr<cv::Mat>                  Frame;
+
   int device;
 
-  TE_B *pTE;
+  i3::TE_B *pTE;
   unsigned short *pImgBuf;
   int width;
   int height;

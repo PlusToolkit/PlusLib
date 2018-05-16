@@ -16,6 +16,8 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
+using namespace i3;
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkInfraredTEQ1Cam);
@@ -60,31 +62,20 @@ PlusStatus vtkInfraredTEQ1Cam::WriteConfiguration(vtkXMLDataElement* rootConfigE
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::FreezeDevice(bool freeze)
 {
-  /*if (freeze)
+  if (freeze)
   {
     this->Disconnect();
   }
   else
   {
     this->Connect();
-  }*/
+  }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::InternalConnect()
 {
-  // Select the camera. Seek Pro is default.
-  /*this->Capture = std::make_shared<LibSeek::SeekThermalPro>();
-  this->Frame = std::make_shared<cv::Mat>();
-
-  if (!this->Capture->open())
-  {
-    LOG_ERROR("Failed to open seek pro");
-    return PLUS_FAIL;
-  }
-*/
-
    SCANINFO *pScan = new SCANINFO[MAX_USB_NUM];
     ScanTE(nullptr, pScan);
 	this->device = -1;
@@ -123,9 +114,6 @@ PlusStatus vtkInfraredTEQ1Cam::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::InternalDisconnect()
 {
-  /*this->Capture = nullptr; // automatically closes resources/connections
-  this->Frame = nullptr;
-*/
 	this->pTE->CloseTE();
 	this->pImgBuf = nullptr;
 	return PLUS_SUCCESS;
@@ -145,20 +133,6 @@ PlusStatus vtkInfraredTEQ1Cam::InternalUpdate()
         return PLUS_SUCCESS;
 	}
 	
-  /*if (!this->Capture->isOpened())
-  {
-    // No need to update if we're not able to read data
-    LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to read date");
-    return PLUS_SUCCESS;
-  }
-
-  // Capture one frame from the SeekPro capture device
-  if (!this->Capture->read(*this->Frame))
-  {
-    LOG_ERROR("Unable to receive frame");
-    return PLUS_FAIL;
-  }
- */
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {
