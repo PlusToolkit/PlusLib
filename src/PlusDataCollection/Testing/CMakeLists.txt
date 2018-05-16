@@ -495,6 +495,13 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
   TARGET_LINK_LIBRARIES(vtkInfraredSeekCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
 ENDIF()
 
+#*********************** InfraredTEQ1CameraDeviceTest *****************************
+IF(PLUS_USE_INFRARED_TEQ1_CAM)
+  ADD_EXECUTABLE(vtkInfraredTEQ1CamTest vtkInfraredTEQ1CamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkInfraredTEQ1CamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkInfraredTEQ1CamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+ENDIF()
+
 #*************************** vtkOvrvisionProVideoSourceTest ***************************
 IF(PLUS_USE_OvrvisionPro AND PLUS_TEST_OvrvisionPro)
   ADD_EXECUTABLE(vtkOvrvisionProVideoSourceTest vtkOvrvisionProVideoSourceTest.cxx )
