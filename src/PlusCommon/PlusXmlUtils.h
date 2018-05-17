@@ -303,6 +303,43 @@ public:
     } \
   }
 
+// Read a vector of numeric attributes and save it to a variable. If not found then no change.
+#define XML_READ_STD_ARRAY_ATTRIBUTE_NONMEMBER_OPTIONAL(varType, attributeName, vectorSize, var, xmlElementVar)  \
+  { \
+    varType tmpValue[vectorSize] = {0}; \
+    if ( xmlElementVar->GetVectorAttribute(#attributeName, vectorSize, tmpValue) )  \
+    { \
+      for(int i = 0; i < vectorSize; ++i) \
+      { \
+        var[i] = tmpValue[i]; \
+      } \
+    } \
+  }
+
+// Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
+// If number of parameters in the attribute is not exactly the same as expected then return with error.
+#define XML_READ_STD_ARRAY_ATTRIBUTE_NONMEMBER_EXACT_OPTIONAL(varType, attributeName, vectorSize, var, xmlElementVar)  \
+  { \
+    varType tmpValue[vectorSize+1] = {0}; /* try to read one more value to detect if more values are specified */ \
+    if ( xmlElementVar->GetAttribute(#attributeName) ) \
+    { \
+      if ( xmlElementVar->GetVectorAttribute(#attributeName, vectorSize+1, tmpValue) == vectorSize)  \
+      { \
+        for(int i = 0; i < vectorSize; ++i) \
+        { \
+          var[i] = tmpValue[i]; \
+        } \
+      } \
+      else \
+      { \
+        LOG_ERROR("Unable to parse " << #attributeName << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") \
+        <<" element in device set configuration. Expected exactly " << vectorSize << " values separated by spaces, instead got this: "<< \
+        xmlElementVar->GetAttribute(#attributeName));  \
+        return PLUS_FAIL; \
+      } \
+    } \
+  }
+
 // Read a vector of numeric attributes and save it to a class member variable. If not found then no change.
 // If number of parameters in the attribute is not exactly the same as expected then return with error.
 #define XML_READ_VECTOR_ATTRIBUTE_EXACT_OPTIONAL(memberVarType, vectorSize, memberVar, xmlElementVar)  \

@@ -8,8 +8,12 @@ Any compatible video device through the OpenCV capture interface</a>.
 
 - \xmlAtt \ref DeviceType "Type" = \c "OpenCVVideo" \RequiredAtt
 - \xmlAtt \b VideoURL Complete URL of the file or stream to capture. Either VideoURL or DeviceIndex must be specified. \OptionalAtt
-- \xmlAtt CaptureAPI The capture API to use for this device. \OptionalAtt{CAP_ANY}
 - \xmlAtt \b DeviceIndex Index of the video device to use. Either VideoURL or DeviceIndex must be specified. \OptionalAtt
+- \xmlAtt CaptureAPI The capture API to use for this device. \OptionalAtt{CAP_ANY}
+- \xmlAtt FrameSize The 2 dimensional frame size to use for capturing (example: FrameSize="1920 1080") \OptionalAtt
+- \xmlAtt AcquisitionRate The FPS to request of the camera \OptionalAtt
+- \xmlAtt CameraMatrix A 9 valued entry specifying the 3x3 intrinsic camera matrix. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
+- \xmlAtt DistortionCoefficients Up to 8 value entry specifying the camera distortion coefficients. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
