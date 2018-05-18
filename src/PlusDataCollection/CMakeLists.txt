@@ -189,14 +189,14 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
-  
+
 # --------------------------------------------------------------------------
 # OptiTrack support
 IF(PLUS_USE_OPTITRACK)
   SET(OptiTrack_SRCS
     OptiTrack/vtkPlusOptiTrack.cxx
     )
-    
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(OptiTrack_HDRS
       OptiTrack/vtkPlusOptiTrack.h
@@ -221,7 +221,7 @@ IF(PLUS_USE_OPTITRACK)
     ${OPTITRACK_MOTIVE_LIBRARY_DIR}/${OPTITRACK_MOTIVE_LIBRARY_NAME}
     ${OPTITRACK_NATNET_LIBRARY_DIR}/NatNetLib${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-  
+
   LIST(APPEND External_Libraries_Install
     ${OPTITRACK_MOTIVE_BINARY_DIR}/${OPTITRACK_MOTIVE_BINARY_NAME}
     ${OPTITRACK_NATNET_BINARY_DIR}/NatNetLib${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -262,7 +262,7 @@ IF(PLUS_USE_OPTIMET_CONOPROBE)
     ${OPTIMETSMART32SDK_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Optimet
     )
-    
+
   LIST(APPEND ${PROJECT_NAME}_LIBS
   ${OPTIMETSMART32SDK_LIBRARY}
   )
@@ -511,7 +511,7 @@ IF(PLUS_USE_INTELREALSENSE)
 
   # TODO: may need to install DLLs
   # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
-  # This also seems to be missing the corresponding entry in the PlusLibConfig.cmake 
+  # This also seems to be missing the corresponding entry in the PlusLibConfig.cmake
 #  LIST(APPEND External_Libraries_Install
 #    ${INTELREALSENSE_RELEASE_LIB}
 #    )
@@ -963,7 +963,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
     LIST(APPEND ${PROJECT_NAME}_LIBS
       ${ULTERIUS_LIB_DIR}/ulterius.lib
       )
-    SET(Ultrasonix_External_Libs 
+    SET(Ultrasonix_External_Libs
       ${ULTRASONIX_SDK_BINARY_DIR}/ulterius${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/utx_utils${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${ULTRASONIX_SDK_BINARY_DIR}/umc_string_convert${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -997,7 +997,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
       LIST(APPEND ${PROJECT_NAME}_LIBS ${ULTERIUS_LIB_DIR}/ulterius.lib)
     ENDIF()
 
-    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES 
+    FILE(GLOB ULTRASONIX_SDK_SHARED_LIBRARIES
       "${ULTRASONIX_SDK_BINARY_DIR}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
     LIST(APPEND External_Libraries_Install ${ULTRASONIX_SDK_SHARED_LIBRARIES})
@@ -1011,7 +1011,7 @@ IF(PLUS_USE_ULTRASONIX_VIDEO)
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${ULTERIUS_INCLUDE_DIR}
     ${PORTA_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo 
+    ${CMAKE_CURRENT_SOURCE_DIR}/SonixVideo
     )
 ENDIF()
 
@@ -1066,7 +1066,7 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
       BkProFocus/PlusBkProFocusCameraLinkReceiver.h
       )
   ENDIF()
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     GrabbieLib
     ${DALSASAPERA_LIB_DIR}/SapClassBasic${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
@@ -1083,7 +1083,7 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(ICCapturing_HDRS
       ICCapturing/vtkPlusICCapturingSource.h
-      ICCapturing/ICCapturingListener.h 
+      ICCapturing/ICCapturingListener.h
       )
   ENDIF()
 
@@ -1097,10 +1097,10 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
 
   # Look for ICCapturing libraries
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${ICCAPTURING_INCLUDE_DIR} 
+    ${ICCAPTURING_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/ICCapturing
     )
-  
+
   LIST(APPEND ${PROJECT_NAME}_LIBS
     optimized ${ICCAPTURING_TIS_UDSHL_STATIC_LIB}
     debug ${ICCAPTURING_TIS_UDSHLD_STATIC_LIB}
@@ -1167,7 +1167,7 @@ IF(PLUS_USE_IntuitiveDaVinci)
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(daVinci_HDRS
-      IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h 
+      IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
       IntuitiveDaVinci/IntuitiveDaVinci.h
     )
   ENDIF()
@@ -1184,7 +1184,7 @@ IF(PLUS_USE_IntuitiveDaVinci)
     ${IntuitiveDaVinci_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
     )
-      
+
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${IntuitiveDaVinci_LIBRARY}
     ws2_32
@@ -1215,10 +1215,10 @@ IF(PLUS_USE_VFW_VIDEO)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ws2_32
     )
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS 
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/VideoForWindows
     )
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     Vfw32.lib
     )
 ENDIF()
@@ -1307,7 +1307,7 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
       Capistrano/vtkPlusCapistranoVideoSource.h
       )
   ENDIF()
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${Capistrano_HDRS}
     )
@@ -1316,7 +1316,7 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
     ${Capistrano_SRCS}
     )
 
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
@@ -1345,7 +1345,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
       WinProbe/vtkPlusWinProbeVideoSource.h
       )
   ENDIF()
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${WinProbe_HDRS}
     )
@@ -1366,8 +1366,8 @@ IF(PLUS_USE_WINPROBE_VIDEO)
     SET(Bitness "x64")
   ELSE()
     SET(Bitness "x86")
-  ENDIF() 
-  
+  ENDIF()
+
   FILE(GLOB WinProbeAssemblies "${WINPROBESDK_DIR}/${Bitness}/*.dll")
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
@@ -1458,10 +1458,10 @@ IF(PLUS_USE_INTERSONSDKCXX_VIDEO)
     ${IntersonCXX_SRCS}
     )
 
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
+  LIST(APPEND ${PROJECT_NAME}_LIBS
     ${IntersonSDKCxx_LIBRARIES}
     )
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS     
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${IntersonSDKCxx_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntersonSDKCxx
     )
@@ -1574,7 +1574,7 @@ IF(PLUS_USE_THORLABS_VIDEO)
       ThorLabs/vtkPlusThorLabsVideoSource.h
       )
   ENDIF()
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${ThorLabs_HDRS}
     )
@@ -1603,7 +1603,7 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
   ELSE()
     SET(Philips_SRCS
       Philips3D/vtkPlusPhilips3DProbeVideoSource.cxx
-      Philips3D/vtkPlusIEEListener.cxx 
+      Philips3D/vtkPlusIEEListener.cxx
       )
 
     IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
@@ -1623,7 +1623,7 @@ IF(PLUS_USE_PHILIPS_3D_ULTRASOUND)
       ${Philips_LIBRARY_DIR}/3DData${CMAKE_STATIC_LIBRARY_SUFFIX}
       ${Philips_LIBRARY_DIR}/3DUtil${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-  
+
     FILE(GLOB PHILIPS_SDK_SHARED_LIBRARIES "${Philips_BINARY_DIRS}/[^.]*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
     LIST(APPEND ${PROJECT_NAME}_HDRS
@@ -1644,7 +1644,7 @@ ENDIF()
 # Agilent DXYZ/D310 PCI oscillioscope support
 IF(PLUS_USE_AGILENT)
   FIND_PACKAGE(AgilentMD1 REQUIRED)
-  
+
   SET(Agilent_SRCS
     Agilent/vtkPlusAgilentScopeTracker.cxx
     )
@@ -1708,7 +1708,7 @@ IF(PLUS_USE_NVIDIA_DVP)
       NVidiaDVP/vtkPlusNVidiaDVPVideoSourceLinux.cxx
       )
   ENDIF()
-  
+
   LIST(APPEND NVidiaDVP_SRCS
     NVidiaDVP/glExtensions.cpp
     NVidiaDVP/nvGPUutil.cpp
@@ -1727,7 +1727,7 @@ IF(PLUS_USE_NVIDIA_DVP)
       NVidiaDVP/nvCommon.h
       )
   ENDIF()
-  
+
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${NVidiaDVP_HDRS}
     )
@@ -1847,7 +1847,7 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
       InfraredSeekCam/vtkInfraredSeekCam.cxx
     )
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(Infrared_SeekCam_HDRS 
+    SET(Infrared_SeekCam_HDRS
      InfraredSeekCam/vtkInfraredSeekCam.h
     )
   ENDIF()
@@ -1862,10 +1862,15 @@ IF(PLUS_USE_INFRARED_SEEK_CAM)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/InfraredSeekCam
+    ${SeekCameraLib_INCLUDE_DIRS}
   )
 
-  LIST(APPEND ${PROJECT_NAME}_LIBS 
-    SeekCameraLib
+  get_target_property(seek_static_release seek_static IMPORTED_LOCATION_RELEASE)
+  get_target_property(seek_static_debug seek_static  IMPORTED_LOCATION_DEBUG)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${LIBUSB_LIBRARY}
+    optimized ${seek_static_release}
+    debug ${seek_static_debug}
   )
 ENDIF()
 
