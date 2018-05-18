@@ -47,9 +47,8 @@ public:
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
-  bool readBinaryFile(const std::string& filename, cv::Mat& temp) const;
-  bool readImage(cv::Mat &output, const std::string& filename) const;
-  void Settemp(bool value);
+  bool ReadBinaryFile(const std::string& filename, cv::Mat& temp) const;
+  bool ReadImage(cv::Mat &output, const std::string& filename) const;
 
 protected:
   vtkInfraredSeekCam();
@@ -66,11 +65,11 @@ protected:
   cv::Mat Bias;
   cv::Mat FrameFloat;    // Output frame in float precision
   cv::Mat FrameInt;      // Input frame in integer precision
-  bool existsFlat;       // Checks if the flat image could be loaded
-  bool existsBias;       // Checks if the bias image could be loaded
-  bool calibTemperature; // Checks if the output frame should be calibrated to show the temperature
-  float calibMul;        // Temperature calibration
-  float calibBias;       // Temperature calibration
+  bool ExistsFlat;       // Checks if the flat image could be loaded
+  bool ExistsBias;       // Checks if the bias image could be loaded
+  bool CalibTemperature; // Checks if the output frame should be calibrated to show the temperature
+  float CalibMul;        // Temperature calibration
+  float CalibBias;       // Temperature calibration
 };
 
 #endif // __vtkInfraredSeekCam_h
