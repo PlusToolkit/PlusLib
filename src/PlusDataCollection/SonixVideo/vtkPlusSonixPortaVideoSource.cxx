@@ -58,15 +58,6 @@ and The University of Western Ontario)
   #pragma warning (pop)
 #endif
 
-//vtkStandardNewMacro(vtkWin32VideoSource);
-//----------------------------------------------------------------------------
-// Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkPlusSonixPortaVideoSource);
-
-//----------------------------------------------------------------------------
-vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::Instance = 0;
-vtkPlusSonixPortaVideoSourceCleanup vtkPlusSonixPortaVideoSource::Cleanup;
-
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
   #pragma warning ( disable : 4311 )
   #pragma warning ( disable : 4312 )
@@ -92,6 +83,11 @@ int portaImportChromaMap(int index, const unsigned int* lut)
 #include "porta_wrapper.cpp"
 
 #endif
+
+//----------------------------------------------------------------------------
+// The singleton, and the singleton cleanup
+vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::Instance = 0;
+vtkPlusSonixPortaVideoSourceCleanup vtkPlusSonixPortaVideoSource::Cleanup;
 
 //----------------------------------------------------------------------------
 vtkPlusSonixPortaVideoSourceCleanup::vtkPlusSonixPortaVideoSourceCleanup()
@@ -184,7 +180,6 @@ vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::New()
 // Return the single instance of the vtkOutputWindow
 vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::GetInstance()
 {
-
   if (!vtkPlusSonixPortaVideoSource::Instance)
   {
     // try the factory first
@@ -228,7 +223,6 @@ void vtkPlusSonixPortaVideoSource::SetInstance(vtkPlusSonixPortaVideoSource* ins
   //user will call ->Delete() after setting instance
   instance->Register(NULL);
 }
-
 
 //----------------------------------------------------------------------------
 std::string vtkPlusSonixPortaVideoSource::GetSdkVersion()
