@@ -68,10 +68,9 @@ protected:
   cv::Mat FrameInt;
   bool existsFlat;
   bool existsBias;
-  bool temp;
-
-  const float CALIBRATION1 = 0.022174f;
-  const float CALIBRATION2 = 322.56f;
+  bool calibTemperature; 
+  float calibMul;  // Temperature calibration
+  float calibBias; // Temperature calibration
 };
 
 #endif // __vtkInfraredSeekCam_h

@@ -23,7 +23,7 @@ vtkStandardNewMacro(vtkInfraredSeekCam);
 //----------------------------------------------------------------------------
 vtkInfraredSeekCam::vtkInfraredSeekCam()
 {
-  temp = true;
+  calibTemperature  = false;
   existsBias = false;
   existsFlat = false;
   this->RequireImageOrientationInConfiguration = true;
@@ -38,7 +38,6 @@ vtkInfraredSeekCam::~vtkInfraredSeekCam()
 //----------------------------------------------------------------------------
 void vtkInfraredSeekCam::PrintSelf(ostream& os, vtkIndent indent)
 {
-
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "InfraredSeekCam: Pro Seek Camera" << std::endl;
@@ -47,34 +46,38 @@ void vtkInfraredSeekCam::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  std::string flatFile;
-  std::string biasFile;
+  bool calibTemperatureRead; // Temperature calibration
+  std::string calibMulStr;  // Temperature calibration
+  std::string calibBiasStr; // Temperature calibration
+  std::string flatFilepath;
+  std::string biasFilepath;
 
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  // XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FlatFile, flatFile, deviceConfig);
-  // XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(BiasFile, biasFile, deviceConfig);
-  // XML_READ_BOOL_ATTRIBUTE_OPTIONAL(temp, deviceConfig);
-  //
-  // if (!flatFile.empty()) {
-  //   LOG_INFO("Detected Flat File: " << flatFile);
-  //   existsFlat = readImage(Flat, flatFile);
-  // }
-  //
-  // if (!biasFile.empty()) {
-  //   LOG_INFO("Detected Bias File: " << biasFile);
-  //   existsBias = readImage(Bias, biasFile);;
-  // }
-  //
-  // if (!existsBias || !existsFlat) {
-  //   return PLUS_FAIL;
-  // }
+  // Sensor calibration
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(FlatFile, flatFilepath, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(BiasFile, biasFilepath, deviceConfig);
+  // Temperature calibration
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(CalibrateTemperature, calibTemperatureRead, deviceConfig);
+  if (calibTemperatureRead) {
+    XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(TemperatureMultiplier, calibMulStr, deviceConfig);
+    XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(TemperatureBias, calibBiasStr, deviceConfig);
+    calibTemperature = calibTemperatureRead;
+    calibMul         = std::stof(calibMulStr);
+    calibBias        = std::stof(calibBiasStr);
+  }
+
+  if (!flatFilepath.empty()) {
+    LOG_INFO("Detected Flat File: " << flatFilepath);
+    existsFlat = readImage(Flat, flatFilepath);
+  }
+
+  if (!biasFilepath.empty()) {
+    LOG_INFO("Detected Bias File: " << biasFilepath);
+    existsBias = readImage(Bias, biasFilepath);;
+  }
 
   LOG_DEBUG("Configure Pro Seek Camera");
   return PLUS_SUCCESS;
-}
-
-void vtkInfraredSeekCam::Settemp(bool value) {
-  temp = value;
 }
 
 bool vtkInfraredSeekCam::readImage(cv::Mat &output, const std::string& filename) const {
@@ -86,7 +89,7 @@ bool vtkInfraredSeekCam::readImage(cv::Mat &output, const std::string& filename)
   }
   // If that didnt work, try to read as a binary file
   if (!readBinaryFile(filename, output)) {
-    LOG_ERROR("Failed to open " << filename << " file");
+    LOG_WARNING("Failed to open " << filename << " file. This file will not be used");
     return false;
   }
 }
@@ -145,33 +148,25 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
   }
 
   // Capture one frame from the SeekPro capture device
-  if (!this->Capture->read(*this->Frame))
+  if (!this->Capture->read(FrameInt)) // 16UC1
   {
     LOG_ERROR("Unable to receive frame");
     return PLUS_FAIL;
   }
-  // if (!this->Capture->read(FrameInt))
-  // {
-  //   LOG_ERROR("Unable to receive frame");
-  //   return PLUS_FAIL;
-  // }
-  //
-  // FrameInt.convertTo(FrameFloat, CV_32F);
-  //
-  // if (existsFlat) {
-  //   FrameFloat = FrameFloat.mul(Flat);
-  // }
-  //
-  // if (existsBias) {
-  //   FrameFloat -= Bias;
-  // }
-  //
-  // if (temp) {
-  //   FrameFloat *= CALIBRATION1;
-  //   FrameFloat -= CALIBRATION2;
-  // }
-  //
-  // *this->Frame = FrameFloat;
+
+  FrameInt.convertTo(FrameFloat, CV_32F);
+
+  if (existsFlat && existsBias) {
+    FrameFloat = FrameFloat.mul(Flat);
+    FrameFloat -= Bias;
+  }
+
+  if (calibTemperature) {
+    FrameFloat *= calibMul;
+    FrameFloat -= calibBias;
+  }
+
+  *this->Frame = FrameFloat;
 
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
@@ -184,14 +179,14 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
   {
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetPixelType(VTK_TYPE_UINT16);
+    aSource->SetPixelType(VTK_TYPE_FLOAT32);
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->Frame->cols, this->Frame->rows, 1);
   }
 
   // Add the frame to the stream buffer
   FrameSizeType frameSize = { static_cast<unsigned int>(this->Frame->cols), static_cast<unsigned int>(this->Frame->rows), 1 };
-  if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+  if (aSource->AddItem(this->Frame->data, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_FLOAT32, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }
@@ -204,6 +199,7 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::NotifyConfigured()
 {
+  std::cout << "NotifyConfigured" << std::endl;
   if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("vtkInfraredSeekCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
@@ -220,17 +216,20 @@ PlusStatus vtkInfraredSeekCam::NotifyConfigured()
 }
 
 bool vtkInfraredSeekCam::readBinaryFile(const std::string& filename, cv::Mat& mat) const {
+    std::cout << "readBinaryFile" << std::endl;
     float rows, cols;
     try {
 
       std::ifstream ifs(filename, std::ios::binary);
       if(!ifs.is_open()) {
+        LOG_ERROR("Cant open " << filename);
         return false;
       }
 
       ifs.read((char*)(&rows), sizeof(float));
       ifs.read((char*)(&cols), sizeof(float));
       if (rows == 0 || cols == 0) {
+        LOG_ERROR("File corrupted or incomplete, " << filename);
         return false;
       }
 
