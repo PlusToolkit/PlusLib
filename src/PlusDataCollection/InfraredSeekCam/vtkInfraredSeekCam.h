@@ -64,13 +64,13 @@ protected:
 
   cv::Mat Flat;
   cv::Mat Bias;
-  cv::Mat FrameFloat;
-  cv::Mat FrameInt;
-  bool existsFlat;
-  bool existsBias;
-  bool calibTemperature; 
-  float calibMul;  // Temperature calibration
-  float calibBias; // Temperature calibration
+  cv::Mat FrameFloat;    // Output frame in float precision
+  cv::Mat FrameInt;      // Input frame in integer precision
+  bool existsFlat;       // Checks if the flat image could be loaded
+  bool existsBias;       // Checks if the bias image could be loaded
+  bool calibTemperature; // Checks if the output frame should be calibrated to show the temperature
+  float calibMul;        // Temperature calibration
+  float calibBias;       // Temperature calibration
 };
 
 #endif // __vtkInfraredSeekCam_h

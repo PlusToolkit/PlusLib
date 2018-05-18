@@ -199,7 +199,6 @@ PlusStatus vtkInfraredSeekCam::InternalUpdate()
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredSeekCam::NotifyConfigured()
 {
-  std::cout << "NotifyConfigured" << std::endl;
   if (this->OutputChannels.size() > 1)
   {
     LOG_WARNING("vtkInfraredSeekCam is expecting one output channel and there are " << this->OutputChannels.size() << " channels. First output channel will be used.");
@@ -216,7 +215,6 @@ PlusStatus vtkInfraredSeekCam::NotifyConfigured()
 }
 
 bool vtkInfraredSeekCam::readBinaryFile(const std::string& filename, cv::Mat& mat) const {
-    std::cout << "readBinaryFile" << std::endl;
     float rows, cols;
     try {
 
