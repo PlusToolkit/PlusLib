@@ -42,8 +42,8 @@ public:
   ~vtkPlusSonixPortaVideoSourceCleanup();
 
 private:
-  vtkPlusSonixPortaVideoSourceCleanup(const vtkPlusSonixPortaVideoSourceCleanup& other) = delete;
-  vtkPlusSonixPortaVideoSourceCleanup& operator=(const vtkPlusSonixPortaVideoSourceCleanup& rhs) = delete;
+  vtkPlusSonixPortaVideoSourceCleanup(const vtkPlusSonixPortaVideoSourceCleanup& other);
+  vtkPlusSonixPortaVideoSourceCleanup& operator=(const vtkPlusSonixPortaVideoSourceCleanup& rhs);
 };
 
 /*!
