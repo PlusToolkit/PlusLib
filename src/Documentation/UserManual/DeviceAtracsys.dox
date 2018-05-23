@@ -7,6 +7,8 @@
 \section AtracsysSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageLinux
 
 \section AtracsysInstallation Installation
 - To build the software, please download Atracsys' spryTrack SDK from the web link provided when you purchased the system.

@@ -9,16 +9,8 @@ See License.txt for details.
 
 #include <string>
 #include <vector>
+#include <vtkNew.h>
 
-// Atracsys includes
-#include "ftkErrors.h"
-#include "ftkEvent.h"
-#include "ftkInterface.h"
-#include "ftkOptions.h"
-#include "ftkPlatform.h"
-#include "ftkTypes.h"
-
-#include <vtkSmartPointer.h>
 
 class vtkMatrix4x4;
 
@@ -53,7 +45,10 @@ public:
     ERROR_ENABLE_IMAGE_STREAMING,
     ERROR_ENABLE_WIRELESS_MARKER_PAIRING,
     ERROR_ENABLE_WIRELESS_MARKER_STATUS_STREAMING,
-    ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING
+    ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING,
+    ERROR_DISCONNECT_ATTEMPT_WHEN_NOT_CONNECTED,
+    ERROR_CANNOT_GET_MARKER_INFO,
+    ERROR_FAILED_TO_SET_STK_PROCESSING_TYPE
   };
 
   enum DEVICE_TYPE
@@ -64,21 +59,28 @@ public:
     FUSIONTRACK_250 = 3
   };
 
+  enum SPRYTRACK_IMAGE_PROCESSING_TYPE
+  {
+    PROCESSING_ONBOARD,
+    PROCESSING_ON_PC
+  };
+
   class Marker
   {
   public:
-    Marker(int geometryId, vtkSmartPointer<vtkMatrix4x4> toolToTracker, int gpm, float freMm);
+    Marker();
+    /*! toolToTracker is deep copied */
+    Marker(int geometryId, vtkMatrix4x4* toolToTracker, int gpm, float freMm);
+    Marker(const Marker&);
     int GetGeometryID();
     int GetGeometryPrecsenceMask();
-    vtkSmartPointer<vtkMatrix4x4> GetTransformToTracker();
+    vtkMatrix4x4* GetTransformToTracker();
     float GetFiducialRegistrationErrorMm();
   private:
-    int Id; /*!< Tracking id */
     int GeometryId;
-    vtkSmartPointer<vtkMatrix4x4> ToolToTracker;
-    int GeometryPresenceMask; /*!< Presence mask of fiducials expressed as
-                              * their geometrical indexes */
-    float FreMm; /*!< Registration mean ATRACSYS_ERROR (unit mm) */
+    vtkNew<vtkMatrix4x4> ToolToTracker;
+    int GeometryPresenceMask; // presence mask of fiducials expressed as their numerical indices
+    float RegistrationErrorMM; // Mean fiducial registration error (unit mm) 
   };
 
   /*! Connect to Atracsys tracker, must be called before any other function in this wrapper API. */
@@ -93,7 +95,7 @@ public:
   ATRACSYS_RESULT LoadMarkerGeometry(std::string filePath, int& geometryId);
 
   /*! */
-  std::string GetMarkerInfo();
+  ATRACSYS_RESULT GetMarkerInfo(std::string& markerInfo);
 
   /*! */
   std::string ResultToString(ATRACSYS_RESULT result);
@@ -102,13 +104,10 @@ public:
   ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers);
 
   /*! */
-  std::string GetLastErrorString();
-
-  /*! */
   ATRACSYS_RESULT EnableIRStrobe(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency);
+  ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
 
   /*! */
   ATRACSYS_RESULT EnableUserLED(bool enabled);
@@ -135,11 +134,14 @@ public:
   /*! */
   ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming(bool enabled);
 
+  /*! */
+  ATRACSYS_RESULT SetSpryTrackProcessingType(SPRYTRACK_IMAGE_PROCESSING_TYPE processingType);
+
   // ------------------------------------------
   // fusionTrack only options
   // ------------------------------------------
 
-  /*! */
+  /*! Sum of lost and corrupted frames */
   ATRACSYS_RESULT GetDroppedFrameCount(int& droppedFrameCount);
 
   /*! */
@@ -151,6 +153,7 @@ public:
     OPTION_WIRELESS_PAIRING_ENABLE = 40,
     OPTION_IR_STROBE = 50,
     OPTION_LOST_FRAME_COUNT = 60,
+    OPTION_CORRUPTED_FRAME_COUNT = 61,
     OPTION_RESET_LOST_FRAME_COUNT = 69,
     OPTION_LED_RED_COMPONENT = 90,
     OPTION_LED_GREEN_COMPONENT = 91,
@@ -170,11 +173,7 @@ public:
     OPTION_DEV_MARKERS_INFO = 7005,
   };
 
-  enum IMAGE_PROCESSING_TYPE
-  {
-    PROCESSING_ONBOARD,
-    PROCESSING_ON_PC
-  };
+
 
 private:
   DEVICE_TYPE DeviceType = UNKNOWN_DEVICE;
@@ -185,14 +184,10 @@ private:
   // load Atracsys marker geometry ini file
   //bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry);
 
-  // helper function to load ftkGeometry
-  ATRACSYS_RESULT LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
-
   // helper function to set spryTrack only options
   ATRACSYS_RESULT SetSpryTrackOnlyOption(int option, int value, ATRACSYS_RESULT errorResult);
 
   // helper function to set fusionTrack only options
   ATRACSYS_RESULT SetFusionTrackOnlyOption(int option, int value, ATRACSYS_RESULT errorResult);
 };
-
 #endif
