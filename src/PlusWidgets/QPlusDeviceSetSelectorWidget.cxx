@@ -11,7 +11,9 @@ See License.txt for details.
 #include <vtkPlusTransformRepository.h>
 
 // Qt includes
+#include <QAbstractItemView>
 #include <QAction>
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDomDocument>
