@@ -654,6 +654,7 @@ IF(PLUS_USE_ATRACSYS)
         )
     ENDIF()
   ENDIF()
+ 
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -2218,6 +2219,17 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   INSTALL(TARGETS PlusVersion ViewSequenceFile EXPORT PlusLib
     RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   )
+ENDIF()
+
+IF(PLUS_USE_ATRACSYS)
+  # build AtracsysMarkerCreator
+  ADD_EXECUTABLE(AtracsysMarkerCreator Atracsys/AtracsysTracker.h Atracsys/AtracsysTracker.cxx Atracsys/AtracsysMarkerCreator.cxx)
+  TARGET_LINK_LIBRARIES(AtracsysMarkerCreator PUBLIC ${${PROJECT_NAME}_LIBS})
+  TARGET_LINK_LIBRARIES(AtracsysMarkerCreator PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
+  TARGET_LINK_LIBRARIES(vtkPlusDataCollection)
+  FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(AtracsysMarkerCreator PUBLIC $<BUILD_INTERFACE:${p}>)
+  ENDFOREACH()
 ENDIF()
 
 # --------------------------------------------------------------------------

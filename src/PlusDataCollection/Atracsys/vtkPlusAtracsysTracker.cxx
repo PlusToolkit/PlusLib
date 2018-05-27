@@ -55,9 +55,6 @@ public:
   float MaxMeanRegistrationErrorMm = 2.0;
   int ActiveMarkerPairingTimeSec = 0;
 
-  // type of tracker connected
-  AtracsysTracker::DEVICE_TYPE DeviceType = AtracsysTracker::UNKNOWN_DEVICE;
-
   // matches plus tool id to .ini geometry file names/paths
   std::map<std::string, std::string> PlusIdMappedToGeometryFilename;
 
@@ -66,6 +63,9 @@ public:
 
   // Atracsys API wrapper class handle
   AtracsysTracker Tracker;
+
+  // type of tracker connected
+  AtracsysTracker::DEVICE_TYPE DeviceType = AtracsysTracker::UNKNOWN_DEVICE;
 };
 
 //----------------------------------------------------------------------------

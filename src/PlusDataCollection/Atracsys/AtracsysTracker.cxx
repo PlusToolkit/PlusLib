@@ -626,12 +626,49 @@ std::string AtracsysTracker::ResultToString(AtracsysTracker::ATRACSYS_RESULT res
 }
 
 //----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetFiducialsInFrame(std::vector<Fiducial3D>& fiducials)
+{
+  ftkError err = ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20);
+  if (err != FTK_OK)
+  {
+    return ERROR_NO_FRAME_AVAILABLE;
+  }
+
+  switch (this->Internal->Frame->markersStat)
+  {
+  case QS_WAR_SKIPPED:
+    return ERROR_INVALID_FRAME;
+  case QS_ERR_INVALID_RESERVED_SIZE:
+    return ERROR_INVALID_FRAME;
+  case QS_OK:
+    break;
+  default:
+    return ERROR_INVALID_FRAME;
+  }
+
+  if (this->Internal->Frame->markersStat == QS_ERR_OVERFLOW)
+  {
+    return ERROR_TOO_MANY_MARKERS;
+  }
+
+  // make sure fiducials vector is empty before populating
+  fiducials.clear();
+
+  for (size_t m = 0; m < this->Internal->Frame->threeDFiducialsCount; m++)
+  {
+    ftk3DFiducial& ftkFiducial = this->Internal->Frame->threeDFiducials[m];
+    Fiducial3D fiducial(ftkFiducial.positionMM.x, ftkFiducial.positionMM.y, ftkFiducial.positionMM.z, ftkFiducial.probability);
+    fiducials.push_back(fiducial);
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<Marker>& markers)
 {
   ftkError err = ftkGetLastFrame(this->Internal->FtkLib, this->Internal->TrackerSN, this->Internal->Frame, 20);
   if (err != FTK_OK)
   {
-    std::cout << "no frame";
     return ERROR_NO_FRAME_AVAILABLE;
   }
 
@@ -811,6 +848,44 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::ResetLostFrameCount()
 }
 
 // ------------------------------------------
+// Fiducial3D methods
+// ------------------------------------------
+AtracsysTracker::Fiducial3D::Fiducial3D()
+{
+  this->xMm = 0.0;
+  this->yMm = 0.0;
+  this->zMm = 0.0;
+  this->probability = -1;
+}
+
+AtracsysTracker::Fiducial3D::Fiducial3D(float x, float y, float z, float probability)
+{
+  this->xMm = x;
+  this->yMm = y;
+  this->zMm = z;
+  this->probability = probability;
+}
+
+// any 2 fiducials within this 3D distance will be considered equal
+const float EQUALITY_DISTANCE_MM = 5.0;
+
+bool AtracsysTracker::Fiducial3D::operator==(const Fiducial3D& f)
+{
+  // pow is much slower than just x*x for squaring numbers
+  float dist2 = (this->xMm - f.xMm)*(this->xMm - f.xMm) + (this->yMm - f.yMm)*(this->yMm - f.yMm) + (this->zMm - f.zMm)*(this->zMm - f.zMm);
+  std::cout << sqrt(dist2) << " " << (sqrt(dist2) < EQUALITY_DISTANCE_MM) << std::endl;
+  return sqrt(dist2) < EQUALITY_DISTANCE_MM;
+}
+
+// compare fiducials on distance from the origin
+bool AtracsysTracker::Fiducial3D::operator<(const Fiducial3D& f) const
+{
+  float distF1 = sqrt(this->xMm*this->xMm + this->yMm*this->yMm + this->zMm*this->zMm);
+  float distF2 = sqrt(f.xMm*f.xMm + f.yMm*f.yMm + f.zMm*f.zMm);
+  return distF1 < distF2;
+}
+
+// ------------------------------------------
 // Marker methods
 // ------------------------------------------
 
@@ -840,7 +915,7 @@ int AtracsysTracker::Marker::GetGeometryID()
   return this->GeometryId;
 }
 
-int AtracsysTracker::Marker::GetGeometryPrecsenceMask()
+int AtracsysTracker::Marker::GetGeometryPresenceMask()
 {
   return this->GeometryPresenceMask;
 }

@@ -65,6 +65,22 @@ public:
     PROCESSING_ON_PC
   };
 
+  // Class to hold a single fiducial in the view of the camera
+  class Fiducial3D
+  {
+  public:
+    AtracsysTracker::Fiducial3D::Fiducial3D();
+    Fiducial3D(float x, float y, float z, float probability);
+    // override equality operator to make fids less than EQUALITY_DISTANCE_MM considered equal
+    bool operator==(const Fiducial3D& f);
+    bool operator<(const Fiducial3D& f) const;
+    float xMm = 0;
+    float yMm = 0;
+    float zMm = 0;
+    float probability = -1;
+  };
+
+  // Class to hold position and metadata of a marker in the camera's field of view
   class Marker
   {
   public:
@@ -73,7 +89,7 @@ public:
     Marker(int geometryId, vtkMatrix4x4* toolToTracker, int gpm, float freMm);
     Marker(const Marker&);
     int GetGeometryID();
-    int GetGeometryPrecsenceMask();
+    int GetGeometryPresenceMask();
     vtkMatrix4x4* GetTransformToTracker();
     float GetFiducialRegistrationErrorMm();
   private:
@@ -99,6 +115,9 @@ public:
 
   /*! */
   std::string ResultToString(ATRACSYS_RESULT result);
+
+  /*! */
+  ATRACSYS_RESULT GetFiducialsInFrame(std::vector<Fiducial3D>& fiducials);
 
   /*! */
   ATRACSYS_RESULT GetMarkersInFrame(std::vector<Marker>& markers);
