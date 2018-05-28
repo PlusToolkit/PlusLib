@@ -131,7 +131,7 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement
   }
   if (this->DistortionCoefficients != nullptr)
   {
-    deviceConfig->SetVectorAttribute("DistortionCoefficients", 8, this->DistortionCoefficients->ptr<double>(0));
+    deviceConfig->SetVectorAttribute("DistortionCoefficients", this->DistortionCoefficients->rows, this->DistortionCoefficients->ptr<double>(0));
   }
   return PLUS_SUCCESS;
 }
