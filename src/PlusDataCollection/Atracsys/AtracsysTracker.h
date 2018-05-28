@@ -69,7 +69,7 @@ public:
   class Fiducial3D
   {
   public:
-    AtracsysTracker::Fiducial3D::Fiducial3D();
+    Fiducial3D();
     Fiducial3D(float x, float y, float z, float probability);
     // override equality operator to make fids less than EQUALITY_DISTANCE_MM considered equal
     bool operator==(const Fiducial3D& f);
