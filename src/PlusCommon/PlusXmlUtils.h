@@ -206,6 +206,21 @@ public:
     } \
   }
 
+// Read a string attribute (with the same name as the class member variable) and save it to a class member variable.
+// If attribute not found then the member is not modified.
+#define XML_READ_STRING_ATTRIBUTE_WARNING(memberVar, xmlElementVar)  \
+  { \
+    const char* destinationXmlElementVar = xmlElementVar->GetAttribute(#memberVar);  \
+    if (destinationXmlElementVar != NULL)  \
+    { \
+      this->Set##memberVar(std::string(destinationXmlElementVar));  \
+    } \
+    else \
+    { \
+      LOG_WARNING("Unable to find expected " << #memberVar << " attribute in " << (xmlElementVar->GetName() ? xmlElementVar->GetName() : "(undefined)") << " element in device set configuration");  \
+    } \
+  }
+
 // Read a string attribute and save it to a variable.
 #define XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(varName, var, xmlElementVar)  \
   { \
