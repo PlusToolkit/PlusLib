@@ -91,7 +91,6 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
   {
     this->CameraMatrix = std::make_shared<cv::Mat>(3, 3, CV_64F);
     memcpy(this->CameraMatrix->data, camMat.data(), sizeof(double) * 9);
-    cv::transpose(*this->CameraMatrix, *this->CameraMatrix);
   }
 
   std::vector<double> distCoeffs(8, std::numeric_limits<double>::infinity());
