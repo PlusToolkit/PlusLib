@@ -438,8 +438,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
   for (int d = 0; d < 3; d++)
   {
     // in general, this would be computed as int(std::floor((extent_Ref[d * 2] - outputOrigin_Ref[d]) / outputSpacing[d]));
-    // we set outputOrigin_Ref so that this will be always 0
-    outputExtent[d * 2] = 0;
+    // we set outputExtent so that this will be always 0
     outputExtent[d * 2 + 1] = int(std::ceil((extent_Ref[d * 2 + 1] - outputOrigin_Ref[d]) / outputSpacing[d]));
   }
 
