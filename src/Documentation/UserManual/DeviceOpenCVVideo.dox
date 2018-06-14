@@ -14,6 +14,7 @@ Any compatible video device through the OpenCV capture interface</a>.
 - \xmlAtt AcquisitionRate The FPS to request of the camera \OptionalAtt
 - \xmlAtt CameraMatrix A 9 valued entry specifying the 3x3 intrinsic camera matrix. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
 - \xmlAtt DistortionCoefficients Up to 8 value entry specifying the camera distortion coefficients. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
+- \xmlAtt AutofocusEnabled A boolean value ("TRUE" or "FALSE") specifying whether the camera can autofocus. \OptionalAtt{FALSE}
 
 - \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

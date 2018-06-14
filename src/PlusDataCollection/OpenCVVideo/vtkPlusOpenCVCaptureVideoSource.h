@@ -59,6 +59,9 @@ public:
   vtkGetMacro(DeviceIndex, int);
   vtkSetMacro(DeviceIndex, int);
 
+  vtkGetMacro(AutofocusEnabled, bool);
+  vtkSetMacro(AutofocusEnabled, bool);
+
   static cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
   static std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
 
@@ -76,6 +79,7 @@ protected:
   std::shared_ptr<cv::Mat>          Frame;
   std::shared_ptr<cv::Mat>          UndistortedFrame;
   cv::VideoCaptureAPIs              RequestedCaptureAPI;
+  bool                              AutofocusEnabled;
 
   FrameSizeType                     FrameSize;
 

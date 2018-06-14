@@ -32,6 +32,7 @@ vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
   , UndistortedFrame(nullptr)
   , CameraMatrix(nullptr)
   , DistortionCoefficients(nullptr)
+  , AutofocusEnabled(false)
 {
   this->FrameSize = { 0, 0, 0 };
   this->RequireImageOrientationInConfiguration = true;
@@ -70,7 +71,7 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoURL, deviceConfig);
   std::string captureApi;
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL("CaptureAPI", captureApi, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(CaptureAPI, captureApi, deviceConfig);
   if (!captureApi.empty())
   {
     this->RequestedCaptureAPI = CaptureAPIFromString(captureApi);
@@ -106,6 +107,8 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
     }
   }
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutofocusEnabled, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -132,6 +135,9 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement
   {
     deviceConfig->SetVectorAttribute("DistortionCoefficients", this->DistortionCoefficients->rows, this->DistortionCoefficients->ptr<double>(0));
   }
+
+  XML_WRITE_BOOL_ATTRIBUTE(AutofocusEnabled, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -158,11 +164,17 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
   }
   else if (this->DeviceIndex >= 0)
   {
-    this->Capture = std::make_shared<cv::VideoCapture>(this->DeviceIndex);
+    this->Capture = std::make_shared<cv::VideoCapture>(this->DeviceIndex + this->RequestedCaptureAPI);
   }
   else
   {
     LOG_ERROR("No device identification method defined. Please add either \"VideoURL\" or \"DeviceIndex\" attribute to configuration.");
+    return PLUS_FAIL;
+  }
+
+  if (!this->Capture->isOpened())
+  {
+    LOG_ERROR("Unable to open OpenCV video device.");
     return PLUS_FAIL;
   }
 
@@ -181,6 +193,11 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
       LOG_ERROR("Unable to set the requested width of the capture device.");
     }
   }
+  if (!this->Capture->set(cv::CAP_PROP_AUTOFOCUS, this->AutofocusEnabled ? 1 : 0))
+  {
+    LOG_WARNING("Could not set the autofocus property.");
+  }
+
   this->FrameSize[0] = cvRound(this->Capture->get(cv::CAP_PROP_FRAME_WIDTH));
   this->FrameSize[1] = cvRound(this->Capture->get(cv::CAP_PROP_FRAME_HEIGHT));
   this->AcquisitionRate = cvRound(this->Capture->get(cv::CAP_PROP_FPS));
