@@ -319,6 +319,12 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::NotifyConfigured()
     return PLUS_FAIL;
   }
 
+  if (this->DeviceIndex >= 0 && this->RequestedCaptureAPI == cv::CAP_FFMPEG)
+  {
+    LOG_ERROR("Cannot index FFMPEG devices by DeviceIndex. VideoURL must be used instead.");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
