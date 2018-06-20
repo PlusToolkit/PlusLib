@@ -756,24 +756,30 @@ PlusStatus vtkPlusSonixVideoSource::GetParamValueDevice(char* paramId, Plus_uTGC
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::SetFrequencyDevice(int aFrequency)
+PlusStatus vtkPlusSonixVideoSource::SetFrequencyDevice(int aFrequencyMHz)
 {
-  PlusStatus result = SetParamValueDevice("b-freq", aFrequency, aFrequency);
+  // Convert frequency between MHz and Hz
+  int frequencyHz = aFrequencyMHz * 1000000;
+  PlusStatus result = this->SetParamValueDevice("b-freq", frequencyHz, frequencyHz);
+  aFrequencyMHz = frequencyHz / 1000000;
   if (result == PLUS_SUCCESS)
   {
-    this->ImagingParameters->SetFrequencyMhz(aFrequency);
+    this->ImagingParameters->SetFrequencyMhz(aFrequencyMHz);
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FREQUENCY, false);
   }
   return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::GetFrequencyDevice(int& aFrequency)
+PlusStatus vtkPlusSonixVideoSource::GetFrequencyDevice(int& aFrequencyMHz)
 {
-  PlusStatus result = GetParamValueDevice("b-freq", aFrequency, aFrequency);
+  // Convert frequency between MHz and Hz
+  int frequencyHz = aFrequencyMHz * 1000000;
+  PlusStatus result = this->GetParamValueDevice("b-freq", frequencyHz, frequencyHz);
+  aFrequencyMHz = frequencyHz / 1000000;
   if (result == PLUS_SUCCESS)
   {
-    this->ImagingParameters->SetFrequencyMhz(aFrequency);
+    this->ImagingParameters->SetFrequencyMhz(aFrequencyMHz);
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FREQUENCY, false);
   }
   return result;
@@ -804,24 +810,32 @@ PlusStatus vtkPlusSonixVideoSource::GetDepthDevice(int& aDepth)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::SetGainDevice(int aGain)
+PlusStatus vtkPlusSonixVideoSource::SetGainDevice(int aGainPercent)
 {
-  PlusStatus result = SetParamValueDevice("b-gain", aGain, aGain);
+  // Ultrasonix uses values of -3000 for 0% and +3000 for 100%
+  // Need to convert between the different units
+  int gainUltrasonixUnits = 6000 * (aGainPercent / 100.0) - 3000;
+  PlusStatus result = SetParamValueDevice("b-gain", gainUltrasonixUnits, gainUltrasonixUnits);
+  aGainPercent = ((gainUltrasonixUnits + 3000) / 6000) * 100;
   if (result == PLUS_SUCCESS)
   {
-    this->ImagingParameters->SetGainPercent(aGain);
+    this->ImagingParameters->SetGainPercent(aGainPercent);
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_GAIN, false);
   }
   return result;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::GetGainDevice(int& aGain)
+PlusStatus vtkPlusSonixVideoSource::GetGainDevice(int& aGainPercent)
 {
-  PlusStatus result = GetParamValueDevice("b-gain", aGain, aGain);
+  // Ultrasonix uses values of -3000 for 0% and +3000 for 100%
+  // Need to convert between the different units
+  int gainUltrasonixUnits = 6000 * (aGainPercent / 100.0) - 3000;
+  PlusStatus result = this->GetParamValueDevice("b-gain", gainUltrasonixUnits, gainUltrasonixUnits);
+  aGainPercent = ((gainUltrasonixUnits + 3000) / 6000) * 100;
   if (result == PLUS_SUCCESS)
   {
-    this->ImagingParameters->SetGainPercent(aGain);
+    this->ImagingParameters->SetGainPercent(aGainPercent);
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_GAIN, false);
   }
   return result;
@@ -830,7 +844,7 @@ PlusStatus vtkPlusSonixVideoSource::GetGainDevice(int& aGain)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSonixVideoSource::SetDynRangeDevice(int aDynRange)
 {
-  PlusStatus result = SetParamValueDevice("b-dynamic range", aDynRange, aDynRange);
+  PlusStatus result = this->SetParamValueDevice("b-dyn log factor", aDynRange, aDynRange);
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetDynRangeDb(aDynRange);
@@ -842,7 +856,7 @@ PlusStatus vtkPlusSonixVideoSource::SetDynRangeDevice(int aDynRange)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSonixVideoSource::GetDynRangeDevice(int& aDynRange)
 {
-  PlusStatus result = GetParamValueDevice("b-dynamic range", aDynRange, aDynRange);
+  PlusStatus result = this->GetParamValueDevice("b-dyn log factor", aDynRange, aDynRange);
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetDynRangeDb(aDynRange);
