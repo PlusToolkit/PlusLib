@@ -230,13 +230,16 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   }
 
   // disable marker status streaming and battery charge streaming, they cause momentary pauses in tracking while sending
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerStatusStreaming(false)) != ATR_SUCCESS)
+  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
   {
-    LOG_WARNING(this->Internal->Tracker.ResultToString(result));
-  }
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerBatteryStreaming(false)) != ATR_SUCCESS)
-  {
-    LOG_WARNING(this->Internal->Tracker.ResultToString(result));
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerStatusStreaming(false)) != ATR_SUCCESS)
+    {
+      LOG_WARNING(this->Internal->Tracker.ResultToString(result));
+    }
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerBatteryStreaming(false)) != ATR_SUCCESS)
+    {
+      LOG_WARNING(this->Internal->Tracker.ResultToString(result));
+    }
   }
 
   // load passive geometries onto Atracsys
@@ -265,24 +268,27 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
+  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
   {
-    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-    return PLUS_FAIL;
-  }
-  LOG_INFO("Active marker pairing period started.");
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
+    {
+      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+      return PLUS_FAIL;
+    }
+    LOG_INFO("Active marker pairing period started.");
 
-  // sleep while waiting for tracker to pair active markers
-  vtkPlusAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+    // sleep while waiting for tracker to pair active markers
+    vtkPlusAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+
+    LOG_INFO("Active marker pairing period ended.");
+
+    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
+    {
+      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+      return PLUS_FAIL;
+    }
+  }
   
-  LOG_INFO("Active marker pairing period ended.");
-
-  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
-  {
-    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-    return PLUS_FAIL;
-  }
-
   // make LED green, pairing is complete
   this->Internal->Tracker.SetUserLEDState(0, 255, 0, 0);
 
