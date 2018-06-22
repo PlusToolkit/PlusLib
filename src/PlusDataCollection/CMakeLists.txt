@@ -53,6 +53,7 @@ OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker track
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
+OPTION(PLUS_USE_INTELREALSENSE_CAM "Provide support for capturing an Intel RealSense capture stream" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -1918,6 +1919,53 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM)
   )
   
 ENDIF()
+#---------------------------------------------------------------------------
+# Intel RealSense Camera
+IF(PLUS_USE_INTELREALSENSE_CAM)
+  # If your device uses an external SDK, keep the following
+  FIND_PACKAGE(RSSDKCAM REQUIRED)
+  
+  IF(NOT RSSDKCAM_FOUND)
+    MESSAGE(FATAL_ERROR "This project requires Intel RealSense SDK for supporting the Intel RealSense device. One of the components is missing. Please verify configuration or turn off PLUS_USE_INTELREALSENSE_CAM.")
+  ENDIF()
+  
+  SET(INTELREALSENSE_CAM_SRCS
+    IntelRealSenseCamera/vtkPlusIntelRealSenseCamera.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(INTELREALSENSE_CAM_HDRS
+      IntelRealSenseCamera/vtkPlusIntelRealSenseCamera.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${INTELREALSENSE_CAM_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${INTELREALSENSE_CAM_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSenseCamera
+	${RSSDKCAM_INCLUDE_DIR}
+	${RSSDKCAM_LIBRARY}
+    )
+  
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${RSSDKCAM_LIBRARY}
+  )
+  
+ LIST(APPEND External_Libraries_Install
+    ${RSSDKCAM_BINARY}/realsense2${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+	
+  LIST(APPEND External_Libraries_Debug
+    ${RSSDKCAM_BINARY}/realsense2${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  
+ENDIF()
+
 # --------------------------------------------------------------------------
 # V4L2
 IF(PLUS_USE_V4L2)

@@ -101,7 +101,7 @@ PlusStatus vtkInfraredTEQ1Cam::InternalConnect()
 	if(this->pTE->ReadFlashData() == 1){
 		int width = this->pTE->GetImageWidth();
 		int height = this->pTE->GetImageHeight();
-        this->pImgBuf = new unsigned short[width*height];
+        this->pImgBuf = new float[width*height];
 		this->width = width;
 		this->height = height;
 	} else {
@@ -128,11 +128,13 @@ PlusStatus vtkInfraredTEQ1Cam::InternalUpdate()
         return PLUS_SUCCESS;
 	}
 	
-	if(!this->pTE->RecvImage(this->pImgBuf)){
+	if (!this->pTE->RecvImage(this->pImgBuf)){
 		LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to receive frame");
         return PLUS_SUCCESS;
 	}
 	
+	pTE->CalcEntireTemp(this->pImgBuf, false);
+
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
   {
@@ -144,14 +146,14 @@ PlusStatus vtkInfraredTEQ1Cam::InternalUpdate()
   {
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-    aSource->SetPixelType(VTK_TYPE_UINT16);
+	aSource->SetPixelType(VTK_TYPE_FLOAT32);
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->width, this->height, 1);
   }
 
   // Add the frame to the stream buffer
   FrameSizeType frameSize = { static_cast<unsigned int>(this->width), static_cast<unsigned int>(this->height), 1 };
-  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+  if (aSource->AddItem(this->pImgBuf, aSource->GetInputImageOrientation(), frameSize, VTK_TYPE_FLOAT32, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
   {
     return PLUS_FAIL;
   }

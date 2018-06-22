@@ -58,7 +58,7 @@ protected:
   int device;
 
   i3::TE_B *pTE;
-  unsigned short *pImgBuf;
+  float *pImgBuf;
   int width;
   int height;
   
