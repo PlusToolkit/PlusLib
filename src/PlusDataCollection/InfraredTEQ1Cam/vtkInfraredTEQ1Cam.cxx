@@ -16,6 +16,9 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 
+// TEQ1
+#include "i3system_TE.h"
+
 using namespace i3;
 
 //----------------------------------------------------------------------------
@@ -76,64 +79,72 @@ PlusStatus vtkInfraredTEQ1Cam::FreezeDevice(bool freeze)
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::InternalConnect()
 {
-   SCANINFO *pScan = new SCANINFO[MAX_USB_NUM];
-    ScanTE(nullptr, pScan);
-	this->device = -1;
-    for(int i = 0; i < MAX_USB_NUM; i++){
-        if(pScan[i].bDevCon){
-            this->device = i;
-            break;
-        }
+  SCANINFO* pScan = new SCANINFO[MAX_USB_NUM];
+  ScanTE(nullptr, pScan);
+  this->device = -1;
+  for (int i = 0; i < MAX_USB_NUM; i++)
+  {
+    if (pScan[i].bDevCon)
+    {
+      this->device = i;
+      break;
     }
-    delete pScan;
-	
-	if (this->device == -1) {
-		LOG_ERROR("Thermal Expert Q1: camera not detected.");
-		return PLUS_FAIL;
-	}
-	
-	this->pTE = OpenTE_B(nullptr, I3_TE_Q1, this->device);
-	if(! this->pTE){
-		LOG_ERROR("Thermal Expert Q1: Failed to open.");
-		return PLUS_FAIL;
-	}
-	
-	if(this->pTE->ReadFlashData() == 1){
-		int width = this->pTE->GetImageWidth();
-		int height = this->pTE->GetImageHeight();
-        this->pImgBuf = new float[width*height];
-		this->width = width;
-		this->height = height;
-	} else {
-		LOG_ERROR("Thermal Expert Q1: Fail to Read Flash Data.");
-		return PLUS_FAIL;
-	}
-	return PLUS_SUCCESS;
+  }
+  delete pScan;
+
+  if (this->device == -1)
+  {
+    LOG_ERROR("Thermal Expert Q1: camera not detected.");
+    return PLUS_FAIL;
+  }
+
+  this->pTE = OpenTE_B(nullptr, I3_TE_Q1, this->device);
+  if (! this->pTE)
+  {
+    LOG_ERROR("Thermal Expert Q1: Failed to open.");
+    return PLUS_FAIL;
+  }
+
+  if (this->pTE->ReadFlashData() == 1)
+  {
+    int width = this->pTE->GetImageWidth();
+    int height = this->pTE->GetImageHeight();
+    this->pImgBuf = new float[width * height];
+    this->width = width;
+    this->height = height;
+  }
+  else
+  {
+    LOG_ERROR("Thermal Expert Q1: Fail to Read Flash Data.");
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::InternalDisconnect()
 {
-	this->pTE->CloseTE();
-	this->pImgBuf = nullptr;
-	return PLUS_SUCCESS;
+  this->pTE->CloseTE();
+  this->pImgBuf = nullptr;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkInfraredTEQ1Cam::InternalUpdate()
 {
+  if (!this->pTE)
+  {
+    LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to read date");
+    return PLUS_SUCCESS;
+  }
 
-	if (!this->pTE){
-		LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to read date");
-        return PLUS_SUCCESS;
-	}
-	
-	if (!this->pTE->RecvImage(this->pImgBuf)){
-		LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to receive frame");
-        return PLUS_SUCCESS;
-	}
-	
-	pTE->CalcEntireTemp(this->pImgBuf, false);
+  if (!this->pTE->RecvImage(this->pImgBuf))
+  {
+    LOG_ERROR("vtkInfraredTEQ1Cam::InternalUpdate Unable to receive frame");
+    return PLUS_SUCCESS;
+  }
+
+  pTE->CalcEntireTemp(this->pImgBuf, false);
 
   vtkPlusDataSource* aSource(nullptr);
   if (this->GetFirstActiveOutputVideoSource(aSource) == PLUS_FAIL || aSource == nullptr)
@@ -146,7 +157,7 @@ PlusStatus vtkInfraredTEQ1Cam::InternalUpdate()
   {
     // Init the buffer with the metadata from the first frame
     aSource->SetImageType(US_IMG_BRIGHTNESS);
-	aSource->SetPixelType(VTK_TYPE_FLOAT32);
+    aSource->SetPixelType(VTK_TYPE_FLOAT32);
     aSource->SetNumberOfScalarComponents(1);
     aSource->SetInputFrameSize(this->width, this->height, 1);
   }

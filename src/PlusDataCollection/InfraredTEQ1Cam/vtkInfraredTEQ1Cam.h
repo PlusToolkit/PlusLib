@@ -12,8 +12,10 @@ Developed by MACBIOIDI-ULPGC & IACTEC-IAC group
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-// TEQ1
-#include "i3system_TE.h"
+namespace i3
+{
+  class TE_B;
+}
 
 /*!
 \class vtkInfraredTEQ1Cam
@@ -54,14 +56,12 @@ protected:
   virtual PlusStatus InternalDisconnect() VTK_OVERRIDE;
 
 protected:
-
   int device;
 
-  i3::TE_B *pTE;
-  float *pImgBuf;
+  i3::TE_B* pTE;
+  float* pImgBuf;
   int width;
   int height;
-  
 };
 
 #endif // __vtkInfraredTEQ1Cam_h
