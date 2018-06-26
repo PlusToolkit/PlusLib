@@ -25,14 +25,6 @@ class vtkPlusDataCollectionExport vtkPlusBkProFocusOemVideoSource : public vtkPl
 {
 public:
 
-  enum PROBE_TYPE
-  {
-    UNKNOWN,
-    SECTOR,
-    LINEAR,
-    MECHANICAL
-  };
-
   static vtkPlusBkProFocusOemVideoSource* New();
   vtkTypeMacro(vtkPlusBkProFocusOemVideoSource, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -99,15 +91,6 @@ public:
   vtkGetStringMacro(OfflineTestingFilePath);
 
 protected:
-  static const char* KEY_PROBE_TYPE;
-  static const char* KEY_ORIGIN;
-  static const char* KEY_ANGLES;
-  static const char* KEY_BOUNDING_BOX;
-  static const char* KEY_DEPTHS;
-  static const char* KEY_LINEAR_WIDTH;
-
-  static const char* KEY_SPACING_X;
-  static const char* KEY_SPACING_Y;
 
   static const char* KEY_DEPTH;
   static const char* KEY_GAIN;
@@ -123,7 +106,7 @@ protected:
   int gain_percent;
 
   //Probe type of the connected probes
-  PROBE_TYPE probeTypePortA, probeTypePortB, probeTypePortC, probeTypePortM;
+  IGTLIO_PROBE_TYPE probeTypePortA, probeTypePortB, probeTypePortC, probeTypePortM;
 
   //The current probe port
   std::string probePort;
@@ -211,22 +194,22 @@ protected:
   // Calculate values for the OpenIGTLinkIO standard.
 
   /*! Sector origin relative to upper left corner of image in pixels */
-  std::vector<double> CalculateOrigin();
+  virtual std::vector<double> CalculateOrigin() override;
 
   /*! Probe sector angles relative to down, in radians.
    *  2 angles for 2D, and 4 for 3D probes.
    * For regular imaging with linear probes these will be 0 */
-  std::vector<double> CalculateAngles();
+  virtual std::vector<double> CalculateAngles() override;
 
   /*! Boundaries to cut away areas outside the US sector, in pixels.
    * 4 for 2D, and 6 for 3D. */
-  std::vector<double> CalculateBoundingBox();
+  virtual std::vector<double> CalculateBoundingBox() override;
 
   /*! Start, stop depth for the imaging, in mm. */
-  std::vector<double> CalculateDepths();
+  virtual std::vector<double> CalculateDepths() override;
 
   /*! Width of linear probe. */
-  double CalculateLinearWidth();
+  virtual double CalculateLinearWidth() override;
 
   //Utility functions
 
@@ -273,7 +256,7 @@ protected:
   double GetSpacingY();
 
   /*! Get probe type. */
-  PROBE_TYPE GetProbeType();
+  virtual IGTLIO_PROBE_TYPE GetProbeType() override;
 
   /*! Add OpenIGTLinkIO parameters to FrameFields. */
   PlusStatus AddParametersToFrameFields();
