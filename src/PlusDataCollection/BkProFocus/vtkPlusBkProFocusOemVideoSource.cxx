@@ -37,7 +37,7 @@ static const int TIMESTAMP_SIZE = 4;
 const char* vtkPlusBkProFocusOemVideoSource::KEY_PROBE_TYPE     = "ProbeType";
 const char* vtkPlusBkProFocusOemVideoSource::KEY_ORIGIN         = "Origin";
 const char* vtkPlusBkProFocusOemVideoSource::KEY_ANGLES         = "Angles";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_BOUNDING_BOX   = "BouningBox";
+const char* vtkPlusBkProFocusOemVideoSource::KEY_BOUNDING_BOX   = "BoundingBox";
 const char* vtkPlusBkProFocusOemVideoSource::KEY_DEPTHS         = "Depths";
 const char* vtkPlusBkProFocusOemVideoSource::KEY_LINEAR_WIDTH   = "LinearWidth";
 
