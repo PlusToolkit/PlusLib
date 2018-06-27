@@ -799,7 +799,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetDepthMmDevice(double depthMm)
     double divider = usbPulseFrequency();
     chosenFrequencyMhz = sampleFrequency / divider ;
     this->Internal->PulseFrequencyDivider = sampleFrequency / chosenFrequencyMhz;
-    LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosed instead.");
+    LOG_INFO("The probe does not allow the required depth." << chosenDepthCm << " cm depth was chosen instead.");
   }
 
   if ((fabs(chosenDepthCm - 5) < TOLERANCE) || fabs(chosenDepthCm - 10) < TOLERANCE || fabs(chosenDepthCm - 15) < TOLERANCE || fabs(chosenDepthCm - 20) < TOLERANCE)
@@ -931,7 +931,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercent(double gai
 {
   if (gainPercent[0] < 0 || gainPercent[1] < 0 || gainPercent[2] < 0)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetGainPercentDevice failed: Invalid values sent.")
+    LOG_ERROR("vtkPlusIntersonVideoSource::SetTimeGainCompensationPercent failed: Invalid values sent.")
     return PLUS_FAIL;
   }
 
@@ -946,13 +946,13 @@ PlusStatus vtkPlusIntersonVideoSource::SetTimeGainCompensationPercentDevice(doub
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    LOG_ERROR("vtkPlusIntersonVideoSource::SetTimeGainCompensationPercentDevice failed: device not connected");
     return PLUS_FAIL;
   }
 
   if (gainPercent[0] < 0 || gainPercent[1] < 0 || gainPercent[2] < 0)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetGainPercentDevice failed: Invalid values sent.");
+    LOG_ERROR("vtkPlusIntersonVideoSource::SetTimeGainCompensationPercentDevice failed: Invalid values sent.");
     return PLUS_FAIL;
   }
   /* The following commented code is useful when using an RF probe with an analog TGC control.
@@ -1222,7 +1222,7 @@ PlusStatus vtkPlusIntersonVideoSource::GetProbeNameDevice(std::string& probeName
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    LOG_ERROR("vtkPlusIntersonVideoSource::GetProbeNameDevice failed: device not connected");
     return PLUS_FAIL;
   }
 
@@ -1252,33 +1252,97 @@ PlusStatus vtkPlusIntersonVideoSource::SetNewImagingParameters(const vtkPlusUsIm
     return PLUS_FAIL;
   }
 
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_DEPTH) && this->SetDepthMmDevice(newImagingParameters.GetDepthMm()) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY) && this->SetFrequencyMhzDevice(newImagingParameters.GetFrequencyMhz()) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-  std::vector<double> tgcVec;
-  newImagingParameters.GetTimeGainCompensation(tgcVec);
-  double tgc[3] = {tgcVec[0], tgcVec[1], tgcVec[2]};
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_GAIN) && this->SetTimeGainCompensationPercentDevice(tgc) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY) && newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST) && this->SetLookupTableDevice(newImagingParameters.GetIntensity(), newImagingParameters.GetContrast()) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_ZOOM) && this->SetZoomFactorDevice(newImagingParameters.GetZoomFactor()) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-  if (newImagingParameters.IsSet(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY) && this->SetSoundVelocityDevice(newImagingParameters.GetSoundVelocity()) == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIntersonVideoSource::RequestImagingParameterChange()
+{
+  PlusStatus status = PLUS_SUCCESS;
+
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH))
+  {
+    if (this->SetDepthMmDevice(this->ImagingParameters->GetDepthMm()) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_DEPTH, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set depth imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  {
+    if (this->SetFrequencyMhzDevice(this->ImagingParameters->GetFrequencyMhz()) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FREQUENCY, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set frequency imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_TGC))
+  {
+    std::vector<double> tgcVec;
+    this->ImagingParameters->GetTimeGainCompensation(tgcVec);
+    double tgc[3] = { tgcVec[0], tgcVec[1], tgcVec[2] };
+
+    if (this->SetTimeGainCompensationPercentDevice(tgc) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_TGC, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set time gain compensation parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY)
+    && this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST)
+    && (this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_INTENSITY) || this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_CONTRAST)))
+  {
+    if (this->SetLookupTableDevice(this->ImagingParameters->GetIntensity(), this->ImagingParameters->GetContrast()) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_INTENSITY, false);
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_CONTRAST, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set intensity and contrast parameters");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_ZOOM)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_ZOOM))
+  {
+    if (this->SetZoomFactorDevice(this->ImagingParameters->GetZoomFactor()) == PLUS_SUCCESS)
+    {
+       this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_ZOOM, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set zoom parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY))
+  {
+    if (this->SetSoundVelocityDevice(this->ImagingParameters->GetSoundVelocity()) == PLUS_SUCCESS)
+    {
+      this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY, false);
+    }
+    else
+    {
+      LOG_ERROR("Failed to set sound velocity parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  return status;
 }
