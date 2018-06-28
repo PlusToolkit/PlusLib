@@ -71,6 +71,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , DataCollector(NULL)
   , Threader(vtkSmartPointer<vtkMultiThreader>::New())
   , IGTLProtocolVersion(OpenIGTLink_PROTOCOL_VERSION)
+  , IGTLHeaderVersion(IGTL_HEADER_VERSION_2)
   , ListeningPort(-1)
   , NumberOfRetryAttempts(10)
   , DelayBetweenRetryAttemptsSec(0.05)
@@ -548,8 +549,8 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     headerMsg->InitBuffer();
 
     // Receive generic header from the socket
-    int bytesReceived = clientSocket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-    if (bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetPackSize())
+    int bytesReceived = clientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
+    if (bytesReceived == IGTL_EMPTY_DATA_SIZE || bytesReceived != headerMsg->GetBufferSize())
     {
       vtkPlusAccurateTimer::Delay(0.1);
       continue;
@@ -563,7 +564,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       // (upper bounded by the servers version)
       if (headerMsg->GetHeaderVersion() > client->ClientInfo.GetClientHeaderVersion())
       {
-        client->ClientInfo.SetClientHeaderVersion(std::min<int>(self->GetIGTLProtocolVersion(), headerMsg->GetHeaderVersion()));
+        client->ClientInfo.SetClientHeaderVersion(std::min<int>(self->GetIGTLHeaderVersion(), headerMsg->GetHeaderVersion()));
       }
     }
 
@@ -580,7 +581,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientInfoMsg->SetMessageHeader(headerMsg);
       clientInfoMsg->AllocateBuffer();
 
-      clientSocket->Receive(clientInfoMsg->GetPackBodyPointer(), clientInfoMsg->GetPackBodySize());
+      clientSocket->Receive(clientInfoMsg->GetBufferBodyPointer(), clientInfoMsg->GetBufferBodySize());
 
       int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
       if (c & igtl::MessageHeader::UNPACK_BODY)
@@ -596,10 +597,10 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       // Just ping server, we can skip message and respond
       clientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
 
-      igtl::StatusMessage::Pointer replyMsg = dynamic_cast<igtl::StatusMessage*>(bodyMessage.GetPointer());
+      igtl::StatusMessage::Pointer replyMsg = dynamic_cast<igtl::StatusMessage*>(self->IgtlMessageFactory->CreateSendMessage("STATUS", client->ClientInfo.GetClientHeaderVersion()).GetPointer());
       replyMsg->SetCode(igtl::StatusMessage::STATUS_OK);
       replyMsg->Pack();
-      clientSocket->Send(replyMsg->GetPackPointer(), replyMsg->GetPackBodySize());
+      clientSocket->Send(replyMsg->GetBufferPointer(), replyMsg->GetBufferSize());
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StringMessage)
              && vtkPlusCommand::IsCommandDeviceName(headerMsg->GetDeviceName()))
@@ -607,7 +608,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       igtl::StringMessage::Pointer stringMsg = dynamic_cast<igtl::StringMessage*>(bodyMessage.GetPointer());
       stringMsg->SetMessageHeader(headerMsg);
       stringMsg->AllocateBuffer();
-      clientSocket->Receive(stringMsg->GetPackBodyPointer(), stringMsg->GetPackBodySize());
+      clientSocket->Receive(stringMsg->GetBufferBodyPointer(), stringMsg->GetBufferBodySize());
 
       // We are receiving old style commands, handle it
       int c = stringMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
@@ -616,7 +617,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         std::string deviceName(headerMsg->GetDeviceName());
         if (deviceName.empty())
         {
-          self->PlusCommandProcessor->QueueStringResponse(PLUS_FAIL, std::string(vtkPlusCommand::DEVICE_NAME_REPLY), std::string("Unable to read DeviceName."));
+          self->PlusCommandProcessor->QueueStringResponse(PLUS_FAIL, std::string(vtkPlusCommand::DEVICE_NAME_REPLY), clientId, "Unable to read DeviceName.");
           continue;
         }
 
@@ -634,7 +635,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         {
           LOG_ERROR("Unable to extract command UID from device name string.");
           // Removing support for malformed command strings, reply with error
-          self->PlusCommandProcessor->QueueStringResponse(PLUS_FAIL, std::string(vtkPlusCommand::DEVICE_NAME_REPLY), std::string("Malformed DeviceName. Expected CMD_cmdId (ex: CMD_001)"));
+          self->PlusCommandProcessor->QueueStringResponse(PLUS_FAIL, std::string(vtkPlusCommand::DEVICE_NAME_REPLY), clientId, "Malformed DeviceName. Expected CMD_cmdId (ex: CMD_001)");
           continue;
         }
 
@@ -722,7 +723,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
         return NULL;
       }
 
-      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
+      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", client->ClientInfo.GetClientHeaderVersion());
       igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
       rtsMsg->SetStatus(0);
       rtsMsg->Pack();
@@ -737,7 +738,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(stopTracking->GetBufferBodyPointer(), stopTracking->GetBufferBodySize());
 
       client->ClientInfo.SetTDATARequested(false);
-      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", IGTL_HEADER_VERSION_1);
+      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_TDATA", client->ClientInfo.GetClientHeaderVersion());
       igtl::RTSTrackingDataMessage* rtsMsg = dynamic_cast<igtl::RTSTrackingDataMessage*>(msg.GetPointer());
       rtsMsg->SetStatus(0);
       rtsMsg->Pack();
@@ -782,7 +783,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       auto polyData = reader->GetOutput();
       if (polyData != nullptr)
       {
-        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", polyDataMessage->GetHeaderVersion());
+        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", client->ClientInfo.GetClientHeaderVersion());
         igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
 
         igtlioPolyDataConverter::ContentData data;
@@ -814,7 +815,6 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     }
     else if (typeid(*bodyMessage) == typeid(igtl::GetImageMetaMessage))
     {
-
       // Image meta message
       std::string deviceName("");
       if (headerMsg->GetDeviceName() != NULL)
@@ -1181,10 +1181,20 @@ PlusStatus vtkPlusOpenIGTLinkServer::Stop()
 //------------------------------------------------------------------------------
 igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromCommandResponse(vtkPlusCommandResponse* response)
 {
+  int replyHeaderVersion = IGTL_HEADER_VERSION_1;
+  PlusIgtlClientInfo info;
+  if (GetClientInfo(response->GetClientId(), info) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to find client with ID: " << response->GetClientId());
+  }
+  else
+  {
+    replyHeaderVersion = info.GetClientHeaderVersion();
+  }
   vtkPlusCommandStringResponse* stringResponse = vtkPlusCommandStringResponse::SafeDownCast(response);
   if (stringResponse)
   {
-    igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", IGTL_HEADER_VERSION_1).GetPointer());
+    igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", replyHeaderVersion).GetPointer());
     igtlMessage->SetDeviceName(stringResponse->GetDeviceName().c_str());
     igtlMessage->SetString(stringResponse->GetMessage());
     LOG_DEBUG("String response: " << stringResponse->GetMessage());
@@ -1213,7 +1223,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       return NULL;
     }
 
-    igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", IGTL_HEADER_VERSION_1).GetPointer());
+    igtl::ImageMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMAGE", replyHeaderVersion).GetPointer());
     igtlMessage->SetDeviceName(imageName.c_str());
 
     if (vtkPlusIgtlMessageCommon::PackImageMessage(igtlMessage, imageData, *imageToReferenceTransform, vtkPlusAccurateTimer::GetSystemTime()) != PLUS_SUCCESS)
@@ -1240,7 +1250,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       return NULL;
     }
 
-    igtl::PolyDataMessage::Pointer igtlMessage = dynamic_cast<igtl::PolyDataMessage*>(this->IgtlMessageFactory->CreateSendMessage("POLYDATA", IGTL_HEADER_VERSION_2).GetPointer());
+    igtl::PolyDataMessage::Pointer igtlMessage = dynamic_cast<igtl::PolyDataMessage*>(this->IgtlMessageFactory->CreateSendMessage("POLYDATA", replyHeaderVersion).GetPointer());
     igtlMessage->SetDeviceName("PlusServer");
     igtlMessage->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, polydataName);
 
@@ -1258,7 +1268,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     std::string imageMetaDataName = "PlusServerImageMetaData";
     PlusCommon::ImageMetaDataList imageMetaDataList;
     imageMetaDataResponse->GetImageMetaDataItems(imageMetaDataList);
-    igtl::ImageMetaMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMetaMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMGMETA", IGTL_HEADER_VERSION_1).GetPointer());
+    igtl::ImageMetaMessage::Pointer igtlMessage = dynamic_cast<igtl::ImageMetaMessage*>(this->IgtlMessageFactory->CreateSendMessage("IMGMETA", replyHeaderVersion).GetPointer());
     igtlMessage->SetDeviceName(imageMetaDataName.c_str());
     if (vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtlMessage, imageMetaDataList) != PLUS_SUCCESS)
     {
@@ -1274,7 +1284,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     if (!commandResponse->GetRespondWithCommandMessage())
     {
       // Incoming command was a v1/v2 style command, reply as such
-      igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", IGTL_HEADER_VERSION_1).GetPointer());
+      igtl::StringMessage::Pointer igtlMessage = dynamic_cast<igtl::StringMessage*>(this->IgtlMessageFactory->CreateSendMessage("STRING", replyHeaderVersion).GetPointer());
       igtlMessage->SetDeviceName(vtkPlusCommand::GenerateReplyDeviceName(commandResponse->GetOriginalId()));
 
       std::ostringstream replyStr;
@@ -1293,7 +1303,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
     else
     {
       // Incoming command was a modern style command, reply using our latest
-      igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", IGTL_HEADER_VERSION_2).GetPointer());
+      igtl::RTSCommandMessage::Pointer igtlMessage = dynamic_cast<igtl::RTSCommandMessage*>(this->IgtlMessageFactory->CreateSendMessage("RTS_COMMAND", replyHeaderVersion).GetPointer());
       //TODO : should this device name be the name of the server?
       igtlMessage->SetDeviceName(commandResponse->GetDeviceName().c_str());
       igtlMessage->SetCommandName(commandResponse->GetCommandName());
