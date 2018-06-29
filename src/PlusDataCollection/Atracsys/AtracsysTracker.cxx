@@ -867,13 +867,12 @@ AtracsysTracker::Fiducial3D::Fiducial3D(float x, float y, float z, float probabi
 }
 
 // any 2 fiducials within this 3D distance will be considered equal
-const float EQUALITY_DISTANCE_MM = 5.0;
+const float EQUALITY_DISTANCE_MM = 2.0;
 
 bool AtracsysTracker::Fiducial3D::operator==(const Fiducial3D& f)
 {
   // pow is much slower than just x*x for squaring numbers
   float dist2 = (this->xMm - f.xMm)*(this->xMm - f.xMm) + (this->yMm - f.yMm)*(this->yMm - f.yMm) + (this->zMm - f.zMm)*(this->zMm - f.zMm);
-  std::cout << sqrt(dist2) << " " << (sqrt(dist2) < EQUALITY_DISTANCE_MM) << std::endl;
   return sqrt(dist2) < EQUALITY_DISTANCE_MM;
 }
 
