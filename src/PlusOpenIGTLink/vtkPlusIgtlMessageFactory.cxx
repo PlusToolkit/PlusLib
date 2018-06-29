@@ -198,7 +198,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
             LOG_WARNING("No metadata value for: " << *stringNameIterator)
             continue;
           }
-          imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(stringName));
+          imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(*stringNameIterator));
         }
 
         if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
