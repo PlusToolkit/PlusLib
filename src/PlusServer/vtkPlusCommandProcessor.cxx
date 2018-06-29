@@ -261,7 +261,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
   {
     if (!respondUsingIGTLCommand)
     {
-      this->QueueStringResponse(PLUS_FAIL, deviceName, std::string("Error attempting to process command."));
+      this->QueueStringResponse(PLUS_FAIL, deviceName, clientId, std::string("Error attempting to process command."));
     }
     else
     {
@@ -284,7 +284,7 @@ PlusStatus vtkPlusCommandProcessor::QueueCommand(bool respondUsingIGTLCommand, u
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusCommandProcessor::QueueStringResponse(PlusStatus status, const std::string& deviceName, const std::string& replyString)
+PlusStatus vtkPlusCommandProcessor::QueueStringResponse(PlusStatus status, const std::string& deviceName, unsigned int clientId, const std::string& replyString)
 {
   vtkSmartPointer<vtkPlusCommandStringResponse> response = vtkSmartPointer<vtkPlusCommandStringResponse>::New();
   response->SetDeviceName(deviceName);
@@ -298,6 +298,7 @@ PlusStatus vtkPlusCommandProcessor::QueueStringResponse(PlusStatus status, const
   replyStr << " />";
 
   response->SetMessage(replyStr.str());
+  response->SetClientId(clientId);
   response->SetStatus(status);
 
   // Add response to the command response queue

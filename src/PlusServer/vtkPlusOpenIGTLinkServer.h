@@ -151,6 +151,7 @@ public:
   vtkGetStdStringMacro(ConfigFilename);
 
   vtkGetMacro(IGTLProtocolVersion, int);
+  vtkGetMacro(IGTLHeaderVersion, int);
 
   /*!
     Execute all commands in the queue from the current thread (useful if commands should be executed from the main thread)
@@ -238,6 +239,7 @@ private:
 
   /*! The version of the IGTL protocol that this server is using */
   int IGTLProtocolVersion;
+  int IGTLHeaderVersion;
 
   /*! Server listening port */
   int ListeningPort;

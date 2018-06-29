@@ -46,7 +46,6 @@ static bool StopClientRequested = false;
 class vtkPlusOpenIGTLinkClientWithTransformLogging : public vtkPlusOpenIGTLinkClient
 {
 public:
-
   static vtkPlusOpenIGTLinkClientWithTransformLogging* New();
   vtkTypeMacro(vtkPlusOpenIGTLinkClientWithTransformLogging, vtkPlusOpenIGTLinkClient);
 
@@ -60,30 +59,31 @@ public:
       return false;
     }
 
-    if (typeid(*bodyMsg) != typeid(igtl::TransformMessage))
+    if (typeid(*bodyMsg) == typeid(igtl::TransformMessage))
     {
-      // not a transform message
-      return messageBodyReceived;
+      igtl::TransformMessage::Pointer transformMsg = dynamic_cast<igtl::TransformMessage*>(bodyMsg.GetPointer());
+      transformMsg->SetMessageHeader(messageHeader);
+      transformMsg->AllocatePack();
+      SocketReceive(transformMsg->GetBufferBodyPointer(), transformMsg->GetBufferBodySize());
+      messageBodyReceived = true;
+
+      int c = transformMsg->Unpack(1);
+      if (!(c & igtl::MessageHeader::UNPACK_BODY))
+      {
+        LOG_ERROR("Failed to receive TRANSFORM reply (invalid body)");
+        return messageBodyReceived;
+      }
+
+      // Store the transform data into a matrix
+      igtl::Matrix4x4 mx;
+      transformMsg->GetMatrix(mx);
+      LOG_INFO("Matrix for " << transformMsg->GetDeviceName() << " TRANSFORM received: ");
+      igtl::PrintMatrix(mx);
     }
-
-    igtl::TransformMessage::Pointer transformMsg = dynamic_cast<igtl::TransformMessage*>(bodyMsg.GetPointer());
-    transformMsg->SetMessageHeader(messageHeader);
-    transformMsg->AllocatePack();
-    SocketReceive(transformMsg->GetPackBodyPointer(), transformMsg->GetPackBodySize());
-    messageBodyReceived = true;
-
-    int c = transformMsg->Unpack(1);
-    if (!(c & igtl::MessageHeader::UNPACK_BODY))
+    else
     {
-      LOG_ERROR("Failed to receive TRANSFORM reply (invalid body)");
-      return messageBodyReceived;
+      LOG_INFO("Received " << messageHeader->GetMessageType() << " message.");
     }
-
-    //store the transform data into a matrix
-    igtl::Matrix4x4 mx;
-    transformMsg->GetMatrix(mx);
-    LOG_INFO("Matrix for " << transformMsg->GetDeviceName() << " TRANSFORM received: ");
-    igtl::PrintMatrix(mx);
 
     return messageBodyReceived;
   }
@@ -720,7 +720,7 @@ int main(int argc, char** argv)
   std::string transformValue;
   std::string dicomOutputDirectory;
   std::string volumeEmbeddedTransformToFrame;
-  int serverHeaderVersion;
+  int serverHeaderVersion(-1);
   std::string text;
   bool keepReceivedDicomFiles = false;
   bool responseExpected = false;
@@ -760,7 +760,6 @@ int main(int argc, char** argv)
   args.AddArgument("--response-expected", vtksys::CommandLineArguments::NO_ARGUMENT, &responseExpected, "Wait for a response after sending text");
   args.AddArgument("--server-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverConfigFileName, "Starts a PlusServer instance with the provided config file. When this process exits, the server is stopped.");
   args.AddArgument("--run-tests", vtksys::CommandLineArguments::NO_ARGUMENT, &runTests, "Test execution of all remote control commands. Requires a running PlusServer, which can be launched by --server-config-file");
-  args.AddArgument("--server-igtl-version", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &serverIGTLVersion, "IGLT protocol version of the server.");
 
   if (!args.Parse())
   {
