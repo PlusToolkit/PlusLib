@@ -187,19 +187,16 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         }
         imageMessage->SetDeviceName(deviceName.c_str());
 
-        // Test code for sending US image parameters as meta data.
-        // This will put all string messages into the image meta data, in addition to sending them as separate string messages.
-        // We could probably just create these parameters as a separate list instead.
-        // The parameters could probably be added to vtkPlusUsImagingParameters of that makes more sense.
-        //LOG_DEBUG("Add strings to meta data" );
-        for (std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
+        // In order to send ultrasound sector parameters, all PlusTrackedFrame::CustomFrameFields are sent as meta data in the image message.
+        std::vector<std::string> frameFields;
+        trackedFrame.GetCustomFrameFieldNameList(frameFields);
+        for (std::vector< std::string >::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
         {
           const char* stringName = stringNameIterator->c_str();
           const char* stringValue = trackedFrame.GetCustomFrameField(stringName);
-          //LOG_DEBUG("stringName: " << stringName << " stringValue: " << stringValue);
           if (stringValue == NULL)
           {
-            //LOG_ERROR("No value for: " << stringName)
+            LOG_WARNING("No value for: " << stringName)
             // no value is available, do not send anything
             continue;
           }
