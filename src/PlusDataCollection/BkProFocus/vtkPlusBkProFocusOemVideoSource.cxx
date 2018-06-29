@@ -1486,7 +1486,7 @@ double vtkPlusBkProFocusOemVideoSource::GetStopLineAngle()
 //----------------------------------------------------------------------------
 double vtkPlusBkProFocusOemVideoSource::GetSpacingX()
 {
-  double spacingX_mm = 1.0;
+  double spacingX_mm = 0.1;
   if (!this->OfflineTesting)
   {
     if (this->ContinuousStreamingEnabled)
@@ -1508,7 +1508,7 @@ double vtkPlusBkProFocusOemVideoSource::GetSpacingX()
 //----------------------------------------------------------------------------
 double vtkPlusBkProFocusOemVideoSource::GetSpacingY()
 {
-  double spacingY_mm = 1.0;
+  double spacingY_mm = 0.1;
   if (!this->OfflineTesting)
   {
     if (this->ContinuousStreamingEnabled)
