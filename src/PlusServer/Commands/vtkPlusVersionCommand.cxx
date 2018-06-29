@@ -64,7 +64,7 @@ PlusStatus vtkPlusVersionCommand::Execute()
   metadata["IGTLHeaderVersion"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, PlusCommon::ToString<int>(this->CommandProcessor->GetPlusServer()->GetIGTLHeaderVersion()));
 #else
   metadata["IGTLProtocolVersion"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLProtocolVersion()));
-  metadata["IGTLHeaderVersion"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, std::to_string<int>(this->CommandProcessor->GetPlusServer()->GetIGTLHeaderVersion()));
+  metadata["IGTLHeaderVersion"] = std::pair<IANA_ENCODING_TYPE, std::string>(IANA_TYPE_US_ASCII, std::to_string(this->CommandProcessor->GetPlusServer()->GetIGTLHeaderVersion()));
 #endif
   this->QueueCommandResponse(PLUS_SUCCESS, "Success.", "", &metadata);
   return PLUS_SUCCESS;
