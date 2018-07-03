@@ -2230,6 +2230,10 @@ IF(PLUS_USE_ATRACSYS)
   FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
   target_include_directories(AtracsysMarkerCreator PUBLIC $<BUILD_INTERFACE:${p}>)
   ENDFOREACH()
+  
+  INSTALL(TARGETS AtracsysMarkerCreator EXPORT PlusLib
+    RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+  )
 ENDIF()
 
 # --------------------------------------------------------------------------

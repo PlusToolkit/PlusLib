@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 {
   // Check command line arguments.
   bool printHelp(false);
-  bool backgroundSubtraction(true);
+  bool backgroundSubtraction(false);
   std::string markerName;
   std::string description;
   std::string destinationPath;
@@ -141,12 +141,13 @@ int main(int argc, char** argv)
       return PLUS_FAIL;
     }
     ProcessFiducials(backgroundFiducialFrameList, backgroundFids);
+
+    // set LED red and wait for user to place marker in front of the camera
+    Tracker.SetUserLEDState(255, 0, 0, 0);
+    LOG_INFO("Background collection successful. Place marker in FOV of camera." << std::endl << "Press <ENTER> to continue.");
+    std::cin.get();
   }
 
-  // set LED red and wait for user to place marker in front of the camera
-  Tracker.SetUserLEDState(255, 0, 0, 0);
-  LOG_INFO("Background collection successful. Place marker in FOV of camera." << std::endl << "Press <ENTER> to continue.");
-  std::cin.get();
   LOG_INFO("Collecting data frames.");
   // set LED blue for collecting frames
   Tracker.SetUserLEDState(0, 0, 255, 0);
