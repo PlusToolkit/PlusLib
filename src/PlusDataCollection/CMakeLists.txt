@@ -592,6 +592,72 @@ IF(PLUS_USE_OPTICAL_MARKER_TRACKER)
 ENDIF()
 
 #--------------------------------------------------------------------------
+# Atracsys support
+IF(PLUS_USE_ATRACSYS)
+  SET(Atracsys_SRCS
+    Atracsys/vtkPlusAtracsysTracker.cxx
+    Atracsys/AtracsysTracker.cxx
+  )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Atracsys_HDRS
+      Atracsys/vtkPlusAtracsysTracker.h
+      Atracsys/AtracsysTracker.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Atracsys_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Atracsys_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Atracsys
+    ${ATRACSYS_SDK_INCLUDE_DIR}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${ATRACSYS_SDK_LIBRARY}
+    )
+  
+  IF(WIN32)
+    IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      SET(ATRACSYS_BITNESS_SUFFIX "64")
+    ELSE()
+      SET(ATRACSYS_BITNESS_SUFFIX "32")
+    ENDIF()
+    
+    LIST(APPEND External_Libraries_Install
+      ${ATRACSYS_SDK_BINARY_DIR}/fusionTrack${ATRACSYS_BITNESS_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ATRACSYS_SDK_BINARY_DIR}/device${ATRACSYS_BITNESS_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ELSE()
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+      ${ATRACSYS_SDK_BINARY_DIR}/libfusionTrack64${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ATRACSYS_SDK_BINARY_DIR}/libdevice64${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    LIST(APPEND External_Libraries_Install
+      ${ATRACSYS_SDK_BINARY_DIR}/libfusionTrack64${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${ATRACSYS_SDK_BINARY_DIR}/libdevice64${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+  ENDIF()
+  IF(ATRACSYS_DEVICE_TYPE STREQUAL "stk")
+    LIST(APPEND External_Libraries_Install
+      ${ATRACSYS_SDK_BINARY_DIR}/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    IF(UNIX)
+      LIST(APPEND ${PROJECT_NAME}_LIBS
+        ${ATRACSYS_SDK_BINARY_DIR}/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
+  ENDIF()
+ 
+ENDIF()
+
+#--------------------------------------------------------------------------
 # BrachyTracker support
 IF(PLUS_USE_BRACHY_TRACKER)
   SET(BrachyTracker_SRCS
@@ -2151,6 +2217,21 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ENDIF()
 
   INSTALL(TARGETS PlusVersion ViewSequenceFile EXPORT PlusLib
+    RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
+  )
+ENDIF()
+
+IF(PLUS_USE_ATRACSYS)
+  # build AtracsysMarkerCreator
+  ADD_EXECUTABLE(AtracsysMarkerCreator Atracsys/AtracsysTracker.h Atracsys/AtracsysTracker.cxx Atracsys/AtracsysMarkerCreator.cxx)
+  SET_TARGET_PROPERTIES(AtracsysMarkerCreator PROPERTIES FOLDER Tools)
+  TARGET_LINK_LIBRARIES(AtracsysMarkerCreator PUBLIC ${${PROJECT_NAME}_LIBS})
+  TARGET_LINK_LIBRARIES(AtracsysMarkerCreator PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
+  FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
+  target_include_directories(AtracsysMarkerCreator PUBLIC $<BUILD_INTERFACE:${p}>)
+  ENDFOREACH()
+  
+  INSTALL(TARGETS AtracsysMarkerCreator EXPORT PlusLib
     RUNTIME DESTINATION "${PLUSLIB_BINARY_INSTALL}" COMPONENT RuntimeLibraries
   )
 ENDIF()

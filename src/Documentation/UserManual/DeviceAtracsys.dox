@@ -1,0 +1,91 @@
+/*!
+\page DeviceAtracsys Atracsys
+
+\section AtracsysSupportedHwDevices Supported hardware devices
+- spryTrack 180
+- fusionTrack 250
+- fusionTrack 500
+
+\section AtracsysSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageLinux
+
+\section AtracsysFirmwareUpdate Updating camera firmware
+Please check the release notes for your version of the Atracsys SDK to ensure that these notes are current.
+
+- spryTrack 180
+  - Verify that all cables are free & firmly connected. Loss off power to the device during firmware update could cause memory corruption.
+  - Open a command prompt and run the flash_firmware.bat (or flash_firmware.sh on Linux) script with the new firmware file as an argument.
+  - The console will log the progress on uploading the new firmware to the device, do not disconnect until this process is complete.
+
+- fusionTrack 250 or fusionTrack 500
+  - Verify that all cables are free & firmly connected. Loss off power to the device during firmware update could cause memory corruption.
+  - Connect the device to a Windows PC (it appears there is no Linux binary for flashing new firmware to the tracker).
+  - Put the new firmware image in the /bin directory.
+  - Turn on the power to the device, and then immediately start the atnet_64.exe binary. The updater is connected to the tracker when the trackers SN is printed to the console and the device status LED blinks blue.
+  - In the atnet_x64 console, the following command will load the firmware image (where <tracker_SN> is replaced with the tracker’s serial #, and <application_firmware_name> is replaced with the firmware filename.
+\code
+srec <tracker_SN> <application_firmware_name>.flash   i.e.   srec * App_fTk_1.1.6.65.flash 
+\endcode
+  - Next, we commit the firmware image to the fusionTrack memory. Be VERY careful to write only to region 1, writing to any other region could corrupt the device. Atracsys – there should be a confirmation dialog for any region other than 1. Replace <size> with the loaded firmware size printed to the console in the above step.
+\code
+commit <tracker_SN> 1 <size>   i.e.   commit * 1 2408603
+\endcode
+  - Wait for “–->OK” to be printed to the console to indicate a successful firmware update. Power the device off, and after waiting 5s power the tracker back on and verify the firmware version in demo_x[64|86].exe. Note: the firmware is printed with each pair of two numbers represented as hex digits (possibly with a missing leading zero).
+
+\section AtracsysBuild Building the Atracsys PLUS support
+
+- To build the software, please download Atracsys' spryTrack SDK from the web link provided when you purchased the system. Alternatively, confirmed working files needed to build the support for spryTrack and fusionTrack systems on Windows & Linux are available in the PLTools repository.
+
+\section AtracsysPassiveMarkerCreation Creating a passive marker geometry
+  - Included in the PLUS build bin directory is an executable called AtracsysMarkerCreator. It can be used to create .ini files describing the passive geometry of any IR reflective marker pattern (i.e. reflective spheres, infrared markers compatible with Atracsys trackers, circular reflective tape, etc).
+  -To use the executable, you must provide at least the --marker-name, --description, and --geometryId arguments. geometryId must be unique among the markers you wish to track in a single PLUS config file. We recomment choosing unique numbers for every tool to prevent geometryId conflicts.
+
+  Options are:
+\code
+  --background-subtraction  Remove background fiducials from data considered by
+                            the creator.
+
+  --description=opt         Decsription of marker (i.e. purpose, color, size,
+                            and any other desired metadata).
+
+  --destination-path=opt    Where the generated marker geometry ini file will
+                            be written to.
+
+  --geometryId=opt          Id of the geometry we are creating. Must be unique.
+
+  --help                    Print this help.
+
+  --marker-name=opt         Name of marker.
+
+  --num-frames=opt          Number of frames to use in generating marker
+                            geometry ini file.
+
+  --verbose=opt             Verbose level (1=error only, 2=warning, 3=info,
+                            4=debug, 5=trace).
+\endcode
+
+  - To use the background subtraction, provide the --background-subtraction argument when you launch the executable. It will collect background frames and then pause to allow you to position the marker you wish to create a geometry for in the camera's field of view.
+  
+\section AtracsysActiveMarkes Using Atracsys active markers
+  - At this time, there is only support in the Atracsys SDKs for use of the active markers with the spryTrack. Once support is available for using these markers with the fusionTrack we will update the PLUS support to use this feature.
+
+\section AtracsysConfigSettings Device configuration settings
+- \xmlAtt \ref DeviceType "Type" = \c "AtracsysTracker" \RequiredAtt
+- \xmlAtt \ref MaxMissingFiducials Max number of missing fiducials to still track a marker with. \OptionalAtt{1}
+- \xmlAtt \ref MaxMeanRegistrationErrorMm Maximum error in fitting marker geometry to visible fiducials to consider a marker tracked. \OptionalAtt{2.0}
+- \xmlAtt \ref ActiveMarkerPairingTimeSec Time tracker waits for active markers to pair before beginning tracking. \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlElem \ref DataSources \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+  - \xmlAtt \b TrackingType The type of marker this is. \RequiredAtt
+    - \c ACTIVE
+    - \c PASSIVE
+  - \xmlAtt \b GeometryFile If this is a PASSIVE marker, provide the GeometryFile attribute with the path to the markers geometry file (.ini). \RequiredAtt
+  - \xmlAtt \b GeometryId If the marker is an ACTIVE marker, provide the Atracsys assigned Id of the marker. \RequiredAtt
+\section AtracsysExampleConfigFile Config File
+\include "ConfigFiles/PlusDeviceSet_Server_Atracsys.xml"
+
+*/
