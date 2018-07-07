@@ -129,13 +129,13 @@ PlusStatus vtkPlusIntelRealSense::vtkInternal::SetStreamToAlign(const std::vecto
 
   if (!depth_stream_found)
   {
-    LOG_ERROR("No Intel RealSense Depth stream available");
+    LOG_ERROR("Failed to align RealSense streams. No Intel RealSense Depth stream available. Please proivde a depth stream, or set AlignDepthStream to FALSE.");
     return PLUS_FAIL;
   }
 
   if (align_to == RS2_STREAM_ANY)
   {
-    LOG_ERROR("No Intel RealSense stream found to align with Depth");
+    LOG_ERROR("Failed to align RealSense streams. No Intel RealSense stream found to align with Depth. Please proivde an RGB stream, or set AlignDepthStream to FALSE");
     return PLUS_FAIL;
   }
   this->AlignTo = align_to;
