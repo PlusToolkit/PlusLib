@@ -81,6 +81,7 @@ public:
   rs2::align* Align;
 
   bool UseRealSenseColorizer = false;
+  bool AlignDepthStream = false;
 };
 
 //----------------------------------------------------------------------------
@@ -176,6 +177,7 @@ PlusStatus vtkPlusIntelRealSense::ReadConfiguration(vtkXMLDataElement* rootConfi
 {
 	XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(UseRealSenseColorizer, this->Internal->UseRealSenseColorizer, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(AlignDepthStream, this->Internal->AlignDepthStream, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -316,13 +318,15 @@ PlusStatus vtkPlusIntelRealSense::InternalStartRecording()
     return PLUS_FAIL;
   }
 
-  // TODO: Implement stream alignment
-  // align depth stream to optical
-  //if (this->Internal->SetStreamToAlign(this->Internal->Profile.get_streams()) == PLUS_FAIL)
-  //{
-  //  return PLUS_FAIL;
-  //}
-  //this->Internal->Align = new rs2::align(this->Internal->AlignTo);
+  if (this->Internal->AlignDepthStream)
+  {
+    // setup to align depth frame to color
+    if (this->Internal->SetStreamToAlign(this->Internal->Profile.get_streams()) == PLUS_FAIL)
+    {
+      return PLUS_FAIL;
+    }
+    this->Internal->Align = new rs2::align(this->Internal->AlignTo);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -370,21 +374,12 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
   // wait for frame
   rs2::frameset frames = this->Internal->Pipe.wait_for_frames();
 
-  // TODO: implement ability to recognize and handle stream changes
-  //if (this->profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
-  //{
-  //  //If the profile was changed, update the align object, and also get the new device's depth scale
-  //  this->profile = pipe.get_active_profile();
-  //  this->align_to = this->find_stream_to_align(profile.get_streams());
-  //}
-
-  // TODO: implement alignment of images
-  //rs2::align align(this->align_to);
-  ////Get processed aligned frame
-  //auto processed = align.process(frameset);
-  /*rs2::video_frame color = processed.first(align_to);
-  rs2::depth_frame depth = processed.get_depth_frame();*/
-
+  // if requested, align depth to color
+  if (this->Internal->AlignDepthStream)
+  {
+    frames = this->Internal->Align->process(frames);
+  }
+  
   // forward video data to PlusDataSource
   std::vector<vtkInternal::RSFrameConfig>::iterator it;
   for (it = begin(this->Internal->VideoSources); it != end(this->Internal->VideoSources); it++)
@@ -409,7 +404,7 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
     {
       if (this->Internal->UseRealSenseColorizer)
       {
-        // output is RGB from rs2::colorizer
+        // depth output is RGB from rs2::colorizer
         it->Source->SetImageType(US_IMG_RGB_COLOR);
         it->Source->SetPixelType(VTK_UNSIGNED_CHAR);
         it->Source->SetNumberOfScalarComponents(3);
@@ -417,7 +412,7 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
       }
       else
       {
-        // output is raw depth data
+        // depth output is raw depth data
         LOG_INFO("setting up depth frame");
         it->Source->SetImageType(US_IMG_BRIGHTNESS);
         it->Source->SetPixelType(VTK_TYPE_UINT16);
@@ -472,7 +467,6 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
   }
 
 	this->FrameNumber++; 
-
 	return PLUS_SUCCESS;
 }
 

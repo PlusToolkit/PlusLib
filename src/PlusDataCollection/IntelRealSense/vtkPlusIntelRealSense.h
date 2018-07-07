@@ -67,16 +67,7 @@ private:
   class vtkInternal;
   vtkInternal* Internal;
   
-
-  //bool vtkPlusIntelRealSense::profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
-
-  ///*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  //double LastFrameNumber;
-  //
-  unsigned int FrameNumber;
-
-
-
+  unsigned long FrameNumber;
 };
 
 #endif
