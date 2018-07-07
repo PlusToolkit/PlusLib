@@ -29,10 +29,6 @@ public:
   /*! Write configuration to xml data */
   PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
-  /*! Manage device frozen state */
-  //PlusStatus FreezeDevice(bool freeze);
-
-
   /*!
   Record incoming data at the specified acquisition rate.  The recording
   continues indefinitely until StopRecording() is called.
@@ -58,7 +54,6 @@ public:
 protected:
   vtkPlusIntelRealSense();
   ~vtkPlusIntelRealSense();
-
 
 private:
   vtkPlusIntelRealSense(const vtkPlusIntelRealSense&);

@@ -62,10 +62,12 @@ public:
     unsigned int FrameRate;
   };
 
+  // Configuration parameters
+  bool UseRealSenseColorizer = false;
+  bool AlignDepthStream = false;
+
   // Frame setup for RGB & depth
   std::vector<RSFrameConfig> VideoSources;
-
-  // TODO: Add infrared frame sources
 
   PlusStatus SetDepthScaleToMm(rs2::device dev);
   float DepthScaleToMm;
@@ -74,14 +76,10 @@ public:
   rs2::pipeline Pipe;
   rs2::pipeline_profile Profile;
 
+  // Alignment
   PlusStatus SetStreamToAlign(const std::vector<rs2::stream_profile>& streams);
   rs2_stream AlignTo;
-
-  // rs2::align doesn't have a default constructor, so we must use a pointer
-  rs2::align* Align;
-
-  bool UseRealSenseColorizer = false;
-  bool AlignDepthStream = false;
+  rs2::align* Align; // rs2::align doesn't have a default constructor, so we must use a pointer
 };
 
 //----------------------------------------------------------------------------
@@ -148,8 +146,8 @@ PlusStatus vtkPlusIntelRealSense::vtkInternal::SetStreamToAlign(const std::vecto
 vtkPlusIntelRealSense::vtkPlusIntelRealSense()
   : Internal(new vtkInternal(this))
 {
-	this->RequireImageOrientationInConfiguration = true;
-	this->StartThreadForInternalUpdates = true;
+  this->RequireImageOrientationInConfiguration = true;
+  this->StartThreadForInternalUpdates = true;
   this->InternalUpdateRate = REALSENSE_DEFAULT_FRAME_RATE;
   this->AcquisitionRate = REALSENSE_DEFAULT_FRAME_RATE;
 }
@@ -164,18 +162,17 @@ vtkPlusIntelRealSense::~vtkPlusIntelRealSense()
 //----------------------------------------------------------------------------
 void vtkPlusIntelRealSense::PrintSelf(ostream& os, vtkIndent indent)
 {
-
-	this->Superclass::PrintSelf(os, indent);
-
-	//os << indent << "Intel RealSense 3d Camera: D415" << std::endl;
-	//os << indent << "RgbDataSourceName: " << RgbDataSourceName << std::endl;
-	//os << indent << "DepthDataSourceName: " << DepthDataSourceName << std::endl;
+  this->Superclass::PrintSelf(os, indent);
+  // TODO: Re-implement this without hard-coding
+  //os << indent << "Intel RealSense 3d Camera: D415" << std::endl;
+  //os << indent << "RgbDataSourceName: " << RgbDataSourceName << std::endl;
+  //os << indent << "DepthDataSourceName: " << DepthDataSourceName << std::endl;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSense::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-	XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(UseRealSenseColorizer, this->Internal->UseRealSenseColorizer, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(AlignDepthStream, this->Internal->AlignDepthStream, deviceConfig);
 
@@ -217,14 +214,35 @@ PlusStatus vtkPlusIntelRealSense::ReadConfiguration(vtkXMLDataElement* rootConfi
       return PLUS_FAIL;
     }
   }
-	return PLUS_SUCCESS;
+  return PLUS_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSense::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-	//XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
-	return PLUS_SUCCESS;
+  XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
+
+  // write bool  UseRealSenseColorizer
+  if (this->Internal->UseRealSenseColorizer)
+  {
+    deviceConfig->SetAttribute("UseRealSenseColorizer", "TRUE");
+  }
+  else
+  {
+    deviceConfig->SetAttribute("UseRealSenseColorizer", "FALSE");
+  }
+
+  // write bool AlignDepthStream
+  if (this->Internal->AlignDepthStream)
+  {
+    deviceConfig->SetAttribute("AlignDepthStream", "TRUE");
+  }
+  else
+  {
+    deviceConfig->SetAttribute("AlignDepthStream", "FALSE");
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -290,7 +308,6 @@ PlusStatus vtkPlusIntelRealSense::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSense::InternalDisconnect()
 {
-  //pipe.stop();
   delete this->Internal->Align;
   this->Internal->Align = nullptr;
   return PLUS_SUCCESS;
@@ -341,30 +358,7 @@ PlusStatus vtkPlusIntelRealSense::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntelRealSense::NotifyConfigured()
 {
-  //if (this->OutputChannels.size() > 2)
-  //{
-  //  LOG_WARNING("vtkPlusIntelRealSenseCamera is expecting 2 output channel and there are " << this->OutputChannels.size() << " channels. 2 firsts outputs channel will be used.");
-  //}
-
-  //if (this->OutputChannels.size() < 2)
-  //{
-  //  LOG_ERROR("vtkPlusIntelRealSenseCamera is expecting 2 output channel. Cannot proceed.");
-  //  this->CorrectlyConfigured = false;
-  //  return PLUS_FAIL;
-  //}
-
-  //if (this->GetDataSource("VideoRGB", this->Internal->VideoSources[0].Source) != PLUS_SUCCESS)
-  //{
-  //  LOG_ERROR("Unable to locate data source for RGB camera: VideoRGB");
-  //  return PLUS_FAIL;
-  //}
-
-  //if (this->GetDataSource("VideoDEPTH", this->Internal->VideoSources[1].Source) != PLUS_SUCCESS)
-  //{
-  //  LOG_ERROR("Unable to locate data source for DEPTH camera:VideoDepth");
-  //  return PLUS_FAIL;
-  //}
-
+  // TODO: Implement some configuration checks here
   return PLUS_SUCCESS;
 }
 
@@ -466,57 +460,6 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
     }
   }
 
-	this->FrameNumber++; 
-	return PLUS_SUCCESS;
+  this->FrameNumber++; 
+  return PLUS_SUCCESS;
 }
-
-//
-//rs2_stream vtkPlusIntelRealSense::find_stream_to_align(const std::vector<rs2::stream_profile>& streams)
-//{
-//	//Given a vector of streams, we try to find a depth stream and another stream to align depth with.
-//	//We prioritize color streams to make the view look better.
-//	//If color is not available, we take another stream that (other than depth)
-//	rs2_stream align_to = RS2_STREAM_ANY;
-//	bool depth_stream_found = false;
-//	bool color_stream_found = false;
-//	for (rs2::stream_profile sp : streams)
-//	{
-//		rs2_stream profile_stream = sp.stream_type();
-//		if (profile_stream != RS2_STREAM_DEPTH)
-//		{
-//			if (!color_stream_found)         //Prefer color
-//				align_to = profile_stream;
-//
-//			if (profile_stream == RS2_STREAM_COLOR)
-//			{
-//				color_stream_found = true;
-//			}
-//		}
-//		else
-//		{
-//			depth_stream_found = true;
-//		}
-//	}
-//
-//	if (!depth_stream_found)
-//		throw std::runtime_error("No Depth stream available");
-//
-//	if (align_to == RS2_STREAM_ANY)
-//		throw std::runtime_error("No stream found to align with Depth");
-//
-//	return align_to;
-//}
-//
-//bool vtkPlusIntelRealSense::profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev)
-//{
-//	for (auto&& sp : prev)
-//	{
-//		//If previous profile is in current (maybe just added another)
-//		auto itr = std::find_if(std::begin(current), std::end(current), [&sp](const rs2::stream_profile& current_sp) { return sp.unique_id() == current_sp.unique_id(); });
-//		if (itr == std::end(current)) //If it previous stream wasn't found in current
-//		{
-//			return true;
-//		}
-//	}
-//	return false;
-//}
