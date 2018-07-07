@@ -79,6 +79,8 @@ public:
 
   // rs2::align doesn't have a default constructor, so we must use a pointer
   rs2::align* Align;
+
+  bool UseRealSenseColorizer = false;
 };
 
 //----------------------------------------------------------------------------
@@ -173,6 +175,7 @@ void vtkPlusIntelRealSense::PrintSelf(ostream& os, vtkIndent indent)
 PlusStatus vtkPlusIntelRealSense::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
 	XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(UseRealSenseColorizer, this->Internal->UseRealSenseColorizer, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -404,15 +407,23 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
     }
     else if (it->Source->GetNumberOfItems() == 0 && it->StreamType == RS2_STREAM_DEPTH)
     {
-      LOG_INFO("setting up depth frame");
-      it->Source->SetImageType(US_IMG_BRIGHTNESS);
-      it->Source->SetPixelType(VTK_TYPE_UINT16);
-      it->Source->SetNumberOfScalarComponents(1);
-      it->Source->SetInputFrameSize(it->Width, it->Height, 1);
-      //it->Source->SetImageType(US_IMG_RGB_COLOR);
-      //it->Source->SetPixelType(VTK_UNSIGNED_CHAR);
-      //it->Source->SetNumberOfScalarComponents(3);
-      //it->Source->SetInputFrameSize(it->Width, it->Height, 1);
+      if (this->Internal->UseRealSenseColorizer)
+      {
+        // output is RGB from rs2::colorizer
+        it->Source->SetImageType(US_IMG_RGB_COLOR);
+        it->Source->SetPixelType(VTK_UNSIGNED_CHAR);
+        it->Source->SetNumberOfScalarComponents(3);
+        it->Source->SetInputFrameSize(it->Width, it->Height, 1);
+      }
+      else
+      {
+        // output is raw depth data
+        LOG_INFO("setting up depth frame");
+        it->Source->SetImageType(US_IMG_BRIGHTNESS);
+        it->Source->SetPixelType(VTK_TYPE_UINT16);
+        it->Source->SetNumberOfScalarComponents(1);
+        it->Source->SetInputFrameSize(it->Width, it->Height, 1);
+      }
     }
 
     // get frame data
@@ -427,7 +438,6 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
     if (it->StreamType == RS2_STREAM_COLOR)
     {
       FrameSizeType frameSizeColor = { it->Width, it->Height, 1 };
-      //it->Source->AddItem((void *)frame.get_data(), it->Source->GetInputImageOrientation(), frameSizeColor, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber);
       if (it->Source->AddItem((void *)frame.get_data(), it->Source->GetInputImageOrientation(), frameSizeColor, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
       {
         LOG_ERROR("vtkPlusIntelRealSense::InternalUpdate Unable to send RGB image. Skipping frame.");
@@ -436,22 +446,28 @@ PlusStatus vtkPlusIntelRealSense::InternalUpdate()
     }
     else if (it->StreamType == RS2_STREAM_DEPTH)
     {
-      rs2::colorizer color;
-      color.set_option(RS2_OPTION_HISTOGRAM_EQUALIZATION_ENABLED, 1);
-      color.set_option(RS2_OPTION_MIN_DISTANCE, 0.6);
-      color.set_option(RS2_OPTION_MAX_DISTANCE, 1.0);
-      rs2::video_frame vfr = color.colorize(frame);
       FrameSizeType frameSizeDepth = { it->Width, it->Height, 1 };
-      if (it->Source->AddItem((void *)frame.get_data(), it->Source->GetInputImageOrientation(), frameSizeDepth, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+      if (this->Internal->UseRealSenseColorizer)
       {
-        LOG_ERROR("vtkPlusIntelRealSense::InternalUpdate Unable to send DEPTH image. Skipping frame.");
-        return PLUS_FAIL;
+        rs2::colorizer color;
+        color.set_option(RS2_OPTION_HISTOGRAM_EQUALIZATION_ENABLED, 1);
+        color.set_option(RS2_OPTION_MIN_DISTANCE, 0.6);
+        color.set_option(RS2_OPTION_MAX_DISTANCE, 1.0);
+        rs2::video_frame vfr = color.colorize(frame);
+        if (it->Source->AddItem((void *)vfr.get_data(), it->Source->GetInputImageOrientation(), frameSizeDepth, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
+        {
+          LOG_ERROR("vtkPlusIntelRealSense::InternalUpdate Unable to send RGB image. Skipping frame.");
+          return PLUS_FAIL;
+        }
       }
-      //if (it->Source->AddItem((void *)vfr.get_data(), it->Source->GetInputImageOrientation(), frameSizeDepth, VTK_UNSIGNED_CHAR, 3, US_IMG_RGB_COLOR, 0, this->FrameNumber) == PLUS_FAIL)
-      //{
-      //  LOG_ERROR("vtkPlusIntelRealSense::InternalUpdate Unable to send RGB image. Skipping frame.");
-      //  return PLUS_FAIL;
-      //}
+      else
+      {
+        if (it->Source->AddItem((void *)frame.get_data(), it->Source->GetInputImageOrientation(), frameSizeDepth, VTK_TYPE_UINT16, 1, US_IMG_BRIGHTNESS, 0, this->FrameNumber) == PLUS_FAIL)
+        {
+          LOG_ERROR("vtkPlusIntelRealSense::InternalUpdate Unable to send DEPTH image. Skipping frame.");
+          return PLUS_FAIL;
+        }
+      }
     }
   }
 
