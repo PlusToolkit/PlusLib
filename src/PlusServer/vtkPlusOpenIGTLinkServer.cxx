@@ -1027,6 +1027,7 @@ void vtkPlusOpenIGTLinkServer::KeepAlive()
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       igtl::StatusMessage::Pointer replyMsg = igtl::StatusMessage::New();
+      replyMsg->SetDeviceName("KeepAlive");
       replyMsg->SetCode(igtl::StatusMessage::STATUS_OK);
       replyMsg->Pack();
 
