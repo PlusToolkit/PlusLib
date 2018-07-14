@@ -1311,26 +1311,37 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
 
       // Send command result details both in XML and in metadata, slowly phase towards metadata
       std::ostringstream replyStr;
-      replyStr << "<CommandReply";
-      replyStr << " Name=\"" << commandResponse->GetCommandName() << "\"";
-      replyStr << " Status=\"" << (commandResponse->GetStatus() ? "SUCCESS" : "FAIL") << "\"";
-      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));
-      if (commandResponse->GetStatus() == PLUS_FAIL)
+      if (commandResponse->GetUseDefaultFormat())
       {
-        replyStr << " Error=\"" << commandResponse->GetErrorString() << "\"";
-        igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
+        
+        replyStr << "<CommandReply";
+        replyStr << " Name=\"" << commandResponse->GetCommandName() << "\"";
+        replyStr << " Status=\"" << (commandResponse->GetStatus() ? "SUCCESS" : "FAIL") << "\"";
+        if (commandResponse->GetStatus() == PLUS_FAIL)
+        {
+          replyStr << " Error=\"" << commandResponse->GetErrorString() << "\"";
+        }
+        replyStr << " Message=\"" << commandResponse->GetResultString() << "\"></CommandReply>";
+        igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
       }
-      replyStr << " Message=\"" << commandResponse->GetResultString() << "\"></CommandReply>";
-      igtlMessage->SetMetaDataElement("Message", IANA_TYPE_US_ASCII, commandResponse->GetResultString());
+      else
+      {
+        replyStr << commandResponse->GetResultString();
+      }
+      igtlMessage->SetCommandContent(replyStr.str());
 
       for (igtl::MessageBase::MetaDataMap::const_iterator it = begin(commandResponse->GetParameters()); it != end(commandResponse->GetParameters()); ++it)
       {
         igtlMessage->SetMetaDataElement(it->first, it->second.first, it->second.second);
       }
 
-      LOG_DEBUG("Command response: " << replyStr.str());
-      igtlMessage->SetCommandContent(replyStr.str());
+      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));    
+      if (commandResponse->GetStatus() == PLUS_FAIL)
+      {
+        igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
+      }
 
+      LOG_DEBUG("Command response: " << replyStr.str());
       return igtlMessage.GetPointer();
     }
   }

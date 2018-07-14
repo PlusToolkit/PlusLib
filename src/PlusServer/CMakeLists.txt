@@ -15,6 +15,7 @@ SET(${PROJECT_NAME}_CMD_SRCS
   Commands/vtkPlusGetPolydataCommand.cxx
   Commands/vtkPlusGetTransformCommand.cxx
   Commands/vtkPlusSetUsParameterCommand.cxx
+  Commands/vtkPlusGetUsParameterCommand.cxx
   Commands/vtkPlusAddRecordingDeviceCommand.cxx
   )
 SET(${PROJECT_NAME}_SRCS
@@ -39,6 +40,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     Commands/vtkPlusGetPolydataCommand.h
     Commands/vtkPlusGetTransformCommand.h
     Commands/vtkPlusSetUsParameterCommand.h
+    Commands/vtkPlusGetUsParameterCommand.h
     Commands/vtkPlusAddRecordingDeviceCommand.h
     )
   SET(${PROJECT_NAME}_HDRS

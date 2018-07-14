@@ -418,8 +418,12 @@ PlusStatus vtkPlusUsImagingParameters::ReadConfiguration(vtkXMLDataElement* devi
   for (int i = 0; i < parameterList->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* element = parameterList->GetNestedElement(i);
-    std::string name(element->GetAttribute("name"));
-    std::string value(element->GetAttribute("value"));
+    std::string name = element->GetAttribute("name") ? element->GetAttribute("name") : "";
+    std::string value = element->GetAttribute("value") ? element->GetAttribute("value") : "";
+    if (name.empty())
+    {
+      continue;
+    }
 
     if (this->Parameters[name].Value != value)
     {
@@ -515,27 +519,6 @@ PlusStatus vtkPlusUsImagingParameters::SetPending(const std::string& paramName, 
   }
 
   LOG_ERROR("Invalid key request sent to vtkPlusUsImagingParameters::SetPending -- " << paramName);
-  return PLUS_FAIL;
-}
-
-//-----------------------------------------------------------------------------
-template <typename T>
-PlusStatus vtkPlusUsImagingParameters::GetValue(const std::string& paramName, T& outputValue) const
-{
-  ParameterMapConstIterator keyIt = this->Parameters.find(paramName);
-  if (keyIt != this->Parameters.end() && keyIt->second.Set == false)
-  {
-    return PLUS_FAIL;
-  }
-  else if (keyIt == this->Parameters.end())
-  {
-    return PLUS_FAIL;
-  }
-
-  std::stringstream ss;
-  ParameterMapConstIterator it = this->Parameters.find(paramName);
-  ss.str(it->second.Value);
-  ss >> outputValue;
   return PLUS_FAIL;
 }
 

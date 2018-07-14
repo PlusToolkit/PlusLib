@@ -105,7 +105,25 @@ public:
   \param paramName the key value to retrieve
   \param outputValue the output variable to write to
   */
-  template<typename T> PlusStatus GetValue(const std::string& paramName, T& outputValue) const;
+  template<typename T> PlusStatus GetValue(const std::string& paramName, T& outputValue) const
+  {
+    ParameterMapConstIterator keyIt = this->Parameters.find(paramName);
+    if (keyIt != this->Parameters.end() && keyIt->second.Set == false)
+    {
+      return PLUS_FAIL;
+    }
+    else if (keyIt == this->Parameters.end())
+    {
+      return PLUS_FAIL;
+    }
+
+    std::stringstream ss;
+    ParameterMapConstIterator it = this->Parameters.find(paramName);
+    ss.str(it->second.Value);
+    ss >> outputValue;
+    return PLUS_SUCCESS;
+  }
+
   /*!
   Set a stored value by key name
   Defined in the header to make it available externally

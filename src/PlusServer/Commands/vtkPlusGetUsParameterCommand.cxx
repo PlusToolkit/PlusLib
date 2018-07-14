@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "vtkPlusSetUsParameterCommand.h"
+#include "vtkPlusGetUsParameterCommand.h"
 
 #include "vtkPlusDataCollector.h"
 #include "vtkObjectFactory.h"
@@ -23,61 +23,61 @@ See License.txt for details.
 
 namespace
 {
-  static const std::string SET_US_PARAMETER_CMD = "SetUsParameter";
+  static const std::string GET_US_PARAMETER_CMD = "GetUsParameter";
 }
 
-vtkStandardNewMacro(vtkPlusSetUsParameterCommand);
+vtkStandardNewMacro(vtkPlusGetUsParameterCommand);
 
 //----------------------------------------------------------------------------
-vtkPlusSetUsParameterCommand::vtkPlusSetUsParameterCommand()
+vtkPlusGetUsParameterCommand::vtkPlusGetUsParameterCommand()
 {
   this->UsDeviceId = "";
-  this->RequestedParameterChanges.clear();
+  this->RequestedParameters.clear();
 }
 
 //----------------------------------------------------------------------------
-vtkPlusSetUsParameterCommand::~vtkPlusSetUsParameterCommand()
+vtkPlusGetUsParameterCommand::~vtkPlusGetUsParameterCommand()
 {
-  this->RequestedParameterChanges.clear();
+  this->RequestedParameters.clear();
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSetUsParameterCommand::SetNameToSetUsParameter()
+void vtkPlusGetUsParameterCommand::SetNameToGetUsParameter()
 {
-  SetName(SET_US_PARAMETER_CMD);
+  SetName(GET_US_PARAMETER_CMD);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSetUsParameterCommand::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusGetUsParameterCommand::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusSetUsParameterCommand::GetCommandNames(std::list<std::string>& cmdNames)
+void vtkPlusGetUsParameterCommand::GetCommandNames(std::list<std::string>& cmdNames)
 {
   cmdNames.clear();
-  cmdNames.push_back(SET_US_PARAMETER_CMD);
+  cmdNames.push_back(GET_US_PARAMETER_CMD);
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusSetUsParameterCommand::GetDescription(const std::string& commandName)
+std::string vtkPlusGetUsParameterCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SET_US_PARAMETER_CMD))
+  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_US_PARAMETER_CMD))
   {
-    desc += SET_US_PARAMETER_CMD;
+    desc += GET_US_PARAMETER_CMD;
     //TODO:
-    desc += ": Set depth image parameter. Attributes: UsDeviceId: ID of the ultrasound device.";
+    desc += ": Get ultrasound image parameter. Attributes: UsDeviceId: ID of the ultrasound device.";
   }
 
   return desc;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusGetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 {
-  this->RequestedParameterChanges.clear();
+  this->RequestedParameters.clear();
   if (vtkPlusCommand::ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
@@ -92,14 +92,13 @@ PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aC
     if (PlusCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
     {
       const char* parameterName = currentElem->GetAttribute("Name");
-      const char* parameterValue = currentElem->GetAttribute("Value");
-      if (!parameterName || !parameterValue)
+      if (!parameterName)
       {
-        LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in SetUsParameter command");
+        LOG_ERROR("Unable to find required Name attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in GetUsParameter command");
         continue;
       }
 
-      this->RequestedParameterChanges[parameterName] = parameterValue;
+      this->RequestedParameters.push_back(parameterName);
     }
   }
 
@@ -107,7 +106,7 @@ PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aC
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
+PlusStatus vtkPlusGetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
   if (vtkPlusCommand::WriteConfiguration(aConfig) != PLUS_SUCCESS)
   {
@@ -117,12 +116,11 @@ PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(UsDeviceId, aConfig);
 
   // Write parameters as nested elements
-  std::map<std::string, std::string>::iterator paramIt;
-  for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
+  std::vector<std::string>::iterator paramIt;
+  for (paramIt = this->RequestedParameters.begin(); paramIt != this->RequestedParameters.end(); ++paramIt)
   {
     vtkSmartPointer<vtkXMLDataElement> paramElem = vtkSmartPointer<vtkXMLDataElement>::New();
-    paramElem->SetAttribute("Name", paramIt->first.c_str());
-    paramElem->SetAttribute("Value", paramIt->second.c_str());
+    paramElem->SetAttribute("Name", paramIt->c_str());
     aConfig->AddNestedElement(paramElem);
   }
 
@@ -130,9 +128,9 @@ PlusStatus vtkPlusSetUsParameterCommand::WriteConfiguration(vtkXMLDataElement* a
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSetUsParameterCommand::Execute()
+PlusStatus vtkPlusGetUsParameterCommand::Execute()
 {
-  LOG_DEBUG("vtkPlusSetUsParameterCommand::Execute: " << (!this->Name.empty() ? this->Name : "(undefined)")
+  LOG_DEBUG("vtkPlusGetUsParameterCommand::Execute: " << (!this->Name.empty() ? this->Name : "(undefined)")
             << ", device: " << (this->UsDeviceId.empty() ? "(undefined)" : this->UsDeviceId));
 
   if (this->Name.empty())
@@ -140,7 +138,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
   }
-  else if (!PlusCommon::IsEqualInsensitive(this->Name, SET_US_PARAMETER_CMD))
+  else if (!PlusCommon::IsEqualInsensitive(this->Name, GET_US_PARAMETER_CMD))
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "Unknown command name: " + this->Name + ".");
     return PLUS_FAIL;
@@ -154,49 +152,60 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     return PLUS_FAIL;
   }
 
-  std::string usDeviceId = (usDevice->GetDeviceId().empty() ? "(unknown)" : usDevice->GetDeviceId());
+  std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
+
   vtkPlusUsImagingParameters* imagingParameters = usDevice->GetImagingParameters();
   std::string resultString = "<CommandReply>";
   std::string error = "";
-  std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
   PlusStatus status = PLUS_SUCCESS;
 
-  std::map<std::string, std::string>::iterator paramIt;
-  for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
+  std::vector<std::string>::iterator paramIt;
+  for (paramIt = this->RequestedParameters.begin(); paramIt != this->RequestedParameters.end(); ++paramIt)
   {
-    std::string parameterName = paramIt->first;
-    std::string value = paramIt->second;
+    std::string parameterName = *paramIt;
     resultString += "<Parameter Name=\"" + parameterName + "\"";
 
     if (parameterName == vtkPlusUsImagingParameters::KEY_TGC)
     {
-      std::stringstream ss;
-      ss.str(value);
-      std::vector<double> numbers((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
-      if (numbers.size() != 3)
+      if (imagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_TGC))
       {
-        error += "Failed to parse " + parameterName + ".";
-        resultString += " Success=\"false\"/>";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-        status = PLUS_FAIL;
-        continue;
+        std::stringstream ss;
+        std::vector<double> numbers = imagingParameters->GetTimeGainCompensation();
+        for (std::vector<double>::iterator numberIt; numberIt != numbers.begin(); numberIt != numbers.end())
+        {
+          ss << *numberIt << " ";
+        }
+        resultString += " Success=\"true\"";
+        resultString += " Value=\"" + ss.str() + "\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
       }
-      imagingParameters->SetTimeGainCompensation(numbers);
+      else
+      {
+        resultString += " Success=\"false\"";
+        error += parameterName + " is not set. ";
+        status = PLUS_FAIL;
+      }
     }
     else if (parameterName == vtkPlusUsImagingParameters::KEY_IMAGESIZE)
     {
-      std::stringstream ss;
-      ss.str(value);
-      std::vector<int> numbers((std::istream_iterator<int>(ss)), std::istream_iterator<int>());
-      if (numbers.size() != 3)
+      if (imagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_IMAGESIZE))
       {
-        error += "Failed to parse " + parameterName + ". ";
-        resultString += " Success=\"false\"/>";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-        status = PLUS_FAIL;
-        continue;
+        std::stringstream ss;
+        FrameSizeType imageSize = imagingParameters->GetImageSize();
+        for (FrameSizeType::iterator imageSizeIt = imageSize.begin(); imageSizeIt != imageSize.end(); ++imageSizeIt)
+        {
+          ss << *imageSizeIt << " ";
+        }
+        resultString += " Success=\"true\"";
+        resultString += " Value=\"" + ss.str() + "\"";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
       }
-      imagingParameters->SetImageSize(numbers[0], numbers[1], numbers[2]);
+      else
+      {
+        resultString += " Success=\"false\"";
+        error += parameterName + " is not set. ";
+        status = PLUS_FAIL;
+      }
     }
     else if (parameterName == vtkPlusUsImagingParameters::KEY_FREQUENCY
              || parameterName == vtkPlusUsImagingParameters::KEY_DEPTH
@@ -209,42 +218,37 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
              || parameterName == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
              || parameterName == vtkPlusUsImagingParameters::KEY_VOLTAGE)
     {
-      // double type parameter
-      bool valid = false;
-      double parameterValue = vtkVariant(value).ToDouble(&valid);
-      if (!valid)
+      if (imagingParameters->IsSet(parameterName))
       {
-        error += "Failed to parse " + parameterName + ". ";
-        resultString += " Success=\"false\"/>";
-        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-        status = PLUS_FAIL;
-        continue;
+        // double type parameter
+        double value = 0;
+        if (imagingParameters->GetValue<double>(parameterName, value) == PLUS_SUCCESS)
+        {
+          std::stringstream ss;
+          ss << value;
+          resultString += " Success=\"true\"";
+          resultString += " Value=\"" + ss.str() + "\"";
+          metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, ss.str());
+        }
       }
-      imagingParameters->SetValue<double>(parameterName, parameterValue);
+      else
+      {
+        resultString += " Success=\"false\"";
+        error += parameterName + " is not set. ";
+        status = PLUS_FAIL;
+      }
     }
     else
     {
       error += "Invalid parameter " + parameterName + ". ";
-      resultString += " Success=\"false\"/>";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
+      resultString += " Success=\"false\"";
       status = PLUS_FAIL;
-      continue;
     }
+    resultString += "/>";
 
-    if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
-    {
-      error += "Failed to set " + parameterName + ". ";
-      resultString += " Success=\"false\"/>";
-      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
-      status = PLUS_FAIL;
-      continue;
-    }
-
-    resultString += " Success=\"true\"/>";
-    metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
   } // For each parameter
   resultString += "</CommandReply>";
-  
+
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
   commandResponse->UseDefaultFormatOff();
   commandResponse->SetClientId(this->ClientId);
@@ -262,7 +266,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusUsDevice* vtkPlusSetUsParameterCommand::GetUsDevice()
+vtkPlusUsDevice* vtkPlusGetUsParameterCommand::GetUsDevice()
 {
   vtkPlusDataCollector* dataCollector = GetDataCollector();
   if (dataCollector == NULL)

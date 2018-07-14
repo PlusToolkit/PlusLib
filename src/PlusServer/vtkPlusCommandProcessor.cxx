@@ -22,6 +22,7 @@ See License.txt for details.
 #include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGetPolydataCommand.h"
 #include "vtkPlusGetTransformCommand.h"
+#include "vtkPlusGetUsParameterCommand.h"
 #include "vtkPlusRequestIdsCommand.h"
 #include "vtkPlusSaveConfigCommand.h"
 #include "vtkPlusSendTextCommand.h"
@@ -61,6 +62,7 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusUpdateTransformCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusVersionCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusSetUsParameterCommand>::New());
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusGetUsParameterCommand>::New());
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
