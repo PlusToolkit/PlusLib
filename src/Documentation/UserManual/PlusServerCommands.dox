@@ -81,6 +81,8 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 <Command Name="ResumeVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
 <Command Name="GetVolumeReconstructionSnapshot" VolumeReconstructorDeviceId="VolumeReconstructorDevice" OutputVolDeviceName="recvol_Reference" />
 <Command Name="StopVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" OutputVolDeviceName="recvol_Reference" OutputVolFilename="recvol_Reference.mha"/>
+<Command Name="SetUsParameter" UsDeviceId="USDevice"><Parameter Name="Depth" Value="50"/></Command>
+<Command Name="GetUsParameter" UsDeviceId="USDevice"><Parameter Name="Depth"/></Command>
 ~~~~~~~~~~~~~~~~~~~~~
 
 \section PlusServerCommandsOpenIGTLinkRemoteExec OpenIGTLinkRemoteExec interface specification
@@ -164,6 +166,35 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
   - \xmlAtt Text: String to be sent to the serial device \RequiredAtt
 - GetPolydata: requests a polydata file from the server. Returns a command response from the server with the success/fail message and if successful, the polydata.
   - \xmlAtt FileName: The filename of the polydata to send \RequiredAtt
+
+\subsection PlusServerCommandsUltrasoundParameters Ultrasound imaging parameter commands
+
+PlusServer can change and retrieve ultrasound imaging parameters over OpenIGTLink using the SetUSParameter and GetUsParameter commands.
+
+\subsubsection PlusServerCommandsUltrasoundParameterCommands Commands
+
+- SetUsParameter: sets the imaging parameters of the specified ultrasound device
+  - \xmlAtt UsDeviceId: Device ID of the ultrasound device
+  - \xmlElem Parameter
+    - \xmlAtt Name: name of the parameter to be changed
+    - \xmlAtt Value: value to change the specified parameter to
+- GetUsParameter: gets the imaging parameters of the specified ultrasound device
+  - \xmlAtt UsDeviceId Device ID of the ultrasound device
+  - \xmlElem Parameter
+    - \xmlAtt Name: name of the parameter to be retrieved
+
+\subsubsection PlusServerCommandsUltrasoundParameterCommandReplies Command replies
+
+- SetUsParameter
+  - \xmlElem Parameter
+    - \xmlAtt Name: name of the changed parameter
+    - \xmlAtt Success: "true" if the value was changed successfully, otherwise "false"
+- GetUsParameter
+  - \xmlAtt UsDeviceId: Device ID of the ultrasound device
+  - \xmlElem Parameter
+    - \xmlAtt Name: name of the retrieved parameter
+    - \xmlAtt Success: "true" if the value was retrieved successfully, otherwise "false"
+    - \xmlAtt Value: current value of the ultrasound parameter
 
 \subsection PlusServerCommandsOpenIGTLinkRemoteExecSlicerApi OpenIGTLinkRemoteExec Slicer module API
 
