@@ -81,6 +81,9 @@ public:
 
   vtkGetMacro(IsData3D, bool);
 
+  vtkSetMacro(FrameBufferSize, unsigned int);
+  vtkGetMacro(FrameBufferSize, unsigned int);
+
   virtual vtkPlusDataCollector* GetDataCollector() { return this->DataCollector; }
 
   virtual bool IsTracker() const { return false; }
@@ -95,8 +98,6 @@ protected:
   virtual PlusStatus ClearRecordedFrames();
 
   vtkSetMacro(ActualFrameRate, double);
-  vtkSetMacro(FrameBufferSize, unsigned int);
-  vtkGetMacro(FrameBufferSize, unsigned int);
   vtkSetMacro(IsData3D, bool);
 
   virtual PlusStatus InternalConnect();

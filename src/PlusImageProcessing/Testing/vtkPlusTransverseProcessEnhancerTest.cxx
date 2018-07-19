@@ -57,7 +57,7 @@ int main(int argc, char** argv)
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   //check for various non-optional command line arguments
-  int commandCheckStatus = NULL;
+  int commandCheckStatus = EXIT_SUCCESS;
 
   if (inputFileName.empty())
   {

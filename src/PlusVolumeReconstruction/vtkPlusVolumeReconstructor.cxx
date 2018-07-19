@@ -423,16 +423,28 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
     return PLUS_FAIL;
   }
 
+  // Adjust the output origin  so it falls on a multiple of voxel spacing.
+  // This ensures the same voxel lattice when multiple sweeps are volume-reconstructed independently.
+  // If the multi-sweep volume reconstructions are later merged, no resampling will be necessary.
+  double* outputSpacing = this->Reconstructor->GetOutputSpacing();
+  double outputOrigin_Ref[3] = { 0.0, 0.0, 0.0 };
+  for (int d = 0; d < 3; d++)
+  {
+    outputOrigin_Ref[d] = std::floor(extent_Ref[d * 2] / outputSpacing[d])*outputSpacing[d];
+  }
+
   // Set the output extent from the current min and max values, using the user-defined image resolution.
   int outputExtent[ 6 ] = { 0, 0, 0, 0, 0, 0 };
-  double* outputSpacing = this->Reconstructor->GetOutputSpacing();
-  outputExtent[ 1 ] = int(std::ceil((extent_Ref[1] - extent_Ref[0]) / outputSpacing[ 0 ]));
-  outputExtent[ 3 ] = int(std::ceil((extent_Ref[3] - extent_Ref[2]) / outputSpacing[ 1 ]));
-  outputExtent[ 5 ] = int(std::ceil((extent_Ref[5] - extent_Ref[4]) / outputSpacing[ 2 ]));
+  for (int d = 0; d < 3; d++)
+  {
+    // in general, this would be computed as int(std::floor((extent_Ref[d * 2] - outputOrigin_Ref[d]) / outputSpacing[d]));
+    // we set outputExtent so that this will be always 0
+    outputExtent[d * 2 + 1] = int(std::ceil((extent_Ref[d * 2 + 1] - outputOrigin_Ref[d]) / outputSpacing[d]));
+  }
 
   this->Reconstructor->SetOutputScalarMode(trackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetScalarType());
   this->Reconstructor->SetOutputExtent(outputExtent);
-  this->Reconstructor->SetOutputOrigin(extent_Ref[0], extent_Ref[2], extent_Ref[4]);
+  this->Reconstructor->SetOutputOrigin(outputOrigin_Ref);
   try
   {
     if (this->Reconstructor->ResetOutput() != PLUS_SUCCESS) // :TODO: call this automatically

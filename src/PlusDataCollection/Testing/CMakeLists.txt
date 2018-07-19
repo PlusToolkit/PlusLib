@@ -454,6 +454,13 @@ IF(PLUS_USE_INTELREALSENSE)
   TARGET_LINK_LIBRARIES(vtkIntelRealSenseTrackerTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
 ENDIF()
 
+#*************************** IntelRealSenseCamTest ***************************
+IF(PLUS_USE_INTELREALSENSE_CAM)
+  ADD_EXECUTABLE(vtkIntelRealSenseCamTest vtkIntelRealSenseCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkIntelRealSenseCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkIntelRealSenseCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+ENDIF()
+
 #*************************** vtkNVidiaDVPVideoSourceTest ***************************
 IF(PLUS_USE_NVIDIA_DVP)
   ADD_EXECUTABLE(vtkNVidiaDVPVideoSourceTest vtkNVidiaDVPVideoSourceTest.cxx )
@@ -479,6 +486,20 @@ IF(PLUS_USE_OPENHAPTICS)
   ADD_EXECUTABLE(vtkOpenHapticsDeviceTest vtkOpenHapticsDeviceTest.cxx)
   SET_TARGET_PROPERTIES(vtkOpenHapticsDeviceTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkOpenHapticsDeviceTest vtkPlusDataCollection vtkPlusCommon)
+ENDIF()
+
+#*********************** InfraredSeekCameraDeviceTest *****************************
+IF(PLUS_USE_INFRARED_SEEK_CAM)
+  ADD_EXECUTABLE(vtkInfraredSeekCamTest vtkInfraredSeekCamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkInfraredSeekCamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkInfraredSeekCamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+ENDIF()
+
+#*********************** InfraredTEQ1CameraDeviceTest *****************************
+IF(PLUS_USE_INFRARED_TEQ1_CAM)
+  ADD_EXECUTABLE(vtkInfraredTEQ1CamTest vtkInfraredTEQ1CamTest.cxx)
+  SET_TARGET_PROPERTIES(vtkInfraredTEQ1CamTest PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkInfraredTEQ1CamTest vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
 ENDIF()
 
 #*************************** vtkOvrvisionProVideoSourceTest ***************************

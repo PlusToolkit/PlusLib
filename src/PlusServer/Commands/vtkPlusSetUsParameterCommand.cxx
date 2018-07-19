@@ -156,79 +156,108 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
 
   std::string usDeviceId = (usDevice->GetDeviceId().empty() ? "(unknown)" : usDevice->GetDeviceId());
   vtkPlusUsImagingParameters* imagingParameters = usDevice->GetImagingParameters();
-  std::string message = this->Name + std::string("(") + usDeviceId + std::string(")");
+  std::string resultString = "<CommandReply>";
+  std::string error = "";
+  std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
   PlusStatus status = PLUS_SUCCESS;
 
   std::map<std::string, std::string>::iterator paramIt;
   for (paramIt = this->RequestedParameterChanges.begin(); paramIt != this->RequestedParameterChanges.end(); ++paramIt)
   {
-    message += " Parameter " + paramIt->first + "=" + paramIt->second + ": ";
+    std::string parameterName = paramIt->first;
+    std::string value = paramIt->second;
+    resultString += "<Parameter Name=\"" + parameterName + "\"";
 
-    if (paramIt->first == vtkPlusUsImagingParameters::KEY_TGC)
+    if (parameterName == vtkPlusUsImagingParameters::KEY_TGC)
     {
       std::stringstream ss;
-      ss.str(paramIt->second);
+      ss.str(value);
       std::vector<double> numbers((std::istream_iterator<double>(ss)), std::istream_iterator<double>());
       if (numbers.size() != 3)
       {
-        message += "Failed to parse";
+        error += "Failed to parse " + parameterName + ".";
+        resultString += " Success=\"false\"/>";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
         status = PLUS_FAIL;
         continue;
       }
       imagingParameters->SetTimeGainCompensation(numbers);
     }
-    else if (paramIt->first == vtkPlusUsImagingParameters::KEY_IMAGESIZE)
+    else if (parameterName == vtkPlusUsImagingParameters::KEY_IMAGESIZE)
     {
       std::stringstream ss;
-      ss.str(paramIt->second);
+      ss.str(value);
       std::vector<int> numbers((std::istream_iterator<int>(ss)), std::istream_iterator<int>());
       if (numbers.size() != 3)
       {
-        message += "Failed to parse";
+        error += "Failed to parse " + parameterName + ". ";
+        resultString += " Success=\"false\"/>";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
         status = PLUS_FAIL;
         continue;
       }
       imagingParameters->SetImageSize(numbers[0], numbers[1], numbers[2]);
     }
-    else if (paramIt->first == vtkPlusUsImagingParameters::KEY_FREQUENCY
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_DEPTH
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_SECTOR
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_GAIN
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_INTENSITY
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_CONTRAST
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_DYNRANGE
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_ZOOM
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
-             || paramIt->first == vtkPlusUsImagingParameters::KEY_VOLTAGE)
+    else if (parameterName == vtkPlusUsImagingParameters::KEY_FREQUENCY
+             || parameterName == vtkPlusUsImagingParameters::KEY_DEPTH
+             || parameterName == vtkPlusUsImagingParameters::KEY_SECTOR
+             || parameterName == vtkPlusUsImagingParameters::KEY_GAIN
+             || parameterName == vtkPlusUsImagingParameters::KEY_INTENSITY
+             || parameterName == vtkPlusUsImagingParameters::KEY_CONTRAST
+             || parameterName == vtkPlusUsImagingParameters::KEY_DYNRANGE
+             || parameterName == vtkPlusUsImagingParameters::KEY_ZOOM
+             || parameterName == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY
+             || parameterName == vtkPlusUsImagingParameters::KEY_VOLTAGE)
     {
       // double type parameter
       bool valid = false;
-      double parameterValue = vtkVariant(paramIt->second).ToDouble(&valid);
+      double parameterValue = vtkVariant(value).ToDouble(&valid);
       if (!valid)
       {
-        message += "Failed to parse";
+        error += "Failed to parse " + parameterName + ". ";
+        resultString += " Success=\"false\"/>";
+        metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
         status = PLUS_FAIL;
         continue;
       }
-      imagingParameters->SetValue<double>(paramIt->first, parameterValue);
+      imagingParameters->SetValue<double>(parameterName, parameterValue);
     }
     else
     {
-      message += "Invalid parameter name";
+      error += "Invalid parameter " + parameterName + ". ";
+      resultString += " Success=\"false\"/>";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
       continue;
     }
 
     if (usDevice->SetNewImagingParameters(*imagingParameters) == PLUS_FAIL)
     {
-      message += "Failed to set";
+      error += "Failed to set " + parameterName + ". ";
+      resultString += " Success=\"false\"/>";
+      metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "FAIL");
       status = PLUS_FAIL;
       continue;
     }
-    message += "Success";
-  } // For each parameter
 
-  this->QueueCommandResponse(status, "Command " + std::string(status == PLUS_SUCCESS ? "succeeded" : "failed. See error message."), message);
+    resultString += " Success=\"true\"/>";
+    metaData[parameterName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
+  } // For each parameter
+  resultString += "</CommandReply>";
+  
+  vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();
+  commandResponse->UseDefaultFormatOff();
+  commandResponse->SetClientId(this->ClientId);
+  commandResponse->SetOriginalId(this->Id);
+  commandResponse->SetDeviceName(this->DeviceName);
+  commandResponse->SetCommandName(this->GetName());
+  commandResponse->SetStatus(status);
+  commandResponse->SetRespondWithCommandMessage(this->RespondWithCommandMessage);
+  commandResponse->SetErrorString(error);
+  commandResponse->SetResultString(resultString);
+  commandResponse->SetParameters(metaData);
+  this->CommandResponseQueue.push_back(commandResponse);
+
   return status;
 }
 

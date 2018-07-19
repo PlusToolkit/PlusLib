@@ -165,7 +165,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
       {
         PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
 
-        //Set transform name to [Name]To[CoordinateFrame]
+        // Set transform name to [Name]To[CoordinateFrame]
         PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
 
         vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -186,6 +186,21 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
         }
         imageMessage->SetDeviceName(deviceName.c_str());
+
+        // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
+        std::vector<std::string> frameFields;
+        trackedFrame.GetCustomFrameFieldNameList(frameFields);
+        for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
+        {
+          if (trackedFrame.GetCustomFrameField(*stringNameIterator) == NULL)
+          {
+            // No value is available, do not send anything
+            LOG_WARNING("No metadata value for: " << *stringNameIterator)
+            continue;
+          }
+          imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(*stringNameIterator));
+        }
+
         if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
@@ -214,7 +229,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
         vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
 
         igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, trackedFrame.GetTimestamp());
+        vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, isValid, trackedFrame.GetTimestamp());
         igtlMessages.push_back(transformMessage.GetPointer());
       }
     }

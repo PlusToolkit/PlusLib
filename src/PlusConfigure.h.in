@@ -72,6 +72,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_ICCAPTURING_VIDEO
 #cmakedefine PLUS_USE_INTELREALSENSE
 #cmakedefine PLUS_USE_OPTICAL_MARKER_TRACKER
+#cmakedefine PLUS_USE_ATRACSYS
 #cmakedefine PLUS_USE_CAPISTRANO_VIDEO
 #cmakedefine PLUS_USE_WINPROBE_VIDEO
 #cmakedefine PLUS_USE_INTERSON_VIDEO
@@ -99,6 +100,10 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_AGILENT
 #cmakedefine PLUS_USE_OpenCV_VIDEO
 #cmakedefine PLUS_USE_OPENHAPTICS
+#cmakedefine PLUS_USE_V4L2
+#cmakedefine PLUS_USE_INFRARED_SEEK_CAM
+#cmakedefine PLUS_USE_INFRARED_TEQ1_CAM
+#cmakedefine PLUS_USE_INTELREALSENSE_CAM
 
 #cmakedefine PLUS_USE_SIMPLE_TIMER
 #cmakedefine PLUS_TEST_HIGH_ACCURACY_TIMING
@@ -114,6 +119,8 @@ typedef unsigned long int vtkMTimeType;
 //High tolerance defined for to use in calibration tests in order to pass under linux (see #590)
 #define LINUXTOLERANCE 0.5
 #define LINUXTOLERANCEPERCENT 8
+
+#cmakedefine HAVE_FUTURE
 
 // Frequently needed STL includes
 #include <sstream>

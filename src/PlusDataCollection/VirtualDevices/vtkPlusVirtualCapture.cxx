@@ -34,7 +34,7 @@ vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   , RecordedFrames(vtkPlusTrackedFrameList::New())
   , LastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
   , NextFrameToBeRecordedTimestamp(0.0)
-  , RequestedFrameRate(0.0)
+  , RequestedFrameRate(15.0)
   , ActualFrameRate(0.0)
   , FirstFrameIndexInThisSegment(0)
   , TimeWaited(0.0)
@@ -98,13 +98,10 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
     deviceConfig->SetAttribute("Type", "VirtualCapture");
   }
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(BaseFilename, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableFileCompression, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
-
-  this->SetRequestedFrameRate(15.0);   // default
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
-
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
 
   return PLUS_SUCCESS;

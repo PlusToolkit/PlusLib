@@ -97,7 +97,7 @@ Camera calibration determines optical properties of your camera (distortion, foc
     - \c TAG25h9
     - \c TAG36h10
     - \c TAG36h11
-- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+- \xmlElem \ref DataSources \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
    - \xmlAtt \b MarkerId The integer identifier of the marker representing this tool. \RequiredAtt
    - \xmlAtt \b MarkerSizeMm The size of the marker in mm (length of the black side edge). \RequiredAtt

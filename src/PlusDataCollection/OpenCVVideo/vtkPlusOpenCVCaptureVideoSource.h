@@ -37,24 +37,33 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Manage device frozen state */
   PlusStatus FreezeDevice(bool freeze);
 
   /*! Is this device a tracker */
-  bool IsTracker() const { return false; }
+  virtual bool IsTracker() const { return false; }
 
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
-  PlusStatus InternalUpdate();
+  virtual PlusStatus InternalUpdate();
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
   vtkGetStdStringMacro(VideoURL);
   vtkSetStdStringMacro(VideoURL);
+
+  vtkGetMacro(DeviceIndex, int);
+  vtkSetMacro(DeviceIndex, int);
+
+  vtkGetMacro(AutofocusEnabled, bool);
+  vtkSetMacro(AutofocusEnabled, bool);
+
+  static cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
+  static std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
 
 protected:
   vtkPlusOpenCVCaptureVideoSource();
@@ -63,14 +72,19 @@ protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
-  cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
-  std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
-
 protected:
   std::string                       VideoURL;
+  int                               DeviceIndex;
   std::shared_ptr<cv::VideoCapture> Capture;
   std::shared_ptr<cv::Mat>          Frame;
+  std::shared_ptr<cv::Mat>          UndistortedFrame;
   cv::VideoCaptureAPIs              RequestedCaptureAPI;
+  bool                              AutofocusEnabled;
+
+  FrameSizeType                     FrameSize;
+
+  std::shared_ptr<cv::Mat>          CameraMatrix;
+  std::shared_ptr<cv::Mat>          DistortionCoefficients;
 };
 
 #endif // __vtkPlusOpenCVCaptureVideoSource_h

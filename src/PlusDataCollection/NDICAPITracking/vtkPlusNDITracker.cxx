@@ -65,7 +65,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <math.h>
 #include <stdarg.h>
 
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
   #include <future>
 #endif
 
@@ -87,6 +87,7 @@ vtkPlusNDITracker::vtkPlusNDITracker()
   , BaudRate(0)
   , IsDeviceTracking(0)
   , LeaveDeviceOpenAfterProbe(false)
+  , CheckDSR(true)
   , MeasurementVolumeNumber(0)
   , NetworkHostname("")
   , NetworkPort(8765)
@@ -122,7 +123,6 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
   char ndiLog[USHRT_MAX];
   ndiLogState(this->Device, ndiLog);
 
@@ -133,7 +133,8 @@ void vtkPlusNDITracker::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MeasurementVolumeNumber: " << this->MeasurementVolumeNumber << std::endl;
   os << indent << "CommandReply: " << this->CommandReply << std::endl;
   os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
-  os << indent << "LastFrameNumber: " << this->LastFrameNumber << std::endl;
+  os << indent << "LeaveDeviceOpenAfterProbe: " << this->LeaveDeviceOpenAfterProbe << std::endl;
+  os << indent << "CheckDSR: " << this->CheckDSR << std::endl;
   for (auto iter = this->NdiToolDescriptors.begin(); iter != this->NdiToolDescriptors.end(); ++iter)
   {
     os << indent << iter->first << ": " << std::endl;
@@ -167,7 +168,8 @@ PlusStatus vtkPlusNDITracker::Probe()
     devicename = ndiSerialDeviceName(this->SerialPort - 1);
     if (devicename)
     {
-      errnum = ndiSerialProbe(devicename);
+      errnum = ndiSerialProbe(devicename, this->CheckDSR);
+      LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
     }
 
     if (errnum != NDI_OKAY)
@@ -184,7 +186,7 @@ PlusStatus vtkPlusNDITracker::Probe()
   }
   else if (this->NetworkHostname.empty())
   {
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
     return ProbeSerialInternal();
 #else
     // if SerialPort is set to -1 (default), then probe the first N serial ports
@@ -195,13 +197,16 @@ PlusStatus vtkPlusNDITracker::Probe()
     for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
     {
       devicename = ndiSerialDeviceName(i);
+      LOG_DEBUG("Testing serial port: " << devicename);
       if (devicename)
       {
-        errnum = ndiSerialProbe(devicename);
+        errnum = ndiSerialProbe(devicename, this->CheckDSR);
+        LOG_DEBUG("Serial port " << devicename << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {
           this->SerialPort = i + 1;
           this->Device = ndiOpenSerial(devicename);
+          LOG_DEBUG("device: " << (this->Device == nullptr));
           if (this->Device && !this->LeaveDeviceOpenAfterProbe)
           {
             CloseDevice(this->Device);
@@ -244,7 +249,7 @@ std::string vtkPlusNDITracker::Command(const char* format, ...)
   {
     LOG_DEBUG("NDI Command:send serial break");
   }
-  
+
   // Linux and MacOSX require resetting of va parameters
   va_end(ap);
   va_start(ap, format);
@@ -324,7 +329,7 @@ PlusStatus vtkPlusNDITracker::InternalConnectSerial()
   this->LeaveDeviceOpenAfterProbe = true;
   if (this->Probe() == PLUS_FAIL)
   {
-    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + PlusCommon::ToString<int>(this->SerialPort) + ". ") << ndiErrorString(NDI_OPEN_ERROR));
+    LOG_ERROR("Failed to detect device" << (this->SerialPort < 0 ? ". Port scanning failed. " : " on serial port " + std::string(ndiSerialDeviceName(this->SerialPort)) + " (index " + PlusCommon::ToString<int>(this->SerialPort) + "). ") << ndiErrorString(NDI_OPEN_ERROR));
     return PLUS_FAIL;
   }
 
@@ -621,12 +626,12 @@ PlusStatus vtkPlusNDITracker::EnableToolPorts()
   // free ports that are waiting to be freed
   this->Command("PHSR:01");
   int errnum = ndiGetError(this->Device);
-  if(errnum != NDI_OKAY)
+  if (errnum != NDI_OKAY)
   {
     LOG_ERROR("Unable to get the number of handles. Error: " << ndiErrorString(errnum));
     return PLUS_FAIL;
   }
-  
+
   int ntools = ndiGetPHSRNumberOfHandles(this->Device);
   for (int ndiToolIndex = 0; ndiToolIndex < ntools; ndiToolIndex++)
   {
@@ -1039,6 +1044,7 @@ PlusStatus vtkPlusNDITracker::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(NetworkHostname, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, NetworkPort, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(CheckDSR, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
 
@@ -1113,14 +1119,23 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
   {
     trackerConfig->SetIntAttribute("SerialPort", this->SerialPort);
   }
+
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(NetworkHostname, trackerConfig);
   if (!this->NetworkHostname.empty())
   {
-    trackerConfig->SetAttribute("NetworkHostname", this->NetworkHostname.c_str());
     trackerConfig->SetIntAttribute("NetworkPort", this->NetworkPort);
   }
 
-  trackerConfig->SetIntAttribute("BaudRate", this->BaudRate);
-  trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
+  if (this->BaudRate > 0)
+  {
+    trackerConfig->SetIntAttribute("BaudRate", this->BaudRate);
+  }
+  if (this->MeasurementVolumeNumber > 0)
+  {
+    trackerConfig->SetIntAttribute("MeasurementVolumeNumber", this->MeasurementVolumeNumber);
+  }
+  trackerConfig->SetAttribute("CheckDSR", this->CheckDSR ? "true" : "false");
+
   return PLUS_SUCCESS;
 }
 
@@ -1359,30 +1374,30 @@ int vtkPlusNDITracker::ConvertBaudToNDIEnum(int baudRate)
 {
   switch (baudRate)
   {
-  case 9600:
-    return NDI_9600;
-  case 14400:
-    return NDI_14400;
-  case 19200:
-    return NDI_19200;
-  case 38400:
-    return NDI_38400;
-  case 57600:
-    return NDI_57600;
-  case 115200:
-    return NDI_115200;
-  case 230400:
-    return NDI_230400;
-  case 921600:
-    return NDI_921600;
-  case 1228739:
-    return NDI_1228739;
-  default:
-    return -1;
+    case 9600:
+      return NDI_9600;
+    case 14400:
+      return NDI_14400;
+    case 19200:
+      return NDI_19200;
+    case 38400:
+      return NDI_38400;
+    case 57600:
+      return NDI_57600;
+    case 115200:
+      return NDI_115200;
+    case 230400:
+      return NDI_230400;
+    case 921600:
+      return NDI_921600;
+    case 1228739:
+      return NDI_1228739;
+    default:
+      return -1;
   }
 }
 
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
 {
@@ -1397,10 +1412,10 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
     if (dev != nullptr)
     {
       std::string devName = std::string(dev);
-      std::future<void> result = std::async([i, &deviceExists, devName]()
+      std::future<void> result = std::async([this, i, &deviceExists, devName]()
       {
-        int errnum = ndiSerialProbe(devName.c_str());
-        LOG_DEBUG("Serial port probe error: " << errnum);
+        int errnum = ndiSerialProbe(devName.c_str(), this->CheckDSR);
+        LOG_DEBUG("Serial port " << devName << " probe error (" << errnum << "): " << ndiErrorString(errnum));
         if (errnum == NDI_OKAY)
         {
           deviceExists[i] = true;

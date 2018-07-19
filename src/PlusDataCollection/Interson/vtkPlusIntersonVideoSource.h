@@ -65,6 +65,8 @@ public:
   /*! Set the parameters in bulk */
   virtual PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
 
+  virtual PlusStatus RequestImagingParameterChange();
+
   bool GetEnableProbeButtonMonitoring() const;
   void SetEnableProbeButtonMonitoring(bool _arg);
 

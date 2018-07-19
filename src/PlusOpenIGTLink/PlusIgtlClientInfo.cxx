@@ -51,6 +51,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
 
   PlusIgtlClientInfo clientInfo;
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ClientHeaderVersion, xmldata);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TDATARequested, xmldata);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TDATAResolution, xmldata);
   if (xmldata->GetAttribute("Resolution") != NULL)

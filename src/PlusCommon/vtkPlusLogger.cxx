@@ -419,7 +419,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const char* msg, const char* 
         std::ostringstream callDataStream;
         callDataStream << level << "|" << log.str();
 
-        InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));
+        InvokeEvent(vtkPlusLogger::MessageLogged, (void*)(callDataStream.str().c_str()));
       }
 
       // Add to log stream (file)
@@ -560,7 +560,7 @@ void vtkPlusLogger::LogMessage(LogLevelType level, const wchar_t* msg, const cha
         std::wostringstream callDataStream;
         callDataStream << level << L"|" << log.str();
 
-        InvokeEvent(vtkCommand::UserEvent, (void*)(callDataStream.str().c_str()));
+        InvokeEvent(vtkPlusLogger::WideMessageLogged, (void*)(callDataStream.str().c_str()));
       }
 
       // Add to log stream (file), this may introduce conversion issues going from wstring to string

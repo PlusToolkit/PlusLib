@@ -82,6 +82,12 @@ private:
 */
 class vtkPlusCommonExport vtkPlusLogger : public vtkObject
 {
+public:
+  enum LogEvents
+  {
+    MessageLogged         = 92300,
+    WideMessageLogged     = 92301
+  };
 
 public:
   /*! Logging level to control the verbosity of the logging */

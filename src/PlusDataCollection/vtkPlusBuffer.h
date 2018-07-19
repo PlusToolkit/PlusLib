@@ -94,13 +94,13 @@ public:
     Add a frame plus a timestamp to the buffer with frame index.
     Additionally an optional field name&value can be added,
     which will be saved as a custom field of the added item.
-    If the timestamp is  less than or equal to the previous timestamp,
+    If the timestamp is less than or equal to the previous timestamp,
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer. If a clip rectangle is defined
     then only that portion of the image is extracted.
   */
   virtual PlusStatus AddItem(void* imageDataPtr,
-                             US_IMAGE_ORIENTATION  usImageOrientation,
+                             US_IMAGE_ORIENTATION usImageOrientation,
                              const FrameSizeType& inputFrameSizeInPx,
                              PlusCommon::VTKScalarPixelType pixelType,
                              unsigned int numberOfScalarComponents,
@@ -109,6 +109,24 @@ public:
                              long frameNumber,
                              const std::array<int, 3>& clipRectangleOrigin,
                              const std::array<int, 3>& clipRectangleSize,
+                             double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+                             double filteredTimestamp = UNDEFINED_TIMESTAMP,
+                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+
+  /*!
+    Add a frame plus a timestamp to the buffer with frame index.
+    Additionally an optional field name&value can be added,
+    which will be saved as a custom field of the added item.
+    If the timestamp is less than or equal to the previous timestamp,
+    or if the frame's size doesn't match the frame size of the buffer,
+    then the frame is not added. This overload is only used for storing
+    compressed or variable frame size entries
+  */
+  virtual PlusStatus AddItem(void* imageDataPtr,
+                             const FrameSizeType& frameSize,
+                             unsigned int frameSizeInBytes,
+                             US_IMAGE_TYPE imageType,
+                             long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
                              const PlusTrackedFrame::FieldMapType* customFields = NULL);

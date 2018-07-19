@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "PlusFidLineFinder.h"
 #include "PlusMath.h"
+#include "PlusFidSegmentation.h"
 #include "vtkMath.h"
 #include <algorithm>
 
@@ -182,7 +183,12 @@ PlusStatus PlusFidLineFinder::ReadConfiguration(vtkXMLDataElement* configData)
 {
   LOG_TRACE("FidLineFinder::ReadConfiguration");
 
-  XML_FIND_NESTED_ELEMENT_REQUIRED(segmentationParameters, configData, "Segmentation");
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(segmentationParameters, configData, "Segmentation");
+  if (!segmentationParameters)
+  {
+    segmentationParameters = PlusXmlUtils::GetNestedElementWithName(configData, "Segmentation");
+    PlusFidSegmentation::SetDefaultSegmentationParameters(segmentationParameters);
+  }
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(double, ApproximateSpacingMmPerPixel, segmentationParameters);
 

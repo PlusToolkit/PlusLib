@@ -28,6 +28,7 @@ Any NDI tracking device is supported that uses the common API, such as <a href="
 - \xmlAtt \b BaudRate specifies the speed of the COM port, the recommended value is 115200. Valid values: <tt> 9600, 14400, 19200, 38400, 5760, 115200, 921600, 1228739. </tt> Values of 14400 and 19200 have been known to cause issues and are not recommended \OptionalAtt{9600}
 - \xmlAtt \b NetworkHostname this is the hostname of a network enabled NDI device (NDI Vega). If this attribute is specified, all serial port fucntionality is disabled \OptionalAtt{""}
 - \xmlAtt \b NetworkPort the port number for API connections (not the camera port!) \OptionalAtt{8765}
+- \xmlAtt \b CheckDSR whether or not to check the DSR when using a serial connection. \OptionalAtt{true}
 
 - \xmlAtt \b MeasurementVolumeNumber Measurement volume number. It can be used for defining volume type (dome, cube) and size. First valid volume number is 1. 0 means that the default volume is used. If an invalid value is set (for example -1) then the list of available volumes is logged. See VSEL command in the NDI API documentation for details.\OptionalAtt{0}
 

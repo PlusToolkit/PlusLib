@@ -164,6 +164,7 @@ protected:
 
   /*! Tag number of the display message callback */
   unsigned long m_DisplayMessageCallbackTag;
+  unsigned long m_DisplayWideMessageCallbackTag;
 
   /*! Contents of the entire log */
   std::vector<QString> m_MessageLog;

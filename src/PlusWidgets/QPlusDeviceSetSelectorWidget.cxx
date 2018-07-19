@@ -11,7 +11,9 @@ See License.txt for details.
 #include <vtkPlusTransformRepository.h>
 
 // Qt includes
+#include <QAbstractItemView>
 #include <QAction>
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDomDocument>
@@ -482,26 +484,26 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
 }
 
 //----------------------------------------------------------------------------
-QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& doc,
-    vtkSmartPointer<vtkPlusTransformRepository> tr,
-    const QString& tagName,
-    const QString& outputPrefix,
-    const QString& firstFrame,
-    const QString& secondFrame)
+QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& aDocument,
+    vtkSmartPointer<vtkPlusTransformRepository> aTransformRepository,
+    const QString& aTagName,
+    const QString& aOutputPrefix,
+    const QString& aFirstFrame,
+    const QString& aSecondFrame)
 {
-  QDomNodeList list(doc.elementsByTagName(tagName));
+  QDomNodeList list(aDocument.elementsByTagName(aTagName));
   if (list.count() > 0)
   {
     auto elem = list.at(0).toElement();
-    QString firstFrame(elem.attribute(firstFrame));
-    QString secondFrame(elem.attribute(secondFrame));
+    QString firstFrame(elem.attribute(aFirstFrame));
+    QString secondFrame(elem.attribute(aSecondFrame));
     if (!firstFrame.isEmpty() && !secondFrame.isEmpty())
     {
       PlusTransformName tName(firstFrame.toStdString(), secondFrame.toStdString());
       std::string date;
       double error;
-      if (tr->GetTransformDate(tName, date, true) == PLUS_SUCCESS &&
-          tr->GetTransformError(tName, error, true) == PLUS_SUCCESS)
+      if (aTransformRepository->GetTransformDate(tName, date, true) == PLUS_SUCCESS &&
+          aTransformRepository->GetTransformError(tName, error, true) == PLUS_SUCCESS)
       {
         bool valid(false);
         std::tm tm = {};
@@ -533,7 +535,7 @@ QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument&
           valid = true;
         }
 
-        QString output = outputPrefix;
+        QString output = aOutputPrefix;
         if (valid)
         {
           std::stringstream ss;

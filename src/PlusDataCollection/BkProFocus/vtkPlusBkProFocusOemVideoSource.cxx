@@ -15,7 +15,7 @@ See License.txt for details.
 
 // VTK includes
 #include <vtkImageData.h>
-#include <vtkObjectFactor.h>
+#include <vtkObjectFactory.h>
 #include <vtk_png.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkClientSocket.h>
@@ -33,16 +33,6 @@ See License.txt for details.
 #include <string.h>
 
 static const int TIMESTAMP_SIZE = 4;
-
-const char* vtkPlusBkProFocusOemVideoSource::KEY_PROBE_TYPE     = "ProbeType";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_ORIGIN         = "Origin";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_ANGLES         = "Angles";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_BOUNDING_BOX   = "BouningBox";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_DEPTHS         = "Depths";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_LINEAR_WIDTH   = "LinearWidth";
-
-const char* vtkPlusBkProFocusOemVideoSource::KEY_SPACING_X      = "SpacingX";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_SPACING_Y      = "SpacingY";
 
 const char* vtkPlusBkProFocusOemVideoSource::KEY_DEPTH          = "Depth";
 const char* vtkPlusBkProFocusOemVideoSource::KEY_GAIN           = "Gain";
@@ -139,7 +129,7 @@ vtkPlusBkProFocusOemVideoSource::~vtkPlusBkProFocusOemVideoSource()
 
   delete this->Internal;
   this->Internal = NULL;
-  this->ScannerAddress = NULL;
+  this->ScannerAddress = "";
   this->OfflineTestingFilePath = NULL;
 }
 
@@ -180,7 +170,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
   else
   {
     LOG_DEBUG("Connecting to BK scanner");
-    bool connected = (this->Internal->VtkSocket->ConnectToServer(this->ScannerAddress, this->OemPort) == 0);
+    bool connected = (this->Internal->VtkSocket->ConnectToServer(this->ScannerAddress.c_str(), this->OemPort) == 0);
     if (!connected)
     {
       LOG_ERROR("Could not connect to BKProFocusOem:"
@@ -889,7 +879,7 @@ void vtkPlusBkProFocusOemVideoSource::ParseTransducerList(std::istringstream& re
 //-----------------------------------------------------------------------------
 void vtkPlusBkProFocusOemVideoSource::SetProbeTypeForPort(std::string port, std::string probeTypeString)
 {
-  PROBE_TYPE probeTypeEnum = UNKNOWN;
+  IGTLIO_PROBE_TYPE probeTypeEnum = UNKNOWN;
 
   if (probeTypeString.compare("C") == 0)
   {
@@ -1280,20 +1270,20 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::AddParametersToFrameFields()
 {
   vtkPlusUsDevice::InternalUpdate();// Move to beginning of vtkPlusBkProFocusOemVideoSource::InternalUpdate()?
 
-  this->FrameFields[KEY_PROBE_TYPE]   = PlusCommon::ToString<int>(this->GetProbeType());
+  this->FrameFields[IGTLIO_KEY_PROBE_TYPE]   = PlusCommon::ToString<int>(this->GetProbeType());
   std::string output;
   PlusCommon::JoinTokensIntoString<double>(this->CalculateOrigin(), output, ' ');
-  this->FrameFields[KEY_ORIGIN]       = output;
+  this->FrameFields[IGTLIO_KEY_ORIGIN]       = output;
   PlusCommon::JoinTokensIntoString<double>(this->CalculateAngles(), output, ' ');
-  this->FrameFields[KEY_ANGLES]       = output;
+  this->FrameFields[IGTLIO_KEY_ANGLES]       = output;
   PlusCommon::JoinTokensIntoString<double>(this->CalculateBoundingBox(), output, ' ');
-  this->FrameFields[KEY_BOUNDING_BOX] = output;
+  this->FrameFields[IGTLIO_KEY_BOUNDING_BOX] = output;
   PlusCommon::JoinTokensIntoString<double>(this->CalculateDepths(), output, ' ');
-  this->FrameFields[KEY_DEPTHS]       = output;
-  this->FrameFields[KEY_LINEAR_WIDTH] = PlusCommon::ToString<double>(this->CalculateLinearWidth());
+  this->FrameFields[IGTLIO_KEY_DEPTHS]       = output;
+  this->FrameFields[IGTLIO_KEY_LINEAR_WIDTH] = PlusCommon::ToString<double>(this->CalculateLinearWidth());
 
-  this->FrameFields[KEY_SPACING_X]    = PlusCommon::ToString<double>(this->GetSpacingX());
-  this->FrameFields[KEY_SPACING_Y]    = PlusCommon::ToString<double>(this->GetSpacingY());
+  this->FrameFields[IGTLIO_KEY_SPACING_X]    = PlusCommon::ToString<double>(this->GetSpacingX());
+  this->FrameFields[IGTLIO_KEY_SPACING_Y]    = PlusCommon::ToString<double>(this->GetSpacingY());
 
   this->FrameFields[KEY_DEPTH]        = PlusCommon::ToString<double>(this->CalculateDepthMm());
   this->FrameFields[KEY_GAIN]         = PlusCommon::ToString<int>(this->CalculateGain());
@@ -1496,7 +1486,7 @@ double vtkPlusBkProFocusOemVideoSource::GetStopLineAngle()
 //----------------------------------------------------------------------------
 double vtkPlusBkProFocusOemVideoSource::GetSpacingX()
 {
-  double spacingX_mm = 1.0;
+  double spacingX_mm = 0.1;
   if (!this->OfflineTesting)
   {
     if (this->ContinuousStreamingEnabled)
@@ -1518,7 +1508,7 @@ double vtkPlusBkProFocusOemVideoSource::GetSpacingX()
 //----------------------------------------------------------------------------
 double vtkPlusBkProFocusOemVideoSource::GetSpacingY()
 {
-  double spacingY_mm = 1.0;
+  double spacingY_mm = 0.1;
   if (!this->OfflineTesting)
   {
     if (this->ContinuousStreamingEnabled)
@@ -1534,7 +1524,7 @@ double vtkPlusBkProFocusOemVideoSource::GetSpacingY()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusBkProFocusOemVideoSource::PROBE_TYPE vtkPlusBkProFocusOemVideoSource::GetProbeType()
+IGTLIO_PROBE_TYPE vtkPlusBkProFocusOemVideoSource::GetProbeType()
 {
   if (this->OfflineTesting)
   {

@@ -11,6 +11,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
+#include <igtlioUsSectorDefinitions.h>
 
 class vtkPlusUsImagingParameters;
 class vtkPlusChannel;
@@ -28,6 +29,7 @@ class vtkPlusDataCollectionExport vtkPlusUsDevice : public vtkPlusDevice
 {
 
 public:
+
   static vtkPlusUsDevice* New();
   vtkTypeMacro(vtkPlusUsDevice, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -43,7 +45,7 @@ public:
   /*!
   Perform any completion tasks once configured
   */
-  virtual PlusStatus NotifyConfigured();
+  virtual PlusStatus NotifyConfigured() override;
 
   /*!
   Copy the new imaging parameters into the current parameter set
@@ -56,14 +58,14 @@ public:
   This function can be called to add a video item to all video data sources
   */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
 
   /*!
   This function can be called to add a video item to the specified video data sources
   */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
 
   /*!
     If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
@@ -78,6 +80,31 @@ public:
     Get current imaging parameters
   */
   vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
+
+  // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.
+  // Implement these in all US devies that should support ultrasound sector information
+
+
+  /*! Get probe type. */
+  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN;}
+
+  /*! Sector origin relative to upper left corner of image in pixels */
+  virtual std::vector<double> CalculateOrigin() { return std::vector<double>(); }
+
+  /*! Probe sector angles relative to down, in radians.
+   *  2 angles for 2D, and 4 for 3D probes.
+   * For regular imaging with linear probes these will be 0 */
+  virtual std::vector<double> CalculateAngles() { return std::vector<double>(); }
+
+  /*! Boundaries to cut away areas outside the US sector, in pixels.
+   * 4 for 2D, and 6 for 3D. */
+  virtual std::vector<double> CalculateBoundingBox() { return std::vector<double>(); }
+
+  /*! Start, stop depth for the imaging, in mm. */
+  virtual std::vector<double> CalculateDepths() { return std::vector<double>(); }
+
+  /*! Width of linear probe. */
+  virtual  double CalculateLinearWidth() { return 0; }
 
 protected:
   /*!

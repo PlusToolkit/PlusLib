@@ -104,10 +104,16 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
+
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  IF(VTK_VERSION_MAJOR LESS 9)
+    SET(_NRRD_COMPARE_FILE NrrdSample.nrrd)
+  ELSE()
+    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.nrrd)
+  ENDIF()
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest EditSequenceFileReadWriteNrrd
-    NrrdSample.nrrd)
- 
+    ${_NRRD_COMPARE_FILE})
+
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
@@ -116,9 +122,14 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --use-compression
     --verbose=3
     )
+  IF(VTK_VERSION_MAJOR LESS 9)
+    SET(_NRRD_COMPARE_FILE ColorNrrdSample.nrrd)
+  ELSE()
+    SET(_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.nrrd)
+  ENDIF()
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest EditSequenceFileReadWriteColorNrrd
-    ColorNrrdSample.nrrd)
+    ${_NRRD_COMPARE_FILE})
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileFillImageRectangle

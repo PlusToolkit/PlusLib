@@ -632,7 +632,7 @@ PlusStatus vtkPlusStealthLinkTracker::GetImage(const std::string& requestedImage
     {
       return PLUS_FAIL;
     }
-    if (imageReferencFrameName.compare("Ras") != 0 && !this->InternalShared->UpdateCurrentRegistration(this->ImageTransferRequiresPatientRegistration))
+    if (!this->InternalShared->UpdateCurrentRegistration(this->ImageTransferRequiresPatientRegistration))
     {
       return PLUS_FAIL;
     }

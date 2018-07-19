@@ -1,0 +1,31 @@
+/*!
+\page DeviceInfraredSeekCam Thermal Infrared Seek Pro camera
+
+\section DeviceInfraredSeekCamera
+This device allow you to use a Infrared Seek Pro Camera to capture and send infrared thermal images.
+
+\image html DeviceInfraredSeekCam.png
+
+\section InfraredSeekCamConfigInstallation
+
+To use the camera in a linux system, you have to grant privileges to write to it. We have made a small
+script that you may execute with root privileges that only needs to be run once. This script adds a new
+udev rule to be able to run the library for the camera as a non root user (The rule can be found at
+"PlusLib/src/Utilities/InfraredSeekCamera/seekcam.rules", where 0011 is the Seek Thermal CompactPRO model).
+For Windows, only the WinUSB driver is needed. You can find the instructions to install the camera, as well 
+as how to use the configuration file in:
+ "PlusLib/src/Utilities/InfraredSeekCamera/README.md"
+
+\section InfraredSeekCamConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "InfraredSeekCam" \RequiredAtt
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortUsImageOrientation \RequiredAtt
+
+\section InfraredSeekCamExampleConfigFile Example configuration file PlusDeviceSet_Server_InfraredSeekCamera.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_InfraredSeekCamera.xml"
+
+*/

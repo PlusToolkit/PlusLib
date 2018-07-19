@@ -92,7 +92,7 @@ struct ndicapi;
 
   The data transfer rate to the computer is independent of the data
   collection rate, and there might be duplicated records.  The
-  data tranfer rate is limited by the speed of the serial port
+  data transfer rate is limited by the speed of the serial port
   and by the number of characters sent per data record.  If tools
   are marked as 'missing' then the number of characters that
   are sent will be reduced.
@@ -188,6 +188,9 @@ public:
   vtkSetMacro(NetworkPort, int);
   vtkGetMacro(NetworkPort, int);
 
+  vtkSetMacro(CheckDSR, bool);
+  vtkGetMacro(CheckDSR, bool);
+
 protected:
   vtkPlusNDITracker();
   ~vtkPlusNDITracker();
@@ -275,7 +278,7 @@ protected:
   /*! Lookup table function to convert from baudrate to enum */
   static int ConvertBaudToNDIEnum(int baudRate);
 
-#if _MSC_VER >= 1700
+#if defined(HAVE_FUTURE)
   PlusStatus ProbeSerialInternal();
 #endif
 
@@ -288,6 +291,7 @@ protected:
   int                               IsDeviceTracking;
   int                               MeasurementVolumeNumber;
   bool                              LeaveDeviceOpenAfterProbe;
+  bool                              CheckDSR;
   NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
   vtkPlusRecursiveCriticalSection*  CommandMutex;
   char                              CommandReply[VTK_NDI_REPLY_LEN];
