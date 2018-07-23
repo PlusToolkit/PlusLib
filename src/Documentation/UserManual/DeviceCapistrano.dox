@@ -10,11 +10,14 @@
 \section CapistranoSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
+- \ref PackageWin64
 
 \section CapistranoInstallation Installation
 
-- Requires SDK provided by Capistrano Labs for compilation and USB drivers
-  provided by Capistrano Labs for running (otherwise Plus application will not start due to missing WDAPI1010.dll).
+- Requires SDK provided by Capistrano Labs for compilation. Windows 64 bits platform only supported by cSDK2018.
+- Requires USB drivers provided by Capistrano Labs for running. There are specific USB drivers for each cSDK version.
+  - If using cSDK2018 or cSDK2016, Plus application will not start due to missing WDAPI1140.dll
+  - If using cSDK2013, Plus application will not start due to missing WDAPI1010.dll
 
 \section CapistranoConfigSettings Device configuration settings
 
