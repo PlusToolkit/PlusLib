@@ -687,13 +687,13 @@ PlusStatus vtkPlusCapistranoVideoSource::NotifyConfigured()
 {
   if (this->OutputChannels.size() > 1)
   {
-    LOG_WARNING("vtkPlusIntersonVideoSource is expecting one output channel and there are "
+    LOG_WARNING("vtkPlusCapistranoVideoSource is expecting one output channel and there are "
                 << this->OutputChannels.size() << " channels. First output channel will be used.");
   }
 
   if (this->OutputChannels.empty())
   {
-    LOG_ERROR("No output channels defined for vtkPlusIntersonVideoSource. Cannot proceed.");
+    LOG_ERROR("No output channels defined for vtkPlusCapistranoVideoSource. Cannot proceed.");
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }
@@ -705,7 +705,7 @@ PlusStatus vtkPlusCapistranoVideoSource::NotifyConfigured()
 std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
 {
   std::ostringstream versionString;
-  versionString << "Interson Bmode DLL v" << bmDLLVer() << ", USB Probe DLL v" << usbDLLVer() << std::ends;
+  versionString << "Capistrano BmodeUSB DLL v" << bmDLLVer() << ", USBprobe DLL v" << usbDLLVer() << std::ends;
   return versionString.str();
 }
 
@@ -886,7 +886,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeImageWindow()
 
   if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to retrieve the video source in the IntersonVideo device.");
+    LOG_ERROR("Unable to retrieve the video source in the CapistranoVideo device.");
     return PLUS_FAIL;
   }
 
@@ -982,7 +982,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
 
   if (this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to retrieve the video source in the IntersonVideo device.");
+    LOG_ERROR("Unable to retrieve the video source in the CapistranoVideo device.");
     return PLUS_FAIL;
   }
 
@@ -1151,7 +1151,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
   // to the first received properties
   if (aSource->GetNumberOfItems() == 0)
   {
-    LOG_DEBUG("Set up image buffer for Interson");
+    LOG_DEBUG("Set up image buffer for Capistrano");
     aSource->SetPixelType(VTK_UNSIGNED_CHAR);
     aSource->SetImageType(US_IMG_BRIGHTNESS);
     aSource->SetInputFrameSize(frameSizeInPx);
@@ -1195,7 +1195,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
 PlusStatus vtkPlusCapistranoVideoSource::FreezeDevice(bool freeze)
 {
   RETURN_WITH_FAIL_IF(this->Internal->ProbeHandle == NULL,
-                      "vtkPlusIntersonVideoSource::FreezeDevice failed: device not connected");
+                      "vtkPlusCapistranoVideoSource::FreezeDevice failed: device not connected");
   RETURN_WITH_FAIL_IF(!usbHardwareDetected(),
                       "Freeze failed, no hardware is detected");
 
@@ -1503,7 +1503,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetDisplayZoomDevice(double zoom)
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetDisplayZoomDevice failed: device not connected");
+    LOG_ERROR("vtkPlusCapistranoVideoSource::SetDisplayZoomDevice failed: device not connected");
     return PLUS_FAIL;
   }
   this->SetZoomFactor(zoom);
@@ -1539,7 +1539,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetGainPercentDevice(double gainPercent
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::SetGainPercentDevice failed: device not connected");
+    LOG_ERROR("vtkPlusCapistranoVideoSource::SetGainPercentDevice failed: device not connected");
     return PLUS_FAIL;
   }
   SetGainPercent(gainPercent);
@@ -1734,7 +1734,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetSampleFrequencyDevice(float& aFreq)
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::GetSampleFrequencyDevice failed: device not connected");
+    LOG_ERROR("vtkPlusCapistranoVideoSource::GetSampleFrequencyDevice failed: device not connected");
     return PLUS_FAIL;
   }
 
@@ -1749,7 +1749,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetProbeVelocityDevice(float& aVel)
 {
   if (this->Internal->ProbeHandle == NULL)
   {
-    LOG_ERROR("vtkPlusIntersonVideoSource::GetProbeVelocityDevice failed: device not connected");
+    LOG_ERROR("vtkPlusICapistranoVideoSource::GetProbeVelocityDevice failed: device not connected");
     return PLUS_FAIL;
   }
 
