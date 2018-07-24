@@ -231,6 +231,26 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration(vtkXMLDataElement* aConfig)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDataCollector::ReadConfiguration(const std::string& fileName)
+{
+  vtkXMLDataElement* element = vtkPlusConfig::GetInstance()->CreateDeviceSetConfigurationFromFile(fileName);
+
+  if (element == nullptr)
+  {
+    return PLUS_FAIL;
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(fileName);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(element);
+
+  if(this->ReadConfiguration(element) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Datacollector failed to read configuration");
+    return PLUS_FAIL;
+  }
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDataCollector::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("vtkPlusDataCollector::WriteConfiguration()");

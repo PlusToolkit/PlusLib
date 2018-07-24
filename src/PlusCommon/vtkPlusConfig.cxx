@@ -220,6 +220,36 @@ void vtkPlusConfig::SetDeviceSetConfigurationFileName(const std::string& aFilePa
   this->DeviceSetConfigurationFileName = aFilePath;
 }
 
+//----------------------------------------------------------------------------
+vtkXMLDataElement* vtkPlusConfig::CreateDeviceSetConfigurationFromFile(const std::string& aConfigFile)
+{
+  // Read main configuration file
+  std::string configFilePath = aConfigFile;
+  if (!vtksys::SystemTools::FileExists(configFilePath, true))
+  {
+    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(aConfigFile);
+    if (!vtksys::SystemTools::FileExists(configFilePath, true))
+    {
+      LOG_ERROR("Reading device set configuration file failed: " << aConfigFile << " does not exist in the current directory or in " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
+      return NULL;
+    }
+  }
+  vtkXMLDataElement* configRootElement = vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str());
+  if (configRootElement == NULL)
+  {
+    LOG_ERROR("Reading device set configuration file failed: syntax error in " << aConfigFile);
+    return NULL;
+  }
+
+  // Print configuration file contents for debugging purposes
+  LOG_DEBUG("Device set configuration is read from file: " << aConfigFile);
+  std::ostringstream xmlFileContents;
+  PlusCommon::XML::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
+
+  return configRootElement;
+}
+
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
 {
