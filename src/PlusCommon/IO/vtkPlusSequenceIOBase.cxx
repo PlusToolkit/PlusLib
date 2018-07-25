@@ -85,7 +85,7 @@ PlusStatus vtkPlusSequenceIOBase::Read()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSequenceIOBase::DeleteCustomFrameString(int frameNumber, const char* fieldName)
+PlusStatus vtkPlusSequenceIOBase::DeleteFrameString(int frameNumber, const char* fieldName)
 {
   PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
   if (trackedFrame == NULL)
@@ -94,11 +94,11 @@ PlusStatus vtkPlusSequenceIOBase::DeleteCustomFrameString(int frameNumber, const
     return PLUS_FAIL;
   }
 
-  return trackedFrame->DeleteCustomFrameField(fieldName);
+  return trackedFrame->DeleteFrameField(fieldName);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSequenceIOBase::SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue)
+PlusStatus vtkPlusSequenceIOBase::SetFrameString(int frameNumber, const char* fieldName,  const char* fieldValue)
 {
   if (fieldName == NULL || fieldValue == NULL)
   {
@@ -112,7 +112,7 @@ PlusStatus vtkPlusSequenceIOBase::SetCustomFrameString(int frameNumber, const ch
     LOG_ERROR("Cannot access frame " << frameNumber);
     return PLUS_FAIL;
   }
-  trackedFrame->SetCustomFrameField(fieldName, fieldValue);
+  trackedFrame->SetFrameField(fieldName, fieldValue);
   return PLUS_SUCCESS;
 }
 

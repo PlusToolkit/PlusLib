@@ -192,21 +192,21 @@ public:
   virtual PlusStatus SetCustomString(const char* fieldName, const char* fieldValue);
   virtual PlusStatus SetCustomString(const std::string& fieldName, const std::string& fieldValue);
 
-  /*! Get the custom transformation matrix from metafile by custom frame transform name
+  /*! Get the custom transformation matrix from metafile by frame transform name
   * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName]
   * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix);
 
-  /*! Get the custom transformation matrix from metafile by custom frame transform name
+  /*! Get the custom transformation matrix from metafile by frame transform name
   * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName]
   * Return false if the the field is missing */
   virtual PlusStatus GetCustomTransform(const char* frameTransformName, double* transformMatrix);
 
-  /*! Set the custom transformation matrix from metafile by custom frame transform name
+  /*! Set the custom transformation matrix from metafile by frame transform name
   * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName] */
   virtual void SetCustomTransform(const char* frameTransformName, vtkMatrix4x4* transformMatrix);
 
-  /*! Set the custom transformation matrix from metafile by custom frame transform name
+  /*! Set the custom transformation matrix from metafile by frame transform name
   * It will search for a field like: Seq_Frame[frameNumber]_[frameTransformName] */
   virtual void SetCustomTransform(const char* frameTransformName, double* transformMatrix);
 

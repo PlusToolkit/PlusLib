@@ -23,13 +23,13 @@ class vtkPoints;
 */
 enum TrackedFrameFieldStatus
 {
-  FIELD_OK,            /*!< Field is valid */
+  FIELD_OK,           /*!< Field is valid */
   FIELD_INVALID       /*!< Field is invalid */
 };
 
 /*!
   \class TrackedFrame
-  \brief Stores tracked frame (image + pose information)
+  \brief Stores tracked frame (image + pose information + field data)
   \ingroup PlusLibCommon
 */
 class vtkPlusCommonExport PlusTrackedFrame
@@ -61,49 +61,49 @@ public:
   /*! Get timestamp */
   double GetTimestamp() { return this->Timestamp; };
 
-  /*! Set custom frame field */
-  void SetCustomFrameField(std::string name, std::string value);
+  /*! Set frame field */
+  void SetFrameField(std::string name, std::string value);
 
-  /*! Get custom frame field value */
-  const char* GetCustomFrameField(const char* fieldName);
-  const char* GetCustomFrameField(const std::string& fieldName);
+  /*! Get frame field value */
+  const char* GetFrameField(const char* fieldName);
+  const char* GetFrameField(const std::string& fieldName);
 
-  /*! Delete custom frame field */
-  PlusStatus DeleteCustomFrameField(const char* fieldName);
-
-  /*!
-    Check if a custom frame field is defined or not
-    \return true, if the field is defined; false, if the field is not defined
-  */
-  bool IsCustomFrameFieldDefined(const char* fieldName);
+  /*! Delete frame field */
+  PlusStatus DeleteFrameField(const char* fieldName);
 
   /*!
-    Check if a custom frame transform name field is defined or not
+    Check if a frame field is defined or not
     \return true, if the field is defined; false, if the field is not defined
   */
-  bool IsCustomFrameTransformNameDefined(const PlusTransformName& transformName);
+  bool IsFrameFieldDefined(const char* fieldName);
 
-  /*! Get custom frame transform */
-  PlusStatus GetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]);
-  /*! Get custom frame transform */
-  PlusStatus GetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix);
+  /*!
+    Check if a frame transform name field is defined or not
+    \return true, if the field is defined; false, if the field is not defined
+  */
+  bool IsFrameTransformNameDefined(const PlusTransformName& transformName);
 
-  /*! Get custom frame status */
-  PlusStatus GetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status);
-  /*! Set custom frame status */
-  PlusStatus SetCustomFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status);
+  /*! Get frame transform */
+  PlusStatus GetFrameTransform(const PlusTransformName& frameTransformName, double transform[16]);
+  /*! Get frame transform */
+  PlusStatus GetFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix);
 
-  /*! Set custom frame transform */
-  PlusStatus SetCustomFrameTransform(const PlusTransformName& frameTransformName, double transform[16]);
+  /*! Get frame status */
+  PlusStatus GetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status);
+  /*! Set frame status */
+  PlusStatus SetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status);
 
-  /*! Set custom frame transform */
-  PlusStatus SetCustomFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transform);
+  /*! Set frame transform */
+  PlusStatus SetFrameTransform(const PlusTransformName& frameTransformName, double transform[16]);
 
-  /*! Get the list of the name of all custom frame fields */
-  void GetCustomFrameFieldNameList(std::vector<std::string>& fieldNames);
+  /*! Set frame transform */
+  PlusStatus SetFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transform);
 
-  /*! Get the list of the transform name of all custom frame transforms*/
-  void GetCustomFrameTransformNameList(std::vector<PlusTransformName>& transformNames);
+  /*! Get the list of the name of all frame fields */
+  void GetFrameFieldNameList(std::vector<std::string>& fieldNames);
+
+  /*! Get the list of the transform name of all frame transforms*/
+  void GetFrameTransformNameList(std::vector<PlusTransformName>& transformNames);
 
   /*! Get tracked frame size in pixel. Returns: FrameSizeType.  */
   FrameSizeType GetFrameSize();
@@ -127,7 +127,7 @@ public:
   PlusStatus WriteToFile(const std::string& filename, vtkMatrix4x4* imageToTracker);
 
   /*! Print tracked frame human readable serialization data to XML data
-      If requestedTransforms is empty, all stored CustomFrameFields are sent
+      If requestedTransforms is empty, all stored FrameFields are sent
   */
   PlusStatus PrintToXML(vtkXMLDataElement* xmlData, const std::vector<PlusTransformName>& requestedTransforms);
 
@@ -146,7 +146,7 @@ public:
   static std::string ConvertFieldStatusToString(TrackedFrameFieldStatus status);
 
   /*! Return all custom fields in a map */
-  const FieldMapType& GetCustomFields() { return this->CustomFrameFields; }
+  const FieldMapType& GetCustomFields() { return this->FrameFields; }
 
   /*! Returns true if the input string ends with "Transform", else false */
   static bool IsTransform(std::string str);
@@ -165,7 +165,7 @@ protected:
   PlusVideoFrame ImageData;
   double Timestamp;
 
-  FieldMapType CustomFrameFields;
+  FieldMapType FrameFields;
 
   FrameSizeType FrameSize;
 

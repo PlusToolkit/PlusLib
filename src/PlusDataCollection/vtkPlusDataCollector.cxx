@@ -615,11 +615,11 @@ PlusStatus vtkPlusDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel,
     trackedFrame->SetTimestamp(itemTimestamp);
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      trackedFrame->SetFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     // Add tracked frame to the list

@@ -129,93 +129,93 @@ namespace igtl
     this->SetTimeStamp(igtlFrameTime);
 
     this->m_MessageHeader.m_DataType = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixDataType"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixDataType"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixDataType");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataType");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_DataType);
     }
 
     this->m_MessageHeader.m_TransmitFrequency = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixTransmitFrequency"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixTransmitFrequency"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixTransmitFrequency");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixTransmitFrequency");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_TransmitFrequency);
     }
 
     this->m_MessageHeader.m_SamplingFrequency = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixSamplingFrequency"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixSamplingFrequency"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixSamplingFrequency");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixSamplingFrequency");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_SamplingFrequency);
     }
 
     this->m_MessageHeader.m_DataRate = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixDataRate"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixDataRate"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixDataRate");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataRate");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_DataRate);
     }
 
     this->m_MessageHeader.m_LineDensity = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixLineDensity"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixLineDensity"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixLineDensity");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixLineDensity");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_LineDensity);
     }
 
     this->m_MessageHeader.m_SteeringAngle = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixSteeringAngle"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixSteeringAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixSteeringAngle");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixSteeringAngle");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_SteeringAngle);
     }
 
     this->m_MessageHeader.m_ProbeID = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixProbeID"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixProbeID"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixProbeID");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeID");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ProbeID);
     }
 
     this->m_MessageHeader.m_ExtensionAngle = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixExtensionAngle"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixExtensionAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixExtensionAngle");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixExtensionAngle");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ExtensionAngle);
     }
 
     this->m_MessageHeader.m_Elements = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixElements"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixElements"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixElements");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixElements");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Elements);
     }
 
     this->m_MessageHeader.m_Pitch = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixPitch"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixPitch"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixPitch");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixPitch");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Pitch);
     }
 
     this->m_MessageHeader.m_Radius = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixRadius"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixRadius"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixRadius");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixRadius");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Radius);
     }
 
     this->m_MessageHeader.m_ProbeAngle = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixProbeAngle"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixProbeAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixProbeAngle");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeAngle");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ProbeAngle);
     }
 
     this->m_MessageHeader.m_TxOffset = 0;
-    if (this->m_TrackedFrame.IsCustomFrameFieldDefined("SonixTxOffset"))
+    if (this->m_TrackedFrame.IsFrameFieldDefined("SonixTxOffset"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetCustomFrameField("SonixTxOffset");
+      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixTxOffset");
       PlusCommon::StringToInt(fieldValue, this->m_MessageHeader.m_TxOffset);
     }
 

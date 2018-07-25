@@ -172,10 +172,10 @@ protected:
   virtual FrameSizeType GetMaximumImageDimensions();
 
   /*! Set a custom string field value for a specific frame */
-  PlusStatus SetCustomFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
+  PlusStatus SetFrameString(int frameNumber, const char* fieldName,  const char* fieldValue);
 
-  /*! Delete custom frame field from tracked frame */
-  PlusStatus DeleteCustomFrameString(int frameNumber, const char* fieldName);
+  /*! Delete frame field from tracked frame */
+  PlusStatus DeleteFrameString(int frameNumber, const char* fieldName);
 
   /*! Get a custom string field value for a specific frame */
   bool SetCustomString(const char* fieldName, const char* fieldValue);

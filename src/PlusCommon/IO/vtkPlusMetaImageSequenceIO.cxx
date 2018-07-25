@@ -165,7 +165,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImageHeader()
         LOG_WARNING("Parsing line failed, cannot get frame number from frame field (" << lineStr << ")");
         continue;
       }
-      SetCustomFrameString(frameNumber, frameFieldName.c_str(), value.c_str());
+      SetFrameString(frameNumber, frameFieldName.c_str(), value.c_str());
 
       if (ferror(stream))
       {
@@ -412,7 +412,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
     PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
     // Allocate frame only if it is valid
-    const char* imgStatus = trackedFrame->GetCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str());
+    const char* imgStatus = trackedFrame->GetFrameField(SEQMETA_FIELD_IMG_STATUS.c_str());
     if (imgStatus != NULL)    // Found the image status field
     {
       // Save status field
@@ -420,7 +420,7 @@ PlusStatus vtkPlusMetaImageSequenceIO::ReadImagePixels()
 
       // Delete image status field from tracked frame
       // Image status can be determine by trackedFrame->GetImageData()->IsImageValid()
-      trackedFrame->DeleteCustomFrameField(SEQMETA_FIELD_IMG_STATUS.c_str());
+      trackedFrame->DeleteFrameField(SEQMETA_FIELD_IMG_STATUS.c_str());
 
       if (STRCASECMP(strImgStatus.c_str(), "OK") != 0)     // Image status _not_ OK
       {
@@ -864,11 +864,11 @@ PlusStatus vtkPlusMetaImageSequenceIO::AppendImagesToHeader()
     frameIndexStr << std::setfill('0') << std::setw(4) << frameNumber;
 
     std::vector<std::string> fieldNames;
-    trackedFrame->GetCustomFrameFieldNameList(fieldNames);
+    trackedFrame->GetFrameFieldNameList(fieldNames);
 
     for (std::vector<std::string>::iterator it = fieldNames.begin(); it != fieldNames.end(); it++)
     {
-      std::string field = SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetCustomFrameField(it->c_str()) + "\n";
+      std::string field = SEQMETA_FIELD_FRAME_FIELD_PREFIX + frameIndexStr.str() + "_" + (*it) + " = " + trackedFrame->GetFrameField(it->c_str()) + "\n";
       fputs(field.c_str(), stream);
       TotalBytesWritten += field.length();
     }

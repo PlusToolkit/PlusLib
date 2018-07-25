@@ -137,7 +137,7 @@ vtkPlusTransformRepository::TransformInfo* vtkPlusTransformRepository::GetOrigin
 PlusStatus vtkPlusTransformRepository::SetTransforms(PlusTrackedFrame& trackedFrame)
 {
   std::vector<PlusTransformName> transformNames;
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  trackedFrame.GetFrameTransformNameList(transformNames);
 
   int numberOfErrors(0);
 
@@ -153,17 +153,17 @@ PlusStatus vtkPlusTransformRepository::SetTransforms(PlusTrackedFrame& trackedFr
     }
 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (trackedFrame.GetCustomFrameTransform(*it, matrix) != PLUS_SUCCESS)
+    if (trackedFrame.GetFrameTransform(*it, matrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get custom frame transform from tracked frame: " << trName);
+      LOG_ERROR("Failed to get frame transform from tracked frame: " << trName);
       numberOfErrors++;
       continue;
     }
 
     TrackedFrameFieldStatus status = FIELD_INVALID;
-    if (trackedFrame.GetCustomFrameTransformStatus(*it, status) != PLUS_SUCCESS)
+    if (trackedFrame.GetFrameTransformStatus(*it, status) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to get custom frame transform from tracked frame: " << trName);
+      LOG_ERROR("Failed to get frame transform from tracked frame: " << trName);
       numberOfErrors++;
       continue;
     }

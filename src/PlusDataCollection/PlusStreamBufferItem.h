@@ -86,47 +86,47 @@ public:
   BufferItemUidType GetUid() { return this->Uid; };
   void SetUid( BufferItemUidType uid ) { this->Uid = uid; };
 
-  /*! Set custom frame field */
-  void SetCustomFrameField( std::string fieldName, std::string fieldValue );
+  /*! Set frame field */
+  void SetFrameField( std::string fieldName, std::string fieldValue );
 
-  /*! Get custom frame field value */
-  const char* GetCustomFrameField( const char* fieldName )
+  /*! Get frame field value */
+  const char* GetFrameField( const char* fieldName )
   {
     if ( fieldName == NULL )
     {
-      LOG_ERROR( "Unable to get custom frame field: field name is NULL!" );
+      LOG_ERROR( "Unable to get frame field: field name is NULL!" );
       return NULL;
     }
 
     FieldMapType::iterator fieldIterator;
-    fieldIterator = this->CustomFrameFields.find( fieldName );
-    if ( fieldIterator != this->CustomFrameFields.end() )
+    fieldIterator = this->FrameFields.find( fieldName );
+    if ( fieldIterator != this->FrameFields.end() )
     {
       return fieldIterator->second.c_str();
     }
     return NULL;
   }
-  /*! Get custom frame field map */
-  FieldMapType& GetCustomFrameFieldMap()
+  /*! Get frame field map */
+  FieldMapType& GetFrameFieldMap()
   {
-    return this->CustomFrameFields;
+    return this->FrameFields;
   }
-  /*! Delete custom frame field */
-  PlusStatus DeleteCustomFrameField( const char* fieldName )
+  /*! Delete frame field */
+  PlusStatus DeleteFrameField( const char* fieldName )
   {
     if ( fieldName == NULL )
     {
-      LOG_DEBUG( "Failed to delete custom frame field - field name is NULL!" );
+      LOG_DEBUG( "Failed to delete frame field - field name is NULL!" );
       return PLUS_FAIL;
     }
 
-    FieldMapType::iterator field = this->CustomFrameFields.find( fieldName );
-    if ( field != this->CustomFrameFields.end() )
+    FieldMapType::iterator field = this->FrameFields.find( fieldName );
+    if ( field != this->FrameFields.end() )
     {
-      this->CustomFrameFields.erase( field );
+      this->FrameFields.erase( field );
       return PLUS_SUCCESS;
     }
-    LOG_DEBUG( "Failed to delete custom frame field - could find field " << fieldName );
+    LOG_DEBUG( "Failed to delete frame field - could find field " << fieldName );
     return PLUS_FAIL;
   }
 
@@ -164,7 +164,7 @@ protected:
   BufferItemUidType Uid;
 
   /*! Custom frame fields */
-  FieldMapType CustomFrameFields;
+  FieldMapType FrameFields;
 
   bool ValidTransformData;
   PlusVideoFrame Frame;

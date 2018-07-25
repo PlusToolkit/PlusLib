@@ -155,7 +155,7 @@ PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::
           // Timing and image information is taken from the first sequence
           continue;
         }
-        masterTrackedFrame->SetCustomFrameField(fieldIter->first, fieldIter->second);
+        masterTrackedFrame->SetFrameField(fieldIter->first, fieldIter->second);
       }
     }
   }
@@ -683,14 +683,14 @@ int main(int argc, char** argv)
       PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
 
       vtkSmartPointer<vtkMatrix4x4> referenceToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      if (trackedFrame->GetCustomFrameTransform(referenceTransformName, referenceToTrackerMatrix) != PLUS_SUCCESS)
+      if (trackedFrame->GetFrameTransform(referenceTransformName, referenceToTrackerMatrix) != PLUS_SUCCESS)
       {
         LOG_WARNING("Couldn't get reference transform with name: " << strUpdatedReferenceTransformName);
         continue;
       }
 
       std::vector<PlusTransformName> transformNameList;
-      trackedFrame->GetCustomFrameTransformNameList(transformNameList);
+      trackedFrame->GetFrameTransformNameList(transformNameList);
 
       vtkSmartPointer<vtkTransform> toolToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
       vtkSmartPointer<vtkMatrix4x4> toolToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -703,19 +703,19 @@ int main(int argc, char** argv)
         }
 
         TrackedFrameFieldStatus status = FIELD_INVALID;
-        if (trackedFrame->GetCustomFrameTransform(transformNameList[n], toolToReferenceMatrix) != PLUS_SUCCESS)
+        if (trackedFrame->GetFrameTransform(transformNameList[n], toolToReferenceMatrix) != PLUS_SUCCESS)
         {
           std::string strTransformName;
           transformNameList[i].GetTransformName(strTransformName);
-          LOG_ERROR("Failed to get custom frame transform: " << strTransformName);
+          LOG_ERROR("Failed to get frame transform: " << strTransformName);
           continue;
         }
 
-        if (trackedFrame->GetCustomFrameTransformStatus(transformNameList[n], status) != PLUS_SUCCESS)
+        if (trackedFrame->GetFrameTransformStatus(transformNameList[n], status) != PLUS_SUCCESS)
         {
           std::string strTransformName;
           transformNameList[i].GetTransformName(strTransformName);
-          LOG_ERROR("Failed to get custom frame transform status: " << strTransformName);
+          LOG_ERROR("Failed to get frame transform status: " << strTransformName);
           continue;
         }
 
@@ -727,20 +727,20 @@ int main(int argc, char** argv)
         // Update the name to ToolToTracker
         PlusTransformName toolToTracker(transformNameList[n].From().c_str(), "Tracker");
         // Set the new custom transform
-        if (trackedFrame->SetCustomFrameTransform(toolToTracker, toolToTrackerTransform->GetMatrix()) != PLUS_SUCCESS)
+        if (trackedFrame->SetFrameTransform(toolToTracker, toolToTrackerTransform->GetMatrix()) != PLUS_SUCCESS)
         {
           std::string strTransformName;
           transformNameList[i].GetTransformName(strTransformName);
-          LOG_ERROR("Failed to set custom frame transform: " << strTransformName);
+          LOG_ERROR("Failed to set frame transform: " << strTransformName);
           continue;
         }
 
         // Use the same status as it was before
-        if (trackedFrame->SetCustomFrameTransformStatus(toolToTracker, status) != PLUS_SUCCESS)
+        if (trackedFrame->SetFrameTransformStatus(toolToTracker, status) != PLUS_SUCCESS)
         {
           std::string strTransformName;
           transformNameList[i].GetTransformName(strTransformName);
-          LOG_ERROR("Failed to set custom frame transform status: " << strTransformName);
+          LOG_ERROR("Failed to set frame transform status: " << strTransformName);
           continue;
         }
 
@@ -755,8 +755,8 @@ int main(int argc, char** argv)
         }
         oldTransformStatus = oldTransformName;
         oldTransformStatus.append("Status");
-        trackedFrame->DeleteCustomFrameField(oldTransformName.c_str());
-        trackedFrame->DeleteCustomFrameField(oldTransformStatus.c_str());
+        trackedFrame->DeleteFrameField(oldTransformName.c_str());
+        trackedFrame->DeleteFrameField(oldTransformStatus.c_str());
 
       }
     }
@@ -848,11 +848,11 @@ PlusStatus DeleteFrameField(vtkPlusTrackedFrameList* trackedFrameList, std::stri
 
     /////////////////////////////////
     // Delete field name
-    const char* fieldValue = trackedFrame->GetCustomFrameField(fieldName.c_str());
+    const char* fieldValue = trackedFrame->GetFrameField(fieldName.c_str());
     if (fieldValue != NULL
-        && trackedFrame->DeleteCustomFrameField(fieldName.c_str()) != PLUS_SUCCESS)
+        && trackedFrame->DeleteFrameField(fieldName.c_str()) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to delete custom frame field '" << fieldName << "' for frame #" << i);
+      LOG_ERROR("Failed to delete frame field '" << fieldName << "' for frame #" << i);
       numberOfErrors++;
     }
   }
@@ -885,12 +885,12 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
     // Update field name
     if (!fieldUpdate.FieldName.empty() && !fieldUpdate.UpdatedFieldName.empty())
     {
-      const char* fieldValue = trackedFrame->GetCustomFrameField(fieldUpdate.FieldName.c_str());
+      const char* fieldValue = trackedFrame->GetFrameField(fieldUpdate.FieldName.c_str());
       if (fieldValue != NULL)
       {
         std::string copyOfFieldValue(fieldValue);
-        trackedFrame->DeleteCustomFrameField(fieldUpdate.FieldName.c_str());
-        trackedFrame->SetCustomFrameField(fieldUpdate.UpdatedFieldName.c_str(), copyOfFieldValue.c_str());
+        trackedFrame->DeleteFrameField(fieldUpdate.FieldName.c_str());
+        trackedFrame->SetFrameField(fieldUpdate.UpdatedFieldName.c_str(), copyOfFieldValue.c_str());
       }
     }
 
@@ -911,7 +911,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         std::ostringstream fieldValue;
         fieldValue << std::fixed << std::setprecision(fieldUpdate.FrameScalarDecimalDigits) << scalarVariable;
 
-        trackedFrame->SetCustomFrameField(fieldName.c_str(), fieldValue.str().c_str());
+        trackedFrame->SetFrameField(fieldName.c_str(), fieldValue.str().c_str());
         scalarVariable += fieldUpdate.FrameScalarIncrement;
 
       }
@@ -926,7 +926,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         }
         else
         {
-          const char* frameIndexStr = trackedFrame->GetCustomFrameField(fieldUpdate.FrameTransformIndexFieldName.c_str());
+          const char* frameIndexStr = trackedFrame->GetFrameField(fieldUpdate.FrameTransformIndexFieldName.c_str());
           int frameIndex = 0;
           if (PlusCommon::StringToInt<int>(frameIndexStr, frameIndex) != PLUS_SUCCESS)
           {
@@ -948,7 +948,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
                      << transformMatrix[4] << " " << transformMatrix[5] << " " << transformMatrix[6] << " " << transformMatrix[7] << " "
                      << transformMatrix[8] << " " << transformMatrix[9] << " " << transformMatrix[10] << " " << transformMatrix[11] << " "
                      << transformMatrix[12] << " " << transformMatrix[13] << " " << transformMatrix[14] << " " << transformMatrix[15] << " ";
-        trackedFrame->SetCustomFrameField(fieldName.c_str(), strTransform.str().c_str());
+        trackedFrame->SetFrameField(fieldName.c_str(), strTransform.str().c_str());
 
         if (fieldUpdate.FrameTransformIndexFieldName.empty())
         {
@@ -958,7 +958,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
       }
       else // Update only as a string value
       {
-        trackedFrame->SetCustomFrameField(fieldName.c_str(), fieldUpdate.UpdatedFieldValue.c_str());
+        trackedFrame->SetFrameField(fieldName.c_str(), fieldUpdate.UpdatedFieldValue.c_str());
       }
     }
 
@@ -1051,13 +1051,13 @@ PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<s
       {
         LOG_WARNING("Failed to get transform " << (*transformNameToAddIt) << " from tracked frame " << i);
         transformMatrix->Identity();
-        trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
-        trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_INVALID);
+        trackedFrame->SetFrameTransform(transformName, transformMatrix);
+        trackedFrame->SetFrameTransformStatus(transformName, FIELD_INVALID);
       }
       else
       {
-        trackedFrame->SetCustomFrameTransform(transformName, transformMatrix);
-        trackedFrame->SetCustomFrameTransformStatus(transformName, FIELD_OK);
+        trackedFrame->SetFrameTransform(transformName, transformMatrix);
+        trackedFrame->SetFrameTransformStatus(transformName, FIELD_OK);
       }
     }
   }
@@ -1163,8 +1163,8 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
 
     PlusVideoFrame::FlipClipImage(videoFrame->GetImage(), flipInfo, rectOrigin, rectSize, croppedImage);
     videoFrame->DeepCopyFrom(croppedImage);
-    trackedFrame->SetCustomFrameTransform(imageToCroppedImage, tfmMatrix);
-    trackedFrame->SetCustomFrameTransformStatus(imageToCroppedImage, FIELD_OK);
+    trackedFrame->SetFrameTransform(imageToCroppedImage, tfmMatrix);
+    trackedFrame->SetFrameTransformStatus(imageToCroppedImage, FIELD_OK);
   }
 
   return PLUS_SUCCESS;

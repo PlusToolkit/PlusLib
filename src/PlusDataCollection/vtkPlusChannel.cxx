@@ -572,11 +572,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
     aTrackedFrame.SetImageData(frame);
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     synchronizedTimestamp = CurrentStreamBufferItem.GetTimestamp(this->VideoSource->GetLocalTimeOffsetSec());
@@ -632,14 +632,14 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
       continue;
     }
 
-    if (aTrackedFrame.SetCustomFrameTransform(toolTransformName, dMatrix) != PLUS_SUCCESS)
+    if (aTrackedFrame.SetFrameTransform(toolTransformName, dMatrix) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set transform for tool " << aTool->GetId());
       numberOfErrors++;
       continue;
     }
 
-    if (aTrackedFrame.SetCustomFrameTransformStatus(toolTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus())) != PLUS_SUCCESS)
+    if (aTrackedFrame.SetFrameTransformStatus(toolTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus())) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set transform status for tool " << aTool->GetId());
       numberOfErrors++;
@@ -647,11 +647,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
     }
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     synchronizedTimestamp = bufferItem.GetTimestamp(aTool->GetLocalTimeOffsetSec());
@@ -685,11 +685,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
     }
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     synchronizedTimestamp = bufferItem.GetTimestamp(aSource->GetLocalTimeOffsetSec());

@@ -124,7 +124,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
       parameter->LatestParameterValue = PlusCommon::Trim(textStr);
       delete [] text_out;
 
-      frame.SetCustomFrameField(parameter->ParameterName, parameter->LatestParameterValue);
+      frame.SetFrameField(parameter->ParameterName, parameter->LatestParameterValue);
     }
   }
 
