@@ -1366,6 +1366,9 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Capistrano Labs support
 IF(PLUS_USE_CAPISTRANO_VIDEO)
+  IF(${CAPISTRANO_SDK_VERSION} STREQUAL cSDK2018)
+    ADD_DEFINITIONS(-DCAPISTRANO_SDK2018)
+  ENDIF()
   SET(Capistrano_SRCS
     Capistrano/vtkPlusCapistranoVideoSource.cxx
     )

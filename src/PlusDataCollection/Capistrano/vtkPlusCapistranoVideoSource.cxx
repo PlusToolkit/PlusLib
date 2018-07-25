@@ -709,6 +709,24 @@ std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
   return versionString.str();
 }
 
+// ----------------------------------------------------------------------------
+#ifdef CAPISTRANO_SDK2018
+int vtkPlusCapistranoVideoSource::GetHardwareVersion()
+{
+  return usbHardwareVersion();
+}
+
+int vtkPlusCapistranoVideoSource::GetHighPassFilter()
+{
+  return usbHighPassFilter();
+}
+
+int vtkPlusCapistranoVideoSource::GetLowPassFilter()
+{
+  return usbLowPassFilter();
+}
+#endif
+
 
 // ------------------------------------------------------------------------
 // Protected member operators ---------------------------------------------
@@ -827,16 +845,20 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   }
 
   // Check How many US probe are connected. --------------------------------
-  int numberOfAttachedProbes = usbNumberAttachedProbes();
-  LOG_DEBUG("Number of attached probes: " << numberOfAttachedProbes);
-  if (numberOfAttachedProbes == 0)
+#ifdef CAPISTRANO_SDK2018
+  int numberOfAttachedBoards = usbNumberAttachedBoards();
+#else //cSDK2013 or cSDK2016
+  int numberOfAttachedBoards = usbNumberAttachedProbes();
+#endif
+  LOG_DEBUG("Number of attached boards: " << numberOfAttachedBoards);
+  if (numberOfAttachedBoards == 0)
   {
-    LOG_ERROR("No Capistrano probes are attached");
+    LOG_ERROR("No Capistrano boards are attached");
     return PLUS_FAIL;
   }
-  if (numberOfAttachedProbes > 1)
+  if (numberOfAttachedBoards > 1)
   {
-    LOG_WARNING("Multiple Capistrano probes are attached, using the first one");
+    LOG_WARNING("Multiple Capistrano boards are attached, using the first one");
   }
 
   // Set US Probe directional mode  -----------------------------------------

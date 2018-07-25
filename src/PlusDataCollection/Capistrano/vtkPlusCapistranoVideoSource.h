@@ -43,6 +43,17 @@ public:
   /*! Get the version of SDK */
   virtual std::string GetSdkVersion();
 
+#ifdef CAPISTRANO_SDK2018
+  /*! Get the hardware version. */
+  virtual int GetHardwareVersion();
+
+  /*! Get the high pass filter. */
+  virtual int GetHighPassFilter();
+
+  /*! Get the low pass filter. */
+  virtual int GetLowPassFilter();
+#endif
+
   /* Update Speed of Sound */
   PlusStatus GetProbeVelocityDevice(float& aVel);
 
