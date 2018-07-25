@@ -32,17 +32,6 @@ vtkPlusWitMotionTracker::~vtkPlusWitMotionTracker()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusWitMotionTracker::InternalConnect()
-{
-  if (Superclass::InternalConnect() == PLUS_FAIL)
-  {
-    return PLUS_FAIL;
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//-------------------------------------------------------------------------
 PlusStatus vtkPlusWitMotionTracker::NotifyConfigured()
 {
   if (this->GetToolByPortName("OrientationSensor", this->Accelerometer) != PLUS_SUCCESS)
