@@ -54,7 +54,7 @@ OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_INTELREALSENSE_CAM "Provide support for capturing an Intel RealSense capture stream" OFF)
-OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for The WitMotion Tracker" OFF)
+OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
