@@ -45,7 +45,13 @@ PlusStatus vtkPlusWitMotionTracker::InternalConnect()
 //-------------------------------------------------------------------------
 PlusStatus vtkPlusWitMotionTracker::NotifyConfigured()
 {
-  return GetToolByPortName("OrientationSensor", this->Accelerometer);
+  if (this->GetToolByPortName("OrientationSensor", this->Accelerometer) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to locate tool with PortName=\"OrientationSensor\". This is required.");
+    return PLUS_FAIL;
+  }
+  
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
