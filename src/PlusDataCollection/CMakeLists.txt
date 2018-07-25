@@ -2065,9 +2065,8 @@ IF(PLUS_USE_V4L2)
 ENDIF()
 
 # --------------------------------------------------------------------------
-# YourDevice
+# WitMotion
 IF(PLUS_USE_WITMOTIONTRACKER)
-
   SET(WitMotionTracker_SRCS
     WitMotionTracker/vtkPlusWitMotionTracker.cxx
     )
