@@ -1,5 +1,6 @@
 /*!
-\page DeviceIntelRealSense Intel RealSense camera
+\page DeviceIntelRealSense IntelRealSense camera
+This device allow you to process two kind of images. The first image is in RGB and the second image is a Depth image.
 
 \section DeviceIntelRealSensSupportedHwDevices Supported hardware devices
 
@@ -12,26 +13,42 @@
 
 Requires recent Intel processor.
 
+\section DeviceIntelRealSenseCameraLicense License
+
+This module allow you to use the IntelRealSense suite of combined RGB and Depth cameras.
+ 
+Developed by MACBIOIDI-ULPGC & IACTEC-IAC group 
+ 
+The MIT License (MIT)
+ 
+Copyright (c) 2017 Eavise Research Group 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: 
+ 
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. 
+ 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ 
 \section DeviceIntelRealSensInstallation Installation
-- Install IntelRealSense SDK or runtime
+- Install IntelRealSense SDK 2.0 or higer (https://github.com/IntelRealSense/librealsense/releases/tag/v2.11.0)
 
 \section DeviceIntelRealSensConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "IntelRealSenseTracker" \RequiredAtt
-- \xmlAtt \b TrackingMethod Tracking method. \c 3D uses point cloud. \c 2D tracks a planar image. \OptionalAtt{3D}
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
-- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
-- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \ref DeviceType "Type" = \c "IntelRealSense" \RequiredAtt
+- \xmlAtt \ref UseRealSenseColorizer Choose whether or not to use the RealSense colorized or send raw depth data. \OptionalAtt{FALSE}
+- \xmlAtt \ref AlignDepthStream Choose whether to align RGB and depth streams. You must have both and RGB and a depth stream in your config to enable this option. \OptionalAtt{FALSE}
 
-- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
-   - \xmlElem \ref DataSource \RequiredAtt
-   - \xmlAtt \b MapFile \c ="IntelRealSenseToolDefinitions/Metaio-Marker01.slam" Path to the .slam file. Only required for 3D tracking method.  Relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
-   - \xmlAtt \b MarkerImageFile \c ="IntelRealSenseToolDefinitions/IntelRealSenseToolDefinitions/fourcircles.png" Path to the .png file that contains the marker's image. Only required for 2D tracking method.  Relative to \ref FileApplicationConfiguration "DeviceSetConfigurationDirectory". \RequiredAtt
-   - \xmlAtt \ref BufferSize \OptionalAtt{150}
-   - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+- \xmlElem \ref DataSources One \c DataSource child element is required per stream from the RealSense. \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+  - \xmlAtt \ref FrameType Type of stream to capture. \RequiredAtt
+    - \c RGB
+    - \c DEPTH
+  - \xmlAtt FrameSize Size of the video stream in pixels. Consult the RealSense documentation for your device to find appropriate frame size / frame rate combinations.
+  - \xmlAtt FrameRate Acquisition frequence for this stream.
+  - \xmlAtt \ref PortUsImageOrientation \OptionalAtt{UN}
 
-\section DeviceIntelRealSensExampleConfigFile Example configuration file PlusDeviceSet_Server_IntelRealSenseTracker.xml
+\section DeviceIntelRealSensExampleConfigFile Example configuration file PlusDeviceSet_Server_IntelRealSenseVideo.xml
 
-\include "ConfigFiles/PlusDeviceSet_Server_IntelRealSenseTracker.xml" 
+\include "ConfigFiles/PlusDeviceSet_Server_IntelRealSenseVideo.xml" 
 
 */
