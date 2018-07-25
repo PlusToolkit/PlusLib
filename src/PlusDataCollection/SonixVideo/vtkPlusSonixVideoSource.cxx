@@ -78,6 +78,7 @@ vtkPlusSonixVideoSource::vtkPlusSonixVideoSource()
   , UlteriusConnected(false)
   , AutoClipEnabled(false)
   , ImageGeometryOutputEnabled(false)
+  , ImagingParameterChanged(false)
 {
   this->SetSonixIP("127.0.0.1");
   this->StartThreadForInternalUpdates = false;
@@ -152,6 +153,9 @@ bool vtkPlusSonixVideoSource::vtkPlusSonixVideoSourceParamCallback(void* paramId
     return false;
   }
 
+  vtkPlusSonixVideoSource::ActiveSonixDevice->ImagingParameterChanged = true;
+  vtkPlusSonixVideoSource::ActiveSonixDevice->ChangedImagingParameters[paramName] = true;
+
   if (STRCASECMP(paramName, "b-depth") == 0)
   {
     // we cannot query parameter values here, so just set a flag
@@ -177,6 +181,63 @@ bool vtkPlusSonixVideoSource::vtkPlusSonixVideoSourceParamCallback(void* paramId
   return false;
 }
 
+//----------------------------------------------------------------------------
+// Update imaging parameters from device
+void vtkPlusSonixVideoSource::UpdateImagingParametersFromDevice()
+{
+  this->ImagingParameterChanged = false;
+  for (std::map<std::string, bool>::iterator changedParameterIt = this->ChangedImagingParameters.begin(); changedParameterIt != this->ChangedImagingParameters.end(); ++changedParameterIt)
+  {
+    bool parameterChanged = changedParameterIt->second;
+    if (!parameterChanged)
+    {
+      continue;
+    }
+    changedParameterIt->second = false;
+
+    std::string parameterName = changedParameterIt->first;
+    if (parameterName == "b-freq")
+    {
+      double unused = 0;
+      this->GetFrequencyDevice(unused);
+    }
+    else if (parameterName == "b-depth")
+    {
+      int unused = 0;
+      this->GetDepthDevice(unused);
+    }
+    else if (parameterName == "b-gain")
+    {
+      int unused = 0;
+      this->GetGainDevice(unused);
+    }
+    else if (parameterName == "b-dyn log factor")
+    {
+      int unused = 0;
+      this->GetDynRangeDevice(unused);
+    }
+    else if (parameterName == "b-initial zoom")
+    {
+      int unused = 0;
+      this->GetZoomDevice(unused);
+    }
+    else if (parameterName == "sector")
+    {
+      int unused = 0;
+      this->GetSectorDevice(unused);
+    }
+    else if (parameterName == "b-tgc")
+    {
+      Plus_uTGC unused;
+      this->GetTimeGainCompensationDevice(unused);
+    }
+    else if (parameterName == "soundvelocity")
+    {
+      float unused = 0;
+      this->GetSoundVelocityDevice(unused);
+    }
+  }
+}
 
 //----------------------------------------------------------------------------
 // copy the Device Independent Bitmap from the VFW framebuffer into the
@@ -290,6 +351,11 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
     this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels.x - clipRectangleOrigin[0];
     this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels.y - clipRectangleOrigin[1];
     this->CurrentTransducerOriginPixels[2] = 0;
+  }
+
+  if (this->ImagingParameterChanged)
+  {
+    this->UpdateImagingParametersFromDevice();
   }
 
   PlusTrackedFrame::FieldMapType customFields;
@@ -523,6 +589,15 @@ PlusStatus vtkPlusSonixVideoSource::InternalConnect()
 
     initializationCompleted = true;
     this->ImageGeometryChanged = true; // trigger an initial update of geometry info
+    this->ImagingParameterChanged = true; // trigger an initial update of the following parameters
+    this->ChangedImagingParameters["b-freq"] = true;
+    this->ChangedImagingParameters["b-depth"] = true;
+    this->ChangedImagingParameters["b-gain"] = true;
+    this->ChangedImagingParameters["b-dyn log factor"] = true;
+    this->ChangedImagingParameters["b-initial zoom"] = true;
+    this->ChangedImagingParameters["sector"] = true;
+    this->ChangedImagingParameters["b-tgc"] = true;
+    this->ChangedImagingParameters["soundvelocity"] = true;
   } // while (!initializationCompleted)
 
   LOG_DEBUG("Successfully connected to sonix video device");
@@ -756,12 +831,12 @@ PlusStatus vtkPlusSonixVideoSource::GetParamValueDevice(char* paramId, Plus_uTGC
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::SetFrequencyDevice(int aFrequencyMHz)
+PlusStatus vtkPlusSonixVideoSource::SetFrequencyDevice(double aFrequencyMHz)
 {
   // Convert frequency between MHz and Hz
   int frequencyHz = aFrequencyMHz * 1000000;
   PlusStatus result = this->SetParamValueDevice("b-freq", frequencyHz, frequencyHz);
-  aFrequencyMHz = frequencyHz / 1000000;
+  aFrequencyMHz = frequencyHz / 1000000.0;
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetFrequencyMhz(aFrequencyMHz);
@@ -771,12 +846,12 @@ PlusStatus vtkPlusSonixVideoSource::SetFrequencyDevice(int aFrequencyMHz)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSonixVideoSource::GetFrequencyDevice(int& aFrequencyMHz)
+PlusStatus vtkPlusSonixVideoSource::GetFrequencyDevice(double& aFrequencyMHz)
 {
   // Convert frequency between MHz and Hz
   int frequencyHz = aFrequencyMHz * 1000000;
   PlusStatus result = this->GetParamValueDevice("b-freq", frequencyHz, frequencyHz);
-  aFrequencyMHz = frequencyHz / 1000000;
+  aFrequencyMHz = frequencyHz / 1000000.0;
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetFrequencyMhz(aFrequencyMHz);
@@ -816,7 +891,7 @@ PlusStatus vtkPlusSonixVideoSource::SetGainDevice(int aGainPercent)
   // Need to convert between the different units
   int gainUltrasonixUnits = 6000 * (aGainPercent / 100.0) - 3000;
   PlusStatus result = SetParamValueDevice("b-gain", gainUltrasonixUnits, gainUltrasonixUnits);
-  aGainPercent = ((gainUltrasonixUnits + 3000) / 6000) * 100;
+  aGainPercent = ((gainUltrasonixUnits + 3000.0) / 6000.0) * 100.0;
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetGainPercent(aGainPercent);
@@ -832,7 +907,7 @@ PlusStatus vtkPlusSonixVideoSource::GetGainDevice(int& aGainPercent)
   // Need to convert between the different units
   int gainUltrasonixUnits = 6000 * (aGainPercent / 100.0) - 3000;
   PlusStatus result = this->GetParamValueDevice("b-gain", gainUltrasonixUnits, gainUltrasonixUnits);
-  aGainPercent = ((gainUltrasonixUnits + 3000) / 6000) * 100;
+  aGainPercent = ((gainUltrasonixUnits + 3000.0) / 6000.0) * 100.0;
   if (result == PLUS_SUCCESS)
   {
     this->ImagingParameters->SetGainPercent(aGainPercent);

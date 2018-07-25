@@ -83,9 +83,9 @@ public:
   vtkGetStringMacro(SonixIP); 
 
   /*! Set ultrasound transmitter frequency (MHz) */
-  PlusStatus SetFrequencyDevice(int aFrequency);
+  PlusStatus SetFrequencyDevice(double aFrequency);
   /*! Get ultrasound transmitter frequency (MHz) */
-  PlusStatus GetFrequencyDevice(int& aFrequency);
+  PlusStatus GetFrequencyDevice(double& aFrequency);
 
   /*! Set the depth (mm) of B-mode ultrasound */
   PlusStatus SetDepthDevice(int aDepth);
@@ -298,6 +298,11 @@ protected:
   virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
 
   /*!
+  Update changed imaging parameters from device
+  */
+  void UpdateImagingParametersFromDevice();
+
+  /*!
   Set changed imaging parameter to device
   */
   virtual PlusStatus RequestImagingParameterChange();
@@ -318,6 +323,8 @@ protected:
 
   /*! Indicates that current depth, spacing, transducer origin has to be queried */
   bool ImageGeometryChanged;
+  bool ImagingParameterChanged;
+  std::map<std::string, bool> ChangedImagingParameters;
 
   char *SonixIP;
   /*!

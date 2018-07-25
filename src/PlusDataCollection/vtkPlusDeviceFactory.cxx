@@ -40,6 +40,9 @@ See License.txt for details.
 #ifdef PLUS_USE_MICRONTRACKER
   #include "vtkPlusMicronTracker.h"
 #endif
+#ifdef PLUS_USE_WITMOTIONTRACKER
+  #include "vtkPlusWitMotionTracker.h"
+#endif
 #ifdef PLUS_USE_INTELREALSENSE
   #include "vtkPlusIntelRealSense.h"
 #endif
@@ -224,6 +227,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_MICRONTRACKER
   RegisterDevice("MicronTracker", "vtkPlusMicronTracker", (PointerToDevice)&vtkPlusMicronTracker::New);
+#endif
+#ifdef PLUS_USE_WITMOTIONTRACKER
+  RegisterDevice("WitMotionTracker", "vtkPlusWitMotionTracker", (PointerToDevice)&vtkPlusWitMotionTracker::New);
 #endif
 #ifdef PLUS_USE_INTELREALSENSE
   RegisterDevice("IntelRealSense", "vtkPlusIntelRealSense", (PointerToDevice)&vtkPlusIntelRealSense::New);

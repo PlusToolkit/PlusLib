@@ -95,12 +95,16 @@ public:
   vtkSetMacro(ErrorString, std::string);
   vtkGetMacro(ResultString, std::string);
   vtkSetMacro(ResultString, std::string);
+  vtkSetMacro(UseDefaultFormat, bool);
+  vtkGetMacro(UseDefaultFormat, bool);
+  vtkBooleanMacro(UseDefaultFormat, bool);
 
   void SetParameters(const igtl::MessageBase::MetaDataMap& values);
   const igtl::MessageBase::MetaDataMap& GetParameters() const;
 
 protected:
   vtkPlusCommandRTSCommandResponse()
+    : UseDefaultFormat(true)
   {
   }
   uint32_t OriginalId;
@@ -108,6 +112,7 @@ protected:
   std::string ErrorString;
   std::string ResultString;
   igtl::MessageBase::MetaDataMap Parameters;
+  bool UseDefaultFormat;
 
 private:
   vtkPlusCommandRTSCommandResponse(const vtkPlusCommandRTSCommandResponse&);

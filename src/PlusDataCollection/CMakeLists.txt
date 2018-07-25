@@ -53,6 +53,7 @@ OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker track
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
+OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -2014,6 +2015,31 @@ IF(PLUS_USE_V4L2)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# WitMotion
+IF(PLUS_USE_WITMOTIONTRACKER)
+  SET(WitMotionTracker_SRCS
+    WitMotionTracker/vtkPlusWitMotionTracker.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(WitMotionTracker_HDRS
+      WitMotionTracker/vtkPlusWitMotionTracker.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${WitMotionTracker_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${WitMotionTracker_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/WitMotionTracker
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
   vtkPlusRendering
@@ -2094,6 +2120,7 @@ source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
 source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
+source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
