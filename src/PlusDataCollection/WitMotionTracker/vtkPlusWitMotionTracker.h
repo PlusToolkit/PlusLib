@@ -27,9 +27,6 @@ public:
     virtual bool IsTracker() const { return true; }
 
 protected:
-    /*! Retrieves orientation from the string data streamed by the sensor */
-    PlusStatus ParseMessage(std::string& textReceived, double* rotationQuat);
-
     /*! 
      * Decode the 11 byte frames provided by the Wit motion device
      * See https://github.com/PlusToolkit/PlusDoc/external/WitMotion/BWT901C.zip
