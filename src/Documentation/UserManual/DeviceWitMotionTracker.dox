@@ -1,33 +1,31 @@
 /*!
 \page DeviceWitMotion WitMotion BWT901CL: Nine axis Bluetooth attitude angle sensor
 
-\section MicrochipSupportedHwDevices Supported hardware devices
+\section WitMotionSupportedHwDevices Supported hardware devices
 
 - Link to manufacturer's website: http://www.wit-motion.com/english.php?m=text&a=index&classify_id=46395
 
-\section MicrochipSupportedPlatforms Supported platforms
+\section WitMotionSupportedPlatforms Supported platforms
 
 - \ref PackageWin32
 - \ref PackageWin64
 
-\section WiMotionInstallation BlueTooth Installation Windows 10
+\section WitMotionInstallation BlueTooth Installation
 
 - Other WitMotion devices may be used with this configuration but this section is 
 meant for setting up the BlueTooth version on Windows 10
+  - Make sure Bluetooth is enabled (Settings-Devices-Bluetooth On)
+  - Click Add Bluetooth or other device
+  - Click Bluetooth, make sure accelerometer 1 is turned on and flashing blue
+  - Enter PIN to pair (1234)
+  - Should be labelled as HC-06 (Or Unknown Device)
+  - In Bluetooth settings, click on more Bluetooth options
+  - Click on COM Ports and take note of the outgoing COM Port number
+  - Use this COM Port number for Serial Port number in the config file
 
-- Make sure Bluetooth is enabled (Settings-Devices-Bluetooth On)
-- Click Add Bluetooth or other device
-- Click Bluetooth, make sure accelerometer 1 is turned on and flashing blue
-- Enter PIN to pair (1234)
-- Should be labelled as HC-06 (Or Unknown Device)
-- In Bluetooth settings, click on more Bluetooth options
-- Click on COM Ports and take note of the outgoing COM Port number
-- Use this COM Port number for Serial Port number in the config file
+\section WitMotionConfigSettings Device configuration settings
 
-
-\section MicrochipConfigSettings Device configuration settings
-
-- \xmlAtt \ref DeviceType "Type" = \c "Microchip" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "WitMotion" \RequiredAtt
 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
