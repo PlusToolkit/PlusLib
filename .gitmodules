@@ -1,0 +1,3 @@
+[submodule "PlusDoc"]
+	path = PlusDoc
+	url = https://github.com/PlusToolkit/PlusDoc.git
