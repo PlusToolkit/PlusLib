@@ -23,7 +23,6 @@ public:
     vtkTypeMacro(vtkPlusWitMotionTracker, vtkPlusGenericSerialDevice);
 
     virtual PlusStatus InternalUpdate();
-    virtual PlusStatus InternalConnect();
 
     virtual bool IsTracker() const { return true; }
 
@@ -31,8 +30,14 @@ protected:
     /*! Retrieves orientation from the string data streamed by the sensor */
     PlusStatus ParseMessage(std::string& textReceived, double* rotationQuat);
 
+    /*! 
+     * Decode the 11 byte frames provided by the Wit motion device
+     * See https://github.com/PlusToolkit/PlusDoc/external/WitMotion/BWT901C.zip
+     * for sample code, app, and more.
+     */
     PlusStatus DecodeData();
 
+    /*! Receive an 11 byte frame over serial */
     PlusStatus ReceiveData();
 
     virtual PlusStatus NotifyConfigured();
@@ -41,12 +46,12 @@ protected:
     ~vtkPlusWitMotionTracker();
 
 protected:
-    vtkPlusDataSource* Accelerometer;
+    vtkPlusDataSource*                          Accelerometer;
 
-    static const int MAX_DATA_LENGTH1 = 11;
-    typedef std::array<unsigned char, vtkPlusWitMotionTracker::MAX_DATA_LENGTH1> StreamBufferType;
+    // Only need MAX_DATA_LENGTH bytes in the buffer 
+    static const int                            MAX_DATA_LENGTH = 11;
+    typedef std::array<unsigned char, vtkPlusWitMotionTracker::MAX_DATA_LENGTH> StreamBufferType;
 
-    // Only need 11 bytes in the buffer 
     StreamBufferType                            StreamData;
     std::array<double, 4>                       Orientation;
     std::array<double, 4>                       Acceleration;
