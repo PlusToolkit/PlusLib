@@ -25,7 +25,7 @@ meant for setting up the BlueTooth version on Windows 10
 
 \section WitMotionConfigSettings Device configuration settings
 
-- \xmlAtt \ref DeviceType "Type" = \c "WitMotion" \RequiredAtt
+- \xmlAtt \ref DeviceType "Type" = \c "WitMotionTracker" \RequiredAtt
 
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
