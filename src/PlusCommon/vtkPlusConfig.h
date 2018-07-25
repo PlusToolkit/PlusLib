@@ -163,6 +163,12 @@ public:
   void SetDeviceSetConfigurationFileName(const std::string& aFilePath);
 
   /*!
+  * Convenience function to create a device set configuration from a file
+  * Returned pointer must be managed by the caller
+  */
+  vtkXMLDataElement* CreateDeviceSetConfigurationFromFile(const std::string& aConfigFile);
+
+  /*!
     Get absolute path for an output file specified by a path relative to the output directory.
   */
   std::string GetOutputPath(const std::string& subPath);
@@ -290,7 +296,7 @@ protected:
 
 private:
   /*! Instance of the singleton */
-  static vtkPlusConfig*  Instance;
+  static vtkPlusConfig* Instance;
 };
 
 
