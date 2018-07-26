@@ -13,6 +13,7 @@ happens between two threads. In real life, it happens between two programs.
 
 #include "PlusConfigure.h"
 #include "PlusCommon.h"
+#include "vtkNew.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
@@ -128,7 +129,7 @@ int main(int argc, char** argv)
     // This is a PlusServer tag, let's create it
     vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
     LOG_DEBUG("Initializing Plus OpenIGTLink server... ");
-    if (server->Start(dataCollector, transformRepository, serverElement, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()) != PLUS_SUCCESS)
+    if (server->Start(dataCollector.GetPointer(), transformRepository.GetPointer(), serverElement, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to start OpenIGTLink server");
       exit(EXIT_FAILURE);
