@@ -219,6 +219,12 @@ public:
   */
   std::string GetPlusExecutablePath(const std::string& executableName);
 
+  /*! Set the currently selected tab */
+  void SetCurrentTab(int tab);
+
+  /*! Get the currently selected tab */
+  int GetCurrentTab();
+
 protected:
   /*! Set program directory path */
   void SetProgramDirectory();
@@ -293,6 +299,9 @@ protected:
 
   /*! Formatted string timestamp of the application start time - used as a prefix for most outputs */
   std::string ApplicationStartTimestamp;
+
+  /* Integer indicating the currently selected tab in PlusServerLauncher */
+  int CurrentTab = 0;
 
 private:
   /*! Instance of the singleton */

@@ -417,6 +417,19 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
     saveNeeded = true;
   }
 
+  // Read current tab
+  int currentTab = 0;
+  if (applicationConfigurationRoot->GetScalarAttribute("CurrentTab", currentTab))
+  {
+    this->CurrentTab = currentTab;
+  }
+  else
+  {
+    LOG_INFO("CurrentTab attribute is not found - default tab 0 will be used");
+    this->CurrentTab = 0;
+    saveNeeded = true;
+  }
+
   if (saveNeeded)
   {
     return SaveApplicationConfigurationToFile();
@@ -473,6 +486,9 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
 
   // Save scripts directory path
   applicationConfigurationRoot->SetAttribute("ScriptsDirectory", this->ScriptsDirectory.c_str());
+
+  // Save current tab
+  applicationConfigurationRoot->SetIntAttribute("CurrentTab", this->CurrentTab);
 
   return PLUS_SUCCESS;
 }
@@ -1069,4 +1085,17 @@ std::string vtkPlusConfig::GetPlusExecutablePath(const std::string& executableNa
   processNameWithExtension += ".exe";
 #endif
   return GetAbsolutePath(processNameWithExtension, this->ProgramDirectory);
+}
+
+//-----------------------------------------------------------------------------
+
+void vtkPlusConfig::SetCurrentTab(int tab)
+{
+  this->CurrentTab = tab;
+}
+
+//-----------------------------------------------------------------------------
+int vtkPlusConfig::GetCurrentTab()
+{
+  return this->CurrentTab;
 }
