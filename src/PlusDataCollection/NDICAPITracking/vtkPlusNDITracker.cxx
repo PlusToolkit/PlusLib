@@ -190,7 +190,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     return ProbeSerialInternal();
 #else
     // if SerialPort is set to -1 (default), then probe the first N serial ports
-    char* devicename = NULL;
+    const char* devicename = NULL;
     int errnum = NDI_OPEN_ERROR;
 
     const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
