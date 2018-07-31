@@ -227,7 +227,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
 #define IMAGING_PARAMETER_SET(parameterName) \
 PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(double a##parameterName) \
 { \
-  LOG_INFO("Setting US parameter "<<parameterName<<"="<<a##parameterName); \
+  LOG_INFO("Setting US parameter "<<#parameterName<<"="<<a##parameterName); \
   if (this->Device==NULL) \
   { \
     /* Connection has not been established yet. Parameter value will be set upon connection. */ \
@@ -238,7 +238,7 @@ PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(double a##parameterName
   this->parameterName=a##parameterName; \
   if (this->Device->Set##parameterName(this->parameterName)!=PLUS_SUCCESS) \
   { \
-    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: "<<parameterName<<"="<<a##parameterName); \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: "<<#parameterName<<"="<<a##parameterName); \
     this->parameterName=oldParamValue; \
     return PLUS_FAIL; \
   } \
@@ -324,7 +324,6 @@ PlusStatus vtkPlusTelemedVideoSource::RequestImagingParameterChange()
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
     && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
-    LOG_ERROR("SETTING DEPTH!");
     if (this->SetDepthMm(this->ImagingParameters->GetDepthMm()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set depth imaging parameter");
