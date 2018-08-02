@@ -141,9 +141,13 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
         continue;
       }
 
+      std::string encodingType;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EncodingType, encodingType, imageElem);
+
       ImageStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
+      stream.EncodingType = encodingType;
       clientInfo.ImageStreams.push_back(stream);
     }
   }

@@ -34,14 +34,15 @@ public:
   */
   struct ImageStream
   {
-    ImageStream()
-      : Name("")
-      , EmbeddedTransformToFrame("") {}
-
     /*! Name of the image stream and the IGTL image message embedded transform "From" frame */
     std::string Name;
     /*! Name of the IGTL image message embedded transform "To" frame */
     std::string EmbeddedTransformToFrame;
+    /*! Optional string indicating the image encoding using FourCC value is empty by default
+    If the string is empty, then images will be sent using igtl::ImageMessage using a raw RGB format
+    If the string is not empty, then it will be compressed and sent as an igtl::VideoMessage using the encoding specified by the FourCC value
+    */
+    std::string EncodingType;
   };
 
   PlusIgtlClientInfo();
