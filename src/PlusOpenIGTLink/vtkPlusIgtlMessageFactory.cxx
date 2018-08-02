@@ -30,6 +30,18 @@ See License.txt for details.
 #include "igtlTrackingDataMessage.h"
 #include "igtlTransformMessage.h"
 
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
+#include "igtlVideoMessage.h"
+#include "igtl_video.h"
+#include "igtlI420Encoder.h"
+#if defined(OpenIGTLink_USE_VP9)
+#include "igtlVP9Encoder.h"
+#endif
+#if defined(OpenIGTLink_USE_H264)
+#include "igtlH264Encoder.h"
+#endif
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusIgtlMessageFactory);
@@ -126,7 +138,7 @@ igtl::MessageBase::Pointer vtkPlusIgtlMessageFactory::CreateSendMessage(const st
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, PlusTrackedFrame& trackedFrame,
+PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtlMessages, PlusTrackedFrame& trackedFrame,
     bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository/*=NULL*/)
 {
   int numberOfErrors(0);
@@ -177,37 +189,102 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
           continue;
         }
 
-        igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
-        if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
-        {
-          // Allow overriding of device name with something human readable
-          // The transform name is passed in the metadata
-          deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
-        }
-        imageMessage->SetDeviceName(deviceName.c_str());
 
-        // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
-        std::vector<std::string> frameFields;
-        trackedFrame.GetCustomFrameFieldNameList(frameFields);
-        for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
+        if (imageStream.EncodingType.empty())
         {
-          if (trackedFrame.GetCustomFrameField(*stringNameIterator) == NULL)
+          igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
+          if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
           {
-            // No value is available, do not send anything
-            LOG_WARNING("No metadata value for: " << *stringNameIterator)
+            // Allow overriding of device name with something human readable
+            // The transform name is passed in the metadata
+            deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+          }
+          imageMessage->SetDeviceName(deviceName.c_str());
+
+          // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
+          std::vector<std::string> frameFields;
+          trackedFrame.GetCustomFrameFieldNameList(frameFields);
+          for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
+          {
+            if (trackedFrame.GetCustomFrameField(*stringNameIterator) == NULL)
+            {
+              // No value is available, do not send anything
+              LOG_WARNING("No metadata value for: " << *stringNameIterator)
+                continue;
+            }
+            imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(*stringNameIterator));
+          }
+
+          if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+            numberOfErrors++;
             continue;
           }
-          imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(*stringNameIterator));
+          igtlMessages.push_back(imageMessage.GetPointer());
         }
-
-        if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
+        else
         {
-          LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
-          numberOfErrors++;
-          continue;
+
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
+          igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
+          ClientEncoderKeyType clientEncoderKey;
+          clientEncoderKey.ClientId = clientId;
+          clientEncoderKey.ImageName = imageStream.Name;
+
+          VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
+          if (encoderIt != this->IgtlVideoEncoders.end())
+          {
+            encoder = encoderIt->second;
+          }
+          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_I420)
+          {
+            encoder = new igtl::I420Encoder();
+            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+          }
+#if defined(OpenIGTLink_USE_VP9)
+          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_VP9)
+          {
+            encoder = new igtl::VP9Encoder();
+            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+          }
+#endif
+#if defined(OpenIGTLink_USE_H264)
+          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_H264)
+          {
+            encoder = new igtl::H264Encoder();
+            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+          }
+#endif
+          else
+          {
+            LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.EncodingType);
+            continue;
+          }
+
+          if (!encoder->GetInitializationStatus())
+          {
+            FrameSizeType frameSize = trackedFrame.GetFrameSize();
+            encoder->SetPicWidthAndHeight(frameSize[0], frameSize[1]);
+            encoder->SetLosslessLink(false);
+            encoder->InitializeEncoder();
+          }
+
+          igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();
+          videoMessage->SetDeviceName(deviceName.c_str());
+          if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Failed to create " << "VIDEO" << " message - unable to pack image message");
+            numberOfErrors++;
+            continue;
+          }
+          videoMessage->SetDeviceName(deviceName.c_str());
+          igtlMessages.push_back(videoMessage.GetPointer());
+#else
+          LOG_ERROR("Plus is not currently compiled with video streaming support!");
+#endif
         }
-        igtlMessages.push_back(imageMessage.GetPointer());
       }
     }
     // Transform message
@@ -366,3 +443,16 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(const PlusIgtlClientInfo& cli
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
 }
 
+//----------------------------------------------------------------------------
+void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
+{
+  VideoEncoderMapType currentIgtlVideoEncoders = this->IgtlVideoEncoders;
+  for (VideoEncoderMapType::iterator encoderIt = currentIgtlVideoEncoders.begin(); encoderIt != currentIgtlVideoEncoders.end(); ++encoderIt)
+  {
+    if (encoderIt->first.ClientId != clientId)
+    {
+      continue;
+    }
+    this->IgtlVideoEncoders.erase(encoderIt->first);
+  }
+}

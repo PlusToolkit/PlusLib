@@ -888,7 +888,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(PlusTrackedFrame& trackedF
       std::vector<igtl::MessageBase::Pointer> igtlMessages;
       std::vector<igtl::MessageBase::Pointer>::iterator igtlMessageIterator;
 
-      if (this->IgtlMessageFactory->PackMessages(clientIterator->ClientInfo, igtlMessages, trackedFrame, this->SendValidTransformsOnly, this->TransformRepository) != PLUS_SUCCESS)
+      if (this->IgtlMessageFactory->PackMessages(clientIterator->ClientId, clientIterator->ClientInfo, igtlMessages, trackedFrame, this->SendValidTransformsOnly, this->TransformRepository) != PLUS_SUCCESS)
       {
         LOG_WARNING("Failed to pack all IGT messages");
       }
@@ -1010,6 +1010,11 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
       break;
     }
   }
+
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
+  this->IgtlMessageFactory->RemoveClientEncoders(clientId);
+#endif
+
   LOG_INFO("Client disconnected (" <<  address << ":" << port << "). Number of connected clients: " << GetNumberOfConnectedClients());
 }
 
@@ -1313,7 +1318,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
       std::ostringstream replyStr;
       if (commandResponse->GetUseDefaultFormat())
       {
-        
+
         replyStr << "<CommandReply";
         replyStr << " Name=\"" << commandResponse->GetCommandName() << "\"";
         replyStr << " Status=\"" << (commandResponse->GetStatus() ? "SUCCESS" : "FAIL") << "\"";
@@ -1335,7 +1340,7 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
         igtlMessage->SetMetaDataElement(it->first, it->second.first, it->second.second);
       }
 
-      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));    
+      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));
       if (commandResponse->GetStatus() == PLUS_FAIL)
       {
         igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
