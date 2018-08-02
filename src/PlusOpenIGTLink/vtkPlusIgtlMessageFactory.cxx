@@ -443,6 +443,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
 }
 
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 //----------------------------------------------------------------------------
 void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
 {
@@ -456,3 +457,4 @@ void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
     this->IgtlVideoEncoders.erase(encoderIt->first);
   }
 }
+#endif
