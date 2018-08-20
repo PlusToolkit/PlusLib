@@ -84,6 +84,7 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
   return PLUS_FAIL;
 }
 
+//----------------------------------------------------------------------------
 vtkPlusSequenceIOBase* vtkPlusSequenceIO::CreateSequenceHandlerForFile(const std::string& filename)
 {
   // Parse sequence filename to determine if it's metafile or NRRD

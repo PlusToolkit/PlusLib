@@ -201,6 +201,12 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
   }
 
   this->Writer = vtkPlusSequenceIO::CreateSequenceHandlerForFile(aFilename);
+  if (!this->Writer)
+  {
+    LOG_ERROR("Could not create writer for file: " << aFilename);
+    return PLUS_FAIL;
+  }
+
   this->Writer->SetUseCompression(this->EnableFileCompression);
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
