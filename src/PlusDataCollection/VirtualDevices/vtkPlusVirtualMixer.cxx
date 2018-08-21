@@ -111,6 +111,7 @@ PlusStatus vtkPlusVirtualMixer::NotifyConfigured()
   vtkPlusChannel* outputChannel = this->OutputChannels[0];
 
   outputChannel->RemoveTools();
+  outputChannel->RemoveFieldDataSources();
   outputChannel->Clear();
 
   for (ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
@@ -124,9 +125,9 @@ PlusStatus vtkPlusVirtualMixer::NotifyConfigured()
       this->AddVideoSource(aSource);
     }
 
-    for (DataSourceContainerConstIterator inputToolIter = anInputChannel->GetToolsStartConstIterator(); inputToolIter != anInputChannel->GetToolsEndConstIterator(); ++inputToolIter)
+    for (DataSourceContainerConstIterator fieldSourceIter = anInputChannel->GetToolsStartConstIterator(); fieldSourceIter != anInputChannel->GetToolsEndConstIterator(); ++fieldSourceIter)
     {
-      vtkPlusDataSource* anInputTool = inputToolIter->second;
+      vtkPlusDataSource* anInputTool = fieldSourceIter->second;
 
       bool found = false;
       for (DataSourceContainerConstIterator outputToolIt = outputChannel->GetToolsStartConstIterator(); outputToolIt != outputChannel->GetToolsEndConstIterator(); ++outputToolIt)
@@ -153,6 +154,39 @@ PlusStatus vtkPlusVirtualMixer::NotifyConfigured()
         if (this->AddTool(anInputTool, false) != PLUS_SUCCESS)
         {
           LOG_ERROR("Unable to add tool " << anInputTool->GetId() << " to device " << this->GetDeviceId());
+        }
+      }
+    }
+
+    for (DataSourceContainerConstIterator fieldSourceIter = anInputChannel->GetFieldDataSourcesStartConstIterator(); fieldSourceIter != anInputChannel->GetFieldDataSourcesEndConstIterator(); ++fieldSourceIter)
+    {
+      vtkPlusDataSource* inputFieldSource = fieldSourceIter->second;
+
+      bool found = false;
+      for (DataSourceContainerConstIterator outputFieldSourceIter = outputChannel->GetFieldDataSourcesStartConstIterator(); outputFieldSourceIter != outputChannel->GetFieldDataSourcesEndConstIterator(); ++outputFieldSourceIter)
+      {
+        vtkPlusDataSource* outputFieldSource = outputFieldSourceIter->second;
+        // Check for double adds or name conflicts
+        if (inputFieldSource == outputFieldSource)
+        {
+          found = true;
+          LOG_ERROR("Field data source already exists in the output stream. Somehow the same data field is part of two input streams. Consider using a virtual device to resolve them first.");
+          break;
+        }
+        else if (inputFieldSource->GetId() == outputFieldSource->GetId())
+        {
+          found = true;
+          LOG_ERROR("Name collision! Two field sources are outputting the same data. Consider using a virtual device to resolve them first.");
+          break;
+        }
+      }
+
+      if (!found)
+      {
+        outputChannel->AddFieldDataSource(inputFieldSource);
+        if (this->AddFieldDataSource(inputFieldSource) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Unable to add field data source " << inputFieldSource->GetId() << " to device " << this->GetDeviceId());
         }
       }
     }

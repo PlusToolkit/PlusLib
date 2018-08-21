@@ -232,11 +232,15 @@ PlusStatus vtkPlusVirtualTextRecognizer::FindOrQueryFrame(PlusTrackedFrame& fram
 PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
 {
   std::stringstream ss;
-  ss << "TESSDATA_PREFIX=\"" << tesseract_data_dir << "\"";
+  ss << "TESSDATA_PREFIX=" << tesseract_data_dir;
   putenv(ss.str().c_str());
 
   this->TesseractAPI = new tesseract::TessBaseAPI();
-  this->TesseractAPI->Init(NULL, Language.c_str(), tesseract::OEM_TESSERACT_CUBE_COMBINED);
+  if (this->TesseractAPI->Init(NULL, Language.c_str(), tesseract::OEM_TESSERACT_CUBE_COMBINED) != 0)
+  {
+    LOG_ERROR("Unable to init tesseract library. Cannot perform text recognition.");
+    return PLUS_FAIL;
+  }
   this->TesseractAPI->SetPageSegMode(tesseract::PSM_SINGLE_LINE);
 
   return PLUS_SUCCESS;
