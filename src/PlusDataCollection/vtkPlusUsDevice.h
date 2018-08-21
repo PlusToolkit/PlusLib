@@ -27,9 +27,7 @@ systems.  Derived classes should override the SetNewImagingParametersDevice() me
 */
 class vtkPlusDataCollectionExport vtkPlusUsDevice : public vtkPlusDevice
 {
-
 public:
-
   static vtkPlusUsDevice* New();
   vtkTypeMacro(vtkPlusUsDevice, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -42,9 +40,7 @@ public:
 
   virtual PlusStatus InternalUpdate();
 
-  /*!
-  Perform any completion tasks once configured
-  */
+  /*! Perform any completion tasks once configured */
   virtual PlusStatus NotifyConfigured() override;
 
   /*!
@@ -82,11 +78,10 @@ public:
   vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
 
   // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.
-  // Implement these in all US devies that should support ultrasound sector information
-
+  // Implement these in all US devices that should support ultrasound sector information
 
   /*! Get probe type. */
-  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN;}
+  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN; }
 
   /*! Sector origin relative to upper left corner of image in pixels */
   virtual std::vector<double> CalculateOrigin() { return std::vector<double>(); }
@@ -107,9 +102,7 @@ public:
   virtual  double CalculateLinearWidth() { return 0; }
 
 protected:
-  /*!
-  Set changed imaging parameter to device
-  */
+  /*! Set changed imaging parameter to device */
   virtual PlusStatus RequestImagingParameterChange() { return PLUS_FAIL; };
 
   void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
