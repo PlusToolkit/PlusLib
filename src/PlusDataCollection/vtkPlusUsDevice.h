@@ -50,15 +50,11 @@ public:
   */
   virtual PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
 
-  /*!
-  This function can be called to add a video item to all video data sources
-  */
+  /*! This function can be called to add a video item to all video data sources */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
 
-  /*!
-  This function can be called to add a video item to the specified video data sources
-  */
+  /*! This function can be called to add a video item to the specified video data sources */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
@@ -72,9 +68,7 @@ public:
   vtkGetStringMacro(TextRecognizerInputChannelName);
   vtkSetStringMacro(TextRecognizerInputChannelName);
 
-  /*!
-    Get current imaging parameters
-  */
+  /*! Get current imaging parameters */
   vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
 
   // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.

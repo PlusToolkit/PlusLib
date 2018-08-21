@@ -243,11 +243,13 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration(const std::string& fileName)
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(fileName);
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(element);
 
-  if(this->ReadConfiguration(element) != PLUS_SUCCESS)
+  if (this->ReadConfiguration(element) != PLUS_SUCCESS)
   {
     LOG_ERROR("Datacollector failed to read configuration");
     return PLUS_FAIL;
   }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

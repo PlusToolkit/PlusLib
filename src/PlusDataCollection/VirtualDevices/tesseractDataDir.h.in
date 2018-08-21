@@ -1,0 +1,6 @@
+#ifndef __tesseractDataDir_h__
+#define __tesseractDataDir_h__
+
+#define tesseract_data_dir "${tesseract_data_dir}"
+
+#endif

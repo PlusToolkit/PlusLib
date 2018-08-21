@@ -129,7 +129,13 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
   )
 IF(PLUS_USE_tesseract)
-  SET(Virtual_SRCS ${Virtual_SRCS} VirtualDevices/vtkPlusVirtualTextRecognizer.cxx)
+  CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices/tesseractDataDir.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices/tesseractDataDir.h
+    )
+  SET(Virtual_SRCS ${Virtual_SRCS} 
+    VirtualDevices/vtkPlusVirtualTextRecognizer.cxx
+    )
 ENDIF()
 
 LIST(APPEND ${PROJECT_NAME}_SRCS
@@ -189,6 +195,7 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataSource
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
+  ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
@@ -1734,9 +1741,9 @@ IF(PLUS_USE_AGILENT)
 ENDIF()
 
 # --------------------------------------------------------------------------
-# Try to find tesseract and include its settings (otherwise complain)
+# Try to find tesseract
 IF(PLUS_USE_tesseract)
-  FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
+  FIND_PACKAGE(tesseract NO_MODULE REQUIRED)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${tesseract_INCLUDE_DIRS}
