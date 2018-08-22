@@ -152,7 +152,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackedFrameMessage(igtl::MessageHead
   if (embeddedTransformName.IsValid())
   {
     // Save the transform that is embedded in the TRACKEDFRAME message into the tracked frame
-    trackedFrame.SetCustomFrameTransform(embeddedTransformName, trackedFrameMsg->GetEmbeddedImageTransform());
+    trackedFrame.SetFrameTransform(embeddedTransformName, trackedFrameMsg->GetEmbeddedImageTransform());
   }
 
   return PLUS_SUCCESS;
@@ -423,7 +423,7 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackImageMessage(igtl::MessageHeader::Poi
       LOG_ERROR("Failed to unpack image message - unable to extract IJKToRAS transform");
       return PLUS_FAIL;
     }
-    trackedFrame.SetCustomFrameTransform(embeddedTransformName, vtkMatrix);
+    trackedFrame.SetFrameTransform(embeddedTransformName, vtkMatrix);
   }
 
   return PLUS_SUCCESS;

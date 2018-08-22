@@ -31,15 +31,15 @@ See License.txt for details.
 #include "igtlTransformMessage.h"
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-#include "igtlVideoMessage.h"
-#include "igtl_video.h"
-#include "igtlI420Encoder.h"
-#if defined(OpenIGTLink_USE_VP9)
-#include "igtlVP9Encoder.h"
-#endif
-#if defined(OpenIGTLink_USE_H264)
-#include "igtlH264Encoder.h"
-#endif
+  #include "igtlVideoMessage.h"
+  #include "igtl_video.h"
+  #include "igtlI420Encoder.h"
+  #if defined(OpenIGTLink_USE_VP9)
+    #include "igtlVP9Encoder.h"
+  #endif
+  #if defined(OpenIGTLink_USE_H264)
+    #include "igtlH264Encoder.h"
+  #endif
 #endif
 
 //----------------------------------------------------------------------------
@@ -194,26 +194,26 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
         if (imageStream.EncodingType.empty())
         {
           igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
-          if (trackedFrame.IsCustomFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
+          if (trackedFrame.IsFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
           {
             // Allow overriding of device name with something human readable
             // The transform name is passed in the metadata
-            deviceName = trackedFrame.GetCustomFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+            deviceName = trackedFrame.GetFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
           }
           imageMessage->SetDeviceName(deviceName.c_str());
 
           // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
           std::vector<std::string> frameFields;
-          trackedFrame.GetCustomFrameFieldNameList(frameFields);
+          trackedFrame.GetFrameFieldNameList(frameFields);
           for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
           {
-            if (trackedFrame.GetCustomFrameField(*stringNameIterator) == NULL)
+            if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
             {
               // No value is available, do not send anything
               LOG_WARNING("No metadata value for: " << *stringNameIterator)
-                continue;
+              continue;
             }
-            imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetCustomFrameField(*stringNameIterator));
+            imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
           }
 
           if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
@@ -375,8 +375,8 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
         bool isValid(false);
         vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
         transformRepository->GetTransform(*nameIter, matrix, &isValid);
-        trackedFrame.SetCustomFrameTransform(*nameIter, matrix);
-        trackedFrame.SetCustomFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
+        trackedFrame.SetFrameTransform(*nameIter, matrix);
+        trackedFrame.SetFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
       }
 
       vtkSmartPointer<vtkMatrix4x4> imageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -416,7 +416,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
       for (std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
       {
         const char* stringName = stringNameIterator->c_str();
-        const char* stringValue = trackedFrame.GetCustomFrameField(stringName);
+        const char* stringValue = trackedFrame.GetFrameField(stringName);
         if (stringValue == NULL)
         {
           // no value is available, do not send anything

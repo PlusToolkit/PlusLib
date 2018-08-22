@@ -80,9 +80,9 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
     if (writeFidPositionsToFile)
     {
 
-      const char* strFrameNumber = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("FrameNumber"); 
-      const char* strTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("Timestamp"); 
-      const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetCustomFrameField("UnfilteredTimestamp"); 
+      const char* strFrameNumber = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetFrameField("FrameNumber"); 
+      const char* strTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetFrameField("Timestamp"); 
+      const char* strUnfilteredTimestamp = trackedFrameList->GetTrackedFrame(currentFrameIndex)->GetFrameField("UnfilteredTimestamp"); 
 
       outFileFidPositions<< ((strFrameNumber!=NULL)?strFrameNumber:"unknown") << ", " << ((strUnfilteredTimestamp!=NULL)?strUnfilteredTimestamp:"unknown") << ", " << ((strTimestamp!=NULL)?strTimestamp:"unknown");
       for(unsigned int fidPosition = 0; fidPosition<segResults.GetFoundDotsCoordinateValue().size();fidPosition++)

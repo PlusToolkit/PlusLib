@@ -176,7 +176,7 @@ PlusStatus vtkPlusSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUid
         StreamBufferItem::FieldMapType fieldMap;
         if (this->UseAllFrameFields)
         {
-          fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();
+          fieldMap = dataBufferItemToBeAdded.GetFrameFieldMap();
         }
         if (this->AddVideoItemToVideoSources(this->GetVideoSources(), dataBufferItemToBeAdded.GetFrame(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &fieldMap) != PLUS_SUCCESS)
         {
@@ -277,7 +277,7 @@ PlusStatus vtkPlusSavedDataSource::InternalUpdateCurrentTimestamp(BufferItemUidT
       StreamBufferItem::FieldMapType fieldMap;
       if (this->UseAllFrameFields)
       {
-        fieldMap = dataBufferItemToBeAdded.GetCustomFrameFieldMap();
+        fieldMap = dataBufferItemToBeAdded.GetFrameFieldMap();
       }
       if (this->AddVideoItemToVideoSources(this->GetVideoSources(), dataBufferItemToBeAdded.GetFrame(), this->FrameNumber, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &fieldMap) != PLUS_SUCCESS)
       {
@@ -567,7 +567,7 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectTracker(vtkPlusTrackedFrameLis
     }
 
     PlusTransformName toolTransformName(tool->GetId());
-    if (!frame->IsCustomFrameTransformNameDefined(toolTransformName))
+    if (!frame->IsFrameTransformNameDefined(toolTransformName))
     {
       std::string strTransformName;
       toolTransformName.GetTransformName(strTransformName);
@@ -575,9 +575,9 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectTracker(vtkPlusTrackedFrameLis
       continue;
     }
 
-    if (frame->GetCustomFrameTransform(toolTransformName, transformMatrix) != PLUS_SUCCESS)
+    if (frame->GetFrameTransform(toolTransformName, transformMatrix) != PLUS_SUCCESS)
     {
-      LOG_WARNING("Cannot convert the custom frame field ( for tool " << tool->GetId() << ") to a transform");
+      LOG_WARNING("Cannot convert the frame field ( for tool " << tool->GetId() << ") to a transform");
       continue;
     }
     // a transform with the same name as the tool name has been found in the savedDataBuffer

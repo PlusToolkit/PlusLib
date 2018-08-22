@@ -97,7 +97,7 @@ PlusStatus QPlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel
   std::vector<PlusTransformName> transformNames;
   PlusTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(trackedFrame);
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  trackedFrame.GetFrameTransformNameList(transformNames);
 
   // Set up layout
   QGridLayout* grid = new QGridLayout(this);
@@ -172,7 +172,7 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
   std::vector<PlusTransformName> transformNames;
   PlusTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(trackedFrame);
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  trackedFrame.GetFrameTransformNameList(transformNames);
 
   if (transformNames.size() != m_ToolStateLabels.size())
   {
@@ -198,7 +198,7 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
     }
 
     TrackedFrameFieldStatus status = FIELD_INVALID;
-    if (trackedFrame.GetCustomFrameTransformStatus(*transformIt, status) != PLUS_SUCCESS)
+    if (trackedFrame.GetFrameTransformStatus(*transformIt, status) != PLUS_SUCCESS)
     {
       std::string transformNameStr;
       transformIt->GetTransformName(transformNameStr);

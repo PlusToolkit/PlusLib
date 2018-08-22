@@ -481,14 +481,14 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  if (aTrackedFrame->SetCustomFrameTransform(probeToReferenceTransformName, probehome2probeMatrix) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransform(probeToReferenceTransformName, probehome2probeMatrix) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolSourceId(PROBEHOME_TO_PROBE_TRANSFORM));
     return PLUS_FAIL;
   }
 
   // Convert
-  if (aTrackedFrame->SetCustomFrameTransformStatus(probeToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(probehome2probeStatus)) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransformStatus(probeToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(probehome2probeStatus)) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolSourceId(PROBEHOME_TO_PROBE_TRANSFORM));
     return PLUS_FAIL;
@@ -511,13 +511,13 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  if (aTrackedFrame->SetCustomFrameTransform(templateToReferenceTransformName, templhome2templMatrix) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransform(templateToReferenceTransformName, templhome2templMatrix) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolSourceId(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM));
     return PLUS_FAIL;
   }
 
-  if (aTrackedFrame->SetCustomFrameTransformStatus(templateToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(templhome2templStatus)) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransformStatus(templateToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(templhome2templStatus)) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolSourceId(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM));
     return PLUS_FAIL;
@@ -540,13 +540,13 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  if (aTrackedFrame->SetCustomFrameTransform(encoderToReferenceTransformName, rawEncoderValuesMatrix) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransform(encoderToReferenceTransformName, rawEncoderValuesMatrix) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform for tool " << this->GetBrachyToolSourceId(RAW_ENCODER_VALUES));
     return PLUS_FAIL;
   }
 
-  if (aTrackedFrame->SetCustomFrameTransformStatus(encoderToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(rawEncoderValuesStatus)) != PLUS_SUCCESS)
+  if (aTrackedFrame->SetFrameTransformStatus(encoderToReferenceTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(rawEncoderValuesStatus)) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to set transform status for tool " << this->GetBrachyToolSourceId(RAW_ENCODER_VALUES));
     return PLUS_FAIL;
@@ -564,17 +564,17 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
   // PROBE_POSITION
   std::ostringstream strProbePos;
   strProbePos << probePos;
-  aTrackedFrame->SetCustomFrameField("ProbePosition", strProbePos.str());
+  aTrackedFrame->SetFrameField("ProbePosition", strProbePos.str());
 
   // PROBE_ROTATION
   std::ostringstream strProbeRot;
   strProbeRot << probeRot;
-  aTrackedFrame->SetCustomFrameField("ProbeRotation", strProbeRot.str());
+  aTrackedFrame->SetFrameField("ProbeRotation", strProbeRot.str());
 
   // TEMPLATE_POSITION
   std::ostringstream strTemplatePos;
   strTemplatePos << templatePos;
-  aTrackedFrame->SetCustomFrameField("TemplatePosition", strTemplatePos.str());
+  aTrackedFrame->SetFrameField("TemplatePosition", strTemplatePos.str());
 
   return PLUS_SUCCESS;
 }

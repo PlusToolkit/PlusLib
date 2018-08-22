@@ -111,7 +111,7 @@ int main (int argc, char* argv[])
     if ( segResults.GetDotsFound() )
     {
       double defaultTransform[16]={0}; 
-      if ( trackedFrameList->GetTrackedFrame(frameIndex)->GetCustomFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
+      if ( trackedFrameList->GetTrackedFrame(frameIndex)->GetFrameTransform(transformName, defaultTransform) != PLUS_SUCCESS )
       {
         LOG_ERROR("Failed to get default frame transform from tracked frame #" << frameIndex); 
         continue; 

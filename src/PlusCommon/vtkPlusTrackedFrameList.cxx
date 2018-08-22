@@ -368,7 +368,7 @@ bool vtkPlusTrackedFrameList::ValidateSpeed(PlusTrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkMatrix4x4> inputTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double inputTransformVector[16] = {0};
-  if (trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector))
+  if (trackedFrame->GetFrameTransform(this->FrameTransformNameForValidation, inputTransformVector))
   {
     inputTransformMatrix->DeepCopy(inputTransformVector);
   }
@@ -382,7 +382,7 @@ bool vtkPlusTrackedFrameList::ValidateSpeed(PlusTrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkMatrix4x4> latestTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double latestTransformVector[16] = {0};
-  if ((*latestFrameInList)->GetCustomFrameTransform(this->FrameTransformNameForValidation, latestTransformVector))
+  if ((*latestFrameInList)->GetFrameTransform(this->FrameTransformNameForValidation, latestTransformVector))
   {
     latestTransformMatrix->DeepCopy(latestTransformVector);
   }
