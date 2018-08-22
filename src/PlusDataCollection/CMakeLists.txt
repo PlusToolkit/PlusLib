@@ -195,8 +195,13 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/SavedDataSource
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
-  ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
+
+IF(PLUS_USE_tesseract)
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS  
+    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # OptiTrack support
