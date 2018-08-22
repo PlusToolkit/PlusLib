@@ -7,6 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusUsDevice.h"
 #include "vtkPlusUsImagingParameters.h"
+#include "vtkPlusDataSource.h"
 
 #ifdef PLUS_USE_tesseract
   #include "vtkPlusVirtualTextRecognizer.h"
@@ -20,8 +21,7 @@ vtkStandardNewMacro(vtkPlusUsDevice);
 vtkPlusUsDevice::vtkPlusUsDevice()
   : vtkPlusDevice()
   , ImagingParameters( vtkPlusUsImagingParameters::New() )
-  , TextRecognizerInputChannelName( NULL )
-  , InputChannel( NULL )
+  , ImageToTransducerTransformName( NULL )
 {
   this->CurrentTransducerOriginPixels[0] = 0;
   this->CurrentTransducerOriginPixels[1] = 0;
@@ -56,11 +56,12 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
     return PLUS_FAIL;
   }
 
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TextRecognizerInputChannelName, deviceConfig);
+  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
   const char* transformName = deviceConfig->GetAttribute("ImageToTransducerTransformName");
   if (transformName != NULL && this->ImageToTransducerTransform.SetTransformName(transformName) != PLUS_SUCCESS)
   {
     LOG_ERROR("Transform name is not properly formatted. It should be of the format <From>ToTransducer.");
+    this->SetImageToTransducerTransformName(NULL);
   }
   XML_FIND_NESTED_ELEMENT_OPTIONAL(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
 
@@ -68,7 +69,7 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
   {
     this->ImagingParameters->ReadConfiguration( deviceConfig );
 
-    if (this->RequestImagingParameterChange() == PLUS_FAIL)
+    if (this->InternalApplyImagingParameterChange() == PLUS_FAIL)
     {
       LOG_ERROR("Failed to change imaging parameters in the device");
       return PLUS_FAIL;
@@ -82,52 +83,10 @@ PlusStatus vtkPlusUsDevice::ReadConfiguration(vtkXMLDataElement* rootConfigEleme
 PlusStatus vtkPlusUsDevice::WriteConfiguration(vtkXMLDataElement* deviceConfig)
 {
   XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(imagingParams, deviceConfig, vtkPlusUsImagingParameters::XML_ELEMENT_TAG);
-  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(TextRecognizerInputChannelName, deviceConfig);
-  if (this->TextRecognizerInputChannelName != NULL)
-  {
-    deviceConfig->SetAttribute("ImageToTransducerTransformName", this->ImageToTransducerTransform.GetTransformName().c_str());
-  }
+
+  XML_WRITE_CSTRING_ATTRIBUTE_IF_NOT_NULL(ImageToTransducerTransformName, deviceConfig);
 
   return this->ImagingParameters->WriteConfiguration( deviceConfig );
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::InternalUpdate()
-{
-  if (this->InputChannel != NULL)
-  {
-    double aTimestamp(UNDEFINED_TIMESTAMP);
-    PlusTrackedFrame frame;
-    if (this->InputChannel->GetTrackedFrame(aTimestamp, frame, false) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Unable to retrieve frame from the input channel. No parameters can be retrieved.");
-      return PLUS_FAIL;
-    }
-
-    this->FrameFields = frame.GetCustomFields();
-  }
-
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::NotifyConfigured()
-{
-  if (this->TextRecognizerInputChannelName != NULL)
-  {
-    for (ChannelContainerIterator it = this->InputChannels.begin(); it != this->InputChannels.end(); ++it)
-    {
-      vtkPlusChannel* channel = *it;
-      if (STRCASECMP(channel->GetChannelId(), this->TextRecognizerInputChannelName) == 0)
-      {
-        this->InputChannel = channel;
-        return PLUS_SUCCESS;
-      }
-    }
-    LOG_ERROR("Unable to find channel " << this->TextRecognizerInputChannelName << ". Did you add it in the XML?");
-    return PLUS_FAIL;
-  }
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -139,13 +98,45 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkPlusUsImagingParame
     return PLUS_FAIL;
   }
 
-  if (this->RequestImagingParameterChange() == PLUS_FAIL)
+  if (this->InternalApplyImagingParameterChange() == PLUS_FAIL)
   {
     LOG_ERROR("Failed to change imaging parameters in the device");
     return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  PlusTrackedFrame::FieldMapType localCustomFields;
+  if (!this->ImageToTransducerTransform.GetTransformName().empty())
+  {
+    if (customFields != NULL)
+    {
+      localCustomFields = *customFields;
+    }
+    this->CalculateImageToTransducer(localCustomFields);
+  }
+
+  return videoSource.AddItem(&frame, frameNumber, unfilteredTimestamp, filteredTimestamp, &localCustomFields);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const PlusTrackedFrame::FieldMapType* customFields /*= NULL*/)
+{
+  PlusTrackedFrame::FieldMapType localCustomFields;
+  if (!this->ImageToTransducerTransform.GetTransformName().empty())
+  {
+    if (customFields != NULL)
+    {
+      localCustomFields = *customFields;
+    }
+    this->CalculateImageToTransducer(localCustomFields);
+  }
+
+  return videoSource.AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //----------------------------------------------------------------------------

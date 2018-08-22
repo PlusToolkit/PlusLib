@@ -11,7 +11,7 @@ All rights reserved.
 Authors include: Danielle Pace
 (Robarts Research Institute and The University of Western Ontario)
 Siddharth Vikal (Queen's University, Kingston, Ontario, Canada)
-=========================================================================*/  
+=========================================================================*/
 
 #ifndef __vtkPlusSonixVideoSource_h
 #define __vtkPlusSonixVideoSource_h
@@ -25,22 +25,22 @@ class uDataDesc;
 enum uData;
 
 /*!
-  \class vtkPlusSonixVideoSource 
+  \class vtkPlusSonixVideoSource
   \brief VTK interface for video input from Ultrasonix machine
 
   vtkPlusSonixVideoSource is a class for providing video input interfaces between VTK and Ultrasonix machine.
   The goal is to provide the ability to be able to do acquisition
   in various imaging modes, buffer the image/volume series being acquired
-  and stream the frames to output. 
+  and stream the frames to output.
   Note that the data coming out of the SonixRP through ulterius is always RGB
-  This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
+  This class talks to Ultrasonix's Ulterius SDK for executing the tasks
   Parameter setting doesn't work with Ulterius-2.x
 
   Usage:
   sonixGrabber->SetSonixIP("130.15.7.212");
   sonixGrabber->SetImagingMode(0);
   sonixGrabber->SetAcquisitionDataType(udtBPost);
-  sonixGrabber->Record();  
+  sonixGrabber->Record();
   imageviewer->SetInputData(sonixGrabber->GetOutput());
   See vtkPlusSonixVideoSourceTest1.cxx for more details
 
@@ -58,29 +58,29 @@ private:
     /// Converts a vector into stored values
     void fromVector(const std::vector<int> input);
     /// Outputs a string separated by 'separator'
-    std::string toString(char separator=' ');
+    std::string toString(char separator = ' ');
     /// Converts a string into stored values
-    void fromString(const std::string& input, char separator=' ');
+    void fromString(const std::string& input, char separator = ' ');
   };
 
 public:
   static vtkPlusSonixVideoSource* New();
-  vtkTypeMacro(vtkPlusSonixVideoSource,vtkPlusUsDevice);
+  vtkTypeMacro(vtkPlusSonixVideoSource, vtkPlusUsDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Hardware device SDK version. */
-  virtual std::string GetSdkVersion(); 
+  virtual std::string GetSdkVersion();
 
   /*! Read main configuration from/to xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Write main configuration from/to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Get the IP address of the Ultrasonix host machine */
-  vtkSetStringMacro(SonixIP); 
+  vtkSetStringMacro(SonixIP);
   /*! Set the IP address of the Ultrasonix host machine */
-  vtkGetStringMacro(SonixIP); 
+  vtkGetStringMacro(SonixIP);
 
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyDevice(double aFrequency);
@@ -133,7 +133,7 @@ public:
 
   /*! Set the Timeout (ms) value for network function calls. */
   PlusStatus SetTimeout(int aTimeout);
-  
+
   /*!
     Request a particular data type from sonix machine by means of a bitmask.
     The mask must be applied before any data can be acquired via realtime imaging or cine retrieval
@@ -146,8 +146,8 @@ public:
     udtMPre = 0x00000020,             // M Pre Scan Converted
     udtMPost = 0x00000040,            // M Post Scan Converted
     udtPWRF = 0x00000080,             // PW RF
-    udtPWSpectrum = 0x00000100,           
-    udtColorRF = 0x00000200,              
+    udtPWSpectrum = 0x00000100,
+    udtColorRF = 0x00000200,
     udtColorCombined = 0x00000400,
     udtColorVelocityVariance = 0x00000800,
     udtElastoCombined = 0x00002000,   // Elasto + B-image (32 bit)
@@ -159,11 +159,11 @@ public:
   */
   PlusStatus SetAcquisitionDataTypeDevice(int aAcquisitionDataType);
   /*! Get acquisition data type  bitmask. */
-  PlusStatus GetAcquisitionDataTypeDevice(int &acquisitionDataType);
+  PlusStatus GetAcquisitionDataTypeDevice(int& acquisitionDataType);
 
   /*!
     Request a particular mode of imaging
-    Usable values are described in ImagingModes.h (default: B-mode)  
+    Usable values are described in ImagingModes.h (default: B-mode)
     BMode = 0,
     MMode = 1,
     ColourMode = 2,
@@ -195,25 +195,25 @@ public:
   */
   PlusStatus SetImagingModeDevice(int mode);
   /*! Get current imaging mode */
-  PlusStatus GetImagingModeDevice(int & mode);
+  PlusStatus GetImagingModeDevice(int& mode);
 
-  /*! 
+  /*!
     Set the time required for setting up the connection.
     The value depends on the probe type, typical values are between 2000-3000ms. (Default: 3000)
   */
-  vtkSetMacro(ConnectionSetupDelayMs, int);  
+  vtkSetMacro(ConnectionSetupDelayMs, int);
   /*! Set the time required for setting up the connection. */
   vtkGetMacro(ConnectionSetupDelayMs, int);
 
-  /*! 
+  /*!
     Set the SharedMemoryStatus(1) to bypass TCP on local access.
   */
-  vtkSetMacro(SharedMemoryStatus, int);  
+  vtkSetMacro(SharedMemoryStatus, int);
   /*! Get the SharedMemoryStatus. */
   vtkGetMacro(SharedMemoryStatus, int);
 
   /*! Get the displayed frame rate. */
-  PlusStatus GetDisplayedFrameRateDevice(int &aFrameRate);
+  PlusStatus GetDisplayedFrameRateDevice(int& aFrameRate);
 
   /*! Set RF decimation. This requires Ulterius be connected. */
   PlusStatus SetRFDecimationDevice(int decimation);
@@ -221,7 +221,7 @@ public:
   /*! Set speckle reduction filter (filterIndex: 0=off,1,2). This requires Ulterius be connected.  */
   PlusStatus SetPPFilterDevice(int filterIndex);
 
-   /*! Set maximum frame rate limit on exam software (frLimit=403 means 40.3Hz). This requires Ulterius be connected.  */
+  /*! Set maximum frame rate limit on exam software (frLimit=403 means 40.3Hz). This requires Ulterius be connected.  */
   PlusStatus SetFrameRateLimitDevice(int frLimit);
 
   /*! Print the list of supported parameters. For diagnostic purposes only. */
@@ -249,7 +249,7 @@ protected:
 
   /*!
     Record incoming video.  The recording
-    continues indefinitely until StopRecording() is called. 
+    continues indefinitely until StopRecording() is called.
   */
   virtual PlusStatus InternalStartRecording();
 
@@ -267,25 +267,25 @@ protected:
   */
   enum RfAcquisitionModeType
   {
-    RF_UNKNOWN = -1, 
-    RF_ACQ_B_ONLY = 0, 
-    RF_ACQ_RF_ONLY = 1, 
+    RF_UNKNOWN = -1,
+    RF_ACQ_B_ONLY = 0,
+    RF_ACQ_RF_ONLY = 1,
     RF_ACQ_B_AND_RF = 2,
-    RF_ACQ_CHRF_ONLY = 3, 
-    RF_ACQ_B_AND_CHRF = 4 
-  }; 
+    RF_ACQ_CHRF_ONLY = 3,
+    RF_ACQ_B_AND_CHRF = 4
+  };
   /*! Set RF acquire mode. Determined from the video data sources. */
   PlusStatus SetRfAcquisitionModeDevice(RfAcquisitionModeType mode);
   /*! Get current RF acquire mode */
-  PlusStatus GetRfAcquisitionModeDevice(RfAcquisitionModeType & mode);
+  PlusStatus GetRfAcquisitionModeDevice(RfAcquisitionModeType& mode);
 
   /*! For internal use only */
-  PlusStatus AddFrameToBuffer(void * data, int type, int sz, bool cine, int frmnum);
+  PlusStatus AddFrameToBuffer(void* data, int type, int sz, bool cine, int frmnum);
 
-  PlusStatus SetParamValueDevice(char* paramId, int paramValue, int &validatedParamValue);
-  PlusStatus SetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC &validatedParamValue);
-  PlusStatus GetParamValueDevice(char* paramId, int& paramValue, int &validatedParamValue);
-  PlusStatus GetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC &validatedParamValue);
+  PlusStatus SetParamValueDevice(char* paramId, int paramValue, int& validatedParamValue);
+  PlusStatus SetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC& validatedParamValue);
+  PlusStatus GetParamValueDevice(char* paramId, int& paramValue, int& validatedParamValue);
+  PlusStatus GetParamValueDevice(char* paramId, Plus_uTGC& paramValue, Plus_uTGC& validatedParamValue);
 
   bool HasDataType( uData aValue );
   bool WantDataType( uData aValue );
@@ -295,17 +295,13 @@ protected:
     Determine all necessary imaging data types from the DataSource elements with Type="Video".
     Returns a combination of vtkPlusUsImagingParameters::DataType enum flags.
   */
-  virtual PlusStatus GetRequestedImagingDataTypeFromSources(int &requestedImagingDataType);
+  virtual PlusStatus GetRequestedImagingDataTypeFromSources(int& requestedImagingDataType);
 
-  /*!
-  Update changed imaging parameters from device
-  */
+  /*! Update changed imaging parameters from device */
   void UpdateImagingParametersFromDevice();
 
-  /*!
-  Set changed imaging parameter to device
-  */
-  virtual PlusStatus RequestImagingParameterChange();
+  /*! Set changed imaging parameter to device */
+  virtual PlusStatus InternalApplyImagingParameterChange();
 
 protected:
   vtkPlusSonixVideoSource();
@@ -315,7 +311,7 @@ protected:
   int AcquisitionDataType;
   int ImagingMode;
   int OutputFormat;
-  int CompressionStatus; 
+  int CompressionStatus;
   int Timeout;
   int ConnectionSetupDelayMs;
   int SharedMemoryStatus;
@@ -326,7 +322,7 @@ protected:
   bool ImagingParameterChanged;
   std::map<std::string, bool> ChangedImagingParameters;
 
-  char *SonixIP;
+  char* SonixIP;
   /*!
     Indicates if connection to the device has been established. It's not the same as the Connected parameter,
     because Connected indicates that the connection is successfully completed; while UlteriusConnected
@@ -336,10 +332,10 @@ protected:
   bool UlteriusConnected;
   bool AutoClipEnabled;
   bool ImageGeometryOutputEnabled;
-    
+
 private:
-  static bool vtkPlusSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
-  static bool vtkPlusSonixVideoSourceParamCallback(void * paramId, int ptX, int ptY);
+  static bool vtkPlusSonixVideoSourceNewFrameCallback(void* data, int type, int sz, bool cine, int frmnum);
+  static bool vtkPlusSonixVideoSourceParamCallback(void* paramId, int ptX, int ptY);
   static vtkPlusSonixVideoSource* ActiveSonixDevice;
   vtkPlusSonixVideoSource(const vtkPlusSonixVideoSource&);  // Not implemented.
   void operator=(const vtkPlusSonixVideoSource&);  // Not implemented.
