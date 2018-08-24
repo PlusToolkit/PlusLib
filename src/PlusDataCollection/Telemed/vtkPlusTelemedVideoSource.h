@@ -82,7 +82,7 @@ public:
   /*!
   Set changed imaging parameter to device
   */
-  virtual PlusStatus RequestImagingParameterChange();
+  virtual PlusStatus InternalApplyImagingParameterChange();
 
 protected:
   /*! Constructor */
