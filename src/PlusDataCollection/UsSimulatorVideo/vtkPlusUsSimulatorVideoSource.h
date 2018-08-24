@@ -12,12 +12,12 @@
 #include "vtkPlusUsDevice.h"
 #include "vtkPlusUsSimulatorAlgo.h"
 
-class vtkPlusDataBuffer; 
+class vtkPlusDataBuffer;
 
 class vtkPlusDataCollectionExport vtkPlusUsSimulatorVideoSource;
 
 /*!
-  \class vtkPlusUsSimulatorVideoSource 
+  \class vtkPlusUsSimulatorVideoSource
   \brief Class for providing VTK video input interface from simulated ultrasound
   \ingroup PlusLibDataCollection
 */
@@ -29,10 +29,10 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Get ultrasound simulator */
-  vtkGetObjectMacro(UsSimulator, vtkPlusUsSimulatorAlgo); 
+  vtkGetObjectMacro(UsSimulator, vtkPlusUsSimulatorAlgo);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -41,12 +41,10 @@ public:
 
 protected:
   /*! Set ultrasound simulator */
-  vtkSetObjectMacro(UsSimulator, vtkPlusUsSimulatorAlgo); 
+  vtkSetObjectMacro(UsSimulator, vtkPlusUsSimulatorAlgo);
 
-  /*!
-  Set changed imaging parameter to device
-  */
-  virtual PlusStatus RequestImagingParameterChange();
+  /*! Set changed imaging parameter to device */
+  virtual PlusStatus InternalApplyImagingParameterChange();
 
 protected:
   /*! Constructor */

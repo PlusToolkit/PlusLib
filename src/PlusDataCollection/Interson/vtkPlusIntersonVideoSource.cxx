@@ -1256,7 +1256,7 @@ PlusStatus vtkPlusIntersonVideoSource::SetNewImagingParameters(const vtkPlusUsIm
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntersonVideoSource::RequestImagingParameterChange()
+PlusStatus vtkPlusIntersonVideoSource::InternalApplyImagingParameterChange()
 {
   PlusStatus status = PLUS_SUCCESS;
 
