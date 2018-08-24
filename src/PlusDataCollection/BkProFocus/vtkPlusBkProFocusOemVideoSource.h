@@ -10,7 +10,7 @@
 #define __vtkPlusBkProFocusOemVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
-
+#include "PlusTrackedFrame.h"
 #include "vtkPlusUsDevice.h"
 
 /*!
@@ -291,6 +291,9 @@ protected:
   // For internal storage of additional variables (to minimize the number of included headers)
   class vtkInternal;
   vtkInternal* Internal;
+
+  /// Container to hold calculated field values
+  PlusTrackedFrame::FieldMapType FrameFields;
 
 private:
   vtkPlusBkProFocusOemVideoSource(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.
