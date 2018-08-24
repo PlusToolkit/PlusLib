@@ -308,7 +308,8 @@ PlusStatus vtkPlusTelemedVideoSource::SetFrameSize(const FrameSizeType& frameSiz
   return PLUS_SUCCESS;
 }
 
-PlusStatus vtkPlusTelemedVideoSource::RequestImagingParameterChange()
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
 {
   PlusStatus status = PLUS_SUCCESS;
 
