@@ -61,7 +61,7 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& 
   if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, START_CMD))
   {
     desc += START_CMD;
-    desc += ": Start collecting data into file with a VirtualCapture device. CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
+    desc += ": Start collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
   }
   if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SUSPEND_CMD))
   {
@@ -111,10 +111,10 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
     return PLUS_FAIL;
   }
 
-  // Stop parameters
+  // Start/Stop Common parameters
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(OutputFilename, aConfig);
 
-  // Start parameters
+  // Start-only parameters
   if (this->GetName() == START_CMD)
   {
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
