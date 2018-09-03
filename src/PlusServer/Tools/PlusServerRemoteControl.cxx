@@ -134,10 +134,6 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd = vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStop();
   cmd->SetId(commandId);
-  if (outputFilename.empty())
-  {
-    outputFilename = "PlusServerRecording.nrrd";
-  }
   cmd->SetOutputFilename(outputFilename.c_str());
   if (!deviceId.empty())
   {

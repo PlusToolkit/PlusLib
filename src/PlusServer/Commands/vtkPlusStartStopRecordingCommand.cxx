@@ -295,7 +295,12 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Recording to file is already in progress."));
       return PLUS_FAIL;
     }
-    if (captureDevice->OpenFile(this->OutputFilename.c_str()) != PLUS_SUCCESS)
+    std::string outputFilename = captureDevice->GetBaseFilename();
+    if (!this->OutputFilename.empty())
+    {
+      outputFilename = this->OutputFilename;
+    }
+    if (captureDevice->OpenFile(outputFilename.c_str()) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));
       return PLUS_FAIL;
