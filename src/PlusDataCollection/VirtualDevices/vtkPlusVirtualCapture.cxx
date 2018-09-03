@@ -170,7 +170,6 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
-  // Because this virtual device continually appends data to the file, we cannot do live compression
   if (aFilename == NULL || strlen(aFilename) == 0)
   {
     std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
