@@ -17,11 +17,11 @@ PlusServer.exe --config-file=..\..\PlusLib\data\ConfigFiles\Testing\PlusConfigur
 - `PlusServerRemoteControl.exe --command=GET_CHANNEL_IDS`
   - PlusServer log:  `<Command Name="RequestChannelIDs" />`
   - PlusServerRemoteControl reply data: `TrackedVideoStream`
-- `PlusServerRemoteControl.exe --command=START_ACQUISITION`
-  - PlusServer log:  `<Command Name="StartRecording"/>`
+- `PlusServerRemoteControl.exe --command=START_ACQUISITION --device="CaptureDevice" --output-file="PlusServerRecording.mha"`
+  - PlusServer log:  `<Command Name="StartRecording" CaptureDeviceId="CaptureDevice" OutputFilename="PlusServerRecording.mha" EnableCompression="False"/>`
   - PlusServerRemoteControl reply data: `VirtualStreamCapture (CaptureDevice) StartRecording completed successfully`
-- `PlusServerRemoteControl.exe --command=STOP_ACQUISITION`
-  - PlusServer log:  `<Command Name="StopRecording" OutputFilename="PlusServerRecording.mha" />`
+- `PlusServerRemoteControl.exe --command=STOP_ACQUISITION --device="CaptureDevice"`
+  - PlusServer log:  `<Command Name="StopRecording" CaptureDeviceId="CaptureDevice"/>`
   - PlusServerRemoteControl reply data:  `VirtualStreamCapture (CaptureDevice) StopRecording completed successfully`
 - `PlusServerRemoteControl.exe --command=GET_EXAM_DATA --volumeEmbeddedTransformToFrame="Reference"`
   - PlusServer log: `<Command Name="ExamData" VolumeEmbeddedTransformToFrame="Reference"`
@@ -29,7 +29,7 @@ PlusServer.exe --config-file=..\..\PlusLib\data\ConfigFiles\Testing\PlusConfigur
 
 \subsubsection PlusServerCommandsRemoteControlExampleClientVolumeReconstruction Example: volume reconstruction in batch mode (acquiring all frames then reconstruct volume at once)
 
-If `--output-file` is specified then the reconstructed volume will be written to file. If output-image-name is specified then the reconstructed volume will be sent through OpenIGTLink. 
+If `--output-file` is specified then the reconstructed volume will be written to file. If output-image-name is specified then the reconstructed volume will be sent through OpenIGTLink.
 ~~~~~~~~~~~~~~~~~~~~~
 PlusServerRemoteControl.exe --command=START_ACQUISITION
 timeout /t 10
@@ -73,9 +73,9 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 ~~~~~~~~~~~~~~~~~~~~~
 <Command Name="RequestChannelIds" />
 <Command Name="RequestDeviceIds" DeviceType="VirtualVolumeReconstructor" />
-<Command Name="StartRecording" OutputFilename="PlusServerRecording.mha" />
+<Command Name="StartRecording" OutputFilename="PlusServerRecording.nrrd" EnableCompression="True"/>
 <Command Name="StopRecording" />
-<Command Name="ReconstructVolume" InputSeqFilename="PlusServerRecording.mha" OutputVolDeviceName="recvol_Reference" />
+<Command Name="ReconstructVolume" InputSeqFilename="PlusServerRecording.nrrd" OutputVolDeviceName="recvol_Reference" />
 <Command Name="StartVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
 <Command Name="SuspendVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
 <Command Name="ResumeVolumeReconstruction" VolumeReconstructorDeviceId="VolumeReconstructorDevice" />
@@ -90,7 +90,7 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 \subsection PlusServerCommandsOpenIGTLinkRemoteExecCommand Command
 
 - Message type: `STRING`
-- Device name: `CMD_`commandUid 
+- Device name: `CMD_`commandUid
 - Contents: an XML element with the name `Command` and the following attributes:
   - `Name`: command name, defined by the user
   - Custom parameters: attributes and/or child elements
@@ -119,6 +119,7 @@ PlusServerRemoteControl.exe --command=GET_EXAM_DATA --device=StealthLinkDevice -
 - StartRecording: starts recording to file
   - \xmlAtt CaptureDeviceId \RequiredAtt
   - \xmlAtt OutputFilename
+  - \xmlAtt EnableCompression: Set capture device to record compressed data. Only supported with .nrrd capture.
 - StopRecording: stops recording to file
   - \xmlAtt CaptureDeviceId \RequiredAtt
   - \xmlAtt OutputFilename: overrides the value that was defined in StartRecording
@@ -216,5 +217,5 @@ remoteExecLogic->GetCommandReplyNode(commandId);
 A new pair of command and reply node is created for each call.
 
 If the caller does not need the command and reply node anymore than the caller has to delete them.
-    
+
 */
