@@ -75,6 +75,12 @@ IF(NOT PLUSLIB_USE_FILE_INCLUDED)
     SET(SLICER_BIN_DIRECTORY "@SLICER_BIN_DIRECTORY@")
   ENDIF()
 
+  SET(PLUS_USE_IGSIO @PLUS_USE_IGSIO@)
+  IF(PLUS_USE_IGSIO)
+    SET(IGSIO_DIR "@IGSIO_DIR@")
+    FIND_PACKAGE(IGSIO)
+  ENDIF()
+  
   # Add include directories needed to use PlusLib library
   # Use a temporary CMake variable to store the list of directory paths
   # (it is required because this way directory names

@@ -15,6 +15,10 @@ See License.txt for details.
 #include "vtkPlusVirtualCapture.h"
 #include "vtksys/SystemTools.hxx"
 
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+#include "vtkPlusMkvSequenceIO.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusVirtualCapture);
@@ -103,6 +107,7 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -206,7 +211,14 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     return PLUS_FAIL;
   }
 
-  this->Writer->SetUseCompression(this->EnableFileCompression);
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+  vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
+  if (mkvWriter)
+  {
+    mkvWriter->SetEncodingFourCC(this->CodecFourCC);
+  }
+#endif
+
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));

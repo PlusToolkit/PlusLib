@@ -30,6 +30,7 @@ namespace
 //----------------------------------------------------------------------------
 vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
   : EnableCompression(false)
+  , CodecFourCC("")
 {
 }
 
@@ -118,6 +119,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
   if (this->GetName() == START_CMD)
   {
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, aConfig);
   }
 
   return PLUS_SUCCESS;
@@ -252,6 +254,10 @@ vtkPlusVirtualCapture* vtkPlusStartStopRecordingCommand::GetOrCreateCaptureDevic
   newDevice->SetDataCollector(dataCollector);
   newDevice->AddInputChannel(channel);
   capDevice->SetEnableFileCompression(this->EnableCompression);
+  if (!this->CodecFourCC.empty())
+  {
+    capDevice->SetCodecFourCC(this->CodecFourCC);
+  }
   capDevice->SetBaseFilename(channelId + "_capture.nrrd");
 
   return capDevice;
