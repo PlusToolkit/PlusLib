@@ -88,6 +88,12 @@ public:
   /*! Read the tracked data from Nrrd file */
   virtual PlusStatus ReadFromNrrdFile(const std::string& trackedSequenceDataFileName);
 
+  /*! Read the tracked data from matroska*/
+  virtual PlusStatus SaveToMatroskaFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/);
+
+  /*! Read the tracked data from matroska*/
+  virtual PlusStatus ReadFromMatroskaFile(const std::string& trackedSequenceDataFileName);
+
   /*! Get the tracked frame list */
   TrackedFrameListType GetTrackedFrameList()
   {

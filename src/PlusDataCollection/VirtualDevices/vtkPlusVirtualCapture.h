@@ -76,6 +76,9 @@ public:
   vtkGetMacro(EnableFileCompression, bool);
   void SetEnableFileCompression(bool aFileCompression);
 
+  vtkGetStdStringMacro(CodecFourCC);
+  vtkSetStdStringMacro(CodecFourCC)
+
   vtkSetMacro(EnableCapturingOnStart, bool);
   vtkGetMacro(EnableCapturingOnStart, bool);
 
@@ -152,6 +155,9 @@ protected:
 
   /*! When closing the file, re-read the data from file, and write it compressed */
   bool EnableFileCompression;
+
+  /*! FourCC code represending the codec to use when writing the file*/
+  std::string CodecFourCC;
 
   /*! Preparing the header requires image data already collected, this flag makes the header preparation wait until valid data is collected */
   bool IsHeaderPrepared;
