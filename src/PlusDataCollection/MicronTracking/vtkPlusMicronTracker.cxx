@@ -59,6 +59,12 @@ vtkPlusMicronTracker::vtkPlusMicronTracker()
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 20;
 
+  this->FrameLeft = vtkSmartPointer<vtkImageData>::New();
+  this->FrameRight = vtkSmartPointer<vtkImageData>::New();
+  this->FrameSize[0] = 0;
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 1;
+
   this->IniFile = "MicronTracker.ini";
 }
 
@@ -240,6 +246,25 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
 #endif
   }
 
+  this->GetImage(this->FrameLeft, this->FrameRight);
+  vtkPlusDataSource* aSource(NULL);
+  for (int i = 0; i < this->GetNumberOfVideoSources(); ++i)
+  {
+    if (this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to retrieve MicronTracker video source");
+      return PLUS_FAIL;
+    }
+    aSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
+    aSource->SetInputFrameSize(this->FrameSize);
+    if (aSource->AddItem((i == 0) ? this->FrameLeft : this->FrameRight, US_IMG_ORIENT_MN, US_IMG_BRIGHTNESS, this->FrameNumber, unfilteredTimestamp) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to add item " << i << " to MicronTracker video source");
+      return PLUS_FAIL;
+    }
+    this->Modified();
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -310,6 +335,8 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
 
   int imageWidth = this->MT->mtGetXResolution(-1);
   int imageHeight = this->MT->mtGetYResolution(-1);
+  this->FrameSize[0] = static_cast<unsigned int>(imageWidth);
+  this->FrameSize[1] = static_cast<unsigned int>(imageHeight);
 
   if (leftImage != NULL)
   {

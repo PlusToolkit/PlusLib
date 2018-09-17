@@ -110,6 +110,10 @@ protected:
   bool TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
 #endif
 
+  vtkSmartPointer<vtkImageData> FrameLeft;
+  vtkSmartPointer<vtkImageData> FrameRight;
+  FrameSizeType FrameSize;
+
 private:
   vtkPlusMicronTracker( const vtkPlusMicronTracker& );
   void operator=( const vtkPlusMicronTracker& );
