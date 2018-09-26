@@ -86,6 +86,7 @@ public:
   vtkVector3d LocalAxis;
   vtkVector3d LocalAxis2;
 public:
+  vtkSmartPointer<vtkMatrix4x4> BaseToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
   std::string PortName;
@@ -331,7 +332,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       }
     }
 
-    it->TransformationMatrix->DeepCopy(tempTransform->GetMatrix());
+    vtkMatrix4x4::Multiply4x4(it->BaseToEncoderMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
     this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
 
     vtkPlusDataSource* tool = NULL;
@@ -426,6 +427,17 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     {
       this->TransformRepository->SetTransform(encoderInfo.TransformName,
           encoderInfo.TransformationMatrix);
+    }
+
+    // ---- Get PreTMatrix:
+    double vectorMatrix[16] = { 0 };
+    if (encoderInfoElement->GetVectorAttribute("BaseToEncoderMatrix", 16, vectorMatrix))
+    {
+      encoderInfo.BaseToEncoderMatrix->DeepCopy(vectorMatrix);
+    }
+    else
+    {
+      encoderInfo.BaseToEncoderMatrix->Identity();
     }
 
     // Reading the MotionType of an US Digital Encoder
