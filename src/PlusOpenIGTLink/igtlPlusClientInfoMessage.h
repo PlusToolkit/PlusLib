@@ -24,11 +24,6 @@ namespace igtl
   class vtkPlusOpenIGTLinkExport PlusClientInfoMessage: public StringMessage
   {
   public:
-    typedef PlusClientInfoMessage          Self;
-    typedef StringMessage                  Superclass;
-    typedef SmartPointer<Self>             Pointer;
-    typedef SmartPointer<const Self>       ConstPointer;
-
     igtlTypeMacro(igtl::PlusClientInfoMessage, igtl::StringMessage);
     igtlNewMacro(igtl::PlusClientInfoMessage);
 

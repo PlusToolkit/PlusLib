@@ -33,11 +33,6 @@ namespace igtl
   class vtkPlusOpenIGTLinkExport PlusTrackedFrameMessage: public MessageBase
   {
   public:
-    typedef PlusTrackedFrameMessage         Self;
-    typedef MessageBase                     Superclass;
-    typedef SmartPointer<Self>              Pointer;
-    typedef SmartPointer<const Self>        ConstPointer;
-
     igtlTypeMacro(igtl::PlusTrackedFrameMessage, igtl::MessageBase);
     igtlNewMacro(igtl::PlusTrackedFrameMessage);
 
