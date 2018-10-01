@@ -187,7 +187,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     else if (vtkPlusMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
@@ -198,7 +198,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     if (vtkPlusMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = aFilename;

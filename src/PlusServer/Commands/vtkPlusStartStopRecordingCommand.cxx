@@ -306,12 +306,12 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     {
       outputFilename = this->OutputFilename;
     }
+    captureDevice->SetEnableFileCompression(GetEnableCompression());
     if (captureDevice->OpenFile(outputFilename.c_str()) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));
       return PLUS_FAIL;
     }
-    captureDevice->SetEnableFileCompression(GetEnableCompression());
     captureDevice->SetEnableCapturing(true);
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
