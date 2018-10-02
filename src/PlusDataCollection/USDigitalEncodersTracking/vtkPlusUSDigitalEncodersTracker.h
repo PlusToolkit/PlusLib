@@ -126,7 +126,7 @@ protected:
   IDtoAddressType IdAddress;
 
 
-private:
+public:
   vtkPlusUSDigitalEncodersTracker(const vtkPlusUSDigitalEncodersTracker&) = delete;
   void operator=(const vtkPlusUSDigitalEncodersTracker&) = delete;
 };
