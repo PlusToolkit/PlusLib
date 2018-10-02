@@ -86,8 +86,8 @@ public:
   vtkVector3d LocalAxis;
   vtkVector3d LocalAxis2;
 public:
-  vtkSmartPointer<vtkMatrix4x4> BaseToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> CurrentTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> ToolToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> EncoderToReference = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
   std::string PortName;
 };
@@ -332,8 +332,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       }
     }
 
-    vtkMatrix4x4::Multiply4x4(it->BaseToEncoderMatrix, tempTransform->GetMatrix(), it->CurrentTransform);
-    this->TransformRepository->SetTransform(it->TransformName, it->CurrentTransform);
+    vtkMatrix4x4::Multiply4x4(it->ToolToEncoderMatrix, tempTransform->GetMatrix(), it->EncoderToReference);
+    this->TransformRepository->SetTransform(it->TransformName, it->EncoderToReference);
 
     vtkPlusDataSource* tool = NULL;
     if(this->GetToolByPortName(it->PortName.c_str(), tool) != PLUS_SUCCESS)
@@ -345,7 +345,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     unsigned long frameNumber = tool->GetFrameNumber() + 1;
     const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
     this->ToolTimeStampedUpdate(tool->GetId(),
-                                it->CurrentTransform, TOOL_OK, frameNumber, unfilteredTimestamp);
+                                it->EncoderToReference, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -426,18 +426,17 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     if(this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
     {
       this->TransformRepository->SetTransform(encoderInfo.TransformName,
-                                              encoderInfo.CurrentTransform);
+                                              encoderInfo.EncoderToReference);
     }
 
-    // ---- Get PreTMatrix:
     double vectorMatrix[16] = { 0 };
-    if(encoderInfoElement->GetVectorAttribute("BaseToEncoderMatrix", 16, vectorMatrix))
+    if(encoderInfoElement->GetVectorAttribute("ToolToEncoderMatrix", 16, vectorMatrix))
     {
-      encoderInfo.BaseToEncoderMatrix->DeepCopy(vectorMatrix);
+      encoderInfo.ToolToEncoderMatrix->DeepCopy(vectorMatrix);
     }
     else
     {
-      encoderInfo.BaseToEncoderMatrix->Identity();
+      encoderInfo.ToolToEncoderMatrix->Identity();
     }
 
     // Reading the MotionType of an US Digital Encoder
