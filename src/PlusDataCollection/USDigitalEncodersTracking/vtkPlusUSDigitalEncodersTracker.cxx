@@ -87,7 +87,7 @@ public:
   vtkVector3d LocalAxis2;
 public:
   vtkSmartPointer<vtkMatrix4x4> BaseToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> CurrentTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
   std::string PortName;
 };
@@ -332,8 +332,8 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       }
     }
 
-    vtkMatrix4x4::Multiply4x4(it->BaseToEncoderMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
-    this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
+    vtkMatrix4x4::Multiply4x4(it->BaseToEncoderMatrix, tempTransform->GetMatrix(), it->CurrentTransform);
+    this->TransformRepository->SetTransform(it->TransformName, it->CurrentTransform);
 
     vtkPlusDataSource* tool = NULL;
     if (this->GetToolByPortName(it->PortName.c_str(), tool) != PLUS_SUCCESS)
@@ -345,7 +345,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     unsigned long frameNumber = tool->GetFrameNumber() + 1;
     const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
     this->ToolTimeStampedUpdate(tool->GetId(),
-        it->TransformationMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
+        it->CurrentTransform, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -426,7 +426,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     if (this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
     {
       this->TransformRepository->SetTransform(encoderInfo.TransformName,
-          encoderInfo.TransformationMatrix);
+          encoderInfo.CurrentTransform);
     }
 
     // ---- Get PreTMatrix:
