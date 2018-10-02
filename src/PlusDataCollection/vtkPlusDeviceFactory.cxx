@@ -40,11 +40,11 @@ See License.txt for details.
 #ifdef PLUS_USE_MICRONTRACKER
   #include "vtkPlusMicronTracker.h"
 #endif
-#ifdef PLUS_USE_INTELREALSENSE
-  #include "vtkPlusIntelRealSenseTracker.h"
+#ifdef PLUS_USE_WITMOTIONTRACKER
+  #include "vtkPlusWitMotionTracker.h"
 #endif
-#ifdef PLUS_USE_INTELREALSENSE_CAM
-  #include "vtkPlusIntelRealSenseCamera.h"
+#ifdef PLUS_USE_INTELREALSENSE
+  #include "vtkPlusIntelRealSense.h"
 #endif
 #ifdef PLUS_USE_OPTICAL_MARKER_TRACKER
   #include "vtkPlusOpticalMarkerTracker.h"
@@ -228,11 +228,11 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_MICRONTRACKER
   RegisterDevice("MicronTracker", "vtkPlusMicronTracker", (PointerToDevice)&vtkPlusMicronTracker::New);
 #endif
-#ifdef PLUS_USE_INTELREALSENSE
-  RegisterDevice("IntelRealSenseTracker", "vtkPlusIntelRealSenseTracker", (PointerToDevice)&vtkPlusIntelRealSenseTracker::New);
+#ifdef PLUS_USE_WITMOTIONTRACKER
+  RegisterDevice("WitMotionTracker", "vtkPlusWitMotionTracker", (PointerToDevice)&vtkPlusWitMotionTracker::New);
 #endif
-#ifdef PLUS_USE_INTELREALSENSE_CAM
-  RegisterDevice("IntelRealSenseCamera", "vtkPlusIntelRealSenseCamera", (PointerToDevice)&vtkPlusIntelRealSenseCamera::New);
+#ifdef PLUS_USE_INTELREALSENSE
+  RegisterDevice("IntelRealSense", "vtkPlusIntelRealSense", (PointerToDevice)&vtkPlusIntelRealSense::New);
 #endif
 
 #ifdef PLUS_USE_OPTICAL_MARKER_TRACKER

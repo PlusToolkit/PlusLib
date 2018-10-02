@@ -24,11 +24,6 @@ namespace igtl
   class vtkPlusOpenIGTLinkExport PlusUsMessage: public igtl::ImageMessage
   {
   public:
-    typedef PlusUsMessage                   Self;
-    typedef igtl::ImageMessage              Superclass;
-    typedef igtl::SmartPointer<Self>        Pointer;
-    typedef igtl::SmartPointer<const Self>  ConstPointer;
-
     igtlTypeMacro(igtl::PlusUsMessage, igtl::ImageMessage);
     igtlNewMacro(igtl::PlusUsMessage);
 

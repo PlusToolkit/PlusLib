@@ -102,14 +102,14 @@ int main(int argc, char** argv)
   writer->SetFileName(outputImageSequenceFileName.c_str());
   writer->SetTrackedFrameList(trackedFrameList);
 
-  LOG_INFO("Test SetCustomFrameTransform method ...");
+  LOG_INFO("Test SetFrameTransform method ...");
   // Add the transformation matrix to metafile
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   for (int i = 0 ; i < numberOfFrames; i++)
   {
     vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     transMatrix->SetElement(0, 0, i);
-    writer->GetTrackedFrame(i)->SetCustomFrameTransform(
+    writer->GetTrackedFrame(i)->SetFrameTransform(
       PlusTransformName("Tool", "Tracker"),
       transMatrix);
   }
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
   {
     vtkSmartPointer<vtkMatrix4x4> transMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     transMatrix->DeepCopy(highPrecMatrix);
-    writer->GetTrackedFrame(i)->SetCustomFrameTransform(highPrecTransformName, transMatrix);
+    writer->GetTrackedFrame(i)->SetFrameTransform(highPrecTransformName, transMatrix);
     writer->GetTrackedFrame(i)->SetTimestamp(double(i) + highPrecTimeOffset);
   }
 
@@ -157,13 +157,13 @@ int main(int argc, char** argv)
     vtkSmartPointer<vtkMatrix4x4> writerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     vtkSmartPointer<vtkMatrix4x4> readerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    if (!reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetCustomFrameTransform(tnToolToTracker, readerMatrix))
+    if (!reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetFrameTransform(tnToolToTracker, readerMatrix))
     {
       LOG_ERROR("Unable to get ToolToTracker frame transform to frame #" << i);
       numberOfFailures++;
     }
 
-    if (!writer->GetTrackedFrame(i)->GetCustomFrameTransform(tnToolToTracker, writerMatrix))
+    if (!writer->GetTrackedFrame(i)->GetFrameTransform(tnToolToTracker, writerMatrix))
     {
       LOG_ERROR("Unable to get ToolToTracker frame transform to frame #" << i);
       numberOfFailures++;
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
       }
     }
 
-    if (!reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetCustomFrameTransform(highPrecTransformName, readerMatrix))
+    if (!reader->GetTrackedFrameList()->GetTrackedFrame(i)->GetFrameTransform(highPrecTransformName, readerMatrix))
     {
       LOG_ERROR("Unable to get high precision frame transform for frame #" << i);
       numberOfFailures++;
@@ -221,18 +221,18 @@ int main(int argc, char** argv)
   FrameSizeType frameSize = {200, 200, 1};
   validFrame.GetImageData()->AllocateFrame(frameSize, VTK_UNSIGNED_CHAR, 1);
   validFrame.GetImageData()->FillBlank();
-  validFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix);
-  validFrame.SetCustomFrameField("FrameNumber", "0");
+  validFrame.SetFrameTransform(PlusTransformName("Image", "Probe"), matrix);
+  validFrame.SetFrameField("FrameNumber", "0");
   validFrame.SetTimestamp(1.0);
 
   PlusTrackedFrame invalidFrame;
-  invalidFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix);
-  invalidFrame.SetCustomFrameField("FrameNumber", "1");
+  invalidFrame.SetFrameTransform(PlusTransformName("Image", "Probe"), matrix);
+  invalidFrame.SetFrameField("FrameNumber", "1");
   invalidFrame.SetTimestamp(2.0);
 
   PlusTrackedFrame validFrame_copy(validFrame);
   validFrame_copy.SetTimestamp(3.0);
-  validFrame_copy.SetCustomFrameField("FrameNumber", "3");
+  validFrame_copy.SetFrameField("FrameNumber", "3");
 
   dummyTrackedFrame->AddTrackedFrame(&validFrame);
   dummyTrackedFrame->AddTrackedFrame(&invalidFrame);
@@ -276,8 +276,8 @@ int main(int argc, char** argv)
   FrameSizeType frameSizeSmaller = {150, 150, 1};
   differentSizeFrame.GetImageData()->AllocateFrame(frameSizeSmaller, VTK_UNSIGNED_CHAR, 1);
   differentSizeFrame.GetImageData()->FillBlank();
-  differentSizeFrame.SetCustomFrameTransform(PlusTransformName("Image", "Probe"), matrix);
-  differentSizeFrame.SetCustomFrameField("FrameNumber", "6");
+  differentSizeFrame.SetFrameTransform(PlusTransformName("Image", "Probe"), matrix);
+  differentSizeFrame.SetFrameField("FrameNumber", "6");
   differentSizeFrame.SetTimestamp(6.0);
   dummyTrackedFrame->AddTrackedFrame(&differentSizeFrame);
 

@@ -49,7 +49,7 @@ StreamBufferItem& StreamBufferItem::operator=( StreamBufferItem const& dataItem 
   this->UnfilteredTimeStamp = dataItem.UnfilteredTimeStamp;
   this->Index = dataItem.Index;
   this->Uid = dataItem.Uid;
-  this->CustomFrameFields = dataItem.CustomFrameFields;
+  this->FrameFields = dataItem.FrameFields;
   this->Status = dataItem.Status;
   this->Matrix->DeepCopy( dataItem.Matrix );
   this->ValidTransformData = dataItem.ValidTransformData;
@@ -58,9 +58,9 @@ StreamBufferItem& StreamBufferItem::operator=( StreamBufferItem const& dataItem 
 }
 
 //----------------------------------------------------------------------------
-void StreamBufferItem::SetCustomFrameField( std::string fieldName, std::string fieldValue )
+void StreamBufferItem::SetFrameField( std::string fieldName, std::string fieldValue )
 {
-  this->CustomFrameFields[fieldName] = fieldValue;
+  this->FrameFields[fieldName] = fieldValue;
 }
 
 //----------------------------------------------------------------------------
@@ -122,5 +122,5 @@ ToolStatus StreamBufferItem::GetStatus() const
 //----------------------------------------------------------------------------
 bool StreamBufferItem::HasValidFieldData() const
 {
-  return this->CustomFrameFields.size() > 0;
+  return this->FrameFields.size() > 0;
 }

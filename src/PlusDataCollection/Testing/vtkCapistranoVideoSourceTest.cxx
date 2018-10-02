@@ -317,6 +317,12 @@ int main(int argc, char* argv[])
 
 	LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
 
+#ifdef CAPISTRANO_SDK2018
+    LOG_INFO("Hardware version: " << capistranoDevice->GetHardwareVersion());
+    LOG_INFO("High-pass filter: " << capistranoDevice->GetHighPassFilter());
+    LOG_INFO("Low-pass filter: " << capistranoDevice->GetLowPassFilter());
+#endif
+
 	if (printParams)
 	{
 		LOG_INFO("List of supported imaging parameters:");

@@ -18,7 +18,7 @@ Authors include: Elvis Chen (Queen's University)
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
 
-#include "vtkPlusDevice.h"
+#include "vtkPlusUsDevice.h"
 
 class vtkPlusDataCollectionExport vtkPlusSonixPortaVideoSource;
 class porta;
@@ -77,9 +77,8 @@ private:
 
   \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusSonixPortaVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusSonixPortaVideoSource : public vtkPlusUsDevice
 {
-
   vtkTypeMacro(vtkPlusSonixPortaVideoSource, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -195,16 +194,6 @@ class vtkPlusDataCollectionExport vtkPlusSonixPortaVideoSource : public vtkPlusD
   vtkSetMacro(AutoClipEnabled, bool);
   vtkGetMacro(AutoClipEnabled, bool);
 
-  /*!
-    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
-    The Transducer coordinate system origin is in the center of the transducer crystal array,
-    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
-    and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
-    lateral and axial pixel spacing.
-  */
-  vtkGetStringMacro(ImageToTransducerTransformName);
-  vtkSetStringMacro(ImageToTransducerTransformName);
-
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
@@ -259,8 +248,6 @@ protected:
 
   bool AutoClipEnabled;
 
-  char* ImageToTransducerTransformName;
-
   /*! for internal use only */
   PlusStatus AddFrameToBuffer(void* param, int id, bool motorRotationCcw, int motorStepCount);
 
@@ -272,7 +259,6 @@ protected:
   virtual bool IsTracker() const { return false; }
 
 private:
-
   // data members
   static vtkPlusSonixPortaVideoSource* Instance;
 
@@ -300,7 +286,7 @@ private:
   /*! The B-mode image width */
   int PortaBModeWidth;
 
-  /*! The B-mode iamge height */
+  /*! The B-mode image height */
   int PortaBModeHeight;
 
   /*! name of the probe */

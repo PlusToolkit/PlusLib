@@ -136,7 +136,7 @@ public:
     }
 
     std::vector<PlusTransformName> transformNameList;
-    trackedFrame.GetCustomFrameTransformNameList(transformNameList);
+    trackedFrame.GetFrameTransformNameList(transformNameList);
     for (std::vector<PlusTransformName>::iterator it = transformNameList.begin(); it != transformNameList.end(); ++it)
     {
       PlusTransformName transformName = *it;
@@ -154,7 +154,7 @@ public:
       ss << strTransformName << ": ";
 
       vtkSmartPointer<vtkMatrix4x4> toolToTrackerTransform = vtkSmartPointer<vtkMatrix4x4>::New(); // a new transform matrix has to be provided to each SetToolToTrackerTransform call
-      if (trackedFrame.GetCustomFrameTransform(transformName, toolToTrackerTransform) != PLUS_SUCCESS)
+      if (trackedFrame.GetFrameTransform(transformName, toolToTrackerTransform) != PLUS_SUCCESS)
       {
         ss << "failed to get transform\n";
         SetToolVisible(tool->GetId(), false);
@@ -162,7 +162,7 @@ public:
       }
 
       TrackedFrameFieldStatus status = FIELD_INVALID;
-      trackedFrame.GetCustomFrameTransformStatus(transformName, status);
+      trackedFrame.GetFrameTransformStatus(transformName, status);
 
       if (status != FIELD_OK)
       {

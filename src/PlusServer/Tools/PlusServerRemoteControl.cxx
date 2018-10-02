@@ -113,11 +113,12 @@ void PrintCommand(vtkPlusCommand* command)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string& deviceId, bool enableCompression, int commandId)
+PlusStatus ExecuteStartAcquisition(vtkPlusOpenIGTLinkClient* client, const std::string& deviceId, std::string outputFilename, bool enableCompression, int commandId)
 {
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd = vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStart();
   cmd->SetId(commandId);
+  cmd->SetOutputFilename(outputFilename.c_str());
   cmd->SetEnableCompression(enableCompression);
   if (!deviceId.empty())
   {
@@ -133,10 +134,6 @@ PlusStatus ExecuteStopAcquisition(vtkPlusOpenIGTLinkClient* client, const std::s
   vtkSmartPointer<vtkPlusStartStopRecordingCommand> cmd = vtkSmartPointer<vtkPlusStartStopRecordingCommand>::New();
   cmd->SetNameToStop();
   cmd->SetId(commandId);
-  if (outputFilename.empty())
-  {
-    outputFilename = "PlusServerRecording.nrrd";
-  }
   cmd->SetOutputFilename(outputFilename.c_str());
   if (!deviceId.empty())
   {
@@ -638,7 +635,7 @@ PlusStatus RunTests(vtkPlusOpenIGTLinkClient* client)
   parameters.clear();
 
   // Capturing
-  ExecuteStartAcquisition(client, captureDeviceId, false, commandId++);
+  ExecuteStartAcquisition(client, captureDeviceId, capturingOutputFileName, false, commandId++);
   RETURN_IF_FAIL(ReceiveAndPrintReply(client, didTimeout, replyMessage, errorMessage, parameters));
   parameters.clear();
   vtkPlusAccurateTimer::DelayWithEventProcessing(2.0);
@@ -818,7 +815,7 @@ int main(int argc, char** argv)
     // Execute command
     if (STRCASECMP(command.c_str(), "START_ACQUISITION") == 0)
     {
-      commandExecutionStatus = ExecuteStartAcquisition(client, deviceId, enableCompression, commandId);
+      commandExecutionStatus = ExecuteStartAcquisition(client, deviceId, outputFilename, enableCompression, commandId);
     }
     else if (STRCASECMP(command.c_str(), "STOP_ACQUISITION") == 0)
     {

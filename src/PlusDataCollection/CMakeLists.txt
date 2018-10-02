@@ -53,7 +53,7 @@ OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker track
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
-OPTION(PLUS_USE_INTELREALSENSE_CAM "Provide support for capturing an Intel RealSense capture stream" OFF)
+OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -129,7 +129,13 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
   )
 IF(PLUS_USE_tesseract)
-  SET(Virtual_SRCS ${Virtual_SRCS} VirtualDevices/vtkPlusVirtualTextRecognizer.cxx)
+  CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices/tesseractDataDir.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices/tesseractDataDir.h
+    )
+  SET(Virtual_SRCS ${Virtual_SRCS} 
+    VirtualDevices/vtkPlusVirtualTextRecognizer.cxx
+    )
 ENDIF()
 
 LIST(APPEND ${PROJECT_NAME}_SRCS
@@ -190,6 +196,12 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/UsSimulatorVideo
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
+
+IF(PLUS_USE_tesseract)
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS  
+    ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
+    )
+ENDIF()
 
 # --------------------------------------------------------------------------
 # OptiTrack support
@@ -483,12 +495,12 @@ ENDIF()
 # INTELREALSENSE support
 IF(PLUS_USE_INTELREALSENSE)
   SET(IntelRealSense_SRCS
-    IntelRealSense/vtkPlusIntelRealSenseTracker.cxx
+    IntelRealSense/vtkPlusIntelRealSense.cxx
   )
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(IntelRealSense_HDRS
-      IntelRealSense/vtkPlusIntelRealSenseTracker.h
+      IntelRealSense/vtkPlusIntelRealSense.h
       )
   ENDIF()
 
@@ -502,23 +514,20 @@ IF(PLUS_USE_INTELREALSENSE)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSense
-    ${INTELREALSENSE_INCLUDE_DIR}
+    ${RSSDK_INCLUDE_DIR}
     )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    optimized ${INTELREALSENSE_RELEASE_LIB}
-    debug ${INTELREALSENSE_DEBUG_LIB}
+    ${RSSDK_LIB}
     )
 
-  # TODO: may need to install DLLs
-  # should this not really follow the "standard" pattern (i.e. be a IMPORTED LIBRARY TARGET)?
-  # This also seems to be missing the corresponding entry in the PlusLibConfig.cmake
-#  LIST(APPEND External_Libraries_Install
-#    ${INTELREALSENSE_RELEASE_LIB}
-#    )
-#  SET( External_Libraries_Debug_Install ${External_Libraries_Debug_Install}
-#    ${INTELREALSENSE_DEBUG_LIB}
-#    )
+  LIST(APPEND External_Libraries_Install
+    ${RSSDK_BIN}
+    )
+	
+  LIST(APPEND External_Libraries_Debug
+    ${RSSDK_BIN}
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -1366,6 +1375,9 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Capistrano Labs support
 IF(PLUS_USE_CAPISTRANO_VIDEO)
+  IF(${CAPISTRANO_SDK_VERSION} STREQUAL cSDK2018)
+    ADD_DEFINITIONS(-DCAPISTRANO_SDK2018)
+  ENDIF()
   SET(Capistrano_SRCS
     Capistrano/vtkPlusCapistranoVideoSource.cxx
     )
@@ -1384,20 +1396,20 @@ IF(PLUS_USE_CAPISTRANO_VIDEO)
     )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${CAPISTRANO_LIBRARY_DIR}/BmodeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
-    ${CAPISTRANO_LIBRARY_DIR}/USBprobeDLL${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CAPISTRANO_LIBRARY_DIR}/${CAPISTRANO_LIBRARY_USBPROBE_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CAPISTRANO_LIBRARY_DIR}/${CAPISTRANO_LIBRARY_BMODE_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CAPISTRANO_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Capistrano
     )
   LIST(APPEND External_Libraries_Install
-    ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/${CAPISTRANO_BINARY_USBPROBE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/${CAPISTRANO_BINARY_BMODE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Debug
-    ${CAPISTRANO_BINARY_DIR}/USBprobe${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${CAPISTRANO_BINARY_DIR}/BmodeUSB${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/${CAPISTRANO_BINARY_USBPROBE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CAPISTRANO_BINARY_DIR}/${CAPISTRANO_BINARY_BMODE_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -1734,9 +1746,9 @@ IF(PLUS_USE_AGILENT)
 ENDIF()
 
 # --------------------------------------------------------------------------
-# Try to find tesseract and include its settings (otherwise complain)
+# Try to find tesseract
 IF(PLUS_USE_tesseract)
-  FIND_PACKAGE(tesseract NO_MODULE REQUIRED PATHS ${tesseract_DIR})
+  FIND_PACKAGE(tesseract NO_MODULE REQUIRED)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${tesseract_INCLUDE_DIRS}
@@ -1985,52 +1997,6 @@ IF(PLUS_USE_INFRARED_TEQ1_CAM)
   )
   
 ENDIF()
-#---------------------------------------------------------------------------
-# Intel RealSense Camera
-IF(PLUS_USE_INTELREALSENSE_CAM)
-  # If your device uses an external SDK, keep the following
-  FIND_PACKAGE(RSSDKCAM REQUIRED)
-  
-  IF(NOT RSSDKCAM_FOUND)
-    MESSAGE(FATAL_ERROR "This project requires Intel RealSense SDK for supporting the Intel RealSense device. One of the components is missing. Please verify configuration or turn off PLUS_USE_INTELREALSENSE_CAM.")
-  ENDIF()
-  
-  SET(INTELREALSENSE_CAM_SRCS
-    IntelRealSenseCamera/vtkPlusIntelRealSenseCamera.cxx
-    )
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
-    SET(INTELREALSENSE_CAM_HDRS
-      IntelRealSenseCamera/vtkPlusIntelRealSenseCamera.h
-      )
-  ENDIF()
-
-  LIST(APPEND ${PROJECT_NAME}_HDRS
-    ${INTELREALSENSE_CAM_HDRS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_SRCS
-    ${INTELREALSENSE_CAM_SRCS}
-    )
-
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/IntelRealSenseCamera
-	${RSSDKCAM_INCLUDE_DIR}
-	${RSSDKCAM_LIBRARY}
-    )
-  
-  LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${RSSDKCAM_LIBRARY}
-  )
-  
- LIST(APPEND External_Libraries_Install
-    ${RSSDKCAM_BINARY}/realsense2${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-	
-  LIST(APPEND External_Libraries_Debug
-    ${RSSDKCAM_BINARY}/realsense2${CMAKE_SHARED_LIBRARY_SUFFIX}
-  )
-  
-ENDIF()
 
 # --------------------------------------------------------------------------
 # V4L2
@@ -2060,6 +2026,31 @@ IF(PLUS_USE_V4L2)
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
     v4l2
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# WitMotion
+IF(PLUS_USE_WITMOTIONTRACKER)
+  SET(WitMotionTracker_SRCS
+    WitMotionTracker/vtkPlusWitMotionTracker.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(WitMotionTracker_HDRS
+      WitMotionTracker/vtkPlusWitMotionTracker.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${WitMotionTracker_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${WitMotionTracker_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/WitMotionTracker
     )
 ENDIF()
 
@@ -2144,6 +2135,7 @@ source_group("OpenCV" FILES ${OpenCV_Video_HDRS} ${OpenCV_Video_SRCS})
 source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
+source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

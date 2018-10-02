@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   PlusTrackedFrame frame;
   (*device->GetOutputChannelsStart())->GetTrackedFrame(frame);
 
-  if( frame.GetCustomFrameField((*it)->ParameterName) == NULL || STRCASECMP(frame.GetCustomFrameField((*it)->ParameterName), fieldValue.c_str()) != 0 )
+  if( frame.GetFrameField((*it)->ParameterName) == NULL || STRCASECMP(frame.GetFrameField((*it)->ParameterName), fieldValue.c_str()) != 0 )
   {
     LOG_ERROR("Tracked Frame: Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
     return EXIT_FAILURE;

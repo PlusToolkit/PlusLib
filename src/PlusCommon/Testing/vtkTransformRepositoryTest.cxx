@@ -62,16 +62,16 @@ int main(int argc, char **argv)
   mxStylusToTracker->Element[0][0]=0.1;
   mxStylusToTracker->Element[1][0]=0.2;
   mxStylusToTracker->Element[2][0]=-0.4;
-  trackedFrame.SetCustomFrameTransform(PlusTransformName("Stylus", "Tracker"), mxStylusToTracker); 
-  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Stylus", "Tracker"), FIELD_OK); 
+  trackedFrame.SetFrameTransform(PlusTransformName("Stylus", "Tracker"), mxStylusToTracker); 
+  trackedFrame.SetFrameTransformStatus(PlusTransformName("Stylus", "Tracker"), FIELD_OK); 
 
   vtkSmartPointer<vtkMatrix4x4> mxPhantomToTracker=vtkSmartPointer<vtkMatrix4x4>::New();    
   mxPhantomToTracker->Element[2][2]=-4;
   mxPhantomToTracker->Element[0][3]=2;
   mxPhantomToTracker->Element[1][3]=2;
   mxPhantomToTracker->Element[2][3]=20;
-  trackedFrame.SetCustomFrameTransform(PlusTransformName("Phantom", "Tracker"), mxPhantomToTracker); 
-  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("Phantom", "Tracker"), FIELD_OK); 
+  trackedFrame.SetFrameTransform(PlusTransformName("Phantom", "Tracker"), mxPhantomToTracker); 
+  trackedFrame.SetFrameTransformStatus(PlusTransformName("Phantom", "Tracker"), FIELD_OK); 
 
   vtkSmartPointer<vtkMatrix4x4> mxStylusTipToStylus=vtkSmartPointer<vtkMatrix4x4>::New();    
   mxStylusTipToStylus->Element[2][3]=4;
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
   mxStylusTipToStylus->Element[2][0]=-0.2;
   mxStylusTipToStylus->Element[2][1]=0.4;
   mxStylusTipToStylus->Element[2][2]=-0.2;
-  trackedFrame.SetCustomFrameTransform(PlusTransformName("StylusTip", "Stylus"), mxStylusTipToStylus); 
-  trackedFrame.SetCustomFrameTransformStatus(PlusTransformName("StylusTip", "Stylus"), FIELD_OK); 
+  trackedFrame.SetFrameTransform(PlusTransformName("StylusTip", "Stylus"), mxStylusTipToStylus); 
+  trackedFrame.SetFrameTransformStatus(PlusTransformName("StylusTip", "Stylus"), FIELD_OK); 
 
   if ( transformRepository->SetTransforms(trackedFrame) != PLUS_SUCCESS )
   {

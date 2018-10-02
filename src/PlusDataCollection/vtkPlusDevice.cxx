@@ -713,17 +713,17 @@ PlusStatus vtkPlusDevice::WriteToolsToSequenceFile(const std::string& filename, 
     // Add main source timestamp
     std::ostringstream timestampFieldValue;
     timestampFieldValue << std::fixed << frameTimestamp;
-    trackedFrame.SetCustomFrameField("Timestamp", timestampFieldValue.str());
+    trackedFrame.SetFrameField("Timestamp", timestampFieldValue.str());
 
     // Add main source unfiltered timestamp
     std::ostringstream unfilteredtimestampFieldValue;
     unfilteredtimestampFieldValue << std::fixed << bufferItem.GetUnfilteredTimestamp(firstActiveTool->GetLocalTimeOffsetSec());
-    trackedFrame.SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
+    trackedFrame.SetFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
 
     // Add main source frameNumber
     std::ostringstream frameNumberFieldValue;
     frameNumberFieldValue << std::fixed << bufferItem.GetIndex();
-    trackedFrame.SetCustomFrameField("FrameNumber", frameNumberFieldValue.str());
+    trackedFrame.SetFrameField("FrameNumber", frameNumberFieldValue.str());
 
     // Add transforms
     for (DataSourceContainerConstIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
@@ -743,10 +743,10 @@ PlusStatus vtkPlusDevice::WriteToolsToSequenceFile(const std::string& filename, 
       }
 
       PlusTransformName toolToTrackerTransform(it->second->GetId(), this->ToolReferenceFrameName);
-      trackedFrame.SetCustomFrameTransform(toolToTrackerTransform, toolMatrix);
+      trackedFrame.SetFrameTransform(toolToTrackerTransform, toolMatrix);
 
       // Add source status
-      trackedFrame.SetCustomFrameTransformStatus(toolToTrackerTransform, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(toolBufferItem.GetStatus()));
+      trackedFrame.SetFrameTransformStatus(toolToTrackerTransform, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(toolBufferItem.GetStatus()));
     }
 
     // Add tracked frame to the list
@@ -2230,7 +2230,7 @@ PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(PlusTrackedFrame
 
   // Try to find it out from the custom transforms that are stored in the tracked frame
   std::vector<PlusTransformName> transformNames;
-  aFrame.GetCustomFrameTransformNameList(transformNames);
+  aFrame.GetFrameTransformNameList(transformNames);
 
   if (transformNames.size() == 0)
   {

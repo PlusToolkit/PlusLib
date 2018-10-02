@@ -16,7 +16,7 @@ and The University of Western Ontario)
 
 #include "PlusConfigure.h"
 
-// porta includes
+// Porta includes
 #include <porta_params_def.h>
 #include <ImagingModes.h>
 #include <porta.h>
@@ -28,29 +28,34 @@ and The University of Western Ontario)
   #include "Objbase.h" // required for CoInitialize
 #endif
 
+// Local includes
 #include "PlusTrackedFrame.h"
-#include "vtkImageData.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkMultiThreader.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusSonixPortaVideoSource.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkTimerLog.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtksys/SystemTools.hxx"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
 
+// OS includes
 #include <ctype.h>
+
+// VTK includes
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkTimerLog.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtksys/SystemTools.hxx>
+#include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
+#include <vtkImageData.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkMultiThreader.h>
+#include <vtkObjectFactory.h>
 
 // because of warnings in windows header push and pop the warning level
 #ifdef _MSC_VER
   #pragma warning (push, 3)
 #endif
 
+// STL includes
 #include <vector>
 #include <string>
 
@@ -107,7 +112,6 @@ vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSource()
   , AutoClipEnabled(false)
   , CurrentDepthMm(-1)
   , ImageGeometryChanged(false)
-  , ImageToTransducerTransformName(NULL)
 {
   this->Porta = new porta;
   this->PortaConnected = false;
@@ -141,21 +145,18 @@ vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSource()
   this->LastRotationCcw = false;
 
   this->RequireImageOrientationInConfiguration = true;
-  // No need for StartThreadForInternalUpdates, as we are notified about each new frame through a callback function
 }
 
+//----------------------------------------------------------------------------
 vtkPlusSonixPortaVideoSource::~vtkPlusSonixPortaVideoSource()
 {
-  // clean up porta related sources
-  // this->vtkPlusSonixPortaVideoSource::ReleaseSystemResources();
-
-  // release all previously allocated memory
-  SetPortaProbeName(NULL);
-  SetPortaSettingPath(NULL);
-  SetPortaLicensePath(NULL);
-  SetPortaFirmwarePath(NULL);
-  SetPortaLUTPath(NULL);
-  SetImageToTransducerTransformName(NULL);
+  // Release all previously allocated memory
+  this->SetPortaProbeName(NULL);
+  this->SetPortaSettingPath(NULL);
+  this->SetPortaLicensePath(NULL);
+  this->SetPortaFirmwarePath(NULL);
+  this->SetPortaLUTPath(NULL);
+  this->SetImageToTransducerTransformName(NULL);
 
   delete [] this->ImageBuffer;
   this->ImageBuffer = NULL;
@@ -199,6 +200,7 @@ vtkPlusSonixPortaVideoSource* vtkPlusSonixPortaVideoSource::GetInstance()
   return (vtkPlusSonixPortaVideoSource::Instance);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlusSonixPortaVideoSource::SetInstance(vtkPlusSonixPortaVideoSource* instance)
 {
   if (vtkPlusSonixPortaVideoSource::Instance == instance)
@@ -252,7 +254,6 @@ void vtkPlusSonixPortaVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   int vtkPlusSonixPortaVideoSource::vtkPlusSonixPortaVideoSourceNewFrameCallback(void* param, int id, int header)
 #endif
 {
-
   if (id == 0)
   {
     // no actual data received
@@ -367,6 +368,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, b
 
     this->CurrentPixelSpacingMm[0] = 0.001 * currentPixelSpacingMicron[0];
     this->CurrentPixelSpacingMm[1] = 0.001 * currentPixelSpacingMicron[1];
+    this->CurrentPixelSpacingMm[2] = (this->CurrentPixelSpacingMm[0] + this->CurrentPixelSpacingMm[1]) / 2.0;
 
     std::array<int, 3> clipRectangleOrigin = aSource->GetClipRectangleOrigin();
     this->CurrentTransducerOriginPixels[0] = currentTransducerOriginPixels[0] - clipRectangleOrigin[0];
@@ -391,19 +393,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, b
   customFields["MotorRotatedToTransducerTransform"] = motorRotatedToTransducerTransformStr.str();
   customFields["MotorRotatedToTransducerTransformStatus"] = "OK";
 
-  if (this->ImageToTransducerTransformName != NULL && strlen(this->ImageToTransducerTransformName) > 0)
-  {
-    std::ostringstream imageToTransducerTransformStr;
-    double zPixelSpacingMm = (this->CurrentPixelSpacingMm[0] + this->CurrentPixelSpacingMm[1]) / 2.0; // set to non-zero to keep the matrix as a 3D-3D transformation
-    imageToTransducerTransformStr << this->CurrentPixelSpacingMm[0] << " 0 0 " << -1.0 * this->CurrentTransducerOriginPixels[0]*this->CurrentPixelSpacingMm[0];
-    imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0 * this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
-    imageToTransducerTransformStr << " 0 0 " << zPixelSpacingMm << " 0";
-    imageToTransducerTransformStr << " 0 0 0 1";
-    customFields["ImageToTransducerTransform"] = imageToTransducerTransformStr.str();
-    customFields["ImageToTransducerTransformStatus"] = "OK";
-  }
-
-  PlusStatus status = aSource->AddItem(deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
+  PlusStatus status = this->AddVideoItemToVideoSource(*aSource, deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
 
   this->Modified();
   return status;
@@ -700,7 +690,6 @@ PlusStatus vtkPlusSonixPortaVideoSource::ReadConfiguration(vtkXMLDataElement* ro
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(PortaFirmwarePath, deviceConfig);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoClipEnabled, deviceConfig);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(ImageToTransducerTransformName, deviceConfig);
 
   double obsolete = 0;
   if (deviceConfig->GetScalarAttribute("HighVoltage", obsolete))
@@ -753,7 +742,6 @@ PlusStatus vtkPlusSonixPortaVideoSource::WriteConfiguration(vtkXMLDataElement* r
   deviceConfig->SetAttribute("PortaFirmwarePath", this->PortaFirmwarePath);
 
   XML_WRITE_BOOL_ATTRIBUTE(AutoClipEnabled, deviceConfig);
-  XML_WRITE_CSTRING_ATTRIBUTE_REMOVE_IF_NULL(ImageToTransducerTransformName, deviceConfig);
 
   return PLUS_SUCCESS;
 }

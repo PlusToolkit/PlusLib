@@ -14,7 +14,7 @@ See License.txt for details.
 
 namespace tesseract
 {
-class TessBaseAPI;
+  class TessBaseAPI;
 }
 class vtkPlusTrackedFrameList;
 typedef struct Pix PIX;
@@ -50,9 +50,9 @@ public:
     vtkPlusChannel* SourceChannel;
     std::string ParameterName;
     /// This is only 3d for simplicity in passing to clipping function, OCR is 2d only
-    int Origin[3];
+    std::array<int, 3> Origin;
     /// This is only 3d for simplicity in passing to clipping function, OCR is 2d only
-    int Size[3];
+    std::array<int, 3> Size;
   };
 
 public:
@@ -62,7 +62,7 @@ public:
   typedef ChannelFieldListMap::iterator ChannelFieldListMapIterator;
 
 public:
-  static vtkPlusVirtualTextRecognizer *New();
+  static vtkPlusVirtualTextRecognizer* New();
   vtkTypeMacro(vtkPlusVirtualTextRecognizer, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
@@ -81,17 +81,11 @@ public:
   /*! Callback after configuration of all devices is complete */
   virtual PlusStatus NotifyConfigured();
 
-  virtual bool IsTracker() const
-  {
-    return false;
-  }
-  virtual bool IsVirtual() const
-  {
-    return true;
-  }
+  virtual bool IsTracker() const {return false;}
+  virtual bool IsVirtual() const {return true;}
 
-  vtkSetStringMacro(Language);
-  vtkGetStringMacro(Language);
+  vtkSetStdStringMacro(Language);
+  vtkGetStdStringMacro(Language);
 
   vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
   vtkGetObjectMacro(OutputChannel, vtkPlusChannel);
@@ -114,18 +108,18 @@ protected:
                               std::vector<PlusTrackedFrame*>& queriedFrames);
 
   /// Language used for detection
-  char* Language;
+  std::string                 Language;
 
   /// Main entry point for the tesseract API
-  tesseract::TessBaseAPI* TesseractAPI;
+  tesseract::TessBaseAPI*     TesseractAPI;
 
-  vtkPlusTrackedFrameList* TrackedFrames;
+  vtkPlusTrackedFrameList*    TrackedFrames;
 
   /// Map of channels to fields so that we only have to grab an image once from the each source channel
-  ChannelFieldListMap RecognitionFields;
+  ChannelFieldListMap         RecognitionFields;
 
   /// Optional output channel to store recognized fields for broadcasting
-  vtkPlusChannel* OutputChannel;
+  vtkPlusChannel*             OutputChannel;
 
 protected:
   vtkPlusVirtualTextRecognizer();

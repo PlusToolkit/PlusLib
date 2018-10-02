@@ -27,9 +27,7 @@ systems.  Derived classes should override the SetNewImagingParametersDevice() me
 */
 class vtkPlusDataCollectionExport vtkPlusUsDevice : public vtkPlusDevice
 {
-
 public:
-
   static vtkPlusUsDevice* New();
   vtkTypeMacro(vtkPlusUsDevice, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -40,53 +38,48 @@ public:
   /*! Write main configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
 
-  virtual PlusStatus InternalUpdate();
-
   /*!
-  Perform any completion tasks once configured
-  */
-  virtual PlusStatus NotifyConfigured() override;
-
-  /*!
-  Copy the new imaging parameters into the current parameter set
-  It is up to subclasses to take the new imaging parameter set and apply it to their respective devices
-  /param newImagingParameters class containing the new ultrasound imaging parameters
+    Copy the new imaging parameters into the current parameter set
+    It is up to subclasses to take the new imaging parameter set and apply it to their respective devices
+    /param newImagingParameters class containing the new ultrasound imaging parameters
   */
   virtual PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
 
-  /*!
-  This function can be called to add a video item to all video data sources
-  */
+  /*! This function can be called to add a video item to a specific video data source */
+  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  /*! This function can be called to add a video item to a specific video data source */
+  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
+      unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+
+  /*! This function can be called to add a video item to all video data sources */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
 
-  /*!
-  This function can be called to add a video item to the specified video data sources
-  */
+  /*! This function can be called to add a video item to the specified video data sources */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
       double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
 
   /*!
-    If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
-    The Transducer coordinate system origin is in the center of the transducer crystal array,
-    x axis direction is towards marked side, y axis direction is towards sound propagation direction,
-    and z direction is cross product of x and y, unit is mm.
+  If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
+  The Transducer coordinate system origin is in the center of the transducer crystal array,
+  x axis direction is towards marked side, y axis direction is towards sound propagation direction,
+  and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
+  lateral and axial pixel spacing.
   */
-  vtkGetStringMacro(TextRecognizerInputChannelName);
-  vtkSetStringMacro(TextRecognizerInputChannelName);
+  vtkGetStringMacro(ImageToTransducerTransformName);
+  vtkSetStringMacro(ImageToTransducerTransformName);
 
-  /*!
-    Get current imaging parameters
-  */
+  /*! Get current imaging parameters */
   vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
 
   // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.
-  // Implement these in all US devies that should support ultrasound sector information
-
+  // Implement these in all US devices that should support ultrasound sector information
 
   /*! Get probe type. */
-  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN;}
+  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN; }
 
   /*! Sector origin relative to upper left corner of image in pixels */
   virtual std::vector<double> CalculateOrigin() { return std::vector<double>(); }
@@ -107,10 +100,8 @@ public:
   virtual  double CalculateLinearWidth() { return 0; }
 
 protected:
-  /*!
-  Set changed imaging parameter to device
-  */
-  virtual PlusStatus RequestImagingParameterChange() { return PLUS_FAIL; };
+  /*! Set changed imaging parameter to device */
+  virtual PlusStatus InternalApplyImagingParameterChange() { return PLUS_FAIL; };
 
   void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
 
@@ -126,14 +117,8 @@ protected:
   /// Values used in calculation of image to transducer matrix
   int CurrentTransducerOriginPixels[3];
 
-  /// Channel to retrieve parameters from
-  vtkPlusChannel* InputChannel;
-
-  /// Container to hold values retrieved from the input
-  PlusTrackedFrame::FieldMapType FrameFields;
-
   PlusTransformName ImageToTransducerTransform;
-  char* TextRecognizerInputChannelName;
+  char* ImageToTransducerTransformName;
 
 private:
   vtkPlusUsDevice(const vtkPlusUsDevice&);  // Not implemented.

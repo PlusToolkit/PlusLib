@@ -9,7 +9,7 @@
 
 #include "TelemedUltrasound.h"
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkPlusDevice.h"
+#include "vtkPlusUsDevice.h"
 
 class vtkImageImport;
 class vtkPlusUsImagingParameters;
@@ -25,11 +25,11 @@ class vtkPlusUsImagingParameters;
   \ingroup PlusLibDataCollection
 */
 
-class vtkPlusDataCollectionExport vtkPlusTelemedVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusTelemedVideoSource : public vtkPlusUsDevice
 {
 public:
   static vtkPlusTelemedVideoSource* New();
-  vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusDevice);
+  vtkTypeMacro(vtkPlusTelemedVideoSource, vtkPlusUsDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read configuration from xml data */
@@ -78,6 +78,11 @@ public:
 
   /*! Request a particular frame size */
   virtual PlusStatus SetFrameSize(const FrameSizeType& frameSize);
+
+  /*!
+  Set changed imaging parameter to device
+  */
+  virtual PlusStatus InternalApplyImagingParameterChange();
 
 protected:
   /*! Constructor */

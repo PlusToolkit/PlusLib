@@ -39,6 +39,13 @@ IF(PLUS_USE_OpenIGTLink)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# Use IGSIO
+OPTION(PLUS_USE_IGSIO "Use IGSIO" OFF)
+IF (PLUS_USE_IGSIO)
+  FIND_PACKAGE(IGSIO REQUIRED NO_MODULE)
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Options
 OPTION(BUILD_SHARED_LIBS "Build with shared libraries." ${VTK_BUILD_SHARED_LIBS} ${ITK_BUILD_SHARED_LIBS})
 

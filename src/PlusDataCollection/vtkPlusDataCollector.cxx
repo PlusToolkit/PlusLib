@@ -231,6 +231,28 @@ PlusStatus vtkPlusDataCollector::ReadConfiguration(vtkXMLDataElement* aConfig)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDataCollector::ReadConfiguration(const std::string& fileName)
+{
+  vtkXMLDataElement* element = vtkPlusConfig::GetInstance()->CreateDeviceSetConfigurationFromFile(fileName);
+
+  if (element == nullptr)
+  {
+    return PLUS_FAIL;
+  }
+
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(fileName);
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(element);
+
+  if (this->ReadConfiguration(element) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Datacollector failed to read configuration");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDataCollector::WriteConfiguration(vtkXMLDataElement* aConfig)
 {
   LOG_TRACE("vtkPlusDataCollector::WriteConfiguration()");
@@ -593,11 +615,11 @@ PlusStatus vtkPlusDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel,
     trackedFrame->SetTimestamp(itemTimestamp);
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetCustomFrameFieldMap();
+    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetFrameFieldMap();
     StreamBufferItem::FieldMapType::iterator fieldIterator;
     for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      trackedFrame->SetCustomFrameField((*fieldIterator).first, (*fieldIterator).second);
+      trackedFrame->SetFrameField((*fieldIterator).first, (*fieldIterator).second);
     }
 
     // Add tracked frame to the list

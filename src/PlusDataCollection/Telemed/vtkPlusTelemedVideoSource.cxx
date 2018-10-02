@@ -10,6 +10,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusTelemedVideoSource.h"
+#include "vtkPlusUsImagingParameters.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -226,18 +227,21 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
 #define IMAGING_PARAMETER_SET(parameterName) \
 PlusStatus vtkPlusTelemedVideoSource::Set##parameterName(double a##parameterName) \
 { \
+  LOG_INFO("Setting US parameter "<<#parameterName<<"="<<a##parameterName); \
   if (this->Device==NULL) \
   { \
     /* Connection has not been established yet. Parameter value will be set upon connection. */ \
     this->parameterName=a##parameterName; \
     return PLUS_SUCCESS; \
   } \
+  int oldParamValue = this->parameterName; \
+  this->parameterName=a##parameterName; \
   if (this->Device->Set##parameterName(this->parameterName)!=PLUS_SUCCESS) \
   { \
-    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: "<<parameterName<<"="<<a##parameterName); \
+    LOG_ERROR("vtkPlusTelemedVideoSource parameter setting failed: "<<#parameterName<<"="<<a##parameterName); \
+    this->parameterName=oldParamValue; \
     return PLUS_FAIL; \
   } \
-  this->parameterName=a##parameterName; \
   return PLUS_SUCCESS; \
 }
 
@@ -302,4 +306,48 @@ PlusStatus vtkPlusTelemedVideoSource::SetFrameSize(const FrameSizeType& frameSiz
 {
   this->FrameSize = frameSize;
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
+{
+  PlusStatus status = PLUS_SUCCESS;
+
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY))
+  {
+    if (this->SetFrequencyMhz(this->ImagingParameters->GetFrequencyMhz()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set frequency imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH))
+  {
+    if (this->SetDepthMm(this->ImagingParameters->GetDepthMm()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set depth imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_GAIN)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_GAIN))
+  {
+    if (this->SetGainPercent(this->ImagingParameters->GetGainPercent()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set gain imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DYNRANGE)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DYNRANGE))
+  {
+    if (this->SetDynRangeDb(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set dynamic range imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+  return status;
 }

@@ -15,6 +15,10 @@ See License.txt for details.
 #include "vtkPlusVirtualCapture.h"
 #include "vtksys/SystemTools.hxx"
 
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+#include "vtkPlusMkvSequenceIO.h"
+#endif
+
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusVirtualCapture);
@@ -103,6 +107,7 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -170,7 +175,6 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 {
   PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
-  // Because this virtual device continually appends data to the file, we cannot do live compression
   if (aFilename == NULL || strlen(aFilename) == 0)
   {
     std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
@@ -183,7 +187,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     else if (vtkPlusMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = filenameRoot + "_" + vtksys::SystemTools::GetCurrentDateTime("%Y%m%d_%H%M%S") + ext;
@@ -194,14 +198,27 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     if (vtkPlusMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
-      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed mha.");
+      LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
       this->SetEnableFileCompression(false);
     }
     this->CurrentFilename = aFilename;
   }
 
   this->Writer = vtkPlusSequenceIO::CreateSequenceHandlerForFile(aFilename);
-  this->Writer->SetUseCompression(this->EnableFileCompression);
+  if (!this->Writer)
+  {
+    LOG_ERROR("Could not create writer for file: " << aFilename);
+    return PLUS_FAIL;
+  }
+
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+  vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
+  if (mkvWriter)
+  {
+    mkvWriter->SetEncodingFourCC(this->CodecFourCC);
+  }
+#endif
+
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));
@@ -538,7 +555,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
 
   // Check if there are any valid transforms
   std::vector<PlusTransformName> transformNames;
-  trackedFrame.GetCustomFrameTransformNameList(transformNames);
+  trackedFrame.GetFrameTransformNameList(transformNames);
   bool validFrame = false;
 
   if (transformNames.size() == 0)
@@ -550,7 +567,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
     for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
     {
       TrackedFrameFieldStatus status = FIELD_INVALID;
-      trackedFrame.GetCustomFrameTransformStatus(*it, status);
+      trackedFrame.GetFrameTransformStatus(*it, status);
 
       if (status == FIELD_OK)
       {

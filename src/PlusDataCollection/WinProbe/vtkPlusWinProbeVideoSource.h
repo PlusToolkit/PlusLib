@@ -152,8 +152,8 @@ protected:
   std::string m_transducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
   double m_timestampOffset = 0; //difference between program start time and latest InternalStartRecording()
-  uint32_t m_transducerCount = 128;
-  uint32_t m_samplesPerLine = 512;
+  int32_t m_transducerCount = 128;
+  int32_t m_samplesPerLine = 512;
   PlusTrackedFrame::FieldMapType m_customFields;
   std::thread* m_watchdog = nullptr;
   double m_lastTimestamp = 0.0; //for watchdog

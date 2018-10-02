@@ -307,7 +307,7 @@ public:
   int GetNumberOfBytesPerPixel();
 
   /*! Copy images from a tracked frame buffer. It is useful when data is stored in a metafile and the data is needed as a vtkPlusDataBuffer. */
-  PlusStatus CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList* sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields);
+  PlusStatus CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList* sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyFrameFields);
 
   /*! Dump the current state of the video buffer to metafile */
   virtual PlusStatus WriteToSequenceFile(const char* filename, bool useCompression = false);

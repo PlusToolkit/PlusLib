@@ -322,7 +322,7 @@ PlusStatus vtkPlusBuffer::AddItem(const PlusTrackedFrame::FieldMapType& fields,
   // Add custom fields
   for (PlusTrackedFrame::FieldMapType::const_iterator it = fields.begin(); it != fields.end(); ++it)
   {
-    newObjectInBuffer->SetCustomFrameField(it->first, it->second);
+    newObjectInBuffer->SetFrameField(it->first, it->second);
     std::string name(it->first);
   }
 
@@ -459,7 +459,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   {
     for (PlusTrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it)
     {
-      newObjectInBuffer->SetCustomFrameField(it->first, it->second);
+      newObjectInBuffer->SetFrameField(it->first, it->second);
       std::string name(it->first);
       if (name.find("Transform") != std::string::npos)
       {
@@ -548,7 +548,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, const FrameSizeType& frame
   {
     for (PlusTrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it)
     {
-      newObjectInBuffer->SetCustomFrameField(it->first, it->second);
+      newObjectInBuffer->SetFrameField(it->first, it->second);
       std::string name(it->first);
       if (name.find("Transform") != std::string::npos)
       {
@@ -557,7 +557,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr, const FrameSizeType& frame
     }
   }
 
-  newObjectInBuffer->SetCustomFrameField("FrameSizeInBytes", PlusCommon::ToString<unsigned int>(inputFrameSizeInBytes));
+  newObjectInBuffer->SetFrameField("FrameSizeInBytes", PlusCommon::ToString<unsigned int>(inputFrameSizeInBytes));
 
   return PLUS_SUCCESS;
 }
@@ -624,7 +624,7 @@ PlusStatus vtkPlusBuffer::AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus st
   {
     for (PlusTrackedFrame::FieldMapType::const_iterator it = customFields->begin(); it != customFields->end(); ++it)
     {
-      newObjectInBuffer->SetCustomFrameField(it->first, it->second);
+      newObjectInBuffer->SetFrameField(it->first, it->second);
       std::string name(it->first);
       if (name.find("Transform") != std::string::npos)
       {
@@ -838,7 +838,7 @@ int vtkPlusBuffer::GetNumberOfBytesPerPixel()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList* sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyCustomFrameFields)
+PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList* sourceTrackedFrameList, TIMESTAMP_FILTERING_OPTION timestampFiltering, bool copyFrameFields)
 {
   int numberOfErrors = 0;
 
@@ -888,7 +888,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
   for (int frameNumber = 0; frameNumber < numberOfVideoFrames; frameNumber++)
   {
     StreamBufferItem::FieldMapType customFields;
-    if (copyCustomFrameFields)
+    if (copyFrameFields)
     {
       // Copy all custom fields
       StreamBufferItem::FieldMapType sourceCustomFields = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFields();
@@ -915,7 +915,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
 
     // read filtered timestamp
     double timestamp(0);
-    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
+    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("Timestamp");
     if (strTimestamp != NULL)
     {
       if (PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp)
@@ -934,7 +934,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
 
     // read unfiltered timestamp
     double unfilteredtimestamp(0);
-    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp");
+    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("UnfilteredTimestamp");
     if (strUnfilteredTimestamp != NULL)
     {
       if (PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp)
@@ -952,7 +952,7 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkPlusTrackedFrameList
     }
 
     // read frame number
-    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber");
+    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("FrameNumber");
     unsigned long frmnum(0);
     if (strFrameNumber != NULL)
     {
@@ -1027,32 +1027,32 @@ PlusStatus vtkPlusBuffer::WriteToSequenceFile(const char* filename, bool useComp
     // Add tracking data
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
     bufferItem.GetMatrix(matrix);
-    trackedFrame->SetCustomFrameTransform(PlusTransformName("Tool", "Tracker"), matrix);
-    trackedFrame->SetCustomFrameTransformStatus(PlusTransformName("Tool", "Tracker"), (bufferItem.GetStatus() == TOOL_OK) ? FIELD_OK : FIELD_INVALID);
+    trackedFrame->SetFrameTransform(PlusTransformName("Tool", "Tracker"), matrix);
+    trackedFrame->SetFrameTransformStatus(PlusTransformName("Tool", "Tracker"), (bufferItem.GetStatus() == TOOL_OK) ? FIELD_OK : FIELD_INVALID);
 
     // Add filtered timestamp
     double filteredTimestamp = bufferItem.GetFilteredTimestamp(this->GetLocalTimeOffsetSec());
     std::ostringstream timestampFieldValue;
     timestampFieldValue << std::fixed << filteredTimestamp;
-    trackedFrame->SetCustomFrameField("Timestamp", timestampFieldValue.str());
+    trackedFrame->SetFrameField("Timestamp", timestampFieldValue.str());
 
     // Add unfiltered timestamp
     double unfilteredTimestamp = bufferItem.GetUnfilteredTimestamp(this->GetLocalTimeOffsetSec());
     std::ostringstream unfilteredtimestampFieldValue;
     unfilteredtimestampFieldValue << std::fixed << unfilteredTimestamp;
-    trackedFrame->SetCustomFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
+    trackedFrame->SetFrameField("UnfilteredTimestamp", unfilteredtimestampFieldValue.str());
 
     // Add frame number
     unsigned long frameNumber = bufferItem.GetIndex();
     std::ostringstream frameNumberFieldValue;
     frameNumberFieldValue << std::fixed << frameNumber;
-    trackedFrame->SetCustomFrameField("FrameNumber", frameNumberFieldValue.str());
+    trackedFrame->SetFrameField("FrameNumber", frameNumberFieldValue.str());
 
     // Add custom fields
-    const PlusTrackedFrame::FieldMapType& customFields = bufferItem.GetCustomFrameFieldMap();
+    const PlusTrackedFrame::FieldMapType& customFields = bufferItem.GetFrameFieldMap();
     for (PlusTrackedFrame::FieldMapType::const_iterator cf = customFields.begin(); cf != customFields.end(); ++cf)
     {
-      trackedFrame->SetCustomFrameField(cf->first, cf->second);
+      trackedFrame->SetFrameField(cf->first, cf->second);
     }
 
     // Add tracked frame to the list
@@ -1224,7 +1224,7 @@ PlusStatus vtkPlusBuffer::ModifyBufferItemFrameField(BufferItemUidType uid, cons
   auto itemStatus = this->StreamBuffer->GetBufferItemPointerFromUid(uid, item);
   if (itemStatus == ITEM_OK)
   {
-    item->SetCustomFrameField(key, value);
+    item->SetFrameField(key, value);
   }
   return itemStatus == ITEM_OK ? PLUS_SUCCESS : PLUS_FAIL;
 }
@@ -1461,7 +1461,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
 
     // read filtered timestamp
     double timestamp(0);
-    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("Timestamp");
+    const char* strTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("Timestamp");
     if (strTimestamp != NULL)
     {
       if (PlusCommon::StringToDouble(strTimestamp, timestamp) != PLUS_SUCCESS && requireTimestamp)
@@ -1480,7 +1480,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
 
     // read unfiltered timestamp
     double unfilteredtimestamp(0);
-    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("UnfilteredTimestamp");
+    const char* strUnfilteredTimestamp = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("UnfilteredTimestamp");
     if (strUnfilteredTimestamp != NULL)
     {
       if (PlusCommon::StringToDouble(strUnfilteredTimestamp, unfilteredtimestamp) != PLUS_SUCCESS && requireUnfilteredTimestamp)
@@ -1499,7 +1499,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
 
     // read status
     TrackedFrameFieldStatus transformStatus = FIELD_OK;
-    if (sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransformStatus(transformName, transformStatus) != PLUS_SUCCESS
+    if (sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameTransformStatus(transformName, transformStatus) != PLUS_SUCCESS
         && requireFrameStatus)
     {
       LOCAL_LOG_ERROR("Unable to read TransformStatus field of frame #" << frameNumber);
@@ -1508,7 +1508,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
     }
 
     // read frame number
-    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameField("FrameNumber");
+    const char* strFrameNumber = sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameField("FrameNumber");
     unsigned long frmnum(0);
     if (strFrameNumber != NULL)
     {
@@ -1527,7 +1527,7 @@ PlusStatus vtkPlusBuffer::CopyTransformFromTrackedFrameList(vtkPlusTrackedFrameL
     }
 
     double copiedTransform[16] = {0};
-    if (!sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetCustomFrameTransform(transformName, copiedTransform))
+    if (!sourceTrackedFrameList->GetTrackedFrame(frameNumber)->GetFrameTransform(transformName, copiedTransform))
     {
       std::string strTransformName;
       transformName.GetTransformName(strTransformName);

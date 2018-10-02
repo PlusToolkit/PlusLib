@@ -13,6 +13,7 @@ happens between two threads. In real life, it happens between two programs.
 
 #include "PlusConfigure.h"
 #include "PlusCommon.h"
+#include "vtkNew.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusOpenIGTLinkVideoSource.h"
 #include "vtkPlusBuffer.h"
@@ -80,60 +81,36 @@ int main(int argc, char** argv)
   LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
 
   // Read main configuration file
-  std::string configFilePath = inputConfigFileName;
-  if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
+  vtkNew<vtkPlusDataCollector> dataCollector;
+  if (dataCollector->ReadConfiguration(inputConfigFileName) != PLUS_SUCCESS)
   {
-    configFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(inputConfigFileName);
-    if (!vtksys::SystemTools::FileExists(configFilePath.c_str(), true))
-    {
-      LOG_ERROR("Reading device set configuration file failed: " << inputConfigFileName << " does not exist in the current directory or in " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationDirectory());
-      exit(EXIT_FAILURE);
-    }
-  }
-  vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(configFilePath.c_str()));
-  if (configRootElement == NULL)
-  {
-    LOG_ERROR("Reading device set configuration file failed: syntax error in " << inputConfigFileName);
+    LOG_ERROR("Datacollector failed to read configuration");
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationFileName(inputConfigFileName);
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
-
-  // Print configuration file contents for debugging purposes
-  LOG_DEBUG("Device set configuration is read from file: " << inputConfigFileName);
-  std::ostringstream xmlFileContents;
-  PlusCommon::XML::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
-  LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
-
+  // Recover config root element
   LOG_INFO("Server status: Reading configuration.");
-  // Create data collector instance
-  vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
-  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
-  {
-    LOG_ERROR("Datacollector failed to read configuration");
-    return PLUS_FAIL;
-  }
+  vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
 
   // Create transform repository instance
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkNew<vtkPlusTransformRepository> transformRepository;
   if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Transform repository failed to read configuration");
-    return PLUS_FAIL;
+    exit(EXIT_FAILURE);
   }
 
   LOG_INFO("Server status: Connecting to devices.");
   if (dataCollector->Connect() != PLUS_SUCCESS)
   {
     LOG_ERROR("Datacollector failed to connect to devices");
-    return PLUS_FAIL;
+    exit(EXIT_FAILURE);
   }
 
   if (dataCollector->Start() != PLUS_SUCCESS)
   {
     LOG_ERROR("Datacollector failed to start");
-    return PLUS_FAIL;
+    exit(EXIT_FAILURE);
   }
 
   LOG_INFO("Server status: Starting servers.");
@@ -152,7 +129,7 @@ int main(int argc, char** argv)
     // This is a PlusServer tag, let's create it
     vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = vtkSmartPointer<vtkPlusOpenIGTLinkServer>::New();
     LOG_DEBUG("Initializing Plus OpenIGTLink server... ");
-    if (server->Start(dataCollector, transformRepository, serverElement, configFilePath) != PLUS_SUCCESS)
+    if (server->Start(dataCollector.GetPointer(), transformRepository.GetPointer(), serverElement, vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to start OpenIGTLink server");
       exit(EXIT_FAILURE);

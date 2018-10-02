@@ -163,7 +163,7 @@ PlusStatus vtkPlusNDITracker::Probe()
 
   if (this->SerialPort > 0)
   {
-    char* devicename = NULL;
+    const char* devicename = NULL;
     int errnum = NDI_OPEN_ERROR;
     devicename = ndiSerialDeviceName(this->SerialPort - 1);
     if (devicename)
@@ -190,7 +190,7 @@ PlusStatus vtkPlusNDITracker::Probe()
     return ProbeSerialInternal();
 #else
     // if SerialPort is set to -1 (default), then probe the first N serial ports
-    char* devicename = NULL;
+    const char* devicename = NULL;
     int errnum = NDI_OPEN_ERROR;
 
     const int MAX_SERIAL_PORT_NUMBER = 20; // the serial port is almost surely less than this number
@@ -1407,7 +1407,7 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
   std::vector<std::future<void>> tasks;
   for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
   {
-    char* dev = ndiSerialDeviceName(i);
+    const char* dev = ndiSerialDeviceName(i);
     LOG_DEBUG("Testing serial port: " << dev);
     if (dev != nullptr)
     {
@@ -1433,7 +1433,7 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
     // use first device found
     if (deviceExists[i] == true)
     {
-      char* devicename = ndiSerialDeviceName(i);
+      const char* devicename = ndiSerialDeviceName(i);
       this->SerialPort = i + 1;
       if (this->LeaveDeviceOpenAfterProbe)
       {

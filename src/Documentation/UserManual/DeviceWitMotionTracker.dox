@@ -1,0 +1,47 @@
+/*!
+\page DeviceWitMotion WitMotion BWT901CL: Nine axis Bluetooth attitude angle sensor
+
+\section WitMotionSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: http://www.wit-motion.com/english.php?m=text&a=index&classify_id=46395
+
+\section WitMotionSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+
+\section WitMotionInstallation BlueTooth Installation
+
+- Other WitMotion devices may be used with this configuration but this section is 
+meant for setting up the BlueTooth version on Windows 10
+  - Make sure Bluetooth is enabled (Settings-Devices-Bluetooth On)
+  - Click Add Bluetooth or other device
+  - Click Bluetooth, make sure accelerometer 1 is turned on and flashing blue
+  - Enter PIN to pair (1234)
+  - Should be labelled as HC-06 (Or Unknown Device)
+  - In Bluetooth settings, click on more Bluetooth options
+  - Click on COM Ports and take note of the outgoing COM Port number
+  - Use this COM Port number for Serial Port number in the config file
+
+\section WitMotionConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "WitMotionTracker" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlAtt \b SerialPort Used COM port number for serial communication (ComPort: 1 => Port name: "COM1"). \OptionalAtt{5}
+- \xmlAtt \b BaudRate Baud rate for serial communication. \OptionalAtt{115200}
+
+- \xmlElem \ref DataSources Exactly one \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "OrientationSensor" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section WitMotionTrackerExampleConfigFile Example configuration file PlusDeviceSet_Server_WitMotionTracker.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_WitMotionTracker.xml"
+
+*/

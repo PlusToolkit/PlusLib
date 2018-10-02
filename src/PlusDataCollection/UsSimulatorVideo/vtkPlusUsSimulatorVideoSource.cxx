@@ -236,10 +236,10 @@ PlusStatus vtkPlusUsSimulatorVideoSource::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
+PlusStatus vtkPlusUsSimulatorVideoSource::InternalApplyImagingParameterChange()
 {
   if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
-    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH) )
+       && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH) )
   {
     vtkPlusUsScanConvert* scanConverter = this->UsSimulator->GetRfProcessor()->GetScanConverter();
     vtkPlusUsScanConvertLinear* linearScanConverter = vtkPlusUsScanConvertLinear::SafeDownCast(scanConverter);
@@ -256,19 +256,19 @@ PlusStatus vtkPlusUsSimulatorVideoSource::RequestImagingParameterChange()
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_DEPTH, false);
   }
   if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY)
-    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY) )
+       && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY) )
   {
     this->UsSimulator->SetFrequencyMhz(this->ImagingParameters->GetFrequencyMhz());
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_FREQUENCY, false);
   }
   if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_INTENSITY)
-    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_INTENSITY) )
+       && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_INTENSITY) )
   {
     this->UsSimulator->SetIncomingIntensityMwPerCm2(this->ImagingParameters->GetIntensity());
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_INTENSITY, false);
   }
   if ( this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_CONTRAST)
-    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_CONTRAST) )
+       && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_CONTRAST) )
   {
     this->UsSimulator->SetBrightnessConversionGamma(this->ImagingParameters->GetContrast());
     this->ImagingParameters->SetPending(vtkPlusUsImagingParameters::KEY_CONTRAST, false);

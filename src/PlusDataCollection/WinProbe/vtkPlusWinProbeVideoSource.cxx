@@ -18,7 +18,7 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusWinProbeVideoSource);
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
@@ -49,7 +49,7 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   }
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusWinProbeVideoSource::ReadConfiguration");
@@ -70,7 +70,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
@@ -90,7 +90,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 vtkPlusWinProbeVideoSource* thisPtr = NULL;
 
 //----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeomet
   return length;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHeader, char* hGeometry)
 {
   CineModeFrameHeader* header = (CineModeFrameHeader*)hHeader;
@@ -302,7 +302,7 @@ void vtkPlusWinProbeVideoSource::AdjustSpacing()
   LOG_DEBUG("Adjusted spacing: " << spacingStream.str());
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 {
   this->RequireImageOrientationInConfiguration = true;
@@ -325,7 +325,7 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
   WPInitialize();
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 vtkPlusWinProbeVideoSource::~vtkPlusWinProbeVideoSource()
 {
   if(this->Connected)
@@ -334,7 +334,7 @@ vtkPlusWinProbeVideoSource::~vtkPlusWinProbeVideoSource()
   }
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 {
   this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_rfSources);
@@ -376,7 +376,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 {
   LOG_DEBUG("Disconnect from WinProbe");
@@ -388,7 +388,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::Watchdog()
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -406,7 +406,7 @@ void vtkPlusWinProbeVideoSource::Watchdog()
   }
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
   //apply requested settings
@@ -434,7 +434,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
   WPStopScanning();
@@ -447,7 +447,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
 {
   if(!IsRecording() == freeze) //already in desired mode
@@ -467,13 +467,13 @@ PlusStatus vtkPlusWinProbeVideoSource::FreezeDevice(bool freeze)
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool vtkPlusWinProbeVideoSource::IsFrozen()
 {
   return !IsRecording();
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTxTxFrequency(float frequency)
 {
   m_frequency = frequency;

@@ -33,7 +33,7 @@ Camera calibration determines optical properties of your camera (distortion, foc
   - \c camera-index is the integer index of the camera you want to use (usually 0 or 1).
   - \c output-file-name is the desired output file name.
   - \c marker-size-m is the size of a marker side in meters.
-- With the video window selected:
+- With the video window selected (keyboard shortcuts will not work while the command line window is selected):
   - Press \b a to capture image and add to the calibration image set.
   - Press \b c to run calibration on the captured images.  "repj" is a measure of the calibration error (normal is < 1).
   - Press \b s to stop calibration.

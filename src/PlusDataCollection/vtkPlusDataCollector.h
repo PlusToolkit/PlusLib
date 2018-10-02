@@ -40,6 +40,7 @@ public:
   Read main configuration from xml data
   */
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
+  PlusStatus ReadConfiguration(const std::string& fileName);
   /*!
   Write main configuration to xml data
   */

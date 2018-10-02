@@ -19,6 +19,10 @@
 #include "vtksys/SystemTools.hxx"
 #include <math.h>
 
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+#include <vtkPlusMkvSequenceIO.h>
+#endif
+
 //----------------------------------------------------------------------------
 // ************************* vtkPlusTrackedFrameList *****************************
 //----------------------------------------------------------------------------
@@ -368,7 +372,7 @@ bool vtkPlusTrackedFrameList::ValidateSpeed(PlusTrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkMatrix4x4> inputTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double inputTransformVector[16] = {0};
-  if (trackedFrame->GetCustomFrameTransform(this->FrameTransformNameForValidation, inputTransformVector))
+  if (trackedFrame->GetFrameTransform(this->FrameTransformNameForValidation, inputTransformVector))
   {
     inputTransformMatrix->DeepCopy(inputTransformVector);
   }
@@ -382,7 +386,7 @@ bool vtkPlusTrackedFrameList::ValidateSpeed(PlusTrackedFrame* trackedFrame)
 
   vtkSmartPointer<vtkMatrix4x4> latestTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   double latestTransformVector[16] = {0};
-  if ((*latestFrameInList)->GetCustomFrameTransform(this->FrameTransformNameForValidation, latestTransformVector))
+  if ((*latestFrameInList)->GetFrameTransform(this->FrameTransformNameForValidation, latestTransformVector))
   {
     latestTransformMatrix->DeepCopy(latestTransformVector);
   }
@@ -544,6 +548,63 @@ PlusStatus vtkPlusTrackedFrameList::ReadFromNrrdFile(const std::string& trackedS
     return PLUS_FAIL;
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTrackedFrameList::SaveToMatroskaFile(const std::string& filename, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool enableImageDataWrite /*= true*/)
+{
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+  vtkSmartPointer<vtkPlusMkvSequenceIO> writer = vtkSmartPointer<vtkPlusMkvSequenceIO>::New();
+  writer->SetUseCompression(useCompression);
+  writer->SetFileName(filename);
+  writer->SetTrackedFrameList(this);
+  if (writer->Write() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't write MKV file: " << filename);
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+#else
+  LOG_ERROR(
+    "Plus has not been compiled with MKV read/write support. "
+    "Configure PlusBuild with PLUS_USE_VTKVIDEOIO_MKV enabled."
+    );
+  return PLUS_FAIL;
+#endif
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusTrackedFrameList::ReadFromMatroskaFile(const std::string& trackedSequenceDataFileName)
+{
+#ifdef PLUS_USE_VTKVIDEOIO_MKV
+  std::string trackedSequenceDataFilePath(trackedSequenceDataFileName);
+
+  // If file is not found in the current directory then try to find it in the image directory, too
+  if (!vtksys::SystemTools::FileExists(trackedSequenceDataFilePath.c_str(), true))
+  {
+    if (vtkPlusConfig::GetInstance()->FindImagePath(trackedSequenceDataFileName, trackedSequenceDataFilePath) == PLUS_FAIL)
+    {
+      LOG_ERROR("Cannot find MKV file: " << trackedSequenceDataFileName);
+      return PLUS_FAIL;
+    }
+  }
+
+  vtkSmartPointer<vtkPlusMkvSequenceIO> reader = vtkSmartPointer<vtkPlusMkvSequenceIO>::New();
+  reader->SetFileName(trackedSequenceDataFilePath.c_str());
+  reader->SetTrackedFrameList(this);
+  if (reader->Read() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Couldn't read MKV file: " << trackedSequenceDataFileName);
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+#else
+  LOG_ERROR(
+    "Plus has not been compiled with MKV read/write support. "
+    "Configure PlusBuild with PLUS_USE_VTKVIDEOIO_MKV enabled."
+    );
+  return PLUS_FAIL;
+#endif
 }
 
 //-----------------------------------------------------------------------------

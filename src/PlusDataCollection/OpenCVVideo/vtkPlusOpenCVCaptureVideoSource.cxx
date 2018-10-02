@@ -33,6 +33,7 @@ vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
   , CameraMatrix(nullptr)
   , DistortionCoefficients(nullptr)
   , AutofocusEnabled(false)
+  , AutoexposureEnabled(false)
 {
   this->FrameSize = { 0, 0, 0 };
   this->RequireImageOrientationInConfiguration = true;
@@ -108,6 +109,7 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
   }
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutofocusEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(AutoexposureEnabled, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -137,6 +139,7 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement
   }
 
   XML_WRITE_BOOL_ATTRIBUTE(AutofocusEnabled, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(AutoexposureEnabled, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -195,7 +198,17 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
   }
   if (!this->Capture->set(cv::CAP_PROP_AUTOFOCUS, this->AutofocusEnabled ? 1 : 0))
   {
-    LOG_WARNING("Could not set the autofocus property.");
+    if (this->AutofocusEnabled)
+    {
+      LOG_WARNING("Could not set the autofocus property.");
+    }
+  }
+  if (!this->Capture->set(cv::CAP_PROP_AUTO_EXPOSURE, this->AutoexposureEnabled ? 1 : 0))
+  {
+    if (this->AutoexposureEnabled)
+    {
+      LOG_WARNING("Could not set the autoexposure property.");
+    }
   }
 
   this->FrameSize[0] = cvRound(this->Capture->get(cv::CAP_PROP_FRAME_WIDTH));
@@ -458,54 +471,54 @@ std::string vtkPlusOpenCVCaptureVideoSource::StringFromCaptureAPI(cv::VideoCaptu
 {
   switch (api)
   {
-    case cv::CAP_ANY:
-      return _StringFromEnum(CAP_ANY);
-    case cv::CAP_VFW:
-      return _StringFromEnum(CAP_VFW);
-    case cv::CAP_FIREWIRE:
-      return _StringFromEnum(CAP_FIREWIRE);
-    case cv::CAP_QT:
-      return _StringFromEnum(CAP_QT);
-    case cv::CAP_UNICAP:
-      return _StringFromEnum(CAP_UNICAP);
-    case cv::CAP_DSHOW:
-      return _StringFromEnum(CAP_DSHOW);
-    case cv::CAP_PVAPI:
-      return _StringFromEnum(CAP_PVAPI);
-    case cv::CAP_OPENNI:
-      return _StringFromEnum(CAP_OPENNI);
-    case cv::CAP_OPENNI_ASUS:
-      return _StringFromEnum(CAP_OPENNI_ASUS);
-    case cv::CAP_ANDROID:
-      return _StringFromEnum(CAP_ANDROID);
-    case cv::CAP_XIAPI:
-      return _StringFromEnum(CAP_XIAPI);
-    case cv::CAP_AVFOUNDATION:
-      return _StringFromEnum(CAP_AVFOUNDATION);
-    case cv::CAP_GIGANETIX:
-      return _StringFromEnum(CAP_GIGANETIX);
-    case cv::CAP_MSMF:
-      return _StringFromEnum(CAP_MSMF);
-    case cv::CAP_WINRT:
-      return _StringFromEnum(CAP_WINRT);
-    case cv::CAP_INTELPERC:
-      return _StringFromEnum(CAP_INTELPERC);
-    case cv::CAP_OPENNI2:
-      return _StringFromEnum(CAP_OPENNI2);
-    case cv::CAP_OPENNI2_ASUS:
-      return _StringFromEnum(CAP_OPENNI2_ASUS);
-    case cv::CAP_GPHOTO2:
-      return _StringFromEnum(CAP_GPHOTO2);
-    case cv::CAP_GSTREAMER:
-      return _StringFromEnum(CAP_GSTREAMER);
-    case cv::CAP_FFMPEG:
-      return _StringFromEnum(CAP_FFMPEG);
-    case cv::CAP_IMAGES:
-      return _StringFromEnum(CAP_IMAGES);
-    case cv::CAP_ARAVIS:
-      return _StringFromEnum(CAP_ARAVIS);
-    default:
-      return "CAP_ANY";
+  case cv::CAP_ANY:
+    return _StringFromEnum(CAP_ANY);
+  case cv::CAP_VFW:
+    return _StringFromEnum(CAP_VFW);
+  case cv::CAP_FIREWIRE:
+    return _StringFromEnum(CAP_FIREWIRE);
+  case cv::CAP_QT:
+    return _StringFromEnum(CAP_QT);
+  case cv::CAP_UNICAP:
+    return _StringFromEnum(CAP_UNICAP);
+  case cv::CAP_DSHOW:
+    return _StringFromEnum(CAP_DSHOW);
+  case cv::CAP_PVAPI:
+    return _StringFromEnum(CAP_PVAPI);
+  case cv::CAP_OPENNI:
+    return _StringFromEnum(CAP_OPENNI);
+  case cv::CAP_OPENNI_ASUS:
+    return _StringFromEnum(CAP_OPENNI_ASUS);
+  case cv::CAP_ANDROID:
+    return _StringFromEnum(CAP_ANDROID);
+  case cv::CAP_XIAPI:
+    return _StringFromEnum(CAP_XIAPI);
+  case cv::CAP_AVFOUNDATION:
+    return _StringFromEnum(CAP_AVFOUNDATION);
+  case cv::CAP_GIGANETIX:
+    return _StringFromEnum(CAP_GIGANETIX);
+  case cv::CAP_MSMF:
+    return _StringFromEnum(CAP_MSMF);
+  case cv::CAP_WINRT:
+    return _StringFromEnum(CAP_WINRT);
+  case cv::CAP_INTELPERC:
+    return _StringFromEnum(CAP_INTELPERC);
+  case cv::CAP_OPENNI2:
+    return _StringFromEnum(CAP_OPENNI2);
+  case cv::CAP_OPENNI2_ASUS:
+    return _StringFromEnum(CAP_OPENNI2_ASUS);
+  case cv::CAP_GPHOTO2:
+    return _StringFromEnum(CAP_GPHOTO2);
+  case cv::CAP_GSTREAMER:
+    return _StringFromEnum(CAP_GSTREAMER);
+  case cv::CAP_FFMPEG:
+    return _StringFromEnum(CAP_FFMPEG);
+  case cv::CAP_IMAGES:
+    return _StringFromEnum(CAP_IMAGES);
+  case cv::CAP_ARAVIS:
+    return _StringFromEnum(CAP_ARAVIS);
+  default:
+    return "CAP_ANY";
   }
 }
 #undef _StringFromEnum

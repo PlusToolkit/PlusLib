@@ -169,12 +169,12 @@ PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const c
     trackedFrame.SetImageData(videoFrame);
     trackedFrame.SetTimestamp((1.0 * (i + 1)) / acquisitionFrameRate);       // Generate timestamp, but don't start from 0
 
-    trackedFrame.SetCustomFrameField("SonixDataType", strDataType.str());
-    trackedFrame.SetCustomFrameField("SonixTransmitFrequency", strTransmitFrequency.str());
-    trackedFrame.SetCustomFrameField("SonixSamplingFrequency", strSamplingFrequency.str());
-    trackedFrame.SetCustomFrameField("SonixDataRate", strDataRate.str());
-    trackedFrame.SetCustomFrameField("SonixLineDensity", strLineDensity.str());
-    trackedFrame.SetCustomFrameField("SonixProbeID", strProbeID.str());
+    trackedFrame.SetFrameField("SonixDataType", strDataType.str());
+    trackedFrame.SetFrameField("SonixTransmitFrequency", strTransmitFrequency.str());
+    trackedFrame.SetFrameField("SonixSamplingFrequency", strSamplingFrequency.str());
+    trackedFrame.SetFrameField("SonixDataRate", strDataRate.str());
+    trackedFrame.SetFrameField("SonixLineDensity", strLineDensity.str());
+    trackedFrame.SetFrameField("SonixProbeID", strProbeID.str());
 
 
     trackedFrameList->AddTrackedFrame(&trackedFrame);

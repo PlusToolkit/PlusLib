@@ -16,7 +16,7 @@
  \brief Class for acquiring ultrasound images from Capistrano Labs USB ultrasound systems.
 
  Requires PLUS_USE_CAPISTRANO_VIDEO option in CMake.
- Requires the Capistrano cSDK2013 (SDK provided by Capistrano Labs).
+ Requires the Capistrano cSDK2018, cSDK2016, or cSDK2013 (SDK provided by Capistrano Labs).
 
  \ingroup PlusLibDataCollection.
 */
@@ -42,6 +42,17 @@ public:
 
   /*! Get the version of SDK */
   virtual std::string GetSdkVersion();
+
+#ifdef CAPISTRANO_SDK2018
+  /*! Get the hardware version. */
+  virtual int GetHardwareVersion();
+
+  /*! Get the high pass filter. */
+  virtual int GetHighPassFilter();
+
+  /*! Get the low pass filter. */
+  virtual int GetLowPassFilter();
+#endif
 
   /* Update Speed of Sound */
   PlusStatus GetProbeVelocityDevice(float& aVel);
@@ -97,11 +108,11 @@ public:
 
   /* State is the desired overscan multiplier.
   *  Overscan is done in 6.25% steps from 6.25% to 50% (three-bit number).
-  *  As such, the valid values are 0…7 which correspond to 6.25%, 12.5%, …, 43.75%, 50%. */
+  *  As such, the valid values are 0â€¦7 which correspond to 6.25%, 12.5%, â€¦, 43.75%, 50%. */
   PlusStatus SetOverscan(int state);
 
   /* Overscan multiplier. Overscan is done in 6.25% steps from 6.25% to 50% (three-bit number).
-  *  As such, the valid values are 0…7 which correspond to 6.25%, 12.5%, …, 43.75%, 50%. */
+  *  As such, the valid values are 0â€¦7 which correspond to 6.25%, 12.5%, â€¦, 43.75%, 50%. */
   int GetOverscan();
 
   /* Sets the desired probe servo derivative compensation */

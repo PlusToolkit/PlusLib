@@ -78,10 +78,10 @@ public:
       std::ostringstream ss;
       ss.precision(2);
       TrackedFrameFieldStatus status;
-      if (trackedFrame.GetCustomFrameTransformStatus(TransformName, status) == PLUS_SUCCESS
+      if (trackedFrame.GetFrameTransformStatus(TransformName, status) == PLUS_SUCCESS
           && status == FIELD_OK)
       {
-        trackedFrame.GetCustomFrameTransform(TransformName, tFrame2Tracker);
+        trackedFrame.GetFrameTransform(TransformName, tFrame2Tracker);
         ss  << std::fixed
             << tFrame2Tracker->GetElement(0, 0) << "   " << tFrame2Tracker->GetElement(0, 1) << "   " << tFrame2Tracker->GetElement(0, 2) << "   " << tFrame2Tracker->GetElement(0, 3) << "\n"
             << tFrame2Tracker->GetElement(1, 0) << "   " << tFrame2Tracker->GetElement(1, 1) << "   " << tFrame2Tracker->GetElement(1, 2) << "   " << tFrame2Tracker->GetElement(1, 3) << "\n"

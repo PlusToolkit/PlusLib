@@ -30,6 +30,7 @@ namespace
 //----------------------------------------------------------------------------
 vtkPlusStartStopRecordingCommand::vtkPlusStartStopRecordingCommand()
   : EnableCompression(false)
+  , CodecFourCC("")
 {
 }
 
@@ -61,7 +62,7 @@ std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& 
   if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, START_CMD))
   {
     desc += START_CMD;
-    desc += ": Start collecting data into file with a VirtualCapture device. CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
+    desc += ": Start collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
   }
   if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SUSPEND_CMD))
   {
@@ -111,13 +112,14 @@ PlusStatus vtkPlusStartStopRecordingCommand::ReadConfiguration(vtkXMLDataElement
     return PLUS_FAIL;
   }
 
-  // Stop parameters
+  // Start/Stop Common parameters
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(OutputFilename, aConfig);
 
-  // Start parameters
+  // Start-only parameters
   if (this->GetName() == START_CMD)
   {
     XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCompression, aConfig);
+    XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, aConfig);
   }
 
   return PLUS_SUCCESS;
@@ -252,6 +254,10 @@ vtkPlusVirtualCapture* vtkPlusStartStopRecordingCommand::GetOrCreateCaptureDevic
   newDevice->SetDataCollector(dataCollector);
   newDevice->AddInputChannel(channel);
   capDevice->SetEnableFileCompression(this->EnableCompression);
+  if (!this->CodecFourCC.empty())
+  {
+    capDevice->SetCodecFourCC(this->CodecFourCC);
+  }
   capDevice->SetBaseFilename(channelId + "_capture.nrrd");
 
   return capDevice;
@@ -295,12 +301,17 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Recording to file is already in progress."));
       return PLUS_FAIL;
     }
-    if (captureDevice->OpenFile(this->OutputFilename.c_str()) != PLUS_SUCCESS)
+    std::string outputFilename = captureDevice->GetBaseFilename();
+    if (!this->OutputFilename.empty())
+    {
+      outputFilename = this->OutputFilename;
+    }
+    captureDevice->SetEnableFileCompression(GetEnableCompression());
+    if (captureDevice->OpenFile(outputFilename.c_str()) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));
       return PLUS_FAIL;
     }
-    captureDevice->SetEnableFileCompression(GetEnableCompression());
     captureDevice->SetEnableCapturing(true);
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
