@@ -29,6 +29,18 @@ class vtkPlusCommandProcessor;
 class vtkPlusOpenIGTLinkExport PlusIgtlClientInfo
 {
 public:
+  struct CompressedVideoParameters
+  {
+    /*! Optional string indicating the image encoding using FourCC value is empty by default
+    If the string is empty, then images will be sent using igtl::ImageMessage using a raw RGB format
+    If the string is not empty, then it will be compressed and sent as an igtl::VideoMessage using the encoding specified by the FourCC value
+    */
+    std::string EncodingFourCC = "";
+    bool        EncodingLossless = true;
+    int         EncodingMinKeyframeDistance = 50;
+    int         EncodingMaxKeyframeDistance = 50; // TODO: Currently non functional
+  };
+
   /*! Helper struct for storing image stream and embedded transform frame names
   IGTL image message device name: [Name]_[EmbeddedTransformToFrame]
   */
@@ -38,11 +50,8 @@ public:
     std::string Name;
     /*! Name of the IGTL image message embedded transform "To" frame */
     std::string EmbeddedTransformToFrame;
-    /*! Optional string indicating the image encoding using FourCC value is empty by default
-    If the string is empty, then images will be sent using igtl::ImageMessage using a raw RGB format
-    If the string is not empty, then it will be compressed and sent as an igtl::VideoMessage using the encoding specified by the FourCC value
-    */
-    std::string EncodingType;
+    /*! Parameters for how to encode video for compressed streams*/
+    CompressedVideoParameters VideoParameters;
   };
 
   PlusIgtlClientInfo();
