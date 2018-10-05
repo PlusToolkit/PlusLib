@@ -35,10 +35,16 @@ public:
     If the string is empty, then images will be sent using igtl::ImageMessage using a raw RGB format
     If the string is not empty, then it will be compressed and sent as an igtl::VideoMessage using the encoding specified by the FourCC value
     */
-    std::string EncodingFourCC = "";
-    bool        EncodingLossless = true;
-    int         EncodingMinKeyframeDistance = 50;
-    int         EncodingMaxKeyframeDistance = 50; // TODO: Currently non functional
+    std::string EncodingFourCC;
+    bool        EncodingLossless;
+    int         EncodingMinKeyframeDistance;
+    int         EncodingMaxKeyframeDistance; // TODO: Currently non functional
+    CompressedVideoParameters()
+      : EncodingLossless(true)
+      , EncodingMinKeyframeDistance(50)
+      , EncodingMaxKeyframeDistance(50)
+    {
+    }
   };
 
   /*! Helper struct for storing image stream and embedded transform frame names
