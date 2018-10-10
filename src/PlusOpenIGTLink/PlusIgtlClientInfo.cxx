@@ -141,13 +141,25 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
         continue;
       }
 
-      std::string encodingType;
-      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EncodingType, encodingType, imageElem);
+      std::string encodingFourCC;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EncodingFourCC, encodingFourCC, imageElem);
+
+      bool encodingLossless = true;
+      XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(EncodingLossless, encodingLossless, imageElem);
+
+      int encodingMinKeyframeDistance = 50;
+      XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, EncodingMinKeyframeDistance, encodingMinKeyframeDistance, imageElem);
+
+      int encodingMaxKeyframeDistance = 50; // TODO: Currently non functional
+      XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, EncodingMaxKeyframeDistance, encodingMaxKeyframeDistance, imageElem);
 
       ImageStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
-      stream.EncodingType = encodingType;
+      stream.VideoParameters.EncodingFourCC = encodingFourCC;
+      stream.VideoParameters.EncodingLossless = encodingLossless;
+      stream.VideoParameters.EncodingMinKeyframeDistance = encodingMinKeyframeDistance;
+      stream.VideoParameters.EncodingMaxKeyframeDistance = encodingMaxKeyframeDistance;
       clientInfo.ImageStreams.push_back(stream);
     }
   }

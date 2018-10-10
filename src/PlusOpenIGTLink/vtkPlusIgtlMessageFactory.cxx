@@ -191,7 +191,7 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
 
         std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
 
-        if (imageStream.EncodingType.empty())
+        if (imageStream.VideoParameters.EncodingFourCC.empty())
         {
           igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
           if (trackedFrame.IsFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
@@ -238,37 +238,33 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
           {
             encoder = encoderIt->second;
           }
-          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_I420)
+          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_I420)
           {
             encoder = new igtl::I420Encoder();
             this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
           }
 #if defined(OpenIGTLink_USE_VP9)
-          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_VP9)
+          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_VP9)
           {
             encoder = new igtl::VP9Encoder();
+            encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
+            encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
             this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
           }
 #endif
 #if defined(OpenIGTLink_USE_H264)
-          else if (imageStream.EncodingType == IGTL_VIDEO_CODEC_NAME_H264)
+          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_H264)
           {
             encoder = new igtl::H264Encoder();
+            encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
+            encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
             this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
           }
 #endif
           else
           {
-            LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.EncodingType);
+            LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.VideoParameters.EncodingFourCC);
             continue;
-          }
-
-          if (!encoder->GetInitializationStatus())
-          {
-            FrameSizeType frameSize = trackedFrame.GetFrameSize();
-            encoder->SetPicWidthAndHeight(frameSize[0], frameSize[1]);
-            encoder->SetLosslessLink(false);
-            encoder->InitializeEncoder();
           }
 
           igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();

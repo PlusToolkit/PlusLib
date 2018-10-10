@@ -86,8 +86,8 @@ public:
   vtkVector3d LocalAxis;
   vtkVector3d LocalAxis2;
 public:
-  vtkSmartPointer<vtkMatrix4x4> BaseToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> TransformationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> ToolToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer<vtkMatrix4x4> EncoderToReference = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusTransformName TransformName;
   std::string PortName;
 };
@@ -106,7 +106,7 @@ vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncodersTracker()
 //-------------------------------------------------------------------------
 vtkPlusUSDigitalEncodersTracker::~vtkPlusUSDigitalEncodersTracker()
 {
-  if (this->Recording)
+  if(this->Recording)
   {
     this->StopRecording();
   }
@@ -129,7 +129,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   // that if there are address conflicts on the SEI bus, the device
   // addresses will automatically be reassigned so there are no conflicts
   long EncoderStatus = ::InitializeSEI(0, REINITIALIZE | AUTOASSIGN | NORESET);
-  if (EncoderStatus != 0)
+  if(EncoderStatus != 0)
   {
     LOG_ERROR("Failed to initialize SEI!");
     return PLUS_FAIL;
@@ -138,7 +138,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
 
   long numberofConnectedEncoders = ::GetNumberOfDevices();
   EncoderInfoMapType::iterator encoderInfoPos;
-  for (long deviceID = 0; deviceID < numberofConnectedEncoders; ++deviceID)
+  for(long deviceID = 0; deviceID < numberofConnectedEncoders; ++deviceID)
   {
     // Support multiple US digital A2 encoders.
     long model = 0;
@@ -147,7 +147,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
     long address = 0;
     long retVal;
 
-    if (::GetDeviceInfo(deviceID, &model, &serialNumber, &version, &address) != 0)
+    if(::GetDeviceInfo(deviceID, &model, &serialNumber, &version, &address) != 0)
     {
       LOG_ERROR("Failed to get SEI device info for device number: " << deviceID);
       return PLUS_FAIL;
@@ -155,7 +155,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
 
     encoderInfoPos = this->EncoderMap.find(deviceID);
 
-    if (encoderInfoPos == this->EncoderMap.end())
+    if(encoderInfoPos == this->EncoderMap.end())
     {
       LOG_WARNING("Unregistered encoder is detected");
     }
@@ -165,7 +165,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       encoderInfoPos->second->Model = model;
       encoderInfoPos->second->Version = version;
       retVal = ::A2SetMode(address, encoderInfoPos->second->Mode);
-      if (retVal != 0)
+      if(retVal != 0)
       {
         LOG_ERROR("Failed to set SEI device mode for device SN: " << serialNumber << ", deviceID: " << deviceID);
         return PLUS_FAIL;
@@ -174,10 +174,10 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
       //check whether we need to reset the encoder
       long pos;
       retVal = ::A2GetPosition(address, &pos);
-      if (retVal != 0)
+      if(retVal != 0)
       {
         retVal = ::A2SetPosition(address, 0); // reset the value of the encoder
-        if (retVal != 0)
+        if(retVal != 0)
         {
           LOG_ERROR("Failed to set initial position for SEI device SN: " << serialNumber << ", deviceID: " << deviceID);
           return PLUS_FAIL;
@@ -187,13 +187,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
           LOG_INFO("The encoder's position had to be reset to zero. SEI device SN: " << serialNumber << ", deviceID: " << deviceID);
         }
       }
-      if (deviceID != address) //update address in encoderInfo
+      if(deviceID != address)  //update address in encoderInfo
       {
-        if (encoderInfoPos->second->Addr == deviceID)
+        if(encoderInfoPos->second->Addr == deviceID)
         {
           encoderInfoPos->second->Addr = address;
         }
-        else if (encoderInfoPos->second->Addr2 == deviceID)
+        else if(encoderInfoPos->second->Addr2 == deviceID)
         {
           encoderInfoPos->second->Addr2 = address;
         }
@@ -215,16 +215,16 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalDisconnect()
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::Disconnect");
   this->StopRecording();
 
-  if (::IsInitialized() != 1)
+  if(::IsInitialized() != 1)
   {
-      // Device not yet initialized
-      return PLUS_SUCCESS;
+    // Device not yet initialized
+    return PLUS_SUCCESS;
   }
 
-  if (::CloseSEI() != 0)
+  if(::CloseSEI() != 0)
   {
-      LOG_ERROR("Failed to close SEI!");
-      return PLUS_FAIL;
+    LOG_ERROR("Failed to close SEI!");
+    return PLUS_FAIL;
   }
 
   return PLUS_SUCCESS;
@@ -235,12 +235,12 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::Probe()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::Probe");
 
-  if (this->Recording)
+  if(this->Recording)
   {
     return PLUS_SUCCESS;
   }
 
-  if (!this->Connect())
+  if(!this->Connect())
   {
     LOG_ERROR("Unable to connect to USDigital Encoders");
     return PLUS_FAIL;
@@ -255,7 +255,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::Probe()
 PlusStatus vtkPlusUSDigitalEncodersTracker::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::InternalStartRecording");
-  if (this->IsRecording())
+  if(this->IsRecording())
   {
     return PLUS_SUCCESS;
   }
@@ -275,37 +275,37 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::InternalUpdate");
 
-  if (!this->Recording)
+  if(!this->Recording)
   {
     LOG_ERROR("called Update() when not tracking");
     return PLUS_FAIL;
   }
 
-  for (auto it = EncoderList.begin(); it != EncoderList.end(); ++it)
+  for(auto it = EncoderList.begin(); it != EncoderList.end(); ++it)
   {
     RETURN_WITH_FAIL_IF(!it->Connected, "USDigital encoder(s) not connected!");
-    
+
     long encoderValue;
     long errorCode;
     vtkSmartPointer<vtkTransform> tempTransform = vtkSmartPointer<vtkTransform>::New();
-    
+
     // Read encoder positions and transform it into XY position in mm
     errorCode = ::A2GetPosition(it->Addr, &encoderValue);
     RETURN_WITH_FAIL_IF(errorCode, "Unable to read position of first encoder with address: " << it->Addr);
     vtkVector3d localmovement = it->LocalAxis;
 
-    if (it->Addr2 != 0) //coreXY
+    if(it->Addr2 != 0)  //coreXY
     {
       double firstEnc = encoderValue * it->PulseSpacing;
-    
+
       errorCode = ::A2GetPosition(it->Addr2, &encoderValue);
       RETURN_WITH_FAIL_IF(errorCode, "Unable to read position of second encoder with address: " << it->Addr2);
 
       double secondEnc = encoderValue * it->PulseSpacing2;
-    
+
       double firstAxis = firstEnc + secondEnc;
       double secondAxis = firstEnc - secondEnc;
-    
+
       //now make a transform matrix out of this translation and add it into PLUS system
       vtkMath::MultiplyScalar(localmovement.GetData(), firstAxis);
       tempTransform->Translate(localmovement.GetData());
@@ -315,13 +315,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     }
     else //single encoder
     {
-      // Update transformation matrix of the connected US digital encoder   
-      if (it->Motion == 0)
+      // Update transformation matrix of the connected US digital encoder
+      if(it->Motion == 0)
       {
         vtkMath::MultiplyScalar(localmovement.GetData(), encoderValue * it->PulseSpacing);
         tempTransform->Translate(localmovement.GetData());
       }
-      else if (it->Motion == 1)
+      else if(it->Motion == 1)
       {
         // Check the unit of rotation angle .... (degree or radian)
         tempTransform->RotateWXYZ(encoderValue * it->PulseSpacing, localmovement.GetData());
@@ -332,11 +332,11 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
       }
     }
 
-    vtkMatrix4x4::Multiply4x4(it->BaseToEncoderMatrix, tempTransform->GetMatrix(), it->TransformationMatrix);
-    this->TransformRepository->SetTransform(it->TransformName, it->TransformationMatrix);
+    vtkMatrix4x4::Multiply4x4(it->ToolToEncoderMatrix, tempTransform->GetMatrix(), it->EncoderToReference);
+    this->TransformRepository->SetTransform(it->TransformName, it->EncoderToReference);
 
     vtkPlusDataSource* tool = NULL;
-    if (this->GetToolByPortName(it->PortName.c_str(), tool) != PLUS_SUCCESS)
+    if(this->GetToolByPortName(it->PortName.c_str(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to find tool with port name: " << it->PortName);
     }
@@ -345,7 +345,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
     unsigned long frameNumber = tool->GetFrameNumber() + 1;
     const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
     this->ToolTimeStampedUpdate(tool->GetId(),
-        it->TransformationMatrix, TOOL_OK, frameNumber, unfilteredTimestamp);
+                                it->EncoderToReference, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
 
   return PLUS_SUCCESS;
@@ -363,10 +363,10 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
   this->EncoderList.clear();
   long deviceID = 0;
 
-  for (int encoderIndex = 0; encoderIndex < dataSourcesElement->GetNumberOfNestedElements(); encoderIndex++)
+  for(int encoderIndex = 0; encoderIndex < dataSourcesElement->GetNumberOfNestedElements(); encoderIndex++)
   {
     vtkXMLDataElement* encoderInfoElement = dataSourcesElement->GetNestedElement(encoderIndex);
-    if (STRCASECMP(encoderInfoElement->GetName(), "DataSource") != 0)
+    if(STRCASECMP(encoderInfoElement->GetName(), "DataSource") != 0)
     {
       // if this is not a data source element, skip it
       continue;
@@ -375,26 +375,26 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     vtkPlusUSDigitalEncoderInfo encoderInfo;
 
     const char* portName = encoderInfoElement->GetAttribute("PortName");
-    if (portName == NULL)
+    if(portName == NULL)
     {
       LOG_ERROR("Tool portname is not specified");
       continue;
     }
 
     const char* id = encoderInfoElement->GetAttribute("Id");
-    if (id == NULL)
+    if(id == NULL)
     {
       LOG_ERROR("Tool Id is missing!");
       continue;
     }
 
     vtkPlusDataSource* tool = NULL;
-    if (this->GetToolByPortName(portName, tool) != PLUS_SUCCESS)
+    if(this->GetToolByPortName(portName, tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("GetTool for port " << portName << " failed");
       continue;
     }
-    if (tool == NULL)
+    if(tool == NULL)
     {
       LOG_ERROR("Tool with ID " << id << " was not found");
       continue;
@@ -404,10 +404,10 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     // ---- Get a name of transformation
     const char* toAttribute = encoderInfoElement->GetAttribute("ToolReferenceFrame");
-    if (!toAttribute)
+    if(!toAttribute)
     {
       toAttribute = deviceConfig->GetAttribute("ToolReferenceFrame");
-      if (!toAttribute)
+      if(!toAttribute)
       {
         toAttribute = deviceConfig->GetAttribute("Id");
         LOG_WARNING("Device's attribute 'ToolReferenceFrame' is missing (Device Id='" << toAttribute << "')!");
@@ -415,7 +415,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     }
 
     PlusTransformName transformName(id, toAttribute);
-    if (!transformName.IsValid())
+    if(!transformName.IsValid())
     {
       LOG_ERROR("Invalid transform name (From: '" << id << "'  To: '" << toAttribute << "')");
       continue;
@@ -423,37 +423,36 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     encoderInfo.TransformName = transformName;
 
-    if (this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
+    if(this->TransformRepository->IsExistingTransform(encoderInfo.TransformName) != PLUS_SUCCESS)
     {
       this->TransformRepository->SetTransform(encoderInfo.TransformName,
-          encoderInfo.TransformationMatrix);
+                                              encoderInfo.EncoderToReference);
     }
 
-    // ---- Get PreTMatrix:
     double vectorMatrix[16] = { 0 };
-    if (encoderInfoElement->GetVectorAttribute("BaseToEncoderMatrix", 16, vectorMatrix))
+    if(encoderInfoElement->GetVectorAttribute("ToolToEncoderMatrix", 16, vectorMatrix))
     {
-      encoderInfo.BaseToEncoderMatrix->DeepCopy(vectorMatrix);
+      encoderInfo.ToolToEncoderMatrix->DeepCopy(vectorMatrix);
     }
     else
     {
-      encoderInfo.BaseToEncoderMatrix->Identity();
+      encoderInfo.ToolToEncoderMatrix->Identity();
     }
 
     // Reading the MotionType of an US Digital Encoder
     std::string motiontype = encoderInfoElement->GetAttribute("MotionType");
-    if (motiontype.empty())
+    if(motiontype.empty())
     {
       LOG_ERROR("Cannot read the MotionType of an US Digital Encoder");
       continue;
     }
     std::transform(motiontype.begin(), motiontype.end(), motiontype.begin(), ::tolower);
     LOG_INFO("Motion Type :: " << motiontype);
-    if (motiontype.find("linear") != std::string::npos)
+    if(motiontype.find("linear") != std::string::npos)
     {
       encoderInfo.Motion = 0;
     }
-    else if (motiontype.find("rotation") != std::string::npos)
+    else if(motiontype.find("rotation") != std::string::npos)
     {
       encoderInfo.Motion = 1;
     }
@@ -467,7 +466,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     // Linear Motion : mm /pulses
     // Rotation      : rad/pulses
     const char* pulseSpacing = encoderInfoElement->GetAttribute("PulseSpacing");
-    if (pulseSpacing == NULL)
+    if(pulseSpacing == NULL)
     {
       LOG_ERROR("Cannot read the PulseSpacing of an US Digital Encoder");
       continue;
@@ -476,7 +475,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     const char* pulseSpacing2 = encoderInfoElement->GetAttribute("PulseSpacing2");
     bool coreXY = (pulseSpacing2 != NULL);
-    if (coreXY)
+    if(coreXY)
     {
       encoderInfo.PulseSpacing2 = atof(pulseSpacing2);
     }
@@ -485,15 +484,15 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       LOG_INFO("PulseSpacing2 not found - this is not a coreXY configuration. Tool Id: " << id);
     }
 
-    if (!encoderInfoElement->GetVectorAttribute("LocalAxis", 3, encoderInfo.LocalAxis.GetData()))
+    if(!encoderInfoElement->GetVectorAttribute("LocalAxis", 3, encoderInfo.LocalAxis.GetData()))
     {
       LOG_ERROR("Unable to find 'LocalAxis' attribute of an encoder in the configuration file");
       continue;
     }
 
-    if (coreXY)
+    if(coreXY)
     {
-      if (!encoderInfoElement->GetVectorAttribute("LocalAxis2", 3, encoderInfo.LocalAxis2.GetData()))
+      if(!encoderInfoElement->GetVectorAttribute("LocalAxis2", 3, encoderInfo.LocalAxis2.GetData()))
       {
         LOG_ERROR("Unable to find 'LocalAxis2' attribute in the configuration file");
         continue;
@@ -502,7 +501,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     // Reading the mode of a US Digital Encoder
     const char* mode = encoderInfoElement->GetAttribute("Mode");
-    if (mode == NULL)
+    if(mode == NULL)
     {
       LOG_ERROR("Cannot read the Mode of an US Digital Encoder");
       continue;
@@ -511,7 +510,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
 
     // Reading the resolution of an US Digital Encoder
     const char* resolution = encoderInfoElement->GetAttribute("Resolution");
-    if (resolution == NULL)
+    if(resolution == NULL)
     {
       LOG_ERROR("Cannot read the Resolution of an US Digital Encoder");
       continue;
@@ -519,14 +518,14 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
     encoderInfo.Resolution = atol(resolution);
 
     encoderInfo.Addr = deviceID++;
-    if (coreXY)
+    if(coreXY)
     {
-        encoderInfo.Addr2 = deviceID++;
+      encoderInfo.Addr2 = deviceID++;
     }
     EncoderList.push_back(encoderInfo);
 
     this->EncoderMap[encoderInfo.Addr] = &EncoderList.back();
-    if (coreXY) //enter this encoderInfo twice (once for each deviceID)
+    if(coreXY)  //enter this encoderInfo twice (once for each deviceID)
     {
       this->EncoderMap[encoderInfo.Addr2] = &EncoderList.back();
     }
@@ -577,7 +576,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithID(lo
   IDtoAddressType::iterator enc = this->IdAddress.find(id);
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
   RETURN_WITH_FAIL_IF(::A2SetOrigin(enc->second) != 0,
-      "Failed to set US digital A2 Encoder's origin point as current position.");
+                      "Failed to set US digital A2 Encoder's origin point as current position.");
   return PLUS_SUCCESS;
 }
 
@@ -585,16 +584,16 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderOriginWithID(lo
 PlusStatus vtkPlusUSDigitalEncodersTracker::SetAllUSDigitalA2EncoderOrigin()
 {
   EncoderListType::iterator it;
-  for (it = this->EncoderList.begin(); it != this->EncoderList.end(); ++it)
+  for(it = this->EncoderList.begin(); it != this->EncoderList.end(); ++it)
   {
-    if (::A2SetOrigin(it->Addr) != 0)
+    if(::A2SetOrigin(it->Addr) != 0)
     {
       return PLUS_FAIL;
     }
 
-    if (it->Addr2 != 0) //coreXY
+    if(it->Addr2 != 0)  //coreXY
     {
-      if (::A2SetOrigin(it->Addr2) != 0)
+      if(::A2SetOrigin(it->Addr2) != 0)
       {
         return PLUS_FAIL;
       }
@@ -609,7 +608,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderModeWithID(long
   IDtoAddressType::iterator enc = this->IdAddress.find(id);
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
   RETURN_WITH_FAIL_IF(::A2SetMode(enc->second, mode) != 0,
-      "Failed to set the mode of an US digital A2 Encoder.");
+                      "Failed to set the mode of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
 
@@ -619,7 +618,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderModeWithID(long
   IDtoAddressType::iterator enc = this->IdAddress.find(id);
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
   RETURN_WITH_FAIL_IF(::A2GetMode(enc->second, mode) != 0,
-      "Failed to get the mode of an US digital A2 Encoder.");
+                      "Failed to get the mode of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
 
@@ -630,7 +629,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderResoultionWithI
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
 
   RETURN_WITH_FAIL_IF(::A2SetResolution(enc->second, res) != 0,
-      "Failed to set the resoultion of an US digital A2 Encoder.");
+                      "Failed to set the resoultion of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
 
@@ -641,7 +640,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderResoultionWithI
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
 
   RETURN_WITH_FAIL_IF(::A2GetResolution(enc->second, res) != 0,
-     "Failed to get the resoultion of an US digital A2 Encoder.");
+                      "Failed to get the resoultion of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
 
@@ -652,7 +651,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::SetUSDigitalA2EncoderPositionWithID(
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
 
   RETURN_WITH_FAIL_IF(::A2SetPosition(enc->second, pos) != 0,
-      "Failed to set the position of an US digital A2 Encoder.");
+                      "Failed to set the position of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
 
@@ -663,6 +662,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::GetUSDigitalA2EncoderPositionWithID(
   RETURN_WITH_FAIL_IF(enc == this->IdAddress.end(), "Non-existent device ID: " << id);
 
   RETURN_WITH_FAIL_IF(::A2GetPosition(enc->second, pos) != 0,
-     "Failed to get the position of an US digital A2 Encoder.");
+                      "Failed to get the position of an US digital A2 Encoder.");
   return PLUS_SUCCESS;
 }
