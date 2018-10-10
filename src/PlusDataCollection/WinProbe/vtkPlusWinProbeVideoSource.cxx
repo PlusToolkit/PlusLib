@@ -351,9 +351,38 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
 
   LOG_DEBUG("Connect to WinProbe");
-  WPConnect();
-  WPLoadDefault();
+  if(!WPConnect())
+  {
+    LOG_ERROR("Failed connecting to WinProbe!");
+    return PLUS_FAIL;
+  }
+  if(!WPLoadDefault())
+  {
+    LOG_ERROR("Failed loading defaults!");
+    return PLUS_FAIL;
+  }
+  LOG_DEBUG("Setting transducer ID: " << this->m_transducerID);
   WPSetTransducerID(this->m_transducerID.c_str());
+
+  if(!LoadXmlPreset("Default.xml"))
+  {
+    LOG_ERROR("Failed loading preset Default.xml!");
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  ////setup size for DirectX image
+  //LOG_DEBUG("Setting output size to 800x600");
+  //WPSetSize(800, 600);
+  //char* sessionPtr = GetSessionPtr();
+  //bool success = WPVPSetSession(sessionPtr);
+  //if(!WPVPSetSession(sessionPtr))
+  //{
+  //  LOG_WARNING("Failed loading preset Default.xml!");
+  //  return PLUS_FAIL;
+  //}
+  //std::this_thread::sleep_for(std::chrono::seconds(1));
+
   m_ADCfrequency = GetADCSamplingRate();
   this->m_customFields["SamplingRate"] = std::to_string(m_ADCfrequency);
   m_transducerCount = GetSSElementCount();
