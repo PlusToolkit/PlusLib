@@ -56,6 +56,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseDeviceFrameReconstruction, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TxTxFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SSDepth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
@@ -76,6 +77,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   deviceConfig->SetAttribute("TransducerID", this->m_transducerID.c_str());
+  deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
   deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
   deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
@@ -91,14 +93,54 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 }
 
 // ----------------------------------------------------------------------------
-vtkPlusWinProbeVideoSource* thisPtr = NULL;
+vtkPlusWinProbeVideoSource* thisPtr = nullptr;
 
-//----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // This callback function is invoked after each frame is ready
 int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry)
 {
   thisPtr->FrameCallback(length, data, hHeader, hGeometry);
   return length;
+}
+
+//-----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::ReconstructFrame(char* data)
+{
+  uint16_t* frame = reinterpret_cast<uint16_t*>(data + 16);
+  assert(m_BModeBuffer.size() == m_samplesPerLine * m_transducerCount);
+  const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
+
+  #pragma omp parallel for
+  for(unsigned t = 0; t < m_transducerCount; t++)
+  {
+    for(unsigned s = 0; s < m_samplesPerLine; s++)
+    {
+      uint16_t val = frame[t * m_samplesPerLine + s];
+      if(val <= m_MinValue)  // subtract noise floor
+      {
+        val = 0;
+      }
+      else
+      {
+        val -= m_MinValue;
+      }
+      if(val > m_MaxValue)  //apply ceiling
+      {
+        val = m_MaxValue;
+      }
+
+      float cVal;
+      if(val < m_Knee)
+      {
+        cVal = logFactor * std::log(float(1 + val));
+      }
+      else //linear mapping
+      {
+        cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
+      }
+      m_BModeBuffer[s * m_transducerCount + t] = static_cast<uint8_t>(cVal);
+    }
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -133,47 +175,32 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   if(usMode & B && !m_bSources.empty()) // B-mode flag is set, and B-mode source is defined
   {
     assert(length == m_samplesPerLine * m_transducerCount * sizeof(uint16_t) + 16); //frame + header
-    uint16_t* frame = reinterpret_cast<uint16_t*>(data + 16);
-    uint8_t* bModeBuffer = new uint8_t[m_samplesPerLine * m_transducerCount];
-    const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
-
-    #pragma omp parallel for
-    for(unsigned t = 0; t < m_transducerCount; t++)
-    {
-      for(unsigned s = 0; s < m_samplesPerLine; s++)
-      {
-        uint16_t val = frame[t * m_samplesPerLine + s];
-        if(val <= m_MinValue) // subtract noise floor
-        {
-          val = 0;
-        }
-        else
-        {
-          val -= m_MinValue;
-        }
-        if(val > m_MaxValue) //apply ceiling
-        {
-          val = m_MaxValue;
-        }
-
-        float cVal;
-        if(val < m_Knee)
-        {
-          cVal = logFactor * std::log(float(1 + val));
-        }
-        else //linear mapping
-        {
-          cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
-        }
-        bModeBuffer[s * m_transducerCount + t] = static_cast<uint8_t>(cVal);
-      }
-    }
-
     FrameSizeType frameSize = { m_transducerCount, m_samplesPerLine, 1 };
+
+    if(m_UseDeviceFrameReconstruction && usMode == B) //this only works with plain B-mode
+    {
+      WPNewData(length, data, hHeader, hGeometry);
+      char* frameData = nullptr;
+      int length = WPSaveImageToPointer(&frameData);
+      assert(length == m_transducerCount * m_samplesPerLine * sizeof(uint32_t));
+      auto* frameRGBA = reinterpret_cast<uint32_t*>(frameData);
+
+      // all the color channels are the same for B-mode
+      // and alpha is filled with ones (fully opaque)
+      for(unsigned i = 0; i < m_transducerCount * m_samplesPerLine; i++)
+      {
+        m_BModeBuffer[i] = static_cast<uint8_t>(frameRGBA[i]);
+      }
+      WPFreePointer(frameData);
+    }
+    else
+    {
+      this->ReconstructFrame(data);
+    }
 
     for(unsigned i = 0; i < m_bSources.size(); i++)
     {
-      if(m_bSources[i]->AddItem(bModeBuffer,
+      if(m_bSources[i]->AddItem(&m_BModeBuffer[0],
                                 m_bSources[i]->GetInputImageOrientation(),
                                 frameSize, VTK_UNSIGNED_CHAR,
                                 1, US_IMG_BRIGHTNESS, 0,
@@ -185,8 +212,6 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
         LOG_WARNING("Error adding item to video source " << m_bSources[i]->GetSourceId());
       }
     }
-
-    delete bModeBuffer;
   }
   else if(usMode & B)  //this is B frame, but B-mode source is NOT defined
   {
@@ -260,6 +285,8 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
              << ", buffer image orientation: "
              << PlusVideoFrame::GetStringFromUsImageOrientation(m_rfSources[i]->GetInputImageOrientation()));
   }
+
+  m_BModeBuffer.resize(m_samplesPerLine * m_transducerCount);
 }
 
 //----------------------------------------------------------------------------
@@ -345,29 +372,13 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("Setting transducer ID: " << this->m_transducerID);
   WPSetTransducerID(this->m_transducerID.c_str());
 
-  if(!LoadXmlPreset("Default.xml"))
-  {
-    LOG_ERROR("Failed loading preset Default.xml!");
-    return PLUS_FAIL;
-  }
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-
-  ////setup size for DirectX image
-  //LOG_DEBUG("Setting output size to 800x600");
-  //WPSetSize(800, 600);
-  //char* sessionPtr = GetSessionPtr();
-  //bool success = WPVPSetSession(sessionPtr);
-  //if(!WPVPSetSession(sessionPtr))
-  //{
-  //  LOG_WARNING("Failed loading preset Default.xml!");
-  //  return PLUS_FAIL;
-  //}
-  //std::this_thread::sleep_for(std::chrono::seconds(1));
-
   m_ADCfrequency = GetADCSamplingRate();
   this->m_customFields["SamplingRate"] = std::to_string(m_ADCfrequency);
   m_transducerCount = GetSSElementCount();
   SetSCCompoundAngleCount(0);
+
+  LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
+  LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
 
   if(!m_bSources.empty())
   {
@@ -381,6 +392,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
   //TODO handle additional modes
 
+  LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
+  LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
   SetPendingRecreateTables(true);
 
   return PLUS_SUCCESS;
@@ -418,7 +431,23 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   this->SetVoltage(m_voltage);
   this->SetSSDepth(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
 
+  //setup size for DirectX image
+  LOG_DEBUG("Setting output size to " << m_transducerCount << "x" << m_samplesPerLine);
+  WPSetSize(m_transducerCount, m_samplesPerLine);
+  char* sessionPtr = GetSessionPtr();
+  bool success = WPVPSetSession(sessionPtr);
+  if(!success)
+  {
+    LOG_WARNING("Failed setting session pointer!");
+    WPDisconnect();
+    return PLUS_FAIL;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
+  LOG_DEBUG("GetPendingRecreateTables: " << GetPendingRecreateTables());
+  LOG_DEBUG("GetPendingRestartSequencer: " << GetPendingRestartSequencer());
+  LOG_DEBUG("GetPendingRun30Frames: " << GetPendingRun30Frames());
   WPExecute();
   return PLUS_SUCCESS;
 }

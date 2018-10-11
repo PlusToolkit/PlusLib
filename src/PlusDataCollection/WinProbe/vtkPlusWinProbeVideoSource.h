@@ -75,6 +75,12 @@ public:
   /* Set the focal depth, index 0 to 4 */
   PlusStatus SetFocalPointDepth(int index, float depth);
 
+  /* Whether or not to use device's built-in frame reconstruction */
+  void SetUseDeviceFrameReconstruction(bool value) { m_UseDeviceFrameReconstruction = value; }
+
+  /* Whether or not to use device's built-in frame reconstruction */
+  bool GetUseDeviceFrameReconstruction() { return m_UseDeviceFrameReconstruction; }
+
   /*! Set ON/OFF of collecting US data. */
   PlusStatus FreezeDevice(bool freeze);
 
@@ -136,8 +142,9 @@ protected:
   /*! Updates buffer size based on current depth */
   void AdjustBufferSize();
 
-  void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
+  void ReconstructFrame(char* data);
+  void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
   float m_depth = 26.0; //mm
   float m_width = 38.1; //mm
@@ -148,6 +155,8 @@ protected:
   double m_timestampOffset = 0; //difference between program start time and latest InternalStartRecording()
   unsigned m_transducerCount = 128;
   unsigned m_samplesPerLine = 512;
+  std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
+  bool m_UseDeviceFrameReconstruction = true;
   PlusTrackedFrame::FieldMapType m_customFields;
   std::thread* m_watchdog = nullptr;
   double m_lastTimestamp = 0.0; //for watchdog
@@ -160,9 +169,9 @@ protected:
   std::vector<vtkPlusDataSource*> m_bSources;
   std::vector<vtkPlusDataSource*> m_rfSources;
 
-private:
-  vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&);  // Not implemented
-  void operator=(const vtkPlusWinProbeVideoSource&);  // Not implemented
+public:
+  vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&) = delete;
+  void operator=(const vtkPlusWinProbeVideoSource&) = delete;
 };
 
 #endif
