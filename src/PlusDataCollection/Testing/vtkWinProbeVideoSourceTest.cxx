@@ -7,7 +7,7 @@
 /*!
   \file vtkPlusWinProbeVideoSourceTest.cxx
   \brief Test basic connection to the WinProbe ultrasound system
-  and write 10 frames to the current directory
+  and write some frames to output file(s)
   \ingroup PlusLibDataCollection
 */
 
@@ -42,8 +42,8 @@ private:
 
   vtkMyCallback()
   {
-    m_Interactor = NULL;
-    m_Viewer = NULL;
+    m_Interactor = nullptr;
+    m_Viewer = nullptr;
   }
 };
 
@@ -125,29 +125,31 @@ int main(int argc, char* argv[])
   {
     Sleep(2500); //allow some time to buffer frames
 
-    vtkPlusChannel* bChannel(NULL);
+    vtkPlusChannel* bChannel(nullptr);
     if(WinProbeDevice->GetOutputChannelByName(bChannel, "VideoStream") != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to locate the channel with Id=\"VideoStream\". Check config file.");
       exit(EXIT_FAILURE);
     }
 
-    vtkPlusChannel* rfChannel(NULL);
+    vtkPlusChannel* rfChannel(nullptr);
     if(WinProbeDevice->GetOutputChannelByName(rfChannel, "RfStream") != PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to locate the channel with Id=\"RFStream\". Check config file.");
-      exit(EXIT_FAILURE);
+      LOG_WARNING("Unable to locate the channel with Id=\"RFStream\". RF mode will not be used.");
     }
 
     WinProbeDevice->FreezeDevice(true);
 
-    vtkPlusDataSource* bSource(NULL);
+    vtkPlusDataSource* bSource(nullptr);
     bChannel->GetVideoSource(bSource);
     bSource->WriteToSequenceFile(outputFileName.c_str());
 
-    vtkPlusDataSource* rfSource(NULL);
-    rfChannel->GetVideoSource(rfSource);
-    rfSource->WriteToSequenceFile((outputFileName + "_RF.mha").c_str());
+    if(rfChannel)
+    {
+      vtkPlusDataSource* rfSource(nullptr);
+      rfChannel->GetVideoSource(rfSource);
+      rfSource->WriteToSequenceFile((outputFileName + "_RF.mha").c_str());
+    }
 
     //update and write configuration
     WinProbeDevice->WriteConfiguration(configRootElement);
