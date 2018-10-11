@@ -389,12 +389,13 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 {
-  LOG_DEBUG("Disconnect from WinProbe");
+  LOG_DEBUG("Disconnecting from WinProbe");
   if(IsRecording())
   {
     this->InternalStopRecording();
   }
   WPDisconnect();
+  LOG_DEBUG("Disconnect from WinProbe finished");
   return PLUS_SUCCESS;
 }
 
