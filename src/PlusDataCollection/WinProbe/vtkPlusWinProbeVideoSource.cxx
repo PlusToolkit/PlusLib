@@ -107,6 +107,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   CineModeFrameHeader* header = (CineModeFrameHeader*)hHeader;
   CFDGeometryStruct* cfdGeometry = (CFDGeometryStruct*)hGeometry;
   GeometryStruct* brfGeometry = (GeometryStruct*)hGeometry; //B-mode and RF
+  this->FrameNumber = header->TotalFrameCounter;
   InputSourceBindings usMode = header->InputSourceBinding;
   if(usMode & CFD)
   {
@@ -124,18 +125,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     return;
   }
 
-  //Header:
-  //3 bytes of counter
-  //1 byte of spatial compounding angle number
-  //3 bytes of counter
-  //1 byte of spatial compounding angle number
-  //4 bytes of time stamp
-  //4 bytes of timestamp
-  //timestamp counters are ticks since Execute on sampling frequency GetADCSamplingRate
-
-  uint32_t* timeStampCounter = reinterpret_cast<uint32_t*>(data + 8);
-  double timestamp = *timeStampCounter / m_ADCfrequency;
-  if(*timeStampCounter > wraparoundTSC)
+  //timestamp counters are in milliseconds
+  double timestamp = header->TimeStamp / 1000.0;
+  if(header->TimeStamp > wraparoundTSC)
   {
     m_wrapTimeStampCounter = true;
   }
@@ -240,7 +232,6 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     return;
   }
 
-  this->FrameNumber++;
   this->Modified();
 }
 
