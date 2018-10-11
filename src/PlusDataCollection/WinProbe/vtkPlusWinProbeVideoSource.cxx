@@ -456,7 +456,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 
   m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
   WPExecute();
-  //if (sizeof(void *) == 4) //32 bits
+  if (b_RunWatchdog)
   {
     m_watchdog = new std::thread(&vtkPlusWinProbeVideoSource::Watchdog, this);
   }
@@ -467,7 +467,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
   WPStopScanning();
-  //if (sizeof(void *) == 4) //32 bits
+  if (b_RunWatchdog)
   {
     m_watchdog->join();
     delete m_watchdog;

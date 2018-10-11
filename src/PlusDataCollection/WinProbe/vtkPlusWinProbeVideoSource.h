@@ -138,7 +138,7 @@ protected:
   /*! Updates buffer size based on current depth */
   void AdjustBufferSize();
 
-  //to be run in a separate thread
+  // Temporary workaround to be run in a separate thread
   void Watchdog();
 
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
@@ -163,6 +163,7 @@ protected:
   uint16_t m_MaxValue = 16384; //maximum typical value
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
   uint8_t m_OutputKnee = 64; // log-linear knee in output range
+  bool b_RunWatchdog = false; //does watchdog need to be run? depends on version of WinProbeSDK
   std::vector<vtkPlusDataSource*> m_bSources;
   std::vector<vtkPlusDataSource*> m_rfSources;
 
