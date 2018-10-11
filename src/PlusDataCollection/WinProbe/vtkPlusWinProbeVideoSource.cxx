@@ -146,7 +146,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     LOG_DEBUG("Wrapping around time-stamp counter. Leftover fraction: " << timestamp);
   }
   m_lastTimestamp = timestamp + m_timestampOffset;
-  LOG_DEBUG("Frame: " << FrameNumber << ". Timestamp: " << m_lastTimestamp);
+  LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << m_lastTimestamp);
 
   if(usMode & B && !m_bSources.empty()) // B-mode flag is set, and B-mode source is defined
   {
