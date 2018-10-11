@@ -111,8 +111,6 @@ public:
   /*! Gets the maximum output value for log mapping of intensity range. */
   uint8_t GetLogMax() const { return m_OutputKnee; }
 
-  static const uint32_t wraparoundTSC = 1e9;
-
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
@@ -138,13 +136,9 @@ protected:
   /*! Updates buffer size based on current depth */
   void AdjustBufferSize();
 
-  // Temporary workaround to be run in a separate thread
-  void Watchdog();
-
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
-  bool m_wrapTimeStampCounter = false;
   float m_depth = 26.0; //mm
   float m_width = 38.1; //mm
   float m_frequency = 10.9; //MHz
@@ -152,8 +146,8 @@ protected:
   std::string m_transducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
   double m_timestampOffset = 0; //difference between program start time and latest InternalStartRecording()
-  int32_t m_transducerCount = 128;
-  int32_t m_samplesPerLine = 512;
+  unsigned m_transducerCount = 128;
+  unsigned m_samplesPerLine = 512;
   PlusTrackedFrame::FieldMapType m_customFields;
   std::thread* m_watchdog = nullptr;
   double m_lastTimestamp = 0.0; //for watchdog
@@ -163,7 +157,6 @@ protected:
   uint16_t m_MaxValue = 16384; //maximum typical value
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
   uint8_t m_OutputKnee = 64; // log-linear knee in output range
-  bool b_RunWatchdog = false; //does watchdog need to be run? depends on version of WinProbeSDK
   std::vector<vtkPlusDataSource*> m_bSources;
   std::vector<vtkPlusDataSource*> m_rfSources;
 

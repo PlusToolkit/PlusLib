@@ -125,18 +125,8 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     return;
   }
 
-  //timestamp counters are in milliseconds
+  //timestamp counters are in milliseconds since last execute() call
   double timestamp = header->TimeStamp / 1000.0;
-  if(header->TimeStamp > wraparoundTSC)
-  {
-    m_wrapTimeStampCounter = true;
-  }
-  else if(m_wrapTimeStampCounter) //time to wrap it around
-  {
-    m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime() - timestamp;
-    m_wrapTimeStampCounter = false;
-    LOG_DEBUG("Wrapping around time-stamp counter. Leftover fraction: " << timestamp);
-  }
   m_lastTimestamp = timestamp + m_timestampOffset;
   LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << m_lastTimestamp);
 
@@ -148,9 +138,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
 
     #pragma omp parallel for
-    for(uint32_t t = 0; t < m_transducerCount; t++)
+    for(unsigned t = 0; t < m_transducerCount; t++)
     {
-      for(uint32_t s = 0; s < m_samplesPerLine; s++)
+      for(unsigned s = 0; s < m_samplesPerLine; s++)
       {
         uint16_t val = frame[t * m_samplesPerLine + s];
         if(val <= m_MinValue) // subtract noise floor
@@ -409,24 +399,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
 }
 
 // ----------------------------------------------------------------------------
-void vtkPlusWinProbeVideoSource::Watchdog()
-{
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  while(this->Recording)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(15));
-    double now = vtkPlusAccurateTimer::GetSystemTime();
-    if(now - m_lastTimestamp > 0.2)
-    {
-      SetPendingRecreateTables(true);
-      LOG_INFO("Called SetPendingRecreateTables");
-      m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 {
   //apply requested settings
@@ -447,10 +419,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 
   m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
   WPExecute();
-  if (b_RunWatchdog)
-  {
-    m_watchdog = new std::thread(&vtkPlusWinProbeVideoSource::Watchdog, this);
-  }
   return PLUS_SUCCESS;
 }
 
@@ -458,12 +426,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
   WPStopScanning();
-  if (b_RunWatchdog)
-  {
-    m_watchdog->join();
-    delete m_watchdog;
-  }
-
   return PLUS_SUCCESS;
 }
 
