@@ -39,6 +39,10 @@ See License.txt for details.
 // OpenIGTLinkIO includes
 #include <igtlioPolyDataConverter.h>
 
+// STL includes
+#include <chrono>
+#include <thread>
+
 #if defined(WIN32)
   #include "vtkPlusOpenIGTLinkServerWin32.cxx"
 #elif defined(__APPLE__)
@@ -47,22 +51,26 @@ See License.txt for details.
   #include "vtkPlusOpenIGTLinkServerLinux.cxx"
 #endif
 
-static const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
-static const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
-static const int NUMBER_OF_RECENT_COMMAND_IDS_STORED = 10;
-static const int IGTL_EMPTY_DATA_SIZE = -1;
+namespace
+{
+  const double DELAY_ON_SENDING_ERROR_SEC = 0.02;
+  const double DELAY_ON_NO_NEW_FRAMES_SEC = 0.005;
+  const int NUMBER_OF_RECENT_COMMAND_IDS_STORED = 10;
+  const int IGTL_EMPTY_DATA_SIZE = -1;
+  const double SERVER_START_CHECK_DELAY_SEC = 2.0;
 
-const float vtkPlusOpenIGTLinkServer::CLIENT_SOCKET_TIMEOUT_SEC = 0.5;
+  //----------------------------------------------------------------------------
+  // If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
+  // then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up.
+  // This time should be long enough to comfortably retrieve a frame from the buffer.
+  const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
+}
 
 //----------------------------------------------------------------------------
-// If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
-// then we skip a SAMPLING_SKIPPING_MARGIN_SEC long period to allow the application to catch up.
-// This time should be long enough to comfortably retrieve a frame from the buffer.
-static const double SAMPLING_SKIPPING_MARGIN_SEC = 0.1;
 
 vtkStandardNewMacro(vtkPlusOpenIGTLinkServer);
-
 int vtkPlusOpenIGTLinkServer::ClientIdCounter = 1;
+const float vtkPlusOpenIGTLinkServer::CLIENT_SOCKET_TIMEOUT_SEC = 0.5f;
 
 //----------------------------------------------------------------------------
 vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
@@ -76,8 +84,6 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , NumberOfRetryAttempts(10)
   , DelayBetweenRetryAttemptsSec(0.05)
   , MaxNumberOfIgtlMessagesToSend(100)
-  , ConnectionActive(std::make_pair(false, false))
-  , DataSenderActive(std::make_pair(false, false))
   , ConnectionReceiverThreadId(-1)
   , DataSenderThreadId(-1)
   , IgtlMessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
@@ -155,14 +161,22 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
 
   if (this->ConnectionReceiverThreadId < 0)
   {
-    this->ConnectionActive.first = true;
+    this->ConnectionActive.Request = true;
     this->ConnectionReceiverThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)&ConnectionReceiverThread, this);
   }
 
   if (this->DataSenderThreadId < 0)
   {
-    this->DataSenderActive.first = true;
+    this->DataSenderActive.Request = true;
     this->DataSenderThreadId = this->Threader->SpawnThread((vtkThreadFunctionType)&DataSenderThread, this);
+  }
+
+  // Wait a short duration to see if both threads initialized properly, check at 50ms interval
+  RETRY_UNTIL_TRUE(this->ConnectionActive.Respond, std::round(SERVER_START_CHECK_DELAY_SEC / 50), 0.05);
+  if (!this->ConnectionActive.Respond)
+  {
+    LOG_ERROR("Unable to initialize receiver and sender processes.");
+    return PLUS_FAIL;
   }
 
   std::ostringstream ss;
@@ -183,8 +197,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::StopOpenIGTLinkService()
   // Stop connection receiver thread
   if (this->ConnectionReceiverThreadId >= 0)
   {
-    this->ConnectionActive.first = false;
-    while (this->ConnectionActive.second)
+    this->ConnectionActive.Request = false;
+    while (this->ConnectionActive.Respond)
     {
       // Wait until the thread stops
       vtkPlusAccurateTimer::DelayWithEventProcessing(0.2);
@@ -227,10 +241,10 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
 
   PrintServerInfo(self);
 
-  self->ConnectionActive.second = true;
+  self->ConnectionActive.Respond = true;
 
   // Wait for connections until we want to stop the thread
-  while (self->ConnectionActive.first)
+  while (self->ConnectionActive.Request)
   {
     igtl::ClientSocket::Pointer newClientSocket = self->ServerSocket->WaitForConnection(CLIENT_SOCKET_TIMEOUT_SEC * 1000);
     if (newClientSocket.IsNotNull())
@@ -269,7 +283,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
 
   // Close thread
   self->ConnectionReceiverThreadId = -1;
-  self->ConnectionActive.second = false;
+  self->ConnectionActive.Respond = false;
   return NULL;
 }
 
@@ -277,7 +291,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
 void* vtkPlusOpenIGTLinkServer::DataSenderThread(vtkMultiThreader::ThreadInfo* data)
 {
   vtkPlusOpenIGTLinkServer* self = (vtkPlusOpenIGTLinkServer*)(data->UserData);
-  self->DataSenderActive.second = true;
+  self->DataSenderActive.Respond = true;
 
   vtkPlusDevice* aDevice(NULL);
   vtkPlusChannel* aChannel(NULL);
@@ -334,7 +348,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread(vtkMultiThreader::ThreadInfo* d
   }
 
   double elapsedTimeSinceLastPacketSentSec = 0;
-  while (self->ConnectionActive.first && self->DataSenderActive.first)
+  while (self->ConnectionActive.Request && self->DataSenderActive.Request)
   {
     bool clientsConnected = false;
     {
@@ -367,7 +381,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread(vtkMultiThreader::ThreadInfo* d
   }
   // Close thread
   self->DataSenderThreadId = -1;
-  self->DataSenderActive.second = false;
+  self->DataSenderActive.Respond = false;
   return NULL;
 }
 
