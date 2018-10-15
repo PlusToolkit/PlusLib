@@ -39,10 +39,6 @@ See License.txt for details.
 // OpenIGTLinkIO includes
 #include <igtlioPolyDataConverter.h>
 
-// STL includes
-#include <chrono>
-#include <thread>
-
 #if defined(WIN32)
   #include "vtkPlusOpenIGTLinkServerWin32.cxx"
 #elif defined(__APPLE__)
@@ -58,6 +54,7 @@ namespace
   const int NUMBER_OF_RECENT_COMMAND_IDS_STORED = 10;
   const int IGTL_EMPTY_DATA_SIZE = -1;
   const double SERVER_START_CHECK_DELAY_SEC = 2.0;
+  const double SERVER_START_CHECK_DELAY_INTERVAL_SEC = 0.05;
 
   //----------------------------------------------------------------------------
   // If a frame cannot be retrieved from the device buffers (because it was overwritten by new frames)
@@ -172,7 +169,9 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
   }
 
   // Wait a short duration to see if both threads initialized properly, check at 50ms interval
-  RETRY_UNTIL_TRUE(this->ConnectionActive.Respond, std::round(SERVER_START_CHECK_DELAY_SEC / 50), 0.05);
+  RETRY_UNTIL_TRUE(this->ConnectionActive.Respond,
+    vtkMath::Round(SERVER_START_CHECK_DELAY_SEC / SERVER_START_CHECK_DELAY_INTERVAL_SEC),
+    SERVER_START_CHECK_DELAY_INTERVAL_SEC);
   if (!this->ConnectionActive.Respond)
   {
     LOG_ERROR("Unable to initialize receiver and sender processes.");

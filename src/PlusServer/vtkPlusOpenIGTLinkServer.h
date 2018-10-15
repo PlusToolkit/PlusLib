@@ -256,8 +256,12 @@ private:
   // Active flag for threads (request, respond )
   struct ThreadFlags
   {
-    bool Request = false;
-    bool Respond = false;
+    bool Request;
+    bool Respond;
+    ThreadFlags()
+      : Request(false)
+      , Respond(false)
+    {}
   };
   ThreadFlags ConnectionActive;
   ThreadFlags DataSenderActive;
