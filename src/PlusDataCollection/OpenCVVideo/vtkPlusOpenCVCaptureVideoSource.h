@@ -65,6 +65,9 @@ public:
   vtkGetMacro(AutoexposureEnabled, bool);
   vtkSetMacro(AutoexposureEnabled, bool);
 
+  vtkGetMacro(FourCC, std::string);
+  vtkSetMacro(FourCC, std::string);
+
   static cv::VideoCaptureAPIs CaptureAPIFromString(const std::string& apiString);
   static std::string StringFromCaptureAPI(cv::VideoCaptureAPIs api);
 
@@ -84,6 +87,7 @@ protected:
   cv::VideoCaptureAPIs              RequestedCaptureAPI;
   bool                              AutofocusEnabled;
   bool                              AutoexposureEnabled;
+  std::string                       FourCC;
 
   FrameSizeType                     FrameSize;
 

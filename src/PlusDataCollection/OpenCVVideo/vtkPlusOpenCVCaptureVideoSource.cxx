@@ -25,6 +25,7 @@ vtkStandardNewMacro(vtkPlusOpenCVCaptureVideoSource);
 //----------------------------------------------------------------------------
 vtkPlusOpenCVCaptureVideoSource::vtkPlusOpenCVCaptureVideoSource()
   : VideoURL("")
+  , FourCC("")
   , RequestedCaptureAPI(cv::CAP_ANY)
   , DeviceIndex(-1)
   , Capture(nullptr)
@@ -86,6 +87,13 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::ReadConfiguration(vtkXMLDataElement*
     std::copy(std::begin(frameSize), std::end(frameSize), this->FrameSize.begin());
   }
 
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(FourCC, deviceConfig);
+  if (!this->FourCC.empty() && this->FourCC.length() != 4)
+  {
+    LOG_WARNING("Unable to parse desired FourCC string.");
+    this->FourCC = "";
+  }
+
   std::vector<double> camMat;
   camMat.resize(9);
   XML_READ_STD_ARRAY_ATTRIBUTE_NONMEMBER_EXACT_OPTIONAL(double, CameraMatrix, 9, camMat, deviceConfig);
@@ -138,6 +146,8 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::WriteConfiguration(vtkXMLDataElement
     deviceConfig->SetVectorAttribute("DistortionCoefficients", this->DistortionCoefficients->rows, this->DistortionCoefficients->ptr<double>(0));
   }
 
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(FourCC, deviceConfig);
+
   XML_WRITE_BOOL_ATTRIBUTE(AutofocusEnabled, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(AutoexposureEnabled, deviceConfig);
 
@@ -184,6 +194,10 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
   if (!this->Capture->set(cv::CAP_PROP_FPS, this->AcquisitionRate))
   {
     LOG_WARNING("Unable to set requested acquisition rate: " << this->AcquisitionRate);
+  }
+  if (!this->FourCC.empty() && !this->Capture->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc(this->FourCC[0], this->FourCC[1], this->FourCC[2], this->FourCC[3])))
+  {
+    LOG_WARNING("Unable to set requested fourCC code: " << this->FourCC);
   }
   if (this->FrameSize[1] != 0)
   {
