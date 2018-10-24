@@ -15,6 +15,9 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 
 // OpenCV includes
+#if CV_MAJOR_VERSION > 3
+  #include <opencv2/calib3d.hpp>
+#endif
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 
