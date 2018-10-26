@@ -3,9 +3,6 @@
 ORIGPATH=$PATH
 DIRCMD=0
 
-# Prevent X server related test errors (vtkXOpenGLRenderWindow: bad X server connection)
-export DISPLAY=:0
-
 finish()
 {
   PATH=$ORIGPATH
@@ -18,7 +15,27 @@ buildFailed ()
   exit $1
 }
 
-if [ "$1" == "" ] || [ "$1" == "-E" ]; then
+command=%0
+test_mode=%1
+shift
+
+test_track=""
+individual_test=""
+while [ "${1:-}" != "" ]; do
+  case "$1" in
+    "--test")
+      shift
+      individial_test=$1
+      ;;
+    "--track")
+      shift
+      test_track=track $1
+      ;;
+  esac
+  shift
+done
+
+if [ "$test_mode" == "" ] || [ "$test_mode" == "-E" ]; then
   "${CMAKE_COMMAND}" --build . --config Release
   errorVal=$?
   if [ "$?" == 1 ]; then
@@ -27,19 +44,19 @@ if [ "$1" == "" ] || [ "$1" == "-E" ]; then
   "${CMAKE_CTEST_COMMAND}" -C Release -D Experimental --output-on-failure
 fi
 
-if [ "$1" == "-N" ]; then
+if [ "$test_mode" == "-N" ]; then
    # Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
   "${CMAKE_COMMAND}" --build . --config Release --clean-first
   "${CMAKE_CTEST_COMMAND}" -C Release -D Nightly
 fi
 
-if [ "$1" == "-C" ]; then
+if [ "$test_mode" == "-C" ]; then
   "${CMAKE_CTEST_COMMAND}" -C Release -D Continuous
   # Wait for some time before continue to allow checking the results of the executions
   sleep 15
 fi
 
-if [ "$1" == "-I" ]; then
+if [ "$test_mode" == "-I" ]; then
   # Run individual tests with regexp search
   # Display the list of tests
   "${CMAKE_CTEST_COMMAND}" -R "%2" -N -C Release
