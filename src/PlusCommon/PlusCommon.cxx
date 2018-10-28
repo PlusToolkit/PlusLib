@@ -334,23 +334,23 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-      case '&':
-        os << "&amp;";
-        break;
-      case '<':
-        os << "&lt;";
-        break;
-      case '>':
-        os << "&gt;";
-        break;
-      case '"':
-        os << "&quot;";
-        break;
-      case '\'':
-        os << "&apos;";
-        break;
-      default:
-        os << data[i];
+    case '&':
+      os << "&amp;";
+      break;
+    case '<':
+      os << "&lt;";
+      break;
+    case '>':
+      os << "&gt;";
+      break;
+    case '"':
+      os << "&quot;";
+      break;
+    case '\'':
+      os << "&apos;";
+      break;
+    default:
+      os << data[i];
     }
   }
 }
@@ -608,6 +608,133 @@ namespace
   {
     return ::towlower(a) == ::towlower(b);
   }
+}
+
+//----------------------------------------------------------------------------
+TrackedFrameFieldStatus PlusCommon::ConvertToolStatusToTrackedFrameFieldStatus(const ToolStatus& status)
+{
+  TrackedFrameFieldStatus fieldStatus = FIELD_INVALID;
+  if (status == TOOL_OK)
+  {
+    fieldStatus = FIELD_OK;
+  }
+
+  return fieldStatus;
+}
+
+//----------------------------------------------------------------------------
+ToolStatus PlusCommon::ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus)
+{
+  ToolStatus status = TOOL_MISSING;
+  if (fieldStatus == FIELD_OK)
+  {
+    status = TOOL_OK;
+  }
+
+  return status;
+}
+
+//----------------------------------------------------------------------------
+ToolStatus PlusCommon::ConvertStringToToolStatus(const std::string& status)
+{
+  if (PlusCommon::IsEqualInsensitive("OK", status))
+  {
+    return TOOL_OK;
+  }
+  else if (PlusCommon::IsEqualInsensitive("MISSING", status))
+  {
+    return TOOL_MISSING;
+  }
+  else if (PlusCommon::IsEqualInsensitive("OUT_OF_VIEW", status))
+  {
+    return TOOL_OUT_OF_VIEW;
+  }
+  else if (PlusCommon::IsEqualInsensitive("OUT_OF_VOLUME", status))
+  {
+    return TOOL_OUT_OF_VOLUME;
+  }
+  else if (PlusCommon::IsEqualInsensitive("SWITCH1_IS_ON", status))
+  {
+    return TOOL_SWITCH1_IS_ON;
+  }
+  else if (PlusCommon::IsEqualInsensitive("SWITCH2_IS_ON", status))
+  {
+    return TOOL_SWITCH2_IS_ON;
+  }
+  else if (PlusCommon::IsEqualInsensitive("SWITCH3_IS_ON", status))
+  {
+    return TOOL_SWITCH3_IS_ON;
+  }
+  else if (PlusCommon::IsEqualInsensitive("REQ_TIMEOUT", status))
+  {
+    return TOOL_REQ_TIMEOUT;
+  }
+  else if (PlusCommon::IsEqualInsensitive("INVALID", status))
+  {
+    return TOOL_INVALID;
+  }
+  else if (PlusCommon::IsEqualInsensitive("PATH_NOT_FOUND", status))
+  {
+    return TOOL_PATH_NOT_FOUND;
+  }
+  else
+  {
+    LOG_ERROR("Unknown tool status string received. Defaulting to TOOL_UNKNOWN.");
+    return TOOL_UNKNOWN;
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string PlusCommon::ConvertToolStatusToString(const ToolStatus& status)
+{
+  std::string flagFieldValue;
+  if (status == TOOL_OK)
+  {
+    flagFieldValue = "OK";
+  }
+  else if (status == TOOL_MISSING)
+  {
+    flagFieldValue = "MISSING";
+  }
+  else if (status == TOOL_OUT_OF_VIEW)
+  {
+    flagFieldValue = "OUT_OF_VIEW";
+  }
+  else if (status == TOOL_OUT_OF_VOLUME)
+  {
+    flagFieldValue = "OUT_OF_VOLUME";
+  }
+  else if (status == TOOL_SWITCH1_IS_ON)
+  {
+    flagFieldValue = "SWITCH1_IS_ON";
+  }
+  else if (status == TOOL_SWITCH2_IS_ON)
+  {
+    flagFieldValue = "SWITCH2_IS_ON";
+  }
+  else if (status == TOOL_SWITCH3_IS_ON)
+  {
+    flagFieldValue = "SWITCH3_IS_ON";
+  }
+  else if (status == TOOL_REQ_TIMEOUT)
+  {
+    flagFieldValue = "REQ_TIMEOUT";
+  }
+  else if (status == TOOL_INVALID)
+  {
+    flagFieldValue = "INVALID";
+  }
+  else if (status == TOOL_PATH_NOT_FOUND)
+  {
+    flagFieldValue = "PATH_NOT_FOUND";
+  }
+  else
+  {
+    LOG_ERROR("Unknown tracker status received - set \"UNKNOWN\" by default!");
+    flagFieldValue = "UNKNOWN";
+  }
+
+  return flagFieldValue;
 }
 
 //----------------------------------------------------------------------------

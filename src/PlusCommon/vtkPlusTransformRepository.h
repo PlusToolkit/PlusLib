@@ -7,9 +7,15 @@ See License.txt for details.
 #ifndef __vtkPlusTransformRepository_h
 #define __vtkPlusTransformRepository_h
 
+// Local includes
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "vtkPlusCommonExport.h"
-#include "vtkObject.h"
+
+// VTK includes
+#include <vtkObject.h>
+
+// STL includes
 #include <list>
 #include <map>
 
@@ -58,7 +64,7 @@ public:
     set transform is allowed. The transform is computed even if one or more of the used transforms
     have non valid status.
   */
-  virtual PlusStatus SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid = true);
+  virtual PlusStatus SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, ToolStatus toolStatus = TOOL_OK);
 
   /*!
     Set all transform matrices between two coordinate frames stored in TrackedFrame. The method fails if any of the transforms
@@ -72,7 +78,7 @@ public:
     Set the valid status of a transform matrix between two coordinate frames. A transform is normally valid,
     but temporarily it can be set to non valid (e.g., when a tracked tool gets out of view).
   */
-  virtual PlusStatus SetTransformValid(const PlusTransformName& aTransformName, bool isValid);
+  virtual PlusStatus SetTransformStatus(const PlusTransformName& aTransformName, ToolStatus toolStatus);
 
   /*!
     Set the persistent status of a transform matrix between two coordinate frames. A transform is non persistent by default.
@@ -118,9 +124,9 @@ public:
     cannot be already constructed by combining/inverting already stored transforms.
     \param aTransformName name of the transform to retrieve from the repository
     \param matrix the retrieved transform is copied into this matrix
-    \param isValid if this parameter is not NULL then the transform's validity status is returned at that memory address
+    \param toolStatus if this parameter is not NULL then the transforms' status is returned at that memory address
   */
-  virtual PlusStatus GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid = NULL);
+  virtual PlusStatus GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, ToolStatus* toolStatus = NULL) const;
 
   /*!
     Get the valid status of a transform matrix between two coordinate frames.
@@ -160,10 +166,12 @@ protected:
     TransformInfo(const TransformInfo& obj);
     TransformInfo& operator=(const TransformInfo& obj);
 
+    bool IsValid() { return m_ToolStatus == TOOL_OK; }
+
     /*! TransformInfo storing the transformation matrix between two coordinate frames */
     vtkTransform* m_Transform;
-    /*! If it is true it means that the transform is known (e.g., tracked tool is visible) */
-    bool m_IsValid;
+    /*! Describes the state of the tool status */
+    ToolStatus m_ToolStatus;
     /*!
       If the value is true then it means that the transform is computed from
       another transform (by inverting that). If the value is false it means
@@ -190,7 +198,7 @@ protected:
   typedef std::list<TransformInfo*> TransformInfoListType;
 
   /*! Get a user-defined original input transform (or its inverse). Does not combine user-defined input transforms. */
-  TransformInfo* GetOriginalTransform(const PlusTransformName& aTransformName);
+  TransformInfo* GetOriginalTransform(const PlusTransformName& aTransformName) const;
 
   /*!
     Find a transform path between the specified coordinate frames.
@@ -200,9 +208,9 @@ protected:
     \param silent Don't log an error if path cannot be found (it's normal while searching in branches of the graph)
     \return returns PLUS_SUCCESS if a path can be found, PLUS_FAIL otherwise
   */
-  PlusStatus FindPath(const PlusTransformName& aTransformName, TransformInfoListType& transformInfoList, const char* skipCoordFrameName = NULL, bool silent = false);
+  PlusStatus FindPath(const PlusTransformName& aTransformName, TransformInfoListType& transformInfoList, const char* skipCoordFrameName = NULL, bool silent = false) const;
 
-  CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
+  mutable CoordFrameToCoordFrameToTransformMapType CoordinateFrames;
 
   vtkPlusRecursiveCriticalSection* CriticalSection;
 

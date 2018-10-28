@@ -230,15 +230,6 @@ public:
   /*! Get number of field data sources */
   virtual int GetNumberOfFieldDataSources() const;
 
-  /*! Convert tool status to string */
-  static std::string ConvertToolStatusToString(ToolStatus status);
-
-  /*! Convert tool status to TrackedFrameFieldStatus */
-  static TrackedFrameFieldStatus ConvertToolStatusToTrackedFrameFieldStatus(ToolStatus status);
-
-  /*! Convert TrackedFrameFieldStatus to tool status */
-  static ToolStatus ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus);
-
   /*! Set Reference name of the tools */
   void SetToolReferenceFrameName(const std::string& frameName);
   /*! Get Reference name of the tools */

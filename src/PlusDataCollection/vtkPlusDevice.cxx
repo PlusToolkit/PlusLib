@@ -746,7 +746,7 @@ PlusStatus vtkPlusDevice::WriteToolsToSequenceFile(const std::string& filename, 
       trackedFrame.SetFrameTransform(toolToTrackerTransform, toolMatrix);
 
       // Add source status
-      trackedFrame.SetFrameTransformStatus(toolToTrackerTransform, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(toolBufferItem.GetStatus()));
+      trackedFrame.SetFrameTransformStatus(toolToTrackerTransform, toolBufferItem.GetStatus());
     }
 
     // Add tracked frame to the list
@@ -759,30 +759,6 @@ PlusStatus vtkPlusDevice::WriteToolsToSequenceFile(const std::string& filename, 
   {
     LOCAL_LOG_ERROR("Failed to save tracked frames to sequence metafile!");
     return PLUS_FAIL;
-  }
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
-TrackedFrameFieldStatus vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(ToolStatus status)
-{
-  TrackedFrameFieldStatus fieldStatus = FIELD_INVALID;
-  if (status == TOOL_OK)
-  {
-    fieldStatus = FIELD_OK;
-  }
-
-  return fieldStatus;
-}
-
-//----------------------------------------------------------------------------
-ToolStatus vtkPlusDevice::ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus)
-{
-  ToolStatus status = TOOL_MISSING;
-  if (fieldStatus == FIELD_OK)
-  {
-    status = TOOL_OK ;
   }
 
   return status;
@@ -804,39 +780,6 @@ std::string vtkPlusDevice::GetToolReferenceFrameName() const
 bool vtkPlusDevice::GetCorrectlyConfigured() const
 {
   return this->CorrectlyConfigured;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkPlusDevice::ConvertToolStatusToString(ToolStatus status)
-{
-  std::string flagFieldValue;
-  if (status == TOOL_OK)
-  {
-    flagFieldValue = "OK";
-  }
-  else if (status == TOOL_MISSING)
-  {
-    flagFieldValue = "TOOL_MISSING";
-  }
-  else if (status == TOOL_OUT_OF_VIEW)
-  {
-    flagFieldValue = "TOOL_OUT_OF_VIEW";
-  }
-  else if (status == TOOL_OUT_OF_VOLUME)
-  {
-    flagFieldValue = "TOOL_OUT_OF_VOLUME";
-  }
-  else if (status == TOOL_REQ_TIMEOUT)
-  {
-    flagFieldValue = "TOOL_REQ_TIMEOUT";
-  }
-  else
-  {
-    LOG_ERROR("Unknown tracker status received - set TOOL_INVALID by default!");
-    flagFieldValue = "TOOL_INVALID";
-  }
-
-  return flagFieldValue;
 }
 
 //----------------------------------------------------------------------------

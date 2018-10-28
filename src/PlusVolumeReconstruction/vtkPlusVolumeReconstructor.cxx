@@ -390,9 +390,9 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
     }
 
     // Get transform
-    bool isMatrixValid(false);
+    ToolStatus status(TOOL_INVALID);
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid) != PLUS_SUCCESS)
+    if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &status) != PLUS_SUCCESS)
     {
       std::string strImageToReferenceTransformName;
       imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
@@ -400,7 +400,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
       continue;
     }
 
-    if (isMatrixValid)
+    if (status == TOOL_OK)
     {
       numberOfValidFrames++;
 
@@ -430,7 +430,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
   double outputOrigin_Ref[3] = { 0.0, 0.0, 0.0 };
   for (int d = 0; d < 3; d++)
   {
-    outputOrigin_Ref[d] = std::floor(extent_Ref[d * 2] / outputSpacing[d])*outputSpacing[d];
+    outputOrigin_Ref[d] = std::floor(extent_Ref[d * 2] / outputSpacing[d]) * outputSpacing[d];
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
@@ -498,9 +498,9 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
     }
   }
 
-  bool isMatrixValid(false);
+  ToolStatus status(TOOL_INVALID);
   vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid) != PLUS_SUCCESS)
+  if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &status) != PLUS_SUCCESS)
   {
     std::string strImageToReferenceTransformName;
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
@@ -510,10 +510,10 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
 
   if (insertedIntoVolume != NULL)
   {
-    *insertedIntoVolume = isMatrixValid;
+    *insertedIntoVolume = (status == TOOL_OK);
   }
 
-  if (!isMatrixValid)
+  if (status != TOOL_OK)
   {
     // Insert only valid frame into volume
     std::string strImageToReferenceTransformName;
@@ -531,9 +531,9 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
     return PLUS_SUCCESS;
   }
 
-  PlusStatus status = this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
+  PlusStatus insertSliceStatus = this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
   this->Modified();
-  return status;
+  return insertSliceStatus;
 }
 
 //----------------------------------------------------------------------------

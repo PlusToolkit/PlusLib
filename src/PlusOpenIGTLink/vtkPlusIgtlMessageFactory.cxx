@@ -170,265 +170,37 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
       continue;
     }
 
-    // Image message
     if (typeid(*igtlMessage) == typeid(igtl::ImageMessage))
     {
-      for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
-      {
-        PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
-
-        // Set transform name to [Name]To[CoordinateFrame]
-        PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
-
-        vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-        bool isValid;
-        if (transformRepository->GetTransform(imageTransformName, matrix.Get(), &isValid) != PLUS_SUCCESS)
-        {
-          LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
-          numberOfErrors++;
-          continue;
-        }
-
-        std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
-
-        if (imageStream.VideoParameters.EncodingFourCC.empty())
-        {
-          igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
-          if (trackedFrame.IsFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
-          {
-            // Allow overriding of device name with something human readable
-            // The transform name is passed in the metadata
-            deviceName = trackedFrame.GetFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
-          }
-          imageMessage->SetDeviceName(deviceName.c_str());
-
-          // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
-          std::vector<std::string> frameFields;
-          trackedFrame.GetFrameFieldNameList(frameFields);
-          for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
-          {
-            if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
-            {
-              // No value is available, do not send anything
-              LOG_WARNING("No metadata value for: " << *stringNameIterator)
-              continue;
-            }
-            imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
-          }
-
-          if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
-          {
-            LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
-            numberOfErrors++;
-            continue;
-          }
-          igtlMessages.push_back(imageMessage.GetPointer());
-        }
-        else
-        {
-
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-          igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
-          ClientEncoderKeyType clientEncoderKey;
-          clientEncoderKey.ClientId = clientId;
-          clientEncoderKey.ImageName = imageStream.Name;
-
-          VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
-          if (encoderIt != this->IgtlVideoEncoders.end())
-          {
-            encoder = encoderIt->second;
-          }
-          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_I420)
-          {
-            encoder = new igtl::I420Encoder();
-            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-          }
-#if defined(OpenIGTLink_USE_VP9)
-          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_VP9)
-          {
-            encoder = new igtl::VP9Encoder();
-            encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
-            encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
-            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-          }
-#endif
-#if defined(OpenIGTLink_USE_H264)
-          else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_H264)
-          {
-            encoder = new igtl::H264Encoder();
-            encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
-            encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
-            this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-          }
-#endif
-          else
-          {
-            LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.VideoParameters.EncodingFourCC);
-            continue;
-          }
-
-          igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();
-          videoMessage->SetDeviceName(deviceName.c_str());
-          if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
-          {
-            LOG_ERROR("Failed to create " << "VIDEO" << " message - unable to pack image message");
-            numberOfErrors++;
-            continue;
-          }
-          videoMessage->SetDeviceName(deviceName.c_str());
-          igtlMessages.push_back(videoMessage.GetPointer());
-#else
-          LOG_ERROR("Plus is not currently compiled with video streaming support!");
-#endif
-        }
-      }
+      numberOfErrors += PackImageMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
-    // Transform message
     else if (typeid(*igtlMessage) == typeid(igtl::TransformMessage))
     {
-      for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
-      {
-        PlusTransformName transformName = (*transformNameIterator);
-        bool isValid = false;
-        transformRepository->GetTransformValid(transformName, isValid);
-
-        if (!isValid && packValidTransformsOnly)
-        {
-          LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
-          continue;
-        }
-
-        igtl::Matrix4x4 igtlMatrix;
-        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
-
-        igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, isValid, trackedFrame.GetTimestamp());
-        igtlMessages.push_back(transformMessage.GetPointer());
-      }
+      numberOfErrors += PackTransformMessage(clientInfo, *transformRepository, packValidTransformsOnly, igtlMessage, trackedFrame, igtlMessages);
     }
-    // Tracking data message
     else if (typeid(*igtlMessage) == typeid(igtl::TrackingDataMessage))
     {
-      if (clientInfo.GetTDATARequested() && clientInfo.GetLastTDATASentTimeStamp() + clientInfo.GetTDATAResolution() < trackedFrame.GetTimestamp())
-      {
-        std::map<std::string, vtkSmartPointer<vtkMatrix4x4> > transforms;
-        for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
-        {
-          PlusTransformName transformName = (*transformNameIterator);
-
-          bool isValid = false;
-          vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
-          transformRepository->GetTransform(transformName, mat, &isValid);
-
-          if (!isValid && packValidTransformsOnly)
-          {
-            LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
-            continue;
-          }
-
-          std::string transformNameStr;
-          transformName.GetTransformName(transformNameStr);
-
-          transforms[transformNameStr] = mat;
-        }
-
-        igtl::TrackingDataMessage::Pointer trackingDataMessage = dynamic_cast<igtl::TrackingDataMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackTrackingDataMessage(trackingDataMessage, transforms, trackedFrame.GetTimestamp());
-        igtlMessages.push_back(trackingDataMessage.GetPointer());
-      }
+      numberOfErrors += PackTrackingDataMessage(clientInfo, trackedFrame, *transformRepository, packValidTransformsOnly, igtlMessage, igtlMessages);
     }
-    // Position message
     else if (typeid(*igtlMessage) == typeid(igtl::PositionMessage))
     {
-      for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
-      {
-        /*
-          Advantage of using position message type:
-          Although equivalent position and orientation can be described with the TRANSFORM data type,
-          the POSITION data type has the advantage of smaller data size (19%). It is therefore more suitable for
-          pushing high frame-rate data from tracking devices.
-        */
-        PlusTransformName transformName = (*transformNameIterator);
-        igtl::Matrix4x4 igtlMatrix;
-        vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, transformRepository, transformName);
-
-        float position[3] = {igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3]};
-        float quaternion[4] = {0, 0, 0, 1};
-        igtl::MatrixToQuaternion(igtlMatrix, quaternion);
-
-        igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackPositionMessage(positionMessage, transformName, position, quaternion, trackedFrame.GetTimestamp());
-        igtlMessages.push_back(positionMessage.GetPointer());
-      }
+      numberOfErrors += PackPositionMessage(clientInfo, *transformRepository, igtlMessage, trackedFrame, igtlMessages);
     }
-    // TRACKEDFRAME message
     else if (typeid(*igtlMessage) == typeid(igtl::PlusTrackedFrameMessage))
     {
-      igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
-
-      for (auto nameIter = clientInfo.TransformNames.begin(); nameIter != clientInfo.TransformNames.end(); ++nameIter)
-      {
-        bool isValid(false);
-        vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
-        transformRepository->GetTransform(*nameIter, matrix, &isValid);
-        trackedFrame.SetFrameTransform(*nameIter, matrix);
-        trackedFrame.SetFrameTransformStatus(*nameIter, isValid ? FIELD_OK : FIELD_INVALID);
-      }
-
-      vtkSmartPointer<vtkMatrix4x4> imageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      imageMatrix->Identity();
-      if (!clientInfo.ImageStreams.empty())
-      {
-        bool isValid;
-        if (transformRepository->GetTransform(PlusTransformName(clientInfo.ImageStreams[0].Name, clientInfo.ImageStreams[0].EmbeddedTransformToFrame), imageMatrix, &isValid) != PLUS_SUCCESS)
-        {
-          LOG_ERROR("Unable to retrieve embedded image transform: " << clientInfo.ImageStreams[0].Name << "To" << clientInfo.ImageStreams[0].EmbeddedTransformToFrame << ".");
-          continue;
-        }
-      }
-      if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, imageMatrix, clientInfo.TransformNames) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
-        numberOfErrors++;
-        continue;
-      }
-      igtlMessages.push_back(trackedFrameMessage.GetPointer());
+      numberOfErrors += PackTrackedFrameMessage(igtlMessage, clientInfo, *transformRepository, trackedFrame, igtlMessages);
     }
-    // USMESSAGE message
     else if (typeid(*igtlMessage) == typeid(igtl::PlusUsMessage))
     {
-      igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage->Clone().GetPointer());
-      if (vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to pack IGT messages - unable to pack US message");
-        numberOfErrors++;
-        continue;
-      }
-      igtlMessages.push_back(usMessage.GetPointer());
+      numberOfErrors += PackUsMessage(igtlMessage, trackedFrame, igtlMessages);
     }
-    // String message
     else if (typeid(*igtlMessage) == typeid(igtl::StringMessage))
     {
-      for (std::vector< std::string >::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
-      {
-        const char* stringName = stringNameIterator->c_str();
-        const char* stringValue = trackedFrame.GetFrameField(stringName);
-        if (stringValue == NULL)
-        {
-          // no value is available, do not send anything
-          continue;
-        }
-        igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
-        vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, stringName, stringValue, trackedFrame.GetTimestamp());
-        igtlMessages.push_back(stringMessage.GetPointer());
-      }
+      numberOfErrors += PackStringMessage(clientInfo, trackedFrame, igtlMessage, igtlMessages);
     }
     else if (typeid(*igtlMessage) == typeid(igtl::CommandMessage))
     {
-      // Is there any use case for the server sending commands to the client?
-      igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->Clone().GetPointer());
-      //vtkPlusIgtlMessageCommon::PackCommandMessage( commandMessage );
-      igtlMessages.push_back(commandMessage.GetPointer());
+      numberOfErrors += PackCommandMessage(igtlMessage, igtlMessages);
     }
     else
     {
@@ -437,6 +209,293 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
   }
 
   return (numberOfErrors == 0 ? PLUS_SUCCESS : PLUS_FAIL);
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackCommandMessage(igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  // Is there any use case for the server sending commands to the client?
+  igtl::CommandMessage::Pointer commandMessage = dynamic_cast<igtl::CommandMessage*>(igtlMessage->Clone().GetPointer());
+  //vtkPlusIgtlMessageCommon::PackCommandMessage( commandMessage );
+  igtlMessages.push_back(commandMessage.GetPointer());
+
+  return 0; // message type does not produce errors
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackStringMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  for (std::vector<std::string>::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
+  {
+    const char* stringName = stringNameIterator->c_str();
+    const char* stringValue = trackedFrame.GetFrameField(stringName);
+    if (stringValue == NULL)
+    {
+      // no value is available, do not send anything
+      continue;
+    }
+    igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
+    vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, stringName, stringValue, trackedFrame.GetTimestamp());
+    igtlMessages.push_back(stringMessage.GetPointer());
+  }
+  return 0; // message type does not produce errors
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackUsMessage(igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  int numberOfErrors(0);
+  igtl::PlusUsMessage::Pointer usMessage = dynamic_cast<igtl::PlusUsMessage*>(igtlMessage->Clone().GetPointer());
+  if (vtkPlusIgtlMessageCommon::PackUsMessage(usMessage, trackedFrame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to pack IGT messages - unable to pack US message");
+    numberOfErrors++;
+    return numberOfErrors;
+  }
+  igtlMessages.push_back(usMessage.GetPointer());
+  return numberOfErrors;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackTrackedFrameMessage(igtl::MessageBase::Pointer igtlMessage, const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  int numberOfErrors(0);
+  igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage = dynamic_cast<igtl::PlusTrackedFrameMessage*>(igtlMessage->Clone().GetPointer());
+
+  for (auto nameIter = clientInfo.TransformNames.begin(); nameIter != clientInfo.TransformNames.end(); ++nameIter)
+  {
+    ToolStatus status(TOOL_INVALID);
+    vtkSmartPointer<vtkMatrix4x4> matrix(vtkSmartPointer<vtkMatrix4x4>::New());
+    transformRepository.GetTransform(*nameIter, matrix, &status);
+    trackedFrame.SetFrameTransform(*nameIter, matrix);
+    trackedFrame.SetFrameTransformStatus(*nameIter, status);
+  }
+
+  vtkSmartPointer<vtkMatrix4x4> imageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  imageMatrix->Identity();
+  if (!clientInfo.ImageStreams.empty())
+  {
+    ToolStatus status(TOOL_INVALID);
+    if (transformRepository.GetTransform(PlusTransformName(clientInfo.ImageStreams[0].Name, clientInfo.ImageStreams[0].EmbeddedTransformToFrame), imageMatrix, &status) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Unable to retrieve embedded image transform: " << clientInfo.ImageStreams[0].Name << "To" << clientInfo.ImageStreams[0].EmbeddedTransformToFrame << ".");
+      numberOfErrors++;
+      return numberOfErrors;
+    }
+  }
+  if (vtkPlusIgtlMessageCommon::PackTrackedFrameMessage(trackedFrameMessage, trackedFrame, imageMatrix, clientInfo.TransformNames) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to pack IGT messages - unable to pack tracked frame message");
+    numberOfErrors++;
+    return numberOfErrors;
+  }
+  igtlMessages.push_back(trackedFrameMessage.GetPointer());
+  return numberOfErrors;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackPositionMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
+  {
+    /*
+      Advantage of using position message type:
+      Although equivalent position and orientation can be described with the TRANSFORM data type,
+      the POSITION data type has the advantage of smaller data size (19%). It is therefore more suitable for
+      pushing high frame-rate data from tracking devices.
+    */
+    PlusTransformName transformName = (*transformNameIterator);
+    igtl::Matrix4x4 igtlMatrix;
+    vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, &transformRepository, transformName);
+
+    ToolStatus status;
+    vtkNew<vtkMatrix4x4> temp;
+    transformRepository.GetTransform(transformName, temp, &status);
+
+    float position[3] = { igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3] };
+    float quaternion[4] = { 0, 0, 0, 1 };
+    igtl::MatrixToQuaternion(igtlMatrix, quaternion);
+
+    igtl::PositionMessage::Pointer positionMessage = dynamic_cast<igtl::PositionMessage*>(igtlMessage->Clone().GetPointer());
+    vtkPlusIgtlMessageCommon::PackPositionMessage(positionMessage, transformName, status, position, quaternion, trackedFrame.GetTimestamp());
+    igtlMessages.push_back(positionMessage.GetPointer());
+  }
+
+  return 0; // no errors possible with this message type
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  if (clientInfo.GetTDATARequested() && clientInfo.GetLastTDATASentTimeStamp() + clientInfo.GetTDATAResolution() < trackedFrame.GetTimestamp())
+  {
+    std::vector<PlusTransformName> names;
+
+    std::map<std::string, vtkSmartPointer<vtkMatrix4x4> > transforms;
+    for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
+    {
+      PlusTransformName transformName = (*transformNameIterator);
+
+      ToolStatus status(TOOL_INVALID);
+      vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
+      transformRepository.GetTransform(transformName, mat, &status);
+
+      if (status != TOOL_OK && packValidTransformsOnly)
+      {
+        LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
+        continue;
+      }
+
+      names.push_back(transformName);
+    }
+
+    igtl::TrackingDataMessage::Pointer trackingDataMessage = dynamic_cast<igtl::TrackingDataMessage*>(igtlMessage->Clone().GetPointer());
+    vtkPlusIgtlMessageCommon::PackTrackingDataMessage(trackingDataMessage, names, transformRepository, trackedFrame.GetTimestamp());
+    igtlMessages.push_back(trackingDataMessage.GetPointer());
+  }
+  return 0; // no errors possible for this message type
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly, igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages)
+{
+  for (std::vector<PlusTransformName>::const_iterator transformNameIterator = clientInfo.TransformNames.begin(); transformNameIterator != clientInfo.TransformNames.end(); ++transformNameIterator)
+  {
+    PlusTransformName transformName = (*transformNameIterator);
+    ToolStatus status(TOOL_UNKNOWN);
+    vtkNew<vtkMatrix4x4> temp;
+    transformRepository.GetTransform(transformName, temp, &status);
+
+    if (status != TOOL_OK && packValidTransformsOnly)
+    {
+      LOG_TRACE("Attempted to send invalid transform over IGT Link when server has prevented sending.");
+      continue;
+    }
+
+    igtl::Matrix4x4 igtlMatrix;
+    vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, &transformRepository, transformName);
+
+    igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
+    vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, status, trackedFrame.GetTimestamp());
+    igtlMessages.push_back(transformMessage.GetPointer());
+  }
+
+  return 0; // no errors possible in this message type
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType, igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId)
+{
+  int numberOfErrors;
+  for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
+  {
+    PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
+
+    // Set transform name to [Name]To[CoordinateFrame]
+    PlusTransformName imageTransformName = PlusTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
+
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if (transformRepository.GetTransform(imageTransformName, matrix.Get()) != PLUS_SUCCESS)
+    {
+      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
+      numberOfErrors++;
+      continue;
+    }
+
+    std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
+
+    if (imageStream.VideoParameters.EncodingFourCC.empty())
+    {
+      igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
+      if (trackedFrame.IsFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
+      {
+        // Allow overriding of device name with something human readable
+        // The transform name is passed in the metadata
+        deviceName = trackedFrame.GetFrameField(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+      }
+      imageMessage->SetDeviceName(deviceName.c_str());
+
+      // Send PlusTrackedFrame::CustomFrameFields as meta data in the image message.
+      std::vector<std::string> frameFields;
+      trackedFrame.GetFrameFieldNameList(frameFields);
+      for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
+      {
+        if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+        {
+          // No value is available, do not send anything
+          LOG_WARNING("No metadata value for: " << *stringNameIterator)
+          continue;
+        }
+        imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
+      }
+
+      if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+        numberOfErrors++;
+        continue;
+      }
+      igtlMessages.push_back(imageMessage.GetPointer());
+    }
+    else
+    {
+
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
+      igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
+      ClientEncoderKeyType clientEncoderKey;
+      clientEncoderKey.ClientId = clientId;
+      clientEncoderKey.ImageName = imageStream.Name;
+
+      VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
+      if (encoderIt != this->IgtlVideoEncoders.end())
+      {
+        encoder = encoderIt->second;
+      }
+      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_I420)
+      {
+        encoder = new igtl::I420Encoder();
+        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+      }
+#if defined(OpenIGTLink_USE_VP9)
+      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_VP9)
+      {
+        encoder = new igtl::VP9Encoder();
+        encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
+        encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
+        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+      }
+#endif
+#if defined(OpenIGTLink_USE_H264)
+      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_H264)
+      {
+        encoder = new igtl::H264Encoder();
+        encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
+        encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
+        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+      }
+#endif
+      else
+      {
+        LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.VideoParameters.EncodingFourCC);
+        continue;
+      }
+
+      igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();
+      videoMessage->SetDeviceName(deviceName.c_str());
+      if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to create " << "VIDEO" << " message - unable to pack image message");
+        numberOfErrors++;
+        continue;
+      }
+      videoMessage->SetDeviceName(deviceName.c_str());
+      igtlMessages.push_back(videoMessage.GetPointer());
+#else
+      LOG_ERROR("Plus is not currently compiled with video streaming support!");
+#endif
+    }
+  }
+  return numberOfErrors;
 }
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)

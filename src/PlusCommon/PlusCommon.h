@@ -43,6 +43,34 @@ enum PlusImagingMode
   Plus_RfMode
 };
 
+/*!
+\enum TrackedFrameFieldStatus
+\brief Tracked frame field status
+Image field is valid if the image data is not NULL.
+Tool status is valid only if the ToolStatus is TOOL_OK.
+\ingroup PlusLibCommon
+*/
+enum TrackedFrameFieldStatus
+{
+  FIELD_OK,           /*!< Field is valid */
+  FIELD_INVALID       /*!< Field is invalid */
+};
+
+enum ToolStatus
+{
+  TOOL_UNKNOWN,         /*!< Value unknown */
+  TOOL_OK,              /*!< Tool OK */
+  TOOL_MISSING,         /*!< Tool or tool port is not available */
+  TOOL_OUT_OF_VIEW,     /*!< Cannot obtain transform for tool */
+  TOOL_OUT_OF_VOLUME,   /*!< Tool is not within the sweet spot of system */
+  TOOL_SWITCH1_IS_ON,   /*!< Various buttons/switches on tool */
+  TOOL_SWITCH2_IS_ON,   /*!< Various buttons/switches on tool */
+  TOOL_SWITCH3_IS_ON,   /*!< Various buttons/switches on tool */
+  TOOL_REQ_TIMEOUT,     /*!< Request timeout status */
+  TOOL_INVALID,         /*!< Invalid tool status */
+  TOOL_PATH_NOT_FOUND   /*!< Transform cannot be computed from existing transforms */
+};
+
 typedef std::array<unsigned int, 3> FrameSizeType;
 
 #define UNDEFINED_TIMESTAMP DBL_MAX
@@ -579,6 +607,11 @@ namespace PlusCommon
     template<typename T> vtkPlusCommonExport PlusStatus SafeGetAttributeValueInsensitive(vtkXMLDataElement& element, const std::wstring& attributeName, T& value);
   }
 
+  //--------------- Tool Details ----------------------
+  vtkPlusCommonExport ToolStatus ConvertStringToToolStatus(const std::string& status);
+  vtkPlusCommonExport std::string ConvertToolStatusToString(const ToolStatus& status);
+  vtkPlusCommonExport TrackedFrameFieldStatus ConvertToolStatusToTrackedFrameFieldStatus(const ToolStatus& status);
+  vtkPlusCommonExport ToolStatus ConvertTrackedFrameFieldStatusToToolStatus(TrackedFrameFieldStatus fieldStatus);
 };
 
 /*!
