@@ -47,7 +47,7 @@ public:
   float UnitsToMm;
 
   // Motive Files
-  std::string Profile;
+  std::string ProjectFile;
   std::string CalibrationFile;
   std::vector<std::string> AdditionalRigidBodyFiles;
 
@@ -128,7 +128,7 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
   LOG_TRACE("vtkPlusOptiTrack::ReadConfiguration")
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Profile, this->Internal->Profile, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(AttachToRunningMotive, this->Internal->AttachToRunningMotive, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(double, MotiveDataDescriptionsUpdateTimeSec, this->Internal->MotiveDataDescriptionsUpdateTimeSec, deviceConfig);
 
@@ -199,8 +199,8 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     TT_Update();
 
     // open project file
-    std::string ProfilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
-    NPRESULT ttpLoad = TT_LoadProfile(ProfilePath.c_str());
+    std::string projectFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->ProjectFile);
+    NPRESULT ttpLoad = TT_LoadProject(projectFilePath.c_str());
     if (ttpLoad != NPRESULT_SUCCESS)
     {
       LOG_ERROR("Failed to load Motive project file. Motive error: " << TT_GetResultString(ttpLoad));
@@ -228,7 +228,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
         LOG_INFO(i << ": " << TT_CameraName(i));
       }
     // list project file
-    LOG_INFO("\nUsing Motive project file located at:\n" << ProfilePath);
+    LOG_INFO("\nUsing Motive project file located at:\n" << projectFilePath);
     // list rigid bodies
     LOG_INFO("\nTracked rigid bodies:");
     for (int i = 0; i < TT_RigidBodyCount(); ++i)
