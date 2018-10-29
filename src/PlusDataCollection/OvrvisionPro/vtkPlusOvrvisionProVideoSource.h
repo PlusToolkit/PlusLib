@@ -108,6 +108,8 @@ protected:
 
   cv::Mat LeftImage;
   cv::Mat RightImage;
+  cv::Mat LeftImageColorConverted;
+  cv::Mat RightImageColorConverted;
 
 private:
   static vtkPlusOvrvisionProVideoSource* ActiveDevice;
