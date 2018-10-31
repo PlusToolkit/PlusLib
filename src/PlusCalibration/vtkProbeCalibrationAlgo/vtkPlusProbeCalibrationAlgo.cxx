@@ -408,8 +408,8 @@ PlusStatus vtkPlusProbeCalibrationAlgo::AddPositionsPerImage(PlusTrackedFrame* t
     PlusTransformName probeToReferenceTransformName(this->ProbeCoordinateFrame, this->ReferenceCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> probeToReferenceVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     transformRepository->SetTransforms(*trackedFrame);
-    bool transformValid = false;
-    if ((transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceVtkTransformMatrix, &transformValid) != PLUS_SUCCESS) || (!transformValid))
+    ToolStatus status(TOOL_INVALID);
+    if (transformRepository->GetTransform(probeToReferenceTransformName, probeToReferenceVtkTransformMatrix, &status) != PLUS_SUCCESS || status != TOOL_OK)
     {
       std::string transformName;
       probeToReferenceTransformName.GetTransformName(transformName);
@@ -420,7 +420,7 @@ PlusStatus vtkPlusProbeCalibrationAlgo::AddPositionsPerImage(PlusTrackedFrame* t
     // Get phantom registration matrix and convert it to vnl
     PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> phantomToReferenceTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
-    if ((transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrixVtk, &transformValid) != PLUS_SUCCESS) || (!transformValid))
+    if (transformRepository->GetTransform(phantomToReferenceTransformName, phantomToReferenceTransformMatrixVtk, &status) != PLUS_SUCCESS || status != TOOL_OK)
     {
       LOG_ERROR("No valid transform found from phantom to reference");
       return PLUS_FAIL;
@@ -452,8 +452,8 @@ PlusStatus vtkPlusProbeCalibrationAlgo::AddPositionsPerImage(PlusTrackedFrame* t
     PlusTransformName probeToPhantomTransformName(this->ProbeCoordinateFrame, this->PhantomCoordinateFrame);
     vtkSmartPointer<vtkMatrix4x4> probeToPhantomVtkTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    bool transformValid = false;
-    if ((transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &transformValid) != PLUS_SUCCESS) || (!transformValid))
+    ToolStatus status(TOOL_INVALID);
+    if (transformRepository->GetTransform(probeToPhantomTransformName, probeToPhantomVtkTransformMatrix, &status) != PLUS_SUCCESS || status != TOOL_OK)
     {
       std::string transformName;
       probeToPhantomTransformName.GetTransformName(transformName);

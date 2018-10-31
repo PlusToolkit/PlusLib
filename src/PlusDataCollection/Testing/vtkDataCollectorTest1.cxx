@@ -19,7 +19,7 @@ See License.txt for details.
 #include "vtkPlusRfProcessor.h"
 #include "vtkPlusSavedDataSource.h"
 #ifdef PLUS_USE_ULTRASONIX_VIDEO
-#include "vtkPlusSonixVideoSource.h"
+  #include "vtkPlusSonixVideoSource.h"
 #endif
 
 // VTK includes
@@ -77,9 +77,8 @@ public:
     {
       std::ostringstream ss;
       ss.precision(2);
-      TrackedFrameFieldStatus status;
-      if (trackedFrame.GetFrameTransformStatus(TransformName, status) == PLUS_SUCCESS
-          && status == FIELD_OK)
+      ToolStatus status(TOOL_INVALID);
+      if (trackedFrame.GetFrameTransformStatus(TransformName, status) == PLUS_SUCCESS && status == TOOL_OK)
       {
         trackedFrame.GetFrameTransform(TransformName, tFrame2Tracker);
         ss  << std::fixed

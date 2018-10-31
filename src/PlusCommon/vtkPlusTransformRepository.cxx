@@ -19,7 +19,7 @@ vtkStandardNewMacro(vtkPlusTransformRepository);
 //----------------------------------------------------------------------------
 vtkPlusTransformRepository::TransformInfo::TransformInfo()
   : m_Transform(vtkTransform::New())
-  , m_IsValid(true)
+  , m_ToolStatus(TOOL_OK)
   , m_IsComputed(false)
   , m_IsPersistent(false)
   , m_Error(-1.0)
@@ -46,7 +46,7 @@ vtkPlusTransformRepository::TransformInfo::TransformInfo(const TransformInfo& ob
     m_Transform->Register(NULL);
   }
   m_IsComputed = obj.m_IsComputed;
-  m_IsValid = obj.m_IsValid;
+  m_ToolStatus = obj.m_ToolStatus;
   m_IsPersistent = obj.m_IsPersistent;
   m_Date = obj.m_Date;
   m_Error = obj.m_Error;
@@ -66,7 +66,7 @@ vtkPlusTransformRepository::TransformInfo& vtkPlusTransformRepository::Transform
     m_Transform->Register(NULL);
   }
   m_IsComputed = obj.m_IsComputed;
-  m_IsValid = obj.m_IsValid;
+  m_ToolStatus = obj.m_ToolStatus;
   m_IsPersistent = obj.m_IsPersistent;
   m_Date = obj.m_Date;
   m_Error = obj.m_Error;
@@ -98,7 +98,7 @@ void vtkPlusTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
     for (CoordFrameToTransformMapType::iterator transformInfo = coordFrame->second.begin(); transformInfo != coordFrame->second.end(); ++transformInfo)
     {
       os << indent << "  To " << transformInfo->first << ": "
-         << (transformInfo->second.m_IsValid ? "valid" : "invalid") << ", "
+         << (transformInfo->second.IsValid() ? "valid" : "invalid") << ", "
          << (transformInfo->second.m_IsPersistent ? "persistent" : "non-persistent") << ", "
          << (transformInfo->second.m_IsComputed ? "computed" : "original") << "\n";
       if (transformInfo->second.m_Transform != NULL && transformInfo->second.m_Transform->GetMatrix() != NULL)
@@ -118,7 +118,7 @@ void vtkPlusTransformRepository::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-vtkPlusTransformRepository::TransformInfo* vtkPlusTransformRepository::GetOriginalTransform(const PlusTransformName& aTransformName)
+vtkPlusTransformRepository::TransformInfo* vtkPlusTransformRepository::GetOriginalTransform(const PlusTransformName& aTransformName) const
 {
   CoordFrameToTransformMapType& fromCoordFrame = this->CoordinateFrames[aTransformName.From()];
 
@@ -160,7 +160,7 @@ PlusStatus vtkPlusTransformRepository::SetTransforms(PlusTrackedFrame& trackedFr
       continue;
     }
 
-    TrackedFrameFieldStatus status = FIELD_INVALID;
+    ToolStatus status = TOOL_INVALID;
     if (trackedFrame.GetFrameTransformStatus(*it, status) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get frame transform from tracked frame: " << trName);
@@ -168,7 +168,7 @@ PlusStatus vtkPlusTransformRepository::SetTransforms(PlusTrackedFrame& trackedFr
       continue;
     }
 
-    if (this->SetTransform(*it, matrix, status == FIELD_OK) != PLUS_SUCCESS)
+    if (this->SetTransform(*it, matrix, status) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set transform to repository: " << trName);
       numberOfErrors++;
@@ -180,7 +180,7 @@ PlusStatus vtkPlusTransformRepository::SetTransforms(PlusTrackedFrame& trackedFr
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransformRepository::SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool isValid/*=true*/)
+PlusStatus vtkPlusTransformRepository::SetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, ToolStatus toolStatus/*=TOOL_OK*/)
 {
   if (!aTransformName.IsValid())
   {
@@ -217,7 +217,7 @@ PlusStatus vtkPlusTransformRepository::SetTransform(const PlusTransformName& aTr
       fromToTransformInfo->m_Transform->SetMatrix(matrix);
     }
     // Set the status of the original transform
-    fromToTransformInfo->m_IsValid = isValid;
+    fromToTransformInfo->m_ToolStatus = toolStatus;
 
     // Set the same status for the computed inverse transform
     PlusTransformName toFromTransformName(aTransformName.To(), aTransformName.From());
@@ -228,7 +228,7 @@ PlusStatus vtkPlusTransformRepository::SetTransform(const PlusTransformName& aTr
                 << " transform is missing. Cannot set its status");
       return PLUS_FAIL;
     }
-    toFromTransformInfo->m_IsValid = isValid;
+    toFromTransformInfo->m_ToolStatus = toolStatus;
     return PLUS_SUCCESS;
   }
   // The transform does not exist yet, add it now
@@ -251,30 +251,30 @@ PlusStatus vtkPlusTransformRepository::SetTransform(const PlusTransformName& aTr
     fromCoordFrame[aTransformName.To()].m_Transform->SetMatrix(matrix);
   }
 
-  fromCoordFrame[aTransformName.To()].m_IsValid = isValid;
+  fromCoordFrame[aTransformName.To()].m_ToolStatus = toolStatus;
 
   // Create the to->from inverse transform
   CoordFrameToTransformMapType& toCoordFrame = this->CoordinateFrames[aTransformName.To()];
   toCoordFrame[aTransformName.From()].m_IsComputed = true;
   toCoordFrame[aTransformName.From()].m_Transform->SetInput(fromCoordFrame[aTransformName.To()].m_Transform);
   toCoordFrame[aTransformName.From()].m_Transform->Inverse();
-  toCoordFrame[aTransformName.From()].m_IsValid = isValid;
+  toCoordFrame[aTransformName.From()].m_ToolStatus = toolStatus;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransformRepository::SetTransformValid(const PlusTransformName& aTransformName, bool isValid)
+PlusStatus vtkPlusTransformRepository::SetTransformStatus(const PlusTransformName& aTransformName, ToolStatus toolStatus)
 {
   if (aTransformName.From() == aTransformName.To())
   {
     LOG_ERROR("Setting a transform to itself is not allowed: " << aTransformName.GetTransformName());
     return PLUS_FAIL;
   }
-  return SetTransform(aTransformName, NULL, isValid);
+  return SetTransform(aTransformName, NULL, toolStatus);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, bool* isValid /*=NULL*/)
+PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTransformName, vtkMatrix4x4* matrix, ToolStatus* toolStatus /*=NULL*/) const
 {
   if (!aTransformName.IsValid())
   {
@@ -288,10 +288,6 @@ PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTr
     {
       matrix->Identity();
     }
-    if (isValid != NULL)
-    {
-      (*isValid) = true;
-    }
     return PLUS_SUCCESS;
   }
 
@@ -303,20 +299,17 @@ PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTr
   if (FindPath(aTransformName, transformInfoList) != PLUS_SUCCESS)
   {
     // the transform cannot be computed, error has been already logged by FindPath
-    *isValid = false;
+    *toolStatus = TOOL_PATH_NOT_FOUND;
     return PLUS_FAIL;
   }
 
   // Create transform chain and compute transform status
   vtkSmartPointer<vtkTransform> combinedTransform = vtkSmartPointer<vtkTransform>::New();
-  bool combinedTransformValid(true);
+  ToolStatus combinedToolStatus(TOOL_OK);
   for (TransformInfoListType::iterator transformInfo = transformInfoList.begin(); transformInfo != transformInfoList.end(); ++transformInfo)
   {
     combinedTransform->Concatenate((*transformInfo)->m_Transform);
-    if (!(*transformInfo)->m_IsValid)
-    {
-      combinedTransformValid = false;
-    }
+    combinedToolStatus = (ToolStatus)std::max(combinedToolStatus, (*transformInfo)->m_ToolStatus); // Not a perfect solution, as one error would overwrite another, but at least it provides some error information
   }
   // Save the results
   if (matrix != NULL)
@@ -324,9 +317,9 @@ PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTr
     matrix->DeepCopy(combinedTransform->GetMatrix());
   }
 
-  if (isValid != NULL)
+  if (toolStatus != NULL)
   {
-    (*isValid) = combinedTransformValid;
+    (*toolStatus) = combinedToolStatus;
   }
 
   return PLUS_SUCCESS;
@@ -335,7 +328,13 @@ PlusStatus vtkPlusTransformRepository::GetTransform(const PlusTransformName& aTr
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTransformRepository::GetTransformValid(const PlusTransformName& aTransformName, bool& isValid)
 {
-  return GetTransform(aTransformName, NULL, &isValid);
+  ToolStatus status;
+  if (GetTransform(aTransformName, NULL, &status) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  isValid = (status == TOOL_OK);
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -478,7 +477,7 @@ PlusStatus vtkPlusTransformRepository::GetTransformDate(const PlusTransformName&
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusTransformRepository::FindPath(const PlusTransformName& aTransformName, TransformInfoListType& transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/)
+PlusStatus vtkPlusTransformRepository::FindPath(const PlusTransformName& aTransformName, TransformInfoListType& transformInfoList, const char* skipCoordFrameName /*=NULL*/, bool silent /*=false*/) const
 {
   if (aTransformName.From() == aTransformName.To())
   {
@@ -534,7 +533,7 @@ PlusStatus vtkPlusTransformRepository::FindPath(const PlusTransformName& aTransf
           osAvailableTransforms << ", ";
         }
         osAvailableTransforms << coordFrame->first << "To" << transformInfo->first << " ("
-                              << (transformInfo->second.m_IsValid ? "valid" : "invalid") << ", "
+                              << (transformInfo->second.IsValid() ? "valid" : "invalid") << ", "
                               << (transformInfo->second.m_IsPersistent ? "persistent" : "non-persistent") << ")";
       }
     }
@@ -684,13 +683,16 @@ PlusStatus vtkPlusTransformRepository::ReadConfiguration(vtkXMLDataElement* conf
       continue;
     }
 
-    bool isValid = true;
-    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*nestedElement, "Valid", "FALSE", isValid) == PLUS_SUCCESS &&
-        this->SetTransformValid(transformName, isValid) != PLUS_SUCCESS)
+    ToolStatus toolStatus = TOOL_OK;
+    std::string toolStatusStr;
+    if (PlusCommon::XML::SafeGetAttributeValueInsensitive(*nestedElement, "Status", toolStatusStr) == PLUS_SUCCESS)
     {
-      LOG_ERROR("Unable to set transform to " << (isValid ? "true" : "false") << " : " << fromAttribute << "' to '" << toAttribute << "' transform");
-      numberOfErrors++;
-      continue;
+      if (this->SetTransformStatus(transformName, PlusCommon::ConvertStringToToolStatus(toolStatusStr)) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to set transform to " << toolStatusStr << " : " << fromAttribute << "' to '" << toAttribute << "' transform");
+        numberOfErrors++;
+        continue;
+      }
     }
 
     double error(0);
@@ -749,7 +751,7 @@ PlusStatus vtkPlusTransformRepository::WriteConfigurationGeneric(vtkXMLDataEleme
         std::string fromCoordinateFrame = coordFrame->first;
         std::string toCoordinateFrame = transformInfo->first;
         std::string persistent = transformInfo->second.m_IsPersistent ? "true" : "false";
-        std::string valid = transformInfo->second.m_IsValid ? "true" : "false";
+        ToolStatus status = transformInfo->second.m_ToolStatus;
 
         if (transformInfo->second.m_Transform == NULL)
         {
@@ -758,7 +760,7 @@ PlusStatus vtkPlusTransformRepository::WriteConfigurationGeneric(vtkXMLDataEleme
           continue;
         }
 
-        if (!transformInfo->second.m_IsValid)
+        if (!transformInfo->second.IsValid())
         {
           LOG_WARNING("Invalid transform saved to CoordinateDefinitions from  '" << fromCoordinateFrame << "' to '" << toCoordinateFrame << "' coordinate frame.");
         }
@@ -774,9 +776,9 @@ PlusStatus vtkPlusTransformRepository::WriteConfigurationGeneric(vtkXMLDataEleme
         {
           newTransformElement->SetAttribute("Persistent", persistent.c_str());
         }
-        if (PlusCommon::IsEqualInsensitive(valid, "false"))
+        if (status != TOOL_OK)
         {
-          newTransformElement->SetAttribute("Valid", valid.c_str());
+          newTransformElement->SetAttribute("Valid", PlusCommon::ConvertToolStatusToString(status).c_str());
         }
         newTransformElement->SetVectorAttribute("Matrix", 16, vectorMatrix);
 

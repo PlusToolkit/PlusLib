@@ -27,8 +27,8 @@ See License.txt for details.
 #include <igtlTrackingDataMessage.h>
 #include <igtlTransformMessage.h>
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-#include <igtlCodecCommonClasses.h>
-#include <igtlVideoMessage.h>
+  #include <igtlCodecCommonClasses.h>
+  #include <igtlVideoMessage.h>
 #endif
 
 class vtkXMLDataElement;
@@ -82,29 +82,29 @@ public:
 
   /*! Pack transform message from tracked frame */
   static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName,
-                                         igtl::Matrix4x4& igtlMatrix, bool transformValid, double timestamp);
+                                         igtl::Matrix4x4& igtlMatrix, ToolStatus status, double timestamp);
 
   /*! Pack poly data message from polydata */
   static PlusStatus PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp);
 
   /*! Pack data message from tracked frame */
-  static PlusStatus PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer tdataMessage, const std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& transforms, double timestamp);
+  static PlusStatus PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer tdataMessage, const std::vector<PlusTransformName>& names, const vtkPlusTransformRepository& repository, double timestamp);
 
   /*! Unpack data message */
   static PlusStatus UnpackTrackingDataMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-      std::map<std::string, vtkSmartPointer<vtkMatrix4x4> >& transforms, double& timestamp, int crccheck);
+      std::vector<PlusTransformName>& names, vtkPlusTransformRepository& repository, double& timestamp, int crccheck);
 
   /*! Unpack transform message */
   static PlusStatus UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-      vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck);
+      vtkMatrix4x4* transformMatrix, ToolStatus& toolStatus, std::string& transformName, double& timestamp, int crccheck);
 
   /*! Pack position message from tracked frame */
-  static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName,
+  static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName, ToolStatus status,
                                         float position[3], float quaternion[4], double timestamp);
 
   /*! Unpack position message */
   static PlusStatus UnpackPositionMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-                                          vtkMatrix4x4* transformMatrix, std::string& transformName, double& timestamp, int crccheck);
+                                          vtkMatrix4x4* transformMatrix, std::string& transformName, ToolStatus& toolStatus, double& timestamp, int crccheck);
 
   /*! Pack string message */
   static PlusStatus PackStringMessage(igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp);

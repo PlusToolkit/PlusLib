@@ -161,10 +161,10 @@ public:
         continue;
       }
 
-      TrackedFrameFieldStatus status = FIELD_INVALID;
+      ToolStatus status(TOOL_INVALID);
       trackedFrame.GetFrameTransformStatus(transformName, status);
 
-      if (status != FIELD_OK)
+      if (status != TOOL_OK)
       {
         ss  << "missing or out of view\n";
         SetToolVisible(tool->GetId(), false);
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
       }
 
       std::string transformParameters = PlusMath::GetTransformParametersString(matrix);
-      std::string status = vtkPlusDevice::ConvertToolStatusToString(bufferItem.GetStatus());
+      std::string status = PlusCommon::ConvertToolStatusToString(bufferItem.GetStatus());
 
       std::ostringstream message;
       message << "Tool name: " << tool->GetId() << "Transform:  ";

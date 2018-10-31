@@ -58,12 +58,12 @@ PlusStatus QPlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel
   }
   for (std::vector<QLabel*>::iterator it = m_ToolNameLabels.begin(); it != m_ToolNameLabels.end(); ++it)
   {
-    delete(*it);
+    delete (*it);
   }
   m_ToolNameLabels.clear();
   for (std::vector<QTextEdit*>::iterator it = m_ToolStateLabels.begin(); it != m_ToolStateLabels.end(); ++it)
   {
-    delete(*it);
+    delete (*it);
   }
   m_ToolStateLabels.clear();
 
@@ -197,7 +197,7 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
       continue;
     }
 
-    TrackedFrameFieldStatus status = FIELD_INVALID;
+    ToolStatus status(TOOL_INVALID);
     if (trackedFrame.GetFrameTransformStatus(*transformIt, status) != PLUS_SUCCESS)
     {
       std::string transformNameStr;
@@ -208,20 +208,15 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
     }
     else
     {
+      label->setText(PlusCommon::ConvertToolStatusToString(status).c_str());
       switch (status)
       {
-        case (FIELD_OK):
-          label->setText("OK");
-          label->setTextColor(Qt::green);
-          break;
-        case (FIELD_INVALID):
-          label->setText("MISSING");
-          label->setTextColor(QColor::fromRgb(223, 0, 0));
-          break;
-        default:
-          label->setText("UNKNOWN");
-          label->setTextColor(QColor::fromRgb(223, 0, 0));
-          break;
+      case (TOOL_OK):
+        label->setTextColor(Qt::green);
+        break;
+      default:
+        label->setTextColor(QColor::fromRgb(223, 0, 0));
+        break;
       }
     }
   }

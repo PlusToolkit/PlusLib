@@ -15,19 +15,6 @@ class vtkMatrix4x4;
 class vtkPoints;
 
 /*!
-  \enum TrackedFrameFieldStatus
-  \brief Tracked frame field status
-  Image field is valid if the image data is not NULL.
-  Tool status is valid only if the ToolStatus is TOOL_OK.
-  \ingroup PlusLibCommon
-*/
-enum TrackedFrameFieldStatus
-{
-  FIELD_OK,           /*!< Field is valid */
-  FIELD_INVALID       /*!< Field is invalid */
-};
-
-/*!
   \class TrackedFrame
   \brief Stores tracked frame (image + pose information + field data)
   \ingroup PlusLibCommon
@@ -89,9 +76,9 @@ public:
   PlusStatus GetFrameTransform(const PlusTransformName& frameTransformName, vtkMatrix4x4* transformMatrix);
 
   /*! Get frame status */
-  PlusStatus GetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status);
+  PlusStatus GetFrameTransformStatus(const PlusTransformName& frameTransformName, ToolStatus& status);
   /*! Set frame status */
-  PlusStatus SetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status);
+  PlusStatus SetFrameTransformStatus(const PlusTransformName& frameTransformName, ToolStatus status);
 
   /*! Set frame transform */
   PlusStatus SetFrameTransform(const PlusTransformName& frameTransformName, double transform[16]);

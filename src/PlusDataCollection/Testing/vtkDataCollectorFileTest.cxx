@@ -2,12 +2,12 @@
 Program: Plus
 Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
-=========================================================Plus=header=end*/ 
+=========================================================Plus=header=end*/
 
 /*!
   \file vtkDataCollectorFileTest.cxx
   \brief This program tests if a recorded tracked ultrasound buffer can be read and replayed from file using vtkPlusDataCollectorFile
-*/ 
+*/
 
 #include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
@@ -20,44 +20,44 @@ See License.txt for details.
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 
-static const int COMPARE_TRANSFORM_TOLERANCE=0.001;
+static const int COMPARE_TRANSFORM_TOLERANCE = 0.001;
 
-PlusStatus CompareTransform(PlusTransformName &transformName, vtkPlusTransformRepository* transformRepository, double xExpected, double yExpected, double zExpected)
+PlusStatus CompareTransform(PlusTransformName& transformName, vtkPlusTransformRepository* transformRepository, double xExpected, double yExpected, double zExpected)
 {
   vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid=false;
-  if ( (transformRepository->GetTransform(transformName, transformMatrix , &valid) != PLUS_SUCCESS) || (!valid) )
+  ToolStatus toolStatus(TOOL_INVALID);
+  if (transformRepository->GetTransform(transformName, transformMatrix, &toolStatus) != PLUS_SUCCESS || toolStatus != TOOL_OK)
   {
     std::string transformNameStr;
     transformName.GetTransformName(transformNameStr);
     LOG_ERROR("Unable to get transform " << transformNameStr);
     return PLUS_FAIL;
   }
-  PlusStatus status=PLUS_SUCCESS;
+  PlusStatus status = PLUS_SUCCESS;
   std::string transformNameStr;
   transformName.GetTransformName(transformNameStr);
-  double actualValue=transformMatrix ->GetElement(0,3);
-  if ( fabs(actualValue - xExpected) > COMPARE_TRANSFORM_TOLERANCE )
-  {    
-    LOG_ERROR("Transform " << transformNameStr << " x translation does not match (actual="<<actualValue<<", expected="<<xExpected<<")");
-    status=PLUS_FAIL;
+  double actualValue = transformMatrix ->GetElement(0, 3);
+  if (fabs(actualValue - xExpected) > COMPARE_TRANSFORM_TOLERANCE)
+  {
+    LOG_ERROR("Transform " << transformNameStr << " x translation does not match (actual=" << actualValue << ", expected=" << xExpected << ")");
+    status = PLUS_FAIL;
   }
-  actualValue=transformMatrix ->GetElement(1,3);
-  if ( fabs(actualValue - yExpected) > COMPARE_TRANSFORM_TOLERANCE )
-  {    
-    LOG_ERROR("Transform " << transformNameStr << " y translation does not match (actual="<<actualValue<<", expected="<<yExpected<<")");
-    status=PLUS_FAIL;
+  actualValue = transformMatrix ->GetElement(1, 3);
+  if (fabs(actualValue - yExpected) > COMPARE_TRANSFORM_TOLERANCE)
+  {
+    LOG_ERROR("Transform " << transformNameStr << " y translation does not match (actual=" << actualValue << ", expected=" << yExpected << ")");
+    status = PLUS_FAIL;
   }
-  actualValue=transformMatrix ->GetElement(2,3);
-  if ( fabs(actualValue - zExpected) > COMPARE_TRANSFORM_TOLERANCE )
-  {    
-    LOG_ERROR("Transform " << transformNameStr << " z translation does not match (actual="<<actualValue<<", expected="<<zExpected<<")");
-    status=PLUS_FAIL;
+  actualValue = transformMatrix ->GetElement(2, 3);
+  if (fabs(actualValue - zExpected) > COMPARE_TRANSFORM_TOLERANCE)
+  {
+    LOG_ERROR("Transform " << transformNameStr << " z translation does not match (actual=" << actualValue << ", expected=" << zExpected << ")");
+    status = PLUS_FAIL;
   }
   return status;
 }
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
 
   // Check command line arguments.
@@ -65,25 +65,25 @@ int main( int argc, char** argv )
   int          verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
-  args.Initialize( argc, argv );
+  args.Initialize(argc, argv);
 
-  args.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file." );
-  args.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)" );  
+  args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Name of the input configuration file.");
+  args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug 5=trace)");
 
-  if ( ! args.Parse() )
+  if (! args.Parse())
   {
     std::cerr << "Problem parsing arguments." << std::endl;
     std::cout << "Help: " << args.GetHelp() << std::endl;
     return 1;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Prepare and start data collection
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
-  {  
-    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
+  {
+    LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
   }
 
@@ -91,19 +91,19 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
 
-  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Reading configuration file failed " << inputConfigFileName );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Reading configuration file failed " << inputConfigFileName);
+    exit(EXIT_FAILURE);
   }
 
-  LOG_DEBUG( "Initializing data collector... " );
+  LOG_DEBUG("Initializing data collector... ");
   dataCollector->Connect();
   dataCollector->Start();
 
-  if ( !dataCollector->GetConnected() )
+  if (!dataCollector->GetConnected())
   {
-    LOG_ERROR("Unable to start data collection!"); 
+    LOG_ERROR("Unable to start data collection!");
     return 1;
   }
 
@@ -116,7 +116,7 @@ int main( int argc, char** argv )
 
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
 
-  PlusStatus compareStatus=PLUS_SUCCESS;
+  PlusStatus compareStatus = PLUS_SUCCESS;
 
   vtkPlusAccurateTimer::Delay(5.0); // wait for 5s until the frames are acquired into the buffer
 
@@ -127,46 +127,46 @@ int main( int argc, char** argv )
   // the timestamps in the file and the acquisition timestamp. The offset is the timestamp of the first frame in the file.
   vtkPlusDevice* aDevice(NULL);
   vtkPlusChannel* aChannel(NULL);
-  if( dataCollector->GetDevice(aDevice, "TrackedVideoDevice") != PLUS_SUCCESS )
+  if (dataCollector->GetDevice(aDevice, "TrackedVideoDevice") != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to locate device \'TrackedVideoDevice\'");
     exit(EXIT_FAILURE);
   }
-  if( aDevice->GetOutputChannelByName(aChannel, "TrackedVideoStream") != PLUS_SUCCESS )
+  if (aDevice->GetOutputChannelByName(aChannel, "TrackedVideoStream") != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to locate channel \'TrackedVideoStream\'");
     exit(EXIT_FAILURE);
   }
-  vtkPlusDataSource* aSource=NULL;
+  vtkPlusDataSource* aSource = NULL;
   aChannel->GetVideoSource(aSource);
-  double recordingStartTime=aSource->GetStartTime();
-  double timestampOfFirstFrameInFile=2572.905343;
-  double timeOffset=timestampOfFirstFrameInFile-recordingStartTime;
+  double recordingStartTime = aSource->GetStartTime();
+  double timestampOfFirstFrameInFile = 2572.905343;
+  double timeOffset = timestampOfFirstFrameInFile - recordingStartTime;
 
   // Frame 0001
-  aChannel->GetTrackedFrame(2572.983529-timeOffset, trackedFrame);
+  aChannel->GetTrackedFrame(2572.983529 - timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
-  
-  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.415, -68.1145, -24.7944)!=PLUS_SUCCESS)
+
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.415, -68.1145, -24.7944) != PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 1");
-    compareStatus=PLUS_FAIL;
+    compareStatus = PLUS_FAIL;
   }
-  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.39, -37.1955, -13.1199)!=PLUS_SUCCESS)
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.39, -37.1955, -13.1199) != PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 1");
-    compareStatus=PLUS_FAIL;
-  }  
+    compareStatus = PLUS_FAIL;
+  }
 
   vtkSmartPointer<vtkMatrix4x4> stylusToTrackerTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  bool valid=false;
-  if ( transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS )
+  ToolStatus toolStatus(TOOL_INVALID);
+  if (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &toolStatus) != PLUS_SUCCESS)
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Test failed on frame 1: unable to get transform " << transformNameStr);
   }
-  if ( !valid )
+  if (toolStatus != TOOL_OK)
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
@@ -174,27 +174,27 @@ int main( int argc, char** argv )
   }
 
   // Frame 0013
-  aChannel->GetTrackedFrame(2573.921586-timeOffset, trackedFrame);
+  aChannel->GetTrackedFrame(2573.921586 - timeOffset, trackedFrame);
   transformRepository->SetTransforms(trackedFrame);
 
-  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.658, -68.523, -24.9476)!=PLUS_SUCCESS)
+  if (CompareTransform(referenceToTrackerTransformName, transformRepository, 338.658, -68.523, -24.9476) != PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
-    compareStatus=PLUS_FAIL;
+    compareStatus = PLUS_FAIL;
   }
-  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.863, -34.9189, -13.0288)!=PLUS_SUCCESS)
+  if (CompareTransform(probeToTrackerTransformName, transformRepository, 284.863, -34.9189, -13.0288) != PLUS_SUCCESS)
   {
     LOG_ERROR("Test failed on frame 13");
-    compareStatus=PLUS_FAIL;
+    compareStatus = PLUS_FAIL;
   }
-  valid=false;
-  if ( transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &valid) != PLUS_SUCCESS )
+  toolStatus = TOOL_INVALID;
+  if (transformRepository->GetTransform(stylusToTrackerTransformName, stylusToTrackerTransformMatrix, &toolStatus) != PLUS_SUCCESS)
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
     LOG_ERROR("Test failed on frame 13: unable to get transform " << transformNameStr);
   }
-  if ( !valid )
+  if (toolStatus != TOOL_OK)
   {
     std::string transformNameStr;
     stylusToTrackerTransformName.GetTransformName(transformNameStr);
@@ -204,10 +204,9 @@ int main( int argc, char** argv )
   dataCollector->Stop();
   dataCollector->Disconnect();
 
-  if (compareStatus!=PLUS_SUCCESS)
+  if (compareStatus != PLUS_SUCCESS)
   {
     return 1;
   }
   return 0;
-} 
-
+}

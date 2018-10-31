@@ -51,85 +51,85 @@ compares the results to a baseline
 const double ERROR_THRESHOLD_MM = 0.1; // error threshold
 const double ERROR_THRESHOLD_DEG = 0.2; // error threshold
 
-PlusStatus CompareRegistrationResultsWithBaseline( const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame );
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame);
 
 //-----------------------------------------------------------------------------
-PlusStatus ConstructTableSignal( std::deque<double>& x, std::deque<double>& y, vtkTable* table )
+PlusStatus ConstructTableSignal(std::deque<double>& x, std::deque<double>& y, vtkTable* table)
 {
   // Clear table
-  while ( table->GetNumberOfColumns() > 0 )
+  while (table->GetNumberOfColumns() > 0)
   {
-    table->RemoveColumn( 0 );
+    table->RemoveColumn(0);
   }
 
   //  Create array corresponding to the time values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrX = vtkSmartPointer<vtkDoubleArray>::New();
-  table->AddColumn( arrX );
+  table->AddColumn(arrX);
 
   //  Create array corresponding to the metric values of the tracker plot
   vtkSmartPointer<vtkDoubleArray> arrY = vtkSmartPointer<vtkDoubleArray>::New();
-  table->AddColumn( arrY );
+  table->AddColumn(arrY);
 
   // Set the tracker data
-  table->SetNumberOfRows( x.size() );
-  for ( unsigned int i = 0; i < x.size(); ++i )
+  table->SetNumberOfRows(x.size());
+  for (unsigned int i = 0; i < x.size(); ++i)
   {
-    table->SetValue( i, 0, x.at( i ) );
-    table->SetValue( i, 1, y.at( i ) );
+    table->SetValue(i, 0, x.at(i));
+    table->SetValue(i, 1, y.at(i));
   }
 
   return PLUS_SUCCESS;
 }
 //----------------------------------------------------------------------------
-void SaveMetricPlot( const char* filename, vtkTable* stylusRef, vtkTable* stylusTipRef, vtkTable* stylusTipSpeed, std::string& xAxisLabel,
-                     std::string& yAxisLabel )
+void SaveMetricPlot(const char* filename, vtkTable* stylusRef, vtkTable* stylusTipRef, vtkTable* stylusTipSpeed, std::string& xAxisLabel,
+                    std::string& yAxisLabel)
 {
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
-  view->GetRenderer()->SetBackground( 1.0, 1.0, 1.0 );
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
   vtkSmartPointer<vtkChartXY> chart =  vtkSmartPointer<vtkChartXY>::New();
-  view->GetScene()->AddItem( chart );
+  view->GetScene()->AddItem(chart);
 
   // Add the two line plots
-  vtkPlot* StylusRefLine = chart->AddPlot( vtkChart::POINTS );
-  StylusRefLine->SetInputData( stylusRef, 0, 1 );
-  StylusRefLine->SetColor( 0, 0, 1 );
-  StylusRefLine->SetWidth( 0.3 );
+  vtkPlot* StylusRefLine = chart->AddPlot(vtkChart::POINTS);
+  StylusRefLine->SetInputData(stylusRef, 0, 1);
+  StylusRefLine->SetColor(0, 0, 1);
+  StylusRefLine->SetWidth(0.3);
 
-  vtkPlot* StylusTipRefLine = chart->AddPlot( vtkChart::POINTS );
-  StylusTipRefLine->SetInputData( stylusTipRef, 0, 1 );
-  StylusTipRefLine->SetColor( 0, 1, 0 );
-  StylusTipRefLine->SetWidth( 0.3 );
+  vtkPlot* StylusTipRefLine = chart->AddPlot(vtkChart::POINTS);
+  StylusTipRefLine->SetInputData(stylusTipRef, 0, 1);
+  StylusTipRefLine->SetColor(0, 1, 0);
+  StylusTipRefLine->SetWidth(0.3);
 
-  vtkPlot* StylusTipFromLandmarkLine = chart->AddPlot( vtkChart::LINE );
-  StylusTipFromLandmarkLine->SetInputData( stylusTipSpeed, 0, 1 );
-  StylusTipFromLandmarkLine->SetColor( 1, 0, 0 );
-  StylusTipFromLandmarkLine->SetWidth( 1.0 );
+  vtkPlot* StylusTipFromLandmarkLine = chart->AddPlot(vtkChart::LINE);
+  StylusTipFromLandmarkLine->SetInputData(stylusTipSpeed, 0, 1);
+  StylusTipFromLandmarkLine->SetColor(1, 0, 0);
+  StylusTipFromLandmarkLine->SetWidth(1.0);
 
-  chart->SetShowLegend( true );
-  chart->GetAxis( vtkAxis::LEFT )->SetTitle( yAxisLabel.c_str() );
-  chart->GetAxis( vtkAxis::BOTTOM )->SetTitle( xAxisLabel.c_str() );
+  chart->SetShowLegend(true);
+  chart->GetAxis(vtkAxis::LEFT)->SetTitle(yAxisLabel.c_str());
+  chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(xAxisLabel.c_str());
 
   // Render plot and save it to file
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer( view->GetRenderer() );
-  renderWindow->SetSize( 1600, 1200 );
+  renderWindow->AddRenderer(view->GetRenderer());
+  renderWindow->SetSize(1600, 1200);
   renderWindow->OffScreenRenderingOn();
 
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
-  windowToImageFilter->SetInput( renderWindow );
+  windowToImageFilter->SetInput(renderWindow);
   windowToImageFilter->Update();
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
-  writer->SetFileName( filename );
-  writer->SetInputData( windowToImageFilter->GetOutput() );
+  writer->SetFileName(filename);
+  writer->SetInputData(windowToImageFilter->GetOutput());
   writer->Write();
 }
 
-PlusStatus ConstructSignalPlot( vtkPlusTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig )
+PlusStatus ConstructSignalPlot(vtkPlusTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
 {
-  double signalTimeRangeMin = trackedStylusTipFrames->GetTrackedFrame( 0 )->GetTimestamp();
-  double signalTimeRangeMax = trackedStylusTipFrames->GetTrackedFrame( trackedStylusTipFrames->GetNumberOfTrackedFrames() - 1 )->GetTimestamp();
+  double signalTimeRangeMin = trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp();
+  double signalTimeRangeMax = trackedStylusTipFrames->GetTrackedFrame(trackedStylusTipFrames->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
   std::deque<double> signalTimestamps;
   std::deque<double> signalValues;
 
@@ -137,91 +137,91 @@ PlusStatus ConstructSignalPlot( vtkPlusTrackedFrameList* trackedStylusTipFrames,
   //std::string filenameTracked=intermediateFileOutputDirectory + "\\EightLandmarksPointsTracked.mha";
   //trackedStylusTipFrames->SaveTrackerDataOnlyToSequenceMetafile(filenameTracked.c_str(),false);
 
-  LOG_INFO( "Range [" << signalTimeRangeMin << "-" << signalTimeRangeMax << "] " << ( signalTimeRangeMax - signalTimeRangeMin ) << "[s]" );
-  double frequency = 1 / ( trackedStylusTipFrames->GetTrackedFrame( 1 )->GetTimestamp() - trackedStylusTipFrames->GetTrackedFrame( 0 )->GetTimestamp() );
-  LOG_INFO( "Frequency first frames = " << frequency << " Frequency average frame = " << trackedStylusTipFrames->GetNumberOfTrackedFrames() / ( signalTimeRangeMax - signalTimeRangeMin ) );
+  LOG_INFO("Range [" << signalTimeRangeMin << "-" << signalTimeRangeMax << "] " << (signalTimeRangeMax - signalTimeRangeMin) << "[s]");
+  double frequency = 1 / (trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp() - trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp());
+  LOG_INFO("Frequency first frames = " << frequency << " Frequency average frame = " << trackedStylusTipFrames->GetNumberOfTrackedFrames() / (signalTimeRangeMax - signalTimeRangeMin));
 
   vtkSmartPointer<vtkPlusReadTrackedSignals> trackerDataMetricExtractor = vtkSmartPointer<vtkPlusReadTrackedSignals>::New();
 
-  trackerDataMetricExtractor->SetTrackerFrames( trackedStylusTipFrames );
-  trackerDataMetricExtractor->SetSignalTimeRange( signalTimeRangeMin, signalTimeRangeMax );
-  trackerDataMetricExtractor->ReadConfiguration( aConfig );
+  trackerDataMetricExtractor->SetTrackerFrames(trackedStylusTipFrames);
+  trackerDataMetricExtractor->SetSignalTimeRange(signalTimeRangeMin, signalTimeRangeMax);
+  trackerDataMetricExtractor->ReadConfiguration(aConfig);
 
-  if ( trackerDataMetricExtractor->Update() != PLUS_SUCCESS )
+  if (trackerDataMetricExtractor->Update() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to get line positions from video frames" );
+    LOG_ERROR("Failed to get line positions from video frames");
     return PLUS_FAIL;
   }
-  trackerDataMetricExtractor->GetTimestamps( signalTimestamps );
-  trackerDataMetricExtractor->GetSignalStylusTipSpeed( signalValues );
+  trackerDataMetricExtractor->GetTimestamps(signalTimestamps);
+  trackerDataMetricExtractor->GetSignalStylusTipSpeed(signalValues);
   vtkSmartPointer<vtkTable> stylusTipSpeedTable = vtkSmartPointer<vtkTable>::New();
-  ConstructTableSignal( signalTimestamps, signalValues, stylusTipSpeedTable );
-  stylusTipSpeedTable->GetColumn( 0 )->SetName( "Time [s]" );
-  stylusTipSpeedTable->GetColumn( 1 )->SetName( "stylusTipSpeed" );
+  ConstructTableSignal(signalTimestamps, signalValues, stylusTipSpeedTable);
+  stylusTipSpeedTable->GetColumn(0)->SetName("Time [s]");
+  stylusTipSpeedTable->GetColumn(1)->SetName("stylusTipSpeed");
 
-  trackerDataMetricExtractor->GetSignalStylusRef( signalValues );
+  trackerDataMetricExtractor->GetSignalStylusRef(signalValues);
   vtkSmartPointer<vtkTable> stylusRefTable = vtkSmartPointer<vtkTable>::New();
-  ConstructTableSignal( signalTimestamps, signalValues, stylusRefTable );
-  stylusRefTable->GetColumn( 0 )->SetName( "Time [s]" );
-  stylusRefTable->GetColumn( 1 )->SetName( "stylusRef" );
+  ConstructTableSignal(signalTimestamps, signalValues, stylusRefTable);
+  stylusRefTable->GetColumn(0)->SetName("Time [s]");
+  stylusRefTable->GetColumn(1)->SetName("stylusRef");
 
-  trackerDataMetricExtractor->GetSignalStylusTipRef( signalValues );
+  trackerDataMetricExtractor->GetSignalStylusTipRef(signalValues);
   vtkSmartPointer<vtkTable> stylusTipRefTable = vtkSmartPointer<vtkTable>::New();
-  ConstructTableSignal( signalTimestamps, signalValues, stylusTipRefTable );
-  stylusTipRefTable->GetColumn( 0 )->SetName( "Time [s]" );
-  stylusTipRefTable->GetColumn( 1 )->SetName( "stylusTipRef" );
+  ConstructTableSignal(signalTimestamps, signalValues, stylusTipRefTable);
+  stylusTipRefTable->GetColumn(0)->SetName("Time [s]");
+  stylusTipRefTable->GetColumn(1)->SetName("stylusTipRef");
 
-  if( stylusTipSpeedTable->GetNumberOfColumns() != 2 )
+  if (stylusTipSpeedTable->GetNumberOfColumns() != 2)
   {
-    LOG_ERROR( "Error in constructing the vtk tables that are to hold fixed signal. Table has " <<
-               stylusTipSpeedTable->GetNumberOfColumns() << " columns, but should have two columns" );
+    LOG_ERROR("Error in constructing the vtk tables that are to hold fixed signal. Table has " <<
+              stylusTipSpeedTable->GetNumberOfColumns() << " columns, but should have two columns");
     return PLUS_FAIL;
   }
 
   std::string filename = intermediateFileOutputDirectory /*+ "\\StylusTracked.png"*/;
   std::string xLabel = "Time [s]";
   std::string yLabel = "Position Metric";
-  SaveMetricPlot( filename.c_str(), stylusRefTable, stylusTipRefTable,  stylusTipSpeedTable, xLabel, yLabel );
+  SaveMetricPlot(filename.c_str(), stylusRefTable, stylusTipRefTable,  stylusTipSpeedTable, xLabel, yLabel);
   return PLUS_SUCCESS;
 }
 
-int main ( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
   int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackedStylusTipSequence;
   std::string intermediateFileOutputDirectory;
-  bool plotSignal( false );
+  bool plotSignal(false);
   vtksys::CommandLineArguments cmdargs;
   double accumulatedError = 0.0;
   int succesfulDatasets = 0;
 
-  cmdargs.Initialize( argc, argv );
-  cmdargs.AddArgument( "--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name" );
-  cmdargs.AddArgument( "--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results" );
-  cmdargs.AddArgument( "--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)" );
-  cmdargs.AddArgument( "--seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequence, "Input tracker sequence metafile name (or directory) with path" );
-  cmdargs.AddArgument( "--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written" );
-  cmdargs.AddArgument( "--plot-signal", vtksys::CommandLineArguments::NO_ARGUMENT, &plotSignal, "Run test without plotting the signal." );
-  if ( !cmdargs.Parse() )
+  cmdargs.Initialize(argc, argv);
+  cmdargs.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Configuration file name");
+  cmdargs.AddArgument("--baseline-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputBaselineFileName, "Name of file storing baseline calibration results");
+  cmdargs.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
+  cmdargs.AddArgument("--seq-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputTrackedStylusTipSequence, "Input tracker sequence metafile name (or directory) with path");
+  cmdargs.AddArgument("--intermediate-file-output-dir", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &intermediateFileOutputDirectory, "Directory into which the intermediate files are written");
+  cmdargs.AddArgument("--plot-signal", vtksys::CommandLineArguments::NO_ARGUMENT, &plotSignal, "Run test without plotting the signal.");
+  if (!cmdargs.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
-    exit( EXIT_FAILURE );
+    exit(EXIT_FAILURE);
   }
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
-  LOG_INFO( "Initialize" );
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  LOG_INFO("Initialize");
 
   // Read LandmarkDetection configuration
-  vtkSmartPointer<vtkXMLDataElement> configLandmarkDetection = vtkSmartPointer<vtkXMLDataElement>::Take( vtkXMLUtilities::ReadElementFromFile( inputConfigFileName.c_str() ) );
-  if ( configLandmarkDetection == NULL )
+  vtkSmartPointer<vtkXMLDataElement> configLandmarkDetection = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(inputConfigFileName.c_str()));
+  if (configLandmarkDetection == NULL)
   {
-    LOG_ERROR( "Unable to read LandmarkDetection configuration from file " << inputConfigFileName.c_str() );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Unable to read LandmarkDetection configuration from file " << inputConfigFileName.c_str());
+    exit(EXIT_FAILURE);
   }
-  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData( configLandmarkDetection );
-  if ( intermediateFileOutputDirectory.empty() )
+  vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configLandmarkDetection);
+  if (intermediateFileOutputDirectory.empty())
   {
     intermediateFileOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory();
   }
@@ -229,83 +229,83 @@ int main ( int argc, char* argv[] )
   //--------------------------------------------------------------------------------------------------------------------------------------
   // Initialize data collection
   vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
-  if ( dataCollector->ReadConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+  if (dataCollector->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to parse configuration from file " << inputConfigFileName.c_str() );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Unable to parse configuration from file " << inputConfigFileName.c_str());
+    exit(EXIT_FAILURE);
   }
-  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  if (dataCollector->Connect() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Data collector was unable to connect to devices!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Data collector was unable to connect to devices!");
+    exit(EXIT_FAILURE);
   }
-  if ( dataCollector->Start() != PLUS_SUCCESS )
+  if (dataCollector->Start() != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to start data collection!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Unable to start data collection!");
+    exit(EXIT_FAILURE);
   }
-  vtkPlusChannel* aChannel( NULL );
-  vtkPlusDevice* aDevice( NULL );
-  if( dataCollector->GetDevice( aDevice, std::string( "TrackerDevice" ) ) != PLUS_SUCCESS )
+  vtkPlusChannel* aChannel(NULL);
+  vtkPlusDevice* aDevice(NULL);
+  if (dataCollector->GetDevice(aDevice, std::string("TrackerDevice")) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to locate device by ID: \'TrackerDevice\'" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Unable to locate device by ID: \'TrackerDevice\'");
+    exit(EXIT_FAILURE);
   }
-  if( aDevice->GetOutputChannelByName( aChannel, "TrackerStream" ) != PLUS_SUCCESS )
+  if (aDevice->GetOutputChannelByName(aChannel, "TrackerStream") != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to locate channel by ID: \'TrackerStream\'" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Unable to locate channel by ID: \'TrackerStream\'");
+    exit(EXIT_FAILURE);
   }
-  if ( aChannel->GetTrackingDataAvailable() == false )
+  if (aChannel->GetTrackingDataAvailable() == false)
   {
-    LOG_ERROR( "Channel \'" << aChannel->GetChannelId() << "\' is not tracking!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Channel \'" << aChannel->GetChannelId() << "\' is not tracking!");
+    exit(EXIT_FAILURE);
   }
-  if ( aChannel->GetTrackingDataAvailable() == false )
+  if (aChannel->GetTrackingDataAvailable() == false)
   {
-    LOG_ERROR( "Data collector is not tracking!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Data collector is not tracking!");
+    exit(EXIT_FAILURE);
   }
   // Read coordinate definitions
   vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-  if ( transformRepository->ReadConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+  if (transformRepository->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to read CoordinateDefinitions!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Failed to read CoordinateDefinitions!");
+    exit(EXIT_FAILURE);
   }
-  if ( transformRepository->ReadConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+  if (transformRepository->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Failed to read CoordinateDefinitions!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Failed to read CoordinateDefinitions!");
+    exit(EXIT_FAILURE);
   }
 
   // Initialize fake tracker
-  vtkPlusSavedDataSource* trackerDevice = dynamic_cast<vtkPlusSavedDataSource*>( aDevice );
-  if ( trackerDevice == NULL )
+  vtkPlusSavedDataSource* trackerDevice = dynamic_cast<vtkPlusSavedDataSource*>(aDevice);
+  if (trackerDevice == NULL)
   {
-    LOG_ERROR( "Invalid tracker object!" );
-    exit( EXIT_FAILURE );
+    LOG_ERROR("Invalid tracker object!");
+    exit(EXIT_FAILURE);
   }
 
-  std::string extension = vtksys::SystemTools::GetFilenameExtension( inputTrackedStylusTipSequence );
+  std::string extension = vtksys::SystemTools::GetFilenameExtension(inputTrackedStylusTipSequence);
   int numberFiles = 0;
   vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  if( vtkPlusMetaImageSequenceIO::CanReadFile( inputTrackedStylusTipSequence ) )
+  if (vtkPlusMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence))
   {
-    LOG_INFO( "Only one sequence" << extension );
+    LOG_INFO("Only one sequence" << extension);
     numberFiles = 1;
   }
   else
   {
-    myDir->Open ( inputTrackedStylusTipSequence.c_str() );
+    myDir->Open(inputTrackedStylusTipSequence.c_str());
     numberFiles = myDir->GetNumberOfFiles();
   }
   // Get each file name in the directory
-  for ( int i = 0; i < numberFiles; i++ )
+  for (int i = 0; i < numberFiles; i++)
   {
     std::string fileString;
-    if( numberFiles == 1 )
+    if (numberFiles == 1)
     {
       fileString = inputTrackedStylusTipSequence;
     }
@@ -313,130 +313,130 @@ int main ( int argc, char* argv[] )
     {
       fileString = inputTrackedStylusTipSequence;
       fileString += "\\";
-      fileString += myDir->GetFile( i );
+      fileString += myDir->GetFile(i);
     }
     //extension = vtksys::SystemTools::GetFilenameExtension(fileString);
-    if( vtkPlusMetaImageSequenceIO::CanReadFile( fileString ) )
+    if (vtkPlusMetaImageSequenceIO::CanReadFile(fileString))
     {
       vtkSmartPointer<vtkPlusTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-      if( !fileString.empty() )
+      if (!fileString.empty())
       {
-        trackedStylusTipFrames->SetValidationRequirements( REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK );
-        LOG_INFO( "Read stylus tracker data from " << fileString );
-        if( vtkPlusSequenceIO::Read( fileString, trackedStylusTipFrames ) != PLUS_SUCCESS )
+        trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
+        LOG_INFO("Read stylus tracker data from " << fileString);
+        if (vtkPlusSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS)
         {
-          LOG_ERROR( "Failed to read stylus data from sequence metafile: " << fileString << ". Exiting..." );
-          exit( EXIT_FAILURE );
+          LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
+          exit(EXIT_FAILURE);
         }
-        trackedStylusTipFrames->Register( NULL );
+        trackedStylusTipFrames->Register(NULL);
       }
       else
       {
-        LOG_ERROR( "Empty file name to read sequence metafile: " );
+        LOG_ERROR("Empty file name to read sequence metafile: ");
       }
 
       //This is to construct a plot of the tracked stylus and stylus tip position norms.
       fileString = intermediateFileOutputDirectory;
       fileString += "\\";
-      if( numberFiles == 1 )
+      if (numberFiles == 1)
       {
-        fileString += vtksys::SystemTools::GetFilenameWithoutLastExtension( inputTrackedStylusTipSequence );
+        fileString += vtksys::SystemTools::GetFilenameWithoutLastExtension(inputTrackedStylusTipSequence);
         fileString += ".png";
       }
       else
       {
-        fileString += vtksys::SystemTools::GetFilenameWithoutLastExtension( myDir->GetFile( i ) );
+        fileString += vtksys::SystemTools::GetFilenameWithoutLastExtension(myDir->GetFile(i));
         fileString += ".png";
       }
-      if( plotSignal )
+      if (plotSignal)
       {
-        ConstructSignalPlot( trackedStylusTipFrames, fileString, configLandmarkDetection );
+        ConstructSignalPlot(trackedStylusTipFrames, fileString, configLandmarkDetection);
       }
 
       //----------------------------------------------------------------------------------------------
       // Initialize phantom registration
       vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo> phantomRegistration = vtkSmartPointer<vtkPlusPhantomLandmarkRegistrationAlgo>::New();
-      if ( phantomRegistration == NULL )
+      if (phantomRegistration == NULL)
       {
-        LOG_ERROR( "Unable to instantiate phantom registration algorithm class!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Unable to instantiate phantom registration algorithm class!");
+        exit(EXIT_FAILURE);
       }
-      if ( phantomRegistration->ReadConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+      if (phantomRegistration->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
       {
-        LOG_ERROR( "Unable to read phantom definition!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Unable to read phantom definition!");
+        exit(EXIT_FAILURE);
       }
       int numberOfExpectedLandmarks = phantomRegistration->GetDefinedLandmarks_Phantom()->GetNumberOfPoints();
-      if ( numberOfExpectedLandmarks != 8 )
+      if (numberOfExpectedLandmarks != 8)
       {
-        LOG_ERROR( "Number of defined landmarks should be 8 instead of " << numberOfExpectedLandmarks << "!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Number of defined landmarks should be 8 instead of " << numberOfExpectedLandmarks << "!");
+        exit(EXIT_FAILURE);
       }
       // Initialize Landmark detection
       vtkSmartPointer<vtkPlusLandmarkDetectionAlgo> landmarkDetection = vtkSmartPointer<vtkPlusLandmarkDetectionAlgo>::New();
-      if ( landmarkDetection == NULL )
+      if (landmarkDetection == NULL)
       {
-        LOG_ERROR( "Unable to instantiate landmark detection algorithm class!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Unable to instantiate landmark detection algorithm class!");
+        exit(EXIT_FAILURE);
       }
-      landmarkDetection->SetMinimunDistanceBetweenLandmarksMm( phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm() );
-      landmarkDetection->SetAcquisitionRate( 1 / ( trackedStylusTipFrames->GetTrackedFrame( 1 )->GetTimestamp() - trackedStylusTipFrames->GetTrackedFrame( 0 )->GetTimestamp() ) );
-      if ( landmarkDetection->ReadConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+      landmarkDetection->SetMinimunDistanceBetweenLandmarksMm(phantomRegistration->GetMinimunDistanceBetweenTwoLandmarksMm());
+      landmarkDetection->SetAcquisitionRate(1 / (trackedStylusTipFrames->GetTrackedFrame(1)->GetTimestamp() - trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp()));
+      if (landmarkDetection->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
       {
-        LOG_ERROR( "Unable to read Landmark detection configuration!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Unable to read Landmark detection configuration!");
+        exit(EXIT_FAILURE);
       }
 
       // Check stylus tool
-      PlusTransformName stylusTipToReferenceTransformName( phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() );
-      PlusTransformName stylusToReferenceTransformName( "Stylus", phantomRegistration->GetReferenceCoordinateFrame() );
-      PlusTransformName stylusTipToStylusTransformName( phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus" );
+      PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
+      PlusTransformName stylusToReferenceTransformName("Stylus", phantomRegistration->GetReferenceCoordinateFrame());
+      PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus");
 
       vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-      bool valid = false;
-      transformRepository->GetTransform( stylusTipToStylusTransformName, stylusTipToStylusTransform, &valid );
+      ToolStatus status(TOOL_INVALID);
+      transformRepository->GetTransform(stylusTipToStylusTransformName, stylusTipToStylusTransform, &status);
       double landmarkFound[3] = {0, 0, 0};
 
-      if ( valid )
+      if (status == TOOL_OK)
       {
         // Acquire positions for landmark detection
         PlusTrackedFrame trackedFrame;
         vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-        for ( unsigned int j = 0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j )
+        for (unsigned int j = 0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j)
         {
           //trackerDevice->SetCounter(j);
           //aChannel->GetTrackedFrame((trackedStylusTipFrames->GetTrackedFrame(j)));
 
-          if ( transformRepository->SetTransforms( *( trackedStylusTipFrames->GetTrackedFrame( j ) ) ) != PLUS_SUCCESS )
+          if (transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(j))) != PLUS_SUCCESS)
           {
-            LOG_ERROR( "Failed to update transforms in repository with tracked frame!" );
-            exit( EXIT_FAILURE );
+            LOG_ERROR("Failed to update transforms in repository with tracked frame!");
+            exit(EXIT_FAILURE);
           }
 
-          valid = false;
-          if ( ( transformRepository->GetTransform( stylusToReferenceTransformName, stylusToReferenceMatrix, &valid ) != PLUS_SUCCESS ) || ( !valid ) )
+          status = TOOL_INVALID;
+          if (transformRepository->GetTransform(stylusToReferenceTransformName, stylusToReferenceMatrix, &status) != PLUS_SUCCESS || status != TOOL_OK)
           {
             //LOG_ERROR("No valid transform found between stylus to reference!");
             //exit(EXIT_FAILURE);
             // There is no available transform for this frame; skip that frame
-            LOG_INFO( "There is no available transform for this frame; skip frame " << trackedStylusTipFrames->GetTrackedFrame( j )->GetTimestamp() << " [s]" )
+            LOG_INFO("There is no available transform for this frame; skip frame " << trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp() << " [s]")
             continue;
           }
 
           vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceTransformMatrix = vtkMatrix4x4::New();
-          vtkMatrix4x4::Multiply4x4( stylusToReferenceMatrix, stylusTipToStylusTransform, stylusTipToReferenceTransformMatrix );
+          vtkMatrix4x4::Multiply4x4(stylusToReferenceMatrix, stylusTipToStylusTransform, stylusTipToReferenceTransformMatrix);
           int newLandmarkDetected = -1;
-          landmarkDetection->InsertNextStylusTipToReferenceTransform( stylusTipToReferenceTransformMatrix, newLandmarkDetected );
-          if( newLandmarkDetected > 0 )
+          landmarkDetection->InsertNextStylusTipToReferenceTransform(stylusTipToReferenceTransformMatrix, newLandmarkDetected);
+          if (newLandmarkDetected > 0)
           {
-            landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint( landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound );
+            landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound);
             // Add recorded point to algorithm
-            phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint( landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound );
+            phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound);
             phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
-            LOG_INFO( "\nLandmark found (" << landmarkFound[0] << ", " << landmarkFound[1] << ", " << landmarkFound[2] << ") at " << trackedStylusTipFrames->GetTrackedFrame( j )->GetTimestamp() << "[ms]" << "\nNumber of landmarks in phantonReg " << phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints() );
-            vtkPlusLogger::PrintProgressbar( ( 100.0 *  newLandmarkDetected - 1 ) / numberOfExpectedLandmarks );
+            LOG_INFO("\nLandmark found (" << landmarkFound[0] << ", " << landmarkFound[1] << ", " << landmarkFound[2] << ") at " << trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp() << "[ms]" << "\nNumber of landmarks in phantonReg " << phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
+            vtkPlusLogger::PrintProgressbar((100.0 *  newLandmarkDetected - 1) / numberOfExpectedLandmarks);
 
-            if( newLandmarkDetected == numberOfExpectedLandmarks )
+            if (newLandmarkDetected == numberOfExpectedLandmarks)
             {
               succesfulDatasets++;
               //LOG_INFO("\nREgistration completed" );
@@ -448,129 +448,129 @@ int main ( int argc, char* argv[] )
       }
       else
       {
-        LOG_ERROR( "No valid transform found between stylus to stylus tip!" );
+        LOG_ERROR("No valid transform found between stylus to stylus tip!");
       }
 
-      LOG_INFO( landmarkDetection->GetDetectedLandmarksString() );
+      LOG_INFO(landmarkDetection->GetDetectedLandmarksString());
 
-      if ( phantomRegistration->LandmarkRegister( transformRepository ) != PLUS_SUCCESS )
+      if (phantomRegistration->LandmarkRegister(transformRepository) != PLUS_SUCCESS)
       {
-        LOG_ERROR( "Phantom registration failed!" );
-        exit( EXIT_FAILURE );
+        LOG_ERROR("Phantom registration failed!");
+        exit(EXIT_FAILURE);
       }
 
       phantomRegistration->PrintRecordedLandmarks_Phantom();
 
-      LOG_INFO( "Registration error = " << phantomRegistration->GetRegistrationErrorMm() );
+      LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
       accumulatedError += phantomRegistration->GetRegistrationErrorMm();
-      vtkPlusLogger::PrintProgressbar( 100 );
+      vtkPlusLogger::PrintProgressbar(100);
 
-      if( numberFiles == 1 )
+      if (numberFiles == 1)
       {
         // Save result
-        if ( transformRepository->WriteConfiguration( configLandmarkDetection ) != PLUS_SUCCESS )
+        if (transformRepository->WriteConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
         {
-          LOG_ERROR( "Failed to write phantom registration result to configuration element!" );
-          exit( EXIT_FAILURE );
+          LOG_ERROR("Failed to write phantom registration result to configuration element!");
+          exit(EXIT_FAILURE);
         }
 
         std::string registrationResultFileName = "PhantomRegistrationAutoDetectLandmarkTest.xml";
-        vtksys::SystemTools::RemoveFile( registrationResultFileName.c_str() );
-        PlusCommon::XML::PrintXML( registrationResultFileName.c_str(), configLandmarkDetection );
+        vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
+        PlusCommon::XML::PrintXML(registrationResultFileName.c_str(), configLandmarkDetection);
 
-        if ( CompareRegistrationResultsWithBaseline( inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame() ) != PLUS_SUCCESS )
+        if (CompareRegistrationResultsWithBaseline(inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
         {
-          LOG_ERROR( "Comparison of calibration data to baseline failed" );
+          LOG_ERROR("Comparison of calibration data to baseline failed");
           std::cout << "Exit failure!!!" << std::endl;
           return EXIT_FAILURE;
         }
       }
     }
   }
-  LOG_INFO( "AccumulatedError = " << accumulatedError << " Number of succesful registrations/datasets = " << succesfulDatasets << "/" << numberFiles - 2 );
-  LOG_INFO( "Exit success!!!" );
+  LOG_INFO("AccumulatedError = " << accumulatedError << " Number of succesful registrations/datasets = " << succesfulDatasets << "/" << numberFiles - 2);
+  LOG_INFO("Exit success!!!");
   return EXIT_SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 
 // return the number of differences
-PlusStatus CompareRegistrationResultsWithBaseline( const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame )
+PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, const char* currentResultFileName, const char* phantomCoordinateFrame, const char* referenceCoordinateFrame)
 {
-  if ( baselineFileName == NULL )
+  if (baselineFileName == NULL)
   {
-    LOG_ERROR( "Unable to read the baseline configuration file - filename is NULL" );
+    LOG_ERROR("Unable to read the baseline configuration file - filename is NULL");
     return PLUS_FAIL;
   }
 
-  if ( currentResultFileName == NULL )
+  if (currentResultFileName == NULL)
   {
-    LOG_ERROR( "Unable to read the current configuration file - filename is NULL" );
+    LOG_ERROR("Unable to read the current configuration file - filename is NULL");
     return PLUS_FAIL;
   }
 
-  PlusTransformName tnPhantomToPhantomReference( phantomCoordinateFrame, referenceCoordinateFrame );
+  PlusTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame);
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
-        vtkXMLUtilities::ReadElementFromFile( currentResultFileName ) );
-  if ( currentRootElem == NULL )
+        vtkXMLUtilities::ReadElementFromFile(currentResultFileName));
+  if (currentRootElem == NULL)
   {
-    LOG_ERROR( "Unable to read the current configuration file: " << currentResultFileName );
+    LOG_ERROR("Unable to read the current configuration file: " << currentResultFileName);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkPlusTransformRepository> currentTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-  if ( currentTransformRepository->ReadConfiguration( currentRootElem ) != PLUS_SUCCESS )
+  if (currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName );
+    LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkMatrix4x4> currentMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( currentTransformRepository->GetTransform( tnPhantomToPhantomReference, currentMatrix ) != PLUS_SUCCESS )
+  if (currentTransformRepository->GetTransform(tnPhantomToPhantomReference, currentMatrix) != PLUS_SUCCESS)
   {
     std::string strTransformName;
-    tnPhantomToPhantomReference.GetTransformName( strTransformName );
-    LOG_ERROR( "Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << currentResultFileName );
+    tnPhantomToPhantomReference.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << currentResultFileName);
     return PLUS_FAIL;
   }
 
   // Load baseline phantom registration
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
-        vtkXMLUtilities::ReadElementFromFile( baselineFileName ) );
-  if ( baselineFileName == NULL )
+        vtkXMLUtilities::ReadElementFromFile(baselineFileName));
+  if (baselineFileName == NULL)
   {
-    LOG_ERROR( "Unable to read the baseline configuration file: " << baselineFileName );
+    LOG_ERROR("Unable to read the baseline configuration file: " << baselineFileName);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkPlusTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-  if ( baselineTransformRepository->ReadConfiguration( baselineRootElem ) != PLUS_SUCCESS )
+  if (baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS)
   {
-    LOG_ERROR( "Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName );
+    LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName);
     return PLUS_FAIL;
   }
 
   vtkSmartPointer<vtkMatrix4x4> baselineMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if ( baselineTransformRepository->GetTransform( tnPhantomToPhantomReference, baselineMatrix ) != PLUS_SUCCESS )
+  if (baselineTransformRepository->GetTransform(tnPhantomToPhantomReference, baselineMatrix) != PLUS_SUCCESS)
   {
     std::string strTransformName;
-    tnPhantomToPhantomReference.GetTransformName( strTransformName );
-    LOG_ERROR( "Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << baselineFileName );
+    tnPhantomToPhantomReference.GetTransformName(strTransformName);
+    LOG_ERROR("Unable to get '" << strTransformName << "' coordinate definition from configuration file: " << baselineFileName);
     return PLUS_FAIL;
   }
 
   // Compare the transforms
-  double posDiff = PlusMath::GetPositionDifference( currentMatrix, baselineMatrix );
-  double orientDiff = PlusMath::GetOrientationDifference( currentMatrix, baselineMatrix );
+  double posDiff = PlusMath::GetPositionDifference(currentMatrix, baselineMatrix);
+  double orientDiff = PlusMath::GetOrientationDifference(currentMatrix, baselineMatrix);
 
-  if ( fabs( posDiff ) > ERROR_THRESHOLD_MM || fabs( orientDiff ) > ERROR_THRESHOLD_DEG )
+  if (fabs(posDiff) > ERROR_THRESHOLD_MM || fabs(orientDiff) > ERROR_THRESHOLD_DEG)
   {
-    LOG_ERROR( "Transform mismatch (position difference: " << posDiff << "  orientation difference: " << orientDiff );
+    LOG_ERROR("Transform mismatch (position difference: " << posDiff << "  orientation difference: " << orientDiff);
     return PLUS_FAIL;
   }
-  LOG_INFO( "Transform difference is acceptable (position difference: " << posDiff << "  orientation difference: " << orientDiff );
+  LOG_INFO("Transform difference is acceptable (position difference: " << posDiff << "  orientation difference: " << orientDiff);
 
   return PLUS_SUCCESS;
 }
