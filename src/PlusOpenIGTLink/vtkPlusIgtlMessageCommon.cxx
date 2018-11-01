@@ -17,6 +17,7 @@ See License.txt for details.
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkTransform.h>
+#include <vtkNew.h>
 
 // OpenIGTLink includes
 #include <igtl_tdata.h>
@@ -609,13 +610,13 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
   {
     vtkNew<vtkMatrix4x4> vtkMat;
     ToolStatus status(TOOL_INVALID);
-    if (repository.GetTransform(*it, vtkMat, &status) != PLUS_SUCCESS)
+    if (repository.GetTransform(*it, vtkMat.GetPointer(), &status) != PLUS_SUCCESS)
     {
       LOG_ERROR("Transform " << it->From() << "To" << it->To() << " not found in repository.");
       continue;
     }
     igtl::Matrix4x4 matrix;
-    if (igtlioTransformConverter::VTKToIGTLTransform(*vtkMat, matrix) != 1)
+    if (igtlioTransformConverter::VTKToIGTLTransform(*vtkMat.GetPointer(), matrix) != 1)
     {
       LOG_ERROR("Unable to convert from VTK to IGTL transform.");
       continue;

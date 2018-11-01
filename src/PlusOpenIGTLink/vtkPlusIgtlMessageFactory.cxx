@@ -9,6 +9,7 @@ See License.txt for details.
 #include "PlusTrackedFrame.h"
 #include "PlusVideoFrame.h"
 #include "vtkImageData.h"
+#include "vtkNew.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusIgtlMessageCommon.h"
@@ -310,7 +311,7 @@ int vtkPlusIgtlMessageFactory::PackPositionMessage(const PlusIgtlClientInfo& cli
 
     ToolStatus status;
     vtkNew<vtkMatrix4x4> temp;
-    transformRepository.GetTransform(transformName, temp, &status);
+    transformRepository.GetTransform(transformName, temp.GetPointer(), &status);
 
     float position[3] = { igtlMatrix[0][3], igtlMatrix[1][3], igtlMatrix[2][3] };
     float quaternion[4] = { 0, 0, 0, 1 };
@@ -364,7 +365,7 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
     PlusTransformName transformName = (*transformNameIterator);
     ToolStatus status(TOOL_UNKNOWN);
     vtkNew<vtkMatrix4x4> temp;
-    transformRepository.GetTransform(transformName, temp, &status);
+    transformRepository.GetTransform(transformName, temp.GetPointer(), &status);
 
     if (status != TOOL_OK && packValidTransformsOnly)
     {
