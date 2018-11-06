@@ -55,6 +55,7 @@ vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   , IsData3D(false)
   , WriterAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
   , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  , EncodingFourCC("VP90")
 {
   this->AcquisitionRate = 30.0;
   this->MissingInputGracePeriodSec = 2.0;
@@ -107,7 +108,7 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(EncodingFourCC, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -215,7 +216,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
   vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
   if (mkvWriter)
   {
-    mkvWriter->SetEncodingFourCC(this->CodecFourCC);
+    mkvWriter->SetEncodingFourCC(this->EncodingFourCC);
   }
 #endif
 

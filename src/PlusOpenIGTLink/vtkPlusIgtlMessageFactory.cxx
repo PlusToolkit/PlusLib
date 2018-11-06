@@ -387,7 +387,7 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
 //----------------------------------------------------------------------------
 int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType, igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId)
 {
-  int numberOfErrors;
+  int numberOfErrors = 0;
   for (std::vector<PlusIgtlClientInfo::ImageStream>::const_iterator imageStreamIterator = clientInfo.ImageStreams.begin(); imageStreamIterator != clientInfo.ImageStreams.end(); ++imageStreamIterator)
   {
     PlusIgtlClientInfo::ImageStream imageStream = (*imageStreamIterator);
