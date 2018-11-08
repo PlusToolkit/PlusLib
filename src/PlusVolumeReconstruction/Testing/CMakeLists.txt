@@ -30,7 +30,7 @@ function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNa
   ADD_TEST(vtkVolumeReconstructorTestCompare${TestName}
     ${CMAKE_COMMAND} -E compare_files
     ${ExpectedVolumeFileName}
-    vtkVolumeReconstructorTest${OutNameFragment}volume.mha
+    ${TEST_OUTPUT_PATH}/vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     )
   SET_TESTS_PROPERTIES(vtkVolumeReconstructorTestCompare${TestName} PROPERTIES DEPENDS vtkVolumeReconstructorTestRun${TestName})
 endfunction()

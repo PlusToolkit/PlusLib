@@ -78,7 +78,6 @@ ADD_TEST(vtkTransformRepositoryTest
   )
 # This test prints some errors when testing error cases, therefore the output is not
 # checked for the presence of ERROR or WARNING string
-
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileTrim
@@ -97,39 +96,37 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha)
 
   #--------------------------------------------------------------------------------------------
+  IF(VTK_VERSION VERSION_LESS 8.2.0)
+    SET(_NRRD_COMPARE_FILE NrrdSample.nrrd)
+    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample.nrrd)
+  ELSE()
+    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.nrrd)
+    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.nrrd)
+  ENDIF()
+
   ADD_TEST(NAME EditSequenceFileReadWriteNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/NrrdSample.igs.nrrd
-    --output-seq-file=NrrdSample.igs.nrrd
+    --source-seq-file=${TestDataDir}/${_NRRD_COMPARE_FILE}
+    --output-seq-file=${_NRRD_COMPARE_FILE}
     --use-compression
     --verbose=3
     )
 
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
-  IF(VTK_VERSION_MAJOR LESS 9)
-    SET(_NRRD_COMPARE_FILE NrrdSample.igs.nrrd)
-  ELSE()
-    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.igs.nrrd)
-  ENDIF()
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest EditSequenceFileReadWriteNrrd
     ${_NRRD_COMPARE_FILE})
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/ColorNrrdSample.igs.nrrd
-    --output-seq-file=ColorNrrdSample.igs.nrrd
+    --source-seq-file=${TestDataDir}/${_COLOR_NRRD_COMPARE_FILE}
+    --output-seq-file=${_COLOR_NRRD_COMPARE_FILE}
     --use-compression
     --verbose=3
     )
-  IF(VTK_VERSION_MAJOR LESS 9)
-    SET(_NRRD_COMPARE_FILE ColorNrrdSample.igs.nrrd)
-  ELSE()
-    SET(_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.igs.nrrd)
-  ENDIF()
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest EditSequenceFileReadWriteColorNrrd
-    ${_NRRD_COMPARE_FILE})
+    ${_COLOR_NRRD_COMPARE_FILE})
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileFillImageRectangle

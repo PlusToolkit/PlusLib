@@ -12,7 +12,7 @@
 #include "vtkPlusTrackedFrameList.h"
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
-#include "vtkPlusMkvSequenceIO.h"
+  #include "vtkPlusMkvSequenceIO.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -59,6 +59,14 @@ PlusStatus vtkPlusSequenceIO::Write(const std::string& filename, vtkPlusTrackedF
 
   LOG_ERROR("No writer for file: " << filename);
   return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusSequenceIO::Write(const std::string& filename, PlusTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile /*= US_IMG_ORIENT_MF*/, bool useCompression /*= true*/, bool EnableImageDataWrite /*= true*/)
+{
+  vtkNew<vtkPlusTrackedFrameList> list;
+  list->AddTrackedFrame(frame);
+  return vtkPlusSequenceIO::Write(filename, list, orientationInFile, useCompression, EnableImageDataWrite);
 }
 
 //----------------------------------------------------------------------------
@@ -115,11 +123,11 @@ PlusStatus vtkPlusSequenceIO::Read(const std::string& filename, vtkPlusTrackedFr
 vtkPlusSequenceIOBase* vtkPlusSequenceIO::CreateSequenceHandlerForFile(const std::string& filename)
 {
   // Parse sequence filename to determine if it's metafile or NRRD
-  if( vtkPlusMetaImageSequenceIO::CanWriteFile(filename) )
+  if (vtkPlusMetaImageSequenceIO::CanWriteFile(filename))
   {
     return vtkPlusMetaImageSequenceIO::New();
   }
-  else if( vtkPlusNrrdSequenceIO::CanWriteFile(filename) )
+  else if (vtkPlusNrrdSequenceIO::CanWriteFile(filename))
   {
     return vtkPlusNrrdSequenceIO::New();
   }
