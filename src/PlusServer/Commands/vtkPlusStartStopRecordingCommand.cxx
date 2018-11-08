@@ -306,12 +306,14 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     {
       outputFilename = this->OutputFilename;
     }
+    // EnableFileCompression must be set before OpenFile is called so that it can be disabled for file types that
+    // don't support compression
+    captureDevice->SetEnableFileCompression(this->GetEnableCompression());
     if (captureDevice->OpenFile(outputFilename.c_str()) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));
       return PLUS_FAIL;
     }
-    captureDevice->SetEnableFileCompression(this->GetEnableCompression());
     captureDevice->SetEnableCapturing(true);
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;

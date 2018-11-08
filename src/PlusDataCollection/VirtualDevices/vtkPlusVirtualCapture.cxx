@@ -211,6 +211,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     LOG_ERROR("Could not create writer for file: " << aFilename);
     return PLUS_FAIL;
   }
+  this->Writer->SetUseCompression(this->EnableFileCompression);
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
   vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
