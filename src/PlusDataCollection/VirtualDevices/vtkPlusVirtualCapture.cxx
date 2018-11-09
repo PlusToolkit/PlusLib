@@ -178,8 +178,8 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 
   if (aFilename == NULL || strlen(aFilename) == 0)
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(this->BaseFilename);
+    std::string filenameRoot = PlusCommon::GetSequenceFilenameWithoutExtension(this->BaseFilename);
+    std::string ext = PlusCommon::GetSequenceFilenameExtension(this->BaseFilename);
     if (ext.empty())
     {
       // default to nrrd

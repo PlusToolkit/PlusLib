@@ -5,7 +5,7 @@ function(VolRecRegressionTest TestName ConfigFileNameFragment InputSeqFile OutNa
   ADD_TEST(vtkVolumeReconstructorTestRun${TestName}
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/VolumeReconstructor
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_VolumeReconstructionOnly_${ConfigFileNameFragment}.xml
-    --source-seq-file=${TestDataDir}/${InputSeqFile}.mha
+    --source-seq-file=${TestDataDir}/${InputSeqFile}.igs.mha
     --output-volume-file=vtkVolumeReconstructorTest${OutNameFragment}volume.mha
     --image-to-reference-transform=ImageToReference
     --importance-mask-file=${TestDataDir}/ImportanceMask.png
@@ -53,7 +53,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   ADD_TEST(CreateSliceModelsTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/CreateSliceModels
-    --source-seq-file=${TestDataDir}/NwirePhantomFreehand.mha
+    --source-seq-file=${TestDataDir}/NwirePhantomFreehand.igs.mha
     --output-model-file=GeneratedSliceModels.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_NwirePhantomFreehand_vtkVolumeReconstructorTest2.xml
     --image-to-reference-transform=ProbeToReference
@@ -63,15 +63,15 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(DrawClipRegionRunTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/DrawClipRegion
     --config-file=${ConfigFilesDir}/PlusDeviceSet_fCal_Ultrasonix_C5-2_NDIPolaris_fCal3.xml
-    --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.mha
-    --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
+    --source-seq-file=${TestDataDir}/SpinePhantomPartialSurfaceContact.igs.mha
+    --output-seq-file=outputSpinePhantomPartialSurfaceContactWithClipRegion.igs.mha
     )
   SET_TESTS_PROPERTIES( DrawClipRegionRunTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING" )
 
   ADD_TEST(DrawClipRegionCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files
      ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
-     ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.mha
+     ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.igs.mha
     )
   SET_TESTS_PROPERTIES(DrawClipRegionCompareToBaselineTest PROPERTIES DEPENDS DrawClipRegionRunTest)
 ENDIF()

@@ -86,30 +86,30 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --operation=TRIM
     --first-frame-index=0
     --last-frame-index=5
-    --source-seq-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2.mha
-    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
+    --source-seq-file=${TestDataDir}/SegmentationTest_BKMedical_RandomStepperMotionData2.igs.mha
+    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha
     --use-compression
     --verbose=3
     WORKING_DIRECTORY ${PLUS_EXECUTABLE_OUTPUT_PATH}
     )
   SET_TESTS_PROPERTIES(EditSequenceFileTrim PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileTrimCompareToBaselineTest EditSequenceFileTrim
-    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha)
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/NrrdSample.nrrd
-    --output-seq-file=NrrdSample.nrrd
+    --source-seq-file=${TestDataDir}/NrrdSample.igs.nrrd
+    --output-seq-file=NrrdSample.igs.nrrd
     --use-compression
     --verbose=3
     )
 
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   IF(VTK_VERSION_MAJOR LESS 9)
-    SET(_NRRD_COMPARE_FILE NrrdSample.nrrd)
+    SET(_NRRD_COMPARE_FILE NrrdSample.igs.nrrd)
   ELSE()
-    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.nrrd)
+    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.igs.nrrd)
   ENDIF()
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteNrrdCompareToBaselineTest EditSequenceFileReadWriteNrrd
     ${_NRRD_COMPARE_FILE})
@@ -117,15 +117,15 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileReadWriteColorNrrd
     COMMAND $<TARGET_FILE:EditSequenceFile>
-    --source-seq-file=${TestDataDir}/ColorNrrdSample.nrrd
-    --output-seq-file=ColorNrrdSample.nrrd
+    --source-seq-file=${TestDataDir}/ColorNrrdSample.igs.nrrd
+    --output-seq-file=ColorNrrdSample.igs.nrrd
     --use-compression
     --verbose=3
     )
   IF(VTK_VERSION_MAJOR LESS 9)
-    SET(_NRRD_COMPARE_FILE ColorNrrdSample.nrrd)
+    SET(_NRRD_COMPARE_FILE ColorNrrdSample.igs.nrrd)
   ELSE()
-    SET(_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.nrrd)
+    SET(_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.igs.nrrd)
   ENDIF()
   SET_TESTS_PROPERTIES(EditSequenceFileReadWriteColorNrrd PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileReadWriteColorNrrdCompareToBaselineTest EditSequenceFileReadWriteColorNrrd
@@ -138,15 +138,15 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --rect-origin 52 25
     --rect-size 260 25
     --fill-gray-level=20
-    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
-    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha
+    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha
+    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.igs.mha
     --use-compression
     --verbose=3
     )
   SET_TESTS_PROPERTIES(EditSequenceFileFillImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   SET_TESTS_PROPERTIES(EditSequenceFileFillImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
   ADD_COMPARE_FILES_TEST(EditSequenceFileFillImageRectangleCompareToBaselineTest EditSequenceFileFillImageRectangle
-    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.mha)
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Anonymized.igs.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileCropImageRectangle
@@ -154,15 +154,15 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --operation=CROP
     --rect-origin 52 25
     --rect-size 260 25
-    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
-    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha
+    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha
+    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.igs.mha
     --use-compression
     --verbose=3
     )
   SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangle PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangle PROPERTIES DEPENDS EditSequenceFileTrim)
   ADD_COMPARE_FILES_TEST(EditSequenceFileCropImageRectangleCompareToBaselineTest EditSequenceFileCropImageRectangle
-    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.mha)
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_PatientCropped.igs.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileCropImageRectangleFlipX
@@ -171,46 +171,46 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
     --flipX
     --rect-origin 52 25
     --rect-size 260 25
-    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.mha
-    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha
+    --source-seq-file=${TEST_OUTPUT_PATH}/SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed.igs.mha
+    --output-seq-file=SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.igs.mha
     --use-compression
     --verbose=3
     )
   SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangleFlipX PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   SET_TESTS_PROPERTIES(EditSequenceFileCropImageRectangleFlipX PROPERTIES DEPENDS EditSequenceFileTrim)
   ADD_COMPARE_FILES_TEST(EditSequenceFileCropImageRectangleFlipXCompareToBaselineTest EditSequenceFileCropImageRectangleFlipX
-    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.mha)
+    SegmentationTest_BKMedical_RandomStepperMotionData2_Trimmed_Cropped_FlipX.igs.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileRemoveImageData
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=REMOVE_IMAGE_DATA
-    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
-    --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha
+    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.igs.mha
+    --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.igs.mha
     --verbose=3
     )
   SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageData PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileRemoveImageDataCompareToBaselineTest EditSequenceFileRemoveImageData
-    UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.mha)
+    UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUS.igs.mha)
 
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileRemoveImageDataCompressed
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=REMOVE_IMAGE_DATA
-    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.mha
-    --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha
+    --source-seq-file=${TestDataDir}/UsSimulatorOutputSpinePhantom2CurvilinearBaseline.igs.mha
+    --output-seq-file=UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.igs.mha
     --use-compression
     --verbose=3
     )
   SET_TESTS_PROPERTIES(EditSequenceFileRemoveImageDataCompressed PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
   ADD_COMPARE_FILES_TEST(EditSequenceFileRemoveImageDataCompressedCompareToBaselineTest EditSequenceFileRemoveImageDataCompressed
-     UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.mha)
+     UsSimulatorOutputSpinePhantom2CurvilinearBaselineNoUSCompressed.igs.mha)
     
   ADD_TEST(NAME EditSequenceFileMix 
     COMMAND $<TARGET_FILE:EditSequenceFile>
     --operation=MIX
-    --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.mha
-    --output-seq-file=WaterTankBottomTranslationTrackedVideo.mha
+    --source-seq-files ${TestDataDir}/WaterTankBottomTranslationVideoBuffer.igs.mha ${TestDataDir}/WaterTankBottomTranslationTrackerBuffer.igs.mha
+    --output-seq-file=WaterTankBottomTranslationTrackedVideo.igs.mha
     --use-compression
     --verbose=3
     )
