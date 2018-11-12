@@ -23,6 +23,7 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
 #include <vtkMatrix4x4.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 
 // STL includes
@@ -205,11 +206,11 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
       continue;
     }
 
-    this->GetTransformMatrix(identifedMarkerIndex, toolToTracker);
+    this->GetTransformMatrix(identifedMarkerIndex, toolToTracker.GetPointer());
 #ifdef USE_MicronTracker_TIMESTAMPS
     this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
 #else
-    this->ToolTimeStampedUpdate(tool->GetSourceId(), toolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate(tool->GetSourceId(), toolToTracker.GetPointer(), TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 #endif
 
     identifiedToolSourceIds.insert(tool->GetSourceId());
@@ -229,7 +230,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
 #ifdef USE_MicronTracker_TIMESTAMPS
     ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, timeSystemSec, timeSystemSec);
 #else
-    ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
+    ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
 #endif
   }
 
