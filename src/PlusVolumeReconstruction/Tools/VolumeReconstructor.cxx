@@ -246,11 +246,11 @@ int main(int argc, char* argv[])
   LOG_INFO("Number of frames added to the volume: " << numberOfFramesAddedToVolume << " out of " << numberOfFrames);
 
   LOG_INFO("Saving volume to file...");
-  reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeFileName, false, !disableCompression);
+  reconstructor->SaveReconstructedVolumeToFile(outputVolumeFileName, false, !disableCompression);
 
   if (!outputVolumeAccumulationFileName.empty())
   {
-    reconstructor->SaveReconstructedVolumeToMetafile(outputVolumeAccumulationFileName, true, !disableCompression);
+    reconstructor->SaveReconstructedVolumeToFile(outputVolumeAccumulationFileName, true, !disableCompression);
   }
 
   return EXIT_SUCCESS;

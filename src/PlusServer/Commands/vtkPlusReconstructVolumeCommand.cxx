@@ -372,7 +372,7 @@ PlusStatus vtkPlusReconstructVolumeCommand::ProcessImageReply(vtkImageData* volu
   {
     std::string outputVolFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(outputVolFilename);
     LOG_INFO("Saving reconstructed volume to file: " << outputVolFileFullPath);
-    if (vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(volumeToSend, outputVolFileFullPath) != PLUS_SUCCESS)
+    if (vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSend, outputVolFileFullPath) != PLUS_SUCCESS)
     {
       status = PLUS_FAIL;
       resultMessage += std::string("saving reconstructed volume to ") + outputVolFileFullPath + " failed";

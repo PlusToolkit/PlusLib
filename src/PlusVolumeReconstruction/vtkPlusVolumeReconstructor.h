@@ -96,20 +96,22 @@ public:
   virtual PlusStatus ExtractAccumulation(vtkImageData* volume);
 
   /*!
-    Save reconstructed volume to metafile
+    Save reconstructed volume to file
     \param filename Path and filename of the output file
     \accumulation True if accumulation buffer needs to be saved, false if gray levels (default)
     \useCompression True if compression is turned on (default), false otherwise
   */
-  PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true);
+  PlusStatus SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation = false, bool useCompression = true);
+  PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true) { return SaveReconstructedVolumeToFile(filename, accumulation, useCompression); }
 
   /*!
-    Save reconstructed volume to metafile
+    Save reconstructed volume to file
     \param volumeToSave Reconstructed volume to be saved
     \param filename Path and filename of the output file
     \useCompression True if compression is turned on (default), false otherwise
   */
-  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
+  static PlusStatus SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
+  static PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true) { return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(filename, accumulation, useCompression); }
 
   /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
   vtkGetStdStringMacro(ImageCoordinateFrame);

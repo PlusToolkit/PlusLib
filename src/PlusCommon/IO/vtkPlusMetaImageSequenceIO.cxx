@@ -753,7 +753,8 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     std::ostringstream offsetStream;
     for (int i = 0; i < numSpaceDimensions; ++i)
     {
-      offsetStream << "0";
+      // Code assumes all images have the same origin
+      offsetStream << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetOrigin()[i];
       if (i != numSpaceDimensions - 1)
       {
         offsetStream << " ";
@@ -784,7 +785,8 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     std::ostringstream spacingStream;
     for (int i = 0; i < numSpaceDimensions; ++i)
     {
-      spacingStream << "1";
+      // Code assumes all images have the same spacing
+      spacingStream << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetSpacing()[i];
       if (i != numSpaceDimensions - 1)
       {
         spacingStream << " ";

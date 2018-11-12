@@ -23,7 +23,10 @@ class vtkPlusCommonExport vtkPlusSequenceIO : public vtkObject
 {
 public:
   /*! Write object contents into file */
-  static PlusStatus Write(const std::string& filename, vtkPlusTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile=US_IMG_ORIENT_MF, bool useCompression=true, bool EnableImageDataWrite=true);
+  static PlusStatus Write(const std::string& filename, PlusTrackedFrame* frame, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool EnableImageDataWrite = true);
+
+  /*! Write object contents into file */
+  static PlusStatus Write(const std::string& filename, vtkPlusTrackedFrameList* frameList, US_IMAGE_ORIENTATION orientationInFile = US_IMG_ORIENT_MF, bool useCompression = true, bool EnableImageDataWrite = true);
 
   /*! Read file contents into the object */
   static PlusStatus Read(const std::string& filename, vtkPlusTrackedFrameList* frameList);
