@@ -40,26 +40,30 @@ vtkStandardNewMacro(vtkPlusMicronTracker);
 
 //----------------------------------------------------------------------------
 vtkPlusMicronTracker::vtkPlusMicronTracker()
-{
+  : IsMicronTrackingInitialized(false)
+  , MicronTracker(new MicronTrackerInterface())
 #ifdef USE_MicronTracker_TIMESTAMPS
-  this->TrackerTimeToSystemTimeSec = 0;
-  this->TrackerTimeToSystemTimeComputed = false;
+  , TrackerTimeToSystemTimeSec(0)
+  , TrackerTimeToSystemTimeComputed(false)
 #endif
-
-  this->IsMicronTrackingInitialized = 0;
-  this->MT = new MicronTrackerInterface();
+  , IniFile("MicronTracker.ini")
+  , FrameLeft(vtkSmartPointer<vtkImageData>::New())
+  , FrameRight(vtkSmartPointer<vtkImageData>::New())
+{
   MicronTrackerLogger::Instance()->SetLogMessageCallback(LogMessageCallback, this);
 
-  // for accurate timing
   this->FrameNumber = 0;
-
   this->RequirePortNameInDeviceSetConfiguration = true;
 
   // No callback function provided by the device, so the data capture thread will be used to poll the hardware and add new items to the buffer
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 20;
 
-  this->IniFile = "MicronTracker.ini";
+  this->FrameLeft = vtkSmartPointer<vtkImageData>::New();
+  this->FrameRight = vtkSmartPointer<vtkImageData>::New();
+  this->FrameSize[0] = 0;
+  this->FrameSize[1] = 0;
+  this->FrameSize[2] = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -67,20 +71,18 @@ vtkPlusMicronTracker::~vtkPlusMicronTracker()
 {
   if (this->IsMicronTrackingInitialized)
   {
-    this->MT->mtEnd();
+    this->MicronTracker->mtEnd();
     this->IsMicronTrackingInitialized = false;
   }
-  if (this->MT != NULL)
-  {
-    delete this->MT;
-    this->MT = NULL;
-  }
+
+  delete this->MicronTracker;
+  this->MicronTracker = NULL;
 }
 
 //----------------------------------------------------------------------------
 std::string vtkPlusMicronTracker::GetSdkVersion()
 {
-  return this->MT->GetSdkVersion();
+  return this->MicronTracker->GetSdkVersion();
 }
 
 //----------------------------------------------------------------------------
@@ -96,29 +98,29 @@ PlusStatus vtkPlusMicronTracker::Probe()
   LOG_DEBUG("Use MicronTracker ini file: " << iniFilePath);
   if (!vtksys::SystemTools::FileExists(iniFilePath.c_str(), true))
   {
-    LOG_DEBUG("Unable to find MicronTracker IniFile file at: " << iniFilePath);
+    LOG_WARNING("Unable to find MicronTracker IniFile file at: " << iniFilePath);
   }
   std::string templateFullPath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->TemplateDirectory.c_str());
   LOG_DEBUG("Loading the marker templates from " << templateFullPath);
   if (!vtksys::SystemTools::FileExists(templateFullPath.c_str(), false))
   {
-    LOG_DEBUG("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
+    LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
   }
 
-  if (this->MT->mtInit(iniFilePath) != 1)
+  if (this->MicronTracker->mtInit(iniFilePath) != 1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
   }
 
   // Try to attach the cameras till find the cameras
-  if (this->MT->mtSetupCameras() != 1)
+  if (this->MicronTracker->mtSetupCameras() != 1)
   {
     LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections.");
     return PLUS_FAIL;
   }
 
-  int numOfCameras = this->MT->mtGetNumOfCameras();
+  int numOfCameras = this->MicronTracker->mtGetNumOfCameras();
   if (numOfCameras == 0)
   {
     LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections.");
@@ -127,7 +129,7 @@ PlusStatus vtkPlusMicronTracker::Probe()
 
   LOG_DEBUG("Number of attached cameras: " << numOfCameras);
 
-  this->MT->mtEnd();
+  this->MicronTracker->mtEnd();
   this->IsMicronTrackingInitialized = false;
 
   return PLUS_SUCCESS;
@@ -145,13 +147,6 @@ PlusStatus vtkPlusMicronTracker::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusMicronTracker::InternalStopRecording()
-{
-  // No need to do anything here, as the MicronTracker only performs grabbing on request
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusMicronTracker::InternalUpdate()
 {
   if (!this->IsMicronTrackingInitialized)
@@ -160,17 +155,13 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // Generate a frame number, as the tool does not provide a frame number.
-  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
-  ++this->FrameNumber;
-
   // Setting the timestamp
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  if (this->MT->mtGrabFrame() == -1)
+  if (this->MicronTracker->mtGrabFrame() == -1)
   {
     // If grabbing a frame was not successful then just skip this attempt and retry on the next callback
-    LOG_WARNING("Failed to grab a new frame (" << this->MT->GetLastErrorString() << "). Maybe the requested frame rate is too high.");
+    LOG_WARNING("Failed to grab a new frame (" << this->MicronTracker->GetLastErrorString() << "). Maybe the requested frame rate is too high.");
     return PLUS_FAIL;
   }
 
@@ -178,33 +169,35 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   if (!this->TrackerTimeToSystemTimeComputed)
   {
     const double timeSystemSec = unfilteredTimestamp;
-    const double timeTrackerSec = this->MT->mtGetLatestFrameTime();
+    const double timeTrackerSec = this->MicronTracker->mtGetLatestFrameTime();
     this->TrackerTimeToSystemTimeSec = timeSystemSec - timeTrackerSec;
     this->TrackerTimeToSystemTimeComputed = true;
   }
-  const double timeTrackerSec = this->MT->mtGetLatestFrameTime();
+  const double timeTrackerSec = this->MicronTracker->mtGetLatestFrameTime();
   const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
 #endif
 
-  if (this->MT->mtProcessFrame() == -1)
+  if (this->MicronTracker->mtProcessFrame() == -1)
   {
-    LOG_ERROR("Error in processing a frame! (" << this->MT->GetLastErrorString() << ")");
+    LOG_ERROR("Error in processing a frame! (" << this->MicronTracker->GetLastErrorString() << ")");
     return PLUS_FAIL;
   }
 
-  this->MT->mtFindIdentifiedMarkers();
+  this->MicronTracker->mtFindIdentifiedMarkers();
 
-  int numOfIdentifiedMarkers = this->MT->mtGetIdentifiedMarkersCount();
+  // Generate a frame number, as the tool does not provide a frame number.
+  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
+  ++this->FrameNumber;
+
+  int numOfIdentifiedMarkers = this->MicronTracker->mtGetIdentifiedMarkersCount();
   LOG_TRACE("Number of identified markers: " << numOfIdentifiedMarkers);
 
   // Set status and transform for tools with detected markers
-  vtkSmartPointer<vtkMatrix4x4> transformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   std::set<std::string> identifiedToolSourceIds;
-  vtkSmartPointer< vtkMatrix4x4 > mToolToTracker = vtkSmartPointer< vtkMatrix4x4 >::New();
-  mToolToTracker->Identity();
-  for (int identifedMarkerIndex = 0; identifedMarkerIndex < this->MT->mtGetIdentifiedMarkersCount(); identifedMarkerIndex++)
+  vtkNew<vtkMatrix4x4> toolToTracker;
+  for (int identifedMarkerIndex = 0; identifedMarkerIndex < numOfIdentifiedMarkers; identifedMarkerIndex++)
   {
-    char* identifiedTemplateName = this->MT->mtGetIdentifiedTemplateName(identifedMarkerIndex);
+    char* identifiedTemplateName = this->MicronTracker->mtGetIdentifiedTemplateName(identifedMarkerIndex);
     vtkPlusDataSource* tool = NULL;
     if (this->GetToolByPortName(identifiedTemplateName, tool) != PLUS_SUCCESS)
     {
@@ -212,18 +205,18 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
       continue;
     }
 
-    GetTransformMatrix(identifedMarkerIndex, mToolToTracker);
+    this->GetTransformMatrix(identifedMarkerIndex, toolToTracker);
 #ifdef USE_MicronTracker_TIMESTAMPS
-    this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), mToolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
+    this->ToolTimeStampedUpdateWithoutFiltering(tool->GetSourceId(), toolToTracker, TOOL_OK, timeSystemSec, timeSystemSec);
 #else
-    this->ToolTimeStampedUpdate(tool->GetSourceId(), mToolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+    this->ToolTimeStampedUpdate(tool->GetSourceId(), toolToTracker, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
 #endif
 
     identifiedToolSourceIds.insert(tool->GetSourceId());
   }
 
   // Set status for tools with non-detected markers
-  transformMatrix->Identity();
+  vtkNew<vtkMatrix4x4> transformMatrix;
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
     if (identifiedToolSourceIds.find(it->second->GetSourceId()) != identifiedToolSourceIds.end())
@@ -238,6 +231,28 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
 #else
     ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
 #endif
+  }
+
+  if (this->GetNumberOfVideoSources() > 0)
+  {
+    this->GetImage(this->FrameLeft, this->FrameRight);
+    vtkPlusDataSource* aSource(NULL);
+    for (int i = 0; i < this->GetNumberOfVideoSources(); ++i)
+    {
+      if (this->GetVideoSourceByIndex(i, aSource) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to retrieve MicronTracker video source");
+        return PLUS_FAIL;
+      }
+      aSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
+      aSource->SetInputFrameSize(this->FrameSize);
+      if (aSource->AddItem((i == 0) ? this->FrameLeft : this->FrameRight, US_IMG_ORIENT_MN, US_IMG_BRIGHTNESS, this->FrameNumber, unfilteredTimestamp) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Failed to add item " << i << " to MicronTracker video source");
+        return PLUS_FAIL;
+      }
+      this->Modified();
+    }
   }
 
   return PLUS_SUCCESS;
@@ -255,7 +270,7 @@ PlusStatus vtkPlusMicronTracker::RefreshMarkerTemplates()
   {
     LOG_WARNING("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
   }
-  int callResult = this->MT->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
+  int callResult = this->MicronTracker->mtRefreshTemplates(vTemplatesName, vTemplatesError, templateFullPath);
   for (unsigned int i = 0; i < vTemplatesName.size(); i++)
   {
     LOG_DEBUG("Loaded " << vTemplatesName[i]);
@@ -276,9 +291,9 @@ PlusStatus vtkPlusMicronTracker::RefreshMarkerTemplates()
 void vtkPlusMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* transformMatrix)
 {
   std::vector<double> vRotMat;
-  this->MT->mtGetRotations(vRotMat, markerIndex);
+  this->MicronTracker->mtGetRotations(vRotMat, markerIndex);
   std::vector<double> vPos;
-  this->MT->mtGetTranslations(vPos, markerIndex);
+  this->MicronTracker->mtGetTranslations(vPos, markerIndex);
 
   transformMatrix->Identity();
   int rotIndex = 0;
@@ -302,14 +317,11 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
 
   unsigned char** leftImageArray = 0;
   unsigned char** rightImageArray = 0;
-  if (this->MT->mtGetLeftRightImageArray(leftImageArray, rightImageArray) == -1)
+  if (this->MicronTracker->mtGetLeftRightImageArray(leftImageArray, rightImageArray) == -1)
   {
     LOG_ERROR("Error getting images from MicronTracker");
     return PLUS_FAIL;
   }
-
-  int imageWidth = this->MT->mtGetXResolution(-1);
-  int imageHeight = this->MT->mtGetYResolution(-1);
 
   if (leftImage != NULL)
   {
@@ -317,8 +329,8 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
     imageImport->SetDataScalarTypeToUnsignedChar();
     imageImport->SetImportVoidPointer((unsigned char*)leftImageArray);
     imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetDataExtent(0, imageWidth - 1, 0, imageHeight - 1, 0, 0);
-    imageImport->SetWholeExtent(0, imageWidth - 1, 0, imageHeight - 1, 0, 0);
+    imageImport->SetDataExtent(0, this->FrameSize[0] - 1, 0, this->FrameSize[1] - 1, 0, 0);
+    imageImport->SetWholeExtent(0, this->FrameSize[0] - 1, 0, this->FrameSize[1] - 1, 0, 0);
     imageImport->Update();
     leftImage->DeepCopy(imageImport->GetOutput());
   }
@@ -329,8 +341,8 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
     imageImport->SetDataScalarTypeToUnsignedChar();
     imageImport->SetImportVoidPointer((unsigned char*)rightImageArray);
     imageImport->SetDataScalarTypeToUnsignedChar();
-    imageImport->SetDataExtent(0, imageWidth - 1, 0, imageHeight - 1, 0, 0);
-    imageImport->SetWholeExtent(0, imageWidth - 1, 0, imageHeight - 1, 0, 0);
+    imageImport->SetDataExtent(0, this->FrameSize[0] - 1, 0, this->FrameSize[1] - 1, 0, 0);
+    imageImport->SetWholeExtent(0, this->FrameSize[0] - 1, 0, this->FrameSize[1] - 1, 0, 0);
     imageImport->Update();
     rightImage->DeepCopy(imageImport->GetOutput());
   }
@@ -342,8 +354,10 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
 PlusStatus vtkPlusMicronTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
-  XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
+
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TemplateDirectory, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(IniFile, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -352,8 +366,8 @@ PlusStatus vtkPlusMicronTracker::WriteConfiguration(vtkXMLDataElement* rootConfi
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
-  trackerConfig->SetAttribute("TemplateDirectory", this->TemplateDirectory.c_str());
-  trackerConfig->SetAttribute("IniFile", this->IniFile.c_str());
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(TemplateDirectory, trackerConfig);
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(IniFile, trackerConfig);
 
   return PLUS_SUCCESS;
 }
@@ -380,40 +394,40 @@ PlusStatus vtkPlusMicronTracker::InternalConnect()
     LOG_ERROR("Unable to find MicronTracker TemplateDirectory at: " << templateFullPath);
   }
 
-  if (this->MT->mtInit(iniFilePath) != 1)
+  if (this->MicronTracker->mtInit(iniFilePath) != 1)
   {
     LOG_ERROR("Error in initializing Micron Tracker");
     return PLUS_FAIL;
   }
 
   // Try to attach the cameras till find the cameras
-  if (this->MT->mtSetupCameras() != 1)
+  if (this->MicronTracker->mtSetupCameras() != 1)
   {
     LOG_ERROR("Error in initializing Micron Tracker: setup cameras failed. Check the camera connections and INI and Markers file locations.");
-    this->MT->mtEnd();
+    this->MicronTracker->mtEnd();
     return PLUS_FAIL;
   }
 
-  int numOfCameras = this->MT->mtGetNumOfCameras();
+  int numOfCameras = this->MicronTracker->mtGetNumOfCameras();
   if (numOfCameras == 0)
   {
     LOG_ERROR("Error in initializing Micron Tracker: no cameras attached. Check the camera connections and INI and Markers file locations.");
-    this->MT->mtEnd();
+    this->MicronTracker->mtEnd();
     return PLUS_FAIL;
   }
   LOG_DEBUG("Number of attached cameras: " << numOfCameras);
   for (int i = 0; i < numOfCameras; i++)
   {
     LOG_DEBUG("Camera " << i << ": "
-              << this->MT->mtGetXResolution(i) << "x" << this->MT->mtGetYResolution(i) << ", "
-              << this->MT->mtGetNumOfSensors(i) << " sensors "
-              << "(serial number: " << this->MT->mtGetSerialNum(i) << ")");
+              << this->MicronTracker->mtGetXResolution(i) << "x" << this->MicronTracker->mtGetYResolution(i) << ", "
+              << this->MicronTracker->mtGetNumOfSensors(i) << " sensors "
+              << "(serial number: " << this->MicronTracker->mtGetSerialNum(i) << ")");
   }
 
   if (RefreshMarkerTemplates() != PLUS_SUCCESS)
   {
     LOG_ERROR("Error in initializing Micron Tracker: Failed to load marker templates. Check if the marker directory is set correctly.");
-    this->MT->mtEnd();
+    this->MicronTracker->mtEnd();
     return PLUS_FAIL;
   }
 
@@ -422,7 +436,17 @@ PlusStatus vtkPlusMicronTracker::InternalConnect()
   this->TrackerTimeToSystemTimeComputed = false;
 #endif
 
-  this->IsMicronTrackingInitialized = 1;
+  int imageWidth = this->MicronTracker->mtGetXResolution(-1);
+  int imageHeight = this->MicronTracker->mtGetYResolution(-1);
+  if (imageWidth < 0 || imageHeight < 0)
+  {
+    LOG_ERROR("Invalid resolution returned from Micron device.");
+    return PLUS_FAIL;
+  }
+  this->FrameSize[0] = static_cast<unsigned int>(imageWidth);
+  this->FrameSize[1] = static_cast<unsigned int>(imageHeight);
+
+  this->IsMicronTrackingInitialized = true;
 
   return PLUS_SUCCESS;
 }
@@ -432,9 +456,21 @@ PlusStatus vtkPlusMicronTracker::InternalDisconnect()
 {
   if (this->IsMicronTrackingInitialized)
   {
-    this->MT->mtEnd();
+    this->MicronTracker->mtEnd();
     this->IsMicronTrackingInitialized = false;
   }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusMicronTracker::NotifyConfigured()
+{
+  if (this->GetNumberOfVideoSources() > 0 && this->GetNumberOfVideoSources() != 2)
+  {
+    LOG_ERROR("Micron stereo camera capture requires exactly 2 video sources. Check configuration.");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 

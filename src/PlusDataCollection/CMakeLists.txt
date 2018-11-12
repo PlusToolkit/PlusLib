@@ -447,8 +447,7 @@ IF(PLUS_USE_MICRONTRACKER)
 
   IF(EXISTS "${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}")
     # MicronTracker 3.7.x
-    SET(External_Libraries_Install ${External_Libraries_Install}
-      ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+    LIST(APPEND External_Libraries_Install
       ${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/FlyCapture2_C${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -456,20 +455,37 @@ IF(PLUS_USE_MICRONTRACKER)
       ${MicronTracker_BINARY_DIR}/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
   ELSE()
     # MicronTracker 3.6.x
-    SET(External_Libraries_Install ${External_Libraries_Install}
+    LIST(APPEND External_Libraries_Install
       ${MicronTracker_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${MicronTracker_BINARY_DIR}/Windist/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/Windist/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${MicronTracker_BINARY_DIR}/Windist/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
   ENDIF()
 ENDIF()
 
 #--------------------------------------------------------------------------
-#OpenHaptics support
-
+# OpenHaptics support
 IF(PLUS_USE_OPENHAPTICS)
   FIND_PACKAGE(OpenHaptics REQUIRED)
 
@@ -820,7 +836,9 @@ IF( PLUS_USE_Ascension3DG )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS Ascension3DG)
   LIST(APPEND External_Libraries_Install ${Ascension3DG_SHARED_LIB_FILE})
-  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install} ${Ascension3DG_LIB_FILE})
+  LIST(APPEND External_Libraries_Static_Install 
+    ${Ascension3DG_LIB_FILE}
+    )
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${Ascension3DG_LIB_FILE})
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${Ascension3DG_SHARED_LIB_FILE})
 ENDIF()
@@ -1870,7 +1888,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     QuadroSDI
     ${OPENGL_LIBRARIES}
     )
-  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  LIST(APPEND External_Libraries_Static_Install
     "${QuadroSDI_LIBRARY_DIR}/nvapi64${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${QuadroSDI_LIBRARY_DIR}/nvapi${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${QuadroSDI_LIBRARY_DIR}/ANCapi${CMAKE_STATIC_LIBRARY_SUFFIX}"
