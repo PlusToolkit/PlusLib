@@ -16,7 +16,7 @@ TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkPlusDataCollection
 
 ADD_TEST(TimestampFilteringTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/TimestampFilteringTest
-  --source-seq-file=${TestDataDir}/TimestampFilteringTest.mha 
+  --source-seq-file=${TestDataDir}/TimestampFilteringTest.igs.mha 
   --averaged-items-for-filtering=20
   --max-timestamp-difference=0.08
   --min-stdev-reduction-factor=3.0
@@ -32,8 +32,8 @@ TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection vtkInteraction
 ADD_TEST(vtkDataCollectorTest1 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
-  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
+  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.igs.mha
+  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.igs.mha
   --rendering-off
   )
 SET_TESTS_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
@@ -54,8 +54,8 @@ SET_TARGET_PROPERTIES(vtkDataCollectorTest2 PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkDataCollectorTest2 vtkPlusDataCollection )
 ADD_TEST(vtkDataCollectorTest2 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest2
-  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.mha
-  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.mha
+  --video-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationVideoBuffer.igs.mha
+  --tracker-buffer-seq-file=${TestDataDir}/WaterTankBottomTranslationTrackerBuffer-trimmed.igs.mha
   --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_SavedDataset.xml 
   --acq-time-length=5
   --verbose=3
@@ -127,8 +127,8 @@ SET_TARGET_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(vtkMetaImageSequenceIOTest vtkPlusDataCollection )
 ADD_TEST(vtkMetaImageSequenceIOTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkMetaImageSequenceIOTest
-  --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.mhd
-  --output-img-seq-file=MetaImageSequenceIOTest1Output.mha
+  --img-seq-file=${TestDataDir}/MetaImageSequenceIOTest1.igs.mhd
+  --output-img-seq-file=MetaImageSequenceIOTest1Output.igs.mha
   )
 SET_TESTS_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
  
@@ -136,7 +136,7 @@ SET_TESTS_PROPERTIES(vtkMetaImageSequenceIOTest PROPERTIES FAIL_REGULAR_EXPRESSI
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   ADD_TEST(ViewSequenceFileTest
     ${PLUS_EXECUTABLE_OUTPUT_PATH}/ViewSequenceFile
-    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.mha
+    --source-seq-file=${TestDataDir}/SpinePhantomFreehand.igs.mha
     --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_SpinePhantomFreehandReconstructionOnly.xml
     --image-to-reference-transform=ImageToTracker
     --rendering-off
@@ -345,7 +345,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   ADD_TEST(NAME vtkWinProbeVideoSourceTest 
     COMMAND $<TARGET_FILE:vtkWinProbeVideoSourceTest>
     --rendering-off
-    --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.nrrd
+    --output-seq-file=${TEST_OUTPUT_PATH}/WinProbeTest.igs.nrrd
     --config-file=${ConfigFilesDir}/PlusDeviceSet_Server_WinProbe.xml
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
@@ -553,7 +553,7 @@ TARGET_LINK_LIBRARIES(TransformInterpolationTest vtkPlusCommon vtkPlusDataCollec
 
 ADD_TEST(TransformInterpolationTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/TransformInterpolationTest
-  --source-seq-file=${TestDataDir}/TransformInterpolationTest.mha 
+  --source-seq-file=${TestDataDir}/TransformInterpolationTest.igs.mha 
   --transform=ProbeToTracker
   --max-rotation-difference=1.0
   --max-translation-difference=0.5

@@ -316,6 +316,59 @@ PlusStatus PlusCommon::CreateTemporaryFilename(std::string& aString, const std::
   return PLUS_FAIL;
 }
 
+std::vector<std::string> PlusCommon::GetSequenceExtensions()
+{
+  // Return list of supported sequence file extensions in lower case
+  return std::vector<std::string>(
+    {
+      ".igs.mha",
+      ".igs.mhd",
+      ".igs.nrrd",
+      ".igs.nhdr",
+      ".seq.mha",
+      ".seq.mhd",
+      ".seq.nrrd",
+      ".seq.nhdr",
+      ".mha",
+      ".mhd",
+      ".nrrd",
+      ".nhdr",
+    }
+  );
+}
+
+//----------------------------------------------------------------------------
+std::string PlusCommon::GetSequenceFilenameWithoutExtension(std::string name)
+{
+  std::string extension = PlusCommon::GetSequenceFilenameExtension(name);
+  return name.substr(0, name.size() - extension.size());;
+}
+
+//----------------------------------------------------------------------------
+std::string PlusCommon::GetSequenceFilenameExtension(std::string name)
+{
+  std::string lowerName(name);
+  std::transform(begin(lowerName), end(lowerName), lowerName.begin(), ::tolower);
+
+  std::vector<std::string> extensions = PlusCommon::GetSequenceExtensions();
+  std::vector<std::string>::iterator extensionIt;
+  for (extensionIt = extensions.begin(); extensionIt != extensions.end(); ++extensionIt)
+  {
+    if (extensionIt->size() > lowerName.size())
+    {
+      continue;
+    }
+
+    std::string tail = lowerName.substr(lowerName.size() - extensionIt->size());
+    if (tail == *extensionIt)
+    {
+      // Return original extension (including original capitalization)
+      return name.substr(lowerName.size() - extensionIt->size());
+    }
+  }
+  return "";
+}
+
 //-------------------------------------------------------
 std::string& PlusCommon::Trim(std::string& str)
 {

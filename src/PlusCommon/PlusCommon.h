@@ -568,6 +568,10 @@ namespace PlusCommon
 
   vtkPlusCommonExport PlusStatus CreateTemporaryFilename(std::string& aString, const std::string& anOutputDirectory);
 
+  vtkPlusCommonExport std::vector<std::string> GetSequenceExtensions();
+  vtkPlusCommonExport std::string GetSequenceFilenameWithoutExtension(std::string name);
+  vtkPlusCommonExport std::string GetSequenceFilenameExtension(std::string name);
+
   /*! Trim whitespace characters from the left and right */
   vtkPlusCommonExport std::string& Trim(std::string& str);
 
