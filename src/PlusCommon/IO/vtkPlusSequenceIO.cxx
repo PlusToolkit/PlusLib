@@ -11,6 +11,9 @@
 #include "vtkPlusSequenceIO.h"
 #include "vtkPlusTrackedFrameList.h"
 
+/// VTK includes
+#include <vtkNew.h>
+
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
   #include "vtkPlusMkvSequenceIO.h"
 #endif
@@ -66,7 +69,7 @@ PlusStatus vtkPlusSequenceIO::Write(const std::string& filename, PlusTrackedFram
 {
   vtkNew<vtkPlusTrackedFrameList> list;
   list->AddTrackedFrame(frame);
-  return vtkPlusSequenceIO::Write(filename, list, orientationInFile, useCompression, EnableImageDataWrite);
+  return vtkPlusSequenceIO::Write(filename, list.GetPointer(), orientationInFile, useCompression, EnableImageDataWrite);
 }
 
 //----------------------------------------------------------------------------

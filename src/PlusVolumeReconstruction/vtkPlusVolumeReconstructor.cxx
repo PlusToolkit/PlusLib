@@ -25,6 +25,7 @@
 #include <vtkImageImport.h>
 #include <vtkImageImport.h>
 #include <vtkImageViewer.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPNGReader.h>
 #include <vtkSmartPointer.h>
@@ -651,7 +652,7 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(const std::
       return PLUS_FAIL;
     }
   }
-  return SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression);
+  return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression);
 }
 
 //----------------------------------------------------------------------------
@@ -676,7 +677,7 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageDat
   image.SetImageType(US_IMG_BRIGHTNESS);
   frame.SetImageData(image);
   list->AddTrackedFrame(&frame);
-  if (vtkPlusSequenceIO::Write(filename, list, US_IMG_ORIENT_MF, useCompression) != PLUS_SUCCESS)
+  if (vtkPlusSequenceIO::Write(filename, list.GetPointer(), US_IMG_ORIENT_MF, useCompression) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;

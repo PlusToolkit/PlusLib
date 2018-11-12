@@ -111,7 +111,7 @@ public:
     \useCompression True if compression is turned on (default), false otherwise
   */
   static PlusStatus SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true);
-  static PlusStatus SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation = false, bool useCompression = true) { return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(filename, accumulation, useCompression); }
+  static PlusStatus SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression = true) { return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression); }
 
   /*! Get/set the Image coordinate system name. It overrides the value read from the config file. */
   vtkGetStdStringMacro(ImageCoordinateFrame);
