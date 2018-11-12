@@ -97,11 +97,11 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   #--------------------------------------------------------------------------------------------
   IF(VTK_VERSION VERSION_LESS 8.2.0)
-    SET(_NRRD_COMPARE_FILE NrrdSample.nrrd)
-    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample.nrrd)
+    SET(_NRRD_COMPARE_FILE NrrdSample.igs.nrrd)
+    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample.igs.nrrd)
   ELSE()
-    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.nrrd)
-    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.nrrd)
+    SET(_NRRD_COMPARE_FILE NrrdSample_vtk9.igs.nrrd)
+    SET(_COLOR_NRRD_COMPARE_FILE ColorNrrdSample_vtk9.igs.nrrd)
   ENDIF()
 
   ADD_TEST(NAME EditSequenceFileReadWriteNrrd
