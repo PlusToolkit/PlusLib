@@ -26,6 +26,7 @@ See License.txt for details.
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
+#include <vtkNew.h>
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/Process.h"
 #include "vtkXMLUtilities.h"
