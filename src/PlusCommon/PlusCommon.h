@@ -572,6 +572,8 @@ namespace PlusCommon
   vtkPlusCommonExport std::string GetSequenceFilenameWithoutExtension(std::string name);
   vtkPlusCommonExport std::string GetSequenceFilenameExtension(std::string name);
 
+  vtkPlusCommonExport std::string Tail(const std::string& source, const std::string::size_type length);
+
   /*! Trim whitespace characters from the left and right */
   vtkPlusCommonExport std::string& Trim(std::string& str);
 
