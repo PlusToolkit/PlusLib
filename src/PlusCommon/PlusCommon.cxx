@@ -319,22 +319,20 @@ PlusStatus PlusCommon::CreateTemporaryFilename(std::string& aString, const std::
 std::vector<std::string> PlusCommon::GetSequenceExtensions()
 {
   // Return list of supported sequence file extensions in lower case
-  return std::vector<std::string>(
-    {
-      ".igs.mha",
-      ".igs.mhd",
-      ".igs.nrrd",
-      ".igs.nhdr",
-      ".seq.mha",
-      ".seq.mhd",
-      ".seq.nrrd",
-      ".seq.nhdr",
-      ".mha",
-      ".mhd",
-      ".nrrd",
-      ".nhdr",
-    }
-  );
+  std::vector<std::string> sequenceExtensions;
+  sequenceExtensions.push_back(".igs.mha");
+  sequenceExtensions.push_back(".igs.mhd");
+  sequenceExtensions.push_back(".igs.nrrd");
+  sequenceExtensions.push_back(".igs.nhdr");
+  sequenceExtensions.push_back(".seq.mha");
+  sequenceExtensions.push_back(".seq.mhd");
+  sequenceExtensions.push_back(".seq.nrrd");
+  sequenceExtensions.push_back(".seq.nhdr");
+  sequenceExtensions.push_back(".mha");
+  sequenceExtensions.push_back(".mhd");
+  sequenceExtensions.push_back(".nrrd");
+  sequenceExtensions.push_back(".nhdr");
+  return sequenceExtensions;
 }
 
 //----------------------------------------------------------------------------
