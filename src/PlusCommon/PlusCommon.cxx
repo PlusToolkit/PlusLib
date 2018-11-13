@@ -316,6 +316,7 @@ PlusStatus PlusCommon::CreateTemporaryFilename(std::string& aString, const std::
   return PLUS_FAIL;
 }
 
+//----------------------------------------------------------------------------
 std::vector<std::string> PlusCommon::GetSequenceExtensions()
 {
   // Return list of supported sequence file extensions in lower case
@@ -367,6 +368,16 @@ std::string PlusCommon::GetSequenceFilenameExtension(std::string name)
   return "";
 }
 
+//----------------------------------------------------------------------------
+std::string PlusCommon::Tail(const std::string& source, const std::string::size_type length)
+{
+  if (length >= source.size())
+  {
+    return source;
+  }
+  return source.substr(source.size() - length);
+}
+
 //-------------------------------------------------------
 std::string& PlusCommon::Trim(std::string& str)
 {
@@ -385,23 +396,23 @@ void PrintWithEscapedData(ostream& os, const char* data)
   {
     switch (data[i])
     {
-    case '&':
-      os << "&amp;";
-      break;
-    case '<':
-      os << "&lt;";
-      break;
-    case '>':
-      os << "&gt;";
-      break;
-    case '"':
-      os << "&quot;";
-      break;
-    case '\'':
-      os << "&apos;";
-      break;
-    default:
-      os << data[i];
+      case '&':
+        os << "&amp;";
+        break;
+      case '<':
+        os << "&lt;";
+        break;
+      case '>':
+        os << "&gt;";
+        break;
+      case '"':
+        os << "&quot;";
+        break;
+      case '\'':
+        os << "&apos;";
+        break;
+      default:
+        os << data[i];
     }
   }
 }

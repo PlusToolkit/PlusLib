@@ -5,6 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
+#include "PlusCommon.h"
 #include "PlusConfigure.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusChannel.h"
@@ -31,9 +32,10 @@ See License.txt for details.
 #include <igtlImageMetaMessage.h>
 #include <igtlMessageHeader.h>
 #include <igtlPlusClientInfoMessage.h>
+#include <igtlPointMessage.h>
+#include <igtlPolyDataMessage.h>
 #include <igtlStatusMessage.h>
 #include <igtlStringMessage.h>
-#include <igtlPolyDataMessage.h>
 #include <igtlTrackingDataMessage.h>
 
 // OpenIGTLinkIO includes
@@ -46,6 +48,10 @@ See License.txt for details.
 #elif defined(__linux__)
   #include "vtkPlusOpenIGTLinkServerLinux.cxx"
 #endif
+
+// STL includes
+#include <fstream>
+#include <streambuf>
 
 namespace
 {
@@ -170,8 +176,8 @@ PlusStatus vtkPlusOpenIGTLinkServer::StartOpenIGTLinkService()
 
   // Wait a short duration to see if both threads initialized properly, check at 50ms interval
   RETRY_UNTIL_TRUE(this->ConnectionActive.Respond,
-    vtkMath::Round(SERVER_START_CHECK_DELAY_SEC / SERVER_START_CHECK_DELAY_INTERVAL_SEC),
-    SERVER_START_CHECK_DELAY_INTERVAL_SEC);
+                   vtkMath::Round(SERVER_START_CHECK_DELAY_SEC / SERVER_START_CHECK_DELAY_INTERVAL_SEC),
+                   SERVER_START_CHECK_DELAY_INTERVAL_SEC);
   if (!this->ConnectionActive.Respond)
   {
     LOG_ERROR("Unable to initialize receiver and sender processes.");
@@ -765,11 +771,24 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
       clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
 
-      std::string fileName;
-      // Check metadata for requisite parameters, if absent, check deviceName
-      if (polyDataMessage->GetHeaderVersion() > IGTL_HEADER_VERSION_1)
+      int c = polyDataMessage->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (c & igtl::MessageHeader::UNPACK_BODY)
       {
-        if (!polyDataMessage->GetMetaDataElement("filename", fileName))
+        std::string fileName;
+        // Check metadata for requisite parameters, if absent, check deviceName
+        if (polyDataMessage->GetHeaderVersion() > IGTL_HEADER_VERSION_1)
+        {
+          if (!polyDataMessage->GetMetaDataElement("filename", fileName))
+          {
+            fileName = polyDataMessage->GetDeviceName();
+            if (fileName.empty())
+            {
+              LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
+              continue;
+            }
+          }
+        }
+        else
         {
           fileName = polyDataMessage->GetDeviceName();
           if (fileName.empty())
@@ -778,48 +797,44 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
             continue;
           }
         }
+
+        vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+        reader->SetFileName(fileName.c_str());
+        reader->Update();
+
+        auto polyData = reader->GetOutput();
+        if (polyData != nullptr)
+        {
+          igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", client->ClientInfo.GetClientHeaderVersion());
+          igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
+
+          igtlioPolyDataConverter::ContentData data;
+          data.deviceName = "PlusServer";
+          data.polydata = polyData;
+
+          igtlioBaseConverter::HeaderData header;
+          header.deviceName = "PlusServer";
+
+          igtlioPolyDataConverter::toIGTL(header, data, (igtl::PolyDataMessage::Pointer*)&msg);
+          if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
+          {
+            LOG_ERROR("Filename too long to be sent back to client. Aborting.");
+            continue;
+          }
+          self->QueueMessageResponseForClient(client->ClientId, msg);
+          continue;
+        }
+
+        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", polyDataMessage->GetHeaderVersion());
+        igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
+        rtsPolyMsg->SetStatus(false);
+        self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
       }
       else
       {
-        fileName = polyDataMessage->GetDeviceName();
-        if (fileName.empty())
-        {
-          LOG_ERROR("GetPolyData message sent with no filename in either metadata or deviceName field.");
-          continue;
-        }
+        LOG_ERROR("Client " << clientId << " GET_POLYDATA failed: could not retrieve message");
+        return NULL;
       }
-
-      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-      reader->SetFileName(fileName.c_str());
-      reader->Update();
-
-      auto polyData = reader->GetOutput();
-      if (polyData != nullptr)
-      {
-        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POLYDATA", client->ClientInfo.GetClientHeaderVersion());
-        igtl::PolyDataMessage* polyMsg = dynamic_cast<igtl::PolyDataMessage*>(msg.GetPointer());
-
-        igtlioPolyDataConverter::ContentData data;
-        data.deviceName = "PlusServer";
-        data.polydata = polyData;
-
-        igtlioBaseConverter::HeaderData header;
-        header.deviceName = "PlusServer";
-
-        igtlioPolyDataConverter::toIGTL(header, data, (igtl::PolyDataMessage::Pointer*)&msg);
-        if (!msg->SetMetaDataElement("fileName", IANA_TYPE_US_ASCII, fileName))
-        {
-          LOG_ERROR("Filename too long to be sent back to client. Aborting.");
-          continue;
-        }
-        self->QueueMessageResponseForClient(client->ClientId, msg);
-        continue;
-      }
-
-      igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("RTS_POLYDATA", polyDataMessage->GetHeaderVersion());
-      igtl::RTSPolyDataMessage* rtsPolyMsg = dynamic_cast<igtl::RTSPolyDataMessage*>(msg.GetPointer());
-      rtsPolyMsg->SetStatus(false);
-      self->QueueMessageResponseForClient(client->ClientId, rtsPolyMsg);
     }
     else if (typeid(*bodyMessage) == typeid(igtl::StatusMessage))
     {
@@ -828,30 +843,127 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     }
     else if (typeid(*bodyMessage) == typeid(igtl::GetImageMetaMessage))
     {
-      // Image meta message
-      std::string deviceName("");
-      if (headerMsg->GetDeviceName() != NULL)
-      {
-        deviceName = headerMsg->GetDeviceName();
-      }
-      self->PlusCommandProcessor->QueueGetImageMetaData(clientId, deviceName);
-    }
-    else if (typeid(*bodyMessage) == typeid(igtl::GetImageMessage))
-    {
+      igtl::GetImageMetaMessage::Pointer getImageMetaMsg = dynamic_cast<igtl::GetImageMetaMessage*>(bodyMessage.GetPointer());
+      getImageMetaMsg->SetMessageHeader(headerMsg);
+      getImageMetaMsg->AllocateBuffer();
 
-      // Image meta message
-      std::string deviceName("");
-      if (headerMsg->GetDeviceName() != NULL)
+      clientSocket->Receive(getImageMetaMsg->GetBufferBodyPointer(), getImageMetaMsg->GetBufferBodySize());
+
+      int c = getImageMetaMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (c & igtl::MessageHeader::UNPACK_BODY)
       {
-        deviceName = headerMsg->GetDeviceName();
+        // Image meta message
+        std::string deviceName("");
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
+        }
+        self->PlusCommandProcessor->QueueGetImageMetaData(clientId, deviceName);
       }
       else
       {
-        LOG_ERROR("Please select the image you want to acquire");
+        LOG_ERROR("Client " << clientId << " GET_IMGMETA failed: could not retrieve message");
         return NULL;
       }
-      self->PlusCommandProcessor->QueueGetImage(clientId, deviceName);
+    }
+    else if (typeid(*bodyMessage) == typeid(igtl::GetImageMessage))
+    {
+      igtl::GetImageMessage::Pointer getImageMsg = dynamic_cast<igtl::GetImageMessage*>(bodyMessage.GetPointer());
+      getImageMsg->SetMessageHeader(headerMsg);
+      getImageMsg->AllocateBuffer();
 
+      clientSocket->Receive(getImageMsg->GetBufferBodyPointer(), getImageMsg->GetBufferBodySize());
+
+      int c = getImageMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (c & igtl::MessageHeader::UNPACK_BODY)
+      {
+        std::string deviceName("");
+        if (headerMsg->GetDeviceName() != NULL)
+        {
+          deviceName = headerMsg->GetDeviceName();
+        }
+        else
+        {
+          LOG_ERROR("Please select the image you want to acquire");
+          return NULL;
+        }
+        self->PlusCommandProcessor->QueueGetImage(clientId, deviceName);
+      }
+      else
+      {
+        LOG_ERROR("Client " << clientId << " GET_IMAGE failed: could not retrieve message");
+        return NULL;
+      }
+
+    }
+    else if (typeid(*bodyMessage) == typeid(igtl::GetPointMessage))
+    {
+      igtl::GetPointMessage* getPointMsg = dynamic_cast<igtl::GetPointMessage*>(bodyMessage.GetPointer());
+      getPointMsg->SetMessageHeader(headerMsg);
+      getPointMsg->AllocateBuffer();
+
+      clientSocket->Receive(getPointMsg->GetBufferBodyPointer(), getPointMsg->GetBufferBodySize());
+
+      int c = getPointMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
+      if (c & igtl::MessageHeader::UNPACK_BODY)
+      {
+        std::string fileName;
+        if (!getPointMsg->GetMetaDataElement("Filename", fileName))
+        {
+          fileName = getPointMsg->GetDeviceName();
+        }
+
+        if (PlusCommon::Tail(fileName, 4) != "fcsv")
+        {
+          LOG_WARNING("Filename does not end in fcsv. GetPoint behaviour may not function correctly.");
+        }
+
+        if (!vtksys::SystemTools::FileExists(fileName) &&
+            !vtksys::SystemTools::FileExists(vtkPlusConfig::GetInstance()->GetImagePath(fileName)))
+        {
+          LOG_ERROR("File: " << fileName << " requested but does not exist. Cannot get POINT data from it.");
+          return NULL;
+        }
+
+        igtl::MessageBase::Pointer msg = self->IgtlMessageFactory->CreateSendMessage("POINT", client->ClientInfo.GetClientHeaderVersion());
+        igtl::PointMessage* pointMsg = dynamic_cast<igtl::PointMessage*>(msg.GetPointer());
+
+        std::ifstream t(fileName);
+        if (!t.is_open())
+        {
+          t.open(vtkPlusConfig::GetInstance()->GetImagePath(fileName));
+          if (!t.is_open())
+          {
+            LOG_ERROR("Cannot read file: " << fileName);
+            return NULL;
+          }
+        }
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        std::vector<std::string> lines = PlusCommon::SplitStringIntoTokens(buffer.str(), '\n', false);
+        for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+        {
+          std::string line = PlusCommon::Trim(*it);
+          if (line[0] == '#')
+          {
+            continue;
+          }
+
+          std::vector<std::string> tokens = PlusCommon::SplitStringIntoTokens(line, ',', true);
+          igtl::PointElement::Pointer elem = igtl::PointElement::New();
+          elem->SetPosition(std::stof(tokens[1]), std::stof(tokens[2]), std::stof(tokens[3]));
+          elem->SetName(tokens[0].c_str());
+          elem->SetGroupName("Point");
+          pointMsg->AddPointElement(elem);
+        }
+
+        self->QueueMessageResponseForClient(client->ClientId, pointMsg);
+      }
+      else
+      {
+        LOG_ERROR("Client " << clientId << " GET_POINT failed: could not retrieve message");
+        return NULL;
+      }
     }
     else
     {
