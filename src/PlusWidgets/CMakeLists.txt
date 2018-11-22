@@ -72,6 +72,7 @@ FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
   target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
 target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
+PlusLibAddVersionInfo(${PROJECT_NAME} "Library containing reusable Qt widgets that interact with Plus toolkit classes." ${PROJECT_NAME} ${PROJECT_NAME})
 
 # --------------------------------------------------------------------------
 # Set external MS project
