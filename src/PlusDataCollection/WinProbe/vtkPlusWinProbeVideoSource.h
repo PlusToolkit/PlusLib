@@ -117,6 +117,15 @@ public:
   /*! Gets the maximum output value for log mapping of intensity range. */
   uint8_t GetLogMax() const { return m_OutputKnee; }
 
+  void SetSpatialCompoundEnabled(bool value);
+  bool GetSpatialCompoundEnabled();
+
+  void SetSpatialCompoundAngle(float value);
+  float GetSpatialCompoundAngle();
+
+  void SetSpatialCompoundCount(int32_t value);
+  int32_t GetSpatialCompoundCount();
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
@@ -166,6 +175,9 @@ protected:
   uint16_t m_MaxValue = 16384; //maximum typical value
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
   uint8_t m_OutputKnee = 64; // log-linear knee in output range
+  bool m_SpatialCompoundEnabled = false;
+  float m_SpatialCompoundAngle = 10.0f;
+  int32_t m_SpatialCompoundCount = 0;
   std::vector<vtkPlusDataSource*> m_bSources;
   std::vector<vtkPlusDataSource*> m_rfSources;
 

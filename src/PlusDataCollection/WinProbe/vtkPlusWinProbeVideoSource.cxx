@@ -57,8 +57,11 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
 
   XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseDeviceFrameReconstruction, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SpatialCompoundEnabled, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TxTxFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SSDepth, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SpatialCompoundAngle, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SpatialCompoundCount, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MinValue, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
@@ -78,8 +81,11 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 
   deviceConfig->SetAttribute("TransducerID", this->m_transducerID.c_str());
   deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
+  deviceConfig->SetAttribute("SpatialCompoundEnabled", this->GetSpatialCompoundEnabled() ? "TRUE" : "FALSE");
   deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
   deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
+  deviceConfig->SetFloatAttribute("SpatialCompoundAngle", this->GetSpatialCompoundAngle());
+  deviceConfig->SetIntAttribute("SpatialCompoundCount", this->GetSpatialCompoundCount());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
   deviceConfig->SetUnsignedLongAttribute("MinValue", this->GetMinValue());
   deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
@@ -430,6 +436,11 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   this->SetTxTxFrequency(m_frequency);
   this->SetVoltage(m_voltage);
   this->SetSSDepth(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
+  if (m_SpatialCompoundEnabled)
+  {
+    this->SetSpatialCompoundAngle(m_SpatialCompoundAngle);
+    this->SetSpatialCompoundCount(m_SpatialCompoundCount);
+  }
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_transducerCount << "x" << m_samplesPerLine);
@@ -627,6 +638,62 @@ PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth
     m_timeGainCompensation[index] = ::GetFocalPointDepth(index);
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetSpatialCompoundEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetSCIsEnabled(value);
+  }
+  m_SpatialCompoundEnabled = value;
+}
+
+bool vtkPlusWinProbeVideoSource::GetSpatialCompoundEnabled()
+{
+  if(Connected)
+  {
+    m_SpatialCompoundEnabled = GetSCIsEnabled();
+  }
+  return m_SpatialCompoundEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetSpatialCompoundAngle(float value)
+{
+  m_SpatialCompoundAngle = value;
+  if(Connected)
+  {
+    SetSCCompoundAngle(value);
+    m_SpatialCompoundAngle = GetSCCompoundAngle(); //in case it was not exactly satisfied
+  }
+}
+
+float vtkPlusWinProbeVideoSource::GetSpatialCompoundAngle()
+{
+  if(Connected)
+  {
+    m_SpatialCompoundAngle = GetSCCompoundAngle();
+  }
+  return m_SpatialCompoundAngle;
+}
+
+void vtkPlusWinProbeVideoSource::SetSpatialCompoundCount(int32_t value)
+{
+  if(Connected)
+  {
+    SetSCCompoundAngleCount(value);
+  }
+  m_SpatialCompoundCount = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
+{
+  if(Connected)
+  {
+    m_SpatialCompoundCount = GetSCCompoundAngleCount();
+  }
+  return m_SpatialCompoundCount;
 }
 
 //----------------------------------------------------------------------------
