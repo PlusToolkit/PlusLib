@@ -301,11 +301,12 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
   double unfilteredTimestampUtc = 0;
   vtkSmartPointer<vtkMatrix4x4> toolMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   std::string igtlTransformName;
+  ToolStatus toolStatus(TOOL_UNKNOWN);
 
   igtl::MessageBase::Pointer bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
   if (typeid(*bodyMsg) == typeid(igtl::TransformMessage))
   {
-    if (vtkPlusIgtlMessageCommon::UnpackTransformMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackTransformMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, toolStatus, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't receive transform message from server!");
       return PLUS_FAIL;
@@ -313,7 +314,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
   }
   else if (typeid(*bodyMsg) == typeid(igtl::PositionMessage))
   {
-    if (vtkPlusIgtlMessageCommon::UnpackPositionMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
+    if (vtkPlusIgtlMessageCommon::UnpackPositionMessage(bodyMsg, this->ClientSocket.GetPointer(), toolMatrix, igtlTransformName, toolStatus, unfilteredTimestampUtc, this->IgtlMessageCrcCheckEnabled) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't receive position message from server!");
       return PLUS_FAIL;
@@ -353,7 +354,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
 
   // Store the transform that we've just received
   // TODO: we should not write it into the buffer until we have all the tools ready (if we are not using the original timestamps)
-  if (this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS)
+  if (this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, toolStatus, unfilteredTimestamp, filteredTimestamp) != PLUS_SUCCESS)
   {
     LOG_INFO("ToolTimeStampedUpdate failed for tool: " << transformName.GetTransformName() << " with timestamp: " << std::fixed << unfilteredTimestamp);
     return PLUS_FAIL;

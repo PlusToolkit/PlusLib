@@ -253,9 +253,18 @@ private:
   /*! Maximum number of IGTL messages to send in one period */
   int MaxNumberOfIgtlMessagesToSend;
 
-  // Active flag for threads (first: request, second: respond )
-  std::pair<bool, bool> ConnectionActive;
-  std::pair<bool, bool> DataSenderActive;
+  // Active flag for threads (request, respond )
+  struct ThreadFlags
+  {
+    bool Request;
+    bool Respond;
+    ThreadFlags()
+      : Request(false)
+      , Respond(false)
+    {}
+  };
+  ThreadFlags ConnectionActive;
+  ThreadFlags DataSenderActive;
 
   // Thread IDs
   int ConnectionReceiverThreadId;

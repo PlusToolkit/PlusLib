@@ -256,7 +256,7 @@ vtkPlusVirtualCapture* vtkPlusStartStopRecordingCommand::GetOrCreateCaptureDevic
   capDevice->SetEnableFileCompression(this->EnableCompression);
   if (!this->CodecFourCC.empty())
   {
-    capDevice->SetCodecFourCC(this->CodecFourCC);
+    capDevice->SetEncodingFourCC(this->CodecFourCC);
   }
   capDevice->SetBaseFilename(channelId + "_capture.nrrd");
 
@@ -306,7 +306,9 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     {
       outputFilename = this->OutputFilename;
     }
-    captureDevice->SetEnableFileCompression(GetEnableCompression());
+    // EnableFileCompression must be set before OpenFile is called so that it can be disabled for file types that
+    // don't support compression
+    captureDevice->SetEnableFileCompression(this->GetEnableCompression());
     if (captureDevice->OpenFile(outputFilename.c_str()) != PLUS_SUCCESS)
     {
       this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", responseMessageBase + std::string("Failed to open file ") + (!this->OutputFilename.empty() ? this->OutputFilename : "(undefined)") + std::string("."));

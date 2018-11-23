@@ -38,6 +38,7 @@ vtkPlusOvrvisionProVideoSource::vtkPlusOvrvisionProVideoSource()
   , Exposure(7808)
   , LeftEyeDataSource(NULL)
   , RightEyeDataSource(NULL)
+  , IsCapturingRGB(false)
 {
   this->RequireImageOrientationInConfiguration = true;
 
@@ -83,11 +84,11 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  Resolution[0] = OvrvisionProHandle.GetCamWidth();
-  Resolution[1] = OvrvisionProHandle.GetCamHeight();
-  Framerate = OvrvisionProHandle.GetCamFramerate();
+  this->Resolution[0] = OvrvisionProHandle.GetCamWidth();
+  this->Resolution[1] = OvrvisionProHandle.GetCamHeight();
+  this->Framerate = OvrvisionProHandle.GetCamFramerate();
 
-  this->SetAcquisitionRate(Framerate);
+  this->SetAcquisitionRate(this->Framerate);
 
   this->RegionOfInterest.offsetX = 0;
   this->RegionOfInterest.offsetY = 0;
@@ -95,28 +96,38 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalConnect()
   this->RegionOfInterest.height = this->Resolution[1];
 
   FrameSizeType frameSize = { Resolution[0], Resolution[1], 1 };
-  LeftEyeDataSource->SetInputFrameSize(frameSize);
-  LeftEyeDataSource->SetNumberOfScalarComponents(3);
-  RightEyeDataSource->SetInputFrameSize(frameSize);
-  RightEyeDataSource->SetNumberOfScalarComponents(3);
+  this->LeftEyeDataSource->SetInputFrameSize(frameSize);
+  this->RightEyeDataSource->SetInputFrameSize(frameSize);
 
-  OvrvisionProHandle.SetCameraSyncMode(CameraSync);
-  OvrvisionProHandle.SetCameraExposure(Exposure);
+  if (this->IsCapturingRGB)
+  {
+    this->LeftEyeDataSource->SetNumberOfScalarComponents(3);
+    this->RightEyeDataSource->SetNumberOfScalarComponents(3);
+  }
+  else
+  {
+    this->LeftEyeDataSource->SetNumberOfScalarComponents(1);
+    this->RightEyeDataSource->SetNumberOfScalarComponents(1);
+  }
+
+  this->OvrvisionProHandle.SetCameraSyncMode(CameraSync);
+  this->OvrvisionProHandle.SetCameraExposure(Exposure);
 
 #if defined(PLUS_USE_OPENCL)
-  cl_platform_id id = OvrvisionProHandle.GetPlatformId();
+  cl_platform_id id = this->OvrvisionProHandle.GetPlatformId();
   cv::ocl::PlatformInfo info(&id);
 
-  cv::ocl::attachContext(info.name(), OvrvisionProHandle.GetPlatformId(), OvrvisionProHandle.GetContext(), OvrvisionProHandle.GetDeviceId());
+  cv::ocl::attachContext(info.name(), this->OvrvisionProHandle.GetPlatformId(), this->OvrvisionProHandle.GetContext(), this->OvrvisionProHandle.GetDeviceId());
 #endif
 
   this->LeftImage = cv::Mat(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4);
   this->RightImage = cv::Mat(OvrvisionProHandle.GetCamHeight(), OvrvisionProHandle.GetCamWidth(), CV_8UC4);
 
-#if !defined(PLUS_USE_OPENCL)
-  this->LeftImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_LEFT);
-  this->RightImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_RIGHT);
-#endif
+  if (!this->IsCapturingRGB)
+  {
+    this->LeftImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_LEFT);
+    this->RightImage.data = OvrvisionProHandle.GetCamImageBGRA(OVR::OV_CAMEYE_RIGHT);
+  }
 
   return PLUS_SUCCESS;
 }
@@ -151,30 +162,30 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
     cv::cvtColor(this->LeftImageCL, this->LeftImageCL, cv::COLOR_BGRA2RGB);
     cv::cvtColor(this->RightImageCL, this->RightImageCL, cv::COLOR_BGRA2RGB);
 
-    this->LeftImageCL.copyTo(this->LeftImage);
-    this->RightImageCL.copyTo(this->RightImage);
+    this->LeftImageCL.copyTo(this->LeftImageColorConverted);
+    this->RightImageCL.copyTo(this->RightImageColorConverted);
 #else
     OvrvisionProHandle.PreStoreCamData(this->ProcessingMode);
 
-    cv::cvtColor(this->LeftImage, this->LeftImage, cv::COLOR_BGRA2RGB);
-    cv::cvtColor(this->RightImage, this->RightImage, cv::COLOR_BGRA2RGB);
+    cv::cvtColor(this->LeftImage, this->RightImageColorConverted, cv::COLOR_BGRA2RGB);
+    cv::cvtColor(this->RightImage, this->RightImageColorConverted, cv::COLOR_BGRA2RGB);
 #endif
   }
   else
   {
     // Cannot use OpenCL, because it doesn't touch gray scale data (just splits the 16 bit to two 8 bit)
     OvrvisionProHandle.PreStoreCamData(OVR::OV_CAMQT_NONE);
-    cv::cvtColor(this->LeftImage, this->LeftImage, cv::COLOR_BGRA2GRAY);
-    cv::cvtColor(this->RightImage, this->RightImage, cv::COLOR_BGRA2GRAY);
+    cv::cvtColor(this->LeftImage, this->LeftImageColorConverted, cv::COLOR_BGRA2GRAY);
+    cv::cvtColor(this->RightImage, this->RightImageColorConverted, cv::COLOR_BGRA2GRAY);
   }
 
   // Add them to our local buffers
-  if (this->LeftEyeDataSource->AddItem(this->LeftImage.data,
+  if (this->LeftEyeDataSource->AddItem(this->LeftImageColorConverted.data,
                                        this->LeftEyeDataSource->GetInputImageOrientation(),
                                        this->LeftEyeDataSource->GetInputFrameSize(),
                                        VTK_UNSIGNED_CHAR,
-                                       this->LeftImage.channels(),
-                                       this->LeftImage.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                       this->LeftImageColorConverted.channels(),
+                                       this->IsCapturingRGB ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                        0,
                                        this->FrameNumber) != PLUS_SUCCESS)
   {
@@ -182,12 +193,12 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
     numErrors++;
   }
 
-  if (this->RightEyeDataSource->AddItem(this->RightImage.data,
+  if (this->RightEyeDataSource->AddItem(this->RightImageColorConverted.data,
                                         this->RightEyeDataSource->GetInputImageOrientation(),
                                         this->RightEyeDataSource->GetInputFrameSize(),
                                         VTK_UNSIGNED_CHAR,
-                                        this->RightImage.channels(),
-                                        this->RightImage.channels() == 3 ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                        this->RightImageColorConverted.channels(),
+                                        this->IsCapturingRGB ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
                                         0,
                                         this->FrameNumber) != PLUS_SUCCESS)
   {
@@ -312,9 +323,6 @@ PlusStatus vtkPlusOvrvisionProVideoSource::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_STRING_ATTRIBUTE_REQUIRED(RightEyeDataSourceName, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(Vendor, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, Exposure, deviceConfig);
-
-  SetAcquisitionRate(Framerate);
-
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(CameraSync, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ProcessingModeName, deviceConfig);
 
@@ -385,11 +393,9 @@ PlusStatus vtkPlusOvrvisionProVideoSource::NotifyConfigured()
   {
     this->IsCapturingRGB = true;
   }
-
-  if (this->RightEyeDataSource->GetImageType() != US_IMG_RGB_COLOR)
+  else
   {
-    LOG_ERROR("Right eye data source must be configured for image type US_IMG_RGB_COLOR. Aborting.");
-    return PLUS_FAIL;
+    this->IsCapturingRGB = false;
   }
 
   if (this->OutputChannels.size() != 2)

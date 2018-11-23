@@ -9,6 +9,7 @@
 #include "PlusTrackedFrame.h"
 #include "vtkPlusFanAngleDetectorAlgo.h"
 #include "vtkPlusFillHolesInVolume.h"
+#include "vtkPlusSequenceIO.h"
 #include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusTransformRepository.h"
 #include "vtkPlusVolumeReconstructor.h"
@@ -20,19 +21,16 @@
 #include <vtkDataSetWriter.h>
 #include <vtkImageData.h>
 #include <vtkImageExtractComponents.h>
+#include <vtkImageFlip.h>
+#include <vtkImageImport.h>
 #include <vtkImageImport.h>
 #include <vtkImageViewer.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPNGReader.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
-#include <vtkPNGReader.h>
-#include <vtkImageFlip.h>
-#include <vtkImageImport.h>
-
-// ITK includes
-#include <metaImage.h>
-#include <itkImageFileReader.h>
 
 vtkStandardNewMacro(vtkPlusVolumeReconstructor);
 
@@ -390,9 +388,9 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
     }
 
     // Get transform
-    bool isMatrixValid(false);
+    ToolStatus status(TOOL_INVALID);
     vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid) != PLUS_SUCCESS)
+    if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &status) != PLUS_SUCCESS)
     {
       std::string strImageToReferenceTransformName;
       imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
@@ -400,7 +398,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
       continue;
     }
 
-    if (isMatrixValid)
+    if (status == TOOL_OK)
     {
       numberOfValidFrames++;
 
@@ -430,7 +428,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
   double outputOrigin_Ref[3] = { 0.0, 0.0, 0.0 };
   for (int d = 0; d < 3; d++)
   {
-    outputOrigin_Ref[d] = std::floor(extent_Ref[d * 2] / outputSpacing[d])*outputSpacing[d];
+    outputOrigin_Ref[d] = std::floor(extent_Ref[d * 2] / outputSpacing[d]) * outputSpacing[d];
   }
 
   // Set the output extent from the current min and max values, using the user-defined image resolution.
@@ -498,9 +496,9 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
     }
   }
 
-  bool isMatrixValid(false);
+  ToolStatus status(TOOL_INVALID);
   vtkSmartPointer<vtkMatrix4x4> imageToReferenceTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &isMatrixValid) != PLUS_SUCCESS)
+  if (transformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceTransformMatrix, &status) != PLUS_SUCCESS)
   {
     std::string strImageToReferenceTransformName;
     imageToReferenceTransformName.GetTransformName(strImageToReferenceTransformName);
@@ -510,10 +508,10 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
 
   if (insertedIntoVolume != NULL)
   {
-    *insertedIntoVolume = isMatrixValid;
+    *insertedIntoVolume = (status == TOOL_OK);
   }
 
-  if (!isMatrixValid)
+  if (status != TOOL_OK)
   {
     // Insert only valid frame into volume
     std::string strImageToReferenceTransformName;
@@ -531,9 +529,9 @@ PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, 
     return PLUS_SUCCESS;
   }
 
-  PlusStatus status = this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
+  PlusStatus insertSliceStatus = this->Reconstructor->InsertSlice(frameImage, imageToReferenceTransformMatrix);
   this->Modified();
-  return status;
+  return insertSliceStatus;
 }
 
 //----------------------------------------------------------------------------
@@ -635,7 +633,7 @@ PlusStatus vtkPlusVolumeReconstructor::ExtractAccumulation(vtkImageData* accumul
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(const std::string& filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
+PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(const std::string& filename, bool accumulation/*=false*/, bool useCompression/*=true*/)
 {
   vtkSmartPointer<vtkImageData> volumeToSave = vtkSmartPointer<vtkImageData>::New();
   if (accumulation)
@@ -654,11 +652,11 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(const s
       return PLUS_FAIL;
     }
   }
-  return SaveReconstructedVolumeToMetafile(volumeToSave, filename, useCompression);
+  return vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(volumeToSave, filename, useCompression);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression/*=true*/)
+PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageData* volumeToSave, const std::string& filename, bool useCompression/*=true*/)
 {
   if (volumeToSave == NULL)
   {
@@ -666,34 +664,20 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToMetafile(vtkImag
     return PLUS_FAIL;
   }
 
-  MET_ValueEnumType scalarType = MET_NONE;
-  switch (volumeToSave->GetScalarType())
-  {
-  case VTK_UNSIGNED_CHAR:
-    scalarType = MET_UCHAR;
-    break;
-  case VTK_UNSIGNED_SHORT:
-    scalarType = MET_USHORT;
-    break;
-  case VTK_FLOAT:
-    scalarType = MET_FLOAT;
-    break;
-  default:
-    LOG_ERROR("Scalar type is not supported!");
-    return PLUS_FAIL;
-  }
+  int dims[3];
+  volumeToSave->GetDimensions(dims);
+  FrameSizeType frameSize = { static_cast<unsigned int>(dims[0]), static_cast<unsigned int>(dims[1]), static_cast<unsigned int>(dims[2]) };
 
-  MetaImage metaImage(volumeToSave->GetDimensions()[0], volumeToSave->GetDimensions()[1], volumeToSave->GetDimensions()[2],
-                      volumeToSave->GetSpacing()[0], volumeToSave->GetSpacing()[1], volumeToSave->GetSpacing()[2],
-                      scalarType, 1, volumeToSave->GetScalarPointer());
-  metaImage.Origin(volumeToSave->GetOrigin());
-  // By definition, LPS orientation in DICOM sense = RAI orientation in MetaIO. See details at:
-  // http://www.itk.org/Wiki/Proposals:Orientation#Some_notes_on_the_DICOM_convention_and_current_ITK_usage
-  metaImage.AnatomicalOrientation("RAI");
-  metaImage.BinaryData(true);
-  metaImage.CompressedData(useCompression);
-  metaImage.ElementDataFileName("LOCAL");
-  if (metaImage.Write(filename.c_str()) == false)
+  vtkNew<vtkPlusTrackedFrameList> list;
+  PlusTrackedFrame frame;
+  PlusVideoFrame image;
+  image.AllocateFrame(frameSize, volumeToSave->GetScalarType(), volumeToSave->GetNumberOfScalarComponents());
+  image.GetImage()->DeepCopy(volumeToSave);
+  image.SetImageOrientation(US_IMG_ORIENT_MFA);
+  image.SetImageType(US_IMG_BRIGHTNESS);
+  frame.SetImageData(image);
+  list->AddTrackedFrame(&frame);
+  if (vtkPlusSequenceIO::Write(filename, list.GetPointer(), US_IMG_ORIENT_MF, useCompression) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to save reconstructed volume in sequence metafile!");
     return PLUS_FAIL;

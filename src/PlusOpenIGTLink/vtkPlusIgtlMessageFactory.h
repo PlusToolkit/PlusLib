@@ -18,7 +18,7 @@
 #include "igtlMessageFactory.h"
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-#include "igtlCodecCommonClasses.h"
+  #include "igtlCodecCommonClasses.h"
 #endif
 
 // PlusLib includes
@@ -39,8 +39,8 @@ class vtkPlusTransformRepository;
 class vtkPlusOpenIGTLinkExport vtkPlusIgtlMessageFactory: public vtkObject
 {
 public:
-  static vtkPlusIgtlMessageFactory *New();
-  vtkTypeMacro(vtkPlusIgtlMessageFactory,vtkObject);
+  static vtkPlusIgtlMessageFactory* New();
+  vtkTypeMacro(vtkPlusIgtlMessageFactory, vtkObject);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Function pointer for storing New() static methods of igtl::MessageBase classes */
@@ -82,7 +82,7 @@ public:
   \param transformRepository Transform repository used for computing the selected transforms
   */
   PlusStatus PackMessages(int clientId, const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, PlusTrackedFrame& trackedFrame,
-    bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository=NULL);
+                          bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository = NULL);
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   /*!
@@ -98,12 +98,28 @@ protected:
 
   igtl::MessageFactory::Pointer IgtlFactory;
 
+protected:
+  int PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType,
+                       igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
+  int PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
+                           igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
+                              igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackPositionMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, igtl::MessageBase::Pointer igtlMessage,
+                          PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackTrackedFrameMessage(igtl::MessageBase::Pointer igtlMessage, const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository,
+                              PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackUsMessage(igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackStringMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackCommandMessage(igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+
+
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   struct ClientEncoderKeyType
   {
     int                 ClientId;
     std::string         ImageName;
-    friend bool operator<(const ClientEncoderKeyType & left, const ClientEncoderKeyType & right)
+    friend bool operator<(const ClientEncoderKeyType& left, const ClientEncoderKeyType& right)
     {
       return left.ClientId < right.ClientId || left.ImageName < right.ImageName;
     }

@@ -221,7 +221,6 @@ PlusStatus vtkPlusMkvSequenceIO::ReadImagePixels()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMkvSequenceIO::PrepareImageFile()
 {
-  this->WriteInitialImageHeader();
   return PLUS_SUCCESS;
 }
 
@@ -259,13 +258,34 @@ PlusStatus vtkPlusMkvSequenceIO::WriteInitialImageHeader()
   this->Internal->MKVWriter->SetFilename(this->FileName);
   if (this->TrackedFrameList->Size() == 0)
   {
-    LOG_ERROR("Could not write MKV header, no tracked frames")
+    LOG_ERROR("Could not write MKV header, no tracked frames");
     return PLUS_FAIL;
   }
 
   this->Internal->MKVWriter->WriteHeader();
 
-  int* dimensions = this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetDimensions();
+  PlusTrackedFrame* frame = this->TrackedFrameList->GetTrackedFrame(0);
+  if (!frame)
+  {
+    LOG_ERROR("Could not write MKV header, frame is missing");
+    return PLUS_FAIL;
+  }
+
+  PlusVideoFrame* videoFrame = frame->GetImageData();
+  if (!videoFrame)
+  {
+    LOG_ERROR("Could not write MKV header, video frame is missing");
+    return PLUS_FAIL;
+  }
+  
+  vtkImageData* image = videoFrame->GetImage();
+  if (!image)
+  {
+    LOG_ERROR("Could not write MKV header, image is missing");
+    return PLUS_FAIL;
+  }
+
+  int* dimensions = image->GetDimensions();
   this->Dimensions[0] = dimensions[0];
   this->Dimensions[1] = dimensions[1];
   this->Dimensions[2] = dimensions[2];

@@ -16,7 +16,7 @@ See License.txt for details.
 #include "vtksys/SystemTools.hxx"
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
-#include "vtkPlusMkvSequenceIO.h"
+  #include "vtkPlusMkvSequenceIO.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -55,6 +55,7 @@ vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   , IsData3D(false)
   , WriterAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
   , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  , EncodingFourCC("VP90")
 {
   this->AcquisitionRate = 30.0;
   this->MissingInputGracePeriodSec = 2.0;
@@ -107,7 +108,7 @@ PlusStatus vtkPlusVirtualCapture::ReadConfiguration(vtkXMLDataElement* rootConfi
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(EnableCapturingOnStart, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, RequestedFrameRate, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameBufferSize, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(CodecFourCC, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(EncodingFourCC, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -177,8 +178,8 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 
   if (aFilename == NULL || strlen(aFilename) == 0)
   {
-    std::string filenameRoot = vtksys::SystemTools::GetFilenameWithoutExtension(this->BaseFilename);
-    std::string ext = vtksys::SystemTools::GetFilenameExtension(this->BaseFilename);
+    std::string filenameRoot = PlusCommon::GetSequenceFilenameWithoutExtension(this->BaseFilename);
+    std::string ext = PlusCommon::GetSequenceFilenameExtension(this->BaseFilename);
     if (ext.empty())
     {
       // default to nrrd
@@ -210,12 +211,13 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     LOG_ERROR("Could not create writer for file: " << aFilename);
     return PLUS_FAIL;
   }
+  this->Writer->SetUseCompression(this->EnableFileCompression);
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
   vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
   if (mkvWriter)
   {
-    mkvWriter->SetEncodingFourCC(this->CodecFourCC);
+    mkvWriter->SetEncodingFourCC(this->EncodingFourCC);
   }
 #endif
 
@@ -566,10 +568,10 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
   {
     for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
     {
-      TrackedFrameFieldStatus status = FIELD_INVALID;
+      ToolStatus status(TOOL_INVALID);
       trackedFrame.GetFrameTransformStatus(*it, status);
 
-      if (status == FIELD_OK)
+      if (status == TOOL_OK)
       {
         validFrame = true;
         break;

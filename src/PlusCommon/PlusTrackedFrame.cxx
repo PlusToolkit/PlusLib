@@ -485,9 +485,9 @@ PlusStatus PlusTrackedFrame::GetFrameTransform(const PlusTransformName& frameTra
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusTrackedFrame::GetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus& status)
+PlusStatus PlusTrackedFrame::GetFrameTransformStatus(const PlusTransformName& frameTransformName, ToolStatus& status)
 {
-  status = FIELD_INVALID;
+  status = TOOL_INVALID;
   std::string transformStatusName;
   if (frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS)
   {
@@ -512,13 +512,13 @@ PlusStatus PlusTrackedFrame::GetFrameTransformStatus(const PlusTransformName& fr
     return PLUS_FAIL;
   }
 
-  status = PlusTrackedFrame::ConvertFieldStatusFromString(strStatus);
+  status = PlusCommon::ConvertStringToToolStatus(strStatus);
 
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus PlusTrackedFrame::SetFrameTransformStatus(const PlusTransformName& frameTransformName, TrackedFrameFieldStatus status)
+PlusStatus PlusTrackedFrame::SetFrameTransformStatus(const PlusTransformName& frameTransformName, ToolStatus status)
 {
   std::string transformStatusName;
   if (frameTransformName.GetTransformName(transformStatusName) != PLUS_SUCCESS)
@@ -537,7 +537,7 @@ PlusStatus PlusTrackedFrame::SetFrameTransformStatus(const PlusTransformName& fr
     transformStatusName.append(TransformStatusPostfix);
   }
 
-  std::string strStatus = PlusTrackedFrame::ConvertFieldStatusToString(status);
+  std::string strStatus = PlusCommon::ConvertToolStatusToString(status);
 
   this->SetFrameField(transformStatusName, strStatus);
 

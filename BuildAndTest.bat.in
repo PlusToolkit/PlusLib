@@ -2,13 +2,31 @@
 
 SET BUILD_TYPE=Release
 
-REM Skip build step if continuous or individual mode
+REM Parse arguments
+SET COMMAND=%0
+SET TEST_MODE=%1
+SHIFT
 
+:loop
+IF NOT "%1"=="" (
+    IF "%1"=="--test" (
+        SET INDIVIDUAL_TEST=%2
+        SHIFT
+    )
+    IF "%1"=="--track" (
+        SET TEST_TRACK=--track %2
+        SHIFT
+    )
+    SHIFT
+    GOTO :loop
+)
+
+REM Skip build step if continuous or individual mode
 REM Skip clean build step if not nightly mode
-if "%1" == "-C" goto cleansuccess
-if "%1" == "-I" goto cleansuccess
-if "%1" == "" goto cleansuccess
-if "%1" == "-E" goto cleansuccess
+if "%TEST_MODE%" == "-C" goto cleansuccess
+if "%TEST_MODE%" == "-I" goto cleansuccess
+if "%TEST_MODE%" == "" goto cleansuccess
+if "%TEST_MODE%" == "-E" goto cleansuccess
 
 ECHO Clean...
 "${CMAKE_MAKE_PROGRAM}" ALL_BUILD.vcxproj /p:Configuration=Release /target:clean
@@ -17,23 +35,23 @@ IF ERRORLEVEL 1 GOTO buildfail
 :cleansuccess
 
 rem ---------------------------------------
-if "%1" == "" goto experimental
-if "%1" == "-E" goto experimental
-if "%1" == "-N" goto nightly
-if "%1" == "-C" goto continuous
-if "%1" == "-I" goto individual
+if "%TEST_MODE%" == "" goto experimental
+if "%TEST_MODE%" == "-E" goto experimental
+if "%TEST_MODE%" == "-N" goto nightly
+if "%TEST_MODE%" == "-C" goto continuous
+if "%TEST_MODE%" == "-I" goto individual
 
 :experimental
-"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Experimental --output-on-failure
+"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Experimental --output-on-failure %TEST_TRACK%
 goto success
 
 :nightly
 @REM Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
-"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Nightly
+"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Nightly %TEST_TRACK%
 goto success
 
 :continuous
-"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Continuous
+"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -D Continuous %TEST_TRACK%
 @REM Wait for some time before continue to allow checking the results of the executions
 timeout /t 15
 goto success
@@ -41,9 +59,9 @@ goto success
 :individual 
 @REM Run individual tests with regexp search 
 @REM Display the list of tests
-"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -R "%2" -N
+"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -R "%INDIVIDUAL_TEST%" -N %TEST_TRACK%
 @REM Run selected tests
-"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -R "%2" -V
+"${CMAKE_CTEST_COMMAND}" -C %BUILD_TYPE% -R "%INDIVIDUAL_TEST%" -V %TEST_TRACK%
 goto success
 
 :success

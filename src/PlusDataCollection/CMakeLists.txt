@@ -209,7 +209,7 @@ IF(PLUS_USE_OPTITRACK)
   SET(OptiTrack_SRCS
     OptiTrack/vtkPlusOptiTrack.cxx
     )
-
+    
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(OptiTrack_HDRS
       OptiTrack/vtkPlusOptiTrack.h
@@ -224,21 +224,50 @@ IF(PLUS_USE_OPTITRACK)
     ${OptiTrack_SRCS}
     )
 
+  # Collect all the MotiveAPI libraries
+  SET(PLATFORM_NAME_SUFFIX "")
+  SET(LIBRARIES_PATH_SUFFIX "lib32/")
+  IF (CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
+    SET(PLATFORM_NAME_SUFFIX "x64")
+    SET(LIBRARIES_PATH_SUFFIX "")
+  ENDIF ()
+
+  LIST(APPEND OPTITRACK_MOTIVE_API_STATIC_LIBS
+    ${OPTITRACK_MOTIVE_DIR}/lib/NPTrackingTools${PLATFORM_NAME_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+  LIST(APPEND OPTITRACK_MOTIVE_API_SHARED_LIBS
+    ${OPTITRACK_MOTIVE_DIR}/lib/NPTrackingTools${PLATFORM_NAME_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}avcodec-56${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}avformat-56${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}avutil-54${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}swscale-3${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+  mark_as_advanced(MOTIVE_API_STATIC_LIBS)
+  mark_as_advanced(MOTIVE_API_SHARED_LIBS)
+
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/OptiTrack
     ${OPTITRACK_MOTIVE_INCLUDE_DIR}
     ${OPTITRACK_NATNET_INCLUDE_DIR}
     )
-
+    
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${OPTITRACK_MOTIVE_LIBRARY_DIR}/${OPTITRACK_MOTIVE_LIBRARY_NAME}
+    ${OPTITRACK_MOTIVE_API_STATIC_LIBS}
     ${OPTITRACK_NATNET_LIBRARY_DIR}/NatNetLib${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
-
+  
+  LIST(APPEND External_Libraries_Debug
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}Qt5Core${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}Qt5Gui${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${OPTITRACK_MOTIVE_DIR}/${LIBRARIES_PATH_SUFFIX}Qt5Widgets${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    
   LIST(APPEND External_Libraries_Install
-    ${OPTITRACK_MOTIVE_BINARY_DIR}/${OPTITRACK_MOTIVE_BINARY_NAME}
+    ${OPTITRACK_MOTIVE_API_SHARED_LIBS}
     ${OPTITRACK_NATNET_BINARY_DIR}/NatNetLib${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${OPTITRACK_OPENMP_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
   IF (OPTITRACK_MSVC80_OPENMP_DIR)
@@ -418,8 +447,7 @@ IF(PLUS_USE_MICRONTRACKER)
 
   IF(EXISTS "${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}")
     # MicronTracker 3.7.x
-    SET(External_Libraries_Install ${External_Libraries_Install}
-      ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+    LIST(APPEND External_Libraries_Install
       ${MicronTracker_BINARY_DIR}/FlyCapture2${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/FlyCapture2_C${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
@@ -427,20 +455,37 @@ IF(PLUS_USE_MICRONTRACKER)
       ${MicronTracker_BINARY_DIR}/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
   ELSE()
     # MicronTracker 3.6.x
-    SET(External_Libraries_Install ${External_Libraries_Install}
+    LIST(APPEND External_Libraries_Install
       ${MicronTracker_BINARY_DIR}/MTC${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${MicronTracker_BINARY_DIR}/Windist/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       ${MicronTracker_BINARY_DIR}/Windist/PGRFlyCapture${CMAKE_SHARED_LIBRARY_SUFFIX}
-      ${MicronTracker_BINARY_DIR}/Windist/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/digiclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
+    IF(EXISTS ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX})
+      LIST(APPEND External_Libraries_Install
+        ${MicronTracker_BINARY_DIR}/triclops${CMAKE_SHARED_LIBRARY_SUFFIX}
+        )
+    ENDIF()
   ENDIF()
 ENDIF()
 
 #--------------------------------------------------------------------------
-#OpenHaptics support
-
+# OpenHaptics support
 IF(PLUS_USE_OPENHAPTICS)
   FIND_PACKAGE(OpenHaptics REQUIRED)
 
@@ -791,7 +836,9 @@ IF( PLUS_USE_Ascension3DG )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS Ascension3DG)
   LIST(APPEND External_Libraries_Install ${Ascension3DG_SHARED_LIB_FILE})
-  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install} ${Ascension3DG_LIB_FILE})
+  LIST(APPEND External_Libraries_Static_Install 
+    ${Ascension3DG_LIB_FILE}
+    )
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_IMPLIB ${Ascension3DG_LIB_FILE})
   SET_PROPERTY(TARGET Ascension3DG PROPERTY IMPORTED_LOCATION ${Ascension3DG_SHARED_LIB_FILE})
 ENDIF()
@@ -1846,7 +1893,7 @@ IF(PLUS_USE_NVIDIA_DVP)
     QuadroSDI
     ${OPENGL_LIBRARIES}
     )
-  SET(External_Libraries_Static_Install ${External_Libraries_Static_Install}
+  LIST(APPEND External_Libraries_Static_Install
     "${QuadroSDI_LIBRARY_DIR}/nvapi64${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${QuadroSDI_LIBRARY_DIR}/nvapi${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${QuadroSDI_LIBRARY_DIR}/ANCapi${CMAKE_STATIC_LIBRARY_SUFFIX}"

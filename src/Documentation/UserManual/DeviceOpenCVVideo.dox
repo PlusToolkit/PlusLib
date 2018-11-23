@@ -12,6 +12,7 @@ Any compatible video device through the OpenCV capture interface</a>.
 - \xmlAtt CaptureAPI The capture API to use for this device. \OptionalAtt{CAP_ANY}
 - \xmlAtt FrameSize The 2 dimensional frame size to use for capturing (example: FrameSize="1920 1080") \OptionalAtt
 - \xmlAtt AcquisitionRate The FPS to request of the camera \OptionalAtt
+- \xmlAtt FourCC The four character code for pixel format (Example: "MJPG") \OptionalAtt
 - \xmlAtt CameraMatrix A 9 valued entry specifying the 3x3 intrinsic camera matrix. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
 - \xmlAtt DistortionCoefficients Up to 8 value entry specifying the camera distortion coefficients. Both CameraMatrix and DistortionCoefficients must be specified for undistortion to occur. \OptionalAtt
 - \xmlAtt AutofocusEnabled A boolean value ("TRUE" or "FALSE") specifying whether the camera can autofocus. \OptionalAtt{FALSE}

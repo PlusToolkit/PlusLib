@@ -111,9 +111,9 @@ PlusStatus vtkPlusPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
 
 
     vtkSmartPointer<vtkMatrix4x4> probeToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-    bool valid = false;
-    transformRepository->GetTransform(transformName, probeToReferenceTransform, &valid);
-    if (!valid)
+    ToolStatus status(TOOL_INVALID);
+    transformRepository->GetTransform(transformName, probeToReferenceTransform, &status);
+    if (status != TOOL_OK)
     {
       // There is no available transform for this frame; skip that frame
       continue;

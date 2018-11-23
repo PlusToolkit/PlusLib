@@ -671,7 +671,8 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
   originStr << "(";
   for (int i = 0; i < numSpaceDimensions; ++i)
   {
-    originStr << "0";
+    // Code assumes all images have the same origin
+    originStr << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetOrigin()[i];
     if (i != numSpaceDimensions - 1)
     {
       originStr << ",";
@@ -697,7 +698,8 @@ PlusStatus vtkPlusNrrdSequenceIO::WriteInitialImageHeader()
     {
       if (i == j)
       {
-        spaceDirectionStr << "1";
+        // Code assumes all images have the same spacing
+        spaceDirectionStr << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetSpacing()[i];
       }
       else
       {

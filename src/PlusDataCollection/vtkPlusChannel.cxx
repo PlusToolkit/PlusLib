@@ -639,7 +639,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
       continue;
     }
 
-    if (aTrackedFrame.SetFrameTransformStatus(toolTransformName, vtkPlusDevice::ConvertToolStatusToTrackedFrameFieldStatus(bufferItem.GetStatus())) != PLUS_SUCCESS)
+    if (aTrackedFrame.SetFrameTransformStatus(toolTransformName, bufferItem.GetStatus()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set transform status for tool " << aTool->GetId());
       numberOfErrors++;
@@ -706,7 +706,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(PlusTrackedFrame& trackedFrame)
 {
   double mostRecentFrameTimestamp(0);
   RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS,
-      "Failed to get most recent timestamp from the buffer!");
+                      "Failed to get most recent timestamp from the buffer!");
 
   return this->GetTrackedFrame(mostRecentFrameTimestamp, trackedFrame);
 }
@@ -751,7 +751,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
   double mostRecentTimestamp(0);
   static vtkPlusLogHelper logHelper(60.0, 500000);
   CUSTOM_RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS,
-      "Unable to get most recent timestamp!");
+                             "Unable to get most recent timestamp!");
 
   PlusStatus status = PLUS_SUCCESS;
   double oldestTimestamp(0);
@@ -829,16 +829,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-          case ITEM_NOT_AVAILABLE_YET:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-            break;
-          case ITEM_NOT_AVAILABLE_ANYMORE:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-            break;
-          case ITEM_UNKNOWN_ERROR:
-          default:
-            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
-            break;
+        case ITEM_NOT_AVAILABLE_YET:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+          break;
+        case ITEM_NOT_AVAILABLE_ANYMORE:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+          break;
+        case ITEM_UNKNOWN_ERROR:
+        default:
+          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
+          break;
         }
         return PLUS_FAIL;
       }
@@ -876,16 +876,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-          case ITEM_NOT_AVAILABLE_YET:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-            break;
-          case ITEM_NOT_AVAILABLE_ANYMORE:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-            break;
-          case ITEM_UNKNOWN_ERROR:
-          default:
-            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
-            break;
+        case ITEM_NOT_AVAILABLE_YET:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+          break;
+        case ITEM_NOT_AVAILABLE_ANYMORE:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+          break;
+        case ITEM_UNKNOWN_ERROR:
+        default:
+          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
+          break;
         }
         return PLUS_FAIL;
       }
@@ -1061,7 +1061,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFr
 
   double mostRecentTimestamp(0);
   RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS,
-      "vtkPlusChannel::GetTrackedFrameListSampled failed: unable to get most recent timestamp. Probably no frames have been acquired yet.");
+                      "vtkPlusChannel::GetTrackedFrameListSampled failed: unable to get most recent timestamp. Probably no frames have been acquired yet.");
 
   PlusStatus status = PLUS_SUCCESS;
   // Add frames to input trackedFrameList
@@ -1270,7 +1270,7 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double& ts)
   {
     // Get the most recent timestamp from the buffer
     RETURN_WITH_FAIL_IF(this->VideoSource->GetLatestTimeStamp(latestVideoTimestamp) != ITEM_OK,
-        "Unable to get latest timestamp from video buffer!");
+                        "Unable to get latest timestamp from video buffer!");
   }
 
   double latestTrackerTimestamp(0); // the latest tracker timestamp that is available for all tools
@@ -1422,9 +1422,9 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double& ts)
     BufferItemUidType videoUid(0);
     static vtkPlusLogHelper logHelper(60.0, 500000);
     CUSTOM_RETURN_WITH_FAIL_IF(this->VideoSource->GetItemUidFromTime(latestTrackerTimestamp, videoUid) != ITEM_OK,
-        "Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp);
+                               "Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp);
     RETURN_WITH_FAIL_IF(this->VideoSource->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK,
-        "Failed to get video buffer timestamp from UID: " << videoUid);
+                        "Failed to get video buffer timestamp from UID: " << videoUid);
     if (latestVideoTimestamp > latestTrackerTimestamp)
     {
       // the closest video timestamp is still larger than the last tracking data,
@@ -1454,9 +1454,9 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double& ts)
     // Get the timestamp of the video item that is closest to the latest field data item
     BufferItemUidType videoUid(0);
     RETURN_WITH_FAIL_IF(this->VideoSource->GetItemUidFromTime(latestFieldDataTimestamp, videoUid) != ITEM_OK,
-        "Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp);
+                        "Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp);
     RETURN_WITH_FAIL_IF(this->VideoSource->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK,
-        "Failed to get video buffer timestamp from UID: " << videoUid);
+                        "Failed to get video buffer timestamp from UID: " << videoUid);
     if (latestVideoTimestamp > latestFieldDataTimestamp)
     {
       // the closest video timestamp is still larger than the last field data,
