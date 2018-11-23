@@ -1,90 +1,85 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
+*
+*     Written by:
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*      Claudio Gatti, Claron Technology - Toronto - Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "MTC.h"
+
+#include <MTC.h>
 
 #include "Persistence.h"
 
 #include <string>
-/****************************/
-/** Constructor */
+
+//----------------------------------------------------------------------------
 Persistence::Persistence()
 {
-  this->m_handle = Persistence_New();
-  //this->ownedByMe = TRUE;
+  this->Handle = Persistence_New();
 }
 
-/****************************/
-/** Destructor */
+//----------------------------------------------------------------------------
 Persistence::~Persistence()
 {
-  this->ownedByMe = false;
-  Persistence_Free(this->m_handle);
+  Persistence_Free(this->Handle);
 }
 
-/****************************/
-/** Set the path of the .ini file */
-int Persistence::setPath(const char* path)
+//----------------------------------------------------------------------------
+mtHandle Persistence::getHandle()
 {
-  mtCompletionCode status=Persistence_PathSet(this->m_handle, path); 
-  return status;
+  return Handle;
 }
 
-/****************************/
-/** Set the path of the .ini file */
-void Persistence::setSection(const char* section)
+//----------------------------------------------------------------------------
+MicronTracker_Return Persistence::setPath(const char* path)
 {
-  Persistence_SectionSet(this->m_handle, section); 
+  return (MicronTracker_Return)Persistence_PathSet(this->Handle, path);
 }
 
-
-#if 0
-/** Get the path of the .ini file */
-char* Persistence::getPath()
+//----------------------------------------------------------------------------
+MicronTracker_Return Persistence::setSection(const char* section)
 {
-  char* pathName;
-  // Claudio: need to allocate string, send it down, with the size and then reset based on retrieved lenght
-  Persistence_PathGet(this->m_handle, pathName);
-  return pathName;
+  return (MicronTracker_Return)Persistence_SectionSet(this->Handle, section);
 }
-#endif
-  
-/****************************/
-/** Retrieve an int from the persistence */
+
+//----------------------------------------------------------------------------
+std::string Persistence::getPath()
+{
+  char pathName[SHRT_MAX];
+  int outLength;
+  Persistence_PathGet(this->Handle, pathName, SHRT_MAX, &outLength);
+  pathName[outLength] = 0;
+  return std::string(pathName);
+}
+
+//----------------------------------------------------------------------------
 int Persistence::retrieveInt(const char* name, int defaultVal)
 {
   int intVal = 0;
-  Persistence_RetrieveInt(this->m_handle, name, defaultVal, &intVal);
+  Persistence_RetrieveInt(this->Handle, name, defaultVal, &intVal);
   return intVal;
 }
 
-/****************************/
-/** Retrieve a double from the persistence. */
+//----------------------------------------------------------------------------
 double Persistence::retrieveDouble(const char* name, double defaultVal)
 {
   double dblVal = 0;
-  Persistence_RetrieveDouble(this->m_handle, name, defaultVal, &dblVal);
+  Persistence_RetrieveDouble(this->Handle, name, defaultVal, &dblVal);
   return dblVal;
 }
 
-/****************************/
-/** Save an integer value in the persistence. */
-void Persistence::saveInt(const char* name, int val)
+//----------------------------------------------------------------------------
+MicronTracker_Return Persistence::saveInt(const char* name, int val)
 {
-  Persistence_SaveInt(this->m_handle, name, val);
+  return (MicronTracker_Return)Persistence_SaveInt(this->Handle, name, val);
 }
 
-/****************************/
-/** Save a double value in the persistnce */
-void Persistence::saveDouble(const char* name, double val)
+//----------------------------------------------------------------------------
+MicronTracker_Return Persistence::saveDouble(const char* name, double val)
 {
-  Persistence_SaveDouble(this->m_handle, name, val);
+  return (MicronTracker_Return)Persistence_SaveDouble(this->Handle, name, val);
 }

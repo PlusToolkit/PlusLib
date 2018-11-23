@@ -1,17 +1,19 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
+*     Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
+
+#include "MicronTrackerInterface.h"
 
 #include <vector>
 
@@ -20,9 +22,8 @@ class MCamera
 public:
   MCamera(mtHandle handle = 0);
   ~MCamera();
-  inline mtHandle getHandle(){ return m_handle; };
-  //bool RawBufferValid();
-  //unsigned char **RawBufferAddr();
+  mtHandle getHandle();
+
   int getXRes();
   int getYRes();
   int getSerialNum();
@@ -31,7 +32,7 @@ public:
   int getNumOfFramesGrabbed();
 
   double getShutterTime();
-  int setShutterTime(double sh);
+  MicronTracker_Return setShutterTime(double sh);
   double getMaxShutterTime();
   double getMinShutterTime();
 
@@ -39,49 +40,48 @@ public:
   double setShutterTimeLimit(double limit);
 
   double getGain();
-  int setGain(double g);
+  MicronTracker_Return setGain(double g);
   double getMinGain();
   double getMaxGain();
 
   double getGainLimit();
   double setGainLimit(double limit);
 
-  mtMeasurementHazardCode getThermalHazard(); 
+  MicronTracker_MeasurementHazardCode getThermalHazard();
 
   double getDBGain();
 
   double getExposure();
-  int setExposure(double e);
+  MicronTracker_Return setExposure(double e);
   double getMinExposure();
   double getMaxExposure();
 
   int getSensorsNum();
 
   int getAutoExposure();
-  int setAutoExposure(int ae);
+  MicronTracker_Return setAutoExposure(int ae);
 
   double getLightCoolness();
-  int setLightCoolness(double value);
-  int AdjustCoolnessFromColorVector(mtHandle ColorVectorHandle);
+  MicronTracker_Return setLightCoolness(double value);
+  MicronTracker_Return adjustCoolnessFromColorVector(mtHandle ColorVectorHandle);
 
-  bool getImages( unsigned char ***li, unsigned char ***ri);
-  bool getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xRes, int yRes);
-  bool getImages3( unsigned char ***li, unsigned char ***ri, unsigned char ***mi);
-  bool getHalfSizeImages3(unsigned char ***li, unsigned char ***ri, unsigned char ***mi, int xRes, int yRes);
+  MicronTracker_Return getImages(unsigned char** *li, unsigned char** *ri);
+  MicronTracker_Return getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes);
+  MicronTracker_Return getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi);
+  MicronTracker_Return getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes);
 
-  bool getProjectionOnImage( int image, double XYZ[], double *x, double *y );
+  MicronTracker_Return getProjectionOnImage(int image, double XYZ[], double* x, double* y);
 
-  bool grabFrame(); // returns true for success
-  mtHandle Handle();
+  MicronTracker_Return grabFrame(); // returns true for success
   bool getHdrModeEnabled();
-  int setHdrModeEnabled(bool NewVal);
+  MicronTracker_Return setHdrModeEnabled(bool NewVal);
 
 private:
-  mtHandle m_handle;
-  bool ownedByMe;
-  unsigned char *limage;
-  unsigned char *rimage;
-  unsigned char *mimage;
+  mtHandle        Handle;
+  bool            OwnedByMe;
+  unsigned char*  LeftImage;
+  unsigned char*  RightImage;
+  unsigned char*  MiddleImage;
 
 };
 
