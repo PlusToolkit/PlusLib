@@ -233,7 +233,7 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
 {
   std::stringstream ss;
   ss << "TESSDATA_PREFIX=" << tesseract_data_dir;
-  putenv(ss.str().c_str());
+  vtksys::SystemTools::PutEnv(ss.str());
 
   this->TesseractAPI = new tesseract::TessBaseAPI();
   if (this->TesseractAPI->Init(NULL, Language.c_str(), tesseract::OEM_TESSERACT_CUBE_COMBINED) != 0)
