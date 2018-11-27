@@ -81,7 +81,7 @@ void vtkPlusVirtualTextRecognizer::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
-#ifdef PLUS_TEST_tesseract
+#ifdef PLUS_TEST_TextRecognizer
 //----------------------------------------------------------------------------
 vtkPlusVirtualTextRecognizer::ChannelFieldListMap& vtkPlusVirtualTextRecognizer::GetRecognitionFields()
 {

@@ -65,9 +65,9 @@ IF(PLUS_USE_MMF_VIDEO)
   OPTION(PLUS_TEST_MMF_VIDEO "Enable testing of acquisition from MMF video device (webcam). Enable this only if an MMF device is connected to this computer." OFF)
 ENDIF()
 
-OPTION(PLUS_USE_tesseract "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
-IF(PLUS_USE_tesseract)
-  OPTION(PLUS_TEST_tesseract "Enable testing functionality for tesseract virtual recognizer device." ON)
+OPTION(PLUS_USE_TextRecognizer "Provide support for optical character recognition virtual device via tesseract OCR library." OFF)
+IF(PLUS_USE_TextRecognizer)
+  OPTION(PLUS_TEST_TextRecognizer "Enable testing functionality for tesseract virtual recognizer device." ON)
 ENDIF()
 
 OPTION(PLUS_USE_OpenCV "Provide support for optical marker tracking and other features using OpenCV." OFF)
@@ -128,7 +128,7 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualCapture.cxx
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
   )
-IF(PLUS_USE_tesseract)
+IF(PLUS_USE_TextRecognizer)
   CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices/tesseractDataDir.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices/tesseractDataDir.h
@@ -173,7 +173,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     VirtualDevices/vtkPlusVirtualCapture.h
     VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
     )
-  IF(PLUS_USE_tesseract)
+  IF(PLUS_USE_TextRecognizer)
     LIST(APPEND Virtual_HDRS VirtualDevices/vtkPlusVirtualTextRecognizer.h)
   ENDIF()
 ENDIF()
@@ -197,7 +197,7 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/VirtualDevices
   CACHE INTERNAL "" FORCE)
 
-IF(PLUS_USE_tesseract)
+IF(PLUS_USE_TextRecognizer)
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS  
     ${CMAKE_CURRENT_BINARY_DIR}/VirtualDevices
     )
@@ -1794,7 +1794,7 @@ ENDIF()
 
 # --------------------------------------------------------------------------
 # Try to find tesseract
-IF(PLUS_USE_tesseract)
+IF(PLUS_USE_TextRecognizer)
   FIND_PACKAGE(tesseract NO_MODULE REQUIRED)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS

@@ -560,7 +560,7 @@ ADD_TEST(TransformInterpolationTest
   )
 
 #*************************** vtkVirtualTextRecognizerTest ***************************
-IF(PLUS_TEST_tesseract)
+IF(PLUS_TEST_TextRecognizer)
   ADD_EXECUTABLE(vtkVirtualTextRecognizerTest vtkVirtualTextRecognizerTest.cxx)
   SET_TARGET_PROPERTIES(vtkVirtualTextRecognizerTest PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(vtkVirtualTextRecognizerTest vtkPlusDataCollection vtkPlusCommon)
