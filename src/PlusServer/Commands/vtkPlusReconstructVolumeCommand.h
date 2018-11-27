@@ -12,8 +12,8 @@
 #include "vtkPlusCommand.h"
 
 class vtkPlusVolumeReconstructor;
-class vtkPlusTrackedFrameList;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTrackedFrameList;
+//class vtkIGSIOTransformRepository;
 class vtkPlusVirtualVolumeReconstructor;
 /*!
   \class vtkPlusReconstructVolumeCommand

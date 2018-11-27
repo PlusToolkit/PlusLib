@@ -137,7 +137,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalConnect()
   }
 
   // Wait for 1 second, according to the Certus documentation
-  vtkPlusAccurateTimer::Delay(1);
+  vtkIGSIOAccurateTimer::Delay(1);
 
   // Do the initialization
   if (TransputerInitializeSystem(0) != OPTO_NO_ERROR_CODE)
@@ -409,7 +409,7 @@ PlusStatus vtkPlusNDICertusTracker::InternalUpdate()
 
   delete [] rigidBodyData;
 
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   for (tool = 0; tool < VTK_CERTUS_NTOOLS; tool++)
   {

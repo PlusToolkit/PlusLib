@@ -19,7 +19,7 @@ int main (int argc, char* argv[])
   int inputNumberOfTrials(20); 
   int samplingTimeMs(50);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -38,7 +38,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {
@@ -102,7 +102,7 @@ int main (int argc, char* argv[])
         //return EXIT_FAILURE; 
       }
 
-      vtkPlusAccurateTimer::Delay(0.001*samplingTimeMs); 
+      vtkIGSIOAccurateTimer::Delay(0.001*samplingTimeMs); 
     }
 
     LOG_INFO( "Stopping stepper...\n");

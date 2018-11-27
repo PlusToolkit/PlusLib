@@ -17,6 +17,9 @@ See License.txt for details.
 // Motive API includes
 #include <NPTrackingTools.h>
 
+// std includes
+#include <set>
+
 // NatNet callback function
 //TODO: Move this out of the global namespace
 void ReceiveDataCallback(sFrameOfMocapData* data, void* pUserData);
@@ -52,7 +55,7 @@ public:
   std::vector<std::string> AdditionalRigidBodyFiles;
 
   // Maps rigid body names to transform names
-  std::map<int, PlusTransformName> MapRBNameToTransform;
+  std::map<int, igsioTransformName> MapRBNameToTransform;
 
   // Flag to run Motive in background if user doesn't need GUI
   bool AttachToRunningMotive;
@@ -90,12 +93,12 @@ void vtkPlusOptiTrack::vtkInternal::UpdateMotiveDataDescriptions()
     if (currentDescription.type == Descriptor_RigidBody)
     {
       // Map the numerical ID of the tracked tool from motive to the name of the tool
-      PlusTransformName toolToTracker = PlusTransformName(currentDescription.Data.RigidBodyDescription->szName, referenceFrame);
+      igsioTransformName toolToTracker = igsioTransformName(currentDescription.Data.RigidBodyDescription->szName, referenceFrame);
       this->MapRBNameToTransform[currentDescription.Data.RigidBodyDescription->ID] = toolToTracker;
     }
   }
 
-  this->LastMotiveDataDescriptionsUpdateTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  this->LastMotiveDataDescriptionsUpdateTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 }
 
 //-----------------------------------------------------------------------
@@ -323,7 +326,7 @@ PlusStatus vtkPlusOptiTrack::InternalUpdate()
 PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
 {
   LOG_TRACE("vtkPlusOptiTrack::InternalCallback");
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   if (this->Internal->LastMotiveDataDescriptionsUpdateTimestamp < 0)
   {
@@ -373,13 +376,13 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
       }
 
       // make sure the tool was specified in the Config file
-      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      igsioTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
       ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OK, FrameNumber, unfilteredTimestamp);
     }
     else
     {
       // TOOL OUT OF VIEW
-      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      igsioTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
       ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OUT_OF_VIEW, FrameNumber, unfilteredTimestamp);
     }
 

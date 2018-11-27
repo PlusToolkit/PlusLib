@@ -11,7 +11,7 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusVideoFrame.h"
+//#include "igsioVideoFrame.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusMicronTracker.h"
 
@@ -157,7 +157,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   }
 
   // Setting the timestamp
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   if (this->MicronTracker->mtGrabFrame() != 0) // mtOK
   {
@@ -314,7 +314,7 @@ void vtkPlusMicronTracker::GetTransformMatrix(int markerIndex, vtkMatrix4x4* tra
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData* rightImage)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->UpdateMutex);
 
   unsigned char** leftImageArray = 0;
   unsigned char** rightImageArray = 0;

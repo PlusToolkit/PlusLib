@@ -82,23 +82,23 @@ void vtkFcsvReader::Update()
     {
       // Header, process it
       std::vector<std::string> elems;
-      PlusCommon::SplitStringIntoTokens(line, '=', elems);
+      igsioCommon::SplitStringIntoTokens(line, '=', elems);
       this->StripCharsFromString(elems[0], " #");
-      elems[1] = PlusCommon::Trim(elems[1]);
+      elems[1] = igsioCommon::Trim(elems[1]);
       this->ProcessHeaderEntry(elems[0], elems[1]);
     }
     else if (line[0] == '#')
     {
       // Fiducial List file entry
       std::vector<std::string> elems;
-      PlusCommon::SplitStringIntoTokens(line, ' ', elems);
+      igsioCommon::SplitStringIntoTokens(line, ' ', elems);
       FcsvDataObject.filePath = elems[4];
     }
     else
     {
       // It's a record, read it as such
       std::vector<std::string> elems;
-      PlusCommon::SplitStringIntoTokens(line, ',', elems);
+      igsioCommon::SplitStringIntoTokens(line, ',', elems);
 
       FcsvPoint point;
       point.label        = elems[0];
@@ -118,84 +118,84 @@ void vtkFcsvReader::Update()
 //----------------------------------------------------------------------------
 void vtkFcsvReader::ProcessHeaderEntry(const std::string& headerEntry, const std::string& headerEntryValue)
 {
-  if (PlusCommon::IsEqualInsensitive(headerEntry, "numPoints"))
+  if (igsioCommon::IsEqualInsensitive(headerEntry, "numPoints"))
   {
     FcsvDataObject.numPoints = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "version"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "version"))
   {
     FcsvDataObject.version = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "name"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "name"))
   {
     FcsvDataObject.name = headerEntryValue;
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "symbolScale"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "symbolScale"))
   {
     FcsvDataObject.symbolScale = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "symbolType"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "symbolType"))
   {
     FcsvDataObject.symbolType = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "visibility"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "visibility"))
   {
     FcsvDataObject.visibility = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "textScale"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "textScale"))
   {
     FcsvDataObject.textScale = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "opacity"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "opacity"))
   {
     FcsvDataObject.opacity = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "ambient"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "ambient"))
   {
     FcsvDataObject.ambient = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "diffuse"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "diffuse"))
   {
     FcsvDataObject.diffuse = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "specular"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "specular"))
   {
     FcsvDataObject.specular = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "power"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "power"))
   {
     FcsvDataObject.power = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "locked"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "locked"))
   {
     FcsvDataObject.locked = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "numberingScheme"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "numberingScheme"))
   {
     FcsvDataObject.numberingScheme = atof(headerEntryValue.c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "color"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "color"))
   {
     std::vector<std::string> elems;
-    PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
+    igsioCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
 
     FcsvDataObject.color[0] = atof(elems[0].c_str());
     FcsvDataObject.color[1] = atof(elems[1].c_str());
     FcsvDataObject.color[2] = atof(elems[2].c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "selectedColor"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "selectedColor"))
   {
     std::vector<std::string> elems;
-    PlusCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
+    igsioCommon::SplitStringIntoTokens(headerEntryValue, ',', elems);
 
     FcsvDataObject.selectedColor[0] = atof(elems[0].c_str());
     FcsvDataObject.selectedColor[1] = atof(elems[1].c_str());
     FcsvDataObject.selectedColor[2] = atof(elems[2].c_str());
   }
-  else if (PlusCommon::IsEqualInsensitive(headerEntry, "columns"))
+  else if (igsioCommon::IsEqualInsensitive(headerEntry, "columns"))
   {
     std::vector<std::string> elems;
-    PlusCommon::SplitStringIntoTokens(headerEntryValue, ' ', elems);
+    igsioCommon::SplitStringIntoTokens(headerEntryValue, ' ', elems);
   }
 }
 

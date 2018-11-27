@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkObject.h"
 #include "vtkPoints.h"
 
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ public:
   Performs landmark registration to determine transformation from phantom reference to phantom
   \param aTransformRepository Transform repository to save the results into
   */
-  PlusStatus LandmarkRegister(vtkPlusTransformRepository* aTransformRepository = NULL);
+  PlusStatus LandmarkRegister(vtkIGSIOTransformRepository* aTransformRepository = NULL);
 
   /*!
   Read phantom definition (landmarks)

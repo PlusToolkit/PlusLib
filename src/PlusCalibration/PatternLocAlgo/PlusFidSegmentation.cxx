@@ -136,7 +136,7 @@ PlusStatus PlusFidSegmentation::ReadConfiguration(vtkXMLDataElement* configData)
   XML_FIND_NESTED_ELEMENT_OPTIONAL(segmentationParameters, configData, "Segmentation");
   if (!segmentationParameters)
   {
-    segmentationParameters = PlusXmlUtils::GetNestedElementWithName(configData, "Segmentation");
+    segmentationParameters = igsioXmlUtils::GetNestedElementWithName(configData, "Segmentation");
     PlusFidSegmentation::SetDefaultSegmentationParameters(segmentationParameters);
   }
 

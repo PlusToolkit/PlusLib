@@ -19,10 +19,10 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusSequenceIO.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkPlusTemporalCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 
 // VTK includes
 #include <vtkAxis.h>
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
   bool printHelp(false);
   bool plotResults(false);
   bool saveIntermediateImages(false);
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
   std::string inputMovingSequenceMetafile("");
   std::string inputFixedSequenceMetafile("");
   std::string intermediateFileOutputDirectory; // Directory into which the intermediate files are written
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputMovingSequenceMetafile.empty())
   {
@@ -252,8 +252,8 @@ int main(int argc, char** argv)
   vtkPlusTemporalCalibrationAlgo* testTemporalCalibrationObject = vtkPlusTemporalCalibrationAlgo::New();
   vtkPlusTemporalCalibrationAlgo::FRAME_TYPE movingType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE);
   vtkPlusTemporalCalibrationAlgo::FRAME_TYPE fixedType(vtkPlusTemporalCalibrationAlgo::FRAME_TYPE_NONE);
-  vtkSmartPointer<vtkPlusTrackedFrameList> movingFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  vtkSmartPointer<vtkPlusTrackedFrameList> fixedFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> movingFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> fixedFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   if (!fixedProbeToReferenceTransformNameStr.empty())
   {
     fixedFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
 
   //  Read fixed frames
   LOG_DEBUG("Read fixed data from " << inputFixedSequenceMetafile);
-  if (vtkPlusSequenceIO::Read(inputFixedSequenceMetafile, fixedFrames) != PLUS_SUCCESS)
+  if (vtkIGSIOSequenceIO::Read(inputFixedSequenceMetafile, fixedFrames) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read fixed data from sequence metafile: " << inputFixedSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
@@ -294,7 +294,7 @@ int main(int argc, char** argv)
 
   //  Read moving frames
   LOG_DEBUG("Read moving data from " << inputMovingSequenceMetafile);
-  if (vtkPlusSequenceIO::Read(inputMovingSequenceMetafile, movingFrames) != PLUS_SUCCESS)
+  if (vtkIGSIOSequenceIO::Read(inputMovingSequenceMetafile, movingFrames) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read moving data from sequence metafile: " << inputMovingSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);

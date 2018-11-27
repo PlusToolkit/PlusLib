@@ -13,9 +13,9 @@
 #include "vtkTable.h"
 
 #include "vtkPlusReadTrackedSignals.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkIGSIOTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -46,7 +46,7 @@ void vtkPlusReadTrackedSignals::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusReadTrackedSignals::SetTrackerFrames(vtkPlusTrackedFrameList* trackerFrames)
+void vtkPlusReadTrackedSignals::SetTrackerFrames(vtkIGSIOTrackedFrameList* trackerFrames)
 {
   m_TrackerFrames = trackerFrames;
 }
@@ -79,10 +79,10 @@ PlusStatus vtkPlusReadTrackedSignals::VerifyInputFrames()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusReadTrackedSignals::ComputeTrackerPositionMetric()
 {
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 
   vtkSmartPointer<vtkMatrix4x4> pivotToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-  PlusTransformName transformName(ObjectMarkerCoordinateFrame, ReferenceCoordinateFrame);
+  igsioTransformName transformName(ObjectMarkerCoordinateFrame, ReferenceCoordinateFrame);
   itk::Point<double, 3> stylusTip;
   stylusTip[0] = stylusTip[1] = stylusTip[2] = 0.0;
   itk::Point<double, 3> zeroRef;
@@ -103,7 +103,7 @@ PlusStatus vtkPlusReadTrackedSignals::ComputeTrackerPositionMetric()
   double previousStylusTipPosition = 0.0;
   for (unsigned int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame)
   {
-    PlusTrackedFrame* trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
+    igsioTrackedFrame* trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
 
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp() < m_SignalTimeRangeMin || trackedFrame->GetTimestamp() > m_SignalTimeRangeMax))
     {
@@ -160,7 +160,7 @@ PlusStatus vtkPlusReadTrackedSignals::ReadConfiguration(vtkXMLDataElement* aConf
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ReferenceCoordinateFrame, pivotCalibrationElement);
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(ObjectPivotPointCoordinateFrame, pivotCalibrationElement);
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepositoryCalibration = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepositoryCalibration = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 
   if (transformRepositoryCalibration->ReadConfiguration(aConfig) != PLUS_SUCCESS)
   {
@@ -168,7 +168,7 @@ PlusStatus vtkPlusReadTrackedSignals::ReadConfiguration(vtkXMLDataElement* aConf
     exit(EXIT_FAILURE);
   }
 
-  PlusTransformName StylusTipToStylusTransformName(ObjectPivotPointCoordinateFrame, ObjectMarkerCoordinateFrame);
+  igsioTransformName StylusTipToStylusTransformName(ObjectPivotPointCoordinateFrame, ObjectMarkerCoordinateFrame);
   this->StylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
   if (transformRepositoryCalibration->GetTransform(StylusTipToStylusTransformName, this->StylusTipToStylusTransform) != PLUS_SUCCESS)
   {

@@ -14,9 +14,9 @@
 #include "vtkPCAStatistics.h"
 
 #include "vtkPlusPrincipalMotionDetectionAlgo.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkIGSIOTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusPrincipalMotionDetectionAlgo);
@@ -40,7 +40,7 @@ void vtkPlusPrincipalMotionDetectionAlgo::PrintSelf(ostream& os, vtkIndent inden
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusPrincipalMotionDetectionAlgo::SetTrackerFrames(vtkPlusTrackedFrameList* trackerFrames)
+void vtkPlusPrincipalMotionDetectionAlgo::SetTrackerFrames(vtkIGSIOTrackedFrameList* trackerFrames)
 {
   m_TrackerFrames = trackerFrames;
 }
@@ -78,8 +78,8 @@ PlusStatus vtkPlusPrincipalMotionDetectionAlgo::VerifyInputFrames()
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
 {
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
-  PlusTransformName transformName;
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
+  igsioTransformName transformName;
 
   if (transformName.SetTransformName(m_ProbeToReferenceTransformName.c_str()) != PLUS_SUCCESS)
   {
@@ -99,7 +99,7 @@ PlusStatus vtkPlusPrincipalMotionDetectionAlgo::ComputeTrackerPositionMetric()
   bool signalTimeRangeDefined = (m_SignalTimeRangeMin <= m_SignalTimeRangeMax);
   for (unsigned int frame = 0; frame < m_TrackerFrames->GetNumberOfTrackedFrames(); ++frame)
   {
-    PlusTrackedFrame* trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
+    igsioTrackedFrame* trackedFrame = m_TrackerFrames->GetTrackedFrame(frame);
 
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp() < m_SignalTimeRangeMin || trackedFrame->GetTimestamp() > m_SignalTimeRangeMax))
     {

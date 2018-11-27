@@ -15,6 +15,8 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
 
+#include <set>
+
 vtkStandardNewMacro(vtkPlusOpenIGTLinkTracker);
 
 //----------------------------------------------------------------------------
@@ -50,7 +52,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalDisconnect()
 
     int retValue = 0;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
       RETRY_UNTIL_TRUE(
         (retValue = this->ClientSocket->Send(stpMsg->GetBufferPointer(), stpMsg->GetBufferSize())) != 0,
         this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
@@ -107,18 +109,18 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
         // The server only sends update if a transform is modified, it's not an error
         LOG_TRACE("No OpenIGTLink message has been received in device " << this->GetDeviceId());
         // Store the last known transform values (useful when the server only notifies about transform changes
-        double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+        double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
         StoreMostRecentTransformValues(unfilteredTimestamp);
         return PLUS_SUCCESS;
       }
       else
       {
         OnReceiveTimeout();
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
         if (!this->ClientSocket->GetConnected())
         {
           // Could not restore the connection, set transform status to INVALID
-          double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+          double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
           StoreInvalidTransforms(unfilteredTimestamp);
         }
         return PLUS_FAIL;
@@ -136,7 +138,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     }
 
     // data type is unknown, ignore it
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
   }
 
@@ -146,7 +148,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   tdataMsg->AllocateBuffer();
 
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->Receive(tdataMsg->GetBufferBodyPointer(), tdataMsg->GetBufferBodySize());
   }
   int c = tdataMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
@@ -157,7 +159,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
   }
 
   // for now just use system time, all coordinates will be sequential.
-  double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   double filteredTimestamp = unfilteredTimestamp; // No need to filter already filtered timestamped items received over OpenIGTLink
   // We store the list of identified tools (tools we get information about from the tracker).
   // The tools that are missing from the tracker message are assumed to be out of view.
@@ -187,7 +189,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     std::string igtlTransformName = tdataElem->GetName();
 
     // Set internal transform name
-    PlusTransformName transformName;
+    igsioTransformName transformName;
     if (igtlTransformName.find("To") != std::string::npos)
     {
       // Plus style transform name sent
@@ -196,7 +198,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateTData()
     else
     {
       // Brainlab style transform name sent
-      transformName = PlusTransformName(igtlTransformName.c_str(), this->ToolReferenceFrameName);
+      transformName = igsioTransformName(igtlTransformName.c_str(), this->ToolReferenceFrameName);
     }
 
     if (this->ToolTimeStampedUpdateWithoutFiltering(transformName.GetTransformName().c_str(), toolMatrix, TOOL_OK, unfilteredTimestamp, filteredTimestamp) == PLUS_SUCCESS)
@@ -231,7 +233,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateGeneral()
 {
   LOG_TRACE("vtkPlusOpenIGTLinkTracker::InternalUpdateGeneral");
 
-  double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   double maxAllocatedProcessingTime = 2.0;
   // set maxAllocatedProcessingTime to 2 acquisition periods to allow reading all transforms even when there aare slight delays
@@ -250,7 +252,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateGeneral()
       // an error occurred, stop processing the messages in this update iteration
       break;
     }
-    if (vtkPlusAccurateTimer::GetSystemTime() - unfilteredTimestamp > maxAllocatedProcessingTime)
+    if (vtkIGSIOAccurateTimer::GetSystemTime() - unfilteredTimestamp > maxAllocatedProcessingTime)
     {
       // no more time for processing messages in this iteration
       break;
@@ -272,7 +274,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::InternalUpdateGeneral()
   if (!this->ClientSocket->GetConnected())
   {
     // Could not restore the connection, set transform status to INVALID
-    double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     StoreInvalidTransforms(unfilteredTimestamp);
     return PLUS_FAIL;
   }
@@ -323,13 +325,13 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
   else
   {
     // if the data type is unknown, skip reading.
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
     return PLUS_SUCCESS;
   }
 
   // Set transform name
-  PlusTransformName transformName;
+  igsioTransformName transformName;
   if (transformName.SetTransformName(igtlTransformName.c_str()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to update tracker tool - unrecognized transform name: " << igtlTransformName);
@@ -341,11 +343,11 @@ PlusStatus vtkPlusOpenIGTLinkTracker::ProcessTransformMessageGeneral(bool& moreM
   {
     // Use the timestamp in the OpenIGTLink message
     // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
-    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc);
+    unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc);
   }
   else
   {
-    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   }
 
   // No need to filter already filtered timestamped items received over OpenIGTLink
@@ -385,7 +387,7 @@ PlusStatus vtkPlusOpenIGTLinkTracker::SendRequestedMessageTypes()
 
     int retValue = 0;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
       RETRY_UNTIL_TRUE(
         (retValue = this->ClientSocket->Send(sttMsg->GetBufferPointer(), sttMsg->GetBufferSize())) != 0,
         this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
@@ -519,5 +521,5 @@ bool vtkPlusOpenIGTLinkTracker::IsTDataMessageType()
   {
     return false;
   }
-  return (PlusCommon::IsEqualInsensitive(this->MessageType, "TDATA"));
+  return (igsioCommon::IsEqualInsensitive(this->MessageType, "TDATA"));
 }

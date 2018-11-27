@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "PointObservationBuffer.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 
 PointObservationBuffer::PointObservationBuffer()
 {

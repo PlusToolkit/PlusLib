@@ -8,9 +8,9 @@
 #include "QPlusToolStateDisplayWidget.h"
 
 // PlusLib includes
-#include <PlusTrackedFrame.h>
+//#include <igsioTrackedFrame.h>
 #include <vtkPlusChannel.h>
-#include <vtkPlusTrackedFrameList.h>
+//#include <vtkIGSIOTrackedFrameList.h>
 
 // Qt includes
 #include <QGridLayout>
@@ -94,8 +94,8 @@ PlusStatus QPlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel
   }
 
   // Get transforms
-  std::vector<PlusTransformName> transformNames;
-  PlusTrackedFrame trackedFrame;
+  std::vector<igsioTransformName> transformNames;
+  igsioTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(trackedFrame);
   trackedFrame.GetFrameTransformNameList(transformNames);
 
@@ -109,7 +109,7 @@ PlusStatus QPlusToolStateDisplayWidget::InitializeTools(vtkPlusChannel* aChannel
   m_ToolStateLabels.resize(transformNames.size(), NULL);
 
   int i;
-  std::vector<PlusTransformName>::iterator it;
+  std::vector<igsioTransformName>::iterator it;
   for (it = transformNames.begin(), i = 0; it != transformNames.end(); ++it, ++i)
   {
     // Assemble tool name and add label to layout and label list
@@ -169,8 +169,8 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
   int numberOfDisplayedTools = 0;
 
   // Get transforms
-  std::vector<PlusTransformName> transformNames;
-  PlusTrackedFrame trackedFrame;
+  std::vector<igsioTransformName> transformNames;
+  igsioTrackedFrame trackedFrame;
   m_SelectedChannel->GetTrackedFrame(trackedFrame);
   trackedFrame.GetFrameTransformNameList(transformNames);
 
@@ -185,7 +185,7 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
     }
   }
 
-  std::vector<PlusTransformName>::iterator transformIt;
+  std::vector<igsioTransformName>::iterator transformIt;
   std::vector<QTextEdit*>::iterator labelIt;
   for (transformIt = transformNames.begin(), labelIt = m_ToolStateLabels.begin(); transformIt != transformNames.end() && labelIt != m_ToolStateLabels.end(); ++transformIt, ++labelIt)
   {
@@ -208,7 +208,7 @@ PlusStatus QPlusToolStateDisplayWidget::Update()
     }
     else
     {
-      label->setText(PlusCommon::ConvertToolStatusToString(status).c_str());
+      label->setText(igsioCommon::ConvertToolStatusToString(status).c_str());
       switch (status)
       {
       case (TOOL_OK):

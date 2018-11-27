@@ -471,7 +471,7 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
 
   // videoFormatFrameSizeString sample: "Y800 (640x480)"
   std::vector<std::string> splitVideoFormatFrameSize;
-  PlusCommon::SplitStringIntoTokens(videoFormatFrameSizeString, ' ', splitVideoFormatFrameSize);
+  igsioCommon::SplitStringIntoTokens(videoFormatFrameSizeString, ' ', splitVideoFormatFrameSize);
   if (splitVideoFormatFrameSize.size() != 2)
   {
     // parsing failed
@@ -483,7 +483,7 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
 
   // parse frame size
   std::vector<std::string> splitFrameSize;
-  PlusCommon::SplitStringIntoTokens(splitVideoFormatFrameSize[1], 'x', splitFrameSize);
+  igsioCommon::SplitStringIntoTokens(splitVideoFormatFrameSize[1], 'x', splitFrameSize);
   if (splitFrameSize.size() != 2 || splitFrameSize[0].empty() || splitFrameSize[1].empty()) // (640 480)
   {
     // parsing failed
@@ -501,11 +501,11 @@ void vtkPlusICCapturingSource::ParseDShowLibVideoFormatString(const char* videoF
   // Convert to unsigned integer
   unsigned int frameSizeX = 0;
   unsigned int frameSizeY = 0;
-  if (PlusCommon::StringToUInt(splitFrameSize[0].c_str(), frameSizeX) == PLUS_FAIL)
+  if (igsioCommon::StringToUInt(splitFrameSize[0].c_str(), frameSizeX) == PLUS_FAIL)
   {
     return;
   }
-  if (PlusCommon::StringToUInt(splitFrameSize[1].c_str(), frameSizeY) == PLUS_FAIL)
+  if (igsioCommon::StringToUInt(splitFrameSize[1].c_str(), frameSizeY) == PLUS_FAIL)
   {
     return;
   }

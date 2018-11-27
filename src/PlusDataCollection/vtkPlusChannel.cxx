@@ -11,7 +11,7 @@ See License.txt for details.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusHTMLGenerator.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -103,7 +103,7 @@ PlusStatus vtkPlusChannel::ReadConfiguration(vtkXMLDataElement* aChannelElement,
       continue;
     }
 
-    PlusTransformName idName(id, this->OwnerDevice->GetToolReferenceFrameName());
+    igsioTransformName idName(id, this->OwnerDevice->GetToolReferenceFrameName());
     if (this->OwnerDevice->GetDataSource(id, aSource) == PLUS_SUCCESS)
     {
       if (aSource->GetType() == DATA_SOURCE_TYPE_TOOL)
@@ -192,14 +192,14 @@ PlusStatus vtkPlusChannel::WriteConfiguration(vtkXMLDataElement* aChannelElement
       continue;
     }
     bool isEqual(false);
-    if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG, isEqual) == PLUS_SUCCESS && isEqual)
+    if (igsioCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_VIDEO_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       if (this->HasVideoSource())
       {
         this->VideoSource->WriteConfiguration(element);
       }
     }
-    else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
+    else if (igsioCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_TOOL_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       vtkPlusDataSource* aTool = NULL;
       if (element->GetAttribute("Id") == NULL || this->GetTool(aTool, element->GetAttribute("Id")) != PLUS_SUCCESS)
@@ -209,7 +209,7 @@ PlusStatus vtkPlusChannel::WriteConfiguration(vtkXMLDataElement* aChannelElement
       }
       aTool->WriteCompactConfiguration(element);
     }
-    else if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG, isEqual) == PLUS_SUCCESS && isEqual)
+    else if (igsioCommon::XML::SafeCheckAttributeValueInsensitive(*element, "Type", vtkPlusDataSource::DATA_SOURCE_TYPE_FIELDDATA_TAG, isEqual) == PLUS_SUCCESS && isEqual)
     {
       vtkPlusDataSource* aSource = NULL;
       if (element->GetAttribute("Id") == NULL || this->GetFieldDataSource(aSource, element->GetAttribute("Id")) != PLUS_SUCCESS)
@@ -525,7 +525,7 @@ void vtkPlusChannel::SetVideoSource(vtkPlusDataSource* aSource)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& aTrackedFrame, bool enableImageData/*=true*/)
+PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, igsioTrackedFrame& aTrackedFrame, bool enableImageData/*=true*/)
 {
   int numberOfErrors(0);
   double synchronizedTimestamp(0);
@@ -568,7 +568,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
     }
 
     // Copy frame
-    PlusVideoFrame frame = CurrentStreamBufferItem.GetFrame();
+    igsioVideoFrame frame = CurrentStreamBufferItem.GetFrame();
     aTrackedFrame.SetImageData(frame);
 
     // Copy all custom fields
@@ -593,7 +593,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
   for (DataSourceContainerConstIterator it = this->GetToolsStartIterator(); it != this->GetToolsEndIterator(); ++it)
   {
     vtkPlusDataSource* aTool = it->second;
-    PlusTransformName toolTransformName(aTool->GetId());
+    igsioTransformName toolTransformName(aTool->GetId());
     if (!toolTransformName.IsValid())
     {
       LOG_ERROR("Tool transform name is invalid!");
@@ -702,7 +702,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, PlusTrackedFrame& a
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrame(PlusTrackedFrame& trackedFrame)
+PlusStatus vtkPlusChannel::GetTrackedFrame(igsioTrackedFrame& trackedFrame)
 {
   double mostRecentFrameTimestamp(0);
   RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentFrameTimestamp) != PLUS_SUCCESS,
@@ -712,7 +712,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(PlusTrackedFrame& trackedFrame)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlreadyGot, vtkPlusTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd)
+PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlreadyGot, vtkIGSIOTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd)
 {
   LOG_TRACE("vtkPlusDevice::GetTrackedFrameList(" << aTimestampOfLastFrameAlreadyGot << ", " << aMaxNumberOfFramesToAdd << ")");
 
@@ -749,7 +749,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
 
   // Get latest and oldest timestamp
   double mostRecentTimestamp(0);
-  static vtkPlusLogHelper logHelper(60.0, 500000);
+  static vtkIGSIOLogHelper logHelper(60.0, 500000);
   CUSTOM_RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS,
                              "Unable to get most recent timestamp!");
 
@@ -947,7 +947,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
     if (timestampFrom > aTimestampOfLastFrameAlreadyGot || aTimestampOfLastFrameAlreadyGot == UNDEFINED_TIMESTAMP)
     {
       // Get tracked frame from buffer
-      PlusTrackedFrame* trackedFrame = new PlusTrackedFrame;
+      igsioTrackedFrame* trackedFrame = new igsioTrackedFrame;
 
       if (this->GetTrackedFrame(timestampFrom, *trackedFrame) != PLUS_SUCCESS)
       {
@@ -958,7 +958,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
 
       // Add tracked frame to the list
       aTimestampOfLastFrameAlreadyGot = trackedFrame->GetTimestamp();
-      if (aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+      if (aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkIGSIOTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to add tracked frame to the list!");
         return PLUS_FAIL;
@@ -1047,7 +1047,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkPlusTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec/*=-1*/)
+PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkIGSIOTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec/*=-1*/)
 {
   LOG_TRACE("vtkPlusDataCollector::GetTrackedFrameListSampled: aTimestampOfLastFrameAlreadyGot=" << aTimestampOfLastFrameAlreadyGot << ", aTimestampOfNextFrameToBeAdded=" << aTimestampOfNextFrameToBeAdded << ", aSamplingPeriodSec=" << aSamplingPeriodSec);
 
@@ -1057,7 +1057,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFr
     return PLUS_FAIL;
   }
 
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkIGSIOAccurateTimer::GetSystemTime();
 
   double mostRecentTimestamp(0);
   RETURN_WITH_FAIL_IF(this->GetMostRecentTimestamp(mostRecentTimestamp) != PLUS_SUCCESS,
@@ -1068,7 +1068,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFr
   for (; aTimestampOfNextFrameToBeAdded <= mostRecentTimestamp; aTimestampOfNextFrameToBeAdded += aSamplingPeriodSec)
   {
     // If the time that is allowed for adding of frames is expired then stop the processing now
-    if (maxTimeLimitSec > 0 && vtkPlusAccurateTimer::GetSystemTime() - startTimeSec > maxTimeLimitSec)
+    if (maxTimeLimitSec > 0 && vtkIGSIOAccurateTimer::GetSystemTime() - startTimeSec > maxTimeLimitSec)
     {
       LOG_DEBUG("Reached maximum time that is allowed for sampling frames");
       break;
@@ -1104,7 +1104,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFr
       continue;
     }
     // Get tracked frame from buffer (actually copies pixel and field data)
-    PlusTrackedFrame* trackedFrame = new PlusTrackedFrame;
+    igsioTrackedFrame* trackedFrame = new igsioTrackedFrame;
     if (GetTrackedFrame(closestTimestamp, *trackedFrame) != PLUS_SUCCESS)
     {
       LOG_WARNING("vtkPlusChannel::GetTrackedFrameListSampled: Unable retrieve frame from the devices for time: " << std::fixed << aTimestampOfNextFrameToBeAdded << ", probably the item is not available in the buffers anymore. Frames may be lost.");
@@ -1113,7 +1113,7 @@ PlusStatus vtkPlusChannel::GetTrackedFrameListSampled(double& aTimestampOfLastFr
     }
     aTimestampOfLastFrameAlreadyGot = trackedFrame->GetTimestamp();
     // Add tracked frame to the list
-    if (aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+    if (aTrackedFrameList->TakeTrackedFrame(trackedFrame, vtkIGSIOTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
     {
       LOG_ERROR("vtkPlusChannel::GetTrackedFrameListSampled: Unable to add tracked frame to the list");
       status = PLUS_FAIL;
@@ -1420,7 +1420,7 @@ PlusStatus vtkPlusChannel::GetMostRecentTimestamp(double& ts)
   {
     // Get the timestamp of the video item that is closest to the latest tracker item
     BufferItemUidType videoUid(0);
-    static vtkPlusLogHelper logHelper(60.0, 500000);
+    static vtkIGSIOLogHelper logHelper(60.0, 500000);
     CUSTOM_RETURN_WITH_FAIL_IF(this->VideoSource->GetItemUidFromTime(latestTrackerTimestamp, videoUid) != ITEM_OK,
                                "Failed to get video buffer item UID from time: " << std::fixed << latestVideoTimestamp);
     RETURN_WITH_FAIL_IF(this->VideoSource->GetTimeStamp(videoUid, latestVideoTimestamp) != ITEM_OK,

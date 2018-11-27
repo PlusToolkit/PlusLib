@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   }
   
   // don't print |INFO|
-  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_ERROR);
+  vtkIGSIOLogger::Instance()->SetLogLevel(vtkIGSIOLogger::LOG_LEVEL_ERROR);
 
   if (!printShortVersionInfo)
   {

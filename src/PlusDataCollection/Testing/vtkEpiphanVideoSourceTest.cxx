@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--grabber-location", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &grabberLocation, "Location of the of the Epiphan device to connect (use the format sn:SERIAL for the specification of serial number)");
   args.AddArgument("--frame-rate", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameRate, "Requested acquisition frame rate (in FPS, default = 30)");
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (printHelp)
   {
@@ -91,9 +91,9 @@ int main(int argc, char** argv)
       LOG_ERROR("Invalid clip rectangle origin and/or size");
       exit(EXIT_FAILURE);
     }
-    std::array<int, 3> clipRectangleOrigin = {clipRectOrigin[0], clipRectOrigin[1], PlusCommon::NO_CLIP};
+    std::array<int, 3> clipRectangleOrigin = {clipRectOrigin[0], clipRectOrigin[1], igsioCommon::NO_CLIP};
     frameGrabber->SetClipRectangleOrigin(clipRectangleOrigin);
-    std::array<int, 3> clipRectangleSize = {clipRectSize[0], clipRectSize[1], PlusCommon::NO_CLIP};
+    std::array<int, 3> clipRectangleSize = {clipRectSize[0], clipRectSize[1], igsioCommon::NO_CLIP};
     frameGrabber->SetClipRectangleSize(clipRectangleSize);
   }
 

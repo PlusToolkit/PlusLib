@@ -8,8 +8,8 @@ See License.txt for details.
 #include "vtkPlusOpenIGTLinkVideoSource.h"
 
 #include "igtlImageMessage.h"
-#include "PlusVideoFrame.h"
-#include "PlusTrackedFrame.h"
+//#include "igsioVideoFrame.h"
+//#include "igsioTrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
@@ -67,9 +67,9 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   headerMsg->Unpack(this->IgtlMessageCrcCheckEnabled);
 
   // Set unfiltered and filtered timestamp by converting UTC to system timestamp
-  double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
-  PlusTrackedFrame trackedFrame;
+  igsioTrackedFrame trackedFrame;
   igtl::MessageBase::Pointer bodyMsg = this->MessageFactory->CreateReceiveMessage(headerMsg);
 
   if (typeid(*bodyMsg) == typeid(igtl::ImageMessage))
@@ -92,13 +92,13 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
     {
       // Use the timestamp in the OpenIGTLink message
       // The received timestamp is in UTC and timestamps in the buffer are in system time, so conversion is needed
-      unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc);
+      unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTimeFromUniversalTime(unfilteredTimestampUtc);
     }
   }
   else
   {
     // if the data type is unknown, skip reading.
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
     return PLUS_SUCCESS;
   }
@@ -121,7 +121,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
   // If the buffer is empty, set the pixel type and frame size to the first received properties
   if (aSource->GetNumberOfItems() == 0)
   {
-    PlusVideoFrame* videoFrame = trackedFrame.GetImageData();
+    igsioVideoFrame* videoFrame = trackedFrame.GetImageData();
     if (videoFrame == NULL)
     {
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
@@ -138,7 +138,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
     aSource->SetImageType(videoFrame->GetImageType());
     aSource->SetInputFrameSize(trackedFrame.GetFrameSize());
   }
-  PlusTrackedFrame::FieldMapType customFields = trackedFrame.GetCustomFields();
+  igsioTrackedFrame::FieldMapType customFields = trackedFrame.GetCustomFields();
   PlusStatus status = aSource->AddItem(trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields);
   this->Modified();
 

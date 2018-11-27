@@ -12,18 +12,18 @@ and compares the results to a baseline
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPivotDetectionAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
   std::string inputTrackedStylusTipSequenceMetafile;
   std::string stylusTipToStylusTransformNameStr;
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -61,7 +61,7 @@ int main (int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize"); 
   // Read configuration
@@ -87,25 +87,25 @@ int main (int argc, char* argv[])
   }
 
   // Read stylus tracker data
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   if( !stylusTipToStylusTransformNameStr.empty() )
   {
     trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
   }
 
   LOG_INFO("Read stylus tracker data from " << inputTrackedStylusTipSequenceMetafile);
-  if( vtkPlusSequenceIO::Read(inputTrackedStylusTipSequenceMetafile, trackedStylusTipFrames) != PLUS_SUCCESS )
+  if( vtkIGSIOSequenceIO::Read(inputTrackedStylusTipSequenceMetafile, trackedStylusTipFrames) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read stylus data from sequence metafile: " << inputTrackedStylusTipSequenceMetafile << ". Exiting...");
     exit(EXIT_FAILURE);
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 
   // Check stylus tool
-  PlusTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
+  igsioTransformName stylusToReferenceTransformName(PivotDetection->GetObjectMarkerCoordinateFrame(), PivotDetection->GetReferenceCoordinateFrame());
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepositoryCalibration = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepositoryCalibration = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if ( transformRepositoryCalibration->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
@@ -121,7 +121,7 @@ int main (int argc, char* argv[])
     // Acquire positions for pivot calibration
     for (int i=0; i < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++i)
     {
-      //vtkPlusLogger::PrintProgressbar((100.0 * i) /  trackedStylusTipFrames->GetNumberOfTrackedFrames()); 
+      //vtkIGSIOLogger::PrintProgressbar((100.0 * i) /  trackedStylusTipFrames->GetNumberOfTrackedFrames()); 
       vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
       if ( transformRepository->SetTransforms(*(trackedStylusTipFrames->GetTrackedFrame(i))) != PLUS_SUCCESS )

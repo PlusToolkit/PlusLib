@@ -164,7 +164,7 @@ int vtkPlusUsSimulatorAlgo::RequestData(vtkInformation* request, vtkInformationV
     noiseFunction->SetPhase(this->NoisePhase);
   }
 
-  PlusTransformName imageToReferenceTransformName(this->GetImageCoordinateFrame(), this->GetReferenceCoordinateFrame());
+  igsioTransformName imageToReferenceTransformName(this->GetImageCoordinateFrame(), this->GetReferenceCoordinateFrame());
   vtkSmartPointer<vtkMatrix4x4> imageToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (this->TransformRepository->GetTransform(imageToReferenceTransformName, imageToReferenceMatrix) != PLUS_SUCCESS)
   {
@@ -201,7 +201,7 @@ int vtkPlusUsSimulatorAlgo::RequestData(vtkInformation* request, vtkInformationV
     vtkSmartPointer<vtkMatrix4x4> referenceToObjectMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     if (!spatialModelIt->GetObjectCoordinateFrame().empty())
     {
-      PlusTransformName referenceToObjectTransformName(this->GetReferenceCoordinateFrame(), spatialModelIt->GetObjectCoordinateFrame());
+      igsioTransformName referenceToObjectTransformName(this->GetReferenceCoordinateFrame(), spatialModelIt->GetObjectCoordinateFrame());
       if (this->TransformRepository->GetTransform(referenceToObjectTransformName, referenceToObjectMatrix) != PLUS_SUCCESS)
       {
         std::string strTransformName;

@@ -51,12 +51,12 @@ void vtkPlusGetImageCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusGetImageCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_IMAGE_META_DATA))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, GET_IMAGE_META_DATA))
   {
     desc += GET_IMAGE_META_DATA;
     desc += ": Acquire the image meta data information from all the devices that are connected.";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_IMAGE))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, GET_IMAGE))
   {
     desc += GET_IMAGE;
     desc += "Acquire the volume data and the ijkToRas transformation of the data from the specified device.";
@@ -83,7 +83,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
                             + ", device: (" + (this->GetImageId().empty() ? "(undefined)" : this->GetImageId()) + ")";
 
   std::string errorString;
-  if (PlusCommon::IsEqualInsensitive(this->Name, GET_IMAGE_META_DATA))
+  if (igsioCommon::IsEqualInsensitive(this->Name, GET_IMAGE_META_DATA))
   {
     std::string imageIdStr(this->GetImageId());
     if (imageIdStr.size() > 0)
@@ -98,7 +98,7 @@ PlusStatus vtkPlusGetImageCommand::Execute()
     }
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, GET_IMAGE))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, GET_IMAGE))
   {
     if (this->ExecuteImageReply(errorString) != PLUS_SUCCESS)
     {
@@ -180,7 +180,7 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
     return PLUS_FAIL;
   }
   vtkPlusDevice* plusDevice;
-  PlusCommon::ImageMetaDataList imageMetaDataList;
+  igsioCommon::ImageMetaDataList imageMetaDataList;
   for (DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it)
   {
     plusDevice = (*it);
@@ -194,10 +194,10 @@ PlusStatus vtkPlusGetImageCommand::ExecuteImageMetaReply(std::string& outErrorSt
       outErrorString = "PLUS device has a NULL deviceId.";
       return PLUS_FAIL;
     }
-    PlusCommon::ImageMetaDataList imageMetaDataListDevice;
+    igsioCommon::ImageMetaDataList imageMetaDataListDevice;
     imageMetaDataListDevice.clear();
     plusDevice->GetImageMetaData(imageMetaDataListDevice);
-    for (PlusCommon::ImageMetaDataList::iterator it = imageMetaDataListDevice.begin(); it != imageMetaDataListDevice.end(); it++)
+    for (igsioCommon::ImageMetaDataList::iterator it = imageMetaDataListDevice.begin(); it != imageMetaDataListDevice.end(); it++)
     {
       if (it->Id.find(DeviceNameImageIdSeparator) != std::string::npos)
       {

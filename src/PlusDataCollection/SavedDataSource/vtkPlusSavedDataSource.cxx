@@ -7,13 +7,13 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkImageData.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusSavedDataSource.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtksys/SystemTools.hxx"
 
 vtkStandardNewMacro(vtkPlusSavedDataSource);
@@ -85,7 +85,7 @@ PlusStatus vtkPlusSavedDataSource::InternalUpdate()
 PlusStatus vtkPlusSavedDataSource::InternalUpdateOriginalTimestamp(BufferItemUidType frameToBeAddedUid, int frameToBeAddedLoopIndex)
 {
   // Compute elapsed time since we started the acquisition
-  double elapsedTime = vtkPlusAccurateTimer::GetSystemTime() - this->GetOutputDataSource()->GetStartTime();
+  double elapsedTime = vtkIGSIOAccurateTimer::GetSystemTime() - this->GetOutputDataSource()->GetStartTime();
   double loopTime = this->LoopStopTime_Local - this->LoopStartTime_Local;
 
   const int numberOfFramesInTheLoop = this->LoopLastFrameUid - this->LoopFirstFrameUid + 1;
@@ -379,10 +379,10 @@ PlusStatus vtkPlusSavedDataSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> savedDataBuffer = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
 
   // Read sequence file into tracked frame list
-  vtkPlusSequenceIO::Read(foundAbsoluteImagePath, savedDataBuffer);
+  vtkIGSIOSequenceIO::Read(foundAbsoluteImagePath, savedDataBuffer);
 
   if (savedDataBuffer->GetNumberOfTrackedFrames() < 1)
   {
@@ -457,7 +457,7 @@ PlusStatus vtkPlusSavedDataSource::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkPlusTrackedFrameList* savedDataBuffer)
+PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkIGSIOTrackedFrameList* savedDataBuffer)
 {
   // Set buffer parameters based on the input tracked frame list
   vtkPlusDataSource* outputDataSource = this->GetOutputDataSource();
@@ -543,9 +543,9 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkPlusTrackedFrameList*
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusSavedDataSource::InternalConnectTracker(vtkPlusTrackedFrameList* savedDataBuffer)
+PlusStatus vtkPlusSavedDataSource::InternalConnectTracker(vtkIGSIOTrackedFrameList* savedDataBuffer)
 {
-  PlusTrackedFrame* frame = savedDataBuffer->GetTrackedFrame(0);
+  igsioTrackedFrame* frame = savedDataBuffer->GetTrackedFrame(0);
   if (frame == NULL)
   {
     LOG_ERROR("The tracked frame buffer doesn't seem to contain any frames");
@@ -566,7 +566,7 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectTracker(vtkPlusTrackedFrameLis
       continue;
     }
 
-    PlusTransformName toolTransformName(tool->GetId());
+    igsioTransformName toolTransformName(tool->GetId());
     if (!frame->IsFrameTransformNameDefined(toolTransformName))
     {
       std::string strTransformName;
@@ -648,7 +648,7 @@ PlusStatus vtkPlusSavedDataSource::ReadConfiguration(vtkXMLDataElement* rootConf
   if (vtkPlusConfig::GetInstance()->FindImagePath(this->SequenceFile, foundAbsoluteImagePath) == PLUS_FAIL)
   {
     std::string sequenceFileStr(this->SequenceFile);
-    std::string seqFileTrim = PlusCommon::Trim(sequenceFileStr);
+    std::string seqFileTrim = igsioCommon::Trim(sequenceFileStr);
     std::string foundAbsoluteImagePath;
     if (vtkPlusConfig::GetInstance()->FindImagePath(seqFileTrim, foundAbsoluteImagePath) == PLUS_SUCCESS)
     {

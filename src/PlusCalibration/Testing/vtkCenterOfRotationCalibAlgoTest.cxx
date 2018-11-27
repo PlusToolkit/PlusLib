@@ -16,7 +16,7 @@
 #include "PlusPlotter.h"
 #include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkPlusHTMLGenerator.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkPlusSpacingCalibAlgo.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 {
   int numberOfFailures(0);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp(false);
   vtksys::CommandLineArguments args;
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputSequenceMetafile.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty())
   {
@@ -88,8 +88,8 @@ int main(int argc, char** argv)
 
   LOG_INFO("Read center of rotation data from metafile...");
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (vtkPlusSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS)
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if (vtkIGSIOSequenceIO::Read(inputSequenceMetafile, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputSequenceMetafile);
     return EXIT_FAILURE;
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
   vtkTable* reportTable = centerOfRotationCalibAlgo->GetReportTable();
   if (reportTable != NULL)
   {
-    if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
+    if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
     {
       reportTable->Dump(25);
     }

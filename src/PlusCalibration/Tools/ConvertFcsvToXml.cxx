@@ -93,7 +93,7 @@ void WriteFiducialPositions(std::ofstream& outFile, const std::string& inputTest
 
     PlusUsFidSegResultFile::WriteSegmentationResults(outFile, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
-    if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
+    if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
     {
       PlusUsFidSegResultFile::WriteSegmentationResults(std::cout, patRecognitionResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
     }
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
   std::string inputTestcaseName;
   std::string outputXmlFileName;
 
-  int verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  int verboseLevel(vtkIGSIOLogger::LOG_LEVEL_UNDEFINED);
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputImageSequenceFileName.empty() || inputFcsvFileName.empty() || inputTestcaseName.empty() || outputXmlFileName.empty())
   {

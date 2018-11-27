@@ -10,8 +10,8 @@
 #include "PlusPlotter.h"
 #include "vtkPlusSpacingCalibAlgo.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusHTMLGenerator.h"
@@ -64,7 +64,7 @@ void vtkPlusSpacingCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-void vtkPlusSpacingCalibAlgo::SetInputs(vtkPlusTrackedFrameList* trackedFrameList, const std::vector<PlusNWire>& nWires)
+void vtkPlusSpacingCalibAlgo::SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList, const std::vector<PlusNWire>& nWires)
 {
   LOG_TRACE("vtkPlusSpacingCalibAlgo::SetInputs");
   this->SetTrackedFrameList(trackedFrameList);
@@ -111,7 +111,7 @@ PlusStatus vtkPlusSpacingCalibAlgo::Update()
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkPlusTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
+  if (vtkIGSIOTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to perform calibration - tracked frame list is invalid");
     return PLUS_FAIL;
@@ -196,7 +196,7 @@ PlusStatus vtkPlusSpacingCalibAlgo::ConstructLinearEquationForCalibration(std::v
 
   for (unsigned int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame)
   {
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame);
+    igsioTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame);
     if (trackedFrame == NULL)
     {
       LOG_ERROR("Unable to get tracked frame from the list - tracked frame is NULL (position in the list: " << frame << ")!");

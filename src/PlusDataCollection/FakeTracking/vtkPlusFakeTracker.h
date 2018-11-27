@@ -10,8 +10,8 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPoints.h"
 
 /*! Fake tracker modes */
@@ -65,9 +65,9 @@ public:
   vtkSetMacro(Counter, int);
 
   /*! Set transform repository */
-  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  vtkSetObjectMacro(TransformRepository, vtkIGSIOTransformRepository);
   /*! Get transform repository */
-  vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  vtkGetObjectMacro(TransformRepository, vtkIGSIOTransformRepository);
 
   /*! Get the phantom landmark points positions */
   vtkGetObjectMacro(PhantomLandmarks, vtkPoints);
@@ -100,7 +100,7 @@ protected:
   FakeTrackerMode Mode;
 
   /*! Transform repository object (some modes need some more transforms to simulate properly) */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkIGSIOTransformRepository* TransformRepository;
 
   /*! Constant seed used for random generator */
   int RandomSeed;

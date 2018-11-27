@@ -9,7 +9,7 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 #include <map>
 
@@ -115,8 +115,8 @@ protected:
   class vtkPlusUSDigitalEncoderInfo;
 
 protected:
-  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository
-    = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> TransformRepository
+    = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 
   typedef std::map<long, vtkPlusUSDigitalEncoderInfo*> EncoderInfoMapType;
   EncoderInfoMapType EncoderMap;

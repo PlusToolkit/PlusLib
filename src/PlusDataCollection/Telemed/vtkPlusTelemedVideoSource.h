@@ -98,7 +98,7 @@ protected:
   TelemedUltrasound* Device;
   bool ConnectedToDevice;
 
-  PlusVideoFrame UncompressedVideoFrame;
+  igsioVideoFrame UncompressedVideoFrame;
 
   FrameSizeType FrameSize;
 

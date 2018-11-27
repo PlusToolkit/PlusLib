@@ -11,8 +11,8 @@
 #include "vtkMatrix4x4.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   double inputMaxRotationDifference(1.0); 
   std::string inputTransformName; 
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( inputMetafile.empty() )
   {
@@ -63,13 +63,13 @@ int main(int argc, char **argv)
 
   // Read buffer 
   LOG_INFO("Reading tracker meta file..."); 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New(); 
+  if( vtkIGSIOSequenceIO::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile ); 
   }
 
-  PlusTransformName transformName; 
+  igsioTransformName transformName; 
   if ( transformName.SetTransformName(inputTransformName.c_str())!= PLUS_SUCCESS )
   {
     LOG_ERROR("Invalid transform name: " << inputTransformName ); 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     numberOfErrors++;
   }
 
-  vtkPlusLogger::PrintProgressbar( 100 ); 
+  vtkIGSIOLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
   // Check interpolation results 
@@ -143,14 +143,14 @@ int main(int argc, char **argv)
     }
 
 
-    double rotDiff = PlusMath::GetOrientationDifference(matrix, prevmatrix); 
+    double rotDiff = igsioMath::GetOrientationDifference(matrix, prevmatrix);
     if ( rotDiff > inputMaxRotationDifference )
     {
       LOG_ERROR("Rotation difference is larger than the max rotation difference (difference=" << std::fixed << rotDiff << ", threshold=" << inputMaxRotationDifference << ", itemIndex=" << bufferIndex << ", timestamp=" << newTime << ")!"); 
       numberOfErrors++; 
     }
 
-    double transDiff = PlusMath::GetPositionDifference(matrix, prevmatrix); 
+    double transDiff = igsioMath::GetPositionDifference(matrix, prevmatrix); 
     if ( transDiff > inputMaxTranslationDifference)
     {
       LOG_ERROR("Translation difference is larger than the max translation difference (difference=" << std::fixed << transDiff << ", threshold=" << inputMaxTranslationDifference << ", itemIndex=" << bufferIndex << ", timestamp=" << newTime << ")!"); 

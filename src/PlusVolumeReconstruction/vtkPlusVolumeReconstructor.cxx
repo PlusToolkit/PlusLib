@@ -6,13 +6,14 @@
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusFanAngleDetectorAlgo.h"
 #include "vtkPlusFillHolesInVolume.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkPlusVolumeReconstructor.h"
+#include "igsioCommon.h"
 
 // STL includes
 #include <limits>
@@ -315,10 +316,10 @@ void vtkPlusVolumeReconstructor::AddImageToExtent(vtkImageData* image, vtkMatrix
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName)
+PlusStatus vtkPlusVolumeReconstructor::GetImageToReferenceTransformName(igsioTransformName& imageToReferenceTransformName)
 {
   // image to reference transform is specified in the XML tree
-  imageToReferenceTransformName = PlusTransformName(this->ImageCoordinateFrame, this->ReferenceCoordinateFrame);
+  imageToReferenceTransformName = igsioTransformName(this->ImageCoordinateFrame, this->ReferenceCoordinateFrame);
   if (!imageToReferenceTransformName.IsValid())
   {
     LOG_ERROR("Failed to set ImageToReference transform name from '" << this->ImageCoordinateFrame << "' to '" << this->ReferenceCoordinateFrame << "'");
@@ -338,9 +339,9 @@ PlusStatus vtkPlusVolumeReconstructor::GetImageToReferenceTransformName(PlusTran
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepository* transformRepository, std::string& errorDescription)
+PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkIGSIOTrackedFrameList* trackedFrameList, vtkIGSIOTransformRepository* transformRepository, std::string& errorDescription)
 {
-  PlusTransformName imageToReferenceTransformName;
+  igsioTransformName imageToReferenceTransformName;
   if (GetImageToReferenceTransformName(imageToReferenceTransformName) != PLUS_SUCCESS)
   {
     errorDescription = "Invalid ImageToReference transform name";
@@ -379,7 +380,7 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
   int numberOfValidFrames = 0;
   for (int frameIndex = 0; frameIndex < numberOfFrames; ++frameIndex)
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    igsioTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
     if (transformRepository->SetTransforms(*frame) != PLUS_SUCCESS)
     {
@@ -466,9 +467,9 @@ PlusStatus vtkPlusVolumeReconstructor::SetOutputExtentFromFrameList(vtkPlusTrack
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(PlusTrackedFrame* frame, vtkPlusTransformRepository* transformRepository, bool* insertedIntoVolume/*=NULL*/)
+PlusStatus vtkPlusVolumeReconstructor::AddTrackedFrame(igsioTrackedFrame* frame, vtkIGSIOTransformRepository* transformRepository, bool* insertedIntoVolume/*=NULL*/)
 {
-  PlusTransformName imageToReferenceTransformName;
+  igsioTransformName imageToReferenceTransformName;
   if (GetImageToReferenceTransformName(imageToReferenceTransformName) != PLUS_SUCCESS)
   {
     LOG_ERROR("Invalid ImageToReference transform name");
@@ -668,9 +669,9 @@ PlusStatus vtkPlusVolumeReconstructor::SaveReconstructedVolumeToFile(vtkImageDat
   volumeToSave->GetDimensions(dims);
   FrameSizeType frameSize = { static_cast<unsigned int>(dims[0]), static_cast<unsigned int>(dims[1]), static_cast<unsigned int>(dims[2]) };
 
-  vtkNew<vtkPlusTrackedFrameList> list;
-  PlusTrackedFrame frame;
-  PlusVideoFrame image;
+  vtkNew<vtkIGSIOTrackedFrameList> list;
+  igsioTrackedFrame frame;
+  igsioVideoFrame image;
   image.AllocateFrame(frameSize, volumeToSave->GetScalarType(), volumeToSave->GetNumberOfScalarComponents());
   image.GetImage()->DeepCopy(volumeToSave);
   image.SetImageOrientation(US_IMG_ORIENT_MFA);

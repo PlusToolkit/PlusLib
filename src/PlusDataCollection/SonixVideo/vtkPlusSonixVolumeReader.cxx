@@ -10,9 +10,9 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkImageData.h"
-#include "PlusVideoFrame.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "igsioVideoFrame.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 
 #include <iostream>
 #include <sstream>
@@ -45,7 +45,7 @@ void vtkPlusSonixVolumeReader::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 // static
-PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkPlusTrackedFrameList* trackedFrameList, double acquisitionFrameRate/* = 10*/)
+PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkIGSIOTrackedFrameList* trackedFrameList, double acquisitionFrameRate/* = 10*/)
 {
   if (volumeFileName == NULL)
   {
@@ -138,7 +138,7 @@ PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const c
     // Read data from file
     fread(dataFromFile, frameSizeInBytes, 1, fp);
 
-    PlusCommon::VTKScalarPixelType pixelType = VTK_VOID;
+    igsioCommon::VTKScalarPixelType pixelType = VTK_VOID;
     switch (dataType)
     {
       case udtBPost:
@@ -155,7 +155,7 @@ PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const c
     // If in the future sonix generates color images, we can change this to support that
     unsigned int numberOfScalarComponents = 1;
 
-    PlusVideoFrame videoFrame;
+    igsioVideoFrame videoFrame;
     if (videoFrame.AllocateFrame(frameSize, pixelType, numberOfScalarComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate image data for frame #" << i);
@@ -165,7 +165,7 @@ PlusStatus vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume(const c
     // Copy the frame data form file to vtkImageDataSet
     memcpy(videoFrame.GetScalarPointer(), dataFromFile, frameSizeInBytes);
 
-    PlusTrackedFrame trackedFrame;
+    igsioTrackedFrame trackedFrame;
     trackedFrame.SetImageData(videoFrame);
     trackedFrame.SetTimestamp((1.0 * (i + 1)) / acquisitionFrameRate);       // Generate timestamp, but don't start from 0
 

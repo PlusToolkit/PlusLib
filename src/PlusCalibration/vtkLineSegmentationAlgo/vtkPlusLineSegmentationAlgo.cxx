@@ -6,8 +6,8 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOTrackedFrameList.h"
 
 // Utility includes
 #include <PlaneParametersEstimator.h>
@@ -65,7 +65,7 @@ void vtkPlusLineSegmentationAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 //----------------------------------------------------------------------------
 vtkPlusLineSegmentationAlgo::vtkPlusLineSegmentationAlgo()
-  : m_TrackedFrameList(vtkSmartPointer<vtkPlusTrackedFrameList>::New())
+  : m_TrackedFrameList(vtkSmartPointer<vtkIGSIOTrackedFrameList>::New())
   , m_SaveIntermediateImages(false)
   , IntermediateFilesOutputDirectory("")
   , PlotIntensityProfile(false)
@@ -84,14 +84,14 @@ vtkPlusLineSegmentationAlgo::~vtkPlusLineSegmentationAlgo()
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusLineSegmentationAlgo::SetTrackedFrameList(vtkPlusTrackedFrameList& aTrackedFrameList)
+void vtkPlusLineSegmentationAlgo::SetTrackedFrameList(vtkIGSIOTrackedFrameList& aTrackedFrameList)
 {
   m_TrackedFrameList->Clear();
   m_TrackedFrameList->AddTrackedFrameList(&aTrackedFrameList);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusLineSegmentationAlgo::SetTrackedFrame(PlusTrackedFrame& aTrackedFrame)
+void vtkPlusLineSegmentationAlgo::SetTrackedFrame(igsioTrackedFrame& aTrackedFrame)
 {
   m_TrackedFrameList->Clear();
   m_TrackedFrameList->AddTrackedFrame(&aTrackedFrame);
@@ -127,7 +127,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::VerifyVideoInput()
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkPlusTrackedFrameList::VerifyProperties(m_TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
+  if (vtkIGSIOTrackedFrameList::VerifyProperties(m_TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
     LOG_ERROR("vtkPlusLineSegmentationAlgo video input data verification failed: video data orientation or type is not supported (MF orientation, BRIGHTNESS type is expected)");
     return PLUS_FAIL;
@@ -140,7 +140,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::VerifyVideoInput()
   bool signalTimeRangeDefined = (m_SignalTimeRangeMin <= m_SignalTimeRangeMax);
   for (unsigned int i = 0 ; i < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = m_TrackedFrameList->GetTrackedFrame(i);
+    igsioTrackedFrame* trackedFrame = m_TrackedFrameList->GetTrackedFrame(i);
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp() < m_SignalTimeRangeMin || trackedFrame->GetTimestamp() > m_SignalTimeRangeMax))
     {
       // frame is out of the specified signal range
@@ -199,7 +199,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
   for (unsigned int frameNumber = 0; frameNumber < m_TrackedFrameList->GetNumberOfTrackedFrames(); ++frameNumber)
   {
     LOG_TRACE("Calculating video position metric for frame " << frameNumber);
-    PlusTrackedFrame* trackedFrame = m_TrackedFrameList->GetTrackedFrame(frameNumber);
+    igsioTrackedFrame* trackedFrame = m_TrackedFrameList->GetTrackedFrame(frameNumber);
     if (signalTimeRangeDefined && (trackedFrame->GetTimestamp() < m_SignalTimeRangeMin || trackedFrame->GetTimestamp() > m_SignalTimeRangeMax))
     {
       // frame is out of the specified signal range
@@ -214,7 +214,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
       continue;
     }
     CharImageType::Pointer localImage = CharImageType::New();
-    PlusVideoFrame::DeepCopyVtkVolumeToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
+    PlusCommon::DeepCopyVtkVolumeToItkImage<CharPixelType>(trackedFrame->GetImageData()->GetImage(), localImage);
     if (localImage.IsNull())
     {
       // Dropped frame
@@ -379,7 +379,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
     LOG_WARNING("Line segmentation success rate is very low (" << segmentationSuccessRate * 100 << "%): a line could only be detected on " << numberOfSuccessfulLineSegmentations << " frames out of " << m_TrackedFrameList->GetNumberOfTrackedFrames());
   }
 
-  bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
+  bool plotVideoMetric = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
   if (plotVideoMetric)
   {
     PlotDoubleArray(m_SignalValues);

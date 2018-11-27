@@ -103,7 +103,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
         continue;
       }
 
-      PlusTransformName tName;
+      igsioTransformName tName;
       if (tName.SetTransformName(name) != PLUS_SUCCESS)
       {
         LOG_WARNING("Invalid transform name: " << name);
@@ -260,7 +260,7 @@ void PlusIgtlClientInfo::GetClientInfoInXmlData(std::string& strXmlData)
   xmldata->AddNestedElement(imageNames);
 
   std::ostringstream os;
-  PlusCommon::XML::PrintXML(os, vtkIndent(0), xmldata);
+  igsioCommon::XML::PrintXML(os, vtkIndent(0), xmldata);
   strXmlData = os.str();
 }
 

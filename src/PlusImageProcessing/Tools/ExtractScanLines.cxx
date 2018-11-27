@@ -1,13 +1,14 @@
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkImageCast.h"
 #include "vtkImageData.h"
-#include "vtkPlusMetaImageSequenceIO.h"
+#include "vtkIGSIOMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusUsScanConvert.h"
 #include "vtkPlusUsScanConvertCurvilinear.h"
 #include "vtkPlusUsScanConvertLinear.h"
+#include "vtkPlusSequenceIO.h"
 
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -53,7 +54,7 @@ int main(int argc, char** argv)
   std::string inputFileName;
   std::string outputFileName;
   std::string configFileName;
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help");
@@ -75,7 +76,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputFileName.empty())
   {
@@ -154,8 +155,8 @@ int main(int argc, char** argv)
 
   // Read input image.
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> inputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  inputFrameList->ReadFromSequenceMetafile(inputFileName.c_str());
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> inputFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  vtkPlusSequenceIO::Read(inputFileName.c_str(), inputFrameList);
   int numberOfFrames = inputFrameList->GetNumberOfTrackedFrames();
 
   // Create lines image (this is the image which holds scan lines in rows).
@@ -168,16 +169,16 @@ int main(int argc, char** argv)
   linesImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
   // Create frame lists for lines images and output images.
-  vtkSmartPointer<vtkPlusTrackedFrameList> linesFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  vtkSmartPointer<vtkPlusTrackedFrameList> outputFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> linesFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> outputFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
 
   // Iterate thought every frame.
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex ++ )
   {
-    PlusTrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
+    igsioTrackedFrame* inputFrame = inputFrameList->GetTrackedFrame(frameIndex);
 
     linesFrameList->AddTrackedFrame(inputFrame);
-    PlusTrackedFrame* linesFrame = linesFrameList->GetTrackedFrame(linesFrameList->GetNumberOfTrackedFrames()-1);
+    igsioTrackedFrame* linesFrame = linesFrameList->GetTrackedFrame(linesFrameList->GetNumberOfTrackedFrames()-1);
     linesFrame->GetImageData()->DeepCopyFrom(linesImage);  // Would there be a more efficient way to create this tracked frame?
 
     // Extract scan lines from image.
@@ -185,9 +186,9 @@ int main(int argc, char** argv)
   }
 
   std::cout << "Writing output to file. Setting log level to 1, regardless of user specified verbose level." << std::endl;
-  vtkPlusLogger::Instance()->SetLogLevel(1);
+  vtkIGSIOLogger::Instance()->SetLogLevel(1);
 
-  linesFrameList->SaveToSequenceMetafile(outputFileName.c_str());
+  vtkPlusSequenceIO::Write(outputFileName.c_str(), linesFrameList);
 
   return EXIT_SUCCESS;
 }

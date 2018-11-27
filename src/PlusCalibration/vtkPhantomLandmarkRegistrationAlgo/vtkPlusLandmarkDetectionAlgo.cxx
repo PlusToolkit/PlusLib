@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusXmlUtils.h"
-#include "PlusMath.h"
+#include "igsioMath.h"
 
 #include "vtkPlusLandmarkDetectionAlgo.h"
 
@@ -107,7 +107,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::ComputeFilterWindowSize( unsigned int& 
     LOG_ERROR( "Specified acquisition rate is not positive" );
     return PLUS_FAIL;
   }
-  filterWindowSize = static_cast<unsigned int>( PlusMath::Round( this->AcquisitionRate * this->FilterWindowTimeSec ) );
+  filterWindowSize = static_cast<unsigned int>( igsioMath::Round( this->AcquisitionRate * this->FilterWindowTimeSec ) );
   if( filterWindowSize < 1 )
   {
     LOG_WARNING( "The smallest window size is set to 1" );
@@ -243,10 +243,10 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform
   stylusTipToReferenceTransform->MultiplyPoint( StylusShaftPoint_StylusTip, StylusShaftPoint_Reference );
   this->StylusShaftPathBoundingBox.AddPoint( StylusShaftPoint_Reference );
 
-  unsigned int numberOfAcquiredWindows = PlusMath::Floor( this->StylusTipToReferenceTransformsDeque.size() / filterWindowSize );
+  unsigned int numberOfAcquiredWindows = igsioMath::Floor( this->StylusTipToReferenceTransformsDeque.size() / filterWindowSize );
 
   // Print all available StylusTipToReferenceTransform positions if debug level is TRACE
-  bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
+  bool debugOutput = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
   if ( debugOutput )
   {
     LOG_TRACE( "Window Landmark (" << stylusTipFiltered_Reference[0] << ", " << stylusTipFiltered_Reference[1] << ", " << stylusTipFiltered_Reference[2] << ") found keep going" );
@@ -337,7 +337,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::EstimateLandmarkPosition()
     return PLUS_FAIL;
   }
 
-  int numberOfWindowsSkip = filterWindowSize = PlusMath::Round( numberOfRequiredWindows * PERCENTAGE_WINDOWS_SKIP );
+  int numberOfWindowsSkip = filterWindowSize = igsioMath::Round( numberOfRequiredWindows * PERCENTAGE_WINDOWS_SKIP );
   if( filterWindowSize < 1 )
   {
     LOG_WARNING( "The smallest number of windows to skip is set to 1" );
@@ -371,7 +371,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::EstimateLandmarkPosition()
   double stylusTipStdev_Reference[4] = {0, 0, 0, 0};
   for ( int j = 0; j < 4; ++j )
   {
-    PlusMath::ComputeMeanAndStdev( values[j], stylusTipMean_Reference[j], stylusTipStdev_Reference[j] );
+    igsioMath::ComputeMeanAndStdev( values[j], stylusTipMean_Reference[j], stylusTipStdev_Reference[j] );
   }
   int existingLandmarkId = GetNearExistingLandmarkId( stylusTipMean_Reference );
   if ( existingLandmarkId != -1 )
@@ -395,7 +395,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::EstimateLandmarkPosition()
 
   double stylusVectorsMagnitudeMean = 0;
   double stylusVectorsMagnitudeStdev = 0;
-  PlusMath::ComputeMeanAndStdev( sylusTipsToMeanVectorsMagnitude, stylusVectorsMagnitudeMean, stylusVectorsMagnitudeStdev );
+  igsioMath::ComputeMeanAndStdev( sylusTipsToMeanVectorsMagnitude, stylusVectorsMagnitudeMean, stylusVectorsMagnitudeStdev );
   LOG_DEBUG( "Error magnitude = ||StylusTipsMean-StylusTip||" );
   LOG_DEBUG( "Error magnitude Mean = " << stylusVectorsMagnitudeMean );
   LOG_DEBUG( "Error magnitude STD deviation = " << stylusVectorsMagnitudeStdev );

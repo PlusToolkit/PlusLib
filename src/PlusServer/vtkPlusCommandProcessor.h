@@ -108,7 +108,7 @@ private:
   vtkSmartPointer<vtkMultiThreader> Threader;
 
   /*! Mutex instance for safe data access */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> Mutex;
 
   // Active flag for threads (first: request, second: respond )
   std::pair<bool, bool> CommandExecutionActive;

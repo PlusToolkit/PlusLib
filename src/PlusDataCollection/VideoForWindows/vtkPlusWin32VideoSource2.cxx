@@ -585,7 +585,7 @@ PlusStatus vtkPlusWin32VideoSource2::InternalStartRecording()
     return PLUS_FAIL;
   }
   this->FrameIndex = 0;
-  //double startTime = vtkPlusAccurateTimer::GetSystemTime();
+  //double startTime = vtkIGSIOAccurateTimer::GetSystemTime();
   //this->Buffer->SetStartTime(startTime);
   return PLUS_SUCCESS;
 }
@@ -785,7 +785,7 @@ PlusStatus vtkPlusWin32VideoSource2::UpdateFrameBuffer()
 
   unsigned int width(this->Internal->BitMapInfoPtr->bmiHeader.biWidth);
   unsigned int height(this->Internal->BitMapInfoPtr->bmiHeader.biHeight);
-  PlusCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR);   // always convert output to 8-bit grayscale
+  igsioCommon::VTKScalarPixelType pixelType(VTK_UNSIGNED_CHAR);   // always convert output to 8-bit grayscale
   unsigned int numberOfScalarComponents = 1;
 
   vtkPlusDataSource* aSource(NULL);

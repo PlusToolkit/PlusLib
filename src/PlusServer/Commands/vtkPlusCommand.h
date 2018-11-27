@@ -11,7 +11,7 @@
 
 class vtkPlusDataCollector;
 class vtkPlusCommandProcessor;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 class vtkImageData;
 
 #include "vtkPlusCommandResponse.h"
@@ -133,7 +133,7 @@ protected:
   virtual vtkPlusDataCollector* GetDataCollector();
 
   /*! Convenience function for getting a pointer to the transform repository */
-  virtual vtkPlusTransformRepository* GetTransformRepository();
+  virtual vtkIGSIOTransformRepository* GetTransformRepository();
 
   /*! Check if the command name is in the list of command names */
   PlusStatus ValidateName();

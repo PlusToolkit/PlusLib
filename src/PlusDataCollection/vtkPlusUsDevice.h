@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef __vtkPlusUsDevice_h
 #define __vtkPlusUsDevice_h
 
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
@@ -46,21 +46,21 @@ public:
   virtual PlusStatus SetNewImagingParameters(const vtkPlusUsImagingParameters& newImagingParameters);
 
   /*! This function can be called to add a video item to a specific video data source */
-  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
   /*! This function can be called to add a video item to a specific video data source */
-  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, PlusCommon::VTKScalarPixelType pixelType,
+  virtual PlusStatus AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType,
       unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*! This function can be called to add a video item to all video data sources */
-  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const PlusVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
+  virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL) override;
 
   /*! This function can be called to add a video item to the specified video data sources */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
-      PlusCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL) override;
+      igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL) override;
 
   /*!
   If non-NULL then ImageToTransducer transform is added as a custom field to the image data with the specified name.
@@ -103,7 +103,7 @@ protected:
   /*! Set changed imaging parameter to device */
   virtual PlusStatus InternalApplyImagingParameterChange() { return PLUS_FAIL; };
 
-  void CalculateImageToTransducer(PlusTrackedFrame::FieldMapType& customFields);
+  void CalculateImageToTransducer(igsioTrackedFrame::FieldMapType& customFields);
 
   vtkPlusUsDevice();
   virtual ~vtkPlusUsDevice();
@@ -117,7 +117,7 @@ protected:
   /// Values used in calculation of image to transducer matrix
   int CurrentTransducerOriginPixels[3];
 
-  PlusTransformName ImageToTransducerTransform;
+  igsioTransformName ImageToTransducerTransform;
   char* ImageToTransducerTransformName;
 
 private:

@@ -11,7 +11,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "PlusWidgetsExport.h"
 #include "ui_QPlusDeviceSetSelectorWidget.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 // Qt includes
 #include <QString>
@@ -148,7 +148,7 @@ protected:
   virtual void resizeEvent(QResizeEvent* event);
 
   QString FindCalibrationDetails(const QDomDocument& doc,
-                                 vtkSmartPointer<vtkPlusTransformRepository> tr,
+                                 vtkSmartPointer<vtkIGSIOTransformRepository> tr,
                                  const QString& tagName,
                                  const QString& outputPrefix,
                                  const QString& firstFrame,

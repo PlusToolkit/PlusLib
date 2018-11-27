@@ -27,7 +27,7 @@ int main( int argc, char** argv )
   std::string  inputConfigFileName;
   std::string  inputVideoBufferMetafile;
   std::string  inputTrackerBufferMetafile;
-  int          verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int          verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -44,7 +44,7 @@ int main( int argc, char** argv )
     return EXIT_FAILURE;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
 
   // Prepare data collector object.
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();

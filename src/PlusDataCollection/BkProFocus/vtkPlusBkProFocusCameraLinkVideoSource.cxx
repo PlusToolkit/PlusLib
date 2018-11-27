@@ -356,7 +356,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::EventCallback(void* owner, char* ev
 {
   vtkPlusBkProFocusCameraLinkVideoSource* self = static_cast<vtkPlusBkProFocusCameraLinkVideoSource*>(owner);
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(self->UpdateMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> critSectionGuard(self->UpdateMutex);
 
   if (self->Internal->SubscribeScanPlane && !_strnicmp("SCAN_PLANE", &eventText[strlen("SDATA:")], strlen("SCAN_PLANE")))
   {
@@ -527,9 +527,9 @@ PlusStatus vtkPlusBkProFocusCameraLinkVideoSource::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, const FrameSizeType& inputFrameSizeInPix, PlusCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
+void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr, const FrameSizeType& inputFrameSizeInPix, igsioCommon::VTKScalarPixelType pixelType, US_IMAGE_TYPE imageType)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> critSectionGuard(this->UpdateMutex);
 
   // we may need to overwrite these, so create a copy that will be used internally
   FrameSizeType frameSizeInPix =
@@ -541,7 +541,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
             << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
-            << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType));
+            << ", image type: " << igsioVideoFrame::GetStringFromUsImageType(imageType));
 
   vtkPlusChannel* channel = this->FindChannelByPlane();
 
@@ -569,7 +569,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
         // RF image is received and RF image is needed => no need for conversion
         break;
       }
-      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << PlusVideoFrame::GetStringFromUsImageType(imageType) << " to RF");
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioVideoFrame::GetStringFromUsImageType(imageType) << " to RF");
       return;
     }
     case BMode:
@@ -604,11 +604,11 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
         imageType = US_IMG_BRIGHTNESS;
         break;
       }
-      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << PlusVideoFrame::GetStringFromUsImageType(imageType) << " to Brightness");
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioVideoFrame::GetStringFromUsImageType(imageType) << " to Brightness");
       return;
     }
     default:
-      LOG_ERROR("The received frame is discarded, as the requested imaging mode (" << PlusVideoFrame::GetStringFromUsImageType(imageType) << ") is not supported");
+      LOG_ERROR("The received frame is discarded, as the requested imaging mode (" << igsioVideoFrame::GetStringFromUsImageType(imageType) << ") is not supported");
       return;
   }
 
@@ -637,9 +637,9 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
     }
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
-             << ", image type: " << PlusVideoFrame::GetStringFromUsImageType(imageType)
-             << ", device image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
-             << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetOutputImageOrientation()));
+             << ", image type: " << igsioVideoFrame::GetStringFromUsImageType(imageType)
+             << ", device image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
+             << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetOutputImageOrientation()));
 
   }
 
@@ -647,7 +647,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
   this->Modified();
   this->FrameNumber++;
 
-  // just for testing: PlusVideoFrame::SaveImageToFile( (unsigned char*)pixelDataPtr, frameSizeInPix, numberOfBitsPerPixel, (char *)"test.jpg");
+  // just for testing: igsioVideoFrame::SaveImageToFile( (unsigned char*)pixelDataPtr, frameSizeInPix, numberOfBitsPerPixel, (char *)"test.jpg");
 }
 
 

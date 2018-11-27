@@ -23,61 +23,6 @@ function(ADD_COMPARE_FILES_TEST TestName DependsOnTestName TestFileName)
 
 endfunction()
 
-#--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkPlusLoggerTest vtkPlusLoggerTest.cxx )
-SET_TARGET_PROPERTIES(vtkPlusLoggerTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkPlusLoggerTest vtkPlusCommon )
-
-ADD_TEST(vtkPlusLoggerTest
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusLoggerTest
-  --verbose=5
-  )
-
- #--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(PlusCommonTest PlusCommonTest.cxx )
-SET_TARGET_PROPERTIES(PlusCommonTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(PlusCommonTest vtkPlusCommon )
-
-ADD_TEST(PlusCommonTest
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusCommonTest
-  )
-
-#--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(PlusMathTest PlusMathTest.cxx )
-SET_TARGET_PROPERTIES(PlusMathTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(PlusMathTest vtkPlusCommon )
-
-ADD_TEST(PlusMathTest
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/PlusMathTest
-  --xml-file=${TestDataDir}/PlusMathTestData.xml
-  )
-
-#--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(AccurateTimerTest AccurateTimerTest.cxx )
-SET_TARGET_PROPERTIES(AccurateTimerTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(AccurateTimerTest vtkPlusCommon )
-GENERATE_HELP_DOC(AccurateTimerTest)
-
-ADD_TEST(AccurateTimerTest
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/AccurateTimerTest
-  --testTimeSec=10
-  --averageIntendedDelaySec=0.005
-  --numberOfThreads=3
-  --verbose=3
-  )
-SET_TESTS_PROPERTIES(AccurateTimerTest PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
-
-#--------------------------------------------------------------------------------------------
-ADD_EXECUTABLE(vtkTransformRepositoryTest vtkTransformRepositoryTest.cxx )
-SET_TARGET_PROPERTIES(vtkTransformRepositoryTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkTransformRepositoryTest vtkPlusCommon )
-
-ADD_TEST(vtkTransformRepositoryTest
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkTransformRepositoryTest
-  --verbose=3
-  )
-# This test prints some errors when testing error cases, therefore the output is not
-# checked for the presence of ERROR or WARNING string
 IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
   #--------------------------------------------------------------------------------------------
   ADD_TEST(NAME EditSequenceFileTrim
@@ -215,13 +160,4 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
 ENDIF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
-# --------------------------------------------------------------------------
-# Install
-#
-INSTALL(
-  TARGETS
-    AccurateTimerTest
-  DESTINATION "${PLUSLIB_BINARY_INSTALL}"
-  COMPONENT RuntimeExecutables
-  )
  

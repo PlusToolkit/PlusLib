@@ -14,18 +14,18 @@ See License.txt for details.
 
 #include "PlusFidPatternRecognition.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCommand.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -33,7 +33,7 @@ See License.txt for details.
 #include <iostream>
 #include <stdlib.h>
 
-PlusStatus SubSequenceMetafile(vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
+PlusStatus SubSequenceMetafile(vtkIGSIOTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames);
 PlusStatus SetOptimizationMethod(vtkPlusProbeCalibrationAlgo* freehandCalibration, std::string method);
 
 enum OperationType
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   //double inputRotationErrorThreshold(0);
 #endif
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize");
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
   vtkPlusConfig::GetInstance()->SetDeviceSetConfigurationData(configRootElement);
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!");
@@ -112,12 +112,12 @@ int main(int argc, char* argv[])
   PlusFidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
-  bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
+  bool debugOutput = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   // Load and segment calibration image
-  vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS)
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if (vtkIGSIOSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Reading calibration images from '" << inputCalibrationSeqMetafile << "' failed!");
     return EXIT_FAILURE;
@@ -134,8 +134,8 @@ int main(int argc, char* argv[])
   LOG_INFO("Segmentation success rate of calibration images: " << numberOfSuccessfullySegmentedCalibrationImages << " out of " << calibrationTrackedFrameList->GetNumberOfTrackedFrames());
 
   // Load and segment validation image
-  vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS)
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if (vtkIGSIOSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Reading validation images from '" << inputValidationSeqMetafile << "' failed!");
     return EXIT_FAILURE;
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> sequenceTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> sequenceTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
 
   std::string methods[] = {"NO_OPTIMIZATION", "7param2D", "7param3D", "8param2D", "8param3D"};
   int numberOfMethods = sizeof(methods) / sizeof(methods[0]);
@@ -344,7 +344,7 @@ int main(int argc, char* argv[])
 
 //-------------------------------------------------------------------------------------------------
 
-PlusStatus SubSequenceMetafile(vtkPlusTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
+PlusStatus SubSequenceMetafile(vtkIGSIOTrackedFrameList* aTrackedFrameList, std::vector<unsigned int> selectedFrames)
 {
   LOG_INFO("Create a sub sequence using" << selectedFrames.size() << " frames");
   std::sort(selectedFrames.begin(), selectedFrames.end());

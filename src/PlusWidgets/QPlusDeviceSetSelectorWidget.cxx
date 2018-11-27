@@ -8,7 +8,7 @@ See License.txt for details.
 #include "QPlusDeviceSetSelectorWidget.h"
 
 // PlusLib includes
-#include <vtkPlusTransformRepository.h>
+//#include <vtkIGSIOTransformRepository.h>
 
 // Qt includes
 #include <QAbstractItemView>
@@ -331,7 +331,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
   {
     QString fileName = QDir::toNativeSeparators(QString(configDir.absoluteFilePath(filesIterator.next())));
     QString extension = fileName.mid(fileName.lastIndexOf("."));
-    if (!PlusCommon::IsEqualInsensitive(extension.toStdString(), ".xml"))
+    if (!igsioCommon::IsEqualInsensitive(extension.toStdString(), ".xml"))
     {
       continue;
     }
@@ -384,7 +384,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
       vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::Take(vtkXMLUtilities::ReadElementFromFile(fileName.toStdString().c_str()));
       if (configRootElement != NULL)
       {
-        auto tr = vtkSmartPointer<vtkPlusTransformRepository>::New();
+        auto tr = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
         if (tr->ReadConfiguration(configRootElement) == PLUS_SUCCESS)
         {
           QString pivotString;
@@ -485,7 +485,7 @@ PlusStatus QPlusDeviceSetSelectorWidget::ParseDirectory(const QString& aDirector
 
 //----------------------------------------------------------------------------
 QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument& aDocument,
-    vtkSmartPointer<vtkPlusTransformRepository> aTransformRepository,
+    vtkSmartPointer<vtkIGSIOTransformRepository> aTransformRepository,
     const QString& aTagName,
     const QString& aOutputPrefix,
     const QString& aFirstFrame,
@@ -499,7 +499,7 @@ QString QPlusDeviceSetSelectorWidget::FindCalibrationDetails(const QDomDocument&
     QString secondFrame(elem.attribute(aSecondFrame));
     if (!firstFrame.isEmpty() && !secondFrame.isEmpty())
     {
-      PlusTransformName tName(firstFrame.toStdString(), secondFrame.toStdString());
+      igsioTransformName tName(firstFrame.toStdString(), secondFrame.toStdString());
       std::string date;
       double error;
       if (aTransformRepository->GetTransformDate(tName, date, true) == PLUS_SUCCESS &&

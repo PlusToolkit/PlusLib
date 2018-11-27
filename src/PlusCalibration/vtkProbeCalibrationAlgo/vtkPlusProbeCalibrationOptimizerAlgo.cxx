@@ -13,7 +13,7 @@ See License.txt for details.
 #include "vtkPlusProbeCalibrationOptimizerAlgo.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLUtilities.h"
 
 #include "vtksys/SystemTools.hxx"
@@ -240,7 +240,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix, vtkMatrix); 
-    PlusMath::LogVtkMatrix(vtkMatrix);
+    igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
   double initialError=costFunction->GetValue(imageToProbeSeedTransformParameters);
@@ -250,7 +250,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
     DistanceToWiresCostFunction::GetTransformMatrix(imageToProbeTransform_vnl, imageToProbeSeedTransformParameters);
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     PlusMath::ConvertVnlMatrixToVtkMatrix(imageToProbeTransform_vnl, vtkMatrix); 
-    PlusMath::LogVtkMatrix(vtkMatrix);
+    igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
   OptimizerType::Pointer  optimizer = OptimizerType::New();
@@ -324,7 +324,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   {
     vtkSmartPointer<vtkMatrix4x4> vtkMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
     PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix, vtkMatrix); 
-    PlusMath::LogVtkMatrix(vtkMatrix);
+    igsioMath::LogVtkMatrix(vtkMatrix);
   }
 
   // Store the optimized parameters and show the results
@@ -340,7 +340,7 @@ PlusStatus vtkPlusProbeCalibrationOptimizerAlgo::Update()
   vtkSmartPointer<vtkMatrix4x4> imageToProbeTransformMatrixVtk = vtkSmartPointer<vtkMatrix4x4>::New();
   PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeSeedTransformMatrix,imageToProbeSeedTransformMatrixVtk);
   PlusMath::ConvertVnlMatrixToVtkMatrix(this->ImageToProbeTransformMatrix,imageToProbeTransformMatrixVtk);
-  double angleDifference = PlusMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
+  double angleDifference = igsioMath::GetOrientationDifference(imageToProbeSeedTransformMatrixVtk, imageToProbeTransformMatrixVtk);
   LOG_INFO("Orientation difference between unoptimized and optimized matrices =  " << angleDifference << " deg");
 
   return PLUS_SUCCESS; 

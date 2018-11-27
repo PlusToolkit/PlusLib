@@ -256,8 +256,8 @@ protected:
   void DisableToolPorts();
 
   /*! Parse and log available volume list response */
-  void LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
-  void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+  void LogVolumeList(int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel);
+  void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel);
 
   /*!
     Intelligently detect which connection is used and close it
@@ -293,7 +293,7 @@ protected:
   bool                              LeaveDeviceOpenAfterProbe;
   bool                              CheckDSR;
   NdiToolDescriptorsType            NdiToolDescriptors; // Maps Plus tool source IDs to NDI tool descriptors
-  vtkPlusRecursiveCriticalSection*  CommandMutex;
+  vtkIGSIORecursiveCriticalSection*  CommandMutex;
   char                              CommandReply[VTK_NDI_REPLY_LEN];
 
   std::string                       NetworkHostname;

@@ -64,7 +64,7 @@ void vtkPlusSetUsParameterCommand::GetCommandNames(std::list<std::string>& cmdNa
 std::string vtkPlusSetUsParameterCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SET_US_PARAMETER_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, SET_US_PARAMETER_CMD))
   {
     desc += SET_US_PARAMETER_CMD;
     //TODO:
@@ -89,7 +89,7 @@ PlusStatus vtkPlusSetUsParameterCommand::ReadConfiguration(vtkXMLDataElement* aC
   for (int elemIndex = 0; elemIndex < aConfig->GetNumberOfNestedElements(); ++elemIndex)
   {
     vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
-    if (PlusCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
+    if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "Parameter"))
     {
       const char* parameterName = currentElem->GetAttribute("Name");
       const char* parameterValue = currentElem->GetAttribute("Value");
@@ -140,7 +140,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "No command name specified.");
     return PLUS_FAIL;
   }
-  else if (!PlusCommon::IsEqualInsensitive(this->Name, SET_US_PARAMETER_CMD))
+  else if (!igsioCommon::IsEqualInsensitive(this->Name, SET_US_PARAMETER_CMD))
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", "Unknown command name: " + this->Name + ".");
     return PLUS_FAIL;

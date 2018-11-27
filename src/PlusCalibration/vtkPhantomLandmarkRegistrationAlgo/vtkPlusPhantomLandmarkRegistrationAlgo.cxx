@@ -13,7 +13,7 @@
 
 #include "vtkMath.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLUtilities.h"
 
 //-----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ vtkPlusPhantomLandmarkRegistrationAlgo::~vtkPlusPhantomLandmarkRegistrationAlgo(
 
 //-----------------------------------------------------------------------------
 
-PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::LandmarkRegister( vtkPlusTransformRepository* aTransformRepository/* = NULL*/ )
+PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::LandmarkRegister( vtkIGSIOTransformRepository* aTransformRepository/* = NULL*/ )
 {
   LOG_TRACE( "vtkPlusPhantomLandmarkRegistrationAlgo::Register" );
 
@@ -129,10 +129,10 @@ PlusStatus vtkPlusPhantomLandmarkRegistrationAlgo::LandmarkRegister( vtkPlusTran
   // Save result
   if ( aTransformRepository )
   {
-    PlusTransformName phantomToReferenceTransformName( this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame );
+    igsioTransformName phantomToReferenceTransformName( this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame );
     aTransformRepository->SetTransform( phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix );
     aTransformRepository->SetTransformPersistent( phantomToReferenceTransformName, true );
-    aTransformRepository->SetTransformDate( phantomToReferenceTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str() );
+    aTransformRepository->SetTransformDate( phantomToReferenceTransformName, vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString().c_str() );
     aTransformRepository->SetTransformError( phantomToReferenceTransformName, this->RegistrationErrorMm );
   }
   else

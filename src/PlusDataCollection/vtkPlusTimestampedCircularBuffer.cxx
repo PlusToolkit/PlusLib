@@ -8,7 +8,7 @@ See License.txt for details.
 #include "vtkPlusTimestampedCircularBuffer.h"
 
 #include "vtkDoubleArray.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 #include "vtkTable.h"
 #include "vtkVariantArray.h"
 
@@ -16,7 +16,7 @@ vtkStandardNewMacro(vtkPlusTimestampedCircularBuffer);
 
 //----------------------------------------------------------------------------
 vtkPlusTimestampedCircularBuffer::vtkPlusTimestampedCircularBuffer()
-  : Mutex(vtkPlusRecursiveCriticalSection::New())
+  : Mutex(vtkIGSIORecursiveCriticalSection::New())
   , WritePointer(0)
   , CurrentTimeStamp(0.0)
   , LocalTimeOffsetSec(0.0)
@@ -71,7 +71,7 @@ void vtkPlusTimestampedCircularBuffer::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTimestampedCircularBuffer::PrepareForNewItem(const double timestamp, BufferItemUidType& newFrameUid, int& bufferIndex)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
 
   if (timestamp <= this->CurrentTimeStamp)
   {
@@ -109,7 +109,7 @@ PlusStatus vtkPlusTimestampedCircularBuffer::SetBufferSize(int newBufferSize)
     return PLUS_FAIL;
   }
 
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
 
   if (newBufferSize == this->GetBufferSize() && newBufferSize != 0)
   {
@@ -208,7 +208,7 @@ StreamBufferItem* vtkPlusTimestampedCircularBuffer::GetBufferItemPointerFromBuff
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetFilteredTimeStamp(const BufferItemUidType uid, double& filteredTimestamp)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   StreamBufferItem* itemPtr = NULL;
   ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
   if (status != ITEM_OK)
@@ -223,7 +223,7 @@ ItemStatus vtkPlusTimestampedCircularBuffer::GetFilteredTimeStamp(const BufferIt
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetUnfilteredTimeStamp(const BufferItemUidType uid, double& unfilteredTimestamp)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   StreamBufferItem* itemPtr = NULL;
   ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
   if (status != ITEM_OK)
@@ -238,7 +238,7 @@ ItemStatus vtkPlusTimestampedCircularBuffer::GetUnfilteredTimeStamp(const Buffer
 //----------------------------------------------------------------------------
 bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidVideoData()
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   if (this->NumberOfItems < 1)
   {
     return false;
@@ -250,7 +250,7 @@ bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidVideoData()
 //----------------------------------------------------------------------------
 bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidTransformData()
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   if (this->NumberOfItems < 1)
   {
     return false;
@@ -262,7 +262,7 @@ bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidTransformData()
 //----------------------------------------------------------------------------
 bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidFieldData()
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   if (this->NumberOfItems < 1)
   {
     return false;
@@ -274,7 +274,7 @@ bool vtkPlusTimestampedCircularBuffer::GetLatestItemHasValidFieldData()
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetIndex(const BufferItemUidType uid, unsigned long& index)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   StreamBufferItem* itemPtr = NULL;
   ItemStatus status = GetBufferItemPointerFromUid(uid, itemPtr);
   if (status != ITEM_OK)
@@ -289,7 +289,7 @@ ItemStatus vtkPlusTimestampedCircularBuffer::GetIndex(const BufferItemUidType ui
 //----------------------------------------------------------------------------
 ItemStatus vtkPlusTimestampedCircularBuffer::GetBufferIndexFromTime(const double time, int& bufferIndex)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
   bufferIndex = -1;
 
   BufferItemUidType itemUid = 0;
@@ -313,7 +313,7 @@ ItemStatus vtkPlusTimestampedCircularBuffer::GetBufferIndexFromTime(const double
 // that best matches the given timestamp
 ItemStatus vtkPlusTimestampedCircularBuffer::GetItemUidFromTime(const double time, BufferItemUidType& uid)
 {
-  PlusLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
+  igsioLockGuard< vtkPlusTimestampedCircularBuffer > bufferGuardedLock(this);
 
   if (this->NumberOfItems == 1)
   {

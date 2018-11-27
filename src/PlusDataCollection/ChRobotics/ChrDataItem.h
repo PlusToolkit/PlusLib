@@ -156,7 +156,7 @@ private:
       LOG_ERROR("Child element name "<<childElemName<<" not found");
       return PLUS_FAIL;
     }
-    if (PlusCommon::StringToInt<unsigned char>(childElem->GetCharacterData(), childElemValue)!=PLUS_SUCCESS)
+    if (igsioCommon::StringToInt<unsigned char>(childElem->GetCharacterData(), childElemValue)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to read integer value from element "<<childElemName);
       return PLUS_FAIL;
@@ -172,7 +172,7 @@ private:
       LOG_ERROR("Child element name "<<childElemName<<" not found");
       return PLUS_FAIL;
     }
-    if (PlusCommon::StringToDouble(childElem->GetCharacterData(), childElemValue)!=PLUS_SUCCESS)
+    if (igsioCommon::StringToDouble(childElem->GetCharacterData(), childElemValue)!=PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to read double value from element "<<childElemName);
       return PLUS_FAIL;

@@ -24,7 +24,7 @@ See License.txt for details.
 #include <cstdlib>
 #include <cstring>
 
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMessageFactory.h"

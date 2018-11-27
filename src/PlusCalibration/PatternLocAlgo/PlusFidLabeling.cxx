@@ -7,7 +7,7 @@ See License.txt for details.
 // Local includes
 #include "PlusConfigure.h"
 #include "PlusFidLabeling.h"
-#include "PlusMath.h"
+#include "igsioMath.h"
 #include "PlusFidSegmentation.h"
 
 // VTK includes
@@ -138,7 +138,7 @@ PlusStatus PlusFidLabeling::ReadConfiguration(vtkXMLDataElement* configData, dou
   XML_FIND_NESTED_ELEMENT_OPTIONAL(segmentationParameters, configData, "Segmentation");
   if (!segmentationParameters)
   {
-    segmentationParameters = PlusXmlUtils::GetNestedElementWithName(configData, "Segmentation");
+    segmentationParameters = igsioXmlUtils::GetNestedElementWithName(configData, "Segmentation");
     PlusFidSegmentation::SetDefaultSegmentationParameters(segmentationParameters);
   }
 
@@ -306,7 +306,7 @@ double PlusFidLabeling::ComputeDistancePointLine(PlusFidDot& dot, PlusFidLine& l
   z[1] = dot.GetY();
   z[2] = 0;
 
-  return PlusMath::ComputeDistanceLinePoint(x, y, z);
+  return igsioMath::ComputeDistanceLinePoint(x, y, z);
 }
 
 //-----------------------------------------------------------------------------

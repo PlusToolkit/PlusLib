@@ -8,7 +8,7 @@ See License.txt for details.
 
 // Local includes
 #include "AtracsysTracker.h"
-#include "vtkPlusAccurateTimer.h"
+#include "vtkIGSIOAccurateTimer.h"
 #include "vtkPlusAtracsysTracker.h"
 
 // VTK includes
@@ -278,7 +278,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     LOG_INFO("Active marker pairing period started.");
 
     // sleep while waiting for tracker to pair active markers
-    vtkPlusAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+    vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
 
     LOG_INFO("Active marker pairing period ended.");
 
@@ -334,7 +334,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalStopRecording()
 PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 {
   LOG_TRACE("vtkPlusAtracsysTracker::InternalUpdate");
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   std::vector<AtracsysTracker::Marker> markers;
 
@@ -371,7 +371,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
 
       // tool is seen with acceptable registration error
       toolUpdated = true;
-      PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
       ToolTimeStampedUpdate(toolSourceId, mit->GetTransformToTracker(), TOOL_OK, this->FrameNumber, unfilteredTimestamp);
     }
@@ -380,7 +380,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
     {
       // tool is not seen in this frame
       vtkNew<vtkMatrix4x4> emptyTransform;
-      PlusTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
       std::string toolSourceId = toolTransformName.GetTransformName();
       ToolTimeStampedUpdate(toolSourceId, emptyTransform.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
     }

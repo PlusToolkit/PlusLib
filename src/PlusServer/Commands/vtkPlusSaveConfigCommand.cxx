@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusCommandResponse.h"
 #include "vtkPlusSaveConfigCommand.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkPlusVirtualCapture.h"
 
 vtkStandardNewMacro(vtkPlusSaveConfigCommand);
@@ -47,7 +47,7 @@ void vtkPlusSaveConfigCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusSaveConfigCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SAVE_CONFIG_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, SAVE_CONFIG_CMD))
   {
     desc += SAVE_CONFIG_CMD;
     desc += ": Tell the data collector to save the config file.";
@@ -109,7 +109,7 @@ PlusStatus vtkPlusSaveConfigCommand::Execute()
     return PLUS_FAIL;
   }
 
-  PlusCommon::XML::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  igsioCommon::XML::PrintXML(this->GetFilename(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
   this->QueueCommandResponse(PLUS_SUCCESS, baseMessageString + " Completed successfully.");
   return PLUS_SUCCESS;
 }

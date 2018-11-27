@@ -827,15 +827,15 @@ std::string vtkPlusV4L2VideoSource::IOMethodToString(V4L2_IO_METHOD ioMethod)
 //----------------------------------------------------------------------------
 vtkPlusV4L2VideoSource::V4L2_IO_METHOD vtkPlusV4L2VideoSource::StringToIOMethod(const std::string& method)
 {
-  if (PlusCommon::IsEqualInsensitive(method, "IO_METHOD_READ"))
+  if (igsioCommon::IsEqualInsensitive(method, "IO_METHOD_READ"))
   {
     return IO_METHOD_READ;
   }
-  else if (PlusCommon::IsEqualInsensitive(method, "IO_METHOD_MMAP"))
+  else if (igsioCommon::IsEqualInsensitive(method, "IO_METHOD_MMAP"))
   {
     return IO_METHOD_MMAP;
   }
-  else if (PlusCommon::IsEqualInsensitive(method, "IO_METHOD_USERPTR"))
+  else if (igsioCommon::IsEqualInsensitive(method, "IO_METHOD_USERPTR"))
   {
     return IO_METHOD_USERPTR;
   }
@@ -966,10 +966,10 @@ std::string vtkPlusV4L2VideoSource::PixelFormatToString(unsigned int pixelFormat
 #undef PIXEL_FORMAT_CASE
 
 //----------------------------------------------------------------------------
-#define PIXEL_FORMAT_STRING_COMPARE(format, formatStr) else if (PlusCommon::IsEqualInsensitive(#format, formatStr)) return format
+#define PIXEL_FORMAT_STRING_COMPARE(format, formatStr) else if (igsioCommon::IsEqualInsensitive(#format, formatStr)) return format
 unsigned int vtkPlusV4L2VideoSource::StringToPixelFormat(const std::string& format)
 {
-  if (PlusCommon::IsEqualInsensitive("V4L2_PIX_FMT_RGB332", format)) {return V4L2_PIX_FMT_RGB332;}
+  if (igsioCommon::IsEqualInsensitive("V4L2_PIX_FMT_RGB332", format)) {return V4L2_PIX_FMT_RGB332;}
   PIXEL_FORMAT_STRING_COMPARE(V4L2_PIX_FMT_RGB444, format);
   PIXEL_FORMAT_STRING_COMPARE(V4L2_PIX_FMT_ARGB444, format);
   PIXEL_FORMAT_STRING_COMPARE(V4L2_PIX_FMT_XRGB444, format);
@@ -1106,14 +1106,14 @@ std::string vtkPlusV4L2VideoSource::FieldOrderToString(v4l2_field field)
 //----------------------------------------------------------------------------
 v4l2_field vtkPlusV4L2VideoSource::StringToFieldOrder(const std::string& field)
 {
-  if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_ANY", field)) {return V4L2_FIELD_ANY;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_TOP", field)){return V4L2_FIELD_TOP;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_BOTTOM", field)){return V4L2_FIELD_BOTTOM;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED", field)){return V4L2_FIELD_INTERLACED;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_SEQ_TB", field)){return V4L2_FIELD_SEQ_TB;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_SEQ_BT", field)){return V4L2_FIELD_SEQ_BT;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_ALTERNATE", field)){return V4L2_FIELD_ALTERNATE;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED_TB", field)){return V4L2_FIELD_INTERLACED_TB;}
-  else if (PlusCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED_BT", field)){return V4L2_FIELD_INTERLACED_BT;}
+  if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_ANY", field)) {return V4L2_FIELD_ANY;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_TOP", field)){return V4L2_FIELD_TOP;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_BOTTOM", field)){return V4L2_FIELD_BOTTOM;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED", field)){return V4L2_FIELD_INTERLACED;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_SEQ_TB", field)){return V4L2_FIELD_SEQ_TB;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_SEQ_BT", field)){return V4L2_FIELD_SEQ_BT;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_ALTERNATE", field)){return V4L2_FIELD_ALTERNATE;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED_TB", field)){return V4L2_FIELD_INTERLACED_TB;}
+  else if (igsioCommon::IsEqualInsensitive("V4L2_FIELD_INTERLACED_BT", field)){return V4L2_FIELD_INTERLACED_BT;}
   else {return V4L2_FIELD_ANY;}
 }

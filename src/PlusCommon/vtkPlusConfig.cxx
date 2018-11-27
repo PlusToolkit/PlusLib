@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 #include "vtkDirectory.h"
 #include "vtkMatrix4x4.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/SystemTools.hxx"
 
@@ -55,7 +55,7 @@ namespace
   // ConfigCreationCriticalSection must be destroyed AFTER vtkPlusConfigCleanupGlobal
   struct StaticVariables
   {
-    vtkPlusSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
+    vtkIGSIOSimpleRecursiveCriticalSection ConfigCreationCriticalSection;
     vtkPlusConfigCleanup vtkPlusConfigCleanupGlobal;
   };
   StaticVariables staticVariables;
@@ -72,7 +72,7 @@ vtkPlusConfig* vtkPlusConfig::GetInstance()
 {
   if (!vtkPlusConfig::Instance)
   {
-    PlusLockGuard<vtkPlusSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&(staticVariables.ConfigCreationCriticalSection));
+    igsioLockGuard<vtkIGSIOSimpleRecursiveCriticalSection> criticalSectionGuardedLock(&(staticVariables.ConfigCreationCriticalSection));
 
     if (vtkPlusConfig::Instance != NULL)
     {
@@ -126,7 +126,7 @@ vtkPlusConfig::vtkPlusConfig()
   : DeviceSetConfigurationData(NULL)
   , ApplicationConfigurationData(NULL)
 {
-  this->ApplicationStartTimestamp = vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString();
+  this->ApplicationStartTimestamp = vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString();
 
   // Retrieve the program directory (where the exe file is located)
   SetProgramDirectory();
@@ -199,7 +199,7 @@ void vtkPlusConfig::SetOutputDirectory(const std::string& aDir)
 
   // Set log file name and path to the output directory
   std::string logfilename = std::string(this->ApplicationStartTimestamp) + "_PlusLog.txt";
-  vtkPlusLogger::Instance()->SetLogFileName(GetOutputPath(logfilename).c_str());
+  vtkIGSIOLogger::Instance()->SetLogFileName(GetOutputPath(logfilename).c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -244,7 +244,7 @@ vtkXMLDataElement* vtkPlusConfig::CreateDeviceSetConfigurationFromFile(const std
   // Print configuration file contents for debugging purposes
   LOG_DEBUG("Device set configuration is read from file: " << aConfigFile);
   std::ostringstream xmlFileContents;
-  PlusCommon::XML::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
+  igsioCommon::XML::PrintXML(xmlFileContents, vtkIndent(1), configRootElement);
   LOG_DEBUG("Device set configuration file contents: " << std::endl << xmlFileContents.str());
 
   return configRootElement;
@@ -281,7 +281,7 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   this->SetApplicationConfigurationData(applicationConfigurationRoot);
 
   // Verify root element name
-  if (!PlusCommon::IsEqualInsensitive(applicationConfigurationRoot->GetName(), "PlusConfig"))
+  if (!igsioCommon::IsEqualInsensitive(applicationConfigurationRoot->GetName(), "PlusConfig"))
   {
     LOG_ERROR("Invalid application configuration file (root XML element of the file '" << applicationConfigurationFilePath << "' should be 'PlusConfig' instead of '" << applicationConfigurationRoot->GetName() << "')");
     return PLUS_FAIL;
@@ -291,12 +291,12 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   int logLevel = 0;
   if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel))
   {
-    vtkPlusLogger::Instance()->SetLogLevel(logLevel);
+    vtkIGSIOLogger::Instance()->SetLogLevel(logLevel);
   }
   else
   {
     LOG_INFO("LogLevel attribute is not found - default 'Info' log level will be used");
-    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
+    vtkIGSIOLogger::Instance()->SetLogLevel(vtkIGSIOLogger::LOG_LEVEL_INFO);
     saveNeeded = true;
   }
 
@@ -451,7 +451,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   applicationConfigurationRoot->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
 
   // Save log level
-  applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkPlusLogger::Instance()->GetLogLevel());
+  applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkIGSIOLogger::Instance()->GetLogLevel());
 
   // Save device set directory
   applicationConfigurationRoot->SetAttribute("DeviceSetConfigurationDirectory", this->DeviceSetConfigurationDirectory.c_str());
@@ -527,7 +527,7 @@ PlusStatus vtkPlusConfig::SaveApplicationConfigurationToFile()
   }
 
   std::string applicationConfigurationFilePath = vtksys::SystemTools::CollapseFullPath(APPLICATION_CONFIGURATION_FILE_NAME, this->ProgramDirectory.c_str());
-  PlusCommon::XML::PrintXML(applicationConfigurationFilePath.c_str(), this->ApplicationConfigurationData);
+  igsioCommon::XML::PrintXML(applicationConfigurationFilePath.c_str(), this->ApplicationConfigurationData);
 
   LOG_DEBUG("Application configuration file '" << applicationConfigurationFilePath << "' saved");
 

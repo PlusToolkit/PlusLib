@@ -37,7 +37,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   /*! Process input frame to localize bone surfaces */
-  virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
+  virtual PlusStatus ProcessFrame(igsioTrackedFrame* inputFrame, igsioTrackedFrame* outputFrame);
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkSmartPointer<vtkXMLDataElement> processingElement);
@@ -92,14 +92,14 @@ public:
   vtkImageData* GetProcessedLinesImage() { return (this->ProcessedLinesImage); }
 
   void RemoveNoise(vtkSmartPointer<vtkImageData> inputImage);
-  vtkSmartPointer<vtkImageData> UnprocessedFrameToLinearImage(PlusTrackedFrame* inputFrame);
-  void LinearToFanImage(vtkSmartPointer<vtkImageData> inputImage, PlusTrackedFrame* outputFrame);
+  vtkSmartPointer<vtkImageData> UnprocessedFrameToLinearImage(igsioTrackedFrame* inputFrame);
+  void LinearToFanImage(vtkSmartPointer<vtkImageData> inputImage, igsioTrackedFrame* outputFrame);
 
   /*! Steps to note and eliminate false boen areas */
   void MarkShadowOutline(vtkSmartPointer<vtkImageData> inputImage);
 
   /*! Methods related to intermediate images */
-  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
+  std::map<char*, vtkSmartPointer<vtkIGSIOTrackedFrameList> > GetIntermediateImageMap() { return (this->IntermediateImageMap); };
   PlusStatus SaveAllIntermediateResultsToFile();
   PlusStatus SaveIntermediateResultToFile(char* fileNamePostfix);
 
@@ -155,7 +155,7 @@ protected:
   std::vector<char*> IntermediatePostfixes;
 
   /*! Image after some of the processing operations have been applied */
-  std::map<char*, vtkSmartPointer<vtkPlusTrackedFrameList> > IntermediateImageMap;
+  std::map<char*, vtkSmartPointer<vtkIGSIOTrackedFrameList> > IntermediateImageMap;
 
   /*! Image for pixels (uchar) along scan lines only */
   vtkSmartPointer<vtkImageData> LinesImage;

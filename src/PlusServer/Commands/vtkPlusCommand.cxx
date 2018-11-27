@@ -115,7 +115,7 @@ vtkPlusDataCollector* vtkPlusCommand::GetDataCollector()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusTransformRepository* vtkPlusCommand::GetTransformRepository()
+vtkIGSIOTransformRepository* vtkPlusCommand::GetTransformRepository()
 {
   if (this->CommandProcessor == NULL)
   {
@@ -130,7 +130,7 @@ vtkPlusTransformRepository* vtkPlusCommand::GetTransformRepository()
     return NULL;
   }
 
-  vtkPlusTransformRepository* aRepository = server->GetTransformRepository();
+  vtkIGSIOTransformRepository* aRepository = server->GetTransformRepository();
   if (aRepository == NULL)
   {
     LOG_ERROR("CommandProcessor::PlusServer::TransformRepository is invalid");
@@ -151,7 +151,7 @@ PlusStatus vtkPlusCommand::ValidateName()
   GetCommandNames(cmdNames);
   for (std::list<std::string>::iterator it = cmdNames.begin(); it != cmdNames.end(); ++it)
   {
-    if (PlusCommon::IsEqualInsensitive(*it, this->Name))
+    if (igsioCommon::IsEqualInsensitive(*it, this->Name))
     {
       // command found
       return PLUS_SUCCESS;
@@ -185,7 +185,7 @@ PlusStatus vtkPlusCommand::GenerateCommandDeviceName(const std::string& uid, std
 bool vtkPlusCommand::IsCommandDeviceName(const std::string& deviceName)
 {
   std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
-  if (!PlusCommon::IsEqualInsensitive(prefix, DEVICE_NAME_COMMAND))
+  if (!igsioCommon::IsEqualInsensitive(prefix, DEVICE_NAME_COMMAND))
   {
     return false;
   }
@@ -197,7 +197,7 @@ bool vtkPlusCommand::IsCommandDeviceName(const std::string& deviceName)
 bool vtkPlusCommand::IsReplyDeviceName(const std::string& deviceName, const std::string& uid)
 {
   std::string prefix = GetPrefixFromCommandDeviceName(deviceName);
-  if (!PlusCommon::IsEqualInsensitive(prefix, DEVICE_NAME_REPLY))
+  if (!igsioCommon::IsEqualInsensitive(prefix, DEVICE_NAME_REPLY))
   {
     // not ACK_...
     return false;
@@ -208,7 +208,7 @@ bool vtkPlusCommand::IsReplyDeviceName(const std::string& deviceName, const std:
     return true;
   }
   std::string uidInDeviceName = GetUidFromCommandDeviceName(deviceName);
-  if (!PlusCommon::IsEqualInsensitive(uidInDeviceName, uid))
+  if (!igsioCommon::IsEqualInsensitive(uidInDeviceName, uid))
   {
     // uid mismatch
     return false;

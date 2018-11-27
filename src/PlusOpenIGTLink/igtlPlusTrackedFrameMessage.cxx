@@ -48,7 +48,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusStatus PlusTrackedFrameMessage::SetTrackedFrame(const PlusTrackedFrame& trackedFrame, const std::vector<PlusTransformName>& requestedTransforms)
+  PlusStatus PlusTrackedFrameMessage::SetTrackedFrame(const igsioTrackedFrame& trackedFrame, const std::vector<igsioTransformName>& requestedTransforms)
   {
     this->m_TrackedFrame = trackedFrame;
 
@@ -71,7 +71,7 @@ namespace igtl
     this->m_MessageHeader.m_FrameSize[1] = frameSize[1];
     this->m_MessageHeader.m_FrameSize[2] = frameSize[2];
     this->m_MessageHeader.m_XmlDataSizeInBytes = this->m_TrackedFrameXmlData.size();
-    this->m_MessageHeader.m_ScalarType = PlusVideoFrame::GetIGTLScalarPixelTypeFromVTK(this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType());
+    this->m_MessageHeader.m_ScalarType = PlusCommon::GetIGTLScalarPixelTypeFromVTK(this->m_TrackedFrame.GetImageData()->GetVTKScalarPixelType());
 
     unsigned int numberOfScalarComponents(1);
     if (m_TrackedFrame.GetImageData()->GetNumberOfScalarComponents(numberOfScalarComponents) == PLUS_FAIL)
@@ -88,7 +88,7 @@ namespace igtl
   }
 
   //----------------------------------------------------------------------------
-  PlusTrackedFrame PlusTrackedFrameMessage::GetTrackedFrame()
+  igsioTrackedFrame PlusTrackedFrameMessage::GetTrackedFrame()
   {
     return this->m_TrackedFrame;
   }
@@ -199,7 +199,7 @@ namespace igtl
     // Copy image data
     void* imageData = (void*)(this->m_Content + header->GetMessageHeaderSize() + header->m_XmlDataSizeInBytes);
     FrameSizeType frameSize = { header->m_FrameSize[0], header->m_FrameSize[1], header->m_FrameSize[2] };
-    if (this->m_TrackedFrame.GetImageData()->AllocateFrame(frameSize, PlusVideoFrame::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType), header->m_NumberOfComponents) != PLUS_SUCCESS)
+    if (this->m_TrackedFrame.GetImageData()->AllocateFrame(frameSize, PlusCommon::GetVTKScalarPixelTypeFromIGTL(header->m_ScalarType), header->m_NumberOfComponents) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to allocate memory for frame received in Plus TrackedFrame message");
       return 0;

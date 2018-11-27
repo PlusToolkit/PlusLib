@@ -16,7 +16,7 @@ namespace tesseract
 {
   class TessBaseAPI;
 }
-class vtkPlusTrackedFrameList;
+//class vtkIGSIOTrackedFrameList;
 typedef struct Pix PIX;
 
 /*!
@@ -101,11 +101,11 @@ protected:
   void ClearConfiguration();
 
   /// Convert a vtkImage data to leptonica pix format
-  void vtkImageDataToPix(PlusTrackedFrame& frame, TextFieldParameter* parameter);
+  void vtkImageDataToPix(igsioTrackedFrame& frame, TextFieldParameter* parameter);
 
   /// If a frame has been queried for this input channel, reuse it instead of getting a new one
-  PlusStatus FindOrQueryFrame(PlusTrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, TextFieldParameter* parameter,
-                              std::vector<PlusTrackedFrame*>& queriedFrames);
+  PlusStatus FindOrQueryFrame(igsioTrackedFrame& frame, std::map<double, int>& queriedFramesIndexes, TextFieldParameter* parameter,
+                              std::vector<igsioTrackedFrame*>& queriedFrames);
 
   /// Language used for detection
   std::string                 Language;
@@ -113,7 +113,7 @@ protected:
   /// Main entry point for the tesseract API
   tesseract::TessBaseAPI*     TesseractAPI;
 
-  vtkPlusTrackedFrameList*    TrackedFrames;
+  vtkIGSIOTrackedFrameList*    TrackedFrames;
 
   /// Map of channels to fields so that we only have to grab an image once from the each source channel
   ChannelFieldListMap         RecognitionFields;

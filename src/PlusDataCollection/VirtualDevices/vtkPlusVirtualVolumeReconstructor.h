@@ -12,9 +12,9 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include <string>
 
-class vtkPlusTrackedFrameList;
+//class vtkIGSIOTrackedFrameList;
 class vtkPlusVolumeReconstructor;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 
 /*!
 \class vtkPlusVirtualVolumeReconstructor
@@ -45,7 +45,7 @@ public:
     It is advisable to call this before each volume reconstruction starting.
     This method is safe to be called from any thread.
   */
-  PlusStatus UpdateTransformRepository(vtkPlusTransformRepository* sharedTransformRepository);
+  PlusStatus UpdateTransformRepository(vtkIGSIOTransformRepository* sharedTransformRepository);
 
   /*!
     Enables adding frames to the volume. It can be used for pausing the recording.
@@ -115,7 +115,7 @@ protected:
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
-  PlusStatus AddFrames(vtkPlusTrackedFrameList* trackedFrameList);
+  PlusStatus AddFrames(vtkIGSIOTrackedFrameList* trackedFrameList);
 
   /*! Get the sampling period length (in seconds). Frames are copied from the devices to the data collection buffer once in every sampling period. */
   double GetSamplingPeriodSec();
@@ -147,7 +147,7 @@ protected:
   long int TotalFramesRecorded;  // hard drive will probably fill up before a regular int is hit, but still...
 
   vtkSmartPointer<vtkPlusVolumeReconstructor> VolumeReconstructor;
-  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository;
+  vtkSmartPointer<vtkIGSIOTransformRepository> TransformRepository;
 
   bool EnableReconstruction;
 
@@ -155,7 +155,7 @@ protected:
   std::string OutputVolDeviceName;
 
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> VolumeReconstructorAccessMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> VolumeReconstructorAccessMutex;
 
 private:
   vtkPlusVirtualVolumeReconstructor(const vtkPlusVirtualVolumeReconstructor&);   // Not implemented.

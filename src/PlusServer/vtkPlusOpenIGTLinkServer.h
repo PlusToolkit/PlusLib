@@ -12,7 +12,7 @@
 #include "PlusIgtlClientInfo.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusIgtlMessageFactory.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 // VTK includes
 #include <vtkMultiThreader.h>
@@ -31,14 +31,14 @@
 #include <igtlMessageBase.h>
 #include <igtlServerSocket.h>
 
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkPlusDataCollector;
 class vtkPlusOpenIGTLinkServer;
 class vtkPlusChannel;
 class vtkPlusCommandProcessor;
 class vtkPlusCommandResponse;
-class vtkPlusRecursiveCriticalSection;
-class vtkPlusTransformRepository;
+class vtkIGSIORecursiveCriticalSection;
+//class vtkIGSIOTransformRepository;
 
 struct ClientData
 {
@@ -95,7 +95,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Configures and starts the server from the provided PlusOpenIGTLinkServer XML element */
-  PlusStatus Start(vtkPlusDataCollector* dataCollector, vtkPlusTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
+  PlusStatus Start(vtkPlusDataCollector* dataCollector, vtkIGSIOTransformRepository* transformRepository, vtkXMLDataElement* serverElement, const std::string& configFilePath);
 
   /*! Configures and starts the server from the provided device set configuration file */
   PlusStatus Stop();
@@ -131,8 +131,8 @@ public:
   vtkGetMacroConst(DataCollector, vtkPlusDataCollector*);
 
   /*! Set transform repository instance */
-  vtkSetMacro(TransformRepository, vtkPlusTransformRepository*);
-  vtkGetMacroConst(TransformRepository, vtkPlusTransformRepository*);
+  vtkSetMacro(TransformRepository, vtkIGSIOTransformRepository*);
+  vtkGetMacroConst(TransformRepository, vtkIGSIOTransformRepository*);
 
   /*! Get number of connected clients */
   virtual unsigned int GetNumberOfConnectedClients() const;
@@ -185,7 +185,7 @@ protected:
   static void* DataReceiverThread(vtkMultiThreader::ThreadInfo* data);
 
   /*! Tracked frame interface, sends the selected message type and data to all clients */
-  virtual PlusStatus SendTrackedFrame(PlusTrackedFrame& trackedFrame);
+  virtual PlusStatus SendTrackedFrame(igsioTrackedFrame& trackedFrame);
 
   /*! Converts a command response to an OpenIGTLink message that can be sent to the client */
   igtl::MessageBase::Pointer CreateIgtlMessageFromCommandResponse(vtkPlusCommandResponse* response);
@@ -229,7 +229,7 @@ private:
   igtl::ServerSocket::Pointer ServerSocket;
 
   /*! Transform repository instance */
-  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository;
+  vtkSmartPointer<vtkIGSIOTransformRepository> TransformRepository;
 
   /*! Data collector instance */
   vtkSmartPointer<vtkPlusDataCollector> DataCollector;
@@ -277,7 +277,7 @@ private:
   vtkSmartPointer<vtkPlusIgtlMessageFactory> IgtlMessageFactory;
 
   /*! Mutex instance for accessing client data list */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> IgtlClientsMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> IgtlClientsMutex;
 
   /*! Last sent tracked frame timestamp */
   double LastSentTrackedFrameTimestamp;
@@ -310,7 +310,7 @@ private:
   ClientIdToMessageListMap MessageResponseQueue;
 
   /*! Mutex to protect access to the message response list */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> MessageResponseQueueMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> MessageResponseQueueMutex;
 
   /*! Channel ID to request the data from */
   std::string OutputChannelId;
@@ -324,7 +324,7 @@ private:
 
   std::string ConfigFilename;
 
-  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
   double MissingInputGracePeriodSec;
   double BroadcastStartTime;
 

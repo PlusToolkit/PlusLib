@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkPlusCommand.h"
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkPlusOpenIGTLinkClient.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 #include "vtkXMLUtilities.h"
 
 const float vtkPlusOpenIGTLinkClient::CLIENT_SOCKET_TIMEOUT_SEC = 0.5;
@@ -28,8 +28,8 @@ vtkPlusOpenIGTLinkClient::vtkPlusOpenIGTLinkClient()
   , DataReceiverActive(std::make_pair(false, false))
   , DataReceiverThreadId(-1)
   , Threader(vtkSmartPointer<vtkMultiThreader>::New())
-  , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-  , SocketMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , Mutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
+  , SocketMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
   , ClientSocket(igtl::ClientSocket::New())
   , LastGeneratedCommandId(0)
   , ServerPort(-1)
@@ -49,16 +49,16 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect(double timeoutSec/*=-1*/)
 {
   const double retryDelaySec = 1.0;
   int errorCode = 1;
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkIGSIOAccurateTimer::GetSystemTime();
   while (errorCode != 0)
   {
     errorCode = this->ClientSocket->ConnectToServer(this->ServerHost.c_str(), this->ServerPort);
-    if (vtkPlusAccurateTimer::GetSystemTime() - startTimeSec > timeoutSec)
+    if (vtkIGSIOAccurateTimer::GetSystemTime() - startTimeSec > timeoutSec)
     {
       // time is up
       break;
     }
-    vtkPlusAccurateTimer::DelayWithEventProcessing(retryDelaySec);
+    vtkIGSIOAccurateTimer::DelayWithEventProcessing(retryDelaySec);
   }
 
   if (errorCode != 0)
@@ -83,7 +83,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Connect(double timeoutSec/*=-1*/)
 PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
 {
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     this->ClientSocket->CloseSocket();
   }
 
@@ -94,7 +94,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::Disconnect()
     while (this->DataReceiverActive.second)
     {
       // Wait until the thread stops
-      vtkPlusAccurateTimer::Delay(0.2);
+      vtkIGSIOAccurateTimer::Delay(0.2);
     }
     this->DataReceiverThreadId = -1;
   }
@@ -125,7 +125,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand(vtkPlusCommand* command)
     if (igtl::IGTLProtocolToHeaderLookup(this->GetServerIGTLVersion()) < IGTL_HEADER_VERSION_2)
     {
       // command UID is not specified, generate one automatically from the timestamp
-      commandUid = vtkPlusAccurateTimer::GetUniversalTime();
+      commandUid = vtkIGSIOAccurateTimer::GetUniversalTime();
     }
     else
     {
@@ -175,7 +175,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendCommand(vtkPlusCommand* command)
   LOG_DEBUG("Sending message: " << xmlStr.str());
   int success = 0;
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     success = this->ClientSocket->Send(message->GetBufferPointer(), message->GetBufferSize());
   }
   if (!success)
@@ -191,7 +191,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::SendMessage(igtl::MessageBase::Pointer pack
 {
   int success = 0;
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     success = this->ClientSocket->Send(packedMessage->GetBufferPointer(), packedMessage->GetBufferSize());
   }
   if (!success)
@@ -207,12 +207,12 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(PlusStatus& result, int32_t& o
     std::string& outContent, igtl::MessageBase::MetaDataMap& outParameters,
     std::string& outCommandName, double timeoutSec/*=0*/)
 {
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkIGSIOAccurateTimer::GetSystemTime();
   while (1)
   {
     {
       // save command reply
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       if (!this->Replies.empty())
       {
         igtl::MessageBase::Pointer message = this->Replies.front();
@@ -223,7 +223,7 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(PlusStatus& result, int32_t& o
 
           if (vtkPlusCommand::IsReplyDeviceName(strMsg->GetDeviceName()))
           {
-            if (PlusCommon::StringToInt<int32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
+            if (igsioCommon::StringToInt<int32_t>(vtkPlusCommand::GetUidFromCommandDeviceName(strMsg->GetDeviceName()).c_str(), outOriginalCommandId) != PLUS_SUCCESS)
             {
               LOG_ERROR("Failed to get UID from command device name.");
               continue;
@@ -291,12 +291,12 @@ PlusStatus vtkPlusOpenIGTLinkClient::ReceiveReply(PlusStatus& result, int32_t& o
         return PLUS_SUCCESS;
       }
     }
-    if (vtkPlusAccurateTimer::GetSystemTime() - startTimeSec > timeoutSec)
+    if (vtkIGSIOAccurateTimer::GetSystemTime() - startTimeSec > timeoutSec)
     {
       LOG_DEBUG("vtkPlusOpenIGTLinkClient::ReceiveReply timeout passed (" << timeoutSec << "sec)");
       return PLUS_FAIL;
     }
-    vtkPlusAccurateTimer::Delay(0.010);
+    vtkIGSIOAccurateTimer::Delay(0.010);
   }
   return PLUS_FAIL;
 }
@@ -321,7 +321,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
     // Receive generic header from the socket
     int numOfBytesReceived = 0;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
       numOfBytesReceived = self->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize());
     }
     if (numOfBytesReceived == 0   // No message received
@@ -329,7 +329,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
        )
     {
       // Failed to receive data, maybe the socket is disconnected
-      vtkPlusAccurateTimer::Delay(0.1);
+      vtkIGSIOAccurateTimer::Delay(0.1);
       continue;
     }
 
@@ -361,7 +361,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       bodyMsg->SetMessageHeader(headerMsg);
       bodyMsg->AllocateBuffer();
       {
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize());
       }
 
@@ -373,7 +373,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       }
       {
         // save command reply
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
         self->Replies.push_back(bodyMsg);
       }
     }
@@ -382,7 +382,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       bodyMsg->SetMessageHeader(headerMsg);
       bodyMsg->AllocateBuffer();
       {
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Receive(bodyMsg->GetBufferBodyPointer(), bodyMsg->GetBufferBodySize());
       }
 
@@ -394,7 +394,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       }
       {
         // save command reply
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(self->Mutex);
         self->Replies.push_back(bodyMsg);
       }
     }
@@ -403,7 +403,7 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       // if the incoming message is not a reply to a command, we discard it and continue
       LOG_TRACE("Received message: " << headerMsg->GetMessageType() << " (not processed)");
       {
-        PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(self->SocketMutex);
+        igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(self->SocketMutex);
         self->ClientSocket->Skip(headerMsg->GetBodySizeToRead(), 0);
       }
     }
@@ -418,6 +418,6 @@ void* vtkPlusOpenIGTLinkClient::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 //----------------------------------------------------------------------------
 int vtkPlusOpenIGTLinkClient::SocketReceive(void* data, int length)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   return ClientSocket->Receive(data, length);
 }

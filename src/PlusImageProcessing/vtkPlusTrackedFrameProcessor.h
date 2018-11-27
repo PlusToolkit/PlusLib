@@ -9,9 +9,9 @@
 
 #include "vtkPlusImageProcessingExport.h"
 
-class PlusTrackedFrame;
-class vtkPlusTrackedFrameList;
-class vtkPlusTransformRepository;
+//class igsioTrackedFrame; 
+//class vtkIGSIOTrackedFrameList;
+//class vtkIGSIOTransformRepository;
 
 /*!
   \class vtkPlusTrackedFrameProcessor 
@@ -27,12 +27,12 @@ public:
   /*! Set the input tracked frame data
     \param frame frame containing image (and optional tracking or other metadata)
   */
-  virtual void SetInputFrames(vtkPlusTrackedFrameList* inputFrames);
-  vtkGetObjectMacro(InputFrames, vtkPlusTrackedFrameList);
+  virtual void SetInputFrames(vtkIGSIOTrackedFrameList* inputFrames);
+  vtkGetObjectMacro(InputFrames, vtkIGSIOTrackedFrameList);
   
   /*! Set the transform repository (optional, may contain various persistent calibration transforms) */
-  virtual void SetTransformRepository(vtkPlusTransformRepository* transformRepository);
-  vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  virtual void SetTransformRepository(vtkIGSIOTransformRepository* transformRepository);
+  vtkGetObjectMacro(TransformRepository, vtkIGSIOTransformRepository);
 
    /*!
      Perform processing. Results are saved to OutputFrames. It calls ProcessFrame for each input frame. The method can be overriden, for example if frames
@@ -41,7 +41,7 @@ public:
   virtual PlusStatus Update();
  
   /*! Get the processed output data. Perform processing if needed. */
-  vtkGetObjectMacro(OutputFrames, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(OutputFrames, vtkIGSIOTrackedFrameList);
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* processingElement); 
@@ -63,11 +63,11 @@ protected:
     Default Update() method calls this processing function for each frame. Typically this method should be overridden in derived classes.
     Both input and output frames are already allocated by the caller method.
   */
-  virtual PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame) = 0;
+  virtual PlusStatus ProcessFrame(igsioTrackedFrame* inputFrame, igsioTrackedFrame* outputFrame) = 0;
 
-  vtkPlusTrackedFrameList* InputFrames;
-  vtkPlusTransformRepository *TransformRepository;
-  vtkPlusTrackedFrameList* OutputFrames;
+  vtkIGSIOTrackedFrameList* InputFrames;
+  vtkIGSIOTransformRepository *TransformRepository;
+  vtkIGSIOTrackedFrameList* OutputFrames;
 }; 
 
 #endif

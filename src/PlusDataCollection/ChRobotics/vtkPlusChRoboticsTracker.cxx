@@ -191,7 +191,7 @@ PlusStatus vtkPlusChRoboticsTracker::InternalUpdate()
     }
   }
 
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   if (this->OrientationSensorTool != NULL)
   {

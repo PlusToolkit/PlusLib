@@ -46,7 +46,7 @@ void vtkPlusSendTextCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusSendTextCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SEND_TEXT_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, SEND_TEXT_CMD))
   {
     desc += SEND_TEXT_CMD;
     desc += ": Send text data to the device.";

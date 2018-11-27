@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "PlusConfigure.h"
 #include "vtkPlusIntuitiveDaVinciTracker.h"
 
@@ -209,7 +209,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
     if (this->DaVinci->connect() != 0)
     {
       LOG_DEBUG("Failed to connect to da Vinci. Retry: " << connectionAttempts);
-      vtkPlusAccurateTimer::Delay(1.0);
+      vtkIGSIOAccurateTimer::Delay(1.0);
       connectionAttempts++;
     }
 
@@ -271,7 +271,7 @@ void vtkPlusIntuitiveDaVinciTracker::StreamCallback(void)
   ++this->FrameNumber;
 
   // Setting the timestamp
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
 #ifdef USE_DAVINCI_TIMESTAMPS
   if (!this->TrackerTimeToSystemTimeComputed)
@@ -350,51 +350,51 @@ ISI_MANIP_INDEX vtkPlusIntuitiveDaVinciTracker::getManipIndexFromName(const std:
 
   toolName = toolName.substr(0, toolName.size() - 4);
 
-  if (PlusCommon::IsEqualInsensitive("ISI_PSM1", toolName))
+  if (igsioCommon::IsEqualInsensitive("ISI_PSM1", toolName))
   {
     manipIndex = ISI_PSM1;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_PSM2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_PSM2", toolName))
   {
     manipIndex = ISI_PSM2;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_ECM", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_ECM", toolName))
   {
     manipIndex = ISI_ECM;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_MTML1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTML1", toolName))
   {
     manipIndex = ISI_MTML1;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_MTMR1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR1", toolName))
   {
     manipIndex = ISI_MTMR1;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_PSM3", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_PSM3", toolName))
   {
     manipIndex = ISI_PSM3;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_GANTRY", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_GANTRY", toolName))
   {
     manipIndex = ISI_GANTRY;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_MTML2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTML2", toolName))
   {
     manipIndex = ISI_MTML2;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_MTMR2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR2", toolName))
   {
     manipIndex = ISI_MTMR2;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_CONSOLE1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE1", toolName))
   {
     manipIndex = ISI_CONSOLE1;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_CONSOLE2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE2", toolName))
   {
     manipIndex = ISI_CONSOLE2;
   }
-  else if (PlusCommon::IsEqualInsensitive("ISI_CORE", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CORE", toolName))
   {
     manipIndex = ISI_CORE;
   }

@@ -19,7 +19,7 @@
 
 int main(int argc, char* argv[])
 {
-  vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  vtkIGSIOLogger::Instance()->SetLogLevel(vtkIGSIOLogger::LOG_LEVEL_UNDEFINED);
 
   vtkSmartPointer<vtkFcsvReader> reader = vtkSmartPointer<vtkFcsvReader>::New();
 

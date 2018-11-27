@@ -5,7 +5,7 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkActorCollection.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCollectionIterator.h"
@@ -21,14 +21,14 @@ See License.txt for details.
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkRenderer.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTextActor.h"
 #include "vtkTextActor3D.h"
 #include "vtkTextProperty.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include <iomanip>
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
   std::string imageToReferenceTransformNameStr;
   bool renderingOff(false);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputSequenceFilename.empty())
   {
@@ -191,9 +191,9 @@ int main(int argc, char** argv)
 
   // Read input tracked ultrasound data.
   LOG_DEBUG("Reading input... ");
-  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
+  vtkSmartPointer< vtkIGSIOTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkIGSIOTrackedFrameList >::New();
   // Orientation is XX so that the orientation of the trackedFrameList will match the orientation defined in the file
-  if (vtkPlusSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS)
+  if (vtkIGSIOSequenceIO::Read(inputSequenceFilename, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to load input sequences file.");
     return EXIT_FAILURE;
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
   LOG_DEBUG("Number of frames: " << trackedFrameList->GetNumberOfTrackedFrames());
 
   // Read calibration matrices from the config file
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (!inputConfigFileName.empty())
   {
     LOG_DEBUG("Reading config file...");
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
 
   std::vector<vtkTransform*> imageTransforms;
 
-  PlusTransformName imageToReferenceTransformName;
+  igsioTransformName imageToReferenceTransformName;
   if (!imageToReferenceTransformNameStr.empty())
   {
     // transform name is defined, we'll show each image in its correct 3D position
@@ -241,8 +241,8 @@ int main(int argc, char** argv)
   int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
-    vtkPlusLogger::PrintProgressbar((100.0 * frameIndex) / numberOfFrames);
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    vtkIGSIOLogger::PrintProgressbar((100.0 * frameIndex) / numberOfFrames);
+    igsioTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
 
     // Update transform repository
     if (transformRepository->SetTransforms(*frame) != PLUS_SUCCESS)
@@ -277,7 +277,7 @@ int main(int argc, char** argv)
     imageActors->AddItem(imageActor);
   }
 
-  vtkPlusLogger::PrintProgressbar(100);
+  vtkIGSIOLogger::PrintProgressbar(100);
   std::cout << std::endl;
 
   for (int i = 0; i < imageActors->GetNumberOfItems(); i++)

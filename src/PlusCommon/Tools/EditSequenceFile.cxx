@@ -7,10 +7,10 @@ See License.txt for details.
 // Local includes
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -57,7 +57,7 @@ public:
   std::string               FieldName;
   std::string               UpdatedFieldName;
   std::string               UpdatedFieldValue;
-  vtkPlusTrackedFrameList*  TrackedFrameList;
+  vtkIGSIOTrackedFrameList*  TrackedFrameList;
   double                    FrameScalarStart;
   double                    FrameScalarIncrement;
   int                       FrameScalarDecimalDigits;
@@ -66,14 +66,14 @@ public:
   std::string               FrameTransformIndexFieldName;
 };
 
-PlusStatus TrimSequenceFile(vtkPlusTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex);
-PlusStatus DecimateSequenceFile(vtkPlusTrackedFrameList* trackedFrameList, unsigned int decimationFactor);
+PlusStatus TrimSequenceFile(vtkIGSIOTrackedFrameList* trackedFrameList, unsigned int firstFrameIndex, unsigned int lastFrameIndex);
+PlusStatus DecimateSequenceFile(vtkIGSIOTrackedFrameList* trackedFrameList, unsigned int decimationFactor);
 PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate);
-PlusStatus DeleteFrameField(vtkPlusTrackedFrameList* trackedFrameList, std::string fieldName);
+PlusStatus DeleteFrameField(vtkIGSIOTrackedFrameList* trackedFrameList, std::string fieldName);
 PlusStatus ConvertStringToMatrix(std::string& strMatrix, vtkMatrix4x4* matrix);
-PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName);
-PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::vector<unsigned int>& fillRectOrigin, const std::vector<unsigned int>& fillRectSize, int fillGrayLevel);
-PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int>& cropRectOrigin, const std::vector<int>& cropRectSize);
+PlusStatus AddTransform(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName);
+PlusStatus FillRectangle(vtkIGSIOTrackedFrameList* trackedFrameList, const std::vector<unsigned int>& fillRectOrigin, const std::vector<unsigned int>& fillRectSize, int fillGrayLevel);
+PlusStatus CropRectangle(vtkIGSIOTrackedFrameList* trackedFrameList, igsioVideoFrame::FlipInfoType& flipInfo, const std::vector<int>& cropRectOrigin, const std::vector<int>& cropRectSize);
 
 namespace
 {
@@ -83,7 +83,7 @@ namespace
 
 // Fuse all fields in sequence files into the first sequence
 //----------------------------------------------------------------------------
-PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames)
+PlusStatus MixTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames)
 {
   if (inputFileNames.size() == 0)
   {
@@ -106,7 +106,7 @@ PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::
   for (unsigned int i = 1; i < inputFileNames.size(); i++)
   {
     LOG_INFO("Read input sequence file: " << inputFileNames[i]);
-    vtkSmartPointer<vtkPlusTrackedFrameList> additionalTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    vtkSmartPointer<vtkIGSIOTrackedFrameList> additionalTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
     if (vtkPlusSequenceIO::Read(inputFileNames[i], additionalTrackedFrameList) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't read sequence file: " << inputFileNames[0]);
@@ -125,7 +125,7 @@ PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::
     }
     for (unsigned int f = 0; f < trackedFrameList->GetNumberOfTrackedFrames(); ++f)
     {
-      PlusTrackedFrame* masterTrackedFrame = trackedFrameList->GetTrackedFrame(f);
+      igsioTrackedFrame* masterTrackedFrame = trackedFrameList->GetTrackedFrame(f);
 
       // Determine which additional frame belongs to this master frame
       while (masterTrackedFrame->GetTimestamp() > maxTimestampValueForCurrentAdditionalFrame
@@ -143,7 +143,7 @@ PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::
       }
 
       // Copy frame fields
-      PlusTrackedFrame* additionalFrame = additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex);
+      igsioTrackedFrame* additionalFrame = additionalTrackedFrameList->GetTrackedFrame(additionalFrameIndex);
       auto customFrameFields = additionalFrame->GetCustomFields();
       for (auto fieldIter = customFrameFields.begin(); fieldIter != customFrameFields.end(); ++fieldIter)
       {
@@ -164,13 +164,13 @@ PlusStatus MixTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::
 
 //----------------------------------------------------------------------------
 // Append tracked frame list (one after the other)
-PlusStatus AppendTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames, bool incrementTimestamps)
+PlusStatus AppendTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> inputFileNames, bool incrementTimestamps)
 {
   double lastTimestamp = 0;
   for (unsigned int i = 0; i < inputFileNames.size(); i++)
   {
     LOG_INFO("Read input sequence file: " << inputFileNames[i]);
-    vtkSmartPointer<vtkPlusTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+    vtkSmartPointer<vtkIGSIOTrackedFrameList> timestampFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
     if (vtkPlusSequenceIO::Read(inputFileNames[i], timestampFrameList) != PLUS_SUCCESS)
     {
       LOG_ERROR("Couldn't read sequence file: " << inputFileNames[0]);
@@ -179,10 +179,10 @@ PlusStatus AppendTrackedFrameLists(vtkPlusTrackedFrameList* trackedFrameList, st
 
     if (incrementTimestamps)
     {
-      vtkPlusTrackedFrameList* tfList = timestampFrameList;
+      vtkIGSIOTrackedFrameList* tfList = timestampFrameList;
       for (unsigned int f = 0; f < tfList->GetNumberOfTrackedFrames(); ++f)
       {
-        PlusTrackedFrame* tf = tfList->GetTrackedFrame(f);
+        igsioTrackedFrame* tf = tfList->GetTrackedFrame(f);
         tf->SetTimestamp(lastTimestamp + tf->GetTimestamp());
       }
 
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 {
   // Parse command-line arguments
   bool                            printHelp = false;
-  int                             verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
+  int                             verboseLevel(vtkIGSIOLogger::LOG_LEVEL_UNDEFINED);
   vtksys::CommandLineArguments    args;
 
   std::string                     inputFileName; // Sequence file name with path to edit
@@ -344,7 +344,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Check command line arguments
   if (inputFileName.empty() && inputFileNames.empty())
@@ -365,60 +365,60 @@ int main(int argc, char** argv)
     operation = NO_OPERATION;
     LOG_INFO("No modification operation has been specified (specify --operation parameter to change the input sequence).");
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_NAME"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_NAME"))
   {
     operation = UPDATE_FRAME_FIELD_NAME;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_VALUE"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FRAME_FIELD_VALUE"))
   {
     operation = UPDATE_FRAME_FIELD_VALUE;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "DELETE_FRAME_FIELD"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "DELETE_FRAME_FIELD"))
   {
     operation = DELETE_FRAME_FIELD;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_NAME"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_NAME"))
   {
     operation = UPDATE_FIELD_NAME;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_VALUE"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "UPDATE_FIELD_VALUE"))
   {
     operation = UPDATE_FIELD_VALUE;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "DELETE_FIELD"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "DELETE_FIELD"))
   {
     operation = DELETE_FIELD;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "ADD_TRANSFORM"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "ADD_TRANSFORM"))
   {
     operation = ADD_TRANSFORM;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "TRIM"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "TRIM"))
   {
     operation = TRIM;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "DECIMATE"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "DECIMATE"))
   {
     operation = DECIMATE;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "APPEND"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "APPEND"))
   {
     operation = APPEND;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "MERGE"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "MERGE"))
   {
     LOG_WARNING("MERGE operation name is deprecated. Use APPEND instead.")
     operation = APPEND;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "MIX"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "MIX"))
   {
     operation = MIX;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "FILL_IMAGE_RECTANGLE"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "FILL_IMAGE_RECTANGLE"))
   {
     operation = FILL_IMAGE_RECTANGLE;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "CROP"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "CROP"))
   {
     if (rectOriginPix.size() != 2 && rectOriginPix.size() != 3 &&
         rectSizePix.size() != 2 && rectSizePix.size() != 3)
@@ -428,7 +428,7 @@ int main(int argc, char** argv)
     }
     operation = CROP;
   }
-  else if (PlusCommon::IsEqualInsensitive(strOperation, "REMOVE_IMAGE_DATA"))
+  else if (igsioCommon::IsEqualInsensitive(strOperation, "REMOVE_IMAGE_DATA"))
   {
     operation = REMOVE_IMAGE_DATA;
   }
@@ -454,7 +454,7 @@ int main(int argc, char** argv)
   ///////////////////////////////////////////////////////////////////
   // Read input files
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
 
   if (!inputFileName.empty())
   {
@@ -611,7 +611,7 @@ int main(int argc, char** argv)
     // Add transform
     LOG_INFO("Add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
     std::vector<std::string> transformNamesList;
-    PlusCommon::SplitStringIntoTokens(transformNamesToAdd, ',', transformNamesList);
+    igsioCommon::SplitStringIntoTokens(transformNamesToAdd, ',', transformNamesList);
     if (AddTransform(trackedFrameList, transformNamesList, deviceSetConfigurationFileName) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
@@ -644,7 +644,7 @@ int main(int argc, char** argv)
   case CROP:
   {
     // Crop a rectangular region from the image
-    PlusVideoFrame::FlipInfoType flipInfo;
+    igsioVideoFrame::FlipInfoType flipInfo;
     flipInfo.hFlip = flipX;
     flipInfo.vFlip = flipY;
     flipInfo.eFlip = flipZ;
@@ -671,7 +671,7 @@ int main(int argc, char** argv)
 
   if (!strUpdatedReferenceTransformName.empty())
   {
-    PlusTransformName referenceTransformName;
+    igsioTransformName referenceTransformName;
     if (referenceTransformName.SetTransformName(strUpdatedReferenceTransformName.c_str()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Reference transform name is invalid: " << strUpdatedReferenceTransformName);
@@ -680,7 +680,7 @@ int main(int argc, char** argv)
 
     for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i)
     {
-      PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
+      igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
 
       vtkSmartPointer<vtkMatrix4x4> referenceToTrackerMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       if (trackedFrame->GetFrameTransform(referenceTransformName, referenceToTrackerMatrix) != PLUS_SUCCESS)
@@ -689,7 +689,7 @@ int main(int argc, char** argv)
         continue;
       }
 
-      std::vector<PlusTransformName> transformNameList;
+      std::vector<igsioTransformName> transformNameList;
       trackedFrame->GetFrameTransformNameList(transformNameList);
 
       vtkSmartPointer<vtkTransform> toolToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
@@ -725,7 +725,7 @@ int main(int argc, char** argv)
         toolToTrackerTransform->Concatenate(toolToReferenceMatrix);
 
         // Update the name to ToolToTracker
-        PlusTransformName toolToTracker(transformNameList[n].From().c_str(), "Tracker");
+        igsioTransformName toolToTracker(transformNameList[n].From().c_str(), "Tracker");
         // Set the new custom transform
         if (trackedFrame->SetFrameTransform(toolToTracker, toolToTrackerTransform->GetMatrix()) != PLUS_SUCCESS)
         {
@@ -777,7 +777,7 @@ int main(int argc, char** argv)
 }
 
 //-------------------------------------------------------
-PlusStatus TrimSequenceFile(vtkPlusTrackedFrameList* aTrackedFrameList, unsigned int aFirstFrameIndex, unsigned int aLastFrameIndex)
+PlusStatus TrimSequenceFile(vtkIGSIOTrackedFrameList* aTrackedFrameList, unsigned int aFirstFrameIndex, unsigned int aLastFrameIndex)
 {
   LOG_INFO("Trim sequence file from frame #: " << aFirstFrameIndex << " to frame #" << aLastFrameIndex);
   if (aLastFrameIndex >= aTrackedFrameList->GetNumberOfTrackedFrames() || aFirstFrameIndex > aLastFrameIndex)
@@ -800,7 +800,7 @@ PlusStatus TrimSequenceFile(vtkPlusTrackedFrameList* aTrackedFrameList, unsigned
 }
 
 //-------------------------------------------------------
-PlusStatus DecimateSequenceFile(vtkPlusTrackedFrameList* aTrackedFrameList, unsigned int decimationFactor)
+PlusStatus DecimateSequenceFile(vtkIGSIOTrackedFrameList* aTrackedFrameList, unsigned int decimationFactor)
 {
   LOG_INFO("Decimate sequence file: keep 1 frame out of every " << decimationFactor << " frames");
   if (decimationFactor < 2)
@@ -826,7 +826,7 @@ PlusStatus DecimateSequenceFile(vtkPlusTrackedFrameList* aTrackedFrameList, unsi
 }
 
 //-------------------------------------------------------
-PlusStatus DeleteFrameField(vtkPlusTrackedFrameList* trackedFrameList, std::string fieldName)
+PlusStatus DeleteFrameField(vtkIGSIOTrackedFrameList* trackedFrameList, std::string fieldName)
 {
   if (trackedFrameList == NULL)
   {
@@ -844,7 +844,7 @@ PlusStatus DeleteFrameField(vtkPlusTrackedFrameList* trackedFrameList, std::stri
   int numberOfErrors(0);
   for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
+    igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
 
     /////////////////////////////////
     // Delete field name
@@ -879,7 +879,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
 
   for (unsigned int i = 0; i < fieldUpdate.TrackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = fieldUpdate.TrackedFrameList->GetTrackedFrame(i);
+    igsioTrackedFrame* trackedFrame = fieldUpdate.TrackedFrameList->GetTrackedFrame(i);
 
     /////////////////////////////////
     // Update field name
@@ -904,7 +904,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
     // Update field value
     if (!fieldName.empty() && !fieldUpdate.UpdatedFieldValue.empty())
     {
-      if (PlusCommon::IsEqualInsensitive(fieldUpdate.UpdatedFieldValue, FIELD_VALUE_FRAME_SCALAR))
+      if (igsioCommon::IsEqualInsensitive(fieldUpdate.UpdatedFieldValue, FIELD_VALUE_FRAME_SCALAR))
       {
         // Update it as a scalar variable
 
@@ -915,7 +915,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         scalarVariable += fieldUpdate.FrameScalarIncrement;
 
       }
-      else if (PlusCommon::IsEqualInsensitive(fieldUpdate.UpdatedFieldValue, FIELD_VALUE_FRAME_TRANSFORM))
+      else if (igsioCommon::IsEqualInsensitive(fieldUpdate.UpdatedFieldValue, FIELD_VALUE_FRAME_TRANSFORM))
       {
         // Update it as a transform variable
 
@@ -928,7 +928,7 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         {
           const char* frameIndexStr = trackedFrame->GetFrameField(fieldUpdate.FrameTransformIndexFieldName.c_str());
           int frameIndex = 0;
-          if (PlusCommon::StringToInt<int>(frameIndexStr, frameIndex) != PLUS_SUCCESS)
+          if (igsioCommon::StringToInt<int>(frameIndexStr, frameIndex) != PLUS_SUCCESS)
           {
             LOG_ERROR("Cannot retrieve frame index from value " << frameIndexStr);
           }
@@ -993,7 +993,7 @@ PlusStatus ConvertStringToMatrix(std::string& strMatrix, vtkMatrix4x4* matrix)
 }
 
 //-------------------------------------------------------
-PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName)
+PlusStatus AddTransform(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<std::string> transformNamesToAdd, std::string deviceSetConfigurationFileName)
 {
   if (trackedFrameList == NULL)
   {
@@ -1023,10 +1023,10 @@ PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<s
 
   for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
+    igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
 
     // Set up transform repository
-    vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+    vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
     if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to set device set configuration to transform repository!");
@@ -1041,7 +1041,7 @@ PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<s
     for (std::vector<std::string>::iterator transformNameToAddIt = transformNamesToAdd.begin(); transformNameToAddIt != transformNamesToAdd.end(); ++transformNameToAddIt)
     {
       // Create transform name
-      PlusTransformName transformName;
+      igsioTransformName transformName;
       transformName.SetTransformName(transformNameToAddIt->c_str());
 
       // Get transform matrix
@@ -1062,7 +1062,7 @@ PlusStatus AddTransform(vtkPlusTrackedFrameList* trackedFrameList, std::vector<s
 }
 
 //-------------------------------------------------------
-PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::vector<unsigned int>& fillRectOrigin, const std::vector<unsigned int>& fillRectSize, int fillGrayLevel)
+PlusStatus FillRectangle(vtkIGSIOTrackedFrameList* trackedFrameList, const std::vector<unsigned int>& fillRectOrigin, const std::vector<unsigned int>& fillRectSize, int fillGrayLevel)
 {
   if (trackedFrameList == NULL)
   {
@@ -1077,8 +1077,8 @@ PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::v
 
   for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
-    PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
+    igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
+    igsioVideoFrame* videoFrame = trackedFrame->GetImageData();
     FrameSizeType frameSize = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
     {
@@ -1126,7 +1126,7 @@ PlusStatus FillRectangle(vtkPlusTrackedFrameList* trackedFrameList, const std::v
 }
 
 //-------------------------------------------------------
-PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFrame::FlipInfoType& flipInfo, const std::vector<int>& cropRectOrigin, const std::vector<int>& cropRectSize)
+PlusStatus CropRectangle(vtkIGSIOTrackedFrameList* trackedFrameList, igsioVideoFrame::FlipInfoType& flipInfo, const std::vector<int>& cropRectOrigin, const std::vector<int>& cropRectSize)
 {
   if (trackedFrameList == NULL)
   {
@@ -1141,12 +1141,12 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
   tfmMatrix->SetElement(0, 3, -rectOrigin[0]);
   tfmMatrix->SetElement(1, 3, -rectOrigin[1]);
   tfmMatrix->SetElement(2, 3, -rectOrigin[2]);
-  PlusTransformName imageToCroppedImage("Image", "CroppedImage");
+  igsioTransformName imageToCroppedImage("Image", "CroppedImage");
 
   for (unsigned int i = 0; i < trackedFrameList->GetNumberOfTrackedFrames(); ++i)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
-    PlusVideoFrame* videoFrame = trackedFrame->GetImageData();
+    igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(i);
+    igsioVideoFrame* videoFrame = trackedFrame->GetImageData();
 
     FrameSizeType frameSize = { 0, 0, 0 };
     if (videoFrame == NULL || videoFrame->GetFrameSize(frameSize) != PLUS_SUCCESS)
@@ -1157,7 +1157,7 @@ PlusStatus CropRectangle(vtkPlusTrackedFrameList* trackedFrameList, PlusVideoFra
 
     vtkSmartPointer<vtkImageData> croppedImage = vtkSmartPointer<vtkImageData>::New();
 
-    PlusVideoFrame::FlipClipImage(videoFrame->GetImage(), flipInfo, rectOrigin, rectSize, croppedImage);
+    igsioVideoFrame::FlipClipImage(videoFrame->GetImage(), flipInfo, rectOrigin, rectSize, croppedImage);
     videoFrame->DeepCopyFrom(croppedImage);
     trackedFrame->SetFrameTransform(imageToCroppedImage, tfmMatrix);
     trackedFrame->SetFrameTransformStatus(imageToCroppedImage, TOOL_OK);

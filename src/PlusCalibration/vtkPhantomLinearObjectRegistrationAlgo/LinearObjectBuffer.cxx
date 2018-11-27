@@ -7,7 +7,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 #include "LinearObjectBuffer.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 
 //-----------------------------------------------------------------------------
 

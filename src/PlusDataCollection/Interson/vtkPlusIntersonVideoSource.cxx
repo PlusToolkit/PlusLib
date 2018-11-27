@@ -598,10 +598,10 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
              << ", probe name: " << probeName
              << ", display zoom: " << bmDisplayZoom()
              << ", probe depth scale (mm/sample):" << depthScale
-             << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+             << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
-  PlusTrackedFrame::FieldMapType customFields;
+  igsioTrackedFrame::FieldMapType customFields;
 
   if (this->Internal->EnableProbeButtonMonitoring)
   {

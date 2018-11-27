@@ -10,7 +10,7 @@
 #define __vtkPlusBkProFocusOemVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
-#include "PlusTrackedFrame.h"
+//#include "igsioTrackedFrame.h"
 #include "vtkPlusUsDevice.h"
 
 /*!
@@ -293,7 +293,7 @@ protected:
   vtkInternal* Internal;
 
   /// Container to hold calculated field values
-  PlusTrackedFrame::FieldMapType FrameFields;
+  igsioTrackedFrame::FieldMapType FrameFields;
 
 private:
   vtkPlusBkProFocusOemVideoSource(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.

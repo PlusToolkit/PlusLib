@@ -10,7 +10,7 @@ See License.txt for details.
 #include "StreamMgr.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkObject.h"
-#include "vtkPlusLogger.h"
+#include "vtkIGSIOLogger.h"
 
 class vtkPlusDataCollectionExport vtkPlusIEEListener : public vtkObject
 {
@@ -27,7 +27,7 @@ public:
     Connect to a streaming ie33 device
     \param callback the function to call when new data
   */
-  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkPlusLogger::LogLevelType logType = vtkPlusLogger::LOG_LEVEL_ERROR);
+  PlusStatus Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkIGSIOLogger::LogLevelType logType = vtkIGSIOLogger::LOG_LEVEL_ERROR);
   /*!
     Disconnect from the ie33 device
   */

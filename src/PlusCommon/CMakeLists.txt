@@ -4,44 +4,22 @@ PROJECT(PlusCommon)
 # Sources
 SET(${PROJECT_NAME}_SRCS
   ${PROJECT_NAME}.cxx
-  vtkPlusAccurateTimer.cxx
-  vtkPlusLogger.cxx
   vtkPlusHTMLGenerator.cxx
   vtkPlusConfig.cxx
   PlusMath.cxx
-  vtkPlusTransformRepository.cxx
-  PlusVideoFrame.cxx
-  vtkPlusTrackedFrameList.cxx
-  PlusTrackedFrame.cxx
-  IO/vtkPlusMetaImageSequenceIO.cxx
-  IO/vtkPlusNrrdSequenceIO.cxx
-  IO/vtkPlusSequenceIOBase.cxx
-  IO/vtkPlusSequenceIO.cxx
-  vtkPlusRecursiveCriticalSection.cxx
+  vtkPlusSequenceIO.cxx
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(${PROJECT_NAME}_HDRS
     ${PROJECT_NAME}.h
-    vtkPlusAccurateTimer.h
-    WindowsAccurateTimer.h
-    vtkPlusLogger.h
     vtkPlusHTMLGenerator.h
     vtkPlusConfig.h
     vtkPlusMacro.h
     PlusMath.h
-    vtkPlusTransformRepository.h
-    vtkPlusTrackedFrameList.h
-    PlusTrackedFrame.h
-    PlusVideoFrame.h
-    PlusVideoFrame.txx
-    IO/vtkPlusMetaImageSequenceIO.h
-    IO/vtkPlusNrrdSequenceIO.h
-    IO/vtkPlusSequenceIO.h
-    IO/vtkPlusSequenceIOBase.h
-    vtkPlusRecursiveCriticalSection.h
     PixelCodec.h
     PlusXmlUtils.h
+    vtkPlusSequenceIO.h
     )
 
 ENDIF()
@@ -50,16 +28,10 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/IO
+  ${VTKIGSIOCOMMON_INCLUDE_DIRS}
+  ${VTKSEQUENCEIO_INCLUDE_DIRS}
+  ${OpenIGTLink_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
-
-IF(IGSIO_BUILD_VTKVIDEOIO)
-  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${VTKVIDEOIO_INCLUDE_DIRS})
-ENDIF()
-IF(VTKVIDEOIO_ENABLE_MKV)
-  LIST(APPEND ${PROJECT_NAME}_SRCS IO/vtkPlusMkvSequenceIO.cxx)
-  LIST(APPEND ${PROJECT_NAME}_HDRS IO/vtkPlusMkvSequenceIO.h)
-ENDIF()
 
 # If igtlioConverter was compiled as a static library, we do not need igtlio in the install configuration
 GET_PROPERTY(IGTLIO_LIB_TYPE TARGET igtlioConverter PROPERTY STATIC_LIBRARY_FLAGS)
@@ -102,11 +74,10 @@ SET(${PROJECT_NAME}_LIBS
   itkvnl
   itkvnl_algo
   igtlioConverter
+  vtkIGSIOCommon
+  vtkSequenceIO
+  OpenIGTLink
   )
-
-IF(WIN32)
-  LIST(APPEND ${PROJECT_NAME}_LIBS Winmm)
-ENDIF(WIN32)
 
 IF(PLUS_USE_OpenIGTLink)
   LIST(APPEND ${PROJECT_NAME}_LIBS OpenIGTLink)

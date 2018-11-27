@@ -12,7 +12,7 @@
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"
@@ -20,9 +20,9 @@
 #include "vtkPlusChannel.h"
 #include "vtkPlusDevice.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   std::string inputBaselineFileName;
 
   int numberOfPointsToAcquire = 100;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
   double outlierGenerationProbability = 0.0;
 
   vtksys::CommandLineArguments cmdargs;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   std::string programPath("./"), errorMsg;
   if (!vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg))
@@ -133,14 +133,14 @@ int main(int argc, char* argv[])
   }
 
   // Create and initialize transform repository
-  PlusTrackedFrame trackedFrame;
+  igsioTrackedFrame trackedFrame;
   aChannel->GetTrackedFrame(trackedFrame);
 
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   transformRepository->SetTransforms(trackedFrame);
 
   // Check stylus tool
-  PlusTransformName stylusToReferenceTransformName(pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetReferenceCoordinateFrame());
+  igsioTransformName stylusToReferenceTransformName(pivotCalibration->GetObjectMarkerCoordinateFrame(), pivotCalibration->GetReferenceCoordinateFrame());
 
   vtkSmartPointer<vtkMinimalStandardRandomSequence> random = vtkSmartPointer<vtkMinimalStandardRandomSequence>::New();
   random->SetSeed(183495439); // Just some random number was chosen as seed
@@ -150,12 +150,12 @@ int main(int argc, char* argv[])
   for (int i = 0; i < numberOfPointsToAcquire; ++i)
   {
     vtksys::SystemTools::Delay(50);
-    vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfPointsToAcquire);
+    vtkIGSIOLogger::PrintProgressbar((100.0 * i) / numberOfPointsToAcquire);
 
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
 
-    PlusTrackedFrame trackedFrame;
+    igsioTrackedFrame trackedFrame;
     if (aChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tracked frame!");
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 
     pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
-  vtkPlusLogger::PrintProgressbar(100.0);
+  vtkIGSIOLogger::PrintProgressbar(100.0);
 
   if (numberOfOutliers > 0)
   {
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
   std::string calibrationResultFileName = "StylusCalibrationTest.xml";
   LOG_INFO("Writing calibration result (" << pivotCalibration->GetObjectPivotPointCoordinateFrame() << " to " << pivotCalibration->GetObjectMarkerCoordinateFrame() << " transform) to " << calibrationResultFileName);
   vtksys::SystemTools::RemoveFile(calibrationResultFileName.c_str());
-  PlusCommon::XML::PrintXML(calibrationResultFileName.c_str(), configRootElement);
+  igsioCommon::XML::PrintXML(calibrationResultFileName.c_str(), configRootElement);
 
   if (!inputBaselineFileName.empty())
   {
@@ -292,8 +292,8 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
   }
 
   // Compare the transforms
-  double posDiff = PlusMath::GetPositionDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline);
-  double rotDiff = PlusMath::GetOrientationDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline);
+  double posDiff = igsioMath::GetPositionDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline);
+  double rotDiff = igsioMath::GetOrientationDifference(stylusTipToStylusTransformCurrent, stylusTipToStylusTransformBaseline);
 
   std::ostringstream currentTransform;
   stylusTipToStylusTransformCurrent->PrintSelf(currentTransform, vtkIndent(0));

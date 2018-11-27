@@ -19,7 +19,7 @@ Authors include: Danielle Pace
 #include "vtkPlusDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-#include "PlusVideoFrame.h"
+//#include "igsioVideoFrame.h"
 
 class vtkPlusWin32VideoSource2Internal;
 
@@ -121,7 +121,7 @@ protected:
 
   void ReleaseSystemResources();
 
-  PlusVideoFrame UncompressedVideoFrame;
+  igsioVideoFrame UncompressedVideoFrame;
 
 private:
   vtkPlusWin32VideoSource2(const vtkPlusWin32VideoSource2&);  // Not implemented.

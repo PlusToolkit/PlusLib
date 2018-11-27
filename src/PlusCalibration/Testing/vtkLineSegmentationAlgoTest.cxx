@@ -11,11 +11,11 @@ compares the results to a baseline
 */
 
 #include "PlusConfigure.h"
-#include "PlusMath.h"
+#include "igsioMath.h"
 #include "vtkPlusLineSegmentationAlgo.h"
 #include "vtkMath.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -173,7 +173,7 @@ int CompareLineSegmentationResults( const std::vector<vtkPlusLineSegmentationAlg
     double currentLinePoint2[3] = {currentLinePoint1[0] + currentParam.lineDirectionVector_Image[0]* lineLen,
                                    currentLinePoint1[1] + currentParam.lineDirectionVector_Image[1]* lineLen, 0
                                   };
-    double distanceOfBaselineOriginFromCurrentLinePx = PlusMath::ComputeDistanceLinePoint( currentLinePoint1, currentLinePoint2, baselineOrigin3d );
+    double distanceOfBaselineOriginFromCurrentLinePx = igsioMath::ComputeDistanceLinePoint( currentLinePoint1, currentLinePoint2, baselineOrigin3d );
     if ( distanceOfBaselineOriginFromCurrentLinePx > MAX_ORIGIN_DISTANCE_PIXEL )
     {
       LOG_ERROR( "Line position mismatch in Frame #" << frameIndex << ": baseline origin point distance from current line is " << distanceOfBaselineOriginFromCurrentLinePx << " pixels" );
@@ -207,7 +207,7 @@ int CompareLineSegmentationResults( const std::vector<vtkPlusLineSegmentationAlg
 //----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp = false;
   vtksys::CommandLineArguments args;
@@ -239,7 +239,7 @@ int main( int argc, char** argv )
     exit( EXIT_SUCCESS );
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( inputSequenceMetafile.empty() )
   {
@@ -249,8 +249,8 @@ int main( int argc, char** argv )
   }
 
   LOG_DEBUG( "Read input sequence" );
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if ( vtkPlusSequenceIO::Read( inputSequenceMetafile, trackedFrameList ) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if ( vtkIGSIOSequenceIO::Read( inputSequenceMetafile, trackedFrameList ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Failed to read sequence metafile: " << inputSequenceMetafile );
     return EXIT_FAILURE;

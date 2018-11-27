@@ -30,12 +30,12 @@ namespace
 //-----------------------------------------------------------------------------
 QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   : QWidget(aParent, aFlags)
-  , m_Level(vtkPlusLogger::LOG_LEVEL_INFO)
+  , m_Level(vtkIGSIOLogger::LOG_LEVEL_INFO)
   , m_DotLabel(NULL)
   , m_MessageListFrame(NULL)
   , m_MessageTextEdit(NULL)
   , m_DisplayMessageCallbackTag(0)
-  , m_MaxMessageCount(vtkPlusLogger::UnlimitedLogMessages())
+  , m_MaxMessageCount(vtkIGSIOLogger::UnlimitedLogMessages())
 {
   this->setMinimumSize(18, 18);
   this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding));
@@ -60,8 +60,8 @@ QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 
   // Set callback for logger to display errors
   vtkSmartPointer<vtkDisplayMessageCallback> cb = vtkSmartPointer<vtkDisplayMessageCallback>::New();
-  m_DisplayMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkPlusLogger::MessageLogged, cb);
-  m_DisplayWideMessageCallbackTag = vtkPlusLogger::Instance()->AddObserver(vtkPlusLogger::WideMessageLogged, cb);
+  m_DisplayMessageCallbackTag = vtkIGSIOLogger::Instance()->AddObserver(vtkIGSIOLogger::MessageLogged, cb);
+  m_DisplayWideMessageCallbackTag = vtkIGSIOLogger::Instance()->AddObserver(vtkIGSIOLogger::WideMessageLogged, cb);
 
   connect(cb, SIGNAL(AddMessage(QString)), this, SLOT(AddMessage(QString)));
 
@@ -78,8 +78,8 @@ QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
 //-----------------------------------------------------------------------------
 QPlusStatusIcon::~QPlusStatusIcon()
 {
-  vtkPlusLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
-  vtkPlusLogger::Instance()->RemoveObserver(m_DisplayWideMessageCallbackTag);
+  vtkIGSIOLogger::Instance()->RemoveObserver(m_DisplayMessageCallbackTag);
+  vtkIGSIOLogger::Instance()->RemoveObserver(m_DisplayWideMessageCallbackTag);
 }
 
 //-----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ void QPlusStatusIcon::AddMessage(QString aInputString)
   // No matter what store the log entry to be able to reconstruct it later
   m_MessageLog.push_back(aInputString);
 
-  if (m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount)
+  if (m_MaxMessageCount != vtkIGSIOLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount)
   {
     // Clear earliest messages
     int linesToDelete(m_MessageTextEdit->document()->lineCount() - m_MaxMessageCount * 0.80);
@@ -119,18 +119,18 @@ void QPlusStatusIcon::ParseMessage(QString& aInputString)
   // Re-color dot and message text if necessary
   switch (logLevel)
   {
-    case vtkPlusLogger::LOG_LEVEL_ERROR:
-      if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR)
+    case vtkIGSIOLogger::LOG_LEVEL_ERROR:
+      if (m_Level > vtkIGSIOLogger::LOG_LEVEL_ERROR)
       {
-        m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
+        m_Level = vtkIGSIOLogger::LOG_LEVEL_ERROR;
         m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
       }
       message = ERROR_HTML;
       break;
-    case vtkPlusLogger::LOG_LEVEL_WARNING:
-      if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING)
+    case vtkIGSIOLogger::LOG_LEVEL_WARNING:
+      if (m_Level > vtkIGSIOLogger::LOG_LEVEL_WARNING)
       {
-        m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
+        m_Level = vtkIGSIOLogger::LOG_LEVEL_WARNING;
         m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
       }
       message = WARNING_HTML;
@@ -142,7 +142,7 @@ void QPlusStatusIcon::ParseMessage(QString& aInputString)
 
   message = message.append(aInputString.right(aInputString.size() - pos - 1)).append(END_HTML);
 
-  if (m_MaxMessageCount != vtkPlusLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount)
+  if (m_MaxMessageCount != vtkIGSIOLogger::UnlimitedLogMessages() && m_MessageTextEdit->document()->lineCount() > m_MaxMessageCount)
   {
     QTextCursor tc = m_MessageTextEdit->textCursor();
 
@@ -276,7 +276,7 @@ bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
       {
         if ((m_MessageListFrame == NULL) || (! m_MessageListFrame->isVisible()))
         {
-          m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
+          m_Level = vtkIGSIOLogger::LOG_LEVEL_INFO;
           m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 
           QTextCursor cursor(m_MessageTextEdit->textCursor());
@@ -300,7 +300,7 @@ bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
   }
   else if ((obj == m_MessageListFrame) && (ev->type() == QEvent::Close))
   {
-    m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
+    m_Level = vtkIGSIOLogger::LOG_LEVEL_INFO;
     m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
   }
 
@@ -385,7 +385,7 @@ void QPlusStatusIcon::ApplyFilter()
 //-----------------------------------------------------------------------------
 void QPlusStatusIcon::ResetIconState()
 {
-  m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
+  m_Level = vtkIGSIOLogger::LOG_LEVEL_INFO;
   m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
 }
 
@@ -394,7 +394,7 @@ void QPlusStatusIcon::SetMaxMessageCount(int count)
 {
   if (count < 0)
   {
-    count = vtkPlusLogger::UnlimitedLogMessages();
+    count = vtkIGSIOLogger::UnlimitedLogMessages();
   }
   this->m_MaxMessageCount = count;
 }
@@ -402,13 +402,13 @@ void QPlusStatusIcon::SetMaxMessageCount(int count)
 //-----------------------------------------------------------------------------
 void vtkDisplayMessageCallback::Execute(vtkObject* caller, unsigned long eventId, void* callData)
 {
-  if (vtkPlusLogger::MessageLogged == eventId)
+  if (vtkIGSIOLogger::MessageLogged == eventId)
   {
     char* callDataChars = reinterpret_cast<char*>(callData);
 
     emit AddMessage(QString::fromLatin1(callDataChars));
   }
-  else if (vtkPlusLogger::WideMessageLogged == eventId)
+  else if (vtkIGSIOLogger::WideMessageLogged == eventId)
   {
     wchar_t* callDataChars = reinterpret_cast<wchar_t*>(callData);
 

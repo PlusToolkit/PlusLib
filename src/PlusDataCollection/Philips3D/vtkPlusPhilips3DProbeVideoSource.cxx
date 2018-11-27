@@ -116,7 +116,7 @@ bool vtkPlusPhilips3DProbeVideoSource::StreamCallback(_int64 id, SClient3DArray*
 
   vtkPlusPhilips3DProbeVideoSource::ActiveDevice->CallbackAddFrame(streamedImageData);
 
-  LastValidTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  LastValidTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return true;
 }
@@ -220,24 +220,24 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalUpdate()
   if (this->Listener->IsConnected())
   {
     // Listener thinks it's connected, let's check for timeouts
-    if (vtkPlusAccurateTimer::GetSystemTime() - LastValidTimestamp >= TIMEOUT)
+    if (vtkIGSIOAccurateTimer::GetSystemTime() - LastValidTimestamp >= TIMEOUT)
     {
       LOG_INFO("Philips iE33: 3D mode timeout disconnected. Did you switch to another mode?");
       // Don't call a full disconnect because that stops the InternalUpdate loop
       // Only disconnect the listener and periodically try again
       this->Listener->Disconnect();
-      LastRetryTime = vtkPlusAccurateTimer::GetSystemTime();
+      LastRetryTime = vtkIGSIOAccurateTimer::GetSystemTime();
     }
   }
-  else if (vtkPlusAccurateTimer::GetSystemTime() - LastRetryTime >= RETRY_TIMER)
+  else if (vtkIGSIOAccurateTimer::GetSystemTime() - LastRetryTime >= RETRY_TIMER)
   {
     LOG_INFO("Philips iE33: Retrying connection to 3D mode.");
     // Retry connection if it's time
-    LastRetryTime = vtkPlusAccurateTimer::GetSystemTime();
-    if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkPlusLogger::LOG_LEVEL_WARNING))
+    LastRetryTime = vtkIGSIOAccurateTimer::GetSystemTime();
+    if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkIGSIOLogger::LOG_LEVEL_WARNING))
     {
       LOG_INFO("Philips iE33: Connection successfully re-established.");
-      LastValidTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+      LastValidTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     }
   }
 

@@ -175,19 +175,19 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalConnect()
       qualityStruct.error_offset = 0;
       qualityStruct.error_sensitivity = 2;
       qualityStruct.filter_alpha = 12;
-      if (!slopeStr.empty() && PlusCommon::StringToDouble(slopeStr.c_str(), qualityStruct.error_slope) != PLUS_SUCCESS)
+      if (!slopeStr.empty() && igsioCommon::StringToDouble(slopeStr.c_str(), qualityStruct.error_slope) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to parse " << PROP_QUALITY_ERROR_SLOPE << " attribute in tool " << tool->GetPortName());
       }
-      if (!offsetStr.empty() && PlusCommon::StringToDouble(offsetStr.c_str(), qualityStruct.error_offset) != PLUS_SUCCESS)
+      if (!offsetStr.empty() && igsioCommon::StringToDouble(offsetStr.c_str(), qualityStruct.error_offset) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to parse " << PROP_QUALITY_ERROR_OFFSET << " attribute in tool " << tool->GetPortName());
       }
-      if (!sensitivityStr.empty() && PlusCommon::StringToDouble(sensitivityStr.c_str(), qualityStruct.error_sensitivity) != PLUS_SUCCESS)
+      if (!sensitivityStr.empty() && igsioCommon::StringToDouble(sensitivityStr.c_str(), qualityStruct.error_sensitivity) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to parse " << PROP_QUALITY_ERROR_SENSITIVITY << " attribute in tool " << tool->GetPortName());
       }
-      if (!alphaStr.empty() && PlusCommon::StringToDouble(alphaStr.c_str(), qualityStruct.filter_alpha) != PLUS_SUCCESS)
+      if (!alphaStr.empty() && igsioCommon::StringToDouble(alphaStr.c_str(), qualityStruct.filter_alpha) != PLUS_SUCCESS)
       {
         LOG_ERROR("Failed to parse " << PROP_QUALITY_FILTER_ALPHA << " attribute in tool " << tool->GetPortName());
       }
@@ -368,7 +368,7 @@ PlusStatus vtkPlusAscension3DGTrackerBase::InternalUpdate()
   bool transmitterRunning(false), transmitterAttached(false), globalError(false);
 
   ToolStatus toolStatus = TOOL_OK;
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   int numberOfErrors(0);
   // Vector to store the quality value for each tool
   std::vector<unsigned short> qualityValues(sysConfig.numberSensors, 0);
@@ -638,7 +638,7 @@ int vtkPlusAscension3DGTrackerBase::GetHemisphereTypeFromString(const char* type
   }
   for (int i = 0; i < 6; i++)
   {
-    if (PlusCommon::IsEqualInsensitive(vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString(i), typeStr))
+    if (igsioCommon::IsEqualInsensitive(vtkPlusAscension3DGTrackerBase::GetHemisphereTypeAsString(i), typeStr))
     {
       return i;
     }

@@ -143,7 +143,7 @@ ENDIF()
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkCenterOfRotationCalibAlgoTest vtkCenterOfRotationCalibAlgoTest.cxx)
 SET_TARGET_PROPERTIES(vtkCenterOfRotationCalibAlgoTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkCenterOfRotationCalibAlgoTest vtkPlusCommon vtkIGSIOCommon vtkPlusCalibration vtkPlusDataCollection )
 
 ADD_TEST(CenterOfRotationCalibration-Ulterius
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -172,7 +172,7 @@ SET_TESTS_PROPERTIES(CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)
 SET_TARGET_PROPERTIES(vtkSpacingCalibAlgoTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkPlusCalibration vtkPlusDataCollection )
+TARGET_LINK_LIBRARIES(vtkSpacingCalibAlgoTest vtkPlusCommon vtkIGSIOCommon vtkPlusCalibration vtkPlusDataCollection )
 
 ADD_TEST(SpacingCalibAlgoTest-Ulterius
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkSpacingCalibAlgoTest
@@ -201,7 +201,7 @@ SET_TESTS_PROPERTIES(SpacingCalibAlgoTest-3NWires PROPERTIES FAIL_REGULAR_EXPRES
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkLineSegmentationAlgoTest vtkLineSegmentationAlgoTest.cxx)
 SET_TARGET_PROPERTIES(vtkLineSegmentationAlgoTest PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkPlusCalibration)
+TARGET_LINK_LIBRARIES( vtkLineSegmentationAlgoTest vtkPlusCommon vtkIGSIOCommon vtkPlusCalibration)
 
 ADD_TEST(vtkLineSegmentationAlgoTest1
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkLineSegmentationAlgoTest

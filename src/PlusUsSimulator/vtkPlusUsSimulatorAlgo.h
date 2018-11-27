@@ -12,7 +12,7 @@
 #include "vtkImageAlgorithm.h"
 
 #include "PlusSpatialModel.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 class vtkPolyDataNormals;
 class vtkTriangleFilter;
@@ -38,9 +38,9 @@ public:
 public:
 
   /*! Set transform repository */
-  vtkSetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  vtkSetObjectMacro(TransformRepository, vtkIGSIOTransformRepository);
   /*! Get transform repository */
-  vtkGetObjectMacro(TransformRepository, vtkPlusTransformRepository);
+  vtkGetObjectMacro(TransformRepository, vtkIGSIOTransformRepository);
 
   /*! Get RF processor */
   vtkGetObjectMacro( RfProcessor, vtkPlusRfProcessor );
@@ -119,7 +119,7 @@ protected:
 private:
 
   /*! Transform repository instance */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkIGSIOTransformRepository* TransformRepository;
 
   /*! Name of the image coordinate frame */
   char* ImageCoordinateFrame;

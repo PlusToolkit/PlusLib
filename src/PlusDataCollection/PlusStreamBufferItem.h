@@ -9,8 +9,8 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 
-#include "PlusCommon.h"
-#include "PlusVideoFrame.h"
+#include "igsioCommon.h"
+//#include "igsioVideoFrame.h"
 
 #include "vtkSmartPointer.h"
 
@@ -119,7 +119,7 @@ public:
   /*! Copy stream buffer item */
   PlusStatus DeepCopy( StreamBufferItem* dataItem );
 
-  PlusVideoFrame& GetFrame() { return this->Frame; };
+  igsioVideoFrame& GetFrame() { return this->Frame; };
 
   /*! Set tracker matrix */
   PlusStatus SetMatrix( vtkMatrix4x4* matrix );
@@ -153,7 +153,7 @@ protected:
   FieldMapType FrameFields;
 
   bool ValidTransformData;
-  PlusVideoFrame Frame;
+  igsioVideoFrame Frame;
   vtkSmartPointer<vtkMatrix4x4> Matrix;
   ToolStatus Status;
 };

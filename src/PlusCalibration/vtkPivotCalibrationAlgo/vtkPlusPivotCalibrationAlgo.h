@@ -19,7 +19,7 @@ See License.txt for details.
 #include <list>
 #include <set>
 
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ public:
     Calibrate (call the minimizer and set the result)
     \param aTransformRepository Transform repository to save the results into
   */
-  PlusStatus DoPivotCalibration(vtkPlusTransformRepository* aTransformRepository = NULL);
+  PlusStatus DoPivotCalibration(vtkIGSIOTransformRepository* aTransformRepository = NULL);
 
   /*!
     Get calibration result string to display

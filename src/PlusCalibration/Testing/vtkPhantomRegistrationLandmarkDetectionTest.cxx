@@ -12,7 +12,7 @@ compares the results to a baseline
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkAxis.h"
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
@@ -32,13 +32,13 @@ compares the results to a baseline
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkPlusSavedDataSource.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusMetaImageSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkTable.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
@@ -126,7 +126,7 @@ void SaveMetricPlot(const char* filename, vtkTable* stylusRef, vtkTable* stylusT
   writer->Write();
 }
 
-PlusStatus ConstructSignalPlot(vtkPlusTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
+PlusStatus ConstructSignalPlot(vtkIGSIOTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
 {
   double signalTimeRangeMin = trackedStylusTipFrames->GetTrackedFrame(0)->GetTimestamp();
   double signalTimeRangeMax = trackedStylusTipFrames->GetTrackedFrame(trackedStylusTipFrames->GetNumberOfTrackedFrames() - 1)->GetTimestamp();
@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
 {
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackedStylusTipSequence;
   std::string intermediateFileOutputDirectory;
   bool plotSignal(false);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
   LOG_INFO("Initialize");
 
   // Read LandmarkDetection configuration
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (transformRepository->ReadConfiguration(configLandmarkDetection) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!");
@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
   int numberFiles = 0;
   vtkSmartPointer<vtkDirectory> myDir = vtkSmartPointer<vtkDirectory>::New();
 
-  if (vtkPlusMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence))
+  if (vtkIGSIOMetaImageSequenceIO::CanReadFile(inputTrackedStylusTipSequence))
   {
     LOG_INFO("Only one sequence" << extension);
     numberFiles = 1;
@@ -316,14 +316,14 @@ int main(int argc, char* argv[])
       fileString += myDir->GetFile(i);
     }
     //extension = vtksys::SystemTools::GetFilenameExtension(fileString);
-    if (vtkPlusMetaImageSequenceIO::CanReadFile(fileString))
+    if (vtkIGSIOMetaImageSequenceIO::CanReadFile(fileString))
     {
-      vtkSmartPointer<vtkPlusTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+      vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedStylusTipFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
       if (!fileString.empty())
       {
         trackedStylusTipFrames->SetValidationRequirements(REQUIRE_UNIQUE_TIMESTAMP | REQUIRE_TRACKING_OK);
         LOG_INFO("Read stylus tracker data from " << fileString);
-        if (vtkPlusSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS)
+        if (vtkIGSIOSequenceIO::Read(fileString, trackedStylusTipFrames) != PLUS_SUCCESS)
         {
           LOG_ERROR("Failed to read stylus data from sequence metafile: " << fileString << ". Exiting...");
           exit(EXIT_FAILURE);
@@ -388,9 +388,9 @@ int main(int argc, char* argv[])
       }
 
       // Check stylus tool
-      PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
-      PlusTransformName stylusToReferenceTransformName("Stylus", phantomRegistration->GetReferenceCoordinateFrame());
-      PlusTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus");
+      igsioTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
+      igsioTransformName stylusToReferenceTransformName("Stylus", phantomRegistration->GetReferenceCoordinateFrame());
+      igsioTransformName stylusTipToStylusTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), "Stylus");
 
       vtkSmartPointer<vtkMatrix4x4> stylusTipToStylusTransform = vtkSmartPointer<vtkMatrix4x4>::New();
       ToolStatus status(TOOL_INVALID);
@@ -400,7 +400,7 @@ int main(int argc, char* argv[])
       if (status == TOOL_OK)
       {
         // Acquire positions for landmark detection
-        PlusTrackedFrame trackedFrame;
+        igsioTrackedFrame trackedFrame;
         vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
         for (unsigned int j = 0; j < trackedStylusTipFrames->GetNumberOfTrackedFrames(); ++j)
         {
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
             phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound);
             phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
             LOG_INFO("\nLandmark found (" << landmarkFound[0] << ", " << landmarkFound[1] << ", " << landmarkFound[2] << ") at " << trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp() << "[ms]" << "\nNumber of landmarks in phantonReg " << phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
-            vtkPlusLogger::PrintProgressbar((100.0 *  newLandmarkDetected - 1) / numberOfExpectedLandmarks);
+            vtkIGSIOLogger::PrintProgressbar((100.0 *  newLandmarkDetected - 1) / numberOfExpectedLandmarks);
 
             if (newLandmarkDetected == numberOfExpectedLandmarks)
             {
@@ -463,7 +463,7 @@ int main(int argc, char* argv[])
 
       LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
       accumulatedError += phantomRegistration->GetRegistrationErrorMm();
-      vtkPlusLogger::PrintProgressbar(100);
+      vtkIGSIOLogger::PrintProgressbar(100);
 
       if (numberFiles == 1)
       {
@@ -476,7 +476,7 @@ int main(int argc, char* argv[])
 
         std::string registrationResultFileName = "PhantomRegistrationAutoDetectLandmarkTest.xml";
         vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-        PlusCommon::XML::PrintXML(registrationResultFileName.c_str(), configLandmarkDetection);
+        igsioCommon::XML::PrintXML(registrationResultFileName.c_str(), configLandmarkDetection);
 
         if (CompareRegistrationResultsWithBaseline(inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
         {
@@ -509,7 +509,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  PlusTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame);
+  igsioTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame);
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
@@ -520,7 +520,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> currentTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> currentTransformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName);
@@ -545,7 +545,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName);
@@ -562,8 +562,8 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
   }
 
   // Compare the transforms
-  double posDiff = PlusMath::GetPositionDifference(currentMatrix, baselineMatrix);
-  double orientDiff = PlusMath::GetOrientationDifference(currentMatrix, baselineMatrix);
+  double posDiff = igsioMath::GetPositionDifference(currentMatrix, baselineMatrix);
+  double orientDiff = igsioMath::GetOrientationDifference(currentMatrix, baselineMatrix);
 
   if (fabs(posDiff) > ERROR_THRESHOLD_MM || fabs(orientDiff) > ERROR_THRESHOLD_DEG)
   {

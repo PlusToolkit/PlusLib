@@ -8,7 +8,7 @@
 #define __vtkPlusDeviceFactory_h
 
 // Local includes
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "vtkPlusDataCollectionExport.h"
 
 // VTK includes
@@ -22,7 +22,7 @@ class vtkPlusDevice;
 
   This class is a factory class of supported trackers and video sources to localize the object creation code.
 
-  \ingroup PlusLibPlusCommon
+  \ingroup PlusLibigsioCommon
 */
 class vtkPlusDataCollectionExport vtkPlusDeviceFactory : public vtkObject
 {

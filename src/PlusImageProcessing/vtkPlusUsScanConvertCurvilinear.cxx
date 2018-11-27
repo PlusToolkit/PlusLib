@@ -13,7 +13,7 @@ non-commercial terms in your toolbox and distribute it."
 */
 
 #include "PlusConfigure.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 
 #include "vtkPlusUsScanConvertCurvilinear.h"
 

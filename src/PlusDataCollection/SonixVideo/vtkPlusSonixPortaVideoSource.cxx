@@ -29,7 +29,7 @@ and The University of Western Ontario)
 #endif
 
 // Local includes
-#include "PlusTrackedFrame.h"
+//#include "igsioTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusSonixPortaVideoSource.h"
@@ -375,7 +375,7 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, b
     this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels[1] - clipRectangleOrigin[1];
   }
 
-  PlusTrackedFrame::FieldMapType customFields;
+  igsioTrackedFrame::FieldMapType customFields;
 
   std::ostringstream frameIndexInVolumeStr;
   frameIndexInVolumeStr << this->FrameIndexInVolume;

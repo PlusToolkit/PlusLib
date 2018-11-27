@@ -1,11 +1,13 @@
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkImageCast.h"
 #include "vtkImageData.h"
-#include "vtkPlusMetaImageSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
 #include "vtkPlusTransverseProcessEnhancer.h"
+#include <vtkPlusSequenceIO.h>
+
+#include <vtkIGSIOTrackedFrameList.h>
+#include <vtkIGSIOMetaImageSequenceIO.h>
 
 #include "vtksys/CommandLineArguments.hxx"
 
@@ -20,7 +22,7 @@ int main(int argc, char **argv)
   std::string outputFileName;
   std::string configFileName;
   bool saveIntermediateResults = false;
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help");
@@ -45,7 +47,7 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputFileName.empty())
   {
@@ -102,8 +104,8 @@ int main(int argc, char **argv)
 
   // Read the input sequence.
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  trackedFrameList->ReadFromSequenceMetafile(inputFileName.c_str());
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  vtkPlusSequenceIO::Read(inputFileName.c_str(), trackedFrameList);
 
   vtkSmartPointer<vtkImageCast> castToUchar = vtkSmartPointer<vtkImageCast>::New();
   castToUchar->SetOutputScalarTypeToUnsignedChar();
@@ -156,7 +158,7 @@ int main(int argc, char **argv)
     boneFilter->SaveAllIntermediateResultsToFile();
   }
 
-  if (boneFilter->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)
+  if (vtkPlusSequenceIO::Write(outputFileName.c_str(), boneFilter->GetOutputFrames())== PLUS_FAIL)
   {
     LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
     return EXIT_FAILURE;

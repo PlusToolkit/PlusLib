@@ -14,8 +14,8 @@ See License.txt for details.
 #include "PlusPlotter.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusHTMLGenerator.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
 
 // VTK includes
 #include <vtksys/CommandLineArguments.hxx>
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   double inputMinStdevReductionFactor(3.0);
   std::string inputTransformName;
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputMetafile.empty())
   {
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  PlusTransformName transformName;
+  igsioTransformName transformName;
   if (transformName.SetTransformName(inputTransformName.c_str()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Invalid transform name: " << inputTransformName);
@@ -79,8 +79,8 @@ int main(int argc, char** argv)
 
   // Read buffer
   LOG_INFO("Reading meta file...");
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (vtkPlusSequenceIO::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS)
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackerFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if (vtkIGSIOSequenceIO::Read(inputMetafile, trackerFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read sequence metafile from file: " << inputMetafile);
   }
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
     return PLUS_FAIL;
   }
 
-  if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
+  if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
   {
     timestampReportTable->Dump();
   }
