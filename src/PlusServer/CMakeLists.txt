@@ -105,6 +105,7 @@ IF(NOT (MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode"))
 ENDIF()
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
+PlusLibAddVersionInfo(vtk${PROJECT_NAME} "Library containing classes and functionality necessary for providing OpenIGTLink servers and clients. Part of the Plus toolkit." vtk${PROJECT_NAME} vtk${PROJECT_NAME})
 
 source_group("Commands" FILES ${${PROJECT_NAME}_CMD_HDRS} ${${PROJECT_NAME}_CMD_SRCS})
 
