@@ -405,7 +405,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
 
     std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
 
-    if (imageStream.VideoParameters.EncodingFourCC.empty())
+    if (imageStream.EncodingParameters.FourCC.empty())
     {
       igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
       if (trackedFrame.IsFrameFieldDefined(PlusTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
@@ -452,17 +452,80 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
       {
         encoder = encoderIt->second;
       }
-      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_I420)
+      else if (imageStream.EncodingParameters.FourCC == IGTL_VIDEO_CODEC_NAME_I420)
       {
         encoder = new igtl::I420Encoder();
         this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
       }
 #if defined(OpenIGTLink_USE_VP9)
-      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_VP9)
+      else if (imageStream.EncodingParameters.FourCC == IGTL_VIDEO_CODEC_NAME_VP9)
       {
         encoder = new igtl::VP9Encoder();
-        encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
-        encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
+        encoder->SetLosslessLink(imageStream.EncodingParameters.Lossless);
+        encoder->SetKeyFrameDistance(imageStream.EncodingParameters.MinKeyframeDistance);
+        if (!imageStream.EncodingParameters.Lossless)
+        {
+          encoder->SetSpeed(imageStream.EncodingParameters.Speed);
+
+          if (!imageStream.EncodingParameters.RateControl.empty())
+          {
+            int rateControl = -1;
+            if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "VBR") == 0)
+            {
+              rateControl = VPX_VBR;
+            }
+            if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "CBR") == 0)
+            {
+              rateControl = VPX_CBR;
+            }
+            if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "CQ") == 0)
+            {
+              rateControl = VPX_CQ;
+            }
+            if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "Q") == 0)
+            {
+              rateControl = VPX_Q;
+            }
+
+            if (rateControl > -1)
+            {
+              encoder->SetRCMode(rateControl);
+            }
+
+          }
+
+          if (!imageStream.EncodingParameters.DeadlineMode.empty())
+          {
+            int deadlineMode = -1;
+            if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "REALTIME") == 0)
+            {
+              deadlineMode = VPX_DL_REALTIME;
+            }
+            else if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "GOOD") == 0)
+            {
+              deadlineMode = VPX_DL_GOOD_QUALITY;
+            }
+            else if (STRCASECMP(imageStream.EncodingParameters.RateControl.c_str(), "BEST") == 0)
+            {
+              deadlineMode = VPX_DL_BEST_QUALITY;
+            }
+
+            if (deadlineMode > -1)
+            {
+               igtl::VP9Encoder::Pointer vp9Encoder = dynamic_cast<igtl::VP9Encoder*>(encoder.GetPointer());
+               if (vp9Encoder)
+               {
+                 vp9Encoder->SetDeadlineMode(deadlineMode);
+               }
+            }
+          }
+
+          if (imageStream.EncodingParameters.TargetBitrate > -1)
+          {
+            encoder->SetRCTaregetBitRate(imageStream.EncodingParameters.TargetBitrate);
+          }
+
+        }
         this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
       }
 #endif
@@ -477,7 +540,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
 #endif
       else
       {
-        LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.VideoParameters.EncodingFourCC);
+        LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.EncodingParameters.FourCC);
         continue;
       }
 
