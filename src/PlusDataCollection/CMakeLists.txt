@@ -1800,8 +1800,7 @@ IF(PLUS_USE_TextRecognizer)
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${tesseract_INCLUDE_DIRS}
     )
-
-  LIST(APPEND ${PROJECT_NAME}_LIBS
+  LIST(APPEND ${PROJECT_NAME}_PRIVATE_LIBS
     ${tesseract_LIBRARIES}
     ${PlusZLib}
     vtkpng
@@ -2138,7 +2137,8 @@ IF(MSVC)
   target_compile_options(vtk${PROJECT_NAME} PRIVATE /MP)
 ENDIF()
 
-TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
 
 # --------------------------------------------------------------------------
 # Source groups
