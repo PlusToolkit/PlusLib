@@ -1512,7 +1512,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDXDll${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVision.DXWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVision.DXWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WinProbeAssemblies}
     ${WinProbeXMLFiles}
     )
