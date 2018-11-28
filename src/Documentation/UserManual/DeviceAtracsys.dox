@@ -12,6 +12,12 @@
 - \ref PackageWin64
 - \ref PackageLinux
 
+\section AtracsysSDKVersions Atracsys SDK Versions
+Please build PLUS Atracsys support against the following Atracsys SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.
+
+-spryTrack: RC7
+-fusionTrack: 4.1.3
+
 \section AtracsysFirmwareUpdate Updating camera firmware
 Please check the release notes for your version of the Atracsys SDK to ensure that these notes are current.
 
