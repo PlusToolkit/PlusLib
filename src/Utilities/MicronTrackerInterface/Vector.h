@@ -26,8 +26,8 @@ public:
   ~Vector();
   mtHandle getHandle();
 
-  MicronTracker_Return getEndPos(EndPosType_BH_XYZ result);
-  MicronTracker_Return getEndXPoints(EndXPointType_LRM_BH_XY result);
+  int getEndPos(EndPosType_BH_XYZ result);
+  int getEndXPoints(EndXPointType_LRM_BH_XY result);
 
 protected:
   mtHandle  Handle;

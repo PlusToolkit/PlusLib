@@ -45,18 +45,18 @@ Facet::~Facet()
 //----------------------------------------------------------------------------
 mtHandle Facet::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Facet::getXpoints(MCamera* cam, XPointsType_LS_LRM_BH_XY result2x3x2x2)
+int Facet::getXpoints(MCamera* cam, XPointsType_LS_LRM_BH_XY result2x3x2x2)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
     camHandle = cam->getHandle();
   }
-  return (MicronTracker_Return)Facet_IdentifiedXPointsGet(this->Handle, camHandle, (double*)result2x3x2x2);
+  return Facet_IdentifiedXPointsGet(this->Handle, camHandle, (double*)result2x3x2x2);
 }
 
 //----------------------------------------------------------------------------
@@ -86,9 +86,8 @@ std::vector<Vector*> Facet::IdentifiedVectors()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Facet::setVectorsFromSample(std::vector<Collection*>& sampledVectorSets, std::string& outCompletionExplanation, double maxSampleErrorAllowedMM)
+int Facet::setVectorsFromSample(std::vector<Collection*>& sampledVectorSets, std::string& outCompletionExplanation, double maxSampleErrorAllowedMM)
 {
-  long mtCode;
   Collection* handlesCollection = new Collection();
   for (unsigned int i = 0; i < sampledVectorSets.size(); i++)
   {
@@ -101,9 +100,9 @@ MicronTracker_Return Facet::setVectorsFromSample(std::vector<Collection*>& sampl
 
   if (handlesCollection->count() == 0)
   {
-    return MT_EmptyCollection;
+    return mtEmptyCollection;
   }
-  return (MicronTracker_Return)Facet_SetTemplateVectorsFromSamples(this->Handle, handlesCollection->getHandle(), maxSampleErrorAllowedMM);
+  return Facet_SetTemplateVectorsFromSamples(this->Handle, handlesCollection->getHandle(), maxSampleErrorAllowedMM);
 }
 
 //----------------------------------------------------------------------------
@@ -135,9 +134,9 @@ bool Facet::identify(MCamera* cam, std::vector<Vector*> vectorSet, double positi
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Facet::validateTemplate(double positionToleranceMM, std::string outCompletionString)
+int Facet::validateTemplate(double positionToleranceMM, std::string outCompletionString)
 {
-  return (MicronTracker_Return)Facet_ValidateTemplateVectors(this->Handle);
+  return Facet_ValidateTemplateVectors(this->Handle);
 }
 
 //----------------------------------------------------------------------------

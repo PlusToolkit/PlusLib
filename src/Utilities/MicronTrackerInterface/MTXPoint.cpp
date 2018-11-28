@@ -50,7 +50,7 @@ MTXPoint::~MTXPoint()
 //----------------------------------------------------------------------------
 mtHandle MTXPoint::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
@@ -62,21 +62,21 @@ int MTXPoint::getIndex()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MTXPoint::setIndex(int index)
+int MTXPoint::setIndex(int index)
 {
-  return (MicronTracker_Return)XPoint_IndexSet(this->Handle, index);
+  return XPoint_IndexSet(this->Handle, index);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MTXPoint::position3D(double* x, double* y, double* z)
+int MTXPoint::position3D(double* x, double* y, double* z)
 {
-  return (MicronTracker_Return)XPoint_3DPositionGet(this->Handle, x, y, z);
+  return XPoint_3DPositionGet(this->Handle, x, y, z);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MTXPoint::position2D(double* x0, double* y0, double* x1, double* y1, double* x2, double* y2)
+int MTXPoint::position2D(double* x0, double* y0, double* x1, double* y1, double* x2, double* y2)
 {
-  return (MicronTracker_Return)XPoint_2DPositionGet(this->Handle, x0, y0, x1, y1, x2, y2);
+  return XPoint_2DPositionGet(this->Handle, x0, y0, x1, y1, x2, y2);
 }
 
 //----------------------------------------------------------------------------

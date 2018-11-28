@@ -22,14 +22,14 @@ public:
   mtHandle getHandle();
 
   // Set/Get path
-  MicronTracker_Return setPath(const char* path);
+  int setPath(const char* path);
   std::string getPath();
-  MicronTracker_Return setSection(const char* section);
+  int setSection(const char* section);
   int retrieveInt(const char* name, int defaultVal);
   double retrieveDouble(const char* name, double defaultVal);
 
-  MicronTracker_Return saveInt(const char* name, int val);
-  MicronTracker_Return saveDouble(const char* name, double val);
+  int saveInt(const char* name, int val);
+  int saveDouble(const char* name, double val);
 
 private:
   mtHandle  Handle;

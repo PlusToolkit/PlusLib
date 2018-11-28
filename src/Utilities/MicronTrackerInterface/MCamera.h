@@ -32,7 +32,7 @@ public:
   int getNumOfFramesGrabbed();
 
   double getShutterTime();
-  MicronTracker_Return setShutterTime(double sh);
+  int setShutterTime(double sh);
   double getMaxShutterTime();
   double getMinShutterTime();
 
@@ -40,41 +40,41 @@ public:
   double setShutterTimeLimit(double limit);
 
   double getGain();
-  MicronTracker_Return setGain(double g);
+  int setGain(double g);
   double getMinGain();
   double getMaxGain();
 
   double getGainLimit();
   double setGainLimit(double limit);
 
-  MicronTracker_MeasurementHazardCode getThermalHazard();
+  int getThermalHazard();
 
   double getDBGain();
 
   double getExposure();
-  MicronTracker_Return setExposure(double e);
+  int setExposure(double e);
   double getMinExposure();
   double getMaxExposure();
 
   int getSensorsNum();
 
   int getAutoExposure();
-  MicronTracker_Return setAutoExposure(int ae);
+  int setAutoExposure(int ae);
 
   double getLightCoolness();
-  MicronTracker_Return setLightCoolness(double value);
-  MicronTracker_Return adjustCoolnessFromColorVector(mtHandle ColorVectorHandle);
+  int setLightCoolness(double value);
+  int adjustCoolnessFromColorVector(mtHandle ColorVectorHandle);
 
-  MicronTracker_Return getImages(unsigned char** *li, unsigned char** *ri);
-  MicronTracker_Return getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes);
-  MicronTracker_Return getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi);
-  MicronTracker_Return getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes);
+  int getImages(unsigned char** *li, unsigned char** *ri);
+  int getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes);
+  int getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi);
+  int getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes);
 
-  MicronTracker_Return getProjectionOnImage(int image, double XYZ[], double* x, double* y);
+  int getProjectionOnImage(int image, double XYZ[], double* x, double* y);
 
-  MicronTracker_Return grabFrame(); // returns true for success
+  int grabFrame(); // returns true for success
   bool getHdrModeEnabled();
-  MicronTracker_Return setHdrModeEnabled(bool NewVal);
+  int setHdrModeEnabled(bool NewVal);
 
 private:
   mtHandle        Handle;

@@ -30,11 +30,11 @@ public:
   Facet(mtHandle h = 0);
   ~Facet();
   mtHandle getHandle();
-  MicronTracker_Return getXpoints(MCamera* cam, XPointsType_LS_LRM_BH_XY result2x3x2x2);  //[LV/SV][L/R/M][base/head][X/Y]
+  int getXpoints(MCamera* cam, XPointsType_LS_LRM_BH_XY result2x3x2x2);  //[LV/SV][L/R/M][base/head][X/Y]
   std::vector<Vector*> IdentifiedVectors();
   std::vector<Vector*> TemplateVectors();
-  MicronTracker_Return setVectorsFromSample(std::vector<Collection*>& sampledVectorSets, std::string& outCompletionExplanation, double maxSampleErrorAllowedMM = 2.0);
-  MicronTracker_Return validateTemplate(double positionToleranceMM, std::string outCompletionString = NULL);
+  int setVectorsFromSample(std::vector<Collection*>& sampledVectorSets, std::string& outCompletionExplanation, double maxSampleErrorAllowedMM = 2.0);
+  int validateTemplate(double positionToleranceMM, std::string outCompletionString = NULL);
   bool identify(MCamera* cam, std::vector<Vector*> vectorSet, double positionToleranceMM);
   Xform3D* getFacet2CameraXf(MCamera* cam);
 

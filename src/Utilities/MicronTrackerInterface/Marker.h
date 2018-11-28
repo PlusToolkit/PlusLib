@@ -29,14 +29,14 @@ public:
   mtHandle getTemplateFacets();
 
   std::string getName();
-  MicronTracker_Return setName(char* name);
+  int setName(char* name);
   bool wasIdentified(MCamera* cam);
   Xform3D* marker2CameraXf(mtHandle camHandle);
   Xform3D* tooltip2MarkerXf();
   mtHandle identifiedFacets(MCamera* cam);
-  MicronTracker_Return addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf);
-  MicronTracker_Return validateTemplate(double positionToleranceMM, std::string complString);
-  MicronTracker_Return storeTemplate(Persistence* p, const char* name);
+  int addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf);
+  int validateTemplate(double positionToleranceMM, std::string complString);
+  int storeTemplate(Persistence* p, const char* name);
 
 protected:
   mtHandle    Handle;

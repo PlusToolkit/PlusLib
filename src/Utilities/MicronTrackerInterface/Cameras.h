@@ -28,17 +28,17 @@ public:
   ~Cameras();
   mtHandle getHandle();
   int getCount();
-  MicronTracker_Return setHistogramEqualizeImages(bool on_off);
+  int setHistogramEqualizeImages(bool on_off);
   bool getHistogramEqualizeImages();
   MCamera* getCamera(int index);
 
-  MicronTracker_Return attachAvailableCameras();
+  int attachAvailableCameras();
   void detach();
 
-  MicronTracker_Return grabFrame(MCamera* camera = NULL);
+  int grabFrame(MCamera* camera = NULL);
 
 protected:
-  MicronTracker_Return getMTHome(std::string& homeDirectory);
+  int getMTHome(std::string& homeDirectory);
 
 protected:
   std::vector<MCamera*>   CameraList;

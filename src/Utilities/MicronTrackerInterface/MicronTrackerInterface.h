@@ -25,103 +25,31 @@ class Markers;
 class Persistence;
 class Xform3D;
 
-typedef int mtHandle;
-
-enum MicronTracker_Return
-{
-  MT_OK = 0, /*!< OK */
-  MT_InvalidHandle, /*!< Invalid object handle */
-  MT_ReentrantAccess, /*!< Reentrant access - library is not thread-safe */
-  MT_InternalMTError, /*!< Internal MicronTracker software error */
-  MT_NullPointer, /*!< Null pointer parameter */
-  MT_OutOfMemory, /*!< Out of memory*/
-  MT_ParameterOutOfRange, /*!< Parameter out of range*/
-  MT_StringParamTooLong,  /*!< String parameter too long*/
-  MT_OutBufferTooSmall, /*!< Insufficient space allocated by the client to the output buffer*/
-  MT_CameraNotInitialized,  /*!< Camera not initialized*/
-  MT_CameraAlreadyInitialized,  /*!< Camera already initialized - cannot be initialized twice*/
-  MT_CameraInitializationFailed,  /*!< Camera initialization failed*/
-  MT_CompatibilityError,  /*!< MTC is incompatible with a software module it calls*/
-  MT_DataNotAvailable, /*< Data requested is not available */
-  MT_UnrecognizedCameraModel, /*!< Calibration file error: unrecognized camera model*/
-  MT_PathNotSet,  /*!< Path not set*/
-  MT_CannotAccessDirectory, /*!< Cannot access the directory specified*/
-  MT_WriteToFileFailed, /*!< Write to file failed*/
-  MT_InvalidIndex,  /*!< Invalid Index parameter*/
-  MT_InvalidSideI,  /*!< Invalid SideI parameter*/
-  MT_InvalidDivisor,  /*!< Invalid Divisor parameter*/
-  MT_EmptyCollection, /*!< Attempting to access an item of an empty IntCollection*/
-  MT_InsufficientSamples, /*!< Insufficient samples*/
-  MT_InsufficientSamplesWithinTolerance,  /*!< Insufficient samples that fit within the acceptance tolerance*/
-  MT_OddNumberOfSamples,  /*!< Odd number of vector samples*/
-  MT_LessThan2Vectors,  /*!< Less than 2 vectors*/
-  MT_MoreThanMaxVectorsPerFacet,  /*!< More than maximum vectors per facet*/
-  MT_ErrorExceedsTolerance, /*!< Error exceeds tolerance*/
-  MT_InsufficientAngleBetweenVectors, /*!< Insufficient angle between vectors*/
-  MT_FirstVectorShorterThanSecond,  /*!< First vector is shorter than the second*/
-  MT_VectorLengthsTooSimilar, /*!< Vector lengths are too similar*/
-  MT_NullTemplateVector,  /*!< Template vector has 0 length*/
-  MT_TemplateNotSet,  /*!< The template has not been created or loaded*/
-  MT_CorruptTemplateFile, /*!< Template file is corrupt*/
-  MT_MaxMarkerTemplatesExceeded,  /*!< Maximum number of marker templates allowed exceeded*/
-  MT_DifferentFacetsGeometryTooSimilar, /*!< Geometries of different facets are too similar*/
-  MT_NoncompliantFacetDefinition, /*!< Noncompliant facet definition*/
-  MT_CollectionContainsNonVectorHandles,  /*!< The SampledVectorPairsCollection contains non-Vector handles*/
-  MT_EmptyBuffer, /*!< Empty pixels buffer*/
-  MT_DimensionsDoNotMatch,  /*!< Dimensions do not match*/
-  MT_OpenFileFailed,  /*!< File open failed*/
-  MT_ReadFileFailed,  /*!< File read failed*/
-  MT_WriteFileFailed, /*!< File write failed*/
-  MT_CannotOpenCalibrationFile, /*!< Cannot open calibration file (typically named [driver]_[ser num].calib */
-  MT_NotACalibrationFile, /*!< Not a calibration file*/
-  MT_CalibrationFileCorrupt,  /*!< Calibration file contents corrupt*/
-  MT_CalibrationFileDoesNotMatchCamera, /*!< Calibration file was not generated from this camera*/
-  MT_CalibrationFileNotLoaded,  /*!< Calibration file not loaded*/
-  MT_IncorrectFileVersion,  /*!< Incorrect file version*/
-  MT_LocationOutOfMeasurementBounds, /*!< Input image location is out of bounds of the measurement volume*/
-  MT_CannotTriangulate, /*!< Input image locations do not triangulate to a valid 3-D point*/
-  MT_UnknownXform, /*!< Transform between coordinate spaces is unknown*/
-  MT_CameraNotFound, /*!< The given camera object was not found in the cameras array*/
-  MT_FeatureDataUnavailable, /*!< Feature Data unavailable for the current frame*/
-  MT_FeatureDataCorrupt, /*!< Feature Data is corrupt or incompatible with the current version*/
-  MT_XYZOutOfFOV, /*!< XYZ position is outside of calibrated field of view*/
-  MT_GrabFrameError,  /*!< Grab frame error*/
-  MT_GrabTimeOut, /*!< Grab frame time out*/
-  MT_CannotCreateThread,  /*!< failed to create the thread*/
-  MT_HdrIsNotEnabled, /*!< HDR mode is not enabled yet*/
-  MT_FeatureNotSupported, /*!<Frame Embedded Info is not supported by the camera*/
-  MT_HDRFrameCycleNotSupported, /*!<Frame Cycle Number is not supported by the camera*/
-  MT_FeatureNotSupportedForX64, /*!<Feature not supported in the 64 bit version of the library */
-  MT_NonUniformLightOnCoolCard,  /*!<Non Uniform Light Distribution over the CoolCard */
-  MT_BackgroundProcessMutexError, /*!<Couldn't get the mutex */
-  MT_TooManyVectors, /*!<for disabling the unitracking if too many vectors detected */
-  MT_MethodIsObsolete, /*!<for disabling the unitracking if too many vectors detected */
-  MT_InvalidVectors, /*!<Vectors either do not intersect or share a base/head XPoint with each other */
-  MT_MismatchedVectors, /*!<The provided vectors didn't match to the provided template */
-  MT_InsufficientNumberOfXPoints, /*!<The API requires more xpoints that what provided */
-  MT_XPointsProcessingIsDisabled, /*!<The XPoints Processing is not performed */
-  MT_RemoveFailed, /* Cannot remove the file */
-  MT_RenameFailed, /* Cannot rename the file */
-  MT_NoRegistryKey, /* Failed to locate the registry key on Windows for the log file name */
-  MT_NoEnvironmentVariable, /* Failed to locate the environment variable for the log file name */
-};
-
-enum MicronTracker_MeasurementHazardCode
-{
-  MT_HC_None = 0, /*!< No hazard - safe measurement */
-  MT_HC_CustomCoolnessLoaded, /*!< Custom Coolness coefficients loaded, make sure the coefficients are correct */
-  MT_HC_ShadowOverXP, /*!< Part of an XPoint is shadowed, possibly compromising accuracy */
-  MT_HC_CameraBelowMinimumOperatingTemperature, /*!< The internal camera temperature is below operating range, compromising accuracy */
-  MT_HC_CameraAboveMaximumOperatingTemperature, /*!< The internal camera temperature is above operating range, compromising accuracy */
-  MT_HC_RapidInternalTemperatureChange, /*!< The camera is undergoing a rapid temperature change, compromising accuracy */
-  MT_HC_OutsideCalibratedVolume,  /*!< The marker is outside calibrated volume, ie, too far from the camera */
-  MT_HC_OutsideExtendedCalibratedVolume, /*!< The marker is outside extended calibrated volume */
-  MT_HC_CameraWarmingUp, /*!< The camera is not yet thermally stable enough to provide accurate measurements */
-  MT_HC_DeficientMarkerTemplateForWarmupCorrection,
-};
+// Any handle to an MT object
+#ifdef _WIN64  // Defined for applications for Win64.
+  typedef long long mtHandle;
+#else
+  #ifdef _LINUX64
+    typedef long long mtHandle;
+  #else
+    typedef int mtHandle; // for WIN32
+  #endif
+#endif
 
 class MicronTrackerInterface
 {
+protected:
+  enum mti_Error
+  {
+    MTI_FAIL = 0,
+    MTI_SUCCESS = 1,
+    MTI_CAMERA_NOT_FOUND = 2,
+    MTI_GRAB_FRAME_ERROR = 3,
+    MTI_MARKER_CAPTURED = 4,
+    MTI_NO_MARKER_CAPTURED = 5,
+    MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
+  };
+
 public:
   MicronTrackerInterface() {};
   ~MicronTrackerInterface();
@@ -134,8 +62,8 @@ public:
 
 
   /** Set some preliminary variables. This function should be called
-  before calling any other functions. Returns true if successful, false if not. */
-  MicronTracker_Return mtInit(const std::string& iniFilePath);
+  before calling any other functions. */
+  int mtInit(const std::string& iniFilePath);
 
   /** No other function should be called after calling this function unless the mtInit() is called again. */
   void mtEnd();
@@ -147,9 +75,8 @@ public:
   //------------------------------
 
   /** Instantiates an object of type CurrentCameras and calls the setupCameras method on
-  that object. Checks for the presence of any cameras. Returns 1 if finds at least one camera.
-  If no camera is found returns false. */
-  MicronTracker_Return mtSetupCameras();
+  that object. Checks for the presence of any cameras. */
+  int mtSetupCameras();
 
   /** Detaches the already attached cameras. It is safe to call this method even if
   no camera(s) is attached as it checks the status of the camera(s) first. */
@@ -189,10 +116,7 @@ public:
   of camera index range, returns -1. */
 
   /** Since there is no longer a library call to get this info, it just returns 2 */
-  int mtGetNumOfSensors(int index = -1)
-  {
-    return 2;
-  }
+  int mtGetNumOfSensors(int index = -1);
 
   /** Returns the number of attached cameras.*/
   int mtGetNumOfCameras();
@@ -204,7 +128,7 @@ public:
   //--------------------------
 
   /** Sets the shutter preference of the cameras. */
-  MicronTracker_Return mtSetShutterPreference(double n);
+  int mtSetShutterPreference(double n);
 
   /** Gets the shutter preference of the cameras. */
   double mtGetShutterPreference();
@@ -212,7 +136,7 @@ public:
   /** Sets the shutter opening time in the index_th camera. if index is -1 then
   the shutter time of the current camera will be set. If no index is passed the default value is -1.
   When this method is called the AutoExposure in the camera is set to false automatically. */
-  MicronTracker_Return mtSetShutterTime(double n, int index = -1);
+  int mtSetShutterTime(double n, int index = -1);
 
   /** Gets the shutter opening time in the index_th camera. If index is -1 then
   the shutter time of the current camera is returned.  If no index is passed the default value is -1.*/
@@ -241,7 +165,7 @@ public:
 
   // Sets the gain of the index_th camera. If index is -1 then
   // the gain of the current camera is returned.
-  MicronTracker_Return mtSetGain(double n, int index = -1);
+  int mtSetGain(double n, int index = -1);
 
   // Get the minimum gain of the index_th camera. If index is -1 then
   // the minimum gain of the current camera is returned.
@@ -265,7 +189,7 @@ public:
 
   // Set the exposure of the index_th camera. If index is -1 then
   // the gain of the current camera is returned.
-  MicronTracker_Return mtSetExposure(double n, int index = -1);
+  int mtSetExposure(double n, int index = -1);
 
   // Get the minimum exposure of the the index_th camera. If index is -1 then
   // the minimum exposure of the current camera is returned.
@@ -291,7 +215,7 @@ public:
   // the autoExposure of the current camera will be set.
   // When set to -1, the exposure is automatically adjusted to maintain a good distribution of
   // grey levels in the image; If set to 0, not.
-  MicronTracker_Return mtSetCamAutoExposure(int n, int index = -1);
+  int mtSetCamAutoExposure(int n, int index = -1);
 
   // Gets the AutoExposure property of the index_th camera. If index is -1 then
   // the AutoExposure of the current camera is returned.
@@ -318,11 +242,11 @@ public:
 
   // Grabs the frame of the index_th cameras. If index is -1 then the frame from all
   // the cameras is grabbed.
-  MicronTracker_Return mtGrabFrame(int index = -1);
+  int mtGrabFrame(int index = -1);
 
   // Invokes processing of the most recent grabbed frame. This process involves
   // recognizing the identified vectors
-  MicronTracker_Return mtProcessFrame();
+  int mtProcessFrame();
 
   //------------------------
   //
@@ -347,11 +271,11 @@ public:
 
   // Stops collecting the samples from the new marker and creates a new marker with
   // the name of 'templateName' and jitter value of 'jitterValue.
-  MicronTracker_Return mtStopSampling(char* templateName, double jitterValue);
+  int mtStopSampling(char* templateName, double jitterValue);
 
   // Saves the template with name 'templName' in the Marker folder in the
   // current directory. */
-  MicronTracker_Return mtSaveMarkerTemplate(const std::string& templName, const std::string& dir);
+  int mtSaveMarkerTemplate(const std::string& templName, const std::string& dir);
 
   // Deletes the previous samples received.
   void mtResetSamples();
@@ -371,7 +295,7 @@ public:
   // If index is -1 then the histogram of the pixel values of the current camera will be calculated.
   // The histogram array is copied into the aPixHist array.
   // If subSampleRate is set to values > 1 then the speed of computation increases. */
-  MicronTracker_Return mtGetLatestFramePixHistogram(long*& aPixHist, int subSampleRate, int index = -1);
+  int mtGetLatestFramePixHistogram(long*& aPixHist, int subSampleRate, int index = -1);
 
   // Returns the number of frames grabbed by the index_th camera. Increments by one every time a
   // frame is grabbed. If index is -1 then returns the number of frames grabbed by the default camera.
@@ -400,10 +324,10 @@ public:
   //  \param tmplsError Holds the error strings (if any) during the templates loading process.
   //  \param tmplsWarn Holds the warning strings (if any) during the templates loading process.
   //  \param templsPath Path of the directory containing the template files.
-  MicronTracker_Return mtRefreshTemplates(std::vector<std::string>& tmplsName, std::vector<std::string>& tmplsError, const std::string& tmplsPath);
+  int mtRefreshTemplates(std::vector<std::string>& tmplsName, std::vector<std::string>& tmplsError, const std::string& tmplsPath);
 
   // Sets the match tolerance of the marker templates to \param matchTolerance in mm.
-  MicronTracker_Return mtSetTemplMatchTolerance(double matchTolerance);
+  int mtSetTemplMatchTolerance(double matchTolerance);
 
   // Gets the match tolerance of the marker templates.
   double mtGetTemplMatchTolerance();
@@ -427,7 +351,7 @@ public:
   // Set the predictive tracking to true or false.
   void mtSetPredictiveTracking(bool predTracking);
   // Get the predictive tracking of the markers.
-  MicronTracker_Return mtGetPredictiveTracking();
+  int mtGetPredictiveTracking();
 
   // If set to true, all the camera settings will be updated after each call to
   // the processFrame. If set to false this does not happen.
@@ -437,7 +361,7 @@ public:
   short mtGetAdjustCamAfterEveryProcess();
 
   // Set the name of the template 'index' in the templates list. The new name is 'templName'.
-  MicronTracker_Return mtSetTemplateName(int index, const std::string& templName);
+  int mtSetTemplateName(int index, const std::string& templName);
 
   // Get the name of the template 'index' in the template list.
   std::string mtGetTemplateName(int index);
@@ -447,7 +371,7 @@ public:
   char* mtGetIdentifiedTemplateName(int index);
 
   // Delete the template 'index' in the list of the loaded templates.
-  MicronTracker_Return mtDeleteTemplate(int index);
+  int mtDeleteTemplate(int index);
 
   //------------------------
   //
@@ -457,7 +381,7 @@ public:
   //------------------------
 
   // Sets the predictiveInterleave.
-  MicronTracker_Return mtSetPredictiveFramesInterleave(int predictiveInterleave);
+  int mtSetPredictiveFramesInterleave(int predictiveInterleave);
 
   // Returns the number of predictiveInterleave. Returns -1 if not successful.
   int mtGetPredictiveFramesInterleave();
@@ -551,98 +475,86 @@ public:
 
   //------------------------
   // Gets the images captured by the index_th camera. Index of -1 means the current camera's images will be considered.
-  MicronTracker_Return mtGetLeftRightImageArray(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int index = -1);
-  MicronTracker_Return mtGetLeftRightImageArrayHalfSize(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int xResolution, int yResolution, int index = -1);
+  int mtGetLeftRightImageArray(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int index = -1);
+  int mtGetLeftRightImageArrayHalfSize(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int xResolution, int yResolution, int index = -1);
 
   /*! Get the MTC library version (major.minor.build.revision) */
   std::string GetSdkVersion();
 
   void mtSaveSettingsToINI();
 
-  std::string ConvertReturnToString(MicronTracker_Return returnValue);
+  std::string ConvertReturnToString(int returnValue);
+  std::string ConvertHazardToString(int hazardCode);
 
-  std::string GetLastErrorString()
-  {
-    return m_errorString;
-  };
+  std::string GetLastErrorString();
 
 protected:
   void mtFindUnidentifiedMarkers();
 
-  MicronTracker_Return removeFile(const std::string& fileName, const std::string& dir);
-  MicronTracker_Return renameFile(const std::string& oldName, const std::string& newName, const std::string& dir);
+  int removeFile(const std::string& fileName, const std::string& dir);
+  int renameFile(const std::string& oldName, const std::string& newName, const std::string& dir);
   void logError(int errorNum, const char* description = NULL);
-
-  enum mti_Error
-  {
-    MTI_FAIL = 0,
-    MTI_SUCCESS = 1,
-    MTI_CAMERA_NOT_FOUND = 2,
-    MTI_GRAB_FRAME_ERROR = 3,
-    MTI_MARKER_CAPTURED = 4,
-    MTI_NO_MARKER_CAPTURED = 5,
-    MTI_CAMERA_INDEX_OUT_OF_RANGE = 6
-  };
 
   static void getFileNamesFromDirectory(std::vector<std::string>& fileNames, const std::string& dir, bool returnCompletePath);
 
   // Accesses the "MicronTracker.ini" file to retrieve some values from it and then
   // set those values in the Markers interface object.
   void initialINIAccess(const std::string& iniFilePath);
-  MicronTracker_Return checkCamIndex(int id);
+  int checkCamIndex(int id);
 
+protected:
   // A two dimensional vector for storing the rotation matrices. The first dimension is the marker number.
   // The second dimension is the vector of rotation matrices
-  std::vector<std::vector<double>> m_2dvRotations;
+  std::vector<std::vector<double>>  Rotations2D;
 
   // A two dimensional vector for storing the translations.
-  std::vector<std::vector<double>> m_2dvTranslations;
+  std::vector<std::vector<double>>  Translations2D;
 
   // A two dimensional vector for storing the xpoints of the identified vectors. The first vector is the index
   // of the marker. The second dimension is the vector of xpoints. The latter vector is divided into group of 16s,
   // i.e. the first 16 elements belong to the first facet in the marker, if there are more than one facet in that
   // marker then the next 16 elements represent the xpoints of that facet and so on.
-  std::vector<std::vector<double>> m_vIdentifiedMarkersXPoints;
+  std::vector<std::vector<double>>  IdentifiedMarkersXPoints;
 
   // A vector for storing the name of the identified markers
-  std::vector<std::string> m_vIdentifiedMarkersName;
+  std::vector<std::string>          IdentifiedMarkersName;
 
   // A two dimensional vector for storing the xpoints of the unidentified vectors.
-  std::vector<std::vector<double>> m_vUnidentifiedMarkersEndPoints;
+  std::vector<std::vector<double>>  UnidentifiedMarkersEndPoints;
 
   // A vector for storing new sample vectors.
-  std::vector<Collection*> m_sampleVectors;
+  std::vector<Collection*>          SampleVectors;
 
-  Marker* m_pCurrMarker;
+  Marker*                           CurrentMarker;
 
   // A vector for storing the number of facets for each identified marker. So the first element
   // is the number of facets in the first marker and so on.
 
-  std::vector<int> m_vNumOfFacetsInEachMarker;
+  std::vector<int>                  NumOfFacetsInEachMarker;
 
   // A vector for storing the total number of facets for each identified marker. So the first element
   // is the number of total facets in the first marker and so on.
 
-  std::vector<int> m_vNumOfTotalFacetsInEachMarker;
+  std::vector<int>                  NumOfTotalFacetsInEachMarker;
 
-  bool          m_isCameraAttached;
-  Cameras*      m_pCameras;
-  MCamera*      m_pCurrCam;
-  int           m_currCamIndex;
-  Markers*      m_pMarkers;
-  Persistence*  m_pPers;
-  Marker*       m_pTempMarkerForAddingFacet;
+  bool                              IsCameraAttached;
+  Cameras*                          CameraList;
+  MCamera*                          CurrentCamera;
+  int                               CurrentCameraIndex;
+  Markers*                          MarkerList;
+  Persistence*                      Settings;
+  Marker*                           TempMarkerForAddingFacet;
 
-  int           m_markerStatus;
-  int           m_numOfIdentifiedMarkers;
-  int           m_numOfUnidentifiedMarkers;
+  int                               MarkerStatus;
+  int                               NumOfIdentifiedMarkers;
+  int                               NumOfUnidentifiedMarkers;
 
   // In the process of registering a marker, this variable indicates whether the registering facet is
   // a new facet or it is a new facet being added to an already existing marker. 0 = false; 1 = true
 
-  int                   m_isAddingAdditionalFacet;
-  std::vector<Xform3D*> m_facet1ToCameraXfs;
-  std::string           m_errorString;
+  int                               IsAddingAdditionalFacet;
+  std::vector<Xform3D*>             Facet1ToCameraXfs;
+  std::string                       ErrorString;
 };
 
 #endif

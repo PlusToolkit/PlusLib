@@ -45,18 +45,18 @@ MicronTrackerInterface::~MicronTrackerInterface()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtInit(const std::string& iniFilePath)
+int MicronTrackerInterface::mtInit(const std::string& iniFilePath)
 {
-  this->m_errorString.clear();
-  this->m_isCameraAttached = false;
-  this->m_pMarkers = new Markers();
-  this->m_pPers = new Persistence();
+  this->ErrorString.clear();
+  this->IsCameraAttached = false;
+  this->MarkerList = new Markers();
+  this->Settings = new Persistence();
   //m_pCurrTempMarker =  new Marker();
-  this->m_pTempMarkerForAddingFacet = NULL; //new Marker();
+  this->TempMarkerForAddingFacet = NULL; //new Marker();
 
   initialINIAccess(iniFilePath);
 
-  return MT_OK;
+  return mtOK;
 }
 
 //----------------------------------------------------------------------------
@@ -68,231 +68,258 @@ void MicronTrackerInterface::mtEnd()
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::initialINIAccess(const std::string& iniFilePath)
 {
-  this->m_pPers->setPath(iniFilePath.c_str());
-  this->m_pPers->setSection("General");
+  this->Settings->setPath(iniFilePath.c_str());
+  this->Settings->setSection("General");
 
   //Setting the FrameInterleave property in the Markers object
   int defaultFrameInterleave = 0;
-  this->m_pMarkers->setPredictiveFramesInterleave(this->m_pPers->retrieveInt("PredictiveFramesInterleave", defaultFrameInterleave));
+  this->MarkerList->setPredictiveFramesInterleave(this->Settings->retrieveInt("PredictiveFramesInterleave", defaultFrameInterleave));
 
   //Setting the TemplateMatchToleranceMM property in the Markers object
   double defaultTempMatchToleranceMM = 1.0;
-  this->m_pMarkers->setTemplateMatchToleranceMM(this->m_pPers->retrieveDouble("TemplateMatchToleranceMM", defaultTempMatchToleranceMM));
+  this->MarkerList->setTemplateMatchToleranceMM(this->Settings->retrieveDouble("TemplateMatchToleranceMM", defaultTempMatchToleranceMM));
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtSaveSettingsToINI()
 {
-  this->m_pPers->saveDouble("TemplateMatchToleranceMM", this->m_pMarkers->getTemplateMatchToleranceMM());
-  this->m_pPers->saveInt("PredictiveFramesInterleave", this->m_pMarkers->getPredictiveFramesInterleave());
+  this->Settings->saveDouble("TemplateMatchToleranceMM", this->MarkerList->getTemplateMatchToleranceMM());
+  this->Settings->saveInt("PredictiveFramesInterleave", this->MarkerList->getPredictiveFramesInterleave());
 }
 
 //----------------------------------------------------------------------------
-std::string MicronTrackerInterface::ConvertReturnToString(MicronTracker_Return returnValue)
+std::string MicronTrackerInterface::ConvertReturnToString(int returnValue)
 {
   switch (returnValue)
   {
-    case MT_OK:
+    case mtOK:
       return "OK";
-    case MT_InvalidHandle:
+    case mtInvalidHandle:
       return "InvalidHandle";
-    case MT_ReentrantAccess:
+    case mtReentrantAccess:
       return "ReentrantAccess";
-    case MT_InternalMTError:
+    case mtInternalMTError:
       return "InternalMTError";
-    case MT_NullPointer:
+    case mtNullPointer:
       return "NullPointer";
-    case MT_OutOfMemory:
+    case mtOutOfMemory:
       return "OutOfMemory";
-    case MT_ParameterOutOfRange:
+    case mtParameterOutOfRange:
       return "ParameterOutOfRange";
-    case MT_StringParamTooLong:
+    case mtStringParamTooLong:
       return "StringParamTooLong";
-    case MT_OutBufferTooSmall:
+    case mtOutBufferTooSmall:
       return "OutBufferTooSmall";
-    case MT_CameraNotInitialized:
+    case mtCameraNotInitialized:
       return "CameraNotInitialized";
-    case MT_CameraAlreadyInitialized:
+    case mtCameraAlreadyInitialized:
       return "CameraAlreadyInitialized";
-    case MT_CameraInitializationFailed:
+    case mtCameraInitializationFailed:
       return "CameraInitializationFailed";
-    case MT_CompatibilityError:
+    case mtCompatibilityError:
       return "CompatibilityError";
-    case MT_DataNotAvailable:
+    case mtDataNotAvailable:
       return "DataNotAvailable";
-    case MT_UnrecognizedCameraModel:
+    case mtUnrecognizedCameraModel:
       return "UnrecognizedCameraModel";
-    case MT_PathNotSet:
+    case mtPathNotSet:
       return "PathNotSet";
-    case MT_CannotAccessDirectory:
+    case mtCannotAccessDirectory:
       return "CannotAccessDirectory";
-    case MT_WriteToFileFailed:
+    case mtWriteToFileFailed:
       return "WriteToFileFailed";
-    case MT_InvalidIndex:
+    case mtInvalidIndex:
       return "InvalidIndex";
-    case MT_InvalidSideI:
+    case mtInvalidSideI:
       return "InvalidSideI";
-    case MT_InvalidDivisor:
+    case mtInvalidDivisor:
       return "InvalidDivisor";
-    case MT_EmptyCollection:
+    case mtEmptyCollection:
       return "EmptyCollection";
-    case MT_InsufficientSamples:
+    case mtInsufficientSamples:
       return "InsufficientSamples";
-    case MT_InsufficientSamplesWithinTolerance:
+    case mtInsufficientSamplesWithinTolerance:
       return "InsufficientSamplesWithinTolerance";
-    case MT_OddNumberOfSamples:
+    case mtOddNumberOfSamples:
       return "OddNumberOfSamples";
-    case MT_LessThan2Vectors:
+    case mtLessThan2Vectors:
       return "LessThan2Vectors";
-    case MT_MoreThanMaxVectorsPerFacet:
+    case mtMoreThanMaxVectorsPerFacet:
       return "MoreThanMaxVectorsPerFacet";
-    case MT_ErrorExceedsTolerance:
+    case mtErrorExceedsTolerance:
       return "ErrorExceedsTolerance";
-    case MT_InsufficientAngleBetweenVectors:
+    case mtInsufficientAngleBetweenVectors:
       return "InsufficientAngleBetweenVectors";
-    case MT_FirstVectorShorterThanSecond:
+    case mtFirstVectorShorterThanSecond:
       return "FirstVectorShorterThanSecond";
-    case MT_VectorLengthsTooSimilar:
+    case mtVectorLengthsTooSimilar:
       return "VectorLengthsTooSimilar";
-    case MT_NullTemplateVector:
+    case mtNullTemplateVector:
       return "NullTemplateVector";
-    case MT_TemplateNotSet:
+    case mtTemplateNotSet:
       return "TemplateNotSet";
-    case MT_CorruptTemplateFile:
+    case mtCorruptTemplateFile:
       return "CorruptTemplateFile";
-    case MT_MaxMarkerTemplatesExceeded:
+    case mtMaxMarkerTemplatesExceeded:
       return "MaxMarkerTemplatesExceeded";
-    case MT_DifferentFacetsGeometryTooSimilar:
+    case mtDifferentFacetsGeometryTooSimilar:
       return "DifferentFacetsGeometryTooSimilar";
-    case MT_NoncompliantFacetDefinition:
+    case mtNoncompliantFacetDefinition:
       return "NoncompliantFacetDefinition";
-    case MT_CollectionContainsNonVectorHandles:
+    case mtCollectionContainsNonVectorHandles:
       return "CollectionContainsNonVectorHandles";
-    case MT_EmptyBuffer:
+    case mtEmptyBuffer:
       return "EmptyBuffer";
-    case MT_DimensionsDoNotMatch:
+    case mtDimensionsDoNotMatch:
       return "DimensionsDoNotMatch";
-    case MT_OpenFileFailed:
+    case mtOpenFileFailed:
       return "OpenFileFailed";
-    case MT_ReadFileFailed:
+    case mtReadFileFailed:
       return "ReadFileFailed";
-    case MT_WriteFileFailed:
+    case mtWriteFileFailed:
       return "WriteFileFailed";
-    case MT_CannotOpenCalibrationFile:
+    case mtCannotOpenCalibrationFile:
       return "CannotOpenCalibrationFile";
-    case MT_NotACalibrationFile:
+    case mtNotACalibrationFile:
       return "NotACalibrationFile";
-    case MT_CalibrationFileCorrupt:
+    case mtCalibrationFileCorrupt:
       return "CalibrationFileCorrupt";
-    case MT_CalibrationFileDoesNotMatchCamera:
+    case mtCalibrationFileDoesNotMatchCamera:
       return "CalibrationFileDoesNotMatchCamera";
-    case MT_CalibrationFileNotLoaded:
+    case mtCalibrationFileNotLoaded:
       return "CalibrationFileNotLoaded";
-    case MT_IncorrectFileVersion:
+    case mtIncorrectFileVersion:
       return "IncorrectFileVersion";
-    case MT_LocationOutOfMeasurementBounds:
+    case mtLocationOutOfMeasurementBounds:
       return "LocationOutOfMeasurementBounds";
-    case MT_CannotTriangulate:
+    case mtCannotTriangulate:
       return "CannotTriangulate";
-    case MT_UnknownXform:
+    case mtUnknownXform:
       return "UnknownXform";
-    case MT_CameraNotFound:
+    case mtCameraNotFound:
       return "CameraNotFound";
-    case MT_FeatureDataUnavailable:
+    case mtFeatureDataUnavailable:
       return "FeatureDataUnavailable";
-    case MT_FeatureDataCorrupt:
+    case mtFeatureDataCorrupt:
       return "FeatureDataCorrupt";
-    case MT_XYZOutOfFOV:
+    case mtXYZOutOfFOV:
       return "XYZOutOfFOV";
-    case MT_GrabFrameError:
+    case mtGrabFrameError:
       return "GrabFrameError";
-    case MT_GrabTimeOut:
+    case mtGrabTimeOut:
       return "GrabTimeOut";
-    case MT_CannotCreateThread:
+    case mtCannotCreateThread:
       return "CannotCreateThread";
-    case MT_HdrIsNotEnabled:
+    case mtHdrIsNotEnabled:
       return "HdrIsNotEnabled";
-    case MT_FeatureNotSupported:
+    case mtFeatureNotSupported:
       return "FeatureNotSupported";
-    case MT_HDRFrameCycleNotSupported:
+    case mtHDRFrameCycleNotSupported:
       return "HDRFrameCycleNotSupported";
-    case MT_FeatureNotSupportedForX64:
+    case mtFeatureNotSupportedForX64:
       return "FeatureNotSupportedForX64";
-    case MT_NonUniformLightOnCoolCard:
+    case mtNonUniformLightOnCoolCard:
       return "NonUniformLightOnCoolCard";
-    case MT_BackgroundProcessMutexError:
+    case mtBackgroundProcessMutexError:
       return "BackgroundProcessMutexError";
-    case MT_TooManyVectors:
+    case mtTooManyVectors:
       return "TooManyVectors";
-    case MT_MethodIsObsolete:
+    case mtMethodIsObsolete:
       return "MethodIsObsolete";
-    case MT_InvalidVectors:
+    case utInvalidVectors:
       return "InvalidVectors";
-    case MT_MismatchedVectors:
+    case utMismatchedVectors:
       return "MismatchedVectors";
-    case MT_InsufficientNumberOfXPoints:
+    case mtInsufficientNumberOfXPoints:
       return "InsufficientNumberOfXPoints";
-    case MT_XPointsProcessingIsDisabled:
+    case mtXPointsProcessingIsDisabled:
       return "XPointsProcessingIsDisabled";
-    case MT_RemoveFailed:
-      return "RemoveFailed";
-    case MT_RenameFailed:
-      return "RenameFailed";
-    case MT_NoRegistryKey:
-      return "NoRegistryKey";
-    case MT_NoEnvironmentVariable:
-      return "NoEnvironmentVariable";
   }
 
   return "Unknown";
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetupCameras()
+std::string MicronTrackerInterface::ConvertHazardToString(int hazardCode)
 {
-  this->m_pCameras = new Cameras();
-  int result = m_pCameras->attachAvailableCameras();
+  switch (hazardCode)
+  {
+    case mtNone:
+      return "None";
+    case mtCustomCoolnessLoaded:
+      return "CustomCoolnessLoaded";
+    case mtShadowOverXP:
+      return "ShadowOverXP";
+    case mtCameraBelowMinimumOperatingTemperature:
+      return "CameraBelowMinimumOperatingTemperature";
+    case mtCameraAboveMaximumOperatingTemperature:
+      return "CameraAboveMaximumOperatingTemperature";
+    case mtRapidInternalTemperatureChange:
+      return "RapidInternalTemperatureChange";
+    case mtOutsideCalibratedVolume:
+      return "OutsideCalibratedVolume";
+    case mtOutsideExtendedCalibratedVolume:
+      return "OutsideExtendedCalibratedVolume";
+    case mtCameraWarmingUp:
+      return "CameraWarmingUp";
+    case mtDeficientMarkerTemplateForWarmupCorrection:
+      return "DeficientMarkerTemplateForWarmupCorrection";
+  }
 
-  if (result == mtOK &&  m_pCameras->getCount() >= 1)
+  return "Unknown";
+}
+
+//----------------------------------------------------------------------------
+std::string MicronTrackerInterface::GetLastErrorString()
+{
+  return this->ErrorString;
+}
+
+//----------------------------------------------------------------------------
+int MicronTrackerInterface::mtSetupCameras()
+{
+  this->CameraList = new Cameras();
+  int result = this->CameraList->attachAvailableCameras();
+
+  if (result == mtOK && this->CameraList->getCount() >= 1)
   {
     // Set the current camera to the first in the list.
-    this->m_currCamIndex = 0;
-    this->m_pCurrCam = this->m_pCameras->getCamera(this->m_currCamIndex);
-    this->m_isCameraAttached = true;
+    this->CurrentCameraIndex = 0;
+    this->CurrentCamera = this->CameraList->getCamera(this->CurrentCameraIndex);
+    this->IsCameraAttached = true;
 
-    return MT_OK;
+    return mtOK;
   }
   else
   {
     this->logError(result);
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtDetachCameras()
 {
-  if (m_isCameraAttached)
+  if (this->IsCameraAttached)
   {
-    m_isCameraAttached = false;
-    m_pCameras->detach();
+    this->IsCameraAttached = false;
+    this->CameraList->detach();
   }
 }
 
 //----------------------------------------------------------------------------
 // Checks to see if the passed argument is within the camera index, i.e. it is not
 //    less than 0 or more than the number of attached camera (minus 1, of course).
-
-MicronTracker_Return MicronTrackerInterface::checkCamIndex(int id)
+int MicronTrackerInterface::checkCamIndex(int id)
 {
-  if (id > -1 && id < this->m_pCameras->getCount())
+  if (id > -1 && id < this->CameraList->getCount())
   {
-    return MT_OK;
+    return mtOK;
   }
   else
   {
     logError(-1, "Camera index out of bound");
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
 }
 
@@ -301,7 +328,7 @@ int MicronTrackerInterface::mtGetSerialNum(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getSerialNum();
+    return this->CurrentCamera->getSerialNum();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -309,7 +336,7 @@ int MicronTrackerInterface::mtGetSerialNum(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getSerialNum();
+    return this->CameraList->getCamera(index)->getSerialNum();
   }
 }
 
@@ -318,7 +345,7 @@ int MicronTrackerInterface::mtGetXResolution(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getXRes();
+    return this->CurrentCamera->getXRes();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -326,7 +353,7 @@ int MicronTrackerInterface::mtGetXResolution(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getXRes();
+    return this->CameraList->getCamera(index)->getXRes();
   }
 }
 
@@ -335,7 +362,7 @@ int MicronTrackerInterface::mtGetYResolution(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getYRes();
+    return this->CurrentCamera->getYRes();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -343,26 +370,32 @@ int MicronTrackerInterface::mtGetYResolution(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getYRes();
+    return this->CameraList->getCamera(index)->getYRes();
   }
+}
+
+//----------------------------------------------------------------------------
+int MicronTrackerInterface::mtGetNumOfSensors(int index /*= -1*/)
+{
+  return 2;
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetNumOfCameras()
 {
-  return this->m_pCameras->getCount();
+  return this->CameraList->getCount();
 }
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtRefreshTemplates(std::vector<std::string>& tmplsName,
+int MicronTrackerInterface::mtRefreshTemplates(std::vector<std::string>& tmplsName,
     std::vector<std::string>& tmplsError,
     const std::string& tmplsPath)
 {
   getFileNamesFromDirectory(tmplsName, tmplsPath, true);
-  int status = this->m_pMarkers->clearTemplates();
+  int status = this->MarkerList->clearTemplates();
   if (status != mtOK)
   {
     logError(status, "Clear templates failed");
-    return (MicronTracker_Return)status;
+    return status;
   }
   LOG_DEBUG("Cleared templates");
   status = Markers_LoadTemplates((char*)tmplsPath.c_str()); // need casting to non-const char because of the improper MTC interface definition
@@ -370,17 +403,17 @@ MicronTracker_Return MicronTrackerInterface::mtRefreshTemplates(std::vector<std:
   {
     std::string msg = "Load templates failed from directory: " + tmplsPath;
     logError(status, msg.c_str());
-    return (MicronTracker_Return)status;
+    return status;
   }
-  return MT_OK;
+  return mtOK;
 }
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtGrabFrame(int index)
+int MicronTrackerInterface::mtGrabFrame(int index)
 {
   int result = mtOK;
   if (index == -1) // From all the cameras
   {
-    result = this->m_pCameras->grabFrame();
+    result = this->CameraList->grabFrame();
   }
   else if (!this->checkCamIndex(index)) // Camera index out of range
   {
@@ -388,40 +421,40 @@ MicronTracker_Return MicronTrackerInterface::mtGrabFrame(int index)
   }
   else // From one camera
   {
-    result = this->m_pCameras->grabFrame(this->m_pCameras->getCamera(index));
+    result = this->CameraList->grabFrame(this->CameraList->getCamera(index));
   }
 
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtProcessFrame()
+int MicronTrackerInterface::mtProcessFrame()
 {
-  int result = this->m_pMarkers->processFrame(this->m_pCurrCam);
+  int result = this->MarkerList->processFrame(this->CurrentCamera);
   if (result != mtOK)
   {
     this->logError(result);
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
 MicronTrackerInterface::NewSampleReturnValue MicronTrackerInterface::mtCollectNewSamples(int collectingAdditionalFacet)
 {
   NewSampleReturnValue result = NewSample_2Vectors;
-  Collection* col = new Collection(this->m_pMarkers->unidentifiedVectors(this->m_pCurrCam));
-  this->m_isAddingAdditionalFacet = collectingAdditionalFacet;
+  Collection* col = new Collection(this->MarkerList->unidentifiedVectors(this->CurrentCamera));
+  this->IsAddingAdditionalFacet = collectingAdditionalFacet;
   if (col->count() == 2 || collectingAdditionalFacet == 1)
   {
-    this->m_sampleVectors.push_back(col);
+    this->SampleVectors.push_back(col);
     result = NewSample_2Vectors;
 
     // Additional facets
-    if (this->m_isAddingAdditionalFacet)
+    if (this->IsAddingAdditionalFacet)
     {
-      Collection* markersCollection = new Collection(this->m_pMarkers->identifiedMarkers(this->m_pCurrCam));
-      this->m_pTempMarkerForAddingFacet = new Marker(markersCollection->itemI(1));
-      Collection* identifiedFacetsCol = new Collection(this->m_pTempMarkerForAddingFacet->getTemplateFacets());
+      Collection* markersCollection = new Collection(this->MarkerList->identifiedMarkers(this->CurrentCamera));
+      this->TempMarkerForAddingFacet = new Marker(markersCollection->itemI(1));
+      Collection* identifiedFacetsCol = new Collection(this->TempMarkerForAddingFacet->getTemplateFacets());
       if (identifiedFacetsCol->count() > 0)
       {
         // Also compute and save the xform of facet1 to sensor
@@ -429,7 +462,7 @@ MicronTrackerInterface::NewSampleReturnValue MicronTrackerInterface::mtCollectNe
         // relates to registering a marker with two cameras. As soon as the second camera is
         // in, we can start working on it.
         //if (this->m_pCurrMarker->marker2CameraXf(this->m_pCurrCam->getHandle() != (Xform3D*)NULL)
-        this->m_facet1ToCameraXfs.push_back(this->m_pTempMarkerForAddingFacet->marker2CameraXf(this->m_pCurrCam->getHandle()));
+        this->Facet1ToCameraXfs.push_back(this->TempMarkerForAddingFacet->marker2CameraXf(this->CurrentCamera->getHandle()));
 
         //else // Seen by a camera not registered with this one
         //{
@@ -441,7 +474,7 @@ MicronTrackerInterface::NewSampleReturnValue MicronTrackerInterface::mtCollectNe
       }
       else // Not seeing a known facet
       {
-        this->m_sampleVectors.pop_back();
+        this->SampleVectors.pop_back();
         delete identifiedFacetsCol;
         return NewSample_NoKnownFacetBeingDetected;
       }
@@ -463,33 +496,33 @@ MicronTrackerInterface::NewSampleReturnValue MicronTrackerInterface::mtCollectNe
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValue)
+int MicronTrackerInterface::mtStopSampling(char* templateName, double jitterValue)
 {
   std::string errorsString;
   Facet* f = new Facet();
   std::vector<Vector*> vectorPair;
   int result = mtOK;
-  if (f->setVectorsFromSample(this->m_sampleVectors, errorsString))
+  if (f->setVectorsFromSample(this->SampleVectors, errorsString))
   {
-    if (this->m_isAddingAdditionalFacet)
+    if (this->IsAddingAdditionalFacet)
     {
-      Collection* markersCollection = new Collection(this->m_pMarkers->identifiedMarkers(this->m_pCurrCam));
+      Collection* markersCollection = new Collection(this->MarkerList->identifiedMarkers(this->CurrentCamera));
       //this->m_pTempMarkerForAddingFacet->setHandle(markersCollection->itemI(1));
-      Collection* identifiedFacetsCol = new Collection(this->m_pTempMarkerForAddingFacet->getTemplateFacets());
+      Collection* identifiedFacetsCol = new Collection(this->TempMarkerForAddingFacet->getTemplateFacets());
       std::vector<Xform3D*> facet1ToNewFacetXfs;
       Xform3D* facet1ToNewFacetXf;// = new Xform3D();
 
-      for (unsigned int i = 0; i < this->m_sampleVectors.size(); i++)
+      for (unsigned int i = 0; i < this->SampleVectors.size(); i++)
       {
         vectorPair.clear();
-        vectorPair.push_back(new Vector(this->m_sampleVectors[i]->itemI(0)));
-        vectorPair.push_back(new Vector(this->m_sampleVectors[i]->itemI(1)));
+        vectorPair.push_back(new Vector(this->SampleVectors[i]->itemI(0)));
+        vectorPair.push_back(new Vector(this->SampleVectors[i]->itemI(1)));
         //Programming Note: The following line is crashing in the Facet.cpp when
         //it makes a call to the DLL. As a result no registration of multi-facet markers can be made at this point. June 7, 2004
-        if (f->identify(this->m_pCurrCam, vectorPair, 1)) // Then the sample matches the template
+        if (f->identify(this->CurrentCamera, vectorPair, 1)) // Then the sample matches the template
         {
           // Compute the xform between the first marker facet and the new one
-          facet1ToNewFacetXf = this->m_facet1ToCameraXfs[i]->concatenate(f->getFacet2CameraXf(this->m_pCurrCam)->inverse());
+          facet1ToNewFacetXf = this->Facet1ToCameraXfs[i]->concatenate(f->getFacet2CameraXf(this->CurrentCamera)->inverse());
           facet1ToNewFacetXfs.push_back(facet1ToNewFacetXf);
         }
 
@@ -501,14 +534,14 @@ MicronTracker_Return MicronTrackerInterface::mtStopSampling(char* templateName, 
         facet1ToNewFacetXf->inBetween(facet1ToNewFacetXfs[i], 1);// will result in equal contribution by all faces
       }
 
-      this->m_pTempMarkerForAddingFacet->addTemplateFacet(f, facet1ToNewFacetXf);
+      this->TempMarkerForAddingFacet->addTemplateFacet(f, facet1ToNewFacetXf);
     }
     else
     {
-      this->m_pCurrMarker = new Marker();
+      this->CurrentMarker = new Marker();
       Xform3D* Xf = new Xform3D();
-      this->m_pCurrMarker->setName(templateName);
-      result = this->m_pCurrMarker->addTemplateFacet(f, Xf);
+      this->CurrentMarker->setName(templateName);
+      result = this->CurrentMarker->addTemplateFacet(f, Xf);
       if (result != mtOK)
       {
         std::string msg = "Error occurred creating the new marker (" + errorsString + ")";
@@ -522,90 +555,90 @@ MicronTracker_Return MicronTrackerInterface::mtStopSampling(char* templateName, 
     logError(-1, msg.c_str());
     result = false;
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSaveMarkerTemplate(const std::string& templName, const std::string& dir)
+int MicronTrackerInterface::mtSaveMarkerTemplate(const std::string& templName, const std::string& dir)
 {
   std::string templFullPath = dir + "/" + templName;
   Persistence* newPersistence = new Persistence();
   newPersistence->setPath(templFullPath.c_str());
-  int storeResult = this->m_pCurrMarker->storeTemplate(newPersistence, "");
+  int storeResult = this->CurrentMarker->storeTemplate(newPersistence, "");
   if (storeResult != mtOK)
   {
     logError(storeResult, "Error in saving the current template");
-    return (MicronTracker_Return)storeResult;
+    return storeResult;
   }
   mtResetSamples();
-  return MT_OK;
+  return mtOK;
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtResetSamples()
 {
-  for (unsigned int i = 0; i < this->m_sampleVectors.size(); i++)
+  for (unsigned int i = 0; i < this->SampleVectors.size(); i++)
   {
-    delete this->m_sampleVectors[i];
+    delete this->SampleVectors[i];
   }
-  this->m_sampleVectors.clear();
+  this->SampleVectors.clear();
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetLoadedTemplatesNum()
 {
-  return this->m_pMarkers->getTemplateCount();
+  return this->MarkerList->getTemplateCount();
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetIdentifiedMarkersCount()
 {
-  return this->m_numOfIdentifiedMarkers;
+  return this->NumOfIdentifiedMarkers;
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetUnidentifiedMarkersCount()
 {
-  return this->m_numOfUnidentifiedMarkers;
+  return this->NumOfUnidentifiedMarkers;
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetNumOfFacetsInMarker(int markerIndex)
 {
-  return this->m_vNumOfFacetsInEachMarker[markerIndex];
+  return this->NumOfFacetsInEachMarker[markerIndex];
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetNumOfTotalFacetsInMarker(int markerIndex)
 {
-  return this->m_vNumOfTotalFacetsInEachMarker[markerIndex];
+  return this->NumOfTotalFacetsInEachMarker[markerIndex];
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtFindIdentifiedMarkers()
 {
-  Collection* markersCollection = new Collection(this->m_pMarkers->identifiedMarkers(this->m_pCurrCam));
-  this->m_numOfIdentifiedMarkers = markersCollection->count();
-  if (this->m_numOfIdentifiedMarkers == 0)
+  Collection* markersCollection = new Collection(this->MarkerList->identifiedMarkers(this->CurrentCamera));
+  this->NumOfIdentifiedMarkers = markersCollection->count();
+  if (this->NumOfIdentifiedMarkers == 0)
   {
-    this->m_markerStatus = MTI_NO_MARKER_CAPTURED;
+    this->MarkerStatus = MTI_NO_MARKER_CAPTURED;
     delete markersCollection;
     return;
   }
-  this->m_2dvRotations.clear();
-  this->m_2dvTranslations.clear();
-  this->m_vIdentifiedMarkersXPoints.clear();
-  for (unsigned int i = 0; i < this->m_vIdentifiedMarkersName.size(); i++)
+  this->Rotations2D.clear();
+  this->Translations2D.clear();
+  this->IdentifiedMarkersXPoints.clear();
+  for (unsigned int i = 0; i < this->IdentifiedMarkersName.size(); i++)
   {
-    this->m_vIdentifiedMarkersName[i].erase();
+    this->IdentifiedMarkersName[i].erase();
   }
 
-  this->m_vIdentifiedMarkersName.resize(0);
-  this->m_vIdentifiedMarkersName.clear();
-  this->m_vNumOfFacetsInEachMarker.clear();
-  this->m_vNumOfTotalFacetsInEachMarker.clear();
+  this->IdentifiedMarkersName.resize(0);
+  this->IdentifiedMarkersName.clear();
+  this->NumOfFacetsInEachMarker.clear();
+  this->NumOfTotalFacetsInEachMarker.clear();
 
-  this->m_markerStatus = MTI_MARKER_CAPTURED;
+  this->MarkerStatus = MTI_MARKER_CAPTURED;
   int markerNum = 1;
   int facetNum = 1;
 
@@ -613,11 +646,11 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
   {
     Marker* marker = new Marker(markersCollection->itemI(markerNum));
     Collection* totalFacetsCollection = new Collection(marker->getTemplateFacets());
-    this->m_vIdentifiedMarkersName.push_back(marker->getName());
+    this->IdentifiedMarkersName.push_back(marker->getName());
 
-    if (marker->wasIdentified(this->m_pCurrCam) != 0)
+    if (marker->wasIdentified(this->CurrentCamera) != 0)
     {
-      Collection* facetsCollection = new Collection(marker->identifiedFacets(this->m_pCurrCam));
+      Collection* facetsCollection = new Collection(marker->identifiedFacets(this->CurrentCamera));
 
       // Adjust the color temperature if we see a CoolCard marker
       std::string markerName = marker->getName();
@@ -627,7 +660,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
       {
         Facet* f = new Facet(facetsCollection->itemI(1));
         Vector* colorVector = (f->IdentifiedVectors())[0];
-        this->m_pCurrCam->adjustCoolnessFromColorVector(colorVector->getHandle());
+        this->CurrentCamera->adjustCoolnessFromColorVector(colorVector->getHandle());
         delete f;
       }
       std::vector<double> vXPointsTemp;
@@ -636,7 +669,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
         Facet* f = new Facet(facetsCollection->itemI(facetNum));
         // get Xpoints and then draw on each image if enabled
         Facet::XPointsType_LS_LRM_BH_XY xPoints_LS_LRM_BH_XY = {0};
-        f->getXpoints(this->m_pCurrCam, xPoints_LS_LRM_BH_XY);
+        f->getXpoints(this->CurrentCamera, xPoints_LS_LRM_BH_XY);
 
         // Have to push_back the elements one by one. If pass the address of the whole
         // array, the points will be deleted if the facet is deleted.
@@ -668,9 +701,9 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
         delete f;
 
       } // End of the for loop for the facets.
-      this->m_vIdentifiedMarkersXPoints.push_back(vXPointsTemp);
-      this->m_vNumOfFacetsInEachMarker.push_back(facetsCollection->count());
-      this->m_vNumOfTotalFacetsInEachMarker.push_back(totalFacetsCollection->count());
+      this->IdentifiedMarkersXPoints.push_back(vXPointsTemp);
+      this->NumOfFacetsInEachMarker.push_back(facetsCollection->count());
+      this->NumOfTotalFacetsInEachMarker.push_back(totalFacetsCollection->count());
       delete facetsCollection;
 
       /***********************************/
@@ -680,7 +713,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
       object results in memory leak. Should be fixed soon! */
       /***********************************/
       //      delete totalFacetsCollection;
-      Xform3D* Marker2CurrCameraXf = marker->marker2CameraXf(this->m_pCurrCam->getHandle());
+      Xform3D* Marker2CurrCameraXf = marker->marker2CameraXf(this->CurrentCamera->getHandle());
       // Find the translations and push them in a 2 temporary vector and then push that temp vector into a
       // 2 dimensional vector.
       std::vector<double> vTransTemp;
@@ -690,7 +723,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
         vTransTemp.push_back(Marker2CurrCameraXf->getShift(i));
       }
       vTransTemp.push_back(1);
-      this->m_2dvTranslations.push_back(vTransTemp);
+      this->Translations2D.push_back(vTransTemp);
       // Find the rotations and push them in a 2 temporary vector and then push that temp vector into a
       // 2 dimensional vector.
 
@@ -706,7 +739,7 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
         }
       }
 
-      this->m_2dvRotations.push_back(vRotTemp);
+      this->Rotations2D.push_back(vRotTemp);
       delete Marker2CurrCameraXf;
     }
   }
@@ -716,42 +749,43 @@ void MicronTrackerInterface::mtFindIdentifiedMarkers()
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtFindUnidentifiedMarkers()
 {
-  Collection* unidentifiedVectorsColl = new Collection(this->m_pMarkers->unidentifiedVectors(this->m_pCurrCam));
-  this->m_numOfUnidentifiedMarkers = unidentifiedVectorsColl->count();
+  Collection* unidentifiedVectorsColl = new Collection(this->MarkerList->unidentifiedVectors(this->CurrentCamera));
+  this->NumOfUnidentifiedMarkers = unidentifiedVectorsColl->count();
 
   /***********************************
   VERY IMPORTANT PROGRAMMING NOTE
   This checking is temporary as it seems a bug in MT libraries is reporting the number of unidentified markers to a weird number!
   ************************************/
-  if (this->m_numOfUnidentifiedMarkers > 4)
+  if (this->NumOfUnidentifiedMarkers > 4)
   {
-    this->m_numOfUnidentifiedMarkers = 4;
+    this->NumOfUnidentifiedMarkers = 4;
   }
-  if (m_numOfUnidentifiedMarkers == 0)  // No unidentified vector
+  if (this->NumOfUnidentifiedMarkers == 0)  // No unidentified vector
   {
     delete unidentifiedVectorsColl;
     return;
   }
-  this->m_vUnidentifiedMarkersEndPoints.clear();
-  for (int i = 1; i <= m_numOfUnidentifiedMarkers; i++)
+  this->UnidentifiedMarkersEndPoints.clear();
+  for (int i = 1; i <= this->NumOfUnidentifiedMarkers; i++)
   {
-    std::vector<double> vUnidentifiedEndPointsTemp;
+    std::vector<double> unidentifiedEndPointsTemp;
     Vector* v = new Vector(unidentifiedVectorsColl->itemI(i));
     Vector::EndXPointType_LRM_BH_XY endXPoints_LRM_BH_XY = {0};
     v->getEndXPoints(endXPoints_LRM_BH_XY);
-    // Left
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][0]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][1]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][0]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][1]);
 
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][0]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][1]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][0]);
-    vUnidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][1]);
+    // Left
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][0]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][0][1]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][0]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[0][1][1]);
+
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][0]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][0][1]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][0]);
+    unidentifiedEndPointsTemp.push_back(endXPoints_LRM_BH_XY[1][1][1]);
 
     // Right
-    this->m_vUnidentifiedMarkersEndPoints.push_back(vUnidentifiedEndPointsTemp);
+    this->UnidentifiedMarkersEndPoints.push_back(unidentifiedEndPointsTemp);
     delete v;
   }
   return ;
@@ -761,19 +795,19 @@ void MicronTrackerInterface::mtFindUnidentifiedMarkers()
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtGetTranslations(std::vector<double>& vTranslations, int markerIndex)
 {
-  vTranslations = this->m_2dvTranslations[markerIndex];
+  vTranslations = this->Translations2D[markerIndex];
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtGetRotations(std::vector<double>& vRotations, int markerIndex)
 {
-  vRotations = this->m_2dvRotations[markerIndex];
+  vRotations = this->Rotations2D[markerIndex];
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetStatus()
 {
-  return this->m_markerStatus;
+  return this->MarkerStatus;
 }
 
 //----------------------------------------------------------------------------
@@ -786,9 +820,9 @@ int MicronTrackerInterface::mtGetMarkerStatus(int loadedMarkerIndex, int* identi
   }
 
   std::string markerName = this->mtGetTemplateName(loadedMarkerIndex);
-  for (int i = 0; i < this->m_numOfIdentifiedMarkers; i++)
+  for (int i = 0; i < this->NumOfIdentifiedMarkers; i++)
   {
-    if (markerName == this->m_vIdentifiedMarkersName[i])
+    if (markerName == this->IdentifiedMarkersName[i])
     {
       *identifiedMarkerIndex = i;
       return MTI_MARKER_CAPTURED;
@@ -802,11 +836,11 @@ bool MicronTrackerInterface::mtSelectCamera(int index)
 {
   if (!this->checkCamIndex(index))
   {
-    this->m_pCurrCam = this->m_pCameras->getCamera(index);
+    this->CurrentCamera = this->CameraList->getCamera(index);
   }
-  if (this->m_pCurrCam != NULL)
+  if (this->CurrentCamera != NULL)
   {
-    this->m_currCamIndex = index;
+    this->CurrentCameraIndex = index;
     return true;
   }
   else
@@ -818,13 +852,13 @@ bool MicronTrackerInterface::mtSelectCamera(int index)
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetCurrCamIndex()
 {
-  return this->m_currCamIndex;
+  return this->CurrentCameraIndex;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetShutterPreference(double n)
+int MicronTrackerInterface::mtSetShutterPreference(double n)
 {
-  return MT_OK;// this->m_pCameras->setShutterPreference(n);
+  return mtOK;// this->m_pCameras->setShutterPreference(n);
 }
 
 //----------------------------------------------------------------------------
@@ -835,15 +869,15 @@ double MicronTrackerInterface::mtGetShutterPreference()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetTemplMatchTolerance(double matchTolerance)
+int MicronTrackerInterface::mtSetTemplMatchTolerance(double matchTolerance)
 {
-  return (MicronTracker_Return)this->m_pMarkers->setTemplateMatchToleranceMM(matchTolerance);
+  return this->MarkerList->setTemplateMatchToleranceMM(matchTolerance);
 }
 
 //----------------------------------------------------------------------------
 double MicronTrackerInterface::mtGetTemplMatchTolerance()
 {
-  return this->m_pMarkers->getTemplateMatchToleranceMM();
+  return this->MarkerList->getTemplateMatchToleranceMM();
 }
 
 //----------------------------------------------------------------------------
@@ -856,15 +890,15 @@ double MicronTrackerInterface::mtGetTemplMatchToleranceDefault()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetPredictiveFramesInterleave(int predictiveInterleave)
+int MicronTrackerInterface::mtSetPredictiveFramesInterleave(int predictiveInterleave)
 {
-  return (MicronTracker_Return)this->m_pMarkers->setPredictiveFramesInterleave(predictiveInterleave);
+  return this->MarkerList->setPredictiveFramesInterleave(predictiveInterleave);
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetPredictiveFramesInterleave()
 {
-  return this->m_pMarkers->getPredictiveFramesInterleave();
+  return this->MarkerList->getPredictiveFramesInterleave();
 }
 
 //----------------------------------------------------------------------------
@@ -874,9 +908,9 @@ void MicronTrackerInterface::mtSetPredictiveTracking(bool predTracking)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtGetPredictiveTracking()
+int MicronTrackerInterface::mtGetPredictiveTracking()
 {
-  return MT_InternalMTError;//m_pMarkerTempls->getPredictiveTracking();
+  return mtInternalMTError;//m_pMarkerTempls->getPredictiveTracking();
 }
 
 //----------------------------------------------------------------------------
@@ -892,20 +926,20 @@ short MicronTrackerInterface::mtGetAdjustCamAfterEveryProcess()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetShutterTime(double n, int index)
+int MicronTrackerInterface::mtSetShutterTime(double n, int index)
 {
   if (index == -1)
   {
-    return (MicronTracker_Return)this->m_pCurrCam->setShutterTime(n);
+    return this->CurrentCamera->setShutterTime(n);
   }
   else if (!this->checkCamIndex(index))
   {
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
 
   else
   {
-    return (MicronTracker_Return)this->m_pCameras->getCamera(index)->setShutterTime(n);
+    return this->CameraList->getCamera(index)->setShutterTime(n);
   }
 }
 
@@ -914,7 +948,7 @@ double MicronTrackerInterface::mtGetShutterTime(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getShutterTime();
+    return this->CurrentCamera->getShutterTime();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -922,7 +956,7 @@ double MicronTrackerInterface::mtGetShutterTime(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getShutterTime();
+    return this->CameraList->getCamera(index)->getShutterTime();
   }
 }
 
@@ -931,7 +965,7 @@ double MicronTrackerInterface::mtGetMinShutterTime(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMinShutterTime();
+    return this->CurrentCamera->getMinShutterTime();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -939,7 +973,7 @@ double MicronTrackerInterface::mtGetMinShutterTime(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getMinShutterTime();
+    return this->CameraList->getCamera(index)->getMinShutterTime();
   }
 }
 
@@ -948,7 +982,7 @@ double MicronTrackerInterface::mtGetMaxShutterTime(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMaxShutterTime();
+    return this->CurrentCamera->getMaxShutterTime();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -957,7 +991,7 @@ double MicronTrackerInterface::mtGetMaxShutterTime(int index)
 
   else
   {
-    return this->m_pCameras->getCamera(index)->getMaxShutterTime();
+    return this->CameraList->getCamera(index)->getMaxShutterTime();
   }
 }
 
@@ -966,7 +1000,7 @@ double MicronTrackerInterface::mtGetGain(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getGain();
+    return this->CurrentCamera->getGain();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -974,24 +1008,24 @@ double MicronTrackerInterface::mtGetGain(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getGain();
+    return this->CameraList->getCamera(index)->getGain();
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetGain(double n, int index)
+int MicronTrackerInterface::mtSetGain(double n, int index)
 {
   if (index == -1)
   {
-    return (MicronTracker_Return)this->m_pCurrCam->setGain(n);
+    return this->CurrentCamera->setGain(n);
   }
   else if (!this->checkCamIndex(index))
   {
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
   else
   {
-    return (MicronTracker_Return)this->m_pCameras->getCamera(index)->setGain(n);
+    return this->CameraList->getCamera(index)->setGain(n);
   }
 }
 
@@ -1000,7 +1034,7 @@ double MicronTrackerInterface::mtGetMinGain(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMinGain();
+    return this->CurrentCamera->getMinGain();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1008,7 +1042,7 @@ double MicronTrackerInterface::mtGetMinGain(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getMinGain();
+    return this->CameraList->getCamera(index)->getMinGain();
   }
 }
 
@@ -1017,7 +1051,7 @@ double MicronTrackerInterface::mtGetMaxGain(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMaxGain();
+    return this->CurrentCamera->getMaxGain();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1025,7 +1059,7 @@ double MicronTrackerInterface::mtGetMaxGain(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getMaxGain();
+    return this->CameraList->getCamera(index)->getMaxGain();
   }
 }
 
@@ -1034,7 +1068,7 @@ double MicronTrackerInterface::mtGetDBGain(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getDBGain();
+    return this->CurrentCamera->getDBGain();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1042,7 +1076,7 @@ double MicronTrackerInterface::mtGetDBGain(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getDBGain();
+    return this->CameraList->getCamera(index)->getDBGain();
   }
 }
 
@@ -1051,7 +1085,7 @@ double MicronTrackerInterface::mtGetExposure(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getExposure();
+    return this->CurrentCamera->getExposure();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1059,24 +1093,24 @@ double MicronTrackerInterface::mtGetExposure(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getExposure();
+    return this->CameraList->getCamera(index)->getExposure();
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetExposure(double n, int index)
+int MicronTrackerInterface::mtSetExposure(double n, int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->setExposure(n);
+    return this->CurrentCamera->setExposure(n);
   }
   else if (!this->checkCamIndex(index))
   {
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->setExposure(n);
+    return this->CameraList->getCamera(index)->setExposure(n);
   }
 }
 
@@ -1085,7 +1119,7 @@ double MicronTrackerInterface::mtGetMinExposure(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMinExposure();
+    return this->CurrentCamera->getMinExposure();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1093,7 +1127,7 @@ double MicronTrackerInterface::mtGetMinExposure(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getMinExposure();
+    return this->CameraList->getCamera(index)->getMinExposure();
   }
 }
 
@@ -1102,7 +1136,7 @@ double MicronTrackerInterface::mtGetMaxExposure(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getMaxExposure();
+    return this->CurrentCamera->getMaxExposure();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1110,7 +1144,7 @@ double MicronTrackerInterface::mtGetMaxExposure(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getMaxExposure();
+    return this->CameraList->getCamera(index)->getMaxExposure();
   }
 }
 
@@ -1119,7 +1153,7 @@ double MicronTrackerInterface::mtGetLightCoolness(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getLightCoolness();
+    return this->CurrentCamera->getLightCoolness();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1127,24 +1161,24 @@ double MicronTrackerInterface::mtGetLightCoolness(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getLightCoolness();
+    return this->CameraList->getCamera(index)->getLightCoolness();
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetCamAutoExposure(int n, int index)
+int MicronTrackerInterface::mtSetCamAutoExposure(int n, int index)
 {
   if (index == -1)
   {
-    return (MicronTracker_Return)this->m_pCurrCam->setAutoExposure(n);
+    return this->CurrentCamera->setAutoExposure(n);
   }
   else if (!this->checkCamIndex(index))
   {
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
   else
   {
-    return (MicronTracker_Return)this->m_pCameras->getCamera(index)->setAutoExposure(n);
+    return this->CameraList->getCamera(index)->setAutoExposure(n);
   }
 }
 
@@ -1153,11 +1187,11 @@ int MicronTrackerInterface::mtGetCamAutoExposure(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getAutoExposure();
+    return this->CurrentCamera->getAutoExposure();
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getAutoExposure();
+    return this->CameraList->getCamera(index)->getAutoExposure();
   }
 }
 
@@ -1166,7 +1200,7 @@ double MicronTrackerInterface::mtGetLatestFrameTime(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getFrameTime();
+    return this->CurrentCamera->getFrameTime();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1174,7 +1208,7 @@ double MicronTrackerInterface::mtGetLatestFrameTime(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getFrameTime();
+    return this->CameraList->getCamera(index)->getFrameTime();
   }
 }
 
@@ -1183,7 +1217,7 @@ int MicronTrackerInterface::mtGetNumOfFramesGrabbed(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getNumOfFramesGrabbed();
+    return this->CurrentCamera->getNumOfFramesGrabbed();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1191,7 +1225,7 @@ int MicronTrackerInterface::mtGetNumOfFramesGrabbed(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getNumOfFramesGrabbed();
+    return this->CameraList->getCamera(index)->getNumOfFramesGrabbed();
   }
 }
 
@@ -1200,7 +1234,7 @@ int MicronTrackerInterface::mtGetBitsPerPixel(int index)
 {
   if (index == -1)
   {
-    return this->m_pCurrCam->getBitsPerPixel();
+    return this->CurrentCamera->getBitsPerPixel();
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1208,49 +1242,49 @@ int MicronTrackerInterface::mtGetBitsPerPixel(int index)
   }
   else
   {
-    return this->m_pCameras->getCamera(index)->getBitsPerPixel();
+    return this->CameraList->getCamera(index)->getBitsPerPixel();
   }
   return 0;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtGetLatestFramePixHistogram(long*& aPixHist, int subSampleRate, int index)
+int MicronTrackerInterface::mtGetLatestFramePixHistogram(long*& aPixHist, int subSampleRate, int index)
 {
-  return MT_InternalMTError;//m_pCurrCams->getLatestFramePixHistogram(aPixHist, subSampleRate, index);
+  return mtInternalMTError;//m_pCurrCams->getLatestFramePixHistogram(aPixHist, subSampleRate, index);
 }
 
 //----------------------------------------------------------------------------
 int MicronTrackerInterface::mtGetLatestFrameHazard()
 {
-  return Camera_LastFrameThermalHazard(this->m_pCurrCam->getHandle());
+  return Camera_LastFrameThermalHazard(this->CurrentCamera->getHandle());
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtSetTemplateName(int index, const std::string& templName)
+int MicronTrackerInterface::mtSetTemplateName(int index, const std::string& templName)
 {
   int result = mtOK;
   // Check the index
-  if (index < 0 || index > this->m_pMarkers->getTemplateCount())
+  if (index < 0 || index > this->MarkerList->getTemplateCount())
   {
     logError(-1, "Marker index out of range");
-    return MT_InvalidIndex;
+    return mtInvalidIndex;
   }
   std::string oldN = this->mtGetTemplateName(index);
-  this->m_pMarkers->setTemplateItemName(index, templName);
-  this->m_pMarkers->storeTemplate(index, this->m_pPers->getHandle(), NULL);
+  this->MarkerList->setTemplateItemName(index, templName);
+  this->MarkerList->storeTemplate(index, this->Settings->getHandle(), NULL);
   result = this->renameFile(oldN, templName, "Markers");
   if (result != mtOK)
   {
     logError(result, "Changing the name of the template failed");
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
 std::string MicronTrackerInterface::mtGetTemplateName(int index)
 {
   std::string s;
-  this->m_pMarkers->getTemplateItemName(index, s);
+  this->MarkerList->getTemplateItemName(index, s);
   return s;
 }
 
@@ -1258,9 +1292,9 @@ std::string MicronTrackerInterface::mtGetTemplateName(int index)
 char* MicronTrackerInterface::mtGetIdentifiedTemplateName(int index)
 {
   // Check the index
-  if (index > -1 && index < this->m_numOfIdentifiedMarkers)
+  if (index > -1 && index < this->NumOfIdentifiedMarkers)
   {
-    return (char*)this->m_vIdentifiedMarkersName[index].c_str();
+    return (char*)this->IdentifiedMarkersName[index].c_str();
   }
   else
   {
@@ -1269,10 +1303,10 @@ char* MicronTrackerInterface::mtGetIdentifiedTemplateName(int index)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtDeleteTemplate(int index)
+int MicronTrackerInterface::mtDeleteTemplate(int index)
 {
   int result = mtOK;
-  if (index > -1 && index < this->m_pMarkers->getTemplateCount())
+  if (index > -1 && index < this->MarkerList->getTemplateCount())
   {
     std::string templateName = this->mtGetTemplateName(index);//this->m_pMarkers->getTemplateItemName(index);
     result = this->removeFile(templateName, "Markers");
@@ -1285,16 +1319,16 @@ MicronTracker_Return MicronTrackerInterface::mtDeleteTemplate(int index)
   {
     logError(-1, "Marker index out of range");
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtGetLeftRightImageArray(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int index)
+int MicronTrackerInterface::mtGetLeftRightImageArray(unsigned char**& leftImageArray, unsigned char**& rightImageArray, int index)
 {
   int result = mtOK;
   if (index == -1)
   {
-    result = this->m_pCurrCam->getImages(&leftImageArray, &rightImageArray);
+    result = this->CurrentCamera->getImages(&leftImageArray, &rightImageArray);
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1302,21 +1336,21 @@ MicronTracker_Return MicronTrackerInterface::mtGetLeftRightImageArray(unsigned c
   }
   else
   {
-    result = this->m_pCameras->getCamera(index)->getImages(&leftImageArray, &rightImageArray);
+    result = this->CameraList->getCamera(index)->getImages(&leftImageArray, &rightImageArray);
   }
 
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::mtGetLeftRightImageArrayHalfSize(unsigned char**& leftImageArray,
+int MicronTrackerInterface::mtGetLeftRightImageArrayHalfSize(unsigned char**& leftImageArray,
     unsigned char**& rightImageArray,
     int xResolution, int yResolution, int index)
 {
   int result = mtOK;
   if (index == -1)
   {
-    result = this->m_pCurrCam->getHalfSizeImages(&leftImageArray, &rightImageArray, xResolution, yResolution);
+    result = this->CurrentCamera->getHalfSizeImages(&leftImageArray, &rightImageArray, xResolution, yResolution);
   }
   else if (!this->checkCamIndex(index))
   {
@@ -1324,56 +1358,56 @@ MicronTracker_Return MicronTrackerInterface::mtGetLeftRightImageArrayHalfSize(un
   }
   else
   {
-    result = this->m_pCameras->getCamera(index)->getHalfSizeImages(&rightImageArray, &leftImageArray, xResolution, yResolution);
+    result = this->CameraList->getCamera(index)->getHalfSizeImages(&rightImageArray, &leftImageArray, xResolution, yResolution);
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtGetIdentifiedMarkersXPoints(double*& xPoints, int markerIndex)
 {
   //Check the marker index
-  if (markerIndex >= this->m_numOfIdentifiedMarkers - 1)
+  if (markerIndex >= this->NumOfIdentifiedMarkers - 1)
   {
-    markerIndex = this->m_numOfIdentifiedMarkers - 1;
+    markerIndex = this->NumOfIdentifiedMarkers - 1;
   }
   if (markerIndex < 0)
   {
     markerIndex = 0;
   }
-  xPoints = &this->m_vIdentifiedMarkersXPoints[markerIndex][0];
+  xPoints = &this->IdentifiedMarkersXPoints[markerIndex][0];
 }
 
 //----------------------------------------------------------------------------
 void MicronTrackerInterface::mtGetUnidentifiedMarkersEnds(double*& endPoints, int vectorIndex)
 {
   //Check the vector index
-  if (vectorIndex >= this->m_numOfUnidentifiedMarkers - 1)
+  if (vectorIndex >= this->NumOfUnidentifiedMarkers - 1)
   {
-    vectorIndex = this->m_numOfUnidentifiedMarkers - 1;
+    vectorIndex = this->NumOfUnidentifiedMarkers - 1;
   }
   if (vectorIndex < 0)
   {
     vectorIndex = 0;
   }
-  endPoints = &this->m_vUnidentifiedMarkersEndPoints[vectorIndex][0];
+  endPoints = &this->UnidentifiedMarkersEndPoints[vectorIndex][0];
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::removeFile(const std::string& fileName, const std::string& dir)
+int MicronTrackerInterface::removeFile(const std::string& fileName, const std::string& dir)
 {
   std::string fullPath = dir + "/" + fileName;
   int result = remove(fullPath.c_str());
   if (result != 0)
   {
     // failed
-    return MT_RemoveFailed;
+    return result;
   }
-  return MT_OK;
+  return mtOK;
 }
 
 //-------------------------------------------------------------------------------
-MicronTracker_Return MicronTrackerInterface::renameFile(const std::string& oldName, const std::string& newName, const std::string& dir)
+int MicronTrackerInterface::renameFile(const std::string& oldName, const std::string& newName, const std::string& dir)
 {
   std::string fullPathOld = dir + "/" + oldName;
   std::string fullPathNew = dir + "/" + newName;
@@ -1382,9 +1416,9 @@ MicronTracker_Return MicronTrackerInterface::renameFile(const std::string& oldNa
   if (result != 0)
   {
     // failed
-    return MT_RenameFailed;
+    return result;
   }
-  return MT_OK;
+  return mtOK;
 }
 
 //----------------------------------------------------------------------------
@@ -1397,7 +1431,7 @@ void MicronTrackerInterface::logError(int errorNum, const char* description/*=NU
   }
   std::ostringstream msg;
   msg << "MicronTracker error: " << errorNum;
-  msg << " (" << ConvertReturnToString((MicronTracker_Return)errorNum) << ")";
+  msg << " (" << ConvertReturnToString(errorNum) << ")";
 
   if (description)
   {
@@ -1405,9 +1439,9 @@ void MicronTrackerInterface::logError(int errorNum, const char* description/*=NU
   }
   msg << std::ends;
 
-  m_errorString = msg.str();
+  this->ErrorString = msg.str();
 
-  LOG_ERROR(m_errorString.c_str());
+  LOG_ERROR(this->ErrorString.c_str());
 }
 
 //----------------------------------------------------------------------------

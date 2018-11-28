@@ -31,19 +31,19 @@ Persistence::~Persistence()
 //----------------------------------------------------------------------------
 mtHandle Persistence::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Persistence::setPath(const char* path)
+int Persistence::setPath(const char* path)
 {
-  return (MicronTracker_Return)Persistence_PathSet(this->Handle, path);
+  return Persistence_PathSet(this->Handle, path);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Persistence::setSection(const char* section)
+int Persistence::setSection(const char* section)
 {
-  return (MicronTracker_Return)Persistence_SectionSet(this->Handle, section);
+  return Persistence_SectionSet(this->Handle, section);
 }
 
 //----------------------------------------------------------------------------
@@ -73,13 +73,13 @@ double Persistence::retrieveDouble(const char* name, double defaultVal)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Persistence::saveInt(const char* name, int val)
+int Persistence::saveInt(const char* name, int val)
 {
-  return (MicronTracker_Return)Persistence_SaveInt(this->Handle, name, val);
+  return Persistence_SaveInt(this->Handle, name, val);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Persistence::saveDouble(const char* name, double val)
+int Persistence::saveDouble(const char* name, double val)
 {
-  return (MicronTracker_Return)Persistence_SaveDouble(this->Handle, name, val);
+  return Persistence_SaveDouble(this->Handle, name, val);
 }

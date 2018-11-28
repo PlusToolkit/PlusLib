@@ -48,7 +48,7 @@ Marker::~Marker()
 //----------------------------------------------------------------------------
 mtHandle Marker::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
@@ -122,33 +122,33 @@ std::string Marker::getName()
   int size = 0;
   mtCompletionCode st = Marker_NameGet(this->Handle, buf, BUF_SIZE, &size);
   buf[size] = '\0';
-  MarkerName = buf;
-  return MarkerName;
+  this->MarkerName = buf;
+  return this->MarkerName;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Marker::setName(char* name)
+int Marker::setName(char* name)
 {
-  return (MicronTracker_Return)Marker_NameSet(this->Handle, name);
+  return Marker_NameSet(this->Handle, name);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Marker::addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf)
+int Marker::addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf)
 {
-  return (MicronTracker_Return)Marker_AddTemplateFacet(this->Handle, newFacet->getHandle(), facet1ToNewFacetXf->getHandle());
+  return Marker_AddTemplateFacet(this->Handle, newFacet->getHandle(), facet1ToNewFacetXf->getHandle());
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Marker::validateTemplate(double positionToleranceMM, std::string complString)
+int Marker::validateTemplate(double positionToleranceMM, std::string complString)
 {
   Collection* facetsColl = new Collection(this->getTemplateFacets());
-  MicronTracker_Return result;
+  int result;
 
   for (int k = 1; k < facetsColl->count(); k++)
   {
     Facet* f = new Facet(facetsColl->itemI(k));
     result = f->validateTemplate(positionToleranceMM, complString);
-    if (result != MT_OK)
+    if (result != mtOK)
     {
       return result;
     }
@@ -164,7 +164,7 @@ MicronTracker_Return Marker::validateTemplate(double positionToleranceMM, std::s
       vs = Ftj->TemplateVectors();
       if (Fti->identify(NULL, vs, 2 * positionToleranceMM))
       {
-        return MT_DifferentFacetsGeometryTooSimilar;
+        return mtDifferentFacetsGeometryTooSimilar;
       }
     }
   }
@@ -190,11 +190,11 @@ MicronTracker_Return Marker::validateTemplate(double positionToleranceMM, std::s
     ValidateTemplate = True
   End Function
     */
-  return MT_OK;
+  return mtOK;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Marker::storeTemplate(Persistence* p, const char* name)
+int Marker::storeTemplate(Persistence* p, const char* name)
 {
-  return (MicronTracker_Return)Marker_StoreTemplate(this->Handle, p->getHandle(), name);
+  return Marker_StoreTemplate(this->Handle, p->getHandle(), name);
 }

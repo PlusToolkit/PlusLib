@@ -59,7 +59,7 @@ public:
     ResultToStringMap[ERROR_DISCONNECT_ATTEMPT_WHEN_NOT_CONNECTED] = "Disconnect called when not connected to tracker.";
     ResultToStringMap[ERROR_CANNOT_GET_MARKER_INFO] = "Cannot get info about paired wireless markers.";
     ResultToStringMap[ERROR_FAILED_TO_SET_STK_PROCESSING_TYPE] = "Failed to set spryTrack image processing type.";
-  } 
+  }
 
   virtual ~AtracsysInternal()
   {
@@ -86,7 +86,7 @@ public:
   class IniFile
   {
   protected:
-
+    //----------------------------------------------------------------------------
     long findEOL(char& c, char* addr, size_t size)
     {
       for (long u = 0; u < (long)size; u++)
@@ -99,51 +99,52 @@ public:
       }
       return -1;
     }
+
+    //----------------------------------------------------------------------------
     bool parseLine(std::string& line)
     {
       size_t first_bracket = line.find_first_of("["),
-        last_bracket = line.find_last_of("]"),
-        equal = line.find_first_of("=");
+             last_bracket = line.find_last_of("]"),
+             equal = line.find_first_of("=");
 
       if (first_bracket != std::string::npos &&
-        last_bracket != std::string::npos)
+          last_bracket != std::string::npos)
       {
         // Found section
         _currentSection = line.substr(first_bracket + 1,
-          last_bracket - first_bracket - 1);
+                                      last_bracket - first_bracket - 1);
         sections[_currentSection] = KeyValues();
       }
+      else if (equal != std::string::npos && _currentSection != "")
+      {
+        // Found property in a section
+        std::string key = line.substr(0, equal),
+                    val = line.substr(equal + 1);
+        sections[_currentSection][key] = val;
+      }
       else
-        if (equal != std::string::npos && _currentSection != "")
+      {
+        // If the line is empty, just skip it, if not and is a comment, just
+        // skip it
+        // as well, otherwise the parsing cannot be done.
+        line.erase(remove_if(line.begin(),
+                             line.end(), isspace), line.end());
+        if (!line.empty() && line.substr(0, 1) != ";")
         {
-          // Found property in a section
-          std::string key = line.substr(0, equal),
-            val = line.substr(equal + 1);
-          sections[_currentSection][key] = val;
+          return false;
         }
-        else
-        {
-          // If the line is empty, just skip it, if not and is a comment, just
-          // skip it
-          // as well, otherwise the parsing cannot be done.
-          line.erase(remove_if(line.begin(),
-            line.end(), isspace), line.end());
-          if (!line.empty() && line.substr(0, 1) != ";")
-          {
-            return false;
-          }
-        }
+      }
       return true;
     }
     std::string _currentSection;
 
   public:
-
     typedef std::map< std::string, std::string > KeyValues;
     typedef std::map< std::string, KeyValues > Sections;
 
     Sections sections;
 
+    //----------------------------------------------------------------------------
     bool parse(char* addr, size_t size)
     {
       sections.clear();
@@ -167,8 +168,7 @@ public:
             strLine = std::string(addr);
           }
 
-          strLine.erase(remove(strLine.begin(),
-            strLine.end(), '\r'), strLine.end());
+          strLine.erase(remove(strLine.begin(), strLine.end(), '\r'), strLine.end());
           if (!parseLine(strLine))
           {
             return false;
@@ -187,7 +187,10 @@ public:
         size -= lineSize + 1;
       }
       return true;
-    } // Return false in case of syntax error
+    }
+
+    //----------------------------------------------------------------------------
+    // Return false in case of syntax error
     bool save(std::string str)
     {
       FILE* file = fopen(str.c_str(), "wb");
@@ -208,7 +211,7 @@ public:
         while (iterK != kw.end())
         {
           fprintf(file, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
+                  iterK->first.c_str(), iterK->second.c_str());
           iterK++;
         }
         iterS++;
@@ -216,6 +219,8 @@ public:
       fclose(file);
       return true;
     }
+
+    //----------------------------------------------------------------------------
     bool toBuffer(char** out, size_t& outSize)
     {
       if (!out)
@@ -239,7 +244,7 @@ public:
         while (iterK != kw.end())
         {
           sprintf(temp, "%s=%s\n",
-            iterK->first.c_str(), iterK->second.c_str());
+                  iterK->first.c_str(), iterK->second.c_str());
           buffer += temp;
           iterK++;
         }
@@ -262,6 +267,7 @@ public:
     } // Buffer must be unallocated by user
   };
 
+  //----------------------------------------------------------------------------
   bool checkSection(IniFile& p, const std::string& section)
   {
     if (p.sections.find(section) == p.sections.end())
@@ -286,8 +292,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignUint32(IniFile& p, const std::string& section,
-    const std::string& key,
-    uint32* variable)
+                    const std::string& key,
+                    uint32* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -304,8 +310,8 @@ public:
 
   //----------------------------------------------------------------------------
   bool assignFloatXX(IniFile& p, const std::string& section,
-    const std::string& key,
-    floatXX* variable)
+                     const std::string& key,
+                     floatXX* variable)
   {
     if (!checkKey(p, section, key))
     {
@@ -320,6 +326,7 @@ public:
     return true;
   }
 
+  //----------------------------------------------------------------------------
   bool LoadIniFile(std::ifstream& is, ftkGeometry& geometry)
   {
     std::string line, fileContent("");
@@ -333,7 +340,7 @@ public:
     IniFile parser;
 
     if (!parser.parse(const_cast< char* >(fileContent.c_str()),
-      fileContent.size()))
+                      fileContent.size()))
     {
       return false;
     }
@@ -368,17 +375,17 @@ public:
       }
 
       if (!assignFloatXX(parser, sectionName, "x",
-        &geometry.positions[i].x))
+                         &geometry.positions[i].x))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "y",
-        &geometry.positions[i].y))
+                         &geometry.positions[i].y))
       {
         return false;
       }
       if (!assignFloatXX(parser, sectionName, "z",
-        &geometry.positions[i].z))
+                         &geometry.positions[i].z))
       {
         return false;
       }
@@ -512,7 +519,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     this->Internal->FtkLib = nullptr;
     return ERROR_NO_DEVICE_CONNECTED;
   }
-  
+
   if (device.SerialNumber == 0uLL)
   {
     ftkClose(&this->Internal->FtkLib);
@@ -524,17 +531,17 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
 
   switch (device.Type)
   {
-  case DEV_SPRYTRACK_180:
-    this->DeviceType = SPRYTRACK_180;
-    break;
-  case DEV_FUSIONTRACK_500:
-    this->DeviceType = FUSIONTRACK_500;
-    break;
-  case DEV_FUSIONTRACK_250:
-    this->DeviceType = FUSIONTRACK_250;
-    break;
-  default:
-    this->DeviceType = UNKNOWN_DEVICE;
+    case DEV_SPRYTRACK_180:
+      this->DeviceType = SPRYTRACK_180;
+      break;
+    case DEV_FUSIONTRACK_500:
+      this->DeviceType = FUSIONTRACK_500;
+      break;
+    case DEV_FUSIONTRACK_250:
+      this->DeviceType = FUSIONTRACK_250;
+      break;
+    default:
+      this->DeviceType = UNKNOWN_DEVICE;
   }
 
   // allocate memory for ftk frame to be used throughout life of the object
@@ -553,7 +560,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::Connect()
     this->Internal->Frame = nullptr;
     return ERROR_CANNOT_INITIALIZE_FRAME;
   }
-  
+
   if (err = FTK_WAR_USB_TOO_SLOW)
   {
     return WARNING_CONNECTED_IN_USB2;
@@ -636,14 +643,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetFiducialsInFrame(std::vecto
 
   switch (this->Internal->Frame->markersStat)
   {
-  case QS_WAR_SKIPPED:
-    return ERROR_INVALID_FRAME;
-  case QS_ERR_INVALID_RESERVED_SIZE:
-    return ERROR_INVALID_FRAME;
-  case QS_OK:
-    break;
-  default:
-    return ERROR_INVALID_FRAME;
+    case QS_WAR_SKIPPED:
+      return ERROR_INVALID_FRAME;
+    case QS_ERR_INVALID_RESERVED_SIZE:
+      return ERROR_INVALID_FRAME;
+    case QS_OK:
+      break;
+    default:
+      return ERROR_INVALID_FRAME;
   }
 
   if (this->Internal->Frame->markersStat == QS_ERR_OVERFLOW)
@@ -674,14 +681,14 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkersInFrame(std::vector<
 
   switch (this->Internal->Frame->markersStat)
   {
-  case QS_WAR_SKIPPED:
-    return ERROR_INVALID_FRAME;
-  case QS_ERR_INVALID_RESERVED_SIZE:
-    return ERROR_INVALID_FRAME;
-  case QS_OK:
-    break;
-  default:
-    return ERROR_INVALID_FRAME;
+    case QS_WAR_SKIPPED:
+      return ERROR_INVALID_FRAME;
+    case QS_ERR_INVALID_RESERVED_SIZE:
+      return ERROR_INVALID_FRAME;
+    case QS_OK:
+      break;
+    default:
+      return ERROR_INVALID_FRAME;
   }
 
   if (this->Internal->Frame->markersStat == QS_ERR_OVERFLOW)
@@ -812,7 +819,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(Atr
     succeeded = succeeded && (this->EnableOnboardProcessing(false) == SUCCESS);
     succeeded = succeeded && (this->EnableImageStreaming(true) == SUCCESS);
   }
-  
+
   if (!succeeded)
   {
     return ERROR_FAILED_TO_SET_STK_PROCESSING_TYPE;
@@ -872,15 +879,15 @@ const float EQUALITY_DISTANCE_MM = 2.0;
 bool AtracsysTracker::Fiducial3D::operator==(const Fiducial3D& f)
 {
   // pow is much slower than just x*x for squaring numbers
-  float dist2 = (this->xMm - f.xMm)*(this->xMm - f.xMm) + (this->yMm - f.yMm)*(this->yMm - f.yMm) + (this->zMm - f.zMm)*(this->zMm - f.zMm);
+  float dist2 = (this->xMm - f.xMm) * (this->xMm - f.xMm) + (this->yMm - f.yMm) * (this->yMm - f.yMm) + (this->zMm - f.zMm) * (this->zMm - f.zMm);
   return sqrt(dist2) < EQUALITY_DISTANCE_MM;
 }
 
 // compare fiducials on distance from the origin
 bool AtracsysTracker::Fiducial3D::operator<(const Fiducial3D& f) const
 {
-  float distF1 = sqrt(this->xMm*this->xMm + this->yMm*this->yMm + this->zMm*this->zMm);
-  float distF2 = sqrt(f.xMm*f.xMm + f.yMm*f.yMm + f.zMm*f.zMm);
+  float distF1 = sqrt(this->xMm * this->xMm + this->yMm * this->yMm + this->zMm * this->zMm);
+  float distF2 = sqrt(f.xMm * f.xMm + f.yMm * f.yMm + f.zMm * f.zMm);
   return distF1 < distF2;
 }
 

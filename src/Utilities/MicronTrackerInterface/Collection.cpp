@@ -43,13 +43,13 @@ Collection::~Collection()
 //----------------------------------------------------------------------------
 mtHandle Collection::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
 void Collection::setHandle(mtHandle h)
 {
-  Handle = h;
+  this->Handle = h;
 }
 
 //----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ void Collection::remove(int idx)
 //----------------------------------------------------------------------------
 int Collection::count()
 {
-  int result = Collection_Count(Handle);
+  int result = Collection_Count(this->Handle);
   return result;
 }
 

@@ -30,10 +30,10 @@ public:
   mtHandle getHandle();
 
   int getIndex();
-  MicronTracker_Return setIndex(int Index);
+  int setIndex(int Index);
 
-  MicronTracker_Return position3D(double* x, double* y, double* z);
-  MicronTracker_Return position2D(double* x0, double* y0, double* x1, double* y1, double* x2, double* y2);
+  int position3D(double* x, double* y, double* z);
+  int position2D(double* x0, double* y0, double* x1, double* y1, double* x2, double* y2);
 
   double distance();
 

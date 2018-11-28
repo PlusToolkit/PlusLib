@@ -29,9 +29,9 @@ MCamera::MCamera(mtHandle handle)
     this->Handle = Camera_New(DriverName, 1965);
   }
   this->OwnedByMe = true;
-  LeftImage = NULL;
-  RightImage = NULL;
-  MiddleImage = NULL;
+  this->LeftImage = NULL;
+  this->RightImage = NULL;
+  this->MiddleImage = NULL;
   // error handling here
 }
 
@@ -42,29 +42,29 @@ MCamera::~MCamera()
   {
     Camera_Free(this->Handle);
   }
-  free(LeftImage);
-  free(RightImage);
+  free(this->LeftImage);
+  free(this->RightImage);
 }
 
 //----------------------------------------------------------------------------
 mtHandle MCamera::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 #if 0
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::RawBufferValid()
+int MCamera::RawBufferValid()
 {
   int result, r;
-  r = Camera_RawBufferValidGet(m_handle, &result);
+  r = Camera_RawBufferValidGet(this->Handle, &result);
   if (r != mtOK)
   {
-    return (MicronTracker_Return)r;
+    return r;
   }
   else
   {
-    return (MicronTracker_Return)result;
+    return result;
   }
 }
 
@@ -72,7 +72,7 @@ unsigned char** MCamera::RawBufferAddr()
 {
   int r;
   unsigned char** result = NULL;
-  r = Camera_RawBufferAddrGet(m_handle, &result);
+  r = Camera_RawBufferAddrGet(this->Handle, &result);
   return result;
 }
 #endif
@@ -81,14 +81,14 @@ unsigned char** MCamera::RawBufferAddr()
 int MCamera::getXRes()
 {
   int result = 0, y, r;
-  r = Camera_ResolutionGet(Handle, &result, &y);
+  r = Camera_ResolutionGet(this->Handle, &result, &y);
   return (result);
 }
 //----------------------------------------------------------------------------
 int MCamera::getYRes()
 {
   int result = 0, x, r;
-  r = Camera_ResolutionGet(Handle, &x, &result);
+  r = Camera_ResolutionGet(this->Handle, &x, &result);
   return (result);
 }
 
@@ -96,7 +96,7 @@ int MCamera::getYRes()
 int MCamera::getSerialNum()
 {
   int serialNum = -1;
-  Camera_SerialNumberGet(Handle, &serialNum);
+  Camera_SerialNumberGet(this->Handle, &serialNum);
   return (serialNum);
 }
 
@@ -104,7 +104,7 @@ int MCamera::getSerialNum()
 int MCamera::getBitsPerPixel()
 {
   int bitsPerPixel = -1;
-  Camera_BitsPerPixelGet(Handle, &bitsPerPixel);
+  Camera_BitsPerPixelGet(this->Handle, &bitsPerPixel);
   return (bitsPerPixel);
 }
 
@@ -119,9 +119,9 @@ double MCamera::getShutterTime()
 
 //----------------------------------------------------------------------------
 /** Sets the shutter time of the camera. If successful returns 0, otherwise returns -1. */
-MicronTracker_Return MCamera::setShutterTime(double sh)
+int MCamera::setShutterTime(double sh)
 {
-  return (MicronTracker_Return)Camera_ShutterMsecsSet(this->Handle, sh);
+  return Camera_ShutterMsecsSet(this->Handle, sh);
 }
 
 //----------------------------------------------------------------------------
@@ -189,9 +189,9 @@ double MCamera::getGain()
 
 //----------------------------------------------------------------------------
 /** Sets the gain of the camera. Returns -1 if not successful. */
-MicronTracker_Return MCamera::setGain(double g)
+int MCamera::setGain(double g)
 {
-  return (MicronTracker_Return)Camera_GainFSet(this->Handle, g);
+  return Camera_GainFSet(this->Handle, g);
 }
 
 //----------------------------------------------------------------------------
@@ -251,9 +251,9 @@ double MCamera::getExposure()
 
 //----------------------------------------------------------------------------
 /** Sets the exposure of the camera. Returns 0 if successful, -1 if not. */
-MicronTracker_Return MCamera::setExposure(double e)
+int MCamera::setExposure(double e)
 {
-  return (MicronTracker_Return)Camera_ExposureSet(this->Handle, e);
+  return Camera_ExposureSet(this->Handle, e);
 }
 
 //----------------------------------------------------------------------------
@@ -294,9 +294,9 @@ int MCamera::getAutoExposure()
 
 //----------------------------------------------------------------------------
 /** Sets the AutoExposure property of the camera. Returns 0 if successful, -1 if not. */
-MicronTracker_Return MCamera::setAutoExposure(int ae)
+int MCamera::setAutoExposure(int ae)
 {
-  return (MicronTracker_Return)Camera_AutoExposureSet(this->Handle, ae);
+  return Camera_AutoExposureSet(this->Handle, ae);
 }
 
 //----------------------------------------------------------------------------
@@ -310,152 +310,152 @@ double MCamera::getLightCoolness()
 
 //----------------------------------------------------------------------------
 /** Gets the value of the LightCoolness property of the camera. Returns 0 if successful, -1 if not. */
-MicronTracker_Return MCamera::setLightCoolness(double value)
+int MCamera::setLightCoolness(double value)
 {
-  return (MicronTracker_Return)Camera_LightCoolnessSet(this->Handle, value);
+  return Camera_LightCoolnessSet(this->Handle, value);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_MeasurementHazardCode MCamera::getThermalHazard()
+int MCamera::getThermalHazard()
 {
-  return (MicronTracker_MeasurementHazardCode)Camera_LastFrameThermalHazard(this->Handle);
+  return Camera_LastFrameThermalHazard(this->Handle);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::adjustCoolnessFromColorVector(mtHandle ColorVectorHandle)
+int MCamera::adjustCoolnessFromColorVector(mtHandle ColorVectorHandle)
 {
-  return (MicronTracker_Return)Camera_LightCoolnessAdjustFromColorVector(this->Handle, ColorVectorHandle, 0);
+  return Camera_LightCoolnessAdjustFromColorVector(this->Handle, ColorVectorHandle, 0);
 }
 
 //----------------------------------------------------------------------------
 //image - 0 left, 1 right, 2 middle
-MicronTracker_Return MCamera::getProjectionOnImage(int image, double XYZ[], double* x, double* y)
+int MCamera::getProjectionOnImage(int image, double XYZ[], double* x, double* y)
 {
-  return (MicronTracker_Return)Camera_ProjectionOnImage(this->Handle, image, XYZ, x, y);
+  return Camera_ProjectionOnImage(this->Handle, image, XYZ, x, y);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::getImages(unsigned char** *li, unsigned char** *ri)
+int MCamera::getImages(unsigned char** *li, unsigned char** *ri)
 {
-  if (LeftImage == NULL)
+  if (this->LeftImage == NULL)
   {
-    LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (RightImage == NULL)
+  if (this->RightImage == NULL)
   {
-    RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
 
-  int r = Camera_ImagesGet(Handle, (unsigned char*)LeftImage, (unsigned char*)RightImage);
+  int r = Camera_ImagesGet(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
-    return (MicronTracker_Return)r;
+    return r;
   }
   else
   {
-    *li = (unsigned char**)LeftImage;
-    *ri = (unsigned char**)RightImage;
-    return MT_OK;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    return mtOK;
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi)
+int MCamera::getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi)
 {
-  if (LeftImage == NULL)
+  if (this->LeftImage == NULL)
   {
-    LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (RightImage == NULL)
+  if (this->RightImage == NULL)
   {
-    RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (MiddleImage == NULL)
+  if (this->MiddleImage == NULL)
   {
-    MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
+    this->MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  int r = Camera_ImagesGet3(Handle, (unsigned char*)LeftImage, (unsigned char*)RightImage, (unsigned char*)MiddleImage);
+  int r = Camera_ImagesGet3(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage, (unsigned char*)this->MiddleImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
     *mi = NULL;
-    return (MicronTracker_Return)r;
+    return r;
   }
   else
   {
-    *li = (unsigned char**)LeftImage;
-    *ri = (unsigned char**)RightImage;
-    *mi = (unsigned char**)MiddleImage;
-    return MT_OK;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    *mi = (unsigned char**)this->MiddleImage;
+    return mtOK;
   }
 }
 
 //----------------------------------------------------------------------------
 /** Gets the grabbed images. Returns true if successful. Returns false if not. */
-MicronTracker_Return MCamera::getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes)
+int MCamera::getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes)
 {
-  if (LeftImage == NULL)
+  if (this->LeftImage == NULL)
   {
-    LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (RightImage == NULL)
+  if (this->RightImage == NULL)
   {
-    RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  int r = Camera_HalfSizeImagesGet(Handle, (unsigned char*)LeftImage, (unsigned char*)RightImage);
+  int r = Camera_HalfSizeImagesGet(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
-    return (MicronTracker_Return)r;
+    return r;
   }
   else
   {
-    *li = (unsigned char**)LeftImage;
-    *ri = (unsigned char**)RightImage;
-    return MT_OK;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    return mtOK;
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes)
+int MCamera::getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes)
 {
-  if (LeftImage == NULL)
+  if (this->LeftImage == NULL)
   {
-    LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (RightImage == NULL)
+  if (this->RightImage == NULL)
   {
-    RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (MiddleImage == NULL)
+  if (this->MiddleImage == NULL)
   {
-    MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
+    this->MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  int r = Camera_HalfSizeImagesGet3(Handle, (unsigned char*)LeftImage, (unsigned char*)RightImage, (unsigned char*)MiddleImage);
+  int r = Camera_HalfSizeImagesGet3(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage, (unsigned char*)this->MiddleImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
     *mi = NULL;
-    return (MicronTracker_Return)r;
+    return r;
   }
   else
   {
-    *li = (unsigned char**)LeftImage;
-    *ri = (unsigned char**)RightImage;
-    *mi = (unsigned char**)MiddleImage;
-    return MT_OK;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    *mi = (unsigned char**)this->MiddleImage;
+    return mtOK;
   }
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return MCamera::grabFrame()
+int MCamera::grabFrame()
 {
-  return (MicronTracker_Return)Camera_GrabFrame(this->Handle);
+  return Camera_GrabFrame(this->Handle);
 }
 
 //----------------------------------------------------------------------------
@@ -468,7 +468,7 @@ bool MCamera::getHdrModeEnabled()
 
 //----------------------------------------------------------------------------
 /** Sets the AutoExposure property of the camera. Returns 0 if successful, -1 if not. */
-MicronTracker_Return MCamera::setHdrModeEnabled(bool NewVal)
+int MCamera::setHdrModeEnabled(bool NewVal)
 {
-  return (MicronTracker_Return)Camera_HdrEnabledSet(this->Handle, NewVal);
+  return Camera_HdrEnabledSet(this->Handle, NewVal);
 }

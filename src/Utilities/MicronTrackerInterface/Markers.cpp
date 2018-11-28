@@ -19,41 +19,44 @@
 //----------------------------------------------------------------------------
 Markers::Markers()
 {
-  //this->m_handle = Markers_New();
   this->OwnedByMe = true;
 }
 
 //----------------------------------------------------------------------------
 Markers::~Markers()
 {
-  //if(this->m_handle != 0 && this->ownedByMe)
-  //Markers_Free(this->m_handle);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::storeTemplate(int idx, mtHandle pHandle, char* nameInP)
+mtHandle Markers::getHandle()
+{
+  return this->Handle;
+}
+
+//----------------------------------------------------------------------------
+int Markers::storeTemplate(int idx, mtHandle pHandle, char* nameInP)
 {
   int result = mtOK;
   mtHandle tHandle;
   result = Markers_TemplateItemGet(idx, &tHandle);
   if (result != mtOK)
   {
-    return (MicronTracker_Return)result;
+    return result;
   }
-  return (MicronTracker_Return)Marker_StoreTemplate(tHandle, pHandle, nameInP);
+  return Marker_StoreTemplate(tHandle, pHandle, nameInP);
 }
 
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::addTemplate(mtHandle markerHandle)
+int Markers::addTemplate(mtHandle markerHandle)
 {
-  return (MicronTracker_Return)Markers_AddTemplate(markerHandle);
+  return Markers_AddTemplate(markerHandle);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::clearTemplates()
+int Markers::clearTemplates()
 {
-  return (MicronTracker_Return)Markers_ClearTemplates();
+  return Markers_ClearTemplates();
 }
 
 //----------------------------------------------------------------------------
@@ -99,9 +102,9 @@ int Markers::getPredictiveFramesInterleave()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::setPredictiveFramesInterleave(int level)
+int Markers::setPredictiveFramesInterleave(int level)
 {
-  return (MicronTracker_Return)Markers_PredictiveFramesInterleaveSet(level);
+  return Markers_PredictiveFramesInterleaveSet(level);
 }
 
 //----------------------------------------------------------------------------
@@ -113,9 +116,9 @@ int Markers::getExtrapolatedFrames()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::setExtrapolatedFrames(int newval)
+int Markers::setExtrapolatedFrames(int newval)
 {
-  return (MicronTracker_Return)Markers_ExtrapolatedFramesSet(newval);
+  return Markers_ExtrapolatedFramesSet(newval);
 }
 
 //----------------------------------------------------------------------------
@@ -139,9 +142,9 @@ double Markers::getTemplateMatchToleranceMM()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::setTemplateMatchToleranceMM(double newVal)
+int Markers::setTemplateMatchToleranceMM(double newVal)
 {
-  return (MicronTracker_Return)Markers_TemplateMatchToleranceMMSet(newVal);
+  return Markers_TemplateMatchToleranceMMSet(newVal);
 }
 
 //----------------------------------------------------------------------------
@@ -173,14 +176,14 @@ mtHandle Markers::getTemplateItem(int idx)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::getTemplateItemName(int idx, std::string& templateName)
+int Markers::getTemplateItemName(int idx, std::string& templateName)
 {
   mtHandle markerHandle = this->getTemplateItem(idx);
-  return (MicronTracker_Return)getTemplateItemNameByHandle(markerHandle, templateName);
+  return getTemplateItemNameByHandle(markerHandle, templateName);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::getTemplateItemNameByHandle(mtHandle handle, std::string& templateName)
+int Markers::getTemplateItemNameByHandle(mtHandle handle, std::string& templateName)
 {
   char markerName[512];
   memset((void*)markerName, 0, sizeof(markerName));
@@ -192,11 +195,11 @@ MicronTracker_Return Markers::getTemplateItemNameByHandle(mtHandle handle, std::
   }
   templateName = std::string(markerName);
 
-  return (MicronTracker_Return)status;
+  return status;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::setTemplateItemName(int idx, const std::string& name)
+int Markers::setTemplateItemName(int idx, const std::string& name)
 {
   mtHandle markerHandle = this->getTemplateItem(idx);
   char* cname = new char[name.length() + 1];
@@ -204,18 +207,18 @@ MicronTracker_Return Markers::setTemplateItemName(int idx, const std::string& na
   cname[name.length()] = 0;
   mtCompletionCode result = Marker_NameSet(markerHandle, cname);
   delete[] cname;
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Markers::processFrame(MCamera* cam)
+int Markers::processFrame(MCamera* cam)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
     camHandle = cam->getHandle();
   }
-  return (MicronTracker_Return)Markers_ProcessFrame(camHandle);
+  return Markers_ProcessFrame(camHandle);
 }
 
 //----------------------------------------------------------------------------

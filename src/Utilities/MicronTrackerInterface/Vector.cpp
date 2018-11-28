@@ -44,17 +44,17 @@ Vector::~Vector()
 //----------------------------------------------------------------------------
 mtHandle Vector::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Vector::getEndPos(EndPosType_BH_XYZ result)
+int Vector::getEndPos(EndPosType_BH_XYZ result)
 {
-  return (MicronTracker_Return)Vector_EndPosGet(this->Handle, (double*) result);
+  return Vector_EndPosGet(this->Handle, (double*) result);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Vector::getEndXPoints(EndXPointType_LRM_BH_XY result)
+int Vector::getEndXPoints(EndXPointType_LRM_BH_XY result)
 {
-  return (MicronTracker_Return)Vector_EndXPointsGet(this->Handle, (double*) result);
+  return Vector_EndXPointsGet(this->Handle, (double*) result);
 }

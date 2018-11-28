@@ -45,7 +45,7 @@ Xform3D::~Xform3D()
 //----------------------------------------------------------------------------
 mtHandle Xform3D::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
@@ -82,17 +82,17 @@ double Xform3D::getQuaternion(int index)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Xform3D::getQuaternionVector(double* q)
+int Xform3D::getQuaternionVector(double* q)
 {
-  return (MicronTracker_Return)Xform3D_RotQuaternionsGet(this->Handle, q);
+  return Xform3D_RotQuaternionsGet(this->Handle, q);
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_MeasurementHazardCode Xform3D::getHazardState()
+int Xform3D::getHazardState()
 {
   mtMeasurementHazardCode code = mtNone;
   Xform3D_HazardCodeGet(this->Handle, &code);
-  return (MicronTracker_MeasurementHazardCode)code;
+  return code;
 }
 
 //----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ double Xform3D::getShift(int index)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Xform3D::getShiftVector(double* s)
+int Xform3D::getShiftVector(double* s)
 {
   double ss[3] = {0};
   int result = Xform3D_ShiftGet(this->Handle, ss);
@@ -112,11 +112,11 @@ MicronTracker_Return Xform3D::getShiftVector(double* s)
   {
     s[i] = ss[i];
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Xform3D::getRotateVector(double* resultVector, double* inVector, bool scaleIt)
+int Xform3D::getRotateVector(double* resultVector, double* inVector, bool scaleIt)
 {
   double v[3] = {0};
   int result = Xform3D_RotateLocation(this->Handle, inVector, v, scaleIt);
@@ -124,5 +124,5 @@ MicronTracker_Return Xform3D::getRotateVector(double* resultVector, double* inVe
   {
     resultVector[i] = v[i];
   }
-  return (MicronTracker_Return)result;
+  return result;
 }

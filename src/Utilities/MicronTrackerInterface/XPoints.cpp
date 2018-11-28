@@ -34,7 +34,7 @@ XPoints::~XPoints()
 //----------------------------------------------------------------------------
 mtHandle XPoints::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
@@ -63,12 +63,12 @@ int XPoints::countXPoints(MCamera* cam)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return XPoints::processFrame(MCamera* cam)
+int XPoints::processFrame(MCamera* cam)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
     camHandle = cam->getHandle();
   }
-  return (MicronTracker_Return)XPoints_ProcessFrame(camHandle);
+  return XPoints_ProcessFrame(camHandle);
 }

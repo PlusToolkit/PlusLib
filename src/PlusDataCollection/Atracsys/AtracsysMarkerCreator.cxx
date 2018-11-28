@@ -178,7 +178,7 @@ int main(int argc, char** argv)
   ZeroMeanFids(dataFids);
   geom.fids = dataFids;
 
-  // if too many fids, return 
+  // if too many fids, return
   if (geom.fids.size() > ATRACSYS_MAX_FIDUCIALS)
   {
     LOG_ERROR("Too many fiducials in frame (there were " << geom.fids.size() << " marker fids visible). Unable to create Atracsys marker with this many fiducials.");
@@ -198,6 +198,7 @@ int main(int argc, char** argv)
   return EXIT_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus CollectFiducials(fiducialFrameList& fidFrameList, int numFrames)
 {
   int m = 0;
@@ -225,13 +226,14 @@ PlusStatus CollectFiducials(fiducialFrameList& fidFrameList, int numFrames)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus ProcessFiducials(fiducialFrameList& fidFrameList, fiducialFrame& fids)
 {
   fiducialFrame frame;
   // make sure backgroundFids is empty
   fids.clear();
 
-  for (int frameNum = 0; frameNum < fidFrameList.size(); frameNum++)
+  for (fiducialFrameList::size_type frameNum = 0; frameNum < fidFrameList.size(); frameNum++)
   {
     frame = fidFrameList[frameNum];
     // populate backgroundFids with list of fiducials appearing in the background
@@ -245,6 +247,7 @@ PlusStatus ProcessFiducials(fiducialFrameList& fidFrameList, fiducialFrame& fids
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialFrame& dataFids)
 {
   // subtract the backgroundFids from the dataFids
@@ -268,7 +271,7 @@ PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialF
   }
 
   // check that no data fiducials have non 1 probability
-  for (int i = 0; i < filteredDataFids.size(); i++)
+  for (fiducialFrame::size_type i = 0; i < filteredDataFids.size(); i++)
   {
     if (filteredDataFids[i].probability != 1)
     {
@@ -283,6 +286,7 @@ PlusStatus PerformBackgroundSubtraction(fiducialFrame& backgroundFids, fiducialF
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus ZeroMeanFids(fiducialFrame& dataFids)
 {
   // zero-mean the fiducials
@@ -313,6 +317,7 @@ PlusStatus ZeroMeanFids(fiducialFrame& dataFids)
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 PlusStatus WriteGeometryIniFile(const MarkerGeometry geom)
 {
   // create file path
@@ -341,7 +346,7 @@ PlusStatus WriteGeometryIniFile(const MarkerGeometry geom)
   file << "count=" << geom.fids.size() << std::endl;
   file << "id=" << geom.geometryId << std::endl;
 
-  for (int i = 0; i < geom.fids.size(); i++)
+  for (fiducialFrame::size_type i = 0; i < geom.fids.size(); i++)
   {
     file << "[fiducial" << i << "]" << std::endl;
     file << "x=" << geom.fids[i].xMm << std::endl;

@@ -27,7 +27,7 @@ public:
 
   mtHandle detectedXPoints(MCamera* cam);
   int countXPoints(MCamera* cam);
-  MicronTracker_Return processFrame(MCamera* cam);
+  int processFrame(MCamera* cam);
 
 protected:
   mtHandle  Handle;

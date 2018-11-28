@@ -28,34 +28,31 @@ class Markers
 public:
   Markers();
   ~Markers();
-  inline mtHandle getHandle()
-  {
-    return Handle;
-  };
+  mtHandle getHandle();
 
-  MicronTracker_Return addTemplate(mtHandle markerHandle);
-  MicronTracker_Return clearTemplates();
+  int addTemplate(mtHandle markerHandle);
+  int clearTemplates();
   mtHandle identifiedMarkers(MCamera* cam);
   mtHandle unidentifiedVectors(MCamera* cam);
 
-  MicronTracker_Return setPredictiveFramesInterleave(int level);
+  int setPredictiveFramesInterleave(int level);
   int getPredictiveFramesInterleave();
-  MicronTracker_Return setTemplateMatchToleranceMM(double newval);
+  int setTemplateMatchToleranceMM(double newval);
 
   // Template match tolerance
   double getTemplateMatchToleranceMM();
-  MicronTracker_Return setExtrapolatedFrames(int newval);
+  int setExtrapolatedFrames(int newval);
   int getExtrapolatedFrames();
   void setSmallerXPFootprint(bool newval);
   bool getSmallerXPFootprint();
 
-  MicronTracker_Return processFrame(MCamera* cam);
+  int processFrame(MCamera* cam);
   int getTemplateCount();
   mtHandle getTemplateItem(int idx);
-  MicronTracker_Return getTemplateItemName(int idx, std::string& templateName);
-  MicronTracker_Return getTemplateItemNameByHandle(mtHandle handle, std::string& templateName);
-  MicronTracker_Return setTemplateItemName(int idx, const std::string& name);
-  MicronTracker_Return storeTemplate(int idx, mtHandle pHandle, char* nameInP);
+  int getTemplateItemName(int idx, std::string& templateName);
+  int getTemplateItemNameByHandle(mtHandle handle, std::string& templateName);
+  int setTemplateItemName(int idx, const std::string& name);
+  int storeTemplate(int idx, mtHandle pHandle, char* nameInP);
   void setAutoAdjustCam2CamRegistration(bool newVal);
   bool getAutoAdjustCam2CamRegistration();
   bool getBackGroundProcess();

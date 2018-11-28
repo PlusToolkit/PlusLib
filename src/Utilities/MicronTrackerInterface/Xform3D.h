@@ -29,11 +29,11 @@ public:
   Xform3D* inBetween(Xform3D* secondXf, double secondFract0To1);
 
   double getShift(int index);
-  MicronTracker_Return getShiftVector(double* s);
-  MicronTracker_Return getRotateVector(double* resultVector, double* inVector, bool scaleIt = false);
+  int getShiftVector(double* s);
+  int getRotateVector(double* resultVector, double* inVector, bool scaleIt = false);
   double getQuaternion(int index);
-  MicronTracker_Return getQuaternionVector(double* q);
-  MicronTracker_MeasurementHazardCode getHazardState();
+  int getQuaternionVector(double* q);
+  int getHazardState();
 
 private:
   mtHandle  Handle;

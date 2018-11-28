@@ -31,35 +31,35 @@ Cameras::Cameras()
 Cameras::~Cameras()
 {
   // Clear all previously connected camera
-  for (std::vector<MCamera*>::iterator camsIterator = CameraList.begin(); camsIterator != CameraList.end(); ++camsIterator)
+  for (std::vector<MCamera*>::iterator camsIterator = this->CameraList.begin(); camsIterator != this->CameraList.end(); ++camsIterator)
   {
     free(*camsIterator);
   }
-  CameraList.clear();
+  this->CameraList.clear();
 
-  if (CurrentCamera != NULL)
+  if (this->CurrentCamera != NULL)
   {
-    free(CurrentCamera);
-    CurrentCamera = NULL;
+    free(this->CurrentCamera);
+    this->CurrentCamera = NULL;
   }
 
-  if (LastFailedCamera != NULL)
+  if (this->LastFailedCamera != NULL)
   {
-    free(LastFailedCamera);
-    LastFailedCamera = NULL;
+    free(this->LastFailedCamera);
+    this->LastFailedCamera = NULL;
   }
 }
 
 //----------------------------------------------------------------------------
 mtHandle Cameras::getHandle()
 {
-  return Handle;
+  return this->Handle;
 }
 
 //----------------------------------------------------------------------------
 int Cameras::getCount()
 {
-  return AttachedCameraCount;
+  return this->AttachedCameraCount;
 }
 
 //----------------------------------------------------------------------------
@@ -71,9 +71,9 @@ bool Cameras::getHistogramEqualizeImages()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Cameras::setHistogramEqualizeImages(bool on_off)
+int Cameras::setHistogramEqualizeImages(bool on_off)
 {
-  return (MicronTracker_Return)Cameras_HistogramEqualizeImagesSet(on_off);
+  return Cameras_HistogramEqualizeImagesSet(on_off);
 }
 
 //----------------------------------------------------------------------------
@@ -88,18 +88,18 @@ MCamera* Cameras::getCamera(int index)
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Cameras::grabFrame(MCamera* cam)
+int Cameras::grabFrame(MCamera* cam)
 {
   int result = mtOK; // success
   if (cam == NULL)
   {
     // grab from all cameras
     std::vector<MCamera*>::iterator camsIterator;
-    for (camsIterator = CameraList.begin(); camsIterator != CameraList.end(); camsIterator++)
+    for (camsIterator = this->CameraList.begin(); camsIterator != this->CameraList.end(); camsIterator++)
     {
-      if ((*camsIterator)->grabFrame() != MT_OK)
+      if ((*camsIterator)->grabFrame() != mtOK)
       {
-        LastFailedCamera = *camsIterator;
+        this->LastFailedCamera = *camsIterator;
         result = false;
         break;
       }
@@ -108,12 +108,12 @@ MicronTracker_Return Cameras::grabFrame(MCamera* cam)
   else
   {
     result = cam->grabFrame();
-    if (result != MT_OK)
+    if (result != mtOK)
     {
-      LastFailedCamera = cam;
+      this->LastFailedCamera = cam;
     }
   }
-  return (MicronTracker_Return)result;
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void Cameras::detach()
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Cameras::getMTHome(std::string& mtHomeDirectory)
+int Cameras::getMTHome(std::string& mtHomeDirectory)
 {
   const char mfile[] = "MTHome";
 
@@ -136,7 +136,7 @@ MicronTracker_Return Cameras::getMTHome(std::string& mtHomeDirectory)
   if (RegOpenKeyEx(topkey, subkey, 0, KEY_QUERY_VALUE, &key) != ERROR_SUCCESS)
   {
     LOG_ERROR("Failed to open registry key: " << subkey);
-    return MT_NoRegistryKey;
+    return mtInternalMTError;
   }
 
   const int smtHomeDirectorySize = 512;
@@ -148,27 +148,27 @@ MicronTracker_Return Cameras::getMTHome(std::string& mtHomeDirectory)
   {
     /* size always >1 if exists ('\0' terminator) ? */
     LOG_ERROR("Failed to get environment variable " << mfile);
-    return MT_NoEnvironmentVariable;
+    return mtInternalMTError;
   }
   mtHomeDirectory = smtHomeDirectory;
 #else
   char* localNamePtr = getenv(mfile);
   if (localNamePtr == NULL)
   {
-    return MT_NoEnvironmentVariable;
+    return mtNoEnvironmentVariable;
   }
   mtHomeDirectory = localNamePtr;
 #endif
 
-  return MT_OK;
+  return mtOK;
 }
 
 //----------------------------------------------------------------------------
-MicronTracker_Return Cameras::attachAvailableCameras()
+int Cameras::attachAvailableCameras()
 {
   std::string calibrationDir;
-  MicronTracker_Return result = getMTHome(calibrationDir);
-  if (result != MT_OK)
+  int result = getMTHome(calibrationDir);
+  if (result != mtOK)
   {
     // No Environment
     LOG_ERROR("MT home directory was not found");
@@ -199,7 +199,7 @@ MicronTracker_Return Cameras::attachAvailableCameras()
   if (res != mtOK)
   {
     LOG_ERROR("Failed to attach cameras using calibration data at: " << calibrationDir.c_str());
-    return (MicronTracker_Return)res;
+    return res;
   }
 
   // Number of the attached cameras
@@ -207,7 +207,7 @@ MicronTracker_Return Cameras::attachAvailableCameras()
   if (this->AttachedCameraCount <= 0)
   {
     LOG_ERROR("No attached cameras were found");
-    return MT_CameraNotFound;
+    return mtCameraNotFound;
   }
 
   // Populate the array of camera that are already attached
@@ -220,9 +220,9 @@ MicronTracker_Return Cameras::attachAvailableCameras()
     mtHandle camHandle = 0;
     if (Cameras_ItemGet(c, &camHandle) == mtOK)
     {
-      CameraList.push_back(new MCamera(camHandle));
+      this->CameraList.push_back(new MCamera(camHandle));
     }
   }
 
-  return MT_OK;
+  return mtOK;
 }
