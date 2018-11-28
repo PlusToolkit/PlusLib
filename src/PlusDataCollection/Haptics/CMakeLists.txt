@@ -42,6 +42,7 @@ FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
 ENDFOREACH()
 target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
+PlusLibAddVersionInfo(vtk${PROJECT_NAME} "Library containing code for interacting with haptic devices. Part of the Plus toolkit." vtk${PROJECT_NAME} vtk${PROJECT_NAME})
 
 # --------------------------------------------------------------------------
 # Install
