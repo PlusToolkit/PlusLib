@@ -111,6 +111,7 @@ public:
   void SetIntermediateFilesOutputDirectory(const std::string& outputDirectory);
 
   void SetVideoClipRectangle(int* clipRectOriginIntVec, int* clipRectSizeIntVec);
+  std::vector<int> GetVideoClipRectangle() const;
 
   /*! Compute the tracker lag */
   PlusStatus Update(TEMPORAL_CALIBRATION_ERROR& error);

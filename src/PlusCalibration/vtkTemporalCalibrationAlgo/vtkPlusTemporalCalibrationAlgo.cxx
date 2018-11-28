@@ -350,44 +350,44 @@ PlusStatus vtkPlusTemporalCalibrationAlgo::NormalizeMetricValues(std::deque<doub
   normalizationFactor = 1.0;
   switch (METRIC_NORMALIZATION)
   {
-  case AMPLITUDE:
-  {
-    // Divide by the maximum signal amplitude
-    double minValue = 0;
-    double maxValue = 0;
-    GetSignalRange(signal, startIndex, stopIndex, minValue, maxValue);
-    double maxPeakToPeak = fabs(maxValue - minValue);
-    if (maxPeakToPeak < 1e-10)
-    {
-      LOG_ERROR("Cannot normalize data, peak to peak difference is too small");
-    }
-    else
-    {
-      normalizationFactor = 1.0 / maxPeakToPeak;
-    }
-    break;
-  }
-  case STD:
-  {
-    // Calculate standard deviation
-    double stdev = 0;
-    for (int i = startIndex; i <= stopIndex; ++i)
-    {
-      stdev += (signal.at(i) - mu) * (signal.at(i) - mu);
-    }
-    stdev = std::sqrt(stdev);
-    stdev /= std::sqrt(static_cast<double>(stopIndex - startIndex + 1) - 1);
+    case AMPLITUDE:
+      {
+        // Divide by the maximum signal amplitude
+        double minValue = 0;
+        double maxValue = 0;
+        GetSignalRange(signal, startIndex, stopIndex, minValue, maxValue);
+        double maxPeakToPeak = fabs(maxValue - minValue);
+        if (maxPeakToPeak < 1e-10)
+        {
+          LOG_ERROR("Cannot normalize data, peak to peak difference is too small");
+        }
+        else
+        {
+          normalizationFactor = 1.0 / maxPeakToPeak;
+        }
+        break;
+      }
+    case STD:
+      {
+        // Calculate standard deviation
+        double stdev = 0;
+        for (int i = startIndex; i <= stopIndex; ++i)
+        {
+          stdev += (signal.at(i) - mu) * (signal.at(i) - mu);
+        }
+        stdev = std::sqrt(stdev);
+        stdev /= std::sqrt(static_cast<double>(stopIndex - startIndex + 1) - 1);
 
-    if (stdev < 1e-10)
-    {
-      LOG_ERROR("Cannot normalize data, stdev is too small");
-    }
-    else
-    {
-      normalizationFactor = 1.0 / stdev;
-    }
-    break;
-  }
+        if (stdev < 1e-10)
+        {
+          LOG_ERROR("Cannot normalize data, stdev is too small");
+        }
+        else
+        {
+          normalizationFactor = 1.0 / stdev;
+        }
+        break;
+      }
   }
 
   // Normalize the signal values
@@ -518,39 +518,39 @@ double vtkPlusTemporalCalibrationAlgo::ComputeAlignmentMetric(const std::deque<d
   }
   switch (SIGNAL_ALIGNMENT_METRIC)
   {
-  case SSD:
-  {
-    // Use sum of squared differences as signal alignment metric
-    double ssdSum = 0;
-    for (unsigned int i = 0; i < signalA.size(); ++i)
-    {
-      double diff = signalA.at(i) - signalB.at(i);     //SSD
-      ssdSum -= diff * diff;
-    }
-    return ssdSum;
-  }
-  case CORRELATION:
-  {
-    // Use correlation as signal alignment metric
-    double xCorrSum = 0;
-    for (unsigned int i = 0; i < signalA.size(); ++i)
-    {
-      xCorrSum += signalA.at(i) * signalB.at(i);     // XCORR
-    }
-    return xCorrSum;
-  }
-  case SAD:
-  {
-    // Use sum of absolute differences as signal alignment metric
-    double sadSum = 0;
-    for (unsigned int i = 0; i < signalA.size(); ++i)
-    {
-      sadSum -= fabs(signalA.at(i) - signalB.at(i));       //SAD
-    }
-    return sadSum;
-  }
-  default:
-    LOG_ERROR("Unknown metric: " << SIGNAL_ALIGNMENT_METRIC);
+    case SSD:
+      {
+        // Use sum of squared differences as signal alignment metric
+        double ssdSum = 0;
+        for (unsigned int i = 0; i < signalA.size(); ++i)
+        {
+          double diff = signalA.at(i) - signalB.at(i);     //SSD
+          ssdSum -= diff * diff;
+        }
+        return ssdSum;
+      }
+    case CORRELATION:
+      {
+        // Use correlation as signal alignment metric
+        double xCorrSum = 0;
+        for (unsigned int i = 0; i < signalA.size(); ++i)
+        {
+          xCorrSum += signalA.at(i) * signalB.at(i);     // XCORR
+        }
+        return xCorrSum;
+      }
+    case SAD:
+      {
+        // Use sum of absolute differences as signal alignment metric
+        double sadSum = 0;
+        for (unsigned int i = 0; i < signalA.size(); ++i)
+        {
+          sadSum -= fabs(signalA.at(i) - signalB.at(i));       //SAD
+        }
+        return sadSum;
+      }
+    default:
+      LOG_ERROR("Unknown metric: " << SIGNAL_ALIGNMENT_METRIC);
   }
   return 0;
 }
@@ -561,67 +561,67 @@ PlusStatus vtkPlusTemporalCalibrationAlgo::ComputePositionSignalValues(SignalTyp
 {
   switch (signal.frameType)
   {
-  case FRAME_TYPE_TRACKER:
-  {
-    vtkSmartPointer<vtkPlusPrincipalMotionDetectionAlgo> trackerDataMetricExtractor = vtkSmartPointer<vtkPlusPrincipalMotionDetectionAlgo>::New();
+    case FRAME_TYPE_TRACKER:
+      {
+        vtkSmartPointer<vtkPlusPrincipalMotionDetectionAlgo> trackerDataMetricExtractor = vtkSmartPointer<vtkPlusPrincipalMotionDetectionAlgo>::New();
 
-    trackerDataMetricExtractor->SetTrackerFrames(signal.frameList);
-    trackerDataMetricExtractor->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
-    trackerDataMetricExtractor->SetProbeToReferenceTransformName(signal.probeToReferenceTransformName);
+        trackerDataMetricExtractor->SetTrackerFrames(signal.frameList);
+        trackerDataMetricExtractor->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
+        trackerDataMetricExtractor->SetProbeToReferenceTransformName(signal.probeToReferenceTransformName);
 
-    if (trackerDataMetricExtractor->Update() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to get line positions from video frames");
-      return PLUS_FAIL;
-    }
-    trackerDataMetricExtractor->GetDetectedTimestamps(signal.signalTimestamps);
-    trackerDataMetricExtractor->GetDetectedPositions(signal.signalValues);
+        if (trackerDataMetricExtractor->Update() != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to get line positions from video frames");
+          return PLUS_FAIL;
+        }
+        trackerDataMetricExtractor->GetDetectedTimestamps(signal.signalTimestamps);
+        trackerDataMetricExtractor->GetDetectedPositions(signal.signalValues);
 
-    // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
-    // not work for our purposes
-    double minValue = 0;
-    double maxValue = 0;
-    GetSignalRange(signal.signalValues, 0, signal.signalValues.size() - 1, minValue, maxValue);
-    double maxPeakToPeak = std::abs(maxValue - minValue);
-    if (maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
-    {
-      LOG_ERROR("Detected metric values do not vary sufficiently (i.e. tracking signal is constant). Actual peak-to-peak variation: " << maxPeakToPeak << ", expected minimum: " << MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM);
-      return PLUS_FAIL;
-    }
-    return PLUS_SUCCESS;
-  }
-  case FRAME_TYPE_VIDEO:
-  {
-    vtkSmartPointer<vtkPlusLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
-    lineSegmenter->SetTrackedFrameList(*signal.frameList);
-    lineSegmenter->SetClipRectangle(this->LineSegmentationClipRectangleOrigin, this->LineSegmentationClipRectangleSize);
-    lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
-    lineSegmenter->SetSaveIntermediateImages(this->SaveIntermediateImages);
-    lineSegmenter->SetIntermediateFilesOutputDirectory(this->IntermediateFilesOutputDirectory);
-    if (lineSegmenter->Update() != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to get line positions from video frames");
-      return PLUS_FAIL;
-    }
-    lineSegmenter->GetDetectedTimestamps(signal.signalTimestamps);
-    lineSegmenter->GetDetectedPositions(signal.signalValues);
+        // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
+        // not work for our purposes
+        double minValue = 0;
+        double maxValue = 0;
+        GetSignalRange(signal.signalValues, 0, signal.signalValues.size() - 1, minValue, maxValue);
+        double maxPeakToPeak = std::abs(maxValue - minValue);
+        if (maxPeakToPeak < MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM)
+        {
+          LOG_ERROR("Detected metric values do not vary sufficiently (i.e. tracking signal is constant). Actual peak-to-peak variation: " << maxPeakToPeak << ", expected minimum: " << MINIMUM_TRACKER_SIGNAL_PEAK_TO_PEAK_MM);
+          return PLUS_FAIL;
+        }
+        return PLUS_SUCCESS;
+      }
+    case FRAME_TYPE_VIDEO:
+      {
+        vtkSmartPointer<vtkPlusLineSegmentationAlgo> lineSegmenter = vtkSmartPointer<vtkPlusLineSegmentationAlgo>::New();
+        lineSegmenter->SetTrackedFrameList(*signal.frameList);
+        lineSegmenter->SetClipRectangle(this->LineSegmentationClipRectangleOrigin, this->LineSegmentationClipRectangleSize);
+        lineSegmenter->SetSignalTimeRange(signal.signalTimeRangeMin, signal.signalTimeRangeMax);
+        lineSegmenter->SetSaveIntermediateImages(this->SaveIntermediateImages);
+        lineSegmenter->SetIntermediateFilesOutputDirectory(this->IntermediateFilesOutputDirectory);
+        if (lineSegmenter->Update() != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to get line positions from video frames");
+          return PLUS_FAIL;
+        }
+        lineSegmenter->GetDetectedTimestamps(signal.signalTimestamps);
+        lineSegmenter->GetDetectedPositions(signal.signalValues);
 
-    // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
-    // not work for our purposes
-    double minValue = 0;
-    double maxValue = 0;
-    this->GetSignalRange(signal.signalValues, 0, signal.signalValues.size() - 1, minValue, maxValue);
-    double maxPeakToPeak = std::abs(maxValue - minValue);
-    if (maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
-    {
-      LOG_ERROR("Detected metric values do not vary sufficiently (i.e. video signal is constant)");
+        // If the metric values do not "swing" sufficiently, the signal is considered constant--i.e. infinite period--and will
+        // not work for our purposes
+        double minValue = 0;
+        double maxValue = 0;
+        this->GetSignalRange(signal.signalValues, 0, signal.signalValues.size() - 1, minValue, maxValue);
+        double maxPeakToPeak = std::abs(maxValue - minValue);
+        if (maxPeakToPeak < MINIMUM_VIDEO_SIGNAL_PEAK_TO_PEAK_PIXEL)
+        {
+          LOG_ERROR("Detected metric values do not vary sufficiently (i.e. video signal is constant)");
+          return PLUS_FAIL;
+        }
+        return PLUS_SUCCESS;
+      }
+    default:
+      LOG_ERROR("Compute position signal value failed. Unknown frame type: " << signal.frameType);
       return PLUS_FAIL;
-    }
-    return PLUS_SUCCESS;
-  }
-  default:
-    LOG_ERROR("Compute position signal value failed. Unknown frame type: " << signal.frameType);
-    return PLUS_FAIL;
   }
 }
 
@@ -923,4 +923,15 @@ void vtkPlusTemporalCalibrationAlgo::SetVideoClipRectangle(int* clipRectOriginIn
   this->LineSegmentationClipRectangleOrigin[1] = clipRectOriginIntVec[1];
   this->LineSegmentationClipRectangleSize[0] = clipRectSizeIntVec[0];
   this->LineSegmentationClipRectangleSize[1] = clipRectSizeIntVec[1];
+}
+
+//----------------------------------------------------------------------------
+std::vector<int> vtkPlusTemporalCalibrationAlgo::GetVideoClipRectangle() const
+{
+  std::vector<int> result;
+  result.push_back(this->LineSegmentationClipRectangleOrigin[0]);
+  result.push_back(this->LineSegmentationClipRectangleOrigin[1]);
+  result.push_back(this->LineSegmentationClipRectangleSize[0]);
+  result.push_back(this->LineSegmentationClipRectangleSize[1]);
+  return result;
 }
