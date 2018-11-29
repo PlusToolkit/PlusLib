@@ -1,146 +1,148 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shahram Izadyar, Robarts Research Institute - London - Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto - Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 
-#include "MTC.h"
+#include <MTC.h>
 
 #include "Facet.h"
+#include "MCamera.h"
+#include "Vector.h"
+#include "Collection.h"
+#include "Xform3D.h"
 
+//----------------------------------------------------------------------------
 Facet::Facet(mtHandle h)
 {
   if (h != 0)
-    this->m_handle = h;
+  {
+    this->Handle = h;
+  }
   else
-    this->m_handle = Facet_New();
+  {
+    this->Handle = Facet_New();
+  }
 
-  this->ownedByMe = TRUE;
+  this->OwnedByMe = true;
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 Facet::~Facet()
 {
-  if (this->m_handle != 0 && this->ownedByMe)
-    Facet_Free(this->m_handle);
+  if (this->Handle != 0 && this->OwnedByMe)
+  {
+    Facet_Free(this->Handle);
+  }
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
+mtHandle Facet::getHandle()
+{
+  return this->Handle;
+}
 
-int Facet::getXpoints( MCamera *cam, XPointsType_LS_LRM_BH_XY result2x3x2x2)
+//----------------------------------------------------------------------------
+int Facet::getXpoints(MCamera* cam, XPointsType_LS_LRM_BH_XY result2x3x2x2)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
-    camHandle = cam->Handle();
+    camHandle = cam->getHandle();
   }
-  int result = Facet_IdentifiedXPointsGet(this->m_handle, camHandle, (double*)result2x3x2x2 );
-  return result;
+  return Facet_IdentifiedXPointsGet(this->Handle, camHandle, (double*)result2x3x2x2);
 }
 
-std::vector<Vector *> Facet::TemplateVectors()
+//----------------------------------------------------------------------------
+std::vector<Vector*> Facet::TemplateVectors()
 {
-  std::vector<Vector *> iv;
+  std::vector<Vector*> iv;
   int r;
 
   iv.push_back(new Vector);
   iv.push_back(new Vector);
 
-  r = Facet_TemplateVectorsGet(this->m_handle, iv[0]->Handle(), iv[1]->Handle());
+  r = Facet_TemplateVectorsGet(this->Handle, iv[0]->getHandle(), iv[1]->getHandle());
   return iv;
 }
 
-std::vector<Vector *> Facet::IdentifiedVectors()
+//----------------------------------------------------------------------------
+std::vector<Vector*> Facet::IdentifiedVectors()
 {
-  std::vector<Vector *> iv;
+  std::vector<Vector*> iv;
   int r;
 
   iv.push_back(new Vector);
   iv.push_back(new Vector);
 
-  r = Facet_IdentifiedVectorsGet(this->m_handle, iv[0]->Handle(), iv[1]->Handle());
+  r = Facet_IdentifiedVectorsGet(this->Handle, iv[0]->getHandle(), iv[1]->getHandle());
   return iv;
 }
 
-/****************************/
-/** */
-bool Facet::setVectorsFromSample(std::vector<Collection*> &sampledVectorSets, std::string &outCompletionExplanation, double maxSampleErrorAllowedMM)
+//----------------------------------------------------------------------------
+int Facet::setVectorsFromSample(std::vector<Collection*>& sampledVectorSets, std::string& outCompletionExplanation, double maxSampleErrorAllowedMM)
 {
-  long mtCode;
   Collection* handlesCollection = new Collection();
-  for (unsigned int i=0; i<sampledVectorSets.size(); i++)
+  for (unsigned int i = 0; i < sampledVectorSets.size(); i++)
   {
-    if(sampledVectorSets[i]->count() == 2)
+    if (sampledVectorSets[i]->count() == 2)
     {
       handlesCollection->add(sampledVectorSets[i]->itemI(1));
       handlesCollection->add(sampledVectorSets[i]->itemI(2));
     }
   }
-  
-  if (handlesCollection->count() == 0 ) return false;
-  mtCode = Facet_SetTemplateVectorsFromSamples(this->m_handle, handlesCollection->getHandle(), maxSampleErrorAllowedMM);
-  
-  if (mtCode == mtOK)
-    return true;
-  else
-  {
-//    outCompletionExplanation = MTErrorString(mtCode);
-    return false;
-  }
 
-  return 0;
+  if (handlesCollection->count() == 0)
+  {
+    return mtEmptyCollection;
+  }
+  return Facet_SetTemplateVectorsFromSamples(this->Handle, handlesCollection->getHandle(), maxSampleErrorAllowedMM);
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 bool Facet::identify(MCamera* cam, std::vector<Vector*> vectorSet, double positionToleranceMM)
 {
-  bool result;
   mtHandle* vectorHandles;
 
-  vectorHandles = (mtHandle *)malloc(vectorSet.size()*sizeof(int));
+  vectorHandles = (mtHandle*)malloc(vectorSet.size() * sizeof(int));
 
-  for(unsigned int i=0; i<vectorSet.size(); i++)
-    vectorHandles[i] = vectorSet[i]->Handle();
-
+  for (unsigned int i = 0; i < vectorSet.size(); i++)
+  {
+    vectorHandles[i] = vectorSet[i]->getHandle();
+  }
 
   mtHandle camHandle;
-  if(cam == NULL)
+  if (cam == NULL)
+  {
     camHandle = 0;
+  }
   else
-    camHandle = cam->Handle();
+  {
+    camHandle = cam->getHandle();
+  }
 
-  Facet_Identify(this->m_handle, cam->Handle(), vectorHandles, static_cast<int>(vectorSet.size()),  &result);
+  bool identified;
+  Facet_Identify(this->Handle, cam->getHandle(), vectorHandles, static_cast<int>(vectorSet.size()),  &identified);
   free(vectorHandles);
-  return result;
+  return identified;
 }
 
-/****************************/
-/** */
-bool Facet::validateTemplate(double positionToleranceMM, std::string outCompletionString)
+//----------------------------------------------------------------------------
+int Facet::validateTemplate(double positionToleranceMM, std::string outCompletionString)
 {
-  int mtCode;
-  mtCode = Facet_ValidateTemplateVectors(this->m_handle);
-
-  if (mtCode == mtOK)
-    return true;
-  else
-    return false;
+  return Facet_ValidateTemplateVectors(this->Handle);
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 Xform3D* Facet::getFacet2CameraXf(MCamera* cam)
 {
   Xform3D* facet2CameraXf = new Xform3D();
-  Facet_Facet2CameraXfGet(this->m_handle, cam->Handle(), facet2CameraXf->getHandle());
+  Facet_Facet2CameraXfGet(this->Handle, cam->getHandle(), facet2CameraXf->getHandle());
   return facet2CameraXf;
 }

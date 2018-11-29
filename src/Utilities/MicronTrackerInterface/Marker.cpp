@@ -1,93 +1,96 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shahram Izadyar, Robarts Research Institute - London - Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto - Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "MTC.h"
+#include <MTC.h>
 
+#include "Collection.h"
+#include "Facet.h"
+#include "MCamera.h"
 #include "Marker.h"
+#include "Persistence.h"
+#include "Xform3D.h"
 
 #include <string>
 
-/****************************/
-/** Constructor */
+//----------------------------------------------------------------------------
 Marker::Marker(mtHandle h)
 {
   // If a handle is provided to this class, don't create a new one
   if (h != 0)
   {
-    this->m_handle = h;
+    this->Handle = h;
   }
   else
   {
-    this->m_handle = Marker_New();
+    this->Handle = Marker_New();
   }
-  this->ownedByMe = TRUE;
+  this->OwnedByMe = true;
 }
 
-/****************************/
-/** Destructor */
+//----------------------------------------------------------------------------
 Marker::~Marker()
 {
-  if (this->m_handle != 0 && this->ownedByMe)
+  if (this->Handle != 0 && this->OwnedByMe)
   {
-    Marker_Free(this->m_handle);
-    this->m_handle = NULL;
+    Marker_Free(this->Handle);
+    this->Handle = NULL;
   }
 }
 
-/****************************/
-/** Return a handle to the collection of the identified facets */
-mtHandle Marker::identifiedFacets(MCamera *cam)
+//----------------------------------------------------------------------------
+mtHandle Marker::getHandle()
+{
+  return this->Handle;
+}
+
+//----------------------------------------------------------------------------
+mtHandle Marker::identifiedFacets(MCamera* cam)
 {
   mtHandle camHandle = NULL;
-  if (cam != NULL) 
+  if (cam != NULL)
   {
-    camHandle = cam->Handle();
+    camHandle = cam->getHandle();
   }
   mtHandle identifiedHandle = Collection_New();
-  Marker_IdentifiedFacetsGet(this->m_handle, camHandle, true, identifiedHandle);
+  Marker_IdentifiedFacetsGet(this->Handle, camHandle, true, identifiedHandle);
   return identifiedHandle;
 }
 
-
-/****************************/
-/** Return a handle to the collection of the facets */
+//----------------------------------------------------------------------------
 mtHandle Marker::getTemplateFacets()
 {
   mtHandle templateFacetsColl = 0;
-  Marker_TemplateFacetsGet(this->m_handle, &templateFacetsColl);
+  Marker_TemplateFacetsGet(this->Handle, &templateFacetsColl);
   return templateFacetsColl;
 }
 
-
-/****************************/
-/** */
-bool Marker::wasIdentified(MCamera *cam)
+//----------------------------------------------------------------------------
+bool Marker::wasIdentified(MCamera* cam)
 {
   mtHandle camHandle = NULL;
-  if (cam != NULL) 
+  if (cam != NULL)
   {
-    camHandle = cam->Handle();
+    camHandle = cam->getHandle();
   }
-  bool result=false;
-  int stat = Marker_WasIdentifiedGet(this->m_handle, camHandle, &result);
+  bool result = false;
+  int stat = Marker_WasIdentifiedGet(this->Handle, camHandle, &result);
   return result;
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 Xform3D* Marker::marker2CameraXf(mtHandle camHandle)
 {
   Xform3D* xf = new Xform3D;
-  mtHandle identifyingCamHandle=0;
-  int result = Marker_Marker2CameraXfGet(this->m_handle, camHandle, xf->getHandle(), &identifyingCamHandle);
+  mtHandle identifyingCamHandle = 0;
+  int result = Marker_Marker2CameraXfGet(this->Handle, camHandle, xf->getHandle(), &identifyingCamHandle);
   // if the result is ok then return the handle, otherwise return NULL
   if (result != mtOK)
   {
@@ -96,108 +99,102 @@ Xform3D* Marker::marker2CameraXf(mtHandle camHandle)
   return xf;
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 Xform3D* Marker::tooltip2MarkerXf()
 {
-	Xform3D* xf = new Xform3D;
-	int result = Marker_Tooltip2MarkerXfGet(this->m_handle, xf->getHandle());
+  Xform3D* xf = new Xform3D;
+  int result = Marker_Tooltip2MarkerXfGet(this->Handle, xf->getHandle());
 
-	// if the result is ok then return the handle, otherwise return NULL
-	if (result != mtOK)
-	{
-		return NULL;
-	}
-	return xf;
+  // if the result is ok then return the handle, otherwise return NULL
+  if (result != mtOK)
+  {
+    return NULL;
+  }
+  return xf;
 }
 
-/****************************/
-/** Returns the name of the marker. */
+//----------------------------------------------------------------------------
 std::string Marker::getName()
 {
-  const int BUF_SIZE=400;
-  char buf[BUF_SIZE+1];
-  buf[BUF_SIZE]='\0';
-  int size=0;
-  mtCompletionCode st = Marker_NameGet(this->m_handle, buf, BUF_SIZE, &size);
-  buf[size]='\0';
-  m_MarkerName = buf;
-  return m_MarkerName;
+  const int BUF_SIZE = 400;
+  char buf[BUF_SIZE + 1];
+  buf[BUF_SIZE] = '\0';
+  int size = 0;
+  mtCompletionCode st = Marker_NameGet(this->Handle, buf, BUF_SIZE, &size);
+  buf[size] = '\0';
+  this->MarkerName = buf;
+  return this->MarkerName;
 }
 
-/****************************/
-/** Sets the name of the marker */
-void Marker::setName(char* name)
+//----------------------------------------------------------------------------
+int Marker::setName(char* name)
 {
-  Marker_NameSet(this->m_handle, name);
+  return Marker_NameSet(this->Handle, name);
 }
 
-/****************************/
-/** */
+//----------------------------------------------------------------------------
 int Marker::addTemplateFacet(Facet* newFacet, Xform3D* facet1ToNewFacetXf)
 {
-  int result = Marker_AddTemplateFacet(this->m_handle, newFacet->getHandle(), facet1ToNewFacetXf->getHandle() );
-  return result;
+  return Marker_AddTemplateFacet(this->Handle, newFacet->getHandle(), facet1ToNewFacetXf->getHandle());
 }
 
-/****************************/
-/** */
-bool Marker::validateTemplate(double positionToleranceMM, std::string complString)
+//----------------------------------------------------------------------------
+int Marker::validateTemplate(double positionToleranceMM, std::string complString)
 {
   Collection* facetsColl = new Collection(this->getTemplateFacets());
-  
-  for(int k=1; k < facetsColl->count(); k++)
+  int result;
+
+  for (int k = 1; k < facetsColl->count(); k++)
   {
     Facet* f = new Facet(facetsColl->itemI(k));
-    if (!f->validateTemplate(positionToleranceMM, complString))
+    result = f->validateTemplate(positionToleranceMM, complString);
+    if (result != mtOK)
     {
-      return false;
+      return result;
     }
   }
 
   std::vector<Vector*> vs;
-  for (int fi=1; fi < facetsColl->count()-1; fi++)
+  for (int fi = 1; fi < facetsColl->count() - 1; fi++)
   {
     Facet* Fti = new Facet(fi);
-    for(int fj= fi+1; fj < facetsColl->count(); fj++)
+    for (int fj = fi + 1; fj < facetsColl->count(); fj++)
     {
       Facet* Ftj = new Facet(fj);
       vs = Ftj->TemplateVectors();
-      if (Fti->identify(NULL, vs, 2*positionToleranceMM))
+      if (Fti->identify(NULL, vs, 2 * positionToleranceMM))
       {
-        return false; //mtDifferentFacetsGeometryTooSimilar
+        return mtDifferentFacetsGeometryTooSimilar;
       }
     }
   }
-/*
-  'Check that two facets cannot be confused with each other, ie
-  'their positions are at least twice the tolerance
-  Dim fi, fj, Fti As Facet, Ftj As Facet, Vs(2) As Vector
-  For fi = 1 To TemplateFacets.Count - 1
-    Set Fti = TemplateFacets(fi)
-    For fj = fi + 1 To TemplateFacets.Count
-      Set Ftj = TemplateFacets(fj)
-      Set Vs(0) = Ftj.TemplateVectors(1)
-      Set Vs(1) = Ftj.TemplateVectors(2)
-      If Fti.Identify(Nothing, Vs, 2, 2 * PositionToleranceMM) Then
-        ValidateTemplate = False 'mtDifferentFacetsGeometryTooSimilar
-        If Not IsMissing(OutCompletionString) Then
-          OutCompletionString = "geometry of facets " & fi & " and " & fj & " too similar"
+  /*
+    'Check that two facets cannot be confused with each other, ie
+    'their positions are at least twice the tolerance
+    Dim fi, fj, Fti As Facet, Ftj As Facet, Vs(2) As Vector
+    For fi = 1 To TemplateFacets.Count - 1
+      Set Fti = TemplateFacets(fi)
+      For fj = fi + 1 To TemplateFacets.Count
+        Set Ftj = TemplateFacets(fj)
+        Set Vs(0) = Ftj.TemplateVectors(1)
+        Set Vs(1) = Ftj.TemplateVectors(2)
+        If Fti.Identify(Nothing, Vs, 2, 2 * PositionToleranceMM) Then
+          ValidateTemplate = False 'mtDifferentFacetsGeometryTooSimilar
+          If Not IsMissing(OutCompletionString) Then
+            OutCompletionString = "geometry of facets " & fi & " and " & fj & " too similar"
+          End If
+          Exit Function
         End If
-        Exit Function
-      End If
+      Next
     Next
-  Next
-  ValidateTemplate = True
-End Function
-  */
-  return true;
+    ValidateTemplate = True
+  End Function
+    */
+  return mtOK;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 int Marker::storeTemplate(Persistence* p, const char* name)
 {
-  int result = Marker_StoreTemplate(this->m_handle, p->getHandle(), name);
-  return result;
+  return Marker_StoreTemplate(this->Handle, p->getHandle(), name);
 }
-

@@ -1,468 +1,474 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shi Sherebrin , Robarts Research Institute - London - Ontario , www.robarts.ca
+*     Shahram Izadyar, Robarts Research Institute - London - Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto - Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
 
-#include "MTC.h"
+#include <MTC.h>
 
 #include "MCamera.h"
 
-/****************************/
-/** Constructor */
+//----------------------------------------------------------------------------
 MCamera::MCamera(mtHandle handle)
 {
   // If a handle is provided to this class, don't create a new one
-  char *DriverName = NULL;
+  char* DriverName = NULL;
   if (handle != 0)
   {
-    this->m_handle = handle;
+    this->Handle = handle;
   }
   else
   {
-    this->m_handle = Camera_New( DriverName,1965 ); 
+    this->Handle = Camera_New(DriverName, 1965);
   }
-  this->ownedByMe = TRUE;
-  limage = NULL;
-  rimage = NULL;
-  mimage = NULL;
+  this->OwnedByMe = true;
+  this->LeftImage = NULL;
+  this->RightImage = NULL;
+  this->MiddleImage = NULL;
   // error handling here
 }
 
-/****************************/
-/** Destructor */
+//----------------------------------------------------------------------------
 MCamera::~MCamera()
 {
-  if (this->m_handle != 0 && this->ownedByMe )
-    Camera_Free(this->m_handle);
-  free(limage);
-  free(rimage);
+  if (this->Handle != 0 && this->OwnedByMe)
+  {
+    Camera_Free(this->Handle);
+  }
+  free(this->LeftImage);
+  free(this->RightImage);
 }
-mtHandle MCamera::Handle()
+
+//----------------------------------------------------------------------------
+mtHandle MCamera::getHandle()
 {
-  return m_handle;
+  return this->Handle;
 }
 
 #if 0
-bool MCamera::RawBufferValid()
+//----------------------------------------------------------------------------
+int MCamera::RawBufferValid()
 {
   int result, r;
-  r = Camera_RawBufferValidGet(m_handle, &result);
+  r = Camera_RawBufferValidGet(this->Handle, &result);
   if (r != mtOK)
-    return false;
+  {
+    return r;
+  }
   else
-    return ( result != 0 );
+  {
+    return result;
+  }
 }
 
-unsigned char **MCamera::RawBufferAddr()
+unsigned char** MCamera::RawBufferAddr()
 {
-  int  r;
-  unsigned char **result = NULL;
-  r = Camera_RawBufferAddrGet(m_handle, &result);
+  int r;
+  unsigned char** result = NULL;
+  r = Camera_RawBufferAddrGet(this->Handle, &result);
   return result;
 }
 #endif
 
+//----------------------------------------------------------------------------
 int MCamera::getXRes()
 {
   int result = 0, y, r;
-  r = Camera_ResolutionGet(m_handle, &result, &y);
-  return ( result);
-
+  r = Camera_ResolutionGet(this->Handle, &result, &y);
+  return (result);
 }
+//----------------------------------------------------------------------------
 int MCamera::getYRes()
 {
-  int result =0, x, r;
-  r = Camera_ResolutionGet(m_handle, &x, &result);
-  return ( result);
-
+  int result = 0, x, r;
+  r = Camera_ResolutionGet(this->Handle, &x, &result);
+  return (result);
 }
 
+//----------------------------------------------------------------------------
 int MCamera::getSerialNum()
 {
   int serialNum = -1;
-  Camera_SerialNumberGet(m_handle, &serialNum);
+  Camera_SerialNumberGet(this->Handle, &serialNum);
   return (serialNum);
 }
 
+//----------------------------------------------------------------------------
 int MCamera::getBitsPerPixel()
 {
   int bitsPerPixel = -1;
-  Camera_BitsPerPixelGet(m_handle, &bitsPerPixel);
-  return ( bitsPerPixel);
+  Camera_BitsPerPixelGet(this->Handle, &bitsPerPixel);
+  return (bitsPerPixel);
 }
 
-/****************************/
-/** Gets the shtutter opening time in msecs.  Returns -1 if not successful*/
+//----------------------------------------------------------------------------
+/** Gets the shutter opening time in msecs.  Returns -1 if not successful*/
 double MCamera::getShutterTime()
 {
   double shutterTime = 0;
-  int r = Camera_ShutterMsecsGet(this->m_handle, &shutterTime);
+  int r = Camera_ShutterMsecsGet(this->Handle, &shutterTime);
   return r == mtOK ? shutterTime : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the shutter time of the camera. If successful returns 0, otherwise returns -1. */
 int MCamera::setShutterTime(double sh)
 {
-  int result = Camera_ShutterMsecsSet(this->m_handle, sh);
-  return result == mtOK ? result : -1;
+  return Camera_ShutterMsecsSet(this->Handle, sh);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the minimum shutter time of the camera. Returns -1 if not successful. */
 double MCamera::getMinShutterTime()
 {
   double minShutterTime = 0;
-  int result = Camera_ShutterMsecsMinGet(this->m_handle, &minShutterTime);
+  int result = Camera_ShutterMsecsMinGet(this->Handle, &minShutterTime);
   return result == mtOK ? minShutterTime : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the maximum shutter time of the camera.  Returns -1 if not successful. */
 double MCamera::getMaxShutterTime()
 {
   double maxShutterTime = 0;
-  int result = Camera_ShutterMsecsMaxGet(this->m_handle, &maxShutterTime);
+  int result = Camera_ShutterMsecsMaxGet(this->Handle, &maxShutterTime);
   return result == mtOK ? maxShutterTime : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the limiter setting of the ShutterMsecs property controlling Camera_ExposureSet().
     Returns -1 if not successful. */
 double MCamera::getShutterTimeLimit()
 {
   double shutterTimeLimit = 0;
-  int result = Camera_ShutterMsecsLimiterGet (this->m_handle, &shutterTimeLimit);
+  int result = Camera_ShutterMsecsLimiterGet(this->Handle, &shutterTimeLimit);
   return result == mtOK ? shutterTimeLimit : -1;
 }
 
-/****************************/
-/** Sets the limiter setting of the ShutterMsecs property controlling Camera_ExposureSet().
-    If successful returns 0, otherwise returns -1. */
+//----------------------------------------------------------------------------
+/** Sets the limiter setting of the ShutterMsecs property controlling Camera_ExposureSet().*/
 double MCamera::setShutterTimeLimit(double msecs)
 {
-  int result = Camera_ShutterMsecsLimiterSet (this->m_handle, msecs);
+  int result = Camera_ShutterMsecsLimiterSet(this->Handle, msecs);
   return result == mtOK ? result : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Returns the latest frame time in msecs. Returns -1 if not successful. */
 double MCamera::getFrameTime()
 {
   double frameTime = 0;
-  int result = Camera_FrameMTTimeSecsGet(this->m_handle, &frameTime);
+  int result = Camera_FrameMTTimeSecsGet(this->Handle, &frameTime);
   return result == mtOK ? frameTime : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Returns the number of frames grabbed since the start of the MT. Returns -1 if not successful. */
 int MCamera::getNumOfFramesGrabbed()
 {
   int numOfFrames = 0;
-  int result = Camera_FramesGrabbedGet(this->m_handle, &numOfFrames);
+  int result = Camera_FramesGrabbedGet(this->Handle, &numOfFrames);
   return (result == mtOK ? numOfFrames : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the gain of the camera. Returns -1 of not successful. */
 double MCamera::getGain()
 {
   double gain = 0;
-  int result = Camera_GainFGet(this->m_handle, &gain);
+  int result = Camera_GainFGet(this->Handle, &gain);
   return (result == mtOK ? gain : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the gain of the camera. Returns -1 if not successful. */
 int MCamera::setGain(double g)
 {
-  int result = Camera_GainFSet(this->m_handle, g);
-  return (result == mtOK ? result : -1);
+  return Camera_GainFSet(this->Handle, g);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the minimum gain of the camera. Returns -1 if not successful. */
 double MCamera::getMinGain()
 {
   double minGain = 0;
-  int result = Camera_GainFMinGet(this->m_handle, &minGain);
+  int result = Camera_GainFMinGet(this->Handle, &minGain);
   return (result == mtOK ? minGain : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the minimum gain of the camera. Returns -1 if not successful. */
 double MCamera::getMaxGain()
 {
   double maxGain = 0;
-  int result = Camera_GainFMaxGet(this->m_handle, &maxGain);
+  int result = Camera_GainFMaxGet(this->Handle, &maxGain);
   return (result == mtOK ? maxGain : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets  the maximum setting of the GainF property available to Camera_ExposureSet().
     Returns -1 if not successful. */
 double MCamera::getGainLimit()
 {
   double gainLimit = 0;
-  int result = Camera_GainFLimiterGet (this->m_handle, &gainLimit);
+  int result = Camera_GainFLimiterGet(this->Handle, &gainLimit);
   return result == mtOK ? gainLimit : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the limiter setting of the GainF property controlling Camera_ExposureSet().
     If successful returns 0, otherwise returns -1. */
 double MCamera::setGainLimit(double limit)
 {
-  int result = Camera_GainFLimiterSet (this->m_handle, limit);
+  int result = Camera_GainFLimiterSet(this->Handle, limit);
   return result == mtOK ? result : -1;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Get the DB gain. Returns -1 if not successful. */
 double MCamera::getDBGain()
-{ 
+{
   double dbGain = 0;
-  int result = Camera_GainDBGet(this->m_handle, &dbGain);
+  int result = Camera_GainDBGet(this->Handle, &dbGain);
   return (result == mtOK ? dbGain : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the exposure of the camera. Returns -1 if not successful. */
 double MCamera::getExposure()
 {
   double exposure = 0;
-  int result = Camera_ExposureGet(this->m_handle, &exposure);
+  int result = Camera_ExposureGet(this->Handle, &exposure);
   return (result == mtOK ? exposure : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the exposure of the camera. Returns 0 if successful, -1 if not. */
 int MCamera::setExposure(double e)
 {
-  int result = Camera_ExposureSet(this->m_handle, e);
-  return (result == mtOK ? result : -1);
+  return Camera_ExposureSet(this->Handle, e);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the minimum exposure of the camera. Returns -1 if not successful. */
 double MCamera::getMinExposure()
 {
   double minExposure = 0;
-  int result = Camera_ExposureMinGet(this->m_handle, &minExposure);
+  int result = Camera_ExposureMinGet(this->Handle, &minExposure);
   return (result == mtOK ? minExposure : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the minimum exposure of the camera. Returns -1 if not successful. */
 double MCamera::getMaxExposure()
 {
   double maxExposure = 0;
-  int result = Camera_ExposureMaxGet(this->m_handle, &maxExposure);
+  int result = Camera_ExposureMaxGet(this->Handle, &maxExposure);
   return (result == mtOK ? maxExposure : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the number os CCDs available in the current camera. */
 int MCamera::getSensorsNum()
 {
-	int numOfSensors = 0;
-	int result = Camera_NumofSensorsGet(this->m_handle, &numOfSensors);
-	return numOfSensors;
+  int numOfSensors = 0;
+  int result = Camera_NumofSensorsGet(this->Handle, &numOfSensors);
+  return numOfSensors;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the AutoExposure property of the camera. Returns -1 if true, 0 if false. */
 int MCamera::getAutoExposure()
 {
   int autoExposure = 0;
-  int result = Camera_AutoExposureGet(this->m_handle, &autoExposure);
+  int result = Camera_AutoExposureGet(this->Handle, &autoExposure);
   return autoExposure;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the AutoExposure property of the camera. Returns 0 if successful, -1 if not. */
 int MCamera::setAutoExposure(int ae)
 {
-  int result = Camera_AutoExposureSet(this->m_handle, ae);
-  return (result == mtOK ? result : -1);
+  return Camera_AutoExposureSet(this->Handle, ae);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the value of the LightCoolness property of the camera. Returns -1 if not successful. */
 double MCamera::getLightCoolness()
 {
   double coolness = 0;
-  int result = Camera_LightCoolnessGet(this->m_handle, &coolness);
+  int result = Camera_LightCoolnessGet(this->Handle, &coolness);
   return (result == mtOK ? coolness : -1);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the value of the LightCoolness property of the camera. Returns 0 if successful, -1 if not. */
 int MCamera::setLightCoolness(double value)
 {
-  int result = Camera_LightCoolnessSet(this->m_handle, value);
-  return (result == mtOK ? result : -1);
+  return Camera_LightCoolnessSet(this->Handle, value);
 }
 
-mtMeasurementHazardCode MCamera::getThermalHazard()
+//----------------------------------------------------------------------------
+int MCamera::getThermalHazard()
 {
-  return Camera_LastFrameThermalHazard(this->m_handle);
+  return Camera_LastFrameThermalHazard(this->Handle);
 }
 
-int MCamera::AdjustCoolnessFromColorVector(mtHandle ColorVectorHandle)
+//----------------------------------------------------------------------------
+int MCamera::adjustCoolnessFromColorVector(mtHandle ColorVectorHandle)
 {
-  int result = Camera_LightCoolnessAdjustFromColorVector(this->m_handle, ColorVectorHandle, 0 );
-  return (result == mtOK ? result : -1);  
+  return Camera_LightCoolnessAdjustFromColorVector(this->Handle, ColorVectorHandle, 0);
 }
 
+//----------------------------------------------------------------------------
 //image - 0 left, 1 right, 2 middle
-bool MCamera::getProjectionOnImage( int image, double XYZ[], double *x, double *y )
+int MCamera::getProjectionOnImage(int image, double XYZ[], double* x, double* y)
 {
-	mtCompletionCode  result =  Camera_ProjectionOnImage( this->m_handle, image, XYZ, x, y );
-	return( result == mtOK ? true : false );
+  return Camera_ProjectionOnImage(this->Handle, image, XYZ, x, y);
 }
 
-bool MCamera::getImages( unsigned char ***li, unsigned char ***ri)
+//----------------------------------------------------------------------------
+int MCamera::getImages(unsigned char** *li, unsigned char** *ri)
 {
-  if (limage == NULL)
+  if (this->LeftImage == NULL)
   {
-    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (rimage == NULL)
+  if (this->RightImage == NULL)
   {
-    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
 
-  int r = Camera_ImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
+  int r = Camera_ImagesGet(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
-    return false;
+    return r;
   }
   else
   {
-    *li = (unsigned char **)limage;
-    *ri = (unsigned char **)rimage;
-    return true;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    return mtOK;
   }
 }
 
-bool MCamera::getImages3( unsigned char ***li, unsigned char ***ri, unsigned char ***mi)
+//----------------------------------------------------------------------------
+int MCamera::getImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi)
 {
-  if (limage == NULL)
+  if (this->LeftImage == NULL)
   {
-    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (rimage == NULL)
+  if (this->RightImage == NULL)
   {
-    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  if (mimage == NULL)
+  if (this->MiddleImage == NULL)
   {
-    mimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes());
+    this->MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes());
   }
-  int r = Camera_ImagesGet3(m_handle, (unsigned char *)limage, (unsigned char *)rimage, (unsigned char *)mimage);
+  int r = Camera_ImagesGet3(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage, (unsigned char*)this->MiddleImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
     *mi = NULL;
-    return false;
+    return r;
   }
   else
   {
-    *li = (unsigned char **)limage;
-    *ri = (unsigned char **)rimage;
-    *mi = (unsigned char **)mimage;
-    return true;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    *mi = (unsigned char**)this->MiddleImage;
+    return mtOK;
   }
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Gets the grabbed images. Returns true if successful. Returns false if not. */
-bool MCamera::getHalfSizeImages(unsigned char ***li, unsigned char ***ri, int xRes, int yRes)
+int MCamera::getHalfSizeImages(unsigned char** *li, unsigned char** *ri, int xRes, int yRes)
 {
-  if (limage == NULL)
+  if (this->LeftImage == NULL)
   {
-    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (rimage == NULL)
+  if (this->RightImage == NULL)
   {
-    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  int r = Camera_HalfSizeImagesGet(m_handle, (unsigned char *)limage, (unsigned char *)rimage);
+  int r = Camera_HalfSizeImagesGet(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
-    return false;
+    return r;
   }
   else
   {
-    *li = (unsigned char **)limage;
-    *ri = (unsigned char **)rimage;
-    return true;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    return mtOK;
   }
 }
 
-bool MCamera::getHalfSizeImages3(unsigned char ***li, unsigned char ***ri, unsigned char ***mi, int xRes, int yRes)
+//----------------------------------------------------------------------------
+int MCamera::getHalfSizeImages3(unsigned char** *li, unsigned char** *ri, unsigned char** *mi, int xRes, int yRes)
 {
-  if (limage == NULL)
+  if (this->LeftImage == NULL)
   {
-    limage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+    this->LeftImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (rimage == NULL)
+  if (this->RightImage == NULL)
   {
-    rimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+    this->RightImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  if (mimage == NULL)
+  if (this->MiddleImage == NULL)
   {
-    mimage = (unsigned char *)calloc (sizeof(unsigned char), getXRes() * getYRes()/2);
+    this->MiddleImage = (unsigned char*)calloc(sizeof(unsigned char), getXRes() * getYRes() / 2);
   }
-  int r = Camera_HalfSizeImagesGet3(m_handle, (unsigned char *)limage, (unsigned char *)rimage, (unsigned char *)mimage);
+  int r = Camera_HalfSizeImagesGet3(this->Handle, (unsigned char*)this->LeftImage, (unsigned char*)this->RightImage, (unsigned char*)this->MiddleImage);
   if (r != mtOK)
   {
     *li = NULL;
     *ri = NULL;
     *mi = NULL;
-    return false;
+    return r;
   }
   else
   {
-    *li = (unsigned char **)limage;
-    *ri = (unsigned char **)rimage;
-    *mi = (unsigned char **)mimage;
-    return true;
+    *li = (unsigned char**)this->LeftImage;
+    *ri = (unsigned char**)this->RightImage;
+    *mi = (unsigned char**)this->MiddleImage;
+    return mtOK;
   }
 }
 
-bool MCamera::grabFrame( )
+//----------------------------------------------------------------------------
+int MCamera::grabFrame()
 {
-  int r = Camera_GrabFrame (this->m_handle );
-  return (mtOK == r);
+  return Camera_GrabFrame(this->Handle);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 bool MCamera::getHdrModeEnabled()
 {
   bool IsEnabled = false;
-  int result = Camera_HdrEnabledGet(this->m_handle, &IsEnabled);
+  int result = Camera_HdrEnabledGet(this->Handle, &IsEnabled);
   return IsEnabled;
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 /** Sets the AutoExposure property of the camera. Returns 0 if successful, -1 if not. */
 int MCamera::setHdrModeEnabled(bool NewVal)
 {
-  int result = Camera_HdrEnabledSet(this->m_handle, NewVal);
-  return (result == mtOK ? result : -1);
+  return Camera_HdrEnabledSet(this->Handle, NewVal);
 }

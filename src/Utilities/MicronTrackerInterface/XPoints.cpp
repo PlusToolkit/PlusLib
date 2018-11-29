@@ -1,12 +1,12 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
-*	  Modified by:
-*			Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
+*     Written by:
+*     Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*   Modified by:
+*     Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
@@ -18,56 +18,57 @@
 #include "MTXPoint.h"
 #include "MCamera.h"
 
-/****************************/
-/** Constructor */
+//----------------------------------------------------------------------------
 XPoints::XPoints()
+  : Handle(mtHandleNull)
 {
-	//this->m_handle = XPoints_New();
-	this->ownedByMe = TRUE;
+  this->OwnedByMe = true;
 }
 
-/****************************/
-/** Destructor */
+//----------------------------------------------------------------------------
 XPoints::~XPoints()
 {
-	//if(this->m_handle != 0 && this->ownedByMe)
-		//XPoints_Free(this->m_handle);
+
 }
 
-/****************************/
+//----------------------------------------------------------------------------
+mtHandle XPoints::getHandle()
+{
+  return this->Handle;
+}
+
+//----------------------------------------------------------------------------
 /** Return the handle to a collection of identified xpoints by the most recent processed frame. ?? */
-mtHandle XPoints::detectedXPoints(MCamera *cam)
+mtHandle XPoints::detectedXPoints(MCamera* cam)
 {
-	mtHandle identifiedHandle = Collection_New();
-	mtHandle camHandle = NULL;
-	if (cam != NULL)
+  mtHandle identifiedHandle = Collection_New();
+  mtHandle camHandle = NULL;
+  if (cam != NULL)
   {
-		camHandle = cam->Handle();
-	}
-	XPoints_DetectedXPointsGet(camHandle, identifiedHandle );
-	return identifiedHandle;
+    camHandle = cam->getHandle();
+  }
+  XPoints_DetectedXPointsGet(camHandle, identifiedHandle);
+  return identifiedHandle;
 }
 
-/****************************/
-/** Return the value for the number of detected XPs*/
-int XPoints::countXPoints(MCamera *cam)
+//----------------------------------------------------------------------------
+int XPoints::countXPoints(MCamera* cam)
 {
-	mtHandle camHandle = NULL;
-	if (cam != NULL)
+  mtHandle camHandle = NULL;
+  if (cam != NULL)
   {
-		camHandle = cam->Handle();
-	}
-	return XPoints_Counter(camHandle);
+    camHandle = cam->getHandle();
+  }
+  return XPoints_Counter(camHandle);
 }
 
-/****************************/
-/** Processes the current frame of the default camera. */
-int XPoints::processFrame(MCamera *cam)
+//----------------------------------------------------------------------------
+int XPoints::processFrame(MCamera* cam)
 {
-	mtHandle camHandle = NULL;
-	if (cam != NULL)
+  mtHandle camHandle = NULL;
+  if (cam != NULL)
   {
-		camHandle = cam->Handle();
-	}
-	return XPoints_ProcessFrame(camHandle);
+    camHandle = cam->getHandle();
+  }
+  return XPoints_ProcessFrame(camHandle);
 }

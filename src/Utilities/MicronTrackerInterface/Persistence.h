@@ -1,8 +1,8 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
+*
+*     Written by:
 *      Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
 *      Claudio Gatti, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
@@ -12,26 +12,27 @@
 #ifndef __PERSISTENCE_H__
 #define  __PERSISTENCE_H__
 
+#include "MicronTrackerInterface.h"
+
 class Persistence
 {
 public:
   Persistence();
   ~Persistence();
-  inline mtHandle getHandle() { return m_handle; };
+  mtHandle getHandle();
 
   // Set/Get path
   int setPath(const char* path);
-  //char* getPath();
-  void setSection(const char* section);
+  std::string getPath();
+  int setSection(const char* section);
   int retrieveInt(const char* name, int defaultVal);
   double retrieveDouble(const char* name, double defaultVal);
 
-  void saveInt(const char* name, int val);
-  void saveDouble(const char* name, double val);
+  int saveInt(const char* name, int val);
+  int saveDouble(const char* name, double val);
 
 private:
-  mtHandle m_handle;
-  bool ownedByMe;
+  mtHandle  Handle;
 };
 
 #endif

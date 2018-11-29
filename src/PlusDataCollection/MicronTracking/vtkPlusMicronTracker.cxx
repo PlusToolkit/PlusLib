@@ -159,7 +159,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   // Setting the timestamp
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  if (this->MicronTracker->mtGrabFrame() == -1)
+  if (this->MicronTracker->mtGrabFrame() != 0) // mtOK
   {
     // If grabbing a frame was not successful then just skip this attempt and retry on the next callback
     LOG_WARNING("Failed to grab a new frame (" << this->MicronTracker->GetLastErrorString() << "). Maybe the requested frame rate is too high.");
@@ -178,7 +178,7 @@ PlusStatus vtkPlusMicronTracker::InternalUpdate()
   const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
 #endif
 
-  if (this->MicronTracker->mtProcessFrame() == -1)
+  if (this->MicronTracker->mtProcessFrame() != 0) // mtOK
   {
     LOG_ERROR("Error in processing a frame! (" << this->MicronTracker->GetLastErrorString() << ")");
     return PLUS_FAIL;
@@ -318,7 +318,7 @@ PlusStatus vtkPlusMicronTracker::GetImage(vtkImageData* leftImage, vtkImageData*
 
   unsigned char** leftImageArray = 0;
   unsigned char** rightImageArray = 0;
-  if (this->MicronTracker->mtGetLeftRightImageArray(leftImageArray, rightImageArray) == -1)
+  if (this->MicronTracker->mtGetLeftRightImageArray(leftImageArray, rightImageArray) != 0) // mtOK
   {
     LOG_ERROR("Error getting images from MicronTracker");
     return PLUS_FAIL;

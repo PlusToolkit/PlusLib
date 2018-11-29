@@ -1,248 +1,227 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
 ***************************************************************/
-#include "MTC.h"
+#include <MTC.h>
 
-#include "Markers.h"
-#include "Marker.h"
+#include "Collection.h"
 #include "MCamera.h"
+#include "Marker.h"
+#include "Markers.h"
 
-/****************************/
-/** Constructor */
+//----------------------------------------------------------------------------
 Markers::Markers()
 {
-  //this->m_handle = Markers_New();
-  this->ownedByMe = TRUE;
+  this->OwnedByMe = true;
 }
 
-/****************************/
-/** Destructor */
+//----------------------------------------------------------------------------
 Markers::~Markers()
 {
-  //if(this->m_handle != 0 && this->ownedByMe)
-    //Markers_Free(this->m_handle);
 }
 
-/****************************/
-/** Store a Marker template If successful returns 0. Otherwise non-zero value is returned. */
-int Markers::storeTemplate( int idx, mtHandle pHandle, char* nameInP)
+//----------------------------------------------------------------------------
+mtHandle Markers::getHandle()
 {
-  int result;
+  return this->Handle;
+}
+
+//----------------------------------------------------------------------------
+int Markers::storeTemplate(int idx, mtHandle pHandle, char* nameInP)
+{
+  int result = mtOK;
   mtHandle tHandle;
   result = Markers_TemplateItemGet(idx, &tHandle);
-  if (result != mtOK) return result;
-  result = Marker_StoreTemplate(tHandle, pHandle, nameInP);
-  return result;
+  if (result != mtOK)
+  {
+    return result;
+  }
+  return Marker_StoreTemplate(tHandle, pHandle, nameInP);
 }
 
 
-/****************************/
-/** Add a template to the markers. If successful returns 0. Otherwise non-zero value is returned. */
+//----------------------------------------------------------------------------
 int Markers::addTemplate(mtHandle markerHandle)
 {
-  int result;
-  result = Markers_AddTemplate( markerHandle);
-  return result;
+  return Markers_AddTemplate(markerHandle);
 }
 
-/****************************/
-/** Clears the templates of this marker. Returns 0 if successful. Otherwise a non_zero value is returned. */
+//----------------------------------------------------------------------------
 int Markers::clearTemplates()
 {
   return Markers_ClearTemplates();
 }
 
-
-/****************************/
-/** Return the handle to a collection of identified markers by the most recent processed frame. ?? */
-mtHandle Markers::identifiedMarkers(MCamera *cam)
+//----------------------------------------------------------------------------
+mtHandle Markers::identifiedMarkers(MCamera* cam)
 {
   mtHandle identifiedHandle = Collection_New();
   mtHandle camHandle;
-  if (cam == NULL) {
+  if (cam == NULL)
+  {
     camHandle = NULL;
-  } else {
-    camHandle = cam->Handle();
   }
-  Markers_IdentifiedMarkersGet(camHandle, identifiedHandle );
+  else
+  {
+    camHandle = cam->getHandle();
+  }
+  Markers_IdentifiedMarkersGet(camHandle, identifiedHandle);
   return identifiedHandle;
 }
 
-/****************************/
-/** Return the handle to a collection of unidentified vectors by the most recent processed frame. */
-mtHandle Markers::unidentifiedVectors(MCamera *cam)
+//----------------------------------------------------------------------------
+mtHandle Markers::unidentifiedVectors(MCamera* cam)
 {
   mtHandle unidentifiedHandle = Collection_New();
   mtHandle camHandle;
-  if (cam == NULL) {
+  if (cam == NULL)
+  {
     camHandle = NULL;
-  } else {
-    camHandle = cam->Handle();
+  }
+  else
+  {
+    camHandle = cam->getHandle();
   }
   Markers_UnidentifiedVectorsGet(camHandle, unidentifiedHandle);
   return unidentifiedHandle;
 }
 
-/****************************/
-/** Return the value for the predictive frames interleave */
+//----------------------------------------------------------------------------
 int Markers::getPredictiveFramesInterleave()
 {
   int level = 0;
-  Markers_PredictiveFramesInterleaveGet( &level);
+  Markers_PredictiveFramesInterleaveGet(&level);
   return level;
 }
 
-/****************************/
-/** Set the value of the predictive frames interleave. Returns 0 if successful, -1 if not. */
+//----------------------------------------------------------------------------
 int Markers::setPredictiveFramesInterleave(int level)
 {
-  int result = Markers_PredictiveFramesInterleaveSet(level);
-  return (result == mtOK ? result : -1);
+  return Markers_PredictiveFramesInterleaveSet(level);
 }
 
-/****************************/
-/** Return the value for the extrapolated frames */
+//----------------------------------------------------------------------------
 int Markers::getExtrapolatedFrames()
 {
-	int result;
-	Markers_ExtrapolatedFramesGet(&result);
-	return result;
+  int result;
+  Markers_ExtrapolatedFramesGet(&result);
+  return result;
 }
 
-/****************************/
-/** Set the value of the extrapolated frames */
-void Markers::setExtrapolatedFrames(int newval)
+//----------------------------------------------------------------------------
+int Markers::setExtrapolatedFrames(int newval)
 {
-	Markers_ExtrapolatedFramesSet(newval);
+  return Markers_ExtrapolatedFramesSet(newval);
 }
 
-/****************************/
-/** Return the value for the smaller XP footprint flag */
+//----------------------------------------------------------------------------
 bool Markers::getSmallerXPFootprint()
 {
-	bool result = Markers_SmallerXPFootprint();
-	return result;
+  return Markers_SmallerXPFootprint();
 }
 
-/****************************/
-/** Set the value of the smaller XP footprint flag */
+//----------------------------------------------------------------------------
 void Markers::setSmallerXPFootprint(bool newval)
 {
-	Markers_SmallerXPFootprintSet(newval);
+  Markers_SmallerXPFootprintSet(newval);
 }
 
-/****************************/
-/** Return the value of the templateMatchToleranceMM */
+//----------------------------------------------------------------------------
 double Markers::getTemplateMatchToleranceMM()
 {
   double toleranceVal = 0;
-  Markers_TemplateMatchToleranceMMGet( &toleranceVal);
+  Markers_TemplateMatchToleranceMMGet(&toleranceVal);
   return toleranceVal;
 }
 
-/****************************/
-/** Set the value of the templateMatchToleranceMM. Returns 0 if successful, -1 if not. */
+//----------------------------------------------------------------------------
 int Markers::setTemplateMatchToleranceMM(double newVal)
 {
-  int result = Markers_TemplateMatchToleranceMMSet( newVal);
-  return (result == mtOK ? result : -1);
+  return Markers_TemplateMatchToleranceMMSet(newVal);
 }
 
-/****************************/
-/** Returns the number of templates. */
+//----------------------------------------------------------------------------
 int Markers::getTemplateCount()
 {
   return Markers_TemplatesCount();
 }
 
-
-/****************************/
-
-void Markers::setAutoAdjustCam2CamRegistration( bool newVal)
+//----------------------------------------------------------------------------
+void Markers::setAutoAdjustCam2CamRegistration(bool newVal)
 {
-  Markers_AutoAdjustCam2CamRegistrationSet( newVal);
+  Markers_AutoAdjustCam2CamRegistrationSet(newVal);
 }
 
-/****************************/
-/**  */
+//----------------------------------------------------------------------------
 bool Markers::getAutoAdjustCam2CamRegistration()
 {
   bool val = false;
-  Markers_AutoAdjustCam2CamRegistrationGet( &val);
+  Markers_AutoAdjustCam2CamRegistrationGet(&val);
   return val;
 }
 
-/****************************/
-/** Returns the handle to the template item with the index number of idx . */
+//----------------------------------------------------------------------------
 mtHandle Markers::getTemplateItem(int idx)
 {
   mtHandle result = 0;
-  Markers_TemplateItemGet( idx, &result);
+  Markers_TemplateItemGet(idx, &result);
   return result;
 }
 
-/****************************/
-/** Returns the name of the template item with the index number of idx. */
-mtCompletionCode Markers::getTemplateItemName(int idx, std::string &templateName)
+//----------------------------------------------------------------------------
+int Markers::getTemplateItemName(int idx, std::string& templateName)
 {
   mtHandle markerHandle = this->getTemplateItem(idx);
-  
-  memset((void *)tempString, 0 , sizeof(tempString));
-  int b = 0;
-  mtCompletionCode status = Marker_NameGet( markerHandle, tempString, sizeof(tempString), &b);
-  if ( status == mtOK)
-  {
-    tempString[b] = '\0';
-  }
-  templateName = std::string(tempString);
-
-  return status;
+  return getTemplateItemNameByHandle(markerHandle, templateName);
 }
 
-/****************************/
-/** Returns the name of the template item with the handle of handle. */
-mtCompletionCode Markers::getTemplateItemHName(mtHandle handle, std::string &templateName)
+//----------------------------------------------------------------------------
+int Markers::getTemplateItemNameByHandle(mtHandle handle, std::string& templateName)
 {
-  memset((void *)tempString, 0 , sizeof(tempString));
+  char markerName[512];
+  memset((void*)markerName, 0, sizeof(markerName));
   int b = 0;
-  mtCompletionCode status = Marker_NameGet( handle, tempString, sizeof(tempString), &b);
+  mtCompletionCode status = Marker_NameGet(handle, markerName, sizeof(markerName), &b);
   if (status == mtOK)
   {
-    tempString[b] = '\0';
+    markerName[b] = '\0';
   }
-  templateName = std::string(tempString);
+  templateName = std::string(markerName);
+
   return status;
 }
 
-/****************************/
-/** */
-int Markers::setTemplateItemName(int idx, char* name)
+//----------------------------------------------------------------------------
+int Markers::setTemplateItemName(int idx, const std::string& name)
 {
   mtHandle markerHandle = this->getTemplateItem(idx);
-  return Marker_NameSet(markerHandle, name); 
+  char* cname = new char[name.length() + 1];
+  memcpy((void*)cname, (void*)name.c_str(), name.length());
+  cname[name.length()] = 0;
+  mtCompletionCode result = Marker_NameSet(markerHandle, cname);
+  delete[] cname;
+  return result;
 }
 
-/****************************/
-/** Processes the current frame of the default camera. */
-int Markers::processFrame(MCamera *cam)
+//----------------------------------------------------------------------------
+int Markers::processFrame(MCamera* cam)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
-    camHandle = cam->Handle();
+    camHandle = cam->getHandle();
   }
-  return Markers_ProcessFrame( camHandle);
+  return Markers_ProcessFrame(camHandle);
 }
 
-/****************************/
+//----------------------------------------------------------------------------
 bool Markers::getBackGroundProcess()
 {
   bool result = false;
@@ -250,19 +229,19 @@ bool Markers::getBackGroundProcess()
   return result;
 }
 
-/****************************/
-/** Set the value of the smaller XP footprint flag */
+//----------------------------------------------------------------------------
 void Markers::setBackGroundProcess(bool newval)
 {
   Markers_BackGroundProcessSet(newval);
 }
 
-mtHandle Markers::getIdentifiedMarkersFromBackgroundThread(MCamera *cam)
+//----------------------------------------------------------------------------
+mtHandle Markers::getIdentifiedMarkersFromBackgroundThread(MCamera* cam)
 {
   mtHandle camHandle = NULL;
   if (cam != NULL)
   {
-    camHandle = cam->Handle();
+    camHandle = cam->getHandle();
   }
   return Markers_GetIdentifiedMarkersFromBackgroundThread(camHandle);
 }

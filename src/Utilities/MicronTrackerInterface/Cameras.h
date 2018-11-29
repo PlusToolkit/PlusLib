@@ -1,11 +1,11 @@
 /**************************************************************
 *
 *     Micron Tracker: Example C++ wrapper and Multi-platform demo
-*   
-*     Written by: 
-*			Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
-*			Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
+*
+*     Written by:
+*     Shi Sherebrin , Robarts Research Institute - London- Ontario , www.robarts.ca
+*     Shahram Izadyar, Robarts Research Institute - London- Ontario , www.robarts.ca
+*     Claudio Gatti, Ahmad Kolahi, Claron Technology - Toronto -Ontario, www.clarontech.com
 *
 *     Copyright Claron Technology 2000-2013
 *
@@ -14,46 +14,41 @@
 
 #ifndef __CAMERAS_H__
 #define __CAMERAS_H__
+
+#include "MicronTrackerInterface.h"
+
 #include <vector>
-#include "MCamera.h"
+
+class MCamera;
 
 class Cameras
 {
 public:
   Cameras();
   ~Cameras();
-  inline mtHandle getHandle() {return m_handle;};
-  inline int getCount() {return m_attachedCamNums;};
+  mtHandle getHandle();
+  int getCount();
   int setHistogramEqualizeImages(bool on_off);
   bool getHistogramEqualizeImages();
   MCamera* getCamera(int index);
 
-  int getShutterPreference();
-  int setShutterPreference(int val);
-  int getGainPreference();
-  int setGainPreference(int val);
+  int attachAvailableCameras();
+  void detach();
 
-  // return with mtOK if successful
-  int AttachAvailableCameras();
-  void Detach();
+  int grabFrame(MCamera* camera = NULL);
 
-  // returns mtOK if success, -1 if failed
-  int grabFrame(MCamera *cam = NULL);
+protected:
+  int getMTHome(std::string& homeDirectory);
 
-private:
-  std::vector<MCamera *> m_vCameras;
-
-  int getMTHome(std::string &mtHomeDirectory);
-
-  mtHandle m_handle;
-  bool ownedByMe;  
-
-  MCamera* mCurrCam;
+protected:
+  std::vector<MCamera*>   CameraList;
+  mtHandle                Handle;
+  bool                    OwnedByMe;
+  MCamera*                CurrentCamera;
+  int                     AttachedCameraCount;
 
   // Pointer to the camera object that the last operation failed on
-  MCamera* mFailedCam;
-
-  int m_attachedCamNums;
+  MCamera*                LastFailedCamera;
 };
 
 #endif
