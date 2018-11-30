@@ -29,8 +29,8 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "TransducerID: " << this->m_transducerID << std::endl;
   os << indent << "Frozen: " << this->IsFrozen() << std::endl;
   os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
-  os << indent << "Frequency: " << this->GetTxTxFrequency() << std::endl;
-  os << indent << "Depth: " << this->GetSSDepth() << std::endl;
+  os << indent << "Frequency: " << this->GetTransmitFrequencyMHz() << std::endl;
+  os << indent << "Depth: " << this->GetScanDepthMm() << std::endl;
   for(int i = 0; i < 8; i++)
   {
     os << indent << "TGC" << i << ": " << m_timeGainCompensation[i] << std::endl;
@@ -58,8 +58,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseDeviceFrameReconstruction, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SpatialCompoundEnabled, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TxTxFrequency, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SSDepth, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TransmitFrequencyMHz, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ScanDepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SpatialCompoundAngle, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SpatialCompoundCount, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
@@ -82,8 +82,8 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetAttribute("TransducerID", this->m_transducerID.c_str());
   deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("SpatialCompoundEnabled", this->GetSpatialCompoundEnabled() ? "TRUE" : "FALSE");
-  deviceConfig->SetFloatAttribute("TxTxFrequency", this->GetTxTxFrequency());
-  deviceConfig->SetFloatAttribute("SSDepth", this->GetSSDepth());
+  deviceConfig->SetFloatAttribute("TransmitFrequencyMHz", this->GetTransmitFrequencyMHz());
+  deviceConfig->SetFloatAttribute("ScanDepthMm", this->GetScanDepthMm());
   deviceConfig->SetFloatAttribute("SpatialCompoundAngle", this->GetSpatialCompoundAngle());
   deviceConfig->SetIntAttribute("SpatialCompoundCount", this->GetSpatialCompoundCount());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
@@ -298,7 +298,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
 //----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::AdjustSpacing()
 {
-  this->CurrentPixelSpacingMm[0] = this->GetTransducerWidth() / (m_transducerCount - 1);
+  this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_transducerCount - 1);
   this->CurrentPixelSpacingMm[1] = m_depth / (m_samplesPerLine - 1);
   this->CurrentPixelSpacingMm[2] = 1.0;
 
@@ -433,9 +433,9 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
     ::SetFocalPointDepth(i, m_focalPointDepth[i]);
     m_focalPointDepth[i] = ::GetFocalPointDepth(i);
   }
-  this->SetTxTxFrequency(m_frequency);
+  this->SetTransmitFrequencyMHz(m_frequency);
   this->SetVoltage(m_voltage);
-  this->SetSSDepth(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
+  this->SetScanDepthMm(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
   if (m_SpatialCompoundEnabled)
   {
     this->SetSpatialCompoundAngle(m_SpatialCompoundAngle);
@@ -497,7 +497,7 @@ bool vtkPlusWinProbeVideoSource::IsFrozen()
 }
 
 // ----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::SetTxTxFrequency(float frequency)
+PlusStatus vtkPlusWinProbeVideoSource::SetTransmitFrequencyMHz(float frequency)
 {
   m_frequency = frequency;
   if(Connected)
@@ -511,7 +511,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTxTxFrequency(float frequency)
 }
 
 //----------------------------------------------------------------------------
-float vtkPlusWinProbeVideoSource::GetTxTxFrequency()
+float vtkPlusWinProbeVideoSource::GetTransmitFrequencyMHz()
 {
   if(Connected)
   {
@@ -545,7 +545,7 @@ uint8_t vtkPlusWinProbeVideoSource::GetVoltage()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::SetSSDepth(float depth)
+PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
 {
   m_depth = depth;
   if(Connected)
@@ -562,7 +562,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetSSDepth(float depth)
 }
 
 //----------------------------------------------------------------------------
-float vtkPlusWinProbeVideoSource::GetSSDepth()
+float vtkPlusWinProbeVideoSource::GetScanDepthMm()
 {
   if(Connected)
   {
@@ -572,7 +572,7 @@ float vtkPlusWinProbeVideoSource::GetSSDepth()
 }
 
 //----------------------------------------------------------------------------
-float vtkPlusWinProbeVideoSource::GetTransducerWidth()
+float vtkPlusWinProbeVideoSource::GetTransducerWidthMm()
 {
   if(Connected)
   {

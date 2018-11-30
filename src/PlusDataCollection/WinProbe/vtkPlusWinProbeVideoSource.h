@@ -40,10 +40,10 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /* Set the transmit frequency of US probe (MHz) */
-  PlusStatus SetTxTxFrequency(float frequency);
+  PlusStatus SetTransmitFrequencyMHz(float frequency);
 
   /* Get the transmit frequency of US probe (MHz) */
-  float GetTxTxFrequency();
+  float GetTransmitFrequencyMHz();
 
   /* Set the voltage of US probe (percent?) */
   PlusStatus SetVoltage(uint8_t voltage);
@@ -52,13 +52,13 @@ public:
   uint8_t GetVoltage();
 
   /* Set the scan depth of US probe (mm) */
-  PlusStatus SetSSDepth(float depth);
+  PlusStatus SetScanDepthMm(float depth);
 
   /* Get the scan depth of US probe (mm) */
-  float GetSSDepth();
+  float GetScanDepthMm();
 
   /* Get the width of current transducer (mm) */
-  float GetTransducerWidth();
+  float GetTransducerWidthMm();
 
   /* Get the pixel spacing for all 3 axes (mm) */
   const double* GetCurrentPixelSpacingMm();
