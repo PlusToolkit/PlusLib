@@ -175,8 +175,8 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 
   //timestamp counters are in milliseconds since last execute() call
   double timestamp = header->TimeStamp / 1000.0;
-  m_lastTimestamp = timestamp + m_TimestampOffset;
-  LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << m_lastTimestamp);
+  timestamp += m_TimestampOffset;
+  LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << timestamp);
 
   if(usMode & B && !m_BSources.empty()) // B-mode flag is set, and B-mode source is defined
   {
@@ -211,8 +211,8 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                                 frameSize, VTK_UNSIGNED_CHAR,
                                 1, US_IMG_BRIGHTNESS, 0,
                                 this->FrameNumber,
-                                m_lastTimestamp,
-                                m_lastTimestamp, //no timestamp filtering needed
+                                timestamp,
+                                timestamp, //no timestamp filtering needed
                                 &this->m_CustomFields) != PLUS_SUCCESS)
       {
         LOG_WARNING("Error adding item to video source " << m_BSources[i]->GetSourceId());

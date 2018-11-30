@@ -167,8 +167,6 @@ protected:
   std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
   bool m_UseDeviceFrameReconstruction = true;
   PlusTrackedFrame::FieldMapType m_CustomFields;
-  std::thread* m_watchdog = nullptr;
-  double m_lastTimestamp = 0.0; //for watchdog
   double m_TimeGainCompensation[8];
   float m_FocalPointDepth[4];
   uint16_t m_MinValue = 16; //noise floor
