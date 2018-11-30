@@ -15,8 +15,8 @@ buildFailed ()
   exit $1
 }
 
-command=%0
-test_mode=%1
+command=$0
+test_mode=$1
 shift
 
 test_track=""
