@@ -26,24 +26,24 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MaxValue: " << this->m_MaxValue << std::endl;
   os << indent << "LogLinearKnee: " << this->m_Knee << std::endl;
   os << indent << "LogMax: " << static_cast<unsigned>(this->m_OutputKnee) << std::endl;
-  os << indent << "TransducerID: " << this->m_transducerID << std::endl;
+  os << indent << "TransducerID: " << this->m_TransducerID << std::endl;
   os << indent << "Frozen: " << this->IsFrozen() << std::endl;
   os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
   os << indent << "Frequency: " << this->GetTransmitFrequencyMHz() << std::endl;
   os << indent << "Depth: " << this->GetScanDepthMm() << std::endl;
   for(int i = 0; i < 8; i++)
   {
-    os << indent << "TGC" << i << ": " << m_timeGainCompensation[i] << std::endl;
+    os << indent << "TGC" << i << ": " << m_TimeGainCompensation[i] << std::endl;
   }
   for(int i = 0; i < 4; i++)
   {
-    os << indent << "FocalPointDepth" << i << ": " << m_focalPointDepth[i] << std::endl;
+    os << indent << "FocalPointDepth" << i << ": " << m_FocalPointDepth[i] << std::endl;
   }
 
   os << indent << "CustomFields: " << std::endl;
   vtkIndent indent2 = indent.GetNextIndent();
   PlusTrackedFrame::FieldMapType::iterator it;
-  for(it = m_customFields.begin(); it != m_customFields.end(); ++it)
+  for(it = m_CustomFields.begin(); it != m_CustomFields.end(); ++it)
   {
     os << indent2 << it->first << ": " << it->second << std::endl;
   }
@@ -68,8 +68,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
 
-  deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
-  deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
+  deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
+  deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
 
   return PLUS_SUCCESS;
 }
@@ -79,7 +79,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
-  deviceConfig->SetAttribute("TransducerID", this->m_transducerID.c_str());
+  deviceConfig->SetAttribute("TransducerID", this->m_TransducerID.c_str());
   deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("SpatialCompoundEnabled", this->GetSpatialCompoundEnabled() ? "TRUE" : "FALSE");
   deviceConfig->SetFloatAttribute("TransmitFrequencyMHz", this->GetTransmitFrequencyMHz());
@@ -92,8 +92,8 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("LogLinearKnee", this->GetLogLinearKnee());
   deviceConfig->SetUnsignedLongAttribute("LogMax", this->GetLogMax());
 
-  deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_timeGainCompensation);
-  deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_focalPointDepth);
+  deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
+  deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
 
   return PLUS_SUCCESS;
 }
@@ -113,15 +113,15 @@ int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeomet
 void vtkPlusWinProbeVideoSource::ReconstructFrame(char* data)
 {
   uint16_t* frame = reinterpret_cast<uint16_t*>(data + 16);
-  assert(m_BModeBuffer.size() == m_samplesPerLine * m_transducerCount);
+  assert(m_BModeBuffer.size() == m_SamplesPerLine * m_LineCount);
   const float logFactor = m_OutputKnee / std::log(1 + m_Knee);
 
   #pragma omp parallel for
-  for(unsigned t = 0; t < m_transducerCount; t++)
+  for(unsigned t = 0; t < m_LineCount; t++)
   {
-    for(unsigned s = 0; s < m_samplesPerLine; s++)
+    for(unsigned s = 0; s < m_SamplesPerLine; s++)
     {
-      uint16_t val = frame[t * m_samplesPerLine + s];
+      uint16_t val = frame[t * m_SamplesPerLine + s];
       if(val <= m_MinValue)  // subtract noise floor
       {
         val = 0;
@@ -144,7 +144,7 @@ void vtkPlusWinProbeVideoSource::ReconstructFrame(char* data)
       {
         cVal = m_OutputKnee + (val - m_Knee) * float(255 - m_OutputKnee) / (m_MaxValue - m_Knee);
       }
-      m_BModeBuffer[s * m_transducerCount + t] = static_cast<uint8_t>(cVal);
+      m_BModeBuffer[s * m_LineCount + t] = static_cast<uint8_t>(cVal);
     }
   }
 }
@@ -159,13 +159,13 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   InputSourceBindings usMode = header->InputSourceBinding;
   if(usMode & CFD)
   {
-    m_transducerCount = cfdGeometry->LineCount;
-    m_samplesPerLine = cfdGeometry->SamplesPerKernel;
+    m_LineCount = cfdGeometry->LineCount;
+    m_SamplesPerLine = cfdGeometry->SamplesPerKernel;
   }
   else if(usMode & B || usMode & BFRFALineImage_RFData)
   {
-    m_transducerCount = brfGeometry->LineCount;
-    m_samplesPerLine = brfGeometry->SamplesPerLine;
+    m_LineCount = brfGeometry->LineCount;
+    m_SamplesPerLine = brfGeometry->SamplesPerLine;
   }
   else
   {
@@ -175,25 +175,25 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 
   //timestamp counters are in milliseconds since last execute() call
   double timestamp = header->TimeStamp / 1000.0;
-  m_lastTimestamp = timestamp + m_timestampOffset;
+  m_lastTimestamp = timestamp + m_TimestampOffset;
   LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << m_lastTimestamp);
 
-  if(usMode & B && !m_bSources.empty()) // B-mode flag is set, and B-mode source is defined
+  if(usMode & B && !m_BSources.empty()) // B-mode flag is set, and B-mode source is defined
   {
-    assert(length == m_samplesPerLine * m_transducerCount * sizeof(uint16_t) + 16); //frame + header
-    FrameSizeType frameSize = { m_transducerCount, m_samplesPerLine, 1 };
+    assert(length == m_SamplesPerLine * m_LineCount * sizeof(uint16_t) + 16); //frame + header
+    FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
 
     if(m_UseDeviceFrameReconstruction && usMode == B) //this only works with plain B-mode
     {
       WPNewData(length, data, hHeader, hGeometry);
       char* frameData = nullptr;
       int length = WPSaveImageToPointer(&frameData);
-      assert(length == m_transducerCount * m_samplesPerLine * sizeof(uint32_t));
+      assert(length == m_LineCount * m_SamplesPerLine * sizeof(uint32_t));
       auto* frameRGBA = reinterpret_cast<uint32_t*>(frameData);
 
       // all the color channels are the same for B-mode
       // and alpha is filled with ones (fully opaque)
-      for(unsigned i = 0; i < m_transducerCount * m_samplesPerLine; i++)
+      for(unsigned i = 0; i < m_LineCount * m_SamplesPerLine; i++)
       {
         m_BModeBuffer[i] = static_cast<uint8_t>(frameRGBA[i]);
       }
@@ -204,18 +204,18 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       this->ReconstructFrame(data);
     }
 
-    for(unsigned i = 0; i < m_bSources.size(); i++)
+    for(unsigned i = 0; i < m_BSources.size(); i++)
     {
-      if(m_bSources[i]->AddItem(&m_BModeBuffer[0],
-                                m_bSources[i]->GetInputImageOrientation(),
+      if(m_BSources[i]->AddItem(&m_BModeBuffer[0],
+                                m_BSources[i]->GetInputImageOrientation(),
                                 frameSize, VTK_UNSIGNED_CHAR,
                                 1, US_IMG_BRIGHTNESS, 0,
                                 this->FrameNumber,
                                 m_lastTimestamp,
                                 m_lastTimestamp, //no timestamp filtering needed
-                                &this->m_customFields) != PLUS_SUCCESS)
+                                &this->m_CustomFields) != PLUS_SUCCESS)
       {
-        LOG_WARNING("Error adding item to video source " << m_bSources[i]->GetSourceId());
+        LOG_WARNING("Error adding item to video source " << m_BSources[i]->GetSourceId());
       }
     }
   }
@@ -226,20 +226,20 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & BFRFALineImage_RFData)
   {
-    assert(length == m_samplesPerLine * brfGeometry->Decimation * m_transducerCount * sizeof(int32_t)); //header and footer not appended to data
-    FrameSizeType frameSize = { m_samplesPerLine* brfGeometry->Decimation, m_transducerCount, 1 };
-    for(unsigned i = 0; i < m_rfSources.size(); i++)
+    assert(length == m_SamplesPerLine * brfGeometry->Decimation * m_LineCount * sizeof(int32_t)); //header and footer not appended to data
+    FrameSizeType frameSize = { m_SamplesPerLine* brfGeometry->Decimation, m_LineCount, 1 };
+    for(unsigned i = 0; i < m_RFSources.size(); i++)
     {
-      if(m_rfSources[i]->AddItem(data,
-                                 m_rfSources[i]->GetInputImageOrientation(),
+      if(m_RFSources[i]->AddItem(data,
+                                 m_RFSources[i]->GetInputImageOrientation(),
                                  frameSize, VTK_INT,
                                  1, US_IMG_RF_REAL, 0,
                                  this->FrameNumber,
                                  vtkPlusAccurateTimer::GetSystemTime(),
                                  UNDEFINED_TIMESTAMP, //PlusLib will do time filtering
-                                 &m_customFields) != PLUS_SUCCESS)
+                                 &m_CustomFields) != PLUS_SUCCESS)
       {
-        LOG_WARNING("Error adding item to video source " << m_rfSources[i]->GetSourceId());
+        LOG_WARNING("Error adding item to video source " << m_RFSources[i]->GetSourceId());
       }
     }
   }
@@ -259,47 +259,47 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 //----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::AdjustBufferSize()
 {
-  FrameSizeType frameSize = { m_transducerCount, m_samplesPerLine, 1 };
+  FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
 
   LOG_DEBUG("Set up image buffers for WinProbe");
-  for(unsigned i = 0; i < m_bSources.size(); i++)
+  for(unsigned i = 0; i < m_BSources.size(); i++)
   {
-    m_bSources[i]->SetPixelType(VTK_UNSIGNED_CHAR);
-    m_bSources[i]->SetImageType(US_IMG_BRIGHTNESS);
-    m_bSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-    m_bSources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
-    m_bSources[i]->SetInputFrameSize(frameSize);
-    LOG_INFO("SourceID: " << m_bSources[i]->GetId() << ", "
+    m_BSources[i]->SetPixelType(VTK_UNSIGNED_CHAR);
+    m_BSources[i]->SetImageType(US_IMG_BRIGHTNESS);
+    m_BSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+    m_BSources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
+    m_BSources[i]->SetInputFrameSize(frameSize);
+    LOG_INFO("SourceID: " << m_BSources[i]->GetId() << ", "
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
-             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_bSources[i]->GetPixelType())
+             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_BSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << PlusVideoFrame::GetStringFromUsImageOrientation(m_bSources[i]->GetInputImageOrientation()));
+             << PlusVideoFrame::GetStringFromUsImageOrientation(m_BSources[i]->GetInputImageOrientation()));
   }
 
-  for(unsigned i = 0; i < m_rfSources.size(); i++)
+  for(unsigned i = 0; i < m_RFSources.size(); i++)
   {
-    frameSize[0] = m_samplesPerLine*::GetSSDecimation();
-    frameSize[1] = m_transducerCount;
-    m_rfSources[i]->SetPixelType(VTK_INT);
-    m_rfSources[i]->SetImageType(US_IMG_RF_REAL);
-    m_rfSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_FM);
-    m_rfSources[i]->SetInputImageOrientation(US_IMG_ORIENT_FM);
-    m_rfSources[i]->SetInputFrameSize(frameSize);
-    LOG_INFO("SourceID: " << m_rfSources[i]->GetId() << ", "
+    frameSize[0] = m_SamplesPerLine*::GetSSDecimation();
+    frameSize[1] = m_LineCount;
+    m_RFSources[i]->SetPixelType(VTK_INT);
+    m_RFSources[i]->SetImageType(US_IMG_RF_REAL);
+    m_RFSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_FM);
+    m_RFSources[i]->SetInputImageOrientation(US_IMG_ORIENT_FM);
+    m_RFSources[i]->SetInputFrameSize(frameSize);
+    LOG_INFO("SourceID: " << m_RFSources[i]->GetId() << ", "
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
-             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_rfSources[i]->GetPixelType())
+             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_RFSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << PlusVideoFrame::GetStringFromUsImageOrientation(m_rfSources[i]->GetInputImageOrientation()));
+             << PlusVideoFrame::GetStringFromUsImageOrientation(m_RFSources[i]->GetInputImageOrientation()));
   }
 
-  m_BModeBuffer.resize(m_samplesPerLine * m_transducerCount);
+  m_BModeBuffer.resize(m_SamplesPerLine * m_LineCount);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::AdjustSpacing()
 {
-  this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_transducerCount - 1);
-  this->CurrentPixelSpacingMm[1] = m_depth / (m_samplesPerLine - 1);
+  this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+  this->CurrentPixelSpacingMm[1] = m_ScanDepth / (m_SamplesPerLine - 1);
   this->CurrentPixelSpacingMm[2] = 1.0;
 
   std::ostringstream spacingStream;
@@ -312,7 +312,7 @@ void vtkPlusWinProbeVideoSource::AdjustSpacing()
       spacingStream << " ";
     }
   }
-  this->m_customFields["ElementSpacing"] = spacingStream.str();
+  this->m_CustomFields["ElementSpacing"] = spacingStream.str();
   LOG_DEBUG("Adjusted spacing: " << spacingStream.str());
 }
 
@@ -323,12 +323,12 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
 
   for(int i = 0; i < 8; i++)
   {
-    m_timeGainCompensation[i] = 0.0;
+    m_TimeGainCompensation[i] = 0.0;
   }
 
   for(int i = 0; i < 4; i++)
   {
-    m_focalPointDepth[i] = 0.0f;
+    m_FocalPointDepth[i] = 0.0f;
   }
 
   AdjustSpacing();
@@ -351,9 +351,9 @@ vtkPlusWinProbeVideoSource::~vtkPlusWinProbeVideoSource()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 {
-  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_rfSources);
-  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, m_bSources);
-  if(m_rfSources.empty() && m_bSources.empty())
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_RFSources);
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, m_BSources);
+  if(m_RFSources.empty() && m_BSources.empty())
   {
     vtkPlusDataSource* aSource = NULL;
     if(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS || aSource == NULL)
@@ -361,7 +361,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
       LOG_ERROR("Neither B-mode nor RF-mode data sources are defined, and unable to retrieve the video source in the capturing device.");
       return PLUS_FAIL;
     }
-    m_bSources.push_back(aSource); //else consider this the only output of B-mode type
+    m_BSources.push_back(aSource); //else consider this the only output of B-mode type
   }
 
   LOG_DEBUG("Connect to WinProbe");
@@ -375,23 +375,23 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     LOG_ERROR("Failed loading defaults!");
     return PLUS_FAIL;
   }
-  LOG_DEBUG("Setting transducer ID: " << this->m_transducerID);
-  WPSetTransducerID(this->m_transducerID.c_str());
+  LOG_DEBUG("Setting transducer ID: " << this->m_TransducerID);
+  WPSetTransducerID(this->m_TransducerID.c_str());
 
   m_ADCfrequency = GetADCSamplingRate();
-  this->m_customFields["SamplingRate"] = std::to_string(m_ADCfrequency);
-  m_transducerCount = GetSSElementCount();
+  this->m_CustomFields["SamplingRate"] = std::to_string(m_ADCfrequency);
+  m_LineCount = GetSSElementCount();
   SetSCCompoundAngleCount(0);
 
   LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
   LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
 
-  if(!m_bSources.empty())
+  if(!m_BSources.empty())
   {
     SetHandleBRFInternally(true);
     SetBFRFImageCaptureMode(0);
   }
-  if(!m_rfSources.empty()) //overwrite B-mode settings
+  if(!m_RFSources.empty()) //overwrite B-mode settings
   {
     SetHandleBRFInternally(false);
     SetBFRFImageCaptureMode(2);
@@ -424,18 +424,18 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   //apply requested settings
   for(int i = 0; i < 8; i++)
   {
-    SetTGC(i, m_timeGainCompensation[i]);
-    m_timeGainCompensation[i] = GetTGC(i);
+    SetTGC(i, m_TimeGainCompensation[i]);
+    m_TimeGainCompensation[i] = GetTGC(i);
   }
   //SetPendingTGCUpdate(true);
   for(int i = 0; i < 4; i++)
   {
-    ::SetFocalPointDepth(i, m_focalPointDepth[i]);
-    m_focalPointDepth[i] = ::GetFocalPointDepth(i);
+    ::SetFocalPointDepth(i, m_FocalPointDepth[i]);
+    m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
-  this->SetTransmitFrequencyMHz(m_frequency);
-  this->SetVoltage(m_voltage);
-  this->SetScanDepthMm(m_depth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
+  this->SetTransmitFrequencyMHz(m_Frequency);
+  this->SetVoltage(m_Voltage);
+  this->SetScanDepthMm(m_ScanDepth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
   if (m_SpatialCompoundEnabled)
   {
     this->SetSpatialCompoundAngle(m_SpatialCompoundAngle);
@@ -443,8 +443,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   }
 
   //setup size for DirectX image
-  LOG_DEBUG("Setting output size to " << m_transducerCount << "x" << m_samplesPerLine);
-  WPSetSize(m_transducerCount, m_samplesPerLine);
+  LOG_DEBUG("Setting output size to " << m_LineCount << "x" << m_SamplesPerLine);
+  WPSetSize(m_LineCount, m_SamplesPerLine);
   char* sessionPtr = GetSessionPtr();
   bool success = WPVPSetSession(sessionPtr);
   if(!success)
@@ -455,7 +455,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  m_timestampOffset = vtkPlusAccurateTimer::GetSystemTime();
+  m_TimestampOffset = vtkPlusAccurateTimer::GetSystemTime();
   LOG_DEBUG("GetPendingRecreateTables: " << GetPendingRecreateTables());
   LOG_DEBUG("GetPendingRestartSequencer: " << GetPendingRestartSequencer());
   LOG_DEBUG("GetPendingRun30Frames: " << GetPendingRun30Frames());
@@ -499,13 +499,13 @@ bool vtkPlusWinProbeVideoSource::IsFrozen()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTransmitFrequencyMHz(float frequency)
 {
-  m_frequency = frequency;
+  m_Frequency = frequency;
   if(Connected)
   {
     ::SetTxTxFrequency(frequency);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_frequency = ::GetTxTxFrequency();
+    m_Frequency = ::GetTxTxFrequency();
   }
   return PLUS_SUCCESS;
 }
@@ -515,21 +515,21 @@ float vtkPlusWinProbeVideoSource::GetTransmitFrequencyMHz()
 {
   if(Connected)
   {
-    m_frequency = ::GetTxTxFrequency();
+    m_Frequency = ::GetTxTxFrequency();
   }
-  return m_frequency;
+  return m_Frequency;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetVoltage(uint8_t voltage)
 {
-  m_voltage = voltage;
+  m_Voltage = voltage;
   if(Connected)
   {
     ::SetVoltage(voltage);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_voltage = ::GetVoltage();
+    m_Voltage = ::GetVoltage();
   }
   return PLUS_SUCCESS;
 }
@@ -539,22 +539,22 @@ uint8_t vtkPlusWinProbeVideoSource::GetVoltage()
 {
   if(Connected)
   {
-    m_voltage = ::GetVoltage();
+    m_Voltage = ::GetVoltage();
   }
-  return m_voltage;
+  return m_Voltage;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
 {
-  m_depth = depth;
+  m_ScanDepth = depth;
   if(Connected)
   {
     ::SetSSDepth(depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_depth = ::GetSSDepth();
-    m_samplesPerLine = static_cast<unsigned int>(GetSSSamplesPerLine()); //this and decimation change depending on depth
+    m_ScanDepth = ::GetSSDepth();
+    m_SamplesPerLine = static_cast<unsigned int>(GetSSSamplesPerLine()); //this and decimation change depending on depth
     AdjustSpacing();
     AdjustBufferSize();
   }
@@ -566,9 +566,9 @@ float vtkPlusWinProbeVideoSource::GetScanDepthMm()
 {
   if(Connected)
   {
-    m_depth = ::GetSSDepth();
+    m_ScanDepth = ::GetSSDepth();
   }
-  return m_depth;
+  return m_ScanDepth;
 }
 
 //----------------------------------------------------------------------------
@@ -576,9 +576,9 @@ float vtkPlusWinProbeVideoSource::GetTransducerWidthMm()
 {
   if(Connected)
   {
-    m_width = ::GetTWidth();
+    m_TransducerWidth = ::GetTWidth();
   }
-  return m_width;
+  return m_TransducerWidth;
 }
 
 //----------------------------------------------------------------------------
@@ -593,23 +593,23 @@ double vtkPlusWinProbeVideoSource::GetTimeGainCompensation(int index)
   assert(index >= 0 && index < 8);
   if(Connected)
   {
-    m_timeGainCompensation[index] = GetTGC(index);
+    m_TimeGainCompensation[index] = GetTGC(index);
   }
-  return m_timeGainCompensation[index];
+  return m_TimeGainCompensation[index];
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double value)
 {
   assert(index >= 0 && index < 8);
-  m_timeGainCompensation[index] = value;
+  m_TimeGainCompensation[index] = value;
   if(Connected)
   {
     SetTGC(index, value);
     SetPendingRecreateTables(true);
     //SetPendingTGCUpdate(true);
     //what we requested might be only approximately satisfied
-    m_timeGainCompensation[index] = GetTGC(index);
+    m_TimeGainCompensation[index] = GetTGC(index);
   }
   return PLUS_SUCCESS;
 }
@@ -620,22 +620,22 @@ float vtkPlusWinProbeVideoSource::GetFocalPointDepth(int index)
   assert(index >= 0 && index < 4);
   if(Connected)
   {
-    m_focalPointDepth[index] = ::GetFocalPointDepth(index);
+    m_FocalPointDepth[index] = ::GetFocalPointDepth(index);
   }
-  return m_timeGainCompensation[index];
+  return m_TimeGainCompensation[index];
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth)
 {
   assert(index >= 0 && index < 4);
-  m_focalPointDepth[index] = depth;
+  m_FocalPointDepth[index] = depth;
   if(Connected)
   {
     ::SetFocalPointDepth(index, depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_timeGainCompensation[index] = ::GetFocalPointDepth(index);
+    m_TimeGainCompensation[index] = ::GetFocalPointDepth(index);
   }
   return PLUS_SUCCESS;
 }
@@ -699,7 +699,7 @@ int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 {
-  this->m_transducerID = guid;
+  this->m_TransducerID = guid;
   if(Connected)
   {
     WPSetTransducerID(guid.c_str());
@@ -711,5 +711,5 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 //----------------------------------------------------------------------------
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
-  return this->m_transducerID;
+  return this->m_TransducerID;
 }

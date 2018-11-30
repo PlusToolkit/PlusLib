@@ -155,22 +155,22 @@ protected:
   void ReconstructFrame(char* data);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
-  float m_depth = 26.0; //mm
-  float m_width = 38.1; //mm
-  float m_frequency = 10.9; //MHz
-  uint8_t m_voltage = 40;
-  std::string m_transducerID; //GUID
+  float m_ScanDepth = 26.0; //mm
+  float m_TransducerWidth = 38.1; //mm
+  float m_Frequency = 10.9; //MHz
+  uint8_t m_Voltage = 40;
+  std::string m_TransducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
-  double m_timestampOffset = 0; //difference between program start time and latest InternalStartRecording()
-  unsigned m_transducerCount = 128;
-  unsigned m_samplesPerLine = 512;
+  double m_TimestampOffset = 0; //difference between program start time and latest InternalStartRecording()
+  unsigned m_LineCount = 128;
+  unsigned m_SamplesPerLine = 512;
   std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
   bool m_UseDeviceFrameReconstruction = true;
-  PlusTrackedFrame::FieldMapType m_customFields;
+  PlusTrackedFrame::FieldMapType m_CustomFields;
   std::thread* m_watchdog = nullptr;
   double m_lastTimestamp = 0.0; //for watchdog
-  double m_timeGainCompensation[8];
-  float m_focalPointDepth[4];
+  double m_TimeGainCompensation[8];
+  float m_FocalPointDepth[4];
   uint16_t m_MinValue = 16; //noise floor
   uint16_t m_MaxValue = 16384; //maximum typical value
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
@@ -178,8 +178,8 @@ protected:
   bool m_SpatialCompoundEnabled = false;
   float m_SpatialCompoundAngle = 10.0f;
   int32_t m_SpatialCompoundCount = 0;
-  std::vector<vtkPlusDataSource*> m_bSources;
-  std::vector<vtkPlusDataSource*> m_rfSources;
+  std::vector<vtkPlusDataSource*> m_BSources;
+  std::vector<vtkPlusDataSource*> m_RFSources;
 
 public:
   vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&) = delete;
