@@ -36,22 +36,22 @@ while [ "${1:-}" != "" ]; do
 done
 
 if [ "$test_mode" == "" ] || [ "$test_mode" == "-E" ]; then
-  "${CMAKE_COMMAND}" --build . --config Release
+  "@CMAKE_COMMAND@" --build . --config Release
   errorVal=$?
   if [ "$?" == 1 ]; then
     buildFailed $errorVal
   fi
-  "${CMAKE_CTEST_COMMAND}" -C Release -D Experimental --output-on-failure
+  "@CMAKE_CTEST_COMMAND@" -C Release -D Experimental --output-on-failure
 fi
 
 if [ "$test_mode" == "-N" ]; then
    # Clean before the nightly build to enforce all build warnings appear on all nightly dashboard submissions
-  "${CMAKE_COMMAND}" --build . --config Release --clean-first
-  "${CMAKE_CTEST_COMMAND}" -C Release -D Nightly
+  "@CMAKE_COMMAND@" --build . --config Release --clean-first
+  "@CMAKE_CTEST_COMMAND@" -C Release -D Nightly
 fi
 
 if [ "$test_mode" == "-C" ]; then
-  "${CMAKE_CTEST_COMMAND}" -C Release -D Continuous
+  "@CMAKE_CTEST_COMMAND@" -C Release -D Continuous
   # Wait for some time before continue to allow checking the results of the executions
   sleep 15
 fi
@@ -59,9 +59,9 @@ fi
 if [ "$test_mode" == "-I" ]; then
   # Run individual tests with regexp search
   # Display the list of tests
-  "${CMAKE_CTEST_COMMAND}" -R "%2" -N -C Release
+  "@CMAKE_CTEST_COMMAND" -R "%2" -N -C Release
   # Run selected tests
-  "${CMAKE_CTEST_COMMAND}" -R "%2" -V -C Release
+  "@CMAKE_CTEST_COMMAND" -R "%2" -V -C Release
 fi
 
 finish
