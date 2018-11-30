@@ -148,14 +148,14 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       XML_FIND_NESTED_ELEMENT_OPTIONAL(encodingElem, imageElem, "Encoding");
       if (encodingElem)
       {
-        XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(FourCC, stream.EncodingParameters.FourCC, encodingElem);
-        XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(RateControl, stream.EncodingParameters.RateControl, encodingElem);
-        XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DeadlineMode, stream.EncodingParameters.DeadlineMode, encodingElem);
-        XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(Lossless, stream.EncodingParameters.Lossless, encodingElem);
-        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MinKeyframeDistance, stream.EncodingParameters.MinKeyframeDistance, encodingElem);
-        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MaxKeyframeDistance, stream.EncodingParameters.MaxKeyframeDistance, encodingElem);
-        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, Speed, stream.EncodingParameters.Speed, encodingElem);
-        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, TargetBitrate, stream.EncodingParameters.TargetBitrate, encodingElem);
+        XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(FourCC, stream.EncodeVideoParameters.FourCC, encodingElem);
+        XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(RateControl, stream.EncodeVideoParameters.RateControl, encodingElem);
+        XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DeadlineMode, stream.EncodeVideoParameters.DeadlineMode, encodingElem);
+        XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(Lossless, stream.EncodeVideoParameters.Lossless, encodingElem);
+        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MinKeyframeDistance, stream.EncodeVideoParameters.MinKeyframeDistance, encodingElem);
+        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, MaxKeyframeDistance, stream.EncodeVideoParameters.MaxKeyframeDistance, encodingElem);
+        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, Speed, stream.EncodeVideoParameters.Speed, encodingElem);
+        XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, TargetBitrate, stream.EncodeVideoParameters.TargetBitrate, encodingElem);
       }
 
       clientInfo.ImageStreams.push_back(stream);

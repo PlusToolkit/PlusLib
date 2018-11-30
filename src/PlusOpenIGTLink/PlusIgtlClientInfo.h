@@ -65,7 +65,7 @@ public:
     /*! Name of the IGTL image message embedded transform "To" frame */
     std::string EmbeddedTransformToFrame;
     /*! Parameters for how to encode video for compressed streams*/
-    EncodingParameters EncodingParameters;
+    EncodingParameters EncodeVideoParameters;
   };
 
   PlusIgtlClientInfo();
