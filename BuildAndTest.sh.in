@@ -16,8 +16,12 @@ buildFailed ()
 }
 
 command=$0
-test_mode=$1
-shift
+if [ "$1" == "-E" ] || [ "$1" == "-N" ] || [ "$1" == "-C" ] || [ "$1" == "-I" ]; then
+  test_mode=$1
+  shift
+else
+  test_mode="-E"
+fi
 
 test_track=""
 individual_test=""
@@ -29,7 +33,7 @@ while [ "${1:-}" != "" ]; do
       ;;
     "--track")
       shift
-      test_track=--track $1
+      test_track="--track $1"
       ;;
   esac
   shift
