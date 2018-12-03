@@ -1498,16 +1498,21 @@ IF(PLUS_USE_WINPROBE_VIDEO)
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${WINPROBESDK_DIR}/${Bitness}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/UltraVisionManagedDll${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/UltraVisionManagedDXDll${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Install
     ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionManagedDXDll${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVisionWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Release/UltraVision.DXWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WinProbeAssemblies}
     ${WinProbeXMLFiles}
     )
   LIST(APPEND External_Libraries_Debug
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDll${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionManagedDXDll${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVisionWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${WINPROBESDK_DIR}/${Bitness}/Debug/UltraVision.DXWrapper${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${WinProbeAssemblies}
     ${WinProbeXMLFiles}
     )

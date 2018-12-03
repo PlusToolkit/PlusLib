@@ -5,8 +5,8 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusCommon.h"
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "PlusTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommand.h"
