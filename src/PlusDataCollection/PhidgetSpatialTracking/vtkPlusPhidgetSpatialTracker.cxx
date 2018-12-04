@@ -114,7 +114,7 @@ public:
       double downVector_Sensor[4] = {acceleration[0], acceleration[1], acceleration[2], 0}; // provided by the sensor
       vtkMath::Normalize(downVector_Sensor);
 
-      PlusMath::ConstrainRotationToTwoAxes(downVector_Sensor, tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
+      igsioMath::ConstrainRotationToTwoAxes(downVector_Sensor, tracker->TiltSensorWestAxisIndex, tracker->LastTiltSensorToTrackerTransform);
 
       tracker->ToolTimeStampedUpdateWithoutFiltering(tracker->TiltSensorTool->GetId(), tracker->LastTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
     }
@@ -181,7 +181,7 @@ public:
       double filteredDownVector_Sensor[4] = { rotMatrix[2][0], rotMatrix[2][1], rotMatrix[2][2], 0 };
       vtkMath::Normalize(filteredDownVector_Sensor);
 
-      PlusMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor, tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
+      igsioMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor, tracker->FilteredTiltSensorWestAxisIndex, tracker->LastFilteredTiltSensorToTrackerTransform);
 
       tracker->ToolTimeStampedUpdateWithoutFiltering(tracker->FilteredTiltSensorTool->GetId(), tracker->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, timeSystemSec, timeSystemSec);
 
