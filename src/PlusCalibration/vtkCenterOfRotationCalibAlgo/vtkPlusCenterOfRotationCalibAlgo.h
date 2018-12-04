@@ -12,7 +12,7 @@
 
 #include "vtkObject.h"
 #include "vtkTable.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 
 class vtkPlusHTMLGenerator;
 
@@ -62,7 +62,7 @@ public:
     \param indices Tracked frame indices that the algoritm should use during calibration
     \param spacing Image spacing (mm/pixel)
   */
-  virtual void SetInputs(vtkPlusTrackedFrameList* trackedFrameList,  std::vector<int>& indices, double spacing[2]);
+  virtual void SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList,  std::vector<int>& indices, double spacing[2]);
 
   /*! Get the computed center of rotation position in pixel */
   virtual PlusStatus GetCenterOfRotationPx(double centerOfRotationPx[2]);
@@ -100,7 +100,7 @@ protected:
   int GetNumberOfNWirePatterns();
 
   /*! Set the input tracked frame list */
-  vtkSetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
+  vtkSetObjectMacro(TrackedFrameList, vtkIGSIOTrackedFrameList);
 
   /*! Set the input image spacing (mm/pixel) */
   vtkSetVector2Macro(Spacing, double);
@@ -130,7 +130,7 @@ protected:
   double Spacing[2];
 
   /*! Tracked frames used for calibration with segmentation results */
-  vtkPlusTrackedFrameList* TrackedFrameList;
+  vtkIGSIOTrackedFrameList* TrackedFrameList;
 
   /*! Tracked frame indices used for calibration */
   std::vector<int> TrackedFrameListIndices;

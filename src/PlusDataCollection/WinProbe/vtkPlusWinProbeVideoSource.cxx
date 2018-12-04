@@ -42,7 +42,7 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "CustomFields: " << std::endl;
   vtkIndent indent2 = indent.GetNextIndent();
-  PlusTrackedFrame::FieldMapType::iterator it;
+  igsioTrackedFrame::FieldMapType::iterator it;
   for(it = m_CustomFields.begin(); it != m_CustomFields.end(); ++it)
   {
     os << indent2 << it->first << ": " << it->second << std::endl;

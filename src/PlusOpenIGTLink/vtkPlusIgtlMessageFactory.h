@@ -25,8 +25,8 @@
 #include "PlusIgtlClientInfo.h"
 
 class vtkXMLDataElement;
-class PlusTrackedFrame;
-class vtkPlusTransformRepository;
+//class igsioTrackedFrame; 
+//class vtkIGSIOTransformRepository;
 
 /*!
   \class vtkPlusIgtlMessageFactory
@@ -81,8 +81,8 @@ public:
   \param trackedFrame Input tracked frame data used for IGTL message generation
   \param transformRepository Transform repository used for computing the selected transforms
   */
-  PlusStatus PackMessages(int clientId, const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, PlusTrackedFrame& trackedFrame,
-                          bool packValidTransformsOnly, vtkPlusTransformRepository* transformRepository = NULL);
+  PlusStatus PackMessages(int clientId, const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, igsioTrackedFrame& trackedFrame,
+                          bool packValidTransformsOnly, vtkIGSIOTransformRepository* transformRepository = NULL);
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   /*!
@@ -99,18 +99,18 @@ protected:
   igtl::MessageFactory::Pointer IgtlFactory;
 
 protected:
-  int PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType,
-                       igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
-  int PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
-                           igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-  int PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
+  int PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, const std::string& messageType,
+                       igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
+  int PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, bool packValidTransformsOnly,
+                           igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, igsioTrackedFrame& trackedFrame, vtkIGSIOTransformRepository& transformRepository, bool packValidTransformsOnly,
                               igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-  int PackPositionMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, igtl::MessageBase::Pointer igtlMessage,
-                          PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-  int PackTrackedFrameMessage(igtl::MessageBase::Pointer igtlMessage, const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository,
-                              PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-  int PackUsMessage(igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-  int PackStringMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackPositionMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, igtl::MessageBase::Pointer igtlMessage,
+                          igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackTrackedFrameMessage(igtl::MessageBase::Pointer igtlMessage, const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository,
+                              igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackUsMessage(igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
+  int PackStringMessage(const PlusIgtlClientInfo& clientInfo, igsioTrackedFrame& trackedFrame, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
   int PackCommandMessage(igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
 
 

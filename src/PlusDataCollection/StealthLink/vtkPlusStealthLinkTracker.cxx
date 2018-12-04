@@ -17,7 +17,7 @@ See License.txt for details.
 #include "vtkMatrix4x4.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 #include <iostream>
 
@@ -33,12 +33,12 @@ public:
     this->ExamIjkToRpiTransform = vtkSmartPointer<vtkMatrix4x4>::New();
     this->ExamIjkToRasTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    this->StealthLinkServerMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
-    this->ExamIjkToRpiMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
-    this->ExamIjkToRasMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
-    this->ExamValidMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
-    this->CurrentExamMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
-    this->CurrentRegistrationMutex = vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New();
+    this->StealthLinkServerMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
+    this->ExamIjkToRpiMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
+    this->ExamIjkToRasMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
+    this->ExamValidMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
+    this->CurrentExamMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
+    this->CurrentRegistrationMutex = vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New();
   }
 
   /*! Destructor !*/
@@ -52,39 +52,39 @@ public:
   // IjkToExamRpi Set and Get
   void SetExamIjkToRpiTransformMatrix(vtkMatrix4x4* examIjkToRpiTransform)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRpiMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRpiMutex);
     this->ExamIjkToRpiTransform = examIjkToRpiTransform;
   }
 
   void GetExamIjkToRpiTransformMatrix(vtkMatrix4x4* examIjkToRpiTransform)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRpiMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRpiMutex);
     examIjkToRpiTransform->DeepCopy(this->ExamIjkToRpiTransform);
   }
 
   // IjkToRas Set and Get
   void SetExamIjkToRasTransformMatrix(vtkMatrix4x4* examIjkToRasTransform)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRasMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRasMutex);
     this->ExamIjkToRasTransform = examIjkToRasTransform;
   }
 
   void GetExamIjkToRasTransformMatrix(vtkMatrix4x4* examIjkToRasTransform)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRasMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamIjkToRasMutex);
     examIjkToRasTransform->DeepCopy(this->ExamIjkToRasTransform);
   }
 
   // ExamValid Set and Get
   void SetExamValid(bool examValid)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamValidMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamValidMutex);
     this->ExamValid = examValid;
   }
 
   bool GetExamValid()
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->ExamValidMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->ExamValidMutex);
     return this->ExamValid;
   }
 
@@ -93,7 +93,7 @@ public:
   PlusStatus GetCurrentNavigationData(MNavStealthLink::NavData& navData)
   {
     MNavStealthLink::Error err;
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
     if (!this->StealthLinkServer->get(navData, myDateTime, err))
     {
@@ -108,7 +108,7 @@ public:
   PlusStatus GetInstrumentData(MNavStealthLink::Instrument& instrument, const std::string toolname)
   {
     MNavStealthLink::Error err;
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
     if (!this->StealthLinkServer->get(toolname, instrument, myDateTime, err))
     {
@@ -121,14 +121,14 @@ public:
   //----------------------------------------------------------------------------
   void GetCurrentExam(MNavStealthLink::Exam& exam)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentExamMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->CurrentExamMutex);
     exam = this->CurrentExam;
   }
 
   //----------------------------------------------------------------------------
   void GetCurrentRegistration(MNavStealthLink::Registration& registration)   // TODO make it thread safe
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
     registration = this->CurrentRegistration;
   }
 
@@ -136,7 +136,7 @@ public:
   //Port names that are present on the server
   PlusStatus GetValidToolPortNames(std::vector<std::string>& validToolPortNames)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::Error err;
     MNavStealthLink::InstrumentNameList instrumentNameList;
     // Get the instrument list
@@ -169,10 +169,10 @@ public:
   // do not modify the exam at the same time. Use GetCurrentExam function everytime the current exam is used.
   PlusStatus UpdateCurrentExam()
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentExamMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->CurrentExamMutex);
     MNavStealthLink::Error err;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
       MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
       if (!this->StealthLinkServer->get(this->CurrentExam, myDateTime, err))
       {
@@ -188,10 +188,10 @@ public:
   // do not modify the registration at the same time. Use GetCurrentRegistration function everytime the current registration is used.
   PlusStatus UpdateCurrentRegistration(bool imageTransferRequiresPatientRegistration)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->CurrentRegistrationMutex);
     MNavStealthLink::Error err;
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
       MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
       if (!this->StealthLinkServer->get(this->CurrentRegistration, myDateTime, err))
       {
@@ -212,7 +212,7 @@ public:
   //---------------------------------------------------------------------------
   bool IsStealthServerConnected()
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     if (this->StealthLinkServer == NULL)
     {
       return false;
@@ -223,7 +223,7 @@ public:
   //----------------------------------------------------------------------------
   PlusStatus GetSdkVersion(std::string& version)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::Version serverVersion;
     MNavStealthLink::Error err;
     {
@@ -241,7 +241,7 @@ public:
   //----------------------------------------------------------------------------
   PlusStatus GetExamNameList(MNavStealthLink::ExamNameList& examNameList)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::Error err;
     MNavStealthLink::DateTime myDateTime = this->StealthLinkServer->getServerTime();
     if (!this->StealthLinkServer->get(examNameList, myDateTime, err))
@@ -255,7 +255,7 @@ public:
   //--------------------------------------------------------------------------
   PlusStatus ConnectToStealthStation(std::string serverAddress, std::string serverPort)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     delete this->StealthLinkServer;
     this->StealthLinkServer = NULL;
     this->StealthLinkServer = new MNavStealthLink::StealthServer(serverAddress, serverPort);
@@ -272,7 +272,7 @@ public:
   //-------------------------------------------------------------------------
   PlusStatus IsLocalizerConnected(bool& connected)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     MNavStealthLink::LocalizerInfo localizerInfo;
     MNavStealthLink::Error       err;
     if (!this->StealthLinkServer->get(localizerInfo, err))
@@ -293,7 +293,7 @@ public:
   //-------------------------------------------------------------------------
   PlusStatus GetStealthStationServerTime(double& serverTime)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     try
     {
       serverTime = (double) this->StealthLinkServer->getServerTime();
@@ -317,7 +317,7 @@ public:
   //----------------------------------------------------------------------
   PlusStatus GetExamData(MNavStealthLink::Exam exam, std::string examImageDirectory)
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->StealthLinkServerMutex);
     try
     {
       exam.getExamData(*(this->StealthLinkServer), examImageDirectory);
@@ -346,12 +346,12 @@ private:
   vtkSmartPointer<vtkMatrix4x4> ExamIjkToRasTransform;
 
   // Necessary mutex variables
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> StealthLinkServerMutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> ExamIjkToRpiMutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> ExamIjkToRasMutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> ExamValidMutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> CurrentExamMutex;
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> CurrentRegistrationMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> StealthLinkServerMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> ExamIjkToRpiMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> ExamIjkToRasMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> ExamValidMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> CurrentExamMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> CurrentRegistrationMutex;
 
   bool ExamValid;
 
@@ -388,7 +388,7 @@ private:
 
   // This is used in GetImage() to calculate the transformation of the image in the demanded reference frame.
   // The transform repository should be updated before calling GetImage() if the
-  vtkSmartPointer<vtkPlusTransformRepository> TransformRepository;
+  vtkSmartPointer<vtkIGSIOTransformRepository> TransformRepository;
 
   std::pair<std::string, std::string> PairImageIdAndName; // unique name created by exam name patient name patient id...
   std::string ServerAddress; // Host IP Address
@@ -404,7 +404,7 @@ private:
     : External(external)
   {
 
-    this->TransformRepository       = vtkSmartPointer<vtkPlusTransformRepository>::New();
+    this->TransformRepository       = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 
     this->ServerAddress.clear();
     this->ServerPort.clear();
@@ -584,7 +584,7 @@ PlusStatus vtkPlusStealthLinkTracker::GetSdkVersion(std::string& version)
   return this->InternalShared->GetSdkVersion(version);
 }
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusStealthLinkTracker::UpdateTransformRepository(vtkPlusTransformRepository* sharedTransformRepository)
+PlusStatus vtkPlusStealthLinkTracker::UpdateTransformRepository(vtkIGSIOTransformRepository* sharedTransformRepository)
 {
   if (sharedTransformRepository == NULL)
   {
@@ -597,14 +597,14 @@ PlusStatus vtkPlusStealthLinkTracker::UpdateTransformRepository(vtkPlusTransform
 }
 
 //--------------------------------------------------------------------
-PlusStatus vtkPlusStealthLinkTracker::GetImageMetaData(PlusCommon::ImageMetaDataList& imageMetaData)
+PlusStatus vtkPlusStealthLinkTracker::GetImageMetaData(igsioCommon::ImageMetaDataList& imageMetaData)
 {
   if (!this->InternalShared->UpdateCurrentExam())  //this function is thread safe
   {
     return PLUS_FAIL;
   }
   LOG_INFO("Acquiring the image meta data from the device with DeviceId: " << this->GetDeviceId());
-  PlusCommon::ImageMetaDataItem imageMetaDataItem;
+  igsioCommon::ImageMetaDataItem imageMetaDataItem;
   MNavStealthLink::Exam exam;
   this->InternalShared->GetCurrentExam(exam);   // thread safe
 
@@ -617,7 +617,7 @@ PlusStatus vtkPlusStealthLinkTracker::GetImageMetaData(PlusCommon::ImageMetaData
   imageMetaDataItem.Size[0] = exam.size[0];
   imageMetaDataItem.Size[1] = exam.size[1];
   imageMetaDataItem.Size[2] = exam.size[2];
-  imageMetaDataItem.TimeStampUtc = vtkPlusAccurateTimer::GetUniversalTime();
+  imageMetaDataItem.TimeStampUtc = vtkIGSIOAccurateTimer::GetUniversalTime();
   imageMetaData.push_back(imageMetaDataItem);
   this->Internal->PairImageIdAndName.first = imageMetaDataItem.Id;
   this->Internal->PairImageIdAndName.second = this->Internal->GetExamAndPatientInformationAsString(exam);
@@ -752,8 +752,8 @@ PlusStatus vtkPlusStealthLinkTracker::GetImage(const std::string& requestedImage
     {
       MNavStealthLink::Exam exam;
       this->InternalShared->GetCurrentExam(exam);
-      vtkPlusAccurateTimer::Delay(1);   // Delay 1 second to make sure that this->Internal->RasToTracker is calculated correctly based on the new matrices, ijkToExamRpiTransform and ijkToRasTransform
-      const PlusTransformName rasToTrackerTransformName("Ras", "Tracker");
+      vtkIGSIOAccurateTimer::Delay(1);   // Delay 1 second to make sure that this->Internal->RasToTracker is calculated correctly based on the new matrices, ijkToExamRpiTransform and ijkToRasTransform
+      const igsioTransformName rasToTrackerTransformName("Ras", "Tracker");
 
       MNavStealthLink::NavData navData;
       if (!this->InternalShared->GetCurrentNavigationData(navData))
@@ -776,7 +776,7 @@ PlusStatus vtkPlusStealthLinkTracker::GetImage(const std::string& requestedImage
       }
       this->Internal->TransformRepository->SetTransform(rasToTrackerTransformName, rasToTrackerTransform);
       vtkSmartPointer<vtkMatrix4x4> rasToReferenceTransform = vtkSmartPointer<vtkMatrix4x4>::New();
-      const PlusTransformName rasToReferenceTransformName("Ras", imageReferencFrameName.c_str());
+      const igsioTransformName rasToReferenceTransformName("Ras", imageReferencFrameName.c_str());
       this->Internal->TransformRepository->GetTransform(rasToReferenceTransformName, rasToReferenceTransform);
       vtkMatrix4x4::Multiply4x4(rasToReferenceTransform, examIjkToRasTransform, ijkToReferenceTransform);
     }
@@ -904,7 +904,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  //Get the time difference between the StealthServer and the vtkPlusAccurateTimer
+  //Get the time difference between the StealthServer and the vtkIGSIOAccurateTimer
   double serverTimeInMicroSeconds = 0;
   if (!this->InternalShared->GetStealthStationServerTime(serverTimeInMicroSeconds))
   {
@@ -912,7 +912,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalConnect()
   }
   this->InternalUpdatePrivate->ServerInitialTimeInMicroSeconds = serverTimeInMicroSeconds;
 
-  this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec =  vtkPlusAccurateTimer::GetSystemTime();
+  this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec =  vtkIGSIOAccurateTimer::GetSystemTime();
 
   this->Internal->DicomImagesOutputDirectory = vtkPlusConfig::GetInstance()->GetOutputDirectory() +  std::string("/StealthLinkDicomOutput");
   this->Internal->KeepReceivedDicomFiles = false;
@@ -945,7 +945,7 @@ PlusStatus vtkPlusStealthLinkTracker::InternalUpdate()
   }
   double timeSystemSec = 0.0;
   timeSystemSec = (serverTimeInMicroSec - this->InternalUpdatePrivate->ServerInitialTimeInMicroSeconds) / (1e6) + this->InternalUpdatePrivate->TrackerTimeToSystemTimeSec;
-  double unfilteredTime = vtkPlusAccurateTimer::GetSystemTime();
+  double unfilteredTime = vtkIGSIOAccurateTimer::GetSystemTime();
   //----------------------------------------------------------
   MNavStealthLink::NavData navData;
   if (!this->InternalShared->GetCurrentNavigationData(navData))    //thread safe
@@ -1091,7 +1091,7 @@ PlusStatus vtkPlusStealthLinkTracker::AcquireDicomImage(std::string dicomImagesO
   this->RemoveForbiddenCharacters(description);
   std::string patientName = exam.patientName;
   this->RemoveForbiddenCharacters(patientName);
-  examImageDirectory = std::string(dicomImagesOutputDirectory) + std::string("/") + patientName + std::string("_") + description + std::string("_") + vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString();
+  examImageDirectory = std::string(dicomImagesOutputDirectory) + std::string("/") + patientName + std::string("_") + description + std::string("_") + vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString();
   if (!this->InternalShared->GetExamData(exam, examImageDirectory))
   {
     return PLUS_FAIL;

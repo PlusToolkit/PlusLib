@@ -8,10 +8,10 @@ See License.txt for details.
 
 #include "PlusFidPatternRecognition.h"
 #include "PlusPatternLocResultFile.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusSequenceIO.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -31,7 +31,7 @@ static const double FIDUCIAL_POSITION_TOLERANCE = 0.1;  // in pixel
 static const double BASELINE_TO_ALGORITHM_TOLERANCE = 5; 
 ///////////////////////////////////////////////////////////////////
 
-void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, PlusFidPatternRecognition& patternRecognition, const char* fidPositionOutputFilename)
+void SegmentImageSequence( vtkIGSIOTrackedFrameList* trackedFrameList, std::ofstream &outFile, const std::string &inputTestcaseName, const std::string &inputImageSequenceFileName, PlusFidPatternRecognition& patternRecognition, const char* fidPositionOutputFilename)
 {
   double sumFiducialNum = 0;// divide by framenum
   double sumFiducialCandidate = 0;// divide by framenum
@@ -45,7 +45,7 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
   }
 
   // Set to false if you don't want images produced after each morphological operation
-  bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
+  bool debugOutput=vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_TRACE; 
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   for (unsigned int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
@@ -95,7 +95,7 @@ void SegmentImageSequence( vtkPlusTrackedFrameList* trackedFrameList, std::ofstr
 
     PlusUsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
-    if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
+    if (vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_DEBUG)
     {
       PlusUsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
     }
@@ -122,7 +122,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
 
-  bool writeFidFoundRatioToFile=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
+  bool writeFidFoundRatioToFile=vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_TRACE; 
 
   // check to make sure we have the right element
   if (baselineRootElem == NULL )
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
   std::string outputFiducialPositionsFileName;
   std::string fiducialGeomString;  
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputImageSequenceFileName.empty() || inputConfigFileName.empty())
   {
@@ -422,8 +422,8 @@ int main(int argc, char **argv)
 
   LOG_INFO("Read from metafile");
   std::string inputImageSequencePath=inputTestDataDir+"/"+inputImageSequenceFileName;
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New(); 
+  if( vtkIGSIOSequenceIO::Read(inputImageSequencePath, trackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputImageSequencePath); 
     return EXIT_FAILURE;

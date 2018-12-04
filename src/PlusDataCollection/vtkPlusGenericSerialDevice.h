@@ -151,7 +151,7 @@ protected:
   vtkPlusDataSource* FieldDataSource;
 
   /*! Mutex instance for sharing the serial line between update thread and command execution thread */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> Mutex;
 };
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef TelemedUltrasound_h
 #define TelemedUltrasound_h
 
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "Usgfw2_h.h"
 
 // STL includes

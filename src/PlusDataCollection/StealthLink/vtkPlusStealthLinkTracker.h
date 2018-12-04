@@ -12,7 +12,7 @@
 #include "vtkPlusDevice.h"
 #include <string>
 
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 
 /*!
 \class StealthServer
@@ -36,7 +36,7 @@ public:
   virtual bool IsTracker() const { return true; }
 
   /*! Return a list of items that desrcibe what image volumes stealthlink device can provide */
-  virtual PlusStatus GetImageMetaData( PlusCommon::ImageMetaDataList& imageMetaData );
+  virtual PlusStatus GetImageMetaData( igsioCommon::ImageMetaDataList& imageMetaData );
 
   /*!
     Return the volume  with the given id that this device can provide.
@@ -51,7 +51,7 @@ public:
   std::string GetDicomImagesOutputDirectory();
 
   /*! Deep copies the transform repository from the server into the TransformRepository attribute */
-  PlusStatus UpdateTransformRepository( vtkPlusTransformRepository* sharedTransformRepository );
+  PlusStatus UpdateTransformRepository( vtkIGSIOTransformRepository* sharedTransformRepository );
 
   /*! Set the dicom directory where the dicom images will be saved when acquired from the server */
   void SetDicomImagesOutputDirectory( std::string dicomImagesOutputDirectory );

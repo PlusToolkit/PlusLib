@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 
 #include "PlusCmsBrachyStepper.h"
-#include "vtkPlusAccurateTimer.h" 
+#include "vtkIGSIOAccurateTimer.h" 
 
 #include "PlusSerialLine.h"
 
@@ -697,7 +697,7 @@ PlusStatus PlusCmsBrachyStepper::MoveProbeToPosition(double PositionInMm, int &R
       retValue = PLUS_SUCCESS;
       break; 
     } 
-    vtkPlusAccurateTimer::GetInstance()->Delay(0.5); 
+    vtkIGSIOAccurateTimer::GetInstance()->Delay(0.5); 
   }
   LeaveCriticalSection(&m_CriticalSection); 
   

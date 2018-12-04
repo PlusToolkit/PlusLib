@@ -42,6 +42,13 @@ IF(@ITK_FOUND@)
   INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
 ENDIF()
 
+IF(@IGSIO_FOUND@)
+  IF(NOT DEFINED IGSIO_DIR)
+    SET(IGSIO_DIR "@IGSIO_DIR@")
+  ENDIF()
+  FIND_PACKAGE(IGSIO NO_MODULE REQUIRED)
+ENDIF()
+
 INCLUDE(${PlusLib_TARGETS_FILE})
 
 # Tell the user project where to find our headers and libraries
@@ -154,11 +161,4 @@ ENDIF()
 IF(@PLUS_USE_aruco@)
   SET(aruco_DIR @aruco_DIR@)
   FIND_PACKAGE(aruco REQUIRED NO_MODULE)
-ENDIF()
-
-IF(@PLUS_USE_IGSIO@)
-  IF(NOT DEFINED IGSIO_DIR)
-    SET(IGSIO_DIR "@IGSIO_DIR@")
-  ENDIF()
-  FIND_PACKAGE(IGSIO NO_MODULE REQUIRED)
 ENDIF()

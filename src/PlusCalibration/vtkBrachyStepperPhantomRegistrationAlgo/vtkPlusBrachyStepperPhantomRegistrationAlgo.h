@@ -11,11 +11,11 @@
 #include "vtkPlusCalibrationExport.h"
 
 #include "vtkObject.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "PlusFidPatternRecognitionCommon.h"
 
 class vtkMatrix4x4;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 
 /*!
   \class vtkPlusBrachyStepperPhantomRegistrationAlgo
@@ -44,7 +44,7 @@ public:
     \param transformRepository Transform repository to set the result into
     \param nWires Phantom definition structure
   */
-  virtual void SetInputs(vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires);
+  virtual void SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkIGSIOTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires);
 
   /*!
     Read phantom definition (landmarks)
@@ -69,10 +69,10 @@ protected:
   virtual PlusStatus Update();
 
   /*! Set the input tracked frame list */
-  vtkSetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
+  vtkSetObjectMacro(TrackedFrameList, vtkIGSIOTrackedFrameList);
 
   /*! Get the input tracked frame list */
-  vtkGetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(TrackedFrameList, vtkIGSIOTrackedFrameList);
 
   /*! Set spacing */
   vtkSetVector2Macro(Spacing, double);
@@ -87,7 +87,7 @@ protected:
   vtkSetStringMacro(ReferenceCoordinateFrame);
 
   /*! Set input transform repository */
-  void SetTransformRepository(vtkPlusTransformRepository*);
+  void SetTransformRepository(vtkIGSIOTransformRepository*);
 
 protected:
   /*! Image spacing (mm/pixel). Spacing[0]: lateral axis, Spacing[1]: axial axis */
@@ -97,7 +97,7 @@ protected:
   double CenterOfRotationPx[2];
 
   /*! Tracked frame list with segmentation results */
-  vtkPlusTrackedFrameList* TrackedFrameList;
+  vtkIGSIOTrackedFrameList* TrackedFrameList;
 
   /*! Phantom definition structure */
   std::vector<PlusNWire> NWires;
@@ -109,7 +109,7 @@ protected:
   vtkTimeStamp UpdateTime;
 
   /*! Transform repository object into that the result is set */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkIGSIOTransformRepository* TransformRepository;
 
   /*! Name of the phantom coordinate frame (eg. Phantom) */
   char*                     PhantomCoordinateFrame;

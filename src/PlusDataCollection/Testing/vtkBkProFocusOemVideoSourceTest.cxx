@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--ini-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &iniFile, "Path to the BK ini file, relative to the configuration file directory. Default: BkSettings/IniFile.ini");
   args.AddArgument("--frame-rate", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frameRate, "Requested acquisition frame rate (in FPS, default = 30)");
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (printHelp)
   {
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
       // a frame has been acquired
       break;
     }
-    vtkPlusAccurateTimer::Delay(0.1);
+    vtkIGSIOAccurateTimer::Delay(0.1);
   }
   if (videoSource->GetNumberOfItems() < 1)
   {

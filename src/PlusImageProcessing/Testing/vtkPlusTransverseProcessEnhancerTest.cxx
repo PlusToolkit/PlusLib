@@ -11,16 +11,16 @@ This is a program meant to test vtkPlusTransverseProcessEnhancer.cxx from the co
 
 #include "PlusConfigure.h"
 #include "vtkPlusTransverseProcessEnhancer.h"
+#include <vtkPlusSequenceIO.h>
 
 // VTK includes
+#include "vtkImageCast.h"
 #include <vtkSmartPointer.h>
 #include <vtksys/CommandLineArguments.hxx>
 
-
-#include "PlusTrackedFrame.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkImageCast.h"
-
+// IGSIO includes
+#include <igsioTrackedFrame.h>
+#include <vtkIGSIOTrackedFrameList.h>
 
 //----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   std::string outputConfigFileName;
   std::string outputFileName;
   bool saveIntermediateResults = false;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   //Get command line arguments
   args.Initialize(argc, argv);
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   //check for various non-optional command line arguments
   int commandCheckStatus = EXIT_SUCCESS;
@@ -83,8 +83,8 @@ int main(int argc, char** argv)
   vtkSmartPointer<vtkPlusTransverseProcessEnhancer> enhancer = vtkSmartPointer<vtkPlusTransverseProcessEnhancer>::New();
 
   // Read input sequence
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if (trackedFrameList->ReadFromSequenceMetafile(inputFileName) == PLUS_FAIL)
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if (vtkPlusSequenceIO::Read(inputFileName, trackedFrameList) == PLUS_FAIL)
   {
     return EXIT_FAILURE;
   }
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
     enhancer->SaveAllIntermediateResultsToFile();
   }
 
-  if (enhancer->GetOutputFrames()->SaveToSequenceMetafile(outputFileName) == PLUS_FAIL)
+  if (vtkPlusSequenceIO::Write(outputFileName, enhancer->GetOutputFrames()) == PLUS_FAIL)
   {
     LOG_ERROR("Could not save output sequence to the file: " << outputFileName);
     return EXIT_FAILURE;
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
       LOG_ERROR("Unable to write to config file.");
       return EXIT_FAILURE;
     }
-    if (PlusCommon::XML::PrintXML(outputConfigFileName, processorWriteData) == PLUS_FAIL)
+    if (igsioCommon::XML::PrintXML(outputConfigFileName, processorWriteData) == PLUS_FAIL)
     {
       LOG_ERROR("An error occured when trying to save to the config file " << outputConfigFileName);
       return EXIT_FAILURE;

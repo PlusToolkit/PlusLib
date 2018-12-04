@@ -10,8 +10,8 @@
 #include "PlusPlotter.h"
 #include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkObjectFactory.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPoints.h"
 #include "vtksys/SystemTools.hxx"
 #include "vtkPlusHTMLGenerator.h"
@@ -64,7 +64,7 @@ void vtkPlusCenterOfRotationCalibAlgo::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-void vtkPlusCenterOfRotationCalibAlgo::SetInputs(vtkPlusTrackedFrameList* trackedFrameList, std::vector<int>& indices, double spacing[2])
+void vtkPlusCenterOfRotationCalibAlgo::SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList, std::vector<int>& indices, double spacing[2])
 {
   LOG_TRACE("vtkPlusCenterOfRotationCalibAlgo::SetInputs");
   this->SetTrackedFrameList(trackedFrameList);
@@ -118,7 +118,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::Update()
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkPlusTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
+  if (vtkIGSIOTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to perform calibration - tracked frame list is invalid");
     return PLUS_FAIL;
@@ -179,7 +179,7 @@ int vtkPlusCenterOfRotationCalibAlgo::GetNumberOfNWirePatterns()
 
   for (unsigned int frame = 0; frame < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++frame)
   {
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame);
+    igsioTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frame);
     if (trackedFrame == NULL)
     {
       LOG_ERROR("Unable to get tracked frame from the list - tracked frame is NULL (position in the list: " << frame << ")!");
@@ -245,7 +245,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibrati
     int frameNumber = this->TrackedFrameListIndices[index];
 
     // Get tracked frame from list
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    igsioTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
     // Skip frame if it was not segmented
     if (trackedFrame->GetFiducialPointsCoordinatePx() == NULL)
@@ -278,7 +278,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::ConstructLinearEquationForCalibrati
     int frameNumber = this->TrackedFrameListIndices[i];
 
     // Get tracked frame from list
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    igsioTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
     if (trackedFrame->GetFiducialPointsCoordinatePx() == NULL)
     {
@@ -404,7 +404,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::UpdateReportTable()
   for (unsigned int i = 0; i < this->TrackedFrameListIndices.size(); i++)
   {
     const int frameNumber = this->TrackedFrameListIndices[i];
-    PlusTrackedFrame* frame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
+    igsioTrackedFrame* frame = this->TrackedFrameList->GetTrackedFrame(frameNumber);
 
     if (frame->GetFiducialPointsCoordinatePx() == NULL
         || frame->GetFiducialPointsCoordinatePx()->GetNumberOfPoints() == 0)
@@ -414,7 +414,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::UpdateReportTable()
     }
 
     double probePos(0), probeRot(0), templatePos(0);
-    if (!PlusTrackedFrameEncoderPositionFinder::GetStepperEncoderValues(frame, probePos, probeRot, templatePos))
+    if (!igsioTrackedFrameEncoderPositionFinder::GetStepperEncoderValues(frame, probePos, probeRot, templatePos))
     {
       LOG_WARNING("Unable to get probe position from tracked frame info for frame #" << frameNumber);
       continue;

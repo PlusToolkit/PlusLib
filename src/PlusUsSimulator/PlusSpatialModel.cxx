@@ -485,14 +485,14 @@ PlusStatus PlusSpatialModel::UpdateModelFile()
   vtkSmartPointer<vtkPolyData> polyData;
 
   std::string fileExt = vtksys::SystemTools::GetFilenameLastExtension(foundAbsoluteImagePath);
-  if (PlusCommon::IsEqualInsensitive(fileExt, ".stl"))
+  if (igsioCommon::IsEqualInsensitive(fileExt, ".stl"))
   {
     vtkSmartPointer<vtkSTLReader> modelReader = vtkSmartPointer<vtkSTLReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());
     modelReader->Update();
     polyData = modelReader->GetOutput();
   }
-  else //if (PlusCommon::IsEqualInsensitive(fileExt.c_str(),".vtp"))
+  else //if (igsioCommon::IsEqualInsensitive(fileExt.c_str(),".vtp"))
   {
     vtkSmartPointer<vtkXMLPolyDataReader> modelReader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
     modelReader->SetFileName(foundAbsoluteImagePath.c_str());

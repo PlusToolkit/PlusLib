@@ -12,8 +12,8 @@
 #include "vtkObject.h"
 #include <deque>
 
-class PlusTrackedFrame;
-class vtkPlusTrackedFrameList;
+//class igsioTrackedFrame; 
+//class vtkIGSIOTrackedFrameList;
 
 /*!
   \class vtkPlusLineSegmentationAlgo
@@ -46,8 +46,8 @@ public:
   PlusStatus ReadConfiguration(vtkXMLDataElement* aConfig);
 
   /*! Sets the input US video frames */
-  void SetTrackedFrameList(vtkPlusTrackedFrameList& aTrackedFrameList);
-  void SetTrackedFrame(PlusTrackedFrame& aTrackedFrame);
+  void SetTrackedFrameList(vtkIGSIOTrackedFrameList& aTrackedFrameList);
+  void SetTrackedFrame(igsioTrackedFrame& aTrackedFrame);
 
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
@@ -107,7 +107,7 @@ protected:
   void LimitToClipRegion(CharImageType::RegionType& region);
 
 protected:
-  vtkSmartPointer<vtkPlusTrackedFrameList> m_TrackedFrameList;
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> m_TrackedFrameList;
 
   std::deque<double> m_SignalValues;
   std::deque<double> m_SignalTimestamps;

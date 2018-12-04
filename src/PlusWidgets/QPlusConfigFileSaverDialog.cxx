@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 // Local includes
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "QPlusConfigFileSaverDialog.h"
 
 // VTK includes
@@ -87,13 +87,13 @@ PlusStatus QPlusConfigFileSaverDialog::ReadConfiguration()
 
   // Get name and description
   bool isEqual(true);
-  if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Name", "", isEqual) == PLUS_FAIL || isEqual)
+  if (igsioCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Name", "", isEqual) == PLUS_FAIL || isEqual)
   {
     LOG_WARNING("Name attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
   }
 
-  if (PlusCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Description", "", isEqual) == PLUS_FAIL || isEqual)
+  if (igsioCommon::XML::SafeCheckAttributeValueInsensitive(*deviceSet, "Description", "", isEqual) == PLUS_FAIL || isEqual)
   {
     LOG_WARNING("Description attribute cannot be found in DeviceSet element!");
     return PLUS_FAIL;
@@ -144,7 +144,7 @@ void QPlusConfigFileSaverDialog::SaveClicked()
 
   if (!fileName.isNull())
   {
-    PlusCommon::XML::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+    igsioCommon::XML::PrintXML(fileName.toStdString().c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
     LOG_INFO("Device set configuration saved as '" << fileName.toStdString() << "'");
   }
 

@@ -96,10 +96,10 @@ protected:
   virtual PlusStatus InternalConnect();
 
   /*! Connect to device, in case the output is a video stream */
-  virtual PlusStatus InternalConnectVideo( vtkPlusTrackedFrameList* savedDataBuffer );
+  virtual PlusStatus InternalConnectVideo( vtkIGSIOTrackedFrameList* savedDataBuffer );
 
   /*! Connect to device, in case the output is a tracker stream */
-  virtual PlusStatus InternalConnectTracker( vtkPlusTrackedFrameList* savedDataBuffer );
+  virtual PlusStatus InternalConnectTracker( vtkIGSIOTrackedFrameList* savedDataBuffer );
 
   /*! Disconnect from device */
   virtual PlusStatus InternalDisconnect();

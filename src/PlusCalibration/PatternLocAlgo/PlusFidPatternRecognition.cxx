@@ -10,8 +10,8 @@ See License.txt for details.
 #include "vtkPoints.h"
 #include "vtkLine.h"
 
-#include "vtkPlusTrackedFrameList.h"
-#include "PlusTrackedFrame.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "igsioTrackedFrame.h"
 
 static const double DOT_STEPS  = 4.0;
 static const double DOT_RADIUS = 6.0;
@@ -51,7 +51,7 @@ PlusStatus PlusFidPatternRecognition::ReadConfiguration(vtkXMLDataElement* rootC
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PlusFidPatternRecognition::RecognizePattern(PlusTrackedFrame* trackedFrame, PlusPatternRecognitionResult& patternRecognitionResult, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
+PlusStatus PlusFidPatternRecognition::RecognizePattern(igsioTrackedFrame* trackedFrame, PlusPatternRecognitionResult& patternRecognitionResult, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern");
 
@@ -75,7 +75,7 @@ PlusStatus PlusFidPatternRecognition::RecognizePattern(PlusTrackedFrame* tracked
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PlusFidPatternRecognition::RecognizePattern(PlusTrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
+PlusStatus PlusFidPatternRecognition::RecognizePattern(igsioTrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern");
 
@@ -158,14 +158,14 @@ PlusStatus PlusFidPatternRecognition::RecognizePattern(PlusTrackedFrame* tracked
 
 //-----------------------------------------------------------------------------
 
-PlusStatus PlusFidPatternRecognition::RecognizePattern(vtkPlusTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/, std::vector<unsigned int>* segmentedFramesIndices)
+PlusStatus PlusFidPatternRecognition::RecognizePattern(vtkIGSIOTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages/*=NULL*/, std::vector<unsigned int>* segmentedFramesIndices)
 {
   LOG_TRACE("FidPatternRecognition::RecognizePattern");
 
   patternRecognitionError = PATTERN_RECOGNITION_ERROR_NO_ERROR;
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkPlusTrackedFrameList::VerifyProperties(trackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
+  if (vtkIGSIOTrackedFrameList::VerifyProperties(trackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to perform calibration - tracked frame list is invalid");
     patternRecognitionError = PATTERN_RECOGNITION_ERROR_UNKNOWN;
@@ -180,7 +180,7 @@ PlusStatus PlusFidPatternRecognition::RecognizePattern(vtkPlusTrackedFrameList* 
 
   for (unsigned int currentFrameIndex = 0; currentFrameIndex < trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
   {
-    PlusTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex);
+    igsioTrackedFrame* trackedFrame = trackedFrameList->GetTrackedFrame(currentFrameIndex);
 
     // segment only non segmented frames
     if (trackedFrame->GetFiducialPointsCoordinatePx() != NULL)

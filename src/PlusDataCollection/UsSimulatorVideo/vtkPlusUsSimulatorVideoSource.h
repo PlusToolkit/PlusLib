@@ -69,7 +69,7 @@ protected:
   double LastProcessedTrackingDataTimestamp;
 
   /* Output to different logs depending on the status of the grace period */
-  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
 
 private:
   static vtkPlusUsSimulatorVideoSource* Instance;

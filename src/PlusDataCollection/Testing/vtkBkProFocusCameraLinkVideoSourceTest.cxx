@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   args.Initialize(argc, argv);
 
   vtkPlusConfig::GetInstance(); // set default log level
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--ini-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &iniFile, "Path to the BK ini file, relative to the configuration file directory. Default: BkSettings/IniFile.ini");
   args.AddArgument("--show-bmode", vtksys::CommandLineArguments::NO_ARGUMENT, &showBmode, "Show B-mode image debug window");	
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {

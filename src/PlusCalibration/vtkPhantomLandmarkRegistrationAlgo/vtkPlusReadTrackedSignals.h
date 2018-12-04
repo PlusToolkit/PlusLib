@@ -12,7 +12,7 @@
 #include <deque>
 #include "vtkObject.h"
 
-class vtkPlusTrackedFrameList;
+//class vtkIGSIOTrackedFrameList;
 
 /*!
   \class vtkPlusReadTrackedSignals
@@ -27,7 +27,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Sets the input US video frames */
-  void SetTrackerFrames(vtkPlusTrackedFrameList* trackerFrames);
+  void SetTrackerFrames(vtkIGSIOTrackedFrameList* trackerFrames);
 
   /*! Sets the time range where the signal will be extracted from. If rangeMax<rangeMin then all the input frames will be used to genereate the signal. */
   void SetSignalTimeRange(double rangeMin, double rangeMax);
@@ -65,7 +65,7 @@ protected:
   PlusStatus VerifyInputFrames();
   PlusStatus ComputeTrackerPositionMetric();
 
-  vtkPlusTrackedFrameList* m_TrackerFrames;
+  vtkIGSIOTrackedFrameList* m_TrackerFrames;
 
   /*! Name of the object marker coordinate frame (eg. Stylus) */
   char*               ObjectMarkerCoordinateFrame;

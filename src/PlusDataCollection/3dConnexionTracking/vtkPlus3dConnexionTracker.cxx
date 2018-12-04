@@ -37,7 +37,7 @@ vtkStandardNewMacro(vtkPlus3dConnexionTracker);
 
 //-------------------------------------------------------------------------
 vtkPlus3dConnexionTracker::vtkPlus3dConnexionTracker()
-  : Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  : Mutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
   , SpaceNavigatorTool(NULL)
   , LatestMouseTransform(vtkMatrix4x4::New())
   , DeviceToTrackerTransform(vtkMatrix4x4::New())
@@ -284,7 +284,7 @@ void vtkPlus3dConnexionTracker::ProcessDeviceInputEvent(LPARAM lParam)
     currentTransform->RotateZ(all6DOFs[5]*this->RotationScales[2]);
 
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       currentTransform->GetMatrix(this->LatestMouseTransform);
     }
   }
@@ -439,12 +439,12 @@ PlusStatus vtkPlus3dConnexionTracker::InternalUpdate()
 {
   LOG_TRACE("vtkPlus3dConnexionTracker::InternalUpdate");
 
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   if (this->SpaceNavigatorTool != NULL)
   {
     {
-      PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+      igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
       switch (this->OperatingMode)
       {
         case MOUSE_MODE:

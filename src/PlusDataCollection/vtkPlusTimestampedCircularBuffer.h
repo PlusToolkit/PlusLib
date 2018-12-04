@@ -17,7 +17,7 @@
 
 #include <float.h> // for DBL_MAX
 
-class vtkPlusRecursiveCriticalSection;
+class vtkIGSIORecursiveCriticalSection;
 class vtkTable;
 
 /*!
@@ -211,7 +211,7 @@ protected:
   ~vtkPlusTimestampedCircularBuffer();
 
 protected:
-  vtkPlusRecursiveCriticalSection* Mutex;
+  vtkIGSIORecursiveCriticalSection* Mutex;
 
   int NumberOfItems;
 

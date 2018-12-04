@@ -66,7 +66,7 @@ public:
 
     if (!tracker->TrackerTimeToSystemTimeComputed)
     {
-      const double timeSystemSec = vtkPlusAccurateTimer::GetSystemTime();
+      const double timeSystemSec = vtkIGSIOAccurateTimer::GetSystemTime();
       tracker->TrackerTimeToSystemTimeSec = timeSystemSec - timeTrackerMsec/1000.0;
       tracker->TrackerTimeToSystemTimeComputed = true;
     }

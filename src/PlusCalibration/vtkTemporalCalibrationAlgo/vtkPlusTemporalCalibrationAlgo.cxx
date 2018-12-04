@@ -5,7 +5,7 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkDoubleArray.h"
 #include "vtkPlusLineSegmentationAlgo.h"
@@ -14,7 +14,7 @@
 #include "vtkPlusPrincipalMotionDetectionAlgo.h"
 #include "vtkTable.h"
 #include "vtkPlusTemporalCalibrationAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -120,7 +120,7 @@ void vtkPlusTemporalCalibrationAlgo::SetSaveIntermediateImages(bool saveIntermed
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusTemporalCalibrationAlgo::SetFixedFrames(vtkPlusTrackedFrameList* frameList, FRAME_TYPE frameType)
+void vtkPlusTemporalCalibrationAlgo::SetFixedFrames(vtkIGSIOTrackedFrameList* frameList, FRAME_TYPE frameType)
 {
   if (frameList != this->FixedSignal.frameList)
   {
@@ -142,7 +142,7 @@ void vtkPlusTemporalCalibrationAlgo::SetFixedProbeToReferenceTransformName(const
 }
 
 //-----------------------------------------------------------------------------
-void vtkPlusTemporalCalibrationAlgo::SetMovingFrames(vtkPlusTrackedFrameList* frameList, FRAME_TYPE frameType)
+void vtkPlusTemporalCalibrationAlgo::SetMovingFrames(vtkIGSIOTrackedFrameList* frameList, FRAME_TYPE frameType)
 {
   if (frameList != this->MovingSignal.frameList)
   {

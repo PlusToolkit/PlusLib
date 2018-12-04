@@ -134,7 +134,7 @@ int main( int argc, unsigned char *argv[] )
     goto ERROR_EXIT;
   } /* if */
 
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Load the system of processors.
@@ -148,7 +148,7 @@ int main( int argc, unsigned char *argv[] )
   /*
   * Wait one second to let the system finish loading.
   */
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Initialize the processors system.
@@ -191,7 +191,7 @@ int main( int argc, unsigned char *argv[] )
   /*
   * Wait one second to let the camera adjust.
   */
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Activate the markers.
@@ -201,7 +201,7 @@ int main( int argc, unsigned char *argv[] )
   {
     goto ERROR_EXIT;
   } /* if */
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Get and display ten frames of 3D data.
@@ -256,7 +256,7 @@ int main( int argc, unsigned char *argv[] )
     goto ERROR_EXIT;
   } /* if */
 
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Set the API to use internal storage for the system
@@ -288,7 +288,7 @@ int main( int argc, unsigned char *argv[] )
     goto ERROR_EXIT;
   }
 
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Load the system of processors.
@@ -299,7 +299,7 @@ int main( int argc, unsigned char *argv[] )
     goto ERROR_EXIT;
   } /* if */
 
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Initialize the processors system again in the usual manner.
@@ -342,7 +342,7 @@ int main( int argc, unsigned char *argv[] )
   /*
   * Wait one second to let the camera adjust.
   */
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Activate the markers.
@@ -353,7 +353,7 @@ int main( int argc, unsigned char *argv[] )
     goto ERROR_EXIT;
   } /* if */
 
-  vtkPlusAccurateTimer::Delay(1); 
+  vtkIGSIOAccurateTimer::Delay(1); 
 
   /*
   * Get and display ten frames of 3D data.

@@ -6,12 +6,12 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
-#include "PlusVideoFrame.h"
+#include "igsioTrackedFrame.h"
+#include "igsioVideoFrame.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusUsScanConvertCurvilinear.h"
 #include "vtkPlusUsScanConvertLinear.h"
 
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   std::string inputImgSeqFileName;
   std::string outputImgSeqFileName;
   std::string inputConfigFileName;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Fail if no ultrasound image file specified
   if (inputImgSeqFileName.empty())
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   }
 
   // Read the image sequence
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   if (vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to load input image sequence.");
@@ -139,20 +139,20 @@ int main(int argc, char** argv)
   int rfImageExtent[6] = {0, numOfSamplesPerScanline - 1, 0, numOfScanlines - 1, 0, 0};
   scanConverter->SetInputImageExtent(rfImageExtent);
 
-  PlusCommon::PixelLineList lines;
+  igsioCommon::PixelLineList lines;
   for (int scanLine = 0; scanLine < rfImageExtent[3] - rfImageExtent[2] + 1; scanLine++)
   {
     double start[4] = { 0 };
     double end[4] = { 0 };
     scanConverter->GetScanLineEndPoints(scanLine, start, end);
-    PlusCommon::PixelPoint startPoint = { static_cast<int>(std::round(start[0])), static_cast<int>(std::round(start[1])), static_cast<int>(std::round(start[2])) };
-    PlusCommon::PixelPoint endPoint = { static_cast<int>(std::round(end[0])), static_cast<int>(std::round(end[1])), static_cast<int>(std::round(end[2])) };
-    lines.push_back(PlusCommon::PixelLine(startPoint, endPoint));
+    igsioCommon::PixelPoint startPoint = { static_cast<int>(std::round(start[0])), static_cast<int>(std::round(start[1])), static_cast<int>(std::round(start[2])) };
+    igsioCommon::PixelPoint endPoint = { static_cast<int>(std::round(end[0])), static_cast<int>(std::round(end[1])), static_cast<int>(std::round(end[2])) };
+    lines.push_back(igsioCommon::PixelLine(startPoint, endPoint));
   }
 
   if (!lines.empty())
   {
-    PlusCommon::DrawScanLines(rfImageExtent, 255, lines, trackedFrameList);
+    igsioCommon::DrawScanLines(rfImageExtent, 255, lines, trackedFrameList);
   }
 
   // Write the new TrackedFrameList to metafile

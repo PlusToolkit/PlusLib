@@ -264,7 +264,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
   }
 
   std::vector<vtkPlusDataSource*> sources;
-  PlusCommon::VTKScalarPixelType pixelType = VTK_VOID;
+  igsioCommon::VTKScalarPixelType pixelType = VTK_VOID;
   US_IMAGE_TYPE imgType = US_IMG_TYPE_XX;
 
   if ((uData)type == udtBPost && this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) == PLUS_SUCCESS)
@@ -366,7 +366,7 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
     this->UpdateImagingParametersFromDevice();
   }
 
-  PlusTrackedFrame::FieldMapType customFields;
+  igsioTrackedFrame::FieldMapType customFields;
 
   if (this->ImageGeometryOutputEnabled)
   {
@@ -450,7 +450,7 @@ PlusStatus vtkPlusSonixVideoSource::InternalConnect()
       // disconnect before trying to connect again
       this->Ult->setDataToAcquire(0); // without this Ulterius 5.x may crash
       this->Ult->disconnect();
-      vtkPlusAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
+      vtkIGSIOAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
       this->UlteriusConnected = false;
     }
     if (connectionTried > 0)
@@ -462,7 +462,7 @@ PlusStatus vtkPlusSonixVideoSource::InternalConnect()
         return PLUS_FAIL;
       }
       LOG_DEBUG("Failed to connect to sonix video device, retry (" << connectionTried << ")");
-      vtkPlusAccurateTimer::Delay(CONNECT_RETRY_DELAY_SEC);
+      vtkIGSIOAccurateTimer::Delay(CONNECT_RETRY_DELAY_SEC);
     }
     connectionTried++;
 
@@ -484,7 +484,7 @@ PlusStatus vtkPlusSonixVideoSource::InternalConnect()
     if (SetImagingModeDevice(this->ImagingMode) != PLUS_SUCCESS) { continue; }
 
     // We need to wait for a little while before the mode actually gets selected
-    vtkPlusAccurateTimer::Delay(0.001 * this->ConnectionSetupDelayMs);
+    vtkIGSIOAccurateTimer::Delay(0.001 * this->ConnectionSetupDelayMs);
 
     // Double-check to see if the mode has actually been set
     int actualImagingMode = -1;
@@ -618,7 +618,7 @@ PlusStatus vtkPlusSonixVideoSource::InternalDisconnect()
   this->UlteriusConnected = false;
   this->Ult->setDataToAcquire(0); // without this Ulterius 5.x may crash
   this->Ult->disconnect();
-  vtkPlusAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
+  vtkIGSIOAccurateTimer::Delay(0.5); // without this Ulterius 6.x may crash
   return PLUS_SUCCESS;
 }
 

@@ -12,7 +12,7 @@ happens between two threads. In real life, it happens between two programs.
 */
 
 #include "PlusConfigure.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "vtkNew.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusOpenIGTLinkVideoSource.h"
@@ -21,7 +21,7 @@ happens between two threads. In real life, it happens between two programs.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusOpenIGTLinkServer.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtksys/CommandLineArguments.hxx"
 
 // For catching Ctrl-C
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   bool printHelp(false);
   std::string inputConfigFileName;
   std::string testingConfigFileName;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
   double runTimeSec = 0.0;
 
   const int numOfTestClientsToConnect = 5; // only if testing is enabled S
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
+  LOG_INFO("Logging at level " << vtkIGSIOLogger::Instance()->GetLogLevel() << " (" << vtkIGSIOLogger::Instance()->GetLogLevelString() << ") to file: " << vtkIGSIOLogger::Instance()->GetLogFileName());
 
   // Read main configuration file
   vtkNew<vtkPlusDataCollector> dataCollector;
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
   vtkXMLDataElement* configRootElement = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData();
 
   // Create transform repository instance
-  vtkNew<vtkPlusTransformRepository> transformRepository;
+  vtkNew<vtkIGSIOTransformRepository> transformRepository;
   if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Transform repository failed to read configuration");
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  double startTime = vtkPlusAccurateTimer::GetSystemTime();
+  double startTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   LOG_INFO("Server status: Server(s) are running.");
   LOG_INFO("Press Ctrl-C to quit.");
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
 
   // Run server until requested
   const double commandQueuePollIntervalSec = 0.010;
-  while ((neverStop || (vtkPlusAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested)
+  while ((neverStop || (vtkIGSIOAccurateTimer::GetSystemTime() < startTime + runTimeSec)) && !stopRequested)
   {
     for (std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it)
     {
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
     CheckConsoleWindowCloseRequested(consoleHwnd);
 #endif
     // Need to process messages while waiting because some devices (such as the vtkPlusWin32VideoSource2) require event processing
-    vtkPlusAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
+    vtkIGSIOAccurateTimer::DelayWithEventProcessing(commandQueuePollIntervalSec);
   }
 
   for (std::vector<vtkPlusOpenIGTLinkServer*>::iterator it = serverList.begin(); it != serverList.end(); ++it)

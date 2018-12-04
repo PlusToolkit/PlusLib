@@ -14,11 +14,11 @@
 #include "vtkDataObject.h"
 #include "vtkPlusRfProcessor.h"
 
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkPlusHTMLGenerator;
 class vtkPlusDataSource;
 class vtkPlusDevice;
-class vtkPlusTrackedFrameList;
+//class vtkIGSIOTrackedFrameList;
 
 typedef std::map<std::string, vtkPlusDataSource*> DataSourceContainer;
 typedef DataSourceContainer::iterator DataSourceContainerIterator;
@@ -109,8 +109,8 @@ public:
     \param trackedFrame Target tracked frame
     \param enableImageData Enable returning of image data. Tracking data will be interpolated at the timestamp of the image data.
   */
-  virtual PlusStatus GetTrackedFrame(double timestamp, PlusTrackedFrame& trackedFrame, bool enableImageData = true);
-  virtual PlusStatus GetTrackedFrame(PlusTrackedFrame& trackedFrame);
+  virtual PlusStatus GetTrackedFrame(double timestamp, igsioTrackedFrame& trackedFrame, bool enableImageData = true);
+  virtual PlusStatus GetTrackedFrame(igsioTrackedFrame& trackedFrame);
 
   /*!
     Get the tracked frame list from devices since time specified
@@ -120,7 +120,7 @@ public:
     \param aSamplingPeriodSec Sampling period time for getting the frames in seconds (timestamps are in seconds too)
     \param maxTimeLimitSec Maximum time spent in the function (in sec)
   */
-  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkPlusTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec = -1);
+  virtual PlusStatus GetTrackedFrameListSampled(double& aTimestampOfLastFrameAlreadyGot, double& aTimestampOfNextFrameToBeAdded, vtkIGSIOTrackedFrameList* aTrackedFrameList, double aSamplingPeriodSec, double maxTimeLimitSec = -1);
 
   /*!
     Get all the tracked frame list from devices since time specified
@@ -131,7 +131,7 @@ public:
     \param aTrackedFrameList Tracked frame list used to get the newly acquired frames into. The new frames are appended to the tracked frame.
     \param aMaxNumberOfFramesToAdd Maximum this number of frames will be added (can be used for limiting the time spent in this method)
   */
-  PlusStatus GetTrackedFrameList(double& aTimestampOfLastFrameAlreadyGot, vtkPlusTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd);
+  PlusStatus GetTrackedFrameList(double& aTimestampOfLastFrameAlreadyGot, vtkIGSIOTrackedFrameList* aTrackedFrameList, int aMaxNumberOfFramesToAdd);
 
   /*! Get the closest tracked frame timestamp to the specified time */
   virtual double GetClosestTrackedFrameTimestampByTime(double time);

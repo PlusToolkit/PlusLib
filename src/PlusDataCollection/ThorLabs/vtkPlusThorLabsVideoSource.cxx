@@ -213,7 +213,7 @@ PlusStatus vtkPlusThorLabsVideoSource::InternalUpdate()
 PlusStatus vtkPlusThorLabsVideoSource::InternalStartRecording()
 {
   this->FrameIndex = 0;
-  //double startTime = vtkPlusAccurateTimer::GetSystemTime();
+  //double startTime = vtkIGSIOAccurateTimer::GetSystemTime();
   //this->Buffer->SetStartTime(startTime);
   return PLUS_SUCCESS;
 }

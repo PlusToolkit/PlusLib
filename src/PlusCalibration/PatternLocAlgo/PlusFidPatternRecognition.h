@@ -14,8 +14,8 @@ See License.txt for details.
 
 #include "vtkXMLDataElement.h"
 
-class PlusTrackedFrame;
-class vtkPlusTrackedFrameList;
+//class igsioTrackedFrame; 
+//class vtkIGSIOTrackedFrameList;
 
 /*!
 \class FidPatternRecognition
@@ -49,7 +49,7 @@ public:
   \param numberOfSuccessfullySegmentedImages Out parameter holding the number of segmented images in this call (it is only equals the number of all segmented images in the tracked frame if it was not segmented at all)
   \param segmentedFramesIndices Indices of the frames that were properly segmented
   */
-  PlusStatus RecognizePattern(vtkPlusTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL, std::vector<unsigned int>* segmentedFramesIndices = NULL);
+  PlusStatus RecognizePattern(vtkIGSIOTrackedFrameList* trackedFrameList, PatternRecognitionError& patternRecognitionError, int* numberOfSuccessfullySegmentedImages = NULL, std::vector<unsigned int>* segmentedFramesIndices = NULL);
 
   /*!
   Run pattern recognition on a tracked frame list.
@@ -57,7 +57,7 @@ public:
   \param patternRecognitionError returns detailed information about the success of the recognition
   \param frameIndex index of the current frame, only used for saving debug information (determine output image file name)
   */
-  PlusStatus RecognizePattern(PlusTrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex);
+  PlusStatus RecognizePattern(igsioTrackedFrame* trackedFrame, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex);
 
   /*!
   Run pattern recognition on a tracked frame list.
@@ -66,7 +66,7 @@ public:
   \param patternRecognitionError returns detailed information about the success of the recognition
   \param frameIndex index of the current frame, only used for saving debug information (determine output image file name)
   */
-  PlusStatus RecognizePattern(PlusTrackedFrame* trackedFrame, PlusPatternRecognitionResult& patternRecognitionResult, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex);
+  PlusStatus RecognizePattern(igsioTrackedFrame* trackedFrame, PlusPatternRecognitionResult& patternRecognitionResult, PatternRecognitionError& patternRecognitionError, unsigned int frameIndex);
 
   /*! Draw dots for debug purpose */
   void DrawDots(PlusFidSegmentation::PixelType* image);

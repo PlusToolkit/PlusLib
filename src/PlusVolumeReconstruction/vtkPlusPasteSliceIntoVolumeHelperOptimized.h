@@ -97,7 +97,7 @@ static int intersectionLow(F *point, F *axis, int *sign,
 
     if (((sign[ai] < 0 && r > inExt[0]) ||
       (sign[ai] > 0 && r < inExt[1])) &&
-      PlusMath::Round(p) < limit[ai])
+      igsioMath::Round(p) < limit[ai])
     {
       r += sign[ai];
     }
@@ -113,7 +113,7 @@ static int intersectionLow(F *point, F *axis, int *sign,
 
     if (((sign[ai] > 0 && r > inExt[0]) ||
       (sign[ai] < 0 && r < inExt[1])) &&
-      PlusMath::Round(p) >= limit[ai])
+      igsioMath::Round(p) >= limit[ai])
     {
       r -= sign[ai];
     }
@@ -142,7 +142,7 @@ static int intersectionHigh(F *point, F *axis, int *sign,
 
     if (((sign[ai] > 0 && r > inExt[0]) ||
       (sign[ai] < 0 && r < inExt[1])) &&
-      PlusMath::Round(p) > limit[ai])
+      igsioMath::Round(p) > limit[ai])
     {
       r -= sign[ai];
     }
@@ -158,7 +158,7 @@ static int intersectionHigh(F *point, F *axis, int *sign,
 
     if (((sign[ai] < 0 && r > inExt[0]) ||
       (sign[ai] > 0 && r < inExt[1])) &&
-      PlusMath::Round(p) <= limit[ai])
+      igsioMath::Round(p) <= limit[ai])
     {
       r += sign[ai];
     }
@@ -189,8 +189,8 @@ static int isBounded(F *point, F *xAxis, int *inMin, int *inMax, int ai, int r)
   F fbp = point[bi]+r*xAxis[bi];
   F fcp = point[ci]+r*xAxis[ci];
 
-  int bp = PlusMath::Round(fbp);
-  int cp = PlusMath::Round(fcp);
+  int bp = igsioMath::Round(fbp);
+  int cp = igsioMath::Round(fcp);
 
   return (bp >= inMin[bi] && bp <= inMax[bi] &&
     cp >= inMin[ci] && cp <= inMax[ci]);
@@ -286,8 +286,8 @@ static void vtkUltraFindExtent(int& xIntersectionPixStart, int& xIntersectionPix
     p1 = point[i]+xIntersectionPixStart*xAxis[i];
     p2 = point[i]+xIntersectionPixEnd*xAxis[i];
 
-    indx1[i] = PlusMath::Round(p1);
-    indx2[i] = PlusMath::Round(p2);
+    indx1[i] = igsioMath::Round(p1);
+    indx2[i] = igsioMath::Round(p2);
   }
 
   // passed through x face, check opposing face
@@ -540,9 +540,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
-      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
-      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+      int outIdX = igsioMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = igsioMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = igsioMath::Round(outPoint[2]) - outExt[4];
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -601,9 +601,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
-      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
-      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+      int outIdX = igsioMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = igsioMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = igsioMath::Round(outPoint[2]) - outExt[4];
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -673,9 +673,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
-      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
-      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+      int outIdX = igsioMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = igsioMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = igsioMath::Round(outPoint[2]) - outExt[4];
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -719,9 +719,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
       outPoint[1] = outPoint1[1] + idX*xAxis[1];
       outPoint[2] = outPoint1[2] + idX*xAxis[2];
 
-      int outIdX = PlusMath::Round(outPoint[0]) - outExt[0];
-      int outIdY = PlusMath::Round(outPoint[1]) - outExt[2];
-      int outIdZ = PlusMath::Round(outPoint[2]) - outExt[4];
+      int outIdX = igsioMath::Round(outPoint[0]) - outExt[0];
+      int outIdY = igsioMath::Round(outPoint[1]) - outExt[2];
+      int outIdZ = igsioMath::Round(outPoint[2]) - outExt[4];
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -804,9 +804,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       }
 
-      int outIdX = PlusMath::Round(outPoint[0]);
-      int outIdY = PlusMath::Round(outPoint[1]);
-      int outIdZ = PlusMath::Round(outPoint[2]);
+      int outIdX = igsioMath::Round(outPoint[0]);
+      int outIdY = igsioMath::Round(outPoint[1]);
+      int outIdZ = igsioMath::Round(outPoint[2]);
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -869,9 +869,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       }
 
-      int outIdX = PlusMath::Round(outPoint[0]);
-      int outIdY = PlusMath::Round(outPoint[1]);
-      int outIdZ = PlusMath::Round(outPoint[2]);
+      int outIdX = igsioMath::Round(outPoint[0]);
+      int outIdY = igsioMath::Round(outPoint[1]);
+      int outIdZ = igsioMath::Round(outPoint[2]);
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -943,9 +943,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       }
 
-      int outIdX = PlusMath::Round(outPoint[0]);
-      int outIdY = PlusMath::Round(outPoint[1]);
-      int outIdZ = PlusMath::Round(outPoint[2]);
+      int outIdX = igsioMath::Round(outPoint[0]);
+      int outIdY = igsioMath::Round(outPoint[1]);
+      int outIdZ = igsioMath::Round(outPoint[2]);
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -992,9 +992,9 @@ static inline void vtkFreehand2OptimizedNNHelper(int xIntersectionPixStart,
         }
       }
 
-      int outIdX = PlusMath::Round(outPoint[0]);
-      int outIdY = PlusMath::Round(outPoint[1]);
-      int outIdZ = PlusMath::Round(outPoint[2]);
+      int outIdX = igsioMath::Round(outPoint[0]);
+      int outIdY = igsioMath::Round(outPoint[1]);
+      int outIdZ = igsioMath::Round(outPoint[2]);
 
       int inc = outIdX*outInc[0] + outIdY*outInc[1] + outIdZ*outInc[2];
       T *outPtr1 = outPtr + inc;
@@ -1185,15 +1185,15 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
       int xSkipMiddleSegmentPixEnd; // last pixel that should be skipped in the middle
       if (fanClippingEnabled && xIntersectionPixStart <= xIntersectionPixEnd)
       {
-        // equivalent to: xIntersectionPixStart < PlusMath::Ceil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
+        // equivalent to: xIntersectionPixStart < igsioMath::Ceil(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)
         // this is what the radius would be based on tan(fanAngle)
-        if (xIntersectionPixStart < -PlusMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)))
+        if (xIntersectionPixStart < -igsioMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1)))
         {
-          xIntersectionPixStart = -PlusMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1));
+          xIntersectionPixStart = -igsioMath::Floor(-(fanLinePixelRatioLeft*y + fanOriginInPixels[0] + 1));
         }
-        if (xIntersectionPixEnd > PlusMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1))
+        if (xIntersectionPixEnd > igsioMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1))
         {
-          xIntersectionPixEnd = PlusMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
+          xIntersectionPixEnd = igsioMath::Floor(fanLinePixelRatioRight*y + fanOriginInPixels[0] - 1);
         }
 
         // check if we are not too close or too far from the fan origin
@@ -1214,13 +1214,13 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
           dxRadiusStop = sqrt(dxRadiusStop/inSpacingSquare[0]);
           // this is what xIntersectionPixStart would be if we calculated it based on the
           // pythagorean theorem
-          if (xIntersectionPixStart < -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1)))
+          if (xIntersectionPixStart < -igsioMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1)))
           {
-            xIntersectionPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1));
+            xIntersectionPixStart = -igsioMath::Floor(-(fanOriginInPixels[0] - dxRadiusStop + 1));
           }
-          if (xIntersectionPixEnd > PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1))
+          if (xIntersectionPixEnd > igsioMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1))
           {
-            xIntersectionPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1);
+            xIntersectionPixEnd = igsioMath::Floor(fanOriginInPixels[0] + dxRadiusStop - 1);
           }
           double dxRadiusStart = (squaredFanRadiusStart - squaredDepth);
           if (dxRadiusStart > 0)
@@ -1228,8 +1228,8 @@ static void vtkOptimizedInsertSlice(vtkPlusPasteSliceIntoVolumeInsertSliceParams
             // we are inside the fan't start radius (near the transducer surface)
             // we have to skip some center pixels
             dxRadiusStart = sqrt(dxRadiusStart/inSpacingSquare[0]);
-            xSkipMiddleSegmentPixStart = -PlusMath::Floor(-(fanOriginInPixels[0] - dxRadiusStart + 1));
-            xSkipMiddleSegmentPixEnd = PlusMath::Floor(fanOriginInPixels[0] + dxRadiusStart - 1);
+            xSkipMiddleSegmentPixStart = -igsioMath::Floor(-(fanOriginInPixels[0] - dxRadiusStart + 1));
+            xSkipMiddleSegmentPixEnd = igsioMath::Floor(fanOriginInPixels[0] + dxRadiusStart - 1);
             skipMiddleSegment = true;
           }
 

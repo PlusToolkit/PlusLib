@@ -16,7 +16,7 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
-#include "PlusMath.h"
+#include "igsioMath.h"
 #include "vtkPlusToolAxesActor.h"
 
 // VTK includes
@@ -120,7 +120,7 @@ public:
     std::ostringstream ss;
     ss.precision(2);
 
-    PlusTrackedFrame trackedFrame;
+    igsioTrackedFrame trackedFrame;
     if (this->BroadcastChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tracked frame!");
@@ -135,11 +135,11 @@ public:
       return;
     }
 
-    std::vector<PlusTransformName> transformNameList;
+    std::vector<igsioTransformName> transformNameList;
     trackedFrame.GetFrameTransformNameList(transformNameList);
-    for (std::vector<PlusTransformName>::iterator it = transformNameList.begin(); it != transformNameList.end(); ++it)
+    for (std::vector<igsioTransformName>::iterator it = transformNameList.begin(); it != transformNameList.end(); ++it)
     {
-      PlusTransformName transformName = *it;
+      igsioTransformName transformName = *it;
 
       vtkPlusDataSource* tool = NULL;
       if (aDevice->GetTool(transformName.GetTransformName().c_str(), tool) != PLUS_SUCCESS)
@@ -215,7 +215,7 @@ int main(int argc, char** argv)
   std::string outputTrackerBufferSequenceFileName;
   bool renderingOff(false);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {
@@ -342,8 +342,8 @@ int main(int argc, char** argv)
         continue;
       }
 
-      std::string transformParameters = PlusMath::GetTransformParametersString(matrix);
-      std::string status = PlusCommon::ConvertToolStatusToString(bufferItem.GetStatus());
+      std::string transformParameters = igsioMath::GetTransformParametersString(matrix);
+      std::string status = igsioCommon::ConvertToolStatusToString(bufferItem.GetStatus());
 
       std::ostringstream message;
       message << "Tool name: " << tool->GetId() << "Transform:  ";

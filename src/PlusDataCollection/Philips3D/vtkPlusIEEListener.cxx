@@ -52,7 +52,7 @@ vtkPlusIEEListener::~vtkPlusIEEListener()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkPlusLogger::LogLevelType logType)
+PlusStatus vtkPlusIEEListener::Connect(CLIENT_POSTSCANCONVERT_CALLBACK callback, vtkIGSIOLogger::LogLevelType logType)
 {
   if( this->MachineName.empty() || this->Port <= 0 )
   {

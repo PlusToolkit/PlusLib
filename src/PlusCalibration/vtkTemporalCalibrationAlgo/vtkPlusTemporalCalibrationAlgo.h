@@ -14,10 +14,10 @@
 
 #include "vtkObject.h"
 
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkPiecewiseFunction;
 class vtkTable;
-class vtkPlusTrackedFrameList;
+//class vtkIGSIOTrackedFrameList;
 
 /*!
   \class vtkPlusTemporalCalibrationAlgo
@@ -64,7 +64,7 @@ public:
 
   struct SignalType
   {
-    vtkPlusTrackedFrameList* frameList;
+    vtkIGSIOTrackedFrameList* frameList;
     FRAME_TYPE frameType;
     std::string probeToReferenceTransformName;
     /*! Signal metric values that is computed from the frameList */
@@ -87,7 +87,7 @@ public:
   void SetSamplingResolutionSec(double samplingResolutionSec);
 
   /*! Sets the list of frames and the type of the data set (tracking data, video data, ...) that will be used to compute the "fixed" position signal (usually the video data) */
-  void SetFixedFrames(vtkPlusTrackedFrameList* frameList, FRAME_TYPE frameType);
+  void SetFixedFrames(vtkIGSIOTrackedFrameList* frameList, FRAME_TYPE frameType);
 
   /*! Sets ProbeToReferenceTransform name (in the format of "CoordinateSystem1ToCoordinateSystem2") for the moving signal. Only used if the fixed signal type is TRACKER_FRAME. */
   void SetFixedProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);
@@ -97,7 +97,7 @@ public:
     (that is interpolated during the signal alignment process at each position of the fixed signal values). The moving signalat the usually the tracking data,
     because it is more dense than the video data, so the interpolation at the less dense video timepoints is more accurate.
   */
-  void SetMovingFrames(vtkPlusTrackedFrameList* frameList, FRAME_TYPE frameType);
+  void SetMovingFrames(vtkIGSIOTrackedFrameList* frameList, FRAME_TYPE frameType);
 
   /*! Sets ProbeToReferenceTransform name (in the format of "CoordinateSystem1ToCoordinateSystem2") for the moving signal. Only used if the moving signal type is TRACKER_FRAME. */
   void SetMovingProbeToReferenceTransformName(const std::string& probeToReferenceTransformName);

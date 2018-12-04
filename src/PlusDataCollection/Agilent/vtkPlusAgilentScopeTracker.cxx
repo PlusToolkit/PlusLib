@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusAgilentScopeTracker.h"
 

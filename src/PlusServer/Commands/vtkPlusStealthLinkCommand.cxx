@@ -14,7 +14,7 @@ See License.txt for details.
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusCommandProcessor.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusVolumeReconstructor.h"
 #include "vtkPlusVirtualVolumeReconstructor.h"
 #include <vtkImageFlip.h>
@@ -53,7 +53,7 @@ void vtkPlusStealthLinkCommand::GetCommandNames(std::list<std::string>& cmdNames
 std::string vtkPlusStealthLinkCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName,  GET_STEALTHLINK_EXAM_DATA_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName,  GET_STEALTHLINK_EXAM_DATA_CMD))
   {
     desc += GET_STEALTHLINK_EXAM_DATA_CMD;
     desc += ": Acquire the exam data from the StealthLink Server. The exam data contains the image being displayed on the StealthLink Server. The 3D volume will be constructed using these images";
@@ -137,7 +137,7 @@ PlusStatus vtkPlusStealthLinkCommand::Execute()
     return PLUS_FAIL;
   }
 
-  if (PlusCommon::IsEqualInsensitive(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD))
+  if (igsioCommon::IsEqualInsensitive(this->Name, GET_STEALTHLINK_EXAM_DATA_CMD))
   {
     LOG_INFO("Acquiring the exam data from StealthLink Server: Device ID: " << GetStealthLinkDeviceId());
 

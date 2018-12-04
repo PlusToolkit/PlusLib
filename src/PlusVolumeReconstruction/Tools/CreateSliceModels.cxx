@@ -26,10 +26,10 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkXMLUtilities.h"
 
-#include "PlusTrackedFrame.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkPlusVolumeReconstructor.h"
 
 
@@ -41,7 +41,7 @@ int main( int argc, char** argv )
   std::string outputModelFilename;
   std::string imageToReferenceTransformNameStr;
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
@@ -66,7 +66,7 @@ int main( int argc, char** argv )
     exit( EXIT_SUCCESS );
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( inputMetaFilename.empty() )
   {
@@ -82,8 +82,8 @@ int main( int argc, char** argv )
 
   // Read input tracked ultrasound data.
   LOG_DEBUG( "Reading input... " );
-  vtkSmartPointer< vtkPlusTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkPlusTrackedFrameList >::New();
-  if( vtkPlusSequenceIO::Read( inputMetaFilename, trackedFrameList ) != PLUS_SUCCESS )
+  vtkSmartPointer< vtkIGSIOTrackedFrameList > trackedFrameList = vtkSmartPointer< vtkIGSIOTrackedFrameList >::New();
+  if( vtkIGSIOSequenceIO::Read( inputMetaFilename, trackedFrameList ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Unable to load input sequences file." );
     exit( EXIT_FAILURE );
@@ -106,7 +106,7 @@ int main( int argc, char** argv )
   }
 
   // Read calibration matrices from the config file
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if ( !inputConfigFileName.empty() )
   {
     LOG_DEBUG( "Reading config file..." );
@@ -146,7 +146,7 @@ int main( int argc, char** argv )
   // Prepare the output polydata.
   vtkSmartPointer< vtkAppendPolyData > appender = vtkSmartPointer< vtkAppendPolyData >::New();
 
-  PlusTransformName imageToReferenceTransformName;
+  igsioTransformName imageToReferenceTransformName;
   if ( imageToReferenceTransformName.SetTransformName( imageToReferenceTransformNameStr.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Invalid image to reference transform name: " << imageToReferenceTransformNameStr );
@@ -156,7 +156,7 @@ int main( int argc, char** argv )
   // Loop over each tracked image slice.
   for ( unsigned int frameIndex = 0; frameIndex < trackedFrameList->GetNumberOfTrackedFrames(); ++ frameIndex )
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
+    igsioTrackedFrame* frame = trackedFrameList->GetTrackedFrame( frameIndex );
 
     // Update transform repository
     if ( transformRepository->SetTransforms( *frame ) != PLUS_SUCCESS )

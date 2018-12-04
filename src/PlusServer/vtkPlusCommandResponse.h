@@ -187,11 +187,11 @@ public:
   static vtkPlusCommandImageMetaDataResponse* New();
   vtkTypeMacro(vtkPlusCommandImageMetaDataResponse, vtkPlusCommandResponse);
 
-  void GetImageMetaDataItems(PlusCommon::ImageMetaDataList& list)
+  void GetImageMetaDataItems(igsioCommon::ImageMetaDataList& list)
   {
     list = this->ImageMetaDataItems;
   }
-  void SetImageMetaDataItems(const PlusCommon::ImageMetaDataList& list)
+  void SetImageMetaDataItems(const igsioCommon::ImageMetaDataList& list)
   {
     this->ImageMetaDataItems = list;
   }
@@ -199,7 +199,7 @@ protected:
   vtkPlusCommandImageMetaDataResponse()
   {
   }
-  PlusCommon::ImageMetaDataList ImageMetaDataItems;
+  igsioCommon::ImageMetaDataList ImageMetaDataItems;
 private:
   vtkPlusCommandImageMetaDataResponse(const vtkPlusCommandImageMetaDataResponse&);
   void operator=(const vtkPlusCommandImageMetaDataResponse&);

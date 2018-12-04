@@ -37,7 +37,7 @@ PlusStatus StartServer(vtkXMLDataElement* configRootElement, const std::string& 
   }
 
   // Create transform repository instance
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Transform repository failed to read configuration");
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
   args.AddArgument("--client-config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &clientConfigFileName, "Config file containing the client configuration.");
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (printHelp)
   {
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  PlusTrackedFrame frame;
+  igsioTrackedFrame frame;
   if (channel->GetTrackedFrame(frame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve frame from device.");

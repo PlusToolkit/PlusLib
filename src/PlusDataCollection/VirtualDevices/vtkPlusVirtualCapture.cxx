@@ -5,18 +5,18 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusMetaImageSequenceIO.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOMetaImageSequenceIO.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusVirtualCapture.h"
 #include "vtksys/SystemTools.hxx"
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
-  #include "vtkPlusMkvSequenceIO.h"
+//  #include "vtkPlusMkvSequenceIO.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ namespace
 //----------------------------------------------------------------------------
 vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   : vtkPlusDevice()
-  , RecordedFrames(vtkPlusTrackedFrameList::New())
+  , RecordedFrames(vtkIGSIOTrackedFrameList::New())
   , LastAlreadyRecordedFrameTimestamp(UNDEFINED_TIMESTAMP)
   , NextFrameToBeRecordedTimestamp(0.0)
   , RequestedFrameRate(15.0)
@@ -53,8 +53,8 @@ vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   , EnableCapturing(false)
   , FrameBufferSize(DISABLE_FRAME_BUFFER)
   , IsData3D(false)
-  , WriterAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  , WriterAccessMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
+  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
   , EncodingFourCC("VP90")
 {
   this->AcquisitionRate = 30.0;
@@ -139,7 +139,7 @@ PlusStatus vtkPlusVirtualCapture::InternalConnect()
     this->SetEnableCapturing(true);
   }
 
-  this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+  this->LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -174,18 +174,18 @@ PlusStatus vtkPlusVirtualCapture::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   if (aFilename == NULL || strlen(aFilename) == 0)
   {
-    std::string filenameRoot = PlusCommon::GetSequenceFilenameWithoutExtension(this->BaseFilename);
-    std::string ext = PlusCommon::GetSequenceFilenameExtension(this->BaseFilename);
+    std::string filenameRoot = igsioCommon::GetSequenceFilenameWithoutExtension(this->BaseFilename);
+    std::string ext = igsioCommon::GetSequenceFilenameExtension(this->BaseFilename);
     if (ext.empty())
     {
       // default to nrrd
       ext = ".nrrd";
     }
-    else if (vtkPlusMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression())
+    else if (vtkIGSIOMetaImageSequenceIO::CanWriteFile(this->BaseFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
       LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
@@ -196,7 +196,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
   }
   else
   {
-    if (vtkPlusMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression())
+    if (vtkIGSIOMetaImageSequenceIO::CanWriteFile(aFilename) && this->GetEnableFileCompression())
     {
       // they've requested mhd/mha with compression, no can do, yet
       LOG_WARNING("Compressed saving of metaimage file requested. This is not supported. Reverting to uncompressed metaimage file.");
@@ -205,7 +205,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     this->CurrentFilename = aFilename;
   }
 
-  this->Writer = vtkPlusSequenceIO::CreateSequenceHandlerForFile(aFilename);
+  this->Writer = vtkIGSIOSequenceIO::CreateSequenceHandlerForFile(aFilename);
   if (!this->Writer)
   {
     LOG_ERROR("Could not create writer for file: " << aFilename);
@@ -214,11 +214,11 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
   this->Writer->SetUseCompression(this->EnableFileCompression);
 
 #ifdef PLUS_USE_VTKVIDEOIO_MKV
-  vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
-  if (mkvWriter)
-  {
-    mkvWriter->SetEncodingFourCC(this->EncodingFourCC);
-  }
+  //vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
+  //if (mkvWriter)
+  //{
+  //  mkvWriter->SetEncodingFourCC(this->EncodingFourCC);
+  //}
 #endif
 
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
@@ -232,7 +232,7 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
 PlusStatus vtkPlusVirtualCapture::CloseFile(const char* aFilename /* = NULL */, std::string* resultFilename /* = NULL */)
 {
   // Fix the header to write the correct number of frames
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
   if (!this->IsHeaderPrepared)
   {
@@ -269,7 +269,7 @@ PlusStatus vtkPlusVirtualCapture::CloseFile(const char* aFilename /* = NULL */, 
   std::string path = vtksys::SystemTools::GetFilenamePath(fullPath);
   std::string filename = vtksys::SystemTools::GetFilenameWithoutExtension(fullPath);
   std::string configFileName = path + "/" + filename + "_config.xml";
-  PlusCommon::XML::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
+  igsioCommon::XML::PrintXML(configFileName.c_str(), vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationData());
 
   this->IsHeaderPrepared = false;
   this->TotalFramesRecorded = 0;
@@ -305,13 +305,13 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
 
   if (this->LastUpdateTime == 0.0)
   {
-    this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+    this->LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
   }
   if (this->NextFrameToBeRecordedTimestamp == 0.0)
   {
-    this->NextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    this->NextFrameToBeRecordedTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   }
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkIGSIOAccurateTimer::GetSystemTime();
 
   this->TimeWaited += startTimeSec - LastUpdateTime;
 
@@ -336,10 +336,10 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
 
   if (this->HasGracePeriodExpired())
   {
-    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+    this->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
   }
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->WriterAccessMutex);
   if (!this->EnableCapturing)
   {
     // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
@@ -363,8 +363,8 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
   }
   if (frame1Index > frame2Index)
   {
-    PlusTrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame(frame1Index);
-    PlusTrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame(frame2Index);
+    igsioTrackedFrame* frame1 = this->RecordedFrames->GetTrackedFrame(frame1Index);
+    igsioTrackedFrame* frame2 = this->RecordedFrames->GetTrackedFrame(frame2Index);
     if (frame1 != NULL && frame2 != NULL)
     {
       double frameTimeDiff = frame1->GetTimestamp() - frame2->GetTimestamp();
@@ -394,14 +394,14 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
   }
 
   // Check whether the recording needed more time than the sampling interval
-  double recordingTimeSec = vtkPlusAccurateTimer::GetSystemTime() - startTimeSec;
-  double currentSystemTime = vtkPlusAccurateTimer::GetSystemTime();
+  double recordingTimeSec = vtkIGSIOAccurateTimer::GetSystemTime() - startTimeSec;
+  double currentSystemTime = vtkIGSIOAccurateTimer::GetSystemTime();
   double recordingLagSec =  currentSystemTime - this->NextFrameToBeRecordedTimestamp;
 
   if (recordingTimeSec > samplingPeriodSec)
   {
     // Log too long recording as warning only if the recording is falling behind
-    vtkPlusLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkPlusLogger::LOG_LEVEL_WARNING : vtkPlusLogger::LOG_LEVEL_DEBUG);
+    vtkIGSIOLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkIGSIOLogger::LOG_LEVEL_WARNING : vtkIGSIOLogger::LOG_LEVEL_DEBUG);
     LOG_DYNAMIC("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec, recording lags by " << recordingLagSec << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.", logLevel);
   }
 
@@ -419,10 +419,10 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
       // (because acquisitionLagSec < MAX_ALLOWED_RECORDING_LAG_SEC)
       LOG_ERROR("Recording cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
     }
-    this->NextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    this->NextFrameToBeRecordedTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   }
 
-  this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+  this->LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -499,7 +499,7 @@ void vtkPlusVirtualCapture::SetEnableCapturing(bool aValue)
     this->LastAlreadyRecordedFrameTimestamp = UNDEFINED_TIMESTAMP;
     this->NextFrameToBeRecordedTimestamp = 0.0;
     this->FirstFrameIndexInThisSegment = this->RecordedFrames->GetNumberOfTrackedFrames();
-    this->RecordingStartTime = vtkPlusAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
+    this->RecordingStartTime = vtkIGSIOAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
   }
 }
 
@@ -507,7 +507,7 @@ void vtkPlusVirtualCapture::SetEnableCapturing(bool aValue)
 PlusStatus vtkPlusVirtualCapture::Reset()
 {
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->WriterAccessMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->WriterAccessMutex);
 
     this->SetEnableCapturing(false);
 
@@ -528,7 +528,7 @@ PlusStatus vtkPlusVirtualCapture::Reset()
     return PLUS_FAIL;
   }
 
-  this->LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+  this->LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -548,7 +548,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
     return PLUS_FAIL;
   }
 
-  PlusTrackedFrame trackedFrame;
+  igsioTrackedFrame trackedFrame;
   if (this->GetInputTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR(this->GetDeviceId() << ": Failed to get tracked frame for the snapshot!");
@@ -556,7 +556,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
   }
 
   // Check if there are any valid transforms
-  std::vector<PlusTransformName> transformNames;
+  std::vector<igsioTransformName> transformNames;
   trackedFrame.GetFrameTransformNameList(transformNames);
   bool validFrame = false;
 
@@ -566,7 +566,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
   }
   else
   {
-    for (std::vector<PlusTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
+    for (std::vector<igsioTransformName>::iterator it = transformNames.begin(); it != transformNames.end(); ++it)
     {
       ToolStatus status(TOOL_INVALID);
       trackedFrame.GetFrameTransformStatus(*it, status);
@@ -587,7 +587,7 @@ PlusStatus vtkPlusVirtualCapture::TakeSnapshot()
 
   // Add tracked frame to the list
   // Snapshots are triggered manually, so the additional copying in AddTrackedFrame compared to TakeTrackedFrame is not relevant.
-  if (this->RecordedFrames->AddTrackedFrame(&trackedFrame, vtkPlusTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
+  if (this->RecordedFrames->AddTrackedFrame(&trackedFrame, vtkIGSIOTrackedFrameList::SKIP_INVALID_FRAME) != PLUS_SUCCESS)
   {
     LOG_WARNING(this->GetDeviceId() << ": Frame could not be added because validation failed");
     return PLUS_FAIL;
@@ -656,7 +656,7 @@ int vtkPlusVirtualCapture::OutputChannelCount() const
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualCapture::GetInputTrackedFrame(PlusTrackedFrame& aFrame)
+PlusStatus vtkPlusVirtualCapture::GetInputTrackedFrame(igsioTrackedFrame& aFrame)
 {
   if (this->OutputChannels.empty())
   {
@@ -668,7 +668,7 @@ PlusStatus vtkPlusVirtualCapture::GetInputTrackedFrame(PlusTrackedFrame& aFrame)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualCapture::GetInputTrackedFrameListSampled(double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkPlusTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec)
+PlusStatus vtkPlusVirtualCapture::GetInputTrackedFrameListSampled(double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkIGSIOTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec)
 {
   if (this->OutputChannels.empty())
   {

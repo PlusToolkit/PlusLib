@@ -1191,11 +1191,11 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
              << ", display zoom: " << bmDisplayZoom()
              << ", probe depth scale (mm/sample):" << depthScale
              << ", buffer image orientation: "
-             << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+             << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
-  //PlusTrackedFrame::FieldMapType customFields;
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  //igsioTrackedFrame::FieldMapType customFields;
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   RETURN_WITH_FAIL_IF(aSource->AddItem((void*)this->Internal->Bitmap.bmBits,
                                        aSource->GetInputImageOrientation(),

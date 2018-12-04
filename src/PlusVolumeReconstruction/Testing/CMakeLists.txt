@@ -70,7 +70,7 @@ IF(PLUSBUILD_BUILD_PlusLib_TOOLS)
 
   ADD_TEST(DrawClipRegionCompareToBaselineTest
     ${CMAKE_COMMAND} -E compare_files
-     ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.mha
+     ${TEST_OUTPUT_PATH}/outputSpinePhantomPartialSurfaceContactWithClipRegion.igs.mha
      ${TestDataDir}/SpinePhantomPartialSurfaceContactWithClipRegionBaseline.igs.mha
     )
   SET_TESTS_PROPERTIES(DrawClipRegionCompareToBaselineTest PROPERTIES DEPENDS DrawClipRegionRunTest)

@@ -19,7 +19,7 @@ See License.txt for details.
 #include <set>
 
 class vtkMatrix4x4;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 class vtkXMLDataElement;
 
 //-----------------------------------------------------------------------------

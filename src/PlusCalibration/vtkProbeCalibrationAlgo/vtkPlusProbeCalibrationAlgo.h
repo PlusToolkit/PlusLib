@@ -18,9 +18,9 @@
 #include "vtkObject.h"
 #include "vtkPlusProbeCalibrationOptimizerAlgo.h"
 
-class PlusTrackedFrame;
-class vtkPlusTrackedFrameList;
-class vtkPlusTransformRepository;
+//class igsioTrackedFrame; 
+//class vtkIGSIOTrackedFrameList;
+//class vtkIGSIOTransformRepository;
 class vtkXMLDataElement;
 class PlusNWire;
 
@@ -63,7 +63,7 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
+  PlusStatus Calibrate( vtkIGSIOTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkIGSIOTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkIGSIOTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
 
   /*!
     Run calibration algorithm on the two input frame lists (uses every frame in the two sequences)
@@ -72,7 +72,7 @@ public:
     \param transformRepository Transform repository object to be able to get the default transform
     \param nWires NWire structure that contains the computed imaginary intersections. It used to determine the computed position
   */
-  PlusStatus Calibrate( vtkPlusTrackedFrameList* validationTrackedFrameList, vtkPlusTrackedFrameList* calibrationTrackedFrameList, vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
+  PlusStatus Calibrate( vtkIGSIOTrackedFrameList* validationTrackedFrameList, vtkIGSIOTrackedFrameList* calibrationTrackedFrameList, vtkIGSIOTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires );
 
   /*! Get the calibration result transformation matrix */
   void GetImageToProbeTransformMatrix( vtkMatrix4x4* imageToProbeMatrix );
@@ -111,8 +111,8 @@ public:
     \param calibrationEndFrame Last frame that is used from the calibration tracked frame list for the calibration (in case of -1 it starts with the last)
     \param probeCalibrationResult Output XML data element
   */
-  PlusStatus GetXMLCalibrationResultAndErrorReport( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame,
-      int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult );
+  PlusStatus GetXMLCalibrationResultAndErrorReport( vtkIGSIOTrackedFrameList* validationTrackedFrameList, int validationStartFrame,
+      int validationEndFrame, vtkIGSIOTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame, vtkXMLDataElement* probeCalibrationResult );
 
   vtkPlusProbeCalibrationOptimizerAlgo* GetOptimizer()
   {
@@ -144,7 +144,7 @@ protected:
     \param transformRepository Transform repository object to be able to get the default transform
     \param isValidation Flag whether the added data is for calibration or validation
   */
-  PlusStatus AddPositionsPerImage( PlusTrackedFrame* trackedFrame, vtkPlusTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType );
+  PlusStatus AddPositionsPerImage( igsioTrackedFrame* trackedFrame, vtkIGSIOTransformRepository* transformRepository, PreProcessedWirePositionIdType datasetType );
 
   /*!
     Calculate 3D reprojection errors
@@ -171,12 +171,12 @@ protected:
     \param imageToProbeTransformMatrix the calculated image to probe matrix
     \param transformRepository the transform repository to populate
   */
-  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix, vtkPlusTransformRepository* transformRepository );
+  void SetAndValidateImageToProbeTransform( const vnl_matrix_fixed<double, 4, 4>& imageToProbeTransformMatrix, vtkIGSIOTransformRepository* transformRepository );
 
   /*!
     Save results and error report to XML
   */
-  PlusStatus SaveCalibrationResultAndErrorReportToXML( vtkPlusTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkPlusTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame );
+  PlusStatus SaveCalibrationResultAndErrorReportToXML( vtkIGSIOTrackedFrameList* validationTrackedFrameList, int validationStartFrame, int validationEndFrame, vtkIGSIOTrackedFrameList* calibrationTrackedFrameList, int calibrationStartFrame, int calibrationEndFrame );
 
   /*!
     \param outliers indices of the measurement points that was found to be an outlier when computing any matrix row

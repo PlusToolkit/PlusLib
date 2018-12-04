@@ -17,7 +17,7 @@
 
 #include "vtkPlusCompareVolumes.h"
 
-#include "PlusMath.h"
+#include "igsioMath.h"
 
 #include "vtkImageData.h"
 #include "vtkImageProgressIterator.h"
@@ -222,16 +222,16 @@ void vtkPlusCompareVolumesExecute( vtkPlusCompareVolumes* self,
           {
             countHoles++;
             double difference = ( double )gtPtr[inIndex] - testPtr[inIndex];
-            self->incAbsoluteHistogramWithHolesAtIndex( PlusMath::Round( fabs( difference ) ) );
+            self->incAbsoluteHistogramWithHolesAtIndex( igsioMath::Round( fabs( difference ) ) );
             absoluteDifferencesInAllHoles.push_back( fabs( difference ) );
             if ( testAlphaPtr[inIndex] != 0 )
             {
               countFilledHoles++;
               trueDifferences.push_back( difference );
-              self->incTrueHistogramAtIndex( PlusMath::Round( difference ) );
+              self->incTrueHistogramAtIndex( igsioMath::Round( difference ) );
               outPtrTru[outIndex] = difference; // cast to double to minimize precision loss
               absoluteDifferences.push_back( fabs( difference ) );
-              self->incAbsoluteHistogramAtIndex( PlusMath::Round( fabs( difference ) ) );
+              self->incAbsoluteHistogramAtIndex( igsioMath::Round( fabs( difference ) ) );
               outPtrAbs[outIndex] = fabs( difference );
             }
           }

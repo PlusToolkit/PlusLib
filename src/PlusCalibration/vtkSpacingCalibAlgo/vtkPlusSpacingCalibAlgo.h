@@ -11,7 +11,7 @@
 #include "vtkPlusCalibrationExport.h"
 
 #include "vtkObject.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTable.h"
 #include "PlusFidPatternRecognitionCommon.h"
 
@@ -39,9 +39,9 @@ public:
     Set inputs:
     \param trackedFrameList tracked frames with segmentation results
     \param nWires phantom definition structure
-    \sa NWire(), vtkPlusTrackedFrameList()
+    \sa NWire(), vtkIGSIOTrackedFrameList()
   */
-  virtual void SetInputs(vtkPlusTrackedFrameList* trackedFrameList, const std::vector<PlusNWire>& nWires);
+  virtual void SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList, const std::vector<PlusNWire>& nWires);
 
   /*! Report table used for storing algorithm results */
   vtkGetObjectMacro(ReportTable, vtkTable);
@@ -72,9 +72,9 @@ protected:
     const vnl_vector<double>& resultVector);
 
   /*! Set tracked frame list */
-  vtkSetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
+  vtkSetObjectMacro(TrackedFrameList, vtkIGSIOTrackedFrameList);
   /*! Get tracked frame list */
-  vtkGetObjectMacro(TrackedFrameList, vtkPlusTrackedFrameList);
+  vtkGetObjectMacro(TrackedFrameList, vtkIGSIOTrackedFrameList);
 
   /*! Report table used for storing algorithm results */
   vtkSetObjectMacro(ReportTable, vtkTable);
@@ -86,7 +86,7 @@ protected:
   double Spacing[2];
 
   /*! Tracked frame list with segmentation results */
-  vtkPlusTrackedFrameList* TrackedFrameList;
+  vtkIGSIOTrackedFrameList* TrackedFrameList;
 
   /*! Phantom definition structure */
   std::vector<PlusNWire> NWires;

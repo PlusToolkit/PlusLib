@@ -9,7 +9,7 @@ See License.txt for details.
 #include "vtkPlusCommandProcessor.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusGetTransformCommand.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 vtkStandardNewMacro(vtkPlusGetTransformCommand);
 
@@ -45,7 +45,7 @@ void vtkPlusGetTransformCommand::GetCommandNames(std::list<std::string>& cmdName
 std::string vtkPlusGetTransformCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_TRANSFORM_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, GET_TRANSFORM_CMD))
   {
     desc += GET_TRANSFORM_CMD;
     desc += ": Retrieve the details of a transform in the remote transform repository.";
@@ -97,7 +97,7 @@ PlusStatus vtkPlusGetTransformCommand::Execute()
     return PLUS_FAIL;
   }
 
-  PlusTransformName aName;
+  igsioTransformName aName;
   aName.SetTransformName(this->GetTransformName());
 
   if (this->GetTransformRepository()->IsExistingTransform(aName) != PLUS_SUCCESS)

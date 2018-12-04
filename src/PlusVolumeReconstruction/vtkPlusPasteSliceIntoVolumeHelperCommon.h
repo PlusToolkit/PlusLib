@@ -88,7 +88,7 @@ afterward. This resulted in unwanted and clearly-wrong artifacts.
 
 #include "PlusConfigure.h"
 
-#include "PlusMath.h"
+#include "igsioMath.h"
 #include "fixed.h"
 #include "float.h" // for DBL_MAX
 #include <typeinfo>
@@ -186,10 +186,10 @@ static int vtkTrilinearInterpolation(F* point,
   F fx, fy, fz;
 
   // convert point[0] into integer component and a fraction
-  int outIdX0 = PlusMath::Floor(point[0], fx);
+  int outIdX0 = igsioMath::Floor(point[0], fx);
   // point[0] is unchanged, outIdX0 is the integer (floor), fx is the float
-  int outIdY0 = PlusMath::Floor(point[1], fy);
-  int outIdZ0 = PlusMath::Floor(point[2], fz);
+  int outIdY0 = igsioMath::Floor(point[1], fy);
+  int outIdZ0 = igsioMath::Floor(point[2], fz);
 
   int outIdX1 = outIdX0 + (fx != 0); // ceiling
   int outIdY1 = outIdY0 + (fy != 0);
@@ -306,7 +306,7 @@ static int vtkTrilinearInterpolation(F* point,
             a = f + r;
             if (roundOutput)
             {
-              PlusMath::Round((f * (*inPtrTmp) + r * (*outPtrTmp)) / a, *outPtrTmp);
+              igsioMath::Round((f * (*inPtrTmp) + r * (*outPtrTmp)) / a, *outPtrTmp);
             }
             else
             {
@@ -333,7 +333,7 @@ static int vtkTrilinearInterpolation(F* point,
             }
             if (roundOutput)
             {
-              PlusMath::Round(r, *outPtrTmp);
+              igsioMath::Round(r, *outPtrTmp);
             }
             else
             {
@@ -360,7 +360,7 @@ static int vtkTrilinearInterpolation(F* point,
       if (newa < ACCUMULATION_MAXIMUM)
       {
         // round the fixed point to the nearest whole unit, and save the result as an unsigned short into the accumulation buffer
-        PlusMath::Round(newa, *accPtrTmp);
+        igsioMath::Round(newa, *accPtrTmp);
       }
     }
     while (j);

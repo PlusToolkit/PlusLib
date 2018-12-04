@@ -59,22 +59,22 @@ void vtkPlusStartStopRecordingCommand::GetCommandNames(std::list<std::string>& c
 std::string vtkPlusStartStopRecordingCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, START_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, START_CMD))
   {
     desc += START_CMD;
     desc += ": Start collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId: ID of the capture device, if not specified then the first VirtualCapture device will be started (optional)";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, SUSPEND_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, SUSPEND_CMD))
   {
     desc += SUSPEND_CMD;
     desc += ": Suspend data collection. Attributes: CaptureDeviceId: (optional)";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, RESUME_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, RESUME_CMD))
   {
     desc += RESUME_CMD;
     desc += ": Resume suspended data collection. Attributes: CaptureDeviceId (optional)";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, STOP_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, STOP_CMD))
   {
     desc += STOP_CMD;
     desc += ": Stop collecting data into file with a VirtualCapture device. Attributes: OutputFilename: name of the output file (optional if base file name is specified in config file). CaptureDeviceId (optional)";
@@ -294,7 +294,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
   std::string responseMessageBase = std::string("VirtualCapture (") + captureDevice->GetDeviceId() + ") " + this->Name + " ";
   LOG_INFO("vtkPlusStartStopRecordingCommand::Execute: " << this->Name);
 
-  if (PlusCommon::IsEqualInsensitive(this->Name, START_CMD))
+  if (igsioCommon::IsEqualInsensitive(this->Name, START_CMD))
   {
     if (captureDevice->GetEnableCapturing())
     {
@@ -318,7 +318,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, SUSPEND_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, SUSPEND_CMD))
   {
     if (!captureDevice->GetEnableCapturing())
     {
@@ -329,7 +329,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, RESUME_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, RESUME_CMD))
   {
     if (captureDevice->GetEnableCapturing())
     {
@@ -340,7 +340,7 @@ PlusStatus vtkPlusStartStopRecordingCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, responseMessageBase + "successful.");
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, STOP_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, STOP_CMD))
   {
     // it's stopped if: not in progress (it may be just suspended) and no frames have been recorded
     if (!captureDevice->GetEnableCapturing() && captureDevice->GetTotalFramesRecorded() == 0)

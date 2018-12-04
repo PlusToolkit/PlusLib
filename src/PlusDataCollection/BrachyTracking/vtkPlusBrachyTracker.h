@@ -13,7 +13,7 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 
-class PlusTrackedFrame; 
+////class igsioTrackedFrame;  
 
 /*!
 \class vtkPlusBrachyTracker 
@@ -67,7 +67,7 @@ public:
   PlusStatus InitializeStepper( std::string &calibMsg );
 
    /*! Get all transforms from buffer element values of each tool by timestamp. */
-  virtual PlusStatus GetTrackedFrame(double timestamp, PlusTrackedFrame* aTrackedFrame ); 
+  virtual PlusStatus GetTrackedFrame(double timestamp, igsioTrackedFrame* aTrackedFrame ); 
 
   /*! Get stepper encoder values from the buffer by UID */
   PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 

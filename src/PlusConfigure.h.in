@@ -132,10 +132,12 @@ typedef unsigned long int vtkMTimeType;
 #include "vtkSmartPointer.h"
 #include "vtkObjectFactory.h"
 
+// Frequently needed IGSIO includes
+#include <vtkIGSIOAccurateTimer.h>
+#include <vtkIGSIOLogger.h>
+
 // Frequently needed Plus includes
-#include "vtkPlusAccurateTimer.h"
 #include "PlusCommon.h"
-#include "vtkPlusLogger.h"
 #include "vtkPlusConfig.h"
 
 #endif // __PlusConfigure_h

@@ -56,7 +56,7 @@ void vtkPlusAddRecordingDeviceCommand::GetCommandNames(std::list<std::string>& c
 std::string vtkPlusAddRecordingDeviceCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, ADD_RECORDING_DEVICE_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, ADD_RECORDING_DEVICE_CMD))
   {
     desc += ADD_RECORDING_DEVICE_CMD;
     desc += ": Add a virtual capture device with inputs defined by metadata \"InputChannels\".";
@@ -84,7 +84,7 @@ PlusStatus vtkPlusAddRecordingDeviceCommand::Execute()
   }
 
   std::string inputChannels = it->second.second;
-  std::vector<std::string> tokens = PlusCommon::SplitStringIntoTokens(inputChannels, separator, false);
+  std::vector<std::string> tokens = igsioCommon::SplitStringIntoTokens(inputChannels, separator, false);
   if (tokens.size() == 0)
   {
     LOG_ERROR("Input channels ill defined, nothing to record.");
@@ -112,7 +112,7 @@ PlusStatus vtkPlusAddRecordingDeviceCommand::Execute()
     int counter = 0;
     while (true)
     {
-      std::string candidateName = "VirtualCapure[" + PlusCommon::ToString<int>(counter++) + "]";
+      std::string candidateName = "VirtualCapure[" + igsioCommon::ToString<int>(counter++) + "]";
       vtkPlusDevice* device(nullptr);
       if (this->GetDataCollector()->GetDevice(device, candidateName) == PLUS_FAIL)
       {
@@ -152,7 +152,7 @@ PlusStatus vtkPlusAddRecordingDeviceCommand::Execute()
   bool enableFileCompression(true);
   if (this->MetaData.find("EnableFileCompression") == end(this->MetaData) || this->MetaData["EnableFileCompression"].second.empty())
   {
-    enableFileCompression = PlusCommon::IsEqualInsensitive(this->MetaData["EnableFileCompression"].second, "TRUE");
+    enableFileCompression = igsioCommon::IsEqualInsensitive(this->MetaData["EnableFileCompression"].second, "TRUE");
   }
   captureDevice->SetEnableFileCompression(enableFileCompression);
 
@@ -160,7 +160,7 @@ PlusStatus vtkPlusAddRecordingDeviceCommand::Execute()
   bool enableCapturingOnStart(true);
   if (this->MetaData.find("EnableCapturingOnStart") == end(this->MetaData) || this->MetaData["EnableCapturingOnStart"].second.empty())
   {
-    enableCapturingOnStart = PlusCommon::IsEqualInsensitive(this->MetaData["EnableCapturingOnStart"].second, "TRUE");
+    enableCapturingOnStart = igsioCommon::IsEqualInsensitive(this->MetaData["EnableCapturingOnStart"].second, "TRUE");
   }
   captureDevice->SetEnableCapturing(enableCapturingOnStart);
 

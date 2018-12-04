@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   std::string description;
   std::string destinationPath;
   int geometryId = -1;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
   int numFrames = DEFAULT_NUM_DATA_FRAMES;
 
   vtksys::CommandLineArguments args;
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (markerName.empty())
   {
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
+  LOG_INFO("Logging at level " << vtkIGSIOLogger::Instance()->GetLogLevel() << " (" << vtkIGSIOLogger::Instance()->GetLogLevelString() << ") to file: " << vtkIGSIOLogger::Instance()->GetLogFileName());
 
   // Connect to tracker
   ATRACSYS_RESULT result = Tracker.Connect();

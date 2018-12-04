@@ -25,7 +25,7 @@ vtkPlusOpenIGTLinkDevice::vtkPlusOpenIGTLinkDevice()
   , NumberOfRetryAttempts(3)   // try a few times, but adding of data items is blocked while trying to reconnect, so don't make it too long
   , DelayBetweenRetryAttemptsSec(0.100)   // there is already a delay with a CLIENT_SOCKET_TIMEOUT_MSEC timeout, so we just add a little extra idle delay
   , MessageFactory(vtkSmartPointer<vtkPlusIgtlMessageFactory>::New())
-  , SocketMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , SocketMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
   , ClientSocket(igtl::ClientSocket::New())
   , ReconnectOnReceiveTimeout(true)
   , UseReceivedTimestamps(true)
@@ -42,7 +42,7 @@ vtkPlusOpenIGTLinkDevice::~vtkPlusOpenIGTLinkDevice()
   {
     this->StopRecording();
   }
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket = NULL;
 }
 
@@ -80,7 +80,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalConnect()
   // Clear buffers on connect
   this->ClearAllBuffers();
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   if (this->ClientSocket->GetConnected())
   {
     return PLUS_SUCCESS;
@@ -94,7 +94,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusOpenIGTLinkDevice::Disconnect");
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket->CloseSocket();
   return this->StopRecording();
 }
@@ -120,7 +120,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
   LOG_DEBUG("Attempt to connect to client socket in device " << this->GetDeviceId());
 
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     if (this->ClientSocket->GetConnected())
     {
       this->ClientSocket->CloseSocket();
@@ -141,7 +141,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
 
   int errorCode = 0; // 0 means success
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     RETRY_UNTIL_TRUE(
       (errorCode = this->ClientSocket->ConnectToServer(this->ServerAddress.c_str(), this->ServerPort)) == 0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
@@ -157,7 +157,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ClientSocketReconnect()
     LOG_DEBUG("Client successfully connected to server (" << this->ServerAddress << ":" << this->ServerPort << ").");
   }
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   this->ClientSocket->SetReceiveTimeout(this->ReceiveTimeoutSec * 1000.0);   // *1000 because SetReceiveTimeout expects msec
   this->ClientSocket->SetSendTimeout(this->SendTimeoutSec * 1000.0);   // *1000 because SetSendTimeout expects msec
 
@@ -191,7 +191,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   // We need the following tool names from the server
   for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
   {
-    PlusTransformName tName(it->second->GetId());
+    igsioTransformName tName(it->second->GetId());
     clientInfo.TransformNames.push_back(tName);
   }
 
@@ -203,7 +203,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::SendRequestedMessageTypes()
   // Send message to server
   int retValue = 0;
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     RETRY_UNTIL_TRUE(
       (retValue = this->ClientSocket->Send(clientInfoMsg->GetBufferPointer(), clientInfoMsg->GetBufferSize())) != 0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
@@ -231,7 +231,7 @@ void vtkPlusOpenIGTLinkDevice::OnReceiveTimeout()
 //----------------------------------------------------------------------------
 void vtkPlusOpenIGTLinkDevice::ReceiveMessageHeaderWithErrorHandling(igtl::MessageHeader::Pointer& headerMsg)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
   PlusStatus socketStatus = ReceiveMessageHeader(headerMsg);
   if (socketStatus == PLUS_FAIL || !this->ClientSocket->GetConnected())
   {
@@ -255,7 +255,7 @@ PlusStatus vtkPlusOpenIGTLinkDevice::ReceiveMessageHeader(igtl::MessageHeader::P
 
   int numOfBytesReceived = 0;
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     RETRY_UNTIL_TRUE(
       (numOfBytesReceived = this->ClientSocket->Receive(headerMsg->GetBufferPointer(), headerMsg->GetBufferSize())) != 0,
       this->NumberOfRetryAttempts, this->DelayBetweenRetryAttemptsSec);
@@ -348,7 +348,7 @@ bool vtkPlusOpenIGTLinkDevice::SendMessage(igtl::MessageBase::Pointer packedMess
 {
   int success = 0;
   {
-    PlusLockGuard<vtkPlusRecursiveCriticalSection> socketGuard(this->SocketMutex);
+    igsioLockGuard<vtkIGSIORecursiveCriticalSection> socketGuard(this->SocketMutex);
     success = this->ClientSocket->Send(packedMessage->GetBufferPointer(), packedMessage->GetBufferSize());
   }
   if (!success)

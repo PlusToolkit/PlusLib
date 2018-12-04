@@ -7,12 +7,13 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "PlusMath.h"
 #include "vtkPlusTrackedFrameProcessor.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
+#include "igsioCommon.h"
 
 //----------------------------------------------------------------------------
-vtkCxxSetObjectMacro( vtkPlusTrackedFrameProcessor, InputFrames, vtkPlusTrackedFrameList );
-vtkCxxSetObjectMacro( vtkPlusTrackedFrameProcessor, TransformRepository, vtkPlusTransformRepository );
+vtkCxxSetObjectMacro( vtkPlusTrackedFrameProcessor, InputFrames, vtkIGSIOTrackedFrameList );
+vtkCxxSetObjectMacro( vtkPlusTrackedFrameProcessor, TransformRepository, vtkIGSIOTransformRepository );
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
@@ -20,7 +21,7 @@ vtkPlusTrackedFrameProcessor::vtkPlusTrackedFrameProcessor()
 {
   this->InputFrames = NULL;
   this->TransformRepository = NULL;
-  this->OutputFrames = vtkPlusTrackedFrameList::New();
+  this->OutputFrames = vtkIGSIOTrackedFrameList::New();
 }
 
 //----------------------------------------------------------------------------
@@ -65,7 +66,7 @@ PlusStatus vtkPlusTrackedFrameProcessor::Update()
   PlusStatus status = PLUS_SUCCESS;
   for ( unsigned int frameIndex = 0; frameIndex < this->InputFrames->GetNumberOfTrackedFrames(); frameIndex++ )
   {
-    PlusTrackedFrame* inputFrame = this->InputFrames->GetTrackedFrame( frameIndex );
+    igsioTrackedFrame* inputFrame = this->InputFrames->GetTrackedFrame( frameIndex );
 
     // Update the transform repository with the tracking information in the frame.
     // After this we can query any transform from the repository.
@@ -79,7 +80,7 @@ PlusStatus vtkPlusTrackedFrameProcessor::Update()
     // Create a clone of the input frame in the output buffer
     // TODO: not very efficient that we copy the image data as well, we could just instantiate an empty output frame
     this->OutputFrames->AddTrackedFrame( inputFrame );
-    PlusTrackedFrame* outputFrame = this->OutputFrames->GetTrackedFrame( this->OutputFrames->GetNumberOfTrackedFrames() - 1 ); // the last frame that just has been added
+    igsioTrackedFrame* outputFrame = this->OutputFrames->GetTrackedFrame( this->OutputFrames->GetNumberOfTrackedFrames() - 1 ); // the last frame that just has been added
 
     // Do the actual processing
     if ( this->ProcessFrame( inputFrame, outputFrame ) != PLUS_SUCCESS )

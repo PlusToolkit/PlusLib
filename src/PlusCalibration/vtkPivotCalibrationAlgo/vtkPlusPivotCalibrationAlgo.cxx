@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 
 #include "vtkPlusPivotCalibrationAlgo.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "PlusMath.h"
 
 #include "vtkObjectFactory.h"
@@ -155,7 +155,7 @@ PlusStatus vtkPlusPivotCalibrationAlgo::GetPivotPointPosition(double* pivotPoint
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusPivotCalibrationAlgo::DoPivotCalibration(vtkPlusTransformRepository* aTransformRepository/* = NULL*/)
+PlusStatus vtkPlusPivotCalibrationAlgo::DoPivotCalibration(vtkIGSIOTransformRepository* aTransformRepository/* = NULL*/)
 {
   if (this->MarkerToReferenceTransformMatrixArray.empty())
   {
@@ -242,10 +242,10 @@ PlusStatus vtkPlusPivotCalibrationAlgo::DoPivotCalibration(vtkPlusTransformRepos
   // Save result
   if (aTransformRepository)
   {
-    PlusTransformName pivotPointToMarkerTransformName(this->ObjectPivotPointCoordinateFrame, this->ObjectMarkerCoordinateFrame);
+    igsioTransformName pivotPointToMarkerTransformName(this->ObjectPivotPointCoordinateFrame, this->ObjectMarkerCoordinateFrame);
     aTransformRepository->SetTransform(pivotPointToMarkerTransformName, this->PivotPointToMarkerTransformMatrix);
     aTransformRepository->SetTransformPersistent(pivotPointToMarkerTransformName, true);
-    aTransformRepository->SetTransformDate(pivotPointToMarkerTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+    aTransformRepository->SetTransformDate(pivotPointToMarkerTransformName, vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
     aTransformRepository->SetTransformError(pivotPointToMarkerTransformName, this->CalibrationError);
   }
   else
@@ -316,7 +316,7 @@ void vtkPlusPivotCalibrationAlgo::ComputeCalibrationError()
 
   double mean = 0;
   double stdev = 0;
-  PlusMath::ComputeMeanAndStdev(errorValues, mean, stdev);
+  igsioMath::ComputeMeanAndStdev(errorValues, mean, stdev);
 
   this->CalibrationError = mean;
 }

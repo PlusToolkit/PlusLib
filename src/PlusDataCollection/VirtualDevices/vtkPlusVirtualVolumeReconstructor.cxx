@@ -5,13 +5,13 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkPlusVirtualVolumeReconstructor.h"
 #include "vtkPlusVolumeReconstructor.h"
 #include "vtksys/SystemTools.hxx"
@@ -33,13 +33,13 @@ vtkPlusVirtualVolumeReconstructor::vtkPlusVirtualVolumeReconstructor()
   , m_LastUpdateTime(0.0)
   , TotalFramesRecorded(0)
   , EnableReconstruction(false)
-  , VolumeReconstructorAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , VolumeReconstructorAccessMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
 {
   // The data capture thread will be used to regularly read the frames and write to disk
   this->StartThreadForInternalUpdates = true;
 
   this->VolumeReconstructor = vtkSmartPointer<vtkPlusVolumeReconstructor>::New();
-  this->TransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  this->TransformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
 }
 
 //----------------------------------------------------------------------------
@@ -62,7 +62,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::ReadConfiguration(vtkXMLDataElemen
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(OutputVolFilename, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(OutputVolDeviceName, deviceConfig);
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->ReadConfiguration(deviceConfig);
 
   return PLUS_SUCCESS;
@@ -78,7 +78,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::WriteConfiguration(vtkXMLDataEleme
   deviceElement->SetAttribute("OutputVolFilename", this->OutputVolFilename.c_str());
   deviceElement->SetAttribute("OutputVolDeviceName", this->OutputVolDeviceName.c_str());
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->WriteConfiguration(deviceElement);
 
   return PLUS_SUCCESS;
@@ -107,7 +107,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::InternalConnect()
     LOG_WARNING("vtkPlusVirtualVolumeReconstructor acquisition rate is not known");
   }
 
-  m_LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+  m_LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -130,13 +130,13 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::InternalUpdate()
 
   if (m_LastUpdateTime == 0.0)
   {
-    m_LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+    m_LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
   }
   if (m_NextFrameToBeRecordedTimestamp == 0.0)
   {
-    m_NextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    m_NextFrameToBeRecordedTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   }
-  double startTimeSec = vtkPlusAccurateTimer::GetSystemTime();
+  double startTimeSec = vtkIGSIOAccurateTimer::GetSystemTime();
 
   m_TimeWaited += startTimeSec - m_LastUpdateTime;
 
@@ -165,7 +165,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::InternalUpdate()
     LOG_WARNING("RequestedFrameRate is invalid, use default: " << 1 / requestedFramePeriodSec);
   }
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   if (!this->EnableReconstruction)
   {
     // While this thread was waiting for the unlock, capturing was disabled, so cancel the update now
@@ -179,7 +179,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::InternalUpdate()
   }
   vtkPlusChannel* outputChannel = this->OutputChannels[0];
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> recordedFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> recordedFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   if (outputChannel->GetTrackedFrameListSampled(m_LastAlreadyRecordedFrameTimestamp, m_NextFrameToBeRecordedTimestamp, recordedFrames, requestedFramePeriodSec, maxProcessingTimeSec) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error while getting tracked frame list from data collector during volume reconstruction. Last recorded timestamp: " << std::fixed << m_NextFrameToBeRecordedTimestamp);
@@ -195,20 +195,20 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::InternalUpdate()
   this->TotalFramesRecorded += nbFramesRecorded;
 
   // Check whether the reconstruction needed more time than the sampling interval
-  double recordingTimeSec = vtkPlusAccurateTimer::GetSystemTime() - startTimeSec;
+  double recordingTimeSec = vtkIGSIOAccurateTimer::GetSystemTime() - startTimeSec;
   if (recordingTimeSec > GetSamplingPeriodSec())
   {
     LOG_WARNING("Volume reconstruction of the acquired " << nbFramesRecorded << " frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << GetSamplingPeriodSec() << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the image acquisition rate, output size, or image clip rectangle size to resolve the problem.");
   }
-  double recordingLagSec = vtkPlusAccurateTimer::GetSystemTime() - m_NextFrameToBeRecordedTimestamp;
+  double recordingLagSec = vtkIGSIOAccurateTimer::GetSystemTime() - m_NextFrameToBeRecordedTimestamp;
 
   if (recordingLagSec > MAX_ALLOWED_RECONSTRUCTION_LAG_SEC)
   {
     LOG_ERROR("Volume reconstruction cannot keep up with the acquisition. Skip " << recordingLagSec << " seconds of the data stream to catch up.");
-    m_NextFrameToBeRecordedTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    m_NextFrameToBeRecordedTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   }
 
-  m_LastUpdateTime = vtkPlusAccurateTimer::GetSystemTime();
+  m_LastUpdateTime = vtkIGSIOAccurateTimer::GetSystemTime();
 
   return PLUS_SUCCESS;
 }
@@ -267,7 +267,7 @@ void vtkPlusVirtualVolumeReconstructor::SetEnableReconstruction(bool aValue)
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualVolumeReconstructor::Reset()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   this->VolumeReconstructor->Reset();
   return PLUS_SUCCESS;
 }
@@ -308,7 +308,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(con
     LOG_INFO(errorMessage);
     return PLUS_FAIL;
   }
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   std::string inputImageSeqFileFullPath = vtkPlusConfig::GetInstance()->GetOutputPath(inputSeqFilename);
   if (vtkPlusSequenceIO::Read(inputImageSeqFileFullPath, trackedFrameList) != PLUS_SUCCESS)
   {
@@ -317,7 +317,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(con
     return PLUS_FAIL;
   }
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
 
   // Determine volume extents automatically
   std::string errorDetail;
@@ -347,7 +347,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::GetReconstructedVolumeFromFile(con
 PlusStatus vtkPlusVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageData* reconstructedVolume, std::string& outErrorMessage, bool applyHoleFilling/*=true*/)
 {
   outErrorMessage.clear();
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
   bool oldFillHoles = this->VolumeReconstructor->GetFillHoles();
   if (!applyHoleFilling)
   {
@@ -369,9 +369,9 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::GetReconstructedVolume(vtkImageDat
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualVolumeReconstructor::AddFrames(vtkPlusTrackedFrameList* trackedFrameList)
+PlusStatus vtkPlusVirtualVolumeReconstructor::AddFrames(vtkIGSIOTrackedFrameList* trackedFrameList)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->VolumeReconstructorAccessMutex);
 
   PlusStatus status = PLUS_SUCCESS;
   const int numberOfFrames = trackedFrameList->GetNumberOfTrackedFrames();
@@ -379,7 +379,7 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::AddFrames(vtkPlusTrackedFrameList*
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex += this->VolumeReconstructor->GetSkipInterval())
   {
     LOG_TRACE("Adding frame to volume reconstructor: " << frameIndex);
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    igsioTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     if (this->TransformRepository->SetTransforms(*frame) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to update transform repository with frame #" << frameIndex);
@@ -422,7 +422,7 @@ double vtkPlusVirtualVolumeReconstructor::GetSamplingPeriodSec()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusVirtualVolumeReconstructor::UpdateTransformRepository(vtkPlusTransformRepository* sharedTransformRepository)
+PlusStatus vtkPlusVirtualVolumeReconstructor::UpdateTransformRepository(vtkIGSIOTransformRepository* sharedTransformRepository)
 {
   if (sharedTransformRepository == NULL)
   {

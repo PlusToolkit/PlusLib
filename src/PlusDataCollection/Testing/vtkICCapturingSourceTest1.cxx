@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--list-devices", vtksys::CommandLineArguments::NO_ARGUMENT, &listDevices, "Show the list of available devices, norms, formats, and frame sizes and exit");
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( printHelp ) 
   {

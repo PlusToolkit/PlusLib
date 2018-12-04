@@ -86,7 +86,7 @@ void vtkPlusGetPolydataCommand::GetCommandNames(std::list<std::string>& cmdNames
 std::string vtkPlusGetPolydataCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, GET_POLYDATA))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, GET_POLYDATA))
   {
     desc += GET_POLYDATA;
     desc += "Acquire the polydata.";
@@ -107,7 +107,7 @@ PlusStatus vtkPlusGetPolydataCommand::Execute()
                             + ", device: (" + (this->GetPolydataId().empty() ? "(undefined)" : this->GetPolydataId()) + ")";
 
   std::string errorString;
-  if (PlusCommon::IsEqualInsensitive(this->Name, GET_POLYDATA))
+  if (igsioCommon::IsEqualInsensitive(this->Name, GET_POLYDATA))
   {
     if (this->ExecutePolydataReply(errorString) != PLUS_SUCCESS)
     {

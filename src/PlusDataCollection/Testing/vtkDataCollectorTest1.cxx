@@ -11,7 +11,7 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusTrackedFrame.h"
+//#include "igsioTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusDataSource.h"
@@ -48,7 +48,7 @@ public:
   {
     vtkSmartPointer<vtkMatrix4x4> tFrame2Tracker = vtkSmartPointer<vtkMatrix4x4>::New();
 
-    PlusTrackedFrame trackedFrame;
+    igsioTrackedFrame trackedFrame;
     if (this->BroadcastChannel->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
     {
       LOG_WARNING("Unable to get tracked frame!");
@@ -108,7 +108,7 @@ public:
   vtkImageViewer* Viewer;
   vtkRenderWindowInteractor* RenderWindowInteractor;
   vtkTextActor* StepperTextActor;
-  PlusTransformName TransformName;
+  igsioTransformName TransformName;
   vtkImageData* ImageData;
   vtkPlusRfProcessor* RfProcessor;
 };
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
   bool inputRepeat(false);
   std::string inputSonixIp;
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {

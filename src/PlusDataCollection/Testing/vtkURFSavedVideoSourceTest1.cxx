@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_INFO;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_INFO;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--sonix-ip", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputSonixIp, "IP address of the Ultrasonix scanner (overrides the IP address parameter defined in the config file).");
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_DEBUG("Reading config file...");
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();

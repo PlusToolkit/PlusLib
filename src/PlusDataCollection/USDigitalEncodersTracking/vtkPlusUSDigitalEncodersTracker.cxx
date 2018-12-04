@@ -88,7 +88,7 @@ public:
 public:
   vtkSmartPointer<vtkMatrix4x4> ToolToEncoderMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkMatrix4x4> EncoderToReference = vtkSmartPointer<vtkMatrix4x4>::New();
-  PlusTransformName TransformName;
+  igsioTransformName TransformName;
   std::string PortName;
 };
 
@@ -343,7 +343,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalUpdate()
 
     // Device has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = tool->GetFrameNumber() + 1;
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     this->ToolTimeStampedUpdate(tool->GetId(),
                                 it->EncoderToReference, TOOL_OK, frameNumber, unfilteredTimestamp);
   }
@@ -414,7 +414,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::ReadConfiguration(vtkXMLDataElement*
       }
     }
 
-    PlusTransformName transformName(id, toAttribute);
+    igsioTransformName transformName(id, toAttribute);
     if(!transformName.IsValid())
     {
       LOG_ERROR("Invalid transform name (From: '" << id << "'  To: '" << toAttribute << "')");

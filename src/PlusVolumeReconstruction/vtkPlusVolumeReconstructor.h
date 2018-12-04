@@ -8,15 +8,16 @@
 #define __vtkPlusVolumeReconstructor_h
 
 #include "PlusConfigure.h"
+#include "igsioCommon.h"
 #include "vtkPlusVolumeReconstructionExport.h"
 #include "vtkPlusPasteSliceIntoVolume.h"
 #include "vtkImageAlgorithm.h"
 
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkPlusFanAngleDetectorAlgo;
 class vtkPlusFillHolesInVolume;
-class vtkPlusTrackedFrameList;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTrackedFrameList;
+//class vtkIGSIOTransformRepository;
 
 /*!
   \class vtkPlusVolumeReconstructor
@@ -61,9 +62,9 @@ public:
 
   /*!
     Automatically adjusts the reconstruced volume size to enclose all the
-    frames in the supplied vtkPlusTrackedFrameList. It clears the reconstructed volume.
+    frames in the supplied vtkIGSIOTrackedFrameList. It clears the reconstructed volume.
   */
-  virtual PlusStatus SetOutputExtentFromFrameList(vtkPlusTrackedFrameList* trackedFrameList, vtkPlusTransformRepository* transformRepository, std::string& errorDescription);
+  virtual PlusStatus SetOutputExtentFromFrameList(vtkIGSIOTrackedFrameList* trackedFrameList, vtkIGSIOTransformRepository* transformRepository, std::string& errorDescription);
 
   /*!
     Inserts the tracked frame into the volume. The origin, spacing, and extent of the output volume
@@ -71,7 +72,7 @@ public:
     or setting the OutputSpacing, OutputOrigin, and OutputExtent attributes in the configuration data
     element).
   */
-  virtual PlusStatus AddTrackedFrame(PlusTrackedFrame* frame, vtkPlusTransformRepository* transformRepository, bool* insertedIntoVolume = NULL);
+  virtual PlusStatus AddTrackedFrame(igsioTrackedFrame* frame, vtkIGSIOTransformRepository* transformRepository, bool* insertedIntoVolume = NULL);
 
   /*!
     Makes the reconstructed volume ready to be retrieved.
@@ -211,7 +212,7 @@ protected:
   void AddImageToExtent(vtkImageData* image, vtkMatrix4x4* imageToReference, double* extent_Ref);
 
   /*! Construct ImageToReference transform name from the image and reference coordinate frame member variables */
-  PlusStatus GetImageToReferenceTransformName(PlusTransformName& imageToReferenceTransformName);
+  PlusStatus GetImageToReferenceTransformName(igsioTransformName& imageToReferenceTransformName);
 
 protected:
   vtkPlusPasteSliceIntoVolume* Reconstructor;

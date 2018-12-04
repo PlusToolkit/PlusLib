@@ -6,7 +6,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
-#include "PlusTrackedFrame.h"
+//#include "igsioTrackedFrame.h"
 
 #include "vtkPlusFakeTracker.h"
 #include "vtkMatrix4x4.h"
@@ -69,7 +69,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Reference
-    PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Reference", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Reference in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -80,7 +80,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Stylus
-    PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Stylus in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -91,7 +91,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Stlyus-2
-    PlusTransformName sourceId("Stylus-2", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Stylus-2", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Stylus-2 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -102,7 +102,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Stlyus-3
-    PlusTransformName sourceId("Stylus-3", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Stylus-3", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Stylus-3 in FakeTracker Default mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -116,7 +116,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Probe
-    PlusTransformName sourceId("Probe", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Probe", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Probe in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -126,7 +126,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Reference
-    PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Reference", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Reference in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -136,7 +136,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check MissingTool
-    PlusTransformName sourceId("MissingTool", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("MissingTool", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: MissingTool in FakeTracker SmoothMove mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -148,7 +148,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Reference
-    PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Reference", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Reference in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -160,7 +160,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Stylus
-    PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Stylus in FakeTracker PivotCalibration mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -175,7 +175,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Reference
-    PlusTransformName sourceId("Reference", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Reference", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Reference in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -187,7 +187,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Stylus
-    PlusTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Stylus", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Stylus in FakeTracker RecordPhantomLandmarks mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -204,7 +204,7 @@ PlusStatus vtkPlusFakeTracker::InternalConnect()
   {
     //*************************************************************
     // Check Test
-    PlusTransformName sourceId("Test", this->GetToolReferenceFrameName());
+    igsioTransformName sourceId("Test", this->GetToolReferenceFrameName());
     if (this->GetTool(sourceId.GetTransformName(), tool) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to get tool: Test in FakeTracker ToolState mode, please add to config file: " << vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationFileName());
@@ -279,7 +279,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
   {
   case (FakeTrackerMode_Default): // Spins the tools around different axis to fake movement
   {
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     for (DataSourceContainerConstIterator it = this->GetToolIteratorBegin(); it != this->GetToolIteratorEnd(); ++it)
     {
       ToolStatus toolStatus = TOOL_OK;
@@ -327,7 +327,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
       toolStatus = TOOL_MISSING;
     }
 
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     double tx = (this->Frame % 100);  // 0 - 99
     double ty = (this->Frame % 100) + 100;  // 100 - 199
     double tz = (this->Frame % 100) + 200;  // 200 - 299
@@ -339,7 +339,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     this->InternalTransform->RotateY(ry);
     // Probe transform
     {
-      PlusTransformName name("Probe", this->GetToolReferenceFrameName());
+      igsioTransformName name("Probe", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
 
@@ -347,11 +347,11 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     this->InternalTransform->Translate(0, 0, 50);
     // Reference transform
     {
-      PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+      igsioTransformName name("Reference", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
     {
-      PlusTransformName name("MissingTool", this->GetToolReferenceFrameName());
+      igsioTransformName name("MissingTool", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), TOOL_MISSING, this->Frame, unfilteredTimestamp);
     }
 
@@ -366,7 +366,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
       toolStatus = TOOL_MISSING;
     }
 
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     double tx = sin(this->Frame / 100.0) * 20; // -20 - +20
     double ty = cos(this->Frame / 50.0) * 10 + 50; // 40 - 60
     double tz = abs(this->Frame % 100 - 50.0) + 100;  // 100 - 150
@@ -375,7 +375,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     this->InternalTransform->Translate(tx, ty, tz);
     // Probe transform
     {
-      PlusTransformName name("Probe", this->GetToolReferenceFrameName());
+      igsioTransformName name("Probe", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
 
@@ -383,11 +383,11 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     this->InternalTransform->Translate(5, -10, 1.5);
     // Reference transform
     {
-      PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+      igsioTransformName name("Reference", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
     {
-      PlusTransformName name("MissingTool", this->GetToolReferenceFrameName());
+      igsioTransformName name("MissingTool", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), this->InternalTransform->GetMatrix(), TOOL_MISSING, this->Frame, unfilteredTimestamp);
     }
 
@@ -411,7 +411,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     }
     */
 
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
     // create stationary position for reference (tool 0)
     vtkSmartPointer<vtkTransform> referenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
@@ -420,7 +420,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     referenceToTrackerTransform->RotateZ(90);
 
     {
-      PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+      igsioTransformName name("Reference", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
     // create random positions along a sphere (with built-in error)
@@ -452,7 +452,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
 
     random->Delete();
     {
-      PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
+      igsioTransformName name("Stylus", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
     break;
@@ -460,7 +460,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
   case (FakeTrackerMode_RecordPhantomLandmarks): // Touches some positions with 1 sec difference
   {
     ToolStatus toolStatus = TOOL_OK;
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
     // create stationary position for phantom reference (tool 0)
     vtkSmartPointer<vtkTransform> referenceToTrackerTransform = vtkSmartPointer<vtkTransform>::New();
@@ -470,7 +470,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     referenceToTrackerTransform->RotateZ(90);
 
     {
-      PlusTransformName name("Reference", this->GetToolReferenceFrameName());
+      igsioTransformName name("Reference", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), referenceToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
     // touch landmark points
@@ -491,7 +491,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     if (this->TransformRepository)
     {
       vtkSmartPointer<vtkMatrix4x4> stylusToStylusTipTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      PlusTransformName stylusToStylusTipTransformName("Stylus", "StylusTip");
+      igsioTransformName stylusToStylusTipTransformName("Stylus", "StylusTip");
       if (this->TransformRepository->GetTransform(stylusToStylusTipTransformName, stylusToStylusTipTransformMatrix) == PLUS_SUCCESS)
       {
         stylusToStylusTipTransform->Concatenate(stylusToStylusTipTransformMatrix);
@@ -519,7 +519,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     stylusToTrackerTransform->Concatenate(stylusToStylusTipTransform); // Un-calibrate it
 
     {
-      PlusTransformName name("Stylus", this->GetToolReferenceFrameName());
+      igsioTransformName name("Stylus", this->GetToolReferenceFrameName());
       this->ToolTimeStampedUpdate(name.GetTransformName().c_str(), stylusToTrackerTransform->GetMatrix(), toolStatus, this->Frame, unfilteredTimestamp);
     }
   }
@@ -542,7 +542,7 @@ PlusStatus vtkPlusFakeTracker::InternalUpdate()
     default:
       break;
     }
-    const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
     // create stationary position for phantom reference (tool 0)
     vtkSmartPointer<vtkTransform> identityTransform = vtkSmartPointer<vtkTransform>::New();

@@ -59,20 +59,20 @@ PlusStatus vtkPlusMicrochipTracker::InternalDisconnect()
 PlusStatus vtkPlusMicrochipTracker::InternalUpdate()
 {
   // Either update or send commands - but not simultaneously
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   std::string textReceived;
-  double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   // Determine the maximum time to spend in the loop (acquisition time period, but maximum 1 sec)
   double maxReadTimeSec = (this->AcquisitionRate < 1.0) ? 1.0 : 1 / this->AcquisitionRate;
-  double startTime = vtkPlusAccurateTimer::GetSystemTime();
+  double startTime = vtkIGSIOAccurateTimer::GetSystemTime();
   while (this->Serial->GetNumberOfBytesAvailableForReading() > 0)
   {
-    unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+    unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
     ReceiveResponse(textReceived);
     //LOG_DEBUG("Received from serial device: "<<textReceived);
-    if (vtkPlusAccurateTimer::GetSystemTime() - startTime > maxReadTimeSec)
+    if (vtkIGSIOAccurateTimer::GetSystemTime() - startTime > maxReadTimeSec)
     {
       // force exit from the loop if continuously receiving data
       break;

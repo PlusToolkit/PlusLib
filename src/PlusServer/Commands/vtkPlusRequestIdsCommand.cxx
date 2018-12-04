@@ -66,22 +66,22 @@ void vtkPlusRequestIdsCommand::GetCommandNames(std::list<std::string>& cmdNames)
 std::string vtkPlusRequestIdsCommand::GetDescription(const std::string& commandName)
 {
   std::string desc;
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, REQUEST_CHANNEL_IDS_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, REQUEST_CHANNEL_IDS_CMD))
   {
     desc += REQUEST_CHANNEL_IDS_CMD;
     desc += ": Request the list of channels for all devices.";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, REQUEST_DEVICE_IDS_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, REQUEST_DEVICE_IDS_CMD))
   {
     desc += REQUEST_DEVICE_IDS_CMD;
     desc += ": Request the list of devices. Attributes: DeviceType: restrict the returned list of devices to a specific type (VirtualCapture, VirtualVolumeReconstructor, etc.)";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, REQUEST_INPUT_DEVICE_IDS_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, REQUEST_INPUT_DEVICE_IDS_CMD))
   {
     desc += REQUEST_INPUT_DEVICE_IDS_CMD;
     desc += ": Request the list of devices that are used as input to the requested device. Attributes: DeviceId: the id of the device to query.";
   }
-  if (commandName.empty() || PlusCommon::IsEqualInsensitive(commandName, REQUEST_DEVICE_CHANNEL_IDS_CMD))
+  if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, REQUEST_DEVICE_CHANNEL_IDS_CMD))
   {
     desc += REQUEST_DEVICE_CHANNEL_IDS_CMD;
     desc += ": Request the list of channels for a given device. Attributes: DeviceId: the id of the device to query.";
@@ -154,7 +154,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     return (vtkPlusDevice*)nullptr;
   };
 
-  if (PlusCommon::IsEqualInsensitive(this->Name, REQUEST_CHANNEL_IDS_CMD))
+  if (igsioCommon::IsEqualInsensitive(this->Name, REQUEST_CHANNEL_IDS_CMD))
   {
     std::string responseMessage;
     bool addSeparator = false;
@@ -195,7 +195,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, REQUEST_DEVICE_IDS_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, REQUEST_DEVICE_IDS_CMD))
   {
     std::string responseMessage;
     bool addSeparator = false;
@@ -248,7 +248,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", &keyValuePairs);
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, REQUEST_INPUT_DEVICE_IDS_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, REQUEST_INPUT_DEVICE_IDS_CMD))
   {
     if (!this->DeviceId.empty())
     {
@@ -281,7 +281,7 @@ PlusStatus vtkPlusRequestIdsCommand::Execute()
     this->QueueCommandResponse(PLUS_SUCCESS, oss.str(), "", nullptr);
     return PLUS_SUCCESS;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->Name, REQUEST_DEVICE_CHANNEL_IDS_CMD))
+  else if (igsioCommon::IsEqualInsensitive(this->Name, REQUEST_DEVICE_CHANNEL_IDS_CMD))
   {
     auto device = _FindDevice(aCollection);
     if (device == nullptr)

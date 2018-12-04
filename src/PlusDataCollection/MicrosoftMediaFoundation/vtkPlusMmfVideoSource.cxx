@@ -137,7 +137,7 @@ STDMETHODIMP MmfVideoSourceReader::OnFlush(DWORD)
 //----------------------------------------------------------------------------
 STDMETHODIMP MmfVideoSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample)
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->PlusDevice->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->PlusDevice->Mutex);
 
   if (!SUCCEEDED(hrStatus))
   {
@@ -186,13 +186,13 @@ STDMETHODIMP MmfVideoSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
     GUID videoFormat = DEFAULT_PIXEL_TYPE;
     pType->GetGUID(MF_MT_SUBTYPE, &videoFormat);
     std::wstring videoFormatWStr = MfVideoCapture::FormatReader::StringFromGUID(videoFormat);
-    if (PlusCommon::HasSubstrInsensitive(videoFormatWStr, MF_VIDEO_FORMAT_PREFIX))
+    if (igsioCommon::HasSubstrInsensitive(videoFormatWStr, MF_VIDEO_FORMAT_PREFIX))
     {
       // found standard prefix, remove it
       videoFormatWStr.erase(0, MF_VIDEO_FORMAT_PREFIX.size());
     }
 
-    if (!PlusCommon::IsEqualInsensitive(videoFormatWStr, this->PlusDevice->ActiveVideoFormat.PixelFormatName))
+    if (!igsioCommon::IsEqualInsensitive(videoFormatWStr, this->PlusDevice->ActiveVideoFormat.PixelFormatName))
     {
       LOG_ERROR_W("Unexpected video format: " << videoFormatWStr << " (expected: " << this->PlusDevice->ActiveVideoFormat.PixelFormatName << ")");
       return S_FALSE;
@@ -245,7 +245,7 @@ vtkStandardNewMacro(vtkPlusMmfVideoSource);
 //----------------------------------------------------------------------------
 vtkPlusMmfVideoSource::vtkPlusMmfVideoSource()
   : FrameIndex(0)
-  , Mutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
+  , Mutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
 {
   this->MmfSourceReader = new MmfVideoSourceReader(this);
   this->RequireImageOrientationInConfiguration = true;
@@ -283,7 +283,7 @@ void vtkPlusMmfVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMmfVideoSource::InternalConnect()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   if (this->MmfSourceReader->RefCount != 0)
   {
@@ -351,7 +351,7 @@ PlusStatus vtkPlusMmfVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMmfVideoSource::InternalDisconnect()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().CloseDevice(this->ActiveVideoFormat.DeviceId);
   this->MmfSourceReader->CaptureSource = NULL;
@@ -362,7 +362,7 @@ PlusStatus vtkPlusMmfVideoSource::InternalDisconnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusMmfVideoSource::InternalStartRecording()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   HRESULT hr;
   if (this->MmfSourceReader->CaptureSource != NULL)
@@ -415,7 +415,7 @@ PlusStatus vtkPlusMmfVideoSource::InternalStopRecording()
 {
   LOG_DEBUG("vtkPlusMmfVideoSource::InternalStopRecording");
 
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
 
   MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().StopRecording(this->ActiveVideoFormat.DeviceId);
 
@@ -573,7 +573,7 @@ void vtkPlusMmfVideoSource::GetListOfCaptureVideoFormats(std::vector<std::wstrin
     {
       MfVideoCapture::MediaType type = MfVideoCapture::MediaFoundationVideoCaptureApi::GetInstance().GetFormat(deviceId, streamIndex, formatIndex);
       std::wstring pixelType(type.MF_MT_SUBTYPEName.begin(), type.MF_MT_SUBTYPEName.end());
-      if (PlusCommon::HasSubstrInsensitive(pixelType, MF_VIDEO_FORMAT_PREFIX))
+      if (igsioCommon::HasSubstrInsensitive(pixelType, MF_VIDEO_FORMAT_PREFIX))
       {
         // found standard prefix, remove it
         pixelType.erase(0, MF_VIDEO_FORMAT_PREFIX.size());
@@ -618,7 +618,7 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
 
   PlusStatus decodingStatus(PLUS_SUCCESS);
   PixelCodec::PixelEncoding encoding(PixelCodec::PixelEncoding_ERROR);
-  if (PlusCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"YUY2"))
+  if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"YUY2"))
   {
     if (bufferSize < frameSize[0] * frameSize[1] * 2)
     {
@@ -627,11 +627,11 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
     }
     encoding = PixelCodec::PixelEncoding_YUY2;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"MJPG"))
+  else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"MJPG"))
   {
     encoding = PixelCodec::PixelEncoding_MJPG;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"RGB24"))
+  else if (igsioCommon::IsEqualInsensitive(this->ActiveVideoFormat.PixelFormatName, L"RGB24"))
   {
     if (bufferSize < frameSize[0] * frameSize[1] * 3)
     {

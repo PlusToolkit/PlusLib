@@ -176,7 +176,7 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   vtkPlusOpenHapticsDevice* client = reinterpret_cast<vtkPlusOpenHapticsDevice*>(pData);
   HHD handle = client->DeviceHandle;
 
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
   ++client->FrameNumber;
 
   HDdouble force[3];

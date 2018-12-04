@@ -32,9 +32,9 @@ See License.txt for details.
 #endif
 
 class vtkXMLDataElement;
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkPolyData;
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 
 /*!
 \class vtkPlusIgtlMessageCommon
@@ -52,54 +52,54 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Pack tracked frame message from tracked frame */
-  static PlusStatus PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, PlusTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform, const std::vector<PlusTransformName>& requestedTransforms);
+  static PlusStatus PackTrackedFrameMessage(igtl::PlusTrackedFrameMessage::Pointer trackedFrameMessage, igsioTrackedFrame& trackedFrame, vtkSmartPointer<vtkMatrix4x4> embeddedImageTransform, const std::vector<igsioTransformName>& requestedTransforms);
 
   /*! Unpack tracked frame message to tracked frame */
-  static PlusStatus UnpackTrackedFrameMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck);
+  static PlusStatus UnpackTrackedFrameMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, igsioTrackedFrame& trackedFrame, const igsioTransformName& embeddedTransformName, int crccheck);
 
   /*! Pack US message from tracked frame */
-  static PlusStatus PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, PlusTrackedFrame& trackedFrame);
+  static PlusStatus PackUsMessage(igtl::PlusUsMessage::Pointer usMessage, igsioTrackedFrame& trackedFrame);
 
   /*! Unpack US message to tracked frame */
-  static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, int crccheck);
+  static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, igsioTrackedFrame& trackedFrame, int crccheck);
 
   /*! Pack image message from tracked frame */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, PlusTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform);
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform);
 
   /*! Pack image message from vtkImageData volume */
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, const vtkMatrix4x4& imageToReferenceTransform, double timestamp);
 
   /*! Unpack image message to tracked frame */
-  static PlusStatus UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, PlusTrackedFrame& trackedFrame, const PlusTransformName& embeddedTransformName, int crccheck);
+  static PlusStatus UnpackImageMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, igsioTrackedFrame& trackedFrame, const igsioTransformName& embeddedTransformName, int crccheck);
 
   /*! Pack image meta deta message from vtkPlusServer::ImageMetaDataList  */
-  static PlusStatus PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage, PlusCommon::ImageMetaDataList& imageMetaDataList);
+  static PlusStatus PackImageMetaMessage(igtl::ImageMetaMessage::Pointer imageMetaMessage, igsioCommon::ImageMetaDataList& imageMetaDataList);
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   /*! Pack video message from tracked frame */
-  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, PlusTrackedFrame& trackedFrame, igtl::GenericEncoder* encoder, const vtkMatrix4x4& videoToReferenceTransform);
+  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, igsioTrackedFrame& trackedFrame, igtl::GenericEncoder* encoder, const vtkMatrix4x4& videoToReferenceTransform);
 #endif
 
   /*! Pack transform message from tracked frame */
-  static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, PlusTransformName& transformName,
+  static PlusStatus PackTransformMessage(igtl::TransformMessage::Pointer transformMessage, igsioTransformName& transformName,
                                          igtl::Matrix4x4& igtlMatrix, ToolStatus status, double timestamp);
 
   /*! Pack poly data message from polydata */
   static PlusStatus PackPolyDataMessage(igtl::PolyDataMessage::Pointer polydataMessage, vtkSmartPointer<vtkPolyData> polyData, double timestamp);
 
   /*! Pack data message from tracked frame */
-  static PlusStatus PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer tdataMessage, const std::vector<PlusTransformName>& names, const vtkPlusTransformRepository& repository, double timestamp);
+  static PlusStatus PackTrackingDataMessage(igtl::TrackingDataMessage::Pointer tdataMessage, const std::vector<igsioTransformName>& names, const vtkIGSIOTransformRepository& repository, double timestamp);
 
   /*! Unpack data message */
   static PlusStatus UnpackTrackingDataMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
-      std::vector<PlusTransformName>& names, vtkPlusTransformRepository& repository, double& timestamp, int crccheck);
+      std::vector<igsioTransformName>& names, vtkIGSIOTransformRepository& repository, double& timestamp, int crccheck);
 
   /*! Unpack transform message */
   static PlusStatus UnpackTransformMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket,
       vtkMatrix4x4* transformMatrix, ToolStatus& toolStatus, std::string& transformName, double& timestamp, int crccheck);
 
   /*! Pack position message from tracked frame */
-  static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, PlusTransformName& transformName, ToolStatus status,
+  static PlusStatus PackPositionMessage(igtl::PositionMessage::Pointer positionMessage, igsioTransformName& transformName, ToolStatus status,
                                         float position[3], float quaternion[4], double timestamp);
 
   /*! Unpack position message */
@@ -111,7 +111,7 @@ public:
 
 
   /*! Generate igtl::Matrix4x4 with the selected transform name from the transform repository */
-  static PlusStatus GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkPlusTransformRepository* transformRepository, PlusTransformName& transformName);
+  static PlusStatus GetIgtlMatrix(igtl::Matrix4x4& igtlMatrix, vtkIGSIOTransformRepository* transformRepository, igsioTransformName& transformName);
 
 protected:
   vtkPlusIgtlMessageCommon();

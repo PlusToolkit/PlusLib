@@ -8,7 +8,7 @@ See License.txt for details.
 #define __vtkPlus3dConnexionTracker_h
 
 #include "vtkPlusDataCollectionExport.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 #include "vtkPlusDevice.h"
 
 class vtkPlusDataSource;
@@ -106,7 +106,7 @@ private:  // Variables.
   OperatingModeType OperatingMode;
 
   /*! Mutex instance simultaneous access of mouse pose transform (LatestMouseTransform) from the tracker and the main thread */
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> Mutex;
 
   std::string CaptureWindowClassName;
   HWND CaptureWindowHandle;

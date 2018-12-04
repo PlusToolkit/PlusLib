@@ -7,7 +7,7 @@
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 
 #include "vtkPlusBrachyStepperPhantomRegistrationAlgo.h"
 #include "vtkDoubleArray.h"
@@ -16,9 +16,9 @@
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPoints.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkVariantArray.h"
 
 #include "vtksys/SystemTools.hxx"
@@ -28,7 +28,7 @@
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo);
-vtkCxxSetObjectMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkPlusTransformRepository);
+vtkCxxSetObjectMacro(vtkPlusBrachyStepperPhantomRegistrationAlgo, TransformRepository, vtkIGSIOTransformRepository);
 
 //----------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ void vtkPlusBrachyStepperPhantomRegistrationAlgo::PrintSelf(ostream& os, vtkInde
 
 
 //----------------------------------------------------------------------------
-void vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkPlusTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkPlusTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires)
+void vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs(vtkIGSIOTrackedFrameList* trackedFrameList, double spacing[2], double centerOfRotationPx[2], vtkIGSIOTransformRepository* transformRepository, const std::vector<PlusNWire>& nWires)
 {
   LOG_TRACE("vtkPlusBrachyStepperPhantomRegistrationAlgo::SetInputs");
   this->SetTrackedFrameList(trackedFrameList);
@@ -125,7 +125,7 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
   }
 
   // Check if TrackedFrameList is MF oriented BRIGHTNESS image
-  if (vtkPlusTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
+  if (vtkIGSIOTrackedFrameList::VerifyProperties(this->TrackedFrameList, US_IMG_ORIENT_MF, US_IMG_BRIGHTNESS) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to perform calibration - tracked frame list is invalid");
     return PLUS_FAIL;
@@ -145,7 +145,7 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
   for (unsigned int index = 0; index < this->TrackedFrameList->GetNumberOfTrackedFrames(); ++index)
   {
     // Get tracked frame from list
-    PlusTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(index);
+    igsioTrackedFrame* trackedFrame = this->TrackedFrameList->GetTrackedFrame(index);
 
     if (trackedFrame->GetFiducialPointsCoordinatePx() == NULL)
     {
@@ -242,10 +242,10 @@ PlusStatus vtkPlusBrachyStepperPhantomRegistrationAlgo::Update()
   // Save result
   if (this->TransformRepository)
   {
-    PlusTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
+    igsioTransformName phantomToReferenceTransformName(this->PhantomCoordinateFrame, this->ReferenceCoordinateFrame);
     this->TransformRepository->SetTransform(phantomToReferenceTransformName, this->PhantomToReferenceTransformMatrix);
     this->TransformRepository->SetTransformPersistent(phantomToReferenceTransformName, true);
-    this->TransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkPlusAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
+    this->TransformRepository->SetTransformDate(phantomToReferenceTransformName, vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString().c_str());
     this->TransformRepository->SetTransformError(phantomToReferenceTransformName, -1);   //TODO
   }
   else

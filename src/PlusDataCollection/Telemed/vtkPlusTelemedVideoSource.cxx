@@ -192,7 +192,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
     aSource->SetInputFrameSize(frameSizeInPix);
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-              << ", buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+              << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
     this->UncompressedVideoFrame.SetImageType(aSource->GetImageType());
     this->UncompressedVideoFrame.SetImageOrientation(aSource->GetInputImageOrientation());
   }

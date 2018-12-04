@@ -45,7 +45,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 #include "vtkPlusVolumeReconstructionExport.h"
 
-class PlusTrackedFrame;
+//class igsioTrackedFrame; 
 class vtkImageData;
 class vtkMatrix4x4;
 class vtkXMLDataElement;

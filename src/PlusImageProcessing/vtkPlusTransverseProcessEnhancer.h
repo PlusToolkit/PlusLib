@@ -32,7 +32,7 @@ public:
   virtual const char* GetProcessorTypeName() { return "vtkPlusTransverseProcessEnhancer"; };
 
   /*! Process input frame to localize transverse process bone surfaces */
-  PlusStatus ProcessFrame(PlusTrackedFrame* inputFrame, PlusTrackedFrame* outputFrame);
+  PlusStatus ProcessFrame(igsioTrackedFrame* inputFrame, igsioTrackedFrame* outputFrame);
 
   void RemoveOffCameraBones(vtkSmartPointer<vtkImageData> inputImage);
 

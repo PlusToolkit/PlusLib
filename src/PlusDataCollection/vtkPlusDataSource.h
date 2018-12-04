@@ -194,7 +194,7 @@ public:
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -202,11 +202,11 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const PlusVideoFrame* frame,
+  virtual PlusStatus AddItem(const igsioVideoFrame* frame,
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -219,14 +219,14 @@ public:
   virtual PlusStatus AddItem(void* imageDataPtr,
                              US_IMAGE_ORIENTATION usImageOrientation,
                              const FrameSizeType& frameSizeInPx,
-                             PlusCommon::VTKScalarPixelType pixelType,
+                             igsioCommon::VTKScalarPixelType pixelType,
                              unsigned int numberOfScalarComponents,
                              US_IMAGE_TYPE imageType,
                              int numberOfBytesToSkip,
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -243,7 +243,7 @@ public:
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const PlusTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*!
     Add custom fields to the new item
@@ -251,14 +251,14 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const PlusTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP, double filteredTimestamp = UNDEFINED_TIMESTAMP);
+  virtual PlusStatus AddItem(const igsioTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP, double filteredTimestamp = UNDEFINED_TIMESTAMP);
 
   /*!
   Add a matrix plus status to the list, with an exactly known timestamp value (e.g., provided by a high-precision hardware timer).
   If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
   If filteredTiemstamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
   */
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp = UNDEFINED_TIMESTAMP, const PlusTrackedFrame::FieldMapType* customFields = NULL);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
 
   /*! Get the device which owns this source. */
   // TODO : consider a re-design of this idea
@@ -272,9 +272,9 @@ public:
   PlusStatus SetPortName(const char* portName);
 
   /*! Set the pixel type */
-  PlusStatus SetPixelType(PlusCommon::VTKScalarPixelType pixelType);
+  PlusStatus SetPixelType(igsioCommon::VTKScalarPixelType pixelType);
   /*! Get the pixel type */
-  virtual PlusCommon::VTKScalarPixelType GetPixelType();
+  virtual igsioCommon::VTKScalarPixelType GetPixelType();
 
   /*! Set the number of scalar components */
   PlusStatus SetNumberOfScalarComponents(unsigned int numberOfScalarComponents);

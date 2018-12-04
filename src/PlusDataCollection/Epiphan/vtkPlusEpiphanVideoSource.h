@@ -8,7 +8,7 @@
 #define __vtkPlusEpiphanVideoSource_h
 
 // Local includes
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 

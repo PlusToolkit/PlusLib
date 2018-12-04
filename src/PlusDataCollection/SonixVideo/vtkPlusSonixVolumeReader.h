@@ -12,7 +12,7 @@
 
 #include "vtkImageAlgorithm.h" 
 
-class vtkPlusTrackedFrameList; 
+//class vtkIGSIOTrackedFrameList; 
 
 /*!
   \class vtkPlusSonixVolumeReader 
@@ -27,7 +27,7 @@ public:
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Read a volume from Ultrasonix format (.b8, .b32, .bpr, .rf) and convert it to tracked frame */
-  static PlusStatus GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkPlusTrackedFrameList* trackedFrameList, double acquisitionFrameRate = 10); 
+  static PlusStatus GenerateTrackedFrameFromSonixVolume(const char* volumeFileName, vtkIGSIOTrackedFrameList* trackedFrameList, double acquisitionFrameRate = 10); 
 
 protected:
   /*! Constructor */

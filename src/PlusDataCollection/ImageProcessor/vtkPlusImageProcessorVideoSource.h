@@ -12,7 +12,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include <string>
 
-class vtkPlusTransformRepository;
+//class vtkIGSIOTransformRepository;
 class vtkPlusTrackedFrameProcessor;
 
 /*!
@@ -60,12 +60,12 @@ protected:
     This repository stores all fixed (persistent) transforms, such as calibration matrices.
     It is initialized once, ReadConfig and not updated if calibration transforms are changed in the application's global transform repository.
   */
-  vtkPlusTransformRepository* TransformRepository;
+  vtkIGSIOTransformRepository* TransformRepository;
 
   /*! Mutex instance simultaneous access of the processing algorithm (writer may be accessed from command processing thread and also the internal update thread) */ 
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> ProcessingAlgorithmAccessMutex;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> ProcessingAlgorithmAccessMutex;
 
-  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
+  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
 
   vtkPlusTrackedFrameProcessor* ProcessorAlgorithm;
 

@@ -10,7 +10,7 @@
 #include "vtkPlusServerExport.h"
 
 #include "vtkPlusCommand.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 
 class vtkPlusStealthLinkTracker;
 

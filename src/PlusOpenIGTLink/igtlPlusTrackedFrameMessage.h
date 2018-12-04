@@ -9,7 +9,7 @@
 
 #include "vtkPlusOpenIGTLinkExport.h"
 
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "igtl_types.h"
 #include "igtl_win32header.h"
 #include "igtlMessageBase.h"
@@ -41,10 +41,10 @@ namespace igtl
     virtual igtl::MessageBase::Pointer Clone();
 
     /*! Set Plus TrackedFrame */
-    PlusStatus SetTrackedFrame(const PlusTrackedFrame& trackedFrame, const std::vector<PlusTransformName>& requestedTransforms);
+    PlusStatus SetTrackedFrame(const igsioTrackedFrame& trackedFrame, const std::vector<igsioTransformName>& requestedTransforms);
 
     /*! Get Plus TrackedFrame */
-    PlusTrackedFrame GetTrackedFrame();
+    igsioTrackedFrame GetTrackedFrame();
 
     /*! Set the embedded transform of the underlying image */
     PlusStatus SetEmbeddedImageTransform(vtkSmartPointer<vtkMatrix4x4> matrix);
@@ -122,7 +122,7 @@ namespace igtl
     PlusTrackedFrameMessage();
     ~PlusTrackedFrameMessage();
 
-    PlusTrackedFrame m_TrackedFrame;
+    igsioTrackedFrame m_TrackedFrame;
     std::string m_TrackedFrameXmlData;
 
     TrackedFrameHeader m_MessageHeader;

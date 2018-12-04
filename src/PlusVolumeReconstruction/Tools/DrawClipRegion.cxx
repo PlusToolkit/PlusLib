@@ -6,12 +6,12 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "PlusCommon.h"
+#include "igsioCommon.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
-#include "PlusVideoFrame.h"
+#include "igsioTrackedFrame.h"
+#include "igsioVideoFrame.h"
 #include "vtkPlusSequenceIO.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusVolumeReconstructor.h"
 
 // VTK includes
@@ -68,8 +68,8 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
                                          static_cast<int>(std::round(fanOrigin[1] + startRadius * cos(fanAnglesRad[1]))),
                                          0
                                        };
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointLeft, numberOfPointsForDrawing);
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPointRight, numberOfPointsForDrawing);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPointLeft, numberOfPointsForDrawing);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPointRight, numberOfPointsForDrawing);
   }
   // side lines from start to stop radius
   {
@@ -83,7 +83,7 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
                                       static_cast<int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[0]))),
                                       0
                                     };
-      PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
+      igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
     }
 
     {
@@ -95,7 +95,7 @@ void DrawFan(vtkImageData* imageData, double* fanOrigin, double startRadius, dou
                                       static_cast<int>(std::round(fanOrigin[1] + stopRadius * cos(fanAnglesRad[1]))),
                                       0
                                     };
-      PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
+      igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPointsForDrawing);
     }
   }
   // circle sectors at start and stop radius
@@ -125,7 +125,7 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
                                     static_cast<int>(std::round(clipRectangleOrigin[1])),
                                     0
                                   };
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
   {
     std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0])),
@@ -136,7 +136,7 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
                                     static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
                                     0
                                   };
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
 
   // Vertical lines
@@ -149,7 +149,7 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
                                     static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
                                     0
                                   };
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
   {
     std::array<int, 3> startPoint = { static_cast<int>(std::round(clipRectangleOrigin[0] + clipRectangleSize[0] - 1)),
@@ -160,7 +160,7 @@ void DrawClipRectangle(vtkImageData* imageData, vtkPlusVolumeReconstructor* reco
                                     static_cast<int>(std::round(clipRectangleOrigin[1] + clipRectangleSize[1] - 1)),
                                     0
                                   };
-    PlusCommon::DrawLine(*imageData, DRAWING_COLOR, PlusCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
+    igsioCommon::DrawLine(*imageData, DRAWING_COLOR, igsioCommon::LINE_STYLE_DOTS, startPoint, endPoint, numberOfPoints);
   }
 }
 
@@ -210,7 +210,7 @@ int main(int argc, char** argv)
   std::string inputImgSeqFileName;
   std::string outputImgSeqFileName;
   std::string inputConfigFileName;
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -235,7 +235,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Fail if no ultrasound image file specified
   if (inputImgSeqFileName.empty())
@@ -251,7 +251,7 @@ int main(int argc, char** argv)
   }
 
   // Read the image sequence
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   if (vtkPlusSequenceIO::Read(inputImgSeqFileName, trackedFrameList) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to load input sequences file.");
@@ -283,7 +283,7 @@ int main(int argc, char** argv)
   LOG_INFO("Processing " << numberOfFrames << " frames...");
   for (int frameIndex = 0; frameIndex < numberOfFrames; frameIndex++)
   {
-    PlusTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
+    igsioTrackedFrame* frame = trackedFrameList->GetTrackedFrame(frameIndex);
     vtkImageData* imageData = frame->GetImageData()->GetImage();
     DrawClipRectangle(imageData, reconstructor);
     DrawClipFan(imageData, reconstructor);

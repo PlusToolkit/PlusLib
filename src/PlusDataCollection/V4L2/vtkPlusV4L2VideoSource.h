@@ -108,7 +108,7 @@ protected:
   FrameBuffer*                        FrameBuffers;
   unsigned int                        BufferCount;
   vtkPlusDataSource*                  DataSource;
-  PlusTrackedFrame::FieldMapType      FrameFields;
+  igsioTrackedFrame::FieldMapType      FrameFields;
   std::shared_ptr<struct v4l2_format> DeviceFormat;
 
   // Cached state variable (duplicate of DeviceFormat members, for passing to Plus functions)

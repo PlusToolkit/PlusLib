@@ -19,10 +19,10 @@
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkPlusProbeCalibrationAlgo.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkPlusSpacingCalibAlgo.h"
-#include "vtkPlusTrackedFrameList.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx" 
@@ -46,7 +46,7 @@ int main (int argc, char* argv[])
   double inputTranslationErrorThreshold(1e-10); 
   double inputRotationErrorThreshold(1e-10); 
 
-  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -69,7 +69,7 @@ int main (int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Read configuration
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
@@ -85,8 +85,8 @@ int main (int argc, char* argv[])
   patternRecognition.ReadConfiguration(configRootElement);
 
   LOG_INFO("Reading probe rotation data from sequence metafile..."); 
-  vtkSmartPointer<vtkPlusTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New(); 
-  if( vtkPlusSequenceIO::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> probeRotationTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New(); 
+  if( vtkIGSIOSequenceIO::Read(inputProbeRotationSeqMetafile, probeRotationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read sequence metafile: " << inputProbeRotationSeqMetafile); 
     return EXIT_FAILURE;
@@ -138,7 +138,7 @@ int main (int argc, char* argv[])
   }
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if ( transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!"); 
@@ -162,8 +162,8 @@ int main (int argc, char* argv[])
   }
 
   // Load and segment validation tracked frame list
-  vtkSmartPointer<vtkPlusTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> validationTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if( vtkIGSIOSequenceIO::Read(inputValidationSeqMetafile, validationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputValidationSeqMetafile ); 
     return EXIT_FAILURE; 
@@ -177,8 +177,8 @@ int main (int argc, char* argv[])
   }
 
   // Load and segment calibration tracked frame list
-  vtkSmartPointer<vtkPlusTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
-  if( vtkPlusSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> calibrationTrackedFrameList = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
+  if( vtkIGSIOSequenceIO::Read(inputCalibrationSeqMetafile, calibrationTrackedFrameList) != PLUS_SUCCESS )
   {
     LOG_ERROR("Failed to read tracked frames from sequence metafile from: " << inputCalibrationSeqMetafile ); 
     return EXIT_FAILURE; 
@@ -320,14 +320,14 @@ int CompareCalibrationResultsWithBaseline(const char* baselineFileName, const ch
           }
         }
 
-        double translationError = PlusMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
+        double translationError = igsioMath::GetPositionDifference(baseTransMatrix, currentTransMatrix); 
         if ( translationError > translationErrorThreshold )
         {
           LOG_ERROR("TransformImageToProbe translation error is higher than expected: " << translationError << " mm (threshold: " << translationErrorThreshold << " mm). " );
           numberOfFailures++;
         }
 
-        double rotationError = PlusMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
+        double rotationError = igsioMath::GetOrientationDifference(baseTransMatrix, currentTransMatrix); 
         if ( rotationError > rotationErrorThreshold )
         {
           LOG_ERROR("TransformImageToProbe rotation error is higher than expected: " << rotationError << " degree (threshold: " << rotationErrorThreshold << " degree). " );

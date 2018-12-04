@@ -5,15 +5,15 @@
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "PlusVideoFrame.h"
-#include "PlusTrackedFrame.h"
+#include "igsioVideoFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkImageData.h"
 #include "vtkImageDifference.h"
 #include "vtkImageExtractComponents.h"
-#include "vtkPlusSequenceIO.h"
+#include "vtkIGSIOSequenceIO.h"
 #include "vtkSmartPointer.h"
 #include "vtkPlusSonixVolumeReader.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
 #include <iostream>
@@ -30,7 +30,7 @@ int main ( int argc, char* argv[] )
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_ERROR;
 
   args.AddArgument( "--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help." );
   args.AddArgument( "--volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
@@ -46,7 +46,7 @@ int main ( int argc, char* argv[] )
     exit( EXIT_FAILURE );
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( printHelp )
   {
@@ -62,7 +62,7 @@ int main ( int argc, char* argv[] )
   }
 
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> sonixVolumeData = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
 
   if ( vtkPlusSonixVolumeReader::GenerateTrackedFrameFromSonixVolume( inputFileName.c_str(), sonixVolumeData ) != PLUS_SUCCESS )
   {
@@ -74,7 +74,7 @@ int main ( int argc, char* argv[] )
   {
     std::string path = vtkPlusConfig::GetInstance()->GetOutputPath( outputFileName );
     LOG_INFO( "Save tracked frames to " << path );
-    if( vtkPlusSequenceIO::Write( path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false ) != PLUS_SUCCESS )
+    if( vtkIGSIOSequenceIO::Write( path, sonixVolumeData, sonixVolumeData->GetImageOrientation(), false ) != PLUS_SUCCESS )
     {
       LOG_ERROR( "Failed to save sonix volume to " << path );
     }
@@ -82,8 +82,8 @@ int main ( int argc, char* argv[] )
 
   vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New();
 
-  PlusVideoFrame baselineVideoFrame;
-  if ( PlusVideoFrame::ReadImageFromFile( baselineVideoFrame, inputBaselineName.c_str() ) != PLUS_SUCCESS )
+  igsioVideoFrame baselineVideoFrame;
+  if ( igsioVideoFrame::ReadImageFromFile( baselineVideoFrame, inputBaselineName.c_str() ) != PLUS_SUCCESS )
   {
     LOG_ERROR( "Failed to read baseline image from file: " << inputBaselineName );
     exit( EXIT_FAILURE );
@@ -107,7 +107,7 @@ int main ( int argc, char* argv[] )
     exit( EXIT_FAILURE );
   }
 
-  PlusVideoFrame* videoFrame = sonixVolumeData->GetTrackedFrame( inputFrameNumberUint )->GetImageData();
+  igsioVideoFrame* videoFrame = sonixVolumeData->GetTrackedFrame( inputFrameNumberUint )->GetImageData();
 
   if ( !videoFrame->IsImageValid() )
   {

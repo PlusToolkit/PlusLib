@@ -6,15 +6,15 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "vtkPlusImageProcessorVideoSource.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusBoneEnhancer.h"
 #include "vtkPlusTransverseProcessEnhancer.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkPlusTrackedFrameProcessor.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -26,14 +26,14 @@ vtkPlusImageProcessorVideoSource::vtkPlusImageProcessorVideoSource()
   : vtkPlusDevice()
   , LastProcessedInputDataTimestamp(0)
   , EnableProcessing(true)
-  , ProcessingAlgorithmAccessMutex(vtkSmartPointer<vtkPlusRecursiveCriticalSection>::New())
-  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
+  , ProcessingAlgorithmAccessMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
+  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
   , ProcessorAlgorithm(NULL)
 {
   this->MissingInputGracePeriodSec = 2.0;
 
   // Create transform repository
-  this->TransformRepository = vtkPlusTransformRepository::New();
+  this->TransformRepository = vtkIGSIOTransformRepository::New();
 
   // The data capture thread will be used to regularly read the frames and process them
   this->StartThreadForInternalUpdates = true;
@@ -142,7 +142,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::WriteConfiguration(vtkXMLDataElemen
   // Write processor elements
   if (this->ProcessorAlgorithm != NULL)
   {
-    vtkXMLDataElement* processorElement = PlusXmlUtils::GetNestedElementWithName(deviceElement, vtkPlusTrackedFrameProcessor::GetTagName());
+    vtkXMLDataElement* processorElement = igsioXmlUtils::GetNestedElementWithName(deviceElement, vtkPlusTrackedFrameProcessor::GetTagName());
     if (processorElement == NULL)
     {
       LOG_ERROR("Cannot find " << vtkPlusTrackedFrameProcessor::GetTagName() << " element in XML tree!");
@@ -194,7 +194,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalConnect()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusImageProcessorVideoSource::InternalDisconnect()
 {
-  PlusLockGuard<vtkPlusRecursiveCriticalSection> writerLock(this->ProcessingAlgorithmAccessMutex);
+  igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->ProcessingAlgorithmAccessMutex);
   this->EnableProcessing = false;
   return PLUS_SUCCESS;
 }
@@ -216,7 +216,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
 
   if (this->HasGracePeriodExpired())
   {
-    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
+    this->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
   }
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
@@ -235,11 +235,11 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
       this->LastProcessedInputDataTimestamp = oldestTrackingTimestamp;
     }
   }
-  PlusTrackedFrame trackedFrame;
+  igsioTrackedFrame trackedFrame;
   if (this->InputChannels[0]->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
     LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId());
-    this->LastProcessedInputDataTimestamp = vtkPlusAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
+    this->LastProcessedInputDataTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
 
@@ -261,7 +261,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     return PLUS_SUCCESS;
   }
 
-  vtkSmartPointer<vtkPlusTrackedFrameList> trackingFrames = vtkSmartPointer<vtkPlusTrackedFrameList>::New();
+  vtkSmartPointer<vtkIGSIOTrackedFrameList> trackingFrames = vtkSmartPointer<vtkIGSIOTrackedFrameList>::New();
   trackingFrames->AddTrackedFrame(&trackedFrame);
   this->ProcessorAlgorithm->SetInputFrames(trackingFrames);
   if (this->ProcessorAlgorithm->Update() != PLUS_SUCCESS)
@@ -278,21 +278,21 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
 
   PlusStatus status = PLUS_SUCCESS;
 
-  vtkPlusTrackedFrameList* processedFrames = this->ProcessorAlgorithm->GetOutputFrames();
+  vtkIGSIOTrackedFrameList* processedFrames = this->ProcessorAlgorithm->GetOutputFrames();
   if (processedFrames == NULL || processedFrames->GetNumberOfTrackedFrames() < 1)
   {
     LOG_ERROR("Failed to retrieve processed frame");
     return PLUS_FAIL;
   }
 
-  PlusTrackedFrame* processedTrackedFrame = processedFrames->GetTrackedFrame(0);
+  igsioTrackedFrame* processedTrackedFrame = processedFrames->GetTrackedFrame(0);
   // Generate unique frame number (not used for filtering, so the actual increment value does not matter)
   this->FrameNumber++;
 
   // If the buffer is empty, set the pixel type and frame size to the first received properties
   if (aSource->GetNumberOfItems() == 0)
   {
-    PlusVideoFrame* videoFrame = processedTrackedFrame->GetImageData();
+    igsioVideoFrame* videoFrame = processedTrackedFrame->GetImageData();
     if (videoFrame == NULL)
     {
       LOG_ERROR("Invalid video frame received, cannot use it to initialize the video buffer");
@@ -310,7 +310,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     aSource->SetInputFrameSize(processedTrackedFrame->GetFrameSize());
   }
 
-  PlusTrackedFrame::FieldMapType customFields = processedTrackedFrame->GetCustomFields();
+  igsioTrackedFrame::FieldMapType customFields = processedTrackedFrame->GetCustomFields();
   if (aSource->AddItem(processedTrackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields) != PLUS_SUCCESS)
   {
     status = PLUS_FAIL;
@@ -353,6 +353,6 @@ void vtkPlusImageProcessorVideoSource::SetEnableProcessing(bool aValue)
   if (processingStartsNow)
   {
     this->LastProcessedInputDataTimestamp = 0.0;
-    this->RecordingStartTime = vtkPlusAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
+    this->RecordingStartTime = vtkIGSIOAccurateTimer::GetSystemTime(); // reset the starting time for the grace period
   }
 }

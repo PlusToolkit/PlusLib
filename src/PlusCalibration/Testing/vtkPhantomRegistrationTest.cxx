@@ -12,7 +12,7 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 #include "PlusMath.h"
-#include "PlusTrackedFrame.h"
+#include "igsioTrackedFrame.h"
 #include "vtkPlusDataCollector.h"
 #include "vtkPlusFakeTracker.h"
 #include "vtkMath.h"
@@ -20,9 +20,9 @@ See License.txt for details.
 #include "vtkPlusPhantomLandmarkRegistrationAlgo.h"
 #include "vtkPlusChannel.h"
 #include "vtkSmartPointer.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
-#include "vtkPlusTransformRepository.h"
+#include "vtkIGSIOTransformRepository.h"
 #include "vtkXMLDataElement.h"
 #include "vtkXMLUtilities.h"
 #include "vtksys/CommandLineArguments.hxx"
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize");
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   }
 
   // Read coordinate definitions
-  vtkSmartPointer<vtkPlusTransformRepository> transformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> transformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (transformRepository->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to read CoordinateDefinitions!");
@@ -148,13 +148,13 @@ int main(int argc, char* argv[])
   }
   fakeTracker->SetTransformRepository(transformRepository);
 
-  PlusTrackedFrame trackedFrame;
-  PlusTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
+  igsioTrackedFrame trackedFrame;
+  igsioTransformName stylusTipToReferenceTransformName(phantomRegistration->GetStylusTipCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame());
 
   for (int landmarkCounter = 0; landmarkCounter < numberOfLandmarks; ++landmarkCounter)
   {
     fakeTracker->SetCounter(landmarkCounter);
-    vtkPlusAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
+    vtkIGSIOAccurateTimer::Delay(2.1 / fakeTracker->GetAcquisitionRate());
 
     vtkSmartPointer<vtkMatrix4x4> stylusTipToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkCounter, stylusTipPosition);
     phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
 
-    vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks);
+    vtkIGSIOLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks);
   }
 
   if (phantomRegistration->LandmarkRegister(transformRepository) != PLUS_SUCCESS)
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::PrintProgressbar(100);
+  vtkIGSIOLogger::PrintProgressbar(100);
 
   LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
 
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
 
   std::string registrationResultFileName = "PhantomRegistrationTest.xml";
   vtksys::SystemTools::RemoveFile(registrationResultFileName.c_str());
-  PlusCommon::XML::PrintXML(registrationResultFileName.c_str(), configRootElement);
+  igsioCommon::XML::PrintXML(registrationResultFileName.c_str(), configRootElement);
 
   if (CompareRegistrationResultsWithBaseline(inputBaselineFileName.c_str(), registrationResultFileName.c_str(), phantomRegistration->GetPhantomCoordinateFrame(), phantomRegistration->GetReferenceCoordinateFrame()) != PLUS_SUCCESS)
   {
@@ -227,7 +227,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  PlusTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame);
+  igsioTransformName tnPhantomToPhantomReference(phantomCoordinateFrame, referenceCoordinateFrame);
 
   // Load current phantom registration
   vtkSmartPointer<vtkXMLDataElement> currentRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
@@ -238,7 +238,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> currentTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> currentTransformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (currentTransformRepository->ReadConfiguration(currentRootElem) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read the current CoordinateDefinitions from configuration file: " << currentResultFileName);
@@ -263,7 +263,7 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
     return PLUS_FAIL;
   }
 
-  vtkSmartPointer<vtkPlusTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkPlusTransformRepository>::New();
+  vtkSmartPointer<vtkIGSIOTransformRepository> baselineTransformRepository = vtkSmartPointer<vtkIGSIOTransformRepository>::New();
   if (baselineTransformRepository->ReadConfiguration(baselineRootElem) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to read the baseline CoordinateDefinitions from configuration file: " << baselineFileName);
@@ -280,8 +280,8 @@ PlusStatus CompareRegistrationResultsWithBaseline(const char* baselineFileName, 
   }
 
   // Compare the transforms
-  double posDiff = PlusMath::GetPositionDifference(currentMatrix, baselineMatrix);
-  double orientDiff = PlusMath::GetOrientationDifference(currentMatrix, baselineMatrix);
+  double posDiff = igsioMath::GetPositionDifference(currentMatrix, baselineMatrix);
+  double orientDiff = igsioMath::GetOrientationDifference(currentMatrix, baselineMatrix);
 
   if (fabs(posDiff) > ERROR_THRESHOLD || fabs(orientDiff) > ERROR_THRESHOLD)
   {

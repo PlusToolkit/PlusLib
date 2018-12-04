@@ -215,11 +215,11 @@ PlusStatus vtkPlusOvrvisionProVideoSource::InternalUpdate()
 void vtkPlusOvrvisionProVideoSource::ConfigureProcessingMode()
 {
   this->ProcessingMode = OVR::OV_CAMQT_NONE;
-  if (PlusCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMSRMP"))
+  if (igsioCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMSRMP"))
   {
     this->ProcessingMode = OVR::OV_CAMQT_DMSRMP;
   }
-  else if (PlusCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMS"))
+  else if (igsioCommon::IsEqualInsensitive(this->ProcessingModeName, "OV_CAMQT_DMS"))
   {
     this->ProcessingMode = OVR::OV_CAMQT_DMS;
   }
@@ -266,35 +266,35 @@ OVR::Camprop vtkPlusOvrvisionProVideoSource::StringToCamProp(const std::string& 
     nonConstFormat.insert(0, "OV_");
   }
 
-  if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FULL"))
+  if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FULL"))
   {
     return OVR::OV_CAM5MP_FULL;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FHD"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM5MP_FHD"))
   {
     return OVR::OV_CAM5MP_FHD;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMHD_FULL"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMHD_FULL"))
   {
     return OVR::OV_CAMHD_FULL;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_FULL"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_FULL"))
   {
     return OVR::OV_CAMVR_FULL;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_WIDE"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_WIDE"))
   {
     return OVR::OV_CAMVR_WIDE;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_VGA"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_VGA"))
   {
     return OVR::OV_CAMVR_VGA;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_QVGA"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAMVR_QVGA"))
   {
     return OVR::OV_CAMVR_QVGA;
   }
-  else if (PlusCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM20HD_FULL"))
+  else if (igsioCommon::IsEqualInsensitive(nonConstFormat, "OV_CAM20HD_FULL"))
   {
     return OVR::OV_CAM20HD_FULL;
   }

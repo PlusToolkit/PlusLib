@@ -9,15 +9,15 @@ See License.txt for details.
 #include "PlusBrachyStepper.h"
 #include "PlusCivcoBrachyStepper.h"
 #include "PlusCmsBrachyStepper.h"
-#include "PlusTrackedFrame.h"
-#include "vtkPlusAccurateTimer.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOAccurateTimer.h"
 #include "vtkPlusBrachyTracker.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusTrackedFrameList.h"
+#include "vtkIGSIOTrackedFrameList.h"
 #include "vtkTransform.h"
 #include "vtkXMLDataElement.h"
 #include "vtksys/SystemTools.hxx"
@@ -203,7 +203,7 @@ PlusStatus vtkPlusBrachyTracker::InternalUpdate()
     status = TOOL_REQ_TIMEOUT;
   }
 
-  const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
+  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
   // Save probe position to the matrix (0,3) element
   // Save probe rotation to the matrix (1,3) element
@@ -458,7 +458,7 @@ PlusStatus vtkPlusBrachyTracker::InitializeStepper(std::string& calibMsg)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFrame* aTrackedFrame)
+PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, igsioTrackedFrame* aTrackedFrame)
 {
   if (!aTrackedFrame)
   {
@@ -474,7 +474,7 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  PlusTransformName probeToReferenceTransformName(this->GetBrachyToolSourceId(PROBEHOME_TO_PROBE_TRANSFORM), this->ToolReferenceFrameName);
+  igsioTransformName probeToReferenceTransformName(this->GetBrachyToolSourceId(PROBEHOME_TO_PROBE_TRANSFORM), this->ToolReferenceFrameName);
   if (!probeToReferenceTransformName.IsValid())
   {
     LOG_ERROR("Invalid probe to reference tranform name!");
@@ -504,7 +504,7 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  PlusTransformName templateToReferenceTransformName(this->GetBrachyToolSourceId(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM), this->ToolReferenceFrameName);
+  igsioTransformName templateToReferenceTransformName(this->GetBrachyToolSourceId(TEMPLATEHOME_TO_TEMPLATE_TRANSFORM), this->ToolReferenceFrameName);
   if (!templateToReferenceTransformName.IsValid())
   {
     LOG_ERROR("Invalid template to reference tranform name!");
@@ -533,7 +533,7 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, PlusTrackedFr
     return PLUS_FAIL;
   }
 
-  PlusTransformName encoderToReferenceTransformName(this->GetBrachyToolSourceId(RAW_ENCODER_VALUES), this->ToolReferenceFrameName);
+  igsioTransformName encoderToReferenceTransformName(this->GetBrachyToolSourceId(RAW_ENCODER_VALUES), this->ToolReferenceFrameName);
   if (!encoderToReferenceTransformName.IsValid())
   {
     LOG_ERROR("Invalid encoder to reference tranform name!");

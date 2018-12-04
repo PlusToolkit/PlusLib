@@ -32,12 +32,12 @@ vtkPlusEpiphanVideoSource::vtkPlusEpiphanVideoSource()
   , Rotation(V2URotationNone)
   , Scale(V2UScaleNone)
 {
-  this->ClipRectangleOrigin[0] = PlusCommon::NO_CLIP;
-  this->ClipRectangleOrigin[1] = PlusCommon::NO_CLIP;
-  this->ClipRectangleOrigin[2] = PlusCommon::NO_CLIP;
-  this->ClipRectangleSize[0] = PlusCommon::NO_CLIP;
-  this->ClipRectangleSize[1] = PlusCommon::NO_CLIP;
-  this->ClipRectangleSize[2] = PlusCommon::NO_CLIP;
+  this->ClipRectangleOrigin[0] = igsioCommon::NO_CLIP;
+  this->ClipRectangleOrigin[1] = igsioCommon::NO_CLIP;
+  this->ClipRectangleOrigin[2] = igsioCommon::NO_CLIP;
+  this->ClipRectangleSize[0] = igsioCommon::NO_CLIP;
+  this->ClipRectangleSize[1] = igsioCommon::NO_CLIP;
+  this->ClipRectangleSize[2] = igsioCommon::NO_CLIP;
 
   this->FrameSize[0] = 0;
   this->FrameSize[1] = 0;
@@ -333,15 +333,15 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(RotationMode, deviceConfig);
   if (!this->RotationMode.empty())
   {
-    if (PlusCommon::IsEqualInsensitive(this->RotationMode, "Left90") == 0)
+    if (igsioCommon::IsEqualInsensitive(this->RotationMode, "Left90") == 0)
     {
       this->Rotation = V2URotationLeft90;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->RotationMode, "Right90") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->RotationMode, "Right90") == 0)
     {
       this->Rotation = V2URotationRight90;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->RotationMode, "180") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->RotationMode, "180") == 0)
     {
       this->Rotation = V2URotation180;
     }
@@ -350,55 +350,55 @@ PlusStatus vtkPlusEpiphanVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_STRING_ATTRIBUTE_OPTIONAL(ScaleMode, deviceConfig);
   if (!this->ScaleMode.empty())
   {
-    if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "NearestNeighbor") == 0)
+    if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "NearestNeighbor") == 0)
     {
       this->Scale = V2UScaleModeNearestNeighbor;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "WeightedAverage") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "WeightedAverage") == 0)
     {
       this->Scale = V2UScaleModeWeightedAverage;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "FastBilinear") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "FastBilinear") == 0)
     {
       this->Scale = V2UScaleModeFastBilinear;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Bilinear") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Bilinear") == 0)
     {
       this->Scale = V2UScaleModeBilinear;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Bicubic") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Bicubic") == 0)
     {
       this->Scale = V2UScaleModeBicubic;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Experimental") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Experimental") == 0)
     {
       this->Scale = V2UScaleModeExperimental;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Point") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Point") == 0)
     {
       this->Scale = V2UScaleModePoint;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Area") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Area") == 0)
     {
       this->Scale = V2UScaleModeArea;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "BicubLin") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "BicubLin") == 0)
     {
       this->Scale = V2UScaleModeBicubLin;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Sinc") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Sinc") == 0)
     {
       this->Scale = V2UScaleModeSinc;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Lanczos") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Lanczos") == 0)
     {
       this->Scale = V2UScaleModeLanczos;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Spline") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Spline") == 0)
     {
       this->Scale = V2UScaleModeSpline;
     }
-    else if (PlusCommon::IsEqualInsensitive(this->ScaleMode, "Hardware") == 0)
+    else if (igsioCommon::IsEqualInsensitive(this->ScaleMode, "Hardware") == 0)
     {
       this->Scale = V2UScaleModeHardware;
     }

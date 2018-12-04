@@ -17,10 +17,10 @@ Authors include: Danielle Pace
 #define __vtkPlusMmfVideoSource_h
 
 // Local includes
-#include "PlusVideoFrame.h"
+//#include "igsioVideoFrame.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
-#include "vtkPlusRecursiveCriticalSection.h"
+#include "vtkIGSIORecursiveCriticalSection.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -99,8 +99,8 @@ protected:
 
   int FrameIndex;
 
-  vtkSmartPointer<vtkPlusRecursiveCriticalSection> Mutex;
-  PlusVideoFrame UncompressedVideoFrame;
+  vtkSmartPointer<vtkIGSIORecursiveCriticalSection> Mutex;
+  igsioVideoFrame UncompressedVideoFrame;
   VideoFormat RequestedVideoFormat;
   VideoFormat ActiveVideoFormat;
 

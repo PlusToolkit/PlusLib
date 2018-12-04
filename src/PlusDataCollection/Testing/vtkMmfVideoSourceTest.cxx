@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
 
   std::vector<int> frameSizeInt;
 
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (printHelp)
   {
