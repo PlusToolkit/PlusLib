@@ -20,7 +20,7 @@ See License.txt for details.
 #include "vtkPlusVirtualVolumeReconstructor.h"
 #include "vtkPlusImageProcessorVideoSource.h"
 #include "vtkPlusGenericSerialDevice.h"
-#ifdef PLUS_USE_tesseract
+#ifdef PLUS_USE_TextRecognizer
   #include "vtkPlusVirtualTextRecognizer.h"
 #endif
 
@@ -323,7 +323,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
   RegisterDevice("WinProbeVideo", "vtkPlusWinProbeVideoSource", (PointerToDevice)&vtkPlusWinProbeVideoSource::New);
 #endif
 
-#ifdef PLUS_USE_tesseract
+#ifdef PLUS_USE_TextRecognizer
   RegisterDevice("VirtualTextRecognizer", "vtkPlusVirtualTextRecognizer", (PointerToDevice)&vtkPlusVirtualTextRecognizer::New);
 #endif
 #ifdef PLUS_USE_NVIDIA_DVP
