@@ -78,6 +78,11 @@ commit <tracker_SN> 1 <size>   i.e.   commit * 1 2408603
 \section AtracsysActiveMarkes Using Atracsys active markers
   - At this time, there is only support in the Atracsys SDKs for use of the active markers with the spryTrack. Once support is available for using these markers with the fusionTrack we will update the PLUS support to use this feature.
 
+\section AtracsysCommonIssues Common Issues
+- If you aren't seeing any marker tracking information being sent over OpenIGTLink, please:
+  - Ensure your geometry file (.ini) is correct for the tool you are using
+  - Try increasing the MaxMeanRegistrationErrorMm, if there's more than this amount of error in matching the geometry to its corresponding reference file then transform containing this tool won't be sent over OpenIGTLink (this is to prevent transmission of inaccurate tracking information).
+
 \section AtracsysConfigSettings Device configuration settings
 - \xmlAtt \ref DeviceType "Type" = \c "AtracsysTracker" \RequiredAtt
 - \xmlAtt \ref MaxMissingFiducials Max number of missing fiducials to still track a marker with. \OptionalAtt{1}
