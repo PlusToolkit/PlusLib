@@ -63,9 +63,9 @@ fi
 if [ "$test_mode" == "-I" ]; then
   # Run individual tests with regexp search
   # Display the list of tests
-  "@CMAKE_CTEST_COMMAND" -R "$individual_test" -N -C Release
+  "@CMAKE_CTEST_COMMAND@" -R "$individual_test" -N -C Release
   # Run selected tests
-  "@CMAKE_CTEST_COMMAND" -R "$individual_test" -V -C Release
+  "@CMAKE_CTEST_COMMAND@" -R "$individual_test" -V -C Release
 fi
 
 finish
