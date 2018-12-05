@@ -273,7 +273,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(m_BSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << PlusVideoFrame::GetStringFromUsImageOrientation(m_BSources[i]->GetInputImageOrientation()));
+             << igsioVideoFrame::GetStringFromUsImageOrientation(m_BSources[i]->GetInputImageOrientation()));
   }
 
   for(unsigned i = 0; i < m_RFSources.size(); i++)
@@ -289,7 +289,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(m_RFSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << PlusVideoFrame::GetStringFromUsImageOrientation(m_RFSources[i]->GetInputImageOrientation()));
+             << igsioVideoFrame::GetStringFromUsImageOrientation(m_RFSources[i]->GetInputImageOrientation()));
   }
 
   m_BModeBuffer.resize(m_SamplesPerLine * m_LineCount);
@@ -455,7 +455,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  m_TimestampOffset = vtkPlusAccurateTimer::GetSystemTime();
+  m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
   LOG_DEBUG("GetPendingRecreateTables: " << GetPendingRecreateTables());
   LOG_DEBUG("GetPendingRestartSequencer: " << GetPendingRestartSequencer());
   LOG_DEBUG("GetPendingRun30Frames: " << GetPendingRun30Frames());
