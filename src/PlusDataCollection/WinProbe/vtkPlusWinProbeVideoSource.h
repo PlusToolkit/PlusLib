@@ -166,7 +166,7 @@ protected:
   unsigned m_SamplesPerLine = 512;
   std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
   bool m_UseDeviceFrameReconstruction = true;
-  PlusTrackedFrame::FieldMapType m_CustomFields;
+  igsioTrackedFrame::FieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
   float m_FocalPointDepth[4];
   uint16_t m_MinValue = 16; //noise floor
