@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");  
   args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");  
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   
   if ( printHelp ) 
   {

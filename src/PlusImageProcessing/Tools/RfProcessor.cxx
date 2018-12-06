@@ -29,7 +29,7 @@ int main(int argc, char **argv)
   std::string operation="BRIGHTNESS_SCAN_CONVERT";
   bool useCompression(true);
 
-  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {

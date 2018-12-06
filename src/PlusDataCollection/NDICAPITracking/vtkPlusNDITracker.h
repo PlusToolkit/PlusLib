@@ -256,8 +256,8 @@ protected:
   void DisableToolPorts();
 
   /*! Parse and log available volume list response */
-  void LogVolumeList(int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel);
-  void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel);
+  void LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
+  void LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel);
 
   /*!
     Intelligently detect which connection is used and close it

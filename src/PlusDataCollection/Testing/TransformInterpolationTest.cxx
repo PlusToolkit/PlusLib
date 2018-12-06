@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   double inputMaxRotationDifference(1.0); 
   std::string inputTransformName; 
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if ( inputMetafile.empty() )
   {
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     numberOfErrors++;
   }
 
-  vtkIGSIOLogger::PrintProgressbar( 100 ); 
+  vtkPlusLogger::PrintProgressbar( 100 ); 
   std::cout << std::endl; 
 
   // Check interpolation results 

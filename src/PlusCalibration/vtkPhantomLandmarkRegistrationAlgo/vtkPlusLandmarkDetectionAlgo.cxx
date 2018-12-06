@@ -246,7 +246,7 @@ PlusStatus vtkPlusLandmarkDetectionAlgo::InsertNextStylusTipToReferenceTransform
   unsigned int numberOfAcquiredWindows = igsioMath::Floor( this->StylusTipToReferenceTransformsDeque.size() / filterWindowSize );
 
   // Print all available StylusTipToReferenceTransform positions if debug level is TRACE
-  bool debugOutput = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
+  bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
   if ( debugOutput )
   {
     LOG_TRACE( "Window Landmark (" << stylusTipFiltered_Reference[0] << ", " << stylusTipFiltered_Reference[1] << ", " << stylusTipFiltered_Reference[2] << ") found keep going" );

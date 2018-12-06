@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   std::string inputFileName;
   std::string outputFileName;
   std::string configFileName;
-  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.Initialize(argc, argv);
   args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help");
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputFileName.empty())
   {
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
   }
 
   std::cout << "Writing output to file. Setting log level to 1, regardless of user specified verbose level." << std::endl;
-  vtkIGSIOLogger::Instance()->SetLogLevel(1);
+  vtkPlusLogger::Instance()->SetLogLevel(1);
 
   vtkPlusSequenceIO::Write(outputFileName.c_str(), linesFrameList);
 

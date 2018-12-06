@@ -1417,7 +1417,7 @@ ItemStatus vtkPlusBuffer::GetInterpolatedStreamBufferItemFromTime(double time, S
   double angleDiffB = igsioMath::GetOrientationDifference(interpolatedMatrix, itemBmatrix);
   if (fabs(angleDiffA) > ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG && fabs(angleDiffB) > ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG)
   {
-    static vtkIGSIOLogHelper helper(5.f, 5000, vtkIGSIOLogger::LOG_LEVEL_WARNING);
+    static vtkIGSIOLogHelper helper(5.f, 5000, vtkPlusLogger::LOG_LEVEL_WARNING);
     if (helper.ShouldWeLog(true))
     {
       LOCAL_LOG_WARNING("Angle difference between interpolated orientations is large (" << fabs(angleDiffA) << " and " << fabs(angleDiffB) << " deg, warning threshold is " << ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG << "), interpolation may be inaccurate. Consider moving the tools slower.");

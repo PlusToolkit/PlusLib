@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
   double inputRotationErrorThreshold(1e-10);
 #endif
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Read configuration file...");
 

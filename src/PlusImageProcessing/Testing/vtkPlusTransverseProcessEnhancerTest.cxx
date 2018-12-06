@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   std::string outputConfigFileName;
   std::string outputFileName;
   bool saveIntermediateResults = false;
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   //Get command line arguments
   args.Initialize(argc, argv);
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   //check for various non-optional command line arguments
   int commandCheckStatus = EXIT_SUCCESS;

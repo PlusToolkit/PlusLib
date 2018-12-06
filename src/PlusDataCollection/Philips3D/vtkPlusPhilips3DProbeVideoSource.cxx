@@ -234,7 +234,7 @@ PlusStatus vtkPlusPhilips3DProbeVideoSource::InternalUpdate()
     LOG_INFO("Philips iE33: Retrying connection to 3D mode.");
     // Retry connection if it's time
     LastRetryTime = vtkIGSIOAccurateTimer::GetSystemTime();
-    if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkIGSIOLogger::LOG_LEVEL_WARNING))
+    if (this->Listener->Connect(&vtkPlusPhilips3DProbeVideoSource::StreamCallback, vtkPlusLogger::LOG_LEVEL_WARNING))
     {
       LOG_INFO("Philips iE33: Connection successfully re-established.");
       LastValidTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();

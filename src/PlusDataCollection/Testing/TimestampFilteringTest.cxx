@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   double inputMinStdevReductionFactor(3.0);
   std::string inputTransformName;
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputMetafile.empty())
   {
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
     return PLUS_FAIL;
   }
 
-  if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+  if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
   {
     timestampReportTable->Dump();
   }

@@ -104,7 +104,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , BroadcastChannel(NULL)
   , LogWarningOnNoDataAvailable(true)
   , KeepAliveIntervalSec(CLIENT_SOCKET_TIMEOUT_SEC / 2.0)
-  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
   , MissingInputGracePeriodSec(0.0)
   , BroadcastStartTime(0.0)
 {
@@ -374,7 +374,7 @@ void* vtkPlusOpenIGTLinkServer::DataSenderThread(vtkMultiThreader::ThreadInfo* d
 
     if (self->HasGracePeriodExpired())
     {
-      self->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
+      self->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
     }
 
     SendMessageResponses(*self);

@@ -27,7 +27,7 @@ vtkPlusImageProcessorVideoSource::vtkPlusImageProcessorVideoSource()
   , LastProcessedInputDataTimestamp(0)
   , EnableProcessing(true)
   , ProcessingAlgorithmAccessMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
-  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
   , ProcessorAlgorithm(NULL)
 {
   this->MissingInputGracePeriodSec = 2.0;
@@ -216,7 +216,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
 
   if (this->HasGracePeriodExpired())
   {
-    this->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
+    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
   }
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)

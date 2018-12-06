@@ -379,7 +379,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
     LOG_WARNING("Line segmentation success rate is very low (" << segmentationSuccessRate * 100 << "%): a line could only be detected on " << numberOfSuccessfulLineSegmentations << " frames out of " << m_TrackedFrameList->GetNumberOfTrackedFrames());
   }
 
-  bool plotVideoMetric = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
+  bool plotVideoMetric = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
   if (plotVideoMetric)
   {
     PlotDoubleArray(m_SignalValues);

@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
   //double inputRotationErrorThreshold(0);
 #endif
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize");
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   PlusFidPatternRecognition::PatternRecognitionError error;
   patternRecognition.ReadConfiguration(configRootElement);
 
-  bool debugOutput = vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_TRACE;
+  bool debugOutput = vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_TRACE;
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   // Load and segment calibration image

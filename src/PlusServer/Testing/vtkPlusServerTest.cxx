@@ -199,7 +199,7 @@ int main(int argc, char** argv)
   bool printHelp(false);
   std::string inputConfigFileName;
   std::string testingConfigFileName;
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   const double WAIT_TIME_SEC = 5.0;
   const int NUM_TEST_CLIENTS = 5; // only if testing is enabled S
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputConfigFileName.empty())
   {
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  LOG_INFO("Logging at level " << vtkIGSIOLogger::Instance()->GetLogLevel() << " (" << vtkIGSIOLogger::Instance()->GetLogLevelString() << ") to file: " << vtkIGSIOLogger::Instance()->GetLogFileName());
+  LOG_INFO("Logging at level " << vtkPlusLogger::Instance()->GetLogLevel() << " (" << vtkPlusLogger::Instance()->GetLogLevelString() << ") to file: " << vtkPlusLogger::Instance()->GetLogFileName());
 
   // Start a server
   vtkSmartPointer<vtkPlusOpenIGTLinkServer> server = StartServer(inputConfigFileName);

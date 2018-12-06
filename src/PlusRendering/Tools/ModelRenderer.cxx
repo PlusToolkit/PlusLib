@@ -40,7 +40,7 @@ int main(int argc, char **argv)
   double cameraZoomFactor = 1.0;
   bool renderingOff(false);
 
-  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS); 
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (modelFileName.empty())
   {

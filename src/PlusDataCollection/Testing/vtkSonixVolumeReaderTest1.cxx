@@ -30,7 +30,7 @@ int main ( int argc, char* argv[] )
   vtksys::CommandLineArguments args;
   args.Initialize( argc, argv );
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_ERROR;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_ERROR;
 
   args.AddArgument( "--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help." );
   args.AddArgument( "--volume-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputFileName, "The file name of the Sonix volume." );
@@ -46,7 +46,7 @@ int main ( int argc, char* argv[] )
     exit( EXIT_FAILURE );
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( printHelp )
   {

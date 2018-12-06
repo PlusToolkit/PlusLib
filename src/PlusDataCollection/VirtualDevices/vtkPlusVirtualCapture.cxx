@@ -54,7 +54,7 @@ vtkPlusVirtualCapture::vtkPlusVirtualCapture()
   , FrameBufferSize(DISABLE_FRAME_BUFFER)
   , IsData3D(false)
   , WriterAccessMutex(vtkSmartPointer<vtkIGSIORecursiveCriticalSection>::New())
-  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
   , EncodingFourCC("VP90")
 {
   this->AcquisitionRate = 30.0;
@@ -336,7 +336,7 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
 
   if (this->HasGracePeriodExpired())
   {
-    this->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
+    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
   }
 
   igsioLockGuard<vtkIGSIORecursiveCriticalSection> writerLock(this->WriterAccessMutex);
@@ -401,7 +401,7 @@ PlusStatus vtkPlusVirtualCapture::InternalUpdate()
   if (recordingTimeSec > samplingPeriodSec)
   {
     // Log too long recording as warning only if the recording is falling behind
-    vtkIGSIOLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkIGSIOLogger::LOG_LEVEL_WARNING : vtkIGSIOLogger::LOG_LEVEL_DEBUG);
+    vtkPlusLogger::LogLevelType logLevel = (recordingLagSec > WARNING_RECORDING_LAG_SEC ? vtkPlusLogger::LOG_LEVEL_WARNING : vtkPlusLogger::LOG_LEVEL_DEBUG);
     LOG_DYNAMIC("Recording of frames takes too long time (" << recordingTimeSec << "sec instead of the allocated " << samplingPeriodSec << "sec, recording lags by " << recordingLagSec << "sec). This can cause slow-down of the application and non-uniform sampling. Reduce the acquisition rate or sampling rate to resolve the problem.", logLevel);
   }
 

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments cmdargs;
   cmdargs.Initialize(argc, argv);
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   LOG_INFO("Initialize");
 
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkCounter, stylusTipPosition);
     phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
 
-    vtkIGSIOLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks);
+    vtkPlusLogger::PrintProgressbar((100.0 * landmarkCounter) / numberOfLandmarks);
   }
 
   if (phantomRegistration->LandmarkRegister(transformRepository) != PLUS_SUCCESS)
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::PrintProgressbar(100);
+  vtkPlusLogger::PrintProgressbar(100);
 
   LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
 

@@ -10,7 +10,7 @@
 // PLUS includes
 #include "vtkPlusCommonExport.h"
 #include "itkImageIOBase.h"
-#include "vtkIGSIOLogger.h"
+#include "vtkPlusLogger.h"
 #include "vtkPlusMacro.h"
 #include "vtkIGSIORecursiveCriticalSection.h"
 

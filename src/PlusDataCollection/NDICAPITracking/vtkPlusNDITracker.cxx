@@ -1140,7 +1140,7 @@ PlusStatus vtkPlusNDITracker::WriteConfiguration(vtkXMLDataElement* rootConfig)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel)
+void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
 {
   auto reply = this->Command("GETINFO:Param.Tracking.Available Volumes");
 
@@ -1206,7 +1206,7 @@ void vtkPlusNDITracker::LogVolumeList(int selectedVolume, vtkIGSIOLogger::LogLev
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkIGSIOLogger::LogLevelType logLevel)
+void vtkPlusNDITracker::LogVolumeListSFLIST(unsigned int numVolumes, int selectedVolume, vtkPlusLogger::LogLevelType logLevel)
 {
   std::string volumeListCommandReply = this->Command("SFLIST:03");
   for (unsigned int volIndex = 0; volIndex < numVolumes; ++volIndex)
@@ -1332,7 +1332,7 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolume()
       if (static_cast<unsigned int>(this->MeasurementVolumeNumber) - 1 > dataFields.size() / 7)
       {
         LOG_ERROR("Selected measurement volume does not exist. Using default.");
-        LogVolumeList(this->MeasurementVolumeNumber, vtkIGSIOLogger::LOG_LEVEL_DEBUG);
+        LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
         return PLUS_FAIL;
       }
       else
@@ -1343,7 +1343,7 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolume()
         if (errnum)
         {
           LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
-          LogVolumeList(0, vtkIGSIOLogger::LOG_LEVEL_INFO);
+          LogVolumeList(0, vtkPlusLogger::LOG_LEVEL_INFO);
           CloseDevice(this->Device);
           return PLUS_FAIL;
         }
@@ -1362,7 +1362,7 @@ PlusStatus vtkPlusNDITracker::SelectMeasurementVolumeDeprecated()
   if (errnum)
   {
     LOG_ERROR("Failed to set measurement volume " << this->MeasurementVolumeNumber << ": " << ndiErrorString(errnum));
-    LogVolumeList(this->MeasurementVolumeNumber, vtkIGSIOLogger::LOG_LEVEL_DEBUG);
+    LogVolumeList(this->MeasurementVolumeNumber, vtkPlusLogger::LOG_LEVEL_DEBUG);
     return PLUS_FAIL;
   }
 

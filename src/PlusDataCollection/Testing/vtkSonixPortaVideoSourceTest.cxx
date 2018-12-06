@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   args.AddArgument("--setting-path", vtksys::CommandLineArguments::NO_ARGUMENT, &PortaSettingPath, "Setting path.");  
   args.AddArgument("--lut-path", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &LUTPath, "LUT Path." );
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   vtkSmartPointer<vtkPlusSonixPortaVideoSource> portaGrabber = vtkSmartPointer<vtkPlusSonixPortaVideoSource>::New();
 

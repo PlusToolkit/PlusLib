@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   std::string inputBaselineFileName;
 
   int numberOfPointsToAcquire = 100;
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   double outlierGenerationProbability = 0.0;
 
   vtksys::CommandLineArguments cmdargs;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   std::string programPath("./"), errorMsg;
   if (!vtksys::SystemTools::FindProgramPath(argv[0], programPath, errorMsg))
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   for (int i = 0; i < numberOfPointsToAcquire; ++i)
   {
     vtksys::SystemTools::Delay(50);
-    vtkIGSIOLogger::PrintProgressbar((100.0 * i) / numberOfPointsToAcquire);
+    vtkPlusLogger::PrintProgressbar((100.0 * i) / numberOfPointsToAcquire);
 
     vtkSmartPointer<vtkMatrix4x4> stylusToReferenceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 
     pivotCalibration->InsertNextCalibrationPoint(stylusToReferenceMatrix);
   }
-  vtkIGSIOLogger::PrintProgressbar(100.0);
+  vtkPlusLogger::PrintProgressbar(100.0);
 
   if (numberOfOutliers > 0)
   {

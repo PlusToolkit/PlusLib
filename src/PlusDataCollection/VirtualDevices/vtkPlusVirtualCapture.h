@@ -178,7 +178,7 @@ protected:
   /*! Mutex instance simultaneous access of writer (writer may be accessed from command processing thread and also the internal update thread) */
   vtkSmartPointer<vtkIGSIORecursiveCriticalSection> WriterAccessMutex;
 
-  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
 
   PlusStatus GetInputTrackedFrame(igsioTrackedFrame& aFrame);
   PlusStatus GetInputTrackedFrameListSampled(double& lastAlreadyRecordedFrameTimestamp, double& nextFrameToBeRecordedTimestamp, vtkIGSIOTrackedFrameList* recordedFrames, double requestedFramePeriodSec, double maxProcessingTimeSec);

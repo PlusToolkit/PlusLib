@@ -65,7 +65,7 @@ protected:
   /*! Mutex instance simultaneous access of the processing algorithm (writer may be accessed from command processing thread and also the internal update thread) */ 
   vtkSmartPointer<vtkIGSIORecursiveCriticalSection> ProcessingAlgorithmAccessMutex;
 
-  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
 
   vtkPlusTrackedFrameProcessor* ProcessorAlgorithm;
 

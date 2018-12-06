@@ -733,7 +733,7 @@ int main(int argc, char** argv)
   bool keepReceivedDicomFiles = false;
   bool responseExpected = false;
   bool enableCompression = false;
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   bool keepConnected = false;
   std::string serverConfigFileName;
   bool runTests = false;
@@ -783,7 +783,7 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Start a PlusServer
   vtksysProcess* plusServerProcess = NULL;

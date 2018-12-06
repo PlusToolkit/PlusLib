@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 {
   // Parse command-line arguments
   bool                            printHelp = false;
-  int                             verboseLevel(vtkIGSIOLogger::LOG_LEVEL_UNDEFINED);
+  int                             verboseLevel(vtkPlusLogger::LOG_LEVEL_UNDEFINED);
   vtksys::CommandLineArguments    args;
 
   std::string                     inputFileName; // Sequence file name with path to edit
@@ -344,7 +344,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Check command line arguments
   if (inputFileName.empty() && inputFileNames.empty())

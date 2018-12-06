@@ -324,7 +324,7 @@ private:
 
   std::string ConfigFilename;
 
-  vtkIGSIOLogger::LogLevelType GracePeriodLogLevel;
+  vtkPlusLogger::LogLevelType GracePeriodLogLevel;
   double MissingInputGracePeriodSec;
   double BroadcastStartTime;
 

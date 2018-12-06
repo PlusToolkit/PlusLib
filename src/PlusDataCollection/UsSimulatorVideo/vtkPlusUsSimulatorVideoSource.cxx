@@ -22,7 +22,7 @@ vtkStandardNewMacro(vtkPlusUsSimulatorVideoSource);
 vtkPlusUsSimulatorVideoSource::vtkPlusUsSimulatorVideoSource()
   : UsSimulator(NULL)
   , LastProcessedTrackingDataTimestamp(0)
-  , GracePeriodLogLevel(vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+  , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
 {
   // Create and set up US simulator
   vtkSmartPointer<vtkPlusUsSimulatorAlgo> usSimulator = vtkSmartPointer<vtkPlusUsSimulatorAlgo>::New();
@@ -68,7 +68,7 @@ PlusStatus vtkPlusUsSimulatorVideoSource::InternalUpdate()
 
   if (this->HasGracePeriodExpired())
   {
-    this->GracePeriodLogLevel = vtkIGSIOLogger::LOG_LEVEL_WARNING;
+    this->GracePeriodLogLevel = vtkPlusLogger::LOG_LEVEL_WARNING;
   }
 
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)

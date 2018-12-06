@@ -199,7 +199,7 @@ void vtkPlusConfig::SetOutputDirectory(const std::string& aDir)
 
   // Set log file name and path to the output directory
   std::string logfilename = std::string(this->ApplicationStartTimestamp) + "_PlusLog.txt";
-  vtkIGSIOLogger::Instance()->SetLogFileName(GetOutputPath(logfilename).c_str());
+  vtkPlusLogger::Instance()->SetLogFileName(GetOutputPath(logfilename).c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -291,12 +291,12 @@ PlusStatus vtkPlusConfig::LoadApplicationConfiguration()
   int logLevel = 0;
   if (applicationConfigurationRoot->GetScalarAttribute("LogLevel", logLevel))
   {
-    vtkIGSIOLogger::Instance()->SetLogLevel(logLevel);
+    vtkPlusLogger::Instance()->SetLogLevel(logLevel);
   }
   else
   {
     LOG_INFO("LogLevel attribute is not found - default 'Info' log level will be used");
-    vtkIGSIOLogger::Instance()->SetLogLevel(vtkIGSIOLogger::LOG_LEVEL_INFO);
+    vtkPlusLogger::Instance()->SetLogLevel(vtkPlusLogger::LOG_LEVEL_INFO);
     saveNeeded = true;
   }
 
@@ -451,7 +451,7 @@ PlusStatus vtkPlusConfig::WriteApplicationConfiguration()
   applicationConfigurationRoot->SetAttribute("Date", vtksys::SystemTools::GetCurrentDateTime("%Y.%m.%d %X").c_str());
 
   // Save log level
-  applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkIGSIOLogger::Instance()->GetLogLevel());
+  applicationConfigurationRoot->SetIntAttribute("LogLevel", vtkPlusLogger::Instance()->GetLogLevel());
 
   // Save device set directory
   applicationConfigurationRoot->SetAttribute("DeviceSetConfigurationDirectory", this->DeviceSetConfigurationDirectory.c_str());

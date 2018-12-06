@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 {
   int numberOfFailures(0);
 
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp(false);
   vtksys::CommandLineArguments args;
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     exit(EXIT_SUCCESS);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputSequenceMetafile.empty() || inputConfigFileName.empty() || inputBaselineFileName.empty())
   {
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
   vtkTable* reportTable = centerOfRotationCalibAlgo->GetReportTable();
   if (reportTable != NULL)
   {
-    if (vtkIGSIOLogger::Instance()->GetLogLevel() >= vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+    if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
     {
       reportTable->Dump(25);
     }

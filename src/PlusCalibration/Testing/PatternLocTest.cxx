@@ -45,7 +45,7 @@ void SegmentImageSequence( vtkIGSIOTrackedFrameList* trackedFrameList, std::ofst
   }
 
   // Set to false if you don't want images produced after each morphological operation
-  bool debugOutput=vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_TRACE; 
+  bool debugOutput=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
   patternRecognition.GetFidSegmentation()->SetDebugOutput(debugOutput);
 
   for (unsigned int currentFrameIndex=0; currentFrameIndex<trackedFrameList->GetNumberOfTrackedFrames(); currentFrameIndex++)
@@ -95,7 +95,7 @@ void SegmentImageSequence( vtkIGSIOTrackedFrameList* trackedFrameList, std::ofst
 
     PlusUsFidSegResultFile::WriteSegmentationResults(outFile, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
 
-    if (vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_DEBUG)
+    if (vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_DEBUG)
     {
       PlusUsFidSegResultFile::WriteSegmentationResults(std::cout, segResults, inputTestcaseName, currentFrameIndex, inputImageSequenceFileName);
     }
@@ -122,7 +122,7 @@ int CompareSegmentationResults(const std::string& inputBaselineFileName, const s
   vtkSmartPointer<vtkXMLDataElement> baselineRootElem = vtkSmartPointer<vtkXMLDataElement>::Take(
     vtkXMLUtilities::ReadElementFromFile(inputBaselineFileName.c_str()));
 
-  bool writeFidFoundRatioToFile=vtkIGSIOLogger::Instance()->GetLogLevel()>=vtkIGSIOLogger::LOG_LEVEL_TRACE; 
+  bool writeFidFoundRatioToFile=vtkPlusLogger::Instance()->GetLogLevel()>=vtkPlusLogger::LOG_LEVEL_TRACE; 
 
   // check to make sure we have the right element
   if (baselineRootElem == NULL )
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
   std::string outputFiducialPositionsFileName;
   std::string fiducialGeomString;  
 
-  int verboseLevel=vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel=vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   if (inputImageSequenceFileName.empty() || inputConfigFileName.empty())
   {

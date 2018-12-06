@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   bool renderingOff(false);
   std::string inputConfigFileName;
   std::string outputFileName("WinProbeOutputSeq.nrrd");
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_DEBUG;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_DEBUG;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   if(printHelp)
   {
     std::cout << "\n\nvtkPlusWinProbeVideoSourceTest help:" << args.GetHelp() << std::endl;

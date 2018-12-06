@@ -8,6 +8,7 @@ SET(${PROJECT_NAME}_SRCS
   vtkPlusConfig.cxx
   PlusMath.cxx
   vtkPlusSequenceIO.cxx
+  vtkPlusLogger.cxx
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
@@ -20,6 +21,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     PixelCodec.h
     PlusXmlUtils.h
     vtkPlusSequenceIO.h
+    vtkPlusLogger.h
     )
 
 ENDIF()

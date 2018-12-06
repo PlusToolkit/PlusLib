@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
 {
   std::string inputConfigFileName;
   std::string inputBaselineFileName;
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
   std::string inputTrackedStylusTipSequence;
   std::string intermediateFileOutputDirectory;
   bool plotSignal(false);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     std::cout << "Help: " << cmdargs.GetHelp() << std::endl;
     exit(EXIT_FAILURE);
   }
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
   LOG_INFO("Initialize");
 
   // Read LandmarkDetection configuration
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
             phantomRegistration->GetRecordedLandmarks_Reference()->InsertPoint(landmarkDetection->GetDetectedLandmarkPoints_Reference()->GetNumberOfPoints() - 1, landmarkFound);
             phantomRegistration->GetRecordedLandmarks_Reference()->Modified();
             LOG_INFO("\nLandmark found (" << landmarkFound[0] << ", " << landmarkFound[1] << ", " << landmarkFound[2] << ") at " << trackedStylusTipFrames->GetTrackedFrame(j)->GetTimestamp() << "[ms]" << "\nNumber of landmarks in phantonReg " << phantomRegistration->GetRecordedLandmarks_Reference()->GetNumberOfPoints());
-            vtkIGSIOLogger::PrintProgressbar((100.0 *  newLandmarkDetected - 1) / numberOfExpectedLandmarks);
+            vtkPlusLogger::PrintProgressbar((100.0 *  newLandmarkDetected - 1) / numberOfExpectedLandmarks);
 
             if (newLandmarkDetected == numberOfExpectedLandmarks)
             {
@@ -463,7 +463,7 @@ int main(int argc, char* argv[])
 
       LOG_INFO("Registration error = " << phantomRegistration->GetRegistrationErrorMm());
       accumulatedError += phantomRegistration->GetRegistrationErrorMm();
-      vtkIGSIOLogger::PrintProgressbar(100);
+      vtkPlusLogger::PrintProgressbar(100);
 
       if (numberFiles == 1)
       {

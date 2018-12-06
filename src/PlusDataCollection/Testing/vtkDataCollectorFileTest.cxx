@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
   // Check command line arguments.
   std::string  inputConfigFileName;
-  int          verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int          verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   vtksys::CommandLineArguments args;
   args.Initialize(argc, argv);
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel(verboseLevel);
+  vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
   // Prepare and start data collection
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();

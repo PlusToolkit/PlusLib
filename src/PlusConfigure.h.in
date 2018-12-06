@@ -134,7 +134,7 @@ typedef unsigned long int vtkMTimeType;
 
 // Frequently needed IGSIO includes
 #include <vtkIGSIOAccurateTimer.h>
-#include <vtkIGSIOLogger.h>
+#include <vtkPlusLogger.h>
 
 // Frequently needed Plus includes
 #include "PlusCommon.h"

@@ -207,7 +207,7 @@ int CompareLineSegmentationResults( const std::vector<vtkPlusLineSegmentationAlg
 //----------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  int verboseLevel = vtkIGSIOLogger::LOG_LEVEL_UNDEFINED;
+  int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
   bool printHelp = false;
   vtksys::CommandLineArguments args;
@@ -239,7 +239,7 @@ int main( int argc, char** argv )
     exit( EXIT_SUCCESS );
   }
 
-  vtkIGSIOLogger::Instance()->SetLogLevel( verboseLevel );
+  vtkPlusLogger::Instance()->SetLogLevel( verboseLevel );
 
   if ( inputSequenceMetafile.empty() )
   {
