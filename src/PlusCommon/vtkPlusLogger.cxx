@@ -34,7 +34,7 @@ vtkIGSIOLogger* vtkPlusLogger::Instance()
                                PlusCommon::GetPlusLibVersionString();
 
 #ifdef _DEBUG
-    strIGSIOVersion += " (debug build)";
+    strVersion += " (debug build)";
 #endif
 
     m_pInstance->LogMessage(LOG_LEVEL_INFO, strVersion, "vtkPlusLogger", __LINE__);
