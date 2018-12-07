@@ -622,7 +622,7 @@ float vtkPlusWinProbeVideoSource::GetFocalPointDepth(int index)
   {
     m_FocalPointDepth[index] = ::GetFocalPointDepth(index);
   }
-  return m_TimeGainCompensation[index];
+  return m_FocalPointDepth[index];
 }
 
 //----------------------------------------------------------------------------
