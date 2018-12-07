@@ -4,13 +4,24 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
-#include "vtkPlusLogger.h"
+#include "PlusConfigure.h"
 #include "PlusCommon.h"
+#include "vtkPlusLogger.h"
 
 //-----------------------------------------------------------------------------
 namespace
 {
   vtkIGSIOSimpleRecursiveCriticalSection LoggerCreationCriticalSection;
+}
+
+//-------------------------------------------------------
+vtkPlusLogger::vtkPlusLogger()
+{
+}
+
+//-------------------------------------------------------
+vtkPlusLogger::~vtkPlusLogger()
+{
 }
 
 //-------------------------------------------------------

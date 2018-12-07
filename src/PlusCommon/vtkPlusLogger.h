@@ -21,7 +21,11 @@
 class vtkPlusCommonExport vtkPlusLogger : public vtkIGSIOLogger
 {
 public:
-  static vtkIGSIOLogger* vtkPlusLogger::Instance();
+  static vtkIGSIOLogger* Instance();
+
+private:
+  vtkPlusLogger();
+  ~vtkPlusLogger();
 };
 
 #endif // __vtkPlusLogger_h 
