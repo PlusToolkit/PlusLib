@@ -668,7 +668,29 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
     LOG_ERROR("Unable to retrieve the video source in the media foundation capture device.");
     return PLUS_FAIL;
   }
-  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex);
+
+  const double maximumFrameTimeVariance = 0.2;  // to make sure we don't drop frames because of slight variance in acquisition rate, we allow up to 20% higher frame rate before we start dropping frames
+  double acquisitionRate = this->GetAcquisitionRate();
+  double minimumTimeBetweenBetweenRecordedFramesSec = (1.0 - maximumFrameTimeVariance) / this->GetAcquisitionRate();
+  double lastFrameTimeSec = -1.0;
+  double currentTime = vtkIGSIOAccurateTimer::GetSystemTime();
+
+  StreamBufferItem latestFrame;
+  if (aSource->GetNumberOfItems() > 2 && aSource->GetLatestStreamBufferItem(&latestFrame) == ITEM_OK)
+  {
+    lastFrameTimeSec = latestFrame.GetUnfilteredTimestamp(0.0);
+    double secondsSinceLastFrame = currentTime - lastFrameTimeSec;
+    if (lastFrameTimeSec > 0 && secondsSinceLastFrame < minimumTimeBetweenBetweenRecordedFramesSec)
+    {
+      // For some webcams, the requested acquistion rate may not be availiable (not supported, or error in configuration).
+      // In this case we can artificially limit frames to the requested acquisition rate by ignoring frames.
+
+      // The required time has not elapsed between frames.
+      // Do not need to record this frame.
+      return PLUS_SUCCESS;
+    }
+  }
+  PlusStatus status = aSource->AddItem(&this->UncompressedVideoFrame, this->FrameIndex, currentTime);
 
   this->Modified();
   return status;
@@ -677,7 +699,7 @@ PlusStatus vtkPlusMmfVideoSource::AddFrame(unsigned char* bufferData, DWORD buff
 //----------------------------------------------------------------------------
 void vtkPlusMmfVideoSource::LogListOfCaptureVideoFormats(unsigned int deviceId)
 {
-  LOG_INFO_W("Supported vide formats for Device Id " << deviceId << " (" << GetCaptureDeviceName(deviceId) << ")");
+  LOG_INFO_W("Supported video formats for Device Id " << deviceId << " (" << GetCaptureDeviceName(deviceId) << ")");
   std::vector<std::wstring> videoModes;
   GetListOfCaptureVideoFormats(videoModes, deviceId);
   for (auto modeIt = videoModes.begin(); modeIt != videoModes.end(); ++modeIt)
