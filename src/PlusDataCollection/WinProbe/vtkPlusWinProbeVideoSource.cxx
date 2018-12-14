@@ -378,6 +378,14 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("Setting transducer ID: " << this->m_TransducerID);
   WPSetTransducerID(this->m_TransducerID.c_str());
 
+  std::string presetPath = "Default.xml";
+  LOG_DEBUG("Loading Default Presets. " << presetPath);
+  if (!LoadXmlPreset(presetPath.c_str()))
+  {
+    LOG_ERROR("Failed loading default presets!")
+    return PLUS_FAIL;
+  }
+
   m_ADCfrequency = GetADCSamplingRate();
   this->m_CustomFields["SamplingRate"] = std::to_string(m_ADCfrequency);
   m_LineCount = GetSSElementCount();
