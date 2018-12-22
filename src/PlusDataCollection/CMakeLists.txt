@@ -43,6 +43,7 @@ OPTION(PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" 
 OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION(PLUS_USE_SPINNAKER_VIDEO "Provide support for Point Grey Spinnaker API compatible imaging devices" OFF)
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
@@ -1729,6 +1730,78 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# Point Grey Spinnaker API support
+
+IF(PLUS_USE_SPINNAKER_VIDEO)
+  message("ABCD")
+  SET(Spinnaker_SRCS
+    PointGrey/vtkPlusSpinnakerVideoSource.cxx
+    )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(Spinnaker_HDRS
+      PointGrey/vtkPlusSpinnakerVideoSource.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Spinnaker_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Spinnaker_SRCS}
+    )
+
+  # Collect all the Spinnaker API libraries
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/PointGrey
+    ${SPINNAKER_API_INCLUDE_DIR}
+    )
+  
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    debug     ${SPINNAKER_API_LIBRARY_DIR}/Spinnakerd_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+    optimized ${SPINNAKER_API_LIBRARY_DIR}/Spinnaker_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+    debug     ${SPINNAKER_API_LIBRARY_DIR}/SpinVideod_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+    optimized ${SPINNAKER_API_LIBRARY_DIR}/SpinVideo_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+  
+  LIST(APPEND External_Libraries_Debug
+    ${SPINNAKER_API_BINARY_DIR}/GCBase_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/GenApi_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/GenTLd_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/Log_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/log4cpp_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/MathParser_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/NodeMapData_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/Spinnakerd_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/XMLParser_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${SPINNAKER_API_BINARY_DIR}/GCBase_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/GenApi_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/GenTL_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/Log_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/log4cpp.spinnaker.property
+    ${SPINNAKER_API_BINARY_DIR}/log4cpp_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/MathParser_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/NodeMapData_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDataStream_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDataStream_Usb3_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Reference_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Usb3_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml 
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml 
+    ${SPINNAKER_API_BINARY_DIR}/Spinnaker_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_BINARY_DIR}/XMLParser_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Telemed support
 IF(PLUS_USE_TELEMED_VIDEO)
   SET(Telemed_SRCS
@@ -2302,6 +2375,7 @@ source_group("Atracsys" FILES ${Atracsys_HDRS} ${Atracsys_SRCS})
 source_group("NDICertus" FILES ${NDICertus_HDRS} ${NDICertus_SRCS})
 source_group("Optimet" FILES ${Optimet_HDRS} ${Optimet_SRCS})
 source_group("OptiTrack" FILES ${OptiTrack_HDRS} ${OptiTrack_SRCS})
+source_group("SpinnakerAPI" FILES ${Spinnaker_HDRS} ${Spinnaker_SRCS})
 source_group("VirtualDevices" FILES ${Virtual_HDRS} ${Virtual_SRCS})
 source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
