@@ -24,9 +24,19 @@ vtkStandardNewMacro(vtkPlusSpinnakerVideoSource);
 
 namespace
 {
-  const unsigned int DEFAULT_DEVICE_ID = 0;
-  const FrameSizeType DEFAULT_FRAME_SIZE = { 640, 480, 1 };
-  const unsigned int DEFAULT_FRAME_RATE = 30;
+  typedef vtkPlusSpinnakerVideoSource psvs;
+  const unsigned int              DEFAULT_CAMERA_NUM(0);
+  const std::string               DEFAULT_VIDEO_FORMAT("RGB8Packed");
+  const FrameSizeType             DEFAULT_FRAME_SIZE = { 640, 480, 1 };
+  const unsigned int              DEFAULT_FRAME_RATE(30);
+  const psvs::EXPOSURE_MODE       DEFAULT_EXPOSURE_MODE(psvs::EXPOSURE_AUTO_CONTINUOUS);
+  const float                     FLAG_EXPOSURE_MICROSEC(-1);
+  const psvs::GAIN_MODE           DEFAULT_GAIN_MODE(psvs::GAIN_AUTO_CONTINUOUS);
+  const float                     FLAG_GAIN_DB(-1);
+  const psvs::WHITE_BALANCE_MODE  DEFAULT_WHITE_BALANCE_MODE(psvs::WB_AUTO_CONTINUOUS);
+  const float                     FLAG_WHITE_BALANCE(-1);
+  const psvs::SHARPENING_MODE     DEFAULT_SHARPENING_MODE(psvs::SHARPENING_AUTO);
+  const float                     FLAG_SHARPENING(-1);
 }
 
 //----------------------------------------------------------------------------
@@ -46,17 +56,38 @@ public:
 
   // Singleton reference to system object
   Spinnaker::SystemPtr SystemPtr;
+
+  // list of connected cameras
+  Spinnaker::CameraList CameraList;
+
+  // camera pointer
+  Spinnaker::CameraPtr CameraPtr;
 };
 
 //----------------------------------------------------------------------------
 vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()
-  : Internal(new vtkInternal(this))
+: Internal(new vtkInternal(this)),
+  CameraNumber(DEFAULT_CAMERA_NUM),
+  VideoFormat(DEFAULT_VIDEO_FORMAT),
+  FrameRate(DEFAULT_FRAME_RATE),
+  ExposureMode(DEFAULT_EXPOSURE_MODE),
+  ExposureMicroSec(FLAG_EXPOSURE_MICROSEC),
+  GainMode(DEFAULT_GAIN_MODE),
+  GainDB(FLAG_GAIN_DB),
+  WhiteBalanceMode(DEFAULT_WHITE_BALANCE_MODE),
+  WhiteBalanceRed(FLAG_WHITE_BALANCE),
+  WhiteBalanceBlue(FLAG_WHITE_BALANCE),
+  SharpeningMode(DEFAULT_SHARPENING_MODE),
+  SharpeningAmount(FLAG_SHARPENING)
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()");
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
-  this->InternalUpdateRate = 30;
-  this->AcquisitionRate = 30;
+  this->InternalUpdateRate = DEFAULT_FRAME_RATE;
+  this->AcquisitionRate = DEFAULT_FRAME_RATE;
+  this->FrameSize[0] = DEFAULT_FRAME_SIZE[0];
+  this->FrameSize[1] = DEFAULT_FRAME_SIZE[1];
+  this->FrameSize[2] = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -90,6 +121,7 @@ void vtkPlusSpinnakerVideoSource::PrintConfiguration(ostream& os, vtkIndent inde
   std::map<SHARPENING_MODE, std::string> SharpeningModeToString;
   SharpeningModeToString[SHARPENING_MANUAL] = "MANUAL";
   SharpeningModeToString[SHARPENING_AUTO] = "AUTO";
+  SharpeningModeToString[SHARPENING_OFF] = "OFF";
 
   // print device parameters
   os << indent << "CameraNumber: " << this->CameraNumber << std::endl;
@@ -109,12 +141,13 @@ void vtkPlusSpinnakerVideoSource::PrintConfiguration(ostream& os, vtkIndent inde
   os << indent << "WhiteBalanceMode:" << WhiteBalanceModeToString.find(this->WhiteBalanceMode)->second << std::endl;
   if (this->WhiteBalanceMode == WB_MANUAL)
   {
-    os << indent << "WhiteBalance:" << this->WhiteBalance << std::endl;
+    os << indent << "WhiteBalance(red):" << this->WhiteBalanceRed << std::endl;
+    os << indent << "WhiteBalance(blue):" << this->WhiteBalanceBlue << std::endl;
   }
   os << indent << "SharpeningMode:" << SharpeningModeToString.find(this->SharpeningMode)->second << std::endl;
   if (this->SharpeningMode == SHARPENING_MANUAL)
   {
-    os << indent << "Sharpening:" << this->Sharpening << std::endl;
+    os << indent << "Sharpening:" << this->SharpeningAmount << std::endl;
   }
 }
 
@@ -174,7 +207,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::SetGainDB(int gainDb)
 {
   if (gainDb < 0 || gainDb > 18)
   {
-    LOG_WARNING("Requested invalid fain of " << gainDb << " (dB). Using continuous auto-gain.");
+    LOG_WARNING("Requested invalid gain of " << gainDb << " (dB). Using continuous auto-gain.");
     this->GainMode = GAIN_AUTO_CONTINUOUS;
     return PLUS_FAIL;
   }
@@ -194,6 +227,61 @@ PlusStatus vtkPlusSpinnakerVideoSource::SetSharpeningMode(SHARPENING_MODE sharpM
 {
   this->SharpeningMode = sharpMode;
   return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PlusStatus vtkPlusSpinnakerVideoSource::SetSharpeningAmount(float sharpeningAmount)
+{
+  if (sharpeningAmount < 0 || sharpeningAmount > 0.25)
+  {
+    LOG_WARNING("Requested invalid sharpening value of " << sharpeningAmount << ", sharpening has been turned off. Valid sharpening values are in the range [0, 0.25].");
+    this->SharpeningMode == SHARPENING_OFF;
+    return PLUS_FAIL;
+  }
+  this->SharpeningAmount = sharpeningAmount;
+  return PLUS_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+// verify that if any manual settings are enabled then their corresponding values have also been set
+PlusStatus vtkPlusSpinnakerVideoSource::CheckCameraParameterValidity()
+{
+  PlusStatus retVal = PLUS_SUCCESS;
+
+  // exposure
+  if (this->ExposureMode == EXPOSURE_TIMED && this->ExposureMicroSec == FLAG_EXPOSURE_MICROSEC)
+  {
+    LOG_ERROR("Failed to configure SpinnakerVideoSource: ExposureMode is set to \"TIMED\", but no ExposureMicroSec attribute is provided.");
+    retVal = PLUS_FAIL;
+  }
+
+  // gain
+  if (this->GainMode == GAIN_MANUAL && this->GainDB == FLAG_GAIN_DB)
+  {
+    LOG_ERROR("Failed to configure SpinnakerVideoSource: GainMode is set to \"MANUAL\", but no GainDB attribute is provided.");
+    retVal = PLUS_FAIL;
+  }
+
+  // white balance
+  if (this->WhiteBalanceMode == WB_MANUAL && this->WhiteBalanceRed == FLAG_WHITE_BALANCE)
+  {
+    LOG_ERROR("Failed to configure SpinnakerVideoSource: WhiteBalanceMode is set to \"MANUAL\", but no WhiteBalanceRed attribute is provided.");
+    retVal = PLUS_FAIL;
+  }
+  if (this->WhiteBalanceMode == WB_MANUAL && this->WhiteBalanceBlue == FLAG_WHITE_BALANCE)
+  {
+    LOG_ERROR("Failed to configure SpinnakerVideoSource: WhiteBalanceMode is set to \"MANUAL\", but no WhiteBalanceBlue attribute is provided.");
+    retVal = PLUS_FAIL;
+  }
+
+  // sharpening
+  if (this->SharpeningMode == SHARPENING_MANUAL && this->SharpeningAmount == FLAG_SHARPENING)
+  {
+    LOG_ERROR("Failed to configure SpinnakerVideoSource: SharpeningMode is set to \"MANUAL\", but no SharpeningAmount attribute is provided.");
+    retVal = PLUS_FAIL;
+  }
+
+  return retVal;
 }
 
 //-----------------------------------------------------------------------------
@@ -243,13 +331,15 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
     "MANUAL", WB_MANUAL,
     "AUTO_ONCE", WB_AUTO_ONCE,
     "AUTO_CONTINUOUS", WB_AUTO_CONTINUOUS);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, WhiteBalance, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, WhiteBalanceRed, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, WhiteBalanceBlue, deviceConfig);
 
   // sharpening
-  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(SharpeningMode, deviceConfig,
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(SharpeningMode, deviceConfig,
     "MANUAL", SHARPENING_MANUAL,
-    "AUTO", SHARPENING_AUTO);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, Sharpening, deviceConfig);
+    "AUTO", SHARPENING_AUTO,
+    "OFF", SHARPENING_OFF);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SharpeningAmount, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -279,7 +369,8 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
   std::ostringstream str;
   this->PrintConfiguration(str, vtkIndent(0));
   LOG_INFO(std::endl << "SpinnakerVideoSource configuration:" << std::endl << str.str());
-  return PLUS_SUCCESS;
+  
+  return this->CheckCameraParameterValidity();
 }
 
 //-----------------------------------------------------------------------------
@@ -301,16 +392,190 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
   this->Internal->SystemPtr = Spinnaker::System::GetInstance();
 
   // Retrieve list of cameras from the system
-  Spinnaker::CameraList camList = this->Internal->SystemPtr->GetCameras();
-  
-  if (camList.GetSize() == 0)
+  this->Internal->CameraList = this->Internal->SystemPtr->GetCameras();
+
+  // check CameraNumber parameter is valid
+  const int numConnectedCams = this->Internal->CameraList.GetSize();
+  if (numConnectedCams == 0)
   {
-    camList.Clear();
+    this->Internal->CameraList.Clear();
     LOG_ERROR("No Spinnaker compatible camera detected.");
     return PLUS_FAIL;
   }
+  else if (this->CameraNumber < 0 || this->CameraNumber > numConnectedCams)
+  {
+    LOG_ERROR("Invalid camera number (" << this->CameraNumber <<
+      "in config. Please verify your camera is connected and that your config contains the correct CameraNumber value.");
+    return PLUS_FAIL;
+  }
 
-  return PLUS_FAIL;
+  // get camera pointer
+  this->Internal->CameraPtr = this->Internal->CameraList.GetByIndex(this->CameraNumber);
+
+  // initialize camera
+  try
+  {
+    this->Internal->CameraPtr->Init();
+  }
+  catch (Spinnaker::Exception e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Error initializing camera. Exception text : " << e.what());
+    return PLUS_FAIL;
+  }
+
+  // configure the camera with parameters specified in the config
+  try
+  {
+    // get camera nodemap pointer
+    Spinnaker::GenApi::INodeMap& nodeMap = this->Internal->CameraPtr->GetNodeMap();
+
+    // set video encoding
+    Spinnaker::GenApi::CEnumerationPtr pfPtr = nodeMap.GetNode("PixelFormat");
+    if (Spinnaker::GenApi::IsAvailable(pfPtr) && Spinnaker::GenApi::IsWritable(pfPtr))
+    {
+      // Retrieve the desired entry node from the enumeration node
+      Spinnaker::GenApi::CEnumEntryPtr pfEnumPtr = pfPtr->GetEntryByName(this->VideoFormat.c_str());
+      if (Spinnaker::GenApi::IsAvailable(pfEnumPtr) && Spinnaker::GenApi::IsReadable(pfEnumPtr))
+      {
+        // Retrieve the integer value from the entry node
+        int64_t pixelFormat = pfEnumPtr->GetValue();
+        // Set integer as new value for enumeration node
+        pfPtr->SetIntValue(pixelFormat);
+      }
+      else
+      {
+        LOG_ERROR("Requested VideoFormat of \"" << this->VideoFormat << "\" is not available...");
+        return PLUS_FAIL;
+      }
+    }
+    else
+    {
+      LOG_ERROR("Requested VideoFormat of \"" << this->VideoFormat << "\" is not available...");
+      return PLUS_FAIL;
+    }
+
+    // set frame width 
+    Spinnaker::GenApi::CIntegerPtr WidthPtr = nodeMap.GetNode("Width");
+    if (Spinnaker::GenApi::IsAvailable(WidthPtr) && Spinnaker::GenApi::IsWritable(WidthPtr))
+    {
+      WidthPtr->SetValue(this->FrameSize[0]);
+      if (this->FrameSize[0] != WidthPtr->GetValue())
+      {
+        LOG_WARNING("Failed to set image width to requested value of " << this->FrameSize[0] <<
+          "(px). Setting width to default value of " << DEFAULT_FRAME_SIZE[0] << "(px).");
+        WidthPtr->SetValue(DEFAULT_FRAME_SIZE[0]);
+        this->FrameSize[0] = DEFAULT_FRAME_SIZE[0];
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to set image width.");
+      return PLUS_FAIL;
+    }
+
+    // set frame height
+    Spinnaker::GenApi::CIntegerPtr HeightPtr = nodeMap.GetNode("Height");
+    if (Spinnaker::GenApi::IsAvailable(HeightPtr) && Spinnaker::GenApi::IsWritable(HeightPtr))
+    {
+      HeightPtr->SetValue(this->FrameSize[1]);
+      if (this->FrameSize[1] != HeightPtr->GetValue())
+      {
+        LOG_WARNING("Failed to set image height to requested value of " << this->FrameSize[1] <<
+          "(px). Setting width to default value of " << DEFAULT_FRAME_SIZE[1] << "(px).");
+        WidthPtr->SetValue(DEFAULT_FRAME_SIZE[1]);
+        this->FrameSize[1] = DEFAULT_FRAME_SIZE[1];
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to set image height.");
+      return PLUS_FAIL;
+    }
+
+    // set frame rate
+
+
+    // set exposure mode && exposure time (if manual exposure control enabled)
+    if (this->ExposureMode == EXPOSURE_TIMED)
+    {
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Off);
+      this->Internal->CameraPtr->ExposureMode.SetValue(Spinnaker::ExposureModeEnums::ExposureMode_Timed);
+      this->Internal->CameraPtr->ExposureTime.SetValue(this->ExposureMicroSec);
+    }
+    else if (this->ExposureMode == EXPOSURE_AUTO_ONCE)
+    {
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Once);
+    }
+    else if (this->ExposureMode == EXPOSURE_AUTO_CONTINUOUS)
+    {
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Continuous);
+    }
+
+    // set gain mode && gain (if manual gain control enabled)
+    if (this->GainMode == GAIN_MANUAL)
+    {
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Off);
+      this->Internal->CameraPtr->Gain.SetValue(this->GainDB);
+    }
+    else if (this->GainMode == GAIN_AUTO_ONCE)
+    {
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Once);
+    }
+    else if (this->GainMode == GAIN_AUTO_CONTINUOUS)
+    {
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Continuous);
+    }
+
+    // set white balance mode && wb (if manual wb control enabled)
+    //if (this->WhiteBalanceMode == WB_MANUAL)
+    //{
+    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+    //  this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
+    //  Spinnaker::GenApi::CFloatPtr balanceRatioPtr = nodeMap.GetNode("BalanceRatio");
+    //  balanceRatioPtr->SetValue(this->WhiteBalanceBlue);
+    //  this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
+    //  balanceRatioPtr->SetValue(this->WhiteBalanceRed);
+    //}
+    //else if (this->WhiteBalanceMode == WB_AUTO_ONCE)
+    //{
+    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Once);
+    //}
+    //else if (this->WhiteBalanceMode == WB_AUTO_CONTINUOUS)
+    //{
+    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
+    //}
+
+    // set sharpening mode && sharpening (if manual sharpening control enabled)
+ /*   if (this->SharpeningMode == SHARPENING_MANUAL)
+    {
+      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
+      sharpeningEnable->SetValue(true);
+      Spinnaker::GenApi::CBooleanPtr sharpeningAuto = nodeMap.GetNode("SharpeningAuto");
+      sharpeningAuto->SetValue(false);
+      Spinnaker::GenApi::CFloatPtr sharpening = nodeMap.GetNode("Sharpening");
+      sharpening->SetValue(this->SharpeningAmount);
+    }
+    else if (this->SharpeningMode == SHARPENING_AUTO)
+    {
+      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
+      sharpeningEnable->SetValue(true);
+      Spinnaker::GenApi::CBooleanPtr sharpeningAuto = nodeMap.GetNode("SharpeningAuto");
+      sharpeningAuto->SetValue(true);
+    }
+    else if (this->SharpeningMode == SHARPENING_OFF)
+    {
+      
+      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
+      sharpeningEnable->SetValue(false);
+    }*/
+  }
+  catch (Spinnaker::Exception &e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Error configuring camera. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -318,22 +583,86 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalDisconnect()");
 
+  try
+  {
+    this->Internal->CameraPtr->DeInit();
+  }
+  catch (Spinnaker::Exception &e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to de-initialize camera. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  this->Internal->CameraList.Clear();
   this->Internal->SystemPtr->ReleaseInstance();
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSpinnakerVideoSource::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalStartRecording()");
-  return PLUS_FAIL;
+
+  try
+  {
+    // get camera nodemap pointer
+    Spinnaker::GenApi::INodeMap & nodeMapTLDevice = this->Internal->CameraPtr->GetTLDeviceNodeMap();
+    Spinnaker::GenApi::INodeMap& nodeMap = this->Internal->CameraPtr->GetNodeMap();
+
+    // set acquisition mode to continuous
+    Spinnaker::GenApi::CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
+    if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
+    {
+      LOG_ERROR("Unable to set acquisition mode to continuous (node retrieval). Aborting...");
+      return PLUS_FAIL;
+    }
+    Spinnaker::GenApi::CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
+    if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
+    {
+      LOG_ERROR("Unable to set acquisition mode to continuous (entry 'continuous' retrieval). Aborting...");
+      return PLUS_FAIL;
+    }
+    int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
+    ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
+    LOG_INFO("Acquisition mode set to continuous...");
+
+    // Begin acquiring images
+    this->Internal->CameraPtr->BeginAcquisition();
+
+    std::string deviceSerialNumber("");
+    Spinnaker::GenApi::CStringPtr ptrStringSerial = nodeMapTLDevice.GetNode("DeviceSerialNumber");
+    if (IsAvailable(ptrStringSerial) && IsReadable(ptrStringSerial))
+    {
+      deviceSerialNumber = ptrStringSerial->GetValue();
+      LOG_INFO("Device serial number retrieved as " << deviceSerialNumber << ".");
+    }
+  }
+  catch (Spinnaker::Exception &e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to start recording. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSpinnakerVideoSource::InternalStopRecording()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalStopRecording()");
-  return PLUS_FAIL;
+
+  try
+  {
+    // End acquiring images
+    this->Internal->CameraPtr->BeginAcquisition();
+  }
+  catch (Spinnaker::Exception &e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to end recording. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -349,6 +678,30 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalUpdate()");
 
+  try
+  {
+    // Retrieve next received image and ensure image completion
+    Spinnaker::ImagePtr pResultImage = this->Internal->CameraPtr->GetNextImage();
+    if (pResultImage->IsIncomplete())
+    {
+      cout << "Image incomplete with image status " << pResultImage->GetImageStatus() << "..." << endl << endl;
+    }
+
+    // Convert image to mono 8
+    Spinnaker::ImagePtr convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_Mono8, Spinnaker::HQ_LINEAR);
+
+    // add image to PLUS buffer
+
+    
+    // Release image
+    pResultImage->Release();
+  }
+  catch (Spinnaker::Exception &e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed in InternalUpdate(). Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+
   this->FrameNumber++; 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }

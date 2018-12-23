@@ -78,7 +78,8 @@ public:
   enum SHARPENING_MODE
   {
     SHARPENING_MANUAL = 0,
-    SHARPENING_AUTO
+    SHARPENING_AUTO,
+    SHARPENING_OFF
   };
 
   // methods to set & get camera parameters
@@ -97,30 +98,38 @@ public:
   PlusStatus SetGainDB(int gainDb);
   WHITE_BALANCE_MODE GetWhiteBalanceMode() { return this->WhiteBalanceMode; }
   PlusStatus SetWhiteBalanceMode(WHITE_BALANCE_MODE wbMode);
-  vtkGetMacro(WhiteBalance, float);
-  vtkSetMacro(WhiteBalance, float);
+  vtkGetMacro(WhiteBalanceRed, float);
+  vtkSetMacro(WhiteBalanceRed, float);
+  vtkGetMacro(WhiteBalanceBlue, float);
+  vtkSetMacro(WhiteBalanceBlue, float);
   SHARPENING_MODE GetSharpeningMode() { return this->SharpeningMode; }
   PlusStatus SetSharpeningMode(SHARPENING_MODE sharpMode);
-  vtkGetMacro(Sharpening, float);
-  vtkSetMacro(Sharpening, float);
+  vtkGetMacro(SharpeningAmount, float);
+  PlusStatus SetSharpeningAmount(float sharpeningAmount);
+
+  // check camera parameters as set are valid
+  PlusStatus CheckCameraParameterValidity();
 
 protected:
   vtkPlusSpinnakerVideoSource();
   ~vtkPlusSpinnakerVideoSource();
   
-  // camera configuration parameters
+  // frame configuration
   int CameraNumber;
   std::string VideoFormat;
   FrameSizeType FrameSize;
   int FrameRate;
+
+  // camera configuration
   EXPOSURE_MODE ExposureMode;
   float ExposureMicroSec;
   GAIN_MODE GainMode;
   float GainDB;
   WHITE_BALANCE_MODE WhiteBalanceMode;
-  float WhiteBalance;
+  float WhiteBalanceRed;
+  float WhiteBalanceBlue;
   SHARPENING_MODE SharpeningMode;
-  float Sharpening;
+  float SharpeningAmount;
 
 private:
   vtkPlusSpinnakerVideoSource(const vtkPlusSpinnakerVideoSource&);
