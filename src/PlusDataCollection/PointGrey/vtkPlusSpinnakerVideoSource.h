@@ -53,6 +53,14 @@ public:
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
 
+  // available pixel encodings
+  enum PIXEL_ENCODING
+  {
+    RGB24 = 0,
+    BGR24,
+    MONO8
+  };
+
   // enums for camera controls
   enum EXPOSURE_MODE
   {
@@ -85,8 +93,8 @@ public:
   // methods to set & get camera parameters
   vtkGetMacro(CameraNumber, unsigned int);
   vtkSetMacro(CameraNumber, unsigned int);
-  vtkGetMacro(VideoFormat, std::string);
-  vtkSetMacro(VideoFormat, std::string);
+  vtkGetMacro(PixelEncoding, PIXEL_ENCODING);
+  vtkSetMacro(PixelEncoding, PIXEL_ENCODING);
   PlusStatus SetFrameRate(int FrameRate);
   EXPOSURE_MODE GetExposureMode() { return this->ExposureMode; }
   PlusStatus SetExposureMode(EXPOSURE_MODE expMode);
@@ -116,7 +124,7 @@ protected:
   
   // frame configuration
   int CameraNumber;
-  std::string VideoFormat;
+  PIXEL_ENCODING PixelEncoding;
   FrameSizeType FrameSize;
   int FrameRate;
 

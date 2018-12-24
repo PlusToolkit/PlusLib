@@ -26,7 +26,7 @@ namespace
 {
   typedef vtkPlusSpinnakerVideoSource psvs;
   const unsigned int              DEFAULT_CAMERA_NUM(0);
-  const std::string               DEFAULT_VIDEO_FORMAT("RGB8Packed");
+  const psvs::PIXEL_ENCODING      DEFAULT_PIXEL_ENCODING(psvs::RGB24);
   const FrameSizeType             DEFAULT_FRAME_SIZE = { 640, 480, 1 };
   const unsigned int              DEFAULT_FRAME_RATE(30);
   const psvs::EXPOSURE_MODE       DEFAULT_EXPOSURE_MODE(psvs::EXPOSURE_AUTO_CONTINUOUS);
@@ -66,9 +66,10 @@ public:
 
 //----------------------------------------------------------------------------
 vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()
-: Internal(new vtkInternal(this)),
+  : Internal(new vtkInternal(this)),
+  FrameNumber(0),
   CameraNumber(DEFAULT_CAMERA_NUM),
-  VideoFormat(DEFAULT_VIDEO_FORMAT),
+  PixelEncoding(DEFAULT_PIXEL_ENCODING),
   FrameRate(DEFAULT_FRAME_RATE),
   ExposureMode(DEFAULT_EXPOSURE_MODE),
   ExposureMicroSec(FLAG_EXPOSURE_MICROSEC),
@@ -83,7 +84,7 @@ vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()
   LOG_TRACE("vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()");
   this->RequireImageOrientationInConfiguration = true;
   this->StartThreadForInternalUpdates = true;
-  this->InternalUpdateRate = DEFAULT_FRAME_RATE;
+  this->InternalUpdateRate = 3 * DEFAULT_FRAME_RATE;
   this->AcquisitionRate = DEFAULT_FRAME_RATE;
   this->FrameSize[0] = DEFAULT_FRAME_SIZE[0];
   this->FrameSize[1] = DEFAULT_FRAME_SIZE[1];
@@ -125,7 +126,7 @@ void vtkPlusSpinnakerVideoSource::PrintConfiguration(ostream& os, vtkIndent inde
 
   // print device parameters
   os << indent << "CameraNumber: " << this->CameraNumber << std::endl;
-  os << indent << "VideoFormat:" << this->VideoFormat << std::endl;
+  os << indent << "VideoFormat:" << this->PixelEncoding << std::endl;
   os << indent << "FrameSize:" << "[" << this->FrameSize[0] << ", " << this->FrameSize[1] << "]" << std::endl;
   os << indent << "FrameRate:" << this->FrameRate << std::endl;
   os << indent << "ExposureMode:" << ExposureModeToString.find(this->ExposureMode)->second << std::endl;
@@ -293,7 +294,10 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // camera params
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, CameraNumber, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_OPTIONAL(VideoFormat, deviceConfig);
+  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(PixelEncoding, deviceConfig,
+    "RGB24", RGB24,
+    "BGR24", BGR24,
+    "MONO8", MONO8);
 
   // frame size
   int requestedFrameSize[2] = { static_cast<int>(DEFAULT_FRAME_SIZE[0]), static_cast<int>(DEFAULT_FRAME_SIZE[1]) };
@@ -429,12 +433,19 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
     // get camera nodemap pointer
     Spinnaker::GenApi::INodeMap& nodeMap = this->Internal->CameraPtr->GetNodeMap();
 
+    // map PIXEL_ENCODING to SpinnakerAPI pixel format
+    std::map<PIXEL_ENCODING, std::string> PixelEncodingToString;
+    PixelEncodingToString[RGB24] = "RGB8Packed";
+    PixelEncodingToString[BGR24] = "BGR8";
+    PixelEncodingToString[MONO8] = "Mono8";
+
     // set video encoding
     Spinnaker::GenApi::CEnumerationPtr pfPtr = nodeMap.GetNode("PixelFormat");
     if (Spinnaker::GenApi::IsAvailable(pfPtr) && Spinnaker::GenApi::IsWritable(pfPtr))
     {
       // Retrieve the desired entry node from the enumeration node
-      Spinnaker::GenApi::CEnumEntryPtr pfEnumPtr = pfPtr->GetEntryByName(this->VideoFormat.c_str());
+      std::string spinnakerPixelFormat = PixelEncodingToString.find(this->PixelEncoding)->second;
+      Spinnaker::GenApi::CEnumEntryPtr pfEnumPtr = pfPtr->GetEntryByName(spinnakerPixelFormat.c_str());
       if (Spinnaker::GenApi::IsAvailable(pfEnumPtr) && Spinnaker::GenApi::IsReadable(pfEnumPtr))
       {
         // Retrieve the integer value from the entry node
@@ -444,13 +455,13 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
       }
       else
       {
-        LOG_ERROR("Requested VideoFormat of \"" << this->VideoFormat << "\" is not available...");
+        LOG_ERROR("Requested VideoFormat of \"" << this->PixelEncoding << "\" is not available...");
         return PLUS_FAIL;
       }
     }
     else
     {
-      LOG_ERROR("Requested VideoFormat of \"" << this->VideoFormat << "\" is not available...");
+      LOG_ERROR("Requested VideoFormat of \"" << this->PixelEncoding << "\" is not available...");
       return PLUS_FAIL;
     }
 
@@ -492,38 +503,67 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
       return PLUS_FAIL;
     }
 
-    // set frame rate
+    // set acquisition mode to continuous
+    this->Internal->CameraPtr->AcquisitionMode.SetValue(Spinnaker::AcquisitionMode_Continuous);
 
+    // enable manual frame rate control
+    Spinnaker::GenApi::CBooleanPtr FrameRateEnablePtr = nodeMap.GetNode("AcquisitionFrameRateEnable");
+    if (Spinnaker::GenApi::IsAvailable(FrameRateEnablePtr) && Spinnaker::GenApi::IsWritable(FrameRateEnablePtr))
+    {
+      FrameRateEnablePtr->SetValue(true);
+    }
+    else
+    {
+      LOG_ERROR("Unable to enable manual frame rate control.");
+      return PLUS_FAIL;
+    }
+
+    // set frame rate
+    Spinnaker::GenApi::CFloatPtr FrameRatePtr = nodeMap.GetNode("AcquisitionFrameRate");
+    if (Spinnaker::GenApi::IsAvailable(FrameRatePtr) && Spinnaker::GenApi::IsWritable(FrameRatePtr))
+    {
+      FrameRatePtr->SetValue(this->FrameRate);
+      if (this->FrameRate != FrameRatePtr->GetValue())
+      {
+        LOG_WARNING("Failed to set frame rate to requested value of " << this->FrameRate <<
+          "(frames / sec). FrameRate set to default value of " << FrameRatePtr->GetValue() << " (frames / sec).");
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to set frame rate.");
+      return PLUS_FAIL;
+    }
 
     // set exposure mode && exposure time (if manual exposure control enabled)
     if (this->ExposureMode == EXPOSURE_TIMED)
     {
-      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Off);
-      this->Internal->CameraPtr->ExposureMode.SetValue(Spinnaker::ExposureModeEnums::ExposureMode_Timed);
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Off);
+      this->Internal->CameraPtr->ExposureMode.SetValue(Spinnaker::ExposureMode_Timed);
       this->Internal->CameraPtr->ExposureTime.SetValue(this->ExposureMicroSec);
     }
     else if (this->ExposureMode == EXPOSURE_AUTO_ONCE)
     {
-      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Once);
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Once);
     }
     else if (this->ExposureMode == EXPOSURE_AUTO_CONTINUOUS)
     {
-      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAutoEnums::ExposureAuto_Continuous);
+      this->Internal->CameraPtr->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Continuous);
     }
 
     // set gain mode && gain (if manual gain control enabled)
     if (this->GainMode == GAIN_MANUAL)
     {
-      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Off);
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAuto_Off);
       this->Internal->CameraPtr->Gain.SetValue(this->GainDB);
     }
     else if (this->GainMode == GAIN_AUTO_ONCE)
     {
-      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Once);
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAuto_Once);
     }
     else if (this->GainMode == GAIN_AUTO_CONTINUOUS)
     {
-      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAutoEnums::GainAuto_Continuous);
+      this->Internal->CameraPtr->GainAuto.SetValue(Spinnaker::GainAuto_Continuous);
     }
 
     // set white balance mode && wb (if manual wb control enabled)
@@ -678,6 +718,8 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalUpdate()");
 
+  PlusStatus retVal;
+
   try
   {
     // Retrieve next received image and ensure image completion
@@ -692,7 +734,48 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
 
     // add image to PLUS buffer
 
+    // get buffer
+    vtkPlusDataSource* videoSource(NULL);
+    if (this->GetFirstVideoSource(videoSource) != PLUS_SUCCESS)
+    {
+      LOG_WARNING("Failed to get video source in SpinnakerVideoSource");
+      return PLUS_FAIL;
+    }
+
+    // initialize if buffer is empty
+    if (videoSource->GetNumberOfItems() == 0)
+    {
+      if (this->PixelEncoding == RGB24 || this->PixelEncoding == BGR24)
+      {
+        videoSource->SetImageType(US_IMG_RGB_COLOR);
+        videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+        videoSource->SetNumberOfScalarComponents(3);
+        videoSource->SetInputFrameSize(this->FrameSize);
+      }
+      else if (this->PixelEncoding == MONO8)
+      {
+        videoSource->SetImageType(US_IMG_BRIGHTNESS);
+        videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
+        videoSource->SetNumberOfScalarComponents(1);
+        videoSource->SetInputFrameSize(this->FrameSize);
+      }
+    }
     
+    // add frame to PLUS buffer
+    if (this->PixelEncoding == RGB24 || this->PixelEncoding == BGR24)
+    {
+
+    }
+    else if (this->PixelEncoding == MONO8)
+    {
+      retVal = videoSource->AddItem(
+        convertedImage->GetData(),
+        this->FrameSize,
+        convertedImage->GetImageSize(),
+        US_IMG_BRIGHTNESS,
+        this->FrameNumber);
+    }
+
     // Release image
     pResultImage->Release();
   }
@@ -701,7 +784,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     LOG_ERROR("SpinnakerVideoSource: Failed in InternalUpdate(). Exception text: " << e.what());
     return PLUS_FAIL;
   }
-
+  LOG_INFO(this->FrameNumber);
   this->FrameNumber++; 
-  return PLUS_SUCCESS;
+  return retVal;
 }
