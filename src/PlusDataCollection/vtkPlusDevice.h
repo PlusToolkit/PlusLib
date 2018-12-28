@@ -11,7 +11,6 @@ See License.txt for details.
 #include "igsioCommon.h"
 #include "PlusConfigure.h"
 #include "PlusStreamBufferItem.h"
-//#include "igsioTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataCollectionExport.h"
 
@@ -25,7 +24,6 @@ See License.txt for details.
 // STL includes
 #include <string>
 
-//class igsioTrackedFrame; 
 class vtkPlusBuffer;
 class vtkPlusDataCollector;
 class vtkPlusDataSource;
@@ -68,6 +66,8 @@ public:
 
   static const std::string BMODE_PORT_NAME;
   static const std::string RFMODE_PORT_NAME;
+  static const std::string PARAMETERS_XML_ELEMENT_TAG;
+  static const std::string PARAMETER_XML_ELEMENT_TAG;
 
   /*!
   Probe to see to see if the device is connected to the
@@ -142,7 +142,7 @@ public:
   /*! Is this device a tracker */
   virtual bool IsTracker() const;
 
-  virtual bool IsVirtual() const { return false; }
+  virtual bool IsVirtual() const;
 
   /*!
   Reset the device. The actual reset action is defined in subclasses. A reset is typically performed on the users request
@@ -264,7 +264,7 @@ public:
   need to communicate with the device from outside of InternalUpdate().
   A call to this->UpdateMutex->Unlock() will resume the thread.
   */
-  virtual PlusStatus InternalUpdate() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalUpdate();
 
   /*!
   Build a list of all of the input devices directly connected to this device (if any)
@@ -274,6 +274,11 @@ public:
   Recursively assemble all devices that feed into this device (if any)
   */
   PlusStatus GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& outDeviceList) const;
+
+  // Parameter interface
+  virtual PlusStatus SetParameter(const std::string& key, const std::string& value);
+  virtual std::string GetParameter(const std::string& key) const;
+  virtual PlusStatus GetParameter(const std::string& key, std::string& outValue) const;
 
   //BTX
   // These are used by static functions in vtkPlusDevice.cxx, and since
@@ -392,7 +397,7 @@ public:
   /*!
   Perform any completion tasks once configured
   */
-  virtual PlusStatus NotifyConfigured() { return PLUS_SUCCESS; }
+  virtual PlusStatus NotifyConfigured();
 
   /*!
   Return the latest or desired image frame. This method can be overridden in subclasses
@@ -439,22 +444,22 @@ protected:
   static void* vtkDataCaptureThread(vtkMultiThreader::ThreadInfo* data);
 
   /*! Should be overridden to connect to the hardware */
-  virtual PlusStatus InternalConnect() { return PLUS_SUCCESS; }
+  virtual PlusStatus InternalConnect();
 
   /*! Release the video driver. Should be overridden to disconnect from the hardware. */
-  virtual PlusStatus InternalDisconnect() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalDisconnect();
 
   /*!
   Called at the end of StartRecording to allow hardware-specific
   actions for starting the recording
   */
-  virtual PlusStatus InternalStartRecording() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalStartRecording();
 
   /*!
   Called at the beginning of StopRecording to allow hardware-specific
   actions for stopping the recording
   */
-  virtual PlusStatus InternalStopRecording() { return PLUS_SUCCESS; };
+  virtual PlusStatus InternalStopRecording();
 
   /*!
   This function can be called to add a video item to the specified video data sources
@@ -540,7 +545,7 @@ protected:
   ChannelContainer  InputChannels;
 
   /*! A stream buffer item to use as a temporary staging point */
-  StreamBufferItem* CurrentStreamBufferItem;
+  StreamBufferItem*   CurrentStreamBufferItem;
   DataSourceContainer Tools;
   DataSourceContainer VideoSources;
   DataSourceContainer Fields;
@@ -594,6 +599,9 @@ protected:
     attempt to access it.
   */
   std::set<std::string> ReportedUnknownTools;
+
+  /*! Map to store general purpose device parameters  */
+  std::map<std::string, std::string> Parameters;
 
   static const int VIRTUAL_DEVICE_FRAME_RATE;
 

@@ -69,39 +69,47 @@ public:
   and z direction is cross product of x and y, unit is mm. Elevational pixel spacing is set as the mean of the
   lateral and axial pixel spacing.
   */
-  vtkGetStringMacro(ImageToTransducerTransformName);
-  vtkSetStringMacro(ImageToTransducerTransformName);
+  vtkGetStdStringMacro(ImageToTransducerTransformName);
+  vtkSetStdStringMacro(ImageToTransducerTransformName);
 
   /*! Get current imaging parameters */
   vtkGetObjectMacro(ImagingParameters, vtkPlusUsImagingParameters);
+
+  /*! Override base class parameter behaviour to intercept UsImagingParameters parameters */
+  virtual PlusStatus SetParameter(const std::string& key, const std::string& value);
+  virtual std::string GetParameter(const std::string& key) const;
+  virtual PlusStatus GetParameter(const std::string& key, std::string& outValue) const;
+
+  /*! Is the queried key a known us device key? */
+  bool IsKnownKey(const std::string& queryKey) const;
 
   // Virtual functions for creating the OpenIGTLinkIO ultrasound parameters.
   // Implement these in all US devices that should support ultrasound sector information
 
   /*! Get probe type. */
-  virtual IGTLIO_PROBE_TYPE GetProbeType() { return UNKNOWN; }
+  virtual IGTLIO_PROBE_TYPE GetProbeType();
 
   /*! Sector origin relative to upper left corner of image in pixels */
-  virtual std::vector<double> CalculateOrigin() { return std::vector<double>(); }
+  virtual std::vector<double> CalculateOrigin();
 
   /*! Probe sector angles relative to down, in radians.
    *  2 angles for 2D, and 4 for 3D probes.
    * For regular imaging with linear probes these will be 0 */
-  virtual std::vector<double> CalculateAngles() { return std::vector<double>(); }
+  virtual std::vector<double> CalculateAngles();
 
   /*! Boundaries to cut away areas outside the US sector, in pixels.
    * 4 for 2D, and 6 for 3D. */
-  virtual std::vector<double> CalculateBoundingBox() { return std::vector<double>(); }
+  virtual std::vector<double> CalculateBoundingBox();
 
   /*! Start, stop depth for the imaging, in mm. */
-  virtual std::vector<double> CalculateDepths() { return std::vector<double>(); }
+  virtual std::vector<double> CalculateDepths();
 
   /*! Width of linear probe. */
-  virtual  double CalculateLinearWidth() { return 0; }
+  virtual double CalculateLinearWidth();
 
 protected:
   /*! Set changed imaging parameter to device */
-  virtual PlusStatus InternalApplyImagingParameterChange() { return PLUS_FAIL; };
+  virtual PlusStatus InternalApplyImagingParameterChange();
 
   void CalculateImageToTransducer(igsioTrackedFrame::FieldMapType& customFields);
 
@@ -118,7 +126,7 @@ protected:
   int CurrentTransducerOriginPixels[3];
 
   igsioTransformName ImageToTransducerTransform;
-  char* ImageToTransducerTransformName;
+  std::string ImageToTransducerTransformName;
 
 private:
   vtkPlusUsDevice(const vtkPlusUsDevice&);  // Not implemented.

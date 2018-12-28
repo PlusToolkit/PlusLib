@@ -116,6 +116,8 @@ const int vtkPlusDevice::VIRTUAL_DEVICE_FRAME_RATE = 50;
 static const int FRAME_RATE_AVERAGING = 10;
 const std::string vtkPlusDevice::BMODE_PORT_NAME = "B";
 const std::string vtkPlusDevice::RFMODE_PORT_NAME = "Rf";
+const std::string vtkPlusDevice::PARAMETERS_XML_ELEMENT_TAG = "Parameters";
+const std::string vtkPlusDevice::PARAMETER_XML_ELEMENT_TAG = "Parameter";
 
 //----------------------------------------------------------------------------
 vtkPlusDevice::vtkPlusDevice()
@@ -195,8 +197,8 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "Connected: " << (this->Connected ? "Yes\n" : "No\n");
-  os << indent << "SDK version: " << this->GetSdkVersion() << "\n";
-  os << indent << "AcquisitionRate: " << this->AcquisitionRate << "\n";
+  os << indent << "SDK version: " << this->GetSdkVersion() << std::endl;
+  os << indent << "AcquisitionRate: " << this->AcquisitionRate << std::endl;
   os << indent << "Recording: " << (this->Recording ? "On\n" : "Off\n");
 
   for (ChannelContainerConstIterator it = this->OutputChannels.begin(); it != this->OutputChannels.end(); ++it)
@@ -227,6 +229,12 @@ void vtkPlusDevice::PrintSelf(ostream& os, vtkIndent indent)
     vtkPlusDataSource* dataSource = it->second;
     dataSource->PrintSelf(os, indent);
   }
+
+  os << indent << PARAMETERS_XML_ELEMENT_TAG << std::endl;
+  for (std::map<std::string, std::string>::iterator it = this->Parameters.begin(); it != this->Parameters.end(); ++it)
+  {
+    os << indent << indent << it->first << ": " << it->second << std::endl;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -249,6 +257,7 @@ PlusStatus vtkPlusDevice::Reset()
 {
   // By default, Reset has no effect.
   return PLUS_SUCCESS;
+  this->Parameters.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -528,6 +537,12 @@ double vtkPlusDevice::GetLocalTimeOffsetSec() const
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::InternalUpdate()
+{
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetInputDevices(std::vector<vtkPlusDevice*>& outDeviceList) const
 {
   for (ChannelContainerConstIterator iter = this->InputChannels.cbegin(); iter != this->InputChannels.cend(); ++iter)
@@ -551,6 +566,37 @@ PlusStatus vtkPlusDevice::GetInputDevicesRecursive(std::vector<vtkPlusDevice*>& 
   return PLUS_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::SetParameter(const std::string& key, const std::string& value)
+{
+  this->Parameters[key] = value;
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkPlusDevice::GetParameter(const std::string& key) const
+{
+  if (this->Parameters.find(key) != this->Parameters.end())
+  {
+    return this->Parameters.find(key)->second;
+  }
+
+  return "";
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetParameter(const std::string& key, std::string& outValue) const
+{
+  if (this->Parameters.find(key) != this->Parameters.end())
+  {
+    outValue = this->Parameters.find(key)->second;
+    return PLUS_SUCCESS;
+  }
+
+  return PLUS_FAIL;
+}
+
 //-----------------------------------------------------------------------------
 void vtkPlusDevice::DeepCopy(const vtkPlusDevice& device)
 {
@@ -563,6 +609,7 @@ void vtkPlusDevice::DeepCopy(const vtkPlusDevice& device)
   this->MissingInputGracePeriodSec = device.GetMissingInputGracePeriodSec();
   this->RequireImageOrientationInConfiguration = device.RequireImageOrientationInConfiguration;
   this->RequirePortNameInDeviceSetConfiguration = device.RequirePortNameInDeviceSetConfiguration;
+  this->Parameters = device.Parameters;
   // Don't set data collector, because that will be done if the copied device is added to a data collector
 
   // VTK functions aren't const clean, this is necessary =/
@@ -1056,6 +1103,32 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
     LOCAL_LOG_DEBUG("Local time offset was not defined in device configuration");
   }
 
+  // Parameter reading
+  XML_FIND_NESTED_ELEMENT_OPTIONAL(parametersElem, deviceXMLElement, vtkPlusDevice::PARAMETERS_XML_ELEMENT_TAG.c_str());
+  if (parametersElem)
+  {
+    for (int i = 0; i < parametersElem->GetNumberOfNestedElements(); ++i)
+    {
+      vtkXMLDataElement* element = parametersElem->GetNestedElement(i);
+      if (!igsioCommon::IsEqualInsensitive(element->GetName(), PARAMETER_XML_ELEMENT_TAG))
+      {
+        // Not a Parameter tag, skip
+        continue;
+      }
+
+      std::string name = element->GetAttribute("name") ? element->GetAttribute("name") : "";
+      std::string value = element->GetAttribute("value") ? element->GetAttribute("value") : "";
+      if (name.empty())
+      {
+        continue;
+      }
+
+      this->Parameters[name] = value;
+    }
+
+    return PLUS_SUCCESS;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -1126,6 +1199,22 @@ PlusStatus vtkPlusDevice::WriteConfiguration(vtkXMLDataElement* config)
   if (this->GetLocalTimeOffsetSec() != 0.0)
   {
     deviceDataElement->SetDoubleAttribute("LocalTimeOffsetSec", this->GetLocalTimeOffsetSec());
+  }
+
+  // Parameters writing
+  XML_FIND_NESTED_ELEMENT_CREATE_IF_MISSING(parameterList, deviceDataElement, PARAMETERS_XML_ELEMENT_TAG.c_str());
+
+  // Clear the list before writing new elements
+  parameterList->RemoveAllNestedElements();
+
+  for (std::map<std::string, std::string>::iterator it = this->Parameters.begin(); it != this->Parameters.end(); ++it)
+  {
+    vtkSmartPointer<vtkXMLDataElement> parameter = vtkSmartPointer<vtkXMLDataElement>::New();
+    parameter->SetName(PARAMETER_XML_ELEMENT_TAG.c_str());
+    parameter->SetAttribute("name", it->first.c_str());
+    parameter->SetAttribute("value", it->second.c_str());
+
+    parameterList->AddNestedElement(parameter);
   }
 
   return PLUS_SUCCESS;
@@ -1305,6 +1394,30 @@ void* vtkPlusDevice::vtkDataCaptureThread(vtkMultiThreader::ThreadInfo* data)
 
   self->ThreadAlive = false;
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::InternalConnect()
+{
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::InternalDisconnect()
+{
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::InternalStartRecording()
+{
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::InternalStopRecording()
+{
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -1920,6 +2033,12 @@ PlusStatus vtkPlusDevice::AddInputChannel(vtkPlusChannel* aChannel)
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::NotifyConfigured()
+{
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 double vtkPlusDevice::GetAcquisitionRate() const
 {
   return this->AcquisitionRate;
@@ -2207,6 +2326,12 @@ PlusStatus vtkPlusDevice::GetToolReferenceFrameFromTrackedFrame(igsioTrackedFram
 bool vtkPlusDevice::IsTracker() const
 {
   LOCAL_LOG_ERROR("Calling base IsTracker. Override in the derived classes.");
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::IsVirtual() const
+{
   return false;
 }
 
