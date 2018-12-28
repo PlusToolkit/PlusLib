@@ -177,7 +177,7 @@ PlusStatus vtkPlusUsDevice::SetParameter(const std::string& key, const std::stri
     return this->ImagingParameters->SetValue(key, value);
   }
 
-  Superclass::SetParameter(key, value);
+  return Superclass::SetParameter(key, value);
 }
 
 //----------------------------------------------------------------------------
