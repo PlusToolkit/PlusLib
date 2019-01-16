@@ -643,7 +643,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth
     ::SetFocalPointDepth(index, depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_TimeGainCompensation[index] = ::GetFocalPointDepth(index);
+    m_FocalPointDepth[index] = ::GetFocalPointDepth(index);
   }
   return PLUS_SUCCESS;
 }
