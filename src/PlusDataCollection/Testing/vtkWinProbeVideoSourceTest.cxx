@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     viewer->SetColorWindow(255);
     viewer->SetColorLevel(127.5);
     viewer->SetZSlice(0);
-    viewer->SetSize(512, 1024);
+    viewer->SetSize(256, 640);
 
     //Create the interactor that handles the event loop
     vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
