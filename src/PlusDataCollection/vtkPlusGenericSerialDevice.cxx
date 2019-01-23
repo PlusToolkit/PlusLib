@@ -251,8 +251,7 @@ PlusStatus vtkPlusGenericSerialDevice::GetCTS(bool & onOff)
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived/*=NULL*/,
-  ReplyTermination acceptReply/*=REQUIRE_LINE_ENDING*/)
+PlusStatus vtkPlusGenericSerialDevice::SendText(const std::string& textToSend, std::string* textReceived, ReplyTermination acceptReply)
 {
   LOG_DEBUG("Send to Serial device: " << textToSend);
 

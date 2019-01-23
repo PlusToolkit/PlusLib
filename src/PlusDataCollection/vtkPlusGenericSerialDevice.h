@@ -77,8 +77,8 @@ public:
     Some devices (e.g. Velmex VXM) has both kinds of commands, e.g. `V` command is not CR terminated:
     http://www.velmex.com/Downloads/Spec_Sheets/VXM%20-%20%20Command%20Summary%20Rev%20B%20814.pdf
   */
-  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived = NULL,
-    ReplyTermination acceptReply = REQUIRE_LINE_ENDING);
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived = NULL) VTK_OVERRIDE { return this->SendText(textToSend, textReceived, REQUIRE_LINE_ENDING); };
+  virtual PlusStatus SendText(const std::string& textToSend, std::string* textReceived, ReplyTermination acceptReply);
 
   /*!
     Receive a response from the serial device.
