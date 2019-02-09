@@ -35,7 +35,7 @@ namespace
   const float                     FLAG_GAIN_DB(-1);
   const psvs::WHITE_BALANCE_MODE  DEFAULT_WHITE_BALANCE_MODE(psvs::WB_AUTO_CONTINUOUS);
   const float                     FLAG_WHITE_BALANCE(-1);
-  const psvs::SHARPENING_MODE     DEFAULT_SHARPENING_MODE(psvs::SHARPENING_AUTO);
+  const psvs::SHARPENING_MODE     DEFAULT_SHARPENING_MODE(psvs::SHARPENING_OFF);
   const float                     FLAG_SHARPENING(-1);
 }
 
@@ -212,7 +212,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::SetGainDB(int gainDb)
     this->GainMode = GAIN_AUTO_CONTINUOUS;
     return PLUS_FAIL;
   }
-  this->GainDB = GainDB;
+  this->GainDB = gainDb;
   return PLUS_SUCCESS;
 }
 
@@ -567,47 +567,40 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
     }
 
     // set white balance mode && wb (if manual wb control enabled)
-    //if (this->WhiteBalanceMode == WB_MANUAL)
-    //{
-    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
-    //  this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
-    //  Spinnaker::GenApi::CFloatPtr balanceRatioPtr = nodeMap.GetNode("BalanceRatio");
-    //  balanceRatioPtr->SetValue(this->WhiteBalanceBlue);
-    //  this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
-    //  balanceRatioPtr->SetValue(this->WhiteBalanceRed);
-    //}
-    //else if (this->WhiteBalanceMode == WB_AUTO_ONCE)
-    //{
-    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Once);
-    //}
-    //else if (this->WhiteBalanceMode == WB_AUTO_CONTINUOUS)
-    //{
-    //  this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
-    //}
+    if (this->WhiteBalanceMode == WB_MANUAL)
+    {
+      this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+      this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
+      Spinnaker::GenApi::CFloatPtr balanceRatioPtr = nodeMap.GetNode("BalanceRatio");
+      balanceRatioPtr->SetValue(this->WhiteBalanceBlue);
+      this->Internal->CameraPtr->BalanceRatioSelector.SetValue(Spinnaker::BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
+      balanceRatioPtr->SetValue(this->WhiteBalanceRed);
+    }
+    else if (this->WhiteBalanceMode == WB_AUTO_ONCE)
+    {
+      this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Once);
+    }
+    else if (this->WhiteBalanceMode == WB_AUTO_CONTINUOUS)
+    {
+      this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
+    }
 
     // set sharpening mode && sharpening (if manual sharpening control enabled)
- /*   if (this->SharpeningMode == SHARPENING_MANUAL)
-    {
-      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
-      sharpeningEnable->SetValue(true);
-      Spinnaker::GenApi::CBooleanPtr sharpeningAuto = nodeMap.GetNode("SharpeningAuto");
-      sharpeningAuto->SetValue(false);
-      Spinnaker::GenApi::CFloatPtr sharpening = nodeMap.GetNode("Sharpening");
-      sharpening->SetValue(this->SharpeningAmount);
-    }
-    else if (this->SharpeningMode == SHARPENING_AUTO)
-    {
-      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
-      sharpeningEnable->SetValue(true);
-      Spinnaker::GenApi::CBooleanPtr sharpeningAuto = nodeMap.GetNode("SharpeningAuto");
-      sharpeningAuto->SetValue(true);
-    }
-    else if (this->SharpeningMode == SHARPENING_OFF)
-    {
-      
-      Spinnaker::GenApi::CBooleanPtr sharpeningEnable = nodeMap.GetNode("SharpeningEnable");
-      sharpeningEnable->SetValue(false);
-    }*/
+    //if (this->SharpeningMode == SHARPENING_MANUAL)
+    //{
+    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(true);
+    //  this->Internal->CameraPtr->SharpeningAuto.SetValue(false);
+    //  this->Internal->CameraPtr->Sharpening.SetValue(this->SharpeningAmount);
+    //}
+    //else if (this->SharpeningMode == SHARPENING_AUTO)
+    //{
+    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(true);
+    //  this->Internal->CameraPtr->SharpeningAuto.SetValue(true);
+    //}
+    //else if (this->SharpeningMode == SHARPENING_OFF)
+    //{
+    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(false);
+    //}
   }
   catch (Spinnaker::Exception &e)
   {
@@ -626,6 +619,9 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
   try
   {
     this->Internal->CameraPtr->DeInit();
+    this->Internal->CameraPtr = NULL;
+    this->Internal->CameraList.Clear();
+    this->Internal->SystemPtr->ReleaseInstance();
   }
   catch (Spinnaker::Exception &e)
   {
@@ -633,8 +629,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
     return PLUS_FAIL;
   }
 
-  this->Internal->CameraList.Clear();
-  this->Internal->SystemPtr->ReleaseInstance();
+
   return PLUS_SUCCESS;
 }
 
@@ -694,7 +689,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalStopRecording()
   try
   {
     // End acquiring images
-    this->Internal->CameraPtr->BeginAcquisition();
+    this->Internal->CameraPtr->EndAcquisition();
   }
   catch (Spinnaker::Exception &e)
   {
