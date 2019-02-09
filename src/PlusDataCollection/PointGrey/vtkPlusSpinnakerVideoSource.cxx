@@ -236,7 +236,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::SetSharpeningAmount(float sharpeningAmou
   if (sharpeningAmount < 0 || sharpeningAmount > 0.25)
   {
     LOG_WARNING("Requested invalid sharpening value of " << sharpeningAmount << ", sharpening has been turned off. Valid sharpening values are in the range [0, 0.25].");
-    this->SharpeningMode == SHARPENING_OFF;
+    this->SharpeningMode = SHARPENING_OFF;
     return PLUS_FAIL;
   }
   this->SharpeningAmount = sharpeningAmount;
@@ -435,7 +435,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
 
     // map PIXEL_ENCODING to SpinnakerAPI pixel format
     std::map<PIXEL_ENCODING, std::string> PixelEncodingToString;
-    PixelEncodingToString[RGB24] = "RGB8Packed";
+    PixelEncodingToString[RGB24] = "BayerRG8";
     PixelEncodingToString[BGR24] = "BGR8";
     PixelEncodingToString[MONO8] = "Mono8";
 
@@ -718,7 +718,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalUpdate()");
 
-  PlusStatus retVal;
+  PlusStatus retVal = PLUS_FAIL;
 
   try
   {
@@ -729,8 +729,25 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
       cout << "Image incomplete with image status " << pResultImage->GetImageStatus() << "..." << endl << endl;
     }
 
-    // Convert image to mono 8
-    Spinnaker::ImagePtr convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_Mono8, Spinnaker::HQ_LINEAR);
+    // Convert image from PointGrey to correct image type
+    Spinnaker::ImagePtr convertedImage;
+    if (this->PixelEncoding == RGB24)
+    {
+      convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_RGB8, Spinnaker::HQ_LINEAR);
+    }
+    else if (this->PixelEncoding == BGR24)
+    {
+      convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_BGR8, Spinnaker::HQ_LINEAR);
+    }
+    else if (this->PixelEncoding == MONO8)
+    {
+      convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_Mono8, Spinnaker::HQ_LINEAR);
+    }
+    else
+    {
+      LOG_ERROR("Invalid image type selected.");
+      return PLUS_FAIL;
+    }
 
     // add image to PLUS buffer
 
@@ -764,7 +781,12 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     // add frame to PLUS buffer
     if (this->PixelEncoding == RGB24 || this->PixelEncoding == BGR24)
     {
-
+      retVal = videoSource->AddItem(
+        convertedImage->GetData(),
+        this->FrameSize,
+        convertedImage->GetImageSize(),
+        US_IMG_RGB_COLOR,
+        this->FrameNumber);
     }
     else if (this->PixelEncoding == MONO8)
     {
