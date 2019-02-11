@@ -47,11 +47,6 @@ Please check your device's technical specifications (available from the <a href=
   - \c AUTO_CONTINUOUS Continuously adjust the white balance of the camera during the acquisition.
 - \xmlAtt \b WhiteBalanceRed White balance red value as a float.
 - \xmlAtt \b WhiteBalanceBlue White balance blue value as a float.
-- \xmlAtt \b SharpeningMode Enable manual / automatic control of the camera's sharpening. \OptionalAtt{OFF}
-  - \c MANUAL Manual control, the SharpeningAmount attribute must be provided to use this option.
-  - \c AUTO Automatically set the sharpening.
-  - \c OFF Do not sharpen the aquired images.
-- \xmlAtt \b SharpeningAmount as a float value.
 
 \section SpinnakerExampleConfigFileMinimal Minimal config File
 \include "ConfigFiles/PlusDeviceSet_Server_SpinnakerVideoMinimal.xml"
