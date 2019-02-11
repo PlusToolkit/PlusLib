@@ -126,6 +126,10 @@ vtkPlusConfig::vtkPlusConfig()
   : DeviceSetConfigurationData(NULL)
   , ApplicationConfigurationData(NULL)
 {
+  // vtkIGSIOAccurateTimer will instantiate the logger singleton to a vtkIGSIOLogger
+  // Need to instantiate the singleton as a vtkPlusLogger
+  vtkPlusLogger::Instance();
+
   this->ApplicationStartTimestamp = vtkIGSIOAccurateTimer::GetInstance()->GetDateAndTimeString();
 
   // Retrieve the program directory (where the exe file is located)
