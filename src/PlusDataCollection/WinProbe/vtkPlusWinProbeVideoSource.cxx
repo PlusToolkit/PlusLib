@@ -450,11 +450,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
   this->SetScanDepthMm(m_ScanDepth); //as a side-effect calls AdjustSpacing and AdjustBufferSize
-  if (m_SpatialCompoundEnabled)
-  {
-    this->SetSpatialCompoundAngle(m_SpatialCompoundAngle);
-    this->SetSpatialCompoundCount(m_SpatialCompoundCount);
-  }
+  this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_LineCount << "x" << m_SamplesPerLine);
@@ -675,6 +671,15 @@ void vtkPlusWinProbeVideoSource::SetSpatialCompoundEnabled(bool value)
   if(Connected)
   {
     SetSCIsEnabled(value);
+    if (value)
+    {
+      SetSCCompoundAngle(m_SpatialCompoundAngle);
+      SetSCCompoundAngleCount(m_SpatialCompoundCount);
+    }
+    else
+    {
+      SetSCCompoundAngleCount(0);
+    }
     SetPendingRecreateTables(true);
     m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
   }
