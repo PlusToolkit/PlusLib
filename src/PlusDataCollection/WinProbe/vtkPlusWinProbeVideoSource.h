@@ -126,6 +126,31 @@ public:
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
 
+  enum class Mode
+  {
+    B = 0, // only B mode
+    BRF, // RF mode with reference B mode
+    RF, // RF mode only
+    M, // M mode
+    PW, // Pulsed Wave
+    CFD // Color-Flow Doppler
+  };
+
+  /*! Sets the ultrasound imaging mode. */
+  void SetMode(Mode mode)
+  {
+    m_Mode = mode;
+  }
+
+  /*! Gets the ultrasound imaging mode. */
+  Mode GetMode()
+  {
+    return m_Mode;
+  }
+
+  enum Mode StringToMode(std::string modeString);
+  std::string ModeToString(enum Mode mode);
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
@@ -178,6 +203,8 @@ protected:
   int32_t m_SpatialCompoundCount = 0;
   std::vector<vtkPlusDataSource*> m_BSources;
   std::vector<vtkPlusDataSource*> m_RFSources;
+
+  enum Mode m_Mode = Mode::B;
 
 public:
   vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&) = delete;

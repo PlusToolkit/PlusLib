@@ -31,6 +31,7 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Voltage: " << static_cast<unsigned>(this->GetVoltage()) << std::endl;
   os << indent << "Frequency: " << this->GetTransmitFrequencyMHz() << std::endl;
   os << indent << "Depth: " << this->GetScanDepthMm() << std::endl;
+  os << indent << "Mode: " << this->ModeToString(this->GetMode()) << std::endl;
   for(int i = 0; i < 8; i++)
   {
     os << indent << "TGC" << i << ": " << m_TimeGainCompensation[i] << std::endl;
@@ -67,6 +68,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
+  const char* strMode = deviceConfig->GetAttribute("Mode");
+  m_Mode = this->StringToMode(strMode);
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
@@ -91,11 +94,72 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
   deviceConfig->SetUnsignedLongAttribute("LogLinearKnee", this->GetLogLinearKnee());
   deviceConfig->SetUnsignedLongAttribute("LogMax", this->GetLogMax());
+  deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
 
   return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+vtkPlusWinProbeVideoSource::Mode vtkPlusWinProbeVideoSource::StringToMode(std::string modeString)
+{
+  if(modeString.empty())
+  {
+    LOG_WARNING("Empty mode string defaults to B mode");
+    return Mode::B;
+  }
+
+  // convert to uppercase for easy comparison
+  std::transform(modeString.begin(), modeString.end(), modeString.begin(), ::toupper);
+
+  if(modeString == "B")
+  { return Mode::B; }
+  else if(modeString == "BRF")
+  { return Mode::BRF; }
+  else if(modeString == "RF")
+  { return Mode::RF; }
+  else if(modeString == "M")
+  { return Mode::M; }
+  else if(modeString == "PW")
+  { return Mode::PW; }
+  else if(modeString == "CFD")
+  { return Mode::CFD; }
+  else
+  { LOG_ERROR("Unrecognized mode: " << modeString); }
+
+  return Mode::B; // default mode
+}
+
+// ----------------------------------------------------------------------------
+std::string vtkPlusWinProbeVideoSource::ModeToString(vtkPlusWinProbeVideoSource::Mode mode)
+{
+  switch(mode)
+  {
+  case Mode::B:
+    return "B";
+    break;
+  case Mode::BRF:
+    return "BRF";
+    break;
+  case Mode::RF:
+    return "RF";
+    break;
+  case Mode::M:
+    return "M";
+    break;
+  case Mode::PW:
+    return "PW";
+    break;
+  case Mode::CFD:
+    return "CFD";
+    break;
+  default:
+    LOG_ERROR("Invalid mode passed: " << int(mode));
+    return "B";
+    break;
+  }
 }
 
 // ----------------------------------------------------------------------------
