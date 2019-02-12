@@ -474,6 +474,36 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     SetHandleBRFInternally(false);
     SetBFRFImageCaptureMode(2);
   }
+  if(m_Mode != Mode::RF) // all modes except pure RF require primary source
+  {
+    if(m_BSources.empty())
+    {
+      LOG_ERROR("Primary source is not defined!");
+    }
+  }
+  if(m_Mode == Mode::RF || m_Mode == Mode::BRF)
+  {
+    if(m_RFSources.empty())
+    {
+      LOG_ERROR("RF source is not defined!");
+    }
+  }
+  if(m_Mode == Mode::PW)
+  {
+    SetPWIsEnabled(true);
+  }
+  if(m_Mode == Mode::M)
+  {
+    SetMIsEnabled(true);
+  }
+  if(m_Mode == Mode::CFD)
+  {
+    SetVoltage(70);
+    SetCFSamplesPerKernel(2);
+    // ...
+    // more setup required
+    SetCFIsEnabled(true);
+  }
   //TODO handle additional modes
 
   LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
