@@ -246,7 +246,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   timestamp += m_TimestampOffset;
   LOG_DEBUG("Frame: " << FrameNumber << ". Mode: " << std::setw(4) << std::hex << usMode << ". Timestamp: " << timestamp);
 
-  if(usMode & B && !m_BSources.empty()) // B-mode flag is set, and B-mode source is defined
+  if(usMode & B && !m_PrimarySources.empty()) // B-mode flag is set, and B-mode source is defined
   {
     assert(length == m_SamplesPerLine * m_LineCount * sizeof(uint16_t) + 16); //frame + header
     FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
@@ -272,18 +272,18 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       this->ReconstructFrame(data);
     }
 
-    for(unsigned i = 0; i < m_BSources.size(); i++)
+    for(unsigned i = 0; i < m_PrimarySources.size(); i++)
     {
-      if(m_BSources[i]->AddItem(&m_BModeBuffer[0],
-                                m_BSources[i]->GetInputImageOrientation(),
-                                frameSize, VTK_UNSIGNED_CHAR,
-                                1, US_IMG_BRIGHTNESS, 0,
-                                this->FrameNumber,
-                                timestamp,
-                                timestamp, //no timestamp filtering needed
-                                &this->m_CustomFields) != PLUS_SUCCESS)
+      if(m_PrimarySources[i]->AddItem(&m_BModeBuffer[0],
+                                      m_PrimarySources[i]->GetInputImageOrientation(),
+                                      frameSize, VTK_UNSIGNED_CHAR,
+                                      1, US_IMG_BRIGHTNESS, 0,
+                                      this->FrameNumber,
+                                      timestamp,
+                                      timestamp, //no timestamp filtering needed
+                                      &this->m_CustomFields) != PLUS_SUCCESS)
       {
-        LOG_WARNING("Error adding item to video source " << m_BSources[i]->GetSourceId());
+        LOG_WARNING("Error adding item to video source " << m_PrimarySources[i]->GetSourceId());
       }
     }
   }
@@ -296,18 +296,18 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     assert(length == m_SamplesPerLine * brfGeometry->Decimation * m_LineCount * sizeof(int32_t)); //header and footer not appended to data
     FrameSizeType frameSize = { m_SamplesPerLine* brfGeometry->Decimation, m_LineCount, 1 };
-    for(unsigned i = 0; i < m_RFSources.size(); i++)
+    for(unsigned i = 0; i < m_ExtraSources.size(); i++)
     {
-      if(m_RFSources[i]->AddItem(data,
-                                 m_RFSources[i]->GetInputImageOrientation(),
-                                 frameSize, VTK_INT,
-                                 1, US_IMG_RF_REAL, 0,
-                                 this->FrameNumber,
-                                 timestamp,
-                                 timestamp,
-                                 &m_CustomFields) != PLUS_SUCCESS)
+      if(m_ExtraSources[i]->AddItem(data,
+                                    m_ExtraSources[i]->GetInputImageOrientation(),
+                                    frameSize, VTK_INT,
+                                    1, US_IMG_RF_REAL, 0,
+                                    this->FrameNumber,
+                                    timestamp,
+                                    timestamp,
+                                    &m_CustomFields) != PLUS_SUCCESS)
       {
-        LOG_WARNING("Error adding item to video source " << m_RFSources[i]->GetSourceId());
+        LOG_WARNING("Error adding item to video source " << m_ExtraSources[i]->GetSourceId());
       }
     }
   }
@@ -330,36 +330,36 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSize()
   FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
 
   LOG_DEBUG("Set up image buffers for WinProbe");
-  for(unsigned i = 0; i < m_BSources.size(); i++)
+  for(unsigned i = 0; i < m_PrimarySources.size(); i++)
   {
-    m_BSources[i]->Clear(); // clear current buffer content
-    m_BSources[i]->SetPixelType(VTK_UNSIGNED_CHAR);
-    m_BSources[i]->SetImageType(US_IMG_BRIGHTNESS);
-    m_BSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-    m_BSources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
-    m_BSources[i]->SetInputFrameSize(frameSize);
-    LOG_INFO("SourceID: " << m_BSources[i]->GetId() << ", "
+    m_PrimarySources[i]->Clear(); // clear current buffer content
+    m_PrimarySources[i]->SetPixelType(VTK_UNSIGNED_CHAR);
+    m_PrimarySources[i]->SetImageType(US_IMG_BRIGHTNESS);
+    m_PrimarySources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+    m_PrimarySources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
+    m_PrimarySources[i]->SetInputFrameSize(frameSize);
+    LOG_INFO("SourceID: " << m_PrimarySources[i]->GetId() << ", "
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
-             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_BSources[i]->GetPixelType())
+             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_PrimarySources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(m_BSources[i]->GetInputImageOrientation()));
+             << igsioVideoFrame::GetStringFromUsImageOrientation(m_PrimarySources[i]->GetInputImageOrientation()));
   }
 
-  for(unsigned i = 0; i < m_RFSources.size(); i++)
+  for(unsigned i = 0; i < m_ExtraSources.size(); i++)
   {
     frameSize[0] = m_SamplesPerLine*::GetSSDecimation();
     frameSize[1] = m_LineCount;
-    m_RFSources[i]->Clear(); // clear current buffer content
-    m_RFSources[i]->SetPixelType(VTK_INT);
-    m_RFSources[i]->SetImageType(US_IMG_RF_REAL);
-    m_RFSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_FM);
-    m_RFSources[i]->SetInputImageOrientation(US_IMG_ORIENT_FM);
-    m_RFSources[i]->SetInputFrameSize(frameSize);
-    LOG_INFO("SourceID: " << m_RFSources[i]->GetId() << ", "
+    m_ExtraSources[i]->Clear(); // clear current buffer content
+    m_ExtraSources[i]->SetPixelType(VTK_INT);
+    m_ExtraSources[i]->SetImageType(US_IMG_RF_REAL);
+    m_ExtraSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_FM);
+    m_ExtraSources[i]->SetInputImageOrientation(US_IMG_ORIENT_FM);
+    m_ExtraSources[i]->SetInputFrameSize(frameSize);
+    LOG_INFO("SourceID: " << m_ExtraSources[i]->GetId() << ", "
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
-             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_RFSources[i]->GetPixelType())
+             << ", pixel type: " << vtkImageScalarTypeNameMacro(m_ExtraSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(m_RFSources[i]->GetInputImageOrientation()));
+             << igsioVideoFrame::GetStringFromUsImageOrientation(m_ExtraSources[i]->GetInputImageOrientation()));
   }
 
   m_BModeBuffer.resize(m_SamplesPerLine * m_LineCount);
@@ -421,9 +421,9 @@ vtkPlusWinProbeVideoSource::~vtkPlusWinProbeVideoSource()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 {
-  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_RFSources);
-  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, m_BSources);
-  if(m_RFSources.empty() && m_BSources.empty())
+  this->GetVideoSourcesByPortName(vtkPlusDevice::RFMODE_PORT_NAME, m_ExtraSources);
+  this->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, m_PrimarySources);
+  if(m_ExtraSources.empty() && m_PrimarySources.empty())
   {
     vtkPlusDataSource* aSource = NULL;
     if(this->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS || aSource == NULL)
@@ -431,7 +431,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
       LOG_ERROR("Neither B-mode nor RF-mode data sources are defined, and unable to retrieve the video source in the capturing device.");
       return PLUS_FAIL;
     }
-    m_BSources.push_back(aSource); //else consider this the only output of B-mode type
+    m_PrimarySources.push_back(aSource); //else consider this the only output of B-mode type
   }
 
   LOG_DEBUG("Connect to WinProbe");
@@ -464,26 +464,26 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
   LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
 
-  if(!m_BSources.empty())
+  if(!m_PrimarySources.empty())
   {
     SetHandleBRFInternally(true);
     SetBFRFImageCaptureMode(0);
   }
-  if(!m_RFSources.empty()) //overwrite B-mode settings
+  if(!m_ExtraSources.empty()) //overwrite B-mode settings
   {
     SetHandleBRFInternally(false);
     SetBFRFImageCaptureMode(2);
   }
   if(m_Mode != Mode::RF) // all modes except pure RF require primary source
   {
-    if(m_BSources.empty())
+    if(m_PrimarySources.empty())
     {
       LOG_ERROR("Primary source is not defined!");
     }
   }
   if(m_Mode == Mode::RF || m_Mode == Mode::BRF)
   {
-    if(m_RFSources.empty())
+    if(m_ExtraSources.empty())
     {
       LOG_ERROR("RF source is not defined!");
     }

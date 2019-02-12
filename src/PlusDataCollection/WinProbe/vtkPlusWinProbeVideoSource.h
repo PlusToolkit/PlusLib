@@ -201,8 +201,8 @@ protected:
   bool m_SpatialCompoundEnabled = false;
   float m_SpatialCompoundAngle = 10.0f;
   int32_t m_SpatialCompoundCount = 0;
-  std::vector<vtkPlusDataSource*> m_BSources;
-  std::vector<vtkPlusDataSource*> m_RFSources;
+  std::vector<vtkPlusDataSource*> m_PrimarySources;
+  std::vector<vtkPlusDataSource*> m_ExtraSources;
 
   enum Mode m_Mode = Mode::B;
 
