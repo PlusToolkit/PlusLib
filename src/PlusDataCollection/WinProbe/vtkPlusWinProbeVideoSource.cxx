@@ -69,7 +69,10 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
   const char* strMode = deviceConfig->GetAttribute("Mode");
-  m_Mode = this->StringToMode(strMode);
+  if (strMode)
+  {
+    m_Mode = this->StringToMode(strMode);
+  }
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
@@ -231,6 +234,16 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     m_LineCount = brfGeometry->LineCount;
     m_SamplesPerLine = brfGeometry->SamplesPerLine;
   }
+  else if(usMode & M_PostProcess)
+  {
+    m_LineCount = brfGeometry->LineCount;
+    m_SamplesPerLine = brfGeometry->SamplesPerLine;
+  }
+  else if(usMode & PWD_PostProcess)
+  {
+    m_LineCount = brfGeometry->ElementCount;
+    m_SamplesPerLine = brfGeometry->SamplesPerLine;
+  }
   else
   {
     LOG_INFO("Unsupported frame type: " << std::hex << usMode);
@@ -292,7 +305,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     LOG_DEBUG("Frame ignored - B-mode source not defined. Got mode: " << std::hex << usMode);
     return;
   }
-  else if(usMode & BFRFALineImage_RFData)
+  else if(usMode & BFRFALineImage_RFData || usMode & M_PostProcess || usMode & PWD_PostProcess)
   {
     assert(length == m_SamplesPerLine * brfGeometry->Decimation * m_LineCount * sizeof(int32_t)); //header and footer not appended to data
     FrameSizeType frameSize = { m_SamplesPerLine* brfGeometry->Decimation, m_LineCount, 1 };

@@ -132,7 +132,7 @@ public:
     BRF, // RF mode with reference B mode
     RF, // RF mode only
     M, // M mode
-    PW, // Pulsed Wave
+    PW, // Pulsed Wave Doppler
     CFD // Color-Flow Doppler
   };
 
