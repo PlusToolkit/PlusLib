@@ -6,8 +6,6 @@ See License.txt for details.
 
 #include "PlusConfigure.h"
 
-//#include "igsioTrackedFrame.h"
-
 #include "vtkPlusFakeTracker.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMinimalStandardRandomSequence.h"

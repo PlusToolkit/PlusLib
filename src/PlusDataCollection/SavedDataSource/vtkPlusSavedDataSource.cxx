@@ -482,7 +482,10 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkIGSIOTrackedFrameList
     LOG_ERROR("Unable to retrieve frame size.");
     return PLUS_FAIL;
   }
-  this->LocalVideoBuffer->SetFrameSize(frameSize);
+  if (!savedDataBuffer->GetTrackedFrame(0)->GetImageData()->IsFrameEncoded())
+  {
+    this->LocalVideoBuffer->SetFrameSize(frameSize);
+  }
   unsigned int numberOfScalarComponents;
   if (savedDataBuffer->GetTrackedFrame(0)->GetNumberOfScalarComponents(numberOfScalarComponents) != PLUS_SUCCESS)
   {
@@ -490,7 +493,10 @@ PlusStatus vtkPlusSavedDataSource::InternalConnectVideo(vtkIGSIOTrackedFrameList
     return PLUS_FAIL;
   }
   this->LocalVideoBuffer->SetNumberOfScalarComponents(numberOfScalarComponents);
-  this->LocalVideoBuffer->SetPixelType(savedDataBuffer->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  if (!savedDataBuffer->GetTrackedFrame(0)->GetImageData()->IsFrameEncoded())
+  {
+    this->LocalVideoBuffer->SetPixelType(savedDataBuffer->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  }
   this->LocalVideoBuffer->SetBufferSize(savedDataBuffer->GetNumberOfTrackedFrames());
   this->LocalVideoBuffer->SetLocalTimeOffsetSec(0.0);   // the time offset is copied from the output, so reset it to 0
   this->LocalVideoBuffer->CopyImagesFromTrackedFrameList(savedDataBuffer, vtkPlusBuffer::READ_FILTERED_IGNORE_UNFILTERED_TIMESTAMPS, this->UseAllFrameFields);

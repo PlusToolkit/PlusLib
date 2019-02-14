@@ -212,15 +212,6 @@ PlusStatus vtkPlusVirtualCapture::OpenFile(const char* aFilename)
     return PLUS_FAIL;
   }
   this->Writer->SetUseCompression(this->EnableFileCompression);
-
-#ifdef PLUS_USE_VTKVIDEOIO_MKV
-  //vtkPlusMkvSequenceIO* mkvWriter = vtkPlusMkvSequenceIO::SafeDownCast(this->Writer);
-  //if (mkvWriter)
-  //{
-  //  mkvWriter->SetEncodingFourCC(this->EncodingFourCC);
-  //}
-#endif
-
   this->Writer->SetTrackedFrameList(this->RecordedFrames);
   // Need to set the filename before finalizing header, because the pixel data file name depends on the file extension
   this->Writer->SetFileName(vtkPlusConfig::GetInstance()->GetOutputPath(aFilename));

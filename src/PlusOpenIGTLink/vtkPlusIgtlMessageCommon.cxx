@@ -11,6 +11,7 @@ See License.txt for details.
 #include "vtkPlusIgtlMessageCommon.h"
 #include "vtkIGSIOTrackedFrameList.h"
 #include "vtkIGSIOTransformRepository.h"
+#include <vtkIGSIOFrameConverter.h>
 
 // VTK includes
 #include <vtkImageData.h>
@@ -26,6 +27,7 @@ See License.txt for details.
 #include <igtlioImageConverter.h>
 #include <igtlioPolyDataConverter.h>
 #include <igtlioTransformConverter.h>
+#include <igtlioConverterUtilities.h>
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   #include <igtlioVideoConverter.h>
 #endif
@@ -214,7 +216,8 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackUsMessage(igtl::MessageHeader::Pointe
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointer imageMessage,
     igsioTrackedFrame& trackedFrame,
-    const vtkMatrix4x4& matrix)
+    const vtkMatrix4x4& matrix,
+    vtkIGSIOFrameConverter* frameConverter/*=NULL*/)
 {
   if (imageMessage.IsNull())
   {
@@ -228,8 +231,14 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
     return PLUS_FAIL;
   }
 
+  vtkSmartPointer<vtkIGSIOFrameConverter> converter = frameConverter;
+  if (!converter)
+  {
+    converter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+  }
+
   double timestamp = trackedFrame.GetTimestamp();
-  vtkImageData* frameImage = trackedFrame.GetImageData()->GetImage();
+  vtkSmartPointer<vtkImageData> frameImage = converter->GetUncompressedImage(trackedFrame.GetImageData());
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
@@ -477,7 +486,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
 //----------------------------------------------------------------------------
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage,
-    igsioTrackedFrame& trackedFrame, GenericEncoder* encoder, const vtkMatrix4x4& matrix)
+  igsioTrackedFrame& trackedFrame,
+  vtkMatrix4x4& matrix,
+  vtkIGSIOFrameConverter* frameConverter/*=NULL*/,
+  std::string fourCC/*=""*/,
+  std::map<std::string,std::string> parameters)
 {
   if (videoMessage.IsNull())
   {
@@ -491,50 +504,64 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
     return PLUS_FAIL;
   }
 
+  vtkSmartPointer<vtkStreamingVolumeFrame> frame = trackedFrame.GetImageData()->GetEncodedFrame();
+
+  std::string codecFourCC = fourCC;
+  if (codecFourCC.empty() && frame)
+  {
+    codecFourCC = frame->GetCodecFourCC();
+  }
+  if (codecFourCC.empty())
+  {
+    LOG_ERROR("Unknown frame encoding!");
+    return PLUS_FAIL;
+  }
+
+  frame = frameConverter->GetCompressedFrame(trackedFrame.GetImageData(), codecFourCC, parameters);
+  if (!frame)
+  {
+    LOG_ERROR("Could not encode frame!");
+    return PLUS_FAIL;
+  }
+
+  vtkSmartPointer<vtkUnsignedCharArray> frameData = frame->GetFrameData();
+  int frameType = frame->GetFrameType();
+  unsigned int frameSize = frameData->GetSize() * frameData->GetElementComponentSize();
+  codecFourCC = frame->GetCodecFourCC();
+  int endian = (igtl_is_little_endian() == 1 ? IGTL_VIDEO_ENDIAN_LITTLE : IGTL_VIDEO_ENDIAN_BIG);
+  int dimensions[3] = { 0,0,0 };
+  frame->GetDimensions(dimensions);
+  double spacing[3] = { 1.0, 1.0, 1.0 };
+  int encodedFrameType = FrameTypeUnKnown;
+  if (frameType == vtkStreamingVolumeFrame::IFrame)
+  {
+    encodedFrameType = FrameTypeKey;
+  }
+  if (frame->GetNumberOfComponents() == 1)
+  {
+    encodedFrameType = encodedFrameType << 8;
+  }
+
+  igtl::Matrix4x4 videoMatrix;
+  igtl::IdentityMatrix(videoMatrix);
+  igtlioConverterUtilities::VTKTransformToIGTLTransform(&matrix, frame->GetDimensions(), spacing, videoMatrix);
+
   double timestamp = trackedFrame.GetTimestamp();
-  vtkImageData* frameImage = trackedFrame.GetImageData()->GetImage();
-
-  int imageSizePixels[3] = { 0 };
-  int subSizePixels[3] = { 0 };
-  int subOffset[3] = { 0 };
-  double imageSpacingMm[3] = { 0 };
-  double imageOriginMm[3] = { 0 };
-  int scalarType = PlusCommon::GetIGTLScalarPixelTypeFromVTK(trackedFrame.GetImageData()->GetVTKScalarPixelType());
-  unsigned int numScalarComponents(1);
-  if (trackedFrame.GetImageData()->GetNumberOfScalarComponents(numScalarComponents) == PLUS_FAIL)
-  {
-    LOG_ERROR("Unable to retrieve number of scalar components.");
-    return PLUS_FAIL;
-  }
-
-  frameImage->GetDimensions(imageSizePixels);
-  frameImage->GetSpacing(imageSpacingMm);
-  frameImage->GetOrigin(imageOriginMm);
-  frameImage->GetDimensions(subSizePixels);
-
-  float spacingFloat[3] = { 0 };
-  for (int i = 0; i < 3; ++i)
-  {
-    spacingFloat[i] = (float)imageSpacingMm[i];
-  }
-
-  igtlioVideoConverter::HeaderData headerData = igtlioVideoConverter::HeaderData();
-  igtlioVideoConverter::ContentData contentData = igtlioVideoConverter::ContentData();
-  contentData.videoMessage = videoMessage;
-  contentData.image = frameImage;
-  contentData.transform = vtkSmartPointer<vtkMatrix4x4>::New();
-  contentData.transform->DeepCopy(&matrix);
-  headerData.deviceName = videoMessage->GetDeviceName();
-
-  if (!igtlioVideoConverter::toIGTL(headerData, contentData, encoder))
-  {
-    LOG_ERROR("Could not create video message!");
-    return PLUS_FAIL;
-  }
-
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
+
+  videoMessage->SetCodecType(codecFourCC.c_str());
+  videoMessage->SetEndian(endian); //little endian is 2 big endian is 1
+  videoMessage->SetSpacing(spacing[0], spacing[1], spacing[2]);
+  videoMessage->SetWidth(dimensions[0]);
+  videoMessage->SetHeight(dimensions[1]);
+  videoMessage->SetAdditionalZDimension(dimensions[2]);
+  videoMessage->SetMatrix(videoMatrix);
+  videoMessage->SetFrameType(encodedFrameType);
   videoMessage->SetTimeStamp(igtlFrameTime);
+  videoMessage->SetBitStreamSize(frameSize);
+  videoMessage->AllocateScalars();
+  memcpy(videoMessage->GetPackFragmentPointer(2), frameData->GetPointer(0), frameSize);
   videoMessage->Pack();
 
   return PLUS_SUCCESS;

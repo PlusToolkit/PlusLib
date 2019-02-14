@@ -93,7 +93,6 @@ SET(${PROJECT_NAME}_LIBS
   vtkFiltersStatistics
   vtkPlusRendering
   vtkPlusCommon
-  vtkIGSIOCommon
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})

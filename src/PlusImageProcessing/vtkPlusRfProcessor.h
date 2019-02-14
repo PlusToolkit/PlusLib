@@ -8,7 +8,6 @@
 #define __vtkPlusRfProcessor_h
 
 #include "vtkPlusImageProcessingExport.h"
-//#include "igsioVideoFrame.h" // for US_IMAGE_TYPE
 
 class vtkPlusRfToBrightnessConvert;
 class vtkPlusUsScanConvert;

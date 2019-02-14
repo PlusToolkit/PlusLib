@@ -4,23 +4,28 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-
 #include "vtkPlusSonixVolumeReader.h"
-#include "vtkObjectFactory.h"
-#include "vtkSmartPointer.h"
-#include "vtkImageData.h"
-#include "igsioVideoFrame.h"
-#include "vtkIGSIOTrackedFrameList.h"
-#include "igsioTrackedFrame.h"
 
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkObjectFactory.h>
+#include <vtkSmartPointer.h>
+
+// IGSIO includes
+#include <igsioTrackedFrame.h>
+#include <igsioVideoFrame.h>
+#include <vtkIGSIOTrackedFrameList.h>
+
+// STD includes
 #include <iostream>
 #include <sstream>
 
-#include "ulterius_def.h"
-
+// Sonix includes
+#include <ulterius_def.h>
 #if PLUS_ULTRASONIX_SDK_MAJOR_VERSION == 1
-  #include "utx_imaging_modes.h"
+  #include <utx_imaging_modes.h>
 #endif
 
 

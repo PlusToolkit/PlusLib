@@ -26,6 +26,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
 
 ENDIF()
 
+FIND_PACKAGE(IGSIO REQUIRED)
 SET(${PROJECT_NAME}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}
@@ -78,7 +79,9 @@ SET(${PROJECT_NAME}_LIBS
   igtlioConverter
   vtkIGSIOCommon
   vtkSequenceIO
-  OpenIGTLink
+  )
+
+SET(${PROJECT_NAME}_LIBS_PRIVATE
   )
 
 IF(PLUS_USE_OpenIGTLink)
@@ -91,12 +94,11 @@ FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
   target_include_directories(vtk${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${p}>)
 ENDFOREACH()
 target_include_directories(vtk${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:${PLUSLIB_INCLUDE_INSTALL}>)
-TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
+TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME}
+  PUBLIC ${${PROJECT_NAME}_LIBS}
+  PRIVATE ${${PROJECT_NAME}_LIBS_PRIVATE}
+  )
 PlusLibAddVersionInfo(vtk${PROJECT_NAME} "Library containing common values, enums, classes, and other items that are common to all Plus toolkit libraries." vtk${PROJECT_NAME} vtk${PROJECT_NAME})
-
-IF(IGSIO_BUILD_VTKVIDEOIO)
-  TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${VTKVIDEOIO_LIBRARIES})
-ENDIF()
 
 IF(MSVC)
   # enable parallel in-target build

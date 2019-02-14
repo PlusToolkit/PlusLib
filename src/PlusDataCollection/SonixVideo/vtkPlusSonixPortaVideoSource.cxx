@@ -29,7 +29,6 @@ and The University of Western Ontario)
 #endif
 
 // Local includes
-//#include "igsioTrackedFrame.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusSonixPortaVideoSource.h"

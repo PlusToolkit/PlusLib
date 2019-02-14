@@ -1235,6 +1235,7 @@ PlusStatus vtkPlusOpenIGTLinkServer::ReadConfiguration(vtkXMLDataElement* server
   this->DefaultClientInfo.IgtlMessageTypes.clear();
   this->DefaultClientInfo.TransformNames.clear();
   this->DefaultClientInfo.ImageStreams.clear();
+  this->DefaultClientInfo.VideoStreams.clear();
   this->DefaultClientInfo.StringNames.clear();
   this->DefaultClientInfo.SetTDATAResolution(0);
   this->DefaultClientInfo.SetTDATARequested(false);

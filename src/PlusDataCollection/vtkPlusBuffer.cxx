@@ -22,6 +22,9 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 #include <vtkUnsignedLongLongArray.h>
 
+// vtkAddon includes
+#include <vtkStreamingVolumeCodec.h>
+
 static const double NEGLIGIBLE_TIME_DIFFERENCE = 0.00001; // in seconds, used for comparing between exact timestamps
 static const double ANGLE_INTERPOLATION_WARNING_THRESHOLD_DEG = 10; // if the interpolated orientation differs from both the interpolated orientation by more than this threshold then display a warning
 
@@ -126,10 +129,13 @@ PlusStatus vtkPlusBuffer::AllocateMemoryForFrames()
 
   for (int i = 0; i < this->StreamBuffer->GetBufferSize(); ++i)
   {
-    if (this->StreamBuffer->GetBufferItemPointerFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType(), this->GetNumberOfScalarComponents()) != PLUS_SUCCESS)
+    if (!this->StreamBuffer->GetBufferItemPointerFromBufferIndex(i)->GetFrame().IsFrameEncoded())
     {
-      LOCAL_LOG_ERROR("Failed to allocate memory for frame " << i);
-      result = PLUS_FAIL;
+      if (this->StreamBuffer->GetBufferItemPointerFromBufferIndex(i)->GetFrame().AllocateFrame(this->GetFrameSize(), this->GetPixelType(), this->GetNumberOfScalarComponents()) != PLUS_SUCCESS)
+      {
+        LOCAL_LOG_ERROR("Failed to allocate memory for frame " << i);
+        result = PLUS_FAIL;
+      }
     }
   }
   return result;
@@ -240,7 +246,19 @@ PlusStatus vtkPlusBuffer::AddItem(vtkImageData* frame,
   }
 
   FrameSizeType frameSize = {static_cast<unsigned int>(frameExtent[1] - frameExtent[0] + 1), static_cast<unsigned int>(frameExtent[3] - frameExtent[2] + 1), static_cast<unsigned int>(frameExtent[5] - frameExtent[4] + 1)};
-  return this->AddItem(reinterpret_cast<unsigned char*>(frame->GetScalarPointer()), usImageOrientation, frameSize, frame->GetScalarType(), frame->GetNumberOfScalarComponents(), imageType, 0, frameNumber, clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
+  return this->AddItem(reinterpret_cast<unsigned char*>(frame->GetScalarPointer()),
+                       usImageOrientation,
+                       frameSize,
+                       frame->GetScalarType(),
+                       frame->GetNumberOfScalarComponents(),
+                       imageType,
+                       0,
+                       frameNumber,
+                       clipRectangleOrigin,
+                       clipRectangleSize,
+                       unfilteredTimestamp,
+                       filteredTimestamp,
+                       customFields);
 }
 
 //----------------------------------------------------------------------------
@@ -258,7 +276,40 @@ PlusStatus vtkPlusBuffer::AddItem(const igsioVideoFrame* frame,
     return PLUS_FAIL;
   }
 
-  return this->AddItem(frame->GetImage(), frame->GetImageOrientation(), frame->GetImageType(), frameNumber, clipRectangleOrigin, clipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
+  if (frame->IsFrameEncoded())
+  {
+    unsigned int numberOfComponents = 0;
+    frame->GetNumberOfScalarComponents(numberOfComponents);
+    int dimensions[3] = { 0,0,0 };
+    frame->GetEncodedFrame()->GetDimensions(dimensions);
+    FrameSizeType frameSize = { dimensions[0],dimensions[1], dimensions[2]};
+    return this->AddItem(NULL,
+                         frame->GetImageOrientation(),
+                         frameSize,
+                         this->PixelType,
+                         numberOfComponents,
+                         frame->GetImageType(),
+                         0,
+                         frameNumber,
+                         clipRectangleOrigin,
+                         clipRectangleSize,
+                         unfilteredTimestamp,
+                         filteredTimestamp,
+                         customFields,
+                         frame->GetEncodedFrame());
+  }
+  else
+  {
+    return this->AddItem(frame->GetImage(),
+                         frame->GetImageOrientation(),
+                         frame->GetImageType(),
+                         frameNumber,
+                         clipRectangleOrigin,
+                         clipRectangleSize,
+                         unfilteredTimestamp,
+                         filteredTimestamp,
+                         customFields);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -342,7 +393,8 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
                                   const std::array<int, 3>& clipRectangleSize,
                                   double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
                                   double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
-                                  const igsioTrackedFrame::FieldMapType* customFields /*= NULL */)
+                                  const igsioTrackedFrame::FieldMapType* customFields /*= NULL */,
+                                  vtkStreamingVolumeFrame* encodedFrame /*=NULL*/)
 {
   if (unfilteredTimestamp == UNDEFINED_TIMESTAMP)
   {
@@ -369,7 +421,7 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
     this->StreamBuffer->AddToTimeStampReport(frameNumber, unfilteredTimestamp, filteredTimestamp);
   }
 
-  if (imageDataPtr == NULL)
+  if (imageDataPtr == NULL && encodedFrame == NULL)
   {
     LOG_ERROR("vtkPlusBuffer: Unable to add NULL frame to video buffer!");
     return PLUS_FAIL;
@@ -427,9 +479,10 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   FrameSizeType receivedFrameSize = { 0, 0, 0 };
   newObjectInBuffer->GetFrame().GetFrameSize(receivedFrameSize);
 
-  if (outputFrameSizeInPx[0] != receivedFrameSize[0]
+  if (imageDataPtr && !encodedFrame &&
+        (outputFrameSizeInPx[0] != receivedFrameSize[0]
       || outputFrameSizeInPx[1] != receivedFrameSize[1]
-      || outputFrameSizeInPx[2] != receivedFrameSize[2])
+      || outputFrameSizeInPx[2] != receivedFrameSize[2]))
   {
     LOCAL_LOG_ERROR("Input frame size is different from buffer frame size (input: " <<
                     outputFrameSizeInPx[0] << "x" << outputFrameSizeInPx[1] << "x" << outputFrameSizeInPx[2] <<
@@ -439,13 +492,20 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   }
 
   // Skip the numberOfBytesToSkip bytes, e.g. header size
-  unsigned char* byteImageDataPtr = reinterpret_cast<unsigned char*>(imageDataPtr);
-  byteImageDataPtr += numberOfBytesToSkip;
-
-  if (igsioVideoFrame::GetOrientedClippedImage(byteImageDataPtr, flipInfo, imageType, pixelType, numberOfScalarComponents, inputFrameSizeInPx, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
+  if (imageDataPtr != NULL)
   {
-    LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!");
-    return PLUS_FAIL;
+    unsigned char* byteImageDataPtr = reinterpret_cast<unsigned char*>(imageDataPtr);
+    byteImageDataPtr += numberOfBytesToSkip;
+
+    if (igsioVideoFrame::GetOrientedClippedImage(byteImageDataPtr, flipInfo, imageType, pixelType, numberOfScalarComponents, inputFrameSizeInPx, newObjectInBuffer->GetFrame(), clipRectangleOrigin, clipRectangleSize) != PLUS_SUCCESS)
+    {
+      LOCAL_LOG_ERROR("Failed to convert input US image to the requested orientation!");
+      return PLUS_FAIL;
+    }
+  }
+  else if (encodedFrame != NULL)
+  {
+    newObjectInBuffer->GetFrame().SetEncodedFrame(encodedFrame);
   }
 
   newObjectInBuffer->SetFilteredTimestamp(filteredTimestamp);
@@ -749,7 +809,7 @@ void vtkPlusBuffer::Clear()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetFrameSize(unsigned int x, unsigned int y, unsigned int z)
+PlusStatus vtkPlusBuffer::SetFrameSize(unsigned int x, unsigned int y, unsigned int z, bool allocateFrames/*=true*/)
 {
   if (x != 0 && y != 0 && z == 0)
   {
@@ -764,13 +824,17 @@ PlusStatus vtkPlusBuffer::SetFrameSize(unsigned int x, unsigned int y, unsigned 
   this->FrameSize[0] = x;
   this->FrameSize[1] = y;
   this->FrameSize[2] = z;
-  return AllocateMemoryForFrames();
+  if (allocateFrames)
+  {
+    return AllocateMemoryForFrames();
+  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusBuffer::SetFrameSize(const FrameSizeType& frameSize)
+PlusStatus vtkPlusBuffer::SetFrameSize(const FrameSizeType& frameSize, bool allocateFrames/*=true*/)
 {
-  return SetFrameSize(frameSize[0], frameSize[1], frameSize[2]);
+  return SetFrameSize(frameSize[0], frameSize[1], frameSize[2], allocateFrames);
 }
 
 //----------------------------------------------------------------------------
@@ -847,8 +911,12 @@ PlusStatus vtkPlusBuffer::CopyImagesFromTrackedFrameList(vtkIGSIOTrackedFrameLis
 
   FrameSizeType frameSize = {0, 0, 0};
   sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetFrameSize(frameSize);
-  this->SetFrameSize(frameSize);
-  this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  bool isFrameEncoded = sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->IsFrameEncoded();
+  this->SetFrameSize(frameSize, !isFrameEncoded);
+  if (!isFrameEncoded)
+  {
+    this->SetPixelType(sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetVTKScalarPixelType());
+  }
   unsigned int numberOfScalarComponents(1);
   if (sourceTrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetNumberOfScalarComponents(numberOfScalarComponents) != PLUS_SUCCESS)
   {

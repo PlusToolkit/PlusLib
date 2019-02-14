@@ -10,7 +10,6 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 
 #include "igsioCommon.h"
-//#include "igsioVideoFrame.h"
 
 #include "vtkSmartPointer.h"
 

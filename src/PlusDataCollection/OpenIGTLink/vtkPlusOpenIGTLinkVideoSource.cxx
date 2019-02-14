@@ -4,17 +4,19 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Plus includes
 #include "PlusConfigure.h"
-#include "vtkPlusOpenIGTLinkVideoSource.h"
-
-#include "igtlImageMessage.h"
-//#include "igsioVideoFrame.h"
-//#include "igsioTrackedFrame.h"
-#include "vtkImageData.h"
-#include "vtkObjectFactory.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIgtlMessageCommon.h"
+#include "vtkPlusOpenIGTLinkVideoSource.h"
+
+// OpenIGTLink includes
+#include <igtlImageMessage.h>
+
+// VTK includes
+#include <vtkImageData.h>
+#include <vtkObjectFactory.h>
 
 vtkStandardNewMacro(vtkPlusOpenIGTLinkVideoSource);
 

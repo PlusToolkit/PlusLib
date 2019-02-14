@@ -10,7 +10,6 @@
 #include "vtkPlusDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-//#include "igsioVideoFrame.h"
 
 class vtkPlusThorLabsVideoSourceInternal;
 

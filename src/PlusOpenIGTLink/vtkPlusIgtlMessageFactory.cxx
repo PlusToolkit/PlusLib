@@ -175,6 +175,10 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
     {
       numberOfErrors += PackImageMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
+    else if (typeid(*igtlMessage) == typeid(igtl::VideoMessage))
+    {
+      numberOfErrors += PackVideoMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
+    }
     else if (typeid(*igtlMessage) == typeid(igtl::TransformMessage))
     {
       numberOfErrors += PackTransformMessage(clientInfo, *transformRepository, packValidTransformsOnly, igtlMessage, trackedFrame, igtlMessages);
@@ -405,159 +409,104 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
 
     std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
 
-    if (imageStream.EncodeVideoParameters.FourCC.empty())
+    igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
+    if (trackedFrame.IsFrameFieldDefined(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
     {
-      igtl::ImageMessage::Pointer imageMessage = dynamic_cast<igtl::ImageMessage*>(igtlMessage->Clone().GetPointer());
-      if (trackedFrame.IsFrameFieldDefined(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
-      {
-        // Allow overriding of device name with something human readable
-        // The transform name is passed in the metadata
-        deviceName = trackedFrame.GetFrameField(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
-      }
-      imageMessage->SetDeviceName(deviceName.c_str());
-
-      // Send igsioTrackedFrame::CustomFrameFields as meta data in the image message.
-      std::vector<std::string> frameFields;
-      trackedFrame.GetFrameFieldNameList(frameFields);
-      for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
-      {
-        if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
-        {
-          // No value is available, do not send anything
-          LOG_WARNING("No metadata value for: " << *stringNameIterator)
-          continue;
-        }
-        imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
-      }
-
-      if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
-        numberOfErrors++;
-        continue;
-      }
-      igtlMessages.push_back(imageMessage.GetPointer());
+      // Allow overriding of device name with something human readable
+      // The transform name is passed in the metadata
+      deviceName = trackedFrame.GetFrameField(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
     }
-    else
+    imageMessage->SetDeviceName(deviceName.c_str());
+
+    // Send igsioTrackedFrame::CustomFrameFields as meta data in the image message.
+    std::vector<std::string> frameFields;
+    trackedFrame.GetFrameFieldNameList(frameFields);
+    for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
     {
-
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-      igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
-      ClientEncoderKeyType clientEncoderKey;
-      clientEncoderKey.ClientId = clientId;
-      clientEncoderKey.ImageName = imageStream.Name;
-
-      VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
-      if (encoderIt != this->IgtlVideoEncoders.end())
+      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
       {
-        encoder = encoderIt->second;
-      }
-      else if (imageStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_I420)
-      {
-        encoder = new igtl::I420Encoder();
-        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-      }
-#if defined(OpenIGTLink_USE_VP9)
-      else if (imageStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_VP9)
-      {
-        encoder = new igtl::VP9Encoder();
-        encoder->SetLosslessLink(imageStream.EncodeVideoParameters.Lossless);
-        encoder->SetKeyFrameDistance(imageStream.EncodeVideoParameters.MinKeyframeDistance);
-        if (!imageStream.EncodeVideoParameters.Lossless)
-        {
-          encoder->SetSpeed(imageStream.EncodeVideoParameters.Speed);
-
-          if (!imageStream.EncodeVideoParameters.RateControl.empty())
-          {
-            int rateControl = -1;
-            if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "VBR") == 0)
-            {
-              rateControl = VPX_VBR;
-            }
-            if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "CBR") == 0)
-            {
-              rateControl = VPX_CBR;
-            }
-            if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "CQ") == 0)
-            {
-              rateControl = VPX_CQ;
-            }
-            if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "Q") == 0)
-            {
-              rateControl = VPX_Q;
-            }
-
-            if (rateControl > -1)
-            {
-              encoder->SetRCMode(rateControl);
-            }
-
-          }
-
-          if (!imageStream.EncodeVideoParameters.DeadlineMode.empty())
-          {
-            int deadlineMode = -1;
-            if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "REALTIME") == 0)
-            {
-              deadlineMode = VPX_DL_REALTIME;
-            }
-            else if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "GOOD") == 0)
-            {
-              deadlineMode = VPX_DL_GOOD_QUALITY;
-            }
-            else if (STRCASECMP(imageStream.EncodeVideoParameters.RateControl.c_str(), "BEST") == 0)
-            {
-              deadlineMode = VPX_DL_BEST_QUALITY;
-            }
-
-            if (deadlineMode > -1)
-            {
-              igtl::VP9Encoder::Pointer vp9Encoder = dynamic_cast<igtl::VP9Encoder*>(encoder.GetPointer());
-              if (vp9Encoder)
-              {
-                vp9Encoder->SetDeadlineMode(deadlineMode);
-              }
-            }
-          }
-
-          if (imageStream.EncodeVideoParameters.TargetBitrate > -1)
-          {
-            encoder->SetRCTaregetBitRate(imageStream.EncodeVideoParameters.TargetBitrate);
-          }
-
-        }
-        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-      }
-#endif
-#if defined(OpenIGTLink_USE_H264)
-      else if (imageStream.VideoParameters.EncodingFourCC == IGTL_VIDEO_CODEC_NAME_H264)
-      {
-        encoder = new igtl::H264Encoder();
-        encoder->SetLosslessLink(imageStream.VideoParameters.EncodingLossless);
-        encoder->SetKeyFrameDistance(imageStream.VideoParameters.EncodingMinKeyframeDistance);
-        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-      }
-#endif
-      else
-      {
-        LOG_ERROR("Could not create encoder for image stream " << imageStream.Name << " of type " << imageStream.EncodeVideoParameters.FourCC);
+        // No value is available, do not send anything
+        LOG_WARNING("No metadata value for: " << *stringNameIterator)
         continue;
       }
-
-      igtl::VideoMessage::Pointer videoMessage = igtl::VideoMessage::New();
-      videoMessage->SetDeviceName(deviceName.c_str());
-      if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to create " << "VIDEO" << " message - unable to pack image message");
-        numberOfErrors++;
-        continue;
-      }
-      videoMessage->SetDeviceName(deviceName.c_str());
-      igtlMessages.push_back(videoMessage.GetPointer());
-#else
-      LOG_ERROR("Plus is not currently compiled with video streaming support!");
-#endif
+      imageMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
     }
+
+    if (vtkPlusIgtlMessageCommon::PackImageMessage(imageMessage, trackedFrame, *matrix, imageStream.FrameConverter) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+      numberOfErrors++;
+      continue;
+    }
+    igtlMessages.push_back(imageMessage.GetPointer());
+  }
+  return numberOfErrors;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, const std::string& messageType, igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId)
+{
+  int numberOfErrors = 0;
+  for (std::vector<PlusIgtlClientInfo::VideoStream>::const_iterator videoStreamIterator = clientInfo.VideoStreams.begin(); videoStreamIterator != clientInfo.VideoStreams.end(); ++videoStreamIterator)
+  {
+    PlusIgtlClientInfo::VideoStream videoStream = (*videoStreamIterator);
+
+    // Set transform name to [Name]To[CoordinateFrame]
+    igsioTransformName imageTransformName = igsioTransformName(videoStream.Name, videoStream.EmbeddedTransformToFrame);
+
+    vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    if (transformRepository.GetTransform(imageTransformName, matrix.Get()) != PLUS_SUCCESS)
+    {
+      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
+      numberOfErrors++;
+      continue;
+    }
+
+    std::string deviceName = imageTransformName.From() + std::string("_") + imageTransformName.To();
+
+    igtl::VideoMessage::Pointer videoMessage = dynamic_cast<igtl::VideoMessage*>(igtlMessage->Clone().GetPointer());
+    if (trackedFrame.IsFrameFieldDefined(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME))
+    {
+      // Allow overriding of device name with something human readable
+      // The transform name is passed in the metadata
+      deviceName = trackedFrame.GetFrameField(igsioTrackedFrame::FIELD_FRIENDLY_DEVICE_NAME);
+    }
+    videoMessage->SetDeviceName(deviceName.c_str());
+
+    // Send igsioTrackedFrame::CustomFrameFields as meta data in the image message.
+    std::vector<std::string> frameFields;
+    trackedFrame.GetFrameFieldNameList(frameFields);
+    for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
+    {
+      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+      {
+        // No value is available, do not send anything
+        LOG_WARNING("No metadata value for: " << *stringNameIterator);
+        continue;
+      }
+      videoMessage->SetMetaDataElement(*stringNameIterator, IANA_TYPE_US_ASCII, trackedFrame.GetFrameField(*stringNameIterator));
+    }
+    videoMessage = igtl::VideoMessage::New();
+    videoMessage->SetDeviceName(deviceName.c_str());
+    std::map<std::string, std::string> parameters;
+    parameters["losslessEncoding"] = videoStream.EncodeVideoParameters.Lossless ? "1" : "0";
+    if (!videoStream.EncodeVideoParameters.Lossless)
+    {
+      parameters["rateControl"] = videoStream.EncodeVideoParameters.RateControl;
+      parameters["minimumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MinKeyframeDistance;
+      parameters["maximumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MaxKeyframeDistance;
+      parameters["encodingSpeed"] = videoStream.EncodeVideoParameters.Speed;
+      parameters["bitRate"] = videoStream.EncodeVideoParameters.TargetBitrate;
+      parameters["deadlineMode"] = videoStream.EncodeVideoParameters.DeadlineMode;
+    }
+
+    if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, *matrix, videoStream.FrameConverter, videoStream.EncodeVideoParameters.FourCC, parameters) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+      numberOfErrors++;
+      continue;
+    }
+    igtlMessages.push_back(videoMessage.GetPointer());
   }
   return numberOfErrors;
 }

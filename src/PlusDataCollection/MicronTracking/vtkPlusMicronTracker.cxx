@@ -11,7 +11,6 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-//#include "igsioVideoFrame.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusMicronTracker.h"
 

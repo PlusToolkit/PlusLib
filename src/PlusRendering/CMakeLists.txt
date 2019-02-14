@@ -24,7 +24,6 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 # Build the library
 SET(${PROJECT_NAME}_LIBS 
   vtkPlusCommon
-  vtkIGSIOCommon
   vtkCommonCore
   vtkFiltersSources
   vtkChartsCore
