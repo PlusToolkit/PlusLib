@@ -17,10 +17,6 @@
 #include "igtlMessageBase.h"
 #include "igtlMessageFactory.h"
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-  #include "igtlCodecCommonClasses.h"
-#endif
-
 // PlusLib includes
 #include "PlusIgtlClientInfo.h"
 
@@ -101,8 +97,10 @@ protected:
 protected:
   int PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, const std::string& messageType,
                        igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   int PackVideoMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, const std::string& messageType,
                        igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
+#endif
   int PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, bool packValidTransformsOnly,
                            igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
   int PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, igsioTrackedFrame& trackedFrame, vtkIGSIOTransformRepository& transformRepository, bool packValidTransformsOnly,

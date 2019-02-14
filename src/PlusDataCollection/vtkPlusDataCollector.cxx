@@ -20,7 +20,9 @@ See License.txt for details.
 // IGSIO includes
 #include <igsioTrackedFrame.h>
 #include <vtkIGSIOTrackedFrameList.h>
+#if defined PLUS_USE_VP9
 #include <vtkVP9VolumeCodec.h>
+#endif
 
 // STD includes
 #include <set>
@@ -43,8 +45,10 @@ vtkPlusDataCollector::vtkPlusDataCollector()
   , Started(false)
 {
   vtkStreamingVolumeCodecFactory* factory = vtkStreamingVolumeCodecFactory::GetInstance();
+#if defined PLUS_USE_VP9
   vtkSmartPointer<vtkVP9VolumeCodec> vp9Codec = vtkSmartPointer<vtkVP9VolumeCodec>::New();
   factory->RegisterStreamingCodec(vp9Codec);
+#endif
 }
 
 //----------------------------------------------------------------------------

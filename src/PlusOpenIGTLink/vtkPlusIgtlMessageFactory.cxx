@@ -175,10 +175,12 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
     {
       numberOfErrors += PackImageMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
     else if (typeid(*igtlMessage) == typeid(igtl::VideoMessage))
     {
       numberOfErrors += PackVideoMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
+#endif
     else if (typeid(*igtlMessage) == typeid(igtl::TransformMessage))
     {
       numberOfErrors += PackTransformMessage(clientInfo, *transformRepository, packValidTransformsOnly, igtlMessage, trackedFrame, igtlMessages);
@@ -443,6 +445,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
   return numberOfErrors;
 }
 
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 //----------------------------------------------------------------------------
 int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& clientInfo, vtkIGSIOTransformRepository& transformRepository, const std::string& messageType, igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId)
 {
@@ -511,7 +514,6 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
   return numberOfErrors;
 }
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 //----------------------------------------------------------------------------
 void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
 {
