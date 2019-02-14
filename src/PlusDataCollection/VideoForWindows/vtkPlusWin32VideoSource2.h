@@ -19,7 +19,6 @@ Authors include: Danielle Pace
 #include "vtkPlusDataCollectionExport.h"
 
 #include "vtkPlusDevice.h"
-//#include "igsioVideoFrame.h"
 
 class vtkPlusWin32VideoSource2Internal;
 

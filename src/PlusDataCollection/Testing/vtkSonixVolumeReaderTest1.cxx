@@ -4,18 +4,25 @@
   See License.txt for details.
 =========================================================Plus=header=end*/
 
+// Local includes
 #include "PlusConfigure.h"
-#include "igsioVideoFrame.h"
-#include "igsioTrackedFrame.h"
+
+// VTK includes
 #include "vtkImageData.h"
 #include "vtkImageDifference.h"
 #include "vtkImageExtractComponents.h"
-#include "vtkIGSIOSequenceIO.h"
-#include "vtkSmartPointer.h"
 #include "vtkPlusSonixVolumeReader.h"
-#include "vtkIGSIOTrackedFrameList.h"
+#include "vtkSmartPointer.h"
 #include "vtksys/CommandLineArguments.hxx"
 #include "vtksys/SystemTools.hxx"
+
+// IGSIO includes
+#include "igsioVideoFrame.h"
+#include "igsioTrackedFrame.h"
+#include "vtkIGSIOSequenceIO.h"
+#include "vtkIGSIOTrackedFrameList.h"
+
+// STD includes
 #include <iostream>
 #include <stdlib.h>
 

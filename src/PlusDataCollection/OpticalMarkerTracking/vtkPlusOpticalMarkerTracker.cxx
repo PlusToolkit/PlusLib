@@ -9,7 +9,6 @@ See License.txt for details.
 // Local includes
 #include "PixelCodec.h"
 #include "PlusConfigure.h"
-//#include "igsioVideoFrame.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusOpticalMarkerTracker.h"
 

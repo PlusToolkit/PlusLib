@@ -6,7 +6,6 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
-#include "igsioTrackedFrame.h"
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataCollector.h"
@@ -14,7 +13,14 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include "vtkPlusDeviceFactory.h"
 #include "vtkPlusSavedDataSource.h"
-#include "vtkIGSIOTrackedFrameList.h"
+
+// vtkAddon includes
+#include <vtkStreamingVolumeCodecFactory.h>
+
+// IGSIO includes
+#include <igsioTrackedFrame.h>
+#include <vtkIGSIOTrackedFrameList.h>
+#include <vtkVP9VolumeCodec.h>
 
 // STD includes
 #include <set>
@@ -36,6 +42,9 @@ vtkPlusDataCollector::vtkPlusDataCollector()
   , Connected(false)
   , Started(false)
 {
+  vtkStreamingVolumeCodecFactory* factory = vtkStreamingVolumeCodecFactory::GetInstance();
+  vtkSmartPointer<vtkVP9VolumeCodec> vp9Codec = vtkSmartPointer<vtkVP9VolumeCodec>::New();
+  factory->RegisterStreamingCodec(vp9Codec);
 }
 
 //----------------------------------------------------------------------------

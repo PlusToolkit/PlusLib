@@ -35,6 +35,7 @@ class vtkXMLDataElement;
 //class igsioTrackedFrame; 
 class vtkPolyData;
 //class vtkIGSIOTransformRepository;
+class vtkIGSIOFrameConverter;
 
 /*!
 \class vtkPlusIgtlMessageCommon
@@ -64,7 +65,7 @@ public:
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, igsioTrackedFrame& trackedFrame, int crccheck);
 
   /*! Pack image message from tracked frame */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform);
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter=NULL);
 
   /*! Pack image message from vtkImageData volume */
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, const vtkMatrix4x4& imageToReferenceTransform, double timestamp);
@@ -77,7 +78,7 @@ public:
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   /*! Pack video message from tracked frame */
-  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer videoMessage, igsioTrackedFrame& trackedFrame, igtl::GenericEncoder* encoder, const vtkMatrix4x4& videoToReferenceTransform);
+  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter = NULL, std::string codecFourCC = "", std::map<std::string, std::string> parameters= std::map<std::string, std::string>());
 #endif
 
   /*! Pack transform message from tracked frame */

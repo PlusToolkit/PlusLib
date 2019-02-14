@@ -145,7 +145,43 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
 
-      XML_FIND_NESTED_ELEMENT_OPTIONAL(encodingElem, imageElem, "Encoding");
+      clientInfo.ImageStreams.push_back(stream);
+    }
+  }
+
+  // Get video streams
+  vtkXMLDataElement* videoNames = xmldata->FindNestedElementWithName("VideoNames");
+  if (videoNames != NULL)
+  {
+    for (int i = 0; i < videoNames->GetNumberOfNestedElements(); ++i)
+    {
+      const char* video = videoNames->GetNestedElement(i)->GetName();
+      if (video == NULL || STRCASECMP(video, "Video") != 0)
+      {
+        continue;
+      }
+      vtkXMLDataElement* videoElem = videoNames->GetNestedElement(i);
+      std::string embeddedTransformToFrame;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(EmbeddedTransformToFrame, embeddedTransformToFrame, videoElem);
+      if (embeddedTransformToFrame.empty())
+      {
+        LOG_WARNING("EmbeddedTransformToFrame attribute of VideoNames/Video element #" << i << " is missing. This element will be ignored.");
+        continue;
+      }
+
+      std::string name;
+      XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(Name, name, videoElem);
+      if (name.empty())
+      {
+        LOG_WARNING("Name attribute of videoNames/Video element # " << i << " is missing. This element will be ignored.");
+        continue;
+      }
+
+      VideoStream stream;
+      stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
+      stream.Name = name;
+
+      XML_FIND_NESTED_ELEMENT_OPTIONAL(encodingElem, videoElem, "Encoding");
       if (encodingElem)
       {
         XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(FourCC, stream.EncodeVideoParameters.FourCC, encodingElem);
@@ -158,7 +194,7 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
         XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, TargetBitrate, stream.EncodeVideoParameters.TargetBitrate, encodingElem);
       }
 
-      clientInfo.ImageStreams.push_back(stream);
+      clientInfo.VideoStreams.push_back(stream);
     }
   }
 

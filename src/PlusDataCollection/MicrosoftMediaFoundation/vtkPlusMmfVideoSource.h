@@ -17,7 +17,6 @@ Authors include: Danielle Pace
 #define __vtkPlusMmfVideoSource_h
 
 // Local includes
-//#include "igsioVideoFrame.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 #include "vtkIGSIORecursiveCriticalSection.h"

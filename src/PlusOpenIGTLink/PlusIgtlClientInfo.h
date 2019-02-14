@@ -11,6 +11,9 @@
 #include "PlusConfigure.h"
 #include "vtkPlusOpenIGTLinkExport.h"
 
+// IGSIO includes
+#include <vtkIGSIOFrameConverter.h>
+
 // IGTL includes
 #include <igtlClientSocket.h>
 
@@ -38,7 +41,7 @@ public:
     std::string FourCC;
     bool        Lossless;
     int         MinKeyframeDistance;
-    int         MaxKeyframeDistance; // TODO: Currently non functional
+    int         MaxKeyframeDistance;
     int         Speed;
     std::string RateControl;
     std::string DeadlineMode;
@@ -64,8 +67,31 @@ public:
     std::string Name;
     /*! Name of the IGTL image message embedded transform "To" frame */
     std::string EmbeddedTransformToFrame;
+    /*! Class for decoding and encoding frames */
+    vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
+    ImageStream()
+      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+    {
+    };
+  };
+
+  /*! Helper struct for storing video stream and embedded transform frame names
+  IGTL video message device name: [Name]_[EmbeddedTransformToFrame]
+  */
+  struct VideoStream
+  {
+    /*! Name of the image stream and the IGTL image message embedded transform "From" frame */
+    std::string Name;
+    /*! Name of the IGTL image message embedded transform "To" frame */
+    std::string EmbeddedTransformToFrame;
     /*! Parameters for how to encode video for compressed streams*/
     EncodingParameters EncodeVideoParameters;
+    /*! Class for decoding and encoding frames */
+    vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
+    VideoStream()
+      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+    {
+    };
   };
 
   PlusIgtlClientInfo();
@@ -112,8 +138,11 @@ public:
   /*! String field names to send with IGT STRING message */
   std::vector<std::string> StringNames;
 
-  /*! Transform names to send with IGT image message */
+  /*! Transform names to send with IGT IMAGE message */
   std::vector<ImageStream> ImageStreams;
+
+  /*! Transform names to send with IGT VIDEO message */
+  std::vector<VideoStream> VideoStreams;
 
 protected:
   int     ClientHeaderVersion;

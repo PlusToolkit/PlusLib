@@ -111,7 +111,8 @@ public:
                              const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioTrackedFrame::FieldMapType* customFields = NULL,
+                             vtkStreamingVolumeFrame* encodedFrame = NULL);
 
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
@@ -270,9 +271,9 @@ public:
   bool GetTimeStampReporting();
 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z);
+  PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z, bool allocateFrames=true);
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(const FrameSizeType& frameSize);
+  PlusStatus SetFrameSize(const FrameSizeType& frameSize, bool allocateFrames=true);
   /*! Get the frame size in pixel  */
   virtual FrameSizeType GetFrameSize() const;
   virtual PlusStatus GetFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;

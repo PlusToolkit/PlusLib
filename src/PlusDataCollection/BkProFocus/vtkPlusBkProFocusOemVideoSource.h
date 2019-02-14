@@ -10,7 +10,6 @@
 #define __vtkPlusBkProFocusOemVideoSource_h
 
 #include "vtkPlusDataCollectionExport.h"
-//#include "igsioTrackedFrame.h"
 #include "vtkPlusUsDevice.h"
 
 /*!
