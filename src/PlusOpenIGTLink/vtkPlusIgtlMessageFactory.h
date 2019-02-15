@@ -80,14 +80,6 @@ public:
   PlusStatus PackMessages(int clientId, const PlusIgtlClientInfo& clientInfo, std::vector<igtl::MessageBase::Pointer>& igtMessages, igsioTrackedFrame& trackedFrame,
                           bool packValidTransformsOnly, vtkIGSIOTransformRepository* transformRepository = NULL);
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-  /*!
-  Remove all encoders with matching clientId from this->IgtlVideoEncoders
-  \param clientId Id of the client for which the video encoders will be removed
-  */
-  void RemoveClientEncoders(int clientId);
-#endif
-
 protected:
   vtkPlusIgtlMessageFactory();
   virtual ~vtkPlusIgtlMessageFactory();
@@ -112,22 +104,6 @@ protected:
   int PackUsMessage(igtl::MessageBase::Pointer igtlMessage, igsioTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
   int PackStringMessage(const PlusIgtlClientInfo& clientInfo, igsioTrackedFrame& trackedFrame, igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
   int PackCommandMessage(igtl::MessageBase::Pointer igtlMessage, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
-
-
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-  struct ClientEncoderKeyType
-  {
-    int                 ClientId;
-    std::string         ImageName;
-    friend bool operator<(const ClientEncoderKeyType& left, const ClientEncoderKeyType& right)
-    {
-      return left.ClientId < right.ClientId || left.ImageName < right.ImageName;
-    }
-  };
-
-  typedef std::map<ClientEncoderKeyType, igtl::SmartPointer<igtl::GenericEncoder> > VideoEncoderMapType;
-  VideoEncoderMapType IgtlVideoEncoders;
-#endif
 
 private:
   vtkPlusIgtlMessageFactory(const vtkPlusIgtlMessageFactory&);

@@ -513,18 +513,4 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
   }
   return numberOfErrors;
 }
-
-//----------------------------------------------------------------------------
-void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
-{
-  VideoEncoderMapType currentIgtlVideoEncoders = this->IgtlVideoEncoders;
-  for (VideoEncoderMapType::iterator encoderIt = currentIgtlVideoEncoders.begin(); encoderIt != currentIgtlVideoEncoders.end(); ++encoderIt)
-  {
-    if (encoderIt->first.ClientId != clientId)
-    {
-      continue;
-    }
-    this->IgtlVideoEncoders.erase(encoderIt->first);
-  }
-}
 #endif

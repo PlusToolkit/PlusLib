@@ -1137,10 +1137,6 @@ void vtkPlusOpenIGTLinkServer::DisconnectClient(int clientId)
     }
   }
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-  this->IgtlMessageFactory->RemoveClientEncoders(clientId);
-#endif
-
   LOG_INFO("Client disconnected (" <<  address << ":" << port << "). Number of connected clients: " << GetNumberOfConnectedClients());
 }
 
