@@ -161,7 +161,8 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
 
   LOG_DEBUG("BK scanner address: " << this->ScannerAddress);
   LOG_DEBUG("BK scanner OEM port: " << this->OemPort);
-
+  LOG_DEBUG("BK scanner Acquisition rate: " << this->AcquisitionRate);
+    
   if (this->OfflineTesting)
   {
     LOG_INFO("Offline testing on");
