@@ -1019,6 +1019,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ReadConfiguration(vtkXMLDataElement*
   XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, OemPort, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ContinuousStreamingEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ColorEnabled, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, AcquisitionRate, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(OfflineTesting, deviceConfig);
   XML_READ_CSTRING_ATTRIBUTE_REQUIRED(OfflineTestingFilePath, deviceConfig);
   return PLUS_SUCCESS;
