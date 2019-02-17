@@ -47,6 +47,12 @@ public:
   /*! BK scanner OEM port */
   vtkSetMacro(OemPort, unsigned short);
 
+  /*! BK scanner Acquisition Rate */
+  vtkSetMacro(AcquisitionRate, double);
+
+  /*! BK scanner Acquisition Rate */
+  vtkGetMacro(AcquisitionRate, double);
+
   /*!
     Enable/disable continuous streaming. Continuous streaming (GRAB_FRAME command) requires extra license
     from BK but it allows faster image acquisition.
