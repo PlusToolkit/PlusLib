@@ -205,6 +205,19 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
 PlusStatus vtkPlusBkProFocusOemVideoSource::StartContinuousDataStreaming()
 {
   std::string query;
+
+  /* Build the query string including the acquisition rate
+  as defined in the config file.
+  Example - Colour Enabled "QUERY:GRAB_FRAME \"ON\",20,\"OVERLAY\";";
+  Example - Colour Disabled "QUERY:GRAB_FRAME \"ON\",20;";
+  */
+  
+  query = "QUERY:GRAB_FRAME \"ON\",";
+
+  std::stringstream ss;
+  ss << this->AcquisitionRate;
+  query += ss.str().c_str();
+  
   if (this->ColorEnabled)
   {
     //Switch to power doppler
@@ -212,12 +225,10 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::StartContinuousDataStreaming()
     {
       return PLUS_FAIL;
     }*/
-    query = "QUERY:GRAB_FRAME \"ON\",20,\"OVERLAY\";";
+    query += ",\"OVERLAY\"";
   }
-  else
-  {
-    query = "QUERY:GRAB_FRAME \"ON\",20;";
-  }
+
+  query += ";";
 
   LOG_DEBUG("Start data streaming. Query: " << query);
   if (!SendQuery(query))
