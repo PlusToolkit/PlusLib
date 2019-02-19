@@ -282,7 +282,9 @@ PlusStatus vtkPlusBuffer::AddItem(const igsioVideoFrame* frame,
     frame->GetNumberOfScalarComponents(numberOfComponents);
     int dimensions[3] = { 0,0,0 };
     frame->GetEncodedFrame()->GetDimensions(dimensions);
-    FrameSizeType frameSize = { dimensions[0],dimensions[1], dimensions[2]};
+    FrameSizeType frameSize = { static_cast<unsigned int>(dimensions[0]),
+                                static_cast<unsigned int>(dimensions[1]),
+                                static_cast<unsigned int>(dimensions[2]) };
     return this->AddItem(NULL,
                          frame->GetImageOrientation(),
                          frameSize,
