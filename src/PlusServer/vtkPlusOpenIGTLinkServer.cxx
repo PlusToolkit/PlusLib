@@ -1313,9 +1313,15 @@ igtl::MessageBase::Pointer vtkPlusOpenIGTLinkServer::CreateIgtlMessageFromComman
         igtlMessage->SetMetaDataElement(it->first, IANA_TYPE_US_ASCII, it->second);
       }
 
-      LOG_DEBUG("Command response: " << replyStr.str());
+      igtlMessage->SetMetaDataElement("Status", IANA_TYPE_US_ASCII, (commandResponse->GetStatus() ? "SUCCESS" : "FAIL"));
+      if (commandResponse->GetStatus() == PLUS_FAIL)
+      {
+        igtlMessage->SetMetaDataElement("Error", IANA_TYPE_US_ASCII, commandResponse->GetErrorString());
+      }
+      
       igtlMessage->SetCommandContent(replyStr.str());
 
+      LOG_DEBUG("Command response: " << replyStr.str());
       return igtlMessage.GetPointer();
     }
   }
