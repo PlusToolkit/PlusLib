@@ -101,6 +101,8 @@ protected:
 protected:
   int PackImageMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType,
                        igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
+  int PackVideoMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType,
+    igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId);
   int PackTransformMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
                            igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages);
   int PackTrackingDataMessage(const PlusIgtlClientInfo& clientInfo, PlusTrackedFrame& trackedFrame, vtkPlusTransformRepository& transformRepository, bool packValidTransformsOnly,
