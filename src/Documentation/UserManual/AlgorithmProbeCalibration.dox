@@ -11,9 +11,9 @@ This algorithm determines the transformation between the ultrasound image and a 
   - \xmlAtt ProbeCoordinateFrame \RequiredAtt
   - \xmlAtt PhantomCoordinateFrame \RequiredAtt
   - \xmlAtt ReferenceCoordinateFrame \RequiredAtt
-  - \xmlAtt OptimizationMethod \OptionalAtt{NONE}
-    - \c 2D The transform is the current pose. If the mouse is released then the transforms reverts to identity.
-    - \c 3D The transform is changing while the mouse is translated or rotated. If the mouse is released then the transform kept unchanged.
+  - \xmlAtt OptimizationMethod. Additional optimization step to force the computed ImageToProbe matrix to be orthogonal. Usually 2D method provides slightly better results. See this paper for details: http://perk.cs.queensu.ca/contents/improving-n-wire-phantom-based-freehand-ultrasound-calibration \OptionalAtt{NONE}
+    - \c 2D Distance of actual and expected fiducial line intersection point is minimized in the image plane.
+    - \c 3D Distance of actual fiducial point is and the fiducial line is minimized in 3D.
   - \xmlAtt IsotropicPixelSpacing Specifies if during optimization an isotropic horizontal and vertical spacing in the image is enforced. Only used if \c OptimizationMethod is not \c NONE \OptionalAtt{FALSE}
 
 - \xmlElem \b Segmentation: Segmentation and pattern recognition parameters. Can be checked and modified using SegmentationParameterDialogTest or fCal (FreehandClibration toolbox) applications
