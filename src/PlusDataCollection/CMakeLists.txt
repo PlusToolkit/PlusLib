@@ -1577,6 +1577,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   ENDIF()
 
   FILE(GLOB WinProbeAssemblies "${WINPROBESDK_DIR}/${Bitness}/*.dll")
+  FILE(COPY ${WinProbeAssemblies} DESTINATION ${CMAKE_BINARY_DIR})
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${WINPROBESDK_DIR}/${Bitness}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/UltraVisionManagedDll${CMAKE_STATIC_LIBRARY_SUFFIX}

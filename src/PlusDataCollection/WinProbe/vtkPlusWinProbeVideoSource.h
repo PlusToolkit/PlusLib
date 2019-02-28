@@ -201,7 +201,7 @@ protected:
   void AdjustBufferSize();
 
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
-  void ReconstructFrame(char* data);
+  void ReconstructFrame(char* data, std::vector<uint8_t>& buffer);
   void FlipTexture(char * data);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
@@ -211,10 +211,12 @@ protected:
   uint8_t m_Voltage = 40;
   std::string m_TransducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
-  double m_TimestampOffset = 0; //difference between program start time and latest InternalStartRecording()
+  double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
+  double m_LastTimestamp = 0.0; //used to determine timer restarts and to update timestamp offset
   unsigned m_LineCount = 128;
   unsigned m_SamplesPerLine = 512;
-  std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
+  std::vector<uint8_t> m_PrimaryBuffer;
+  std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
   igsioTrackedFrame::FieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
