@@ -38,6 +38,9 @@ IF(PLUS_USE_OpenIGTLink)
   FIND_PACKAGE(OpenIGTLinkIO REQUIRED NO_MODULE)
 ENDIF()
 
+# Reset the list of PlusLib Qt components
+SET(PLUSLIB_QT_COMPONENTS "" CACHE INTERNAL "" FORCE)
+
 # --------------------------------------------------------------------------
 # Use IGSIO
 FIND_PACKAGE(IGSIO REQUIRED NO_MODULE)
@@ -64,6 +67,7 @@ OPTION(PLUS_USE_INTEL_MKL "Use the Intel MKL library (only for image processing)
 OPTION(PLUS_BUILD_WIDGETS "Build re-usable widgets for writing PlusLib based applications" OFF)
 IF(PLUS_BUILD_WIDGETS)
   FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Core Widgets Test Xml)
+  SET(PLUSLIB_QT_COMPONENTS ${PLUSLIB_QT_COMPONENTS} Core Widgets Test Xml CACHE INTERNAL "" FORCE)
 
   # Instruct CMake to run tools automatically when needed.
   SET(CMAKE_AUTOMOC ON)
