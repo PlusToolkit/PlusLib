@@ -42,6 +42,9 @@ IF(@ITK_FOUND@)
   INCLUDE(${ITK_USE_FILE}) # Must be included as ITK does not populate CMake target properties correctly
 ENDIF()
 
+SET(PLUSLIB_QT_COMPONENTS @PLUSLIB_QT_COMPONENTS@)
+FIND_PACKAGE(Qt5 REQUIRED COMPONENTS @PLUSLIB_QT_COMPONENTS@)
+
 INCLUDE(${PlusLib_TARGETS_FILE})
 
 # Tell the user project where to find our headers and libraries

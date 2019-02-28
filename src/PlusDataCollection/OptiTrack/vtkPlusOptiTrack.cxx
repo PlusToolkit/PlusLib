@@ -47,7 +47,12 @@ public:
   float UnitsToMm;
 
   // Motive Files
+#if MOTIVE_VERSION_MAJOR >= 2
   std::string Profile;
+#else
+  std::string ProjectFile;
+#endif
+
   std::string CalibrationFile;
   std::vector<std::string> AdditionalRigidBodyFiles;
 
@@ -128,7 +133,11 @@ PlusStatus vtkPlusOptiTrack::ReadConfiguration(vtkXMLDataElement* rootConfigElem
   LOG_TRACE("vtkPlusOptiTrack::ReadConfiguration")
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
+#if MOTIVE_VERSION_MAJOR >= 2
   XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Profile, this->Internal->Profile, deviceConfig);
+#else
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(ProjectFile, this->Internal->ProjectFile, deviceConfig);
+#endif
   XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(AttachToRunningMotive, this->Internal->AttachToRunningMotive, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(double, MotiveDataDescriptionsUpdateTimeSec, this->Internal->MotiveDataDescriptionsUpdateTimeSec, deviceConfig);
 
@@ -199,8 +208,13 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
     TT_Update();
 
     // open project file
-    std::string ProfilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
-    NPRESULT ttpLoad = TT_LoadProfile(ProfilePath.c_str());
+#if MOTIVE_VERSION_MAJOR >= 2
+    std::string profilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->Profile);
+    NPRESULT ttpLoad = TT_LoadProfile(profilePath.c_str());
+#else
+    std::string projectFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(this->Internal->ProjectFile);
+    NPRESULT ttpLoad = TT_LoadProject(projectFilePath.c_str());
+#endif
     if (ttpLoad != NPRESULT_SUCCESS)
     {
       LOG_ERROR("Failed to load Motive project file. Motive error: " << TT_GetResultString(ttpLoad));
@@ -228,7 +242,11 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
         LOG_INFO(i << ": " << TT_CameraName(i));
       }
     // list project file
-    LOG_INFO("\nUsing Motive project file located at:\n" << ProfilePath);
+#if MOTIVE_VERSION_MAJOR >= 2
+    LOG_INFO("\nUsing Motive profile located at:\n" << profilePath);
+#else
+    LOG_INFO("\nUsing Motive project file located at:\n" << projectFilePath);
+#endif
     // list rigid bodies
     LOG_INFO("\nTracked rigid bodies:");
     for (int i = 0; i < TT_RigidBodyCount(); ++i)
