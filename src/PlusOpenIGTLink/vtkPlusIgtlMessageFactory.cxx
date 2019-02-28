@@ -175,10 +175,12 @@ PlusStatus vtkPlusIgtlMessageFactory::PackMessages(int clientId, const PlusIgtlC
     {
       numberOfErrors += PackImageMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
     else if (typeid(*igtlMessage) == typeid(igtl::VideoMessage))
     {
       numberOfErrors += PackVideoMessage(clientInfo, *transformRepository, messageType, igtlMessage, trackedFrame, igtlMessages, clientId);
     }
+#endif
     else if (typeid(*igtlMessage) == typeid(igtl::TransformMessage))
     {
       numberOfErrors += PackTransformMessage(clientInfo, *transformRepository, packValidTransformsOnly, igtlMessage, trackedFrame, igtlMessages);
@@ -443,6 +445,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
   return numberOfErrors;
 }
 
+#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 //----------------------------------------------------------------------------
 int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& clientInfo, vtkPlusTransformRepository& transformRepository, const std::string& messageType, igtl::MessageBase::Pointer igtlMessage, PlusTrackedFrame& trackedFrame, std::vector<igtl::MessageBase::Pointer>& igtlMessages, int clientId)
 {
@@ -489,90 +492,89 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
     videoMessage = igtl::VideoMessage::New();
     videoMessage->SetDeviceName(deviceName.c_str());
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
-      igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
-      ClientEncoderKeyType clientEncoderKey;
-      clientEncoderKey.ClientId = clientId;
-      clientEncoderKey.ImageName = videoStream.Name;
 
-      VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
-      if (encoderIt != this->IgtlVideoEncoders.end())
-      {
-        encoder = encoderIt->second;
-      }
-      else if (videoStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_I420)
-      {
-        encoder = new igtl::I420Encoder();
-        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-      }
+    igtl::SmartPointer<igtl::GenericEncoder> encoder = NULL;
+    ClientEncoderKeyType clientEncoderKey;
+    clientEncoderKey.ClientId = clientId;
+    clientEncoderKey.ImageName = videoStream.Name;
+
+    VideoEncoderMapType::iterator encoderIt = this->IgtlVideoEncoders.find(clientEncoderKey);
+    if (encoderIt != this->IgtlVideoEncoders.end())
+    {
+      encoder = encoderIt->second;
+    }
+    else if (videoStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_I420)
+    {
+      encoder = new igtl::I420Encoder();
+      this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+    }
 #if defined(OpenIGTLink_USE_VP9)
-      else if (videoStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_VP9)
+    else if (videoStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_VP9)
+    {
+      encoder = new igtl::VP9Encoder();
+      encoder->SetLosslessLink(videoStream.EncodeVideoParameters.Lossless);
+      encoder->SetKeyFrameDistance(videoStream.EncodeVideoParameters.MinKeyframeDistance);
+      if (!videoStream.EncodeVideoParameters.Lossless)
       {
-        encoder = new igtl::VP9Encoder();
-        encoder->SetLosslessLink(videoStream.EncodeVideoParameters.Lossless);
-        encoder->SetKeyFrameDistance(videoStream.EncodeVideoParameters.MinKeyframeDistance);
-        if (!videoStream.EncodeVideoParameters.Lossless)
+        encoder->SetSpeed(videoStream.EncodeVideoParameters.Speed);
+        if (!videoStream.EncodeVideoParameters.RateControl.empty())
         {
-          encoder->SetSpeed(videoStream.EncodeVideoParameters.Speed);
-          if (!videoStream.EncodeVideoParameters.RateControl.empty())
+          int rateControl = -1;
+          if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "VBR") == 0)
           {
-            int rateControl = -1;
-            if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "VBR") == 0)
-            {
-              rateControl = VPX_VBR;
-            }
-            if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "CBR") == 0)
-            {
-              rateControl = VPX_CBR;
-            }
-            if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "CQ") == 0)
-            {
-              rateControl = VPX_CQ;
-            }
-            if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "Q") == 0)
-            {
-              rateControl = VPX_Q;
-            }
-            if (rateControl > -1)
-            {
-              encoder->SetRCMode(rateControl);
-            }
+            rateControl = VPX_VBR;
           }
-
-          if (!videoStream.EncodeVideoParameters.DeadlineMode.empty())
+          if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "CBR") == 0)
           {
-            int deadlineMode = -1;
-            if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "REALTIME") == 0)
-            {
-              deadlineMode = VPX_DL_REALTIME;
-            }
-            else if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "GOOD") == 0)
-            {
-              deadlineMode = VPX_DL_GOOD_QUALITY;
-            }
-            else if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "BEST") == 0)
-            {
-              deadlineMode = VPX_DL_BEST_QUALITY;
-            }
-
-            if (deadlineMode > -1)
-            {
-              igtl::VP9Encoder::Pointer vp9Encoder = dynamic_cast<igtl::VP9Encoder*>(encoder.GetPointer());
-              if (vp9Encoder)
-              {
-                vp9Encoder->SetDeadlineMode(deadlineMode);
-              }
-            }
+            rateControl = VPX_CBR;
           }
-
-          if (videoStream.EncodeVideoParameters.TargetBitrate > -1)
+          if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "CQ") == 0)
           {
-            encoder->SetRCTaregetBitRate(videoStream.EncodeVideoParameters.TargetBitrate);
+            rateControl = VPX_CQ;
+          }
+          if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "Q") == 0)
+          {
+            rateControl = VPX_Q;
+          }
+          if (rateControl > -1)
+          {
+            encoder->SetRCMode(rateControl);
           }
         }
-        this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+
+        if (!videoStream.EncodeVideoParameters.DeadlineMode.empty())
+        {
+          int deadlineMode = -1;
+          if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "REALTIME") == 0)
+          {
+            deadlineMode = VPX_DL_REALTIME;
+          }
+          else if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "GOOD") == 0)
+          {
+            deadlineMode = VPX_DL_GOOD_QUALITY;
+          }
+          else if (STRCASECMP(videoStream.EncodeVideoParameters.RateControl.c_str(), "BEST") == 0)
+          {
+            deadlineMode = VPX_DL_BEST_QUALITY;
+          }
+
+          if (deadlineMode > -1)
+          {
+            igtl::VP9Encoder::Pointer vp9Encoder = dynamic_cast<igtl::VP9Encoder*>(encoder.GetPointer());
+            if (vp9Encoder)
+            {
+              vp9Encoder->SetDeadlineMode(deadlineMode);
+            }
+          }
+        }
+
+        if (videoStream.EncodeVideoParameters.TargetBitrate > -1)
+        {
+          encoder->SetRCTaregetBitRate(videoStream.EncodeVideoParameters.TargetBitrate);
+        }
       }
-#endif
+      this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
+    }
 #endif
 
     if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
@@ -586,7 +588,6 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
   return numberOfErrors;
 }
 
-#if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 //----------------------------------------------------------------------------
 void vtkPlusIgtlMessageFactory::RemoveClientEncoders(int clientId)
 {
