@@ -13,6 +13,7 @@ See License.txt for details.
 #include "WinProbe.h"
 
 #include <algorithm>
+#include <cmath>
 #include <PlusMath.h>
 
 //----------------------------------------------------------------------------
@@ -59,10 +60,16 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseDeviceFrameReconstruction, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SpatialCompoundEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(MRevolvingEnabled, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TransmitFrequencyMHz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ScanDepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SpatialCompoundAngle, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, SpatialCompoundCount, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MPRFrequency, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MLineIndex, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MWidth, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MAcousticLineCount, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MDepth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MinValue, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
@@ -72,6 +79,15 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   if (strMode)
   {
     m_Mode = this->StringToMode(strMode);
+  }
+  if(m_Mode == Mode::M)
+  {
+    const char* mwidthSeconds_string = deviceConfig->GetAttribute("MWidth");
+    int mwidthSeconds = std::stoi(mwidthSeconds_string);
+    if (mwidthSeconds)
+    {
+    m_MWidth = this->MWidthFromSeconds(mwidthSeconds);
+    }
   }
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
@@ -88,10 +104,16 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetAttribute("TransducerID", this->m_TransducerID.c_str());
   deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("SpatialCompoundEnabled", this->GetSpatialCompoundEnabled() ? "TRUE" : "FALSE");
+  deviceConfig->SetAttribute("MRevolvingEnabled", this->GetMRevolvingEnabled() ? "TRUE" : "FALSE");
   deviceConfig->SetFloatAttribute("TransmitFrequencyMHz", this->GetTransmitFrequencyMHz());
   deviceConfig->SetFloatAttribute("ScanDepthMm", this->GetScanDepthMm());
   deviceConfig->SetFloatAttribute("SpatialCompoundAngle", this->GetSpatialCompoundAngle());
   deviceConfig->SetIntAttribute("SpatialCompoundCount", this->GetSpatialCompoundCount());
+  deviceConfig->SetIntAttribute("MPRFrequency", this->GetMPRFrequency());
+  deviceConfig->SetIntAttribute("MLineIndex", this->GetMLineIndex());
+  deviceConfig->SetIntAttribute("MWidth", this->MSecondsFromWidth(this->m_MWidth));
+  deviceConfig->SetIntAttribute("MAcousticLineCount", this->GetMAcousticLineCount());
+  deviceConfig->SetIntAttribute("MDepth", this->GetMDepth());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
   deviceConfig->SetUnsignedLongAttribute("MinValue", this->GetMinValue());
   deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
@@ -163,6 +185,47 @@ std::string vtkPlusWinProbeVideoSource::ModeToString(vtkPlusWinProbeVideoSource:
     return "B";
     break;
   }
+}
+
+// ----------------------------------------------------------------------------
+int32_t vtkPlusWinProbeVideoSource::MWidthFromSeconds(int value)
+{
+  int32_t mlineWidth;
+  if(value < 4)
+  {
+    mlineWidth = 128 * pow(2, value - 1);
+  }
+  else if(value <= 80)
+  {
+    mlineWidth = 1024 * value / 10;
+  }
+  else
+  {
+    mlineWidth = 128;  //Default to 1s width
+  }
+  return mlineWidth;
+}
+
+int vtkPlusWinProbeVideoSource::MSecondsFromWidth(int32_t value)
+{
+  int mwidthSeconds;
+  if(value < 1024)
+  {
+    mwidthSeconds = std::log(value/128) / std::log(2) + 1;
+  }
+  else if(value <= 8192)
+  {
+    mwidthSeconds = value * 10 / 1024;
+    if(mwidthSeconds == 80)
+    {
+      mwidthSeconds += 1;  //81 s
+    }
+  }
+  else
+  {
+    mwidthSeconds = 1;  //Default to 1s width
+  }
+  return mwidthSeconds;
 }
 
 // ----------------------------------------------------------------------------
@@ -571,7 +634,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   if(m_Mode == Mode::M)
   {
-    SetMIsEnabled(true);
+    LOG_INFO("M-Mode enabled");
+    this->SetMModeEnabled(true);
   }
 
   m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
@@ -841,6 +905,178 @@ int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
     m_SpatialCompoundCount = GetSCCompoundAngleCount();
   }
   return m_SpatialCompoundCount;
+}
+
+//----------------------------------------------------------------------------
+
+void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
+{
+
+  // m_MModeEnabled = value;
+  if(Connected)
+  {
+    SetMIsEnabled(value);
+    if(value)
+    {
+      SetMIsRevolving(m_MRevolvingEnabled);
+      SetMPRF(m_MPRF);
+      SetMAcousticLineIndex(m_MLineIndex);
+      ::SetMWidth(m_MWidth);
+      ::SetMAcousticLineCount(m_MAcousticLineCount);
+    }
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  if(value)
+  {
+    m_Mode = Mode::M;
+  }
+  else
+  {
+    m_Mode = Mode::B;
+  }
+}
+
+bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
+{
+  bool mmodeEnabled;
+  if(Connected)
+  {
+    mmodeEnabled = GetMIsEnabled();
+    if(mmodeEnabled)
+    {
+      m_Mode = Mode::M;
+    }
+    else
+    {
+      m_Mode = Mode::B;
+    }
+  }
+  return mmodeEnabled;
+}
+
+
+void vtkPlusWinProbeVideoSource::SetMRevolvingEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetMIsRevolving(value);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+   m_MRevolvingEnabled = value;
+}
+
+bool vtkPlusWinProbeVideoSource::GetMRevolvingEnabled()
+{
+  if(Connected)
+  {
+    m_MRevolvingEnabled = GetMIsRevolving();
+  }
+  return m_MRevolvingEnabled;
+}
+
+void vtkPlusWinProbeVideoSource::SetMPRFrequency(int32_t value)
+{
+  if(Connected)
+  {
+    SetMPRF(value);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  m_MPRF = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMPRFrequency()
+{
+  if(Connected)
+  {
+    m_MPRF = GetMPRF();
+  }
+  return m_MPRF;
+}
+
+void vtkPlusWinProbeVideoSource::SetMLineIndex(int32_t value)
+{
+  if(Connected)
+  {
+    SetMAcousticLineIndex(value);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  m_MLineIndex = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMLineIndex()
+{
+  if(Connected)
+  {
+    m_MLineIndex = GetMAcousticLineIndex();
+  }
+  return m_MLineIndex;
+}
+
+void vtkPlusWinProbeVideoSource::SetMWidth(int value)
+{
+  if(Connected)
+  {
+    int32_t mwidth = this->MWidthFromSeconds(value);
+    ::SetMWidth(mwidth);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  m_MWidth = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMWidth()
+{
+  int mwidthSeconds = 0;
+  if(Connected)
+  {
+    m_MWidth = ::GetMWidth();
+    mwidthSeconds = this->MSecondsFromWidth(m_MWidth);
+  }
+  return mwidthSeconds;
+}
+
+void vtkPlusWinProbeVideoSource::SetMAcousticLineCount(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetMAcousticLineCount(value);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  m_MAcousticLineCount = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMAcousticLineCount()
+{
+  if(Connected)
+  {
+    m_MAcousticLineCount = ::GetMAcousticLineCount();
+  }
+  return m_MAcousticLineCount;
+}
+
+void vtkPlusWinProbeVideoSource::SetMDepth(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetMDepth(value);
+    SetPendingRecreateTables(true);
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+  }
+  m_MDepth = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMDepth()
+{
+  if(Connected)
+  {
+    m_MDepth = ::GetMDepth();
+  }
+  return m_MDepth;
 }
 
 //----------------------------------------------------------------------------

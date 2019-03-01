@@ -126,6 +126,27 @@ public:
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
 
+  void SetMModeEnabled(bool value);
+  bool GetMModeEnabled();
+
+  void SetMRevolvingEnabled(bool value);
+  bool GetMRevolvingEnabled();
+
+  void SetMPRFrequency(int32_t value);
+  int32_t GetMPRFrequency();
+
+  void SetMLineIndex(int32_t value);
+  int32_t GetMLineIndex();
+
+  void SetMWidth(int value);
+  int GetMWidth();
+
+  void SetMAcousticLineCount(int32_t value);
+  int32_t GetMAcousticLineCount();
+
+  void SetMDepth(int32_t value);
+  int32_t GetMDepth();
+
   enum class Mode
   {
     B = 0, // only B mode
@@ -150,6 +171,9 @@ public:
 
   Mode StringToMode(std::string modeString);
   std::string ModeToString(Mode mode);
+
+  int32_t MWidthFromSeconds(int value);
+  int MSecondsFromWidth(int32_t value);
 
 protected:
   /*! Constructor */
@@ -201,6 +225,12 @@ protected:
   bool m_SpatialCompoundEnabled = false;
   float m_SpatialCompoundAngle = 10.0f;
   int32_t m_SpatialCompoundCount = 0;
+  bool m_MRevolvingEnabled = false;
+  int32_t m_MPRF = 100;
+  int32_t m_MLineIndex = 60;
+  int32_t m_MWidth = 256;
+  int32_t m_MAcousticLineCount = 0;
+  int32_t m_MDepth = 0;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 
