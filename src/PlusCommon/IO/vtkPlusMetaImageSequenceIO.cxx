@@ -754,7 +754,16 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     for (int i = 0; i < numSpaceDimensions; ++i)
     {
       // Code assumes all images have the same origin
-      offsetStream << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetOrigin()[i];
+      vtkImageData* image = this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage();
+      if (image)
+      {
+        offsetStream << image->GetOrigin()[i];
+      }
+      else
+      {
+        offsetStream << "0";
+      }
+
       if (i != numSpaceDimensions - 1)
       {
         offsetStream << " ";
@@ -786,7 +795,16 @@ PlusStatus vtkPlusMetaImageSequenceIO::WriteInitialImageHeader()
     for (int i = 0; i < numSpaceDimensions; ++i)
     {
       // Code assumes all images have the same spacing
-      spacingStream << this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage()->GetSpacing()[i];
+      vtkImageData* image = this->TrackedFrameList->GetTrackedFrame(0)->GetImageData()->GetImage();
+      if (image)
+      {
+        spacingStream << image->GetSpacing()[i];
+      }
+      else
+      {
+        spacingStream << "1";
+      }
+
       if (i != numSpaceDimensions - 1)
       {
         spacingStream << " ";
