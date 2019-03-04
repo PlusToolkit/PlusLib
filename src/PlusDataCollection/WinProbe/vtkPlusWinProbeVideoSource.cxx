@@ -76,17 +76,20 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
   const char* strMode = deviceConfig->GetAttribute("Mode");
-  if (strMode)
+  if(strMode)
   {
     m_Mode = this->StringToMode(strMode);
   }
   if(m_Mode == Mode::M)
   {
     const char* mwidthSeconds_string = deviceConfig->GetAttribute("MWidth");
-    int mwidthSeconds = std::stoi(mwidthSeconds_string);
-    if (mwidthSeconds)
+    if(mwidthSeconds_string)
     {
-    m_MWidth = this->MWidthFromSeconds(mwidthSeconds);
+      int mwidthSeconds = std::stoi(mwidthSeconds_string);
+      if(mwidthSeconds > 0)
+      {
+        m_MWidth = this->MWidthFromSeconds(mwidthSeconds);
+      }
     }
   }
 
@@ -211,7 +214,7 @@ int vtkPlusWinProbeVideoSource::MSecondsFromWidth(int32_t value)
   int mwidthSeconds;
   if(value < 1024)
   {
-    mwidthSeconds = std::log(value/128) / std::log(2) + 1;
+    mwidthSeconds = std::log(value / 128) / std::log(2) + 1;
   }
   else if(value <= 8192)
   {
@@ -315,7 +318,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 
   //timestamp counters are in milliseconds since last recreate tables call
   double timestamp = header->TimeStamp / 1000.0;
-  if (timestamp == 0.0) // some change is being applied, so this frame is not valid
+  if(timestamp == 0.0) // some change is being applied, so this frame is not valid
   {
     return; // ignore this frame
   }
@@ -526,7 +529,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
 
   std::string presetPath = "Default.xml";
   LOG_DEBUG("Loading Default Presets. " << presetPath);
-  if (!LoadXmlPreset(presetPath.c_str()))
+  if(!LoadXmlPreset(presetPath.c_str()))
   {
     LOG_ERROR("Failed loading default presets!")
     return PLUS_FAIL;
@@ -634,7 +637,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   if(m_Mode == Mode::M)
   {
-    LOG_INFO("M-Mode enabled");
     this->SetMModeEnabled(true);
   }
 
@@ -736,7 +738,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
   m_ScanDepth = depth;
   if(Connected)
   {
-    if (Recording)
+    if(Recording)
     {
       WPStopScanning();
     }
@@ -748,9 +750,9 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
     AdjustSpacing();
     AdjustBufferSize();
     m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
-    if (Recording)
+    if(Recording)
     {
-       WPExecute();
+      WPExecute();
     }
   }
   return PLUS_SUCCESS;
@@ -842,7 +844,7 @@ void vtkPlusWinProbeVideoSource::SetSpatialCompoundEnabled(bool value)
   if(Connected)
   {
     SetSCIsEnabled(value);
-    if (value)
+    if(value)
     {
       SetSCCompoundAngle(m_SpatialCompoundAngle);
       SetSCCompoundAngleCount(m_SpatialCompoundCount);
@@ -926,6 +928,7 @@ void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
     }
     SetPendingRecreateTables(true);
     m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
+    LOG_INFO("M-Mode enabled");
   }
   if(value)
   {
@@ -964,7 +967,7 @@ void vtkPlusWinProbeVideoSource::SetMRevolvingEnabled(bool value)
     SetPendingRecreateTables(true);
     m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime(); // recreate tables resets internal timer
   }
-   m_MRevolvingEnabled = value;
+  m_MRevolvingEnabled = value;
 }
 
 bool vtkPlusWinProbeVideoSource::GetMRevolvingEnabled()
