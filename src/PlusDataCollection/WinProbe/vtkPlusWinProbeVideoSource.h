@@ -202,6 +202,7 @@ protected:
 
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
   void ReconstructFrame(char* data);
+  void FlipTexture(char * data);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
   float m_ScanDepth = 26.0; //mm
