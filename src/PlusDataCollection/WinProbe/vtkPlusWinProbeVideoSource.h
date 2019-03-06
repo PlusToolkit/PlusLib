@@ -198,11 +198,11 @@ protected:
   void AdjustSpacing();
 
   /*! Updates buffer size based on current depth */
-  void AdjustBufferSize();
+  void AdjustBufferSizes();
 
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
-  void ReconstructFrame(char* data, std::vector<uint8_t>& buffer);
-  void FlipTexture(char * data);
+  void ReconstructFrame(char* data, std::vector<uint8_t>& buffer, const FrameSizeType& frameSize);
+  void FlipTexture(char* data, const FrameSizeType& frameSize);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
   float m_ScanDepth = 26.0; //mm
@@ -214,7 +214,7 @@ protected:
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
   double m_LastTimestamp = 0.0; //used to determine timer restarts and to update timestamp offset
   unsigned m_LineCount = 128;
-  unsigned m_SamplesPerLine = 512;
+  unsigned m_SamplesPerLine = 0;
   std::vector<uint8_t> m_PrimaryBuffer;
   std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
