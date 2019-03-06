@@ -720,6 +720,11 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTrackingDataMessage(igtl::MessageHead
     {
       status = igsioCommon::ConvertStringToToolStatus(statusStr);
     }
+    else
+    {
+      LOG_WARNING("Incoming TDATA message element " << currentTrackingData->GetName() << " is without a tool status. Defaulting to TOOL_OK.");
+      status = TOOL_OK;
+    }
     vtkSmartPointer<vtkMatrix4x4> mat = vtkSmartPointer<vtkMatrix4x4>::New();
     if (igtlioTransformConverter::IGTLToVTKTransform(igtlMatrix, mat) != 1)
     {
@@ -811,6 +816,11 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackTransformMessage(igtl::MessageHeader:
   if (transMsg->GetMetaDataElement("TransformStatus", statusStr))
   {
     toolStatus = igsioCommon::ConvertStringToToolStatus(statusStr);
+  }
+  else
+  {
+    LOG_WARNING("Incoming TRANSFORM message was received without a tool status. Defaulting to TOOL_OK.");
+    toolStatus = TOOL_OK;
   }
 
   // Get transform name
@@ -917,6 +927,11 @@ PlusStatus vtkPlusIgtlMessageCommon::UnpackPositionMessage(igtl::MessageHeader::
   if (posMsg->GetMetaDataElement("Status", statusStr))
   {
     toolStatus = igsioCommon::ConvertStringToToolStatus(statusStr);
+  }
+  else
+  {
+    LOG_WARNING("Incoming POSITION message was received without a tool status. Defaulting to TOOL_OK.");
+    toolStatus = TOOL_OK;
   }
 
   // Get timestamp
