@@ -193,41 +193,13 @@ std::string vtkPlusWinProbeVideoSource::ModeToString(vtkPlusWinProbeVideoSource:
 // ----------------------------------------------------------------------------
 int32_t vtkPlusWinProbeVideoSource::MWidthFromSeconds(int value)
 {
-  int32_t mlineWidth;
-  if(value < 4)
-  {
-    mlineWidth = 128 * pow(2, value - 1);
-  }
-  else if(value <= 80)
-  {
-    mlineWidth = 1024 * value / 10;
-  }
-  else
-  {
-    mlineWidth = 128;  //Default to 1s width
-  }
+  int32_t mlineWidth = pow(2, round(std::log(value * m_MPRF) / std::log(2)));
   return mlineWidth;
 }
 
 int vtkPlusWinProbeVideoSource::MSecondsFromWidth(int32_t value)
 {
-  int mwidthSeconds;
-  if(value < 1024)
-  {
-    mwidthSeconds = std::log(value / 128) / std::log(2) + 1;
-  }
-  else if(value <= 8192)
-  {
-    mwidthSeconds = value * 10 / 1024;
-    if(mwidthSeconds == 80)
-    {
-      mwidthSeconds += 1;  //81 s
-    }
-  }
-  else
-  {
-    mwidthSeconds = 1;  //Default to 1s width
-  }
+  int mwidthSeconds = floor(value / m_MPRF);
   return mwidthSeconds;
 }
 
