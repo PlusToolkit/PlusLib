@@ -52,9 +52,11 @@ vtkPlusClarius* vtkPlusClarius::instance;
 
 vtkPlusClarius* vtkPlusClarius::New()
 {
-  if (instance == NULL) {
+  if (instance == NULL)
+  {
     instance = new vtkPlusClarius();
   }
+
   return instance;
 }
 
@@ -83,16 +85,22 @@ vtkPlusClarius::vtkPlusClarius()
 /* destructor */
 vtkPlusClarius::~vtkPlusClarius()
 {
-  if (this->Recording) {
+  if (this->Recording) 
+  {
     this->StopRecording();
   }
-  if (this->Connected) {
+
+  if (this->Connected) 
+  {
     clariusDisconnect(BLOCKINGCALL);
   }
+
   int destroyed = clariusDestroyListener();
-  if (destroyed != 0) {
+  if (destroyed != 0) 
+  {
     LOG_ERROR("Error destoying the listener");
   }
+
   this->instance = NULL;
 }
 
@@ -100,10 +108,13 @@ vtkPlusClarius::~vtkPlusClarius()
 vtkPlusClarius * vtkPlusClarius::GetInstance()
 {
   LOG_TRACE("vtkPlusClarius: GetInstance()");
-  if (instance != NULL) {
+  if (instance != NULL)
+  {
     return instance;
   }
-  else {
+
+  else
+  {
     LOG_ERROR("Instance is null, creating new instance");
     instance = new vtkPlusClarius();
     return instance;
@@ -111,7 +122,8 @@ vtkPlusClarius * vtkPlusClarius::GetInstance()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent) {
+void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent) 
+{
   this->Superclass::PrintSelf(os, indent);
   os << indent << "ipAddress" << this->IpAddress << std::endl;
   os << indent << "tcpPort" << this->TcpPort << std::endl;
@@ -119,11 +131,11 @@ void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent) {
   os << indent << "FrameNumber" << this->FrameNumber << std::endl;
   os << indent << "FrameWidth" << this->FrameWidth << std::endl;
   os << indent << "FrameHeight" << this->FrameHeight << std::endl;
-
 }
 
 /*! Read configuration from xml data */
-PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElement) {
+PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElement) 
+{
   LOG_TRACE("vtkPlusClarius::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   // this function calls the the ReadConfiguration function in the SuperClass (which is PlusDevice in this case)
@@ -140,7 +152,8 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
 /*! Write configuration to xml data
  *  This is responsible for recording the current state of your device to XML.
  *  This can be called at any time.*/
-PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigElement) {
+PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigElement) 
+{
   LOG_TRACE("vtkPlusClarius::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
@@ -166,21 +179,26 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
     LOG_WARNING("vtkPlusClarius is expecting one output channel and there are " <<
       this->OutputChannels.size() << " channels. First output channel will be used.");
   }
+
   if (device->OutputChannels.empty())
   {
     LOG_ERROR("No output channels defined for vtkPlusClarius. Cannot proceed.");
     this->CorrectlyConfigured = false;
     return PLUS_FAIL;
   }
+
   if (device->OutputChannels.empty())
   {
     LOG_ERROR("No output channels defined for vtkPlusClarius");
   }
+
   std::vector< vtkPlusDataSource*> sources;
   sources = device->GetVideoSources();
-  if (sources.size() != 1) {
+  if (sources.size() != 1)
+  {
     LOG_ERROR("More than one output source found");
   }
+
   vtkPlusDataSource* aSource = sources[0];
   aSource->SetBufferSize(BUFFER_SIZE);
   return PLUS_SUCCESS;
@@ -190,11 +208,14 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
  Probe to see to see if the device is connected to the
  computer.  This method should be overridden in subclasses.
  */
-PlusStatus vtkPlusClarius::Probe() {
+PlusStatus vtkPlusClarius::Probe() 
+{
   LOG_TRACE("vtkPlusClarius: Probe");
-  if (this->UdpPort == -1) {
+  if (this->UdpPort == -1)
+  {
     return PLUS_FAIL;
   }
+
   return PLUS_SUCCESS;
 };
 
@@ -207,11 +228,13 @@ std::string vtkPlusClarius::vtkPlusClarius::GetSdkVersion()
 }
 
 /* Device-specific connect */
-PlusStatus vtkPlusClarius::InternalConnect() {
+PlusStatus vtkPlusClarius::InternalConnect()
+{
   LOG_DEBUG("vtkPlusClarius: InternalConnect");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   // Initialize Clarius Listener Before Connecting
-  if (!device->Connected) {
+  if (!device->Connected) 
+  {
     int argc = 1;
     char** argv = new char *[1];
     argv[0] = new char[4];
@@ -221,7 +244,8 @@ PlusStatus vtkPlusClarius::InternalConnect() {
     ClariusFreezeFn FreezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
     ClariusProgressFn ProgressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
     ClariusErrorFn ErrorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
-    try {
+    try 
+    {
       if (clariusInitListener(argc, argv, path,
         SaveDataCallBackPtr,
         FreezeCallBackFnPtr,
@@ -232,59 +256,81 @@ PlusStatus vtkPlusClarius::InternalConnect() {
         return PLUS_FAIL;
       }
     }
-    catch (const std::runtime_error& re) {
+
+    catch (const std::runtime_error& re)
+    {
       LOG_ERROR("Runtime error: " << re.what());
       return PLUS_FAIL;
     }
-    catch (const std::exception& ex) {
+
+    catch (const std::exception& ex)
+    {
       LOG_ERROR("Error occurred: " << ex.what());
       return PLUS_FAIL;
     }
-    catch (...) {
+
+    catch (...)
+    {
       LOG_ERROR("Unknown failure occured");
       return PLUS_FAIL;
     }
+
     // Attempt to connect;
     int isConnected = -1;
     const char *ip = device->IpAddress.c_str();
     try {
       isConnected = clariusConnect(ip, device->TcpPort, BLOCKINGCALL);
     }
-    catch (const std::runtime_error& re) {
+
+    catch (const std::runtime_error& re)
+    {
       LOG_ERROR("Runtime error: " << re.what());
       return PLUS_FAIL;
     }
-    catch (const std::exception& ex) {
+
+    catch (const std::exception& ex)
+    {
       LOG_ERROR("Error occurred: " << ex.what());
       return PLUS_FAIL;
     }
-    catch (...) {
+
+    catch (...) 
+    {
       LOG_ERROR("Unknown failure occured");
       return PLUS_FAIL;
     }
-    if (isConnected < 0) {
+
+    if (isConnected < 0)
+    {
       LOG_ERROR("Could not connect to scanner at Ip = " << ip << " port number= " << device->TcpPort << " isConnected = " << isConnected);
       return PLUS_FAIL;
     }
+
     device->UdpPort = clariusGetUdpPort();
-    if (device->UdpPort != -1) {
+    if (device->UdpPort != -1) 
+    {
       LOG_DEBUG("... Clarius device connected, streaming port: " << clariusGetUdpPort());
-      /*
-      if (clariusSetOutputSize(device->FrameWidth, device->FrameHeight) < 0) {
+      if (clariusSetOutputSize(device->FrameWidth, device->FrameHeight) < 0) 
+      {
         LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
         device->FrameWidth = DEFAULT_FRAME_WIDTH;
         device->FrameHeight = DEFAULT_FRAME_HEIGHT;
       }
-      */
+      
       device->Connected = 1;
       return PLUS_SUCCESS;
     }
-    else {
+
+    else 
+    {
       LOG_ERROR("... Clarius device connected but could not get valid udp port");
       return PLUS_FAIL;
     }
+
   }
-  else {
+
+  else 
+  {
     LOG_DEBUG("Scanner already connected to IP address=" << device->IpAddress
       << " TCP Port Number =" << device->TcpPort << "Streaming Image at UDP Port=" << device->UdpPort);
     device->Connected = 1;
@@ -292,54 +338,69 @@ PlusStatus vtkPlusClarius::InternalConnect() {
   }
 };
 
-PlusStatus vtkPlusClarius::CheckOutputChannels() {
+PlusStatus vtkPlusClarius::CheckOutputChannels()
+{
   LOG_TRACE("vtkPlusClarius: CheckOutputChannels");
-  if (instance->GetNumberOfOutputPorts() <= 0) {
+  if (instance->GetNumberOfOutputPorts() <= 0)
+  {
     LOG_ERROR("instance->GetNumberOfOutpuPorts == " << instance->GetNumberOfOutputPorts());
     return PLUS_FAIL;
   }
-  else {
+
+  else 
+  {
     return PLUS_SUCCESS;
   }
 }
-PlusStatus vtkPlusClarius::ValidateInputChannels() {
+PlusStatus vtkPlusClarius::ValidateInputChannels() 
+{
   LOG_TRACE("vtkPlusClarius: ValidateInputChannels");
   std::vector<vtkPlusDataSource*> sources;
   if (instance->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) != PLUS_SUCCESS) {
     LOG_ERROR("instance->GetNumberOfOutpuPorts == " << instance->GetNumberOfOutputPorts());
     return PLUS_FAIL;
   }
-  if (sources.size() != 1) {
+
+  if (sources.size() != 1) 
+  {
     LOG_ERROR("Exactly one B-mode video source should be configured, " << sources.size() << " B mode video source was found");
   }
-  else {
+
+  else
+  {
     return PLUS_SUCCESS;
   }
 }
 
 /* Device-specific on-update function */
-PlusStatus vtkPlusClarius::InternalUpdate() {
+PlusStatus vtkPlusClarius::InternalUpdate() 
+{
   LOG_TRACE("vtkPlusClarius: InternalUpdate");
   LOG_ERROR("InternalUpdate() should never be called");
   return PLUS_SUCCESS;
 };
 
 /* Device-specific disconnect */
-PlusStatus vtkPlusClarius::InternalDisconnect() {
+PlusStatus vtkPlusClarius::InternalDisconnect()
+{
   LOG_DEBUG("vtkPlusClarius: InternalDisconnect");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  if (device->GetConnected()) {
-    if (clariusDisconnect(nullptr) < 0) {
+  if (device->GetConnected()) 
+  {
+    if (clariusDisconnect(nullptr) < 0) 
+    {
       LOG_ERROR("could not disconnect from scanner");
       return PLUS_FAIL;
     }
-    else {
+    else 
+    {
       device->Connected = 0;
       LOG_DEBUG("Clarius device is now disconnected");
       return PLUS_SUCCESS;
     }
   }
-  else {
+  else 
+  {
     LOG_DEBUG("...Clarius device already disconnected");
     return PLUS_SUCCESS;
   }
@@ -348,14 +409,16 @@ PlusStatus vtkPlusClarius::InternalDisconnect() {
 /* Record incoming data at the specified acquisition rate.  The recording
  * continues indefinitely until StopRecording() is called.
 */
-PlusStatus vtkPlusClarius::InternalStartRecording() {
+PlusStatus vtkPlusClarius::InternalStartRecording() 
+{
   LOG_TRACE("vtkPlusClarius: InternalStartRecording");
   // Clarius uses a callback mechanism, doesn't need this;
   return PLUS_SUCCESS;
 }
 
 /*! Stop recording */
-PlusStatus vtkPlusClarius::InternalStopRecording() {
+PlusStatus vtkPlusClarius::InternalStopRecording() 
+{
   LOG_TRACE("vtkPlusClarius: InternalStopRecording");
   // Clarius uses a callback mechanism, doesn't need this;
   return PLUS_SUCCESS;
@@ -364,24 +427,30 @@ PlusStatus vtkPlusClarius::InternalStopRecording() {
 /*! callback for error messages
  * @param[in] err the error message sent from the listener module
  * */
-void vtkPlusClarius::ErrorFn(const char *err) {
+void vtkPlusClarius::ErrorFn(const char *err) 
+{
   LOG_ERROR("error: " << err);
 }
 
 /*! callback for freeze state change
  * @param[in] val the freeze state value 1 = frozen, 0 = imaging */
-void vtkPlusClarius::FreezeFn(int val) {
-  if (val) {
+void vtkPlusClarius::FreezeFn(int val) 
+{
+  if (val) 
+  {
     LOG_INFO("Clarius Frozen");
   }
-  else {
+
+  else 
+  {
     LOG_INFO("Clarius Imaging");
   }
 }
 
 /*! callback for readback progress
  * @pram[in] progress the readback process*/
-void vtkPlusClarius::ProgressFn(int progress) {
+void vtkPlusClarius::ProgressFn(int progress)
+{
   LOG_INFO("download: " << progress);
 }
 
@@ -394,13 +463,16 @@ void vtkPlusClarius::ProgressFn(int progress) {
 void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos) {
   LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
-  if (npos) {
-    for (auto i = 0; i < npos; i++) {
+  if (npos) 
+  {
+    for (auto i = 0; i < npos; i++)
+    {
       LOG_TRACE("imu: " << i << ", time: " << pos[i].tm);
       LOG_TRACE("accel: " << pos[i].ax << "," << pos[i].ay << "," << pos[i].az);
       LOG_TRACE("gyro: " << pos[i].gx << "," << pos[i].gy << "," << pos[i].gz);
       LOG_TRACE("magnet: " << pos[i].mx << "," << pos[i].my << "," << pos[i].mz);
     }
+
   }
 }
 
@@ -408,22 +480,29 @@ void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nf
 void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos) {
   LOG_TRACE("vtkPlusClarius::SaveDataCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  if (device == NULL) {
+  if (device == NULL)
+  {
     LOG_ERROR("Clarius instance is NULL!!!");
   }
+
   // Check if still connected
-  if (device->Connected == 0) {
+  if (device->Connected == 0)
+  {
     LOG_ERROR("Trouble connecting to Clarius Device. IpAddress = " << device->IpAddress
       << " port = " << device->TcpPort);
   }
-  if (newImage == NULL) {
+
+  if (newImage == NULL) 
+  {
     LOG_ERROR("no frame received by the device");
   }
+
   // check if device has output channels;
   if (device->OutputChannels.empty())
   {
     LOG_ERROR("No output channels defined for vtkPlusClarius");
   }
+
   vtkPlusChannel* outputChannel = device->OutputChannels[0];
   // Check if ouput channel has data source
   vtkPlusDataSource* aSource(NULL);
@@ -431,28 +510,35 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   {
     LOG_ERROR("Unable to retrieve the video source in the vtkPlusClarius device.");
   }
+
   // check if there exist active data source;
   vtkPlusDataSource* activeDataSource;
-  if (device->GetFirstActiveOutputVideoSource(activeDataSource) != PLUS_SUCCESS) {
+  if (device->GetFirstActiveOutputVideoSource(activeDataSource) != PLUS_SUCCESS) 
+  {
     LOG_ERROR("Unable to retrieve active data source.");
   }
+
   // check if the output channel's data source is the one currently active;
-  if (activeDataSource != aSource) {
+  if (activeDataSource != aSource) 
+  {
     LOG_ERROR("active data source and output channel data source are different");
   }
-  // ------------------------------------------------------------------------------
+
   PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_INT;
   US_IMAGE_TYPE imgType = US_IMG_BRIGHTNESS;
-  if (aSource != nullptr) {
+  if (aSource != nullptr) 
+  {
     // Set Image Properties
     int frameSize[3] = { nfo->width, nfo->height, 1};
     aSource->SetInputFrameSize(frameSize[0], frameSize[1], frameSize[2]);
     int numberOfBytesToSkip = 0;
     int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
     aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
-    if (aSource->GetNumberOfBytesPerPixel() != frameBufferBytesPerPixel) {
+    if (aSource->GetNumberOfBytesPerPixel() != frameBufferBytesPerPixel) 
+    {
       LOG_ERROR("aSource->GetNumberOfBytesPerPixel() != frameBufferBytesPerPixel");
     }
+
     LOG_TRACE("Frame size: " << frameSize[0] << "x" << frameSize[1]
       << " FrameBufferBytesPerPixel" << frameBufferBytesPerPixel
       << " Buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
@@ -461,9 +547,11 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     // deep copy the image to unsigned char
     std::vector<char> _image;
     size_t img_sz = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
-    if (_image.size() < img_sz) {
+    if (_image.size() < img_sz) 
+    {
       _image.resize(img_sz);
     }
+
     memcpy(_image.data(), newImage, img_sz);
 
     // create cvimg to write to disk
@@ -474,7 +562,8 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
     /*
     // uncomment the following to write the images to disk
-    if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false) {
+    if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false) 
+    {
       LOG_ERROR("ERROR writing cvimg.jpg to file");
     }
     */
@@ -485,9 +574,11 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
         << "; double timestamp " << timestamp 
         << "; System Time" << systemTime 
         << " Internal System Time " <<internalSystemTime << ":");
-    if (npos != 0) {
+    if (npos != 0) 
+    {
       device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, internalSystemTime, systemTime);
     }
+
     aSource->AddItem(
       cvimg.data, // pointer to char array
       aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
@@ -502,7 +593,9 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
       timestamp);
     (device->FrameNumber)++;
   }
-  else {
+
+  else 
+  {
     LOG_ERROR("Image Source not found");
     return;
   }
@@ -511,10 +604,12 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double internalSystemTime, double systemTime) {
   LOG_DEBUG("vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum)");
-  if (npos != 0) {
+  if (npos != 0)
+  {
     LOG_TRACE("timestamp in nanoseconds ClariusPosInfo" << pos[0].tm);
     std::string posInfo = "";
-    for (auto i = 0; i < npos; i++) {
+    for (auto i = 0; i < npos; i++)
+    {
       posInfo += (std::to_string(frameNum) + ",");
       posInfo += (std::to_string(internalSystemTime) + ",");
       posInfo += (std::to_string(systemTime) + ",");
@@ -531,42 +626,50 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
       posInfo += (std::to_string(pos[i].mz) + ",");
       posInfo += "\n";
     }
+
     // write the string to file
     this->RawImuDataStream.open("RawImus.txt", std::ofstream::app);
-    if (this->RawImuDataStream.is_open() == false) {
+    if (this->RawImuDataStream.is_open() == false) 
+    {
       LOG_ERROR("Error opening file for raw imu data");
       return PLUS_FAIL;
     }
+
     this->RawImuDataStream << posInfo;
     this->RawImuDataStream.close();
     return PLUS_SUCCESS;
   }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetFrameHeight(int FrameHeight) {
+PlusStatus vtkPlusClarius::SetFrameHeight(int FrameHeight)
+{
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   device->FrameHeight = FrameHeight;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetFrameWidth(int FrameWidth) {
+PlusStatus vtkPlusClarius::SetFrameWidth(int FrameWidth)
+{
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   device->FrameWidth = FrameWidth;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetIpAddress(std::string IpAddress) {
+PlusStatus vtkPlusClarius::SetIpAddress(std::string IpAddress)
+{
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   device->IpAddress = IpAddress;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetTcpPort(unsigned int TcpPort) {
+PlusStatus vtkPlusClarius::SetTcpPort(unsigned int TcpPort)
+{
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   device->TcpPort = TcpPort;
   return PLUS_SUCCESS;

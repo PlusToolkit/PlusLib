@@ -9,14 +9,11 @@
 #ifndef _VTKPLUSCLARIUS_H
 #define _VTKPLUSCLARIUS_H
 
-// Clarius Includes
-
-#include "listen.h"
 // Local Includes
+#include "vtkPlusConfig.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 #include "vtkPlusDataSource.h"
-#include "vtkPlusConfig.h"
 #include "vtkPlusUsDevice.h"
 
 // OpenCV includes
@@ -27,6 +24,9 @@
 #include <string>
 #include <stdio.h>
 #include <fstream>
+
+// Clarius Includes
+#include "listen.h"
 
 
 /*!
@@ -111,14 +111,7 @@ protected:
   std::string PathToSecKey; // path to security key;
 
   std::vector<ClariusPosInfo*> RawImus;
-  /*!
-  The subclass will do all the hardware-specific update stuff in this function.
-  It should call ToolUpdate() for each tool.
-  Note that vtkPlusDevice.cxx starts up a separate thread after InternalStartRecording() is called, and that InternalUpdate() is
-  called repeatedly from within that thread. Therefore, any code within InternalUpdate() must be thread safe. You can temporarily
-  pause the thread by locking this->UpdateMutex->Lock() e.g. if you need to communicate with the device from outside of InternalUpdate().
-  A call to this->UpdateMutex->Unlock() will resume the thread.
-  */
+
   PlusStatus InternalConnect();
   /* Device-specific on-update function */
   PlusStatus InternalUpdate();
@@ -127,7 +120,6 @@ protected:
   PlusStatus InternalStopRecording();
   PlusStatus CheckOutputChannels();
   PlusStatus ValidateInputChannels();
-  PlusStatus ValidateOuputImage();
   
 private:
   static vtkPlusClarius* instance;
