@@ -68,6 +68,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MPRFrequency, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MLineIndex, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MWidth, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int32_t, MWidthLines, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MAcousticLineCount, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, MDepth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, Voltage, deviceConfig); //implicit type conversion
@@ -115,6 +116,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetIntAttribute("MPRFrequency", this->GetMPRFrequency());
   deviceConfig->SetIntAttribute("MLineIndex", this->GetMLineIndex());
   deviceConfig->SetIntAttribute("MWidth", this->MSecondsFromWidth(this->m_MWidth));
+  deviceConfig->SetIntAttribute("MWidthLines", this->m_MWidth);
   deviceConfig->SetIntAttribute("MAcousticLineCount", this->GetMAcousticLineCount());
   deviceConfig->SetIntAttribute("MDepth", this->GetMDepth());
   deviceConfig->SetUnsignedLongAttribute("Voltage", this->GetVoltage());
@@ -1077,11 +1079,11 @@ void vtkPlusWinProbeVideoSource::SetMWidth(int value)
     int32_t mwidth = this->MWidthFromSeconds(value);
     ::SetMWidth(mwidth);
     SetPendingRecreateTables(true);
+    m_MWidth = mwidth;
   }
-  m_MWidth = value;
 }
 
-int32_t vtkPlusWinProbeVideoSource::GetMWidth()
+int vtkPlusWinProbeVideoSource::GetMWidth()
 {
   int mwidthSeconds = 0;
   if(Connected)
@@ -1090,6 +1092,25 @@ int32_t vtkPlusWinProbeVideoSource::GetMWidth()
     mwidthSeconds = this->MSecondsFromWidth(m_MWidth);
   }
   return mwidthSeconds;
+}
+
+void vtkPlusWinProbeVideoSource::SetMWidthLines(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetMWidth(value);
+    SetPendingRecreateTables(true);
+  }
+  m_MWidth = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetMWidthLines()
+{
+  if(Connected)
+  {
+    m_MWidth = ::GetMWidth();
+  }
+  return m_MWidth;
 }
 
 void vtkPlusWinProbeVideoSource::SetMAcousticLineCount(int32_t value)

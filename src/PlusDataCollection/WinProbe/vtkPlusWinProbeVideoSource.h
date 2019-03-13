@@ -141,6 +141,9 @@ public:
   void SetMWidth(int value);
   int GetMWidth();
 
+  void SetMWidthLines(int32_t value);
+  int32_t GetMWidthLines();
+
   void SetMAcousticLineCount(int32_t value);
   int32_t GetMAcousticLineCount();
 
