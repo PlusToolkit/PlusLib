@@ -89,6 +89,7 @@ IF(UNIX AND NOT APPLE)
   OPTION(PLUS_USE_V4L2 "Provide support for video4linux devices" OFF)
 ENDIF()
 
+OPTION(PLUS_USE_CLARIUS "Provide support for clarius ultrasound probes" OFF)
 # --------------------------------------------------------------------------
 # Haptics
 ADD_SUBDIRECTORY(Haptics)
@@ -792,6 +793,39 @@ IF(PLUS_USE_BRACHY_TRACKER)
   LIST(APPEND External_Libraries_Static_Install
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# CLARIUS Support
+IF(PLUS_USE_CLARIUS)
+  # If your device uses an external SDK, keep the following
+  FIND_PACKAGE(Threads REQUIRED)
+  FIND_PACKAGE(CLARIUS REQUIRED)
+
+  SET(CLARIUS_SRCS
+      Clarius/vtkPlusClarius.cxx
+      )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(CLARIUS_HDRS
+        Clarius/vtkPlusClarius.h
+        )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+      ${CLARIUS_HDRS}
+      )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+      ${CLARIUS_SRCS}
+      )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+      ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
+      )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+      Clarius
+      )
 ENDIF()
 
 #--------------------------------------------------------------------------

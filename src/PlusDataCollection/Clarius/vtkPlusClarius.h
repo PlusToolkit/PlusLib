@@ -16,9 +16,6 @@
 #include "vtkPlusDataSource.h"
 #include "vtkPlusUsDevice.h"
 
-// OpenCV includes
-#include <opencv2/core/mat.hpp>
-
 // System Includes
 #include <thread>
 #include <string>
@@ -28,6 +25,10 @@
 // Clarius Includes
 #include "listen.h"
 
+// OpenCV includes
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/opencv.hpp>
 
 /*!
 \class vtkPlusClarius

@@ -29,6 +29,7 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+
 // OpenCV includes
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/mat.hpp>
@@ -158,7 +159,7 @@ PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigEleme
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   deviceConfig->SetIntAttribute("TcpPort", this->TcpPort);
-  deviceConfig->SetAttribute("IpAddress", this->IpAddress);
+  // deviceConfig->SetAttribute("IpAddress", this->IpAddress);
 
   return PLUS_SUCCESS;
 }
@@ -538,12 +539,12 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     {
       LOG_ERROR("aSource->GetNumberOfBytesPerPixel() != frameBufferBytesPerPixel");
     }
-
+    /*
     LOG_TRACE("Frame size: " << frameSize[0] << "x" << frameSize[1]
       << " FrameBufferBytesPerPixel" << frameBufferBytesPerPixel
-      << " Buffer image orientation: " << PlusVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
       << " NumberOfScalarComponents: " << aSource->GetNumberOfScalarComponents()
       << " Image timeStamp in nanoseconds: " << nfo->tm);
+    */
     // deep copy the image to unsigned char
     std::vector<char> _image;
     size_t img_sz = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
