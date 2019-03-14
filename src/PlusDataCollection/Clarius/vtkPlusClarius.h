@@ -1,7 +1,6 @@
 /*=Plus=header=begin======================================================
     Program: Plus
     Copyright (c) UBC Biomedical Signal and Image Computing Laboratory. All rights reserved.
-    See License.txt for details.
     =========================================================Plus=header=end*/
 
 #pragma once
@@ -79,10 +78,24 @@ public:
 
   /*! The IMU streaming is supported and raw IMU data is written to csv file, however interpreting imu data as tracking data is not supported*/
   bool IsTracker() const { return false; }
-  PlusStatus SetFrameHeight(int FrameHeight);
-  PlusStatus SetFrameWidth(int FrameWidth);
-  PlusStatus SetIpAddress(std::string IpAddress);
-  PlusStatus SetTcpPort(unsigned int TcpPort);
+
+  vtkSetMacro(FrameHeight, unsigned int);
+  vtkGetMacro(FrameHeight, unsigned int);
+
+  vtkSetMacro(FrameWidth, unsigned int);
+  vtkGetMacro(FrameWidth, unsigned int);
+  
+  vtkSetMacro(IpAddress, std::string);
+  vtkGetMacro(IpAddress, std::string);
+
+  vtkSetMacro(TcpPort, unsigned int);
+  vtkGetMacro(TcpPort, unsigned int);
+
+  vtkSetMacro(ImuEnabled, bool);
+  vtkGetMacro(ImuEnabled, bool);
+
+  vtkSetMacro(ImuOutputFileName, std::string);
+  vtkGetMacro(ImuOutputFileName, std::string);
 
 protected:
   vtkPlusClarius();
@@ -91,19 +104,13 @@ protected:
   unsigned int TcpPort;
   int UdpPort;
   std::string IpAddress;
-  
-  std::string ImuSourceId;
-
-  std::string VideoOutputChannelName;
 
   cv::Mat cvImage;
   long FrameNumber;
 
   int FrameWidth;
   int FrameHeight;
-  std::string PathToSecKey; // path to security key;
-
-  std::vector<ClariusPosInfo*> RawImus;
+  std::string PathToSecKey; // path to security key, required by the clarius api
 
   PlusStatus InternalConnect();
   /* Device-specific on-update function */
@@ -111,12 +118,12 @@ protected:
   PlusStatus InternalDisconnect();
   PlusStatus InternalStartRecording();
   PlusStatus InternalStopRecording();
-  PlusStatus CheckOutputChannels();
-  
+
 private:
   static vtkPlusClarius* instance;
   std::ofstream RawImuDataStream;
   std::string ImuOutputFileName;
+  bool ImuEnabled;
   static void ErrorFn(const char *err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);

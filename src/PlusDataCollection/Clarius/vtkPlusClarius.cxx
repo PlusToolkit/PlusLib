@@ -70,14 +70,14 @@ vtkPlusClarius::vtkPlusClarius()
   , FrameWidth(DEFAULT_FRAME_WIDTH)
   , FrameHeight(DEFAULT_FRAME_HEIGHT)
   , PathToSecKey(DEFAULT_PATH_TO_SEC_KEY)
+  , ImuEnabled(false)
+  , ImuOutputFileName("ClariusImuData.csv")
 {  // callback based mechanism
   LOG_TRACE("vtkPlusClarius: Constructor")
   this->StartThreadForInternalUpdates = false;
   this->FrameWidth = DEFAULT_FRAME_WIDTH;
   this->FrameHeight = DEFAULT_FRAME_HEIGHT;
-  this->RawImuDataStream.open("RawImus.txt", std::ofstream::app);
-  this->RawImuDataStream << "FrameNum,InternalSystemTimestamp,SystemTimeStamp,ImageTimeStamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
-  this->RawImuDataStream.close();
+
   instance = this;
 }
 
@@ -145,6 +145,13 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameWidth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameHeight, deviceConfig);
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
+  bool ImuEnabled = false;
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_REQUIRED(ImuEnabled, ImuEnabled, deviceConfig);
+  this->ImuEnabled = ImuEnabled;
+  if (ImuEnabled)
+  {
+    XML_READ_STRING_ATTRIBUTE_REQUIRED(ImuOutputFileName, deviceConfig);
+  }
   return PLUS_SUCCESS;
 }
 
@@ -200,6 +207,14 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
 
   vtkPlusDataSource* aSource = sources[0];
   aSource->SetBufferSize(BUFFER_SIZE);
+
+  if (this->ImuEnabled)
+  {
+    this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
+    this->RawImuDataStream << "FrameNum,InternalSystemTimestamp,SystemTimeStamp,ImageTimeStamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
+    this->RawImuDataStream.close();
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -336,21 +351,6 @@ PlusStatus vtkPlusClarius::InternalConnect()
     return PLUS_SUCCESS;
   }
 };
-
-PlusStatus vtkPlusClarius::CheckOutputChannels()
-{
-  LOG_TRACE("vtkPlusClarius: CheckOutputChannels");
-  if (instance->GetNumberOfOutputPorts() <= 0)
-  {
-    LOG_ERROR("instance->GetNumberOfOutpuPorts == " << instance->GetNumberOfOutputPorts());
-    return PLUS_FAIL;
-  }
-
-  else 
-  {
-    return PLUS_SUCCESS;
-  }
-}
 
 /* Device-specific on-update function */
 PlusStatus vtkPlusClarius::InternalUpdate() 
@@ -550,10 +550,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     // Get system time (elapsed time since last reboot), return Internal system time in seconds
     double internalSystemTime = vtkIGSIOAccurateTimer::GetInternalSystemTime();
     double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
-    LOG_TRACE("timestamp: " << nfo->tm 
-        << "; double timestamp " << timestamp 
-        << "; System Time" << systemTime 
-        << " Internal System Time " <<internalSystemTime << ":");
+
     if (npos != 0) 
     {
       device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, internalSystemTime, systemTime);
@@ -608,7 +605,7 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
     }
 
     // write the string to file
-    this->RawImuDataStream.open("RawImus.txt", std::ofstream::app);
+    this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
     if (this->RawImuDataStream.is_open() == false) 
     {
       LOG_ERROR("Error opening file for raw imu data");
@@ -620,37 +617,5 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
     return PLUS_SUCCESS;
   }
 
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetFrameHeight(int FrameHeight)
-{
-  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  device->FrameHeight = FrameHeight;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetFrameWidth(int FrameWidth)
-{
-  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  device->FrameWidth = FrameWidth;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetIpAddress(std::string IpAddress)
-{
-  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  device->IpAddress = IpAddress;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::SetTcpPort(unsigned int TcpPort)
-{
-  vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  device->TcpPort = TcpPort;
   return PLUS_SUCCESS;
 }
