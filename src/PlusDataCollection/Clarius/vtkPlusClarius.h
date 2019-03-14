@@ -54,11 +54,6 @@ public:
   
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  static const std::string BMODE_PORT_NAME;
-  static const std::string RFMODE_PORT_NAME;
-  static const std::string PARAMETERS_XML_ELEMENT_TAG;
-  static const std::string PARAMETER_XML_ELEMENT_TAG;
-
   /*!
   Probe to see to see if the device is connected to the
   computer. This method should be overridden in subclasses.
@@ -81,10 +76,9 @@ public:
    This is the last chance for your device to raise an error about improper or insufficient configuration.
   */
   PlusStatus NotifyConfigured();
-  bool IsTracker() const { return false; }
-  /*! Return the reference frame */
-  // PlusStatus GetToolReferenceFrameFromTrackedFrame(igsioTrackedFrame& aFrame, std::string& aToolReferenceFrameName);
 
+  /*! The IMU streaming is supported and raw IMU data is written to csv file, however interpreting imu data as tracking data is not supported*/
+  bool IsTracker() const { return false; }
   PlusStatus SetFrameHeight(int FrameHeight);
   PlusStatus SetFrameWidth(int FrameWidth);
   PlusStatus SetIpAddress(std::string IpAddress);
@@ -103,8 +97,6 @@ protected:
   std::string VideoOutputChannelName;
 
   cv::Mat cvImage;
-  vtkPlusDataSource *ImageSource;
-  vtkPlusDataSource *ImuSource;
   long FrameNumber;
 
   int FrameWidth;
@@ -120,11 +112,11 @@ protected:
   PlusStatus InternalStartRecording();
   PlusStatus InternalStopRecording();
   PlusStatus CheckOutputChannels();
-  PlusStatus ValidateInputChannels();
   
 private:
   static vtkPlusClarius* instance;
-
+  std::ofstream RawImuDataStream;
+  std::string ImuOutputFileName;
   static void ErrorFn(const char *err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
@@ -132,6 +124,5 @@ private:
   static void SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos);
 
   PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double internalSystemTime, double systemTime);
-  std::ofstream RawImuDataStream;
 };
 #endif //_VTKPLUSCLARIUS_H

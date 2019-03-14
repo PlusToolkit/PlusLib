@@ -195,7 +195,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_CLARIUS
-	#include "vtkPlusClarius.h" 
+  #include "vtkPlusClarius.h" 
 #endif
 //----------------------------------------------------------------------------
 

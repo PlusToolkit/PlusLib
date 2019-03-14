@@ -66,8 +66,6 @@ vtkPlusClarius::vtkPlusClarius()
   : TcpPort(-1)
   , UdpPort(-1)
   , IpAddress("192.168.1.1")
-  , ImageSource(NULL)
-  , ImuSource(NULL)
   , FrameNumber(0)
   , FrameWidth(DEFAULT_FRAME_WIDTH)
   , FrameHeight(DEFAULT_FRAME_HEIGHT)
@@ -97,7 +95,7 @@ vtkPlusClarius::~vtkPlusClarius()
   }
 
   int destroyed = clariusDestroyListener();
-  if (destroyed != 0) 
+  if (destroyed != 0)
   {
     LOG_ERROR("Error destoying the listener");
   }
@@ -349,25 +347,6 @@ PlusStatus vtkPlusClarius::CheckOutputChannels()
   }
 
   else 
-  {
-    return PLUS_SUCCESS;
-  }
-}
-PlusStatus vtkPlusClarius::ValidateInputChannels() 
-{
-  LOG_TRACE("vtkPlusClarius: ValidateInputChannels");
-  std::vector<vtkPlusDataSource*> sources;
-  if (instance->GetVideoSourcesByPortName(vtkPlusDevice::BMODE_PORT_NAME, sources) != PLUS_SUCCESS) {
-    LOG_ERROR("instance->GetNumberOfOutpuPorts == " << instance->GetNumberOfOutputPorts());
-    return PLUS_FAIL;
-  }
-
-  if (sources.size() != 1) 
-  {
-    LOG_ERROR("Exactly one B-mode video source should be configured, " << sources.size() << " B mode video source was found");
-  }
-
-  else
   {
     return PLUS_SUCCESS;
   }

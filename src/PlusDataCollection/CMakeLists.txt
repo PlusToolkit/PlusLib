@@ -821,11 +821,25 @@ IF(PLUS_USE_CLARIUS)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
       ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
+      ${CLARIUS_INCLUDE_DIR}
       )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-      Clarius
+      ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
       )
+
+  LIST(APPEND External_Libraries_Static_Install
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND External_Libraries_Debug
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------

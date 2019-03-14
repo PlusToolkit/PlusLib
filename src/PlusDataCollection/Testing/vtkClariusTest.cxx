@@ -283,9 +283,6 @@ int main(int argc, char* argv[])
   }
 
   ClariusDevice->CreateDefaultOutputChannel(NULL, true);
-  ClariusDevice->SetIpAddress("192.168.0.101");
-  ClariusDevice->SetImageSourceId("Video");
-  ClariusDevice->SetTcpPort(5828);
   vtkPlusDataSource* videoSource=NULL;
   if (ClariusDevice->GetFirstActiveOutputVideoSource(videoSource) != PLUS_SUCCESS )
   {
