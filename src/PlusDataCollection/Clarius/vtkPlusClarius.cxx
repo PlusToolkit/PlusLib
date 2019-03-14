@@ -72,6 +72,8 @@ vtkPlusClarius::vtkPlusClarius()
   , PathToSecKey(DEFAULT_PATH_TO_SEC_KEY)
   , ImuEnabled(false)
   , ImuOutputFileName("ClariusImuData.csv")
+  , systemStartTimestamp(0)
+  , clariusStartTimestamp(0)
 {  // callback based mechanism
   LOG_TRACE("vtkPlusClarius: Constructor")
   this->StartThreadForInternalUpdates = false;
@@ -207,11 +209,12 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
 
   vtkPlusDataSource* aSource = sources[0];
   aSource->SetBufferSize(BUFFER_SIZE);
+  aSource->SetPixelType(VTK_UNSIGNED_CHAR);
 
   if (this->ImuEnabled)
   {
     this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
-    this->RawImuDataStream << "FrameNum,InternalSystemTimestamp,SystemTimeStamp,ImageTimeStamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
+    this->RawImuDataStream << "FrameNum,SystemTimestamp,ConvertedTimestamp,ImageTimestamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
     this->RawImuDataStream.close();
   }
 
@@ -504,7 +507,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     LOG_ERROR("active data source and output channel data source are different");
   }
 
-  PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_INT;
+  PlusCommon::VTKScalarPixelType pixelType = VTK_UNSIGNED_CHAR;
   US_IMAGE_TYPE imgType = US_IMG_BRIGHTNESS;
   if (aSource != nullptr) 
   {
@@ -518,12 +521,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     {
       LOG_ERROR("aSource->GetNumberOfBytesPerPixel() != frameBufferBytesPerPixel");
     }
-    /*
-    LOG_TRACE("Frame size: " << frameSize[0] << "x" << frameSize[1]
-      << " FrameBufferBytesPerPixel" << frameBufferBytesPerPixel
-      << " NumberOfScalarComponents: " << aSource->GetNumberOfScalarComponents()
-      << " Image timeStamp in nanoseconds: " << nfo->tm);
-    */
+
     // deep copy the image to unsigned char
     std::vector<char> _image;
     size_t img_sz = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
@@ -539,7 +537,23 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     int frameSizeInBytes = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
     int frameNum = device->FrameNumber;
     cvimg.data = (unsigned char *)_image.data();
+    // the clarius timestamp is in nanoseconds
     double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
+    // Get system time (elapsed time since last reboot), return Internal system time in seconds
+    double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
+    if (frameNum == 0)
+    {
+      device->systemStartTimestamp = systemTime;
+      device->clariusStartTimestamp = timestamp;
+    }
+
+    // The timestamp that each image is tagged with is
+    // (system_start_time + current_clarius_time - clarius_start_time)
+    double converted_timestamp = device->systemStartTimestamp + (timestamp - device->clariusStartTimestamp);
+    if (npos != 0)
+    {
+      device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
+    }
     /*
     // uncomment the following to write the images to disk
     if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false) 
@@ -547,27 +561,18 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
       LOG_ERROR("ERROR writing cvimg.jpg to file");
     }
     */
-    // Get system time (elapsed time since last reboot), return Internal system time in seconds
-    double internalSystemTime = vtkIGSIOAccurateTimer::GetInternalSystemTime();
-    double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
-
-    if (npos != 0) 
-    {
-      device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, internalSystemTime, systemTime);
-    }
-
     aSource->AddItem(
       cvimg.data, // pointer to char array
       aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
-                         // Set to UN to keep the orientation of the image the same as on tablet
+                                           // Set to UN to keep the orientation of the image the same as on tablet
       aSource->GetInputFrameSize(), // integer array with length == 3, the frame size in the x, y and z axis
       pixelType,  // set to VTK_UNSIGNED_INT because the images have 32bits per pixel
       cvimg.channels(), // bytes per pixel
       imgType, // US_IMG_BRIGHTNESS for grayscale image
       numberOfBytesToSkip, // 0
       device->FrameNumber,
-      timestamp, // device timestamp in seconds -- should this be set to system timestamps?
-      timestamp);
+      converted_timestamp,
+      converted_timestamp);
     (device->FrameNumber)++;
   }
 
@@ -579,7 +584,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double internalSystemTime, double systemTime) {
+PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime) {
   LOG_DEBUG("vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum)");
   if (npos != 0)
   {
@@ -588,8 +593,8 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
     for (auto i = 0; i < npos; i++)
     {
       posInfo += (std::to_string(frameNum) + ",");
-      posInfo += (std::to_string(internalSystemTime) + ",");
       posInfo += (std::to_string(systemTime) + ",");
+      posInfo += (std::to_string(convertedTime) + ",");
       posInfo += (std::to_string(nfo->tm) + ",");
       posInfo += (std::to_string(pos[i].tm) + ",");
       posInfo += (std::to_string(pos[i].ax) + ",");

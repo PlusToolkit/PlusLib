@@ -123,6 +123,8 @@ private:
   static vtkPlusClarius* instance;
   std::ofstream RawImuDataStream;
   std::string ImuOutputFileName;
+  double systemStartTimestamp;
+  double clariusStartTimestamp;
   bool ImuEnabled;
   static void ErrorFn(const char *err);
   static void FreezeFn(int val);
@@ -130,6 +132,6 @@ private:
   static void NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos);  
   static void SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos);
 
-  PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double internalSystemTime, double systemTime);
+  PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
 };
 #endif //_VTKPLUSCLARIUS_H
