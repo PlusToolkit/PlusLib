@@ -10,6 +10,9 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
+// LeapMotion includes
+#include <LeapC.h>
+
 /*!
 \class vtkPlusLeapMotion
 \brief Interface for the LeapMotion hand tracker
@@ -46,7 +49,30 @@ protected:
   PlusStatus InternalStopRecording();
 
 protected:
+  // Leap events
+  PlusStatus OnConnectionEvent(const LEAP_CONNECTION_EVENT* connectionEvent);
+  PlusStatus OnConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* connectionLostEvent);
+  PlusStatus OnDeviceEvent(const LEAP_DEVICE_EVENT* deviceEvent);
+  PlusStatus OnDeviceLostEvent(const LEAP_DEVICE_EVENT* deviceEvent);
+  PlusStatus OnDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* deviceFailureEvent);
+  PlusStatus OnPolicyEvent(const LEAP_POLICY_EVENT* policyEvent);
+  PlusStatus OnTrackingEvent(const LEAP_TRACKING_EVENT* trackingEvent);
+  PlusStatus OnLogEvent(const LEAP_LOG_EVENT* logEvent);
+  PlusStatus OnLogEvents(const LEAP_LOG_EVENTS* logEvents);
+  PlusStatus OnConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* configChangeEvent);
+  PlusStatus OnConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* configResponseEvent);
+  PlusStatus OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent);
+  PlusStatus OnPointMappingChangeEvent(const LEAP_POINT_MAPPING_CHANGE_EVENT* pointMappingChangeEvent);
+  PlusStatus OnHeadPoseEvent(const LEAP_HEAD_POSE_EVENT* headPoseEvent);
 
+protected:
+  std::string ResultToString(eLeapRS);
+  std::string EventToString(_eLeapEventType);
+
+protected:
+  LEAP_CONNECTION         Connection;
+  unsigned int            PollTimeoutMs;
+  LEAP_CONNECTION_MESSAGE LastMessage;
 
 private:
   vtkPlusLeapMotion(const vtkPlusLeapMotion&);
