@@ -13,6 +13,8 @@ See License.txt for details.
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPlusDataSource.h>
+#include <vtkQuaternion.h>
+#include <vtkTransform.h>
 #include <vtkXMLDataElement.h>
 #include <vtksys/SystemTools.hxx>
 
@@ -29,6 +31,8 @@ vtkStandardNewMacro(vtkPlusLeapMotion);
 //-------------------------------------------------------------------------
 vtkPlusLeapMotion::vtkPlusLeapMotion()
   : PollTimeoutMs(1000)
+  , Mutex(vtkIGSIORecursiveCriticalSection::New())
+  , LeapHMDPolicy(false)
 {
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->StartThreadForInternalUpdates = true; // Polling based device, message pump
@@ -38,6 +42,7 @@ vtkPlusLeapMotion::vtkPlusLeapMotion()
 //-------------------------------------------------------------------------
 vtkPlusLeapMotion::~vtkPlusLeapMotion()
 {
+  this->Mutex->Delete();
   if (this->Recording)
   {
     this->StopRecording();
@@ -58,6 +63,8 @@ PlusStatus vtkPlusLeapMotion::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(LeapHMDPolicy, deviceConfig);
+
   return PLUS_SUCCESS;
 }
 
@@ -66,6 +73,7 @@ PlusStatus vtkPlusLeapMotion::WriteConfiguration(vtkXMLDataElement* rootConfigEl
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
+  XML_WRITE_BOOL_ATTRIBUTE(LeapHMDPolicy, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -80,21 +88,23 @@ PlusStatus vtkPlusLeapMotion::InternalConnect()
     return PLUS_SUCCESS;
   }
   eLeapRS result;
-  if ((result = LeapCreateConnection(NULL, &this->Connection)) == eLeapRS_Success)
-  {
-    result = LeapOpenConnection(this->Connection);
-    if (result == eLeapRS_Success)
-    {
-      return PLUS_SUCCESS;
-    }
-    LOG_ERROR("Unable to open the connection to the LeapMotion device:" << this->ResultToString(result));
-  }
-  else
+  if ((result = LeapCreateConnection(NULL, &this->Connection)) != eLeapRS_Success)
   {
     LOG_ERROR("Unable to create the connection to the LeapMotion device:" << this->ResultToString(result));
+    return PLUS_FAIL;
+  }
+  if ((result = LeapOpenConnection(this->Connection)) != eLeapRS_Success)
+  {
+    LOG_ERROR("Unable to open the connection to the LeapMotion device:" << this->ResultToString(result));
+    return PLUS_FAIL;
+  }
+  if ((result = LeapSetPolicyFlags(this->Connection, this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0, !this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0)) != eLeapRS_Success)
+  {
+    LOG_WARNING("Unable to set HMD policy flag, tracking will be greatly degraded if attached to an HMD: " << this->ResultToString(result));
+    return PLUS_FAIL;
   }
 
-  return PLUS_FAIL;
+  return PLUS_SUCCESS;
 }
 
 //-------------------------------------------------------------------------
@@ -195,6 +205,124 @@ PlusStatus vtkPlusLeapMotion::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
+#define CHECK_DATA_SOURCE(name) if(this->GetDataSource(#name, aSource) != PLUS_SUCCESS){ LOG_WARNING("Data source with ID \"" << #name << "\" doesn't exist. Joint will not be tracked.");}
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusLeapMotion::NotifyConfigured()
+{
+  vtkPlusDataSource* aSource(nullptr);
+
+  // Check for 19 data sources per hand
+  CHECK_DATA_SOURCE(LeftThumbProximal);
+  CHECK_DATA_SOURCE(LeftThumbIntermediate);
+  CHECK_DATA_SOURCE(LeftThumbDistal);
+
+  CHECK_DATA_SOURCE(LeftIndexMetacarpal);
+  CHECK_DATA_SOURCE(LeftIndexProximal);
+  CHECK_DATA_SOURCE(LeftIndexIntermediate);
+  CHECK_DATA_SOURCE(LeftIndexDistal);
+
+  CHECK_DATA_SOURCE(LeftMiddleMetacarpal);
+  CHECK_DATA_SOURCE(LeftMiddleProximal);
+  CHECK_DATA_SOURCE(LeftMiddleIntermediate);
+  CHECK_DATA_SOURCE(LeftMiddleDistal);
+
+  CHECK_DATA_SOURCE(LeftRingMetacarpal);
+  CHECK_DATA_SOURCE(LeftRingProximal);
+  CHECK_DATA_SOURCE(LeftRingIntermediate);
+  CHECK_DATA_SOURCE(LeftRingDistal);
+
+  CHECK_DATA_SOURCE(LeftPinkyMetacarpal);
+  CHECK_DATA_SOURCE(LeftPinkyProximal);
+  CHECK_DATA_SOURCE(LeftPinkyIntermediate);
+  CHECK_DATA_SOURCE(LeftPinkyDistal);
+
+  CHECK_DATA_SOURCE(RightThumbProximal);
+  CHECK_DATA_SOURCE(RightThumbIntermediate);
+  CHECK_DATA_SOURCE(RightThumbDistal);
+
+  CHECK_DATA_SOURCE(RightIndexMetacarpal);
+  CHECK_DATA_SOURCE(RightIndexProximal);
+  CHECK_DATA_SOURCE(RightIndexIntermediate);
+  CHECK_DATA_SOURCE(RightIndexDistal);
+
+  CHECK_DATA_SOURCE(RightMiddleMetacarpal);
+  CHECK_DATA_SOURCE(RightMiddleProximal);
+  CHECK_DATA_SOURCE(RightMiddleIntermediate);
+  CHECK_DATA_SOURCE(RightMiddleDistal);
+
+  CHECK_DATA_SOURCE(RightRingMetacarpal);
+  CHECK_DATA_SOURCE(RightRingProximal);
+  CHECK_DATA_SOURCE(RightRingIntermediate);
+  CHECK_DATA_SOURCE(RightRingDistal);
+
+  CHECK_DATA_SOURCE(RightPinkyMetacarpal);
+  CHECK_DATA_SOURCE(RightPinkyProximal);
+  CHECK_DATA_SOURCE(RightPinkyIntermediate);
+  CHECK_DATA_SOURCE(RightPinkyDistal);
+
+  return PLUS_SUCCESS;
+}
+#undef CHECK_DATA_SOURCE
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eLeapHandType handIndex, Finger fingerIndex, Bone boneIndex)
+{
+  vtkPlusDataSource* aSource(nullptr);
+  if (this->GetDataSource(boneName, aSource) != PLUS_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  vtkNew<vtkTransform> pose;
+  bool status(true);
+  for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
+  {
+    LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
+    if (hand.type != handIndex)
+    {
+      continue;
+    }
+    LEAP_BONE& bone = hand.digits[fingerIndex].bones[boneIndex];
+
+    vtkQuaternion<float> orientation;
+    orientation.Set(bone.rotation.w, bone.rotation.x, bone.rotation.y, bone.rotation.z);
+    pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
+    float axis[3];
+    float angle = orientation.GetRotationAngleAndAxis(axis);
+    pose->RotateWXYZ(angle, axis);
+    status &= (this->ToolTimeStampedUpdate(boneName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+  }
+
+  return status ? PLUS_SUCCESS : PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusLeapMotion::SetFrame(const LEAP_TRACKING_EVENT* trackingEvent)
+{
+  this->Mutex->Lock();
+  this->LastTrackingEvent = *trackingEvent;
+  this->Mutex->Unlock();
+}
+
+//----------------------------------------------------------------------------
+LEAP_TRACKING_EVENT* vtkPlusLeapMotion::GetFrame()
+{
+  return &this->LastTrackingEvent;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusLeapMotion::SetHeadPose(const LEAP_HEAD_POSE_EVENT* headPose)
+{
+  this->Mutex->Lock();
+  this->LastHeadPoseEvent = *headPose;
+  this->Mutex->Unlock();
+}
+
+//----------------------------------------------------------------------------
+LEAP_HEAD_POSE_EVENT* vtkPlusLeapMotion::GetHeadPose()
+{
+  return &this->LastHeadPoseEvent;
+}
+
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnConnectionEvent(const LEAP_CONNECTION_EVENT* connectionEvent)
 {
@@ -234,6 +362,60 @@ PlusStatus vtkPlusLeapMotion::OnPolicyEvent(const LEAP_POLICY_EVENT* policyEvent
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnTrackingEvent(const LEAP_TRACKING_EVENT* trackingEvent)
 {
+  this->SetFrame(trackingEvent);
+
+  // Left
+  ToolTimeStampedUpdateBone("LeftThumbProximal", eLeapHandType_Left, Finger_Thumb, Bone_Proximal);
+  ToolTimeStampedUpdateBone("LeftThumbIntermediate", eLeapHandType_Left, Finger_Thumb, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("LeftThumbDistal", eLeapHandType_Left, Finger_Thumb, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("LeftIndexMetacarpal", eLeapHandType_Left, Finger_Index, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("LeftIndexProximal", eLeapHandType_Left, Finger_Index, Bone_Proximal);
+  ToolTimeStampedUpdateBone("LeftIndexIntermediate", eLeapHandType_Left, Finger_Index, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("LeftIndexDistal", eLeapHandType_Left, Finger_Index, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("LeftMiddleMetacarpal", eLeapHandType_Left, Finger_Middle, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("LeftMiddleProximal", eLeapHandType_Left, Finger_Middle, Bone_Proximal);
+  ToolTimeStampedUpdateBone("LeftMiddleIntermediate", eLeapHandType_Left, Finger_Middle, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("LeftMiddleDistal", eLeapHandType_Left, Finger_Middle, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("LeftRingMetacarpal", eLeapHandType_Left, Finger_Ring, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("LeftRingProximal", eLeapHandType_Left, Finger_Ring, Bone_Proximal);
+  ToolTimeStampedUpdateBone("LeftRingIntermediate", eLeapHandType_Left, Finger_Ring, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("LeftRingDistal", eLeapHandType_Left, Finger_Ring, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("LeftPinkyMetacarpal", eLeapHandType_Left, Finger_Pinky, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("LeftPinkyProximal", eLeapHandType_Left, Finger_Pinky, Bone_Proximal);
+  ToolTimeStampedUpdateBone("LeftPinkyIntermediate", eLeapHandType_Left, Finger_Pinky, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("LeftPinkyDistal", eLeapHandType_Left, Finger_Pinky, Bone_Distal);
+
+  // Right
+  ToolTimeStampedUpdateBone("RightThumbProximal", eLeapHandType_Right, Finger_Thumb, Bone_Proximal);
+  ToolTimeStampedUpdateBone("RightThumbIntermediate", eLeapHandType_Right, Finger_Thumb, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("RightThumbDistal", eLeapHandType_Right, Finger_Thumb, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("RightIndexMetacarpal", eLeapHandType_Right, Finger_Index, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("RightIndexProximal", eLeapHandType_Right, Finger_Index, Bone_Proximal);
+  ToolTimeStampedUpdateBone("RightIndexIntermediate", eLeapHandType_Right, Finger_Index, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("RightIndexDistal", eLeapHandType_Right, Finger_Index, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("RightMiddleMetacarpal", eLeapHandType_Right, Finger_Middle, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("RightMiddleProximal", eLeapHandType_Right, Finger_Middle, Bone_Proximal);
+  ToolTimeStampedUpdateBone("RightMiddleIntermediate", eLeapHandType_Right, Finger_Middle, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("RightMiddleDistal", eLeapHandType_Right, Finger_Middle, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("RightRingMetacarpal", eLeapHandType_Right, Finger_Ring, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("RightRingProximal", eLeapHandType_Right, Finger_Ring, Bone_Proximal);
+  ToolTimeStampedUpdateBone("RightRingIntermediate", eLeapHandType_Right, Finger_Ring, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("RightRingDistal", eLeapHandType_Right, Finger_Ring, Bone_Distal);
+
+  ToolTimeStampedUpdateBone("RightPinkyMetacarpal", eLeapHandType_Right, Finger_Pinky, Bone_Metacarpal);
+  ToolTimeStampedUpdateBone("RightPinkyProximal", eLeapHandType_Right, Finger_Pinky, Bone_Proximal);
+  ToolTimeStampedUpdateBone("RightPinkyIntermediate", eLeapHandType_Right, Finger_Pinky, Bone_Intermediate);
+  ToolTimeStampedUpdateBone("RightPinkyDistal", eLeapHandType_Right, Finger_Pinky, Bone_Distal);
+
+  this->FrameNumber++;
+
   return PLUS_SUCCESS;
 }
 
@@ -276,6 +458,8 @@ PlusStatus vtkPlusLeapMotion::OnPointMappingChangeEvent(const LEAP_POINT_MAPPING
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnHeadPoseEvent(const LEAP_HEAD_POSE_EVENT* headPoseEvent)
 {
+  SetHeadPose(headPoseEvent);
+
   return PLUS_SUCCESS;
 }
 

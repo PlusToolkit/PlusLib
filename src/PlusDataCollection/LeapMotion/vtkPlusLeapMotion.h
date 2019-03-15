@@ -20,6 +20,8 @@ See License.txt for details.
 \ingroup PlusLibDataCollection
 */
 
+class vtkIGSIORecursiveCriticalSection;
+
 class vtkPlusDataCollectionExport vtkPlusLeapMotion : public vtkPlusDevice
 {
 public:
@@ -38,15 +40,42 @@ public:
   /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
+  vtkGetMacro(LeapHMDPolicy, bool);
+  vtkSetMacro(LeapHMDPolicy, bool);
+  vtkBooleanMacro(LeapHMDPolicy, bool);
+
 protected:
   vtkPlusLeapMotion();
   ~vtkPlusLeapMotion();
 
-  PlusStatus InternalConnect();
+  virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
   virtual PlusStatus InternalUpdate();
-  PlusStatus InternalStartRecording();
-  PlusStatus InternalStopRecording();
+  virtual PlusStatus InternalStartRecording();
+  virtual PlusStatus InternalStopRecording();
+  virtual PlusStatus NotifyConfigured();
+
+  enum Finger
+  {
+    Finger_Thumb, // Yeah yeah... not a finger... hush.
+    Finger_Index,
+    Finger_Middle,
+    Finger_Ring,
+    Finger_Pinky
+  };
+  enum Bone
+  {
+    Bone_Metacarpal,    // Closest to heart
+    Bone_Proximal,
+    Bone_Intermediate,
+    Bone_Distal         // Furthest from heart
+  };
+  PlusStatus ToolTimeStampedUpdateBone(std::string boneName, eLeapHandType handIndex, Finger fingerIndex, Bone boneIndex);
+
+  void SetFrame(const LEAP_TRACKING_EVENT* trackingEvent);
+  LEAP_TRACKING_EVENT* GetFrame();
+  void SetHeadPose(const LEAP_HEAD_POSE_EVENT* headPose);
+  LEAP_HEAD_POSE_EVENT* GetHeadPose();
 
 protected:
   // Leap events
@@ -70,9 +99,14 @@ protected:
   std::string EventToString(_eLeapEventType);
 
 protected:
-  LEAP_CONNECTION         Connection;
-  unsigned int            PollTimeoutMs;
-  LEAP_CONNECTION_MESSAGE LastMessage;
+  bool                              LeapHMDPolicy;
+  LEAP_CONNECTION                   Connection;
+  unsigned int                      PollTimeoutMs;
+  LEAP_CONNECTION_MESSAGE           LastMessage;
+  LEAP_TRACKING_EVENT               LastTrackingEvent;
+  LEAP_HEAD_POSE_EVENT              LastHeadPoseEvent;
+
+  vtkIGSIORecursiveCriticalSection* Mutex;
 
 private:
   vtkPlusLeapMotion(const vtkPlusLeapMotion&);
