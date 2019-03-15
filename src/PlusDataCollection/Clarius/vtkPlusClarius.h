@@ -3,8 +3,6 @@
     Copyright (c) UBC Biomedical Signal and Image Computing Laboratory. All rights reserved.
     =========================================================Plus=header=end*/
 
-#pragma once
-
 #ifndef _VTKPLUSCLARIUS_H
 #define _VTKPLUSCLARIUS_H
 
@@ -57,16 +55,16 @@ public:
   Probe to see to see if the device is connected to the
   computer. This method should be overridden in subclasses.
   */
-  PlusStatus Probe();
+  virtual PlusStatus Probe();
 
   /*! Hardware device SDK version. This method should be overridden in subclasses. */
-  std::string GetSdkVersion();
+  virtual std::string GetSdkVersion();
 
   /*! Read configuration from xml data */
-  PlusStatus ReadConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Write configuration to xml data */
-  PlusStatus WriteConfiguration(vtkXMLDataElement* config);
+  virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
   /*! Perform any completion tasks once configured
    a multi-purpose function which is called after all devices have been configured,
@@ -74,7 +72,7 @@ public:
    but before devices begin collecting data.
    This is the last chance for your device to raise an error about improper or insufficient configuration.
   */
-  PlusStatus NotifyConfigured();
+  virtual PlusStatus NotifyConfigured();
 
   /*! The IMU streaming is supported and raw IMU data is written to csv file, however interpreting imu data as tracking data is not supported*/
   bool IsTracker() const { return false; }
@@ -101,37 +99,32 @@ protected:
   vtkPlusClarius();
   ~vtkPlusClarius();
   
+  virtual PlusStatus InternalConnect();
+  virtual PlusStatus InternalDisconnect();
+  PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
+
+protected:
   unsigned int TcpPort;
   int UdpPort;
   std::string IpAddress;
-
-  cv::Mat cvImage;
-  long FrameNumber;
-
-  int FrameWidth;
-  int FrameHeight;
   std::string PathToSecKey; // path to security key, required by the clarius api
-
-  PlusStatus InternalConnect();
-  /* Device-specific on-update function */
-  PlusStatus InternalUpdate();
-  PlusStatus InternalDisconnect();
-  PlusStatus InternalStartRecording();
-  PlusStatus InternalStopRecording();
-
-private:
-  static vtkPlusClarius* instance;
   std::ofstream RawImuDataStream;
   std::string ImuOutputFileName;
-  double systemStartTimestamp;
-  double clariusStartTimestamp;
+  int FrameWidth;
+  int FrameHeight;
+  double SystemStartTimestamp;
+  double ClariusStartTimestamp;
   bool ImuEnabled;
+
+  cv::Mat cvImage;
+  
+  static vtkPlusClarius* instance;
+  
   static void ErrorFn(const char *err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
   static void NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos);  
   static void SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos);
-
-  PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
 };
+
 #endif //_VTKPLUSCLARIUS_H
