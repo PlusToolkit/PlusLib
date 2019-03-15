@@ -802,30 +802,30 @@ IF(PLUS_USE_CLARIUS)
   FIND_PACKAGE(CLARIUS REQUIRED)
 
   SET(CLARIUS_SRCS
-      Clarius/vtkPlusClarius.cxx
-      )
+    Clarius/vtkPlusClarius.cxx
+    )
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(CLARIUS_HDRS
-        Clarius/vtkPlusClarius.h
-        )
+      Clarius/vtkPlusClarius.h
+      )
   ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
-      ${CLARIUS_HDRS}
-      )
+    ${CLARIUS_HDRS}
+    )
 
   LIST(APPEND ${PROJECT_NAME}_SRCS
-      ${CLARIUS_SRCS}
-      )
+    ${CLARIUS_SRCS}
+    )
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-      ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
-      ${CLARIUS_INCLUDE_DIR}
-      )
+    ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
+    ${CLARIUS_INCLUDE_DIR}
+    )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-      ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
-      )
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
 
   LIST(APPEND External_Libraries_Static_Install
     ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
