@@ -1,0 +1,31 @@
+/*!
+\page DeviceLeapMotion LeapMotion hand tracker
+
+\section LeapMotionSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: https://www.leapmotion.com/
+
+\section LeapMotionSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+
+\section LeapMotionConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "LeapMotion" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+
+- \xmlElem \ref DataSources One datasource per joint \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref PortName = \c "OrientationSensor" \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section LeapMotionTrackerExampleConfigFile Example configuration file PlusDeviceSet_Server_LeapMotionTracker.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_LeapMotionTracker.xml"
+
+*/
