@@ -798,7 +798,6 @@ ENDIF()
 # --------------------------------------------------------------------------
 # CLARIUS Support
 IF(PLUS_USE_CLARIUS)
-  # If your device uses an external SDK, keep the following
   FIND_PACKAGE(Threads REQUIRED)
   FIND_PACKAGE(CLARIUS REQUIRED)
 
@@ -2277,6 +2276,7 @@ source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
+source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
