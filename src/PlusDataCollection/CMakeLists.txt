@@ -824,7 +824,7 @@ IF(PLUS_USE_CLARIUS)
     )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    Clarius
     )
 
   LIST(APPEND External_Libraries_Static_Install
