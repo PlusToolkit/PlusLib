@@ -54,6 +54,7 @@ OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
+OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -89,7 +90,6 @@ IF(UNIX AND NOT APPLE)
   OPTION(PLUS_USE_V4L2 "Provide support for video4linux devices" OFF)
 ENDIF()
 
-OPTION(PLUS_USE_CLARIUS "Provide support for clarius ultrasound probes" OFF)
 # --------------------------------------------------------------------------
 # Haptics
 ADD_SUBDIRECTORY(Haptics)
