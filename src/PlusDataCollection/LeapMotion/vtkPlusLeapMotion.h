@@ -68,9 +68,10 @@ protected:
     Bone_Metacarpal,    // Closest to heart
     Bone_Proximal,
     Bone_Intermediate,
-    Bone_Distal         // Furthest from heart
+    Bone_Distal         // Furthest from heart (aka, finger tip)
   };
   PlusStatus ToolTimeStampedUpdateBone(std::string boneName, eLeapHandType handIndex, Finger fingerIndex, Bone boneIndex);
+  PlusStatus ToolTimeStampedUpdatePalms();
 
   void SetFrame(const LEAP_TRACKING_EVENT* trackingEvent);
   LEAP_TRACKING_EVENT* GetFrame();

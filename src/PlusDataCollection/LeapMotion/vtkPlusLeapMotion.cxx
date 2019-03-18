@@ -296,6 +296,65 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalms()
+{
+  vtkPlusDataSource* aSource(nullptr);
+  if (this->GetDataSource("LeftPalm", aSource) == PLUS_SUCCESS)
+  {
+    vtkNew<vtkTransform> pose;
+    bool status(true);
+    for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
+    {
+      LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
+      if (hand.type != eLeapHandType_Left)
+      {
+        continue;
+      }
+      LEAP_PALM& palm = hand.palm;
+      vtkQuaternion<float> orientation;
+      orientation.Set(palm.orientation.w, palm.orientation.x, palm.orientation.y, palm.orientation.z);
+      pose->Translate(palm.position.x, palm.position.y, palm.position.z);
+      float axis[3];
+      float angle = orientation.GetRotationAngleAndAxis(axis);
+      pose->RotateWXYZ(angle, axis);
+      status = (this->ToolTimeStampedUpdate("LeftPalm", pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+    }
+    if (!status)
+    {
+      LOG_ERROR("Unable to record left palm transform.");
+      return PLUS_FAIL;
+    }
+  }
+
+  if (this->GetDataSource("RightPalm", aSource) == PLUS_SUCCESS)
+  {
+    vtkNew<vtkTransform> pose;
+    bool status(true);
+    for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
+    {
+      LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
+      if (hand.type != eLeapHandType_Right)
+      {
+        continue;
+      }
+      LEAP_PALM& palm = hand.palm;
+      vtkQuaternion<float> orientation;
+      orientation.Set(palm.orientation.w, palm.orientation.x, palm.orientation.y, palm.orientation.z);
+      pose->Translate(palm.position.x, palm.position.y, palm.position.z);
+      float axis[3];
+      float angle = orientation.GetRotationAngleAndAxis(axis);
+      pose->RotateWXYZ(angle, axis);
+      status = (this->ToolTimeStampedUpdate("RightPalm", pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+    }
+    if (!status)
+    {
+      LOG_ERROR("Unable to record left palm transform.");
+      return PLUS_FAIL;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkPlusLeapMotion::SetFrame(const LEAP_TRACKING_EVENT* trackingEvent)
 {
   this->Mutex->Lock();
@@ -413,6 +472,9 @@ PlusStatus vtkPlusLeapMotion::OnTrackingEvent(const LEAP_TRACKING_EVENT* trackin
   ToolTimeStampedUpdateBone("RightPinkyProximal", eLeapHandType_Right, Finger_Pinky, Bone_Proximal);
   ToolTimeStampedUpdateBone("RightPinkyIntermediate", eLeapHandType_Right, Finger_Pinky, Bone_Intermediate);
   ToolTimeStampedUpdateBone("RightPinkyDistal", eLeapHandType_Right, Finger_Pinky, Bone_Distal);
+
+  ToolTimeStampedUpdatePalms();
+
 
   this->FrameNumber++;
 
