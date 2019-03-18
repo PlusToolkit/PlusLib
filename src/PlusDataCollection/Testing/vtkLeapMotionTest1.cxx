@@ -6,11 +6,17 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusLeapMotion.h"
 
 // VTK includes
-#include <vtkSmartPointer.h>
+#include <vtkNew.h>
+#include <vtkMatrix4x4.h>
 #include <vtksys/CommandLineArguments.hxx>
+
+// STL includes
+#include <chrono>
+#include <thread>
 
 int main(int argc, char** argv)
 {
@@ -42,11 +48,18 @@ int main(int argc, char** argv)
 
   }
 
-  vtkSmartPointer<vtkPlusLeapMotion> leapMotion = vtkSmartPointer<vtkPlusLeapMotion>::New();
+  vtkNew<vtkPlusLeapMotion> leapMotion;
+  leapMotion->SetDeviceId("LeapMotionDevice");
+  leapMotion->SetToolReferenceFrameName("Tracker");
 
-  leapMotion->SetAcquisitionRate(frameRate);
-
-  LOG_INFO("Initialize...");
+  vtkNew<vtkPlusDataSource> source;
+  source->SetId("LeftIndexDistal");
+  source->SetType(DATA_SOURCE_TYPE_TOOL);
+  vtkNew<vtkPlusChannel> channel;
+  channel->SetChannelId("TrackerChannel");
+  channel->AddTool(source);
+  leapMotion->AddTool(source);
+  leapMotion->AddOutputChannel(channel);
 
   if (leapMotion->Connect() != PLUS_SUCCESS)
   {
@@ -54,16 +67,40 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  LOG_INFO("Start recording...");
   if (leapMotion->StartRecording() != PLUS_SUCCESS)
   {
-    LOG_ERROR("Unable to connect to device");
+    LOG_ERROR("Unable to start recording");
     exit(EXIT_FAILURE);
   }
 
-  // TODO : get a transform, see if it's sensical?
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  LOG_INFO("Exit successfully");
+  igsioTrackedFrame frame;
+  if (channel->GetTrackedFrame(frame) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve frame from channel.");
+    exit(EXIT_FAILURE);
+  }
+
+  vtkNew<vtkMatrix4x4> mat;
+  if (frame.GetFrameTransform(igsioTransformName("LeftIndexDistal", "Tracker"), mat) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to retrieve left index distal transform.");
+    exit(EXIT_FAILURE);
+  }
+
+  if (leapMotion->StopRecording() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to stop recording.");
+    exit(EXIT_FAILURE);
+  }
+
+  if (leapMotion->Disconnect() != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Unable to disconnect");
+    exit(EXIT_FAILURE);
+  }
+
   return EXIT_SUCCESS;
 
 }
