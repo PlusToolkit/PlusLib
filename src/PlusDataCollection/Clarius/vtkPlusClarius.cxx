@@ -4,7 +4,7 @@
     See License.txt for details.
     =========================================================Plus=header=end*/
 
-    // Local includes
+// Local includes
 #include "PlusConfigure.h"
 #include "PixelCodec.h"
 #include "vtkPlusChannel.h"
@@ -492,17 +492,17 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   double converted_timestamp = device->SystemStartTimestamp + (timestamp - device->ClariusStartTimestamp);
   if (npos != 0)
   {
-    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);   
+    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
   }
   if (device->WriteImagesToDisk)
   {
-	// create cvimg to write to disk
-	cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-	cvimg.data = cvimg.data = (unsigned char *)_image.data();
-	if (cv::imwrite("Clarius_Image" + std::to_string(timestamp) + ".bmp", cvimg) == false)
-	{
-	  LOG_ERROR("ERROR writing clarius image" + std::to_string(timestamp) + " to disk");
-	}
+    // create cvimg to write to disk
+    cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
+    cvimg.data = cvimg.data = (unsigned char *)_image.data();
+    if (cv::imwrite("Clarius_Image" + std::to_string(timestamp) + ".bmp", cvimg) == false)
+    {
+      LOG_ERROR("ERROR writing clarius image" + std::to_string(timestamp) + " to disk");
+    }
   }
   aSource->AddItem(
     _image.data(), // pointer to char array
