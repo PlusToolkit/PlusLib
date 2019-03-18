@@ -92,6 +92,9 @@ public:
   vtkSetMacro(ImuEnabled, bool);
   vtkGetMacro(ImuEnabled, bool);
 
+  vtkSetMacro(WriteImagesToDisk, bool);
+  vtkGetMacro(WriteImagesToDisk, bool);
+
   vtkSetMacro(ImuOutputFileName, std::string);
   vtkGetMacro(ImuOutputFileName, std::string);
 
@@ -112,9 +115,11 @@ protected:
   std::string ImuOutputFileName;
   int FrameWidth;
   int FrameHeight;
+  int FrameNumber;
   double SystemStartTimestamp;
   double ClariusStartTimestamp;
   bool ImuEnabled;
+  bool WriteImagesToDisk;
 
   cv::Mat cvImage;
   

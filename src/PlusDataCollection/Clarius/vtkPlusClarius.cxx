@@ -4,7 +4,7 @@
     See License.txt for details.
     =========================================================Plus=header=end*/
 
-// Local includes
+    // Local includes
 #include "PlusConfigure.h"
 #include "PixelCodec.h"
 #include "vtkPlusChannel.h"
@@ -78,9 +78,10 @@ vtkPlusClarius::vtkPlusClarius()
   , ImuOutputFileName("ClariusImuData.csv")
   , SystemStartTimestamp(0)
   , ClariusStartTimestamp(0)
+  , WriteImagesToDisk(false)
 {
   LOG_TRACE("vtkPlusClarius: Constructor")
-  this->StartThreadForInternalUpdates = false;
+    this->StartThreadForInternalUpdates = false;
   this->FrameWidth = DEFAULT_FRAME_WIDTH;
   this->FrameHeight = DEFAULT_FRAME_HEIGHT;
 
@@ -90,12 +91,12 @@ vtkPlusClarius::vtkPlusClarius()
 //----------------------------------------------------------------------------
 vtkPlusClarius::~vtkPlusClarius()
 {
-  if (this->Recording) 
+  if (this->Recording)
   {
     this->StopRecording();
   }
 
-  if (this->Connected) 
+  if (this->Connected)
   {
     clariusDisconnect(BLOCKINGCALL);
   }
@@ -127,7 +128,7 @@ vtkPlusClarius * vtkPlusClarius::GetInstance()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent) 
+void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "ipAddress" << this->IpAddress << std::endl;
@@ -139,7 +140,7 @@ void vtkPlusClarius::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElement) 
+PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusClarius::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
@@ -149,7 +150,9 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
   // if not specified, the default value for FrameWidth is 640 and FrameHeight is 480 according to clarius;
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameWidth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameHeight, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_REQUIRED(ImuEnabled, deviceConfig);
+  // TODO: change optional to required
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImuEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(WriteImagesToDisk, deviceConfig);
   if (this->ImuEnabled)
   {
     XML_READ_STRING_ATTRIBUTE_REQUIRED(ImuOutputFileName, deviceConfig);
@@ -158,7 +161,7 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigElement) 
+PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusClarius::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
@@ -168,7 +171,7 @@ PlusStatus vtkPlusClarius::WriteConfiguration(vtkXMLDataElement* rootConfigEleme
   deviceConfig->SetIntAttribute("FrameWidth", this->FrameWidth);
   deviceConfig->SetIntAttribute("FrameHeight", this->FrameHeight);
   XML_WRITE_BOOL_ATTRIBUTE(ImuEnabled, deviceConfig);
-  if(this->ImuEnabled)
+  if (this->ImuEnabled)
   {
     XML_WRITE_STRING_ATTRIBUTE(ImuOutputFileName, deviceConfig);
   }
@@ -205,8 +208,8 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
     LOG_ERROR("Video source required in configuration. Cannot proceed.");
     return PLUS_FAIL;
   }
-    
-   // Check if output channel has data source
+
+  // Check if output channel has data source
   vtkPlusDataSource* aSource(NULL);
   if (device->OutputChannels[0]->GetVideoSource(aSource) != PLUS_SUCCESS)
   {
@@ -218,7 +221,7 @@ PlusStatus vtkPlusClarius::NotifyConfigured()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::Probe() 
+PlusStatus vtkPlusClarius::Probe()
 {
   LOG_TRACE("vtkPlusClarius: Probe");
   if (this->UdpPort == -1)
@@ -254,7 +257,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   // Initialize Clarius Listener Before Connecting
-  if (!device->Connected) 
+  if (!device->Connected)
   {
     int argc = 1;
     char** argv = new char *[1];
@@ -265,7 +268,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
     ClariusFreezeFn FreezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
     ClariusProgressFn ProgressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
     ClariusErrorFn ErrorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
-    try 
+    try
     {
       if (clariusInitListener(argc, argv, path,
         SaveDataCallBackPtr,
@@ -309,7 +312,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
       LOG_ERROR("Error occurred: " << ex.what());
       return PLUS_FAIL;
     }
-    catch (...) 
+    catch (...)
     {
       LOG_ERROR("Unknown failure occured");
       return PLUS_FAIL;
@@ -322,10 +325,10 @@ PlusStatus vtkPlusClarius::InternalConnect()
     }
 
     device->UdpPort = clariusGetUdpPort();
-    if (device->UdpPort != -1) 
+    if (device->UdpPort != -1)
     {
       LOG_DEBUG("... Clarius device connected, streaming port: " << clariusGetUdpPort());
-      if (clariusSetOutputSize(device->FrameWidth, device->FrameHeight) < 0) 
+      if (clariusSetOutputSize(device->FrameWidth, device->FrameHeight) < 0)
       {
         LOG_DEBUG("Clarius Output size can not be set, falling back to default 640*480");
         device->FrameWidth = DEFAULT_FRAME_WIDTH;
@@ -333,13 +336,13 @@ PlusStatus vtkPlusClarius::InternalConnect()
       }
       return PLUS_SUCCESS;
     }
-    else 
+    else
     {
       LOG_ERROR("... Clarius device connected but could not get valid udp port");
       return PLUS_FAIL;
     }
   }
-  else 
+  else
   {
     LOG_DEBUG("Scanner already connected to IP address=" << device->IpAddress
       << " TCP Port Number =" << device->TcpPort << "Streaming Image at UDP Port=" << device->UdpPort);
@@ -353,21 +356,21 @@ PlusStatus vtkPlusClarius::InternalDisconnect()
 {
   LOG_DEBUG("vtkPlusClarius: InternalDisconnect");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
-  if (device->GetConnected()) 
+  if (device->GetConnected())
   {
-    if (clariusDisconnect(nullptr) < 0) 
+    if (clariusDisconnect(nullptr) < 0)
     {
       LOG_ERROR("could not disconnect from scanner");
       return PLUS_FAIL;
     }
-    else 
+    else
     {
       device->Connected = 0;
       LOG_DEBUG("Clarius device is now disconnected");
       return PLUS_SUCCESS;
     }
   }
-  else 
+  else
   {
     LOG_DEBUG("...Clarius device already disconnected");
     return PLUS_SUCCESS;
@@ -378,7 +381,7 @@ PlusStatus vtkPlusClarius::InternalDisconnect()
 /*! callback for error messages
  * @param[in] err the error message sent from the listener module
  * */
-void vtkPlusClarius::ErrorFn(const char *err) 
+void vtkPlusClarius::ErrorFn(const char *err)
 {
   LOG_ERROR("error: " << err);
 }
@@ -386,14 +389,14 @@ void vtkPlusClarius::ErrorFn(const char *err)
 //----------------------------------------------------------------------------
 /*! callback for freeze state change
  * @param[in] val the freeze state value 1 = frozen, 0 = imaging */
-void vtkPlusClarius::FreezeFn(int val) 
+void vtkPlusClarius::FreezeFn(int val)
 {
-  if (val) 
+  if (val)
   {
     LOG_INFO("Clarius Frozen");
   }
 
-  else 
+  else
   {
     LOG_INFO("Clarius Imaging");
   }
@@ -414,11 +417,11 @@ void vtkPlusClarius::ProgressFn(int progress)
  * @param[in] npos the # fo positional data points embedded with the frame
  * @param[in] pos the buffer of positional data
  * */
-void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos) 
+void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos)
 {
   LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
-  if (npos) 
+  if (npos)
   {
     for (auto i = 0; i < npos; i++)
     {
@@ -431,14 +434,14 @@ void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nf
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos) 
+void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos)
 {
   LOG_TRACE("vtkPlusClarius::SaveDataCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   if (device == NULL)
   {
     LOG_ERROR("Clarius instance is NULL!!!");
-    return();
+    return;
   }
 
   // Check if still connected
@@ -446,63 +449,76 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   {
     LOG_ERROR("Trouble connecting to Clarius Device. IpAddress = " << device->IpAddress
       << " port = " << device->TcpPort);
-    return();
+    return;
   }
 
-  if (newImage == NULL) 
+  if (newImage == NULL)
   {
     LOG_ERROR("No frame received by the device");
-    return();
+    return;
   }
 
   // check if there exist active data source;
-  vtkPlusDataSource* activeDataSource;
-  if (device->GetFirstActiveOutputVideoSource(activeDataSource) != PLUS_SUCCESS) 
+  vtkPlusDataSource* aSource;
+  if (device->GetFirstActiveOutputVideoSource(aSource) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve active data source.");
-    return PLUS_FAIL;
+    // Cannot return fail because the callback function has to return void
+    return;
   }
 
   // Set Image Properties
   aSource->SetInputFrameSize(nfo->width, nfo->height, 1);
   int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
-  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel)
-  if (this->WriteImagesToDisk)
-    // create cvimg to write to disk
-    cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-    int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-    cvimg.data = newImage;
-    // the clarius timestamp is in nanoseconds
-    double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
-    // Get system time (elapsed time since last reboot), return Internal system time in seconds
-    double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
-    if (device->FrameNumber == 0)
-    {
-      device->SystemStartTimestamp = systemTime;
-      device->ClariusStartTimestamp = timestamp;
-    }
+  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
+  cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
 
-    // The timestamp that each image is tagged with is
-    // (system_start_time + current_clarius_time - clarius_start_time)
-    double converted_timestamp = device->SystemStartTimestamp + (timestamp - device->ClariusStartTimestamp);
-    if (npos != 0)
-    {
-      device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
-    
-    if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false) 
+  // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
+  std::vector<char> _image;
+  size_t img_sz = nfo->width * nfo->height * (nfo->bitsPerPixel / 8);
+  if (_image.size() < img_sz)
+  {
+    _image.resize(img_sz);
+  }
+  memcpy(_image.data(), newImage, img_sz);
+
+  if (device->WriteImagesToDisk)
+  {
+    // create cvimg to write to disk
+    int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
+    cvimg.data = cvimg.data = (unsigned char *)_image.data();
+  }
+  // the clarius timestamp is in nanoseconds
+  double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
+  // Get system time (elapsed time since last reboot), return Internal system time in seconds
+  double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
+  if (device->FrameNumber == 0)
+  {
+    device->SystemStartTimestamp = systemTime;
+    device->ClariusStartTimestamp = timestamp;
+  }
+
+  // The timestamp that each image is tagged with is
+  // (system_start_time + current_clarius_time - clarius_start_time)
+  double converted_timestamp = device->SystemStartTimestamp + (timestamp - device->ClariusStartTimestamp);
+  if (npos != 0)
+  {
+    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
+
+    if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false)
     {
       LOG_ERROR("ERROR writing cvimg.jpg to file");
     }
-  
+  }
   aSource->AddItem(
-    newImage, // pointer to char array
+    _image.data(), // pointer to char array
     aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                          // Set to UN to keep the orientation of the image the same as on tablet
     aSource->GetInputFrameSize(),
     VTK_UNSIGNED_CHAR,
     frameBufferBytesPerPixel,
     US_IMG_BRIGHTNESS,
-    numberOfBytesToSkip,
+    0,
     device->FrameNumber,
     converted_timestamp,
     converted_timestamp);
@@ -510,7 +526,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime) 
+PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
 {
   LOG_TRACE("vtkPlusClarius::WritePosesToCsv");
   if (npos != 0)
@@ -538,7 +554,7 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
 
     // write the string to file
     this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
-    if (this->RawImuDataStream.is_open() == false) 
+    if (this->RawImuDataStream.is_open() == false)
     {
       LOG_ERROR("Error opening file for raw imu data");
       return PLUS_FAIL;
