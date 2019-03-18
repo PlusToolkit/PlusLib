@@ -81,7 +81,7 @@ vtkPlusClarius::vtkPlusClarius()
   , WriteImagesToDisk(false)
 {
   LOG_TRACE("vtkPlusClarius: Constructor")
-    this->StartThreadForInternalUpdates = false;
+  this->StartThreadForInternalUpdates = false;
   this->FrameWidth = DEFAULT_FRAME_WIDTH;
   this->FrameHeight = DEFAULT_FRAME_HEIGHT;
 
@@ -150,8 +150,7 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
   // if not specified, the default value for FrameWidth is 640 and FrameHeight is 480 according to clarius;
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameWidth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameHeight, deviceConfig);
-  // TODO: change optional to required
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImuEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImuEnabled, deviceConfig)
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(WriteImagesToDisk, deviceConfig);
   if (this->ImuEnabled)
   {
@@ -244,9 +243,6 @@ std::string vtkPlusClarius::vtkPlusClarius::GetSdkVersion()
 PlusStatus vtkPlusClarius::InternalConnect()
 {
   LOG_DEBUG("vtkPlusClarius: InternalConnect");
-
-  this->VideoSources[0]->SetBufferSize(BUFFER_SIZE);
-  this->VideoSources[0]->SetPixelType(VTK_UNSIGNED_CHAR);
 
   if (this->ImuEnabled)
   {
@@ -470,8 +466,8 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   // Set Image Properties
   aSource->SetInputFrameSize(nfo->width, nfo->height, 1);
   int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
+  int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
   aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
-  cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
 
   // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
   std::vector<char> _image;
@@ -481,13 +477,6 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
     _image.resize(img_sz);
   }
   memcpy(_image.data(), newImage, img_sz);
-
-  if (device->WriteImagesToDisk)
-  {
-    // create cvimg to write to disk
-    int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-    cvimg.data = cvimg.data = (unsigned char *)_image.data();
-  }
   // the clarius timestamp is in nanoseconds
   double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
   // Get system time (elapsed time since last reboot), return Internal system time in seconds
@@ -503,12 +492,17 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   double converted_timestamp = device->SystemStartTimestamp + (timestamp - device->ClariusStartTimestamp);
   if (npos != 0)
   {
-    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
-
-    if (cv::imwrite("Clarius_cvImage" + std::to_string(timestamp) + ".bmp", cvimg) == false)
-    {
-      LOG_ERROR("ERROR writing cvimg.jpg to file");
-    }
+    device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);   
+  }
+  if (device->WriteImagesToDisk)
+  {
+	// create cvimg to write to disk
+	cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
+	cvimg.data = cvimg.data = (unsigned char *)_image.data();
+	if (cv::imwrite("Clarius_Image" + std::to_string(timestamp) + ".bmp", cvimg) == false)
+	{
+	  LOG_ERROR("ERROR writing clarius image" + std::to_string(timestamp) + " to disk");
+	}
   }
   aSource->AddItem(
     _image.data(), // pointer to char array
