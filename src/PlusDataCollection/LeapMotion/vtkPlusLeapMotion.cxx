@@ -296,17 +296,17 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalms()
+PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalm(const std::string& name, eLeapHandType handType)
 {
   vtkPlusDataSource* aSource(nullptr);
-  if (this->GetDataSource("LeftPalm", aSource) == PLUS_SUCCESS)
+  if (this->GetDataSource(name, aSource) == PLUS_SUCCESS)
   {
     vtkNew<vtkTransform> pose;
     bool status(true);
     for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
     {
       LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
-      if (hand.type != eLeapHandType_Left)
+      if (hand.type != handType)
       {
         continue;
       }
@@ -317,41 +317,16 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalms()
       float axis[3];
       float angle = orientation.GetRotationAngleAndAxis(axis);
       pose->RotateWXYZ(angle, axis);
-      status = (this->ToolTimeStampedUpdate("LeftPalm", pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+      status = (this->ToolTimeStampedUpdate(name, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
     }
     if (!status)
     {
-      LOG_ERROR("Unable to record left palm transform.");
+      LOG_ERROR("Unable to record " << name << " transform.");
       return PLUS_FAIL;
     }
   }
 
-  if (this->GetDataSource("RightPalm", aSource) == PLUS_SUCCESS)
-  {
-    vtkNew<vtkTransform> pose;
-    bool status(true);
-    for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
-    {
-      LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
-      if (hand.type != eLeapHandType_Right)
-      {
-        continue;
-      }
-      LEAP_PALM& palm = hand.palm;
-      vtkQuaternion<float> orientation;
-      orientation.Set(palm.orientation.w, palm.orientation.x, palm.orientation.y, palm.orientation.z);
-      pose->Translate(palm.position.x, palm.position.y, palm.position.z);
-      float axis[3];
-      float angle = orientation.GetRotationAngleAndAxis(axis);
-      pose->RotateWXYZ(angle, axis);
-      status = (this->ToolTimeStampedUpdate("RightPalm", pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
-    }
-    if (!status)
-    {
-      LOG_ERROR("Unable to record left palm transform.");
-      return PLUS_FAIL;
-    }
-  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -473,8 +448,8 @@ PlusStatus vtkPlusLeapMotion::OnTrackingEvent(const LEAP_TRACKING_EVENT* trackin
   ToolTimeStampedUpdateBone("RightPinkyIntermediate", eLeapHandType_Right, Finger_Pinky, Bone_Intermediate);
   ToolTimeStampedUpdateBone("RightPinkyDistal", eLeapHandType_Right, Finger_Pinky, Bone_Distal);
 
-  ToolTimeStampedUpdatePalms();
-
+  ToolTimeStampedUpdatePalm("LeftPalm", eLeapHandType_Left);
+  ToolTimeStampedUpdatePalm("RightPalm", eLeapHandType_Right);
 
   this->FrameNumber++;
 
@@ -484,12 +459,43 @@ PlusStatus vtkPlusLeapMotion::OnTrackingEvent(const LEAP_TRACKING_EVENT* trackin
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnLogEvent(const LEAP_LOG_EVENT* logEvent)
 {
-  return PLUS_SUCCESS;
+  switch (logEvent->severity)
+  {
+    case eLeapLogSeverity_Unknown:
+    case eLeapLogSeverity_Information:
+      LOG_INFO(logEvent->message);
+      return PLUS_SUCCESS;
+    case eLeapLogSeverity_Warning:
+      LOG_WARNING(logEvent->message);
+      return PLUS_SUCCESS;
+    case eLeapLogSeverity_Critical:
+      LOG_ERROR(logEvent->message);
+      return PLUS_SUCCESS;
+    default:
+      return PLUS_FAIL;
+  }
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnLogEvents(const LEAP_LOG_EVENTS* logEvents)
 {
+  for (uint32_t i = 0; i < logEvents->nEvents; ++i)
+  {
+    LEAP_LOG_EVENT& event = logEvents->events[i];
+    switch (event.severity)
+    {
+      case eLeapLogSeverity_Unknown:
+      case eLeapLogSeverity_Information:
+        LOG_INFO(event.message);
+        break;
+      case eLeapLogSeverity_Warning:
+        LOG_WARNING(event.message);
+        break;
+      case eLeapLogSeverity_Critical:
+        LOG_ERROR(event.message);
+        break;
+    }
+  }
   return PLUS_SUCCESS;
 }
 
