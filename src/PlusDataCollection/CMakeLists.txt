@@ -832,6 +832,9 @@ IF(PLUS_USE_CLARIUS)
     ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
     ${CLARIUS_LIB_DIR}/listen${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
