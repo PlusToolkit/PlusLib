@@ -29,14 +29,34 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusLeapMotion);
 
 //-------------------------------------------------------------------------
+
+namespace
+{
+  static void* allocate(uint32_t size, eLeapAllocatorType typeHint, void* state)
+  {
+    void* ptr = malloc(size);
+    return ptr;
+  }
+
+  static void deallocate(void* ptr, void* state)
+  {
+    if (!ptr)
+    {
+      return;
+    }
+    free(ptr);
+  }
+}
+
+//-------------------------------------------------------------------------
 vtkPlusLeapMotion::vtkPlusLeapMotion()
   : PollTimeoutMs(1000)
   , Mutex(vtkIGSIORecursiveCriticalSection::New())
   , LeapHMDPolicy(false)
 {
-  this->RequirePortNameInDeviceSetConfiguration = true;
-  this->StartThreadForInternalUpdates = true; // Polling based device, message pump
-  this->AcquisitionRate = 60; // set to the maximum speed by default
+  this->RequirePortNameInDeviceSetConfiguration = false;
+  this->StartThreadForInternalUpdates = true; // polling based device
+  this->AcquisitionRate = 120;
 }
 
 //-------------------------------------------------------------------------
@@ -54,8 +74,8 @@ void vtkPlusLeapMotion::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 
-  os << "Connection: " << "4" << std::endl;
   os << "Poll timeout (ms)" << this->PollTimeoutMs << std::endl;
+  os << "Leap HMD policy" << (this->LeapHMDPolicy ? "TRUE" : "FALSE") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -98,10 +118,11 @@ PlusStatus vtkPlusLeapMotion::InternalConnect()
     LOG_ERROR("Unable to open the connection to the LeapMotion device:" << this->ResultToString(result));
     return PLUS_FAIL;
   }
-  if ((result = LeapSetPolicyFlags(this->Connection, this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0, !this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0)) != eLeapRS_Success)
+
+  LEAP_ALLOCATOR allocator = { allocate, deallocate, NULL };
+  if ((result = LeapSetAllocator(this->Connection, &allocator)) != eLeapRS_Success)
   {
-    LOG_WARNING("Unable to set HMD policy flag, tracking will be greatly degraded if attached to an HMD: " << this->ResultToString(result));
-    return PLUS_FAIL;
+    LOG_WARNING("Unable to set allocator. Some functionality may be missing.");
   }
 
   return PLUS_SUCCESS;
@@ -124,10 +145,26 @@ PlusStatus vtkPlusLeapMotion::InternalUpdate()
   LOG_TRACE("vtkPlusLeapMotion::InternalUpdate");
   eLeapRS result = LeapPollConnection(this->Connection, this->PollTimeoutMs, &this->LastMessage);
 
+  if (result == eLeapRS_Timeout)
+  {
+    this->PollTimeoutMs += 2;
+    return PLUS_SUCCESS;
+  }
+
   if (result != eLeapRS_Success)
   {
     LOG_ERROR("LeapC PollConnection call error: " << this->ResultToString(result));
     return PLUS_FAIL;
+  }
+
+  static bool done = false;
+  if (!done)
+  {
+    if ((result = LeapSetPolicyFlags(this->Connection, this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0, this->LeapHMDPolicy ? 0 : eLeapPolicyFlag_OptimizeHMD)) != eLeapRS_Success)
+    {
+      LOG_WARNING("Unable to set HMD policy flag, tracking will be greatly degraded if attached to an HMD: " << this->ResultToString(result));
+    }
+    done = true;
   }
 
   switch (this->LastMessage.type)
@@ -260,6 +297,26 @@ PlusStatus vtkPlusLeapMotion::NotifyConfigured()
   CHECK_DATA_SOURCE(RightPinkyIntermediate);
   CHECK_DATA_SOURCE(RightPinkyDistal);
 
+  CHECK_DATA_SOURCE(LeftPalm);
+  CHECK_DATA_SOURCE(RightPalm);
+
+  if (this->GetNumberOfTools() < 1)
+  {
+    LOG_ERROR("Must record at least one joint/palm. Please add a data source.");
+    return PLUS_FAIL;
+  }
+
+  if (this->OutputChannelCount() < 1)
+  {
+    LOG_ERROR("Device must have at least one output channel.");
+    return PLUS_FAIL;
+  }
+
+  // Add dummy transform into tool so that plus server doesn't complain about inability to retrieve a timestamp
+  vtkNew<vtkMatrix4x4> mat;
+  this->ToolTimeStampedUpdate(this->Tools.begin()->second->GetSourceId(), mat, TOOL_INVALID, 0, UNDEFINED_TIMESTAMP);
+
+  this->PollTimeoutMs = 1000.0 / this->AcquisitionRate;
   return PLUS_SUCCESS;
 }
 #undef CHECK_DATA_SOURCE
@@ -268,41 +325,54 @@ PlusStatus vtkPlusLeapMotion::NotifyConfigured()
 PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eLeapHandType handIndex, Finger fingerIndex, Bone boneIndex)
 {
   vtkPlusDataSource* aSource(nullptr);
-  if (this->GetDataSource(boneName, aSource) != PLUS_SUCCESS)
+  if (this->GetDataSource(boneName + "To" + this->ToolReferenceFrameName, aSource) == PLUS_SUCCESS)
   {
-    return PLUS_FAIL;
-  }
-  vtkNew<vtkTransform> pose;
-  bool status(true);
-  for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
-  {
-    LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
-    if (hand.type != handIndex)
+    vtkNew<vtkTransform> pose;
+    bool found(false);
+    for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
     {
-      continue;
-    }
-    LEAP_BONE& bone = hand.digits[fingerIndex].bones[boneIndex];
+      LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
+      if (hand.type != handIndex)
+      {
+        continue;
+      }
+      LEAP_BONE& bone = hand.digits[fingerIndex].bones[boneIndex];
 
-    vtkQuaternion<float> orientation;
-    orientation.Set(bone.rotation.w, bone.rotation.x, bone.rotation.y, bone.rotation.z);
-    pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
-    float axis[3];
-    float angle = orientation.GetRotationAngleAndAxis(axis);
-    pose->RotateWXYZ(angle, axis);
-    status &= (this->ToolTimeStampedUpdate(boneName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+      vtkQuaternion<float> orientation;
+      orientation.Set(bone.rotation.w, bone.rotation.x, bone.rotation.y, bone.rotation.z);
+      pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
+      float axis[3];
+      float angle = orientation.GetRotationAngleAndAxis(axis);
+      pose->RotateWXYZ(angle, axis);
+      if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to record " << boneName << " transform.");
+        return PLUS_FAIL;
+      }
+
+      return PLUS_SUCCESS;
+    }
+
+    if (!found)
+    {
+      vtkNew<vtkMatrix4x4> mat;
+      this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, mat, TOOL_OUT_OF_VIEW, this->FrameNumber, UNDEFINED_TIMESTAMP);
+    }
+
+    return PLUS_SUCCESS;
   }
 
-  return status ? PLUS_SUCCESS : PLUS_FAIL;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalm(const std::string& name, eLeapHandType handType)
 {
   vtkPlusDataSource* aSource(nullptr);
-  if (this->GetDataSource(name, aSource) == PLUS_SUCCESS)
+  if (this->GetDataSource(name + "To" + this->ToolReferenceFrameName, aSource) == PLUS_SUCCESS)
   {
     vtkNew<vtkTransform> pose;
-    bool status(true);
+    bool found(false);
     for (uint32_t i = 0; i < this->LastTrackingEvent.nHands; ++i)
     {
       LEAP_HAND& hand = this->LastTrackingEvent.pHands[i];
@@ -317,16 +387,24 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdatePalm(const std::string& name,
       float axis[3];
       float angle = orientation.GetRotationAngleAndAxis(axis);
       pose->RotateWXYZ(angle, axis);
-      status = (this->ToolTimeStampedUpdate(name, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) == PLUS_SUCCESS);
+      if (this->ToolTimeStampedUpdate(name + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) != PLUS_SUCCESS)
+      {
+        LOG_ERROR("Unable to record " << name << " transform.");
+        return PLUS_FAIL;
+      }
+
+      return PLUS_SUCCESS;
     }
-    if (!status)
+    if (!found)
     {
-      LOG_ERROR("Unable to record " << name << " transform.");
-      return PLUS_FAIL;
+      vtkNew<vtkMatrix4x4> mat;
+      this->ToolTimeStampedUpdate(name + "To" + this->ToolReferenceFrameName, mat, TOOL_OUT_OF_VIEW, this->FrameNumber, UNDEFINED_TIMESTAMP);
     }
+
+    return PLUS_SUCCESS;
   }
 
-  return PLUS_SUCCESS;
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -390,6 +468,14 @@ PlusStatus vtkPlusLeapMotion::OnDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVE
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnPolicyEvent(const LEAP_POLICY_EVENT* policyEvent)
 {
+  if ((policyEvent->current_policy & eLeapPolicyFlag_OptimizeHMD) == (this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0))
+  {
+    LOG_INFO("Successfully changed policy.");
+  }
+  else
+  {
+    LOG_INFO("Unable to change policy.");
+  }
   return PLUS_SUCCESS;
 }
 
