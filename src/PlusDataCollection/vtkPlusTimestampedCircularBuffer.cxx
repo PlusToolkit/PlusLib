@@ -17,6 +17,7 @@ vtkStandardNewMacro(vtkPlusTimestampedCircularBuffer);
 //----------------------------------------------------------------------------
 vtkPlusTimestampedCircularBuffer::vtkPlusTimestampedCircularBuffer()
   : Mutex(vtkIGSIORecursiveCriticalSection::New())
+  , NumberOfItems(0)
   , WritePointer(0)
   , CurrentTimeStamp(0.0)
   , LocalTimeOffsetSec(0.0)
