@@ -210,7 +210,7 @@ vtkPlusWinProbeVideoSource* thisPtr = nullptr;
 
 //-----------------------------------------------------------------------------
 // This callback function is invoked after each frame is ready
-int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry)
+int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry, char* hModeFrameHeader)
 {
   thisPtr->FrameCallback(length, data, hHeader, hGeometry);
   return length;

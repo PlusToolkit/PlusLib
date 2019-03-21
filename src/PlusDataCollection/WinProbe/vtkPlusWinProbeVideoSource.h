@@ -203,7 +203,7 @@ protected:
   /*! Updates buffer size based on current depth */
   void AdjustBufferSizes();
 
-  friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
+  friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry, char* hModeFrameHeader);
   void ReconstructFrame(char* data, std::vector<uint8_t>& buffer, const FrameSizeType& frameSize);
   void FlipTexture(char* data, const FrameSizeType& frameSize);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
