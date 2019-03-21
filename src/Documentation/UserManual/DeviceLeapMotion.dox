@@ -17,6 +17,8 @@
 - \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 - \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt \ref LeapHMDPolicy If the leap is attached to an HMD, set this attribute to TRUE \OptionalAtt{FALSE}
+- \xmlAtt \ref RefusePauseResumePolicy The leap motion gets very hot, so by default Plus requests permission to pause and resume the Leap service (this affects ALL leap motion apps) to minimize the temperature. Set to TRUE to refuse these permissions. \OptionalAtt{FALSE}
 
 - \xmlElem \ref DataSources One datasource per joint \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt

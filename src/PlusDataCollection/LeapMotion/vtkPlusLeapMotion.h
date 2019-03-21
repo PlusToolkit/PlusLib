@@ -44,6 +44,10 @@ public:
   vtkSetMacro(LeapHMDPolicy, bool);
   vtkBooleanMacro(LeapHMDPolicy, bool);
 
+  vtkGetMacro(RefusePauseResumePolicy, bool);
+  vtkSetMacro(RefusePauseResumePolicy, bool);
+  vtkBooleanMacro(RefusePauseResumePolicy, bool);
+
 protected:
   vtkPlusLeapMotion();
   ~vtkPlusLeapMotion();
@@ -101,6 +105,8 @@ protected:
 
 protected:
   bool                              LeapHMDPolicy;
+  bool                              RefusePauseResumePolicy;
+
   LEAP_CONNECTION                   Connection;
   unsigned int                      PollTimeoutMs;
   LEAP_CONNECTION_MESSAGE           LastMessage;

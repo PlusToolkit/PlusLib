@@ -53,6 +53,7 @@ vtkPlusLeapMotion::vtkPlusLeapMotion()
   : PollTimeoutMs(1000)
   , Mutex(vtkIGSIORecursiveCriticalSection::New())
   , LeapHMDPolicy(false)
+  , RefusePauseResumePolicy(false)
 {
   this->RequirePortNameInDeviceSetConfiguration = false;
   this->StartThreadForInternalUpdates = true; // polling based device
@@ -76,6 +77,7 @@ void vtkPlusLeapMotion::PrintSelf(ostream& os, vtkIndent indent)
 
   os << "Poll timeout (ms)" << this->PollTimeoutMs << std::endl;
   os << "Leap HMD policy" << (this->LeapHMDPolicy ? "TRUE" : "FALSE") << std::endl;
+  os << "Override pause/resume policy" << (this->RefusePauseResumePolicy ? "TRUE" : "FALSE") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -84,6 +86,7 @@ PlusStatus vtkPlusLeapMotion::ReadConfiguration(vtkXMLDataElement* rootConfigEle
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(LeapHMDPolicy, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RefusePauseResumePolicy, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -94,6 +97,7 @@ PlusStatus vtkPlusLeapMotion::WriteConfiguration(vtkXMLDataElement* rootConfigEl
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(deviceConfig, rootConfigElement);
 
   XML_WRITE_BOOL_ATTRIBUTE(LeapHMDPolicy, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(RefusePauseResumePolicy, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -160,7 +164,28 @@ PlusStatus vtkPlusLeapMotion::InternalUpdate()
   static bool done = false;
   if (!done)
   {
-    if ((result = LeapSetPolicyFlags(this->Connection, this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0, this->LeapHMDPolicy ? 0 : eLeapPolicyFlag_OptimizeHMD)) != eLeapRS_Success)
+    // Set policy flags once
+    uint64_t set = eLeapPolicyFlag_Images;
+    uint64_t clear = 0;
+    if (this->RefusePauseResumePolicy)
+    {
+      clear |= eLeapPolicyFlag_AllowPauseResume;
+    }
+    else
+    {
+      set |= eLeapPolicyFlag_AllowPauseResume;
+    }
+
+    if (this->LeapHMDPolicy)
+    {
+      set |= eLeapPolicyFlag_OptimizeHMD;
+    }
+    else
+    {
+      clear |= eLeapPolicyFlag_OptimizeHMD;
+    }
+
+    if ((result = LeapSetPolicyFlags(this->Connection, set, clear)) != eLeapRS_Success)
     {
       LOG_WARNING("Unable to set HMD policy flag, tracking will be greatly degraded if attached to an HMD: " << this->ResultToString(result));
     }
@@ -468,15 +493,18 @@ PlusStatus vtkPlusLeapMotion::OnDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVE
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnPolicyEvent(const LEAP_POLICY_EVENT* policyEvent)
 {
-  if ((policyEvent->current_policy & eLeapPolicyFlag_OptimizeHMD) == (this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0))
+  if ((policyEvent->current_policy & eLeapPolicyFlag_OptimizeHMD) == (this->LeapHMDPolicy ? eLeapPolicyFlag_OptimizeHMD : 0) &&
+      (policyEvent->current_policy & eLeapPolicyFlag_AllowPauseResume) == (this->RefusePauseResumePolicy ? 0 : eLeapPolicyFlag_AllowPauseResume) &&
+      (policyEvent->current_policy & eLeapPolicyFlag_Images) == eLeapPolicyFlag_Images)
   {
     LOG_INFO("Successfully changed policy.");
+    return PLUS_SUCCESS;
   }
   else
   {
-    LOG_INFO("Unable to change policy.");
+    LOG_ERROR("Unable to change policy.");
+    return PLUS_FAIL;
   }
-  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
