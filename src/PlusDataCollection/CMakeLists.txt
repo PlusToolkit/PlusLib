@@ -54,6 +54,7 @@ OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
+OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -2187,6 +2188,44 @@ IF(PLUS_USE_WITMOTIONTRACKER)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# LeapMotion
+IF(PLUS_USE_LEAPMOTION)
+  FIND_PACKAGE(LeapSDK 4.0)
+  SET(LeapMotion_SRCS
+    LeapMotion/vtkPlusLeapMotion.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(LeapMotion_HDRS
+      LeapMotion/vtkPlusLeapMotion.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${LeapMotion_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${LeapMotion_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/LeapMotion
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    LeapSDK::LeapC
+    )
+
+  GET_TARGET_PROPERTY(_install_file LeapSDK::LeapC IMPORTED_LOCATION_RELEASE)
+  IF(NOT _install_file)
+    MESSAGE(FATAL_ERROR "Unable to locate LeapMotion DLL to install. Check LeapSDK installation.")
+  ENDIF()
+  LIST(APPEND External_Libraries_Install
+    ${_install_file}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
   vtkPlusRendering
@@ -2272,6 +2311,7 @@ source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
+source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 
 # --------------------------------------------------------------------------

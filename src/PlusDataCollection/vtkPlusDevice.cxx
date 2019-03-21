@@ -1236,7 +1236,7 @@ PlusStatus vtkPlusDevice::Connect()
 
   if (this->InternalConnect() != PLUS_SUCCESS)
   {
-    LOCAL_LOG_ERROR("Cannot connect to data source, ConnectInternal failed");
+    LOCAL_LOG_ERROR("Cannot connect to device, ConnectInternal failed");
     return PLUS_FAIL;
   }
 

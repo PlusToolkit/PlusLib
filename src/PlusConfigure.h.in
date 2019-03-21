@@ -106,6 +106,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_INFRARED_TEQ1_CAM
 #cmakedefine PLUS_USE_INTELREALSENSE_CAM
 #cmakedefine PLUS_USE_WITMOTIONTRACKER
+#cmakedefine PLUS_USE_LEAPMOTION
 #cmakedefine PLUS_USE_CLARIUS
 
 #cmakedefine PLUS_USE_VP9
