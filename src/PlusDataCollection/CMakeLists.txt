@@ -55,6 +55,7 @@ OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared See
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
+OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -792,6 +793,48 @@ IF(PLUS_USE_BRACHY_TRACKER)
     )
   LIST(APPEND External_Libraries_Static_Install
     ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# CLARIUS Support
+IF(PLUS_USE_CLARIUS)
+  FIND_PACKAGE(Threads REQUIRED)
+  FIND_PACKAGE(CLARIUS REQUIRED)
+
+  SET(CLARIUS_SRCS
+    Clarius/vtkPlusClarius.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(CLARIUS_HDRS
+      Clarius/vtkPlusClarius.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${CLARIUS_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${CLARIUS_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Clarius
+    ${CLARIUS_INCLUDE_DIR}
+    )
+
+  LIST(APPEND External_Libraries_Debug
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND External_Libraries_Install
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${CLARIUS_LIB_DIR}/listen${CMAKE_STATIC_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -2269,6 +2312,7 @@ source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
+source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project

@@ -196,6 +196,10 @@ See License.txt for details.
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
   #include "vtkInfraredTEQ1Cam.h"
 #endif
+
+#ifdef PLUS_USE_CLARIUS
+  #include "vtkPlusClarius.h" 
+#endif
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);
@@ -360,6 +364,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
   RegisterDevice("InfraredTEQ1Cam", "vtkInfraredTEQ1Cam", (PointerToDevice)&vtkInfraredTEQ1Cam::New);
+#endif
+
+#ifdef PLUS_USE_CLARIUS
+  RegisterDevice("Clarius", "vtkPlusClarius", (PointerToDevice)&vtkPlusClarius::New);
 #endif
 
   // Virtual Devices
