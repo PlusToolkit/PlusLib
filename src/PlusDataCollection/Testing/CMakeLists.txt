@@ -576,15 +576,17 @@ IF(PLUS_TEST_TextRecognizer)
 ENDIF()
 
 #*************************** LeapMotionTest1 ***************************
-ADD_EXECUTABLE(LeapMotionTest1 vtkLeapMotionTest1.cxx)
-SET_TARGET_PROPERTIES(LeapMotionTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(LeapMotionTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
+IF(PLUS_USE_LEAPMOTION)
+  ADD_EXECUTABLE(LeapMotionTest1 vtkLeapMotionTest1.cxx)
+  SET_TARGET_PROPERTIES(LeapMotionTest1 PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(LeapMotionTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
 
-ADD_TEST(LeapMotionTest1 
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/LeapMotionTest1
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_LeapMotion.xml 
-  )
-SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+  ADD_TEST(LeapMotionTest1 
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/LeapMotionTest1
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_LeapMotion.xml 
+    )
+  SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Install
