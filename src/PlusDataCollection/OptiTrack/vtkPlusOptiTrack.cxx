@@ -15,11 +15,9 @@ See License.txt for details.
 #include <vtkXMLDataElement.h>
 
 // Motive API includes
+#include <NatNetClient.h>
+#include <NatNetTypes.h>
 #include <NPTrackingTools.h>
-
-// NatNet callback function
-//TODO: Move this out of the global namespace
-void ReceiveDataCallback(sFrameOfMocapData* data, void* pUserData);
 
 vtkStandardNewMacro(vtkPlusOptiTrack);
 
@@ -70,6 +68,11 @@ public:
   Print user friendly Motive API message to console
   */
   std::string GetMotiveErrorMessage(NPRESULT result);
+
+  /*!
+  Receive updated tracking information from the server and push the new transforms to the tools
+  */
+  static void InternalCallback(sFrameOfMocapData* data, void* pUserData);
 
   void UpdateMotiveDataDescriptions();
 };
@@ -262,7 +265,7 @@ PlusStatus vtkPlusOptiTrack::InternalConnect()
   this->Internal->NNClient = new NatNetClient(ConnectionType_Multicast);
   this->Internal->NNClient->SetVerbosityLevel(Verbosity_None);
   this->Internal->NNClient->SetVerbosityLevel(Verbosity_Warning);
-  this->Internal->NNClient->SetDataCallback(ReceiveDataCallback, this);
+  this->Internal->NNClient->SetDataCallback(vtkPlusOptiTrack::vtkInternal::InternalCallback, this);
 
   int retCode = this->Internal->NNClient->Initialize("127.0.0.1", "127.0.0.1");
 
@@ -338,23 +341,25 @@ PlusStatus vtkPlusOptiTrack::InternalUpdate()
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
+void vtkPlusOptiTrack::vtkInternal::InternalCallback(sFrameOfMocapData* data, void* pUserData)
 {
+  vtkPlusOptiTrack* self = (vtkPlusOptiTrack*)pUserData;
+
   LOG_TRACE("vtkPlusOptiTrack::InternalCallback");
   const double unfilteredTimestamp = vtkPlusAccurateTimer::GetSystemTime();
 
-  if (this->Internal->LastMotiveDataDescriptionsUpdateTimestamp < 0)
+  if (self->Internal->LastMotiveDataDescriptionsUpdateTimestamp < 0)
   {
     // do an initial match of tracked tools
-    this->Internal->UpdateMotiveDataDescriptions();
+    self->Internal->UpdateMotiveDataDescriptions();
   }
 
-  if (this->Internal->AttachToRunningMotive && this->Internal->MotiveDataDescriptionsUpdateTimeSec >= 0)
+  if (self->Internal->AttachToRunningMotive && self->Internal->MotiveDataDescriptionsUpdateTimeSec >= 0)
   {
-    double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - this->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
-    if (timeSinceMotiveDataDescriptionsUpdate > this->Internal->MotiveDataDescriptionsUpdateTimeSec)
+    double timeSinceMotiveDataDescriptionsUpdate = unfilteredTimestamp - self->Internal->LastMotiveDataDescriptionsUpdateTimestamp;
+    if (timeSinceMotiveDataDescriptionsUpdate > self->Internal->MotiveDataDescriptionsUpdateTimeSec)
     {
-      this->Internal->UpdateMotiveDataDescriptions();
+      self->Internal->UpdateMotiveDataDescriptions();
     }
   }
 
@@ -373,7 +378,7 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
     if (currentRigidBody.MeanError != 0)
     {
       // convert translation to mm
-      double translation[3] = { currentRigidBody.x * this->Internal->UnitsToMm, currentRigidBody.y * this->Internal->UnitsToMm, currentRigidBody.z * this->Internal->UnitsToMm };
+      double translation[3] = { currentRigidBody.x * self->Internal->UnitsToMm, currentRigidBody.y * self->Internal->UnitsToMm, currentRigidBody.z * self->Internal->UnitsToMm };
 
       // convert rotation from quaternion to 3x3 matrix
       double quaternion[4] = { currentRigidBody.qw, currentRigidBody.qx, currentRigidBody.qy, currentRigidBody.qz };
@@ -391,25 +396,17 @@ PlusStatus vtkPlusOptiTrack::InternalCallback(sFrameOfMocapData* data)
       }
 
       // make sure the tool was specified in the Config file
-      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
-      ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OK, FrameNumber, unfilteredTimestamp);
+      PlusTransformName toolToTracker = self->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      self->ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OK, self->FrameNumber, unfilteredTimestamp);
     }
     else
     {
       // TOOL OUT OF VIEW
-      PlusTransformName toolToTracker = this->Internal->MapRBNameToTransform[currentRigidBody.ID];
-      ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OUT_OF_VIEW, FrameNumber, unfilteredTimestamp);
+      PlusTransformName toolToTracker = self->Internal->MapRBNameToTransform[currentRigidBody.ID];
+      self->ToolTimeStampedUpdate(toolToTracker.GetTransformName(), rigidBodyToTrackerMatrix, TOOL_OUT_OF_VIEW, self->FrameNumber, unfilteredTimestamp);
     }
 
   }
 
-  this->FrameNumber++;
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-void ReceiveDataCallback(sFrameOfMocapData* data, void* pUserData)
-{
-  vtkPlusOptiTrack* internalCallback = (vtkPlusOptiTrack*)pUserData;
-  internalCallback->InternalCallback(data);
+  self->FrameNumber++;
 }
