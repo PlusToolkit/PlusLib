@@ -76,6 +76,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, MaxValue, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SSDecimation, deviceConfig); //implicit type conversion
   const char* strMode = deviceConfig->GetAttribute("Mode");
   if(strMode)
   {
@@ -124,6 +125,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("MaxValue", this->GetMaxValue());
   deviceConfig->SetUnsignedLongAttribute("LogLinearKnee", this->GetLogLinearKnee());
   deviceConfig->SetUnsignedLongAttribute("LogMax", this->GetLogMax());
+  deviceConfig->SetUnsignedLongAttribute("SSDecimation", this->GetSSDecimation());
   deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
@@ -796,6 +798,29 @@ uint8_t vtkPlusWinProbeVideoSource::GetVoltage()
     m_Voltage = ::GetVoltage();
   }
   return m_Voltage;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetSSDecimation(uint8_t value)
+{
+  if(Connected)
+  {
+    ::SetSSDecimation(value);
+    SetPendingRecreateTables(true);
+    //what we requested might be only approximately satisfied
+    m_SSDecimation = ::GetSSDecimation();
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+uint8_t vtkPlusWinProbeVideoSource::GetSSDecimation()
+{
+  if(Connected)
+  {
+    m_SSDecimation = ::GetSSDecimation();
+  }
+  return m_SSDecimation;
 }
 
 //----------------------------------------------------------------------------
