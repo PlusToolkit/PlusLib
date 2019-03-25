@@ -970,8 +970,6 @@ int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
 
 void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
 {
-
-  // m_MModeEnabled = value;
   if(Connected)
   {
     SetMIsEnabled(value);
@@ -998,7 +996,7 @@ void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
 {
-  bool mmodeEnabled;
+  bool mmodeEnabled = (m_Mode == Mode::M);
   if(Connected)
   {
     mmodeEnabled = GetMIsEnabled();
