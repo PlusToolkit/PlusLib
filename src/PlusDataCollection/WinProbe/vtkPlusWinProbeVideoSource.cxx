@@ -335,8 +335,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   if(timestamp < m_LastTimestamp)
   {
-    m_TimestampOffset += m_LastTimestamp;
-    LOG_INFO("Hardware timestamp counter restarted");
+    double alternativeTime = m_TimestampOffset + m_LastTimestamp;
+    m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
+    LOG_INFO("Hardware timestamp counter restarted. Alternative time: " << alternativeTime);
   }
   m_LastTimestamp = timestamp;
   timestamp += m_TimestampOffset;
