@@ -1,5 +1,5 @@
 PROJECT(PlusDataCollection)
-FIND_PACKAGE(grt REQUIRED)
+
 # --------------------------------------------------------------------------
 # Options
 OPTION(PLUS_USE_OPTITRACK "Provide support for the OptiTrack tracking system" OFF)
