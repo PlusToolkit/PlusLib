@@ -300,6 +300,11 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing();
     }
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1))
+    {
+      LOG_INFO("Scan Depth changed. Adjusting spacing.");
+      AdjustSpacing();
+    }
   }
   else if(usMode & M_PostProcess)
   {
