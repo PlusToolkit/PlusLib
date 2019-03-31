@@ -300,7 +300,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing();
     }
-    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1))
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing();
@@ -895,7 +895,6 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double
   if(Connected)
   {
     SetTGC(index, value);
-    //SetPendingRecreateTables(true);
     SetPendingTGCUpdate(true);
     //what we requested might be only approximately satisfied
     m_TimeGainCompensation[index] = GetTGC(index);
