@@ -106,9 +106,9 @@ vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncodersTracker()
 //-------------------------------------------------------------------------
 vtkPlusUSDigitalEncodersTracker::~vtkPlusUSDigitalEncodersTracker()
 {
-  if(this->Recording)
+  if(this->Connected)
   {
-    this->StopRecording();
+    this->Disconnect();
   }
 }
 
@@ -255,11 +255,6 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::Probe()
 PlusStatus vtkPlusUSDigitalEncodersTracker::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusUSDigitalEncodersTracker::InternalStartRecording");
-  if(this->IsRecording())
-  {
-    return PLUS_SUCCESS;
-  }
-
   return PLUS_SUCCESS;
 }
 

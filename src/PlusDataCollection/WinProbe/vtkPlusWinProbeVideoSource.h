@@ -57,6 +57,12 @@ public:
   /* Get the scan depth of US probe (mm) */
   float GetScanDepthMm();
 
+   /* Set the scan depth of US probe (mm) */
+  PlusStatus SetSSDecimation(uint8_t value);
+
+  /* Get the scan depth of US probe (mm) */
+  uint8_t GetSSDecimation();
+
   /* Get the width of current transducer (mm) */
   float GetTransducerWidthMm();
 
@@ -126,6 +132,58 @@ public:
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
 
+  void SetMModeEnabled(bool value);
+  bool GetMModeEnabled();
+
+  void SetMRevolvingEnabled(bool value);
+  bool GetMRevolvingEnabled();
+
+  void SetMPRFrequency(int32_t value);
+  int32_t GetMPRFrequency();
+
+  void SetMLineIndex(int32_t value);
+  int32_t GetMLineIndex();
+
+  void SetMWidth(int value);
+  int GetMWidth();
+
+  void SetMWidthLines(int32_t value);
+  int32_t GetMWidthLines();
+
+  void SetMAcousticLineCount(int32_t value);
+  int32_t GetMAcousticLineCount();
+
+  void SetMDepth(int32_t value);
+  int32_t GetMDepth();
+
+  enum class Mode
+  {
+    B = 0, // only B mode
+    BRF, // RF mode with reference B mode
+    RF, // RF mode only
+    M, // M mode
+    PW, // Pulsed Wave Doppler
+    CFD // Color-Flow Doppler
+  };
+
+  /*! Sets the ultrasound imaging mode. */
+  void SetMode(Mode mode)
+  {
+    m_Mode = mode;
+  }
+
+  /*! Gets the ultrasound imaging mode. */
+  Mode GetMode()
+  {
+    return m_Mode;
+  }
+
+  Mode StringToMode(std::string modeString);
+  std::string ModeToString(Mode mode);
+
+  int32_t MWidthFromSeconds(int value);
+  int MSecondsFromWidth(int32_t value);
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
@@ -149,10 +207,11 @@ protected:
   void AdjustSpacing();
 
   /*! Updates buffer size based on current depth */
-  void AdjustBufferSize();
+  void AdjustBufferSizes();
 
-  friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry);
-  void ReconstructFrame(char* data);
+  friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry, char* hModeFrameHeader);
+  void ReconstructFrame(char* data, std::vector<uint8_t>& buffer, const FrameSizeType& frameSize);
+  void FlipTexture(char* data, const FrameSizeType& frameSize);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
   float m_ScanDepth = 26.0; //mm
@@ -161,10 +220,12 @@ protected:
   uint8_t m_Voltage = 40;
   std::string m_TransducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
-  double m_TimestampOffset = 0; //difference between program start time and latest InternalStartRecording()
+  double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
+  double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
   unsigned m_LineCount = 128;
-  unsigned m_SamplesPerLine = 512;
-  std::vector<uint8_t> m_BModeBuffer; //avoid reallocating buffer every frame
+  unsigned m_SamplesPerLine = 0;
+  std::vector<uint8_t> m_PrimaryBuffer;
+  std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
   igsioTrackedFrame::FieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
@@ -176,8 +237,17 @@ protected:
   bool m_SpatialCompoundEnabled = false;
   float m_SpatialCompoundAngle = 10.0f;
   int32_t m_SpatialCompoundCount = 0;
-  std::vector<vtkPlusDataSource*> m_BSources;
-  std::vector<vtkPlusDataSource*> m_RFSources;
+  bool m_MRevolvingEnabled = false;
+  int32_t m_MPRF = 100;
+  int32_t m_MLineIndex = 60;
+  int32_t m_MWidth = 256;
+  int32_t m_MAcousticLineCount = 0;
+  int32_t m_MDepth = 0;
+  uint8_t m_SSDecimation= 2;
+  std::vector<vtkPlusDataSource*> m_PrimarySources;
+  std::vector<vtkPlusDataSource*> m_ExtraSources;
+
+  Mode m_Mode = Mode::B;
 
 public:
   vtkPlusWinProbeVideoSource(const vtkPlusWinProbeVideoSource&) = delete;
