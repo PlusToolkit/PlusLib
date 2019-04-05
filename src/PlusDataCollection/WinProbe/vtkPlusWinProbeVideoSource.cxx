@@ -692,7 +692,12 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   if(m_Mode == Mode::M)
   {
-    this->SetMModeEnabled(true);
+    SetMIsEnabled(true);
+    SetMIsRevolving(m_MRevolvingEnabled);
+    SetMPRF(m_MPRF);
+    SetMAcousticLineIndex(m_MLineIndex);
+    ::SetMWidth(m_MWidth);
+    ::SetMAcousticLineCount(m_MAcousticLineCount);
   }
 
   m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
