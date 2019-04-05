@@ -655,25 +655,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
   SetPendingRecreateTables(true);
 
-  return PLUS_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
-{
-  LOG_DEBUG("Disconnecting from WinProbe");
-  if(IsRecording())
-  {
-    this->InternalStopRecording();
-  }
-  WPDisconnect();
-  LOG_DEBUG("Disconnect from WinProbe finished");
-  return PLUS_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
-{
   //apply requested settings
   for(int i = 0; i < 8; i++)
   {
@@ -711,13 +692,38 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   if(m_Mode == Mode::M)
   {
-    this->SetMModeEnabled(true);
+    SetMIsEnabled(true);
+    SetMIsRevolving(m_MRevolvingEnabled);
+    SetMPRF(m_MPRF);
+    SetMAcousticLineIndex(m_MLineIndex);
+    ::SetMWidth(m_MWidth);
+    ::SetMAcousticLineCount(m_MAcousticLineCount);
   }
 
   m_TimestampOffset = vtkIGSIOAccurateTimer::GetSystemTime();
   LOG_DEBUG("GetPendingRecreateTables: " << GetPendingRecreateTables());
   LOG_DEBUG("GetPendingRestartSequencer: " << GetPendingRestartSequencer());
   LOG_DEBUG("GetPendingRun30Frames: " << GetPendingRun30Frames());
+
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
+{
+  LOG_DEBUG("Disconnecting from WinProbe");
+  if(IsRecording())
+  {
+    this->InternalStopRecording();
+  }
+  WPDisconnect();
+  LOG_DEBUG("Disconnect from WinProbe finished");
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
+{
   WPExecute();
   return PLUS_SUCCESS;
 }
@@ -726,7 +732,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
   WPStopScanning();
-  SetMIsEnabled(false);
   return PLUS_SUCCESS;
 }
 
