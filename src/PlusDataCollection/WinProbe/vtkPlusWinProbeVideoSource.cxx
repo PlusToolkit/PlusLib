@@ -655,25 +655,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
   SetPendingRecreateTables(true);
 
-  return PLUS_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
-{
-  LOG_DEBUG("Disconnecting from WinProbe");
-  if(IsRecording())
-  {
-    this->InternalStopRecording();
-  }
-  WPDisconnect();
-  LOG_DEBUG("Disconnect from WinProbe finished");
-  return PLUS_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------
-PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
-{
   //apply requested settings
   for(int i = 0; i < 8; i++)
   {
@@ -718,6 +699,26 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
   LOG_DEBUG("GetPendingRecreateTables: " << GetPendingRecreateTables());
   LOG_DEBUG("GetPendingRestartSequencer: " << GetPendingRestartSequencer());
   LOG_DEBUG("GetPendingRun30Frames: " << GetPendingRun30Frames());
+
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::InternalDisconnect()
+{
+  LOG_DEBUG("Disconnecting from WinProbe");
+  if(IsRecording())
+  {
+    this->InternalStopRecording();
+  }
+  WPDisconnect();
+  LOG_DEBUG("Disconnect from WinProbe finished");
+  return PLUS_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
+{
   WPExecute();
   return PLUS_SUCCESS;
 }
@@ -726,7 +727,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalStartRecording()
 PlusStatus vtkPlusWinProbeVideoSource::InternalStopRecording()
 {
   WPStopScanning();
-  SetMIsEnabled(false);
   return PLUS_SUCCESS;
 }
 
