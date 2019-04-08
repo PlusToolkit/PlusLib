@@ -23,15 +23,22 @@
 - \xmlElem \ref DataSources One datasource per joint \c DataSource child element is required. \RequiredAtt
    - \xmlElem \ref DataSource \RequiredAtt
     - \xmlAtt \ref BufferSize \OptionalAtt{150}
-	- \xmlAtt \ref Id The leap motion device uses these Ids to identify which joint transform should be stored in this data source. Please see the section on transform names in this document for details. \OptionalAtt
+	- \xmlAtt \ref Id The leap motion device uses these Ids to identify which joint transform should be stored in this data source. Please see the section on transform names in this document for details. \RequiredAtt
     - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 
 \section LeapMotionTransformNames Data source ID transform names
 
-This device uses the data source "Id" as lookup for which joint to store. The list of acceptable "Id" values are combinations of Hand ("Left", "Right"), Finger ("Thumb", "Index", "Middle", "Ring", "Pinky"), and Joint ("Metacarpal", "Proximal", "Intermediate", "Distal"). Some examples are "LeftIndexMetacarpal", "RightMiddleProximal", or "LeftThumbDistal". The only exception is that the Thumb does not have a metacarpal joint.
+This device uses the data source "Id" as lookup for which joint to store. The list of acceptable "Id" values are combinations of Hand ("Left", "Right"), Finger ("Thumb", "Index", "Middle", "Ring", "Pinky"), and Joint ("Metacarpal", "Proximal", "Intermediate", "Distal"). 
+Some examples are:
+ - LeftIndexMetacarpal
+ - RightMiddleProximal
+ - LeftThumbDistal
+ 
+The only exception is that the Thumb does not have a metacarpal joint.
+
 Non-finger joints:
- - "LeftPalm"
- - "RightPalm"
+ - LeftPalm
+ - RightPalm
 
 \section LeapMotionTrackerExampleConfigFile Example configuration file PlusDeviceSet_Server_LeapMotionTracker.xml
 

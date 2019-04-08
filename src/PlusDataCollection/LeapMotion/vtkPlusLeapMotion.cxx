@@ -267,7 +267,7 @@ PlusStatus vtkPlusLeapMotion::InternalStopRecording()
   return PLUS_SUCCESS;
 }
 
-#define CHECK_DATA_SOURCE(name) if(this->GetDataSource(#name, aSource) != PLUS_SUCCESS){ LOG_WARNING("Data source with ID \"" << #name << "\" doesn't exist. Joint will not be tracked.");}
+#define CHECK_DATA_SOURCE(name) if(this->GetDataSource(std::string(#name) + "To" + this->ToolReferenceFrameName, aSource) != PLUS_SUCCESS){ LOG_WARNING("Data source with ID \"" << #name << "\" doesn't exist. Joint will not be tracked.");}
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::NotifyConfigured()
 {
