@@ -789,7 +789,7 @@ PlusStatus vtkPlusBoneEnhancer::SaveIntermediateResultToFile(char* fileNamePostf
   if (indexIterator != this->IntermediateImageMap.end())
   {
     //Try to save the intermediate image
-    if (vtkPlusSequenceIO::Write(IntermediateImageFileName + "_Plus" + std::string(fileNamePostfix) + ".mha", this->IntermediateImageMap[fileNamePostfix], US_IMG_ORIENT_MF, false) == PLUS_FAIL)
+    if (vtkPlusSequenceIO::Write(this->IntermediateImageFileName + "_Plus" + std::string(fileNamePostfix) + ".mha", this->IntermediateImageMap[fileNamePostfix], US_IMG_ORIENT_MF, false) == PLUS_FAIL)
     {
       LOG_ERROR("An issue occured when trying to save the intermediate image with the postfix: " << fileNamePostfix);
       return PLUS_FAIL;

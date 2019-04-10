@@ -54,6 +54,10 @@ vtkPlusLeapMotion::vtkPlusLeapMotion()
   , Mutex(vtkIGSIORecursiveCriticalSection::New())
   , LeapHMDPolicy(false)
   , RefusePauseResumePolicy(false)
+  , Initialized(false)
+  , ImageInitialized(false)
+  , LeftCameraSource(nullptr)
+  , RightCameraSource(nullptr)
 {
   this->RequirePortNameInDeviceSetConfiguration = false;
   this->StartThreadForInternalUpdates = true; // polling based device
@@ -161,8 +165,7 @@ PlusStatus vtkPlusLeapMotion::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  static bool done = false;
-  if (!done)
+  if (!this->Initialized)
   {
     // Set policy flags once
     uint64_t set = eLeapPolicyFlag_Images;
@@ -189,7 +192,7 @@ PlusStatus vtkPlusLeapMotion::InternalUpdate()
     {
       LOG_WARNING("Unable to set HMD policy flag, tracking will be greatly degraded if attached to an HMD: " << this->ResultToString(result));
     }
-    done = true;
+    this->Initialized = true;
   }
 
   switch (this->LastMessage.type)
@@ -335,6 +338,18 @@ PlusStatus vtkPlusLeapMotion::NotifyConfigured()
   {
     LOG_ERROR("Device must have at least one output channel.");
     return PLUS_FAIL;
+  }
+
+  if (this->GetNumberOfVideoSources() >= 2)
+  {
+    if (this->GetVideoSourceByIndex(0, this->LeftCameraSource) != PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
+    if (this->GetVideoSourceByIndex(1, this->RightCameraSource) != PLUS_SUCCESS)
+    {
+      return PLUS_FAIL;
+    }
   }
 
   // Add dummy transform into tool so that plus server doesn't complain about inability to retrieve a timestamp
@@ -628,6 +643,73 @@ PlusStatus vtkPlusLeapMotion::OnConfigResponseEvent(const LEAP_CONFIG_RESPONSE_E
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
 {
+  if (this->GetNumberOfVideoSources() >= 2)
+  {
+    FrameSizeType leftFrameSize{ imageEvent->image[0].properties.width, imageEvent->image[0].properties.height, 1 };
+    FrameSizeType rightFrameSize{ imageEvent->image[1].properties.width, imageEvent->image[1].properties.height, 1 };
+    if (!this->ImageInitialized)
+    {
+      this->LeftCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
+      this->LeftCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+      this->RightCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
+      this->RightCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
+
+      // First image received, set up the data sources
+      this->LeftCameraSource->SetInputFrameSize(leftFrameSize);
+      this->RightCameraSource->SetInputFrameSize(rightFrameSize);
+
+      this->LeftCameraSource->SetPixelType(VTK_UNSIGNED_CHAR);
+      this->RightCameraSource->SetPixelType(VTK_UNSIGNED_CHAR);
+
+      if (imageEvent->image[0].properties.format == eLeapImageFormat_RGBIr_Bayer)
+      {
+        this->LeftCameraSource->SetImageType(US_IMG_RGB_COLOR);
+      }
+      else
+      {
+        this->LeftCameraSource->SetImageType(US_IMG_BRIGHTNESS);
+      }
+
+      if (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)
+      {
+        this->RightCameraSource->SetImageType(US_IMG_RGB_COLOR);
+      }
+      else
+      {
+        this->RightCameraSource->SetImageType(US_IMG_BRIGHTNESS);
+      }
+
+      this->LeftCameraSource->SetNumberOfScalarComponents(imageEvent->image[0].properties.bpp);
+      this->RightCameraSource->SetNumberOfScalarComponents(imageEvent->image[1].properties.bpp);
+
+      this->ImageInitialized = true;
+    }
+
+    this->LeftCameraSource->AddItem(imageEvent->image[0].data,
+                                    US_IMG_ORIENT_MN,
+                                    leftFrameSize,
+                                    VTK_UNSIGNED_CHAR,
+                                    imageEvent->image[0].properties.bpp,
+                                    (imageEvent->image[0].properties.format == eLeapImageFormat_RGBIr_Bayer) ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                    0,
+                                    this->FrameNumber); // For now, use plus timestamps, until figure out how to offset leap timestamp by plus timestamp
+    this->RightCameraSource->AddItem(imageEvent->image[0].data,
+                                     US_IMG_ORIENT_MN,
+                                     rightFrameSize,
+                                     VTK_UNSIGNED_CHAR,
+                                     imageEvent->image[1].properties.bpp,
+                                     (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer) ? US_IMG_RGB_COLOR : US_IMG_BRIGHTNESS,
+                                     0,
+                                     this->FrameNumber); // For now, use plus timestamps, until figure out how to offset leap timestamp by plus timestamp
+
+    this->FrameNumber++;
+  }
+  else
+  {
+    LOG_DEBUG("Image event received but no video data sources are available.");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 

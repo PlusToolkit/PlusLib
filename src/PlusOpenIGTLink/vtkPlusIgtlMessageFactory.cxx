@@ -402,9 +402,10 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
     igsioTransformName imageTransformName = igsioTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (transformRepository.GetTransform(imageTransformName, matrix.Get()) != PLUS_SUCCESS)
+    ToolStatus status;
+    if (transformRepository.GetTransform(imageTransformName, matrix.Get(), &status) != PLUS_SUCCESS)
     {
-      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
+      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform. ToolStatus: " << status);
       numberOfErrors++;
       continue;
     }

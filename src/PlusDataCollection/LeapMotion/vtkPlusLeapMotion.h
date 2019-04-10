@@ -20,6 +20,7 @@ See License.txt for details.
 \ingroup PlusLibDataCollection
 */
 
+class vtkPlusDataSource;
 class vtkIGSIORecursiveCriticalSection;
 
 class vtkPlusDataCollectionExport vtkPlusLeapMotion : public vtkPlusDevice
@@ -106,12 +107,17 @@ protected:
 protected:
   bool                              LeapHMDPolicy;
   bool                              RefusePauseResumePolicy;
+  bool                              Initialized;
+  bool                              ImageInitialized;
 
   LEAP_CONNECTION                   Connection;
   unsigned int                      PollTimeoutMs;
   LEAP_CONNECTION_MESSAGE           LastMessage;
   LEAP_TRACKING_EVENT               LastTrackingEvent;
   LEAP_HEAD_POSE_EVENT              LastHeadPoseEvent;
+
+  vtkPlusDataSource*                LeftCameraSource;
+  vtkPlusDataSource*                RightCameraSource;
 
   vtkIGSIORecursiveCriticalSection* Mutex;
 
