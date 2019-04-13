@@ -135,6 +135,10 @@ See License.txt for details.
   #include "Telemed\vtkPlusTelemedVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_SPINNAKER_VIDEO
+  #include "vtkPlusSpinnakerVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_THORLABS_VIDEO
   #include "ThorLabs\vtkPlusThorLabsVideoSource.h"
 #endif
@@ -309,6 +313,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_TELEMED_VIDEO
   RegisterDevice("TelemedVideo", "vtkPlusTelemedVideoSource", (PointerToDevice)&vtkPlusTelemedVideoSource::New);
+#endif
+#ifdef PLUS_USE_SPINNAKER_VIDEO
+  RegisterDevice("SpinnakerVideo", "vtkPlusSpinnakerVideoSource", (PointerToDevice)&vtkPlusSpinnakerVideoSource::New);
 #endif
 #ifdef PLUS_USE_THORLABS_VIDEO
   RegisterDevice("ThorLabsVideo", "vtkPlusThorLabsVideoSource", (PointerToDevice)&vtkPlusThorLabsVideoSource::New);
