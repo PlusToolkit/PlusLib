@@ -12,8 +12,8 @@ See License.txt for details.
 #include "vtkPlusDataSource.h"
 
 // Spinnaker API includes
-#include "Spinnaker.h"
-#include "SpinGenApi/SpinnakerGenApi.h"
+#include <Spinnaker.h>
+#include <SpinGenApi/SpinnakerGenApi.h>
 
 // STL includes
 #include <map>
@@ -35,8 +35,17 @@ namespace
   const float                     FLAG_GAIN_DB(-1);
   const psvs::WHITE_BALANCE_MODE  DEFAULT_WHITE_BALANCE_MODE(psvs::WB_AUTO_CONTINUOUS);
   const float                     FLAG_WHITE_BALANCE(-1);
-  const psvs::SHARPENING_MODE     DEFAULT_SHARPENING_MODE(psvs::SHARPENING_OFF);
-  const float                     FLAG_SHARPENING(-1);
+
+  // xml attribute values
+  std::string EXPOSURE_TIMED_STRING = "TIMED";
+  std::string EXPOSURE_AUTO_ONCE_STRING = "AUTO_ONCE";
+  std::string EXPOSURE_AUTO_CONTINUOUS_STRING = "AUTO_CONTINUOUS";
+  std::string GAIN_MANUAL_STRING = "MANUAL";
+  std::string GAIN_AUTO_ONCE_STRING = "AUTO_ONCE";
+  std::string GAIN_AUTO_CONTINUOUS_STRING = "AUTO_CONTINUOUS";
+  std::string WB_MANUAL_STRING = "MANUAL";
+  std::string WB_AUTO_ONCE_STRING = "AUTO_ONCE";
+  std::string WB_AUTO_CONTINUOUS_STRING = "AUTO_CONTINUOUS";
 }
 
 //----------------------------------------------------------------------------
@@ -78,8 +87,6 @@ vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()
   WhiteBalanceMode(DEFAULT_WHITE_BALANCE_MODE),
   WhiteBalanceRed(FLAG_WHITE_BALANCE),
   WhiteBalanceBlue(FLAG_WHITE_BALANCE),
-  SharpeningMode(DEFAULT_SHARPENING_MODE),
-  SharpeningAmount(FLAG_SHARPENING)
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::vtkPlusSpinnakerVideoSource()");
   this->RequireImageOrientationInConfiguration = true;
@@ -105,24 +112,19 @@ void vtkPlusSpinnakerVideoSource::PrintConfiguration(ostream& os, vtkIndent inde
 {
   // define enum maps
   std::map<EXPOSURE_MODE, std::string> ExposureModeToString;
-  ExposureModeToString[EXPOSURE_TIMED] = "TIMED";
-  ExposureModeToString[EXPOSURE_AUTO_ONCE] = "AUTO_ONCE";
-  ExposureModeToString[EXPOSURE_AUTO_CONTINUOUS] = "AUTO_CONTINUOUS";
+  ExposureModeToString[EXPOSURE_TIMED] = EXPOSURE_TIMED_STRING;
+  ExposureModeToString[EXPOSURE_AUTO_ONCE] = EXPOSURE_AUTO_ONCE_STRING;
+  ExposureModeToString[EXPOSURE_AUTO_CONTINUOUS] = EXPOSURE_AUTO_CONTINUOUS_STRING;
 
   std::map<GAIN_MODE, std::string> GainModeToString;
-  GainModeToString[GAIN_MANUAL] = "MANUAL";
-  GainModeToString[GAIN_AUTO_ONCE] = "AUTO_ONCE";
-  GainModeToString[GAIN_AUTO_CONTINUOUS] = "AUTO_CONTINUOUS";
+  GainModeToString[GAIN_MANUAL] = GAIN_MANUAL_STRING;
+  GainModeToString[GAIN_AUTO_ONCE] = GAIN_AUTO_ONCE_STRING;
+  GainModeToString[GAIN_AUTO_CONTINUOUS] = GAIN_AUTO_CONTINUOUS_STRING;
 
   std::map<WHITE_BALANCE_MODE, std::string> WhiteBalanceModeToString;
-  WhiteBalanceModeToString[WB_MANUAL] = "MANUAL";
-  WhiteBalanceModeToString[WB_AUTO_ONCE] = "AUTO_ONCE";
-  WhiteBalanceModeToString[WB_AUTO_CONTINUOUS] = "AUTO_CONTINUOUS";
-
-  std::map<SHARPENING_MODE, std::string> SharpeningModeToString;
-  SharpeningModeToString[SHARPENING_MANUAL] = "MANUAL";
-  SharpeningModeToString[SHARPENING_AUTO] = "AUTO";
-  SharpeningModeToString[SHARPENING_OFF] = "OFF";
+  WhiteBalanceModeToString[WB_MANUAL] = WB_MANUAL_STRING;
+  WhiteBalanceModeToString[WB_AUTO_ONCE] = WB_AUTO_ONCE_STRING;
+  WhiteBalanceModeToString[WB_AUTO_CONTINUOUS] = WB_AUTO_CONTINUOUS_STRING;
 
   // print device parameters
   os << indent << "CameraNumber: " << this->CameraNumber << std::endl;
@@ -144,11 +146,6 @@ void vtkPlusSpinnakerVideoSource::PrintConfiguration(ostream& os, vtkIndent inde
   {
     os << indent << "WhiteBalance(red):" << this->WhiteBalanceRed << std::endl;
     os << indent << "WhiteBalance(blue):" << this->WhiteBalanceBlue << std::endl;
-  }
-  os << indent << "SharpeningMode:" << SharpeningModeToString.find(this->SharpeningMode)->second << std::endl;
-  if (this->SharpeningMode == SHARPENING_MANUAL)
-  {
-    os << indent << "Sharpening:" << this->SharpeningAmount << std::endl;
   }
 }
 
@@ -223,26 +220,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::SetWhiteBalanceMode(WHITE_BALANCE_MODE w
   return PLUS_SUCCESS;
 }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusSpinnakerVideoSource::SetSharpeningMode(SHARPENING_MODE sharpMode)
-{
-  this->SharpeningMode = sharpMode;
-  return PLUS_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-PlusStatus vtkPlusSpinnakerVideoSource::SetSharpeningAmount(float sharpeningAmount)
-{
-  if (sharpeningAmount < 0 || sharpeningAmount > 0.25)
-  {
-    LOG_WARNING("Requested invalid sharpening value of " << sharpeningAmount << ", sharpening has been turned off. Valid sharpening values are in the range [0, 0.25].");
-    this->SharpeningMode = SHARPENING_OFF;
-    return PLUS_FAIL;
-  }
-  this->SharpeningAmount = sharpeningAmount;
-  return PLUS_SUCCESS;
-}
-
 //-----------------------------------------------------------------------------
 // verify that if any manual settings are enabled then their corresponding values have also been set
 PlusStatus vtkPlusSpinnakerVideoSource::CheckCameraParameterValidity()
@@ -275,13 +252,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::CheckCameraParameterValidity()
     retVal = PLUS_FAIL;
   }
 
-  // sharpening
-  if (this->SharpeningMode == SHARPENING_MANUAL && this->SharpeningAmount == FLAG_SHARPENING)
-  {
-    LOG_ERROR("Failed to configure SpinnakerVideoSource: SharpeningMode is set to \"MANUAL\", but no SharpeningAmount attribute is provided.");
-    retVal = PLUS_FAIL;
-  }
-
   return retVal;
 }
 
@@ -293,10 +263,10 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // camera params
-  XML_READ_SCALAR_ATTRIBUTE_REQUIRED(int, CameraNumber, deviceConfig);
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(PixelEncoding, deviceConfig,
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, CameraNumber, deviceConfig);
+
+  XML_READ_ENUM2_ATTRIBUTE_OPTIONAL(PixelEncoding, deviceConfig,
     "RGB24", RGB24,
-    "BGR24", BGR24,
     "MONO8", MONO8);
 
   // frame size
@@ -318,32 +288,25 @@ PlusStatus vtkPlusSpinnakerVideoSource::ReadConfiguration(vtkXMLDataElement* roo
 
   // exposure
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(ExposureMode, deviceConfig,
-    "TIMED", EXPOSURE_TIMED,
-    "AUTO_ONCE", EXPOSURE_AUTO_ONCE,
-    "AUTO_CONTINUOUS", EXPOSURE_AUTO_CONTINUOUS);
+    EXPOSURE_TIMED_STRING, EXPOSURE_TIMED,
+    EXPOSURE_AUTO_ONCE_STRING, EXPOSURE_AUTO_ONCE,
+    EXPOSURE_AUTO_CONTINUOUS_STRING, EXPOSURE_AUTO_CONTINUOUS);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ExposureMicroSec, deviceConfig);
 
   // gain
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(GainMode, deviceConfig,
-    "MANUAL", GAIN_MANUAL,
-    "AUTO_ONCE", GAIN_AUTO_ONCE,
-    "AUTO_CONTINUOUS", GAIN_AUTO_CONTINUOUS);
+    GAIN_MANUAL_STRING, GAIN_MANUAL,
+    GAIN_AUTO_ONCE_STRING, GAIN_AUTO_ONCE,
+    GAIN_AUTO_CONTINUOUS_STRING, GAIN_AUTO_CONTINUOUS);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, GainDB, deviceConfig);
 
   // white balance
   XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(WhiteBalanceMode, deviceConfig,
-    "MANUAL", WB_MANUAL,
-    "AUTO_ONCE", WB_AUTO_ONCE,
-    "AUTO_CONTINUOUS", WB_AUTO_CONTINUOUS);
+    WB_MANUAL_STRING, WB_MANUAL,
+    WB_AUTO_ONCE_STRING, WB_AUTO_ONCE,
+    WB_AUTO_CONTINUOUS_STRING, WB_AUTO_CONTINUOUS);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, WhiteBalanceRed, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, WhiteBalanceBlue, deviceConfig);
-
-  // sharpening
-  XML_READ_ENUM3_ATTRIBUTE_OPTIONAL(SharpeningMode, deviceConfig,
-    "MANUAL", SHARPENING_MANUAL,
-    "AUTO", SHARPENING_AUTO,
-    "OFF", SHARPENING_OFF);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, SharpeningAmount, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
   for (int nestedElementIndex = 0; nestedElementIndex < dataSourcesElement->GetNumberOfNestedElements(); nestedElementIndex++)
@@ -392,7 +355,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalConnect()");
   
-  // initiailize system pointer
+  // initialize system pointer
   this->Internal->SystemPtr = Spinnaker::System::GetInstance();
 
   // Retrieve list of cameras from the system
@@ -436,7 +399,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
     // map PIXEL_ENCODING to SpinnakerAPI pixel format
     std::map<PIXEL_ENCODING, std::string> PixelEncodingToString;
     PixelEncodingToString[RGB24] = "BayerRG8";
-    PixelEncodingToString[BGR24] = "BGR8";
     PixelEncodingToString[MONO8] = "Mono8";
 
     // set video encoding
@@ -584,23 +546,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalConnect()
     {
       this->Internal->CameraPtr->BalanceWhiteAuto.SetValue(Spinnaker::BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
     }
-
-    // set sharpening mode && sharpening (if manual sharpening control enabled)
-    //if (this->SharpeningMode == SHARPENING_MANUAL)
-    //{
-    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(true);
-    //  this->Internal->CameraPtr->SharpeningAuto.SetValue(false);
-    //  this->Internal->CameraPtr->Sharpening.SetValue(this->SharpeningAmount);
-    //}
-    //else if (this->SharpeningMode == SHARPENING_AUTO)
-    //{
-    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(true);
-    //  this->Internal->CameraPtr->SharpeningAuto.SetValue(true);
-    //}
-    //else if (this->SharpeningMode == SHARPENING_OFF)
-    //{
-    //  this->Internal->CameraPtr->SharpeningEnable.SetValue(false);
-    //}
   }
   catch (Spinnaker::Exception &e)
   {
@@ -620,8 +565,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
   {
     this->Internal->CameraPtr->DeInit();
     this->Internal->CameraPtr = NULL;
-    this->Internal->CameraList.Clear();
-    this->Internal->SystemPtr->ReleaseInstance();
   }
   catch (Spinnaker::Exception &e)
   {
@@ -629,7 +572,26 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalDisconnect()
     return PLUS_FAIL;
   }
 
+  try
+  {
+    this->Internal->CameraList.Clear();
+  }
+  catch (Spinnaker::Exception & e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to clear camera list. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
 
+  try
+  {
+    this->Internal->SystemPtr->ReleaseInstance();
+  }
+  catch (Spinnaker::Exception & e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to release system pointer. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
+   
   return PLUS_SUCCESS;
 }
 
@@ -638,13 +600,21 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusSpinnakerVideoSource::InternalStartRecording()");
 
+  // get camera nodemap pointer
   try
   {
-    // get camera nodemap pointer
-    Spinnaker::GenApi::INodeMap & nodeMapTLDevice = this->Internal->CameraPtr->GetTLDeviceNodeMap();
+    Spinnaker::GenApi::INodeMap& nodeMapTLDevice = this->Internal->CameraPtr->GetTLDeviceNodeMap();
     Spinnaker::GenApi::INodeMap& nodeMap = this->Internal->CameraPtr->GetNodeMap();
+  }
+  catch (Spinnaker::Exception & e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to get camera nodemap pointer. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
 
-    // set acquisition mode to continuous
+  // set acquisition mode to continuous
+  try
+  {
     Spinnaker::GenApi::CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
     if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
     {
@@ -660,8 +630,16 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalStartRecording()
     int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
     ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
     LOG_INFO("Acquisition mode set to continuous...");
+  }
+  catch (Spinnaker::Exception & e)
+  {
+    LOG_ERROR("SpinnakerVideoSource: Failed to set acquisition mode to continuous. Exception text: " << e.what());
+    return PLUS_FAIL;
+  }
 
-    // Begin acquiring images
+  // begin acquiring images
+  try
+  {
     this->Internal->CameraPtr->BeginAcquisition();
 
     std::string deviceSerialNumber("");
@@ -674,7 +652,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalStartRecording()
   }
   catch (Spinnaker::Exception &e)
   {
-    LOG_ERROR("SpinnakerVideoSource: Failed to start recording. Exception text: " << e.what());
+    LOG_ERROR("SpinnakerVideoSource: Failed to start image acquisition. Exception text: " << e.what());
     return PLUS_FAIL;
   }
 
@@ -705,6 +683,18 @@ PlusStatus vtkPlusSpinnakerVideoSource::NotifyConfigured()
 {
   // TODO: Implement some configuration checks here
   LOG_TRACE("vtkPlusSpinnakerVideoSource::NotifyConfigured()");
+
+  if (this->GetNumberOfVideoSource() < 1)
+  {
+    LOG_ERROR("Device must have at least one video source.");
+    return PLUS_FAIL;
+  }
+  if (this->OutputChannelCount() < 1)
+  {
+    LOG_ERROR("Device must have at least one output channel.");
+    return PLUS_FAIL;
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -730,10 +720,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     {
       convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_RGB8, Spinnaker::HQ_LINEAR);
     }
-    else if (this->PixelEncoding == BGR24)
-    {
-      convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_BGR8, Spinnaker::HQ_LINEAR);
-    }
     else if (this->PixelEncoding == MONO8)
     {
       convertedImage = pResultImage->Convert(Spinnaker::PixelFormat_Mono8, Spinnaker::HQ_LINEAR);
@@ -757,7 +743,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     // initialize if buffer is empty
     if (videoSource->GetNumberOfItems() == 0)
     {
-      if (this->PixelEncoding == RGB24 || this->PixelEncoding == BGR24)
+      if (this->PixelEncoding == RGB24)
       {
         videoSource->SetImageType(US_IMG_RGB_COLOR);
         videoSource->SetPixelType(VTK_UNSIGNED_CHAR);
@@ -774,7 +760,7 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     }
     
     // add frame to PLUS buffer
-    if (this->PixelEncoding == RGB24 || this->PixelEncoding == BGR24)
+    if (this->PixelEncoding == RGB24)
     {
       retVal = videoSource->AddItem(
         convertedImage->GetData(),

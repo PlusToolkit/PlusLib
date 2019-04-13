@@ -1733,12 +1733,11 @@ ENDIF()
 # Point Grey Spinnaker API support
 
 IF(PLUS_USE_SPINNAKER_VIDEO)
-  message("ABCD")
   SET(Spinnaker_SRCS
     PointGrey/vtkPlusSpinnakerVideoSource.cxx
     )
 
-  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+  IF(MSVC)
     SET(Spinnaker_HDRS
       PointGrey/vtkPlusSpinnakerVideoSource.h
       )
@@ -1791,7 +1790,7 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
       ${SPINNAKER_API_BINARY_DIR}/XMLParser_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
       )
 
-  ELSEIF(UNIX)
+  ELSEIF(UNIX AND NOT MAC)
     # Ubuntu libs
     LIST(APPEND ${PROJECT_NAME}_LIBS
     ${SPINNAKER_API_LIBRARY_DIR}/libGCBase_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}

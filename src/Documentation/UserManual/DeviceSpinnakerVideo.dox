@@ -24,10 +24,9 @@ Please build PLUS Point Grey Spinnaker support against the following Spinnaker S
 Please check your device's technical specifications (available from the <a href="https://www.ptgrey.com/support/downloads">FLIR downloads portal</a>) for the appropriate min & max values of these parameters for your hardware.
 
 - \xmlAtt \ref DeviceType "Type" = \c "SpinnakerVideo" \RequiredAtt
-- \xmlAtt \b CameraNumber Camera number to connect to. \RequiredAtt
+- \xmlAtt \b CameraNumber Camera number to connect to. \OptionalAtt{0}
 - \xmlAtt \b PixelEncoding \OptionalAtt{RGB24}
   - \c RGB24 Standard RGB 24-bit pixel encoding.
-  - \c BGR24 OpenCV compatible 24-bit pixel encoding.
   - \c MONO8 8-bit monochrome pixel encoding.
 - \xmlAtt \b FrameSize Size of the image frame (width x height) \OptionalAtt{640x480}
 - \xmlAtt \b FrameRate Number of frames acquired per second. \OptionalAtt{30}

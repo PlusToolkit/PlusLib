@@ -31,6 +31,14 @@ public:
   /*! Write configuration to xml data */
   PlusStatus WriteConfiguration(vtkXMLDataElement* config);
 
+  /*! Is this device a tracker */
+  bool IsTracker() const { return false; }
+  bool IsVirtual() const { return false; }
+  
+  /*! Verify the device is correctly configured */
+  virtual PlusStatus NotifyConfigured();
+
+protected:
   /*!
   Record incoming data at the specified acquisition rate.  The recording
   continues indefinitely until StopRecording() is called.
@@ -40,24 +48,16 @@ public:
   /*! Stop recording */
   PlusStatus InternalStopRecording();
 
-  /*! Is this device a tracker */
-  bool IsTracker() const { return false; }
-  bool IsVirtual() const { return false; }
-  
-  /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
+  /*! Get frames from camera */
   virtual PlusStatus InternalUpdate();
 
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
 
-  /*! Verify the device is correctly configured */
-  virtual PlusStatus NotifyConfigured();
-
   // available pixel encodings
   enum PIXEL_ENCODING
   {
     RGB24 = 0,
-    BGR24,
     MONO8
   };
 
@@ -83,13 +83,6 @@ public:
     WB_AUTO_CONTINUOUS
   };
 
-  enum SHARPENING_MODE
-  {
-    SHARPENING_MANUAL = 0,
-    SHARPENING_AUTO,
-    SHARPENING_OFF
-  };
-
   // methods to set & get camera parameters
   vtkGetMacro(CameraNumber, unsigned int);
   vtkSetMacro(CameraNumber, unsigned int);
@@ -110,10 +103,6 @@ public:
   vtkSetMacro(WhiteBalanceRed, float);
   vtkGetMacro(WhiteBalanceBlue, float);
   vtkSetMacro(WhiteBalanceBlue, float);
-  SHARPENING_MODE GetSharpeningMode() { return this->SharpeningMode; }
-  PlusStatus SetSharpeningMode(SHARPENING_MODE sharpMode);
-  vtkGetMacro(SharpeningAmount, float);
-  PlusStatus SetSharpeningAmount(float sharpeningAmount);
 
   // check camera parameters as set are valid
   PlusStatus CheckCameraParameterValidity();
@@ -136,8 +125,6 @@ protected:
   WHITE_BALANCE_MODE WhiteBalanceMode;
   float WhiteBalanceRed;
   float WhiteBalanceBlue;
-  SHARPENING_MODE SharpeningMode;
-  float SharpeningAmount;
 
 private:
   vtkPlusSpinnakerVideoSource(const vtkPlusSpinnakerVideoSource&);
