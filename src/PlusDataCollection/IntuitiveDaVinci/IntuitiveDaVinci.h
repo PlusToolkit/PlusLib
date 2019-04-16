@@ -26,6 +26,7 @@ See License.txt for details.
 // Intuitive includes
 #include <isi_api_types.h>
 #include <isi_api.h>
+#define ISI_FAIL 0x0001 // IntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
 class IntuitiveDaVinci
 {

@@ -165,7 +165,8 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   */
 
   XML_READ_STRING_ATTRIBUTE_WARNING(IpAddr, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_WARNING(unsigned int, Port, deviceConfig);
+  // Port is actually an unsigned int, expect implicit conversion here from the macro
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(int, Port, deviceConfig); 
   XML_READ_STRING_ATTRIBUTE_WARNING(Password, deviceConfig);
 
   return PLUS_SUCCESS;
@@ -178,7 +179,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement*
 
   XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(IpAddr, trackerConfig);
   trackerConfig->SetIntAttribute("Port", this->Port);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Password, trackerConfig)''
+  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Password, trackerConfig);
 
   return PLUS_SUCCESS;
 }
@@ -253,94 +254,95 @@ IntuitiveDaVinci* vtkPlusIntuitiveDaVinciTracker::GetDaVinci() const
 //----------------------------------------------------------------------------
 void vtkPlusIntuitiveDaVinciTracker::StreamCallback(void)
 {
-  if (!this->Connected)
-  {
-    LOG_ERROR("InternalUpdate failed: daVinci has not been initialized");
-    return;
-  }
-
-  if (!this->Recording)
-  {
-    // Drop the frame, we're not recording.
-    LOG_DEBUG("Dropped frame: daVinci is not recording");
-    return;
-  }
-
-  // Generate a frame number, as the tool does not provide a frame number.
-  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
-  ++this->FrameNumber;
-
-  // Setting the timestamp
-  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
-
-#ifdef USE_DAVINCI_TIMESTAMPS
-  if (!this->TrackerTimeToSystemTimeComputed)
-  {
-    const double timeSystemSec = unfilteredTimestamp;
-    const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
-    this->TrackerTimeToSystemTimeSec = timeSystemSec - timeTrackerSec;
-    this->TrackerTimeToSystemTimeComputed = true;
-  }
-  const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
-  const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
-#endif
-
-  vtkNew<vtkMatrix4x4> transformMatrix;
-
-  ISI_TRANSFORM* transform(NULL);
-  ISI_STREAM_FIELD stream_data;
-  for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
-  {
-    std::string toolName = it->second->GetPortName();
-
-    ISI_MANIP_INDEX manipIndex = getManipIndexFromName(toolName);
-
-    if (manipIndex == -1)
-    {
-      continue;
-    }
-
-    bool inverseTransform(false);
-    if (toolName.find("_TIP") != std::string::npos)
-    {
-      // Get the tip transform for this manipulator
-      isi_get_stream_field(manipIndex, ISI_TIP_TRANSFORM, &stream_data);
-      transform = (ISI_TRANSFORM*) stream_data.data;
-    }
-    else if (toolName.find("_EYE_FRAME") != std::string::npos)
-    {
-      // Get the eye_frame (current camera frame w.r.t to world coordinates)
-      // It doesn't matter what the manipulator index is, the EYE FRAME will be the same fo
-      // all manipulators.
-      isi_get_reference_frame(ISI_PSM2, ISI_EYE_FRAME, transform);
-      inverseTransform = true;  // This transform is the camera to world coordinates. We want our reference to be the inverse.
-    }
-
-    // If we really don't have data, keep on keeping on.
-    if (transform == NULL)
-    {
-      continue;
-    }
-
-    setVtkMatrixFromISITransform(*transformMatrix, transform);
-
-    if (inverseTransform)
-    {
-      vtkMatrix4x4::Invert(transformMatrix, transformMatrix);
-    }
-
-    std::ostringstream transformStream;
-    transformMatrix->Print(transformStream);
-    LOG_TRACE("Updating toolname: " << toolName << " with transform:\n\t" << transformStream << "\n");
-
-#ifdef USE_DAVINCI_TIMESTAMPS
-    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), transformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
-#else
-    this->ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
-#endif
-  }
-
-  LOG_TRACE("All subscribed fields from da Vinci have been updated");
+//  if (!this->Connected)
+//  {
+//    LOG_ERROR("InternalUpdate failed: daVinci has not been initialized");
+//    return;
+//  }
+//
+//  if (!this->Recording)
+//  {
+//    // Drop the frame, we're not recording.
+//    LOG_DEBUG("Dropped frame: daVinci is not recording");
+//    return;
+//  }
+//
+//  // Generate a frame number, as the tool does not provide a frame number.
+//  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
+//  ++this->FrameNumber;
+//
+//  // Setting the timestamp
+//  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
+//
+//#ifdef USE_DAVINCI_TIMESTAMPS
+//  if (!this->TrackerTimeToSystemTimeComputed)
+//  {
+//    const double timeSystemSec = unfilteredTimestamp;
+//    const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
+//    this->TrackerTimeToSystemTimeSec = timeSystemSec - timeTrackerSec;
+//    this->TrackerTimeToSystemTimeComputed = true;
+//  }
+//  const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
+//  const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
+//#endif
+//
+//  vtkNew<vtkMatrix4x4> transformMatrix;
+//
+//  ISI_TRANSFORM* transform(NULL);
+//  ISI_STREAM_FIELD stream_data;
+//  for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
+//  {
+//    std::string toolName = it->second->GetPortName();
+//
+//    ISI_MANIP_INDEX manipIndex = getManipIndexFromName(toolName);
+//
+//    if (manipIndex == -1)
+//    {
+//      continue;
+//    }
+//
+//    bool inverseTransform(false);
+//    if (toolName.find("_TIP") != std::string::npos)
+//    {
+//      // Get the tip transform for this manipulator
+//      isi_get_stream_field(manipIndex, ISI_TIP_TRANSFORM, &stream_data);
+//      transform = (ISI_TRANSFORM*) stream_data.data;
+//    }
+//    else if (toolName.find("_EYE_FRAME") != std::string::npos)
+//    {
+//      // Get the eye_frame (current camera frame w.r.t to world coordinates)
+//      // It doesn't matter what the manipulator index is, the EYE FRAME will be the same fo
+//      // all manipulators.
+//      isi_get_reference_frame(ISI_PSM2, ISI_EYE_FRAME, transform);
+//      inverseTransform = true;  // This transform is the camera to world coordinates. We want our reference to be the inverse.
+//    }
+//
+//    // If we really don't have data, keep on keeping on.
+//    if (transform == NULL)
+//    {
+//      continue;
+//    }
+//
+//    setVtkMatrixFromISITransform(*transformMatrix, transform);
+//
+//    if (inverseTransform)
+//    {
+//      vtkMatrix4x4::Invert(transformMatrix, transformMatrix);
+//    }
+//
+//    std::ostringstream transformStream;
+//    transformMatrix->Print(transformStream);
+//    LOG_TRACE("Updating toolname: " << toolName << " with transform:\n\t" << transformStream << "\n");
+//
+//#ifdef USE_DAVINCI_TIMESTAMPS
+//    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), transformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
+//#else
+//    this->ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
+//#endif
+//  }
+//
+//  LOG_TRACE("All subscribed fields from da Vinci have been updated");
+  LOG_WARNING("StreamCallback was called, but implementation was commented out!");
 }
 
 //----------------------------------------------------------------------------
@@ -348,53 +350,53 @@ ISI_MANIP_INDEX vtkPlusIntuitiveDaVinciTracker::getManipIndexFromName(const std:
 {
   ISI_MANIP_INDEX manipIndex = ISI_PSM1;
 
-  toolName = toolName.substr(0, toolName.size() - 4);
+  std::string toolNameTemp = toolName.substr(0, toolName.size() - 4); // Need temp because toolName is const.
 
-  if (igsioCommon::IsEqualInsensitive("ISI_PSM1", toolName))
+  if (igsioCommon::IsEqualInsensitive("ISI_PSM1", toolNameTemp))
   {
     manipIndex = ISI_PSM1;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_PSM2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_PSM2", toolNameTemp))
   {
     manipIndex = ISI_PSM2;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_ECM", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_ECM", toolNameTemp))
   {
     manipIndex = ISI_ECM;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTML1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTML1", toolNameTemp))
   {
     manipIndex = ISI_MTML1;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR1", toolNameTemp))
   {
     manipIndex = ISI_MTMR1;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_PSM3", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_PSM3", toolNameTemp))
   {
     manipIndex = ISI_PSM3;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_GANTRY", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_GANTRY", toolNameTemp))
   {
     manipIndex = ISI_GANTRY;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTML2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTML2", toolNameTemp))
   {
     manipIndex = ISI_MTML2;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR2", toolNameTemp))
   {
     manipIndex = ISI_MTMR2;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE1", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE1", toolNameTemp))
   {
     manipIndex = ISI_CONSOLE1;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE2", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE2", toolNameTemp))
   {
     manipIndex = ISI_CONSOLE2;
   }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CORE", toolName))
+  else if (igsioCommon::IsEqualInsensitive("ISI_CORE", toolNameTemp))
   {
     manipIndex = ISI_CORE;
   }
@@ -409,7 +411,7 @@ ISI_MANIP_INDEX vtkPlusIntuitiveDaVinciTracker::getManipIndexFromName(const std:
 //----------------------------------------------------------------------------
 void vtkPlusIntuitiveDaVinciTracker::setVtkMatrixFromISITransform(vtkMatrix4x4& destVtkMatrix, ISI_TRANSFORM* srcIsiMatrix)
 {
-  destVtkMatrix->Identity();
+  destVtkMatrix.Identity();
 
   // Let's VERY EXPLCITLY copy over the values.
   destVtkMatrix.SetElement(0, 0, srcIsiMatrix->rot.row0.x);
