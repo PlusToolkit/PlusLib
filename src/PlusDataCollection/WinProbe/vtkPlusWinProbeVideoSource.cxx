@@ -294,7 +294,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     frameSize[0] = cfdGeometry->LineCount;
     frameSize[1] = cfdGeometry->SamplesPerKernel;
   }
-  else if(usMode & B || usMode & BFRFALineImage_RFData)
+  else if(usMode & B || usMode & BFRFALineImage_RFData || usMode & BFRFALineImage_SampleData)
   {
     frameSize[0] = brfGeometry->LineCount;
     frameSize[1] = brfGeometry->SamplesPerLine;
@@ -358,6 +358,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 
   if(usMode & B && !m_PrimarySources.empty() // B-mode and primary source is defined
       || usMode & M_PostProcess && !m_ExtraSources.empty() // M-mode and extra source is defined
+      || usMode & BFRFALineImage_SampleData && !m_PrimarySources.empty()  // B-mode and primary source is defined, if in RF/BRF mode
     )
   {
     assert(length == frameSize[0] * frameSize[1] * sizeof(uint16_t) + 16); //frame + header
