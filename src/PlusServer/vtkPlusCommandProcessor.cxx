@@ -331,7 +331,6 @@ PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(PlusStatus status, cons
 //------------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string& deviceName)
 {
-
   vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
   cmdGetImage->SetCommandProcessor(this);
   cmdGetImage->SetClientId(clientId);
