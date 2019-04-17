@@ -26,16 +26,16 @@
     - \c TRUE Probe button press count is included in the output.
   - \xmlAtt \b ImageSize
   - \xmlElem \ref UsImagingParameters \RequiredAtt
-    - \xmlAtt \ref Contrast
-    - \xmlAtt \ref DepthMm
-    - \xmlAtt \ref DynRangeDb
-    - \xmlAtt \ref FrequencyMhz
-    - \xmlAtt \ref GainPercent
-    - \xmlAtt \ref TimeGainCompensation
-    - \xmlAtt \ref Intensity
-    - \xmlAtt \ref Sector
-    - \xmlAtt \ref ZoomFactor
-    - \xmlAtt \ref SoundVelocity
+    - \xmlAtt Contrast
+    - \xmlAtt DepthMm
+    - \xmlAtt DynRangeDb
+    - \xmlAtt FrequencyMhz
+    - \xmlAtt GainPercent
+    - \xmlAtt TimeGainCompensation
+    - \xmlAtt Intensity
+    - \xmlAtt Sector
+    - \xmlAtt ZoomFactor
+    - \xmlAtt SoundVelocity
   - \xmlElem \ref DataSources Exactly one \c DataSource child element is required \RequiredAtt
      - \xmlElem \ref DataSource \RequiredAtt
       - \xmlAtt \ref PortUsImageOrientation \RequiredAtt

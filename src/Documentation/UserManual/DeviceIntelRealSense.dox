@@ -35,12 +35,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 \section DeviceIntelRealSensConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "IntelRealSense" \RequiredAtt
-- \xmlAtt \ref UseRealSenseColorizer Choose whether or not to use the RealSense colorized or send raw depth data. \OptionalAtt{FALSE}
-- \xmlAtt \ref AlignDepthStream Choose whether to align RGB and depth streams. You must have both and RGB and a depth stream in your config to enable this option. \OptionalAtt{FALSE}
+- \xmlAtt UseRealSenseColorizer Choose whether or not to use the RealSense colorized or send raw depth data. \OptionalAtt{FALSE}
+- \xmlAtt AlignDepthStream Choose whether to align RGB and depth streams. You must have both and RGB and a depth stream in your config to enable this option. \OptionalAtt{FALSE}
 
 - \xmlElem \ref DataSources One \c DataSource child element is required per stream from the RealSense. \RequiredAtt
   - \xmlElem \ref DataSource \RequiredAtt
-  - \xmlAtt \ref FrameType Type of stream to capture. \RequiredAtt
+  - \xmlAtt FrameType Type of stream to capture. \RequiredAtt
     - \c RGB
     - \c DEPTH
   - \xmlAtt FrameSize Size of the video stream in pixels. Consult the RealSense documentation for your device to find appropriate frame size / frame rate combinations.

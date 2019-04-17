@@ -35,7 +35,7 @@ Please check your device's technical specifications (available from the <a href=
   - \c AUTO_ONCE Automatically set the exposure once on camera start.
   - \c AUTO_CONTINUOUS Continuously adjust the exposure of the camera during the acquisition.
 - \xmlAtt \b ExposureMicroSec Exposure time as a float in micro seconds.
-- \xmlAtt \b GainMode Enable manual / automatic control of the camera's gain. \OptinoalAtt{AUTO_CONTINUOUS}
+- \xmlAtt \b GainMode Enable manual / automatic control of the camera's gain. \OptionalAtt{AUTO_CONTINUOUS}
   - \c MANUAL Manual control, the GainDB attribute must be provided to use this option.
   - \c AUTO_ONCE Automatically set the gain once on camera start.
   - \c AUTO_CONTINUOUS Continuously adjust the gain of the camera during the acquisition.
