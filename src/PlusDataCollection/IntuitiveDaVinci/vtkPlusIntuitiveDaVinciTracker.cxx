@@ -45,9 +45,9 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   , TrackerTimeToSystemTimeComputed(false)
 #endif
 {
-  this->StartThreadForInternalUpdates = false; // Callback based system
+  this->StartThreadForInternalUpdates = true; // Want a dedicated thread
   this->RequirePortNameInDeviceSetConfiguration = true;
-  this->AcquisitionRate = 20;
+  this->AcquisitionRate = 50;
 }
 
 //----------------------------------------------------------------------------
@@ -79,6 +79,8 @@ std::string vtkPlusIntuitiveDaVinciTracker::GetSdkVersion()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::Probe()
 {
+  LOG_TRACE("Probing vtkPlusIntuitiveDaVinciTracker.");
+
   if (this->Connected)
   {
     LOG_ERROR("vtkPlusIntuitiveDaVinciTracker::Probe should not be called while the device is already initialized");
@@ -168,6 +170,10 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   // Port is actually an unsigned int, expect implicit conversion here from the macro
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, Port, deviceConfig); 
   XML_READ_STRING_ATTRIBUTE_WARNING(Password, deviceConfig);
+
+  std::string SomeAttribute;
+  XML_READ_STRING_ATTRIBUTE_WARNING(SomeAttribute, deviceConfig);
+  LOG_INFO("The attribute SomeAttribute was found to be " << SomeAttribute);
 
   return PLUS_SUCCESS;
 }
