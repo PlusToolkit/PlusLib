@@ -47,6 +47,7 @@ OPTION(PLUS_USE_SPINNAKER_VIDEO "Provide support for Point Grey Spinnaker API co
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
+OPTION(PLUS_USE_IntuitiveDaVinciTest "Enable FAKE tracking of the da Vinci Surgical System." OFF)
 OPTION(PLUS_USE_PHILIPS_3D_ULTRASOUND "Provide support for the Philips ie33 3D ultrasound probe system." OFF)
 OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultrasound systems. Enable this only if a BK ProFocus device is connected to this computer." OFF)
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
@@ -1369,16 +1370,12 @@ IF(PLUS_USE_IntuitiveDaVinci)
   SET(daVinci_SRCS
     IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.cxx
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
-	IntuitiveDaVinciTest/IntuitiveDavinciTest.cxx
-	IntuitiveDaVinciTest/vtkPlusIntuitiveDaVinciTestTracker.cxx
     )
 
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(daVinci_HDRS
       IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
       IntuitiveDaVinci/IntuitiveDaVinci.h
-	  IntuitiveDaVinciTest/vtkPlusIntuitiveDaVinciTestTracker.h
-      IntuitiveDaVinciTest/IntuitiveDaVinciTest.h
     )
   ENDIF()
 
@@ -1393,6 +1390,40 @@ IF(PLUS_USE_IntuitiveDaVinci)
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${IntuitiveDaVinci_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${IntuitiveDaVinci_LIBRARY}
+    ws2_32
+    iphlpapi
+    )
+ENDIF()
+
+#--------------------------------------------------------------------------
+# da Vinci Surgical System support
+IF(PLUS_USE_IntuitiveDaVinciTest)
+  SET(daVinciTest_SRCS
+	IntuitiveDaVinciTest/IntuitiveDavinciTest.cxx
+	IntuitiveDaVinciTest/vtkPlusIntuitiveDaVinciTestTracker.cxx
+    )
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(daVinciTest_HDRS
+	  IntuitiveDaVinciTest/vtkPlusIntuitiveDaVinciTestTracker.h
+      IntuitiveDaVinciTest/IntuitiveDaVinciTest.h
+    )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${daVinciTest_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${daVinciTest_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${IntuitiveDaVinci_INCLUDE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinciTest
     )
 
