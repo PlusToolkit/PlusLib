@@ -29,12 +29,12 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusIntuitiveDaVinciTracker);
+vtkStandardNewMacro(vtkPlusIntuitiveDaVinciTestTracker);
 
 //----------------------------------------------------------------------------
 vtkPlusIntuitiveDaVinciTestTracker::vtkPlusIntuitiveDaVinciTestTracker()
   : vtkPlusDevice()
-  , DaVinci(new IntuitiveDaVinci())
+  , DaVinci(new IntuitiveDaVinciTest())
   , LastFrameNumber(0)
   , FrameNumber(0)
   , IpAddr("10.0.0.5")

@@ -49,7 +49,7 @@ public:
   /*! Write current da Vinci configuration settings to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
-  IntuitiveDaVinci* GetDaVinci() const;
+  IntuitiveDaVinciTest* GetDaVinci() const;
 
   vtkSetStdStringMacro(IpAddr);
   vtkGetStdStringMacro(IpAddr);
@@ -78,7 +78,7 @@ protected:
 
 protected:
   /*! Pointer to the MicronTrackerInterface class instance */
-  IntuitiveDaVinci*   DaVinci;
+  IntuitiveDaVinciTest*   DaVinci;
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double              LastFrameNumber;
