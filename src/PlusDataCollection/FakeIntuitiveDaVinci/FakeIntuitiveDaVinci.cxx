@@ -5,10 +5,10 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 
 #include "PlusConfigure.h"
-#include "IntuitiveDaVinciTest.h"
+#include "FakeIntuitiveDaVinci.h"
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciTest::IntuitiveDaVinciTest()
+FakeIntuitiveDaVinci::FakeIntuitiveDaVinci()
   : mPrintStream(ISI_FALSE)
   , mQuit(ISI_FALSE)
   , mManipIndex(ISI_PSM2)
@@ -22,14 +22,14 @@ IntuitiveDaVinciTest::IntuitiveDaVinciTest()
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciTest::~IntuitiveDaVinciTest()
+FakeIntuitiveDaVinci::~FakeIntuitiveDaVinci()
 {
   stop();
   disconnect();
 }
 
 //----------------------------------------------------------------------------
-bool IntuitiveDaVinciTest::start()
+bool FakeIntuitiveDaVinci::start()
 {
   if (isConnected())
   {
@@ -49,7 +49,7 @@ bool IntuitiveDaVinciTest::start()
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::stop()
+void FakeIntuitiveDaVinci::stop()
 {
   if (isConnected())
   {
@@ -60,14 +60,14 @@ void IntuitiveDaVinciTest::stop()
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciTest::connect()
+ISI_STATUS FakeIntuitiveDaVinci::connect()
 {
   ISI_UINT password = strtol(mPassword.c_str(), 0, 16);
   mStatus = isi_connect_ex(mIpAddr.c_str(), mPort, password);
 
   if (mStatus != ISI_SUCCESS)
   {
-    LOG_WARNING("IntuitiveDaVinciTest::connect failed to connect with arguments");
+    LOG_WARNING("FakeIntuitiveDaVinci::connect failed to connect with arguments");
     isi_stop_stream();
     isi_disconnect();
   }
@@ -76,7 +76,7 @@ ISI_STATUS IntuitiveDaVinciTest::connect()
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciTest::disconnect()
+ISI_STATUS FakeIntuitiveDaVinci::disconnect()
 {
   // check if system is connected
   if (!this->mConnected)
@@ -92,7 +92,7 @@ ISI_STATUS IntuitiveDaVinciTest::disconnect()
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciTest::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB, void* eventUserData, void* streamUserData)
+ISI_STATUS FakeIntuitiveDaVinci::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CALLBACK sCB, void* eventUserData, void* streamUserData)
 {
   setStreamCallback(sCB, streamUserData);
   setEventCallback(eCB, eventUserData);
@@ -102,14 +102,14 @@ ISI_STATUS IntuitiveDaVinciTest::subscribe(ISI_EVENT_CALLBACK eCB, ISI_STREAM_CA
 
   if (mStatus != ISI_SUCCESS)
   {
-    LOG_WARNING("IntuitiveDaVinciTest::subscribe failed to start stream. Disconnecting from da Vinci");
+    LOG_WARNING("FakeIntuitiveDaVinci::subscribe failed to start stream. Disconnecting from da Vinci");
     stop();
   }
   return mStatus;
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciTest::setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData)
+ISI_STATUS FakeIntuitiveDaVinci::setStreamCallback(ISI_STREAM_CALLBACK sCB, void* userData)
 {
   // Subscribe to all fields
   mStatus = isi_subscribe_all_stream_fields();
@@ -129,7 +129,7 @@ ISI_STATUS IntuitiveDaVinciTest::setStreamCallback(ISI_STREAM_CALLBACK sCB, void
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciTest::setEventCallback(ISI_EVENT_CALLBACK eCB, void* userData)
+ISI_STATUS FakeIntuitiveDaVinci::setEventCallback(ISI_EVENT_CALLBACK eCB, void* userData)
 {
   // Subscribe to all events
   mStatus = isi_subscribe_all_events();
@@ -150,7 +150,7 @@ ISI_STATUS IntuitiveDaVinciTest::setEventCallback(ISI_EVENT_CALLBACK eCB, void* 
 }
 
 //----------------------------------------------------------------------------
-std::vector<std::string> IntuitiveDaVinciTest::getManipulatorNames()
+std::vector<std::string> FakeIntuitiveDaVinci::getManipulatorNames()
 {
   std::vector<std::string> names;
 
@@ -168,7 +168,7 @@ std::vector<std::string> IntuitiveDaVinciTest::getManipulatorNames()
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::getPosition(ISI_TRANSFORM* T)
+void FakeIntuitiveDaVinci::getPosition(ISI_TRANSFORM* T)
 {
   ISI_STREAM_FIELD stream_data; // Datastreams
 
@@ -178,7 +178,7 @@ void IntuitiveDaVinciTest::getPosition(ISI_TRANSFORM* T)
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
+void FakeIntuitiveDaVinci::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
 {
   if (in == NULL || out == NULL) { return; }
 
@@ -192,7 +192,7 @@ void IntuitiveDaVinciTest::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::printTransform(const ISI_TRANSFORM* T)
+void FakeIntuitiveDaVinci::printTransform(const ISI_TRANSFORM* T)
 {
   LOG_INFO("Position: " << T->pos.x << " " << T->pos.y << " "  << T->pos.z);
   LOG_INFO("X Axis Rotation: " << T->rot.row0.x << " " << T->rot.row1.x << " "  << T->rot.row2.x);
@@ -201,7 +201,7 @@ void IntuitiveDaVinciTest::printTransform(const ISI_TRANSFORM* T)
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::printHelp()
+void FakeIntuitiveDaVinci::printHelp()
 {
   static const char help[] = {"\
 								API Stream Menu \n\
@@ -219,7 +219,7 @@ void IntuitiveDaVinciTest::printHelp()
 }
 
 //----------------------------------------------------------------------------
-std::string IntuitiveDaVinciTest::getLibraryVersion()
+std::string FakeIntuitiveDaVinci::getLibraryVersion()
 {
   ISI_STATUS status;
   ISI_SYSTEM_CONFIG config;
@@ -235,13 +235,13 @@ std::string IntuitiveDaVinciTest::getLibraryVersion()
 }
 
 //----------------------------------------------------------------------------
-bool IntuitiveDaVinciTest::isConnected()
+bool FakeIntuitiveDaVinci::isConnected()
 {
   return mConnected;
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::printStreamState(ISI_MANIP_INDEX manipIndex)
+void FakeIntuitiveDaVinci::printStreamState(ISI_MANIP_INDEX manipIndex)
 {
   ISI_STREAM_FIELD stream_data;
   int i;
@@ -264,7 +264,7 @@ void IntuitiveDaVinciTest::printStreamState(ISI_MANIP_INDEX manipIndex)
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::printVersion()
+void FakeIntuitiveDaVinci::printVersion()
 {
   ISI_STATUS status;
   ISI_SYSTEM_CONFIG config;
@@ -279,12 +279,12 @@ void IntuitiveDaVinciTest::printVersion()
   }
   else
   {
-    LOG_WARNING("Failed to get IntuitiveDaVinciTest system configuration");
+    LOG_WARNING("Failed to get FakeIntuitiveDaVinci system configuration");
   }
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::setHostInfo(const std::string ip, const unsigned int port, const std::string pass)
+void FakeIntuitiveDaVinci::setHostInfo(const std::string ip, const unsigned int port, const std::string pass)
 {
   mIpAddr = ip;
   mPort = port;
@@ -292,19 +292,19 @@ void IntuitiveDaVinciTest::setHostInfo(const std::string ip, const unsigned int 
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::setIpAddr(const std::string ip)
+void FakeIntuitiveDaVinci::setIpAddr(const std::string ip)
 {
   mIpAddr = ip;
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::setPort(const unsigned int port)
+void FakeIntuitiveDaVinci::setPort(const unsigned int port)
 {
   mPort = port;
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinciTest::setPassword(const std::string password)
+void FakeIntuitiveDaVinci::setPassword(const std::string password)
 {
   mPassword = password;
 }

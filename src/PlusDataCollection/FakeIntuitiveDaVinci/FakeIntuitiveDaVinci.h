@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef _INTUITIVE_DAVINCI_TEST_H_
-#define _INTUITIVE_DAVINCI_TEST_H_
+#ifndef _FAKE_INTUITIVE_DAVINCI_H_
+#define _FAKE_INTUITIVE_DAVINCI_H_
 
 #ifdef WIN32
   #define _CRT_SECURE_NO_WARNINGS
@@ -27,16 +27,16 @@ See License.txt for details.
 #include <isi_api_types.h>
 #include <isi_api.h>
 #include <isi_api_math.h>
-#define ISI_FAIL 0x0001 // IntuitiveDaVinciTest expects this for some reason, not provided by isi_types.h
+#define ISI_FAIL 0x0001 // FakeIntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
-class IntuitiveDaVinciTest
+class FakeIntuitiveDaVinci
 {
 public:
   // Constructor
-  IntuitiveDaVinciTest();
+  FakeIntuitiveDaVinci();
 
   // Destructor
-  ~IntuitiveDaVinciTest();
+  ~FakeIntuitiveDaVinci();
 
   // Start streaming from the da Vinci
   bool start();

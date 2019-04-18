@@ -91,7 +91,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_VFW_VIDEO
 #cmakedefine PLUS_USE_STEALTHLINK
 #cmakedefine PLUS_USE_IntuitiveDaVinci
-#cmakedefine PLUS_USE_IntuitiveDaVinciTest
+#cmakedefine PLUS_USE_FakeIntuitiveDaVinci
 #cmakedefine PLUS_USE_PHILIPS_3D_ULTRASOUND
 #cmakedefine PLUS_USE_TextRecognizer
 #cmakedefine PLUS_TEST_TextRecognizer

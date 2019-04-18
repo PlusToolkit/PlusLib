@@ -7,7 +7,7 @@ See License.txt for details.
 // Local includes
 #include "igsioCommon.h"
 #include "PlusConfigure.h"
-#include "vtkPlusIntuitiveDaVinciTestTracker.h"
+#include "vtkPlusFakeIntuitiveDaVinciTracker.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -29,12 +29,12 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 
-vtkStandardNewMacro(vtkPlusIntuitiveDaVinciTestTracker);
+vtkStandardNewMacro(vtkPlusFakeIntuitiveDaVinciTracker);
 
 //----------------------------------------------------------------------------
-vtkPlusIntuitiveDaVinciTestTracker::vtkPlusIntuitiveDaVinciTestTracker()
+vtkPlusFakeIntuitiveDaVinciTracker::vtkPlusFakeIntuitiveDaVinciTracker()
   : vtkPlusDevice()
-  , DaVinci(new IntuitiveDaVinciTest())
+  , DaVinci(new FakeIntuitiveDaVinci())
   , LastFrameNumber(0)
   , FrameNumber(0)
   , IpAddr("10.0.0.5")
@@ -51,7 +51,7 @@ vtkPlusIntuitiveDaVinciTestTracker::vtkPlusIntuitiveDaVinciTestTracker()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusIntuitiveDaVinciTestTracker::~vtkPlusIntuitiveDaVinciTestTracker()
+vtkPlusFakeIntuitiveDaVinciTracker::~vtkPlusFakeIntuitiveDaVinciTracker()
 {
   this->StopRecording();
   this->Disconnect();
@@ -65,31 +65,31 @@ vtkPlusIntuitiveDaVinciTestTracker::~vtkPlusIntuitiveDaVinciTestTracker()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIntuitiveDaVinciTestTracker::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlusFakeIntuitiveDaVinciTracker::PrintSelf(ostream& os, vtkIndent indent)
 {
 
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusIntuitiveDaVinciTestTracker::GetSdkVersion()
+std::string vtkPlusFakeIntuitiveDaVinciTracker::GetSdkVersion()
 {
   return this->DaVinci->getLibraryVersion();
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::Probe()
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::Probe()
 {
-  LOG_TRACE("Probing vtkPlusIntuitiveDaVinciTestTracker.");
+  LOG_TRACE("Probing vtkPlusFakeIntuitiveDaVinciTracker.");
 
   if (this->Connected)
   {
-    LOG_ERROR("vtkPlusIntuitiveDaVinciTestTracker::Probe should not be called while the device is already initialized");
+    LOG_ERROR("vtkPlusFakeIntuitiveDaVinciTracker::Probe should not be called while the device is already initialized");
     return PLUS_FAIL;
   }
 
   if (this->DaVinci->connect() != ISI_SUCCESS)
   {
-    LOG_ERROR("vtkPlusIntuitiveDaVinciTestTracker::Probe could not connect to the da Vinci!");
+    LOG_ERROR("vtkPlusFakeIntuitiveDaVinciTracker::Probe could not connect to the da Vinci!");
     return PLUS_FAIL;
   }
 
@@ -117,7 +117,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::Probe()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalStartRecording()
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalStartRecording()
 {
   if (!this->Connected)
   {
@@ -141,7 +141,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalStartRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalStopRecording()
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalStopRecording()
 {
   // Stop the stream and disconnect from the da Vinci.
   this->DaVinci->stop();
@@ -149,9 +149,9 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalStopRecording()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusIntuitiveDaVinciTestTracker::ReadConfiguration");
+  LOG_TRACE("vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Determine which manipulators we're interested in.
@@ -175,7 +175,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::ReadConfiguration(vtkXMLDataEleme
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
 
@@ -187,11 +187,11 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::WriteConfiguration(vtkXMLDataElem
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalConnect()
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect()
 {
   // Before trying to get to the da Vinci, let's see what was read in our XML config file.
   // That is, what manipulators did we say we were interested in?
-  LOG_TRACE("vtkPlusIntuitiveDaVinciTestTracker::InternalConnect");
+  LOG_TRACE("vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect");
 
   if (this->Connected)
   {
@@ -225,7 +225,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  if (this->DaVinci->subscribe(NULL, vtkPlusIntuitiveDaVinciTestTrackerUtilities::streamCB, NULL, this) != ISI_SUCCESS)
+  if (this->DaVinci->subscribe(NULL, vtkPlusFakeIntuitiveDaVinciTrackerUtilities::streamCB, NULL, this) != ISI_SUCCESS)
   {
     LOG_ERROR("Error in subscribing to events and stream! Stream not started!");
     return PLUS_FAIL;
@@ -240,7 +240,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalConnect()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalDisconnect()
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalDisconnect()
 {
   this->DaVinci->disconnect();
 
@@ -248,13 +248,13 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciTest* vtkPlusIntuitiveDaVinciTestTracker::GetDaVinci() const
+FakeIntuitiveDaVinci* vtkPlusFakeIntuitiveDaVinciTracker::GetDaVinci() const
 {
   return this->DaVinci;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIntuitiveDaVinciTestTracker::StreamCallback(void)
+void vtkPlusFakeIntuitiveDaVinciTracker::StreamCallback(void)
 {
 //  if (!this->Connected)
 //  {
@@ -348,7 +348,7 @@ void vtkPlusIntuitiveDaVinciTestTracker::StreamCallback(void)
 }
 
 //----------------------------------------------------------------------------
-ISI_MANIP_INDEX vtkPlusIntuitiveDaVinciTestTracker::getManipIndexFromName(const std::string& toolName)
+ISI_MANIP_INDEX vtkPlusFakeIntuitiveDaVinciTracker::getManipIndexFromName(const std::string& toolName)
 {
   ISI_MANIP_INDEX manipIndex = ISI_PSM1;
 
@@ -411,7 +411,7 @@ ISI_MANIP_INDEX vtkPlusIntuitiveDaVinciTestTracker::getManipIndexFromName(const 
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIntuitiveDaVinciTestTracker::setVtkMatrixFromISITransform(vtkMatrix4x4& destVtkMatrix, ISI_TRANSFORM* srcIsiMatrix)
+void vtkPlusFakeIntuitiveDaVinciTracker::setVtkMatrixFromISITransform(vtkMatrix4x4& destVtkMatrix, ISI_TRANSFORM* srcIsiMatrix)
 {
   destVtkMatrix.Identity();
 
@@ -439,7 +439,7 @@ void vtkPlusIntuitiveDaVinciTestTracker::setVtkMatrixFromISITransform(vtkMatrix4
   return;
 }
 
-namespace vtkPlusIntuitiveDaVinciTestTrackerUtilities
+namespace vtkPlusFakeIntuitiveDaVinciTrackerUtilities
 {
   //----------------------------------------------------------------------------
   void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS], void* userdata)
@@ -450,7 +450,7 @@ namespace vtkPlusIntuitiveDaVinciTestTrackerUtilities
   //----------------------------------------------------------------------------
   void ISICALLBACK streamCB(void* userData)
   {
-    vtkPlusIntuitiveDaVinciTestTracker* trackerInstance = reinterpret_cast<vtkPlusIntuitiveDaVinciTestTracker*>(userData);
+    vtkPlusFakeIntuitiveDaVinciTracker* trackerInstance = reinterpret_cast<vtkPlusFakeIntuitiveDaVinciTracker*>(userData);
     if (trackerInstance)
     {
       trackerInstance->StreamCallback();

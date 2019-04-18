@@ -4,8 +4,8 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-#ifndef __vtkPlusIntuitiveDaVinciTestTracker_h
-#define __vtkPlusIntuitiveDaVinciTestTracker_h
+#ifndef __vtkPlusFakeIntuitiveDaVinciTracker_h
+#define __vtkPlusFakeIntuitiveDaVinciTracker_h
 
 // Local includes
 #include "vtkPlusDataCollectionExport.h"
@@ -15,24 +15,24 @@ See License.txt for details.
 #include <vtkObjectFactory.h>
 
 // Intuitive includes
-#include "IntuitiveDaVinciTest.h"
+#include "FakeIntuitiveDaVinci.h"
 
 class vtkMatrix4x4;
-class IntuitiveDaVinciTest;
-class vtkPlusIntuitiveDaVinciTestTracker;
+class FakeIntuitiveDaVinci;
+class vtkPlusFakeIntuitiveDaVinciTracker;
 
-namespace vtkPlusIntuitiveDaVinciTestTrackerUtilities
+namespace vtkPlusFakeIntuitiveDaVinciTrackerUtilities
 {
   void ISICALLBACK streamCB(void* userdata);
   void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void* userdata);
 };
 
 /* This class talks with the da Vinci Surgical System. */
-class vtkPlusDataCollectionExport vtkPlusIntuitiveDaVinciTestTracker : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusFakeIntuitiveDaVinciTracker : public vtkPlusDevice
 {
 public:
-  static vtkPlusIntuitiveDaVinciTestTracker* New();
-  vtkTypeMacro(vtkPlusIntuitiveDaVinciTestTracker, vtkPlusDevice);
+  static vtkPlusFakeIntuitiveDaVinciTracker* New();
+  vtkTypeMacro(vtkPlusFakeIntuitiveDaVinciTracker, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Hardware device SDK version. */
@@ -49,7 +49,7 @@ public:
   /*! Write current da Vinci configuration settings to XML */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
-  IntuitiveDaVinciTest* GetDaVinci() const;
+  FakeIntuitiveDaVinci* GetDaVinci() const;
 
   vtkSetStdStringMacro(IpAddr);
   vtkGetStdStringMacro(IpAddr);
@@ -61,8 +61,8 @@ public:
   vtkGetStdStringMacro(Password);
 
 protected:
-  vtkPlusIntuitiveDaVinciTestTracker();
-  ~vtkPlusIntuitiveDaVinciTestTracker();
+  vtkPlusFakeIntuitiveDaVinciTracker();
+  ~vtkPlusFakeIntuitiveDaVinciTracker();
 
   /*! Connect to the tracker hardware */
   virtual PlusStatus InternalConnect();
@@ -78,7 +78,7 @@ protected:
 
 protected:
   /*! Pointer to the MicronTrackerInterface class instance */
-  IntuitiveDaVinciTest*   DaVinci;
+  FakeIntuitiveDaVinci*   DaVinci;
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   double              LastFrameNumber;
@@ -95,13 +95,13 @@ protected:
   std::string         Password;
 
 private:
-  vtkPlusIntuitiveDaVinciTestTracker(const vtkPlusIntuitiveDaVinciTestTracker&);
-  void operator=(const vtkPlusIntuitiveDaVinciTestTracker&);
+  vtkPlusFakeIntuitiveDaVinciTracker(const vtkPlusFakeIntuitiveDaVinciTracker&);
+  void operator=(const vtkPlusFakeIntuitiveDaVinciTracker&);
 
   void StreamCallback(void);
 
-  friend void vtkPlusIntuitiveDaVinciTestTrackerUtilities::streamCB(void* userData);
-  friend void vtkPlusIntuitiveDaVinciTestTrackerUtilities::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void* userdata);
+  friend void vtkPlusFakeIntuitiveDaVinciTrackerUtilities::streamCB(void* userData);
+  friend void vtkPlusFakeIntuitiveDaVinciTrackerUtilities::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void* userdata);
 
   ISI_MANIP_INDEX getManipIndexFromName(const std::string& toolName);
   void setVtkMatrixFromISITransform(vtkMatrix4x4& vtkMatrix, ISI_TRANSFORM* isiMatrix);
