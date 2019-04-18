@@ -63,7 +63,7 @@ public:
 
   vtkSetStdStringMacro(SomeAttribute);
   vtkGetStdStringMacro(SomeAttribute);
-  
+
 protected:
   vtkPlusIntuitiveDaVinciTracker();
   ~vtkPlusIntuitiveDaVinciTracker();
@@ -97,7 +97,8 @@ protected:
   std::string         IpAddr;
   unsigned int        Port;
   std::string         Password;
-
+  std::string         SomeAttribute;
+  
 private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);
   void operator=(const vtkPlusIntuitiveDaVinciTracker&);

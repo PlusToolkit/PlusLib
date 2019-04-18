@@ -171,9 +171,8 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, Port, deviceConfig); 
   XML_READ_STRING_ATTRIBUTE_WARNING(Password, deviceConfig);
 
-  std::string SomeAttribute;
   XML_READ_STRING_ATTRIBUTE_WARNING(SomeAttribute, deviceConfig);
-  LOG_INFO("The attribute SomeAttribute was found to be " << SomeAttribute);
+  LOG_INFO("The attribute SomeAttribute was found in the xml to be " << SomeAttribute);
 
   return PLUS_SUCCESS;
 }
