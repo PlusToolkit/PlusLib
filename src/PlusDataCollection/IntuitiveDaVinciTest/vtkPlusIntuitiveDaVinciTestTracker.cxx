@@ -248,7 +248,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTestTracker::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinci* vtkPlusIntuitiveDaVinciTestTracker::GetDaVinci() const
+IntuitiveDaVinciTest* vtkPlusIntuitiveDaVinciTestTracker::GetDaVinci() const
 {
   return this->DaVinci;
 }
@@ -450,7 +450,7 @@ namespace vtkPlusIntuitiveDaVinciTestTrackerUtilities
   //----------------------------------------------------------------------------
   void ISICALLBACK streamCB(void* userData)
   {
-    vtkPlusIntuitiveDaVinciTestTracker* TrackerInstance = reinterpret_cast<vtkPlusIntuitiveDaVinciTestTracker*>(userData);
+    vtkPlusIntuitiveDaVinciTestTracker* trackerInstance = reinterpret_cast<vtkPlusIntuitiveDaVinciTestTracker*>(userData);
     if (trackerInstance)
     {
       trackerInstance->StreamCallback();
