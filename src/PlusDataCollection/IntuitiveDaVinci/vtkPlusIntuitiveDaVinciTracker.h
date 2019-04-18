@@ -61,6 +61,9 @@ public:
   vtkSetStdStringMacro(Password);
   vtkGetStdStringMacro(Password);
 
+  vtkSetStdStringMacro(SomeAttribute);
+  vtkGetStdStringMacro(SomeAttribute);
+  
 protected:
   vtkPlusIntuitiveDaVinciTracker();
   ~vtkPlusIntuitiveDaVinciTracker();
