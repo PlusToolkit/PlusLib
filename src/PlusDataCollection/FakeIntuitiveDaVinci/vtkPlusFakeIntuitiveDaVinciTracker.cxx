@@ -7,12 +7,14 @@ See License.txt for details.
 // Local includes
 #include "igsioCommon.h"
 #include "PlusConfigure.h"
+#include "vtkPlusDataSource.h"
 #include "vtkPlusFakeIntuitiveDaVinciTracker.h"
 
 // VTK includes
 #include <vtkImageData.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 
 // OS includes
 #include <ctype.h>
@@ -37,22 +39,22 @@ vtkPlusFakeIntuitiveDaVinciTracker::vtkPlusFakeIntuitiveDaVinciTracker()
   , DaVinci(new FakeIntuitiveDaVinci())
   , LastFrameNumber(0)
   , FrameNumber(0)
-  , IpAddr("10.0.0.5")
-  , Port(5002)
-  , Password("")
-#ifdef USE_DAVINCI_TIMESTAMPS
-  , TrackerTimeToSystemTimeSec(0.0)
-  , TrackerTimeToSystemTimeComputed(false)
-#endif
 {
   this->StartThreadForInternalUpdates = true; // Want a dedicated thread
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->AcquisitionRate = 50;
+
+  this->PSM1Tip = NULL;
+  this->PSM2Tip = NULL;
+
+
+  LOG_DEBUG("vktPlusFakeIntuitiveDaVinciTracker created.");
 }
 
 //----------------------------------------------------------------------------
 vtkPlusFakeIntuitiveDaVinciTracker::~vtkPlusFakeIntuitiveDaVinciTracker()
 {
+
   this->StopRecording();
   this->Disconnect();
 
@@ -62,6 +64,8 @@ vtkPlusFakeIntuitiveDaVinciTracker::~vtkPlusFakeIntuitiveDaVinciTracker()
     delete this->DaVinci;
     this->DaVinci = nullptr;
   }
+
+  LOG_DEBUG("vktPlusFakeIntuitiveDaVinciTracker destroyed.");
 }
 
 //----------------------------------------------------------------------------
@@ -71,45 +75,9 @@ void vtkPlusFakeIntuitiveDaVinciTracker::PrintSelf(ostream& os, vtkIndent indent
 }
 
 //----------------------------------------------------------------------------
-std::string vtkPlusFakeIntuitiveDaVinciTracker::GetSdkVersion()
-{
-  return this->DaVinci->getLibraryVersion();
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::Probe()
 {
-  LOG_TRACE("Probing vtkPlusFakeIntuitiveDaVinciTracker.");
-
-  if (this->Connected)
-  {
-    LOG_ERROR("vtkPlusFakeIntuitiveDaVinciTracker::Probe should not be called while the device is already initialized");
-    return PLUS_FAIL;
-  }
-
-  if (this->DaVinci->connect() != ISI_SUCCESS)
-  {
-    LOG_ERROR("vtkPlusFakeIntuitiveDaVinciTracker::Probe could not connect to the da Vinci!");
-    return PLUS_FAIL;
-  }
-
-  // Get the list of manipulators for the da Vinci.
-  // If the list is zero, we've failed terribly.
-  // Possibly also check for names and verify we have what we expect.
-  std::vector<std::string> manipNames = this->DaVinci->getManipulatorNames();
-
-  if (manipNames.size() == 0)
-  {
-    LOG_ERROR("Error in retrieving manipulator information. Zero manipulators found.");
-    return PLUS_FAIL;
-  }
-
-  for (int i = 0; i < manipNames.size(); i++)
-  {
-    LOG_DEBUG("Manipulator " << i << " name: " << manipNames[i] << "\n");
-  }
-
-  // TODO: Probe to see what we've specified in the XML file actually exists in the da Vinci
+  LOG_DEBUG("Probing vtkPlusFakeIntuitiveDaVinciTracker.");
 
   this->DaVinci->stop();
   this->DaVinci->disconnect();
@@ -137,6 +105,7 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalStartRecording()
     return PLUS_FAIL;
   }
 
+  LOG_DEBUG("InternalStartRecording started.");
   return PLUS_SUCCESS;
 }
 
@@ -145,13 +114,57 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalStopRecording()
 {
   // Stop the stream and disconnect from the da Vinci.
   this->DaVinci->stop();
+
+  LOG_DEBUG("InternalStartRecording stopped.");
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalUpdate()
+{
+  this->LastFrameNumber++;
+  int defaultToolFrameNumber = this->LastFrameNumber;
+  const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
+  
+  if(this->PSM1Tip != NULL)
+  {
+    vtkSmartPointer<vtkMatrix4x4> PSM1TipToBase = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    
+    transform->RotateX(50.0*toolTimestamp);
+    transform->RotateY(50.0*toolTimestamp);
+    transform->RotateZ(50.0*toolTimestamp);
+
+    transform->GetMatrix(PSM1TipToBase);
+
+    // This device has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = this->PSM1Tip->GetFrameNumber() + 1 ;
+    ToolTimeStampedUpdate(this->PSM1Tip->GetId(), PSM1TipToBase, TOOL_OK, frameNumber, toolTimestamp);
+  }
+
+  if(this->PSM2Tip != NULL)
+  {
+    vtkSmartPointer<vtkMatrix4x4> PSM2TipToBase = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    
+    transform->RotateX(70.0*toolTimestamp);
+    transform->RotateY(70.0*toolTimestamp);
+    transform->RotateZ(70.0*toolTimestamp);
+
+    transform->GetMatrix(PSM2TipToBase);
+
+    // This device has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = this->PSM2Tip->GetFrameNumber() + 1 ;
+    ToolTimeStampedUpdate(this->PSM2Tip->GetId(), PSM2TipToBase, TOOL_OK, frameNumber, toolTimestamp);
+  }
+
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
-  LOG_TRACE("vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration");
+  LOG_DEBUG("vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   // Determine which manipulators we're interested in.
@@ -166,10 +179,7 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataEleme
   See vtkPlusDevice.cxx : ReadConfiguration( ... )
   */
 
-  XML_READ_STRING_ATTRIBUTE_WARNING(IpAddr, deviceConfig);
-  // Port is actually an unsigned int, expect implicit conversion here from the macro
-  XML_READ_SCALAR_ATTRIBUTE_WARNING(int, Port, deviceConfig); 
-  XML_READ_STRING_ATTRIBUTE_WARNING(Password, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
 
   return PLUS_SUCCESS;
 }
@@ -177,11 +187,8 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataEleme
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement* rootConfigElement)
 {
+  LOG_DEBUG("vtkPlusFakeIntuitiveDaVinciTracker::WriteConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_WRITING(trackerConfig, rootConfigElement);
-
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(IpAddr, trackerConfig);
-  trackerConfig->SetIntAttribute("Port", this->Port);
-  XML_WRITE_STRING_ATTRIBUTE_IF_NOT_EMPTY(Password, trackerConfig);
 
   return PLUS_SUCCESS;
 }
@@ -191,7 +198,7 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect()
 {
   // Before trying to get to the da Vinci, let's see what was read in our XML config file.
   // That is, what manipulators did we say we were interested in?
-  LOG_TRACE("vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect");
+  LOG_DEBUG("vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect");
 
   if (this->Connected)
   {
@@ -199,51 +206,31 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalConnect()
     return PLUS_SUCCESS;
   }
 
-  // Try to connect a few different times. If at first you don't
-  // succeed, try again!
-  int connectionAttempts(0);
-  bool initCompleted(false);
-
-  // Set our connection parameters obtained from the config file
-  this->DaVinci->setHostInfo(IpAddr, Port, Password);
-
-  while (!initCompleted && connectionAttempts < MAX_ATTEMPTS)
+  if (this->DaVinci->connect() != ISI_SUCCESS)
   {
-    if (this->DaVinci->connect() != 0)
-    {
-      LOG_DEBUG("Failed to connect to da Vinci. Retry: " << connectionAttempts);
-      vtkIGSIOAccurateTimer::Delay(1.0);
-      connectionAttempts++;
-    }
-
-    initCompleted = true;
-  }
-
-  if (connectionAttempts == MAX_ATTEMPTS)
-  {
-    LOG_ERROR("Error in initializing da Vinci");
+    LOG_DEBUG("Failed to connect to da Vinci.");
     return PLUS_FAIL;
   }
 
-  if (this->DaVinci->subscribe(NULL, vtkPlusFakeIntuitiveDaVinciTrackerUtilities::streamCB, NULL, this) != ISI_SUCCESS)
-  {
-    LOG_ERROR("Error in subscribing to events and stream! Stream not started!");
-    return PLUS_FAIL;
-  }
+  this->PSM1Tip = NULL;
+  GetToolByPortName("PSM1Tip", this->PSM1Tip);
+  this->PSM2Tip = NULL;
+  GetToolByPortName("PSM2Tip", this->PSM2Tip);
 
-#ifdef USE_DAVINCI_TIMESTAMPS
-  this->TrackerTimeToSystemTimeSec = 0;
-  this->TrackerTimeToSystemTimeComputed = false;
-#endif
-
+  LOG_DEBUG("Connection successful.")
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalDisconnect()
 {
+  LOG_DEBUG("vtkPlusFakeIntuitiveDaVinciTracker::InternalDisconnect");
   this->DaVinci->disconnect();
 
+  this->PSM1Tip = NULL;
+  this->PSM2Tip = NULL;
+
+  LOG_DEBUG("Disconnection successful.")
   return PLUS_SUCCESS;
 }
 
@@ -251,163 +238,6 @@ PlusStatus vtkPlusFakeIntuitiveDaVinciTracker::InternalDisconnect()
 FakeIntuitiveDaVinci* vtkPlusFakeIntuitiveDaVinciTracker::GetDaVinci() const
 {
   return this->DaVinci;
-}
-
-//----------------------------------------------------------------------------
-void vtkPlusFakeIntuitiveDaVinciTracker::StreamCallback(void)
-{
-//  if (!this->Connected)
-//  {
-//    LOG_ERROR("InternalUpdate failed: daVinci has not been initialized");
-//    return;
-//  }
-//
-//  if (!this->Recording)
-//  {
-//    // Drop the frame, we're not recording.
-//    LOG_DEBUG("Dropped frame: daVinci is not recording");
-//    return;
-//  }
-//
-//  // Generate a frame number, as the tool does not provide a frame number.
-//  // FrameNumber will be used in ToolTimeStampedUpdate for timestamp filtering
-//  ++this->FrameNumber;
-//
-//  // Setting the timestamp
-//  const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
-//
-//#ifdef USE_DAVINCI_TIMESTAMPS
-//  if (!this->TrackerTimeToSystemTimeComputed)
-//  {
-//    const double timeSystemSec = unfilteredTimestamp;
-//    const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
-//    this->TrackerTimeToSystemTimeSec = timeSystemSec - timeTrackerSec;
-//    this->TrackerTimeToSystemTimeComputed = true;
-//  }
-//  const double timeTrackerSec = this->DaVinci->mtGetLatestFrameTime();
-//  const double timeSystemSec = timeTrackerSec + this->TrackerTimeToSystemTimeSec;
-//#endif
-//
-//  vtkNew<vtkMatrix4x4> transformMatrix;
-//
-//  ISI_TRANSFORM* transform(NULL);
-//  ISI_STREAM_FIELD stream_data;
-//  for (DataSourceContainerIterator it = this->Tools.begin(); it != this->Tools.end(); ++it)
-//  {
-//    std::string toolName = it->second->GetPortName();
-//
-//    ISI_MANIP_INDEX manipIndex = getManipIndexFromName(toolName);
-//
-//    if (manipIndex == -1)
-//    {
-//      continue;
-//    }
-//
-//    bool inverseTransform(false);
-//    if (toolName.find("_TIP") != std::string::npos)
-//    {
-//      // Get the tip transform for this manipulator
-//      isi_get_stream_field(manipIndex, ISI_TIP_TRANSFORM, &stream_data);
-//      transform = (ISI_TRANSFORM*) stream_data.data;
-//    }
-//    else if (toolName.find("_EYE_FRAME") != std::string::npos)
-//    {
-//      // Get the eye_frame (current camera frame w.r.t to world coordinates)
-//      // It doesn't matter what the manipulator index is, the EYE FRAME will be the same fo
-//      // all manipulators.
-//      isi_get_reference_frame(ISI_PSM2, ISI_EYE_FRAME, transform);
-//      inverseTransform = true;  // This transform is the camera to world coordinates. We want our reference to be the inverse.
-//    }
-//
-//    // If we really don't have data, keep on keeping on.
-//    if (transform == NULL)
-//    {
-//      continue;
-//    }
-//
-//    setVtkMatrixFromISITransform(*transformMatrix, transform);
-//
-//    if (inverseTransform)
-//    {
-//      vtkMatrix4x4::Invert(transformMatrix, transformMatrix);
-//    }
-//
-//    std::ostringstream transformStream;
-//    transformMatrix->Print(transformStream);
-//    LOG_TRACE("Updating toolname: " << toolName << " with transform:\n\t" << transformStream << "\n");
-//
-//#ifdef USE_DAVINCI_TIMESTAMPS
-//    this->ToolTimeStampedUpdateWithoutFiltering(it->second->GetSourceId(), transformMatrix, TOOL_OK, timeSystemSec, timeSystemSec);
-//#else
-//    this->ToolTimeStampedUpdate(it->second->GetSourceId(), transformMatrix, TOOL_OK, this->FrameNumber, unfilteredTimestamp);
-//#endif
-//  }
-//
-//  LOG_TRACE("All subscribed fields from da Vinci have been updated");
-  LOG_WARNING("StreamCallback was called, but implementation was commented out!");
-}
-
-//----------------------------------------------------------------------------
-ISI_MANIP_INDEX vtkPlusFakeIntuitiveDaVinciTracker::getManipIndexFromName(const std::string& toolName)
-{
-  ISI_MANIP_INDEX manipIndex = ISI_PSM1;
-
-  std::string toolNameTemp = toolName.substr(0, toolName.size() - 4); // Need temp because toolName is const.
-
-  if (igsioCommon::IsEqualInsensitive("ISI_PSM1", toolNameTemp))
-  {
-    manipIndex = ISI_PSM1;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_PSM2", toolNameTemp))
-  {
-    manipIndex = ISI_PSM2;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_ECM", toolNameTemp))
-  {
-    manipIndex = ISI_ECM;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTML1", toolNameTemp))
-  {
-    manipIndex = ISI_MTML1;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR1", toolNameTemp))
-  {
-    manipIndex = ISI_MTMR1;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_PSM3", toolNameTemp))
-  {
-    manipIndex = ISI_PSM3;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_GANTRY", toolNameTemp))
-  {
-    manipIndex = ISI_GANTRY;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTML2", toolNameTemp))
-  {
-    manipIndex = ISI_MTML2;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_MTMR2", toolNameTemp))
-  {
-    manipIndex = ISI_MTMR2;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE1", toolNameTemp))
-  {
-    manipIndex = ISI_CONSOLE1;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CONSOLE2", toolNameTemp))
-  {
-    manipIndex = ISI_CONSOLE2;
-  }
-  else if (igsioCommon::IsEqualInsensitive("ISI_CORE", toolNameTemp))
-  {
-    manipIndex = ISI_CORE;
-  }
-  else
-  {
-    LOG_DEBUG("Could not set manipIndex. Defaulting to PSM1");
-  }
-
-  return manipIndex;
 }
 
 //----------------------------------------------------------------------------
@@ -438,22 +268,3 @@ void vtkPlusFakeIntuitiveDaVinciTracker::setVtkMatrixFromISITransform(vtkMatrix4
 
   return;
 }
-
-namespace vtkPlusFakeIntuitiveDaVinciTrackerUtilities
-{
-  //----------------------------------------------------------------------------
-  void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS], void* userdata)
-  {
-    LOG_INFO(isi_get_event_timestamp(mid, event_id) << " mid: " << isi_get_manip_name(mid) << ",\tevent: " << isi_get_event_name(event_id) << ", args: (" << args[0] << " " << args[1] << " " << args[2] << " " << args[3] << ")");
-  }
-
-  //----------------------------------------------------------------------------
-  void ISICALLBACK streamCB(void* userData)
-  {
-    vtkPlusFakeIntuitiveDaVinciTracker* trackerInstance = reinterpret_cast<vtkPlusFakeIntuitiveDaVinciTracker*>(userData);
-    if (trackerInstance)
-    {
-      trackerInstance->StreamCallback();
-    }
-  }
-};

@@ -21,12 +21,6 @@ class vtkMatrix4x4;
 class FakeIntuitiveDaVinci;
 class vtkPlusFakeIntuitiveDaVinciTracker;
 
-namespace vtkPlusFakeIntuitiveDaVinciTrackerUtilities
-{
-  void ISICALLBACK streamCB(void* userdata);
-  void ISICALLBACK eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void* userdata);
-};
-
 /* This class talks with the da Vinci Surgical System. */
 class vtkPlusDataCollectionExport vtkPlusFakeIntuitiveDaVinciTracker : public vtkPlusDevice
 {
@@ -34,9 +28,6 @@ public:
   static vtkPlusFakeIntuitiveDaVinciTracker* New();
   vtkTypeMacro(vtkPlusFakeIntuitiveDaVinciTracker, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
-
-  /*! Hardware device SDK version. */
-  virtual std::string GetSdkVersion();
 
   virtual bool IsTracker() const { return true; }
 
@@ -50,15 +41,6 @@ public:
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* rootConfigElement);
 
   FakeIntuitiveDaVinci* GetDaVinci() const;
-
-  vtkSetStdStringMacro(IpAddr);
-  vtkGetStdStringMacro(IpAddr);
-
-  vtkSetMacro(Port, unsigned int);
-  vtkGetMacro(Port, unsigned int);
-
-  vtkSetStdStringMacro(Password);
-  vtkGetStdStringMacro(Password);
 
 protected:
   vtkPlusFakeIntuitiveDaVinciTracker();
@@ -76,38 +58,25 @@ protected:
   /*! Stop the tracking system and bring it back to its initial state. */
   virtual PlusStatus InternalStopRecording();
 
+  /*! Update method */
+  PlusStatus InternalUpdate();
+
 protected:
   /*! Pointer to the MicronTrackerInterface class instance */
   FakeIntuitiveDaVinci*   DaVinci;
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
-  double              LastFrameNumber;
-
-  unsigned int        FrameNumber;
-
-#ifdef USE_DAVINCI_TIMESTAMPS
-  double              TrackerTimeToSystemTimeSec; // time_System = time_Tracker + TrackerTimeToSystemTimeSec
-  bool                TrackerTimeToSystemTimeComputed; // the time offset is always computed when the first frame is received after start tracking
-#endif
-
-  std::string         IpAddr;
-  unsigned int        Port;
-  std::string         Password;
+  unsigned long       LastFrameNumber;
+  unsigned long       FrameNumber;
 
 private:
   vtkPlusFakeIntuitiveDaVinciTracker(const vtkPlusFakeIntuitiveDaVinciTracker&);
   void operator=(const vtkPlusFakeIntuitiveDaVinciTracker&);
 
-  void StreamCallback(void);
-
-  friend void vtkPlusFakeIntuitiveDaVinciTrackerUtilities::streamCB(void* userData);
-  friend void vtkPlusFakeIntuitiveDaVinciTrackerUtilities::eventCB(ISI_MANIP_INDEX mid, ISI_EVENT_ID event_id, ISI_INT args[ISI_NUM_EVENT_ARGS],  void* userdata);
-
-  ISI_MANIP_INDEX getManipIndexFromName(const std::string& toolName);
   void setVtkMatrixFromISITransform(vtkMatrix4x4& vtkMatrix, ISI_TRANSFORM* isiMatrix);
 
-  static const int CONNECT_RETRY_DELAY_SEC = 1.0;
-  static const int MAX_ATTEMPTS = 5;
+  vtkPlusDataSource* PSM1Tip;
+  vtkPlusDataSource* PSM2Tip;
 };
 
 #endif

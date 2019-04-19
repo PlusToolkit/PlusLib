@@ -155,6 +155,10 @@ See License.txt for details.
   #include "vtkPlusIntuitiveDaVinciTracker.h"
 #endif
 
+#ifdef PLUS_USE_FakeIntuitiveDaVinci
+  #include "vtkPlusFakeIntuitiveDaVinciTracker.h"
+#endif
+
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
   #include "vtkPlusPhilips3DProbeVideoSource.h"
 #endif
@@ -326,6 +330,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_IntuitiveDaVinci
   RegisterDevice("IntuitiveDaVinci", "vtkPlusIntuitiveDaVinciTracker", (PointerToDevice)&vtkPlusIntuitiveDaVinciTracker::New);
+#endif
+
+#ifdef PLUS_USE_FakeIntuitiveDaVinci
+  RegisterDevice("FakeIntuitiveDaVinci", "vtkPlusFakeIntuitiveDaVinciTracker", (PointerToDevice)&vtkPlusFakeIntuitiveDaVinciTracker::New);
 #endif
 
 #ifdef PLUS_USE_PHILIPS_3D_ULTRASOUND
