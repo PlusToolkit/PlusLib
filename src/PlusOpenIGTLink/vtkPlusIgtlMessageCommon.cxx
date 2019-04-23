@@ -591,7 +591,16 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
   transformMessage->SetMetaDataElement("TransformStatus", IANA_TYPE_US_ASCII, igsioCommon::ConvertToolStatusToString(status));
   transformMessage->SetMatrix(igtlMatrix);
   transformMessage->SetTimeStamp(igtlTime);
-  transformMessage->SetDeviceName(strTransformName.c_str());
+  if (strTransformName.length() > IGTL_TDATA_LEN_NAME)
+  {
+    std::string shortenedName = strTransformName.substr(0, IGTL_TDATA_LEN_NAME);
+    transformMessage->SetDeviceName(shortenedName.c_str());
+    transformMessage->SetMetaDataElement("Name", IANA_TYPE_US_ASCII, strTransformName);
+  }
+  else
+  {
+    transformMessage->SetDeviceName(strTransformName.c_str());
+  }
   transformMessage->Pack();
 
   return PLUS_SUCCESS;
