@@ -75,6 +75,12 @@ public:
   /* Set the TGC value, index 0 to 7, value 0.0 to 40.0 */
   PlusStatus SetTimeGainCompensation(int index, double value);
 
+  /* Get the TGC First Gain Value near transducer face */
+  double GetFirstGainValue();
+
+  /* Set the TGC First Gain Value near transducer face */
+  PlusStatus SetFirstGainValue(double value);
+
   /* Get the focal depth, index 0 to 4 */
   float GetFocalPointDepth(int index);
 
@@ -243,7 +249,8 @@ protected:
   int32_t m_MWidth = 256;
   int32_t m_MAcousticLineCount = 0;
   int32_t m_MDepth = 0;
-  uint8_t m_SSDecimation= 2;
+  uint8_t m_SSDecimation = 2;
+  double m_FirstGainValue = 15;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 
