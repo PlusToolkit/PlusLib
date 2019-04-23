@@ -384,7 +384,24 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
       float angle = orientation.GetRotationAngleAndAxis(axis);
       pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
       pose->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
-      if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) != PLUS_SUCCESS)
+      float x = bone.next_joint.x - bone.prev_joint.x;
+      float y = bone.next_joint.y - bone.prev_joint.y;
+      float z = bone.next_joint.z - bone.prev_joint.z;
+      float mag = std::sqrtf(x*x + y*y + z*z);
+      igsioTrackedFrame::FieldMapType fields;
+      {
+        std::stringstream ss;
+        ss << mag;
+        fields["lengthMm"] = ss.str();
+      }
+
+      {
+        std::stringstream ss;
+        ss << bone.width;
+        fields["radiusMm"] = ss.str();
+      }
+            
+      if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP, &fields) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to record " << boneName << " transform.");
         return PLUS_FAIL;
