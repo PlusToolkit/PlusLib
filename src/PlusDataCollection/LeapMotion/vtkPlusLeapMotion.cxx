@@ -380,10 +380,10 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
 
       vtkQuaternion<float> orientation;
       orientation.Set(bone.rotation.w, bone.rotation.x, bone.rotation.y, bone.rotation.z);
-      pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
       float axis[3];
       float angle = orientation.GetRotationAngleAndAxis(axis);
-      pose->RotateWXYZ(angle, axis);
+      pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
+      pose->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
       if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to record " << boneName << " transform.");
