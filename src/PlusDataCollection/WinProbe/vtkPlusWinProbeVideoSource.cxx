@@ -77,6 +77,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogLinearKnee, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SSDecimation, deviceConfig); //implicit type conversion
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FirstGainValue, deviceConfig);
+
   const char* strMode = deviceConfig->GetAttribute("Mode");
   if(strMode)
   {
@@ -127,6 +129,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("LogMax", this->GetLogMax());
   deviceConfig->SetUnsignedLongAttribute("SSDecimation", this->GetSSDecimation());
   deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
+  deviceConfig->SetDoubleAttribute("FirstGainValue", this->GetFirstGainValue());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
@@ -661,6 +664,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     SetTGC(i, m_TimeGainCompensation[i]);
     m_TimeGainCompensation[i] = GetTGC(i);
   }
+  SetTGCFirstGainValue(m_FirstGainValue);
   //SetPendingTGCUpdate(true);
   for(int i = 0; i < 4; i++)
   {
@@ -906,6 +910,31 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTimeGainCompensation(int index, double
   }
   return PLUS_SUCCESS;
 }
+
+//----------------------------------------------------------------------------
+double vtkPlusWinProbeVideoSource::GetFirstGainValue()
+{
+  if(Connected)
+  {
+    m_FirstGainValue = GetTGCFirstGainValue();
+  }
+  return m_FirstGainValue;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetFirstGainValue(double value)
+{
+  m_FirstGainValue = value;
+  if(Connected)
+  {
+    SetTGCFirstGainValue(value);
+    // SetPendingTGCUpdate(true);
+    //what we requested might be only approximately satisfied
+    m_FirstGainValue = GetTGCFirstGainValue();
+  }
+  return PLUS_SUCCESS;
+}
+
 
 //----------------------------------------------------------------------------
 float vtkPlusWinProbeVideoSource::GetFocalPointDepth(int index)
