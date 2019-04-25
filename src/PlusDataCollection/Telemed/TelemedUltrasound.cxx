@@ -1067,7 +1067,7 @@ PlusStatus TelemedUltrasound::SetGainPercent(double gainPercent)
 {
   if (m_b_gain_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::GainPercent failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::SetGainPercent failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
   LONG currentGainPercent = 0;
@@ -1085,13 +1085,13 @@ PlusStatus TelemedUltrasound::GetGainPercent(double& gainPercent)
 {
   if (m_b_gain_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::GainPercent failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::GetGainPercent failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
   LONG currentGainPercent = 0;
   if (m_depth_ctrl->get_Current(&currentGainPercent) != S_OK)
   {
-    LOG_ERROR("TelemedUltrasound::GainPercent failed: failed to get value from device");
+    LOG_ERROR("TelemedUltrasound::GetGainPercent failed: failed to get value from device");
     return PLUS_FAIL;
   }
   gainPercent = currentGainPercent;
@@ -1099,38 +1099,38 @@ PlusStatus TelemedUltrasound::GetGainPercent(double& gainPercent)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::SetPowerPercent(double powerPercent)
+PlusStatus TelemedUltrasound::SetPowerDb(double powerDb)
 {
   if (m_b_power_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::PowerPercent failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::SetPowerDb failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
-  LONG currentPowerPercent = 0;
-  m_b_power_ctrl->get_Current(&currentPowerPercent);
-  if (fabs(powerPercent - currentPowerPercent) > 0.1)
+  LONG currentPowerDb = 0;
+  m_b_power_ctrl->get_Current(&currentPowerDb);
+  if (fabs(powerDb - currentPowerDb) > 0.1)
   {
-    currentPowerPercent = powerPercent;
-    m_b_power_ctrl->put_Current(currentPowerPercent);
+    currentPowerDb = powerDb;
+    m_b_power_ctrl->put_Current(currentPowerDb);
   }
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::GetPowerPercent(double& powerPercent)
+PlusStatus TelemedUltrasound::GetPowerDb(double& powerDb)
 {
   if (m_b_power_ctrl == NULL)
   {
-    LOG_ERROR("TelemedUltrasound::PowerPercent failed: not connected to hardware interface");
+    LOG_ERROR("TelemedUltrasound::GetPowerDb failed: not connected to hardware interface");
     return PLUS_FAIL;
   }
-  LONG currentPowerPercent = 0;
-  if (m_b_power_ctrl->get_Current(&currentPowerPercent) != S_OK)
+  LONG currentPowerDb = 0;
+  if (m_b_power_ctrl->get_Current(&currentPowerDb) != S_OK)
   {
-    LOG_ERROR("TelemedUltrasound::PowerPercent failed: failed to get value from device");
+    LOG_ERROR("TelemedUltrasound::GetPowerDb failed: failed to get value from device");
     return PLUS_FAIL;
   }
-  powerPercent = currentPowerPercent;
+  powerDb = currentPowerDb;
   return PLUS_SUCCESS;
 }
 

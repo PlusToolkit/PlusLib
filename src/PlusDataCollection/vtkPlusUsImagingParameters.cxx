@@ -23,6 +23,7 @@ const char* vtkPlusUsImagingParameters::KEY_FREQUENCY     = "FrequencyMhz";
 const char* vtkPlusUsImagingParameters::KEY_GAIN          = "GainPercent";
 const char* vtkPlusUsImagingParameters::KEY_TGC           = "TimeGainCompensation";
 const char* vtkPlusUsImagingParameters::KEY_INTENSITY     = "Intensity";
+const char* vtkPlusUsImagingParameters::KEY_POWER         = "PowerDb";
 const char* vtkPlusUsImagingParameters::KEY_SECTOR        = "SectorPercent";
 const char* vtkPlusUsImagingParameters::KEY_ZOOM          = "ZoomFactor";
 const char* vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY = "SoundVelocity";
@@ -40,6 +41,7 @@ vtkPlusUsImagingParameters::vtkPlusUsImagingParameters()
   this->Parameters[KEY_TGC] = ParameterInfo("-1 -1 -1");
   this->Parameters[KEY_INTENSITY] = ParameterInfo("-1");
   this->Parameters[KEY_CONTRAST] = ParameterInfo("-1");
+  this->Parameters[KEY_POWER] = ParameterInfo("-1");
   this->Parameters[KEY_DYNRANGE] = ParameterInfo("-1");
   this->Parameters[KEY_ZOOM] = ParameterInfo("-1");
   this->Parameters[KEY_SOUNDVELOCITY] = ParameterInfo("1540");
@@ -202,6 +204,26 @@ double vtkPlusUsImagingParameters::GetContrast() const
 {
   double aValue;
   this->GetValue<double>(KEY_CONTRAST, aValue);
+  return aValue;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsImagingParameters::SetPowerDb(double aPower)
+{
+  return this->SetValue<double>(KEY_POWER, aPower);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusUsImagingParameters::GetPowerDb(double& aPower) const
+{
+  return this->GetValue<double>(KEY_POWER, aPower);
+}
+
+//----------------------------------------------------------------------------
+double vtkPlusUsImagingParameters::GetPowerDb() const
+{
+  double aValue;
+  this->GetValue<double>(KEY_POWER, aValue);
   return aValue;
 }
 
