@@ -467,7 +467,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   aSource->SetInputFrameSize(nfo->width, nfo->height, 1);
   int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
   int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
+  aSource->SetNumberOfScalarComponents(1);
 
   // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
   std::vector<char> _image;
@@ -494,28 +494,33 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   {
     device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
   }
+  cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
+  cvimg.data = (unsigned char *)_image.data();
+  cv::Mat grayimg = cv::Mat(nfo->width, nfo->height, CV_8UC1);
+  cv::cvtColor(cvimg, grayimg, CV_BGRA2GRAY);
+ 
   if (device->WriteImagesToDisk)
   {
     // create cvimg to write to disk
-    cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-    cvimg.data = cvimg.data = (unsigned char *)_image.data();
+    
     if (cv::imwrite("Clarius_Image" + std::to_string(timestamp) + ".bmp", cvimg) == false)
     {
       LOG_ERROR("ERROR writing clarius image" + std::to_string(timestamp) + " to disk");
     }
+    
   }
   aSource->AddItem(
-    _image.data(), // pointer to char array
+    grayimg.data, // pointer to char array
     aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                          // Set to UN to keep the orientation of the image the same as on tablet
     aSource->GetInputFrameSize(),
     VTK_UNSIGNED_CHAR,
-    frameBufferBytesPerPixel,
+    1,
     US_IMG_BRIGHTNESS,
     0,
-    device->FrameNumber,
-    converted_timestamp,
-    converted_timestamp);
+    device->FrameNumber
+    // TODO: PUT SYSTEM TIMESTAMP HERE
+    );
   device->FrameNumber++;
 }
 
