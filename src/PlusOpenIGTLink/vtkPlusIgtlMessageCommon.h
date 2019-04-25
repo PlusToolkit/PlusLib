@@ -32,7 +32,7 @@ See License.txt for details.
 #endif
 
 class vtkXMLDataElement;
-//class igsioTrackedFrame; 
+//class igsioTrackedFrame;
 class vtkPolyData;
 //class vtkIGSIOTransformRepository;
 class vtkIGSIOFrameConverter;
@@ -65,7 +65,7 @@ public:
   static PlusStatus UnpackUsMessage(igtl::MessageHeader::Pointer headerMsg, igtl::Socket* socket, igsioTrackedFrame& trackedFrame, int crccheck);
 
   /*! Pack image message from tracked frame */
-  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter=NULL);
+  static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, const vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter = NULL);
 
   /*! Pack image message from vtkImageData volume */
   static PlusStatus PackImageMessage(igtl::ImageMessage::Pointer imageMessage, vtkImageData* image, const vtkMatrix4x4& imageToReferenceTransform, double timestamp);
@@ -78,7 +78,7 @@ public:
 
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
   /*! Pack video message from tracked frame */
-  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter = NULL, std::string codecFourCC = "", std::map<std::string, std::string> parameters= std::map<std::string, std::string>());
+  static PlusStatus PackVideoMessage(igtl::VideoMessage::Pointer imageMessage, igsioTrackedFrame& trackedFrame, vtkMatrix4x4& imageToReferenceTransform, vtkIGSIOFrameConverter* frameConverter = NULL, std::string codecFourCC = "", std::map<std::string, std::string> parameters = std::map<std::string, std::string>());
 #endif
 
   /*! Pack transform message from tracked frame */
@@ -109,6 +109,7 @@ public:
 
   /*! Pack string message */
   static PlusStatus PackStringMessage(igtl::StringMessage::Pointer stringMessage, const char* stringName, const char* stringValue, double timestamp);
+  static PlusStatus PackStringMessage(igtl::StringMessage::Pointer stringMessage, const std::string& stringName, const std::string& stringValue, double timestamp);
 
 
   /*! Generate igtl::Matrix4x4 with the selected transform name from the transform repository */

@@ -129,12 +129,13 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
   }
 
   // Build the field map to send to the data sources
-  igsioTrackedFrame::FieldMapType fieldMap;
+  igsioFieldMapType fieldMap;
   for (ChannelFieldListMapIterator it = this->RecognitionFields.begin(); it != this->RecognitionFields.end(); ++it)
   {
     for (FieldListIterator fieldIt = it->second.begin(); fieldIt != it->second.end(); ++fieldIt)
     {
-      fieldMap[(*fieldIt)->ParameterName] = (*fieldIt)->LatestParameterValue;
+      fieldMap[(*fieldIt)->ParameterName].first = FRAMEFIELD_NONE;
+      fieldMap[(*fieldIt)->ParameterName].second = (*fieldIt)->LatestParameterValue;
     }
   }
 
@@ -151,11 +152,11 @@ PlusStatus vtkPlusVirtualTextRecognizer::InternalUpdate()
 void vtkPlusVirtualTextRecognizer::vtkImageDataToPix(igsioTrackedFrame& frame, TextFieldParameter* parameter)
 {
   igsioVideoFrame::GetOrientedClippedImage(frame.GetImageData()->GetImage(),
-                                          igsioVideoFrame::FlipInfoType(),
-                                          frame.GetImageData()->GetImageType(),
-                                          parameter->ScreenRegion,
-                                          parameter->Origin,
-                                          parameter->Size);
+      igsioVideoFrame::FlipInfoType(),
+      frame.GetImageData()->GetImageType(),
+      parameter->ScreenRegion,
+      parameter->Origin,
+      parameter->Size);
 
   unsigned int* data = pixGetData(parameter->ReceivedFrame);
   int wpl = pixGetWpl(parameter->ReceivedFrame);

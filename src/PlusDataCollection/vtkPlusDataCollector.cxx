@@ -21,7 +21,7 @@ See License.txt for details.
 #include <igsioTrackedFrame.h>
 #include <vtkIGSIOTrackedFrameList.h>
 #if defined PLUS_USE_VP9
-#include <vtkVP9VolumeCodec.h>
+  #include <vtkVP9VolumeCodec.h>
 #endif
 
 // STD includes
@@ -631,11 +631,10 @@ PlusStatus vtkPlusDataCollector::GetVideoData(vtkPlusChannel* aRequestedChannel,
     trackedFrame->SetTimestamp(itemTimestamp);
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = currentStreamBufferItem.GetFrameFieldMap();
-    StreamBufferItem::FieldMapType::iterator fieldIterator;
-    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    igsioFieldMapType fieldMap = currentStreamBufferItem.GetFrameFieldMap();
+    for (igsioFieldMapType::const_iterator fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      trackedFrame->SetFrameField((*fieldIterator).first, (*fieldIterator).second);
+      trackedFrame->SetFrameField(fieldIterator->first, fieldIterator->second.second, fieldIterator->second.first);
     }
 
     // Add tracked frame to the list

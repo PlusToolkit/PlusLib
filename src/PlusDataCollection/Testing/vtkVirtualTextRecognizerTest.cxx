@@ -10,7 +10,7 @@
 #include "vtksys/CommandLineArguments.hxx"
 #include <map>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   bool printHelp(false);
   std::string inputConfigFileName;
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   args.AddArgument("--field-value", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &fieldValue, "Value of the first field.");
   args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level (1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
-  if ( !args.Parse() )
+  if (!args.Parse())
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     std::cout << "\n\nvtkPlusVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
@@ -37,20 +37,20 @@ int main(int argc, char **argv)
 
   vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-  if ( printHelp )
+  if (printHelp)
   {
     std::cout << "\n\nvtkPlusVirtualTextRecognizerTest help:" << args.GetHelp() << std::endl;
     return EXIT_SUCCESS;
   }
 
-  if( !vtksys::SystemTools::FileExists(inputConfigFileName))
+  if (!vtksys::SystemTools::FileExists(inputConfigFileName))
   {
     LOG_ERROR("Invalid config file sent to test.");
     return EXIT_FAILURE;
   }
 
   vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
+  if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str()) == PLUS_FAIL)
   {
     LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
     return EXIT_FAILURE;
@@ -60,26 +60,26 @@ int main(int argc, char **argv)
 
   vtkSmartPointer<vtkPlusDataCollector> dataCollector = vtkSmartPointer<vtkPlusDataCollector>::New();
 
-  if( dataCollector->ReadConfiguration( configRootElement ) != PLUS_SUCCESS )
+  if (dataCollector->ReadConfiguration(configRootElement) != PLUS_SUCCESS)
   {
     LOG_ERROR("Configuration incorrect for vtkPlusVirtualTextRecognizerTest.");
     return EXIT_FAILURE;
   }
 
-  if ( dataCollector->Connect() != PLUS_SUCCESS )
+  if (dataCollector->Connect() != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to connect to devices!" );
+    LOG_ERROR("Failed to connect to devices!");
     return EXIT_FAILURE;
   }
 
-  if ( dataCollector->Start() != PLUS_SUCCESS )
+  if (dataCollector->Start() != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to start data collection!" );
+    LOG_ERROR("Failed to start data collection!");
     return EXIT_FAILURE;
   }
 
   vtkPlusDevice* device(NULL);
-  if( dataCollector->GetDevice(device, deviceId) != PLUS_SUCCESS )
+  if (dataCollector->GetDevice(device, deviceId) != PLUS_SUCCESS)
   {
     LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
     return EXIT_FAILURE;
@@ -87,23 +87,23 @@ int main(int argc, char **argv)
 
   vtkPlusVirtualTextRecognizer* textRecognizer = vtkPlusVirtualTextRecognizer::SafeDownCast(device);
 
-  if( textRecognizer == NULL )
+  if (textRecognizer == NULL)
   {
     LOG_ERROR("Unable to retrieve recognizer device by Id: " << deviceId);
     return EXIT_FAILURE;
   }
 
   textRecognizer->SetMissingInputGracePeriodSec(0);
-  
+
 #ifdef _WIN32
   Sleep(500);
 #else
   usleep(500000);
-#endif 
+#endif
 
   vtkPlusVirtualTextRecognizer::ChannelFieldListMap map = textRecognizer->GetRecognitionFields();
   vtkPlusVirtualTextRecognizer::FieldListIterator it = map.begin()->second.begin();
-  if( (*it)->LatestParameterValue != fieldValue )
+  if ((*it)->LatestParameterValue != fieldValue)
   {
     LOG_ERROR("Direct: Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
     return EXIT_FAILURE;
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   igsioTrackedFrame frame;
   (*device->GetOutputChannelsStart())->GetTrackedFrame(frame);
 
-  if( frame.GetFrameField((*it)->ParameterName) == NULL || STRCASECMP(frame.GetFrameField((*it)->ParameterName), fieldValue.c_str()) != 0 )
+  if (frame.GetFrameField((*it)->ParameterName).empty() || !igsioCommon::IsEqualInsensitive(frame.GetFrameField((*it)->ParameterName), fieldValue))
   {
     LOG_ERROR("Tracked Frame: Parameter \"" << (*it)->ParameterName << "\" value=\"" << (*it)->LatestParameterValue << "\" does not match expected value=\"" << fieldValue << "\"");
     return EXIT_FAILURE;

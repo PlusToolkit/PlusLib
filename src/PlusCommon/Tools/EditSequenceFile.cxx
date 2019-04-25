@@ -155,7 +155,7 @@ PlusStatus MixTrackedFrameLists(vtkIGSIOTrackedFrameList* trackedFrameList, std:
           // Timing and image information is taken from the first sequence
           continue;
         }
-        masterTrackedFrame->SetFrameField(fieldIter->first, fieldIter->second);
+        masterTrackedFrame->SetFrameField(fieldIter->first, fieldIter->second.second, fieldIter->second.first);
       }
     }
   }
@@ -482,187 +482,187 @@ int main(int argc, char** argv)
 
   switch (operation)
   {
-  case NO_OPERATION:
-  case APPEND:
-  case MIX:
-  {
-    // No need to do anything just save into output file
-  }
-  break;
-  case TRIM:
-  {
-    if (firstFrameIndex < 0)
-    {
-      firstFrameIndex = 0;
-    }
-    if (lastFrameIndex < 0)
-    {
-      lastFrameIndex = 0;
-    }
-    unsigned int firstFrameIndexUint = static_cast<unsigned int>(firstFrameIndex);
-    unsigned int lastFrameIndexUint = static_cast<unsigned int>(lastFrameIndex);
-    if (TrimSequenceFile(trackedFrameList, firstFrameIndexUint, lastFrameIndexUint) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to trim sequence file");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case DECIMATE:
-  {
-    if (DecimateSequenceFile(trackedFrameList, decimationFactor) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to decimate sequence file");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case UPDATE_FRAME_FIELD_NAME:
-  {
-    FrameFieldUpdate fieldUpdate;
-    fieldUpdate.TrackedFrameList = trackedFrameList;
-    fieldUpdate.FieldName = fieldName;
-    fieldUpdate.UpdatedFieldName = updatedFieldName;
-
-    if (UpdateFrameFieldValue(fieldUpdate) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to update frame field name '" << fieldName << "' to '" << updatedFieldName << "'");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case UPDATE_FRAME_FIELD_VALUE:
-  {
-    FrameFieldUpdate fieldUpdate;
-    fieldUpdate.TrackedFrameList = trackedFrameList;
-    fieldUpdate.FieldName = fieldName;
-    fieldUpdate.UpdatedFieldName = updatedFieldName;
-    fieldUpdate.UpdatedFieldValue = updatedFieldValue;
-    fieldUpdate.FrameScalarDecimalDigits = frameScalarDecimalDigits;
-    fieldUpdate.FrameScalarIncrement = frameScalarIncrement;
-    fieldUpdate.FrameScalarStart = frameScalarStart;
-    fieldUpdate.FrameTransformStart = frameTransformStart;
-    fieldUpdate.FrameTransformIncrement = frameTransformIncrement;
-    fieldUpdate.FrameTransformIndexFieldName = strFrameTransformIndexFieldName;
-
-    if (UpdateFrameFieldValue(fieldUpdate) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to update frame field value");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case DELETE_FRAME_FIELD:
-  {
-    if (DeleteFrameField(trackedFrameList, fieldName) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to delete frame field");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case DELETE_FIELD:
-  {
-    // Delete field
-    LOG_INFO("Delete field: " << fieldName);
-    if (trackedFrameList->SetCustomString(fieldName.c_str(), NULL) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to delete field: " << fieldName);
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case UPDATE_FIELD_NAME:
-  {
-    // Update field name
-    LOG_INFO("Update field name '" << fieldName << "' to  '" << updatedFieldName << "'");
-    const char* fieldValue = trackedFrameList->GetCustomString(fieldName.c_str());
-    if (fieldValue != NULL)
-    {
-      // Delete field
-      if (trackedFrameList->SetCustomString(fieldName.c_str(), NULL) != PLUS_SUCCESS)
+    case NO_OPERATION:
+    case APPEND:
+    case MIX:
       {
-        LOG_ERROR("Failed to delete field: " << fieldName);
+        // No need to do anything just save into output file
+      }
+      break;
+    case TRIM:
+      {
+        if (firstFrameIndex < 0)
+        {
+          firstFrameIndex = 0;
+        }
+        if (lastFrameIndex < 0)
+        {
+          lastFrameIndex = 0;
+        }
+        unsigned int firstFrameIndexUint = static_cast<unsigned int>(firstFrameIndex);
+        unsigned int lastFrameIndexUint = static_cast<unsigned int>(lastFrameIndex);
+        if (TrimSequenceFile(trackedFrameList, firstFrameIndexUint, lastFrameIndexUint) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to trim sequence file");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case DECIMATE:
+      {
+        if (DecimateSequenceFile(trackedFrameList, decimationFactor) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to decimate sequence file");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case UPDATE_FRAME_FIELD_NAME:
+      {
+        FrameFieldUpdate fieldUpdate;
+        fieldUpdate.TrackedFrameList = trackedFrameList;
+        fieldUpdate.FieldName = fieldName;
+        fieldUpdate.UpdatedFieldName = updatedFieldName;
+
+        if (UpdateFrameFieldValue(fieldUpdate) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to update frame field name '" << fieldName << "' to '" << updatedFieldName << "'");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case UPDATE_FRAME_FIELD_VALUE:
+      {
+        FrameFieldUpdate fieldUpdate;
+        fieldUpdate.TrackedFrameList = trackedFrameList;
+        fieldUpdate.FieldName = fieldName;
+        fieldUpdate.UpdatedFieldName = updatedFieldName;
+        fieldUpdate.UpdatedFieldValue = updatedFieldValue;
+        fieldUpdate.FrameScalarDecimalDigits = frameScalarDecimalDigits;
+        fieldUpdate.FrameScalarIncrement = frameScalarIncrement;
+        fieldUpdate.FrameScalarStart = frameScalarStart;
+        fieldUpdate.FrameTransformStart = frameTransformStart;
+        fieldUpdate.FrameTransformIncrement = frameTransformIncrement;
+        fieldUpdate.FrameTransformIndexFieldName = strFrameTransformIndexFieldName;
+
+        if (UpdateFrameFieldValue(fieldUpdate) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to update frame field value");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case DELETE_FRAME_FIELD:
+      {
+        if (DeleteFrameField(trackedFrameList, fieldName) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to delete frame field");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case DELETE_FIELD:
+      {
+        // Delete field
+        LOG_INFO("Delete field: " << fieldName);
+        if (trackedFrameList->SetCustomString(fieldName.c_str(), NULL) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to delete field: " << fieldName);
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case UPDATE_FIELD_NAME:
+      {
+        // Update field name
+        LOG_INFO("Update field name '" << fieldName << "' to  '" << updatedFieldName << "'");
+        const char* fieldValue = trackedFrameList->GetCustomString(fieldName.c_str());
+        if (fieldValue != NULL)
+        {
+          // Delete field
+          if (trackedFrameList->SetCustomString(fieldName.c_str(), NULL) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Failed to delete field: " << fieldName);
+            return EXIT_FAILURE;
+          }
+
+          // Add new field
+          if (trackedFrameList->SetCustomString(updatedFieldName.c_str(), fieldValue) != PLUS_SUCCESS)
+          {
+            LOG_ERROR("Failed to update field '" << updatedFieldName << "' with value '" << fieldValue << "'");
+            return EXIT_FAILURE;
+          }
+        }
+      }
+      break;
+    case UPDATE_FIELD_VALUE:
+      {
+        // Update field value
+        LOG_INFO("Update field '" << fieldName << "' with value '" << updatedFieldValue << "'");
+        if (trackedFrameList->SetCustomString(fieldName.c_str(), updatedFieldValue.c_str()) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to update field '" << fieldName << "' with value '" << updatedFieldValue << "'");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case ADD_TRANSFORM:
+      {
+        // Add transform
+        LOG_INFO("Add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
+        std::vector<std::string> transformNamesList;
+        igsioCommon::SplitStringIntoTokens(transformNamesToAdd, ',', transformNamesList);
+        if (AddTransform(trackedFrameList, transformNamesList, deviceSetConfigurationFileName) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case FILL_IMAGE_RECTANGLE:
+      {
+        if (rectOriginPix.size() != 2 || rectSizePix.size() != 2)
+        {
+          LOG_ERROR("Incorrect size of vector for rectangle origin or size. Aborting.");
+          return PLUS_FAIL;
+        }
+        if (rectOriginPix[0] < 0 || rectOriginPix[1] < 0 || rectSizePix[0] < 0 || rectSizePix[1] < 0)
+        {
+          LOG_ERROR("Negative value for rectangle origin or size entered. Aborting.");
+          return PLUS_FAIL;
+        }
+        std::vector<unsigned int> rectOriginPixUint(rectOriginPix.begin(), rectOriginPix.end());
+        std::vector<unsigned int> rectSizePixUint(rectSizePix.begin(), rectSizePix.end());
+        // Fill a rectangular region in the image with a solid color
+        if (FillRectangle(trackedFrameList, rectOriginPixUint, rectSizePixUint, fillGrayLevel) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to fill rectangle");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case CROP:
+      {
+        // Crop a rectangular region from the image
+        igsioVideoFrame::FlipInfoType flipInfo;
+        flipInfo.hFlip = flipX;
+        flipInfo.vFlip = flipY;
+        flipInfo.eFlip = flipZ;
+        if (CropRectangle(trackedFrameList, flipInfo, rectOriginPix, rectSizePix) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Failed to fill rectangle");
+          return EXIT_FAILURE;
+        }
+      }
+      break;
+    case REMOVE_IMAGE_DATA:
+      // No processing is needed, image data is removed when writing the output
+      break;
+    default:
+      {
+        LOG_WARNING("Unknown operation is specified: " << strOperation);
         return EXIT_FAILURE;
       }
-
-      // Add new field
-      if (trackedFrameList->SetCustomString(updatedFieldName.c_str(), fieldValue) != PLUS_SUCCESS)
-      {
-        LOG_ERROR("Failed to update field '" << updatedFieldName << "' with value '" << fieldValue << "'");
-        return EXIT_FAILURE;
-      }
-    }
-  }
-  break;
-  case UPDATE_FIELD_VALUE:
-  {
-    // Update field value
-    LOG_INFO("Update field '" << fieldName << "' with value '" << updatedFieldValue << "'");
-    if (trackedFrameList->SetCustomString(fieldName.c_str(), updatedFieldValue.c_str()) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to update field '" << fieldName << "' with value '" << updatedFieldValue << "'");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case ADD_TRANSFORM:
-  {
-    // Add transform
-    LOG_INFO("Add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
-    std::vector<std::string> transformNamesList;
-    igsioCommon::SplitStringIntoTokens(transformNamesToAdd, ',', transformNamesList);
-    if (AddTransform(trackedFrameList, transformNamesList, deviceSetConfigurationFileName) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to add transform '" << transformNamesToAdd << "' using device set configuration file '" << deviceSetConfigurationFileName << "'");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case FILL_IMAGE_RECTANGLE:
-  {
-    if (rectOriginPix.size() != 2 || rectSizePix.size() != 2)
-    {
-      LOG_ERROR("Incorrect size of vector for rectangle origin or size. Aborting.");
-      return PLUS_FAIL;
-    }
-    if (rectOriginPix[0] < 0 || rectOriginPix[1] < 0 || rectSizePix[0] < 0 || rectSizePix[1] < 0)
-    {
-      LOG_ERROR("Negative value for rectangle origin or size entered. Aborting.");
-      return PLUS_FAIL;
-    }
-    std::vector<unsigned int> rectOriginPixUint(rectOriginPix.begin(), rectOriginPix.end());
-    std::vector<unsigned int> rectSizePixUint(rectSizePix.begin(), rectSizePix.end());
-    // Fill a rectangular region in the image with a solid color
-    if (FillRectangle(trackedFrameList, rectOriginPixUint, rectSizePixUint, fillGrayLevel) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to fill rectangle");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case CROP:
-  {
-    // Crop a rectangular region from the image
-    igsioVideoFrame::FlipInfoType flipInfo;
-    flipInfo.hFlip = flipX;
-    flipInfo.vFlip = flipY;
-    flipInfo.eFlip = flipZ;
-    if (CropRectangle(trackedFrameList, flipInfo, rectOriginPix, rectSizePix) != PLUS_SUCCESS)
-    {
-      LOG_ERROR("Failed to fill rectangle");
-      return EXIT_FAILURE;
-    }
-  }
-  break;
-  case REMOVE_IMAGE_DATA:
-    // No processing is needed, image data is removed when writing the output
-    break;
-  default:
-  {
-    LOG_WARNING("Unknown operation is specified: " << strOperation);
-    return EXIT_FAILURE;
-  }
   }
 
 
@@ -848,9 +848,8 @@ PlusStatus DeleteFrameField(vtkIGSIOTrackedFrameList* trackedFrameList, std::str
 
     /////////////////////////////////
     // Delete field name
-    const char* fieldValue = trackedFrame->GetFrameField(fieldName.c_str());
-    if (fieldValue != NULL
-        && trackedFrame->DeleteFrameField(fieldName.c_str()) != PLUS_SUCCESS)
+    std::string fieldValue = trackedFrame->GetFrameField(fieldName);
+    if (!fieldValue.empty() && trackedFrame->DeleteFrameField(fieldName) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to delete frame field '" << fieldName << "' for frame #" << i);
       numberOfErrors++;
@@ -885,12 +884,12 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
     // Update field name
     if (!fieldUpdate.FieldName.empty() && !fieldUpdate.UpdatedFieldName.empty())
     {
-      const char* fieldValue = trackedFrame->GetFrameField(fieldUpdate.FieldName.c_str());
-      if (fieldValue != NULL)
+      std::string fieldValue = trackedFrame->GetFrameField(fieldUpdate.FieldName);
+      if (!fieldValue.empty())
       {
         std::string copyOfFieldValue(fieldValue);
-        trackedFrame->DeleteFrameField(fieldUpdate.FieldName.c_str());
-        trackedFrame->SetFrameField(fieldUpdate.UpdatedFieldName.c_str(), copyOfFieldValue.c_str());
+        trackedFrame->DeleteFrameField(fieldUpdate.FieldName);
+        trackedFrame->SetFrameField(fieldUpdate.UpdatedFieldName, copyOfFieldValue);
       }
     }
 
@@ -926,9 +925,9 @@ PlusStatus UpdateFrameFieldValue(FrameFieldUpdate& fieldUpdate)
         }
         else
         {
-          const char* frameIndexStr = trackedFrame->GetFrameField(fieldUpdate.FrameTransformIndexFieldName.c_str());
+          std::string frameIndexStr = trackedFrame->GetFrameField(fieldUpdate.FrameTransformIndexFieldName);
           int frameIndex = 0;
-          if (igsioCommon::StringToInt<int>(frameIndexStr, frameIndex) != PLUS_SUCCESS)
+          if (igsioCommon::StringToNumber<int>(frameIndexStr, frameIndex) != PLUS_SUCCESS)
           {
             LOG_ERROR("Cannot retrieve frame index from value " << frameIndexStr);
           }

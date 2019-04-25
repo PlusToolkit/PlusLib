@@ -572,11 +572,10 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, igsioTrackedFrame& 
     aTrackedFrame.SetImageData(frame);
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = CurrentStreamBufferItem.GetFrameFieldMap();
-    StreamBufferItem::FieldMapType::iterator fieldIterator;
-    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    igsioFieldMapType fieldMap = CurrentStreamBufferItem.GetFrameFieldMap();
+    for (igsioFieldMapType::const_iterator fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second.second, fieldIterator->second.first);
     }
 
     synchronizedTimestamp = CurrentStreamBufferItem.GetTimestamp(this->VideoSource->GetLocalTimeOffsetSec());
@@ -647,11 +646,11 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, igsioTrackedFrame& 
     }
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetFrameFieldMap();
-    StreamBufferItem::FieldMapType::iterator fieldIterator;
-    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    igsioFieldMapType fieldMap = bufferItem.GetFrameFieldMap();
+    igsioFieldMapType::iterator fieldIterator;
+    for (igsioFieldMapType::const_iterator fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField(fieldIterator->first, fieldIterator->second.second, fieldIterator->second.first);
     }
 
     synchronizedTimestamp = bufferItem.GetTimestamp(aTool->GetLocalTimeOffsetSec());
@@ -685,11 +684,10 @@ PlusStatus vtkPlusChannel::GetTrackedFrame(double timestamp, igsioTrackedFrame& 
     }
 
     // Copy all custom fields
-    StreamBufferItem::FieldMapType fieldMap = bufferItem.GetFrameFieldMap();
-    StreamBufferItem::FieldMapType::iterator fieldIterator;
-    for (fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
+    igsioFieldMapType fieldMap = bufferItem.GetFrameFieldMap();
+    for (igsioFieldMapType::const_iterator fieldIterator = fieldMap.begin(); fieldIterator != fieldMap.end(); fieldIterator++)
     {
-      aTrackedFrame.SetFrameField((*fieldIterator).first, (*fieldIterator).second);
+      aTrackedFrame.SetFrameField(fieldIterator->first, fieldIterator->second.second, fieldIterator->second.first);
     }
 
     synchronizedTimestamp = bufferItem.GetTimestamp(aSource->GetLocalTimeOffsetSec());
@@ -829,16 +827,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get tracker buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }
@@ -876,16 +874,16 @@ PlusStatus vtkPlusChannel::GetTrackedFrameList(double& aTimestampOfLastFrameAlre
       {
         switch (status)
         {
-        case ITEM_NOT_AVAILABLE_YET:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
-          break;
-        case ITEM_NOT_AVAILABLE_ANYMORE:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
-          break;
-        case ITEM_UNKNOWN_ERROR:
-        default:
-          LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
-          break;
+          case ITEM_NOT_AVAILABLE_YET:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available yet.");
+            break;
+          case ITEM_NOT_AVAILABLE_ANYMORE:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom << ". Item not available anymore.");
+            break;
+          case ITEM_UNKNOWN_ERROR:
+          default:
+            LOG_ERROR("Failed to get field buffer item by timestamp " << timestampFrom);
+            break;
         }
         return PLUS_FAIL;
       }

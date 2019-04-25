@@ -486,11 +486,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
 //----------------------------------------------------------------------------
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage,
-  igsioTrackedFrame& trackedFrame,
-  vtkMatrix4x4& matrix,
-  vtkIGSIOFrameConverter* frameConverter/*=NULL*/,
-  std::string fourCC/*=""*/,
-  std::map<std::string,std::string> parameters)
+    igsioTrackedFrame& trackedFrame,
+    vtkMatrix4x4& matrix,
+    vtkIGSIOFrameConverter* frameConverter/*=NULL*/,
+    std::string fourCC/*=""*/,
+    std::map<std::string, std::string> parameters)
 {
   if (videoMessage.IsNull())
   {
@@ -529,7 +529,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   unsigned int frameSize = frameData->GetSize() * frameData->GetElementComponentSize();
   codecFourCC = frame->GetCodecFourCC();
   int endian = (igtl_is_little_endian() == 1 ? IGTL_VIDEO_ENDIAN_LITTLE : IGTL_VIDEO_ENDIAN_BIG);
-  int dimensions[3] = { 0,0,0 };
+  int dimensions[3] = { 0, 0, 0 };
   frame->GetDimensions(dimensions);
   double spacing[3] = { 1.0, 1.0, 1.0 };
   int encodedFrameType = FrameTypeUnKnown;
@@ -595,7 +595,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
   {
     std::string shortenedName = strTransformName.substr(0, IGTL_TDATA_LEN_NAME);
     transformMessage->SetDeviceName(shortenedName.c_str());
-    transformMessage->SetMetaDataElement("Name", IANA_TYPE_US_ASCII, strTransformName);
+    transformMessage->SetMetaDataElement("IGTL_DEVICE_NAME", IANA_TYPE_US_ASCII, strTransformName);
   }
   else
   {
@@ -975,4 +975,10 @@ PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Poin
   stringMessage->Pack();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Pointer stringMessage, const std::string& stringName, const std::string& stringValue, double timestamp)
+{
+  return PackStringMessage(stringMessage, stringName.c_str(), stringValue.c_str(), timestamp);
 }

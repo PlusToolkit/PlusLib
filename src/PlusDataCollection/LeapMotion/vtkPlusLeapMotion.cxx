@@ -387,20 +387,22 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
       float x = bone.next_joint.x - bone.prev_joint.x;
       float y = bone.next_joint.y - bone.prev_joint.y;
       float z = bone.next_joint.z - bone.prev_joint.z;
-      float mag = std::sqrtf(x*x + y*y + z*z);
-      igsioTrackedFrame::FieldMapType fields;
+      float mag = std::sqrtf(x * x + y * y + z * z);
+      igsioFieldMapType fields;
       {
         std::stringstream ss;
         ss << mag;
-        fields["lengthMm"] = ss.str();
+        fields["lengthMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields["lengthMm"].second = ss.str();
       }
 
       {
         std::stringstream ss;
         ss << bone.width;
-        fields["radiusMm"] = ss.str();
+        fields["radiusMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields["radiusMm"].second = ss.str();
       }
-            
+
       if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP, &fields) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to record " << boneName << " transform.");
