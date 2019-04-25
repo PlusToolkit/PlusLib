@@ -131,92 +131,92 @@ namespace igtl
     this->m_MessageHeader.m_DataType = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixDataType"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataType");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_DataType);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataType");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_DataType);
     }
 
     this->m_MessageHeader.m_TransmitFrequency = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixTransmitFrequency"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixTransmitFrequency");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_TransmitFrequency);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixTransmitFrequency");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_TransmitFrequency);
     }
 
     this->m_MessageHeader.m_SamplingFrequency = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixSamplingFrequency"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixSamplingFrequency");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_SamplingFrequency);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixSamplingFrequency");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_SamplingFrequency);
     }
 
     this->m_MessageHeader.m_DataRate = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixDataRate"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataRate");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_DataRate);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixDataRate");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_DataRate);
     }
 
     this->m_MessageHeader.m_LineDensity = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixLineDensity"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixLineDensity");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_LineDensity);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixLineDensity");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_LineDensity);
     }
 
     this->m_MessageHeader.m_SteeringAngle = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixSteeringAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixSteeringAngle");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_SteeringAngle);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixSteeringAngle");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_SteeringAngle);
     }
 
     this->m_MessageHeader.m_ProbeID = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixProbeID"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeID");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ProbeID);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeID");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_ProbeID);
     }
 
     this->m_MessageHeader.m_ExtensionAngle = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixExtensionAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixExtensionAngle");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ExtensionAngle);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixExtensionAngle");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_ExtensionAngle);
     }
 
     this->m_MessageHeader.m_Elements = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixElements"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixElements");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Elements);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixElements");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_Elements);
     }
 
     this->m_MessageHeader.m_Pitch = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixPitch"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixPitch");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Pitch);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixPitch");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_Pitch);
     }
 
     this->m_MessageHeader.m_Radius = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixRadius"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixRadius");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_Radius);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixRadius");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_Radius);
     }
 
     this->m_MessageHeader.m_ProbeAngle = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixProbeAngle"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeAngle");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_ProbeAngle);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixProbeAngle");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_ProbeAngle);
     }
 
     this->m_MessageHeader.m_TxOffset = 0;
     if (this->m_TrackedFrame.IsFrameFieldDefined("SonixTxOffset"))
     {
-      const char* fieldValue = this->m_TrackedFrame.GetFrameField("SonixTxOffset");
-      igsioCommon::StringToInt(fieldValue, this->m_MessageHeader.m_TxOffset);
+      std::string fieldValue = this->m_TrackedFrame.GetFrameField("SonixTxOffset");
+      igsioCommon::StringToNumber<igtl_int32>(fieldValue, this->m_MessageHeader.m_TxOffset);
     }
 
     return PLUS_SUCCESS;

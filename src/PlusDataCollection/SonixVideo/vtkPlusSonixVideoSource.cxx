@@ -366,22 +366,25 @@ PlusStatus vtkPlusSonixVideoSource::AddFrameToBuffer(void* dataPtr, int type, in
     this->UpdateImagingParametersFromDevice();
   }
 
-  igsioTrackedFrame::FieldMapType customFields;
+  igsioFieldMapType customFields;
 
   if (this->ImageGeometryOutputEnabled)
   {
     std::ostringstream depthStr;
     depthStr << this->ImagingParameters->GetDepthMm();
-    customFields["DepthMm"] = depthStr.str();
+    customFields["DepthMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+    customFields["DepthMm"].second = depthStr.str();
 
     std::ostringstream pixelSpacingStr;
     pixelSpacingStr << this->CurrentPixelSpacingMm[0] << " " << this->CurrentPixelSpacingMm[1];
-    customFields["PixelSpacingMm"] = pixelSpacingStr.str();
+    customFields["PixelSpacingMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+    customFields["PixelSpacingMm"].second = pixelSpacingStr.str();
 
     std::ostringstream transducerOriginStr;
     transducerOriginStr << this->CurrentTransducerOriginPixels[0] << " " << this->CurrentTransducerOriginPixels[1];
     // TODO : OpenIGTLink v3 will eliminate this short form necessity
-    customFields["TransducerOriginPix"] = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
+    customFields["TransducerOriginPix"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+    customFields["TransducerOriginPix"].second = transducerOriginStr.str(); // "TransducerOriginPixels" would be over the 20-char limit of OpenIGTLink device name
   }
 
   // get the pointer to actual incoming data on to a local pointer
