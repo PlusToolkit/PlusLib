@@ -91,7 +91,7 @@ PlusStatus StreamBufferItem::DeleteFrameField(const char* fieldName)
     return PLUS_FAIL;
   }
 
-  FieldMapType::iterator field = this->FrameFields.find(fieldName);
+  igsioFieldMapType::iterator field = this->FrameFields.find(fieldName);
   if (field != this->FrameFields.end())
   {
     this->FrameFields.erase(field);

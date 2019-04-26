@@ -392,15 +392,15 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
       {
         std::stringstream ss;
         ss << mag;
-        fields["lengthMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
-        fields["lengthMm"].second = ss.str();
+        fields[boneName + "To" + this->ToolReferenceFrameName + "lengthMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "lengthMm"].second = ss.str();
       }
 
       {
         std::stringstream ss;
         ss << bone.width;
-        fields["radiusMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
-        fields["radiusMm"].second = ss.str();
+        fields[boneName + "To" + this->ToolReferenceFrameName + "radiusMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "radiusMm"].second = ss.str();
       }
 
       if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP, &fields) != PLUS_SUCCESS)
