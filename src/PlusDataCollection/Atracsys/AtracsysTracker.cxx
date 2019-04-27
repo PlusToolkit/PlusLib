@@ -58,6 +58,7 @@ public:
     ResultToStringMap[ERROR_DISCONNECT_ATTEMPT_WHEN_NOT_CONNECTED] = "Disconnect called when not connected to tracker.";
     ResultToStringMap[ERROR_CANNOT_GET_MARKER_INFO] = "Cannot get info about paired wireless markers.";
     ResultToStringMap[ERROR_FAILED_TO_SET_STK_PROCESSING_TYPE] = "Failed to set spryTrack image processing type.";
+    ResultToStringMap[ERROR_FAILED_TO_SET_MAX_MISSING_FIDS] = "Failed to set maximum number of missing fiducials.";
   }
 
   virtual ~AtracsysInternal()
@@ -760,7 +761,40 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMissingFiducials(int maxMissingFids)
 {
-  ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_MAX_MISSING_POINTS, maxMissingFids);
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_MAX_MISSING_POINTS, maxMissingFids) != ftkError::FTK_OK)
+  {
+    return ERROR_FAILED_TO_SET_MAX_MISSING_FIDS;
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
+{
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_PAIRING, enabled) != ftkError::FTK_OK)
+  {
+    return ERROR_ENABLE_WIRELESS_MARKER_PAIRING;
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
+{
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_PAIRING, enabled) != ftkError::FTK_OK)
+  {
+    return ERROR_ENABLE_WIRELESS_MARKER_STATUS_STREAMING;
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
+{
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_BATTERY_STREAMING, enabled) != ftkError::FTK_OK)
+  {
+    return ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING;
+  }
   return SUCCESS;
 }
 
@@ -777,24 +811,6 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool e
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enabled)
 {
   return this->SetSpryTrackOnlyOption(OPTION_IMAGE_STREAMING, enabled, ERROR_ENABLE_IMAGE_STREAMING);
-}
-
-//----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
-{
-  return this->SetSpryTrackOnlyOption(OPTION_WIRELESS_MARKER_PAIRING, enabled, ERROR_ENABLE_WIRELESS_MARKER_PAIRING);
-}
-
-//----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
-{
-  return this->SetSpryTrackOnlyOption(OPTION_WIRELESS_MARKER_PAIRING, enabled, ERROR_ENABLE_WIRELESS_MARKER_STATUS_STREAMING);
-}
-
-//----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
-{
-  return this->SetSpryTrackOnlyOption(OPTION_WIRELESS_MARKER_BATTERY_STREAMING, enabled, ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING);
 }
 
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(AtracsysTracker::SPRYTRACK_IMAGE_PROCESSING_TYPE processingType)

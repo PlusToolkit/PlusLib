@@ -268,25 +268,22 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
   {
-    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
-    {
-      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-      return PLUS_FAIL;
-    }
-    LOG_INFO("Active marker pairing period started.");
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+    return PLUS_FAIL;
+  }
+  LOG_INFO("Active marker pairing period started.");
 
-    // sleep while waiting for tracker to pair active markers
-    vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+  // sleep while waiting for tracker to pair active markers
+  vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
 
-    LOG_INFO("Active marker pairing period ended.");
+  LOG_INFO("Active marker pairing period ended.");
 
-    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
-    {
-      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-      return PLUS_FAIL;
-    }
+  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+    return PLUS_FAIL;
   }
   
   // make LED green, pairing is complete
