@@ -30,11 +30,23 @@ See License.txt for details.
 #include "ftkPlatform.h"
 #include "ftkTypes.h"
 
-vtkStandardNewMacro(vtkPlusAtracsysTracker);
-
 // for convenience
 #define ATR_SUCCESS AtracsysTracker::ATRACSYS_RESULT::SUCCESS
 typedef AtracsysTracker::ATRACSYS_RESULT ATRACSYS_RESULT;
+
+vtkStandardNewMacro(vtkPlusAtracsysTracker);
+
+//----------------------------------------------------------------------------
+// Define command strings
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_R           = "LedRed";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_G           = "LedGreen";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_B           = "LedBlue";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_FREQ        = "LedFrequency";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED    = "ToolEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY    = "AddGeometry";
 
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal

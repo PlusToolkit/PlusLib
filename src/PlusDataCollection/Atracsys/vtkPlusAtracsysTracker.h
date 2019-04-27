@@ -46,6 +46,18 @@ public:
   /*!  */
   PlusStatus InternalUpdate();
 
+public:
+   // Commands
+  static const char* ATRACSYS_COMMAND_LED_ENABLED;
+  static const char* ATRACSYS_COMMAND_LED_R;
+  static const char* ATRACSYS_COMMAND_LED_G;
+  static const char* ATRACSYS_COMMAND_LED_B;
+  static const char* ATRACSYS_COMMAND_LED_FREQ; // LED flash frequency
+  static const char* ATRACSYS_COMMAND_TOOL_ENABLED;
+  static const char* ATRACSYS_COMMAND_LASER_ENABLED;
+  static const char* ATRACSYS_COMMAND_VIDEO_ENABLED;
+  static const char* ATRACSYS_COMMAND_ADD_GEOMETRY;
+
 protected:
   vtkPlusAtracsysTracker();
   ~vtkPlusAtracsysTracker();
