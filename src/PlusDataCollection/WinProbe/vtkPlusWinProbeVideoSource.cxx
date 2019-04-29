@@ -78,6 +78,8 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, LogMax, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(unsigned long, SSDecimation, deviceConfig); //implicit type conversion
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FirstGainValue, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, BFrameRateLimit, deviceConfig);
+
 
   const char* strMode = deviceConfig->GetAttribute("Mode");
   if(strMode)
@@ -130,6 +132,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetUnsignedLongAttribute("SSDecimation", this->GetSSDecimation());
   deviceConfig->SetAttribute("Mode", ModeToString(this->m_Mode).c_str());
   deviceConfig->SetDoubleAttribute("FirstGainValue", this->GetFirstGainValue());
+  deviceConfig->SetIntAttribute("BFrameRateLimit", this->GetBFrameRateLimit());
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
@@ -1233,4 +1236,22 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
   return this->m_TransducerID;
+}
+
+void vtkPlusWinProbeVideoSource::SetBFrameRateLimit(int32_t value)
+{
+  if (Connected)
+  {
+    ::SetBFrameRateLimit(value);
+  }
+  m_BFrameRateLimit = value;
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetBFrameRateLimit()
+{
+  if (Connected)
+  {
+    m_BFrameRateLimit = ::GetBFrameRateLimit();
+  }
+  return m_BFrameRateLimit;
 }
