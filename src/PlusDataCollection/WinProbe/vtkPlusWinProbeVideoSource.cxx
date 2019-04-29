@@ -398,7 +398,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       else // B-mode
       {
         char* texture = nullptr;
-        int tLength = WPDXGetFusedTexData(&texture);
+        int slicePitch;
+        int rowPitch;
+        int tLength = WPDXGetFusedTexData(&texture, &slicePitch, &rowPitch);
         assert(tLength == frameSize[0] * frameSize[1]);
         if(tLength > 0)
         {
