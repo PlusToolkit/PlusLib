@@ -277,7 +277,7 @@ protected:
   double                         LutCenter;
   double                         LutWindow;
 
-  igsioTrackedFrame::FieldMapType CustomFields;
+  igsioFieldMapType CustomFields;
 
 private:
   vtkPlusCapistranoVideoSource(const vtkPlusCapistranoVideoSource&);  // Not implemented
