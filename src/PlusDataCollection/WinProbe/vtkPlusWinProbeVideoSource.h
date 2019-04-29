@@ -233,7 +233,7 @@ protected:
   std::vector<uint8_t> m_PrimaryBuffer;
   std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
-  igsioTrackedFrame::FieldMapType m_CustomFields;
+  igsioFieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
   float m_FocalPointDepth[4];
   uint16_t m_MinValue = 16; //noise floor

@@ -1101,7 +1101,8 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
       spacingStream << " ";
     }
   }
-  this->CustomFields["ElementSpacing"] = spacingStream.str();
+  this->CustomFields["ElementSpacing"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ElementSpacing"].second = spacingStream.str();
 
   return PLUS_SUCCESS;
 }

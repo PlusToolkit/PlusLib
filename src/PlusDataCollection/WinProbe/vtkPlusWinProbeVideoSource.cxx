@@ -44,10 +44,10 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "CustomFields: " << std::endl;
   vtkIndent indent2 = indent.GetNextIndent();
-  igsioTrackedFrame::FieldMapType::iterator it;
+  igsioFieldMapType::iterator it;
   for(it = m_CustomFields.begin(); it != m_CustomFields.end(); ++it)
   {
-    os << indent2 << it->first << ": " << it->second << std::endl;
+    os << indent2 << it->first << ": " << it->second.second << std::endl;
   }
 }
 
@@ -534,7 +534,8 @@ void vtkPlusWinProbeVideoSource::AdjustSpacing()
       spacingStream << " ";
     }
   }
-  this->m_CustomFields["ElementSpacing"] = spacingStream.str();
+  this->m_CustomFields["ElementSpacing"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->m_CustomFields["ElementSpacing"].second = spacingStream.str();
   LOG_DEBUG("Adjusted spacing: " << spacingStream.str());
 }
 
@@ -609,7 +610,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
 
   m_ADCfrequency = GetADCSamplingRate();
-  this->m_CustomFields["SamplingRate"] = std::to_string(m_ADCfrequency);
+  this->m_CustomFields["SamplingRate"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->m_CustomFields["SamplingRate"].second = std::to_string(m_ADCfrequency);
   m_LineCount = GetSSElementCount();
   SetSCCompoundAngleCount(0);
 
