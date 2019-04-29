@@ -301,15 +301,18 @@ IF(PLUS_USE_ICCAPTURING_VIDEO)
 ENDIF()
 
 #*************************** vtkPlusClariusTest1 ***************************
-ADD_EXECUTABLE(vtkPlusClariusTest1 vtkClariusTest.cxx)
-SET_TARGET_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkPlusClariusTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
 
-ADD_TEST(vtkPlusClariusTest1 
-  ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusClariusTest1
-  --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Clarius.xml 
-  )
-SET_TESTS_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+IF(PLUS_USE_CLARIUS)
+  ADD_EXECUTABLE(vtkPlusClariusTest1 vtkClariusTest.cxx)
+  SET_TARGET_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(vtkPlusClariusTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
+
+  ADD_TEST(vtkPlusClariusTest1 
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusClariusTest1
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_Clarius.xml 
+    )
+  SET_TESTS_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+ENDIF()
 
 #*************************** vtkSonixVolumeReaderTest1.cxx ***************************
 IF(PLUS_USE_ULTRASONIX_VIDEO)
@@ -571,6 +574,19 @@ IF(PLUS_TEST_TextRecognizer)
     --device-id=TextRecognizerDevice 
     --field-value=Peters
     )
+ENDIF()
+
+#*************************** LeapMotionTest1 ***************************
+IF(PLUS_USE_LEAPMOTION)
+  ADD_EXECUTABLE(LeapMotionTest1 vtkLeapMotionTest1.cxx)
+  SET_TARGET_PROPERTIES(LeapMotionTest1 PROPERTIES FOLDER Tests)
+  TARGET_LINK_LIBRARIES(LeapMotionTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
+
+  ADD_TEST(LeapMotionTest1 
+    ${PLUS_EXECUTABLE_OUTPUT_PATH}/LeapMotionTest1
+    --config-file=${ConfigFilesDir}/Testing/PlusDeviceSet_DataCollectionOnly_LeapMotion.xml 
+    )
+  SET_TESTS_PROPERTIES(LeapMotionTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
 ENDIF()
 
 # --------------------------------------------------------------------------

@@ -86,6 +86,9 @@ See License.txt for details.
 #ifdef PLUS_USE_AGILENT
   #include "vtkPlusAgilentScopeTracker.h"
 #endif
+#ifdef PLUS_USE_LEAPMOTION
+  #include "vtkPlusLeapMotion.h"
+#endif
 
 //----------------------------------------------------------------------------
 // Video sources
@@ -130,6 +133,10 @@ See License.txt for details.
 
 #ifdef PLUS_USE_TELEMED_VIDEO
   #include "Telemed\vtkPlusTelemedVideoSource.h"
+#endif
+
+#ifdef PLUS_USE_SPINNAKER_VIDEO
+  #include "vtkPlusSpinnakerVideoSource.h"
 #endif
 
 #ifdef PLUS_USE_THORLABS_VIDEO
@@ -187,11 +194,15 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_INFRARED_SEEK_CAM
-  #include "vtkInfraredSeekCam.h" 
+  #include "vtkInfraredSeekCam.h"
 #endif
 
 #ifdef PLUS_USE_INFRARED_TEQ1_CAM
-  #include "vtkInfraredTEQ1Cam.h" 
+  #include "vtkInfraredTEQ1Cam.h"
+#endif
+
+#ifdef PLUS_USE_CLARIUS
+  #include "vtkPlusClarius.h" 
 #endif
 
 #ifdef PLUS_USE_CLARIUS
@@ -257,6 +268,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_PHIDGET_SPATIAL_TRACKER
   RegisterDevice("PhidgetSpatial", "vtkPlusPhidgetSpatialTracker", (PointerToDevice)&vtkPlusPhidgetSpatialTracker::New);
 #endif
+#ifdef PLUS_USE_LEAPMOTION
+  RegisterDevice("LeapMotion", "vtkPlusLeapMotion", (PointerToDevice)&vtkPlusLeapMotion::New);
+#endif
 
   RegisterDevice("SavedDataSource", "vtkPlusSavedDataSource", (PointerToDevice)&vtkPlusSavedDataSource::New);
   RegisterDevice("UsSimulator", "vtkPlusUsSimulatorVideoSource", (PointerToDevice)&vtkPlusUsSimulatorVideoSource::New);
@@ -303,6 +317,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_TELEMED_VIDEO
   RegisterDevice("TelemedVideo", "vtkPlusTelemedVideoSource", (PointerToDevice)&vtkPlusTelemedVideoSource::New);
+#endif
+#ifdef PLUS_USE_SPINNAKER_VIDEO
+  RegisterDevice("SpinnakerVideo", "vtkPlusSpinnakerVideoSource", (PointerToDevice)&vtkPlusSpinnakerVideoSource::New);
 #endif
 #ifdef PLUS_USE_THORLABS_VIDEO
   RegisterDevice("ThorLabsVideo", "vtkPlusThorLabsVideoSource", (PointerToDevice)&vtkPlusThorLabsVideoSource::New);

@@ -234,15 +234,14 @@ int vtkPlusIgtlMessageFactory::PackStringMessage(const PlusIgtlClientInfo& clien
 {
   for (std::vector<std::string>::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
   {
-    const char* stringName = stringNameIterator->c_str();
-    const char* stringValue = trackedFrame.GetFrameField(stringName);
-    if (stringValue == NULL)
+    std::string stringValue = trackedFrame.GetFrameField(*stringNameIterator);
+    if (stringValue.empty())
     {
       // no value is available, do not send anything
       continue;
     }
     igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
-    vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, stringName, stringValue, trackedFrame.GetTimestamp());
+    vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, *stringNameIterator, stringValue, trackedFrame.GetTimestamp());
     igtlMessages.push_back(stringMessage.GetPointer());
   }
   return 0; // message type does not produce errors
@@ -384,6 +383,19 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
 
     igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
     vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, status, trackedFrame.GetTimestamp());
+    igsioFieldMapType frameFields = trackedFrame.GetFrameFields();
+    for (igsioFieldMapType::iterator iter = frameFields.begin(); iter != frameFields.end(); ++iter)
+    {
+      if (iter->first.find(transformName.GetTransformName()) == 0)
+      {
+        // field starts with transform name, check flags
+        if ((iter->second.first | igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND) > 0)
+        {
+          transformMessage->SetMetaDataElement(iter->first, IANA_TYPE_US_ASCII, iter->second.second);
+        }
+      }
+    }
+
     igtlMessages.push_back(transformMessage.GetPointer());
   }
 
@@ -402,9 +414,10 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
     igsioTransformName imageTransformName = igsioTransformName(imageStream.Name, imageStream.EmbeddedTransformToFrame);
 
     vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    if (transformRepository.GetTransform(imageTransformName, matrix.Get()) != PLUS_SUCCESS)
+    ToolStatus status;
+    if (transformRepository.GetTransform(imageTransformName, matrix.Get(), &status) != PLUS_SUCCESS)
     {
-      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform");
+      LOG_WARNING("Failed to create " << messageType << " message: cannot get image transform. ToolStatus: " << status);
       numberOfErrors++;
       continue;
     }
@@ -425,7 +438,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
     trackedFrame.GetFrameFieldNameList(frameFields);
     for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
     {
-      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+      if (trackedFrame.GetFrameField(*stringNameIterator).empty())
       {
         // No value is available, do not send anything
         LOG_WARNING("No metadata value for: " << *stringNameIterator)
@@ -481,7 +494,7 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
     trackedFrame.GetFrameFieldNameList(frameFields);
     for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
     {
-      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+      if (trackedFrame.GetFrameField(*stringNameIterator).empty())
       {
         // No value is available, do not send anything
         LOG_WARNING("No metadata value for: " << *stringNameIterator);

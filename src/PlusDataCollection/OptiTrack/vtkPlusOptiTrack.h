@@ -10,11 +10,6 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-//TODO: Move ReceiveDataCallback out of the global namespace, InternalCallback
-// into vtkInternal and move these includes to the source file.
-#include <NatNetClient.h>
-#include <NatNetTypes.h>
-
 /*!
 \class vtkPlusOptiTrack
 \brief Interface to the OptiTrack trackers
@@ -50,11 +45,6 @@ public:
 
   /*!  */
   PlusStatus InternalUpdate();
-
-  /*!
-  Receive updated tracking information from the server and push the new transforms to the tools
-  */
-  PlusStatus InternalCallback(sFrameOfMocapData* data);
 
 protected:
   vtkPlusOptiTrack();

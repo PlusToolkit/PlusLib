@@ -43,6 +43,7 @@ OPTION(PLUS_USE_INTERSON_VIDEO "Provide support Interson USB ultrasound probes" 
 OPTION(PLUS_USE_INTERSONSDKCXX_VIDEO "Provide support Interson SDK 1.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO "Provide support Interson Array SDK 2.X with C++ Wrapper USB ultrasound probes" OFF)
 OPTION(PLUS_USE_TELEMED_VIDEO "Provide support for the Telemed ultrasound probes" OFF)
+OPTION(PLUS_USE_SPINNAKER_VIDEO "Provide support for Point Grey Spinnaker API compatible imaging devices" OFF)
 OPTION(PLUS_USE_THORLABS_VIDEO "Provide support for the ThorLabs compact spectrometers" OFF)
 OPTION(PLUS_USE_STEALTHLINK "Provide support for the Medtronick StealthLink Server" OFF)
 OPTION(PLUS_USE_IntuitiveDaVinci "Enable the tracking of the da Vinci Surgical System. Enable this only if you have a da Vinci that is accessible from this computer." OFF)
@@ -54,6 +55,9 @@ OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
+
+OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
+
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -1576,6 +1580,7 @@ IF(PLUS_USE_WINPROBE_VIDEO)
   ENDIF()
 
   FILE(GLOB WinProbeAssemblies "${WINPROBESDK_DIR}/${Bitness}/*.dll")
+  FILE(COPY ${WinProbeAssemblies} DESTINATION ${CMAKE_BINARY_DIR}) # allows running tests without changing the working directory
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${WINPROBESDK_DIR}/${Bitness}/$<$<CONFIG:Debug>:Debug>$<$<NOT:$<CONFIG:Debug>>:Release>/UltraVisionManagedDll${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -1723,6 +1728,106 @@ IF(PLUS_USE_INTERSONARRAYSDKCXX_VIDEO)
   LIST(APPEND External_Libraries_Debug
     ${IntersonArraySDK_DIR}/Libraries/IntersonArray${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${IntersonArraySDK_DIR}/Libraries/IntersonArrayTools${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# Point Grey Spinnaker API support
+
+IF(PLUS_USE_SPINNAKER_VIDEO)
+  SET(Spinnaker_SRCS
+    PointGrey/vtkPlusSpinnakerVideoSource.cxx
+    )
+
+  IF(MSVC)
+    SET(Spinnaker_HDRS
+      PointGrey/vtkPlusSpinnakerVideoSource.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${Spinnaker_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${Spinnaker_SRCS}
+    )
+
+  # Collect all the Spinnaker API libraries
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/PointGrey
+    ${SPINNAKER_API_INCLUDE_DIR}
+    )
+  
+  IF(WIN32)
+    # Windows libs
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+      debug     ${SPINNAKER_API_LIBRARY_DIR}/Spinnakerd_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+      optimized ${SPINNAKER_API_LIBRARY_DIR}/Spinnaker_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+      debug     ${SPINNAKER_API_LIBRARY_DIR}/SpinVideod_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+      optimized ${SPINNAKER_API_LIBRARY_DIR}/SpinVideo_v140${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
+    LIST(APPEND External_Libraries_Debug
+      ${SPINNAKER_API_BINARY_DIR}/GCBase_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/GenApi_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/GenTLd_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/Log_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/log4cpp_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/MathParser_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/NodeMapData_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/Spinnakerd_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/XMLParser_MDd_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+    LIST(APPEND External_Libraries_Install
+      ${SPINNAKER_API_BINARY_DIR}/GCBase_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/GenApi_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/GenTL_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/libiomp5md${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/Log_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/log4cpp.spinnaker.property
+      ${SPINNAKER_API_BINARY_DIR}/log4cpp_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/MathParser_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/NodeMapData_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/Spinnaker_v140${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${SPINNAKER_API_BINARY_DIR}/XMLParser_MD_VC140_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      )
+
+  ELSEIF(UNIX AND NOT MAC)
+    # Ubuntu libs
+    LIST(APPEND ${PROJECT_NAME}_LIBS
+    ${SPINNAKER_API_LIBRARY_DIR}/libGCBase_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libGenApi_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/liblog4cpp_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libLog_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libMathParser_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libNodeMapData_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libSpinnaker${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libSpinVideo${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libXmlParser_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+    LIST(APPEND External_Libraries_Install
+    ${SPINNAKER_API_LIBRARY_DIR}/libGCBase_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libGenApi_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/liblog4cpp_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libLog_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libMathParser_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libNodeMapData_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libSpinnaker${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libSpinVideo${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${SPINNAKER_API_LIBRARY_DIR}/libXmlParser_gcc540_v3_0${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  ENDIF()
+
+  # Platform invariant "libraries"
+  LIST(APPEND External_Libraries_Install
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDataStream_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDataStream_Usb3_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Reference_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Usb3_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_GigE_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml 
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml 
     )
 ENDIF()
 
@@ -2187,6 +2292,44 @@ IF(PLUS_USE_WITMOTIONTRACKER)
 ENDIF()
 
 # --------------------------------------------------------------------------
+# LeapMotion
+IF(PLUS_USE_LEAPMOTION)
+  FIND_PACKAGE(LeapSDK 4.0)
+  SET(LeapMotion_SRCS
+    LeapMotion/vtkPlusLeapMotion.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(LeapMotion_HDRS
+      LeapMotion/vtkPlusLeapMotion.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${LeapMotion_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${LeapMotion_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/LeapMotion
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    LeapSDK::LeapC
+    )
+
+  GET_TARGET_PROPERTY(_install_file LeapSDK::LeapC IMPORTED_LOCATION_RELEASE)
+  IF(NOT _install_file)
+    MESSAGE(FATAL_ERROR "Unable to locate LeapMotion DLL to install. Check LeapSDK installation.")
+  ENDIF()
+  LIST(APPEND External_Libraries_Install
+    ${_install_file}
+    )
+ENDIF()
+
+# --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
   vtkPlusRendering
@@ -2262,6 +2405,7 @@ source_group("Atracsys" FILES ${Atracsys_HDRS} ${Atracsys_SRCS})
 source_group("NDICertus" FILES ${NDICertus_HDRS} ${NDICertus_SRCS})
 source_group("Optimet" FILES ${Optimet_HDRS} ${Optimet_SRCS})
 source_group("OptiTrack" FILES ${OptiTrack_HDRS} ${OptiTrack_SRCS})
+source_group("SpinnakerAPI" FILES ${Spinnaker_HDRS} ${Spinnaker_SRCS})
 source_group("VirtualDevices" FILES ${Virtual_HDRS} ${Virtual_SRCS})
 source_group("OpenIGTLink" FILES ${OpenIGTLink_HDRS} ${OpenIGTLink_SRCS})
 source_group("Common" FILES ${Common_HDRS} ${Common_SRCS})
@@ -2272,6 +2416,8 @@ source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
+
+source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 
 # --------------------------------------------------------------------------

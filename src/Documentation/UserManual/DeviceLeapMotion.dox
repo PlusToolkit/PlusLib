@@ -1,0 +1,47 @@
+/*!
+\page DeviceLeapMotion LeapMotion hand tracker
+
+\section LeapMotionSupportedHwDevices Supported hardware devices
+
+- Link to manufacturer's website: https://www.leapmotion.com/
+
+\section LeapMotionSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+
+\section LeapMotionConfigSettings Device configuration settings
+
+- \xmlAtt \ref DeviceType "Type" = \c "LeapMotion" \RequiredAtt
+
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" \OptionalAtt{20}
+- \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlAtt LeapHMDPolicy If the leap is attached to an HMD, set this attribute to TRUE \OptionalAtt{FALSE}
+- \xmlAtt RefusePauseResumePolicy The leap motion gets very hot, so by default Plus requests permission to pause and resume the Leap service (this affects ALL leap motion apps) to minimize the temperature. Set to TRUE to refuse these permissions. \OptionalAtt{FALSE}
+
+- \xmlElem \ref DataSources One datasource per joint \c DataSource child element is required. \RequiredAtt
+   - \xmlElem \ref DataSource \RequiredAtt
+    - \xmlAtt \ref BufferSize \OptionalAtt{150}
+    - \xmlAtt Id The leap motion device uses these Ids to identify which joint transform should be stored in this data source. Please see the section on transform names in this document for details. \RequiredAtt
+    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
+
+\section LeapMotionTransformNames Data source ID transform names
+
+This device uses the data source "Id" as lookup for which joint to store. The list of acceptable "Id" values are combinations of Hand ("Left", "Right"), Finger ("Thumb", "Index", "Middle", "Ring", "Pinky"), and Joint ("Metacarpal", "Proximal", "Intermediate", "Distal"). 
+Some examples are:
+ - LeftIndexMetacarpal
+ - RightMiddleProximal
+ - LeftThumbDistal
+ 
+The only exception is that the Thumb does not have a metacarpal joint.
+
+Non-finger joints:
+ - LeftPalm
+ - RightPalm
+
+\section LeapMotionTrackerExampleConfigFile Example configuration file PlusDeviceSet_Server_LeapMotionTracker.xml
+
+\include "ConfigFiles/PlusDeviceSet_Server_LeapMotionTracker.xml"
+
+*/

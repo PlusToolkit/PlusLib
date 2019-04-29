@@ -108,9 +108,9 @@ PlusStatus vtkPlusUsDevice::SetNewImagingParameters(const vtkPlusUsImagingParame
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
-  igsioTrackedFrame::FieldMapType localCustomFields;
+  igsioFieldMapType localCustomFields;
   if (!this->ImageToTransducerTransform.GetTransformName().empty())
   {
     if (customFields != NULL)
@@ -124,9 +124,9 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSource, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
-  igsioTrackedFrame::FieldMapType localCustomFields;
+  igsioFieldMapType localCustomFields;
   if (!this->ImageToTransducerTransform.GetTransformName().empty())
   {
     if (customFields != NULL)
@@ -140,9 +140,9 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSource(vtkPlusDataSource& videoSo
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
-  igsioTrackedFrame::FieldMapType localCustomFields;
+  igsioFieldMapType localCustomFields;
   if (!this->ImageToTransducerTransform.GetTransformName().empty() && customFields != NULL)
   {
     localCustomFields = *customFields;
@@ -153,9 +153,9 @@ PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlus
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusUsDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
-  igsioTrackedFrame::FieldMapType localCustomFields;
+  igsioFieldMapType localCustomFields;
   if (customFields != NULL)
   {
     localCustomFields = *customFields;
@@ -272,7 +272,7 @@ PlusStatus vtkPlusUsDevice::InternalApplyImagingParameterChange()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusUsDevice::CalculateImageToTransducer(igsioTrackedFrame::FieldMapType& customFields)
+void vtkPlusUsDevice::CalculateImageToTransducer(igsioFieldMapType& customFields)
 {
   std::ostringstream imageToTransducerName;
   imageToTransducerName << ImageToTransducerTransform.GetTransformName() << "Transform";
@@ -282,7 +282,9 @@ void vtkPlusUsDevice::CalculateImageToTransducer(igsioTrackedFrame::FieldMapType
   imageToTransducerTransformStr << " 0 " << this->CurrentPixelSpacingMm[1] << " 0 " << -1.0 * this->CurrentTransducerOriginPixels[1]*this->CurrentPixelSpacingMm[1];
   imageToTransducerTransformStr << " 0 0 " << this->CurrentPixelSpacingMm[2] << " " << -1.0 * this->CurrentTransducerOriginPixels[2]*this->CurrentPixelSpacingMm[2];
   imageToTransducerTransformStr << " 0 0 0 1";
-  customFields[imageToTransducerName.str()] = imageToTransducerTransformStr.str();
+  customFields[imageToTransducerName.str()].first = FRAMEFIELD_NONE;
+  customFields[imageToTransducerName.str()].second = imageToTransducerTransformStr.str();
   imageToTransducerName << "Status";
-  customFields[imageToTransducerName.str()] = "OK";
+  customFields[imageToTransducerName.str()].first = FRAMEFIELD_NONE;
+  customFields[imageToTransducerName.str()].second = "OK";
 }

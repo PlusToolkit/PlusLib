@@ -604,7 +604,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(clientInfoMsg->GetBufferBodyPointer(), clientInfoMsg->GetBufferBodySize());
 
       int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || clientInfoMsg->GetBufferBodySize() == 0)
       {
         // Message received from client, need to lock to modify client info
         igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
@@ -632,7 +632,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
       // We are receiving old style commands, handle it
       int c = stringMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || stringMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName(headerMsg->GetDeviceName());
         if (deviceName.empty())
@@ -691,7 +691,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize());
 
       int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || commandMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName(headerMsg->GetDeviceName());
 
@@ -732,7 +732,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
 
       int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || startTracking->GetBufferBodySize() == 0)
       {
         client->ClientInfo.SetTDATAResolution(startTracking->GetResolution());
         client->ClientInfo.SetTDATARequested(true);
@@ -773,7 +773,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
 
       int c = polyDataMessage->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || polyDataMessage->GetBufferBodySize() == 0)
       {
         std::string fileName;
         // Check metadata for requisite parameters, if absent, check deviceName
@@ -851,7 +851,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getImageMetaMsg->GetBufferBodyPointer(), getImageMetaMsg->GetBufferBodySize());
 
       int c = getImageMetaMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getImageMetaMsg->GetBufferBodySize() == 0)
       {
         // Image meta message
         std::string deviceName("");
@@ -876,7 +876,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getImageMsg->GetBufferBodyPointer(), getImageMsg->GetBufferBodySize());
 
       int c = getImageMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getImageMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName("");
         if (headerMsg->GetDeviceName() != NULL)
@@ -906,7 +906,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getPointMsg->GetBufferBodyPointer(), getPointMsg->GetBufferBodySize());
 
       int c = getPointMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getPointMsg->GetBufferBodySize() == 0)
       {
         std::string fileName;
         if (!getPointMsg->GetMetaDataElement("Filename", fileName))

@@ -1408,9 +1408,9 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
   for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
   {
     const char* dev = ndiSerialDeviceName(i);
-    LOG_DEBUG("Testing serial port: " << dev);
     if (dev != nullptr)
     {
+      LOG_DEBUG("Testing serial port: " << dev);
       std::string devName = std::string(dev);
       std::future<void> result = std::async([this, i, &deviceExists, devName]()
       {
@@ -1424,7 +1424,7 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
       tasks.push_back(std::move(result));
     }
   }
-  for (int i = 0; i < MAX_SERIAL_PORT_NUMBER; i++)
+  for (std::vector<std::future<void>>::size_type i = 0; i < tasks.size(); i++)
   {
     tasks[i].wait();
   }

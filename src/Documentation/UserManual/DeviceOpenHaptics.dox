@@ -35,13 +35,13 @@ translation portion of the transformation matrix (RAS coordinates).
    - \xmlAtt \ref AveragedItemsForFiltering \OptionalAtt{20}
 - \xmlElem \ref InputChannels An Input channel is required to send force data to the device \RequiredAtt
    - \xmlElem \ref InputChannel \RequiredAtt
-     -\xmlElem \ref Id Identifier of an output channel of another device containing a tool with PortName="Force" \RequiredAtt
+     -\xmlElem Id Identifier of an output channel of another device containing a tool with PortName="Force" \RequiredAtt
 
 
 \section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics_WithForces.xml
 \include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics_WithForces.xml"
 
-\section DeviceOpenHapticsExampleConfigFile Example configuration file PlusDeviceSet_Server_OpenHaptics.xml
+\section DeviceOpenHapticsExampleConfigFile2 Example configuration file PlusDeviceSet_Server_OpenHaptics.xml
 \include "ConfigFiles/PlusDeviceSet_Server_OpenHaptics.xml"
 
 */

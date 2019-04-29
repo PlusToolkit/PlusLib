@@ -9,9 +9,11 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 
-#include "igsioCommon.h"
+// IGSIO includes
+#include <igsioCommon.h>
 
-#include "vtkSmartPointer.h"
+// VTK includes
+#include <vtkSmartPointer.h>
 
 #include <vector>
 
@@ -36,28 +38,26 @@ class vtkPlusVirtualMixer;
 class vtkPlusDataCollectionExport StreamBufferItem
 {
 public:
-  typedef std::map<std::string, std::string> FieldMapType;
-
   StreamBufferItem();
   virtual ~StreamBufferItem();
 
-  StreamBufferItem( const StreamBufferItem& dataItem );
-  StreamBufferItem& operator=( StreamBufferItem const& dataItem );
+  StreamBufferItem(const StreamBufferItem& dataItem);
+  StreamBufferItem& operator=(StreamBufferItem const& dataItem);
 
   /*! Get timestamp for the current buffer item in global time (global = local + offset) */
-  double GetTimestamp( double localTimeOffsetSec ) { return this->GetFilteredTimestamp( localTimeOffsetSec ); }
+  double GetTimestamp(double localTimeOffsetSec) { return this->GetFilteredTimestamp(localTimeOffsetSec); }
 
   /*! Get filtered timestamp in global time (global = local + offset) */
-  double GetFilteredTimestamp( double localTimeOffsetSec ) { return this->FilteredTimeStamp + localTimeOffsetSec; }
+  double GetFilteredTimestamp(double localTimeOffsetSec) { return this->FilteredTimeStamp + localTimeOffsetSec; }
 
   /*! Set filtered timestamp */
-  void SetFilteredTimestamp( double filteredTimestamp ) { this->FilteredTimeStamp = filteredTimestamp; }
+  void SetFilteredTimestamp(double filteredTimestamp) { this->FilteredTimeStamp = filteredTimestamp; }
 
   /*! Get unfiltered timestamp in global time (global = local + offset) */
-  double GetUnfilteredTimestamp( double localTimeOffsetSec ) { return this->UnfilteredTimeStamp + localTimeOffsetSec; }
+  double GetUnfilteredTimestamp(double localTimeOffsetSec) { return this->UnfilteredTimeStamp + localTimeOffsetSec; }
 
   /*! Set unfiltered timestamp */
-  void SetUnfilteredTimestamp( double unfilteredTimestamp ) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
+  void SetUnfilteredTimestamp(double unfilteredTimestamp) { this->UnfilteredTimeStamp = unfilteredTimestamp; }
 
   /*!
     Set/get index assigned by the data acquisition system (usually a counter)
@@ -65,72 +65,39 @@ public:
     the index difference between subsequent frames be more than 1.
   */
   unsigned long GetIndex() { return this->Index; };
-  void SetIndex( unsigned long index ) { this->Index = index; };
+  void SetIndex(unsigned long index) { this->Index = index; };
 
   /*! Set/get unique identifier assigned by the storage buffer */
   BufferItemUidType GetUid() { return this->Uid; };
-  void SetUid( BufferItemUidType uid ) { this->Uid = uid; };
+  void SetUid(BufferItemUidType uid) { this->Uid = uid; };
 
   /*! Set frame field */
-  void SetFrameField( std::string fieldName, std::string fieldValue );
+  void SetFrameField(std::string fieldName, std::string fieldValue, igsioFrameFieldFlags flags = FRAMEFIELD_NONE);
 
   /*! Get frame field value */
-  const char* GetFrameField( const char* fieldName )
-  {
-    if ( fieldName == NULL )
-    {
-      LOG_ERROR( "Unable to get frame field: field name is NULL!" );
-      return NULL;
-    }
-
-    FieldMapType::iterator fieldIterator;
-    fieldIterator = this->FrameFields.find( fieldName );
-    if ( fieldIterator != this->FrameFields.end() )
-    {
-      return fieldIterator->second.c_str();
-    }
-    return NULL;
-  }
+  std::string GetFrameField(const std::string& fieldName) const;
   /*! Get frame field map */
-  FieldMapType& GetFrameFieldMap()
-  {
-    return this->FrameFields;
-  }
+  igsioFieldMapType GetFrameFieldMap() {return this->FrameFields;}
   /*! Delete frame field */
-  PlusStatus DeleteFrameField( const char* fieldName )
-  {
-    if ( fieldName == NULL )
-    {
-      LOG_DEBUG( "Failed to delete frame field - field name is NULL!" );
-      return PLUS_FAIL;
-    }
-
-    FieldMapType::iterator field = this->FrameFields.find( fieldName );
-    if ( field != this->FrameFields.end() )
-    {
-      this->FrameFields.erase( field );
-      return PLUS_SUCCESS;
-    }
-    LOG_DEBUG( "Failed to delete frame field - could find field " << fieldName );
-    return PLUS_FAIL;
-  }
+  PlusStatus DeleteFrameField(const char* fieldName);
+  PlusStatus DeleteFrameField(const std::string& fieldName);
 
   /*! Copy stream buffer item */
-  PlusStatus DeepCopy( StreamBufferItem* dataItem );
+  PlusStatus DeepCopy(StreamBufferItem* dataItem);
 
   igsioVideoFrame& GetFrame() { return this->Frame; };
 
   /*! Set tracker matrix */
-  PlusStatus SetMatrix( vtkMatrix4x4* matrix );
+  PlusStatus SetMatrix(vtkMatrix4x4* matrix);
   /*! Get tracker matrix */
-  PlusStatus GetMatrix( vtkMatrix4x4* outputMatrix );
+  PlusStatus GetMatrix(vtkMatrix4x4* outputMatrix);
 
   /*! Set tracker item status */
-  void SetStatus( ToolStatus status );
+  void SetStatus(ToolStatus status);
   /*! Get tracker item status */
   ToolStatus GetStatus() const;
 
-  void SetValidTransformData( bool aValid ) { ValidTransformData = aValid; }
+  void SetValidTransformData(bool aValid) { ValidTransformData = aValid; }
   bool HasValidTransformData() const { return ValidTransformData; }
   bool HasValidFieldData() const;
   bool HasValidVideoData() const
@@ -149,7 +116,7 @@ protected:
   BufferItemUidType Uid;
 
   /*! Custom frame fields */
-  FieldMapType FrameFields;
+  igsioFieldMapType FrameFields;
 
   bool ValidTransformData;
   igsioVideoFrame Frame;

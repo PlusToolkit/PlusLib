@@ -19,8 +19,9 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #include "PlusConfigure.h"
 #include "vtkPlusDataCollectionExport.h"
 #include "PlusStreamBufferItem.h"
-#include "igsioTrackedFrame.h"
 #include "vtkPlusTimestampedCircularBuffer.h"
+
+//#include "igsioTrackedFrame.h"
 
 // VTK includes
 #include <vtkObject.h>
@@ -75,7 +76,7 @@ public:
                              const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioFieldMapType* customFields = NULL);
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     If the timestamp is  less than or equal to the previous timestamp,
@@ -89,7 +90,7 @@ public:
                              const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioFieldMapType* customFields = NULL);
   /*!
     Add a frame plus a timestamp to the buffer with frame index.
     Additionally an optional field name&value can be added,
@@ -111,7 +112,7 @@ public:
                              const std::array<int, 3>& clipRectangleSize,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const igsioTrackedFrame::FieldMapType* customFields = NULL,
+                             const igsioFieldMapType* customFields = NULL,
                              vtkStreamingVolumeFrame* encodedFrame = NULL);
 
   /*!
@@ -130,7 +131,7 @@ public:
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP,
-                             const igsioTrackedFrame::FieldMapType* customFields = NULL);
+                             const igsioFieldMapType* customFields = NULL);
 
   /*!
     Add custom fields to the new item
@@ -138,7 +139,7 @@ public:
     or if the frame's format doesn't match the buffer's frame format,
     then the frame is not added to the buffer.
   */
-  virtual PlusStatus AddItem(const igsioTrackedFrame::FieldMapType& fields,
+  virtual PlusStatus AddItem(const igsioFieldMapType& fields,
                              long frameNumber,
                              double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
                              double filteredTimestamp = UNDEFINED_TIMESTAMP);
@@ -148,7 +149,7 @@ public:
     If the timestamp is less than or equal to the previous timestamp, then nothing  will be done.
     If filteredTimestamp argument is undefined then the filtered timestamp will be computed from the input unfiltered timestamp.
   */
-  PlusStatus AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
+  PlusStatus AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioFieldMapType* customFields = NULL);
 
   /*! Get a frame with the specified frame uid from the buffer */
   virtual ItemStatus GetStreamBufferItem(BufferItemUidType uid, StreamBufferItem* bufferItem);
@@ -271,9 +272,9 @@ public:
   bool GetTimeStampReporting();
 
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z, bool allocateFrames=true);
+  PlusStatus SetFrameSize(unsigned int x, unsigned int y, unsigned int z, bool allocateFrames = true);
   /*! Set the frame size in pixel  */
-  PlusStatus SetFrameSize(const FrameSizeType& frameSize, bool allocateFrames=true);
+  PlusStatus SetFrameSize(const FrameSizeType& frameSize, bool allocateFrames = true);
   /*! Get the frame size in pixel  */
   virtual FrameSizeType GetFrameSize() const;
   virtual PlusStatus GetFrameSize(unsigned int& _arg1, unsigned int& _arg2, unsigned int& _arg3) const;

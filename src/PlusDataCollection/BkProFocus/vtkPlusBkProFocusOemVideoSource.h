@@ -292,7 +292,7 @@ protected:
   vtkInternal* Internal;
 
   /// Container to hold calculated field values
-  igsioTrackedFrame::FieldMapType FrameFields;
+  igsioFieldMapType FrameFields;
 
 private:
   vtkPlusBkProFocusOemVideoSource(const vtkPlusBkProFocusOemVideoSource&);  // Not implemented.

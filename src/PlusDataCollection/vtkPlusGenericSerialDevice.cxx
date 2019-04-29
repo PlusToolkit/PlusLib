@@ -233,7 +233,7 @@ PlusStatus vtkPlusGenericSerialDevice::SetRTS(bool onOff)
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::GetDSR(bool & onOff)
+PlusStatus vtkPlusGenericSerialDevice::GetDSR(bool& onOff)
 {
   // Either update or send commands - but not simultaneously
   igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -242,7 +242,7 @@ PlusStatus vtkPlusGenericSerialDevice::GetDSR(bool & onOff)
 }
 
 //-------------------------------------------------------------------------
-PlusStatus vtkPlusGenericSerialDevice::GetCTS(bool & onOff)
+PlusStatus vtkPlusGenericSerialDevice::GetCTS(bool& onOff)
 {
   // Either update or send commands - but not simultaneously
   igsioLockGuard<vtkIGSIORecursiveCriticalSection> updateMutexGuardedLock(this->Mutex);
@@ -354,8 +354,9 @@ PlusStatus vtkPlusGenericSerialDevice::ReceiveResponse(std::string& textReceived
   // Store in frame
   if (this->FieldDataSource != nullptr)
   {
-    igsioTrackedFrame::FieldMapType fieldMap;
-    fieldMap[this->FieldDataSource->GetId()] = textReceived;
+    igsioFieldMapType fieldMap;
+    fieldMap[this->FieldDataSource->GetId()].first = FRAMEFIELD_NONE;
+    fieldMap[this->FieldDataSource->GetId()].second = textReceived;
     this->FieldDataSource->AddItem(fieldMap, this->FrameNumber);
     this->FrameNumber++;
   }

@@ -32,20 +32,20 @@ public:
 
   void FreezeDevice(bool freeze);
 
+  PlusStatus GetFrequencyMhz(double& freqMHz);
+  PlusStatus SetFrequencyMhz(double freqMHz);
+
   PlusStatus SetDepthMm(double depthMm);
   PlusStatus GetDepthMm(double& depthMm);
 
   PlusStatus SetGainPercent(double gainPercent);
   PlusStatus GetGainPercent(double& gainPercent);
 
-  PlusStatus SetPowerPercent(double powerPercent);
-  PlusStatus GetPowerPercent(double& powerPercent);
+  PlusStatus SetPowerDb(double powerDb);
+  PlusStatus GetPowerDb(double& powerDb);
 
   PlusStatus SetDynRangeDb(double dynRangeDb);
   PlusStatus GetDynRangeDb(double& dynRangeDb);
-
-  PlusStatus GetFrequencyMhz(double& freqMHz);
-  PlusStatus SetFrequencyMhz(double freqMHz);
 
 protected:
   std::vector<unsigned char> m_FrameBuffer;

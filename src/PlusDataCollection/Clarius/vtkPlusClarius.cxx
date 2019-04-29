@@ -248,6 +248,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
   {
     this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
     this->RawImuDataStream << "FrameNum,SystemTimestamp,ConvertedTimestamp,ImageTimestamp,MicronsPerPixel,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
+
     this->RawImuDataStream.close();
   }
 

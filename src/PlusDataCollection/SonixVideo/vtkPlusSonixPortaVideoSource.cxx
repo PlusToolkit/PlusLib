@@ -374,23 +374,29 @@ PlusStatus vtkPlusSonixPortaVideoSource::AddFrameToBuffer(void* param, int id, b
     this->CurrentTransducerOriginPixels[1] = currentTransducerOriginPixels[1] - clipRectangleOrigin[1];
   }
 
-  igsioTrackedFrame::FieldMapType customFields;
+  igsioFieldMapType customFields;
 
   std::ostringstream frameIndexInVolumeStr;
   frameIndexInVolumeStr << this->FrameIndexInVolume;
-  customFields["FrameIndex"] = frameIndexInVolumeStr.str();
+  customFields["FrameIndex"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  customFields["FrameIndex"].second = frameIndexInVolumeStr.str();
   std::ostringstream volumeIndexStr;
   volumeIndexStr << this->VolumeIndex;
-  customFields["VolumeIndex"] =  volumeIndexStr.str();
+  customFields["VolumeIndex"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  customFields["VolumeIndex"].second =  volumeIndexStr.str();
   std::ostringstream motorAngleDegStr;
   motorAngleDegStr << motorAngleDeg;
-  customFields["MotorAngleDeg"] = motorAngleDegStr.str();
-  customFields["MotorToMotorRotatedTransform"] = this->GetMotorToMotorRotatedTransform(motorAngleDeg);
-  customFields["MotorToMotorRotatedTransformStatus"] = "OK";
+  customFields["MotorAngleDeg"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  customFields["MotorAngleDeg"].second = motorAngleDegStr.str();
+  customFields["MotorToMotorRotatedTransform"].first = FRAMEFIELD_NONE;
+  customFields["MotorToMotorRotatedTransform"].second = this->GetMotorToMotorRotatedTransform(motorAngleDeg);
+  customFields["MotorToMotorRotatedTransformStatus"].first = FRAMEFIELD_NONE;
+  customFields["MotorToMotorRotatedTransformStatus"].second = "OK";
   std::ostringstream motorRotatedToTransducerTransformStr;
   motorRotatedToTransducerTransformStr << "1 0 0 0 0 1 0 " << -this->ProbeInformation->motorRadius * 0.001 << " 0 0 1 0 0 0 0 1";
-  customFields["MotorRotatedToTransducerTransform"] = motorRotatedToTransducerTransformStr.str();
-  customFields["MotorRotatedToTransducerTransformStatus"] = "OK";
+  customFields["MotorRotatedToTransducerTransform"].second = motorRotatedToTransducerTransformStr.str();
+  customFields["MotorRotatedToTransducerTransformStatus"].first = FRAMEFIELD_NONE;
+  customFields["MotorRotatedToTransducerTransformStatus"].second = "OK";
 
   PlusStatus status = this->AddVideoItemToVideoSource(*aSource, deviceDataPtr, aSource->GetInputImageOrientation(), frameSize, VTK_UNSIGNED_CHAR, 1, US_IMG_BRIGHTNESS, numberOfBytesToSkip, id, UNDEFINED_TIMESTAMP, UNDEFINED_TIMESTAMP, &customFields);
 

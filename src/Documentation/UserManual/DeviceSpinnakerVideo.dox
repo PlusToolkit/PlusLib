@@ -1,0 +1,55 @@
+/*!
+\page DeviceSpinnaker Spinnaker Video Source
+
+\section SpinnakerCompatibleHwDevices Copmatible Devices
+- Tested with FLIR Blackfly S PGE-13Y3C-C
+- Other FLIR Spinnaker compatible cameras should be supported. If you discover issue with your hardware or would like a feature added please provide a bug report / feature request on the <a href="https://github.com/PlusToolkit/PlusLib/issues">PlusLib GitHub issue tracker</a>.
+
+\section SpinnakerSupportedPlatforms Supported platforms
+- \ref PackageWin64
+- \ref PackageLinux (Ubuntu 16.04 / 18.04)
+
+\section SpinnakerSDKVersions Spinnaker SDK Tested Versions
+Please build PLUS Point Grey Spinnaker support against the following Spinnaker SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.
+
+- Windows: 1.20.0.15
+- Ubuntu 16.04 Xenial: 1.13.0.31
+- Ubuntu 18.04 Bionic: 1.20.0.14
+
+\section SpinnakerBuild Building the SpinnakerVideo PLUS support
+
+- To build the software, please download Point Grey's Spinnaker SDK from the <a href="https://www.ptgrey.com/support/downloads">FLIR downloads portal</a>. Alternatively, confirmed working files needed to build the support for Spinnaker compatible cameras on Windows & Linux are available in the PLTools repository.
+
+\section SpinnakerConfigSettings Device configuration settings
+Please check your device's technical specifications (available from the <a href="https://www.ptgrey.com/support/downloads">FLIR downloads portal</a>) for the appropriate min & max values of these parameters for your hardware.
+
+- \xmlAtt \ref DeviceType "Type" = \c "SpinnakerVideo" \RequiredAtt
+- \xmlAtt \b CameraNumber Camera number to connect to. \OptionalAtt{0}
+- \xmlAtt \b PixelEncoding \OptionalAtt{RGB24}
+  - \c RGB24 Standard RGB 24-bit pixel encoding.
+  - \c MONO8 8-bit monochrome pixel encoding.
+- \xmlAtt \b FrameSize Size of the image frame (width x height) \OptionalAtt{640x480}
+- \xmlAtt \b FrameRate Number of frames acquired per second. \OptionalAtt{30}
+- \xmlAtt \b ExposureMode Enable manual / automatic control of the camera's exposure. \OptionalAtt{AUTO_CONTINUOUS}
+  - \c TIMED Manual control, the ExposureMicroSec attribute must be provided to use this option.
+  - \c AUTO_ONCE Automatically set the exposure once on camera start.
+  - \c AUTO_CONTINUOUS Continuously adjust the exposure of the camera during the acquisition.
+- \xmlAtt \b ExposureMicroSec Exposure time as a float in micro seconds.
+- \xmlAtt \b GainMode Enable manual / automatic control of the camera's gain. \OptionalAtt{AUTO_CONTINUOUS}
+  - \c MANUAL Manual control, the GainDB attribute must be provided to use this option.
+  - \c AUTO_ONCE Automatically set the gain once on camera start.
+  - \c AUTO_CONTINUOUS Continuously adjust the gain of the camera during the acquisition.
+- \xmlAtt \b GainDB Gain as a float in decibels.
+- \xmlAtt \b WhiteBalanceMode Enable manual / automatic control of the camera's white balance. \OptionalAtt{AUTO_CONTINUOUS}
+  - \c MANUAL Manual control, the WhiteBalanceRed & WhiteBalanceBlue attributes must be provided to use this option.
+  - \c AUTO_ONCE Automatically set the white balance once on camera start.
+  - \c AUTO_CONTINUOUS Continuously adjust the white balance of the camera during the acquisition.
+- \xmlAtt \b WhiteBalanceRed White balance red value as a float.
+- \xmlAtt \b WhiteBalanceBlue White balance blue value as a float.
+
+\section SpinnakerExampleConfigFileMinimal Minimal config File
+\include "ConfigFiles/PlusDeviceSet_Server_SpinnakerVideoMinimal.xml"
+
+\section SpinnakerExampleConfigFileManualControl Config file demonstrating some manual controls
+\include "ConfigFiles/PlusDeviceSet_Server_SpinnakerVideoManualControl.xml"
+*/
