@@ -18,6 +18,7 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 #include <vtk_png.h>
+#include <vtkpng/pngpriv.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkClientSocket.h>
 #include <vtkMath.h>
