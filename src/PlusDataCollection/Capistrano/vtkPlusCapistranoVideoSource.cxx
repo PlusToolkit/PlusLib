@@ -1368,6 +1368,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetSampleFrequency(float sf)
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseFrequency(float pf)
 {
   this->PulseFrequency = pf;
+  this->Internal->SetUSProbePulserParamsFromDB(this->PulseFrequency);
   return PLUS_SUCCESS;
 }
 
