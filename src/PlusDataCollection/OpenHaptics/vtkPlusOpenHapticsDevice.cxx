@@ -31,7 +31,7 @@ vtkStandardNewMacro(vtkPlusOpenHapticsDevice);
 vtkPlusOpenHapticsDevice::vtkPlusOpenHapticsDevice()
   : FrameNumber(-1)
   , DeviceHandle(-1)
-  , DeviceName("PLUS")
+  , DeviceName("Default Device")
   , toolTransform(vtkSmartPointer<vtkTransform>::New())
   , rotation(vtkSmartPointer<vtkTransform>::New())
   , velMatrix(vtkSmartPointer<vtkMatrix4x4>::New())
@@ -41,14 +41,6 @@ vtkPlusOpenHapticsDevice::vtkPlusOpenHapticsDevice()
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->StartThreadForInternalUpdates = true;
   this->AcquisitionRate = 20;
-
-  this->rasCorrection = vtkSmartPointer<vtkMatrix4x4>::New();
-  this->rasCorrection->Identity();
-  this->rasCorrection->SetElement(0, 0, -1);
-  this->rasCorrection->SetElement(1, 1, 0);
-  this->rasCorrection->SetElement(1, 2, 1);
-  this->rasCorrection->SetElement(2, 2, 0);
-  this->rasCorrection->SetElement(2, 1, 1);
 }
 
 //----------------------------------------------------------------------------
@@ -196,7 +188,6 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
       {
         vtkSmartPointer<vtkMatrix4x4> forceMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
         item.GetMatrix(forceMatrix);
-        vtkMatrix4x4::Multiply4x4(client->rasCorrection, forceMatrix, forceMatrix);
         force[0] = forceMatrix->GetElement(0, 3);
         force[1] = forceMatrix->GetElement(1, 3);
         force[2] = forceMatrix->GetElement(2, 3);
@@ -217,14 +208,14 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   }
 
   //Current position data is pulled here
-  HDdouble trans[16];
+  HDdouble tfm[16];
   HDdouble pos[3];
   HDdouble vel[3];
   HDint buttonVals = 0;
   HDboolean inkwell = 0;
   hdBeginFrame(handle);
   hdMakeCurrentDevice(handle);
-  hdGetDoublev(HD_CURRENT_TRANSFORM, trans);
+  hdGetDoublev(HD_CURRENT_TRANSFORM, tfm);
   hdGetDoublev(HD_CURRENT_POSITION, pos);
   hdGetDoublev(HD_CURRENT_VELOCITY, vel);
   hdSetDoublev(HD_CURRENT_FORCE, force);
@@ -240,7 +231,7 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   //Arrange transformations in correct order
   client->toolTransform->Identity();
   client->toolTransform->Translate(pos);
-  client->rotation->SetMatrix(trans);
+  client->rotation->SetMatrix(tfm);
   client->rotation->GetOrientation(orient);
   client->toolTransform->RotateX(-1 * orient[0] + 180);
   client->toolTransform->RotateY(orient[1]);
@@ -250,8 +241,6 @@ vtkPlusOpenHapticsDevice::positionCallback(void* pData)
   client->velMatrix->SetElement(2, 3, vel[2]);
 
   client->toolMatrix = client->toolTransform->GetMatrix();
-  vtkMatrix4x4::Multiply4x4(client->rasCorrection, client->velMatrix, client->velMatrix);
-  vtkMatrix4x4::Multiply4x4(client->rasCorrection, client->toolMatrix, client->toolMatrix);
 
 
   //Setting the button values in the matrix

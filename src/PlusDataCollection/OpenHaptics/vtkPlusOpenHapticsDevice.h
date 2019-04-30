@@ -85,7 +85,6 @@ private:
   vtkSmartPointer<vtkMatrix4x4> velMatrix;
   vtkSmartPointer<vtkMatrix4x4> buttonMatrix;
   vtkSmartPointer<vtkMatrix4x4> toolMatrix;
-  vtkSmartPointer<vtkMatrix4x4> rasCorrection;
 };
 
 #endif
