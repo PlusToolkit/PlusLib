@@ -162,6 +162,9 @@ public:
   void SetMDepth(int32_t value);
   int32_t GetMDepth();
 
+  void SetBFrameRateLimit(int32_t value);
+  int32_t GetBFrameRateLimit();
+
   enum class Mode
   {
     B = 0, // only B mode
@@ -251,6 +254,7 @@ protected:
   int32_t m_MDepth = 0;
   uint8_t m_SSDecimation = 2;
   double m_FirstGainValue = 15;
+  int32_t m_BFrameRateLimit = 0;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 
