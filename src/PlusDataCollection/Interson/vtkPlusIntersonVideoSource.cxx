@@ -601,14 +601,14 @@ PlusStatus vtkPlusIntersonVideoSource::InternalUpdate()
              << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
-  igsioTrackedFrame::FieldMapType customFields;
+  igsioFieldMapType customFields;
 
   if (this->Internal->EnableProbeButtonMonitoring)
   {
     std::ostringstream probeButtonPressCountString;
     probeButtonPressCountString << this->Internal->ProbeButtonPressCount;
-    customFields["ProbeButtonToDummyTransform"] =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
-    customFields["ProbeButtonToDummyTransformStatus"] = "OK";
+    customFields["ProbeButtonToDummyTransform"].second =  std::string("1 0 0 ") + probeButtonPressCountString.str() + " 0 1 0 0 0 0 1 0 0 0 0 1";
+    customFields["ProbeButtonToDummyTransformStatus"].second = "OK";
   }
 
   if (this->AddVideoItemToVideoSources(sources, (void*) & (this->Internal->MemoryBitmapBuffer[0]), aSource->GetInputImageOrientation(),
