@@ -681,10 +681,19 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     ::SetFocalPointDepth(i, m_FocalPointDepth[i]);
     m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
-  this->SetTransmitFrequencyMHz(m_Frequency);
-  this->SetVoltage(m_Voltage);
-  this->SetScanDepthMm(m_ScanDepth);
-  this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
+  ::SetTxTxFrequency(m_Frequency);
+  ::SetVoltage(m_Voltage);
+  ::SetSSDepth(m_ScanDepth);
+  SetSCIsEnabled(m_SpatialCompoundEnabled);
+  if(m_SpatialCompoundEnabled)
+  {
+    SetSCCompoundAngle(m_SpatialCompoundAngle);
+    SetSCCompoundAngleCount(m_SpatialCompoundCount);
+  }
+  else
+  {
+    SetSCCompoundAngleCount(0);
+  }
 
   //setup size for DirectX image
   LOG_DEBUG("Setting output size to " << m_LineCount << "x" << m_SamplesPerLine);
