@@ -173,7 +173,7 @@ std::string vtkPlusBrachyTracker::GetBrachyToolSourceId(BRACHY_STEPPER_TOOL tool
   std::ostringstream toolPortName;
   toolPortName << tool;
   vtkPlusDataSource* trackerTool = NULL;
-  if (this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS)
+  if (this->GetToolByPortName(toolPortName.str(), trackerTool) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tool source ID by port: " << toolPortName.str());
     return "";

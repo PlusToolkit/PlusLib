@@ -9,15 +9,15 @@ See License.txt for details.
 
 #include "vtkPlusDataCollectionExport.h"
 
-#include "PlusBrachyStepper.h" 
+#include "PlusBrachyStepper.h"
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 
-////class igsioTrackedFrame;  
+////class igsioTrackedFrame;
 
 /*!
-\class vtkPlusBrachyTracker 
-\brief Interface to brachytherapy steppers 
+\class vtkPlusBrachyTracker
+\brief Interface to brachytherapy steppers
 
 This class talks with CMS and CIVCO brachy steppers
 
@@ -30,22 +30,22 @@ public:
   /*! Brachy stepper tool types */
   enum BRACHY_STEPPER_TOOL
   {
-    PROBEHOME_TO_PROBE_TRANSFORM=0, 
-    TEMPLATEHOME_TO_TEMPLATE_TRANSFORM, 
-    RAW_ENCODER_VALUES, 
+    PROBEHOME_TO_PROBE_TRANSFORM = 0,
+    TEMPLATEHOME_TO_TEMPLATE_TRANSFORM,
+    RAW_ENCODER_VALUES,
     NUMBER_OF_BRACHY_TOOLS
-  }; 
+  };
 
   /*! Row numbers used for storing stepper encoder positions in a 4x4 matrix */
   enum ENCODER_MATRIX_ROW
   {
-    ROW_PROBE_POSITION=0, 
-    ROW_PROBE_ROTATION=1, 
-    ROW_TEMPLATE_POSITION=2
-  }; 
+    ROW_PROBE_POSITION = 0,
+    ROW_PROBE_ROTATION = 1,
+    ROW_TEMPLATE_POSITION = 2
+  };
 
-  static vtkPlusBrachyTracker *New();
-  vtkTypeMacro(vtkPlusBrachyTracker,vtkPlusDevice);
+  static vtkPlusBrachyTracker* New();
+  vtkTypeMacro(vtkPlusBrachyTracker, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*! Connect to device */
@@ -61,40 +61,40 @@ public:
   PlusStatus Probe();
 
   /*! Reset the stepper. After this call, you should call InitializeStepper() */
-  PlusStatus ResetStepper(); 
+  PlusStatus ResetStepper();
 
   /*! Initialize the stepper with the factory specified init process. */
-  PlusStatus InitializeStepper( std::string &calibMsg );
+  PlusStatus InitializeStepper(std::string& calibMsg);
 
-   /*! Get all transforms from buffer element values of each tool by timestamp. */
-  virtual PlusStatus GetTrackedFrame(double timestamp, igsioTrackedFrame* aTrackedFrame ); 
+  /*! Get all transforms from buffer element values of each tool by timestamp. */
+  virtual PlusStatus GetTrackedFrame(double timestamp, igsioTrackedFrame* aTrackedFrame);
 
   /*! Get stepper encoder values from the buffer by UID */
-  PlusStatus GetStepperEncoderValues( BufferItemUidType uid, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
+  PlusStatus GetStepperEncoderValues(BufferItemUidType uid, double& probePosition, double& probeRotation, double& templatePosition, ToolStatus& status);
 
   /*! Get latest stepper encoder values from the buffer */
-  PlusStatus GetLatestStepperEncoderValues( double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
+  PlusStatus GetLatestStepperEncoderValues(double& probePosition, double& probeRotation, double& templatePosition, ToolStatus& status);
 
   /*! Get stepper encoder values in a particular timestamp */
-  PlusStatus GetStepperEncoderValues(double timestamp, double &probePosition, double &probeRotation, double &templatePosition, ToolStatus &status ); 
+  PlusStatus GetStepperEncoderValues(double timestamp, double& probePosition, double& probeRotation, double& templatePosition, ToolStatus& status);
 
   /*! Get probe home to probe transform from the buffer by UID */
-  PlusStatus GetProbeHomeToProbeTransform( BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus &status); 
+  PlusStatus GetProbeHomeToProbeTransform(BufferItemUidType uid, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus& status);
 
   /*! Get probe home to probe transform in a particular timestamp */
-  PlusStatus GetProbeHomeToProbeTransform( double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus &status); 
+  PlusStatus GetProbeHomeToProbeTransform(double timestamp, vtkMatrix4x4* probeHomeToProbeMatrix, ToolStatus& status);
 
   /*! Get template home to template transform from the buffer by UID */
-  PlusStatus GetTemplateHomeToTemplateTransform( BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus &status); 
+  PlusStatus GetTemplateHomeToTemplateTransform(BufferItemUidType uid, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus& status);
 
   /*! Get template home to template transform in a particular timestamp */
-  PlusStatus GetTemplateHomeToTemplateTransform( double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus &status);
+  PlusStatus GetTemplateHomeToTemplateTransform(double timestamp, vtkMatrix4x4* templateHomeToTemplateMatrix, ToolStatus& status);
 
   /*! Get raw encoder values transform from the buffer */
-  PlusStatus GetRawEncoderValuesTransform( BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status ); 
+  PlusStatus GetRawEncoderValuesTransform(BufferItemUidType uid, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus& status);
 
   /*! Get raw encoder values transform in a particular timestamp */
-  PlusStatus GetRawEncoderValuesTransform( double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus &status); 
+  PlusStatus GetRawEncoderValuesTransform(double timestamp, vtkMatrix4x4* rawEncoderValuesTransform, ToolStatus& status);
 
   virtual bool IsTracker() const { return true; }
 
@@ -132,40 +132,40 @@ public:
   vtkSetStringMacro(CalibrationDate);
 
   /*! Set probe translation axis orientation vector[Tx, Ty, 1] */
-  vtkSetVector3Macro(ProbeTranslationAxisOrientation, double); 
+  vtkSetVector3Macro(ProbeTranslationAxisOrientation, double);
 
   /*! Get probe translation axis orientation vector[Tx, Ty, 1] */
-  vtkGetVector3Macro(ProbeTranslationAxisOrientation, double); 
+  vtkGetVector3Macro(ProbeTranslationAxisOrientation, double);
 
   /*! Set probe rotation axis orientation vector[Trx, Try, 1] */
-  vtkSetVector3Macro(ProbeRotationAxisOrientation, double); 
+  vtkSetVector3Macro(ProbeRotationAxisOrientation, double);
 
   /*! Get probe rotation axis orientation vector[Trx, Try, 1] */
-  vtkGetVector3Macro(ProbeRotationAxisOrientation, double); 
+  vtkGetVector3Macro(ProbeRotationAxisOrientation, double);
 
   /*! Set template translation axis orientation vector[Tx, Ty, 1] */
-  vtkSetVector3Macro(TemplateTranslationAxisOrientation, double); 
+  vtkSetVector3Macro(TemplateTranslationAxisOrientation, double);
 
   /*! Get template translation axis orientation vector[Tx, Ty, 1] */
-  vtkGetVector3Macro(TemplateTranslationAxisOrientation, double); 
+  vtkGetVector3Macro(TemplateTranslationAxisOrientation, double);
 
   /*! Set probe rotation encoder scale */
-  vtkSetMacro(ProbeRotationEncoderScale, double); 
+  vtkSetMacro(ProbeRotationEncoderScale, double);
 
   /*! Get probe rotation encoder scale */
-  vtkGetMacro(ProbeRotationEncoderScale, double); 
+  vtkGetMacro(ProbeRotationEncoderScale, double);
 
   /*! Enable/disable stepper calibration compensation */
-  vtkSetMacro(CompensationEnabled, bool); 
+  vtkSetMacro(CompensationEnabled, bool);
 
   /*! Enable/disable stepper calibration compensation */
   vtkGetMacro(CompensationEnabled, bool);
 
   /*! Enable/disable stepper calibration compensation */
-  vtkBooleanMacro(CompensationEnabled, bool); 
+  vtkBooleanMacro(CompensationEnabled, bool);
 
-  /*! 
-  Get brachy stepper type 
+  /*!
+  Get brachy stepper type
   \sa BrachyStepper::BRACHY_STEPPER_TYPE
   */
   PlusBrachyStepper::BRACHY_STEPPER_TYPE GetBrachyStepperType() { return this->BrachyStepperType; }
@@ -174,7 +174,7 @@ public:
   PlusStatus InternalUpdate();
 
   /*! Read BrachyStepper configuration from xml data */
-  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config); 
+  virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
 
   /*! Write BrachyStepper configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
@@ -183,7 +183,7 @@ protected:
   vtkPlusBrachyTracker();
   ~vtkPlusBrachyTracker();
 
-  std::string GetBrachyToolSourceId(BRACHY_STEPPER_TOOL tool); 
+  std::string GetBrachyToolSourceId(BRACHY_STEPPER_TOOL tool);
 
   /*! Set the stepper model version information. */
   vtkSetStringMacro(ModelVersion);
@@ -197,7 +197,7 @@ protected:
   /*! Start the tracking system.  The tracking system is brought from
   its ground state into full tracking mode.  The device will
   only be reset if communication cannot be established without
-  a reset. 
+  a reset.
   */
   PlusStatus InternalStartRecording();
 
@@ -207,43 +207,43 @@ protected:
   /*! Initialize the tracking device */
   PlusStatus InitBrachyTracker();
 
-  PlusBrachyStepper *Device;
+  PlusBrachyStepper* Device;
 
-  PlusBrachyStepper::BRACHY_STEPPER_TYPE BrachyStepperType; 
+  PlusBrachyStepper::BRACHY_STEPPER_TYPE BrachyStepperType;
 
-  char *ModelVersion;
-  char *ModelNumber; 
-  char *ModelSerialNumber; 
+  char* ModelVersion;
+  char* ModelNumber;
+  char* ModelSerialNumber;
 
-  unsigned long SerialPort; 
+  unsigned long SerialPort;
   unsigned long BaudRate;
 
   //========== Stepper calibration ==================
 
   /*! Enable/diasable stepper compensation */
-  bool CompensationEnabled; 
+  bool CompensationEnabled;
 
   /*! Stepper calibration algorithm version */
-  char* CalibrationAlgorithmVersion; 
+  char* CalibrationAlgorithmVersion;
 
   /*! Stepper calibration data */
-  char* CalibrationDate; 
+  char* CalibrationDate;
 
   /*! Probe translation axis orientation vector[Tx, Ty, 1] */
-  double ProbeTranslationAxisOrientation[3]; 
+  double ProbeTranslationAxisOrientation[3];
 
   /*! Probe rotation axis orientation vector[Trx, Try, 1] */
-  double ProbeRotationAxisOrientation[3]; 
+  double ProbeRotationAxisOrientation[3];
 
   /*! Template translation axis orientation vector[Tx, Ty, 1] */
-  double TemplateTranslationAxisOrientation[3]; 
+  double TemplateTranslationAxisOrientation[3];
 
   /*! Probe rotation encoder scale factor */
-  double ProbeRotationEncoderScale; 
+  double ProbeRotationEncoderScale;
 
 private:
   vtkPlusBrachyTracker(const vtkPlusBrachyTracker&);
-  void operator=(const vtkPlusBrachyTracker&);  
+  void operator=(const vtkPlusBrachyTracker&);
 };
 
 #endif

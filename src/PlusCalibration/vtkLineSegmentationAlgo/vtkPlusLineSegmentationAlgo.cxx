@@ -301,26 +301,26 @@ PlusStatus vtkPlusLineSegmentationAlgo::ComputeVideoPositionMetric()
         double currPeakPos_y = -1;
         switch (PEAK_POS_METRIC)
         {
-        case PEAK_POS_COG:
-        {
-          /* Use center-of-gravity (COG) as peak-position metric*/
-          if (ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
-          {
-            // unable to compute center-of-gravity; this scanline is invalid
-            continue;
-          }
-          break;
-        }
-        case PEAK_POS_START:
-        {
-          /* Use peak start as peak-position metric*/
-          if (FindPeakStart(intensityProfile, maxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
-          {
-            // unable to compute peak start; this scanline is invalid
-            continue;
-          }
-          break;
-        }
+          case PEAK_POS_COG:
+            {
+              /* Use center-of-gravity (COG) as peak-position metric*/
+              if (ComputeCenterOfGravity(intensityProfile, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+              {
+                // unable to compute center-of-gravity; this scanline is invalid
+                continue;
+              }
+              break;
+            }
+          case PEAK_POS_START:
+            {
+              /* Use peak start as peak-position metric*/
+              if (FindPeakStart(intensityProfile, maxFromLargestArea, startOfMaxArea, currPeakPos_y) != PLUS_SUCCESS)
+              {
+                // unable to compute peak start; this scanline is invalid
+                continue;
+              }
+              break;
+            }
         }
 
         itk::Point<double, 2> currPeakPos;
@@ -650,7 +650,7 @@ void vtkPlusLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharIma
     }
   }
 
-  float diag = vcl_sqrt((float)(size[0] * size[0] + size[1] * size[1]));
+  float diag = std::sqrtf((float)(size[0] * size[0] + size[1] * size[1]));
 
   // Draw detected line
   for (int i = static_cast<int>(-diag); i < static_cast<int>(diag); ++i)
