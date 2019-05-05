@@ -39,14 +39,11 @@ vtkStandardNewMacro(vtkPlusAtracsysTracker);
 //----------------------------------------------------------------------------
 // Define command strings
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_R           = "LedRed";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_G           = "LedGreen";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_B           = "LedBlue";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_FREQ        = "LedFrequency";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF        = "LedRGBF";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED    = "ToolEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY    = "AddGeometry";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY    = "AddGeometry";
 
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal
@@ -398,4 +395,57 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   this->FrameNumber++;
  
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Command methods
+//----------------------------------------------------------------------------
+
+// LED
+PlusStatus vtkPlusAtracsysTracker::SetLedEnabled(bool enabled)
+{
+  if (this->Internal->Tracker.EnableUserLED(enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusAtracsysTracker::SetUserLEDState(int red, int green, int blue, int frequency, bool enabled /* = true */)
+{
+  if (this->Internal->Tracker.SetUserLEDState(red, green, blue, frequency, enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Tools
+PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string ToolID, bool enabled)
+{
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::AddGeometry(std::string ToolID, std::string geomFile)
+{
+  return PLUS_FAIL;
+}
+
+//----------------------------------------------------------------------------
+// Other
+PlusStatus vtkPlusAtracsysTracker::SetLaserEnabled(bool enabled)
+{
+  if (this->Internal->Tracker.SetLaserEnabled(enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusAtracsysTracker::SetVideoEnabled(bool enabled)
+{
+  // not implemented yet
+  return PLUS_FAIL;
 }

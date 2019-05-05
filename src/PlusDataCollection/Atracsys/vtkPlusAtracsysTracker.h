@@ -10,6 +10,8 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
+#include <string>
+
 /*!
 \class vtkPlusAtracsysTracker
 \brief Interface to the Atracsys trackers
@@ -49,14 +51,22 @@ public:
 public:
    // Commands
   static const char* ATRACSYS_COMMAND_LED_ENABLED;
-  static const char* ATRACSYS_COMMAND_LED_R;
-  static const char* ATRACSYS_COMMAND_LED_G;
-  static const char* ATRACSYS_COMMAND_LED_B;
-  static const char* ATRACSYS_COMMAND_LED_FREQ; // LED flash frequency
+  static const char* ATRACSYS_COMMAND_LED_RGBF; // F = LED flash frequency
   static const char* ATRACSYS_COMMAND_TOOL_ENABLED;
+  static const char* ATRACSYS_COMMAND_ADD_GEOMETRY;
   static const char* ATRACSYS_COMMAND_LASER_ENABLED;
   static const char* ATRACSYS_COMMAND_VIDEO_ENABLED;
-  static const char* ATRACSYS_COMMAND_ADD_GEOMETRY;
+
+  // Command methods
+  // LED
+  PlusStatus SetLedEnabled(bool enabled);
+  PlusStatus SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
+  // Tools
+  PlusStatus SetToolEnabled(std::string ToolID, bool enabled);
+  PlusStatus AddGeometry(std::string ToolID, std::string geomFile);
+  // Other
+  PlusStatus SetLaserEnabled(bool enabled);
+  PlusStatus SetVideoEnabled(bool enabled);
 
 protected:
   vtkPlusAtracsysTracker();

@@ -47,8 +47,9 @@ public:
     ResultToStringMap[ERROR_INVALID_FRAME] = "Invalid frame received from tracker.";
     ResultToStringMap[ERROR_TOO_MANY_MARKERS] = "Too many markers in frame.";
     ResultToStringMap[ERROR_ENABLE_IR_STROBE] = "Failed to enable / disable the IR strobe.";
+    ResultToStringMap[ERROR_ENABLE_LASER] = "Failed to enable laser, this is a spryTrack only option.";
     ResultToStringMap[ERROR_SET_USER_LED] = "Failed to set the user LED.";
-    ResultToStringMap[ERROR_ENABLE_USED_LED] = "Failed to enable / disable the user LED.";
+    ResultToStringMap[ERROR_ENABLE_USER_LED] = "Failed to enable / disable the user LED.";
     ResultToStringMap[ERROR_SET_MAX_MISSING_FIDUCIALS] = "Failed to set maximum missing fiducials.";
     ResultToStringMap[ERROR_ENABLE_ONBOARD_PROCESSING] = "Failed to enable / disable onboard image processing.";
     ResultToStringMap[ERROR_ENABLE_IMAGE_STREAMING] = "Failed to enable / disable image streaming.";
@@ -753,7 +754,7 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 {
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_LED_ENABLE, enabled) != ftkError::FTK_OK)
   {
-    return ERROR_ENABLE_USED_LED;
+    return ERROR_ENABLE_USER_LED;
   }
   return SUCCESS;
 }
@@ -813,6 +814,13 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enab
   return this->SetSpryTrackOnlyOption(OPTION_IMAGE_STREAMING, enabled, ERROR_ENABLE_IMAGE_STREAMING);
 }
 
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
+{
+  return this->SetSpryTrackOnlyOption(OPTION_LASER_ENABLE, enabled, ERROR_ENABLE_LASER);
+}
+
+//----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackProcessingType(AtracsysTracker::SPRYTRACK_IMAGE_PROCESSING_TYPE processingType)
 {
   if (this->DeviceType != SPRYTRACK_180)

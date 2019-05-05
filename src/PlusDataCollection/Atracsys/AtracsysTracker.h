@@ -38,8 +38,9 @@ public:
     ERROR_INVALID_FRAME,
     ERROR_TOO_MANY_MARKERS,
     ERROR_ENABLE_IR_STROBE,
+    ERROR_ENABLE_LASER,
     ERROR_SET_USER_LED,
-    ERROR_ENABLE_USED_LED,
+    ERROR_ENABLE_USER_LED,
     ERROR_SET_MAX_MISSING_FIDUCIALS,
     ERROR_ENABLE_ONBOARD_PROCESSING,
     ERROR_ENABLE_IMAGE_STREAMING,
@@ -129,11 +130,21 @@ public:
   /*! */
   ATRACSYS_RESULT SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
 
+
   /*! */
   ATRACSYS_RESULT EnableUserLED(bool enabled);
 
   /*! */
   ATRACSYS_RESULT SetMaxMissingFiducials(int maxMissingFids);
+
+  /*! */
+  ATRACSYS_RESULT EnableWirelessMarkerPairing(bool enabled);
+
+  /*! */
+  ATRACSYS_RESULT EnableWirelessMarkerStatusStreaming(bool enabled);
+
+  /*! */
+  ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming(bool enabled);
 
   // ------------------------------------------
   // spryTrack only options
@@ -146,13 +157,7 @@ public:
   ATRACSYS_RESULT EnableImageStreaming(bool enabled);
 
   /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerPairing(bool enabled);
-
-  /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerStatusStreaming(bool enabled);
-
-  /*! */
-  ATRACSYS_RESULT EnableWirelessMarkerBatteryStreaming(bool enabled);
+  ATRACSYS_RESULT SetLaserEnabled(bool enabled);
 
   /*! */
   ATRACSYS_RESULT SetSpryTrackProcessingType(SPRYTRACK_IMAGE_PROCESSING_TYPE processingType);
@@ -175,6 +180,7 @@ public:
     OPTION_LOST_FRAME_COUNT = 60,
     OPTION_CORRUPTED_FRAME_COUNT = 61,
     OPTION_RESET_LOST_FRAME_COUNT = 69,
+    OPTION_LASER_ENABLE = 80,
     OPTION_LED_RED_COMPONENT = 90,
     OPTION_LED_GREEN_COMPONENT = 91,
     OPTION_LED_BLUE_COMPONENT = 92,

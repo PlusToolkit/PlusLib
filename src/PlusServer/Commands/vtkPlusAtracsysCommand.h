@@ -10,7 +10,7 @@
 #include "vtkPlusServerExport.h"
 #include "vtkPlusCommand.h"
 
-class vtkPlusUsDevice;
+class vtkPlusAtracsysTracker;
 
 /*!
   \class vtkPlusAtracsysCommand
@@ -49,7 +49,7 @@ public:
   void SetNameToSetUsParameter();
 
 protected:
-  vtkPlusDevice* GetAtracsysDevice();
+  vtkPlusAtracsysTracker* GetAtracsysDevice();
 
   vtkPlusAtracsysCommand();
   virtual ~vtkPlusAtracsysCommand();
@@ -57,10 +57,17 @@ protected:
 protected:
   std::string AtracsysDeviceId;
 
-  /*!
-     List of commands to execute.
-  */
+  // list of commands to execute
   std::map<std::string, std::string> CommandList;
+
+  // list of ToolId, geometry file pairs to add
+  std::map<std::string, std::string> Markers;
+
+  // LED RGBF values to set
+  int LedR;
+  int LedG;
+  int LedB;
+  int LedFreq;
 
   vtkPlusAtracsysCommand(const vtkPlusAtracsysCommand&);
   void operator=(const vtkPlusAtracsysCommand&);

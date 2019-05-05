@@ -16,8 +16,9 @@ See License.txt for details.
 #include <vtkVariant.h>
 #include <vtkSmartPointer.h>
 
-#include <limits>
 #include <iterator>
+#include <limits>
+#include <map>
 #include <string>
 
 namespace
@@ -64,7 +65,6 @@ std::string vtkPlusAtracsysCommand::GetDescription(const std::string& commandNam
   if (commandName.empty() || igsioCommon::IsEqualInsensitive(commandName, ATRACSYS_CMD_NAME))
   {
     desc += ATRACSYS_CMD_NAME;
-    //TODO:
     desc += ": Send command to Atracsys device.";
   }
 
@@ -85,17 +85,77 @@ PlusStatus vtkPlusAtracsysCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
   for (int elemIndex = 0; elemIndex < aConfig->GetNumberOfNestedElements(); ++elemIndex)
   {
     vtkXMLDataElement* currentElem = aConfig->GetNestedElement(elemIndex);
-    if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "Command"))
+    if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "SetFlag"))
     {
       const char* parameterName = currentElem->GetAttribute("Name");
       const char* parameterValue = currentElem->GetAttribute("Value");
+
       if (!parameterName || !parameterValue)
       {
-        LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in SetUsParameter command");
+        LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in Atracsys SetFlag command");
         continue;
       }
 
       this->CommandList[parameterName] = parameterValue;
+    }
+    else if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "SetLED"))
+    {
+      const char* rValue = currentElem->GetAttribute("Red");
+      const char* gValue = currentElem->GetAttribute("Green");
+      const char* bValue = currentElem->GetAttribute("Blue");
+      const char* freqValue = currentElem->GetAttribute("Frequency");
+
+      if (!rValue || !gValue || !bValue || !freqValue)
+      {
+        LOG_ERROR("Unable to find required Red, Green, Blue or Frequency attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in Atracsys SetLED command");
+        continue;
+      }
+
+      bool valid = false;
+      this->LedR = vtkVariant(rValue).ToInt(&valid);
+      if (!valid)
+      {
+        LOG_ERROR("Failed to parse Red value in AtracsysCommand SetLED message.");
+        continue;
+      }
+      this->LedG = vtkVariant(gValue).ToInt(&valid);
+      if (!valid)
+      {
+        LOG_ERROR("Failed to parse Green value in AtracsysCommand SetLED message.");
+        continue;
+      }
+      this->LedB = vtkVariant(bValue).ToInt(&valid);
+      if (!valid)
+      {
+        LOG_ERROR("Failed to parse Blue value in AtracsysCommand SetLED message.");
+        continue;
+      }
+      this->LedFreq = vtkVariant(freqValue).ToInt(&valid);
+      if (!valid)
+      {
+        LOG_ERROR("Failed to parse Frequency value in AtracsysCommand SetLED message.");
+        continue;
+      }
+
+      this->CommandList["SetLED"] = ""; // flag value to update LED with provided values
+    }
+    else if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "AddTool"))
+    {
+      const char* toolId = currentElem->GetAttribute("ToolId");
+      const char* geometry = currentElem->GetAttribute("Geometry");
+
+      if (!toolId || !geometry)
+      {
+        LOG_ERROR("Unable to find required Name or Value attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in Atracsys AddTool command");
+        continue;
+      }
+
+      this->CommandList["AddTool"] = toolId;
+    }
+    else
+    {
+      // invalid command
+      LOG_ERROR("Invalid command name (" << currentElem->GetName() << ") provided to AtracsysCommand.")
     }
   }
 
@@ -115,12 +175,37 @@ PlusStatus vtkPlusAtracsysCommand::WriteConfiguration(vtkXMLDataElement* aConfig
   // Write parameters as nested elements
   std::map<std::string, std::string>::iterator commandIt;
   for (commandIt = this->CommandList.begin(); commandIt != this->CommandList.end(); commandIt++)
-  { 
-    // TODO: How does the paramElem know it should be a <Command>?
-    vtkSmartPointer<vtkXMLDataElement> paramElem = vtkSmartPointer<vtkXMLDataElement>::New();
-    paramElem->SetAttribute("Name", commandIt->first.c_str());
-    paramElem->SetAttribute("Value", commandIt->second.c_str());
-    aConfig->AddNestedElement(paramElem);
+  {
+    if (igsioCommon::IsEqualInsensitive(commandIt->first, "SetLED"))
+    {
+      // write SetLED element
+      vtkSmartPointer<vtkXMLDataElement> ledElem = vtkSmartPointer<vtkXMLDataElement>::New();
+      ledElem->SetName = "SetLED";
+      ledElem->SetAttribute("Red", std::to_string(this->LedR).c_str());
+      ledElem->SetAttribute("Green", std::to_string(this->LedG).c_str());
+      ledElem->SetAttribute("Blue", std::to_string(this->LedB).c_str());
+      ledElem->SetAttribute("Frequency", std::to_string(this->LedFreq).c_str());
+      aConfig->AddNestedElement(ledElem);
+    }
+    else if (igsioCommon::IsEqualInsensitive(commandIt->first, "AddTool"))
+    {
+      // write AddTool element
+      vtkSmartPointer<vtkXMLDataElement> addToolElem = vtkSmartPointer<vtkXMLDataElement>::New();
+      addToolElem->SetName = "AddTool";
+      addToolElem->SetAttribute("ToolId", commandIt->second.c_str());
+      std::map<std::string, std::string>::iterator marker = this->Markers.find(commandIt->second);
+      addToolElem->SetAttribute("Geometry", marker->second.c_str());
+      aConfig->AddNestedElement(addToolElem);
+    }
+    else
+    {
+      // write SetFlag element
+      vtkSmartPointer<vtkXMLDataElement> flagElem = vtkSmartPointer<vtkXMLDataElement>::New();
+      flagElem->SetName = "SetFlag";
+      flagElem->SetAttribute("Name", commandIt->first.c_str());
+      flagElem->SetAttribute("Value", commandIt->second.c_str());
+      aConfig->AddNestedElement(flagElem);
+    }
   }
 
   return PLUS_SUCCESS;
@@ -143,7 +228,7 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
     return PLUS_FAIL;
   }
 
-  vtkPlusDevice* atracsysDevice = GetAtracsysDevice();
+  vtkPlusAtracsysTracker* atracsysDevice = GetAtracsysDevice();
   if (atracsysDevice == NULL)
   {
     this->QueueCommandResponse(PLUS_FAIL, "Command failed. See error message.", std::string("Device ")
@@ -167,21 +252,22 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
 
     if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED)
     {
+      LOG_WARNING("LED ENABLE COMMAND RECIEVED!");
 
+      if (igsioCommon::IsEqualInsensitive(value, "TRUE"))
+      {
+        atracsysDevice->SetLedEnabled(true);
+      }
+      else if (igsioCommon::IsEqualInsensitive(value, "FALSE"))
+      {
+        atracsysDevice->SetLedEnabled(false);
+      }
+      else
+      {
+        LOG_WARNING("asfasfds")
+      }      
     }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_R)
-    {
-
-    }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_G)
-    {
-
-    }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_B)
-    {
-
-    }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_FREQ)
+    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF)
     {
 
     }
@@ -229,7 +315,7 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusDevice* vtkPlusAtracsysCommand::GetAtracsysDevice()
+vtkPlusAtracsysTracker* vtkPlusAtracsysCommand::GetAtracsysDevice()
 {
   vtkPlusDataCollector* dataCollector = GetDataCollector();
   if (dataCollector == NULL)
@@ -237,42 +323,39 @@ vtkPlusDevice* vtkPlusAtracsysCommand::GetAtracsysDevice()
     LOG_ERROR("Data collector is invalid");
     return NULL;
   }
-  vtkPlusDevice* atracsysDevice = NULL;
   if (!this->AtracsysDeviceId.empty())
   {
-    // Atracsys device ID is specified
+    // Reconstructor device ID is specified
     vtkPlusDevice* device = NULL;
     if (dataCollector->GetDevice(device, this->AtracsysDeviceId) != PLUS_SUCCESS)
     {
-      LOG_ERROR("No Atracsys device has been found with the name " << this->AtracsysDeviceId);
+      LOG_ERROR("No Atracsys device has been found by the name " << this->AtracsysDeviceId);
       return NULL;
     }
     // device found
-    atracsysDevice = vtkPlusDevice::SafeDownCast(device);
+    vtkPlusAtracsysTracker* atracsysDevice = vtkPlusAtracsysTracker::SafeDownCast(device);
     if (atracsysDevice == NULL)
     {
       // wrong type
       LOG_ERROR("The specified device " << this->AtracsysDeviceId << " is not an Atracsys device");
       return NULL;
     }
+    return atracsysDevice;
   }
   else
   {
     // No Atracsys device id is specified, auto-detect the first one and use that
     for (DeviceCollectionConstIterator it = dataCollector->GetDeviceConstIteratorBegin(); it != dataCollector->GetDeviceConstIteratorEnd(); ++it)
     {
-      atracsysDevice = vtkPlusDevice::SafeDownCast(*it);
+      vtkPlusAtracsysTracker* atracsysDevice = vtkPlusAtracsysTracker::SafeDownCast(*it);
       if (atracsysDevice != NULL)
       {
-        // found an ultrasound device
-        break;
+        // found an Atracsys device
+        this->SetAtracsysDeviceId(atracsysDevice->GetDeviceId());
+        return atracsysDevice;
       }
     }
-    if (atracsysDevice == NULL)
-    {
-      LOG_ERROR("No Atracsys device has been found");
-      return NULL;
-    }
+    LOG_ERROR("No Atracsys device has been found");
+    return NULL;
   }
-  return atracsysDevice;
 }
