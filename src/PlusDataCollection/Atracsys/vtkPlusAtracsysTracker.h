@@ -50,12 +50,13 @@ public:
 
 public:
    // Commands
+  static const char* ATRACSYS_COMMAND_SET_FLAG;
   static const char* ATRACSYS_COMMAND_LED_ENABLED;
   static const char* ATRACSYS_COMMAND_LASER_ENABLED;
   static const char* ATRACSYS_COMMAND_VIDEO_ENABLED;
-  static const char* ATRACSYS_COMMAND_LED_RGBF; // F = LED flash frequency
-  static const char* ATRACSYS_COMMAND_TOOL_ENABLED;
-  static const char* ATRACSYS_COMMAND_ADD_GEOMETRY;
+  static const char* ATRACSYS_COMMAND_SET_LED_RGBF; // F = LED flash frequency
+  static const char* ATRACSYS_COMMAND_ENABLE_TOOL;
+  static const char* ATRACSYS_COMMAND_ADD_TOOL;
 
   // Command methods
   // LED

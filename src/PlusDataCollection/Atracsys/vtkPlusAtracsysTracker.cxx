@@ -38,12 +38,13 @@ vtkStandardNewMacro(vtkPlusAtracsysTracker);
 
 //----------------------------------------------------------------------------
 // Define command strings
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_FLAG        = "SetFlag";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF        = "LedRGBF";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED    = "ToolEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY    = "AddGeometry";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_LED_RGBF    = "SetLED";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ENABLE_TOOL     = "EnableTool";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_TOOL        = "AddTool";
 
 
 //----------------------------------------------------------------------------
@@ -363,6 +364,10 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
     if (std::find(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), it->second) != this->DisabledToolIds.end())
     {
       // tracking of this tool has been disabled
+      vtkNew<vtkMatrix4x4> emptyTransform;
+      igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      std::string toolSourceId = toolTransformName.GetTransformName();
+      ToolTimeStampedUpdate(toolSourceId, emptyTransform.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
       continue;
     }
     bool toolUpdated = false;
