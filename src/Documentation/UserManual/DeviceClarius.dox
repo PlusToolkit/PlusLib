@@ -10,6 +10,10 @@
 
 - \ref PackageWin64
 
+\section ClariusConnection Connection
+- Connecting to the Clarius requires a local Wi-Fi Connection
+  - <a href="https://support.clarius.com/hc/en-us/articles/360019514951-Connecting-to-the-Scanner-via-a-Local-Wi-Fi-Network">Establishing a local Wi-Fi connection</a>
+
 \section ClariusConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "Clarius" \RequiredAtt
@@ -21,7 +25,7 @@
 - \xmlAtt \ref ImuOutputFileName \OptionalAtt{ClariusImuData.csv}
 - \xmlAtt \ref WriteImagesToDisk \OptionalAtt{"FALSE"}
 
-\section ClariusExampleConfigFile Example configuration file PlusDeviceSet_Server_ClariusVideoCapture.xml 
+\section ClariusExampleConfigFile Example configuration file PlusDeviceSet_Server_ClariusVideoCapture.xml
 
 \include "ConfigFiles/PlusDeviceSet_Server_ClariusVideoCapture.xml"
 
