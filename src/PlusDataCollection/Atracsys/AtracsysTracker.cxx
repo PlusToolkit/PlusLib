@@ -80,8 +80,11 @@ public:
   // mapping error code to user readable result string
   std::map<AtracsysTracker::ATRACSYS_RESULT, std::string> ResultToStringMap;
 
-  // helper function to load ftkGeometry
-  ATRACSYS_RESULT LoadFtkGeometry(const std::string& filename, ftkGeometry& geom);
+  // helper function to load ftkGeometry from file
+  ATRACSYS_RESULT LoadFtkGeometryFromFile(const std::string& filename, ftkGeometry& geom);
+
+  // helper function to load ftkGeometry from string
+  ATRACSYS_RESULT LoadFtkGeometryFromString(const std::string& geomString, ftkGeometry& geom);
 
   // Code from ATRACSYS
   class IniFile
@@ -338,6 +341,11 @@ public:
       fileContent += line + "\n";
     }
 
+    return ParseIniFile(fileContent, geometry);
+  }
+
+  bool ParseIniFile(std::string fileContent, ftkGeometry& geometry)
+  {
     IniFile parser;
 
     if (!parser.parse(const_cast< char* >(fileContent.c_str()),
@@ -415,7 +423,7 @@ void FusionTrackEnumerator(uint64 sn, void* user, ftkDeviceType devType)
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeometry(const std::string& filename, ftkGeometry& geom)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeometryFromFile(const std::string& filename, ftkGeometry& geom)
 {
   std::ifstream input;
   input.open(filename.c_str());
@@ -446,8 +454,16 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeome
 
   return ERROR_FAILURE_TO_LOAD_INI;
 }
-
 // END CODE FROM ATRACSYS
+
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::AtracsysInternal::LoadFtkGeometryFromString(const std::string& geomString, ftkGeometry& geom)
+{
+  if (this->ParseIniFile(geomString, geom))
+  {
+    return SUCCESS;
+  }
+  return ERROR_FAILURE_TO_LOAD_INI;
+}
 
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetSpryTrackOnlyOption(int option, int value, AtracsysTracker::ATRACSYS_RESULT errorResult)
@@ -593,15 +609,28 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetDeviceType(DEVICE_TYPE& dev
 }
 
 //----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometry(std::string filePath, int& geometryId)
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromFile(std::string filePath, int& geometryId)
 {
   ftkGeometry geom;
-  this->Internal->LoadFtkGeometry(filePath, geom);
+  this->Internal->LoadFtkGeometryFromFile(filePath, geom);
   if (ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
   {
     return ERROR_UNABLE_TO_LOAD_MARKER;
   }
   geometryId = geom.geometryId;
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(std::string geomString, int& geometryId)
+{
+  ftkGeometry geom;
+  this->Internal->LoadFtkGeometryFromString(geomString, geom);
+  if (ftkSetGeometry(this->Internal->FtkLib, this->Internal->TrackerSN, &geom) != ftkError::FTK_OK)
+  {
+    return ERROR_UNABLE_TO_LOAD_MARKER;
+  }
+    geometryId = geom.geometryId;
   return SUCCESS;
 }
 
@@ -935,6 +964,7 @@ AtracsysTracker::Marker::Marker(const AtracsysTracker::Marker& obj)
   this->GeometryPresenceMask = obj.GeometryPresenceMask;
   this->RegistrationErrorMM = obj.RegistrationErrorMM;
 }
+
 int AtracsysTracker::Marker::GetGeometryID()
 {
   return this->GeometryId;

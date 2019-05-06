@@ -39,11 +39,12 @@ vtkStandardNewMacro(vtkPlusAtracsysTracker);
 //----------------------------------------------------------------------------
 // Define command strings
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF        = "LedRGBF";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED    = "ToolEnabled";
 const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY    = "AddGeometry";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
-const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
+
 
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal
@@ -259,7 +260,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     // TODO: add check for conflicting marker IDs
     std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
     int geometryId;
-    if ((result = this->Internal->Tracker.LoadMarkerGeometry(geomFilePath, geometryId)) != ATR_SUCCESS)
+    if ((result = this->Internal->Tracker.LoadMarkerGeometryFromFile(geomFilePath, geometryId)) != ATR_SUCCESS)
     {
       LOG_ERROR(this->Internal->Tracker.ResultToString(result) << " This error occurred when trying to load geometry file at path: " << geomFilePath);
       return PLUS_FAIL;
@@ -359,6 +360,11 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   std::map<int, std::string>::iterator it;
   for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
   {
+    if (std::find(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), it->second) != this->DisabledToolIds.end())
+    {
+      // tracking of this tool has been disabled
+      continue;
+    }
     bool toolUpdated = false;
 
     std::vector<AtracsysTracker::Marker>::iterator mit;
@@ -422,14 +428,33 @@ PlusStatus vtkPlusAtracsysTracker::SetUserLEDState(int red, int green, int blue,
 
 //----------------------------------------------------------------------------
 // Tools
-PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string ToolID, bool enabled)
+PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string toolId, bool enabled)
 {
-  return PLUS_FAIL;
+  if (enabled)
+  {
+    // remove any occurances of ToolId in DisabledToolIds
+    this->DisabledToolIds.erase(std::remove(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), toolId), this->DisabledToolIds.end());
+  }
+  else
+  {
+    // tool is disabled, add to disabled list
+    this->DisabledToolIds.push_back(toolId);
+  }
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusAtracsysTracker::AddGeometry(std::string ToolID, std::string geomFile)
+PlusStatus vtkPlusAtracsysTracker::AddGeometry(std::string toolId, std::string geomString)
 {
+  int geometryId;
+  ATRACSYS_RESULT result;
+  if ((result = this->Internal->Tracker.LoadMarkerGeometryFromString(geomString, geometryId)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result) << " This error occurred when trying to load the following geometry information: " << geomString);
+    return PLUS_FAIL;
+  }
+  std::pair<int, std::string> newTool(geometryId, toolId);
+  this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
   return PLUS_FAIL;
 }
 

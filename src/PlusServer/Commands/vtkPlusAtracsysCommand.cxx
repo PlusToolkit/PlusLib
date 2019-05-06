@@ -139,6 +139,20 @@ PlusStatus vtkPlusAtracsysCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
 
       this->CommandList["SetLED"] = ""; // flag value to update LED with provided values
     }
+    else if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "EnableTool"))
+    {
+      const char* toolId = currentElem->GetAttribute("ToolId");
+      const char* enabled = currentElem->GetAttribute("Enabled");
+
+      if (!toolId || !enabled)
+      {
+        LOG_ERROR("Unable to find required ToolId or Enabled attribute in " << (currentElem->GetName() ? currentElem->GetName() : "(undefined)") << " element in Atracsys AddTool command");
+        continue;
+      }
+
+      this->CommandList["EnableTool"] = toolId;
+      this->EnableDisableTools[toolId] = enabled;
+    }
     else if (igsioCommon::IsEqualInsensitive(currentElem->GetName(), "AddTool"))
     {
       const char* toolId = currentElem->GetAttribute("ToolId");
@@ -151,6 +165,7 @@ PlusStatus vtkPlusAtracsysCommand::ReadConfiguration(vtkXMLDataElement* aConfig)
       }
 
       this->CommandList["AddTool"] = toolId;
+      this->Markers[toolId] = geometry;
     }
     else
     {
@@ -180,18 +195,28 @@ PlusStatus vtkPlusAtracsysCommand::WriteConfiguration(vtkXMLDataElement* aConfig
     {
       // write SetLED element
       vtkSmartPointer<vtkXMLDataElement> ledElem = vtkSmartPointer<vtkXMLDataElement>::New();
-      ledElem->SetName = "SetLED";
+      ledElem->SetName("SetLED");
       ledElem->SetAttribute("Red", std::to_string(this->LedR).c_str());
       ledElem->SetAttribute("Green", std::to_string(this->LedG).c_str());
       ledElem->SetAttribute("Blue", std::to_string(this->LedB).c_str());
       ledElem->SetAttribute("Frequency", std::to_string(this->LedFreq).c_str());
       aConfig->AddNestedElement(ledElem);
     }
+    else if (igsioCommon::IsEqualInsensitive(commandIt->first, "EnableTool"))
+    {
+      // write AddTool element
+      vtkSmartPointer<vtkXMLDataElement> enableToolElem = vtkSmartPointer<vtkXMLDataElement>::New();
+      enableToolElem->SetName("EnableTool");
+      enableToolElem->SetAttribute("ToolId", commandIt->second.c_str());
+      std::map<std::string, std::string>::iterator enabledToolValue = this->EnableDisableTools.find(commandIt->second);
+      enableToolElem->SetAttribute("Enabled", enabledToolValue->second.c_str());
+      aConfig->AddNestedElement(enableToolElem);
+    }
     else if (igsioCommon::IsEqualInsensitive(commandIt->first, "AddTool"))
     {
       // write AddTool element
       vtkSmartPointer<vtkXMLDataElement> addToolElem = vtkSmartPointer<vtkXMLDataElement>::New();
-      addToolElem->SetName = "AddTool";
+      addToolElem->SetName("AddTool");
       addToolElem->SetAttribute("ToolId", commandIt->second.c_str());
       std::map<std::string, std::string>::iterator marker = this->Markers.find(commandIt->second);
       addToolElem->SetAttribute("Geometry", marker->second.c_str());
@@ -201,7 +226,7 @@ PlusStatus vtkPlusAtracsysCommand::WriteConfiguration(vtkXMLDataElement* aConfig
     {
       // write SetFlag element
       vtkSmartPointer<vtkXMLDataElement> flagElem = vtkSmartPointer<vtkXMLDataElement>::New();
-      flagElem->SetName = "SetFlag";
+      flagElem->SetName("SetFlag");
       flagElem->SetAttribute("Name", commandIt->first.c_str());
       flagElem->SetAttribute("Value", commandIt->second.c_str());
       aConfig->AddNestedElement(flagElem);
@@ -209,6 +234,21 @@ PlusStatus vtkPlusAtracsysCommand::WriteConfiguration(vtkXMLDataElement* aConfig
   }
 
   return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusAtracsysCommand::StringToBool(std::string strVal, bool& boolVal)
+{
+  if (igsioCommon::IsEqualInsensitive(strVal, "TRUE"))
+  {
+    boolVal = true;
+    return PLUS_SUCCESS;
+  }
+  else if (igsioCommon::IsEqualInsensitive(strVal, "FALSE"))
+  {
+    boolVal = false;
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
@@ -237,10 +277,9 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
   }
 
   std::string atracsysDeviceId = (atracsysDevice->GetDeviceId().empty() ? "(unknown)" : atracsysDevice->GetDeviceId());
-  // vtkPlusUsImagingParameters* imagingParameters = usDevice->GetImagingParameters();
   std::string resultString = "<CommandReply>";
   std::string error = "";
-  std::map < std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
+  std::map <std::string, std::pair<IANA_ENCODING_TYPE, std::string> > metaData;
   PlusStatus status = PLUS_SUCCESS;
 
   std::map<std::string, std::string>::iterator commandIt;
@@ -250,52 +289,61 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
     std::string value = commandIt->second;
     resultString += "<Parameter Name=\"" + commandName + "\"";
 
+    PlusStatus conversion = PLUS_SUCCESS;
+    PlusStatus setInDevice = PLUS_SUCCESS;
+
     if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED)
     {
-      LOG_WARNING("LED ENABLE COMMAND RECIEVED!");
-
-      if (igsioCommon::IsEqualInsensitive(value, "TRUE"))
-      {
-        atracsysDevice->SetLedEnabled(true);
-      }
-      else if (igsioCommon::IsEqualInsensitive(value, "FALSE"))
-      {
-        atracsysDevice->SetLedEnabled(false);
-      }
-      else
-      {
-        LOG_WARNING("asfasfds")
-      }      
-    }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF)
-    {
-
-    }
-    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED)
-    {
-
+      bool enabled;
+      conversion = this->StringToBool(value, enabled);
+      setInDevice = atracsysDevice->SetLedEnabled(enabled);
     }
     else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED)
     {
-
+      bool enabled;
+      conversion = this->StringToBool(value, enabled);
+      setInDevice = atracsysDevice->SetLaserEnabled(enabled);
     }
     else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED)
     {
-
+      bool enabled;
+      conversion = this->StringToBool(value, enabled);
+      setInDevice = atracsysDevice->SetVideoEnabled(enabled);
+    }
+    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_RGBF)
+    {
+      // value is a placeholder, we can ignore it
+      setInDevice = atracsysDevice->SetUserLEDState(this->LedR, this->LedG, this->LedB, this->LedFreq, true);
+    }
+    else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_TOOL_ENABLED)
+    {
+      // value contains ToolId to enable / disable
+      std::string strEnabled = this->EnableDisableTools.find(value)->second;
+      bool boolEnabled;
+      conversion = this->StringToBool(strEnabled, boolEnabled);
+      setInDevice = atracsysDevice->SetToolEnabled(value, boolEnabled);
     }
     else if (commandName == vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_GEOMETRY)
     {
-
+      // value contains ToolId of geometry to add
+      std::string geometry = this->Markers.find(value)->second;
+      setInDevice = atracsysDevice->AddGeometry(value, geometry);
     }
     else
     {
       LOG_WARNING("Unrecognized AtracsysCommand recieved with name: " << commandName
         << ". Please see the documentation for a list of available commands.");
+      return PLUS_FAIL;
+    }
+
+    if (conversion == PLUS_FAIL || setInDevice == PLUS_FAIL)
+    {
+      status = PLUS_FAIL;
     }
 
     resultString += " Success=\"true\"/>";
     metaData[commandName] = std::make_pair(IANA_TYPE_US_ASCII, "SUCCESS");
-  } // For each parameter
+  }
   resultString += "</CommandReply>";
   
   vtkSmartPointer<vtkPlusCommandRTSCommandResponse> commandResponse = vtkSmartPointer<vtkPlusCommandRTSCommandResponse>::New();

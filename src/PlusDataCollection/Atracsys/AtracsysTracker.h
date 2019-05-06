@@ -110,7 +110,10 @@ public:
   ATRACSYS_RESULT GetDeviceType(DEVICE_TYPE& deviceType);
 
   /*! */
-  ATRACSYS_RESULT LoadMarkerGeometry(std::string filePath, int& geometryId);
+  ATRACSYS_RESULT LoadMarkerGeometryFromFile(std::string filePath, int& geometryId);
+
+  /*! */
+  ATRACSYS_RESULT LoadMarkerGeometryFromString(std::string filePath, int& geometryId);
 
   /*! */
   ATRACSYS_RESULT GetMarkerInfo(std::string& markerInfo);

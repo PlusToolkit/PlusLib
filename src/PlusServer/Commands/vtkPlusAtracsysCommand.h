@@ -63,11 +63,17 @@ protected:
   // list of ToolId, geometry file pairs to add
   std::map<std::string, std::string> Markers;
 
+  // list of ToolIds to enable / disable
+  std::map<std::string, std::string> EnableDisableTools;
+
   // LED RGBF values to set
   int LedR;
   int LedG;
   int LedB;
   int LedFreq;
+
+  // helper to convert string to boolean
+  PlusStatus vtkPlusAtracsysCommand::StringToBool(std::string strVal, bool& boolVal);
 
   vtkPlusAtracsysCommand(const vtkPlusAtracsysCommand&);
   void operator=(const vtkPlusAtracsysCommand&);
