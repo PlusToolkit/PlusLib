@@ -264,14 +264,14 @@ void vtkPlusWinProbeVideoSource::ReconstructFrame(char* data, std::vector<uint8_
   }
 }
 
-void vtkPlusWinProbeVideoSource::FlipTexture(char* data, const FrameSizeType& frameSize)
+void vtkPlusWinProbeVideoSource::FlipTexture(char* data, const FrameSizeType& frameSize, int rowPitch)
 {
   #pragma omp parallel for
   for(unsigned t = 0; t < frameSize[0]; t++)
   {
     for(unsigned s = 0; s < frameSize[1]; s++)
     {
-      m_PrimaryBuffer[s * frameSize[0] + t] = data[t * frameSize[1] + s];
+      m_PrimaryBuffer[s * frameSize[0] + t] = data[t * rowPitch + s];
     }
   }
 }
@@ -404,10 +404,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
         int slicePitch;
         int rowPitch;
         int tLength = WPDXGetFusedTexData(&texture, &slicePitch, &rowPitch);
-        assert(tLength == frameSize[0] * frameSize[1]);
+        //assert(tLength == frameSize[0] * frameSize[1]);
         if(tLength > 0)
         {
-          this->FlipTexture(texture, frameSize);
+          this->FlipTexture(texture, frameSize, rowPitch);
         }
         else
         {
