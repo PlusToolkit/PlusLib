@@ -389,9 +389,10 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
       if (iter->first.find(transformName.GetTransformName()) == 0)
       {
         // field starts with transform name, check flags
-        if ((iter->second.first | igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND) > 0)
+        if ((iter->second.first & igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND) > 0)
         {
-          transformMessage->SetMetaDataElement(iter->first, IANA_TYPE_US_ASCII, iter->second.second);
+          std::string stripped = iter->first.substr(transformName.GetTransformName().length());
+          transformMessage->SetMetaDataElement(stripped, IANA_TYPE_US_ASCII, iter->second.second);
         }
       }
     }
