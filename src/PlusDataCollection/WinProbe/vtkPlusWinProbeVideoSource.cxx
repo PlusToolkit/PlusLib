@@ -404,7 +404,10 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
         int slicePitch;
         int rowPitch;
         int tLength = WPDXGetFusedTexData(&texture, &slicePitch, &rowPitch);
-        //assert(tLength == frameSize[0] * frameSize[1]);
+        if (tLength != frameSize[0] * rowPitch)
+        {
+          LOG_ERROR("B Mode texture data does not match frame size");
+        }
         if(tLength > 0)
         {
           this->FlipTexture(texture, frameSize, rowPitch);
