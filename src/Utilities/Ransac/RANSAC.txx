@@ -19,8 +19,13 @@ namespace itk
   template<class T, class S>
   void RANSAC<T, S>::SetNumberOfThreads(unsigned int numberOfThreads)
   {
-    if (numberOfThreads == 0 ||
-        numberOfThreads > itk::MultiThreader::GetGlobalDefaultNumberOfThreads())
+    int globalDefaultNumberOfThreads = 0;
+  #if ITK_VERSION_MAJOR >= 5
+    globalDefaultNumberOfThreads = itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads();
+  #else
+    globalDefaultNumberOfThreads = itk::MultiThreader::GetGlobalDefaultNumberOfThreads();
+  #endif
+    if (numberOfThreads == 0 || numberOfThreads > globalDefaultNumberOfThreads)
       throw ExceptionObject(__FILE__, __LINE__,
                             "Invalid setting for number of threads.");
 

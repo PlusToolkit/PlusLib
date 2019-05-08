@@ -650,7 +650,7 @@ void vtkPlusLineSegmentationAlgo::SaveIntermediateImage(int frameNumber, CharIma
     }
   }
 
-  float diag = std::sqrtf((float)(size[0] * size[0] + size[1] * size[1]));
+  float diag = sqrtf((float)(size[0] * size[0] + size[1] * size[1]));
 
   // Draw detected line
   for (int i = static_cast<int>(-diag); i < static_cast<int>(diag); ++i)
