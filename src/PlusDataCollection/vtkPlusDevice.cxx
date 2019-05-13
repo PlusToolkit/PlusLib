@@ -1982,6 +1982,20 @@ PlusStatus vtkPlusDevice::SetImageType(vtkPlusChannel& aChannel, US_IMAGE_TYPE i
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusDevice::GetFirstOutputChannel(vtkPlusChannel*& aChannel)
+{
+  if (this->OutputChannels.size() == 0)
+  {
+    LOCAL_LOG_ERROR("Failed to get first output channel - there are no output channels!");
+    return PLUS_FAIL;
+  }
+
+  aChannel = (* this->OutputChannels.begin());
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDevice::GetOutputChannelByName(vtkPlusChannel*& aChannel, const char* aChannelId)
 {
   if (aChannelId == NULL)

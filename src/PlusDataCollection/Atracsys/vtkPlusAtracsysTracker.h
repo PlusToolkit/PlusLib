@@ -64,7 +64,7 @@ public:
   PlusStatus SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
   // Tools
   PlusStatus SetToolEnabled(std::string toolId, bool enabled);
-  PlusStatus AddGeometry(std::string toolId, std::string geomString);
+  PlusStatus AddToolGeometry(std::string toolId, std::string geomString);
   // Other
   PlusStatus SetLaserEnabled(bool enabled);
   PlusStatus SetVideoEnabled(bool enabled);

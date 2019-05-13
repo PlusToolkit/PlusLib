@@ -276,7 +276,6 @@ public:
   {
     if (p.sections.find(section) == p.sections.end())
     {
-      //std::cout << "Cannot find section \"" << section << "\"";
       return false;
     }
     return true;
@@ -287,7 +286,6 @@ public:
   {
     if (p.sections[section].find(key) == p.sections[section].end())
     {
-      //std::cout << "Cannot find key \"" << key << "\" in section \"" << section << "\"";
       return false;
     }
 
@@ -344,8 +342,26 @@ public:
     return ParseIniFile(fileContent, geometry);
   }
 
+  // this method from https://thispointer.com/find-and-replace-all-occurrences-of-a-sub-string-in-c/
+  void stringFindAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
+  {
+    // Get the first occurrence
+    size_t pos = data.find(toSearch);
+
+    // Repeat till end is reached
+    while (pos != std::string::npos)
+    {
+      // Replace this occurrence of Sub String
+      data.replace(pos, toSearch.size(), replaceStr);
+      // Get the next occurrence from the current position
+      pos = data.find(toSearch, pos + replaceStr.size());
+    }
+  }
+
   bool ParseIniFile(std::string fileContent, ftkGeometry& geometry)
   {
+    stringFindAndReplaceAll(fileContent, "\\n", "\n");
+
     IniFile parser;
 
     if (!parser.parse(const_cast< char* >(fileContent.c_str()),

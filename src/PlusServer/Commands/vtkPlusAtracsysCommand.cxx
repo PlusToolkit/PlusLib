@@ -327,7 +327,7 @@ PlusStatus vtkPlusAtracsysCommand::Execute()
     {
       // value contains ToolId of geometry to add
       std::string geometry = this->Markers.find(value)->second;
-      setInDevice = atracsysDevice->AddGeometry(value, geometry);
+      setInDevice = atracsysDevice->AddToolGeometry(value, geometry);
     }
     else
     {

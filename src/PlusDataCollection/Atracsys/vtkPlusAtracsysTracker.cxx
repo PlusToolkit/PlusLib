@@ -10,11 +10,13 @@ See License.txt for details.
 #include "AtracsysTracker.h"
 #include "vtkIGSIOAccurateTimer.h"
 #include "vtkPlusAtracsysTracker.h"
+#include "vtkPlusDataSource.h"
 
 // VTK includes
 #include <vtkMath.h>
-#include <vtkNew.h>
 #include <vtkMatrix4x4.h>
+#include <vtkNew.h>
+#include <vtkSmartPointer.h>
 
 // System includes
 #include <fstream>
@@ -359,7 +361,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   }
 
   std::map<int, std::string>::iterator it;
-  for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
   {
     if (std::find(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), it->second) != this->DisabledToolIds.end())
     {
@@ -373,7 +375,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
     bool toolUpdated = false;
 
     std::vector<AtracsysTracker::Marker>::iterator mit;
-    for (mit = begin(markers); mit != end(markers); mit++)
+    for (mit = markers.begin(); mit != markers.end(); mit++)
     {
       if (it->first != mit->GetGeometryID())
       {
@@ -439,18 +441,52 @@ PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string toolId, bool enabl
   {
     // remove any occurances of ToolId in DisabledToolIds
     this->DisabledToolIds.erase(std::remove(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), toolId), this->DisabledToolIds.end());
+    return PLUS_SUCCESS;
   }
-  else
+
+  // tool should be disabled, if it exists add to disabled list
+  bool toolExists = false;
+  std::map<int, std::string>::iterator it;
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
   {
-    // tool is disabled, add to disabled list
-    this->DisabledToolIds.push_back(toolId);
+    if (igsioCommon::IsEqualInsensitive(it->second, toolId))
+    {
+      toolExists = true;
+    }
   }
+
+  if (!toolExists)
+  {
+    // trying to disable non-existant tool
+    LOG_ERROR("Tried to disable non-existant tool.");
+    return PLUS_FAIL;
+  }
+  
+  this->DisabledToolIds.push_back(toolId);
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusAtracsysTracker::AddGeometry(std::string toolId, std::string geomString)
+PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::string geomString)
 {
+  // make sure geometry with toolId doesn't already exist
+  bool toolExists = false;
+  std::map<int, std::string>::iterator it;
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
+  {
+    if (igsioCommon::IsEqualInsensitive(it->second, toolId))
+    {
+      toolExists = true;
+    }
+  }
+
+  if (toolExists)
+  {
+    // trying to add a tool with an already-existing ID
+    LOG_ERROR("Tried to add tool with conflicting ToolId (" << toolId << ").");
+    return PLUS_FAIL;
+  }
+
   int geometryId;
   ATRACSYS_RESULT result;
   if ((result = this->Internal->Tracker.LoadMarkerGeometryFromString(geomString, geometryId)) != ATR_SUCCESS)
@@ -458,9 +494,31 @@ PlusStatus vtkPlusAtracsysTracker::AddGeometry(std::string toolId, std::string g
     LOG_ERROR(this->Internal->Tracker.ResultToString(result) << " This error occurred when trying to load the following geometry information: " << geomString);
     return PLUS_FAIL;
   }
+
+  // add datasources for this tool
+  vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  aDataSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  aDataSource->SetType(DATA_SOURCE_TYPE_TOOL);
+  aDataSource->SetId(toolId);
+  this->AddTool(aDataSource);
+
+  // add output channel for this tool
+  vtkPlusChannel* outChannel;
+  if (this->GetFirstOutputChannel(outChannel) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get output channel when adding Atracsys geometry.");
+    return PLUS_FAIL;
+  }
+  outChannel->AddTool(aDataSource);
+
+  // enable tool in Plus
+  
+
+  // register this tool internally
   std::pair<int, std::string> newTool(geometryId, toolId);
   this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
-  return PLUS_FAIL;
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
