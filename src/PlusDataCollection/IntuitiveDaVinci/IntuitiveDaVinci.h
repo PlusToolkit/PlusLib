@@ -56,17 +56,29 @@ public:
   // Added. Accessor for connected state.
   bool isConnected();
 
+  IntuitiveDaVinciManipulator* getPsm1();
+  IntuitiveDaVinciManipulator* getPsm2();
+  IntuitiveDaVinciManipulator* getEcm();
+
 protected:
   void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
 
-protected:
-  ISI_BOOLEAN       mPrintStream;
-  ISI_STATUS        mStatus;
-  ISI_BOOLEAN       mQuit;
+  // Update joints
+  ISI_STATUS updateAllJointValues();
 
+  // Run kinematics
+  ISI_STATUS updateAllKinematicsTransforms();
+
+protected:
+  ISI_STATUS        mStatus;
   bool              mConnected;
+  bool              mStreaming;
 
   unsigned int      mRateHz;
+
+  IntuitiveDaVinciManipulator mPsm1;
+  IntuitiveDaVinciManipulator mPsm2;
+  IntuitiveDaVinciManipulator mEcm;
 };
 
 #endif

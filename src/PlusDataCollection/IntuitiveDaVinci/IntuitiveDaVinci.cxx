@@ -9,12 +9,14 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 IntuitiveDaVinci::IntuitiveDaVinci()
-  : mPrintStream(ISI_FALSE)
-  , mQuit(ISI_FALSE)
-  , mStatus(ISI_SUCCESS)
+  : mStatus(ISI_SUCCESS),
+  , mConnected(false)
+  , mStreaming(false)
   , mRateHz(60)
 {
-
+  mPsm1 = IntuitiveDaVinciManipulator(ISI_PSM1,
+  mPsm2 = IntuitiveDaVinciManipulator(ISI_PSM2,
+  mEcm  = IntuitiveDaVinciManipulator(ISI_ECM,
 }
 
 //----------------------------------------------------------------------------
@@ -92,4 +94,9 @@ void IntuitiveDaVinci::printTransform(const ISI_TRANSFORM* T)
 bool IntuitiveDaVinci::isConnected()
 {
   return mConnected;
+}
+
+bool IntuitiveDaVinci::isStreaming()
+{
+  return mStreaming;
 }

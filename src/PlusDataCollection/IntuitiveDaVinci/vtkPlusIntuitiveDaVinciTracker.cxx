@@ -122,9 +122,11 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 {
+  
   this->LastFrameNumber++;
   int defaultToolFrameNumber = this->LastFrameNumber;
   const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
+  
   
   if(this->PSM1Tip != NULL)
   {
