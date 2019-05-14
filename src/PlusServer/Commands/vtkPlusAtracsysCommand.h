@@ -73,7 +73,7 @@ protected:
   int LedFreq;
 
   // helper to convert string to boolean
-  PlusStatus vtkPlusAtracsysCommand::StringToBool(std::string strVal, bool& boolVal);
+  PlusStatus StringToBool(std::string strVal, bool& boolVal);
 
   vtkPlusAtracsysCommand(const vtkPlusAtracsysCommand&);
   void operator=(const vtkPlusAtracsysCommand&);

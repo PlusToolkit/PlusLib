@@ -653,8 +653,19 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::LoadMarkerGeometryFromString(s
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::GetMarkerInfo(std::string& markerInfo)
 {
+  // set device correct option number
+  OPTIONS optionNum;
+  if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
+  {
+	optionNum = OPTION_FTK_DEV_MARKERS_INFO;
+  }
+  else
+  {
+	optionNum = OPTION_STK_DEV_MARKERS_INFO;
+  }
+
   ftkBuffer buffer;
-  if (ftkGetData(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_DEV_MARKERS_INFO, &buffer) != ftkError::FTK_OK)
+  if (ftkGetData(this->Internal->FtkLib, this->Internal->TrackerSN, optionNum, &buffer) != ftkError::FTK_OK)
   {
     return ERROR_CANNOT_GET_MARKER_INFO;
   }
@@ -805,6 +816,23 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableUserLED(bool enabled)
 }
 
 //----------------------------------------------------------------------------
+AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
+{
+  int laserEnabledValue = enabled;
+  if (enabled && (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500))
+  {
+    // value must be 3 to turn on both fusionTrack LEDs
+    laserEnabledValue = 3;
+  }
+
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_ENABLE_LASER, laserEnabledValue) != ftkError::FTK_OK)
+  {
+    return ERROR_ENABLE_LASER;
+  }
+  return SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMissingFiducials(int maxMissingFids)
 {
   if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_MAX_MISSING_POINTS, maxMissingFids) != ftkError::FTK_OK)
@@ -817,7 +845,18 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetMaxMissingFiducials(int max
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bool enabled)
 {
-  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_PAIRING, enabled) != ftkError::FTK_OK)
+  // set device correct option number
+  OPTIONS optionNum;
+  if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
+  {
+    optionNum = OPTION_FTK_WIRELESS_MARKER_PAIRING_ENABLE;
+  }
+  else
+  {
+    optionNum = OPTION_STK_WIRELESS_MARKER_PAIRING_ENABLE;
+  }
+
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, optionNum, enabled) != ftkError::FTK_OK)
   {
     return ERROR_ENABLE_WIRELESS_MARKER_PAIRING;
   }
@@ -827,7 +866,18 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerPairing(bo
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStreaming(bool enabled)
 {
-  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_PAIRING, enabled) != ftkError::FTK_OK)
+  // set device correct option number
+  OPTIONS optionNum;
+  if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
+  {
+    optionNum = OPTION_FTK_WIRELESS_MARKER_STATUS_STREAMING;
+  }
+  else
+  {
+    optionNum = OPTION_STK_WIRELESS_MARKER_STATUS_STREAMING;
+  }
+
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, optionNum, enabled) != ftkError::FTK_OK)
   {
     return ERROR_ENABLE_WIRELESS_MARKER_STATUS_STREAMING;
   }
@@ -837,7 +887,18 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerStatusStre
 //----------------------------------------------------------------------------
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableWirelessMarkerBatteryStreaming(bool enabled)
 {
-  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, OPTION_WIRELESS_MARKER_BATTERY_STREAMING, enabled) != ftkError::FTK_OK)
+  // set device correct option number
+  OPTIONS optionNum;
+  if (this->DeviceType == FUSIONTRACK_250 || this->DeviceType == FUSIONTRACK_500)
+  {
+    optionNum = OPTION_FTK_WIRELESS_MARKER_BATTERY_STREAMING;
+  }
+  else
+  {
+    optionNum = OPTION_STK_WIRELESS_MARKER_BATTERY_STREAMING;
+  }
+
+  if (ftkSetInt32(this->Internal->FtkLib, this->Internal->TrackerSN, optionNum, enabled) != ftkError::FTK_OK)
   {
     return ERROR_ENABLE_WIRELESS_MARKER_BATTERY_STREAMING;
   }
@@ -857,12 +918,6 @@ AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableOnboardProcessing(bool e
 AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::EnableImageStreaming(bool enabled)
 {
   return this->SetSpryTrackOnlyOption(OPTION_IMAGE_STREAMING, enabled, ERROR_ENABLE_IMAGE_STREAMING);
-}
-
-//----------------------------------------------------------------------------
-AtracsysTracker::ATRACSYS_RESULT AtracsysTracker::SetLaserEnabled(bool enabled)
-{
-  return this->SetSpryTrackOnlyOption(OPTION_LASER_ENABLE, enabled, ERROR_ENABLE_LASER);
 }
 
 //----------------------------------------------------------------------------
