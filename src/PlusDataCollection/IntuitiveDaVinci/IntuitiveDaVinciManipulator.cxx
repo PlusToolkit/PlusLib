@@ -15,5 +15,5 @@ IntuitiveDaVinciManipulator::IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIn
   }
   else mNumJoints = ISI_NUM_ECM_JOINTS;
 
-  
+   
 }

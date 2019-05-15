@@ -9,14 +9,14 @@ See License.txt for details.
 
 //----------------------------------------------------------------------------
 IntuitiveDaVinci::IntuitiveDaVinci()
-  : mStatus(ISI_SUCCESS),
+  : mStatus(ISI_SUCCESS)
   , mConnected(false)
   , mStreaming(false)
   , mRateHz(60)
 {
-  mPsm1 = IntuitiveDaVinciManipulator(ISI_PSM1,
-  mPsm2 = IntuitiveDaVinciManipulator(ISI_PSM2,
-  mEcm  = IntuitiveDaVinciManipulator(ISI_ECM,
+  //mPsm1 = IntuitiveDaVinciManipulator(ISI_PSM1);
+  //mPsm2 = IntuitiveDaVinciManipulator(ISI_PSM2);
+  //mEcm  = IntuitiveDaVinciManipulator(ISI_ECM);
 }
 
 //----------------------------------------------------------------------------
@@ -46,9 +46,13 @@ void IntuitiveDaVinci::stop()
 //----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinci::connect()
 {
-  mStatus = ISI_SUCCESS;
+  mStatus = dv_connect();
+  // mStatus = DV_SUCCESS;
 
-  mConnected = true;
+  if(mStatus == ISI_SUCCESS)
+  {
+    mConnected = true;
+  }
   return mStatus;
 }
 

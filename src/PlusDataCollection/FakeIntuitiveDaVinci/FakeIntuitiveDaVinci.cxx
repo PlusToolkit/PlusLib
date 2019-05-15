@@ -44,9 +44,21 @@ void FakeIntuitiveDaVinci::stop()
 //----------------------------------------------------------------------------
 ISI_STATUS FakeIntuitiveDaVinci::connect()
 {
-  mStatus = ISI_SUCCESS;
+  LOG_DEBUG("FakeIntuitiveDaVinci::connect()");
 
-  mConnected = true;
+  mStatus = isi_connect();
+  // mStatus = ISI_SUCCESS;
+
+  if(mStatus == ISI_SUCCESS)
+  {
+    mConnected = true;
+    LOG_DEBUG("Successfully connected to da Vinci system.");
+  }
+  else
+  {
+    mConnected = false;
+    LOG_ERROR("Could not connect to da Vinci system.");
+  }
   return mStatus;
 }
 

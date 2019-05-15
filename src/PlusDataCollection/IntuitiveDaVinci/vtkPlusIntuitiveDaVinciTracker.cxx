@@ -47,7 +47,6 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   this->PSM1Tip = NULL;
   this->PSM2Tip = NULL;
 
-
   LOG_DEBUG("vktPlusIntuitiveDaVinciTracker created.");
 }
 
@@ -168,9 +167,6 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
 {
   LOG_DEBUG("vtkPlusIntuitiveDaVinciTracker::ReadConfiguration");
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-
-  // Determine which manipulators we're interested in.
-  // Store those names for later, where we can then create the data source pointers.
 
   /* Because of how PLUS works when we create a vtkPlusDevice,
   the XML file is already parsed. The parent class reads in the configuration

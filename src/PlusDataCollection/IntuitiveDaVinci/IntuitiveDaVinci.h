@@ -25,8 +25,8 @@ See License.txt for details.
 
 // Intuitive includes
 #include <isi_api_types.h>
-#include <isi_api.h>
-#include <isi_api_math.h>
+#include <dv_api.h>
+#include <dv_api_math.h>
 #define ISI_FAIL 0x0001 // IntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
 class IntuitiveDaVinci
@@ -55,19 +55,20 @@ public:
 
   // Added. Accessor for connected state.
   bool isConnected();
-
-  IntuitiveDaVinciManipulator* getPsm1();
-  IntuitiveDaVinciManipulator* getPsm2();
-  IntuitiveDaVinciManipulator* getEcm();
+  bool isStreaming();
+  
+  //IntuitiveDaVinciManipulator* getPsm1();
+  //IntuitiveDaVinciManipulator* getPsm2();
+  //IntuitiveDaVinciManipulator* getEcm();
 
 protected:
   void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
 
   // Update joints
-  ISI_STATUS updateAllJointValues();
+  //ISI_STATUS updateAllJointValues();
 
   // Run kinematics
-  ISI_STATUS updateAllKinematicsTransforms();
+  //ISI_STATUS updateAllKinematicsTransforms();
 
 protected:
   ISI_STATUS        mStatus;
@@ -76,9 +77,9 @@ protected:
 
   unsigned int      mRateHz;
 
-  IntuitiveDaVinciManipulator mPsm1;
-  IntuitiveDaVinciManipulator mPsm2;
-  IntuitiveDaVinciManipulator mEcm;
+  //IntuitiveDaVinciManipulator mPsm1;
+  //IntuitiveDaVinciManipulator mPsm2;
+  //IntuitiveDaVinciManipulator mEcm;
 };
 
 #endif
