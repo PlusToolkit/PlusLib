@@ -46,8 +46,8 @@ ISI_STATUS FakeIntuitiveDaVinci::connect()
 {
   LOG_DEBUG("FakeIntuitiveDaVinci::connect()");
 
-  mStatus = isi_connect();
-  // mStatus = ISI_SUCCESS;
+  // mStatus = isi_connect();
+  mStatus = ISI_SUCCESS;
 
   if(mStatus == ISI_SUCCESS)
   {
