@@ -1364,14 +1364,14 @@ IF(PLUS_USE_STEALTHLINK)
   ENDIF()
 ENDIF()
 
-#--------------------------------------------------------------------------
-# da Vinci Surgical System support
+# --------------------------------------------------------------------------
+# da Vinci support using prebuilt shared libraries
 IF(PLUS_USE_IntuitiveDaVinci)
   SET(daVinci_SRCS
     IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.cxx
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
-    )
-
+  )
+  
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(daVinci_HDRS
       IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
@@ -1386,17 +1386,41 @@ IF(PLUS_USE_IntuitiveDaVinci)
   LIST(APPEND ${PROJECT_NAME}_SRCS
     ${daVinci_SRCS}
     )
+  
+  # Collect all the DaVinciAPI libraries
+  SET(PLATFORM_NAME_SUFFIX "")
+  SET(LIBRARIES_PATH_SUFFIX "lib32/")
+  IF (CMAKE_HOST_WIN32 AND CMAKE_CL_64 )
+    SET(PLATFORM_NAME_SUFFIX "x64")
+    SET(LIBRARIES_PATH_SUFFIX "")
+  ENDIF ()
+
+  LIST(APPEND IntuitiveDaVinci_STATIC_LIBS
+    ${IntuitiveDaVinci_LIBRARY_DIR}/dv_api${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${IntuitiveDaVinci_LIBRARY_DIR}/dv_api_math${CMAKE_STATIC_LIBRARY_SUFFIX}
+    )
+
+  LIST(APPEND IntuitiveDaVinci_SHARED_LIBS
+    ${IntuitiveDaVinci_BINARY_DIR}/dv_api${CMAKE_SHARED_LIBRARY_SUFFIX}
+	${IntuitiveDaVinci_BINARY_DIR}/dv_api_math${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+  mark_as_advanced(IntuitiveDaVinci_STATIC_LIBS)
+  mark_as_advanced(IntuitiveDaVinci_SHARED_LIBS)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    ${IntuitiveDaVinci_INCLUDE_DIR}
+    ${IntuitiveDaVinci_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
-    )
+  )
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${IntuitiveDaVinci_LIBRARY}
-    ws2_32
-    iphlpapi
+    ${IntuitiveDaVinci_STATIC_LIBS}
     )
+
+  LIST(APPEND External_Libraries_Install
+    ${IntuitiveDaVinci_SHARED_LIBS}
+    )
+
 ENDIF()
 
 #--------------------------------------------------------------------------
