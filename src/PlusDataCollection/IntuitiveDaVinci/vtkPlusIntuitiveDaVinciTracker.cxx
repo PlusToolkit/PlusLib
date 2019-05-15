@@ -178,6 +178,14 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   */
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
+  
+  XML_READ_STRING_ATTRIBUTE_WARNING(Psm1DhTable, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
+
+  LOG_DEBUG("Psm1DhTable: " << this->Psm1DhTable);
+  LOG_DEBUG("Psm2DhTable: " << this->Psm2DhTable);
+  LOG_DEBUG("EcmDhTable: " << this->EcmDhTable);
 
   return PLUS_SUCCESS;
 }

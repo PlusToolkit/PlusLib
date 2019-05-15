@@ -61,6 +61,10 @@ protected:
   /*! Update method */
   PlusStatus InternalUpdate();
 
+  vtkSetMacro(Psm1DhTable, std::string);
+  vtkSetMacro(Psm2DhTable, std::string);
+  vtkSetMacro(EcmDhTable, std::string);
+
 protected:
   /*! Pointer to the MicronTrackerInterface class instance */
   IntuitiveDaVinci*   DaVinci;
@@ -68,6 +72,11 @@ protected:
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long       LastFrameNumber;
   unsigned long       FrameNumber;
+
+
+  std::string Psm1DhTable;
+  std::string Psm2DhTable;
+  std::string EcmDhTable;
 
 private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);
