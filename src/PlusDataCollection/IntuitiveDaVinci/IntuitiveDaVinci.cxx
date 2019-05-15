@@ -46,13 +46,17 @@ void IntuitiveDaVinci::stop()
 //----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinci::connect()
 {
+  LOG_DEBUG("IntuiviveDaVinci::connect()");
   mStatus = dv_connect();
   // mStatus = DV_SUCCESS;
 
   if(mStatus == ISI_SUCCESS)
   {
     mConnected = true;
+	LOG_INFO("Connected to da Vinci system.");
+	return mStatus;
   }
+  LOG_ERROR("Could not connect to da Vinci system.");
   return mStatus;
 }
 
