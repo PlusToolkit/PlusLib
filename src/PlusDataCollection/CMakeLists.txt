@@ -1409,11 +1409,11 @@ IF(PLUS_USE_IntuitiveDaVinci)
   mark_as_advanced(IntuitiveDaVinci_SHARED_LIBS)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
-    "${IntuitiveDaVinci_INCLUDE_DIRS}"
+    ${IntuitiveDaVinci_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
   )
   
-  MESSAGE("${IntuitiveDaVinci_INCLUDE_DIRS}")
+  MESSAGE(${IntuitiveDaVinci_INCLUDE_DIRS})
   
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${IntuitiveDaVinci_STATIC_LIBS}
