@@ -1412,7 +1412,9 @@ IF(PLUS_USE_IntuitiveDaVinci)
     ${IntuitiveDaVinci_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/IntuitiveDaVinci
   )
-
+  
+  MESSAGE(${IntuitiveDaVinci_INCLUDE_DIRS})
+  
   LIST(APPEND ${PROJECT_NAME}_LIBS
     ${IntuitiveDaVinci_STATIC_LIBS}
     )
