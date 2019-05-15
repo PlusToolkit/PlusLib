@@ -48,6 +48,9 @@ ISI_STATUS IntuitiveDaVinci::connect()
 {
   LOG_DEBUG("IntuiviveDaVinci::connect()");
   mStatus = dv_connect();
+  mStatus = dv_subscribe_all_stream_fields();
+  mStatus = dv_start_stream(10);
+
   // mStatus = DV_SUCCESS;
 
   if(mStatus == ISI_SUCCESS)
