@@ -20,35 +20,36 @@ See License.txt for details.
 
 // Intuitive includes
 #include <isi_api_types.h>
-#include <isi_api.h>
-#include <isi_api_math.h>
+#include <dv_api.h>
+
 #define ISI_FAIL 0x0001 // IntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
 class IntuitiveDaVinciManipulator
 {
 public:
   // Constructor
-  IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIndex, ISI_DH_ROW* dhTable);
+  IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIndex);
 
   // Destructor
   ~IntuitiveDaVinciManipulator();
 
-  // Kinematics updates
-  ISI_STATUS updateKinematics(); // Update everything
-
-  ISI_TRANSFORM* getTransforms();
-  ISI_FLOAT* getJointValues();
+  ISI_TRANSFORM* GetTransforms();
+  ISI_FLOAT* GetJointValues();
+  void PrintJointValues();
 
 protected:
   ISI_MANIP_INDEX mManipIndex;
   ISI_FLOAT mNumJoints;
   ISI_DH_ROW* mDhTable;
+  ISI_TRANSFORM* mBaseToWorld;
   ISI_TRANSFORM* mTransforms;
   ISI_FLOAT* mJointValues;
 
-protected:
-  ISI_STATUS updateJointValues(); // Update just the joints
-  ISI_STATUS updateKinematicsTransforms(); // Do forward kinematics
+public:
+  ISI_STATUS UpdateJointValues(); // Update just the joints
+  ISI_STATUS UpdateKinematicsTransforms(); // Do forward kinematics
+
+  ISI_STATUS SetDhTable(ISI_DH_ROW* srcDhTable);
 };
 
 #endif

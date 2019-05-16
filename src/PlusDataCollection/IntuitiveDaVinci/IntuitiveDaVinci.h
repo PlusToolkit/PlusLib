@@ -12,21 +12,12 @@ See License.txt for details.
   #include <windows.h>
 #endif
 
-// OS includes
-#include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-// STL includes
-#include <iostream>
-#include <sstream>
-#include <vector>
+#include "IntuitiveDaVinciManipulator.h"
 
 // Intuitive includes
 #include <isi_api_types.h>
 #include <dv_api.h>
-#include <dv_api_math.h>
+
 #define ISI_FAIL 0x0001 // IntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
 class IntuitiveDaVinci
@@ -57,18 +48,19 @@ public:
   bool isConnected();
   bool isStreaming();
   
-  //IntuitiveDaVinciManipulator* getPsm1();
-  //IntuitiveDaVinciManipulator* getPsm2();
-  //IntuitiveDaVinciManipulator* getEcm();
+  IntuitiveDaVinciManipulator* GetPsm1();
+  IntuitiveDaVinciManipulator* GetPsm2();
+  IntuitiveDaVinciManipulator* GetEcm();
+
+  // Update joints
+  ISI_STATUS UpdateAllJointValues();
+  void PrintAllJointValues();
+
+  // Run kinematics
+  ISI_STATUS UpdateAllKinematicsTransforms();
 
 protected:
   void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);
-
-  // Update joints
-  //ISI_STATUS updateAllJointValues();
-
-  // Run kinematics
-  //ISI_STATUS updateAllKinematicsTransforms();
 
 protected:
   ISI_STATUS        mStatus;
@@ -77,9 +69,9 @@ protected:
 
   unsigned int      mRateHz;
 
-  //IntuitiveDaVinciManipulator mPsm1;
-  //IntuitiveDaVinciManipulator mPsm2;
-  //IntuitiveDaVinciManipulator mEcm;
+  IntuitiveDaVinciManipulator* mPsm1;
+  IntuitiveDaVinciManipulator* mPsm2;
+  IntuitiveDaVinciManipulator* mEcm;
 };
 
 #endif

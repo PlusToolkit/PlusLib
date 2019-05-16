@@ -73,7 +73,6 @@ protected:
   unsigned long       LastFrameNumber;
   unsigned long       FrameNumber;
 
-
   std::string Psm1DhTable;
   std::string Psm2DhTable;
   std::string EcmDhTable;
@@ -83,6 +82,8 @@ private:
   void operator=(const vtkPlusIntuitiveDaVinciTracker&);
 
   void setVtkMatrixFromISITransform(vtkMatrix4x4& vtkMatrix, ISI_TRANSFORM* isiMatrix);
+  PlusStatus SetDhTablesFromStrings();
+  void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const;
 
   vtkPlusDataSource* PSM1Tip;
   vtkPlusDataSource* PSM2Tip;

@@ -14,14 +14,17 @@ IntuitiveDaVinci::IntuitiveDaVinci()
   , mStreaming(false)
   , mRateHz(60)
 {
-  //mPsm1 = IntuitiveDaVinciManipulator(ISI_PSM1);
-  //mPsm2 = IntuitiveDaVinciManipulator(ISI_PSM2);
-  //mEcm  = IntuitiveDaVinciManipulator(ISI_ECM);
+  mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
+  mPsm2 = new IntuitiveDaVinciManipulator(ISI_PSM2);
+  mEcm  = new IntuitiveDaVinciManipulator(ISI_ECM);
 }
 
 //----------------------------------------------------------------------------
 IntuitiveDaVinci::~IntuitiveDaVinci()
 {
+  delete mPsm1, mPsm2, mEcm;
+  mPsm1 = nullptr; mPsm2 = nullptr; mEcm = nullptr;
+
   stop();
   disconnect();
 }
@@ -107,7 +110,60 @@ bool IntuitiveDaVinci::isConnected()
   return mConnected;
 }
 
+//----------------------------------------------------------------------------
 bool IntuitiveDaVinci::isStreaming()
 {
   return mStreaming;
+}
+
+//----------------------------------------------------------------------------
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm1() 
+{ 
+  return this->mPsm1; 
+}
+
+//----------------------------------------------------------------------------
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm2()
+{
+  return this->mPsm2;
+}
+
+//----------------------------------------------------------------------------
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetEcm()
+{
+  return this->mEcm;
+}
+
+ISI_STATUS IntuitiveDaVinci::UpdateAllJointValues()
+{
+  mStatus = this->mPsm1->UpdateJointValues();
+  if (mStatus != ISI_SUCCESS) return mStatus;
+
+  mStatus = this->mPsm2->UpdateJointValues();
+  if (mStatus != ISI_SUCCESS) return mStatus;
+
+  mStatus = this->mEcm->UpdateJointValues();
+  return mStatus;
+}
+
+void IntuitiveDaVinci::PrintAllJointValues()
+{
+  std::cout << "PSM1 Joint Values: ";
+  this->mPsm1->PrintJointValues();
+  std::cout << "PSM2 Joint Values: ";
+  this->mPsm2->PrintJointValues();
+  std::cout << "ECM Joint Values: ";
+  this->mEcm->PrintJointValues();
+}
+
+ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
+{
+  mStatus = this->mPsm1->UpdateKinematicsTransforms();
+  if (mStatus != ISI_SUCCESS) return mStatus;
+
+  mStatus = this->mPsm2->UpdateKinematicsTransforms();
+  if (mStatus != ISI_SUCCESS) return mStatus;
+
+  mStatus = this->mEcm->UpdateKinematicsTransforms();
+  return mStatus;
 }

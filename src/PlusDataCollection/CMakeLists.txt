@@ -1370,12 +1370,14 @@ IF(PLUS_USE_IntuitiveDaVinci)
   SET(daVinci_SRCS
     IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.cxx
     IntuitiveDaVinci/IntuitiveDaVinci.cxx
+    IntuitiveDaVinci/IntuitiveDaVinciManipulator.cxx
   )
   
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(daVinci_HDRS
       IntuitiveDaVinci/vtkPlusIntuitiveDaVinciTracker.h
       IntuitiveDaVinci/IntuitiveDaVinci.h
+      IntuitiveDaVinci/IntuitiveDaVinciManipulator.h
     )
   ENDIF()
 

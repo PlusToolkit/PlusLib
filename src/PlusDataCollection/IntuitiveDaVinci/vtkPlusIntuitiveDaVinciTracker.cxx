@@ -126,7 +126,9 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   int defaultToolFrameNumber = this->LastFrameNumber;
   const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
   
-  
+  this->DaVinci->UpdateAllJointValues();
+  this->DaVinci->PrintAllJointValues();
+
   if(this->PSM1Tip != NULL)
   {
     vtkSmartPointer<vtkMatrix4x4> PSM1TipToBase = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -183,9 +185,89 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
 
-  LOG_DEBUG("Psm1DhTable: " << this->Psm1DhTable);
-  LOG_DEBUG("Psm2DhTable: " << this->Psm2DhTable);
-  LOG_DEBUG("EcmDhTable: " << this->EcmDhTable);
+  /*PlusStatus status = SetDhTablesFromStrings();
+
+  if (status == PLUS_FAIL)
+	  LOG_ERROR("Check the formatting of the DH tables.");
+*/
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+static bool BothAreSpaces(char lhs, char rhs)
+{
+	return (lhs == rhs) && (lhs == ' ');
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const
+{
+	std::vector<std::string> strTokens;
+
+	// Remove all the new lines from the string
+	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+	// Remove all tabs 
+	str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
+	// Trim the beginning and end
+	str = igsioCommon::Trim(str);
+
+	// Remove all double/triple spaces
+	std::string::iterator new_end = std::unique(str.begin(), str.end(), BothAreSpaces);
+	str.erase(new_end, str.end());
+}
+
+static void SetIsiDhTableFromTokenVector(ISI_DH_ROW* destIsiDhTable, std::vector<std::string>& srcTokenVector)
+{
+  for (int iii = 0; iii < 7; iii++)
+  {
+    for (int jjj = 0; jjj < 7; jjj++)
+    {
+      destIsiDhTable[iii].type = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 0]);
+      destIsiDhTable[iii].l = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 1]);
+      destIsiDhTable[iii].sina = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 2]);
+      destIsiDhTable[iii].cosa = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 3]);
+      destIsiDhTable[iii].d = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 4]);
+      destIsiDhTable[iii].sinq = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 5]);
+      destIsiDhTable[iii].cosq = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 6]);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIntuitiveDaVinciTracker::SetDhTablesFromStrings()
+{
+  std::vector<std::string> psm1TokenVector, psm2TokenVector, ecmTokenVector;
+
+  const int numDhRows = 7; const int numDhCols = 7;
+  int numElem = numDhRows*numDhCols;
+
+  ProcessDhString(Psm1DhTable);
+  ProcessDhString(Psm2DhTable);
+  ProcessDhString(EcmDhTable);
+
+  psm1TokenVector = igsioCommon::SplitStringIntoTokens(Psm1DhTable, ' ');
+  psm2TokenVector = igsioCommon::SplitStringIntoTokens(Psm2DhTable, ' ');
+  ecmTokenVector = igsioCommon::SplitStringIntoTokens(EcmDhTable, ' ');
+
+  if((psm1TokenVector.size() != numElem) || 
+	   (psm2TokenVector.size() != numElem) ||
+	   (ecmTokenVector.size() != numElem))
+  {
+	  LOG_ERROR("Invalid formatting of DH table string. Must have " << numElem << "elements.");
+	  return PLUS_FAIL;
+  }
+
+  ISI_DH_ROW isiPsm1DhTable[numDhRows];
+  ISI_DH_ROW isiPsm2DhTable[numDhRows];
+  ISI_DH_ROW isiEcmDhTable[numDhRows];
+
+  SetIsiDhTableFromTokenVector(isiPsm1DhTable, psm1TokenVector);
+  SetIsiDhTableFromTokenVector(isiPsm2DhTable, psm2TokenVector);
+  SetIsiDhTableFromTokenVector(isiEcmDhTable, ecmTokenVector);
+
+  this->DaVinci->GetPsm1()->SetDhTable(isiPsm1DhTable);
+  this->DaVinci->GetPsm2()->SetDhTable(isiPsm2DhTable);
+  this->DaVinci->GetEcm()->SetDhTable(isiEcmDhTable);
 
   return PLUS_SUCCESS;
 }
