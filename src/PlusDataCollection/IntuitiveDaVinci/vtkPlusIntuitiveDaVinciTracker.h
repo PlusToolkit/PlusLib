@@ -81,7 +81,7 @@ private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);
   void operator=(const vtkPlusIntuitiveDaVinciTracker&);
 
-  void setVtkMatrixFromISITransform(vtkMatrix4x4& vtkMatrix, ISI_TRANSFORM* isiMatrix);
+  void ConvertIsiTransformToVtkMatrix(ISI_TRANSFORM* isiMatrix, vtkMatrix4x4& vtkMatrix);
   PlusStatus SetDhTablesFromStrings();
   void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const;
 

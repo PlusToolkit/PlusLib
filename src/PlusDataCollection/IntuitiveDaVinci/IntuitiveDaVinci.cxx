@@ -17,6 +17,8 @@ IntuitiveDaVinci::IntuitiveDaVinci()
   mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
   mPsm2 = new IntuitiveDaVinciManipulator(ISI_PSM2);
   mEcm  = new IntuitiveDaVinciManipulator(ISI_ECM);
+
+  LOG_DEBUG("Created da Vinci.");
 }
 
 //----------------------------------------------------------------------------
@@ -27,11 +29,14 @@ IntuitiveDaVinci::~IntuitiveDaVinci()
 
   stop();
   disconnect();
+
+  LOG_DEBUG("Destroyed da Vinci.");
 }
 
 //----------------------------------------------------------------------------
 bool IntuitiveDaVinci::start()
 {
+  LOG_DEBUG("Starting da Vinci.");
   if (isConnected()) 
     return true;
 
@@ -42,6 +47,7 @@ bool IntuitiveDaVinci::start()
 //----------------------------------------------------------------------------
 void IntuitiveDaVinci::stop()
 {
+  LOG_DEBUG("Stopping da Vinci.");
   if (isConnected())
     mConnected = false;
 }
@@ -54,13 +60,13 @@ ISI_STATUS IntuitiveDaVinci::connect()
   mStatus = dv_subscribe_all_stream_fields();
   mStatus = dv_start_stream(10);
 
-  // mStatus = DV_SUCCESS;
+  mStatus = ISI_SUCCESS;
 
   if(mStatus == ISI_SUCCESS)
   {
     mConnected = true;
-	LOG_INFO("Connected to da Vinci system.");
-	return mStatus;
+	  LOG_INFO("Connected to da Vinci system.");
+	  return mStatus;
   }
   LOG_ERROR("Could not connect to da Vinci system.");
   return mStatus;
@@ -72,7 +78,7 @@ ISI_STATUS IntuitiveDaVinci::disconnect()
   // check if system is connected
   if (!this->mConnected)
   {
-    LOG_ERROR("disconnect: not connected.");
+    LOG_ERROR("Cannot disconnect because not connected.");
     return ISI_FAIL;
   }
 
@@ -148,12 +154,12 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllJointValues()
 
 void IntuitiveDaVinci::PrintAllJointValues()
 {
-  std::cout << "PSM1 Joint Values: ";
-  this->mPsm1->PrintJointValues();
-  std::cout << "PSM2 Joint Values: ";
-  this->mPsm2->PrintJointValues();
-  std::cout << "ECM Joint Values: ";
-  this->mEcm->PrintJointValues();
+  std::string tmp0 = this->mPsm1->GetJointValuesAsString();
+  LOG_DEBUG("PSM1 Joint Values: " << tmp0);
+  std::string tmp1 = this->mPsm2->GetJointValuesAsString();
+  LOG_DEBUG("PSM2 Joint Values: " << tmp1);
+  std::string tmp2 = this->mEcm->GetJointValuesAsString();
+  LOG_DEBUG("ECM Joint Values: " << tmp2);
 }
 
 ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()

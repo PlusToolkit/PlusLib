@@ -128,6 +128,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   
   this->DaVinci->UpdateAllJointValues();
   this->DaVinci->PrintAllJointValues();
+  this->DaVinci->UpdateAllKinematicsTransforms();
 
   if(this->PSM1Tip != NULL)
   {
@@ -180,16 +181,18 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   */
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
-  
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm1DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
 
-  /*PlusStatus status = SetDhTablesFromStrings();
+  PlusStatus status = SetDhTablesFromStrings();
 
-  if (status == PLUS_FAIL)
-	  LOG_ERROR("Check the formatting of the DH tables.");
-*/
+  if (status != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Check the formatting of the DH tables.");
+    return status;
+  }
+	
   return PLUS_SUCCESS;
 }
 
@@ -216,11 +219,11 @@ void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const
 	str.erase(new_end, str.end());
 }
 
-static void SetIsiDhTableFromTokenVector(ISI_DH_ROW* destIsiDhTable, std::vector<std::string>& srcTokenVector)
+static void ConvertTokenVectorToDhTable(std::vector<std::string>& srcTokenVector, ISI_DH_ROW* destIsiDhTable)
 {
   for (int iii = 0; iii < 7; iii++)
   {
-    for (int jjj = 0; jjj < 7; jjj++)
+    try
     {
       destIsiDhTable[iii].type = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 0]);
       destIsiDhTable[iii].l = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 1]);
@@ -229,6 +232,10 @@ static void SetIsiDhTableFromTokenVector(ISI_DH_ROW* destIsiDhTable, std::vector
       destIsiDhTable[iii].d = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 4]);
       destIsiDhTable[iii].sinq = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 5]);
       destIsiDhTable[iii].cosq = (ISI_FLOAT)std::stof(srcTokenVector[7 * iii + 6]);
+    }
+    catch (...)
+    {
+      LOG_ERROR("Check input DH table input in config file.");
     }
   }
 }
@@ -261,13 +268,16 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::SetDhTablesFromStrings()
   ISI_DH_ROW isiPsm2DhTable[numDhRows];
   ISI_DH_ROW isiEcmDhTable[numDhRows];
 
-  SetIsiDhTableFromTokenVector(isiPsm1DhTable, psm1TokenVector);
-  SetIsiDhTableFromTokenVector(isiPsm2DhTable, psm2TokenVector);
-  SetIsiDhTableFromTokenVector(isiEcmDhTable, ecmTokenVector);
+  ConvertTokenVectorToDhTable(psm1TokenVector, isiPsm1DhTable);
+  ConvertTokenVectorToDhTable(psm2TokenVector, isiPsm2DhTable);
+  ConvertTokenVectorToDhTable(ecmTokenVector, isiEcmDhTable);
 
   this->DaVinci->GetPsm1()->SetDhTable(isiPsm1DhTable);
+  LOG_DEBUG("PSM1 DH Table set to: " << this->DaVinci->GetPsm1()->GetDhTableAsString());
   this->DaVinci->GetPsm2()->SetDhTable(isiPsm2DhTable);
+  LOG_DEBUG("PSM2 DH Table set to: " << this->DaVinci->GetPsm2()->GetDhTableAsString());
   this->DaVinci->GetEcm()->SetDhTable(isiEcmDhTable);
+  LOG_DEBUG("ECM DH Table set to: " << this->DaVinci->GetEcm()->GetDhTableAsString());
 
   return PLUS_SUCCESS;
 }
@@ -329,7 +339,7 @@ IntuitiveDaVinci* vtkPlusIntuitiveDaVinciTracker::GetDaVinci() const
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIntuitiveDaVinciTracker::setVtkMatrixFromISITransform(vtkMatrix4x4& destVtkMatrix, ISI_TRANSFORM* srcIsiMatrix)
+void vtkPlusIntuitiveDaVinciTracker::ConvertIsiTransformToVtkMatrix(ISI_TRANSFORM* srcIsiMatrix, vtkMatrix4x4& destVtkMatrix)
 {
   destVtkMatrix.Identity();
 

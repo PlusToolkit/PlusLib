@@ -7,6 +7,8 @@ See License.txt for details.
 #ifndef _INTUITIVE_DAVINCI_MANIPULATOR_H_
 #define _INTUITIVE_DAVINCI_MANIPULATOR_H_
 
+#include "PlusConfigure.h"
+
 // OS includes
 #include <assert.h>
 #include <ctype.h>
@@ -21,6 +23,7 @@ See License.txt for details.
 // Intuitive includes
 #include <isi_api_types.h>
 #include <dv_api.h>
+#include <dv_api_math.h>
 
 #define ISI_FAIL 0x0001 // IntuitiveDaVinci expects this for some reason, not provided by isi_types.h
 
@@ -35,11 +38,12 @@ public:
 
   ISI_TRANSFORM* GetTransforms();
   ISI_FLOAT* GetJointValues();
-  void PrintJointValues();
+  std::string GetJointValuesAsString();
+  std::string GetDhTableAsString();
 
 protected:
   ISI_MANIP_INDEX mManipIndex;
-  ISI_FLOAT mNumJoints;
+  int mNumJoints;
   ISI_DH_ROW* mDhTable;
   ISI_TRANSFORM* mBaseToWorld;
   ISI_TRANSFORM* mTransforms;
@@ -50,6 +54,7 @@ public:
   ISI_STATUS UpdateKinematicsTransforms(); // Do forward kinematics
 
   ISI_STATUS SetDhTable(ISI_DH_ROW* srcDhTable);
+  void CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW* destDhTable);
 };
 
 #endif
