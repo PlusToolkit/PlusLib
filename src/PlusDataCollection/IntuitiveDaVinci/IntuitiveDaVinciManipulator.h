@@ -37,6 +37,7 @@ public:
   ~IntuitiveDaVinciManipulator();
 
   ISI_TRANSFORM* GetTransforms();
+  ISI_TRANSFORM* GetBaseToWorldTransform();
   ISI_FLOAT* GetJointValues();
   std::string GetJointValuesAsString();
   std::string GetDhTableAsString();

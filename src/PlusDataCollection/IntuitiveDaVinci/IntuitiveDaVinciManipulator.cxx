@@ -149,3 +149,18 @@ std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
 
   return str.str();
 }
+
+ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetTransforms()
+{
+  return mTransforms;
+}
+
+ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetBaseToWorldTransform()
+{
+  return mBaseToWorld;
+}
+
+ISI_FLOAT* IntuitiveDaVinciManipulator::GetJointValues()
+{
+  return mJointValues;
+}
