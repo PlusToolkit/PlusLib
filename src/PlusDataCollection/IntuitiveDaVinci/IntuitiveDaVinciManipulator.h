@@ -40,6 +40,7 @@ public:
   ISI_FLOAT* GetJointValues();
   std::string GetJointValuesAsString();
   std::string GetDhTableAsString();
+  std::string GetKinematicsTransformsAsString();
 
 protected:
   ISI_MANIP_INDEX mManipIndex;

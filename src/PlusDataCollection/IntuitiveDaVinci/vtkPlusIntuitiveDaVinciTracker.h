@@ -85,8 +85,13 @@ private:
   PlusStatus SetDhTablesFromStrings();
   void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const;
 
-  vtkPlusDataSource* PSM1Tip;
-  vtkPlusDataSource* PSM2Tip;
+  vtkPlusDataSource* psm1BaseToWorld;
+  vtkPlusDataSource* psm2BaseToWorld;
+  vtkPlusDataSource* ecmBaseToWorld;
+
+  vtkPlusDataSource* psm1Transforms;
+  vtkPlusDataSource* psm2Transforms;
+  vtkPlusDataSource* ecmTransforms;
 };
 
 #endif

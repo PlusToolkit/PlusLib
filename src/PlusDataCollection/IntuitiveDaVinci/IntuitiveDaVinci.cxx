@@ -173,3 +173,13 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
   mStatus = this->mEcm->UpdateKinematicsTransforms();
   return mStatus;
 }
+
+void IntuitiveDaVinci::PrintAllKinematicsTransforms()
+{
+  std::string tmp0 = this->mPsm1->GetKinematicsTransformsAsString();
+  LOG_DEBUG("PSM1 Kinematics Transforms: " << tmp0);
+  std::string tmp1 = this->mPsm2->GetKinematicsTransformsAsString();
+  LOG_DEBUG("PSM2 Kinematics Transforms: " << tmp1);
+  std::string tmp2 = this->mEcm->GetKinematicsTransformsAsString();
+  LOG_DEBUG("ECM Kinematics Transforms: " << tmp2);
+}

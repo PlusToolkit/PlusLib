@@ -57,6 +57,7 @@ public:
   // Update joints
   ISI_STATUS UpdateAllJointValues();
   void PrintAllJointValues();
+  void PrintAllKinematicsTransforms();
 
   // Run kinematics
   ISI_STATUS UpdateAllKinematicsTransforms();

@@ -110,6 +110,8 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateKinematicsTransforms()
       &(mTransforms[iii]), garbageFloat);
   }
 
+  status += dv_get_reference_frame(mManipIndex, ISI_BASE_FRAME, mBaseToWorld);
+
   if (status != ISI_SUCCESS)
   {
     LOG_ERROR("Could not run DH forward kinematics.");
@@ -117,4 +119,33 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateKinematicsTransforms()
   }
 
   return ISI_SUCCESS;
+}
+
+static std::string GetTransformAsString(const ISI_TRANSFORM& t)
+{
+  std::stringstream str;
+  str << t.rot.row0.x << ' ' << t.rot.row0.y << ' '
+    << t.rot.row0.z << ' ' << t.pos.x << '\n';
+  str << t.rot.row1.x << ' ' << t.rot.row1.y << ' '
+    << t.rot.row1.z << ' ' << t.pos.y << '\n';
+  str << t.rot.row2.x << ' ' << t.rot.row2.y << ' '
+    << t.rot.row2.z << ' ' << t.pos.z << '\n';
+  str << "0 0 0 1";
+
+  return str.str();
+}
+
+std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
+{
+  std::stringstream str;
+  str << "BaseToWorld: \n";
+  str << GetTransformAsString(*mBaseToWorld) << '\n';
+
+  for (int iii = 0; iii < 7; iii++)
+  {
+    str << "Frame" << iii + 1 << "ToBase\n";
+    str << GetTransformAsString(mTransforms[iii])<< '\n';
+  }
+
+  return str.str();
 }

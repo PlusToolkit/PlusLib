@@ -44,8 +44,13 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->AcquisitionRate = 50;
 
-  this->PSM1Tip = NULL;
-  this->PSM2Tip = NULL;
+  this->psm1BaseToWorld = NULL;
+  this->psm2BaseToWorld = NULL;
+  this->ecmBaseToWorld = NULL;
+
+  this->psm1Transforms = NULL;
+  this->psm2Transforms = NULL;
+  this->ecmTransforms = NULL;
 
   LOG_DEBUG("vktPlusIntuitiveDaVinciTracker created.");
 }
@@ -129,37 +134,68 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   this->DaVinci->UpdateAllJointValues();
   this->DaVinci->PrintAllJointValues();
   this->DaVinci->UpdateAllKinematicsTransforms();
+  this->DaVinci->PrintAllKinematicsTransforms();
 
-  if(this->PSM1Tip != NULL)
+  vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  
+  if(this->psm1BaseToWorld != NULL)
   {
-    vtkSmartPointer<vtkMatrix4x4> PSM1TipToBase = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    
-    transform->RotateX(50.0*toolTimestamp);
-    transform->RotateY(50.0*toolTimestamp);
-    transform->RotateZ(50.0*toolTimestamp);
-
-    transform->GetMatrix(PSM1TipToBase);
-
+    ISI_TRANSFORM* isiPsm1BaseToWorld = this->DaVinci->GetPsm1()->GetBaseToWorldTransform();
+    ConvertIsiTransformToVtkMatrix(isiPsm1BaseToWorld, *tmpVtkMatrix);
     // This device has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = this->PSM1Tip->GetFrameNumber() + 1 ;
-    ToolTimeStampedUpdate(this->PSM1Tip->GetId(), PSM1TipToBase, TOOL_OK, frameNumber, toolTimestamp);
+    unsigned long frameNumber = this->psm1BaseToWorld->GetFrameNumber() + 1 ;
+    ToolTimeStampedUpdate(this->psm1BaseToWorld->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
   }
 
-  if(this->PSM2Tip != NULL)
+  if (this->psm2BaseToWorld != NULL)
   {
-    vtkSmartPointer<vtkMatrix4x4> PSM2TipToBase = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    
-    transform->RotateX(70.0*toolTimestamp);
-    transform->RotateY(70.0*toolTimestamp);
-    transform->RotateZ(70.0*toolTimestamp);
-
-    transform->GetMatrix(PSM2TipToBase);
-
+    ISI_TRANSFORM* isiPsm2BaseToWorld = this->DaVinci->GetPsm2()->GetBaseToWorldTransform();
+    ConvertIsiTransformToVtkMatrix(isiPsm2BaseToWorld, *tmpVtkMatrix);
     // This device has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = this->PSM2Tip->GetFrameNumber() + 1 ;
-    ToolTimeStampedUpdate(this->PSM2Tip->GetId(), PSM2TipToBase, TOOL_OK, frameNumber, toolTimestamp);
+    unsigned long frameNumber = this->psm2BaseToWorld->GetFrameNumber() + 1;
+    ToolTimeStampedUpdate(this->psm2BaseToWorld->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+  }
+
+  if (this->ecmBaseToWorld != NULL)
+  {
+    ISI_TRANSFORM* isiEcmBaseToWorld = this->DaVinci->GetEcm()->GetBaseToWorldTransform();
+    ConvertIsiTransformToVtkMatrix(isiEcmBaseToWorld, *tmpVtkMatrix);
+    // This device has no frame numbering, so just auto increment tool frame number
+    unsigned long frameNumber = this->ecmBaseToWorld->GetFrameNumber() + 1;
+    ToolTimeStampedUpdate(this->ecmBaseToWorld->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+  }
+
+  if (this->psm1Transforms != NULL)
+  {
+    ISI_TRANSFORM* isiPsm1Transforms = this->DaVinci->GetPsm1()->GetTransforms();
+    for (int iii = 0; iii < 7; iii++)
+    {
+      ConvertIsiTransformToVtkMatrix(isiPsm1Transforms + iii, *tmpVtkMatrix);
+      unsigned long frameNumber = this->psm1Transforms[iii].GetFrameNumber() + 1;
+      ToolTimeStampedUpdate(this->psm1Transforms[iii].GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+    }
+  }
+
+  if (this->psm2Transforms != NULL)
+  {
+    ISI_TRANSFORM* isiPsm2Transforms = this->DaVinci->GetPsm2()->GetTransforms();
+    for (int iii = 0; iii < 7; iii++)
+    {
+      ConvertIsiTransformToVtkMatrix(isiPsm2Transforms + iii, *tmpVtkMatrix);
+      unsigned long frameNumber = this->psm2Transforms[iii].GetFrameNumber() + 1;
+      ToolTimeStampedUpdate(this->psm2Transforms[iii].GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+    }
+  }
+
+  if (this->ecmTransforms != NULL)
+  {
+    ISI_TRANSFORM* isiEcmTransforms = this->DaVinci->GetEcm()->GetTransforms();
+    for (int iii = 0; iii < 7; iii++)
+    {
+      ConvertIsiTransformToVtkMatrix(isiEcmTransforms + iii, *tmpVtkMatrix);
+      unsigned long frameNumber = this->ecmTransforms[iii].GetFrameNumber() + 1;
+      ToolTimeStampedUpdate(this->ecmTransforms[iii].GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+    }
   }
 
   return PLUS_SUCCESS;
