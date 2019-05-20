@@ -16,7 +16,6 @@ IntuitiveDaVinciManipulator::IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIn
   else mNumJoints = (int)ISI_NUM_ECM_JOINTS;
   
   mDhTable = new ISI_DH_ROW[7];
-  mBaseToWorld = new ISI_TRANSFORM;
   mTransforms = new ISI_TRANSFORM[7];
   mJointValues = new ISI_FLOAT[mNumJoints];
 }
@@ -24,11 +23,10 @@ IntuitiveDaVinciManipulator::IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIn
 IntuitiveDaVinciManipulator::~IntuitiveDaVinciManipulator()
 {
   delete[] mDhTable;
-  delete mBaseToWorld;
   delete[] mTransforms;
   delete[] mJointValues;
 
-  mDhTable = nullptr; mBaseToWorld = nullptr; mTransforms = nullptr; mJointValues = nullptr;
+  mDhTable = nullptr; mTransforms = nullptr; mJointValues = nullptr;
 }
 
 ISI_STATUS IntuitiveDaVinciManipulator::UpdateJointValues()
@@ -83,6 +81,14 @@ ISI_STATUS IntuitiveDaVinciManipulator::SetDhTable(ISI_DH_ROW* srcDhTable)
   return ISI_SUCCESS;
 }
 
+void IntuitiveDaVinciManipulator::SetJointValues(ISI_FLOAT* jointValues)
+{
+  for (int iii = 0; iii < mNumJoints; iii++)
+  {
+    mJointValues[iii] = jointValues[iii];
+  }
+}
+
 void IntuitiveDaVinciManipulator::CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW* destDhTable)
 {
   for (int iii = 0; iii < 7; iii++)
@@ -110,8 +116,6 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateKinematicsTransforms()
       &(mTransforms[iii]), garbageFloat);
   }
 
-  status += dv_get_reference_frame(mManipIndex, ISI_BASE_FRAME, mBaseToWorld);
-
   if (status != ISI_SUCCESS)
   {
     LOG_ERROR("Could not run DH forward kinematics.");
@@ -138,8 +142,6 @@ static std::string GetTransformAsString(const ISI_TRANSFORM& t)
 std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
 {
   std::stringstream str;
-  str << "BaseToWorld: \n";
-  str << GetTransformAsString(*mBaseToWorld) << '\n';
 
   for (int iii = 0; iii < 7; iii++)
   {
@@ -153,11 +155,6 @@ std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
 ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetTransforms()
 {
   return mTransforms;
-}
-
-ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetBaseToWorldTransform()
-{
-  return mBaseToWorld;
 }
 
 ISI_FLOAT* IntuitiveDaVinciManipulator::GetJointValues()

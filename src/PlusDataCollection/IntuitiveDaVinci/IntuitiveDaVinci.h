@@ -54,12 +54,18 @@ public:
   IntuitiveDaVinciManipulator* GetPsm2();
   IntuitiveDaVinciManipulator* GetEcm();
 
+  ISI_TRANSFORM* GetPsm1BaseToWorld();
+  ISI_TRANSFORM* GetPsm2BaseToWorld();
+  ISI_TRANSFORM* GetEcmBaseToWorld();
+
   // Update joints
   ISI_STATUS UpdateAllJointValues();
+  ISI_STATUS UpdateAllJointValuesSineWave();
   void PrintAllJointValues();
   void PrintAllKinematicsTransforms();
 
   // Run kinematics
+  ISI_STATUS UpdateBaseToWorldTransforms();
   ISI_STATUS UpdateAllKinematicsTransforms();
 
 protected:
@@ -69,8 +75,15 @@ protected:
   ISI_STATUS        mStatus;
   bool              mConnected;
   bool              mStreaming;
-
   unsigned int      mRateHz;
+
+  ISI_TRANSFORM*    mPsm1BaseToWorld;
+  ISI_TRANSFORM*    mPsm2BaseToWorld;
+  ISI_TRANSFORM*    mEcmBaseToWorld;
+
+  ISI_TRANSFORM*    mViewToWorld;
+  ISI_TRANSFORM*    mPsm1BaseToView;
+  ISI_TRANSFORM*    mPsm2BaseToView;
 
   IntuitiveDaVinciManipulator* mPsm1;
   IntuitiveDaVinciManipulator* mPsm2;

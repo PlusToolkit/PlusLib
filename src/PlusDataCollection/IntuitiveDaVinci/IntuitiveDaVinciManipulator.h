@@ -36,26 +36,26 @@ public:
   // Destructor
   ~IntuitiveDaVinciManipulator();
 
-  ISI_TRANSFORM* GetTransforms();
-  ISI_TRANSFORM* GetBaseToWorldTransform();
-  ISI_FLOAT* GetJointValues();
-  std::string GetJointValuesAsString();
-  std::string GetDhTableAsString();
-  std::string GetKinematicsTransformsAsString();
+  ISI_TRANSFORM*   GetTransforms();
+  ISI_FLOAT*       GetJointValues();
+  std::string      GetJointValuesAsString();
+  std::string      GetDhTableAsString();
+  std::string      GetKinematicsTransformsAsString();
 
 protected:
-  ISI_MANIP_INDEX mManipIndex;
-  int mNumJoints;
-  ISI_DH_ROW* mDhTable;
-  ISI_TRANSFORM* mBaseToWorld;
-  ISI_TRANSFORM* mTransforms;
-  ISI_FLOAT* mJointValues;
+  ISI_MANIP_INDEX  mManipIndex;
+  int              mNumJoints;
+  ISI_DH_ROW*      mDhTable;
+  ISI_TRANSFORM*   mTransforms;
+  ISI_FLOAT*       mJointValues;
 
 public:
   ISI_STATUS UpdateJointValues(); // Update just the joints
   ISI_STATUS UpdateKinematicsTransforms(); // Do forward kinematics
 
   ISI_STATUS SetDhTable(ISI_DH_ROW* srcDhTable);
+  void SetJointValues(ISI_FLOAT* jointValues);
+
   void CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW* destDhTable);
 };
 

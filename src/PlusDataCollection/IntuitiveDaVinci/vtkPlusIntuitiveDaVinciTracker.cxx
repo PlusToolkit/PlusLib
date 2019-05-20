@@ -151,7 +151,11 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   int defaultToolFrameNumber = this->LastFrameNumber;
   const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
   
-  this->DaVinci->UpdateAllJointValues();
+  if (this->DebugSineWaveMode)
+    this->DaVinci->UpdateAllJointValuesSineWave();
+  else
+    this->DaVinci->UpdateAllJointValues();
+
   this->DaVinci->PrintAllJointValues();
   this->DaVinci->UpdateAllKinematicsTransforms();
   this->DaVinci->PrintAllKinematicsTransforms();
@@ -161,7 +165,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   // Update all of the base frames
   if(this->psm1Base != NULL)
   {
-    ISI_TRANSFORM* isiPsm1BaseToWorld = this->DaVinci->GetPsm1()->GetBaseToWorldTransform();
+    ISI_TRANSFORM* isiPsm1BaseToWorld = this->DaVinci->GetPsm1BaseToWorld();
     ConvertIsiTransformToVtkMatrix(isiPsm1BaseToWorld, *tmpVtkMatrix);
     // This device has no frame numbering, so just auto increment tool frame number
     unsigned long frameNumber = this->psm1Base->GetFrameNumber() + 1 ;
@@ -170,7 +174,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 
   if (this->psm2Base != NULL)
   {
-    ISI_TRANSFORM* isiPsm2BaseToWorld = this->DaVinci->GetPsm2()->GetBaseToWorldTransform();
+    ISI_TRANSFORM* isiPsm2BaseToWorld = this->DaVinci->GetPsm2BaseToWorld();
     ConvertIsiTransformToVtkMatrix(isiPsm2BaseToWorld, *tmpVtkMatrix);
     unsigned long frameNumber = this->psm2Base->GetFrameNumber() + 1;
     ToolTimeStampedUpdate(this->psm2Base->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
@@ -178,7 +182,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 
   if (this->ecmBase != NULL)
   {
-    ISI_TRANSFORM* isiEcmBaseToWorld = this->DaVinci->GetEcm()->GetBaseToWorldTransform();
+    ISI_TRANSFORM* isiEcmBaseToWorld = this->DaVinci->GetEcmBaseToWorld();
     ConvertIsiTransformToVtkMatrix(isiEcmBaseToWorld, *tmpVtkMatrix);
     unsigned long frameNumber = this->ecmBase->GetFrameNumber() + 1;
     ToolTimeStampedUpdate(this->ecmBase->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
@@ -374,6 +378,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   */
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DebugSineWaveMode, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm1DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
@@ -586,24 +591,19 @@ void vtkPlusIntuitiveDaVinciTracker::ConvertIsiTransformToVtkMatrix(ISI_TRANSFOR
 
   // Let's VERY EXPLCITLY copy over the values.
   destVtkMatrix.SetElement(0, 0, srcIsiMatrix->rot.row0.x);
-  destVtkMatrix.SetElement(1, 0, srcIsiMatrix->rot.row0.y);
-  destVtkMatrix.SetElement(2, 0, srcIsiMatrix->rot.row0.z);
-  destVtkMatrix.SetElement(3, 0, 0);
-
-  destVtkMatrix.SetElement(0, 1, srcIsiMatrix->rot.row1.x);
-  destVtkMatrix.SetElement(1, 1, srcIsiMatrix->rot.row1.y);
-  destVtkMatrix.SetElement(2, 1, srcIsiMatrix->rot.row1.z);
-  destVtkMatrix.SetElement(3, 1, 0);
-
-  destVtkMatrix.SetElement(0, 2, srcIsiMatrix->rot.row2.x);
-  destVtkMatrix.SetElement(1, 2, srcIsiMatrix->rot.row2.y);
-  destVtkMatrix.SetElement(2, 2, srcIsiMatrix->rot.row2.z);
-  destVtkMatrix.SetElement(3, 2, 0);
-
+  destVtkMatrix.SetElement(0, 1, srcIsiMatrix->rot.row0.y);
+  destVtkMatrix.SetElement(0, 2, srcIsiMatrix->rot.row0.z);
   destVtkMatrix.SetElement(0, 3, srcIsiMatrix->pos.x);
+
+  destVtkMatrix.SetElement(1, 0, srcIsiMatrix->rot.row1.x);
+  destVtkMatrix.SetElement(1, 1, srcIsiMatrix->rot.row1.y);
+  destVtkMatrix.SetElement(1, 2, srcIsiMatrix->rot.row1.z);
   destVtkMatrix.SetElement(1, 3, srcIsiMatrix->pos.y);
+
+  destVtkMatrix.SetElement(2, 0, srcIsiMatrix->rot.row2.x);
+  destVtkMatrix.SetElement(2, 1, srcIsiMatrix->rot.row2.y);
+  destVtkMatrix.SetElement(2, 2, srcIsiMatrix->rot.row2.z);
   destVtkMatrix.SetElement(2, 3, srcIsiMatrix->pos.z);
-  destVtkMatrix.SetElement(3, 3, 1);
 
   return;
 }
