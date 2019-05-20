@@ -103,9 +103,9 @@ void IntuitiveDaVinciManipulator::CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW
   }
 }
 
-ISI_STATUS IntuitiveDaVinciManipulator::UpdateKinematicsTransforms()
+ISI_STATUS IntuitiveDaVinciManipulator::UpdateAllManipulatorTransforms()
 {
-  ISI_FLOAT garbageFloat[8*6]; // We don't really care about Jacobians
+  // ISI_FLOAT garbageFloat[8*6]; // We don't really care about Jacobians
   ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
 
   ISI_STATUS status = ISI_SUCCESS;
@@ -113,7 +113,41 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateKinematicsTransforms()
   {
     status += dv_dh_forward_kinematics(
       &(base), iii + 1, mDhTable, mJointValues, 
-      &(mTransforms[iii]), garbageFloat);
+      &(mTransforms[iii]), NULL);
+  }
+
+  if (status != ISI_SUCCESS)
+  {
+    LOG_ERROR("Could not run DH forward kinematics.");
+    return ISI_FAIL;
+  }
+
+  return ISI_SUCCESS;
+}
+
+ISI_STATUS IntuitiveDaVinciManipulator::UpdateMinimalManipulatorTransforms()
+{
+  // ISI_FLOAT garbageFloat[8*6]; // We don't really care about Jacobians
+  ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
+
+  ISI_STATUS status = ISI_SUCCESS;
+
+  int numMinimalTransforms;
+  int minimalLinkIndices[4] = { 7, 4, 5, 6 };
+
+  if (mManipIndex == ISI_ECM)
+    numMinimalTransforms = 1;
+  else
+    numMinimalTransforms = 4;
+
+  int transformIndexToUpdate;
+
+  for (int iii = 0; iii < numMinimalTransforms; iii++)
+  {
+    transformIndexToUpdate = minimalLinkIndices[iii];
+    status += dv_dh_forward_kinematics(
+      &(base), transformIndexToUpdate, mDhTable, mJointValues,
+      &(mTransforms[transformIndexToUpdate - 1]), NULL);
   }
 
   if (status != ISI_SUCCESS)

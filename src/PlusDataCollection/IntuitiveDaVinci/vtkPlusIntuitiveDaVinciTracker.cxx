@@ -34,6 +34,16 @@ See License.txt for details.
 vtkStandardNewMacro(vtkPlusIntuitiveDaVinciTracker);
 
 //----------------------------------------------------------------------------
+// Macro to publish an isiTransform to a given tool. 
+#define PUBLISH_ISI_TRANSFORM(tool, isiTransform) \
+  if(tool!=NULL) \
+  { \
+    ConvertIsiTransformToVtkMatrix(isiTransform, *tmpVtkMatrix); \
+    unsigned long frameNumber = tool->GetFrameNumber() + 1; \
+    ToolTimeStampedUpdate(tool->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp); \
+  } \
+  
+//----------------------------------------------------------------------------
 vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   : vtkPlusDevice()
   , DaVinci(new IntuitiveDaVinci())
@@ -43,6 +53,8 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   this->StartThreadForInternalUpdates = true; // Want a dedicated thread
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->AcquisitionRate = 50;
+  this->DebugSineWaveMode = false;
+  this->UpdateMinimalKinematics = false;
 
   this->psm1Base = NULL;
   this->psm2Base = NULL;
@@ -78,7 +90,6 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
 //----------------------------------------------------------------------------
 vtkPlusIntuitiveDaVinciTracker::~vtkPlusIntuitiveDaVinciTracker()
 {
-
   this->StopRecording();
   this->Disconnect();
 
@@ -105,6 +116,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::Probe()
 
   this->DaVinci->stop();
   this->DaVinci->disconnect();
+
   return PLUS_SUCCESS;
 }
 
@@ -146,218 +158,59 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalStopRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 {
-  
   this->LastFrameNumber++;
-  int defaultToolFrameNumber = this->LastFrameNumber;
   const double toolTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // unfiltered timestamp
   
+  // Update the robot joint values
   if (this->DebugSineWaveMode)
     this->DaVinci->UpdateAllJointValuesSineWave();
   else
     this->DaVinci->UpdateAllJointValues();
 
-  this->DaVinci->PrintAllJointValues();
-  this->DaVinci->UpdateAllKinematicsTransforms();
-  this->DaVinci->PrintAllKinematicsTransforms();
+  // Update the kinematics transforms
+  if (this->UpdateMinimalKinematics)
+    this->DaVinci->UpdateMinimalKinematicsTransforms();
+  else
+    this->DaVinci->UpdateAllKinematicsTransforms();
 
+  // We will need these to copy transforms
   vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  
-  // Update all of the base frames
-  if(this->psm1Base != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1BaseToWorld = this->DaVinci->GetPsm1BaseToWorld();
-    ConvertIsiTransformToVtkMatrix(isiPsm1BaseToWorld, *tmpVtkMatrix);
-    // This device has no frame numbering, so just auto increment tool frame number
-    unsigned long frameNumber = this->psm1Base->GetFrameNumber() + 1 ;
-    ToolTimeStampedUpdate(this->psm1Base->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
+  ISI_TRANSFORM* tmpIsiMatrix;
 
-  if (this->psm2Base != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2BaseToWorld = this->DaVinci->GetPsm2BaseToWorld();
-    ConvertIsiTransformToVtkMatrix(isiPsm2BaseToWorld, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Base->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Base->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmBase != NULL)
-  {
-    ISI_TRANSFORM* isiEcmBaseToWorld = this->DaVinci->GetEcmBaseToWorld();
-    ConvertIsiTransformToVtkMatrix(isiEcmBaseToWorld, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmBase->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmBase->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
+  // Update all of the manipulator base frames
+  PUBLISH_ISI_TRANSFORM(psm1Base, this->DaVinci->GetPsm1BaseToWorld());
+  PUBLISH_ISI_TRANSFORM(psm2Base, this->DaVinci->GetPsm2BaseToWorld());
+  PUBLISH_ISI_TRANSFORM(ecmBase, this->DaVinci->GetEcmBaseToWorld());
 
   // Update all of the psm1Frames
-  if (this->psm1Frame1 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame1 = this->DaVinci->GetPsm1()->GetTransforms() + 0;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame1, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame1->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame1->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame2 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame2 = this->DaVinci->GetPsm1()->GetTransforms() + 1;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame2, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame2->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame2->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame3 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame3 = this->DaVinci->GetPsm1()->GetTransforms() + 2;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame3, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame3->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame3->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame4 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame4 = this->DaVinci->GetPsm1()->GetTransforms() + 3;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame4, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame4->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame4->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame5 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame5 = this->DaVinci->GetPsm1()->GetTransforms() + 4;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame5, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame5->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame5->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame6 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame6 = this->DaVinci->GetPsm1()->GetTransforms() + 5;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame6, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame6->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame6->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm1Frame7 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm1Frame7 = this->DaVinci->GetPsm1()->GetTransforms() + 6;
-    ConvertIsiTransformToVtkMatrix(isiPsm1Frame7, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm1Frame7->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm1Frame7->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
+  ISI_TRANSFORM* psm1Transforms = this->DaVinci->GetPsm1()->GetTransforms();
+  PUBLISH_ISI_TRANSFORM(psm1Frame1, psm1Transforms + 0);
+  PUBLISH_ISI_TRANSFORM(psm1Frame2, psm1Transforms + 1);
+  PUBLISH_ISI_TRANSFORM(psm1Frame3, psm1Transforms + 2);
+  PUBLISH_ISI_TRANSFORM(psm1Frame4, psm1Transforms + 3);
+  PUBLISH_ISI_TRANSFORM(psm1Frame5, psm1Transforms + 4);
+  PUBLISH_ISI_TRANSFORM(psm1Frame6, psm1Transforms + 5);
+  PUBLISH_ISI_TRANSFORM(psm1Frame7, psm1Transforms + 6);
 
   // Update all of the psm2Frames
-  if (this->psm2Frame1 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame1 = this->DaVinci->GetPsm2()->GetTransforms() + 0;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame1, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame1->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame1->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame2 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame2 = this->DaVinci->GetPsm2()->GetTransforms() + 1;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame2, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame2->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame2->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame3 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame3 = this->DaVinci->GetPsm2()->GetTransforms() + 2;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame3, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame3->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame3->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame4 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame4 = this->DaVinci->GetPsm2()->GetTransforms() + 3;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame4, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame4->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame4->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame5 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame5 = this->DaVinci->GetPsm2()->GetTransforms() + 4;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame5, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame5->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame5->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame6 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame6 = this->DaVinci->GetPsm2()->GetTransforms() + 5;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame6, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame6->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame6->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->psm2Frame7 != NULL)
-  {
-    ISI_TRANSFORM* isiPsm2Frame7 = this->DaVinci->GetPsm2()->GetTransforms() + 6;
-    ConvertIsiTransformToVtkMatrix(isiPsm2Frame7, *tmpVtkMatrix);
-    unsigned long frameNumber = this->psm2Frame7->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->psm2Frame7->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
+  ISI_TRANSFORM* psm2Transforms = this->DaVinci->GetPsm2()->GetTransforms();
+  PUBLISH_ISI_TRANSFORM(psm2Frame1, psm2Transforms + 0);
+  PUBLISH_ISI_TRANSFORM(psm2Frame2, psm2Transforms + 1);
+  PUBLISH_ISI_TRANSFORM(psm2Frame3, psm2Transforms + 2);
+  PUBLISH_ISI_TRANSFORM(psm2Frame4, psm2Transforms + 3);
+  PUBLISH_ISI_TRANSFORM(psm2Frame5, psm2Transforms + 4);
+  PUBLISH_ISI_TRANSFORM(psm2Frame6, psm2Transforms + 5);
+  PUBLISH_ISI_TRANSFORM(psm2Frame7, psm2Transforms + 6);
 
   // Update all of the ecmFrames
-  if (this->ecmFrame1 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame1 = this->DaVinci->GetEcm()->GetTransforms() + 0;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame1, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame1->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame1->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame2 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame2 = this->DaVinci->GetEcm()->GetTransforms() + 1;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame2, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame2->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame2->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame3 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame3 = this->DaVinci->GetEcm()->GetTransforms() + 2;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame3, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame3->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame3->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame4 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame4 = this->DaVinci->GetEcm()->GetTransforms() + 3;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame4, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame4->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame4->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame5 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame5 = this->DaVinci->GetEcm()->GetTransforms() + 4;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame5, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame5->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame5->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame6 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame6 = this->DaVinci->GetEcm()->GetTransforms() + 5;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame6, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame6->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame6->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
-
-  if (this->ecmFrame7 != NULL)
-  {
-    ISI_TRANSFORM* isiEcmFrame7 = this->DaVinci->GetEcm()->GetTransforms() + 6;
-    ConvertIsiTransformToVtkMatrix(isiEcmFrame7, *tmpVtkMatrix);
-    unsigned long frameNumber = this->ecmFrame7->GetFrameNumber() + 1;
-    ToolTimeStampedUpdate(this->ecmFrame7->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-  }
+  ISI_TRANSFORM* ecmTransforms = this->DaVinci->GetEcm()->GetTransforms();
+  PUBLISH_ISI_TRANSFORM(ecmFrame1, ecmTransforms + 0);
+  PUBLISH_ISI_TRANSFORM(ecmFrame2, ecmTransforms + 1);
+  PUBLISH_ISI_TRANSFORM(ecmFrame3, ecmTransforms + 2);
+  PUBLISH_ISI_TRANSFORM(ecmFrame4, ecmTransforms + 3);
+  PUBLISH_ISI_TRANSFORM(ecmFrame5, ecmTransforms + 4);
+  PUBLISH_ISI_TRANSFORM(ecmFrame6, ecmTransforms + 5);
+  PUBLISH_ISI_TRANSFORM(ecmFrame7, ecmTransforms + 6);
 
   return PLUS_SUCCESS;
 }
@@ -366,19 +219,12 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_DEBUG("vtkPlusIntuitiveDaVinciTracker::ReadConfiguration");
+
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
-
-  /* Because of how PLUS works when we create a vtkPlusDevice,
-  the XML file is already parsed. The parent class reads in the configuration
-  file, and finds all the data sources that are tools.
-
-  It then parses the tool tags and adds them (if possible) to this device.
-
-  See vtkPlusDevice.cxx : ReadConfiguration( ... )
-  */
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DebugSineWaveMode, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UpdateMinimalKinematics, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm1DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
   XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);

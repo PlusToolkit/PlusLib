@@ -67,6 +67,7 @@ public:
   // Run kinematics
   ISI_STATUS UpdateBaseToWorldTransforms();
   ISI_STATUS UpdateAllKinematicsTransforms();
+  ISI_STATUS UpdateMinimalKinematicsTransforms();
 
 protected:
   void copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out);

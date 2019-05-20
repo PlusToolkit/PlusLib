@@ -65,6 +65,7 @@ protected:
   vtkSetMacro(Psm2DhTable, std::string);
   vtkSetMacro(EcmDhTable, std::string);
   vtkSetMacro(DebugSineWaveMode, bool);
+  vtkSetMacro(UpdateMinimalKinematics, bool);
 
 protected:
   /*! Pointer to the MicronTrackerInterface class instance */
@@ -79,6 +80,7 @@ protected:
   std::string EcmDhTable;
 
   bool DebugSineWaveMode;
+  bool UpdateMinimalKinematics;
 
 private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);

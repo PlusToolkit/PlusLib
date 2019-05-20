@@ -173,9 +173,9 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllJointValuesSineWave()
   clock_t ticks = clock();
   float t = ((float)ticks) / ((float)CLOCKS_PER_SEC);
 
-  ISI_FLOAT psm1JointValues[ISI_NUM_PSM_JOINTS] = { 0.5*sin(1.0*t), 0.5*sin(1.5*t), sin(2.0*t) + 100.0, sin(1.7*t), sin(0.7*t), sin(0.5*t), sin(0.8*t) };
-  ISI_FLOAT psm2JointValues[ISI_NUM_PSM_JOINTS] = { 0.5*sin(1.1*t), 0.5*sin(1.4*t), sin(2.1*t) + 100.0, sin(1.6*t), sin(0.6*t), sin(0.9*t), sin(1.8*t) };
-  ISI_FLOAT ecmJointValues[ISI_NUM_ECM_JOINTS] = { 0.5*sin(0.9*t), 0.5*sin(1.3*t), sin(1.3*t) + 100.0, sin(1.1*t)};
+  ISI_FLOAT psm1JointValues[ISI_NUM_PSM_JOINTS] = { 0.5*sin(1.0*t), 0.5*sin(1.5*t), 50.0*sin(2.0*t) + 75.0, sin(1.7*t), sin(0.7*t), sin(0.5*t), sin(0.8*t) };
+  ISI_FLOAT psm2JointValues[ISI_NUM_PSM_JOINTS] = { 0.5*sin(1.1*t), 0.5*sin(1.4*t), 50.0*sin(2.1*t) + 75.0, sin(1.6*t), sin(0.6*t), sin(0.9*t), sin(1.8*t) };
+  ISI_FLOAT ecmJointValues[ISI_NUM_ECM_JOINTS] = { 0.5*sin(0.9*t), 0.5*sin(1.3*t), 50.0*sin(1.3*t) + 75.0, sin(1.1*t)};
 
   this->mPsm1->SetJointValues(psm1JointValues);
   this->mPsm2->SetJointValues(psm2JointValues);
@@ -237,13 +237,27 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
 {
   mStatus = UpdateBaseToWorldTransforms();
 
-  mStatus = this->mPsm1->UpdateKinematicsTransforms();
-  if (mStatus != ISI_SUCCESS) return mStatus;
+  mStatus += this->mPsm1->UpdateAllManipulatorTransforms();
+  mStatus += this->mPsm2->UpdateAllManipulatorTransforms();
+  mStatus += this->mEcm->UpdateAllManipulatorTransforms();
 
-  mStatus = this->mPsm2->UpdateKinematicsTransforms();
-  if (mStatus != ISI_SUCCESS) return mStatus;
+  if (mStatus != ISI_SUCCESS)
+    LOG_ERROR("Could not update the manipulator transforms.");
 
-  mStatus = this->mEcm->UpdateKinematicsTransforms();
+  return mStatus;
+}
+
+ISI_STATUS IntuitiveDaVinci::UpdateMinimalKinematicsTransforms()
+{
+  mStatus = UpdateBaseToWorldTransforms();
+
+  mStatus += this->mPsm1->UpdateMinimalManipulatorTransforms();
+  mStatus += this->mPsm2->UpdateMinimalManipulatorTransforms();
+  mStatus += this->mEcm->UpdateMinimalManipulatorTransforms();
+
+  if (mStatus != ISI_SUCCESS)
+    LOG_ERROR("Could not update minimal manipulator transforms.");
+
   return mStatus;
 }
 

@@ -51,7 +51,8 @@ protected:
 
 public:
   ISI_STATUS UpdateJointValues(); // Update just the joints
-  ISI_STATUS UpdateKinematicsTransforms(); // Do forward kinematics
+  ISI_STATUS UpdateAllManipulatorTransforms(); // Do forward kinematics
+  ISI_STATUS UpdateMinimalManipulatorTransforms();
 
   ISI_STATUS SetDhTable(ISI_DH_ROW* srcDhTable);
   void SetJointValues(ISI_FLOAT* jointValues);
