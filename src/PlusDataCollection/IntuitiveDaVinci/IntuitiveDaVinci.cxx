@@ -16,7 +16,8 @@ IntuitiveDaVinci::IntuitiveDaVinci()
   , mStreaming(false)
   , mRateHz(60)
 {
-  mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
+  std::shared_ptr<IntuitiveDaVinciManipulator> mPsm1 = std::make_shared<IntuitiveDaVinciManipulator>(ISI_PSM1);
+  //mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
   mPsm2 = new IntuitiveDaVinciManipulator(ISI_PSM2);
   mEcm  = new IntuitiveDaVinciManipulator(ISI_ECM);
 
@@ -34,8 +35,11 @@ IntuitiveDaVinci::IntuitiveDaVinci()
 //----------------------------------------------------------------------------
 IntuitiveDaVinci::~IntuitiveDaVinci()
 {
-  delete mPsm1, mPsm2, mEcm;
-  mPsm1 = nullptr; mPsm2 = nullptr; mEcm = nullptr;
+  // delete mPsm1, mPsm2, mEcm;
+  // mPsm1 = nullptr; mPsm2 = nullptr; mEcm = nullptr;
+
+  delete mPsm2, mEcm;
+  mPsm2 = nullptr; mEcm = nullptr;
 
   delete mPsm1BaseToWorld, mPsm2BaseToWorld, mEcmBaseToWorld;
   mPsm1BaseToWorld = nullptr; mPsm2BaseToWorld = nullptr; mEcmBaseToWorld = nullptr;
