@@ -7,7 +7,6 @@ See License.txt for details.
 // Local includes
 #include "igsioCommon.h"
 #include "PlusConfigure.h"
-#include "vtkPlusDataSource.h"
 #include "vtkPlusIntuitiveDaVinciTracker.h"
 
 // VTK includes
@@ -32,16 +31,6 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusIntuitiveDaVinciTracker);
-
-//----------------------------------------------------------------------------
-// Macro to publish an isiTransform to a given tool. 
-#define PUBLISH_ISI_TRANSFORM(tool, isiTransform) \
-  if(tool!=NULL) \
-  { \
-    ConvertIsiTransformToVtkMatrix(isiTransform, *tmpVtkMatrix); \
-    unsigned long frameNumber = tool->GetFrameNumber() + 1; \
-    ToolTimeStampedUpdate(tool->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp); \
-  } \
   
 //----------------------------------------------------------------------------
 vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
@@ -95,7 +84,7 @@ vtkPlusIntuitiveDaVinciTracker::~vtkPlusIntuitiveDaVinciTracker()
 
   if (this->DaVinci != nullptr)
   {
-    this->DaVinci->stop();
+    this->DaVinci->Stop();
     delete this->DaVinci;
     this->DaVinci = nullptr;
   }
@@ -114,8 +103,8 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::Probe()
 {
   LOG_DEBUG("Probing vtkPlusIntuitiveDaVinciTracker.");
 
-  this->DaVinci->stop();
-  this->DaVinci->disconnect();
+  this->DaVinci->Stop();
+  this->DaVinci->Disconnect();
 
   return PLUS_SUCCESS;
 }
@@ -125,17 +114,20 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalStartRecording()
 {
   if (!this->Connected)
   {
-    LOG_ERROR("InternalStartRecording failed: da Vinci has not been initialized");
+    LOG_ERROR("InternalStartRecording failed: da Vinci has not been initialized.");
     return PLUS_FAIL;
   }
 
-  if (!this->DaVinci->isConnected())
+  if (!this->DaVinci->IsConnected())
   {
-    LOG_ERROR("InternalStartRecording failed: da Vinci is not connected");
+    LOG_ERROR("InternalStartRecording failed: da Vinci is not connected.");
     return PLUS_FAIL;
   }
+  
+  ISI_STATUS status;
+  status = this->DaVinci->Start();
 
-  if (!this->DaVinci->start())
+  if (status != ISI_SUCCESS)
   {
     LOG_ERROR("InternalStartRecording: Unable to start streaming.");
     return PLUS_FAIL;
@@ -148,8 +140,8 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalStartRecording()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalStopRecording()
 {
-  // Stop the stream and disconnect from the da Vinci.
-  this->DaVinci->stop();
+  // Stop the stream from the da Vinci.
+  this->DaVinci->Stop();
 
   LOG_DEBUG("InternalStartRecording stopped.");
   return PLUS_SUCCESS;
@@ -225,11 +217,18 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DebugSineWaveMode, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UpdateMinimalKinematics, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_WARNING(Psm1DhTable, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
-  XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
 
-  PlusStatus status = SetDhTablesFromStrings();
+  //XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
+  //XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
+  std::string psm1DhTable;
+  std::string psm2DhTable;
+  std::string ecmDhTable;
+
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Psm1DhTable, psm1DhTable, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(Psm2DhTable, psm2DhTable, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_REQUIRED(EcmDhTable, ecmDhTable, deviceConfig);
+
+  PlusStatus status = SetDhTablesFromStrings(psm1DhTable, psm2DhTable, ecmDhTable);
 
   if (status != PLUS_SUCCESS)
   {
@@ -247,7 +246,7 @@ static bool BothAreSpaces(char lhs, char rhs)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const
+void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str)
 {
 	std::vector<std::string> strTokens;
 
@@ -285,20 +284,20 @@ static void ConvertTokenVectorToDhTable(std::vector<std::string>& srcTokenVector
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTracker::SetDhTablesFromStrings()
+PlusStatus vtkPlusIntuitiveDaVinciTracker::SetDhTablesFromStrings(std::string psm1DhTable, std::string psm2DhTable, std::string ecmDhTable)
 {
   std::vector<std::string> psm1TokenVector, psm2TokenVector, ecmTokenVector;
-
+ 
   const int numDhRows = 7; const int numDhCols = 7;
   int numElem = numDhRows*numDhCols;
 
-  ProcessDhString(Psm1DhTable);
-  ProcessDhString(Psm2DhTable);
-  ProcessDhString(EcmDhTable);
+  ProcessDhString(psm1DhTable);
+  ProcessDhString(psm2DhTable);
+  ProcessDhString(ecmDhTable);
 
-  psm1TokenVector = igsioCommon::SplitStringIntoTokens(Psm1DhTable, ' ');
-  psm2TokenVector = igsioCommon::SplitStringIntoTokens(Psm2DhTable, ' ');
-  ecmTokenVector = igsioCommon::SplitStringIntoTokens(EcmDhTable, ' ');
+  psm1TokenVector = igsioCommon::SplitStringIntoTokens(psm1DhTable, ' ');
+  psm2TokenVector = igsioCommon::SplitStringIntoTokens(psm2DhTable, ' ');
+  ecmTokenVector = igsioCommon::SplitStringIntoTokens(ecmDhTable, ' ');
 
   if((psm1TokenVector.size() != numElem) || 
 	   (psm2TokenVector.size() != numElem) ||
@@ -338,75 +337,57 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement*
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
 {
-  // Before trying to get to the da Vinci, let's see what was read in our XML config file.
-  // That is, what manipulators did we say we were interested in?
   LOG_DEBUG("vtkPlusIntuitiveDaVinciTracker::InternalConnect");
 
   if (this->Connected)
   {
-    LOG_DEBUG("Already connected to da Vinci");
+    LOG_WARNING("Cannot run DaVinci->Connect because already connected to da Vinci.");
     return PLUS_SUCCESS;
   }
 
-  if (this->DaVinci->connect() != ISI_SUCCESS)
+  ISI_STATUS status;
+
+  if (this->DebugSineWaveMode)
+    status = this->DaVinci->ConnectDebugSineWaveMode();
+  else
+    status = this->DaVinci->Connect();
+
+  if (status != ISI_SUCCESS)
   {
-    LOG_DEBUG("Failed to connect to da Vinci.");
+    LOG_ERROR("Failed to connect to da Vinci device.");
     return PLUS_FAIL;
   }
 
-  this->psm1Base = NULL;
   GetToolByPortName("psm1Base", this->psm1Base);
-  this->psm2Base = NULL;
   GetToolByPortName("psm2Base", this->psm2Base);
-  this->ecmBase = NULL;
   GetToolByPortName("ecmBase", this->ecmBase);
 
-  this->psm1Frame1 = NULL;
   GetToolByPortName("psm1Frame1", this->psm1Frame1);
-  this->psm1Frame2 = NULL;
   GetToolByPortName("psm1Frame2", this->psm1Frame2);
-  this->psm1Frame3 = NULL;
   GetToolByPortName("psm1Frame3", this->psm1Frame3);
-  this->psm1Frame4 = NULL;
   GetToolByPortName("psm1Frame4", this->psm1Frame4);
-  this->psm1Frame5 = NULL;
   GetToolByPortName("psm1Frame5", this->psm1Frame5);
-  this->psm1Frame6 = NULL;
   GetToolByPortName("psm1Frame6", this->psm1Frame6);
-  this->psm1Frame7 = NULL;
   GetToolByPortName("psm1Frame7", this->psm1Frame7);
 
-  this->psm2Frame1 = NULL;
   GetToolByPortName("psm2Frame1", this->psm2Frame1);
-  this->psm2Frame2 = NULL;
   GetToolByPortName("psm2Frame2", this->psm2Frame2);
-  this->psm2Frame3 = NULL;
   GetToolByPortName("psm2Frame3", this->psm2Frame3);
-  this->psm2Frame4 = NULL;
   GetToolByPortName("psm2Frame4", this->psm2Frame4);
-  this->psm2Frame5 = NULL;
   GetToolByPortName("psm2Frame5", this->psm2Frame5);
-  this->psm2Frame6 = NULL;
   GetToolByPortName("psm2Frame6", this->psm2Frame6);
-  this->psm2Frame7 = NULL;
   GetToolByPortName("psm2Frame7", this->psm2Frame7);
 
-  this->ecmFrame1 = NULL;
   GetToolByPortName("ecmFrame1", this->ecmFrame1);
-  this->ecmFrame2 = NULL;
   GetToolByPortName("ecmFrame2", this->ecmFrame2);
-  this->ecmFrame3 = NULL;
   GetToolByPortName("ecmFrame3", this->ecmFrame3);
-  this->ecmFrame4 = NULL;
   GetToolByPortName("ecmFrame4", this->ecmFrame4);
-  this->ecmFrame5 = NULL;
   GetToolByPortName("ecmFrame5", this->ecmFrame5);
-  this->ecmFrame6 = NULL;
   GetToolByPortName("ecmFrame6", this->ecmFrame6);
-  this->ecmFrame7 = NULL;
   GetToolByPortName("ecmFrame7", this->ecmFrame7);
 
-  LOG_DEBUG("Connection successful.")
+  LOG_DEBUG("Connection successful.");
+
   return PLUS_SUCCESS;
 }
 
@@ -414,11 +395,19 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
 PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalDisconnect()
 {
   LOG_DEBUG("vtkPlusIntuitiveDaVinciTracker::InternalDisconnect");
-  this->DaVinci->disconnect();
 
-  this->psm1Base = NULL;
-  this->psm2Base = NULL;
-  this->ecmBase = NULL;
+  ISI_STATUS status;
+
+  if (this->DebugSineWaveMode)
+    status = this->DaVinci->Disconnect();
+  else
+    status = this->DaVinci->Disconnect();
+
+  if (status != ISI_SUCCESS)
+  {
+    LOG_ERROR("Could not disconnect from the da Vinci device.");
+    return PLUS_FAIL;
+  }
 
   LOG_DEBUG("Disconnection successful.")
   return PLUS_SUCCESS;

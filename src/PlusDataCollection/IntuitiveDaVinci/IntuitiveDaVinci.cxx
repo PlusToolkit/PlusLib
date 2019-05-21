@@ -16,10 +16,9 @@ IntuitiveDaVinci::IntuitiveDaVinci()
   , mStreaming(false)
   , mRateHz(60)
 {
-  std::shared_ptr<IntuitiveDaVinciManipulator> mPsm1 = std::make_shared<IntuitiveDaVinciManipulator>(ISI_PSM1);
-  //mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
+  mPsm1 = new IntuitiveDaVinciManipulator(ISI_PSM1);
   mPsm2 = new IntuitiveDaVinciManipulator(ISI_PSM2);
-  mEcm  = new IntuitiveDaVinciManipulator(ISI_ECM);
+  mEcm = new IntuitiveDaVinciManipulator(ISI_ECM);
 
   mPsm1BaseToWorld = new ISI_TRANSFORM;
   mPsm2BaseToWorld = new ISI_TRANSFORM;
@@ -35,11 +34,8 @@ IntuitiveDaVinci::IntuitiveDaVinci()
 //----------------------------------------------------------------------------
 IntuitiveDaVinci::~IntuitiveDaVinci()
 {
-  // delete mPsm1, mPsm2, mEcm;
-  // mPsm1 = nullptr; mPsm2 = nullptr; mEcm = nullptr;
-
-  delete mPsm2, mEcm;
-  mPsm2 = nullptr; mEcm = nullptr;
+  delete mPsm1, mPsm2, mEcm;
+  mPsm1 = nullptr; mPsm2 = nullptr; mEcm = nullptr;
 
   delete mPsm1BaseToWorld, mPsm2BaseToWorld, mEcmBaseToWorld;
   mPsm1BaseToWorld = nullptr; mPsm2BaseToWorld = nullptr; mEcmBaseToWorld = nullptr;
@@ -47,68 +43,108 @@ IntuitiveDaVinci::~IntuitiveDaVinci()
   delete mViewToWorld, mPsm1BaseToView, mPsm2BaseToView;
   mViewToWorld = nullptr; mPsm1BaseToView = nullptr; mPsm2BaseToView = nullptr;
 
-  stop();
-  disconnect();
+  this->Stop();
+  this->Disconnect();
 
   LOG_DEBUG("Destroyed da Vinci.");
 }
 
 //----------------------------------------------------------------------------
-bool IntuitiveDaVinci::start()
+ISI_STATUS IntuitiveDaVinci::Start()
 {
-  LOG_DEBUG("Starting da Vinci.");
-  if (isConnected()) 
-    return true;
+  LOG_DEBUG("Starting data stream from da Vinci API.");
 
-  LOG_ERROR("Not connected. Cannot start streaming.");
-  return false;
-}
-
-//----------------------------------------------------------------------------
-void IntuitiveDaVinci::stop()
-{
-  LOG_DEBUG("Stopping da Vinci.");
-  if (isConnected())
-    mConnected = false;
-}
-
-//----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinci::connect()
-{
-  LOG_DEBUG("IntuiviveDaVinci::connect()");
-  mStatus = dv_connect();
-  mStatus = dv_subscribe_all_stream_fields();
-  // mStatus = dv_start_stream(10);
-
-  mStatus = ISI_SUCCESS;
-
-  if(mStatus == ISI_SUCCESS)
+  if (!this->IsConnected())
   {
-    mConnected = true;
-	  LOG_INFO("Connected to da Vinci system.");
-	  return mStatus;
+    LOG_ERROR("Not connected. Cannot start streaming.");
+    return mStatus;
   }
-  LOG_ERROR("Could not connect to da Vinci system.");
+  
+  mStatus = dv_subscribe_all_stream_fields();
+  mStatus = dv_start_stream(mRateHz);
+
+  if (mStatus != ISI_SUCCESS)
+  {
+    LOG_ERROR("Could not start da Vinci data stream.");
+    return mStatus;
+  }
+
+  mStreaming = true;
+  LOG_DEBUG("Data stream started.");
+  return mStatus;
+}
+
+ISI_STATUS IntuitiveDaVinci::StartDebugSineWaveMode()
+{
+  LOG_DEBUG("Started sine wave debug data stream.");
+  mStreaming = true;
   return mStatus;
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinci::disconnect()
+void IntuitiveDaVinci::Stop()
+{
+  LOG_DEBUG("Stopping da Vinci API.");
+
+  if (this->IsConnected())
+  {
+    LOG_DEBUG("Cannot stop stream until disconnected. Disconnecting now.");
+    this->Disconnect();
+  }
+
+  if (!this->IsStreaming())
+  {
+    LOG_DEBUG("Stop called, but da Vinci is already stopped.");
+  }
+
+  dv_stop_stream();
+
+  mStreaming = false;
+  LOG_DEBUG("Streaming from the da Vinci API stopped.");
+}
+
+//----------------------------------------------------------------------------
+ISI_STATUS IntuitiveDaVinci::Connect()
+{
+  LOG_DEBUG("Connecting to da Vinci API.");
+  mStatus = dv_connect();
+
+  if(mStatus != ISI_SUCCESS)
+  {
+    LOG_ERROR("Could not connect to da Vinci system.");
+	  return mStatus;
+  }
+  
+  mConnected = true;
+  LOG_INFO("Connected to da Vinci system.");
+  return mStatus;
+}
+
+ISI_STATUS IntuitiveDaVinci::ConnectDebugSineWaveMode()
+{
+  LOG_DEBUG("Connected to a debug version of the da Vinci API.")
+  mConnected = true;
+  return mStatus;
+}
+
+//----------------------------------------------------------------------------
+void IntuitiveDaVinci::Disconnect()
 {
   // check if system is connected
   if (!this->mConnected)
   {
-    LOG_ERROR("Cannot disconnect because not connected.");
-    return ISI_FAIL;
+    LOG_WARNING("Disconnect not called because not connected.");
+    return mStatus;
   }
 
-  stop();
+  dv_disconnect();
   mConnected = false;
-  return ISI_SUCCESS;
+
+  LOG_DEBUG("Disconnected from the da Vinci API.")
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinci::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
+void IntuitiveDaVinci::CopyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
 {
   if (in == NULL || out == NULL) { return; }
 
@@ -122,7 +158,7 @@ void IntuitiveDaVinci::copyTransform(ISI_TRANSFORM* in, ISI_TRANSFORM* out)
 }
 
 //----------------------------------------------------------------------------
-void IntuitiveDaVinci::printTransform(const ISI_TRANSFORM* T)
+void IntuitiveDaVinci::PrintTransform(const ISI_TRANSFORM* T)
 {
   LOG_INFO("Position: " << T->pos.x << " " << T->pos.y << " "  << T->pos.z);
   LOG_INFO("X Axis Rotation: " << T->rot.row0.x << " " << T->rot.row1.x << " "  << T->rot.row2.x);
@@ -131,31 +167,31 @@ void IntuitiveDaVinci::printTransform(const ISI_TRANSFORM* T)
 }
 
 //----------------------------------------------------------------------------
-bool IntuitiveDaVinci::isConnected()
+bool IntuitiveDaVinci::IsConnected() const
 {
   return mConnected;
 }
 
 //----------------------------------------------------------------------------
-bool IntuitiveDaVinci::isStreaming()
+bool IntuitiveDaVinci::IsStreaming() const
 {
   return mStreaming;
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm1() 
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm1() const
 { 
   return this->mPsm1; 
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm2()
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetPsm2() const
 {
   return this->mPsm2;
 }
 
 //----------------------------------------------------------------------------
-IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetEcm()
+IntuitiveDaVinciManipulator* IntuitiveDaVinci::GetEcm() const
 {
   return this->mEcm;
 }

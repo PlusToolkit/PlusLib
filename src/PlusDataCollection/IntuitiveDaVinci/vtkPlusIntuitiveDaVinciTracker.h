@@ -7,21 +7,18 @@ See License.txt for details.
 #ifndef __vtkPlusIntuitiveDaVinciTracker_h
 #define __vtkPlusIntuitiveDaVinciTracker_h
 
-// Local includes
+// #include <vtkObjectFactory.h>
+
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-// VTK includes
-#include <vtkObjectFactory.h>
-
-// Intuitive includes
 #include "IntuitiveDaVinci.h"
 
-class vtkMatrix4x4;
-class IntuitiveDaVinci;
-class vtkPlusIntuitiveDaVinciTracker;
+// class vtkMatrix4x4;
+// class IntuitiveDaVinci;
+// class vtkPlusIntuitiveDaVinciTracker;
 
-/* This class talks with the da Vinci Surgical System. */
+/* This class talks with the da Vinci Surgical System via the class IntuitiveDaVinci. */
 class vtkPlusDataCollectionExport vtkPlusIntuitiveDaVinciTracker : public vtkPlusDevice
 {
 public:
@@ -46,39 +43,33 @@ protected:
   vtkPlusIntuitiveDaVinciTracker();
   ~vtkPlusIntuitiveDaVinciTracker();
 
-  /*! Connect to the tracker hardware */
+  /*! Connect to the da Vinci API*/
   virtual PlusStatus InternalConnect();
 
-  /*! Disconnect from the tracker hardware */
+  /*! Disconnect from the da Vinci API */
   virtual PlusStatus InternalDisconnect();
 
-  /*!  Start the tracking system. */
+  /*!  Start the streaming of kinematics data and/or events. */
   virtual PlusStatus InternalStartRecording();
 
-  /*! Stop the tracking system and bring it back to its initial state. */
+  /*! Stop the system and bring it back to its initial state. */
   virtual PlusStatus InternalStopRecording();
 
-  /*! Update method */
-  PlusStatus InternalUpdate();
+  /*! Update method for updating joint values, base frames, and kinematics transforms. */
+  virtual PlusStatus InternalUpdate();
 
-  vtkSetMacro(Psm1DhTable, std::string);
-  vtkSetMacro(Psm2DhTable, std::string);
-  vtkSetMacro(EcmDhTable, std::string);
   vtkSetMacro(DebugSineWaveMode, bool);
   vtkSetMacro(UpdateMinimalKinematics, bool);
 
 protected:
-  /*! Pointer to the MicronTrackerInterface class instance */
+  /*! Pointer to the IntuitiveDaVinci class instance */
   IntuitiveDaVinci*   DaVinci;
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long       LastFrameNumber;
   unsigned long       FrameNumber;
 
-  std::string Psm1DhTable;
-  std::string Psm2DhTable;
-  std::string EcmDhTable;
-
+  /*! These are some additional flags that we can load from the xml to put the system into different modes. */
   bool DebugSineWaveMode;
   bool UpdateMinimalKinematics;
 
@@ -86,37 +77,105 @@ private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);
   void operator=(const vtkPlusIntuitiveDaVinciTracker&);
 
-  void ConvertIsiTransformToVtkMatrix(ISI_TRANSFORM* isiMatrix, vtkMatrix4x4& vtkMatrix);
-  PlusStatus SetDhTablesFromStrings();
-  void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str) const;
+  /*! Convert very explicitly between the two represeations of transforms. */
+  static inline void ConvertIsiTransformToVtkMatrix(ISI_TRANSFORM* isiMatrix, vtkMatrix4x4& vtkMatrix);
 
+  /*! From three strings (likely obtained from the xml), set the robot DH tables. */
+  PlusStatus SetDhTablesFromStrings(std::string psm1DhTable, std::string psm2DhTable, std::string ecmDhTable);
+
+  /*! Remove whitespace and preprocess a string from an xml to be written to the da Vinci DH tables. */
+  static void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str);
+
+private:
+  /*************** ROBOT BASE TRANSFORMS ***************/
+
+  /*! Transform from PSM1 Base frame to the da Vinci world frame. */
   vtkPlusDataSource* psm1Base;
+
+  /*! Transform from PSM2 Base frame to the da Vinci world frame. */
   vtkPlusDataSource* psm2Base;
+
+  /*! Transform from ECM Base frame to the da Vinci world frame. */
   vtkPlusDataSource* ecmBase;
 
+  /*************** PSM1 LINK TRANSFORMS ***************/
+
+  /*! Transform from Frame1 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame1;
+
+  /*! Transform from Frame2 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame2;
+
+  /*! Transform from Frame3 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame3;
+
+  /*! Transform from Frame4 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame4;
+
+  /*! Transform from Frame5 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame5;
+
+  /*! Transform from Frame6 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame6;
+
+  /*! Transform from Frame7 of PSM1 to PSM1 Base. */
   vtkPlusDataSource* psm1Frame7;
 
+  /*************** PSM2 LINK TRANSFORMS ***************/
+
+  /*! Transform from Frame1 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame1;
+
+  /*! Transform from Frame2 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame2;
+
+  /*! Transform from Frame3 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame3;
+
+  /*! Transform from Frame4 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame4;
+
+  /*! Transform from Frame5 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame5;
+
+  /*! Transform from Frame6 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame6;
+
+  /*! Transform from Frame7 of PSM2 to PSM2 Base. */
   vtkPlusDataSource* psm2Frame7;
 
+  /*************** ECM LINK TRANSFORMS ***************/
+
+  /*! Transform from Frame1 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame1;
+
+  /*! Transform from Frame2 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame2;
+
+  /*! Transform from Frame3 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame3;
+
+  /*! Transform from Frame4 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame4;
+
+  /*! Transform from Frame5 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame5;
+
+  /*! Transform from Frame6 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame6;
+
+  /*! Transform from Frame7 of ECM to ECM Base. */
   vtkPlusDataSource* ecmFrame7;
 };
+
+//----------------------------------------------------------------------------
+// Macro to publish an isiTransform to a given tool. 
+#define PUBLISH_ISI_TRANSFORM(tool, isiTransform) \
+  if(tool!=NULL) \
+  { \
+    ConvertIsiTransformToVtkMatrix(isiTransform, *tmpVtkMatrix); \
+    unsigned long frameNumber = tool->GetFrameNumber() + 1; \
+    ToolTimeStampedUpdate(tool->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp); \
+  } \
 
 #endif
