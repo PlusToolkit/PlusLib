@@ -7,7 +7,7 @@ See License.txt for details.
 #ifndef __vtkPlusIntuitiveDaVinciTracker_h
 #define __vtkPlusIntuitiveDaVinciTracker_h
 
-// #include <vtkObjectFactory.h>
+#include <vtkObjectFactory.h>
 
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
@@ -15,8 +15,8 @@ See License.txt for details.
 #include "IntuitiveDaVinci.h"
 
 // class vtkMatrix4x4;
-// class IntuitiveDaVinci;
-// class vtkPlusIntuitiveDaVinciTracker;
+//class IntuitiveDaVinci;
+//class vtkPlusIntuitiveDaVinciTracker;
 
 /* This class talks with the da Vinci Surgical System via the class IntuitiveDaVinci. */
 class vtkPlusDataCollectionExport vtkPlusIntuitiveDaVinciTracker : public vtkPlusDevice
@@ -82,9 +82,6 @@ private:
 
   /*! From three strings (likely obtained from the xml), set the robot DH tables. */
   PlusStatus SetDhTablesFromStrings(std::string psm1DhTable, std::string psm2DhTable, std::string ecmDhTable);
-
-  /*! Remove whitespace and preprocess a string from an xml to be written to the da Vinci DH tables. */
-  static void vtkPlusIntuitiveDaVinciTracker::ProcessDhString(std::string& str);
 
 private:
   /*************** ROBOT BASE TRANSFORMS ***************/
@@ -168,7 +165,6 @@ private:
   vtkPlusDataSource* ecmFrame7;
 };
 
-//----------------------------------------------------------------------------
 // Macro to publish an isiTransform to a given tool. 
 #define PUBLISH_ISI_TRANSFORM(tool, isiTransform) \
   if(tool!=NULL) \

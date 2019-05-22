@@ -10,8 +10,6 @@ See License.txt for details.
 // #include "PlusConfigure.h"
 
 #include "isi_api_types.h"
-#include "dv_api.h"
-#include "dv_api_math.h"
 
 class IntuitiveDaVinciManipulator
 {
@@ -23,19 +21,19 @@ public:
   ~IntuitiveDaVinciManipulator();
 
   /*! Get all of the link transforms of the robot. */
-  ISI_TRANSFORM*   GetTransforms() const;
+  ISI_TRANSFORM* GetTransforms() const;
 
   /*! Get the array of joint values for this manipulator. Be careful as this may not always have the same length. */
-  ISI_FLOAT*       GetJointValues() const;
+  ISI_FLOAT* GetJointValues() const;
 
   /*! Get the joint value array as a string for printing. */
-  std::string      GetJointValuesAsString() const;
+  std::string GetJointValuesAsString() const;
 
   /*! Get the dh table as a string for printing. */
-  std::string      GetDhTableAsString() const;
+  std::string GetDhTableAsString() const;
 
   /*! Get the transforms as a string for printing. */
-  std::string      GetTransformsAsString() const;
+  std::string GetTransformsAsString() const;
 
   /*! Update all of the manipulator joint values using the da Vinci API. */
   ISI_STATUS UpdateJointValues();
@@ -57,19 +55,19 @@ public:
 
 protected:
   /*! The type of manipulator. Either ISI_ECM, ISI_PSM1, or ISI_PSM2. */
-  ISI_MANIP_INDEX  mManipIndex; 
+  ISI_MANIP_INDEX mManipIndex; 
 
   /*! How many joints variables the manipulator has. Either ISI_NUM_ECM_JOINTS or ISI_NUM_PSM_JOINTS. */
-  int              mNumJoints;
+  int mNumJoints;
 
   /*! The table of kinematic parameters. Length of 7. Used to compute robot kinematics. */
-  ISI_DH_ROW*      mDhTable;
+  ISI_DH_ROW* mDhTable;
 
   /*! Holds all of the link transforms for the manipulator. */
-  ISI_TRANSFORM*   mTransforms; 
+  ISI_TRANSFORM* mTransforms; 
 
   /*! Holds the current joint values of the manipulator. */
-  ISI_FLOAT*       mJointValues; 
+  ISI_FLOAT* mJointValues; 
 };
 
 #endif

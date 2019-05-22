@@ -5,8 +5,14 @@ See License.txt for details.
 =========================================================Plus=header=end*/
 #include <sstream>
 
+#include "PlusConfigure.h"
+
+#include "dv_api.h"
+#include "dv_api_math.h"
+
 #include "IntuitiveDaVinciManipulator.h"
 
+//----------------------------------------------------------------------------
 IntuitiveDaVinciManipulator::IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIndex)
   : mManipIndex(manipIndex)
 {
@@ -19,8 +25,11 @@ IntuitiveDaVinciManipulator::IntuitiveDaVinciManipulator(ISI_MANIP_INDEX manipIn
   mDhTable = new ISI_DH_ROW[7];
   mTransforms = new ISI_TRANSFORM[7];
   mJointValues = new ISI_FLOAT[mNumJoints];
+
+  LOG_DEBUG("Created da Vinci manipulator.");
 }
 
+//----------------------------------------------------------------------------
 IntuitiveDaVinciManipulator::~IntuitiveDaVinciManipulator()
 {
   delete[] mDhTable;
@@ -28,12 +37,18 @@ IntuitiveDaVinciManipulator::~IntuitiveDaVinciManipulator()
   delete[] mJointValues;
 
   mDhTable = nullptr; mTransforms = nullptr; mJointValues = nullptr;
+
+  LOG_DEBUG("Destroyed da Vinci manipulator.");
 }
 
+//----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinciManipulator::UpdateJointValues()
 {
+  LOG_DEBUG("Updating manipulator joint values.");
+
   ISI_STREAM_FIELD streamData;
   ISI_STATUS status;
+
   status = dv_get_stream_field(mManipIndex, ISI_JOINT_VALUES, &(streamData));
 
   if (status == ISI_SUCCESS)
@@ -43,11 +58,14 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateJointValues()
       mJointValues[iii] = streamData.data[iii];
     }
   }
+  else
+    LOG_ERROR("Could not update the manipulator joint values.");
 
   return status;
 }
 
-std::string IntuitiveDaVinciManipulator::GetJointValuesAsString()
+//----------------------------------------------------------------------------
+std::string IntuitiveDaVinciManipulator::GetJointValuesAsString() const
 {
   std::stringstream str;
   for (int iii = 0; iii < mNumJoints; iii++)
@@ -58,7 +76,8 @@ std::string IntuitiveDaVinciManipulator::GetJointValuesAsString()
   return str.str();
 }
 
-std::string IntuitiveDaVinciManipulator::GetDhTableAsString()
+//----------------------------------------------------------------------------
+std::string IntuitiveDaVinciManipulator::GetDhTableAsString() const
 {
   std::stringstream str;
   for (int iii = 0; iii < 7; iii++)
@@ -76,12 +95,13 @@ std::string IntuitiveDaVinciManipulator::GetDhTableAsString()
   return str.str();
 }
 
-ISI_STATUS IntuitiveDaVinciManipulator::SetDhTable(ISI_DH_ROW* srcDhTable)
+//----------------------------------------------------------------------------
+void IntuitiveDaVinciManipulator::SetDhTable(ISI_DH_ROW* srcDhTable)
 {
   CopyDhTable(srcDhTable, mDhTable);
-  return ISI_SUCCESS;
 }
 
+//----------------------------------------------------------------------------
 void IntuitiveDaVinciManipulator::SetJointValues(ISI_FLOAT* jointValues)
 {
   for (int iii = 0; iii < mNumJoints; iii++)
@@ -90,6 +110,7 @@ void IntuitiveDaVinciManipulator::SetJointValues(ISI_FLOAT* jointValues)
   }
 }
 
+//----------------------------------------------------------------------------
 void IntuitiveDaVinciManipulator::CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW* destDhTable)
 {
   for (int iii = 0; iii < 7; iii++)
@@ -104,9 +125,9 @@ void IntuitiveDaVinciManipulator::CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW
   }
 }
 
+//----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinciManipulator::UpdateAllManipulatorTransforms()
 {
-  // ISI_FLOAT garbageFloat[8*6]; // We don't really care about Jacobians
   ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
 
   ISI_STATUS status = ISI_SUCCESS;
@@ -120,15 +141,14 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateAllManipulatorTransforms()
   if (status != ISI_SUCCESS)
   {
     LOG_ERROR("Could not run DH forward kinematics.");
-    return ISI_FAIL;
   }
 
-  return ISI_SUCCESS;
+  return status;
 }
 
+//----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinciManipulator::UpdateMinimalManipulatorTransforms()
 {
-  // ISI_FLOAT garbageFloat[8*6]; // We don't really care about Jacobians
   ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
 
   ISI_STATUS status = ISI_SUCCESS;
@@ -137,12 +157,13 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateMinimalManipulatorTransforms()
   int minimalLinkIndices[4] = { 7, 4, 5, 6 };
 
   if (mManipIndex == ISI_ECM)
-    numMinimalTransforms = 1;
+    numMinimalTransforms = 1; // Just the tip transform for the ECM
   else
-    numMinimalTransforms = 4;
+    numMinimalTransforms = 4; // Tip transform and the required link transforms for rendering model motion
 
   int transformIndexToUpdate;
 
+  // This will only update the first transform if its an ECM, therefore only 7 will be updated.
   for (int iii = 0; iii < numMinimalTransforms; iii++)
   {
     transformIndexToUpdate = minimalLinkIndices[iii];
@@ -154,12 +175,12 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateMinimalManipulatorTransforms()
   if (status != ISI_SUCCESS)
   {
     LOG_ERROR("Could not run DH forward kinematics.");
-    return ISI_FAIL;
   }
 
-  return ISI_SUCCESS;
+  return status;
 }
 
+//----------------------------------------------------------------------------
 static std::string GetTransformAsString(const ISI_TRANSFORM& t)
 {
   std::stringstream str;
@@ -174,7 +195,8 @@ static std::string GetTransformAsString(const ISI_TRANSFORM& t)
   return str.str();
 }
 
-std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
+//----------------------------------------------------------------------------
+std::string IntuitiveDaVinciManipulator::GetTransformsAsString() const
 {
   std::stringstream str;
 
@@ -187,12 +209,14 @@ std::string IntuitiveDaVinciManipulator::GetKinematicsTransformsAsString()
   return str.str();
 }
 
-ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetTransforms()
+//----------------------------------------------------------------------------
+ISI_TRANSFORM* IntuitiveDaVinciManipulator::GetTransforms() const
 {
   return mTransforms;
 }
 
-ISI_FLOAT* IntuitiveDaVinciManipulator::GetJointValues()
+//----------------------------------------------------------------------------
+ISI_FLOAT* IntuitiveDaVinciManipulator::GetJointValues() const
 {
   return mJointValues;
 }

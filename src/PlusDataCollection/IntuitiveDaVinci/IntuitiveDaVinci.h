@@ -12,7 +12,6 @@ See License.txt for details.
 
 // Intuitive includes
 #include "isi_api_types.h"
-#include "dv_api.h"
 
 class IntuitiveDaVinci
 {
@@ -24,8 +23,8 @@ public:
   ~IntuitiveDaVinci();
 
   /*! Start streaming from the da Vinci API system */
-  bool Start();
-  bool StartDebugSineWaveMode();
+  ISI_STATUS Start();
+  ISI_STATUS StartDebugSineWaveMode();
 
   /*! Stop streaming */
   void Stop();
@@ -35,10 +34,7 @@ public:
   ISI_STATUS ConnectDebugSineWaveMode();
 
   /*! Make a request to disconnect from the da Vinci */
-  ISI_STATUS Disconnect();
-
-  /*! Print out the 6DOF from the given transform. */
-  static void PrintTransform(const ISI_TRANSFORM* T);
+  void Disconnect();
 
   /*! Accessor for connected state. */
   bool IsConnected() const;
@@ -60,7 +56,7 @@ public:
   ISI_STATUS UpdateAllJointValues();
 
   /*! Update joint values using sine functions for debugging purposes. */
-  void UpdateAllJointValuesSineWave();
+  ISI_STATUS UpdateAllJointValuesSineWave();
 
   /*! Print all of the joint values for all of the manipulators. */
   void PrintAllJointValues() const;
@@ -69,7 +65,7 @@ public:
   void PrintAllKinematicsTransforms() const;
 
   /*! Update all of the base frames of the manipulators using the da Vinci API. */
-  ISI_STATUS UpdateBaseToWorldTransforms();
+  void UpdateBaseToWorldTransforms();
 
   /*! Update every transform for each DH row in the kinematic chain. */
   ISI_STATUS UpdateAllKinematicsTransforms();
@@ -82,10 +78,10 @@ public:
 
 protected:
   /*! Variables for storing the state of the da Vinci API. */
-  ISI_STATUS        mStatus; // An integer, error if != 0
-  bool              mConnected;
-  bool              mStreaming;
-  unsigned int      mRateHz; // Rate of data streaming from the da Vinci system
+  ISI_STATUS mStatus; // An integer, error if != 0
+  bool mConnected;
+  bool mStreaming;
+  unsigned int mRateHz; // Rate of data streaming from the da Vinci system
 
   /*! The intuitive da Vinci will have three manipulators: two PSMs and one ECM. */
   IntuitiveDaVinciManipulator* mPsm1;
@@ -93,14 +89,14 @@ protected:
   IntuitiveDaVinciManipulator* mEcm;
 
   /*! We also want to track all of the manipulator base frames. */
-  ISI_TRANSFORM*    mPsm1BaseToWorld;
-  ISI_TRANSFORM*    mPsm2BaseToWorld;
-  ISI_TRANSFORM*    mEcmBaseToWorld;
+  ISI_TRANSFORM* mPsm1BaseToWorld;
+  ISI_TRANSFORM* mPsm2BaseToWorld;
+  ISI_TRANSFORM* mEcmBaseToWorld;
 
   /*! These are some intermediate variables needed for computation of the base frames poses. */
-  ISI_TRANSFORM*    mViewToWorld;
-  ISI_TRANSFORM*    mPsm1BaseToView;
-  ISI_TRANSFORM*    mPsm2BaseToView;
+  ISI_TRANSFORM* mViewToWorld;
+  ISI_TRANSFORM* mPsm1BaseToView;
+  ISI_TRANSFORM* mPsm2BaseToView;
 };
 
 #endif
