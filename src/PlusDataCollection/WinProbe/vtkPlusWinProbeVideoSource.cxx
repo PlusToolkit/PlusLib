@@ -306,6 +306,12 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing();
     }
+    else if(usMode & BFRFALineImage_RFData && frameSize[0] != m_SamplesPerLine * ::GetSSDecimation())
+    {
+      LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
+      AdjustBufferSizes();
+      AdjustSpacing();
+    }
     else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
