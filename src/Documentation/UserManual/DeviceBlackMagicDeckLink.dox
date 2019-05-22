@@ -1,0 +1,33 @@
+/*!
+\page BMDeckLink BlackMagic DeckLink
+
+\section BMDeckLinkSupportedHwDevices Supported hardware devices
+
+
+\section BMDeckLinkSupportedPlatforms Supported platforms
+
+- \ref PackageWin32
+- \ref PackageWin64
+- \ref PackageMacOSX
+- \ref PackageLinux
+
+\section BMDeckLinkSDKVersions BlackMagic DeckLink SDK Versions
+Please build PLUS BlackMagic support against the following DeckLink SDK versions. Other versions may work, but are not regularly tested by the PLUS developer team.
+
+- DeckLink v 11.1
+
+
+\section BMDeckLinkBuild Building the BlackMagic DeckLink PLUS support
+
+
+
+\section BMDeckLinkConfigSettings Device configuration settings
+- \xmlAtt \ref DeviceType "Type" = \c "BlackMagic" \RequiredAtt
+- \xmlAtt \ref ToolReferenceFrame \OptionalAtt{Tracker}
+- \xmlElem \ref DataSources \RequiredAtt
+  - \xmlElem \ref DataSource \RequiredAtt
+  
+\section BMDeckLinkExampleConfigFile Config File
+\include "ConfigFiles/PlusDeviceSet_Server_BlackMagicDeckLink.xml"
+
+*/

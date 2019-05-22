@@ -139,6 +139,10 @@ See License.txt for details.
   #include "vtkPlusSpinnakerVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_BLACKMAGIC_DECKLINK
+  #include "BlackMagic/vtkPlusDeckLinkVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_THORLABS_VIDEO
   #include "ThorLabs\vtkPlusThorLabsVideoSource.h"
 #endif
@@ -316,6 +320,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #endif
 #ifdef PLUS_USE_SPINNAKER_VIDEO
   RegisterDevice("SpinnakerVideo", "vtkPlusSpinnakerVideoSource", (PointerToDevice)&vtkPlusSpinnakerVideoSource::New);
+#endif
+#ifdef PLUS_USE_BLACKMAGIC_DECKLINK
+  RegisterDevice("DeckLinkVideo", "vtkPlusDeckLinkVideoSource", (PointerToDevice)&vtkPlusDeckLinkVideoSource::New);
 #endif
 #ifdef PLUS_USE_THORLABS_VIDEO
   RegisterDevice("ThorLabsVideo", "vtkPlusThorLabsVideoSource", (PointerToDevice)&vtkPlusThorLabsVideoSource::New);
