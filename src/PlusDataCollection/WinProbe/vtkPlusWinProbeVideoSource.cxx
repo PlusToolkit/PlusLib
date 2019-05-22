@@ -306,7 +306,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       AdjustBufferSizes();
       AdjustSpacing();
     }
-    else if(usMode & BFRFALineImage_RFData && frameSize[0] != m_SamplesPerLine * ::GetSSDecimation())
+    else if(usMode & BFRFALineImage_RFData && frameSize[0] != m_SamplesPerLine * m_SSDecimation)
     {
       LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
       AdjustBufferSizes();
@@ -691,6 +691,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
   this->SetScanDepthMm(m_ScanDepth);
+  // Update decimation variable on start, based on scan depth
+  m_SSDecimation = ::GetSSDecimation();
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
 
   //setup size for DirectX image
@@ -868,6 +870,8 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_ScanDepth = ::GetSSDepth();
+    // Update decimation with scan depth
+    m_SSDecimation = ::GetSSDecimation();
     if(Recording)
     {
       WPExecute();
