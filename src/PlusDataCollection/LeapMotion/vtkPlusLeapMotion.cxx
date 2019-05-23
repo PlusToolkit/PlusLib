@@ -10,6 +10,7 @@ See License.txt for details.
 #include "PlusMath.h"
 
 // VTK includes
+#include <vtkImageImport.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPlusDataSource.h>
@@ -58,6 +59,7 @@ vtkPlusLeapMotion::vtkPlusLeapMotion()
   , ImageInitialized(false)
   , LeftCameraSource(nullptr)
   , RightCameraSource(nullptr)
+  , InvertImage(false)
 {
   this->RequirePortNameInDeviceSetConfiguration = false;
   this->StartThreadForInternalUpdates = true; // polling based device
@@ -82,6 +84,7 @@ void vtkPlusLeapMotion::PrintSelf(ostream& os, vtkIndent indent)
   os << "Poll timeout (ms)" << this->PollTimeoutMs << std::endl;
   os << "Leap HMD policy" << (this->LeapHMDPolicy ? "TRUE" : "FALSE") << std::endl;
   os << "Override pause/resume policy" << (this->RefusePauseResumePolicy ? "TRUE" : "FALSE") << std::endl;
+  os << "Invert image:" << (this->InvertImage ? "TRUE" : "FALSE") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -91,6 +94,7 @@ PlusStatus vtkPlusLeapMotion::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(LeapHMDPolicy, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RefusePauseResumePolicy, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InvertImage, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -102,6 +106,7 @@ PlusStatus vtkPlusLeapMotion::WriteConfiguration(vtkXMLDataElement* rootConfigEl
 
   XML_WRITE_BOOL_ATTRIBUTE(LeapHMDPolicy, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(RefusePauseResumePolicy, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(InvertImage, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -702,6 +707,43 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
       this->RightCameraSource->SetNumberOfScalarComponents(imageEvent->image[1].properties.bpp);
 
       this->ImageInitialized = true;
+    }
+
+    if (this->InvertImage)
+    {
+      // Invert left image
+      uint32_t byteCount = ((imageEvent->image[0].properties.format == eLeapImageFormat_RGBIr_Bayer)) ? 3 : 1 * leftFrameSize[0] * leftFrameSize[1] * leftFrameSize[2];
+      for (uint32_t i = 0; i < byteCount;)
+      {
+        ((unsigned char*)(imageEvent->image[0].data))[i] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i];
+        if (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)
+        {
+          ((unsigned char*)(imageEvent->image[0].data))[i + 1] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i + 1];
+          ((unsigned char*)(imageEvent->image[0].data))[i + 2] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i + 2];
+          i = i + 3;
+        }
+        else
+        {
+          i++;
+        }
+      }
+
+      // Invert right image
+      byteCount = ((imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)) ? 3 : 1 * rightFrameSize[0] * rightFrameSize[1] * rightFrameSize[2];
+      for (uint32_t i = 0; i < rightFrameSize[0];)
+      {
+        ((unsigned char*)(imageEvent->image[1].data))[i] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i];
+        if (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)
+        {
+          ((unsigned char*)(imageEvent->image[1].data))[i + 1] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i + 1];
+          ((unsigned char*)(imageEvent->image[1].data))[i + 2] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i + 2];
+          i = i + 3;
+        }
+        else
+        {
+          i++;
+        }
+      }
     }
 
     this->LeftCameraSource->AddItem(imageEvent->image[0].data,
