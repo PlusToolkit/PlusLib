@@ -235,9 +235,13 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 
   // Update all of the psm1Frames
   ISI_TRANSFORM* psm1Transforms = this->DaVinci->GetPsm1()->GetTransforms();
-  PUBLISH_ISI_TRANSFORM(psm1Frame1, psm1Transforms + 0);
-  PUBLISH_ISI_TRANSFORM(psm1Frame2, psm1Transforms + 1);
-  PUBLISH_ISI_TRANSFORM(psm1Frame3, psm1Transforms + 2);
+
+  if (!this->UpdateMinimalKinematics)
+  {
+    PUBLISH_ISI_TRANSFORM(psm1Frame1, psm1Transforms + 0);
+    PUBLISH_ISI_TRANSFORM(psm1Frame2, psm1Transforms + 1);
+    PUBLISH_ISI_TRANSFORM(psm1Frame3, psm1Transforms + 2);
+  }
   PUBLISH_ISI_TRANSFORM(psm1Frame4, psm1Transforms + 3);
   PUBLISH_ISI_TRANSFORM(psm1Frame5, psm1Transforms + 4);
   PUBLISH_ISI_TRANSFORM(psm1Frame6, psm1Transforms + 5);
@@ -245,9 +249,13 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 
   // Update all of the psm2Frames
   ISI_TRANSFORM* psm2Transforms = this->DaVinci->GetPsm2()->GetTransforms();
-  PUBLISH_ISI_TRANSFORM(psm2Frame1, psm2Transforms + 0);
-  PUBLISH_ISI_TRANSFORM(psm2Frame2, psm2Transforms + 1);
-  PUBLISH_ISI_TRANSFORM(psm2Frame3, psm2Transforms + 2);
+
+  if (!this->UpdateMinimalKinematics)
+  {
+    PUBLISH_ISI_TRANSFORM(psm2Frame1, psm2Transforms + 0);
+    PUBLISH_ISI_TRANSFORM(psm2Frame2, psm2Transforms + 1);
+    PUBLISH_ISI_TRANSFORM(psm2Frame3, psm2Transforms + 2);
+  }
   PUBLISH_ISI_TRANSFORM(psm2Frame4, psm2Transforms + 3);
   PUBLISH_ISI_TRANSFORM(psm2Frame5, psm2Transforms + 4);
   PUBLISH_ISI_TRANSFORM(psm2Frame6, psm2Transforms + 5);
@@ -255,12 +263,16 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
 
   // Update all of the ecmFrames
   ISI_TRANSFORM* ecmTransforms = this->DaVinci->GetEcm()->GetTransforms();
-  PUBLISH_ISI_TRANSFORM(ecmFrame1, ecmTransforms + 0);
-  PUBLISH_ISI_TRANSFORM(ecmFrame2, ecmTransforms + 1);
-  PUBLISH_ISI_TRANSFORM(ecmFrame3, ecmTransforms + 2);
-  PUBLISH_ISI_TRANSFORM(ecmFrame4, ecmTransforms + 3);
-  PUBLISH_ISI_TRANSFORM(ecmFrame5, ecmTransforms + 4);
-  PUBLISH_ISI_TRANSFORM(ecmFrame6, ecmTransforms + 5);
+
+  if (!this->UpdateMinimalKinematics)
+  {
+    PUBLISH_ISI_TRANSFORM(ecmFrame1, ecmTransforms + 0);
+    PUBLISH_ISI_TRANSFORM(ecmFrame2, ecmTransforms + 1);
+    PUBLISH_ISI_TRANSFORM(ecmFrame3, ecmTransforms + 2);
+    PUBLISH_ISI_TRANSFORM(ecmFrame4, ecmTransforms + 3);
+    PUBLISH_ISI_TRANSFORM(ecmFrame5, ecmTransforms + 4);
+    PUBLISH_ISI_TRANSFORM(ecmFrame6, ecmTransforms + 5);
+  }
   PUBLISH_ISI_TRANSFORM(ecmFrame7, ecmTransforms + 6);
 
   return PLUS_SUCCESS;
