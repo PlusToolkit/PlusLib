@@ -12,9 +12,7 @@ See License.txt for details.
 #include "vtkPlusDevice.h"
 #include <string>
 
-//class vtkIGSIOTrackedFrameList;
 class vtkPlusVolumeReconstructor;
-//class vtkIGSIOTransformRepository;
 
 /*!
 \class vtkPlusVirtualVolumeReconstructor
