@@ -1073,6 +1073,7 @@ void vtkPlusWinProbeVideoSource::SetBRFEnabled(bool value)
 {
   if(Connected)
   {
+    SetMIsEnabled(false);
     if(value)
     {
       SetHandleBRFInternally(false);
@@ -1119,6 +1120,10 @@ void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
 {
   if(Connected)
   {
+    if(m_Mode == Mode::BRF)
+    {
+      SetBRFEnabled(false);
+    }
     SetMIsEnabled(value);
     if(value)
     {
