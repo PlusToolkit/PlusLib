@@ -3,28 +3,19 @@ PROJECT(PlusVolumeReconstruction)
 # --------------------------------------------------------------------------
 # Sources
 SET(${PROJECT_NAME}_SRCS
-  vtkPlusPasteSliceIntoVolume.cxx
   vtkPlusVolumeReconstructor.cxx
-  vtkPlusFillHolesInVolume.cxx
-  vtkPlusFanAngleDetectorAlgo.cxx
   )
 
 IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
   SET(${PROJECT_NAME}_HDRS
-    fixed.h
-    vtkPlusPasteSliceIntoVolume.h
-    vtkPlusPasteSliceIntoVolumeHelperCommon.h
-    vtkPlusPasteSliceIntoVolumeHelperOptimized.h
-    vtkPlusPasteSliceIntoVolumeHelperUnoptimized.h
     vtkPlusVolumeReconstructor.h
-    vtkPlusFillHolesInVolume.h
-    vtkPlusFanAngleDetectorAlgo.h
     )
 ENDIF()
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS 
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
+  ${VTKVOLUMERECONSTRUCTION_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE )
 
 # --------------------------------------------------------------------------
@@ -35,6 +26,7 @@ SET(${PROJECT_NAME}_LIBS
   vtkRenderingFreeType
   vtkRendering${VTK_RENDERING_BACKEND}
   vtkRenderingVolume${VTK_RENDERING_BACKEND}
+  vtkVolumeReconstruction
   )
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
