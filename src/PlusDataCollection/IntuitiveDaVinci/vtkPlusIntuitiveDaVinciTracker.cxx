@@ -4,31 +4,15 @@ Copyright (c) Laboratory for Percutaneous Surgery. All rights reserved.
 See License.txt for details.
 =========================================================Plus=header=end*/
 
-// Local includes
 #include "igsioCommon.h"
 #include "PlusConfigure.h"
 #include "vtkPlusDataSource.h"
 #include "vtkPlusIntuitiveDaVinciTracker.h"
 
-
-// VTK includes
 #include <vtkImageData.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
-
-//// OS includes
-//#include <ctype.h>
-//#include <float.h>
-//#include <iomanip>
-//#include <limits.h>
-//#include <math.h>
-//#include <time.h>
-//
-//// STL
-//#include <fstream>
-//#include <iostream>
-//#include <set>
 
 //----------------------------------------------------------------------------
 
@@ -46,6 +30,10 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   this->AcquisitionRate = 50;
   this->DebugSineWaveMode = false;
   this->UpdateMinimalKinematics = false;
+
+  this->psm1Joints = NULL;
+  this->psm2Joints = NULL;
+  this->ecmJoints = NULL;
 
   this->psm1Base = NULL;
   this->psm2Base = NULL;
@@ -127,6 +115,10 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
     LOG_ERROR("Failed to connect to da Vinci device.");
     return PLUS_FAIL;
   }
+
+  GetToolByPortName("psm1Joints", this->psm1Joints);
+  GetToolByPortName("psm2Joints", this->psm2Joints);
+  GetToolByPortName("ecmJoints", this->ecmJoints);
 
   GetToolByPortName("psm1Base", this->psm1Base);
   GetToolByPortName("psm2Base", this->psm2Base);
@@ -224,9 +216,47 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // We will need these to copy transforms
+  // We will need these to copy values
   vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   ISI_TRANSFORM* tmpIsiMatrix;
+  ISI_FLOAT* tmpJoints;
+
+  // Update all of the manipulator joint values
+  tmpJoints = this->DaVinci->GetPsm1()->GetJointValues();
+  tmpVtkMatrix->Zero();
+  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
+  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
+  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
+  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
+  tmpVtkMatrix->SetElement(1, 0, tmpJoints[4]);
+  tmpVtkMatrix->SetElement(1, 1, tmpJoints[5]);
+  tmpVtkMatrix->SetElement(1, 2, tmpJoints[6]);
+
+  unsigned long frameNumber = psm1Joints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(psm1Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+
+  tmpJoints = this->DaVinci->GetPsm2()->GetJointValues();
+  tmpVtkMatrix->Zero();
+  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
+  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
+  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
+  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
+  tmpVtkMatrix->SetElement(1, 0, tmpJoints[4]);
+  tmpVtkMatrix->SetElement(1, 1, tmpJoints[5]);
+  tmpVtkMatrix->SetElement(1, 2, tmpJoints[6]);
+
+  frameNumber = psm2Joints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(psm2Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+
+  tmpJoints = this->DaVinci->GetEcm()->GetJointValues();
+  tmpVtkMatrix->Zero();
+  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
+  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
+  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
+  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
+
+  frameNumber = ecmJoints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(ecmJoints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
 
   // Update all of the manipulator base frames
   PUBLISH_ISI_TRANSFORM(psm1Base, this->DaVinci->GetPsm1BaseToWorld());

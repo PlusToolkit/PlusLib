@@ -44,8 +44,6 @@ IntuitiveDaVinciManipulator::~IntuitiveDaVinciManipulator()
 //----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinciManipulator::UpdateJointValues()
 {
-  LOG_DEBUG("Updating manipulator joint values.");
-
   ISI_STREAM_FIELD streamData;
   ISI_STATUS status;
 

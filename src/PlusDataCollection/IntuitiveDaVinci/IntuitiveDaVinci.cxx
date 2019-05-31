@@ -87,7 +87,7 @@ ISI_STATUS IntuitiveDaVinci::Connect()
 //----------------------------------------------------------------------------
 ISI_STATUS IntuitiveDaVinci::ConnectDebugSineWaveMode()
 {
-  LOG_DEBUG("Connected to a debug version of the da Vinci API.");
+  LOG_WARNING("Connected to a debug version of the da Vinci API. Broadcasting only default values for da Vinci base frames.");
   mConnected = true;
   return mStatus;
 }
@@ -222,7 +222,6 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllJointValues()
     return mStatus;
   }
 
-  LOG_DEBUG("All manipulator joint values updated.");
   return mStatus;
 }
 
@@ -240,7 +239,6 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllJointValuesSineWave()
   this->mPsm2->SetJointValues(psm2JointValues);
   this->mEcm->SetJointValues(ecmJointValues);
 
-  LOG_DEBUG("All manipulator joint values updated with sine function values.");
   return mStatus;
 }
 
@@ -259,10 +257,7 @@ void IntuitiveDaVinci::PrintAllJointValues() const
 void IntuitiveDaVinci::UpdateBaseToWorldTransforms()
 {
   // Update the ECM base frame first
-  mStatus = dv_get_reference_frame(ISI_ECM, ISI_BASE_FRAME, mEcmBaseToWorld);
-
-  if (mStatus != ISI_SUCCESS)
-    LOG_WARNING("Error getting ECM base frame from the ISI API.");
+  dv_get_reference_frame(ISI_ECM, ISI_BASE_FRAME, mEcmBaseToWorld);
 
   mEcmBaseToWorld->pos.x *= 1000.0;
   mEcmBaseToWorld->pos.y *= 1000.0;
@@ -275,19 +270,13 @@ void IntuitiveDaVinci::UpdateBaseToWorldTransforms()
   dv_mult_transforms(mEcmBaseToWorld, viewToEcmBase, mViewToWorld);
 
   // Get the psm1basetoview transforms
-  mStatus = dv_get_reference_frame(ISI_PSM1, ISI_BASE_FRAME, mPsm1BaseToView);
-
-  if (mStatus != ISI_SUCCESS)
-    LOG_WARNING("Error getting PSM1 base frame from the ISI API.");
+  dv_get_reference_frame(ISI_PSM1, ISI_BASE_FRAME, mPsm1BaseToView);
 
   mPsm1BaseToView->pos.x *= 1000.0; // Convert from m to mm
   mPsm1BaseToView->pos.y *= 1000.0;
   mPsm1BaseToView->pos.z *= 1000.0;
 
-  mStatus = dv_get_reference_frame(ISI_PSM2, ISI_BASE_FRAME, mPsm2BaseToView);
-
-  if (mStatus != ISI_SUCCESS)
-    LOG_WARNING("Error getting PSM2 base frame from the ISI API.");
+  dv_get_reference_frame(ISI_PSM2, ISI_BASE_FRAME, mPsm2BaseToView);
 
   mPsm2BaseToView->pos.x *= 1000.0;
   mPsm2BaseToView->pos.y *= 1000.0;
@@ -327,7 +316,6 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
     return mStatus;
   }
 
-  LOG_DEBUG("Successfully updated da Vinci manipulator transforms.")
   return mStatus;
 }
 
@@ -360,7 +348,6 @@ ISI_STATUS IntuitiveDaVinci::UpdateMinimalKinematicsTransforms()
     return mStatus;
   }
 
-  LOG_DEBUG("Successfully updated minimal da Vinci manipulator transforms.")
   return mStatus;
 }
 

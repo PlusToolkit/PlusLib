@@ -7,8 +7,6 @@ See License.txt for details.
 #ifndef _INTUITIVE_DAVINCI_MANIPULATOR_H_
 #define _INTUITIVE_DAVINCI_MANIPULATOR_H_
 
-// #include "PlusConfigure.h"
-
 #include "isi_api_types.h"
 
 class IntuitiveDaVinciManipulator

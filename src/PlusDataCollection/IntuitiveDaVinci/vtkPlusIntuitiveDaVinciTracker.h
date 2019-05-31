@@ -14,10 +14,6 @@ See License.txt for details.
 
 #include "IntuitiveDaVinci.h"
 
-// class vtkMatrix4x4;
-//class IntuitiveDaVinci;
-//class vtkPlusIntuitiveDaVinciTracker;
-
 /* This class talks with the da Vinci Surgical System via the class IntuitiveDaVinci. */
 class vtkPlusDataCollectionExport vtkPlusIntuitiveDaVinciTracker : public vtkPlusDevice
 {
@@ -84,6 +80,17 @@ private:
   PlusStatus SetDhTablesFromStrings(std::string psm1DhTable, std::string psm2DhTable, std::string ecmDhTable);
 
 private:
+  /*************** ROBOT JOINT VALUES ***************/
+
+  /*! The 7 joint values of PSM1 stored and broadcasted in a transform matrix in row major. */
+  vtkPlusDataSource* psm1Joints;
+
+  /*! The 7 joint values of PSM2 stored and broadcasted in a transform matrix in row major. */
+  vtkPlusDataSource* psm2Joints;
+
+  /*! The 4 joint values of ECM stored and broadcasted in a transform matrix in row major. */
+  vtkPlusDataSource* ecmJoints;
+
   /*************** ROBOT BASE TRANSFORMS ***************/
 
   /*! Transform from PSM1 Base frame to the da Vinci world frame. */

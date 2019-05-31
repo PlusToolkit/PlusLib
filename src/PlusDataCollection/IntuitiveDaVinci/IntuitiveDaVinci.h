@@ -10,7 +10,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "IntuitiveDaVinciManipulator.h"
 
-// Intuitive includes
 #include "isi_api_types.h"
 
 class IntuitiveDaVinci
