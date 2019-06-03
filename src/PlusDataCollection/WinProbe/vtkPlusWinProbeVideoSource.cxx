@@ -287,14 +287,22 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   PWGeometryStruct* pwGeometry = (PWGeometryStruct*)hGeometry;
   this->FrameNumber = header->TotalFrameCounter;
   InputSourceBindings usMode = header->InputSourceBinding;
-  FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
+  FrameSizeType frameSize;
+  if(usMode & BFRFALineImage_RFData)
+  {
+    frameSize = { m_SamplesPerLine * m_SSDecimation, m_LineCount, 1 };
+  }
+  else
+  {
+    frameSize = { m_LineCount, m_SamplesPerLine, 1 };
+  }
 
   if(usMode & CFD)
   {
     frameSize[0] = cfdGeometry->LineCount;
     frameSize[1] = cfdGeometry->SamplesPerKernel;
   }
-  else if(usMode & B || usMode & BFRFALineImage_RFData)
+  else if(usMode & B || usMode & BFRFALineImage_SampleData)
   {
     frameSize[0] = brfGeometry->LineCount;
     frameSize[1] = brfGeometry->SamplesPerLine;
@@ -309,6 +317,20 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
+      AdjustSpacing();
+    }
+  }
+  else if(usMode & BFRFALineImage_RFData)
+  {
+    frameSize[0] = brfGeometry->SamplesPerLine * brfGeometry->Decimation;
+    frameSize[1] = brfGeometry->LineCount;
+    if(frameSize != m_ExtraSources[0]->GetInputFrameSize())
+    {
+      LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
+      m_SamplesPerLine = brfGeometry->SamplesPerLine;
+      m_LineCount = brfGeometry->LineCount;
+      m_SSDecimation = brfGeometry->Decimation;
+      AdjustBufferSizes();
       AdjustSpacing();
     }
   }
@@ -358,6 +380,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 
   if(usMode & B && !m_PrimarySources.empty() // B-mode and primary source is defined
       || usMode & M_PostProcess && !m_ExtraSources.empty() // M-mode and extra source is defined
+      || usMode & BFRFALineImage_SampleData && !m_PrimarySources.empty()  // B-mode and primary source is defined, if in RF/BRF mode
     )
   {
     assert(length == frameSize[0] * frameSize[1] * sizeof(uint16_t) + 16); //frame + header
@@ -442,13 +465,13 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   }
   else if(usMode & BFRFALineImage_RFData)
   {
-    assert(length == frameSize[1] * brfGeometry->Decimation * frameSize[0] * sizeof(int32_t));
-    FrameSizeType frameSizeRF = { frameSize[1]* brfGeometry->Decimation, frameSize[0], 1 }; // x and y axes flipped on purpose
     for(unsigned i = 0; i < m_ExtraSources.size(); i++)
     {
+      assert(length == frameSize[0] * frameSize[1] * sizeof(int32_t));
+
       if(m_ExtraSources[i]->AddItem(data,
                                     US_IMG_ORIENT_FM,
-                                    frameSizeRF, VTK_INT,
+                                    frameSize, VTK_INT,
                                     1, US_IMG_RF_REAL, 0,
                                     this->FrameNumber,
                                     timestamp,
@@ -497,7 +520,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
   {
     if(m_Mode == Mode::RF || m_Mode == Mode::BRF)
     {
-      frameSize[0] = m_SamplesPerLine * ::GetSSDecimation();
+      frameSize[0] = m_SamplesPerLine * m_SSDecimation;
       frameSize[1] = m_LineCount;
       m_ExtraSources[i]->SetPixelType(VTK_INT);
       m_ExtraSources[i]->SetImageType(US_IMG_RF_REAL);
@@ -684,6 +707,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
   this->SetScanDepthMm(m_ScanDepth);
+  // Update decimation variable on start, based on scan depth
+  m_SSDecimation = ::GetSSDecimation();
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
 
   //setup size for DirectX image
@@ -861,6 +886,8 @@ PlusStatus vtkPlusWinProbeVideoSource::SetScanDepthMm(float depth)
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_ScanDepth = ::GetSSDepth();
+    // Update decimation with scan depth
+    m_SSDecimation = ::GetSSDecimation();
     if(Recording)
     {
       WPExecute();
@@ -1042,10 +1069,64 @@ int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
 
 //----------------------------------------------------------------------------
 
+void vtkPlusWinProbeVideoSource::SetBRFEnabled(bool value)
+{
+  if(Connected)
+  {
+    if(m_Mode == Mode::M)
+    {
+      SetMIsEnabled(false);
+    }
+    if(value)
+    {
+      SetHandleBRFInternally(false);
+      SetBFRFImageCaptureMode(2);
+    }
+    else
+    {
+      SetHandleBRFInternally(true);
+      SetBFRFImageCaptureMode(0);
+    }
+  }
+
+  if(value)
+  {
+    m_Mode = Mode::BRF;
+  }
+  else
+  {
+    m_Mode = Mode::B;
+  }
+}
+
+bool vtkPlusWinProbeVideoSource::GetBRFEnabled()
+{
+  bool brfEnabled = (m_Mode == Mode::BRF);
+  if(Connected)
+  {
+    brfEnabled = (GetBFRFImageCaptureMode() == 2);
+    if(brfEnabled)
+    {
+      m_Mode = Mode::BRF;
+    }
+    else
+    {
+      m_Mode = Mode::B;
+    }
+  }
+  return brfEnabled;
+}
+
+//----------------------------------------------------------------------------
+
 void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
 {
   if(Connected)
   {
+    if(m_Mode == Mode::BRF)
+    {
+      SetBRFEnabled(false);
+    }
     SetMIsEnabled(value);
     if(value)
     {
