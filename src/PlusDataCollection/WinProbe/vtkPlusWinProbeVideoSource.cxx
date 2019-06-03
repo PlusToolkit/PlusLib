@@ -704,6 +704,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     ::SetFocalPointDepth(i, m_FocalPointDepth[i]);
     m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
+
+  this->Connected = true; // the setters and getters check this
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
   this->SetScanDepthMm(m_ScanDepth);
