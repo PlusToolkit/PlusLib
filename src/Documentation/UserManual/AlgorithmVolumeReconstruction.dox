@@ -31,7 +31,7 @@ voxel that has not been assigned any intensity value in the distribution step.
   - Perform a low-resolution "scout scan" reconstruction from file (e.g., with 3mm spacing), define the region of interest, and
     then do high-resolution live reconstruction. During live reconstruction the input frames do not have to be kept in memory, which allows
     reconstruction of higher-resolution volumes. This workflow is implemented in PlusRemote with a nice graphical user interface (available as a 3D Slicer module
-    in the SlicerIGT extension)
+    in the SlicerOpenIGTLink extension)
   - Reduce the region of interest size (change \c OutputExtent, \c OutputSpacing, and \c OutputOrigin)
 - I got an error: Path not found from Image to Reference ... / Failed to get transform ... from transform repository
   - You have to specify the transform that is applied to each frame to insert them into the volume. It is typically a transform from the image coordinate system to a reference coordinate system (such as a reference sensor or the tracker). Usually the sequence files contain transforms between the tracker and the probe coordinate frame, which is not directly usable for the reconstruction, because the coordinate frame of the image and the probe is not the same. Therefore the configuration file should contain the image to probe transform (typically computed by free-hand probe calibration).
