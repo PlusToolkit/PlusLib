@@ -216,7 +216,7 @@ protected:
   virtual PlusStatus InternalStopRecording() VTK_OVERRIDE;
 
   /*! Updates internal spacing based on current depth */
-  void AdjustSpacing();
+  void AdjustSpacing(bool value);
 
   /*! Updates buffer size based on current depth */
   void AdjustBufferSizes();
