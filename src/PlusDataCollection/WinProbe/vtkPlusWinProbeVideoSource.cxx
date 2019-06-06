@@ -312,12 +312,12 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                << " to " << frameSize[1] << ". Adjusting spacing and buffer sizes.");
       m_SamplesPerLine = frameSize[1];
       AdjustBufferSizes();
-      AdjustSpacing();
+      AdjustSpacing(false);
     }
     else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
-      AdjustSpacing();
+      AdjustSpacing(false);
     }
   }
   else if(usMode & BFRFALineImage_RFData)
@@ -331,7 +331,12 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
       m_LineCount = brfGeometry->LineCount;
       m_SSDecimation = brfGeometry->Decimation;
       AdjustBufferSizes();
-      AdjustSpacing();
+      AdjustSpacing(true);
+    }
+    else if(this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1)) // we might need approximate equality check
+    {
+      LOG_INFO("Scan Depth changed. Adjusting spacing.");
+      AdjustSpacing(true);
     }
   }
   else if(usMode & M_PostProcess)
@@ -348,7 +353,12 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
                << " to " << frameSize[1] << ". Adjusting buffer size.");
       m_SamplesPerLine = frameSize[1];
       AdjustBufferSizes();
-      AdjustSpacing();
+      AdjustSpacing(false);
+    }
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
+    {
+      LOG_INFO("Scan Depth changed. Adjusting spacing.");
+      AdjustSpacing(false);
     }
   }
   else if(usMode & PWD_PostProcess)
@@ -549,11 +559,20 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusWinProbeVideoSource::AdjustSpacing()
+void vtkPlusWinProbeVideoSource::AdjustSpacing(bool rf_mode)
 {
-  this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
-  this->CurrentPixelSpacingMm[1] = m_ScanDepth / (m_SamplesPerLine - 1);
-  this->CurrentPixelSpacingMm[2] = 1.0;
+  if(rf_mode)
+  {
+    this->CurrentPixelSpacingMm[1] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+    this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1);
+    this->CurrentPixelSpacingMm[2] = 1.0;
+  }
+  else
+  {
+    this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+    this->CurrentPixelSpacingMm[1] = m_ScanDepth / (m_SamplesPerLine - 1);
+    this->CurrentPixelSpacingMm[2] = 1.0;
+  }
 
   std::ostringstream spacingStream;
   unsigned int numSpaceDimensions = 3;
@@ -585,7 +604,7 @@ vtkPlusWinProbeVideoSource::vtkPlusWinProbeVideoSource()
     m_FocalPointDepth[i] = 0.0f;
   }
 
-  AdjustSpacing();
+  AdjustSpacing(false);
 
   Callback funcPtr = &frameCallback;
   thisPtr = this;
