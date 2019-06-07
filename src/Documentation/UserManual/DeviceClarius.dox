@@ -11,7 +11,9 @@
 - \ref PackageWin64
 
 \section ClariusConnection Connection
-- Connecting to the Clarius requires a local Wi-Fi Connection
+- Requires a connection to the same network as the Clarius
+- Directly connecting to the Clarius's network is possible, however it can easily become congested
+- It is recommended to use a local Wi-Fi network instead:
   - <a href="https://support.clarius.com/hc/en-us/articles/360019514951-Connecting-to-the-Scanner-via-a-Local-Wi-Fi-Network">Establishing a local Wi-Fi connection</a>
 
 \section ClariusConfigSettings Device configuration settings
