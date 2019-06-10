@@ -2,7 +2,7 @@
     Program: Plus
     Copyright (c) UBC Biomedical Signal and Image Computing Laboratory. All rights reserved.
     See License.txt for details.
-    =========================================================Plus=header=end*/
+=========================================================Plus=header=end*/
 
 // Local includes
 #include "PlusConfigure.h"
@@ -13,6 +13,7 @@
 #include "vtkPlusClarius.h"
 
 // VTK includes
+#include <vtk_zlib.h>
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
 #include <vtkObjectFactory.h>
@@ -52,7 +53,7 @@
 
 //----------------------------------------------------------------------------
 
-vtkPlusClarius* vtkPlusClarius::instance;
+vtkPlusClarius * vtkPlusClarius::instance;
 
 //----------------------------------------------------------------------------
 vtkPlusClarius* vtkPlusClarius::New()
@@ -78,9 +79,13 @@ vtkPlusClarius::vtkPlusClarius()
   , ImuOutputFileName("ClariusImuData.csv")
   , SystemStartTimestamp(0)
   , ClariusStartTimestamp(0)
+  , ClariusLastTimestamp(0)
   , WriteImagesToDisk(false)
+  , CompressRawData(false)
+  , IsReceivingRawData(false)
+  , RawDataPointer(nullptr)
 {
-  LOG_TRACE("vtkPlusClarius: Constructor")
+  LOG_TRACE("vtkPlusClarius: Constructor");
   this->StartThreadForInternalUpdates = false;
   this->FrameWidth = DEFAULT_FRAME_WIDTH;
   this->FrameHeight = DEFAULT_FRAME_HEIGHT;
@@ -91,6 +96,8 @@ vtkPlusClarius::vtkPlusClarius()
 //----------------------------------------------------------------------------
 vtkPlusClarius::~vtkPlusClarius()
 {
+  this->AllocateRawData(-1);
+
   if (this->Recording)
   {
     this->StopRecording();
@@ -111,7 +118,7 @@ vtkPlusClarius::~vtkPlusClarius()
 }
 
 //----------------------------------------------------------------------------
-vtkPlusClarius * vtkPlusClarius::GetInstance()
+vtkPlusClarius* vtkPlusClarius::GetInstance()
 {
   LOG_TRACE("vtkPlusClarius: GetInstance()");
   if (instance != NULL)
@@ -150,7 +157,7 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
   // if not specified, the default value for FrameWidth is 640 and FrameHeight is 480 according to clarius;
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameWidth, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, FrameHeight, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImuEnabled, deviceConfig)
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(ImuEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(WriteImagesToDisk, deviceConfig);
   if (this->ImuEnabled)
   {
@@ -256,10 +263,10 @@ PlusStatus vtkPlusClarius::InternalConnect()
   if (!device->Connected)
   {
     int argc = 1;
-    char** argv = new char *[1];
+    char** argv = new char* [1];
     argv[0] = new char[4];
     strcpy(argv[0], "abc");
-    const char *path = device->PathToSecKey.c_str();
+    const char* path = device->PathToSecKey.c_str();
     ClariusNewImageFn SaveDataCallBackPtr = static_cast<ClariusNewImageFn>(&vtkPlusClarius::SaveDataCallback);
     ClariusFreezeFn FreezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
     ClariusProgressFn ProgressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
@@ -294,7 +301,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
 
     // Attempt to connect;
     int isConnected = -1;
-    const char *ip = device->IpAddress.c_str();
+    const char* ip = device->IpAddress.c_str();
     try {
       isConnected = clariusConnect(ip, device->TcpPort, BLOCKINGCALL);
     }
@@ -377,7 +384,7 @@ PlusStatus vtkPlusClarius::InternalDisconnect()
 /*! callback for error messages
  * @param[in] err the error message sent from the listener module
  * */
-void vtkPlusClarius::ErrorFn(const char *err)
+void vtkPlusClarius::ErrorFn(const char* err)
 {
   LOG_ERROR("error: " << err);
 }
@@ -403,7 +410,7 @@ void vtkPlusClarius::FreezeFn(int val)
  * @pram[in] progress the readback process*/
 void vtkPlusClarius::ProgressFn(int progress)
 {
-  LOG_INFO("download: " << progress);
+  LOG_DEBUG("Download: " << progress << "%");
 }
 
 //----------------------------------------------------------------------------
@@ -413,7 +420,7 @@ void vtkPlusClarius::ProgressFn(int progress)
  * @param[in] npos the # fo positional data points embedded with the frame
  * @param[in] pos the buffer of positional data
  * */
-void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos)
+void vtkPlusClarius::NewImageFn(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
 {
   LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
     << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
@@ -430,7 +437,7 @@ void vtkPlusClarius::NewImageFn(const void *newImage, const ClariusImageInfo *nf
 }
 
 //----------------------------------------------------------------------------
-void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos)
+void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos)
 {
   LOG_TRACE("vtkPlusClarius::SaveDataCallback");
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
@@ -478,18 +485,18 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   }
   memcpy(_image.data(), newImage, img_sz);
   // the clarius timestamp is in nanoseconds
-  double timestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
+  device->ClariusLastTimestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
   // Get system time (elapsed time since last reboot), return Internal system time in seconds
   double systemTime = vtkIGSIOAccurateTimer::GetSystemTime();
   if (device->FrameNumber == 0)
   {
     device->SystemStartTimestamp = systemTime;
-    device->ClariusStartTimestamp = timestamp;
+    device->ClariusStartTimestamp = device->ClariusLastTimestamp;
   }
 
   // The timestamp that each image is tagged with is
   // (system_start_time + current_clarius_time - clarius_start_time)
-  double converted_timestamp = device->SystemStartTimestamp + (timestamp - device->ClariusStartTimestamp);
+  double converted_timestamp = device->SystemStartTimestamp + (device->ClariusLastTimestamp - device->ClariusStartTimestamp);
   if (npos != 0)
   {
     device->WritePosesToCsv(nfo, npos, pos, device->FrameNumber, systemTime, converted_timestamp);
@@ -498,10 +505,10 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
   {
     // create cvimg to write to disk
     cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-    cvimg.data = cvimg.data = (unsigned char *)_image.data();
-    if (cv::imwrite("Clarius_Image" + std::to_string(timestamp) + ".bmp", cvimg) == false)
+    cvimg.data = cvimg.data = (unsigned char*)_image.data();
+    if (cv::imwrite("Clarius_Image" + std::to_string(device->ClariusLastTimestamp) + ".bmp", cvimg) == false)
     {
-      LOG_ERROR("ERROR writing clarius image" + std::to_string(timestamp) + " to disk");
+      LOG_ERROR("ERROR writing clarius image" + std::to_string(device->ClariusLastTimestamp) + " to disk");
     }
   }
   aSource->AddItem(
@@ -520,7 +527,7 @@ void vtkPlusClarius::SaveDataCallback(const void *newImage, const ClariusImageIn
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
+PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime)
 {
   LOG_TRACE("vtkPlusClarius::WritePosesToCsv");
   if (npos != 0)
@@ -560,4 +567,145 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo *nfo, int npos
   }
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusClarius::RequestLastNSecondsRawData(double lastNSeconds)
+{
+  if (lastNSeconds <= 0)
+  {
+    return this->RequestRawData(0, 0);
+  }
+
+  LOG_INFO("Requesting raw data for last " << lastNSeconds << " seconds");
+  long long endTimestamp = static_cast<double>((long long)1000000000 * this->ClariusLastTimestamp);
+  long long lastNNanoSeconds = static_cast<double>((long long)1000000000 * lastNSeconds);
+  long long startTimestamp = std::max((long long)0, endTimestamp - lastNNanoSeconds);
+  return this->RequestRawData(startTimestamp, endTimestamp);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusClarius::RequestRawData(long long startTimestamp, long long endTimestamp)
+{
+  if (this->IsReceivingRawData)
+  {
+    LOG_ERROR("Receive data already in progress!");
+    return PLUS_FAIL;
+  }
+
+  if (startTimestamp < 0 || endTimestamp < 0)
+  {
+    LOG_ERROR("Start and end timestamps must be > 0 nanoseconds");
+  }
+
+  if (startTimestamp == 0 && endTimestamp == 0)
+  {
+    LOG_INFO("Requesting all available raw data");
+  }
+  else
+  {
+    LOG_INFO("Requesting raw data between " << startTimestamp << "ns and " << endTimestamp << "ns");
+  }
+
+  this->IsReceivingRawData = true;
+
+  ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataRequestFn);
+  clariusRequestRawData(startTimestamp, endTimestamp, returnFunction);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusClarius::RawDataRequestFn(int rawDataSize)
+{
+  vtkPlusClarius* self = vtkPlusClarius::GetInstance();
+
+  if (rawDataSize < 0)
+  {
+    self->IsReceivingRawData = false;
+    LOG_ERROR("Error requesting raw data!");
+    return;
+  }
+
+  if (rawDataSize == 0)
+  {
+    self->IsReceivingRawData = false;
+    LOG_TRACE("No data to read!");
+    return;
+  }
+
+  self->ReceiveRawData(rawDataSize);
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusClarius::ReceiveRawData(int dataSize)
+{
+  LOG_INFO("Receiving " << dataSize << " bytes of raw data");
+
+  ClariusReturnFn returnFunction = (ClariusReturnFn)(&vtkPlusClarius::RawDataWriteFn);
+  this->AllocateRawData(dataSize);
+  clariusReadRawData(&this->RawDataPointer, returnFunction);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusClarius::RawDataWriteFn(int retCode)
+{
+  vtkPlusClarius* self = vtkPlusClarius::GetInstance();
+  self->IsReceivingRawData = false;
+
+  if (retCode < 0)
+  {
+    LOG_ERROR("Could not read raw data!");
+    return;
+  }
+
+  LOG_INFO("Raw data received successfully!");
+
+  std::string filename = self->GetRawDataOutputFilename();
+  if (filename.empty())
+  {
+    filename = vtkIGSIOAccurateTimer::GetDateAndTimeString() + "_ClariusData.tar";
+  }
+
+  if (self->CompressRawData && vtksys::SystemTools::GetFilenameLastExtension(filename) != ".gz")
+  {
+    filename = filename + ".gz";
+  }
+
+  if (!vtksys::SystemTools::FileIsFullPath(filename.c_str()))
+  {
+
+    filename = vtkPlusConfig::GetInstance()->GetOutputDirectory() + "/" + filename;
+  }
+
+  if (self->CompressRawData)
+  {
+    gzFile file = gzopen(filename.c_str(), "wb");
+    gzwrite(file, self->RawDataPointer, self->RawDataSize);
+    gzclose(file);
+  }
+  else
+  {
+    FILE* file = fopen(filename.c_str(), "wb");
+    fwrite((char*)self->RawDataPointer, 1, self->RawDataSize, file);
+    fclose(file);
+  }
+
+  LOG_INFO("Raw data saved as: " << filename);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusClarius::AllocateRawData(int dataSize)
+{
+  if (this->RawDataPointer)
+  {
+    delete[] this->RawDataPointer;
+    this->RawDataPointer = nullptr;
+  }
+
+  if (dataSize > 0)
+  {
+    this->RawDataPointer = new char[dataSize];
+  }
+  this->RawDataSize = dataSize;
 }
