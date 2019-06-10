@@ -1,7 +1,7 @@
 /*=Plus=header=begin======================================================
     Program: Plus
     Copyright (c) UBC Biomedical Signal and Image Computing Laboratory. All rights reserved.
-    =========================================================Plus=header=end*/
+=========================================================Plus=header=end*/
 
 #ifndef _VTKPLUSCLARIUS_H
 #define _VTKPLUSCLARIUS_H
@@ -48,7 +48,7 @@ public:
 
   /*! return the singleton instance with no reference counting */
   static vtkPlusClarius* GetInstance();
-  
+
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /*!
@@ -74,6 +74,17 @@ public:
   */
   virtual PlusStatus NotifyConfigured();
 
+  /*!
+  Request raw ultrasound data in the last N seconds
+  */
+  PlusStatus RequestLastNSecondsRawData(double lastNSeconds);
+
+  /*!
+  Request raw ultrasound data between two timestamps
+  If both timestamps are zero, all available data will be requested
+  */
+  PlusStatus RequestRawData(long long startTimestampNanoSeconds, long long endTimestampNanoSeconds);
+
   /*! The IMU streaming is supported and raw IMU data is written to csv file, however interpreting imu data as tracking data is not supported*/
   bool IsTracker() const { return false; }
 
@@ -82,7 +93,7 @@ public:
 
   vtkSetMacro(FrameWidth, unsigned int);
   vtkGetMacro(FrameWidth, unsigned int);
-  
+
   vtkSetMacro(IpAddress, std::string);
   vtkGetMacro(IpAddress, std::string);
 
@@ -98,13 +109,32 @@ public:
   vtkSetMacro(ImuOutputFileName, std::string);
   vtkGetMacro(ImuOutputFileName, std::string);
 
+  /*!
+  Compress raw data using gzip if enabled
+  */
+  vtkGetMacro(CompressRawData, bool);
+  vtkSetMacro(CompressRawData, bool);
+  vtkBooleanMacro(CompressRawData, bool);
+
+  /*!
+  Output filename of the raw Clarius data
+  If empty, data will be written to the Plus output directory
+  */
+  vtkSetStdStringMacro(RawDataOutputFilename);
+  vtkGetStdStringMacro(RawDataOutputFilename);
+
 protected:
   vtkPlusClarius();
   ~vtkPlusClarius();
-  
+
   virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
-  PlusStatus WritePosesToCsv(const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
+  PlusStatus WritePosesToCsv(const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos, int frameNum, double systemTime, double convertedTime);
+
+  /*!
+  Receive previously requested data
+  */
+  PlusStatus ReceiveRawData(int dataSize);
 
 protected:
   unsigned int TcpPort;
@@ -118,18 +148,41 @@ protected:
   int FrameNumber;
   double SystemStartTimestamp;
   double ClariusStartTimestamp;
+  double ClariusLastTimestamp;
   bool ImuEnabled;
   bool WriteImagesToDisk;
 
   cv::Mat cvImage;
-  
+
+  bool CompressRawData;
+  bool IsReceivingRawData;
+  int RawDataSize;
+  void* RawDataPointer;
+  std::string RawDataOutputFilename;
+
   static vtkPlusClarius* instance;
-  
-  static void ErrorFn(const char *err);
+
+  static void ErrorFn(const char* err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
-  static void NewImageFn(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo* pos);  
-  static void SaveDataCallback(const void *newImage, const ClariusImageInfo *nfo, int npos, const ClariusPosInfo *pos);
+
+  /*!
+  Callback function for raw data request
+  */
+  static void RawDataRequestFn(int rawDataSize);
+
+  /*!
+  Callback function for raw data read
+  */
+  static void RawDataWriteFn(int rawDataSize);
+
+  /*!
+  Re-allocate memory to store raw ultrasound data
+  */
+  void AllocateRawData(int size);
+
+  static void NewImageFn(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos);
+  static void SaveDataCallback(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos);
 };
 
 #endif //_VTKPLUSCLARIUS_H
