@@ -561,21 +561,24 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
 //----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::AdjustSpacing(bool rf_mode)
 {
+  unsigned int numSpaceDimensions = 3;
+  std::vector<double> spacing;
   if(rf_mode)
   {
-    this->CurrentPixelSpacingMm[1] = this->GetTransducerWidthMm() / (m_LineCount - 1);
-    this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1);
-    this->CurrentPixelSpacingMm[2] = 1.0;
+    spacing = GetExtraSourceSpacing();
   }
   else
   {
-    this->CurrentPixelSpacingMm[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
-    this->CurrentPixelSpacingMm[1] = m_ScanDepth / (m_SamplesPerLine - 1);
-    this->CurrentPixelSpacingMm[2] = 1.0;
+    spacing = GetPrimarySourceSpacing();
+  }
+
+  for(unsigned int i = 0; i < numSpaceDimensions; ++i)
+  {
+    this->CurrentPixelSpacingMm[i] = spacing[i];
   }
 
   std::ostringstream spacingStream;
-  unsigned int numSpaceDimensions = 3;
+
   for(unsigned int i = 0; i < numSpaceDimensions; ++i)
   {
     spacingStream << this->CurrentPixelSpacingMm[i];
@@ -1338,6 +1341,38 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
 }
 
 //----------------------------------------------------------------------------
+std::vector<double> vtkPlusWinProbeVideoSource::GetPrimarySourceSpacing()
+{
+  std::vector<double> spacing = { 0.0, 0.0, 1.0};
+  if(!m_PrimarySources.empty())
+  {
+    spacing[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+    spacing[1] = m_ScanDepth / (m_SamplesPerLine - 1);
+  }
+  return spacing;
+}
+
+std::vector<double> vtkPlusWinProbeVideoSource::GetExtraSourceSpacing()
+{
+  std::vector<double> spacing = { 0.0, 0.0, 1.0};
+  if(!m_ExtraSources.empty())
+  {
+    if(GetBRFEnabled())
+    {
+      spacing[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1);
+      spacing[1] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+    }
+    else
+    {
+        for(int i; i < 3; i++)
+        {
+          spacing[i] = GetPrimarySourceSpacing()[i];
+        }
+    }
+  }
+  return spacing;
+}
+
 std::string vtkPlusWinProbeVideoSource::GetTransducerID()
 {
   return this->m_TransducerID;
