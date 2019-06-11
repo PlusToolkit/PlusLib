@@ -196,6 +196,9 @@ public:
   int32_t MWidthFromSeconds(int value);
   int MSecondsFromWidth(int32_t value);
 
+  std::vector<double> GetPrimarySourceSpacing();
+  std::vector<double> GetExtraSourceSpacing();
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
