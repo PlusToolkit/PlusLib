@@ -70,7 +70,7 @@ public:
     /*! Class for decoding and encoding frames */
     vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
     ImageStream()
-      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+      : FrameConverter(nullptr)
     {
     };
   };
@@ -89,7 +89,7 @@ public:
     /*! Class for decoding and encoding frames */
     vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
     VideoStream()
-      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+      : FrameConverter(nullptr)
     {
     };
   };

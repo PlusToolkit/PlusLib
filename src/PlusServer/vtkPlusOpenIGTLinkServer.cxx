@@ -269,6 +269,20 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
       client->ClientInfo = self->DefaultClientInfo;
       client->Server = self;
 
+      // Setup vtkIGSIOFrameConverters for each stream
+      for (std::vector<PlusIgtlClientInfo::ImageStream>::iterator imageStreamIterator = client->ClientInfo.ImageStreams.begin();
+        imageStreamIterator != client->ClientInfo.ImageStreams.end(); ++imageStreamIterator)
+      {
+        PlusIgtlClientInfo::ImageStream* imageStream = &(*imageStreamIterator);
+        imageStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      }
+      for (std::vector<PlusIgtlClientInfo::VideoStream>::iterator videoStreamIterator = client->ClientInfo.VideoStreams.begin();
+           videoStreamIterator != client->ClientInfo.VideoStreams.end(); ++videoStreamIterator)
+      {
+        PlusIgtlClientInfo::VideoStream* videoStream = &(*videoStreamIterator);
+        videoStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      }
+
       int port = 0;
       std::string address = "unknown";
 #if (OPENIGTLINK_VERSION_MAJOR > 1) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR > 9 ) || ( OPENIGTLINK_VERSION_MAJOR == 1 && OPENIGTLINK_VERSION_MINOR == 9 && OPENIGTLINK_VERSION_PATCH > 4 )
