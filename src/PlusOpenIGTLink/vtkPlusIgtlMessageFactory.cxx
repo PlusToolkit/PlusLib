@@ -510,10 +510,10 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
     if (!videoStream.EncodeVideoParameters.Lossless)
     {
       parameters["rateControl"] = videoStream.EncodeVideoParameters.RateControl;
-      parameters["minimumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MinKeyframeDistance;
-      parameters["maximumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MaxKeyframeDistance;
-      parameters["encodingSpeed"] = videoStream.EncodeVideoParameters.Speed;
-      parameters["bitRate"] = videoStream.EncodeVideoParameters.TargetBitrate;
+      parameters["minimumKeyFrameDistance"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.MinKeyframeDistance);
+      parameters["maximumKeyFrameDistance"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.MaxKeyframeDistance);
+      parameters["encodingSpeed"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.Speed);
+      parameters["bitRate"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.TargetBitrate);
       parameters["deadlineMode"] = videoStream.EncodeVideoParameters.DeadlineMode;
     }
 
