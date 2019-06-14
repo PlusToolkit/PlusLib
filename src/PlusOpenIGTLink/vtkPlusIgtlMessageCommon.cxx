@@ -238,7 +238,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   }
 
   double timestamp = trackedFrame.GetTimestamp();
-  vtkSmartPointer<vtkImageData> frameImage = converter->GetUncompressedImage(trackedFrame.GetImageData());
+  vtkSmartPointer<vtkImageData> frameImage = converter->GetImageData(trackedFrame.GetImageData());
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
@@ -505,7 +505,6 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   }
 
   vtkSmartPointer<vtkStreamingVolumeFrame> frame = trackedFrame.GetImageData()->GetEncodedFrame();
-
   std::string codecFourCC = fourCC;
   if (codecFourCC.empty() && frame)
   {
@@ -517,7 +516,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
     return PLUS_FAIL;
   }
 
-  frame = frameConverter->GetCompressedFrame(trackedFrame.GetImageData(), codecFourCC, parameters);
+  frame = frameConverter->GetEncodedFrame(trackedFrame.GetImageData(), codecFourCC, parameters);
   if (!frame)
   {
     LOG_ERROR("Could not encode frame!");

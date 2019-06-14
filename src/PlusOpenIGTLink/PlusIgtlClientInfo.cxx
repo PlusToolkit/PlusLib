@@ -144,6 +144,8 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       ImageStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
+      stream.FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      stream.FrameConverter->EnableCacheOn();
 
       clientInfo.ImageStreams.push_back(stream);
     }
@@ -180,6 +182,8 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       VideoStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
+      stream.FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      stream.FrameConverter->EnableCacheOn();
 
       XML_FIND_NESTED_ELEMENT_OPTIONAL(encodingElem, videoElem, "Encoding");
       if (encodingElem)

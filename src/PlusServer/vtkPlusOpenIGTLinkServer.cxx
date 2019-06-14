@@ -107,6 +107,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
   , MissingInputGracePeriodSec(0.0)
   , BroadcastStartTime(0.0)
+  , NewClientConnected(false)
 {
 
 }
@@ -259,6 +260,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
       igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
       ClientData newClient;
       self->IgtlClients.push_back(newClient);
+      self->NewClientConnected = true;
 
       ClientData* client = &(self->IgtlClients.back());   // get a reference to the client data that is stored in the list
       client->ClientId = self->ClientIdCounter;
@@ -274,13 +276,19 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
         imageStreamIterator != client->ClientInfo.ImageStreams.end(); ++imageStreamIterator)
       {
         PlusIgtlClientInfo::ImageStream* imageStream = &(*imageStreamIterator);
-        imageStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        if (!imageStream->FrameConverter)
+        {
+          imageStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        }
       }
       for (std::vector<PlusIgtlClientInfo::VideoStream>::iterator videoStreamIterator = client->ClientInfo.VideoStreams.begin();
            videoStreamIterator != client->ClientInfo.VideoStreams.end(); ++videoStreamIterator)
       {
         PlusIgtlClientInfo::VideoStream* videoStream = &(*videoStreamIterator);
-        videoStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        if (!videoStream->FrameConverter)
+        {
+          videoStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        }
       }
 
       int port = 0;
@@ -1020,6 +1028,23 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(igsioTrackedFrame& tracked
   {
     // Lock before we send message to the clients
     igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    if (this->NewClientConnected)
+    {
+      for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
+      {
+        std::vector<PlusIgtlClientInfo::VideoStream> videoStreams = (*clientIterator).ClientInfo.VideoStreams;
+        for (std::vector<PlusIgtlClientInfo::VideoStream>::iterator videoStream = videoStreams.begin(); videoStream != videoStreams.end(); ++videoStream)
+        {
+          vtkIGSIOFrameConverter* frameConverter = videoStream->FrameConverter;
+          if (frameConverter)
+          {
+            frameConverter->RequestKeyFrameOn();
+          }
+        }
+      }
+    }
+    this->NewClientConnected = false;
+
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       igtl::ClientSocket::Pointer clientSocket = (*clientIterator).ClientSocket;
