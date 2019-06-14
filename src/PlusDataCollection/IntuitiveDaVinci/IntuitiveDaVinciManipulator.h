@@ -37,10 +37,7 @@ public:
   ISI_STATUS UpdateJointValues();
 
   /*! Update every link transform of the manipulator even if not associated with a model in slicer. Useful for debugging. */
-  ISI_STATUS UpdateAllManipulatorTransforms();
-
-  /*! Only update the transforms needed to render robot motion in slicer plus the tip transform. */
-  ISI_STATUS UpdateMinimalManipulatorTransforms();
+  ISI_STATUS UpdateLinkTransforms();
 
   /*! Set the robot DH table (used by the xml parser). */
   void SetDhTable(ISI_DH_ROW* srcDhTable);

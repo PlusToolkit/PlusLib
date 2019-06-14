@@ -22,6 +22,8 @@ public:
   vtkTypeMacro(vtkPlusIntuitiveDaVinciTracker, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
+  virtual PlusStatus NotifyConfigured();
+
   virtual bool IsTracker() const { return true; }
 
   /*! Probe to see if the tracking system is present. */
@@ -55,7 +57,6 @@ protected:
   virtual PlusStatus InternalUpdate();
 
   vtkSetMacro(DebugSineWaveMode, bool);
-  vtkSetMacro(UpdateMinimalKinematics, bool);
 
 protected:
   /*! Pointer to the IntuitiveDaVinci class instance */
@@ -63,11 +64,9 @@ protected:
 
   /*! Index of the last frame number. This is used for providing a frame number when the tracker doesn't return any transform */
   unsigned long       LastFrameNumber;
-  unsigned long       FrameNumber;
 
   /*! These are some additional flags that we can load from the xml to put the system into different modes. */
   bool DebugSineWaveMode;
-  bool UpdateMinimalKinematics;
 
 private:
   vtkPlusIntuitiveDaVinciTracker(const vtkPlusIntuitiveDaVinciTracker&);
@@ -82,14 +81,8 @@ private:
 private:
   /*************** ROBOT JOINT VALUES ***************/
 
-  /*! The 7 joint values of PSM1 stored and broadcasted in a transform matrix in row major. */
-  vtkPlusDataSource* psm1Joints;
-
-  /*! The 7 joint values of PSM2 stored and broadcasted in a transform matrix in row major. */
-  vtkPlusDataSource* psm2Joints;
-
-  /*! The 4 joint values of ECM stored and broadcasted in a transform matrix in row major. */
-  vtkPlusDataSource* ecmJoints;
+  /*! The 7 + 7 + 4 = 18 joint values of all manipulators stored and broadcasted in a string. */
+  vtkPlusDataSource* jointValues;
 
   /*************** ROBOT BASE TRANSFORMS ***************/
 

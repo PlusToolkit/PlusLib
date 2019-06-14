@@ -23,45 +23,16 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   : vtkPlusDevice()
   , DaVinci(new IntuitiveDaVinci())
   , LastFrameNumber(0)
-  , FrameNumber(0)
+  , DebugSineWaveMode(false)
+  , jointValues(NULL)
+  , psm1Base(NULL),   psm2Base(NULL),   ecmBase(NULL)
+  , psm1Frame1(NULL), psm1Frame2(NULL), psm1Frame3(NULL), psm1Frame4(NULL), psm1Frame5(NULL), psm1Frame6(NULL), psm1Frame7(NULL)
+  , psm2Frame1(NULL), psm2Frame2(NULL), psm2Frame3(NULL), psm2Frame4(NULL), psm2Frame5(NULL), psm2Frame6(NULL), psm2Frame7(NULL)
+  , ecmFrame1(NULL),  ecmFrame2(NULL),  ecmFrame3(NULL),  ecmFrame4(NULL),  ecmFrame5(NULL),  ecmFrame6(NULL),  ecmFrame7(NULL)
 {
   this->StartThreadForInternalUpdates = true; // Want a dedicated thread
   this->RequirePortNameInDeviceSetConfiguration = true;
   this->AcquisitionRate = 50;
-  this->DebugSineWaveMode = false;
-  this->UpdateMinimalKinematics = false;
-
-  this->psm1Joints = NULL;
-  this->psm2Joints = NULL;
-  this->ecmJoints = NULL;
-
-  this->psm1Base = NULL;
-  this->psm2Base = NULL;
-  this->ecmBase = NULL;
-
-  this->psm1Frame1 = NULL;
-  this->psm1Frame2 = NULL;
-  this->psm1Frame3 = NULL;
-  this->psm1Frame4 = NULL;
-  this->psm1Frame5 = NULL;
-  this->psm1Frame6 = NULL;
-  this->psm1Frame7 = NULL;
-
-  this->psm2Frame1 = NULL;
-  this->psm2Frame2 = NULL;
-  this->psm2Frame3 = NULL;
-  this->psm2Frame4 = NULL;
-  this->psm2Frame5 = NULL;
-  this->psm2Frame6 = NULL;
-  this->psm2Frame7 = NULL;
-
-  this->ecmFrame1 = NULL;
-  this->ecmFrame2 = NULL;
-  this->ecmFrame3 = NULL;
-  this->ecmFrame4 = NULL;
-  this->ecmFrame5 = NULL;
-  this->ecmFrame6 = NULL;
-  this->ecmFrame7 = NULL;
 
   LOG_DEBUG("vktPlusIntuitiveDaVinciTracker created.");
 }
@@ -115,10 +86,6 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
     LOG_ERROR("Failed to connect to da Vinci device.");
     return PLUS_FAIL;
   }
-
-  GetToolByPortName("psm1Joints", this->psm1Joints);
-  GetToolByPortName("psm2Joints", this->psm2Joints);
-  GetToolByPortName("ecmJoints", this->ecmJoints);
 
   GetToolByPortName("psm1Base", this->psm1Base);
   GetToolByPortName("psm2Base", this->psm2Base);
@@ -204,11 +171,13 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
+  // Update all of the manipulator joint values
+  igsioTrackedFrame::FieldMapType fieldMap;
+  fieldMap[this->jointValues->GetId()] = this->DaVinci->GetAllJointValuesAsString();
+  this->jointValues->AddItem(fieldMap, this->LastFrameNumber, toolTimestamp);
+
   // Update the kinematics transforms
-  if (this->UpdateMinimalKinematics)
-    status = this->DaVinci->UpdateMinimalKinematicsTransforms();
-  else
-    status = this->DaVinci->UpdateAllKinematicsTransforms();
+  status = this->DaVinci->UpdateAllKinematicsTransforms();
 
   if (status != ISI_SUCCESS)
   {
@@ -216,47 +185,8 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // We will need these to copy values
+  // We will need these to copy transform values 
   vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  ISI_TRANSFORM* tmpIsiMatrix;
-  ISI_FLOAT* tmpJoints;
-
-  // Update all of the manipulator joint values
-  tmpJoints = this->DaVinci->GetPsm1()->GetJointValues();
-  tmpVtkMatrix->Zero();
-  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
-  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
-  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
-  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
-  tmpVtkMatrix->SetElement(1, 0, tmpJoints[4]);
-  tmpVtkMatrix->SetElement(1, 1, tmpJoints[5]);
-  tmpVtkMatrix->SetElement(1, 2, tmpJoints[6]);
-
-  unsigned long frameNumber = psm1Joints->GetFrameNumber() + 1;
-  ToolTimeStampedUpdate(psm1Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-
-  tmpJoints = this->DaVinci->GetPsm2()->GetJointValues();
-  tmpVtkMatrix->Zero();
-  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
-  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
-  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
-  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
-  tmpVtkMatrix->SetElement(1, 0, tmpJoints[4]);
-  tmpVtkMatrix->SetElement(1, 1, tmpJoints[5]);
-  tmpVtkMatrix->SetElement(1, 2, tmpJoints[6]);
-
-  frameNumber = psm2Joints->GetFrameNumber() + 1;
-  ToolTimeStampedUpdate(psm2Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
-
-  tmpJoints = this->DaVinci->GetEcm()->GetJointValues();
-  tmpVtkMatrix->Zero();
-  tmpVtkMatrix->SetElement(0, 0, tmpJoints[0]);
-  tmpVtkMatrix->SetElement(0, 1, tmpJoints[1]);
-  tmpVtkMatrix->SetElement(0, 2, tmpJoints[2]);
-  tmpVtkMatrix->SetElement(0, 3, tmpJoints[3]);
-
-  frameNumber = ecmJoints->GetFrameNumber() + 1;
-  ToolTimeStampedUpdate(ecmJoints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
 
   // Update all of the manipulator base frames
   PUBLISH_ISI_TRANSFORM(psm1Base, this->DaVinci->GetPsm1BaseToWorld());
@@ -266,12 +196,9 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   // Update all of the psm1Frames
   ISI_TRANSFORM* psm1Transforms = this->DaVinci->GetPsm1()->GetTransforms();
 
-  if (!this->UpdateMinimalKinematics)
-  {
-    PUBLISH_ISI_TRANSFORM(psm1Frame1, psm1Transforms + 0);
-    PUBLISH_ISI_TRANSFORM(psm1Frame2, psm1Transforms + 1);
-    PUBLISH_ISI_TRANSFORM(psm1Frame3, psm1Transforms + 2);
-  }
+  PUBLISH_ISI_TRANSFORM(psm1Frame1, psm1Transforms + 0);
+  PUBLISH_ISI_TRANSFORM(psm1Frame2, psm1Transforms + 1);
+  PUBLISH_ISI_TRANSFORM(psm1Frame3, psm1Transforms + 2);
   PUBLISH_ISI_TRANSFORM(psm1Frame4, psm1Transforms + 3);
   PUBLISH_ISI_TRANSFORM(psm1Frame5, psm1Transforms + 4);
   PUBLISH_ISI_TRANSFORM(psm1Frame6, psm1Transforms + 5);
@@ -280,12 +207,9 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   // Update all of the psm2Frames
   ISI_TRANSFORM* psm2Transforms = this->DaVinci->GetPsm2()->GetTransforms();
 
-  if (!this->UpdateMinimalKinematics)
-  {
-    PUBLISH_ISI_TRANSFORM(psm2Frame1, psm2Transforms + 0);
-    PUBLISH_ISI_TRANSFORM(psm2Frame2, psm2Transforms + 1);
-    PUBLISH_ISI_TRANSFORM(psm2Frame3, psm2Transforms + 2);
-  }
+  PUBLISH_ISI_TRANSFORM(psm2Frame1, psm2Transforms + 0);
+  PUBLISH_ISI_TRANSFORM(psm2Frame2, psm2Transforms + 1);
+  PUBLISH_ISI_TRANSFORM(psm2Frame3, psm2Transforms + 2);
   PUBLISH_ISI_TRANSFORM(psm2Frame4, psm2Transforms + 3);
   PUBLISH_ISI_TRANSFORM(psm2Frame5, psm2Transforms + 4);
   PUBLISH_ISI_TRANSFORM(psm2Frame6, psm2Transforms + 5);
@@ -294,15 +218,12 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
   // Update all of the ecmFrames
   ISI_TRANSFORM* ecmTransforms = this->DaVinci->GetEcm()->GetTransforms();
 
-  if (!this->UpdateMinimalKinematics)
-  {
-    PUBLISH_ISI_TRANSFORM(ecmFrame1, ecmTransforms + 0);
-    PUBLISH_ISI_TRANSFORM(ecmFrame2, ecmTransforms + 1);
-    PUBLISH_ISI_TRANSFORM(ecmFrame3, ecmTransforms + 2);
-    PUBLISH_ISI_TRANSFORM(ecmFrame4, ecmTransforms + 3);
-    PUBLISH_ISI_TRANSFORM(ecmFrame5, ecmTransforms + 4);
-    PUBLISH_ISI_TRANSFORM(ecmFrame6, ecmTransforms + 5);
-  }
+  PUBLISH_ISI_TRANSFORM(ecmFrame1, ecmTransforms + 0);
+  PUBLISH_ISI_TRANSFORM(ecmFrame2, ecmTransforms + 1);
+  PUBLISH_ISI_TRANSFORM(ecmFrame3, ecmTransforms + 2);
+  PUBLISH_ISI_TRANSFORM(ecmFrame4, ecmTransforms + 3);
+  PUBLISH_ISI_TRANSFORM(ecmFrame5, ecmTransforms + 4);
+  PUBLISH_ISI_TRANSFORM(ecmFrame6, ecmTransforms + 5);
   PUBLISH_ISI_TRANSFORM(ecmFrame7, ecmTransforms + 6);
 
   return PLUS_SUCCESS;
@@ -328,6 +249,17 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalDisconnect()
 }
 
 //----------------------------------------------------------------------------
+PlusStatus vtkPlusIntuitiveDaVinciTracker::NotifyConfigured()
+{
+  if (this->GetFieldDataSourcessIteratorBegin() != this->GetFieldDataSourcessIteratorEnd())
+  {
+    this->jointValues = this->Fields.begin()->second;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_DEBUG("vtkPlusIntuitiveDaVinciTracker::ReadConfiguration");
@@ -336,10 +268,7 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::ReadConfiguration(vtkXMLDataElement* 
 
   XML_READ_SCALAR_ATTRIBUTE_WARNING(int, AcquisitionRate, deviceConfig); 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(DebugSineWaveMode, deviceConfig);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UpdateMinimalKinematics, deviceConfig);
 
-  //XML_READ_STRING_ATTRIBUTE_WARNING(Psm2DhTable, deviceConfig);
-  //XML_READ_STRING_ATTRIBUTE_WARNING(EcmDhTable, deviceConfig);
   std::string psm1DhTable;
   std::string psm2DhTable;
   std::string ecmDhTable;

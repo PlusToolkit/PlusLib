@@ -254,6 +254,17 @@ void IntuitiveDaVinci::PrintAllJointValues() const
 }
 
 //----------------------------------------------------------------------------
+std::string IntuitiveDaVinci::GetAllJointValuesAsString() const
+{
+  std::stringstream str;
+  str << "PSM1: " << this->mPsm1->GetJointValuesAsString() << '\n';
+  str << "PSM2: " << this->mPsm2->GetJointValuesAsString() << '\n';
+  str << "ECM:  " << this->mEcm->GetJointValuesAsString() << '\n';
+  
+  return str.str();
+}
+
+//----------------------------------------------------------------------------
 void IntuitiveDaVinci::UpdateBaseToWorldTransforms()
 {
   // Update the ECM base frame first
@@ -292,7 +303,7 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
 {
   UpdateBaseToWorldTransforms();
 
-  mStatus = this->mPsm1->UpdateAllManipulatorTransforms();
+  mStatus = this->mPsm1->UpdateLinkTransforms();
 
   if (mStatus != ISI_SUCCESS)
   {
@@ -300,7 +311,7 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
     return mStatus;
   }
 
-  mStatus = this->mPsm2->UpdateAllManipulatorTransforms();
+  mStatus = this->mPsm2->UpdateLinkTransforms();
 
   if (mStatus != ISI_SUCCESS)
   {
@@ -308,39 +319,7 @@ ISI_STATUS IntuitiveDaVinci::UpdateAllKinematicsTransforms()
     return mStatus;
   }
 
-  mStatus = this->mEcm->UpdateAllManipulatorTransforms();
-
-  if (mStatus != ISI_SUCCESS)
-  {
-    LOG_ERROR("Error updating ECM manipulator transforms.");
-    return mStatus;
-  }
-
-  return mStatus;
-}
-
-//----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinci::UpdateMinimalKinematicsTransforms()
-{
-  UpdateBaseToWorldTransforms();
-
-  mStatus = this->mPsm1->UpdateMinimalManipulatorTransforms();
-
-  if (mStatus != ISI_SUCCESS)
-  {
-    LOG_ERROR("Error updating PSM1 manipulator transforms.");
-    return mStatus;
-  }
-
-  mStatus = this->mPsm2->UpdateMinimalManipulatorTransforms();
-
-  if (mStatus != ISI_SUCCESS)
-  {
-    LOG_ERROR("Error updating PSM2 manipulator transforms.");
-    return mStatus;
-  }
-
-  mStatus = this->mEcm->UpdateMinimalManipulatorTransforms();
+  mStatus = this->mEcm->UpdateLinkTransforms();
 
   if (mStatus != ISI_SUCCESS)
   {

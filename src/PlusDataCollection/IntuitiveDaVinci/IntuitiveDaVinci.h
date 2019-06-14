@@ -60,6 +60,9 @@ public:
   /*! Print all of the joint values for all of the manipulators. */
   void PrintAllJointValues() const;
 
+  /*! Get all of the joint values as a string. */
+  std::string GetAllJointValuesAsString() const;
+
   /*! Print all of the kinematics transforms for all of the manipulators. */
   void PrintAllKinematicsTransforms() const;
 
@@ -68,9 +71,6 @@ public:
 
   /*! Update every transform for each DH row in the kinematic chain. */
   ISI_STATUS UpdateAllKinematicsTransforms();
-
-  /*! Update only the transforms that are associated with visualization and tracking. */
-  ISI_STATUS UpdateMinimalKinematicsTransforms();
 
   /*! Copy data from one ISI_TRANSFORM to another. */
   static void CopyIsiTransform(ISI_TRANSFORM* srcTransform, ISI_TRANSFORM* destTransform);

@@ -54,6 +54,7 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateJointValues()
     for (int iii = 0; iii < mNumJoints; iii++)
     {
       mJointValues[iii] = streamData.data[iii];
+      if (iii == 2) mJointValues[iii] *= 1000.0;
     }
   }
   else
@@ -68,7 +69,7 @@ std::string IntuitiveDaVinciManipulator::GetJointValuesAsString() const
   std::stringstream str;
   for (int iii = 0; iii < mNumJoints; iii++)
   {
-    str << mJointValues[iii];
+    str << mJointValues[iii] << "  ";
   }
 
   return str.str();
@@ -124,7 +125,7 @@ void IntuitiveDaVinciManipulator::CopyDhTable(ISI_DH_ROW* srcDhTable, ISI_DH_ROW
 }
 
 //----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciManipulator::UpdateAllManipulatorTransforms()
+ISI_STATUS IntuitiveDaVinciManipulator::UpdateLinkTransforms()
 {
   ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
 
@@ -134,40 +135,6 @@ ISI_STATUS IntuitiveDaVinciManipulator::UpdateAllManipulatorTransforms()
     status += dv_dh_forward_kinematics(
       &(base), iii + 1, mDhTable, mJointValues, 
       &(mTransforms[iii]), NULL);
-  }
-
-  if (status != ISI_SUCCESS)
-  {
-    LOG_ERROR("Could not run DH forward kinematics.");
-  }
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
-ISI_STATUS IntuitiveDaVinciManipulator::UpdateMinimalManipulatorTransforms()
-{
-  ISI_TRANSFORM base = dv_identity_transform(); // Compute relative to identity
-
-  ISI_STATUS status = ISI_SUCCESS;
-
-  int numMinimalTransforms;
-  int minimalLinkIndices[4] = { 7, 4, 5, 6 };
-
-  if (mManipIndex == ISI_ECM)
-    numMinimalTransforms = 1; // Just the tip transform for the ECM
-  else
-    numMinimalTransforms = 4; // Tip transform and the required link transforms for rendering model motion
-
-  int transformIndexToUpdate;
-
-  // This will only update the first transform if its an ECM, therefore only 7 will be updated.
-  for (int iii = 0; iii < numMinimalTransforms; iii++)
-  {
-    transformIndexToUpdate = minimalLinkIndices[iii];
-    status += dv_dh_forward_kinematics(
-      &(base), transformIndexToUpdate, mDhTable, mJointValues,
-      &(mTransforms[transformIndexToUpdate - 1]), NULL);
   }
 
   if (status != ISI_SUCCESS)
