@@ -69,7 +69,7 @@ SET(${PROJECT_NAME}_LIBS
   )
 
 IF(PLUS_USE_INTEL_MKL)
-  IF(${CMAKE_GENERATOR} MATCHES Win64)
+  IF(${PLUSLIB_PLATFORM} MATCHES "Win64")
     SET(MKL_LIBS
       "${IntelComposerXEdir}/mkl/lib/intel64/mkl_intel_lp64_dll.lib"
       "${IntelComposerXEdir}/mkl/lib/intel64/mkl_intel_thread_dll.lib"
