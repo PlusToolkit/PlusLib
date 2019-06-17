@@ -508,9 +508,9 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
       encoder = new igtl::I420Encoder();
       this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
     }
-#if defined(OpenIGTLink_USE_VP9)
     else if (videoStream.EncodeVideoParameters.FourCC == IGTL_VIDEO_CODEC_NAME_VP9)
     {
+#if defined(OpenIGTLink_USE_VP9)
       encoder = new igtl::VP9Encoder();
       encoder->SetLosslessLink(videoStream.EncodeVideoParameters.Lossless);
       encoder->SetKeyFrameDistance(videoStream.EncodeVideoParameters.MinKeyframeDistance);
@@ -574,12 +574,15 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
         }
       }
       this->IgtlVideoEncoders.insert(std::make_pair(clientEncoderKey, encoder));
-    }
+#else
+      vtkErrorMacro("Cannot encode VIDEO message: VP9 codec is not availiable");
+      numberOfErrors++;
 #endif
+    }
 
     if (vtkPlusIgtlMessageCommon::PackVideoMessage(videoMessage, trackedFrame, encoder, *matrix) != PLUS_SUCCESS)
     {
-      LOG_ERROR("Failed to create " << messageType << " message - unable to pack image message");
+      LOG_ERROR("Failed to create " << messageType << " message - unable to pack video message");
       numberOfErrors++;
       continue;
     }
