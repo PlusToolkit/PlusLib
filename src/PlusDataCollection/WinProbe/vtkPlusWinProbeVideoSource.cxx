@@ -1133,10 +1133,6 @@ bool vtkPlusWinProbeVideoSource::GetBRFEnabled()
     {
       m_Mode = Mode::BRF;
     }
-    else
-    {
-      m_Mode = Mode::B;
-    }
   }
   return brfEnabled;
 }
@@ -1182,10 +1178,6 @@ bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
     if(mmodeEnabled)
     {
       m_Mode = Mode::M;
-    }
-    else
-    {
-      m_Mode = Mode::B;
     }
   }
   return mmodeEnabled;
