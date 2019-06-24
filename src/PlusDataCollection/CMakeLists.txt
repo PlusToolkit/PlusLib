@@ -52,6 +52,7 @@ OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultr
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
+OPTION(PLUS_USE_BLACKMAGIC_DECKLINK "Provide support for BlackMagic DeckLink capture cards." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
@@ -575,6 +576,48 @@ IF(PLUS_USE_OPENHAPTICS)
     ${OpenHaptics_BINARY_DIR}/Release/hl${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${OpenHaptics_UTILITIES_BINARY_DIR}/Release/glut32${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
+ENDIF()
+
+#--------------------------------------------------------------------------
+# BlackMagic DeckLink support
+IF(PLUS_USE_BLACKMAGIC_DECKLINK)
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(BlackMagicDeckLink_HDRS
+      BlackMagic/vtkPlusDeckLinkVideoSource.h
+      ${DECKLINK_SDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
+    )
+  ENDIF()
+
+  SET(BlackMagicDeckLink_SRCS
+    BlackMagic/vtkPlusDeckLinkVideoSource.cxx
+  )
+
+  IF(WIN32)
+    LIST(APPEND BlackMagicDeckLink_HDRS
+      BlackMagic/DeckLinkAPI_h.h
+    )
+    LIST(APPEND BlackMagicDeckLink_SRCS
+      BlackMagic/DeckLinkAPI_i.c
+    )
+  ELSEIF(UNIX)
+    LIST(APPEND BlackMagicDeckLink_HDRS
+      ${DECKLINK_SDK_INCLUDE_DIR}/DeckLinkAPI.h
+    )
+    IF(NOT MAC)
+      LIST(APPEND BlackMagicDeckLink_SRCS
+        ${DECKLINK_SDK_INCLUDE_DIR}/LinuxCOM.h
+      )
+    ENDIF()
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${BlackMagicDeckLink_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${BlackMagicDeckLink_SRCS}
+    )
+
 ENDIF()
 
 #--------------------------------------------------------------------------
