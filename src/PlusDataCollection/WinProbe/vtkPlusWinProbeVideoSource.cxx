@@ -371,9 +371,13 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     LOG_INFO("Unsupported frame type: " << std::hex << usMode);
     return;
   }
-
+  if(header->TotalFrameCounter == 0)
+  {
+    first_timestamp = header->TimeStamp / 1000.0;
+    LOG_DEBUG("First frame timestamp: "<< first_timestamp);
+  }
   //timestamp counters are in milliseconds since last sequencer restart
-  double timestamp = header->TimeStamp / 1000.0;
+  double timestamp = (header->TimeStamp / 1000.0) - first_timestamp;
   if(timestamp == 0.0) // some change is being applied, so this frame is not valid
   {
     return; // ignore this frame

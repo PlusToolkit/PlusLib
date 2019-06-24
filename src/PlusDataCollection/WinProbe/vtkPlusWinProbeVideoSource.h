@@ -236,6 +236,7 @@ protected:
   std::string m_TransducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
+  double first_timestamp = 0;
   double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
   unsigned m_LineCount = 128;
   unsigned m_SamplesPerLine = 0;
