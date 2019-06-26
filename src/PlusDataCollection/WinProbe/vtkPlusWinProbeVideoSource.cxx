@@ -753,6 +753,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   if(!m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
+    WPDXSetFusedTexBufferMax(1);
   }
   WPDXSetDrawTextLayer(false);
   WPDXSetDrawScalesAndBars(false);
