@@ -24,7 +24,7 @@ vtkPlusIntuitiveDaVinciTracker::vtkPlusIntuitiveDaVinciTracker()
   , DaVinci(new IntuitiveDaVinci())
   , LastFrameNumber(0)
   , DebugSineWaveMode(false)
-  , jointValues(NULL)
+  , psm1Joints(NULL), psm2Joints(NULL), ecmJoints(NULL)
   , psm1Base(NULL),   psm2Base(NULL),   ecmBase(NULL)
   , psm1Frame1(NULL), psm1Frame2(NULL), psm1Frame3(NULL), psm1Frame4(NULL), psm1Frame5(NULL), psm1Frame6(NULL), psm1Frame7(NULL)
   , psm2Frame1(NULL), psm2Frame2(NULL), psm2Frame3(NULL), psm2Frame4(NULL), psm2Frame5(NULL), psm2Frame6(NULL), psm2Frame7(NULL)
@@ -86,6 +86,10 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalConnect()
     LOG_ERROR("Failed to connect to da Vinci device.");
     return PLUS_FAIL;
   }
+
+  GetToolByPortName("psm1Joints", this->psm1Joints);
+  GetToolByPortName("psm2Joints", this->psm2Joints);
+  GetToolByPortName("ecmJoints", this->ecmJoints);
 
   GetToolByPortName("psm1Base", this->psm1Base);
   GetToolByPortName("psm2Base", this->psm2Base);
@@ -171,11 +175,6 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // Update all of the manipulator joint values
-  igsioTrackedFrame::FieldMapType fieldMap;
-  fieldMap[this->jointValues->GetId()] = this->DaVinci->GetAllJointValuesAsString();
-  this->jointValues->AddItem(fieldMap, this->LastFrameNumber, toolTimestamp);
-
   // Update the kinematics transforms
   status = this->DaVinci->UpdateAllKinematicsTransforms();
 
@@ -185,8 +184,44 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalUpdate()
     return PLUS_FAIL;
   }
 
-  // We will need these to copy transform values 
+  // We will need these to copy data values 
   vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+  // Update all of the manipulator joint values
+  ISI_FLOAT* jointValues;
+
+  jointValues = this->DaVinci->GetPsm1()->GetJointValues();
+  tmpVtkMatrix->Identity();
+  tmpVtkMatrix->SetElement(0, 0, jointValues[0]);
+  tmpVtkMatrix->SetElement(0, 1, jointValues[1]);
+  tmpVtkMatrix->SetElement(0, 2, jointValues[2]);
+  tmpVtkMatrix->SetElement(0, 3, jointValues[3]);
+  tmpVtkMatrix->SetElement(1, 0, jointValues[4]);
+  tmpVtkMatrix->SetElement(1, 1, jointValues[5]);
+  tmpVtkMatrix->SetElement(1, 2, jointValues[6]);
+  unsigned long frameNumber = psm1Joints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(psm1Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+
+  jointValues = this->DaVinci->GetPsm2()->GetJointValues();
+  tmpVtkMatrix->Identity();
+  tmpVtkMatrix->SetElement(0, 0, jointValues[0]);
+  tmpVtkMatrix->SetElement(0, 1, jointValues[1]);
+  tmpVtkMatrix->SetElement(0, 2, jointValues[2]);
+  tmpVtkMatrix->SetElement(0, 3, jointValues[3]);
+  tmpVtkMatrix->SetElement(1, 0, jointValues[4]);
+  tmpVtkMatrix->SetElement(1, 1, jointValues[5]);
+  tmpVtkMatrix->SetElement(1, 2, jointValues[6]);
+  frameNumber = psm2Joints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(psm2Joints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
+
+  jointValues = this->DaVinci->GetEcm()->GetJointValues();
+  tmpVtkMatrix->Identity();
+  tmpVtkMatrix->SetElement(0, 0, jointValues[0]);
+  tmpVtkMatrix->SetElement(0, 1, jointValues[1]);
+  tmpVtkMatrix->SetElement(0, 2, jointValues[2]);
+  tmpVtkMatrix->SetElement(0, 3, jointValues[3]);
+  frameNumber = ecmJoints->GetFrameNumber() + 1;
+  ToolTimeStampedUpdate(ecmJoints->GetId(), tmpVtkMatrix, TOOL_OK, frameNumber, toolTimestamp);
 
   // Update all of the manipulator base frames
   PUBLISH_ISI_TRANSFORM(psm1Base, this->DaVinci->GetPsm1BaseToWorld());
@@ -245,17 +280,6 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::InternalDisconnect()
   this->DaVinci->Disconnect();
 
   LOG_DEBUG("Disconnected from da Vinci device.")
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusIntuitiveDaVinciTracker::NotifyConfigured()
-{
-  if (this->GetFieldDataSourcessIteratorBegin() != this->GetFieldDataSourcessIteratorEnd())
-  {
-    this->jointValues = this->Fields.begin()->second;
-  }
-
   return PLUS_SUCCESS;
 }
 
@@ -382,8 +406,6 @@ PlusStatus vtkPlusIntuitiveDaVinciTracker::WriteConfiguration(vtkXMLDataElement*
 
   return PLUS_SUCCESS;
 }
-
-
 
 //----------------------------------------------------------------------------
 IntuitiveDaVinci* vtkPlusIntuitiveDaVinciTracker::GetDaVinci() const

@@ -22,8 +22,6 @@ public:
   vtkTypeMacro(vtkPlusIntuitiveDaVinciTracker, vtkPlusDevice);
   virtual void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  virtual PlusStatus NotifyConfigured();
-
   virtual bool IsTracker() const { return true; }
 
   /*! Probe to see if the tracking system is present. */
@@ -81,8 +79,14 @@ private:
 private:
   /*************** ROBOT JOINT VALUES ***************/
 
-  /*! The 7 + 7 + 4 = 18 joint values of all manipulators stored and broadcasted in a string. */
-  vtkPlusDataSource* jointValues;
+  /*! The 7 joint values of PSM1 stored and broadcasted in the first 7 elements of a matrix. */
+  vtkPlusDataSource* psm1Joints;
+
+  /*! The 7 joint values of PSM2 stored and broadcasted in the first 7 elements of a matrix. */
+  vtkPlusDataSource* psm2Joints;
+
+  /*! The 7 joint values of ECM stored and broadcasted in the first 4 elements of a matrix. */
+  vtkPlusDataSource* ecmJoints;
 
   /*************** ROBOT BASE TRANSFORMS ***************/
 
