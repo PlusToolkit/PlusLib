@@ -138,6 +138,9 @@ public:
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
 
+  void SetBHarmonicEnabled(bool value);
+  bool GetBHarmonicEnabled();
+
   void SetBRFEnabled(bool value);
   bool GetBRFEnabled();
 
@@ -167,6 +170,8 @@ public:
 
   void SetBFrameRateLimit(int32_t value);
   int32_t GetBFrameRateLimit();
+
+  int GetTransducerInternalID();
 
   enum class Mode
   {
@@ -262,6 +267,7 @@ protected:
   uint8_t m_SSDecimation = 2;
   double m_FirstGainValue = 15;
   int32_t m_BFrameRateLimit = 0;
+  bool m_BHarmonicEnabled = false;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 

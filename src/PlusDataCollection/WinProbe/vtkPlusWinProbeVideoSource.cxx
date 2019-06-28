@@ -60,6 +60,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_READ_STRING_ATTRIBUTE_REQUIRED(TransducerID, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(UseDeviceFrameReconstruction, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SpatialCompoundEnabled, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(BHarmonicEnabled, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(MRevolvingEnabled, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, TransmitFrequencyMHz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(float, ScanDepthMm, deviceConfig);
@@ -113,6 +114,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
   deviceConfig->SetAttribute("TransducerID", this->m_TransducerID.c_str());
   deviceConfig->SetAttribute("UseDeviceFrameReconstruction", this->m_UseDeviceFrameReconstruction ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("SpatialCompoundEnabled", this->GetSpatialCompoundEnabled() ? "TRUE" : "FALSE");
+  deviceConfig->SetAttribute("HarmonicEnabled", this->GetBHarmonicEnabled() ? "TRUE" : "FALSE");
   deviceConfig->SetAttribute("MRevolvingEnabled", this->GetMRevolvingEnabled() ? "TRUE" : "FALSE");
   deviceConfig->SetFloatAttribute("TransmitFrequencyMHz", this->GetTransmitFrequencyMHz());
   deviceConfig->SetFloatAttribute("ScanDepthMm", this->GetScanDepthMm());
@@ -1141,6 +1143,25 @@ bool vtkPlusWinProbeVideoSource::GetBRFEnabled()
   return brfEnabled;
 }
 
+void vtkPlusWinProbeVideoSource::SetBHarmonicEnabled(bool value)
+{
+  if(Connected)
+  {
+    SetBIsHarmonic(value);
+    SetPendingRecreateTables(true);
+  }
+  m_BHarmonicEnabled = GetBIsHarmonic();
+}
+
+bool vtkPlusWinProbeVideoSource::GetBHarmonicEnabled()
+{
+  if(Connected)
+  {
+    m_BHarmonicEnabled = GetBIsHarmonic();
+  }
+  return m_BHarmonicEnabled;
+}
+
 //----------------------------------------------------------------------------
 
 void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
@@ -1336,6 +1357,11 @@ PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
   return PLUS_SUCCESS;
 }
 
+int vtkPlusWinProbeVideoSource::GetTransducerInternalID()
+{
+  int transducer_id = ::GetTransducerInternalID();
+  return transducer_id;
+}
 //----------------------------------------------------------------------------
 std::vector<double> vtkPlusWinProbeVideoSource::GetPrimarySourceSpacing()
 {
