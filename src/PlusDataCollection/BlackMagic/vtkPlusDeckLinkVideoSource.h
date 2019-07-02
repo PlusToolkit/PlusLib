@@ -10,13 +10,15 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-#include <combaseapi.h>
-// BlackMagic SDK includes
-#ifdef _WIN32
-#include "DeckLinkAPI_h.h"
-#else
-#include "DeckLinkAPI.h"
+#if _WIN32
+  #include <combaseapi.h>
 #endif
+
+#define _stringify(x) #x
+#define STRINGIFY(x) _stringify(x)
+#include STRINGIFY(DeckLinkSDK_INCLUDE_FILE)
+#undef STRINGIFY
+#undef _stringify
 
 /*!
 \class vtkPlusDeckLinkVideoSource

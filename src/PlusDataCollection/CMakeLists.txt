@@ -581,33 +581,21 @@ ENDIF()
 #--------------------------------------------------------------------------
 # BlackMagic DeckLink support
 IF(PLUS_USE_BLACKMAGIC_DECKLINK)
+  FIND_PACKAGE(DeckLinkSDK REQUIRED)
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(BlackMagicDeckLink_HDRS
       BlackMagic/vtkPlusDeckLinkVideoSource.h
-      ${DECKLINK_SDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
+      ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
     )
   ENDIF()
 
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
-  )
+    )
 
-  IF(WIN32)
-    LIST(APPEND BlackMagicDeckLink_HDRS
-      BlackMagic/DeckLinkAPI_h.h
-    )
-    LIST(APPEND BlackMagicDeckLink_SRCS
-      BlackMagic/DeckLinkAPI_i.c
-    )
-  ELSEIF(UNIX)
-    LIST(APPEND BlackMagicDeckLink_HDRS
-      ${DECKLINK_SDK_INCLUDE_DIR}/DeckLinkAPI.h
-    )
-    IF(NOT MAC)
-      LIST(APPEND BlackMagicDeckLink_SRCS
-        ${DECKLINK_SDK_INCLUDE_DIR}/LinuxCOM.h
-      )
-    ENDIF()
+  IF(UNIX AND NOT APPLE)
+    LIST(APPEND BlackMagicDeckLink_SRCS ${DeckLinkSDK_INCLUDE_DIR}/LinuxCOM.h)
   ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
@@ -618,6 +606,9 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
     ${BlackMagicDeckLink_SRCS}
     )
 
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    DeckLinkSDK
+    )
 ENDIF()
 
 #--------------------------------------------------------------------------
@@ -2385,7 +2376,6 @@ LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
   )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} CACHE INTERNAL "" FORCE) # Force parent scope update
-
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
 FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
@@ -2459,6 +2449,7 @@ source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
+source_group("BlackMagic" FILES ${BlackMagicDeckLink_HDRS} ${BlackMagicDeckLink_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
