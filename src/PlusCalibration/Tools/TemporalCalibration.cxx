@@ -28,7 +28,9 @@ See License.txt for details.
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
+#ifdef PLUS_RENDERING_ENABLED
 #include <vtkContextView.h>
+#endif
 #include <vtkPNGWriter.h>
 #include <vtkPlot.h>
 #include <vtkRenderWindow.h>
@@ -63,6 +65,7 @@ namespace
 void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTable* trackerPositionMetric, std::string& xAxisLabel,
                     std::string& yAxisLabel)
 {
+#ifdef PLUS_RENDERING_ENABLED
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
@@ -97,6 +100,9 @@ void SaveMetricPlot(const char* filename, vtkTable* videoPositionMetric, vtkTabl
   writer->SetFileName(filename);
   writer->SetInputData(windowToImageFilter->GetOutput());
   writer->Write();
+#else
+  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+#endif
 }
 
 //----------------------------------------------------------------------------

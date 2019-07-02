@@ -24,10 +24,14 @@ SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
   vtkInteractionStyle
   vtkRenderingFreeType
-  vtkRendering${VTK_RENDERING_BACKEND}
-  vtkRenderingVolume${VTK_RENDERING_BACKEND}
   vtkVolumeReconstruction
   )
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkRendering${VTK_RENDERING_BACKEND}
+    vtkRenderingVolume${VTK_RENDERING_BACKEND}
+    )
+ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})

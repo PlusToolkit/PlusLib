@@ -22,13 +22,17 @@ SET(${PROJECT_NAME}_INCLUDE_DIRS
 # Build the library
 SET(${PROJECT_NAME}_LIBS
   vtkPlusCommon
-  vtkPlusRendering
   vtkPlusImageProcessing
   vtkFiltersSources
   vtkFiltersFlowPaths
   vtkIOGeometry
   vtkIOXML
   )
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkPlusRendering
+    )
+ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})

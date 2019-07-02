@@ -6,7 +6,9 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "PlusPlotter.h"
+#endif
 #include "vtkPlusBuffer.h"
 #include "vtkPlusChannel.h"
 #include "vtkPlusDataSource.h"
@@ -1803,6 +1805,7 @@ PlusStatus vtkPlusChannel::SetCustomAttribute(const std::string& attributeId, co
 //-----------------------------------------------------------------------------
 PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* htmlReport)
 {
+#ifdef PLUS_RENDERING_ENABLED
   if (htmlReport == NULL)
   {
     LOG_ERROR("Caller should define HTML report generator before report generation!");
@@ -1883,6 +1886,10 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
   }
 
   return PLUS_SUCCESS;
+#else
+  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+  return PLUS_FAIL;
+#endif
 }
 
 //-----------------------------------------------------------------------------

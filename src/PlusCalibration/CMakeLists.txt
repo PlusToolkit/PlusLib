@@ -91,7 +91,6 @@ SET(${PROJECT_NAME}_LIBS
   vtkInteractionStyle
   vtkRenderingFreeType
   vtkFiltersStatistics
-  vtkPlusRendering
   vtkPlusCommon
   )
 IF(${ITK_VERSION_MAJOR} GREATER 4)
@@ -99,6 +98,11 @@ IF(${ITK_VERSION_MAJOR} GREATER 4)
     ITKIOBruker
     ITKIOJPEG2000
     ITKIOMINC
+    )
+ENDIF()
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkPlusRendering
     )
 ENDIF()
 

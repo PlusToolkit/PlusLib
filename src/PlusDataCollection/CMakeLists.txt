@@ -1790,7 +1790,7 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
     ${CMAKE_CURRENT_SOURCE_DIR}/PointGrey
     ${SPINNAKER_API_INCLUDE_DIR}
     )
-  
+
   IF(WIN32)
     # Windows libs
     LIST(APPEND ${PROJECT_NAME}_LIBS
@@ -1858,8 +1858,8 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Reference_Version_1_0_0_Schema_1_1.xml
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Usb3_Version_1_0_0_Schema_1_1.xml
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_GigE_Version_1_0_0_Schema_1_1.xml
-    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml 
-    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml 
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml
     )
 ENDIF()
 
@@ -2364,12 +2364,16 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
-  vtkPlusRendering
   vtkPlusCommon
   vtkPlusUsSimulator
   vtkPlusVolumeReconstruction
   vtkPlusImageProcessing
   )
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkPlusRendering
+    )
+ENDIF()
 
 LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
   ${PlusUsSimulator_INCLUDE_DIRS}

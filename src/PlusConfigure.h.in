@@ -135,6 +135,8 @@ typedef unsigned long int vtkMTimeType;
 
 #cmakedefine HAVE_FUTURE
 
+#cmakedefine PLUS_RENDERING_ENABLED
+
 // Frequently needed STL includes
 #include <sstream>
 #include <iostream>

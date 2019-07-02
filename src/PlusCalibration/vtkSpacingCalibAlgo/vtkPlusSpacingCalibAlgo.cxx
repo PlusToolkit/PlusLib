@@ -7,7 +7,9 @@
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "PlusPlotter.h"
+#endif
 #include "vtkPlusSpacingCalibAlgo.h"
 #include "vtkObjectFactory.h"
 #include "vtkIGSIOTrackedFrameList.h"
@@ -369,12 +371,15 @@ PlusStatus vtkPlusSpacingCalibAlgo::GenerateReport(vtkPlusHTMLGenerator* htmlRep
   int imageSize[2] = {800, 400};
 
   std::string outputImageFilename = htmlReport->AddImageAutoFilename("ErrorHistogramX.png", "X spacing calculation error histogram");
+#ifdef PLUS_RENDERING_ENABLED
   PlusPlotter::WriteHistogramChartToFile("X spacing error histogram", *this->ReportTable, 0 /* "Computed-Measured Distance - X (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
-
+#endif
   htmlReport->AddParagraph("<p>");
 
   outputImageFilename = htmlReport->AddImageAutoFilename("ErrorHistogramY.png", "Y spacing calculation error histogram");
+#ifdef PLUS_RENDERING_ENABLED
   PlusPlotter::WriteHistogramChartToFile("Y spacing error histogram", *this->ReportTable, 2 /* "Computed-Measured Distance - Y (mm)" */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImageFilename.c_str());
+#endif
 
   htmlReport->AddHorizontalLine();
 

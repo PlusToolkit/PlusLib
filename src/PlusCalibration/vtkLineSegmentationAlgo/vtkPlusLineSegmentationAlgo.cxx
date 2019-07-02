@@ -27,7 +27,9 @@ See License.txt for details.
 // VTK includes
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
+#ifdef PLUS_RENDERING_ENABLED
 #include <vtkContextView.h>
+#endif
 #include <vtkDoubleArray.h>
 #include <vtkIntArray.h>
 #include <vtkObjectFactory.h>
@@ -731,6 +733,7 @@ PlusStatus vtkPlusLineSegmentationAlgo::Update()
 //-----------------------------------------------------------------------------
 void vtkPlusLineSegmentationAlgo::PlotIntArray(const std::deque<int>& intensityValues)
 {
+#ifdef PLUS_RENDERING_ENABLED
   //  Create table
   vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 
@@ -770,11 +773,15 @@ void vtkPlusLineSegmentationAlgo::PlotIntArray(const std::deque<int>& intensityV
   // Start interactor
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
+#else
+  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+#endif
 }
 
 //-----------------------------------------------------------------------------
 void vtkPlusLineSegmentationAlgo::PlotDoubleArray(const std::deque<double>& intensityValues)
 {
+#ifdef PLUS_RENDERING_ENABLED
   //  Create table
   vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 
@@ -814,6 +821,9 @@ void vtkPlusLineSegmentationAlgo::PlotDoubleArray(const std::deque<double>& inte
   // Start interactor
   view->GetInteractor()->Initialize();
   view->GetInteractor()->Start();
+#else
+  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+#endif
 }
 
 //-----------------------------------------------------------------------------

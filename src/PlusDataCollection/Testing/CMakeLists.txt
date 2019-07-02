@@ -4,13 +4,11 @@ SET( ConfigFilesDir ${PLUSLIB_DATA_DIR}/ConfigFiles )
 #*************************** TrackingTest ***************************
 ADD_EXECUTABLE(TrackingTest TrackingTest.cxx )
 SET_TARGET_PROPERTIES(TrackingTest PROPERTIES FOLDER Tests)
-SET_TARGET_PROPERTIES(TrackingTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(TrackingTest vtkPlusDataCollection vtkPlusCommon )
 GENERATE_HELP_DOC(TrackingTest)
 
 #*************************** TimestampFilteringTest ***************************
 ADD_EXECUTABLE(TimestampFilteringTest TimestampFilteringTest.cxx )
-SET_TARGET_PROPERTIES(TimestampFilteringTest PROPERTIES FOLDER Tests)
 SET_TARGET_PROPERTIES(TimestampFilteringTest PROPERTIES FOLDER Tests)
 TARGET_LINK_LIBRARIES(TimestampFilteringTest vtkPlusCommon vtkPlusDataCollection )
 
@@ -27,7 +25,11 @@ SET_TESTS_PROPERTIES(TimestampFilteringTest PROPERTIES FAIL_REGULAR_EXPRESSION "
 #*************************** vtkDataCollectorTest1 ***************************
 ADD_EXECUTABLE(vtkDataCollectorTest1 vtkDataCollectorTest1.cxx)
 SET_TARGET_PROPERTIES(vtkDataCollectorTest1 PROPERTIES FOLDER Tests)
-TARGET_LINK_LIBRARIES(vtkDataCollectorTest1 vtkPlusDataCollection vtkInteractionImage)
+SET(LIBRARIES vtkDataCollectorTest1 vtkPlusDataCollection)
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND LIBRARIES vtkInteractionImage)
+ENDIF()
+TARGET_LINK_LIBRARIES(${LIBRARIES})
 
 ADD_TEST(vtkDataCollectorTest1 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkDataCollectorTest1
@@ -155,7 +157,11 @@ SET_TESTS_PROPERTIES(vtkFcsvWriterTest1 PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 IF(PLUS_USE_ULTRASONIX_VIDEO)
   ADD_EXECUTABLE(vtkSonixVideoSourceTest1 vtkSonixVideoSourceTest1.cxx )
   SET_TARGET_PROPERTIES(vtkSonixVideoSourceTest1 PROPERTIES FOLDER Tests)
-  TARGET_LINK_LIBRARIES(vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon vtkInteractionImage)
+  SET(LIBRARIES vtkSonixVideoSourceTest1 vtkPlusDataCollection vtkPlusCommon)
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND LIBRARIES vtkInteractionImage)
+ENDIF()
+  TARGET_LINK_LIBRARIES(${LIBRARIES})
 
   IF(PLUS_TEST_ULTRASONIX)
     ADD_TEST(vtkSonixVideoSourceTest1 
