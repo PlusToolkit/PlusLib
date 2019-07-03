@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     numberOfFailures++;
   }
 #else
-  LOG_ERROR("Cannot generate table. Rendering is disabled");
+  LOG_WARNING("Cannot generate table. Rendering is disabled!");
 #endif
 
   LOG_INFO("Testing HTML report generation...");

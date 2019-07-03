@@ -322,7 +322,7 @@ int main(int argc, char** argv)
     iren->Initialize();
     iren->Start();
 #else
-  LOG_ERROR("Rendering is not available!");
+  LOG_WARNING("Cannot perform rendering when VTK_RENDERING_BACKEND is None!");
 #endif
   }
 

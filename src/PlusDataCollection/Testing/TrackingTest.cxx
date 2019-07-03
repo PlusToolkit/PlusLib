@@ -109,7 +109,7 @@ public:
     this->ToolActors[aToolId] = actor;
     actor->SetName(aToolId);
 #else
-    LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+    LOG_WARNING("Cannot add actor when VTK_RENDERING_BACKEND is None!");
 #endif
   }
 
@@ -118,7 +118,7 @@ public:
 #ifdef PLUS_RENDERING_ENABLED
     this->ToolActors[aToolId]->SetVisibility(visible);
 #else
-    LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+    LOG_WARNING("Cannot change tool visibility when VTK_RENDERING_BACKEND is None!");
 #endif
   }
 
@@ -129,7 +129,7 @@ public:
     normalizedTransform->SetMatrix(toolToTrackerTransform);
     this->ToolActors[aToolId]->SetUserTransform(normalizedTransform);
 #else
-    LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+    LOG_WARNING("Cannot set tool transform when VTK_RENDERING_BACKEND is None!");
 #endif
   }
 
@@ -422,7 +422,7 @@ int main(int argc, char** argv)
 
     iren->Start();
 #else
-    LOG_ERROR("Rendering is not available!");
+    LOG_WARNING("Cannot render the scene when when VTK_RENDERING_BACKEND is None!");
 #endif
   }
 

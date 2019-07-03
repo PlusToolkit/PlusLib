@@ -1887,7 +1887,7 @@ PlusStatus vtkPlusChannel::GenerateDataAcquisitionReport(vtkPlusHTMLGenerator* h
 
   return PLUS_SUCCESS;
 #else
-  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+  LOG_WARNING("Cannot generate report when VTK_RENDERING_BACKEND is None!");
   return PLUS_FAIL;
 #endif
 }
