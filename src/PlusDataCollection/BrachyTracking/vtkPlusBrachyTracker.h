@@ -13,8 +13,6 @@ See License.txt for details.
 #include "PlusConfigure.h"
 #include "vtkPlusDevice.h"
 
-////class igsioTrackedFrame;
-
 /*!
 \class vtkPlusBrachyTracker
 \brief Interface to brachytherapy steppers
