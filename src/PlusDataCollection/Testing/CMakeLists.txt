@@ -578,7 +578,7 @@ IF(PLUS_TEST_TextRecognizer)
 ENDIF()
 
 #*************************** LeapMotionTest1 ***************************
-IF(PLUS_USE_LEAPMOTION)
+IF(PLUS_USE_LEAPMOTION AND PLUS_TEST_LEAPMOTION)
   ADD_EXECUTABLE(LeapMotionTest1 vtkLeapMotionTest1.cxx)
   SET_TARGET_PROPERTIES(LeapMotionTest1 PROPERTIES FOLDER Tests)
   TARGET_LINK_LIBRARIES(LeapMotionTest1 vtkPlusDataCollection) # add any other dependencies to the test executable
