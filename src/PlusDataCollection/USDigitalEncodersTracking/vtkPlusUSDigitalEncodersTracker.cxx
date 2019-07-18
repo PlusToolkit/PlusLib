@@ -15,7 +15,7 @@ See License.txt for details.
 #include "vtkMath.h"
 #include "vtkVector.h"
 
-#include "SEIDrv32.h"
+#include "SEIDrv.h"
 #include <sstream>
 
 #include "vtkPlusUSDigitalEncodersTracker.h"
@@ -25,8 +25,8 @@ vtkStandardNewMacro(vtkPlusUSDigitalEncodersTracker);
 class vtkPlusUSDigitalEncodersTracker::vtkPlusUSDigitalEncoderInfo
 {
 public:
-  long Model = 0;
-  long Version = 0;
+  std::string Model;
+  std::string Version;
   long Addr = 0;
   long Addr2 = 0;
 
@@ -141,13 +141,13 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalConnect()
   for(long deviceID = 0; deviceID < numberofConnectedEncoders; ++deviceID)
   {
     // Support multiple US digital A2 encoders.
-    long model = 0;
+    char model[100];
     long serialNumber = 0;
-    long version = 0;
+    char version[100];
     long address = 0;
     long retVal;
 
-    if(::GetDeviceInfo(deviceID, &model, &serialNumber, &version, &address) != 0)
+    if(::GetDeviceInfo(deviceID, serialNumber, address, model, version) != 0)
     {
       LOG_ERROR("Failed to get SEI device info for device number: " << deviceID);
       return PLUS_FAIL;
@@ -221,11 +221,7 @@ PlusStatus vtkPlusUSDigitalEncodersTracker::InternalDisconnect()
     return PLUS_SUCCESS;
   }
 
-  if(::CloseSEI() != 0)
-  {
-    LOG_ERROR("Failed to close SEI!");
-    return PLUS_FAIL;
-  }
+  ::CloseSEI();
 
   return PLUS_SUCCESS;
 }

@@ -33,7 +33,7 @@ public:
   vtkTypeMacro(vtkPlusUSDigitalEncodersTracker, vtkPlusDevice);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual bool IsTracker() const
+  bool IsTracker() const override
   {
     return true;
   }

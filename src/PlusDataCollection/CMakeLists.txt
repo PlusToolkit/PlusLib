@@ -899,19 +899,22 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
-    ${USDIGITAL_SEI_INCLUDE_DIR}
     )
+
+  IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    SET(Bitness "x64")
+  ELSE()
+    SET(Bitness "x86")
+  ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    vtkSEIDrv
     )
+  SET(vtkSEIDrv_vcProj vtkSEIDrv)
 
   LIST(APPEND External_Libraries_Install
-    ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
-    )
-  LIST(APPEND External_Libraries_Static_Install
-    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../SEIDrv/${Bitness}/USDigital${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../SEIDrv/${Bitness}/USDSEI${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -2463,7 +2466,7 @@ source_group("BlackMagic" FILES ${BlackMagicDeckLink_HDRS} ${BlackMagicDeckLink_
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE) # To force parent scope update
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing;${vtkSEIDrv_vcProj} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
