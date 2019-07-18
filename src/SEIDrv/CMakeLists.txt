@@ -1,5 +1,11 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
+if(CMAKE_VERSION VERSION_LESS 3.15.1)
+  message(WARNING "Beware of C++/CLI bug:\n  https://gitlab.kitware.com/cmake/cmake/issues/19480")
+  message(STATUS "The error message has the form:\n  %Temp%\\.NETFramework,Version=v4.0.AssemblyAttributes.cpp : fatal error C1083: Cannot open compiler generated file: 'Debug/.NETFramework,Version=v4.0.AssemblyAttributes.asm': No such file or directory")
+  message("If you encounter it, use CMake 3.15.1 or later")
+endif()
+
 PROJECT(SEIDrv)
 
 # Sources
