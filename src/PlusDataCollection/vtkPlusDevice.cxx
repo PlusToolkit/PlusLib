@@ -1040,7 +1040,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
 
   // Continue with device configuration
-  int acquisitionRate = 0;
+  double acquisitionRate = 0;
   if (deviceXMLElement->GetScalarAttribute("AcquisitionRate", acquisitionRate))
   {
     this->SetAcquisitionRate(acquisitionRate);
