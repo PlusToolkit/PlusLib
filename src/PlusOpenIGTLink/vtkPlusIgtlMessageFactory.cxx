@@ -380,9 +380,7 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
 
     igtl::Matrix4x4 igtlMatrix;
     vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, &transformRepository, transformName);
-
-    igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
-    vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, status, trackedFrame.GetTimestamp());
+    igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer()); 
     igsioFieldMapType frameFields = trackedFrame.GetFrameFields();
     for (igsioFieldMapType::iterator iter = frameFields.begin(); iter != frameFields.end(); ++iter)
     {
@@ -396,7 +394,7 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
         }
       }
     }
-
+    vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, status, trackedFrame.GetTimestamp());
     igtlMessages.push_back(transformMessage.GetPointer());
   }
 
