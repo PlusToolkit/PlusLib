@@ -10,16 +10,6 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-#if _WIN32
-  #include <combaseapi.h>
-#endif
-
-#define _stringify(x) #x
-#define STRINGIFY(x) _stringify(x)
-#include STRINGIFY(DeckLinkSDK_INCLUDE_FILE)
-#undef STRINGIFY
-#undef _stringify
-
 /*!
 \class vtkPlusDeckLinkVideoSource
 \brief Interface to a BlackMagic DeckLink
@@ -34,8 +24,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /* Device is a hardware tracker. */
-  virtual bool IsTracker() const { return false; }
-  virtual bool IsVirtual() const { return false; }
+  virtual bool IsTracker() const;
+  virtual bool IsVirtual() const;
 
   /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);

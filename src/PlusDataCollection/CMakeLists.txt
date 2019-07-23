@@ -589,12 +589,14 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(BlackMagicDeckLink_HDRS
       BlackMagic/vtkPlusDeckLinkVideoSource.h
+      BlackMagic/DeckLinkDevice.h
       ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
     )
   ENDIF()
 
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
+    BlackMagic/DeckLinkDevice.cpp
     )
 
   IF(UNIX AND NOT APPLE)

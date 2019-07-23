@@ -16,6 +16,9 @@ See License.txt for details.
 // System includes
 #include <string>
 
+// DeckLink SDK includes
+#include "DeckLinkDevice.h"
+
 //----------------------------------------------------------------------------
 // vtkPlusDeckLinkVideoSource::vtkInternal
 //----------------------------------------------------------------------------
@@ -30,15 +33,21 @@ public:
   vtkPlusDeckLinkVideoSource* External;
 
   vtkInternal(vtkPlusDeckLinkVideoSource* external)
-    : External(external)
-  {}
+    : External(external) {}
 
-  virtual ~vtkInternal()
-  {}
+  virtual ~vtkInternal() {}
+
+  int DeviceIndex = -1;
+  std::string DeviceName = "";
+  FrameSizeType RequestedFrameSize = {1920, 1080, 1};
+
+  DeckLinkDevice* DeckLink;
+
 private:
   static vtkPlusDeckLinkVideoSource::vtkInternal* New();
   vtkInternal()
     : External(nullptr)
+    , DeckLink(nullptr)
   {}
 };
 
@@ -67,7 +76,6 @@ vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource()
 
   this->FrameNumber = 0;
   this->StartThreadForInternalUpdates = true;
-  this->InternalUpdateRate = 30;
 }
 
 //----------------------------------------------------------------------------
@@ -87,6 +95,18 @@ void vtkPlusDeckLinkVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+bool vtkPlusDeckLinkVideoSource::IsTracker() const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDeckLinkVideoSource::IsVirtual() const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
 PlusStatus vtkPlusDeckLinkVideoSource::ReadConfiguration(vtkXMLDataElement* rootConfigElement)
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::ReadConfiguration");
@@ -94,6 +114,31 @@ PlusStatus vtkPlusDeckLinkVideoSource::ReadConfiguration(vtkXMLDataElement* root
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
 
   XML_FIND_NESTED_ELEMENT_REQUIRED(dataSourcesElement, deviceConfig, "DataSources");
+
+  int devIndex(-1);
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, DeviceIndex, devIndex, deviceConfig);
+  if (devIndex != -1)
+  {
+    this->Internal->DeviceIndex = devIndex;
+  }
+
+  std::string devName("");
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DeviceName, devName, deviceConfig);
+  if (!devName.empty())
+  {
+    this->Internal->DeviceName = devName;
+  }
+
+  int size[3] = {-1, -1, -1};
+  XML_READ_VECTOR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, 2, FrameSize, size, deviceConfig);
+  if (size[0] != -1 && size[1] != -1)
+  {
+    this->Internal->RequestedFrameSize[0] = static_cast<unsigned int>(size[0]);
+    this->Internal->RequestedFrameSize[1] = static_cast<unsigned int>(size[1]);
+    this->Internal->RequestedFrameSize[2] = 1;
+  }
+
+
 
   return PLUS_SUCCESS;
 }
