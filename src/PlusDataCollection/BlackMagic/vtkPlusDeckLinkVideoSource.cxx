@@ -17,7 +17,7 @@ See License.txt for details.
 #include <string>
 
 // DeckLink SDK includes
-#include "DeckLinkDevice.h"
+#include "DeckLinkAPIWrapper.h"
 
 //----------------------------------------------------------------------------
 // vtkPlusDeckLinkVideoSource::vtkInternal
@@ -41,13 +41,10 @@ public:
   std::string DeviceName = "";
   FrameSizeType RequestedFrameSize = {1920, 1080, 1};
 
-  DeckLinkDevice* DeckLink;
-
 private:
   static vtkPlusDeckLinkVideoSource::vtkInternal* New();
   vtkInternal()
     : External(nullptr)
-    , DeckLink(nullptr)
   {}
 };
 
@@ -137,8 +134,6 @@ PlusStatus vtkPlusDeckLinkVideoSource::ReadConfiguration(vtkXMLDataElement* root
     this->Internal->RequestedFrameSize[1] = static_cast<unsigned int>(size[1]);
     this->Internal->RequestedFrameSize[2] = 1;
   }
-
-
 
   return PLUS_SUCCESS;
 }

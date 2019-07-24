@@ -589,19 +589,15 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(BlackMagicDeckLink_HDRS
       BlackMagic/vtkPlusDeckLinkVideoSource.h
-      BlackMagic/DeckLinkDevice.h
+      BlackMagic/DeckLinkAPIWrapper.h
       ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
     )
   ENDIF()
 
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
-    BlackMagic/DeckLinkDevice.cpp
+    BlackMagic/DeckLinkAPIWrapper.cxx
     )
-
-  IF(UNIX AND NOT APPLE)
-    LIST(APPEND BlackMagicDeckLink_SRCS ${DeckLinkSDK_INCLUDE_DIR}/LinuxCOM.h)
-  ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${BlackMagicDeckLink_HDRS}
@@ -2411,6 +2407,12 @@ ENDIF()
 
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
+
+IF(PLUS_USE_BLACKMAGIC_DECKLINK)
+  DeckLinkGenerateAPIFiles(vtk${PROJECT_NAME})
+  target_sources(vtk${PROJECT_NAME} PRIVATE ${MIDL_OUTPUT})
+  LIST(APPEND BlackMagicDeckLink_SRCS ${MIDL_OUTPUT})
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Source groups
