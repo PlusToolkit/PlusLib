@@ -40,6 +40,9 @@ public:
   int DeviceIndex = -1;
   std::string DeviceName = "";
   FrameSizeType RequestedFrameSize = {1920, 1080, 1};
+  BMDPixelFormat RequestedPixelFormat = bmdFormatUnspecified;
+  BMDVideoConnection RequestedVideoConnection = bmdVideoConnectionUnspecified;
+  BMDDisplayMode RequestedDisplayMode = bmdModeUnknown;
 
 private:
   static vtkPlusDeckLinkVideoSource::vtkInternal* New();
@@ -135,6 +138,42 @@ PlusStatus vtkPlusDeckLinkVideoSource::ReadConfiguration(vtkXMLDataElement* root
     this->Internal->RequestedFrameSize[2] = 1;
   }
 
+  std::string pixelFormat("");
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(PixelFormat, pixelFormat, deviceConfig);
+  if (!pixelFormat.empty())
+  {
+    this->Internal->RequestedPixelFormat = DeckLinkAPIWrapper::PixelFormatFromString(pixelFormat);
+    if (this->Internal->RequestedPixelFormat == bmdFormatUnspecified)
+    {
+      LOG_ERROR("Unknown pixel format requested. Please see device page documentation for supported pixel formats.");
+      return PLUS_FAIL;
+    }
+  }
+
+  std::string videoConnection("");
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ConnectionType, videoConnection, deviceConfig);
+  if (!videoConnection.empty())
+  {
+    this->Internal->RequestedVideoConnection = DeckLinkAPIWrapper::VideoConnectionFromString(videoConnection);
+    if (this->Internal->RequestedVideoConnection == bmdVideoConnectionUnspecified)
+    {
+      LOG_ERROR("Unknown connection type requested. Please see device page documentation for supported connections.");
+      return PLUS_FAIL;
+    }
+  }
+
+  std::string displayMode("");
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(DisplayMode, displayMode, deviceConfig);
+  if (!displayMode.empty())
+  {
+    this->Internal->RequestedDisplayMode = DeckLinkAPIWrapper::DisplayModeFromString(displayMode);
+    if (this->Internal->RequestedDisplayMode == bmdModeUnknown)
+    {
+      LOG_ERROR("Unable to recognize requested display mode. Please see device documentation for valid entries.");
+      return PLUS_FAIL;
+    }
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -151,13 +190,115 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalConnect");
 
+  IDeckLink* deckLink(nullptr);
+  IDeckLinkIterator* deckLinkIterator(nullptr);
+  IDeckLinkInput* deckLinkInput(nullptr);
+  IDeckLinkDisplayModeIterator* deckLinkDisplayModeIterator(nullptr);
+  IDeckLinkDisplayMode* deckLinkDisplayMode(nullptr);
+
+#if WIN32
+  // Initialize COM on this thread
+  HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  if (FAILED(result))
+  {
+    LOG_ERROR("Initialization of COM failed - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
+    goto failure;
+  }
+#endif
+
+  deckLinkIterator = DeckLinkAPIWrapper::CreateDeckLinkIterator();
+
+  // Enumerate all cards in this system
+  int count = 0;
+  while (deckLinkIterator->Next(&deckLink) == S_OK)
+  {
+    // Query the DeckLink for its input interface
+    result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
+    if (result != S_OK)
+    {
+      LOG_ERROR("Could not obtain the IDeckLinkInput interface - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
+      goto failure;
+    }
+
+    if (deckLinkInput->GetDisplayModeIterator(&deckLinkDisplayModeIterator) != S_OK)
+    {
+      LOG_ERROR("Unable to iterate display modes. Cannot select input display mode.");
+      return PLUS_FAIL;
+    }
+
+    while (deckLinkDisplayModeIterator->Next(&deckLinkDisplayMode))
+    {
+      if (this->Internal->RequestedDisplayMode != bmdModeUnknown && deckLinkDisplayMode->GetDisplayMode() == this->Internal->RequestedDisplayMode)
+      {
+        BOOL supported;
+        if (deckLinkInput->DoesSupportVideoMode(this->Internal->RequestedVideoConnection, this->Internal->RequestedDisplayMode, this->Internal->RequestedPixelFormat, bmdSupportedVideoModeDefault, &supported) && supported)
+        {
+          // Found by display mode
+        }
+      }
+      else
+      {
+        BMDTimeValue frameDuration;
+        BMDTimeScale timeScale;
+        if (deckLinkDisplayMode->GetFrameRate(&frameDuration, &timeScale) != S_OK)
+        {
+          LOG_WARNING("Unable to retrieve frame rate for display mode. Skipping.");
+          continue;
+        }
+
+        if (deckLinkDisplayMode->GetWidth() == this->Internal->RequestedFrameSize[0] &&
+            deckLinkDisplayMode->GetHeight() == this->Internal->RequestedFrameSize[1] &&
+            (double)timeScale / (double)frameDuration == this->AcquisitionRate)
+        {
+          BOOL supported;
+          if (deckLinkInput->DoesSupportVideoMode(bmdVideoConnectionUnspecified, deckLinkDisplayMode->GetDisplayMode(), bmdFormatUnspecified, bmdSupportedVideoModeDefault, &supported) && supported)
+          {
+            // Found by frame details
+          }
+        }
+      }
+
+      deckLinkDisplayMode->Release();
+    }
+    deckLink->Release();
+    count++;
+  }
+
+failure:
+  if (deckLinkDisplayModeIterator)
+  {
+    deckLinkDisplayModeIterator->Release();
+  }
+  if (deckLinkIterator)
+  {
+    deckLinkIterator->Release();
+  }
+  if (deckLinkInput)
+  {
+    deckLinkInput->Release();
+  }
+  if (deckLink)
+  {
+    deckLink->Release();
+  }
+#if WIN32
+  // Uninitalize COM on this thread
+  CoUninitialize();
+#endif
+
   return PLUS_FAIL;
+
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalDisconnect");
+
+#if WIN32
+  // Uninitalize COM on this thread
+  CoUninitialize();
+#endif
 
   return PLUS_FAIL;
 }
