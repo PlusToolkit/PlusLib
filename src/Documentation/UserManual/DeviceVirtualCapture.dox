@@ -8,14 +8,14 @@ The file is saved as \ref FileSequenceMetafile format. If single file output for
 \section VirtualCaptureConfigSettings Device configuration settings
 
 - \xmlAtt \ref DeviceType "Type" = \c "VirtualCapture" \RequiredAtt
-- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" defines how frequently the device copies frames from the input data source to the disk. \OptionalAtt{10}
+- \xmlAtt \ref DeviceAcquisitionRate "AcquisitionRate" defines how frequently the device copies frames from the input data source to the disk. \OptionalAtt{30}
 - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
 
 - \xmlAtt \b BaseFilename File to write, path relative to output directory. \OptionalAtt{TrackedImageSequence.nrrd}
 - \xmlAtt \b EnableFileCompression Flag to write it compressed. \OptionalAtt{FALSE}
  - Warning! Beware file limits on old FAT32 disks (4GB maximum file size)
 - \xmlAtt \b EnableCapturingOnStart Enable capturing when device is connected (without a request to start capturing) \OptionalAtt{FALSE}
-- \xmlAtt \b RequestedFrameRate Requested frame rate for recording [frames/second]. If the input data source provides data at a higher rate then frames will be skipped. If the input data has lower frame rate then requested then all the frames in the input data will be recorded.\OptionalAtt{30.0}
+- \xmlAtt \b RequestedFrameRate Requested frame rate for recording [frames/second]. If the input data source provides data at a higher rate then frames will be skipped. If the input data has lower frame rate then requested then all the frames in the input data will be recorded.\OptionalAtt{15.0}
 - \xmlAtt \b FrameBufferSize Number of frames stored in memory before dumping to file. Increases memory need but allows higher recording frame rate (writing to memory is faster than to disk). By default it is disabled (frames are written directly to disk). \OptionalAtt{-1}
 
 \section VirtualCaptureExampleConfigFile Example configuration file PlusDeviceSet_Server_Sim_NwirePhantom.xml
