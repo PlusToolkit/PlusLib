@@ -232,8 +232,17 @@ PlusStatus vtkPlusVirtualTextRecognizer::FindOrQueryFrame(igsioTrackedFrame& fra
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusVirtualTextRecognizer::InternalConnect()
 {
+  if (this->TessdataDirectory.empty())
+  {
+    if (!vtksys::SystemTools::GetEnv("TESSDATA_PREFIX", this->TessdataDirectory))
+    {
+      this->SetTessdataDirectory(tesseract_data_dir);
+    }
+  }
+  LOG_DEBUG("Using tessdata directory: " << this->TessdataDirectory);
+
   std::stringstream ss;
-  ss << "TESSDATA_PREFIX=" << tesseract_data_dir;
+  ss << "TESSDATA_PREFIX=" << this->TessdataDirectory;
   vtksys::SystemTools::PutEnv(ss.str());
 
   this->TesseractAPI = new tesseract::TessBaseAPI();
@@ -280,9 +289,10 @@ PlusStatus vtkPlusVirtualTextRecognizer::ReadConfiguration(vtkXMLDataElement* ro
 
   this->SetLanguage(DEFAULT_LANGUAGE);
   XML_READ_CSTRING_ATTRIBUTE_OPTIONAL(Language, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_OPTIONAL(TessdataDirectory, deviceConfig);
 
   XML_FIND_NESTED_ELEMENT_OPTIONAL(screenFields, deviceConfig, PARAMETER_LIST_TAG_NAME);
-
+ 
   for (int i = 0; i < screenFields->GetNumberOfNestedElements(); ++i)
   {
     vtkXMLDataElement* fieldElement = screenFields->GetNestedElement(i);

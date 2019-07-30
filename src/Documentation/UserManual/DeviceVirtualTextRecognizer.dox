@@ -7,7 +7,8 @@ This device can recognize text (in the language specified by \ref Language) from
 
 - \xmlElem \ref Device
   - \xmlAtt \ref DeviceType "Type" = \c "VirtualTextRecognizer" \RequiredAtt
-  - \xmlAtt \b Language \anchor Language Language to be recognized. \OptionalAtt{eng} 
+  - \xmlAtt \anchor Language \b Language Language to be recognized. \OptionalAtt{eng} 
+  - \xmlAtt \b TessdataDirectory Path to the parent of the "tessdata" directory containing the language files. If this is not set, it will default to the "TESSDATA_PREFIX" environment variable. \OptionalAtt{ } 
   - \xmlElem TextFields Multiple \c Field child elements are allowed, one for each parameter to recognize \RequiredAtt
     - \xmlElem \b Field \RequiredAtt
 	    - \xmlAtt \b Channel The input channel to pull data from for recognition. \RequiredAtt 
