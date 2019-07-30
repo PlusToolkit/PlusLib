@@ -37,11 +37,7 @@ public:
   vtkInternal(vtkPlusDeckLinkVideoSource* external)
     : External(external) {}
 
-  virtual ~vtkInternal()
-  {
-    this->DeckLinkVideoConversion->Release();
-    this->DeckLinkVideoConversion = nullptr;
-  }
+  virtual ~vtkInternal() {}
 
   int                       DeviceIndex = -1;
   bool                      PreviousFrameValid = false;
@@ -438,6 +434,9 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalDisconnect");
 
+  this->Internal->DeckLinkVideoConversion->Release();
+  this->Internal->DeckLinkVideoConversion = nullptr;
+
   delete this->Internal->OutputFrame;
   this->Internal->OutputFrame = nullptr;
 
@@ -598,6 +597,7 @@ HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDe
           LOG_ERROR("Unable to add video item to buffer.");
           return PLUS_FAIL;
         }
+        this->FrameNumber++;
       }
     }
 
