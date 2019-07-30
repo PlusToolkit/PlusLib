@@ -7,8 +7,10 @@ See License.txt for details.
 #include "PlusConfigure.h"
 
 // Local includes
-#include "vtkPlusDeckLinkVideoSource.h"
+#include "PlusOutputVideoFrame.h"
 #include "vtkIGSIOAccurateTimer.h"
+#include "vtkPlusDataSource.h"
+#include "vtkPlusDeckLinkVideoSource.h"
 
 // VTK includes
 #include <vtkObject.h>
@@ -35,22 +37,65 @@ public:
   vtkInternal(vtkPlusDeckLinkVideoSource* external)
     : External(external) {}
 
-  virtual ~vtkInternal() {}
+  virtual ~vtkInternal()
+  {
+    this->DeckLinkVideoConversion->Release();
+    this->DeckLinkVideoConversion = nullptr;
+  }
 
-  int DeviceIndex = -1;
-  std::string DeviceName = "";
-  FrameSizeType RequestedFrameSize = {1920, 1080, 1};
-  BMDPixelFormat RequestedPixelFormat = bmdFormatUnspecified;
-  BMDVideoConnection RequestedVideoConnection = bmdVideoConnectionUnspecified;
-  BMDDisplayMode RequestedDisplayMode = bmdModeUnknown;
+  int                       DeviceIndex = -1;
+  bool                      PreviousFrameValid = false;
+  std::string               DeviceName = "";
+  FrameSizeType             RequestedFrameSize = { 1920, 1080, 1 };
+  BMDPixelFormat            RequestedPixelFormat = bmdFormatUnspecified;
+  BMDVideoConnection        RequestedVideoConnection = bmdVideoConnectionUnspecified;
+  BMDDisplayMode            RequestedDisplayMode = bmdModeUnknown;
+
+  IDeckLink*                DeckLink = nullptr;
+  IDeckLinkInput*           DeckLinkInput = nullptr;
+  IDeckLinkDisplayMode*     DeckLinkDisplayMode = nullptr;
+  IDeckLinkVideoConversion* DeckLinkVideoConversion = nullptr;
+
+  PlusOutputVideoFrame*     OutputFrame = nullptr;
+
+  std::atomic_bool          COMInitialized = false;
 
 private:
   static vtkPlusDeckLinkVideoSource::vtkInternal* New();
-  vtkInternal()
-    : External(nullptr)
-  {}
+  vtkInternal() : External(nullptr) {}
 };
 
+namespace
+{
+  //----------------------------------------------------------------------------
+  bool InitCOM(std::atomic_bool& comInit)
+  {
+#if WIN32
+    if (!comInit)
+    {
+      // Initialize COM on this thread
+      HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+      if (FAILED(result))
+      {
+        LOG_ERROR("Initialization of COM failed - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
+        return false;
+      }
+      comInit = true;
+    }
+#endif
+    return true;
+  }
+
+  //----------------------------------------------------------------------------
+  void ShutdownCOM(std::atomic_bool& comInit)
+  {
+    if (comInit)
+    {
+      CoUninitialize();
+      comInit = false;
+    }
+  }
+}
 //----------------------------------------------------------------------------
 // vtkPlusDeckLinkVideoSource
 //----------------------------------------------------------------------------
@@ -71,11 +116,12 @@ vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource::vtkInternal* vtkPlusDeck
 vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource()
   : vtkPlusDevice()
   , Internal(vtkInternal::New(this))
+  , ReferenceCount(1)
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::vtkPlusDeckLinkVideoSource()");
 
   this->FrameNumber = 0;
-  this->StartThreadForInternalUpdates = true;
+  this->StartThreadForInternalUpdates = false; // callback based device
 }
 
 //----------------------------------------------------------------------------
@@ -83,8 +129,75 @@ vtkPlusDeckLinkVideoSource::~vtkPlusDeckLinkVideoSource()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::~vtkPlusDeckLinkVideoSource()");
 
+  if (this->Internal->DeckLinkDisplayMode != nullptr)
+  {
+    this->Internal->DeckLinkDisplayMode->Release();
+  }
+  if (this->Internal->DeckLinkInput != nullptr)
+  {
+    this->Internal->DeckLinkInput->Release();
+  }
+  if (this->Internal->DeckLink != nullptr)
+  {
+    this->Internal->DeckLink->Release();
+  }
+
+  ShutdownCOM(this->Internal->COMInitialized);
+
   this->Internal->Delete();
   this->Internal = nullptr;
+}
+
+//----------------------------------------------------------------------------
+HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::QueryInterface(REFIID iid, LPVOID* ppv)
+{
+  HRESULT result = E_NOINTERFACE;
+
+  if (ppv == NULL)
+  {
+    return E_INVALIDARG;
+  }
+
+  // Initialize the return result
+  *ppv = NULL;
+
+  // Obtain the IUnknown interface and compare it the provided REFIID
+  if (iid == IID_IUnknown)
+  {
+    *ppv = this;
+    AddRef();
+    result = S_OK;
+  }
+  else if (iid == IID_IDeckLinkInputCallback)
+  {
+    *ppv = (IDeckLinkInputCallback*)this;
+    AddRef();
+    result = S_OK;
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+ULONG STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::AddRef()
+{
+  return ++ReferenceCount;
+}
+
+//----------------------------------------------------------------------------
+ULONG STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::Release()
+{
+  ULONG newRefValue;
+
+  ReferenceCount--;
+  newRefValue = ReferenceCount;
+  if (newRefValue == 0)
+  {
+    delete this;
+    return 0;
+  }
+
+  return newRefValue;
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +264,7 @@ PlusStatus vtkPlusDeckLinkVideoSource::ReadConfiguration(vtkXMLDataElement* root
   }
 
   std::string videoConnection("");
-  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(ConnectionType, videoConnection, deviceConfig);
+  XML_READ_STRING_ATTRIBUTE_NONMEMBER_OPTIONAL(VideoConnection, videoConnection, deviceConfig);
   if (!videoConnection.empty())
   {
     this->Internal->RequestedVideoConnection = DeckLinkAPIWrapper::VideoConnectionFromString(videoConnection);
@@ -195,16 +308,14 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
   IDeckLinkInput* deckLinkInput(nullptr);
   IDeckLinkDisplayModeIterator* deckLinkDisplayModeIterator(nullptr);
   IDeckLinkDisplayMode* deckLinkDisplayMode(nullptr);
+  HRESULT result;
 
-#if WIN32
-  // Initialize COM on this thread
-  HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-  if (FAILED(result))
+  if (!InitCOM(this->Internal->COMInitialized))
   {
-    LOG_ERROR("Initialization of COM failed - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
-    goto failure;
+    goto out;
   }
-#endif
+
+  this->Internal->DeckLinkVideoConversion = DeckLinkAPIWrapper::CreateVideoConversion();
 
   deckLinkIterator = DeckLinkAPIWrapper::CreateDeckLinkIterator();
 
@@ -212,59 +323,73 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
   int count = 0;
   while (deckLinkIterator->Next(&deckLink) == S_OK)
   {
-    // Query the DeckLink for its input interface
-    result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
-    if (result != S_OK)
+    if (this->Internal->DeviceIndex == -1 || count == this->Internal->DeviceIndex)
     {
-      LOG_ERROR("Could not obtain the IDeckLinkInput interface - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
-      goto failure;
-    }
-
-    if (deckLinkInput->GetDisplayModeIterator(&deckLinkDisplayModeIterator) != S_OK)
-    {
-      LOG_ERROR("Unable to iterate display modes. Cannot select input display mode.");
-      return PLUS_FAIL;
-    }
-
-    while (deckLinkDisplayModeIterator->Next(&deckLinkDisplayMode))
-    {
-      if (this->Internal->RequestedDisplayMode != bmdModeUnknown && deckLinkDisplayMode->GetDisplayMode() == this->Internal->RequestedDisplayMode)
+      // Query the DeckLink for its input interface
+      result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
+      if (result != S_OK)
       {
-        BOOL supported;
-        if (deckLinkInput->DoesSupportVideoMode(this->Internal->RequestedVideoConnection, this->Internal->RequestedDisplayMode, this->Internal->RequestedPixelFormat, bmdSupportedVideoModeDefault, &supported) && supported)
-        {
-          // Found by display mode
-        }
+        LOG_ERROR("Could not obtain the IDeckLinkInput interface - result = " << std::hex << std::setw(8) << std::setfill('0') << result);
+        goto out;
       }
-      else
-      {
-        BMDTimeValue frameDuration;
-        BMDTimeScale timeScale;
-        if (deckLinkDisplayMode->GetFrameRate(&frameDuration, &timeScale) != S_OK)
-        {
-          LOG_WARNING("Unable to retrieve frame rate for display mode. Skipping.");
-          continue;
-        }
 
-        if (deckLinkDisplayMode->GetWidth() == this->Internal->RequestedFrameSize[0] &&
-            deckLinkDisplayMode->GetHeight() == this->Internal->RequestedFrameSize[1] &&
-            (double)timeScale / (double)frameDuration == this->AcquisitionRate)
+      if (deckLinkInput->GetDisplayModeIterator(&deckLinkDisplayModeIterator) != S_OK)
+      {
+        LOG_ERROR("Unable to iterate display modes. Cannot select input display mode.");
+        return PLUS_FAIL;
+      }
+
+      while (deckLinkDisplayModeIterator->Next(&deckLinkDisplayMode) == S_OK)
+      {
+        if (this->Internal->RequestedDisplayMode != bmdModeUnknown && deckLinkDisplayMode->GetDisplayMode() == this->Internal->RequestedDisplayMode)
         {
           BOOL supported;
-          if (deckLinkInput->DoesSupportVideoMode(bmdVideoConnectionUnspecified, deckLinkDisplayMode->GetDisplayMode(), bmdFormatUnspecified, bmdSupportedVideoModeDefault, &supported) && supported)
+          if (deckLinkInput->DoesSupportVideoMode(this->Internal->RequestedVideoConnection, this->Internal->RequestedDisplayMode, this->Internal->RequestedPixelFormat, bmdSupportedVideoModeDefault, &supported) == S_OK && supported)
           {
-            // Found by frame details
+            // Found by display mode
+            this->Internal->DeckLink = deckLink;
+            this->Internal->DeckLinkInput = deckLinkInput;
+            this->Internal->DeckLinkDisplayMode = deckLinkDisplayMode;
+            goto out;
           }
         }
+        else if (this->Internal->RequestedDisplayMode == bmdModeUnknown)
+        {
+          BMDTimeValue frameDuration;
+          BMDTimeScale timeScale;
+          if (deckLinkDisplayMode->GetFrameRate(&frameDuration, &timeScale) != S_OK)
+          {
+            LOG_WARNING("Unable to retrieve frame rate for display mode. Skipping.");
+            continue;
+          }
+
+          if (deckLinkDisplayMode->GetWidth() == this->Internal->RequestedFrameSize[0] &&
+              deckLinkDisplayMode->GetHeight() == this->Internal->RequestedFrameSize[1] &&
+              (double)timeScale / (double)frameDuration == this->AcquisitionRate)
+          {
+            BOOL supported;
+            if (deckLinkInput->DoesSupportVideoMode(bmdVideoConnectionUnspecified, deckLinkDisplayMode->GetDisplayMode(), bmdFormatUnspecified, bmdSupportedVideoModeDefault, &supported) && supported)
+            {
+              // Found by frame details
+              this->Internal->DeckLink = deckLink;
+              this->Internal->DeckLinkInput = deckLinkInput;
+              this->Internal->DeckLinkDisplayMode = deckLinkDisplayMode;
+              goto out;
+            }
+          }
+        }
+        deckLinkDisplayMode->Release();
       }
 
-      deckLinkDisplayMode->Release();
+      deckLinkDisplayModeIterator->Release();
+      deckLinkInput->Release();
+      deckLink->Release();
+
+      count++;
     }
-    deckLink->Release();
-    count++;
   }
 
-failure:
+out:
   if (deckLinkDisplayModeIterator)
   {
     deckLinkDisplayModeIterator->Release();
@@ -273,21 +398,39 @@ failure:
   {
     deckLinkIterator->Release();
   }
-  if (deckLinkInput)
-  {
-    deckLinkInput->Release();
-  }
-  if (deckLink)
-  {
-    deckLink->Release();
-  }
-#if WIN32
-  // Uninitalize COM on this thread
-  CoUninitialize();
-#endif
 
-  return PLUS_FAIL;
+  if (this->Internal->DeckLinkInput)
+  {
+    // Confirm data source is correctly configured. If not, abort
+    BMDTimeValue frameDuration;
+    BMDTimeScale timeScale;
+    this->Internal->DeckLinkDisplayMode->GetFrameRate(&frameDuration, &timeScale);
+    vtkPlusDataSource* source;
+    this->GetFirstVideoSource(source);
+    source->SetInputFrameSize(this->Internal->RequestedFrameSize);
+    source->SetPixelType(VTK_UNSIGNED_CHAR);
+    source->SetNumberOfScalarComponents(4);
 
+    this->Internal->DeckLinkInput->SetCallback(this);
+    this->Internal->DeckLinkInput->SetScreenPreviewCallback(nullptr);
+    this->Internal->DeckLinkInput->DisableAudioInput();
+
+    if (this->Internal->DeckLinkInput->EnableVideoInput(this->Internal->DeckLinkDisplayMode->GetDisplayMode(), this->Internal->RequestedPixelFormat, bmdVideoInputFlagDefault) != S_OK)
+    {
+      LOG_ERROR("Unable to enable video input.");
+      this->Internal->DeckLinkDisplayMode->Release();
+      this->Internal->DeckLinkDisplayMode = nullptr;
+      this->Internal->DeckLinkInput->Release();
+      this->Internal->DeckLinkInput = nullptr;
+      this->Internal->DeckLink->Release();
+      this->Internal->DeckLink = nullptr;
+      return PLUS_FAIL;
+    }
+  }
+
+  this->Internal->OutputFrame = new PlusOutputVideoFrame(this->Internal->DeckLinkDisplayMode->GetWidth(), this->Internal->DeckLinkDisplayMode->GetHeight(), bmdFormat8BitBGRA, bmdFrameFlagDefault);
+
+  return this->Internal->DeckLinkInput == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
@@ -295,10 +438,30 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalDisconnect");
 
-#if WIN32
-  // Uninitalize COM on this thread
-  CoUninitialize();
-#endif
+  delete this->Internal->OutputFrame;
+  this->Internal->OutputFrame = nullptr;
+
+  this->StopRecording();
+  this->Internal->DeckLinkInput->SetScreenPreviewCallback(NULL);
+  this->Internal->DeckLinkInput->SetCallback(NULL);
+
+  if (this->Internal->DeckLinkDisplayMode != nullptr)
+  {
+    this->Internal->DeckLinkDisplayMode->Release();
+    this->Internal->DeckLinkDisplayMode = nullptr;
+  }
+  if (this->Internal->DeckLinkInput != nullptr)
+  {
+    this->Internal->DeckLinkInput->Release();
+    this->Internal->DeckLinkInput = nullptr;
+  }
+  if (this->Internal->DeckLink != nullptr)
+  {
+    this->Internal->DeckLink->Release();
+    this->Internal->DeckLink = nullptr;
+  }
+
+  ShutdownCOM(this->Internal->COMInitialized);
 
   return PLUS_FAIL;
 }
@@ -307,27 +470,138 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
 PlusStatus vtkPlusDeckLinkVideoSource::InternalStartRecording()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalStartRecording");
-  return PLUS_FAIL;
+
+  if (this->Internal->DeckLinkInput != nullptr)
+  {
+    if (this->Internal->DeckLinkInput->StartStreams() != S_OK)
+    {
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDeckLinkVideoSource::InternalStopRecording()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalStopRecording");
-  return PLUS_FAIL;
+
+  if (this->Internal->DeckLinkInput != nullptr)
+  {
+    if (this->Internal->DeckLinkInput->StopStreams() != S_OK)
+    {
+      return PLUS_FAIL;
+    }
+  }
+  else
+  {
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDeckLinkVideoSource::Probe()
 {
   LOG_TRACE("vtkPlusDeckLinkVideoSource::Probe");
-  return PLUS_FAIL;
+
+  bool comInit = this->Internal->COMInitialized;
+  if (!InitCOM(this->Internal->COMInitialized))
+  {
+    return PLUS_FAIL;
+  }
+
+  // Do stuff
+  IDeckLinkIterator* deckLinkIterator = DeckLinkAPIWrapper::CreateDeckLinkIterator();
+  IDeckLink* deckLink(nullptr);
+
+  if (deckLinkIterator == nullptr)
+  {
+    return PLUS_FAIL;
+  }
+
+  // Does this system contain any DeckLink device?
+  bool result(false);
+  if (deckLinkIterator->Next(&deckLink) == S_OK)
+  {
+    result = true;
+  }
+
+  if (!comInit)
+  {
+    ShutdownCOM(this->Internal->COMInitialized);
+  }
+
+  return result ? PLUS_SUCCESS : PLUS_FAIL;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDeckLinkVideoSource::InternalUpdate()
+PlusStatus vtkPlusDeckLinkVideoSource::NotifyConfigured()
 {
-  LOG_TRACE("vtkPlusDeckLinkVideoSource::InternalUpdate");
+  if (this->GetNumberOfVideoSources() == 0)
+  {
+    LOG_ERROR("DeckLinkVideoSource requires at least one video source. Please correct configuration file.");
+    return PLUS_FAIL;
+  }
 
-  return PLUS_FAIL;
+  if (this->OutputChannelCount() == 0)
+  {
+    LOG_ERROR("DeckLinkVideoSource requires at least one output channel. Please correct configuration file.");
+    return PLUS_FAIL;
+  }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFormatChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode* newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags)
+{
+  return S_OK;
+}
+
+#include <vtkImageImport.h>
+#include <vtkNew.h>
+#include <vtkImageHistogramStatistics.h>
+#include <wincodec.h>
+
+//----------------------------------------------------------------------------
+HRESULT STDMETHODCALLTYPE vtkPlusDeckLinkVideoSource::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioPacket)
+{
+  if (videoFrame)
+  {
+    this->Internal->OutputFrame->SetFlags(videoFrame->GetFlags());
+
+    bool inputFrameValid = ((videoFrame->GetFlags() & bmdFrameHasNoInputSource) == 0);
+
+    if (inputFrameValid && !this->Internal->PreviousFrameValid)
+    {
+      this->Internal->DeckLinkInput->StopStreams();
+      this->Internal->DeckLinkInput->FlushStreams();
+      this->Internal->DeckLinkInput->StartStreams();
+    }
+
+    if (inputFrameValid && this->Internal->PreviousFrameValid && this->Internal->DeckLinkVideoConversion->ConvertFrame(videoFrame, this->Internal->OutputFrame) == S_OK)
+    {
+      void* buffer;
+      if (this->Internal->OutputFrame->GetBytes(&buffer) == S_OK)
+      {
+        vtkPlusDataSource* source;
+        this->GetFirstVideoSource(source);
+        if (source->AddItem(buffer, this->Internal->RequestedFrameSize, this->Internal->OutputFrame->GetHeight() * this->Internal->OutputFrame->GetRowBytes(), US_IMG_RGB_COLOR, this->FrameNumber) != PLUS_SUCCESS)
+        {
+          LOG_ERROR("Unable to add video item to buffer.");
+          return PLUS_FAIL;
+        }
+      }
+    }
+
+    this->Internal->PreviousFrameValid = inputFrameValid;
+  }
+  return S_OK;
 }

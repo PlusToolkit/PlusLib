@@ -10,13 +10,22 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
+// DeckLink includes
+#if WIN32
+  // Windows includes
+  #include <comutil.h>
+#endif
+#include <DeckLinkAPI.h>
+
+// STL includes
+#include <atomic>
+
 /*!
 \class vtkPlusDeckLinkVideoSource
-\brief Interface to a BlackMagic DeckLink
-capture card
+\brief Interface to a BlackMagic DeckLink capture card
 \ingroup PlusLibDataCollection
 */
-class vtkPlusDataCollectionExport vtkPlusDeckLinkVideoSource : public vtkPlusDevice
+class vtkPlusDataCollectionExport vtkPlusDeckLinkVideoSource : public vtkPlusDevice, public IDeckLinkInputCallback
 {
 public:
   static vtkPlusDeckLinkVideoSource* New();
@@ -27,33 +36,31 @@ public:
   virtual bool IsTracker() const;
   virtual bool IsVirtual() const;
 
-  /*! Read configuration from xml data */
   virtual PlusStatus ReadConfiguration(vtkXMLDataElement* config);
-
-  /*! Write configuration to xml data */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement* config);
-
-  /*! Connect to device */
-  PlusStatus InternalConnect();
-
-  /*! Disconnect from device */
+  virtual PlusStatus InternalConnect();
   virtual PlusStatus InternalDisconnect();
-
-  /*! Start the tracking system. */
-  PlusStatus InternalStartRecording();
-
-  /*! Stop the tracking system and bring it back to its initial state. */
-  PlusStatus InternalStopRecording();
-
-  /*! Probe to see if the tracking system is present. */
-  PlusStatus Probe();
-
-  /*! Perform update */
-  PlusStatus InternalUpdate();
+  virtual PlusStatus InternalStartRecording();
+  virtual PlusStatus InternalStopRecording();
+  virtual PlusStatus Probe();
+  virtual PlusStatus NotifyConfigured();
 
 protected:
   vtkPlusDeckLinkVideoSource();
   ~vtkPlusDeckLinkVideoSource();
+
+protected:
+  // IDeckLinkInputCallback interface
+  virtual HRESULT STDMETHODCALLTYPE VideoInputFormatChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode* newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags);
+  virtual HRESULT STDMETHODCALLTYPE VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioPacket);
+
+  // IUnknown interface
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, LPVOID* ppv);
+  virtual ULONG STDMETHODCALLTYPE AddRef();
+  virtual ULONG STDMETHODCALLTYPE Release();
+
+protected:
+  std::atomic<ULONG> ReferenceCount;
 
 private:
   vtkPlusDeckLinkVideoSource(const vtkPlusDeckLinkVideoSource&); // Not implemented

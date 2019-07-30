@@ -590,6 +590,7 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
     SET(BlackMagicDeckLink_HDRS
       BlackMagic/vtkPlusDeckLinkVideoSource.h
       BlackMagic/DeckLinkAPIWrapper.h
+	  BlackMagic/PlusOutputVideoFrame.h
       ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
     )
   ENDIF()
@@ -597,7 +598,14 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
   SET(BlackMagicDeckLink_SRCS
     BlackMagic/vtkPlusDeckLinkVideoSource.cxx
     BlackMagic/DeckLinkAPIWrapper.cxx
+	BlackMagic/PlusOutputVideoFrame.cxx
     )
+
+  IF(UNIX)
+    LIST(APPEND BlackMagicDeckLink_SRCS 
+      ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
+      )
+  ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_HDRS
     ${BlackMagicDeckLink_HDRS}
