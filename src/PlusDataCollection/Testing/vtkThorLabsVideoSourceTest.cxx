@@ -20,10 +20,14 @@
 #include "vtkChartXY.h"
 #include "vtkCommand.h"
 #include "vtkContextScene.h"
+#if PLUS_RENDERING_ENABLED
 #include "vtkContextView.h"
+#endif
 #include "vtkFloatArray.h"
 #include "vtkImageData.h"
+#if PLUS_RENDERING_ENABLED
 #include "vtkImageViewer.h"
+#endif
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkPlot.h"
@@ -148,8 +152,8 @@ private:
 
 vtkStandardNewMacro(vtkExtractImageRow);
 
+#if PLUS_RENDERING_ENABLED
 //---------------------------------------------------------------------------------
-
 class vtkMyPlotCallback : public vtkCommand
 {
 public:
@@ -248,9 +252,9 @@ private:
     m_Viewer=NULL;
   }
 };
+#endif
 
 //-------------------------------------------------------------------------------------------
-
 int main(int argc, char* argv[])
 {
   bool printHelp(false); 
@@ -340,10 +344,11 @@ int main(int argc, char* argv[])
       LOG_WARNING("Multiple output channels contain video data: "<<allChannelNames<<". Only the first one ("<<firstChannelName<<") will be displayed");
     }
 
+#if PLUS_RENDERING_ENABLED
     TestLinePlot(spectrometer);
+#endif
   }
 
   spectrometer->Disconnect();
   return EXIT_SUCCESS;
 }
-
