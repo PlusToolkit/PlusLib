@@ -641,8 +641,15 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
+  uint32_t i = 0;
   for (auto it = names.begin(); it != names.end(); ++it)
   {
+    if (it->GetTransformName().empty())
+    {
+      LOG_ERROR("Unable to pack transform element in TDATA message. Skipping.");
+      continue;
+    }
+
     vtkNew<vtkMatrix4x4> vtkMat;
     ToolStatus status(TOOL_INVALID);
     if (repository.GetTransform(*it, vtkMat.GetPointer(), &status) != PLUS_SUCCESS)
@@ -658,14 +665,17 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
     }
 
     igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
-    std::string shortenedName = it->GetTransformName().empty() ? "UnknownToUnknown" : it->GetTransformName().substr(0, IGTL_TDATA_LEN_NAME);
+    std::string shortenedName = it->GetTransformName().substr(0, IGTL_TDATA_LEN_NAME);
     trackElement->SetName(shortenedName.c_str());
     trackElement->SetType(igtl::TrackingDataElement::TYPE_6D);
     trackElement->SetMatrix(matrix);
     trackingDataMessage->AddTrackingDataElement(trackElement);
-    trackingDataMessage->SetMetaDataElement(shortenedName + "Status", IANA_TYPE_US_ASCII,  igsioCommon::ConvertToolStatusToString(status));
+    trackingDataMessage->SetMetaDataElement(it->GetTransformName() + "Status", IANA_TYPE_US_ASCII,  igsioCommon::ConvertToolStatusToString(status));
+    trackingDataMessage->SetMetaDataElement(it->GetTransformName() + "Index", IANA_TYPE_US_ASCII, igsioCommon::ToString(i));
+    ++i;
   }
 
+  trackingDataMessage->SetDeviceName("TDATA_" + igsioCommon::ToString(trackingDataMessage->GetNumberOfTrackingDataElements()) + "Elem");
   trackingDataMessage->SetTimeStamp(igtlTime);
   trackingDataMessage->Pack();
 
