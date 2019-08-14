@@ -27,6 +27,8 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 
+class AhrsAlgo;
+
 /*!
 \class vtkPlusClarius
 \brief Interface to the Clarius ultrasound scans
@@ -183,6 +185,60 @@ protected:
 
   static void NewImageFn(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos);
   static void SaveDataCallback(const void* newImage, const ClariusImageInfo* nfo, int npos, const ClariusPosInfo* pos);
+
+  vtkPlusDataSource* AccelerometerTool;
+  vtkPlusDataSource* GyroscopeTool;
+  vtkPlusDataSource* MagnetometerTool;
+  vtkPlusDataSource* TiltSensorTool;
+  vtkPlusDataSource* FilteredTiltSensorTool;
+  vtkPlusDataSource* OrientationSensorTool;
+  vtkNew<vtkMatrix4x4> LastAccelerometerToTrackerTransform;
+  vtkNew<vtkMatrix4x4> LastGyroscopeToTrackerTransform;
+  vtkNew<vtkMatrix4x4> LastMagnetometerToTrackerTransform;
+  vtkNew<vtkMatrix4x4> LastTiltSensorToTrackerTransform;
+  vtkNew<vtkMatrix4x4> LastFilteredTiltSensorToTrackerTransform;
+  vtkNew<vtkMatrix4x4> LastOrientationSensorToTrackerTransform;
+
+  enum AHRS_METHOD
+  {
+    AHRS_MADGWICK,
+    AHRS_MAHONY
+  };
+
+  AhrsAlgo* FilteredTiltSensorAhrsAlgo;
+
+  AhrsAlgo* AhrsAlgo;
+
+  /*!
+    If AhrsUseMagnetometer enabled (a ..._MARG algorithm is chosen) then heading will be estimated using magnetometer data.
+    Otherwise (when a ..._IMU algorithm is chosen) only the gyroscope data will be used for getting the heading information.
+    IMU may be more noisy, but not sensitive to magnetic field distortions.
+  */
+  bool AhrsUseMagnetometer;
+
+  /*!
+    Gain values used by the AHRS algorithm (Mahony: first parameter is proportional, second is integral gain; Madgwick: only the first parameter is used)
+    Higher gain gives higher reliability to accelerometer&magnetometer data.
+  */
+  double AhrsAlgorithmGain[2];
+  double FilteredTiltSensorAhrsAlgorithmGain[2];
+  vtkSetVector2Macro(AhrsAlgorithmGain, double);
+  vtkSetVector2Macro(FilteredTiltSensorAhrsAlgorithmGain, double);
+
+  /*! last AHRS update time (in system time) */
+  double AhrsLastUpdateTime;
+  double FilteredTiltSensorAhrsLastUpdateTime;
+
+  /*!
+    In tilt sensor mode we don't use the magnetometer, so we have to provide a direction reference.
+    The orientation is specified by specifying an axis that will always point to the "West" direction.
+    Recommended values:
+    If sensor axis 0 points down (the sensor plane is about vertical) => TiltSensorDownAxisIndex = 2.
+    If sensor axis 1 points down (the sensor plane is about vertical) => TiltSensorDownAxisIndex = 0.
+    If sensor axis 2 points down (the sensor plane is about horizontal) => TiltSensorDownAxisIndex = 1.
+  */
+  int TiltSensorWestAxisIndex;
+  int FilteredTiltSensorWestAxisIndex;
 };
 
 #endif //_VTKPLUSCLARIUS_H

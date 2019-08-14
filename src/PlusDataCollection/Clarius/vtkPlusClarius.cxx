@@ -12,6 +12,10 @@
 #include "vtkPlusUsImagingParameters.h"
 #include "vtkPlusClarius.h"
 
+// IGSIO includes
+#include <vtkIGSIOAccurateTimer.h>
+#include <igsioMath.h>
+
 // VTK includes
 #include <vtk_zlib.h>
 #include <vtkImageData.h>
@@ -19,9 +23,11 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
+#include <vtkTransform.h>
 #include <vtkXMLUtilities.h>
-#include <vtkIGSIOAccurateTimer.h>
+#include <vtkMatrix4x4.h>
 
+// std includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -30,6 +36,10 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+
+// vtkxio includes
+#include "MadgwickAhrsAlgo.h"
+#include "MahonyAhrsAlgo.h"
 
 // OpenCV includes
 #include <opencv2/imgproc.hpp>
@@ -62,7 +72,6 @@ vtkPlusClarius* vtkPlusClarius::New()
   {
     instance = new vtkPlusClarius();
   }
-
   return instance;
 }
 
@@ -89,6 +98,21 @@ vtkPlusClarius::vtkPlusClarius()
   this->StartThreadForInternalUpdates = false;
   this->FrameWidth = DEFAULT_FRAME_WIDTH;
   this->FrameHeight = DEFAULT_FRAME_HEIGHT;
+
+  // Set up the AHRS algorithm used by the orientation sensor tool
+  this->AhrsAlgo = new MadgwickAhrsAlgo;
+  this->AhrsUseMagnetometer = true;
+  this->AhrsAlgorithmGain[0] = 1.5; // proportional
+  this->AhrsAlgorithmGain[1] = 0.0; // integral
+  this->AhrsLastUpdateTime = -1;
+
+  // set up the AHRS algorithm used by the FilteredTiltSensor sensor tool
+  this->FilteredTiltSensorAhrsAlgo = new MadgwickAhrsAlgo;
+  this->FilteredTiltSensorAhrsAlgorithmGain[0] = 1.5; // proportional
+  this->FilteredTiltSensorAhrsAlgorithmGain[1] = 0.0; // integral
+  this->FilteredTiltSensorAhrsLastUpdateTime = -1;
+  this->FilteredTiltSensorWestAxisIndex = 1;
+  this->TiltSensorWestAxisIndex = 1; // the sensor plane is horizontal (axis 2 points down, axis 1 points West)
 
   instance = this;
 }
@@ -163,6 +187,113 @@ PlusStatus vtkPlusClarius::ReadConfiguration(vtkXMLDataElement* rootConfigElemen
   {
     XML_READ_STRING_ATTRIBUTE_REQUIRED(ImuOutputFileName, deviceConfig);
   }
+
+  int tiltSensorWestAxisIndex = 0;
+  if (deviceConfig->GetScalarAttribute("TiltSensorWestAxisIndex", tiltSensorWestAxisIndex))
+  {
+    if (tiltSensorWestAxisIndex < 0 || tiltSensorWestAxisIndex > 2)
+    {
+      LOG_ERROR("TiltSensorWestAxisIndex is invalid. Specified value: " << tiltSensorWestAxisIndex << ". Valid values: 0, 1, 2. Keep using the default value: "
+        << this->TiltSensorWestAxisIndex);
+    }
+    else
+    {
+      this->TiltSensorWestAxisIndex = tiltSensorWestAxisIndex;
+    }
+  }
+
+  int FilteredTiltSensorWestAxisIndex = 0;
+  if (deviceConfig->GetScalarAttribute("FilteredTiltSensorWestAxisIndex", FilteredTiltSensorWestAxisIndex))
+  {
+    if (FilteredTiltSensorWestAxisIndex < 0 || FilteredTiltSensorWestAxisIndex > 2)
+    {
+      LOG_ERROR("FilteredTiltSensorWestAxisIndex is invalid. Specified value: " << FilteredTiltSensorWestAxisIndex << ". Valid values: 0, 1, 2. Keep using the default value: "
+        << this->FilteredTiltSensorWestAxisIndex);
+    }
+    else
+    {
+      this->FilteredTiltSensorWestAxisIndex = FilteredTiltSensorWestAxisIndex;
+    }
+  }
+
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, AhrsAlgorithmGain, deviceConfig);
+  XML_READ_VECTOR_ATTRIBUTE_OPTIONAL(double, 2, FilteredTiltSensorAhrsAlgorithmGain, deviceConfig);
+
+  const char* ahrsAlgoName = deviceConfig->GetAttribute("AhrsAlgorithm");
+  if (ahrsAlgoName != NULL)
+  {
+    if (STRCASECMP("MADGWICK_MARG", ahrsAlgoName) == 0 || STRCASECMP("MADGWICK_IMU", ahrsAlgoName) == 0)
+    {
+      if (dynamic_cast<MadgwickAhrsAlgo*>(this->AhrsAlgo) == 0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->AhrsAlgo;
+        this->AhrsAlgo = new MadgwickAhrsAlgo;
+      }
+      if (STRCASECMP("MADGWICK_MARG", ahrsAlgoName) == 0)
+      {
+        this->AhrsUseMagnetometer = true;
+      }
+      else
+      {
+        this->AhrsUseMagnetometer = false;
+      }
+    }
+    else if (STRCASECMP("MAHONY_MARG", ahrsAlgoName) == 0 || STRCASECMP("MAHONY_IMU", ahrsAlgoName) == 0)
+    {
+      if (dynamic_cast<MahonyAhrsAlgo*>(this->AhrsAlgo) == 0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->AhrsAlgo;
+        this->AhrsAlgo = new MahonyAhrsAlgo;
+      }
+      if (STRCASECMP("MAHONY_MARG", ahrsAlgoName) == 0)
+      {
+        this->AhrsUseMagnetometer = true;
+      }
+      else
+      {
+        this->AhrsUseMagnetometer = false;
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to recognize AHRS algorithm type: " << ahrsAlgoName << ". Supported types: MADGWICK_MARG, MAHONY_MARG, MADGWICK_IMU, MAHONY_IMU");
+      return PLUS_FAIL;
+    }
+  }
+  const char* FilteredTiltSensorAhrsAlgoName = deviceConfig->GetAttribute("FilteredTiltSensorAhrsAlgorithm");
+  if (FilteredTiltSensorAhrsAlgoName != NULL)
+  {
+    if (STRCASECMP("MADGWICK_IMU", FilteredTiltSensorAhrsAlgoName) == 0)
+    {
+      if (dynamic_cast<MadgwickAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo) == 0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->FilteredTiltSensorAhrsAlgo;
+        this->FilteredTiltSensorAhrsAlgo = new MadgwickAhrsAlgo;
+      }
+    }
+    else if (STRCASECMP("MAHONY_IMU", FilteredTiltSensorAhrsAlgoName) == 0)
+    {
+      if (dynamic_cast<MahonyAhrsAlgo*>(this->FilteredTiltSensorAhrsAlgo) == 0)
+      {
+        // not the requested type
+        // delete the old algo and create a new one with the correct type
+        delete this->FilteredTiltSensorAhrsAlgo;
+        this->FilteredTiltSensorAhrsAlgo = new MahonyAhrsAlgo;
+      }
+    }
+    else
+    {
+      LOG_ERROR("Unable to recognize AHRS algorithm type for Filtered Tilt: " << FilteredTiltSensorAhrsAlgoName << ". Supported types: MADGWICK_IMU, MAHONY_IMU");
+      return PLUS_FAIL;
+    }
+  }
+
   return PLUS_SUCCESS;
 }
 
@@ -257,6 +388,24 @@ PlusStatus vtkPlusClarius::InternalConnect()
     this->RawImuDataStream << "FrameNum,SystemTimestamp,ConvertedTimestamp,ImageTimestamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
     this->RawImuDataStream.close();
   }
+
+  this->AccelerometerTool = NULL;
+  this->GetToolByPortName("Accelerometer", this->AccelerometerTool);
+
+  this->GyroscopeTool = NULL;
+  this->GetToolByPortName("Gyroscope", this->GyroscopeTool);
+
+  this->MagnetometerTool = NULL;
+  this->GetToolByPortName("Magnetometer", this->MagnetometerTool);
+
+  this->TiltSensorTool = NULL;
+  this->GetToolByPortName("TiltSensor", this->TiltSensorTool);
+
+  this->FilteredTiltSensorTool = NULL;
+  this->GetToolByPortName("FilteredTiltSensor", this->FilteredTiltSensorTool);
+
+  this->OrientationSensorTool = NULL;
+  this->GetToolByPortName("OrientationSensor", this->OrientationSensorTool);
 
   vtkPlusClarius* device = vtkPlusClarius::GetInstance();
   // Initialize Clarius Listener Before Connecting
@@ -447,6 +596,10 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
     return;
   }
 
+
+  LOG_TRACE("new image (" << newImage << "): " << nfo->width << " x " << nfo->height << " @ " << nfo->bitsPerPixel
+    << "bits. @ " << nfo->micronsPerPixel << " microns per pixel. imu points: " << npos);
+
   // Check if still connected
   if (device->Connected == 0)
   {
@@ -511,6 +664,7 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
       LOG_ERROR("ERROR writing clarius image" + std::to_string(device->ClariusLastTimestamp) + " to disk");
     }
   }
+
   aSource->AddItem(
     _image.data(), // pointer to char array
     aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
@@ -523,6 +677,140 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
     device->FrameNumber,
     converted_timestamp,
     converted_timestamp);
+
+  for (int i = 0; i < npos; i++)
+  {
+    double angularRate[3] = { pos[i].gx , pos[i].gy , pos[i].gz };
+    double magneticField[3] = { pos[i].mx , pos[i].my , pos[i].mz };
+    double acceleration[3] = { pos[i].ax , pos[i].ay , pos[i].az };
+
+    if (device->AccelerometerTool != NULL)
+    {
+      device->LastAccelerometerToTrackerTransform->Identity();
+      device->LastAccelerometerToTrackerTransform->SetElement(0, 3, acceleration[0]);
+      device->LastAccelerometerToTrackerTransform->SetElement(1, 3, acceleration[1]);
+      device->LastAccelerometerToTrackerTransform->SetElement(2, 3, acceleration[2]);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->AccelerometerTool->GetId(), device->LastAccelerometerToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+    }
+    if (device->GyroscopeTool != NULL)
+    {
+      device->LastGyroscopeToTrackerTransform->Identity();
+      device->LastGyroscopeToTrackerTransform->SetElement(0, 3, angularRate[0]);
+      device->LastGyroscopeToTrackerTransform->SetElement(1, 3, angularRate[1]);
+      device->LastGyroscopeToTrackerTransform->SetElement(2, 3, angularRate[2]);
+      device->ToolTimeStampedUpdateWithoutFiltering(device->GyroscopeTool->GetId(), device->LastGyroscopeToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+    }
+    if (device->MagnetometerTool != NULL)
+    {
+      if (magneticField[0] > 1e100)
+      {
+        // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
+        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_INVALID, converted_timestamp, converted_timestamp);
+      }
+      else
+      {
+        // magnetometer data is valid
+        device->LastMagnetometerToTrackerTransform->Identity();
+        device->LastMagnetometerToTrackerTransform->SetElement(0, 3, magneticField[0]);
+        device->LastMagnetometerToTrackerTransform->SetElement(1, 3, magneticField[1]);
+        device->LastMagnetometerToTrackerTransform->SetElement(2, 3, magneticField[2]);
+        device->ToolTimeStampedUpdateWithoutFiltering(device->MagnetometerTool->GetId(), device->LastMagnetometerToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      }
+    }
+
+    if (device->TiltSensorTool != NULL)
+    {
+      // Compose matrix that transforms the x axis to the input vector by rotations around two orthogonal axes
+      vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+
+      double downVector_Sensor[4] = { acceleration[0], acceleration[1], acceleration[2], 0 }; // provided by the sensor
+      vtkMath::Normalize(downVector_Sensor);
+
+      igsioMath::ConstrainRotationToTwoAxes(downVector_Sensor, device->TiltSensorWestAxisIndex, device->LastTiltSensorToTrackerTransform);
+
+      device->ToolTimeStampedUpdateWithoutFiltering(device->TiltSensorTool->GetId(), device->LastTiltSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+    }
+
+    if (device->OrientationSensorTool != NULL)
+    {
+      if (magneticField[0] > 1e100)
+      {
+        // magnetometer data is not available, use the last transform with an invalid status to not have any missing transform
+        device->ToolTimeStampedUpdateWithoutFiltering(device->OrientationSensorTool->GetId(), device->LastOrientationSensorToTrackerTransform, TOOL_INVALID, converted_timestamp, converted_timestamp);
+      }
+      else
+      {
+        // magnetometer data is valid
+
+        //LOG_TRACE("samplingTime(msec)="<<1000.0*timeSinceLastAhrsUpdateSec<<", packetCount="<<count);
+        //LOG_TRACE("gyroX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<angularRate[0]<<", gyroY="<<angularRate[1]<<", gyroZ="<<angularRate[2]);
+        //LOG_TRACE("magX="<<std::fixed<<std::setprecision(2)<<std::setw(6)<<magneticField[0]<<", magY="<<magneticField[1]<<", magZ="<<magneticField[2]);
+
+        if (device->AhrsUseMagnetometer)
+        {
+          device->AhrsAlgo->UpdateWithTimestamp(
+            vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
+            acceleration[0], acceleration[1], acceleration[2],
+            magneticField[0], magneticField[1], magneticField[2], converted_timestamp);
+        }
+        else
+        {
+          device->AhrsAlgo->UpdateIMUWithTimestamp(
+            vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
+            acceleration[0], acceleration[1], acceleration[2], converted_timestamp);
+        }
+
+
+        double rotQuat[4] = { 0 };
+        device->AhrsAlgo->GetOrientation(rotQuat[0], rotQuat[1], rotQuat[2], rotQuat[3]);
+
+        double rotMatrix[3][3] = { 0 };
+        vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix);
+
+        for (int c = 0; c < 3; c++)
+        {
+          for (int r = 0; r < 3; r++)
+          {
+            device->LastOrientationSensorToTrackerTransform->SetElement(r, c, rotMatrix[r][c]);
+          }
+        }
+
+        device->ToolTimeStampedUpdateWithoutFiltering(device->OrientationSensorTool->GetId(), device->LastOrientationSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+      }
+    }
+    if (device->FilteredTiltSensorTool != NULL)
+    {
+      device->FilteredTiltSensorAhrsAlgo->UpdateIMUWithTimestamp(
+        vtkMath::RadiansFromDegrees(angularRate[0]), vtkMath::RadiansFromDegrees(angularRate[1]), vtkMath::RadiansFromDegrees(angularRate[2]),
+        acceleration[0], acceleration[1], acceleration[2], converted_timestamp);
+
+      double rotQuat[4] = { 0 };
+      device->AhrsAlgo->GetOrientation(rotQuat[0], rotQuat[1], rotQuat[2], rotQuat[3]);
+
+      double rotMatrix[3][3] = { 0 };
+      vtkMath::QuaternionToMatrix3x3(rotQuat, rotMatrix);
+
+      double filteredDownVector_Sensor[4] = { rotMatrix[2][0], rotMatrix[2][1], rotMatrix[2][2], 0 };
+      vtkMath::Normalize(filteredDownVector_Sensor);
+
+      igsioMath::ConstrainRotationToTwoAxes(filteredDownVector_Sensor, device->FilteredTiltSensorWestAxisIndex, device->LastFilteredTiltSensorToTrackerTransform);
+
+      device->ToolTimeStampedUpdateWithoutFiltering(device->FilteredTiltSensorTool->GetId(), device->LastFilteredTiltSensorToTrackerTransform, TOOL_OK, converted_timestamp, converted_timestamp);
+
+      // write back the results to the FilteredTiltSensor_AHRS algorithm
+      for (int c = 0; c < 3; c++)
+      {
+        for (int r = 0; r < 3; r++)
+        {
+          rotMatrix[r][c] = device->LastFilteredTiltSensorToTrackerTransform->GetElement(r, c);
+        }
+      }
+      double filteredTiltSensorRotQuat[4] = { 0 };
+      vtkMath::Matrix3x3ToQuaternion(rotMatrix, filteredTiltSensorRotQuat);
+      device->FilteredTiltSensorAhrsAlgo->SetOrientation(filteredTiltSensorRotQuat[0], filteredTiltSensorRotQuat[1], filteredTiltSensorRotQuat[2], filteredTiltSensorRotQuat[3]);
+    }
+  }
+
   device->FrameNumber++;
 }
 

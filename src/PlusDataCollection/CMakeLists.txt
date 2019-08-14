@@ -1044,13 +1044,21 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX})
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    phidget vtkxio
+    phidget
     )
   LIST(APPEND External_Libraries_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Static_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
+#--------------------------------------------------------------------------
+# vkxio algortihms required (magnetometer, accelerometer, gyroscope)
+IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER OR PLUS_USE_CLARIUS)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkxio
     )
 ENDIF()
 
