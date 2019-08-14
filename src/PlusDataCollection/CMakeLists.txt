@@ -602,7 +602,7 @@ IF(PLUS_USE_BLACKMAGIC_DECKLINK)
     )
 
   IF(UNIX)
-    LIST(APPEND BlackMagicDeckLink_SRCS 
+    LIST(APPEND BlackMagicDeckLink_SRCS
       ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
       )
   ENDIF()
@@ -2579,12 +2579,10 @@ INSTALL(FILES ${External_Libraries_Static_Install}
 
 IF(PLUS_USE_OPTITRACK AND OPTITRACK_MOTIVE_VERSION VERSION_GREATER_EQUAL "2.1.1")
   # Copy additional OptiTrack libraries
-  ADD_CUSTOM_COMMAND(
-    TARGET vtk${PROJECT_NAME}
-    POST_BUILD
+  ADD_CUSTOM_COMMAND( TARGET vtk${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
-    $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>/platforms/$<TARGET_FILE_NAME:Qt5::QWindowsIntegrationPlugin>
+    ${OPTITRACK_MOTIVE_DIR}/platforms/qwindows.dll
+    $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>/platforms/qwindows.dll
     )
 ENDIF()
 
