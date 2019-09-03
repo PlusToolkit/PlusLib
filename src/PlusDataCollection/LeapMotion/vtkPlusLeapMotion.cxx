@@ -673,11 +673,6 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
     FrameSizeType rightFrameSize{ imageEvent->image[1].properties.width, imageEvent->image[1].properties.height, 1 };
     if (!this->ImageInitialized)
     {
-      this->LeftCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
-      this->LeftCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-      this->RightCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
-      this->RightCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-
       // First image received, set up the data sources
       this->LeftCameraSource->SetInputFrameSize(leftFrameSize);
       this->RightCameraSource->SetInputFrameSize(rightFrameSize);
