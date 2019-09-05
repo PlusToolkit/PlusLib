@@ -422,9 +422,9 @@ out:
       this->Internal->DeckLink = nullptr;
       return PLUS_FAIL;
     }
-  }
 
-  this->Internal->OutputFrame = new PlusOutputVideoFrame(this->Internal->DeckLinkDisplayMode->GetWidth(), this->Internal->DeckLinkDisplayMode->GetHeight(), bmdFormat8BitBGRA, bmdFrameFlagDefault);
+    this->Internal->OutputFrame = new PlusOutputVideoFrame(this->Internal->DeckLinkDisplayMode->GetWidth(), this->Internal->DeckLinkDisplayMode->GetHeight(), bmdFormat8BitBGRA, bmdFrameFlagDefault);
+  }
 
   return this->Internal->DeckLinkInput == nullptr ? PLUS_FAIL : PLUS_SUCCESS;
 }
@@ -437,8 +437,11 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalDisconnect()
   this->Internal->DeckLinkVideoConversion->Release();
   this->Internal->DeckLinkVideoConversion = nullptr;
 
-  delete this->Internal->OutputFrame;
-  this->Internal->OutputFrame = nullptr;
+  if (this->Internal->OutputFrame != nullptr)
+  {
+    delete this->Internal->OutputFrame;
+    this->Internal->OutputFrame = nullptr;
+  }
 
   this->StopRecording();
   this->Internal->DeckLinkInput->SetScreenPreviewCallback(NULL);
