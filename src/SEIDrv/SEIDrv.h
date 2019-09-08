@@ -10,6 +10,9 @@
 //  -If SKIPDEVICEINFO is set, AUTOASSIGN is ignored
 //  -If SKIPDEVICESEARCH is set, AUTOASSIGN is ignored
 // return: 0 if no error
+// This function can be called multiple times,
+// but only first call we have an effect.
+// CloseSEI must be called the same number of times.
 long InitializeSEI(long comm, long mode);
 
 const long AUTOASSIGN = 0x0001;	// autoassign addresses if they conflict

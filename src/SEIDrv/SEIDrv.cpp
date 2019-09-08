@@ -6,8 +6,7 @@ ref struct Globals
 {
     static System::Collections::Generic::List<USDigital::A2^> encoders;
     static System::Collections::Generic::Dictionary<unsigned char, USDigital::A2^> addresses;
-    static System::Collections::Generic::List<unsigned> counts;
-    static bool initialized = false;
+    static unsigned initialized = 0; // how many times initialization was called
 };
 
 void enumerateEncoders(long comPort, long mode)
@@ -23,7 +22,6 @@ void enumerateEncoders(long comPort, long mode)
         USDigital::A2^ a2Dev = (USDigital::A2^)mSEIBus->Devices[i];
         Globals::encoders.Add(a2Dev);
         Globals::addresses.Add(a2Dev->Address, a2Dev);
-        Globals::counts.Add(a2Dev->Count);
     }
 }
 
@@ -57,6 +55,12 @@ return 1
 
 long InitializeSEI(long comm, long mode)
 {
+    if (Globals::initialized > 0)
+    {
+        ++Globals::initialized; // just inrease the count
+        return 0;
+    }
+
     try
     {
         if (comm == 0)
@@ -109,10 +113,12 @@ long GetDeviceInfo(long devnum, long& serialnum, long& addr, char* model, char* 
 
 void CloseSEI()
 {
-    Globals::encoders.Clear();
-    Globals::addresses.Clear();
-    Globals::counts.Clear();
-    Globals::initialized = false;
+    --Globals::initialized;
+    if (Globals::initialized == 0) // clean up for real
+    {
+        Globals::encoders.Clear();
+        Globals::addresses.Clear();
+    }
 }
 
 
