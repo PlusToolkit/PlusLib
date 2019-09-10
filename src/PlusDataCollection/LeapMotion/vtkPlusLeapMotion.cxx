@@ -742,7 +742,7 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
     }
 
     this->LeftCameraSource->AddItem(imageEvent->image[0].data,
-                                    US_IMG_ORIENT_MN,
+                                    this->LeftCameraSource->GetInputImageOrientation(),
                                     leftFrameSize,
                                     VTK_UNSIGNED_CHAR,
                                     imageEvent->image[0].properties.bpp,
@@ -750,7 +750,7 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
                                     0,
                                     this->FrameNumber); // For now, use plus timestamps, until figure out how to offset leap timestamp by plus timestamp
     this->RightCameraSource->AddItem(imageEvent->image[0].data,
-                                     US_IMG_ORIENT_MN,
+                                     this->RightCameraSource->GetInputImageOrientation(),
                                      rightFrameSize,
                                      VTK_UNSIGNED_CHAR,
                                      imageEvent->image[1].properties.bpp,
