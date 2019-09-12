@@ -380,9 +380,9 @@ PlusStatus vtkPlusDeckLinkVideoSource::InternalConnect()
       deckLinkDisplayModeIterator->Release();
       deckLinkInput->Release();
       deckLink->Release();
-
-      count++;
     }
+
+    count++;
   }
 
 out:
