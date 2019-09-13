@@ -71,7 +71,7 @@ long InitializeSEI(long comm, long mode)
         {
             enumerateEncoders(comm, mode);
         }
-        Globals::initialized = true;
+        Globals::initialized = 1;
         return 0;
     }
     CatchAndReturn1;
