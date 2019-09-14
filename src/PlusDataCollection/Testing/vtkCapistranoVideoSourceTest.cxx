@@ -8,7 +8,7 @@
   \file vtkCapistranoVideoSourceTest.cxx
   \brief Test basic connection to the Capistrano USB ultrasound probe
 
-  If the --rendering-off switch is defined then the connection is established, images are 
+  If the --rendering-off switch is defined then the connection is established, images are
   transferred for a few seconds, then the connection is closed (useful for automatic testing).
   If the --rendering-off switch is not defined then the live ultrasound image is displayed
   in a window (useful for quick interactive testing of the image transfer).
@@ -138,7 +138,7 @@ protected:
     }
 
     return 1;
-  } 
+  }
 
 private:
   vtkExtractImageRow(const vtkExtractImageRow&); // Not implemented
@@ -156,7 +156,7 @@ public:
   static vtkMyPlotCallback *New()	{ return new vtkMyPlotCallback; }
 
   virtual void Execute(vtkObject *caller, unsigned long eventId, void* callData)
-  {   
+  {
     if (eventId==vtkCommand::KeyPressEvent)
     {
       if (m_Interactor->GetKeyCode()=='q')
@@ -179,7 +179,7 @@ public:
 private:
 
   vtkMyPlotCallback()
-  { 
+  {
     m_Interactor=NULL;
     m_Viewer=NULL;
     m_ImageToTableAdaptor=NULL;
@@ -207,7 +207,7 @@ public:
 private:
 
   vtkMyCallback()
-  { 
+  {
     m_Interactor=NULL;
     m_Viewer=NULL;
   }
@@ -223,16 +223,16 @@ int main(int argc, char* argv[])
 	left = 10;
 	int startX_02 = left < 0 ? 0 : left;
 
-	bool printHelp(false); 
+	bool printHelp(false);
 	bool renderingOff(false);
-  
+
 	bool printParams(false);
-  
+
 	std::string inputConfigFileName;
-  
+
 	double depthCm = -1;
 	double dynRangeDb = -1;
-  
+
 	double frequencyMhz = -1;
 
   // ToDo: check the next line
@@ -243,19 +243,19 @@ int main(int argc, char* argv[])
 
 	int verboseLevel = vtkPlusLogger::LOG_LEVEL_UNDEFINED;
 
-	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");	
+	args.AddArgument("--help", vtksys::CommandLineArguments::NO_ARGUMENT, &printHelp, "Print this help.");
 	args.AddArgument("--config-file", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &inputConfigFileName, "Config file containing the device configuration.");
 
-	args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");	
-	args.AddArgument("--depth", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &depthCm, "Depth in cm.");	
+	args.AddArgument("--acq-mode", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &acqMode, "Acquisition mode: B or RF (Default: B).");
+	args.AddArgument("--depth", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &depthCm, "Depth in cm.");
 
-	args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");	
+	args.AddArgument("--frequencyMhz", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &frequencyMhz, "Frequency in MHz");
 
 	args.AddArgument("--dynRangeDb", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &dynRangeDb, "BMode Dynamic Range. 1 corresponds to the maximum dynamic range.");
 
-	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");	
-	args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");	
-	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");	
+	args.AddArgument("--rendering-off", vtksys::CommandLineArguments::NO_ARGUMENT, &renderingOff, "Run test without rendering.");
+	args.AddArgument("--print-params", vtksys::CommandLineArguments::NO_ARGUMENT, &printParams, "Print all the supported imaging parameters (for diagnostic purposes only).");
+	args.AddArgument("--verbose", vtksys::CommandLineArguments::EQUAL_ARGUMENT, &verboseLevel, "Verbose level 1=error only, 2=warning, 3=info, 4=debug, 5=trace)");
 
 	if ( !args.Parse() )
 	{
@@ -263,39 +263,39 @@ int main(int argc, char* argv[])
 		std::cout << "\n\nvtkPlusCapistranoVideoSourceTest1 help:" << args.GetHelp() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-  
-  
+
+
 	vtkPlusLogger::Instance()->SetLogLevel(verboseLevel);
 
-	if ( printHelp ) 
+	if ( printHelp )
 	{
 		std::cout << "\n\nvtkPlusCapistranoVideoSourceTest help:" << args.GetHelp() << std::endl;
-		exit(EXIT_SUCCESS); 
+		exit(EXIT_SUCCESS);
 	}
 
-	
+
 	vtkSmartPointer< vtkPlusCapistranoVideoSource > capistranoDevice =
 	vtkSmartPointer< vtkPlusCapistranoVideoSource >::New();
 	capistranoDevice->SetDeviceId("VideoDevice");
 
-	
+
 	// Read config file
 	if (STRCASECMP(inputConfigFileName.c_str(), "")!=0)
 	{
 		LOG_DEBUG("Reading config file...");
 		vtkSmartPointer<vtkXMLDataElement> configRootElement = vtkSmartPointer<vtkXMLDataElement>::New();
-		
+
 		if (PlusXmlUtils::ReadDeviceSetConfigurationFromFile(configRootElement, inputConfigFileName.c_str())==PLUS_FAIL)
-		{  
-			LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str()); 
+		{
+			LOG_ERROR("Unable to read configuration from file " << inputConfigFileName.c_str());
 			return EXIT_FAILURE;
 		}
 
 		capistranoDevice->ReadConfiguration(configRootElement);
 	}
-  
-	
-	DisplayMode displayMode = SHOW_IMAGE; 
+
+
+	DisplayMode displayMode = SHOW_IMAGE;
 
 	if (STRCASECMP(acqMode.c_str(), "B")==0)
 	{
@@ -308,19 +308,21 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	
-	if ( capistranoDevice->Connect() != PLUS_SUCCESS ) 
+
+	if ( capistranoDevice->Connect() != PLUS_SUCCESS )
 	{
-		LOG_ERROR( "Unable to connect to Capistrano Probe" ); 
-		exit(EXIT_FAILURE); 
+		LOG_ERROR( "Unable to connect to Capistrano Probe" );
+		exit(EXIT_FAILURE);
 	}
 
 	LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
 
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
     LOG_INFO("Hardware version: " << capistranoDevice->GetHardwareVersion());
     LOG_INFO("High-pass filter: " << capistranoDevice->GetHighPassFilter());
-    LOG_INFO("Low-pass filter: " << capistranoDevice->GetLowPassFilter());
+    #ifdef CAPISTRANO_SDK2018
+      LOG_INFO("Low-pass filter: " << capistranoDevice->GetLowPassFilter());
+    #endif
 #endif
 
 	if (printParams)
@@ -337,7 +339,7 @@ int main(int argc, char* argv[])
 		// just run the recording for  a few seconds then exit
 		LOG_DEBUG("Rendering disabled. Wait for just a few seconds to acquire data before exiting");
 		Sleep(500); // no need to use accurate timer, it's just an approximate delay
-		capistranoDevice->StopRecording(); 
+		capistranoDevice->StopRecording();
 		capistranoDevice->Disconnect();
 	}
 	else
@@ -370,7 +372,7 @@ int main(int argc, char* argv[])
 	}
 
 	capistranoDevice->Disconnect();
- 
+
   return EXIT_SUCCESS;
 }
 
