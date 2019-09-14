@@ -710,7 +710,7 @@ std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
 }
 
 // ----------------------------------------------------------------------------
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
 int vtkPlusCapistranoVideoSource::GetHardwareVersion()
 {
   return usbHardwareVersion();
@@ -720,11 +720,12 @@ int vtkPlusCapistranoVideoSource::GetHighPassFilter()
 {
   return usbHighPassFilter();
 }
-
+#ifdef CAPISTRANO_SDK2018
 int vtkPlusCapistranoVideoSource::GetLowPassFilter()
 {
   return usbLowPassFilter();
 }
+#endif
 #endif
 
 
@@ -845,7 +846,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   }
 
   // Check How many US probe are connected. --------------------------------
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
   int numberOfAttachedBoards = usbNumberAttachedBoards();
 #else //cSDK2013 or cSDK2016
   int numberOfAttachedBoards = usbNumberAttachedProbes();
