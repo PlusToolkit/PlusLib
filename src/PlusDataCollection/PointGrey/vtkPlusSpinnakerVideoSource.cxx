@@ -748,19 +748,25 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     if (this->PixelEncoding == RGB24)
     {
       retVal = videoSource->AddItem(
-        convertedImage->GetData(),
+        convertedImage->GetData(), 
+        US_IMG_ORIENT_MN,
         this->FrameSize,
-        convertedImage->GetImageSize(),
+        VTK_UNSIGNED_CHAR,
+        3,
         US_IMG_RGB_COLOR,
+        0,
         this->FrameNumber);
     }
     else if (this->PixelEncoding == MONO8)
     {
       retVal = videoSource->AddItem(
         convertedImage->GetData(),
+        US_IMG_ORIENT_MN,
         this->FrameSize,
-        convertedImage->GetImageSize(),
+        VTK_UNSIGNED_CHAR,
+        1,
         US_IMG_BRIGHTNESS,
+        0,
         this->FrameNumber);
     }
 
@@ -772,7 +778,6 @@ PlusStatus vtkPlusSpinnakerVideoSource::InternalUpdate()
     LOG_ERROR("SpinnakerVideoSource: Failed in InternalUpdate(). Exception text: " << e.what());
     return PLUS_FAIL;
   }
-  LOG_INFO(this->FrameNumber);
   this->FrameNumber++; 
   return retVal;
 }
