@@ -11,7 +11,7 @@ ref struct Globals
 
 void enumerateEncoders(long comPort, long mode)
 {
-    System::String^ comPortString = "COM"+ System::Convert::ToString(comPort);
+    System::String^ comPortString = "COM" + System::Convert::ToString(comPort);
 
     USDigital::SEIBusManager mgr;
     USDigital::SEIBus^ mSEIBus = mgr.GetBus(comPortString);
@@ -37,7 +37,14 @@ void enumerateEncodersAll(long mode)
         if (test != 0) // port exists
         {
             //std::cout << str << ": " << lpTargetPath << std::endl;
-            enumerateEncoders(i, mode);
+            try
+            {
+                enumerateEncoders(i, mode);
+            }
+            catch (System::UnauthorizedAccessException^)
+            {
+                // port is open by somebody else, ignore it
+            }
         }
     }
 }
