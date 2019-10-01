@@ -126,6 +126,7 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualSwitcher.cxx
   VirtualDevices/vtkPlusVirtualCapture.cxx
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
+  VirtualDevices/vtkPlusVirtualDeinterlacer.cxx
   )
 SET(Miscellaneous_SRCS
   FakeTracking/vtkPlusFakeTracker.cxx
@@ -178,6 +179,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     VirtualDevices/vtkPlusVirtualSwitcher.h
     VirtualDevices/vtkPlusVirtualCapture.h
     VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
+    VirtualDevices/vtkPlusVirtualDeinterlacer.h
     )
   IF(PLUS_USE_TextRecognizer)
     LIST(APPEND Virtual_HDRS VirtualDevices/vtkPlusVirtualTextRecognizer.h)
