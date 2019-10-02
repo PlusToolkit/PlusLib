@@ -33,8 +33,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-  #pragma warning ( disable : 4311 )
-  #pragma warning ( disable : 4312 )
+#pragma warning ( disable : 4311 )
+#pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
@@ -1823,6 +1823,12 @@ int vtkPlusDevice::RequestData(vtkInformation* vtkNotUsed(request), vtkInformati
 int vtkPlusDevice::GetConnected() const
 {
   return this->Connected;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::IsConnected() const
+{
+  return this->Connected == 1;
 }
 
 //----------------------------------------------------------------------------

@@ -347,6 +347,7 @@ public:
 
   /*! Are we connected? */
   virtual int GetConnected() const;
+  virtual bool IsConnected() const;
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
