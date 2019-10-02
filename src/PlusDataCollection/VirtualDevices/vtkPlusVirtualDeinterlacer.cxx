@@ -25,12 +25,12 @@ namespace
   {
     switch (mode)
     {
-      case vtkPlusVirtualDeinterlacer::Stereo_HorizontalInterlace:
-        return "HorizontalInterlace";
-      case vtkPlusVirtualDeinterlacer::Stereo_VerticalInterlace:
-        return "VerticalInterlace";
-      default:
-        return "Unknown";
+    case vtkPlusVirtualDeinterlacer::Stereo_HorizontalInterlace:
+      return "HorizontalInterlace";
+    case vtkPlusVirtualDeinterlacer::Stereo_VerticalInterlace:
+      return "VerticalInterlace";
+    default:
+      return "Unknown";
     }
   }
 
@@ -60,8 +60,9 @@ vtkPlusVirtualDeinterlacer::vtkPlusVirtualDeinterlacer()
   : vtkPlusDevice()
   , Mode(Stereo_Unknown)
   , Initialized(false)
-  , LastInputTimestamp(0.0)
-  , FrameList(std::make_unique<vtkIGSIOTrackedFrameList>())
+  , LastInputTimestamp(UNDEFINED_TIMESTAMP)
+  , FrameList(vtkIGSIOTrackedFrameList::New())
+  , InputSource(nullptr)
   , LeftImage(nullptr)
   , RightImage(nullptr)
   , SwitchInterlaceOrdering(false)
@@ -83,6 +84,7 @@ vtkPlusVirtualDeinterlacer::~vtkPlusVirtualDeinterlacer()
     this->RightImage->Delete();
     this->RightImage = nullptr;
   }
+  this->FrameList->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -104,6 +106,7 @@ PlusStatus vtkPlusVirtualDeinterlacer::ReadConfiguration(vtkXMLDataElement* root
     LOG_ERROR("Unknown stereo mode in configuration. Please double check.");
     return PLUS_FAIL;
   }
+  this->Mode = mode;
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(SwitchInterlaceOrdering, deviceConfig);
 
@@ -146,7 +149,6 @@ PlusStatus vtkPlusVirtualDeinterlacer::InternalUpdate()
     this->RightSource->SetNumberOfScalarComponents(this->InputSource->GetNumberOfScalarComponents());
     this->LeftSource->SetImageType(this->InputSource->GetImageType());
     this->RightSource->SetImageType(this->InputSource->GetImageType());
-    this->Initialized = true;
 
     this->LeftImage = vtkImageData::New();
     this->RightImage = vtkImageData::New();
@@ -154,58 +156,90 @@ PlusStatus vtkPlusVirtualDeinterlacer::InternalUpdate()
     this->RightImage->SetDimensions(size[0], size[1], size[2]);
     this->LeftImage->AllocateScalars(this->InputSource->GetPixelType(), this->InputSource->GetNumberOfScalarComponents());
     this->RightImage->AllocateScalars(this->InputSource->GetPixelType(), this->InputSource->GetNumberOfScalarComponents());
+
+    this->Initialized = true;
   }
 
   this->FrameList->Clear();
-  if (this->InputChannels[0]->GetTrackedFrameList(this->LastInputTimestamp, this->FrameList.get(), 100) != PLUS_SUCCESS)
+  if (this->InputChannels[0]->GetTrackedFrameList(this->LastInputTimestamp, this->FrameList, 100) != PLUS_SUCCESS)
   {
     return PLUS_FAIL;
   }
 
-  for (auto& frame : *this->FrameList)
+  for (auto frame : *this->FrameList)
   {
-    vtkImageData* inputImage = frame->GetImageData()->GetImage();
-    vtkIdType* inputIncrements = inputImage->GetIncrements();
-    unsigned char* inputPtr = (unsigned char*)inputImage->GetScalarPointer();
-    unsigned char* leftPtr = (unsigned char*)this->LeftImage->GetScalarPointer();
-    unsigned char* rightPtr = (unsigned char*)this->RightImage->GetScalarPointer();
-    vtkIdType* outputIncrements = this->LeftImage->GetIncrements();
-
-    // for each input row
-    for (vtkIdType row = 0; row < inputImage->GetDimensions()[1]; row++)
+    if (this->Mode == Stereo_HorizontalInterlace)
     {
-      // %2 = 0 left, %2 = 1 right
-      bool left(false);
-      if (row % 2 == 0)
-      {
-        left = true;
-      }
-      if (this->SwitchInterlaceOrdering)
-      {
-        left = !left;
-      }
-
-      // finished with this row,
-      // increment output image pointer for this row's image
-      if (left)
-      {
-        // Copy row to left image, increment left image pointer
-        leftPtr += outputIncrements[1];
-      }
-      else
-      {
-        rightPtr += outputIncrements[1];
-      }
-      inputPtr += inputIncrements[1];
+      this->SplitFrameHorizontal(frame);
     }
-#error here
+    else if (this->Mode == Stereo_VerticalInterlace)
+    {
+      this->SplitFrameVertical(frame);
+    }
+
+    this->LeftSource->AddItem(this->LeftImage, this->LeftSource->GetInputImageOrientation(), this->LeftSource->GetImageType(), this->FrameNumber);
+    this->RightSource->AddItem(this->RightImage, this->RightSource->GetInputImageOrientation(), this->RightSource->GetImageType(), this->FrameNumber);
+    this->FrameNumber++;
   }
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVirtualDeinterlacer::SplitFrameHorizontal(igsioTrackedFrame* frame)
+{
+  vtkImageData* inputImage = frame->GetImageData()->GetImage();
+  vtkIdType* inputIncrements = inputImage->GetIncrements();
+  unsigned char* inputPtr = (unsigned char*)inputImage->GetScalarPointer();
+  unsigned char* leftPtr = (unsigned char*)this->LeftImage->GetScalarPointer();
+  unsigned char* rightPtr = (unsigned char*)this->RightImage->GetScalarPointer();
+  vtkIdType* outputIncrements = this->LeftImage->GetIncrements();
+
+  // for each input row
+  for (vtkIdType row = 0; row < inputImage->GetDimensions()[1]; row++)
+  {
+    // %2 = 0 left, %2 = 1 right
+    bool left(false);
+    if (row % 2 == 0)
+    {
+      left = true;
+    }
+    if (this->SwitchInterlaceOrdering)
+    {
+      left = !left;
+    }
+
+    // finished with this row,
+    // increment output image pointer for this row's image
+    if (left)
+    {
+      // Copy row to left image, increment left image pointer
+      memcpy(leftPtr, inputPtr, inputIncrements[1]);
+      leftPtr += outputIncrements[1];
+    }
+    else
+    {
+      memcpy(rightPtr, inputPtr, inputIncrements[1]);
+      rightPtr += outputIncrements[1];
+    }
+    inputPtr += inputIncrements[1];
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusVirtualDeinterlacer::SplitFrameVertical(igsioTrackedFrame* frame)
+{
+
 }
 
 //----------------------------------------------------------------------------
 double vtkPlusVirtualDeinterlacer::GetAcquisitionRate() const
 {
   // Determine frame rate from the video input
+  if (this->InputSource == nullptr)
+  {
+    return -1.;
+  }
   return this->InputSource->GetDevice()->GetAcquisitionRate();
 }
 
@@ -215,6 +249,12 @@ PlusStatus vtkPlusVirtualDeinterlacer::NotifyConfigured()
   if (this->InputChannels.size() != 1)
   {
     LOG_ERROR("Deinterlacer requires exactly 1 input channel");
+    return PLUS_FAIL;
+  }
+  this->InputChannels[0]->GetVideoSource(this->InputSource);
+  if (this->InputSource == nullptr)
+  {
+    LOG_ERROR("Input channel does not have a video source. It is required.");
     return PLUS_FAIL;
   }
 

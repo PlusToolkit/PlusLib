@@ -14,6 +14,7 @@ See License.txt for details.
 // STL includes
 #include <memory>
 
+class igsioVideoFrame;
 class vtkIGSIOTrackedFrameList;
 class vtkImageData;
 class vtkPlusChannel;
@@ -57,6 +58,10 @@ public:
   vtkSetMacro(SwitchInterlaceOrdering, bool);
 
 protected:
+  void SplitFrameHorizontal(igsioTrackedFrame* frame);
+  void SplitFrameVertical(igsioTrackedFrame* frame);
+
+protected:
   vtkPlusVirtualDeinterlacer();
   virtual ~vtkPlusVirtualDeinterlacer();
 
@@ -69,7 +74,7 @@ protected:
   vtkPlusDataSource*                        RightSource;
   vtkImageData*                             LeftImage;
   vtkImageData*                             RightImage;
-  std::unique_ptr<vtkIGSIOTrackedFrameList> FrameList;
+  vtkIGSIOTrackedFrameList*                 FrameList;
 
 private:
   vtkPlusVirtualDeinterlacer(const vtkPlusVirtualDeinterlacer&);  // Not implemented.
