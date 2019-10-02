@@ -50,7 +50,7 @@ QPlusStatusIcon::QPlusStatusIcon(QWidget* aParent, Qt::WindowFlags aFlags)
   this->setLayout(grid);
 
   auto pix = QPixmap(":/icons/Resources/icon_DotGreen.png");
-  m_DotLabel->setPixmap(pix.scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+  m_DotLabel->setPixmap(pix.scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
 
   if (m_DotLabel == NULL)
   {
@@ -123,7 +123,7 @@ void QPlusStatusIcon::ParseMessage(QString& aInputString)
       if (m_Level > vtkPlusLogger::LOG_LEVEL_ERROR)
       {
         m_Level = vtkPlusLogger::LOG_LEVEL_ERROR;
-        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotRed.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
       }
       message = ERROR_HTML;
       break;
@@ -131,7 +131,7 @@ void QPlusStatusIcon::ParseMessage(QString& aInputString)
       if (m_Level > vtkPlusLogger::LOG_LEVEL_WARNING)
       {
         m_Level = vtkPlusLogger::LOG_LEVEL_WARNING;
-        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+        m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotOrange.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
       }
       message = WARNING_HTML;
       break;
@@ -277,7 +277,7 @@ bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
         if ((m_MessageListFrame == NULL) || (! m_MessageListFrame->isVisible()))
         {
           m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-          m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+          m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
 
           QTextCursor cursor(m_MessageTextEdit->textCursor());
           cursor.movePosition(QTextCursor::End);
@@ -301,7 +301,7 @@ bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
   else if ((obj == m_MessageListFrame) && (ev->type() == QEvent::Close))
   {
     m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-    m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+    m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
   }
 
   // Pass the event on to the parent class
@@ -312,7 +312,7 @@ bool QPlusStatusIcon::eventFilter(QObject* obj, QEvent* ev)
 void QPlusStatusIcon::resizeEvent(QResizeEvent* event)
 {
   const QPixmap* pix = m_DotLabel->pixmap();
-  m_DotLabel->setPixmap(pix->scaled(m_DotLabel->width(), m_DotLabel->height(), Qt::KeepAspectRatio));
+  m_DotLabel->setPixmap(pix->scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
 
   QWidget::resizeEvent(event);
 }
@@ -386,7 +386,7 @@ void QPlusStatusIcon::ApplyFilter()
 void QPlusStatusIcon::ResetIconState()
 {
   m_Level = vtkPlusLogger::LOG_LEVEL_INFO;
-  m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio));
+  m_DotLabel->setPixmap(QPixmap(":/icons/Resources/icon_DotGreen.png").scaled(m_DotLabel->width() - 1, m_DotLabel->height() - 1, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
 }
 
 //-----------------------------------------------------------------------------
