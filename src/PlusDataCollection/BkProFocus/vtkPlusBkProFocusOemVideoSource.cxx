@@ -18,10 +18,14 @@ See License.txt for details.
 #include <vtkImageData.h>
 #include <vtkObjectFactory.h>
 #include <vtk_png.h>
-#include <vtkpng/pngpriv.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkClientSocket.h>
 #include <vtkMath.h>
+
+// pngpriv is not copied into install directory with the rest of the vtkpng classes
+// This CMake configured header specifies the path to the header in the source code
+// #include <vtkpng/pngpriv.h>
+#include <vtkPNGPrivate.h>
 
 // STL includes
 #include <iostream>

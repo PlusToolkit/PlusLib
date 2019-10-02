@@ -1307,6 +1307,11 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
     vtkInteractionImage
     )
 
+  CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus/vtkPNGPrivate.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/vtkPNGPrivate.h
+    )
+
   # CameraLink interface
   IF(PLUS_USE_BKPROFOCUS_CAMERALINK)
     LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS

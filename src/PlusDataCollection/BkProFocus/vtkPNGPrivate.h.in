@@ -1,0 +1,6 @@
+#ifndef __vtkPNGPrivate_h__
+#define __vtkPNGPrivate_h__
+
+#include <${VTK_SRC_DIR}/ThirdParty/png/vtkpng/pngpriv.h>
+
+#endif
