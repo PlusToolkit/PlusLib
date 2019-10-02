@@ -25,12 +25,12 @@ namespace
   {
     switch (mode)
     {
-    case vtkPlusVirtualDeinterlacer::Stereo_HorizontalInterlace:
-      return "HorizontalInterlace";
-    case vtkPlusVirtualDeinterlacer::Stereo_VerticalInterlace:
-      return "VerticalInterlace";
-    default:
-      return "Unknown";
+      case vtkPlusVirtualDeinterlacer::Stereo_HorizontalInterlace:
+        return "HorizontalInterlace";
+      case vtkPlusVirtualDeinterlacer::Stereo_VerticalInterlace:
+        return "VerticalInterlace";
+      default:
+        return "Unknown";
     }
   }
 
@@ -141,6 +141,8 @@ PlusStatus vtkPlusVirtualDeinterlacer::InternalUpdate()
       // vertical rows, X dim is halved
       size[0] = size[0] / 2;
     }
+    this->LeftSource->SetInputImageOrientation(US_IMG_ORIENT_MFA);
+    this->RightSource->SetInputImageOrientation(US_IMG_ORIENT_MFA);
     this->LeftSource->SetInputFrameSize(size);
     this->RightSource->SetInputFrameSize(size);
     this->LeftSource->SetPixelType(this->InputSource->GetPixelType());
