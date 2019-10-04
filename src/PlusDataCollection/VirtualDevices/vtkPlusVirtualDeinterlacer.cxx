@@ -133,13 +133,21 @@ PlusStatus vtkPlusVirtualDeinterlacer::InternalUpdate()
     FrameSizeType size = this->InputSource->GetOutputFrameSize();
     if (this->Mode == Stereo_HorizontalInterlace)
     {
+      if (size[1] % 2 == 1)
+      {
+        LOG_WARNING("Odd sized Y dimension, extra row will be added.");
+      }
       // horizontal rows, Y dim is halved
-      size[1] = size[1] / 2;
+      size[1] = std::ceil(size[1] / 2.0);
     }
     else if (this->Mode == Stereo_VerticalInterlace)
     {
+      if (size[01] % 2 == 1)
+      {
+        LOG_WARNING("Odd sized X dimension, extra column will be lost.");
+      }
       // vertical rows, X dim is halved
-      size[0] = size[0] / 2;
+      size[0] = std::ceil(size[0] / 2.0);
     }
     this->LeftSource->SetInputImageOrientation(US_IMG_ORIENT_MFA);
     this->RightSource->SetInputImageOrientation(US_IMG_ORIENT_MFA);
