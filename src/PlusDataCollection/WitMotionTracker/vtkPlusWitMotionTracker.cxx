@@ -12,6 +12,7 @@ See License.txt for details.
 // VTK includes
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkTransform.h>
 
