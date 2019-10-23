@@ -379,9 +379,9 @@ PlusStatus vtkPlusIntersonSDKCxxVideoSource::InternalConnect()
                                  1 ); 
       LOG_INFO("RF Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
-              << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
+              << igsioCommon::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
             << ", buffer image orientation: "
-              << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
+              << igsioCommon::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
       }
 
     if( !bmodeSources.empty() )
@@ -423,9 +423,9 @@ PlusStatus vtkPlusIntersonSDKCxxVideoSource::InternalConnect()
         }
       LOG_INFO("Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
             << ", device image orientation: "
-              << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
+              << igsioCommon::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
             << ", buffer image orientation: "
-              << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
+              << igsioCommon::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
       }
     }
   else if( !bmodeSources.empty() )
@@ -478,9 +478,9 @@ PlusStatus vtkPlusIntersonSDKCxxVideoSource::InternalConnect()
   
     LOG_INFO("BMode Pixel type: " << vtkImageScalarTypeNameMacro( source->GetPixelType() )
           << ", device image orientation: "
-            << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
+            << igsioCommon::GetStringFromUsImageOrientation( source->GetInputImageOrientation() )
           << ", buffer image orientation: "
-            << igsioVideoFrame::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
+            << igsioCommon::GetStringFromUsImageOrientation( source->GetOutputImageOrientation() ));
     }
   else
     {

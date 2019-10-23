@@ -1193,7 +1193,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
              << ", display zoom: " << bmDisplayZoom()
              << ", probe depth scale (mm/sample):" << depthScale
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+             << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
   //igsioTrackedFrame::FieldMapType customFields;

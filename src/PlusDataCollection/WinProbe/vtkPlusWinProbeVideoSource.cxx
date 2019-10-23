@@ -528,7 +528,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(m_PrimarySources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(m_PrimarySources[i]->GetInputImageOrientation()));
+             << igsioCommon::GetStringFromUsImageOrientation(m_PrimarySources[i]->GetInputImageOrientation()));
     m_PrimaryBuffer.resize(m_SamplesPerLine * m_LineCount);
   }
 
@@ -560,7 +560,7 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
              << "Frame size: " << frameSize[0] << "x" << frameSize[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(m_ExtraSources[i]->GetPixelType())
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(m_ExtraSources[i]->GetInputImageOrientation()));
+             << igsioCommon::GetStringFromUsImageOrientation(m_ExtraSources[i]->GetInputImageOrientation()));
   }
 }
 

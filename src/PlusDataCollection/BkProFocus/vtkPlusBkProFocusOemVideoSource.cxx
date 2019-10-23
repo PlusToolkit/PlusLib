@@ -420,7 +420,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
 
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
       << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
-      << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+      << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
     LOG_DEBUG("NumberOfScalarComponents: " << aSource->GetNumberOfScalarComponents());
   }
 
