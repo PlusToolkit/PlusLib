@@ -34,6 +34,7 @@ See License.txt for details.
 // OpenCV includes
 #include <opencv2/highgui.hpp>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/core.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -85,6 +86,7 @@ public:
     : External(external)
     , MarkerDetector(std::make_shared<aruco::MarkerDetector>())
     , CameraParameters(std::make_shared<aruco::CameraParameters>())
+    , MarkerFound(false)
   {
   }
 
@@ -100,6 +102,8 @@ public:
   TRACKING_METHOD           TrackingMethod;
   std::string               MarkerDictionary;
   std::vector<TrackedTool>  Tools;
+  double                    LastProcessedInputDataTimestamp;
+  bool                      MarkerFound;
 
   /*! Pointer to main aruco objects */
   std::shared_ptr<aruco::MarkerDetector>    MarkerDetector;
@@ -222,12 +226,6 @@ PlusStatus vtkPlusOpticalMarkerTracker::WriteConfiguration(vtkXMLDataElement* ro
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpticalMarkerTracker::Probe()
-{
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
 PlusStatus vtkPlusOpticalMarkerTracker::InternalConnect()
 {
   // get calibration file path && check file exists
@@ -239,9 +237,18 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalConnect()
     return PLUS_FAIL;
   }
 
-  // TODO: Need error handling for this?
-  this->Internal->CameraParameters->readFromXMLFile(calibFilePath);
+  try
+  {
+    this->Internal->CameraParameters->readFromXMLFile(calibFilePath);
+  }
+  catch (cv::Exception e)
+  {
+    LOG_ERROR("Unable to read calibration file: " << e.msg.c_str());
+    return PLUS_FAIL;
+  }
+
   this->Internal->MarkerDetector->setDictionary(this->Internal->MarkerDictionary);
+
   // threshold tuning numbers from aruco_test
   aruco::MarkerDetector::Params params;
   params._thresParam1 = 7;
@@ -269,25 +276,19 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalConnect()
     LOG_WARNING("vtkPlusOpticalMarkerTracker acquisition rate is not known");
   }
 
-  this->LastProcessedInputDataTimestamp = 0;
+  this->Internal->LastProcessedInputDataTimestamp = 0.0;
   return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusOpticalMarkerTracker::InternalDisconnect()
+PlusStatus vtkPlusOpticalMarkerTracker::NotifyConfigured()
 {
-  return PLUS_SUCCESS;
-}
+  if (this->InputChannels.size() != 1)
+  {
+    LOG_ERROR("ImageProcessor device requires exactly 1 input stream (that contains video data). Check configuration.");
+    return PLUS_FAIL;
+  }
 
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusOpticalMarkerTracker::InternalStartRecording()
-{
-  return PLUS_SUCCESS;
-}
-
-//----------------------------------------------------------------------------
-PlusStatus vtkPlusOpticalMarkerTracker::InternalStopRecording()
-{
   return PLUS_SUCCESS;
 }
 
@@ -320,12 +321,6 @@ PlusStatus vtkPlusOpticalMarkerTracker::vtkInternal::BuildTransformMatrix(vtkSma
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
 {
-  if (this->InputChannels.size() != 1)
-  {
-    LOG_ERROR("ImageProcessor device requires exactly 1 input stream (that contains video data). Check configuration.");
-    return PLUS_FAIL;
-  }
-
   // Get image to tracker transform from the tracker (only request 1 frame, the latest)
   if (!this->InputChannels[0]->GetVideoDataAvailable())
   {
@@ -336,19 +331,19 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
   double oldestTrackingTimestamp(0);
   if (this->InputChannels[0]->GetOldestTimestamp(oldestTrackingTimestamp) == PLUS_SUCCESS)
   {
-    if (this->LastProcessedInputDataTimestamp > oldestTrackingTimestamp)
+    if (this->Internal->LastProcessedInputDataTimestamp > oldestTrackingTimestamp)
     {
-      LOG_INFO("Processed image generation started. No tracking data was available between " << this->LastProcessedInputDataTimestamp << "-" << oldestTrackingTimestamp <<
+      LOG_INFO("Processed image generation started. No tracking data was available between " << this->Internal->LastProcessedInputDataTimestamp << "-" << oldestTrackingTimestamp <<
                "sec, therefore no processed images were generated during this time period.");
-      this->LastProcessedInputDataTimestamp = oldestTrackingTimestamp;
+      this->Internal->LastProcessedInputDataTimestamp = oldestTrackingTimestamp;
     }
   }
 
   igsioTrackedFrame trackedFrame;
   if (this->InputChannels[0]->GetTrackedFrame(trackedFrame) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId());
-    this->LastProcessedInputDataTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
+    LOG_ERROR("Error while getting latest tracked frame. Last recorded timestamp: " << std::fixed << this->Internal->LastProcessedInputDataTimestamp << ". Device ID: " << this->GetDeviceId());
+    this->Internal->LastProcessedInputDataTimestamp = vtkIGSIOAccurateTimer::GetSystemTime(); // forget about the past, try to add frames that are acquired from now on
     return PLUS_FAIL;
   }
 
@@ -367,6 +362,30 @@ PlusStatus vtkPlusOpticalMarkerTracker::InternalUpdate()
 
   // detect markers in frame
   this->Internal->MarkerDetector->detect(image, this->Internal->Markers);
+
+  if (!this->Internal->MarkerFound &&  this->Internal->Markers.size() > 0)
+  {
+    this->Internal->MarkerFound = true;
+  }
+
+  if (!this->Internal->MarkerFound)
+  {
+    // Try flipping the incoming image horizontally and trying again
+    // This is a very common obstacle
+    cv::flip(image, image, 1); // 0 flip vert, > 0 flip horz, < 0 flip both (eewwwwwww)
+    this->Internal->MarkerDetector->detect(image, this->Internal->Markers);
+    if (this->Internal->Markers.size() > 0)
+    {
+      // We have a flip problem!
+      vtkPlusDataSource* source(nullptr);
+      this->InputChannels[0]->GetVideoSource(source);
+      source->SetInputImageOrientation(igsioCommon::HorizontalFlip(source->GetInputImageOrientation()));
+      LOG_WARNING("Autodetected horizontal image flip problem. It has been corrected for this session. " \
+                  "Be sure to save your config file or update your existing file to the new orientation: " \
+                  << igsioCommon::GetStringFromUsImageOrientation(source->GetInputImageOrientation()));
+      this->Internal->MarkerFound = true;
+    }
+  }
 
   // iterate through tools updating tracking
   for (std::vector<TrackedTool>::iterator toolIt = begin(this->Internal->Tools); toolIt != end(this->Internal->Tools); ++toolIt)
