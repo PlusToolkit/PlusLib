@@ -296,7 +296,7 @@ void vtkPlusRfToBrightnessConvert::ThreadedLineByLineHilbertTransform(int inExt[
   }
   if (!imageTypeValid)
   {
-    LOG_ERROR("Unsupported image type for brightness conversion: "<<igsioVideoFrame::GetStringFromUsImageType(this->ImageType));
+    LOG_ERROR("Unsupported image type for brightness conversion: "<< igsioCommon::GetStringFromUsImageType(this->ImageType));
   }
 
   delete[] hilbertTransformBuffer;

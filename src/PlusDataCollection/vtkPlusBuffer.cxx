@@ -111,8 +111,8 @@ void vtkPlusBuffer::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Frame size in pixel: " << this->GetFrameSize()[0] << "   " << this->GetFrameSize()[1] << "   " << this->GetFrameSize()[2] << std::endl;
   os << indent << "Scalar pixel type: " << vtkImageScalarTypeNameMacro(this->GetPixelType()) << std::endl;
-  os << indent << "Image type: " << igsioVideoFrame::GetStringFromUsImageType(this->GetImageType()) << std::endl;
-  os << indent << "Image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl;
+  os << indent << "Image type: " << igsioCommon::GetStringFromUsImageType(this->GetImageType()) << std::endl;
+  os << indent << "Image orientation: " << igsioCommon::GetStringFromUsImageOrientation(this->GetImageOrientation()) << std::endl;
 
   os << indent << "StreamBuffer: " << this->StreamBuffer << "\n";
   if (this->StreamBuffer)
@@ -208,7 +208,7 @@ bool vtkPlusBuffer::CheckFrameFormat(const FrameSizeType& frameSizeInPx, igsioCo
 
   if (imgType != this->GetImageType())
   {
-    LOCAL_LOG_WARNING("Frame image type (" << igsioVideoFrame::GetStringFromUsImageType(imgType) << ") and buffer image type (" << igsioVideoFrame::GetStringFromUsImageType(this->GetImageType()) << ") mismatch");
+    LOCAL_LOG_WARNING("Frame image type (" << igsioCommon::GetStringFromUsImageType(imgType) << ") and buffer image type (" << igsioCommon::GetStringFromUsImageType(this->GetImageType()) << ") mismatch");
     return false;
   }
 
@@ -433,8 +433,8 @@ PlusStatus vtkPlusBuffer::AddItem(void* imageDataPtr,
   igsioVideoFrame::FlipInfoType flipInfo;
   if (igsioVideoFrame::GetFlipAxes(usImageOrientation, imageType, this->ImageOrientation, flipInfo) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert image data to the requested orientation, from " << igsioVideoFrame::GetStringFromUsImageOrientation(usImageOrientation) <<
-              " to " << igsioVideoFrame::GetStringFromUsImageOrientation(this->ImageOrientation));
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << igsioCommon::GetStringFromUsImageOrientation(usImageOrientation) <<
+              " to " << igsioCommon::GetStringFromUsImageOrientation(this->ImageOrientation));
     return PLUS_FAIL;
   }
 
