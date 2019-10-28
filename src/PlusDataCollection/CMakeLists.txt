@@ -61,6 +61,7 @@ IF(PLUS_USE_LEAPMOTION)
   OPTION(PLUS_TEST_LEAPMOTION "Enable testing for LeapMotion device" OFF)
 ENDIF()
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
+OPTION(PLUS_USE_STEAMVR "Provide support for the SteamVR tracking system" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
 IF(PLUS_TEST_ULTRASONIX)
@@ -2390,6 +2391,67 @@ IF(PLUS_USE_LEAPMOTION)
   LIST(APPEND External_Libraries_Install
     ${_install_file}
     )
+ENDIF()
+
+# --------------------------------------------------------------------------
+# SteamVR support
+IF(PLUS_USE_STEAMVR)
+
+  MESSAGE(STATUS "TEST: ${OVR_DIR}")
+
+  SET(STEAMVR_SRCS
+    SteamVR/vtkPlusSteamVR.cxx
+    SteamVR/vtkPlusSteamVRUtility.cxx
+    )
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(STEAMVR_HDRS
+      SteamVR/vtkPlusSteamVR.h
+      SteamVR/vtkPlusSteamVRUtility.h
+      SteamVR/openvr.h
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${STEAMVR_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${STEAMVR_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamVR
+    )
+
+    IF(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+      LIST(APPEND ${PROJECT_NAME}_LIBS
+      "${OVR_DIR}/lib/linux32/libopenvr_api.so" # this is the CMake targets produced by the external project or find module
+      )
+      LIST(APPEND External_Libraries_Install
+      "${OVR_DIR}/bin/linux32/libopenvr_api.so"
+      )
+    ELSEIF(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+      LIST(APPEND ${PROJECT_NAME}_LIBS
+      "${OVR_DIR}/lib/linux64/libopenvr_api.so" # this is the CMake targets produced by the external project or find module
+      )
+      LIST(APPEND External_Libraries_Install
+      "${OVR_DIR}/bin/linux64/libopenvr_api.so"
+      )
+    ELSEIF(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+      LIST(APPEND ${PROJECT_NAME}_LIBS
+      "${OVR_DIR}/lib/win32/openvr_api.lib" # this is the CMake targets produced by the external project or find module
+      )
+      LIST(APPEND External_Libraries_Install
+      "${OVR_DIR}/bin/win32/openvr_api.dll"
+      )
+    ELSEIF(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+      LIST(APPEND ${PROJECT_NAME}_LIBS
+      "${OVR_DIR}/lib/win64/openvr_api.lib" # this is the CMake targets produced by the external project or find module
+      )
+      LIST(APPEND External_Libraries_Install
+      "${OVR_DIR}/bin/win64/openvr_api.dll"
+      )
+    ENDIF()
 ENDIF()
 
 # --------------------------------------------------------------------------
