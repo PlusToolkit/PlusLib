@@ -292,11 +292,11 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   FrameSizeType frameSize;
   if(usMode & BFRFALineImage_RFData)
   {
-    frameSize = { m_SamplesPerLine * m_SSDecimation, m_LineCount, 1 };
+    frameSize = { m_PrimaryFrameSize[1]* m_SSDecimation, m_PrimaryFrameSize[0], 1 };
   }
   else
   {
-    frameSize = { m_LineCount, m_SamplesPerLine, 1 };
+    frameSize = m_PrimaryFrameSize;
   }
 
   if(usMode & CFD)
@@ -308,15 +308,15 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     frameSize[0] = brfGeometry->LineCount;
     frameSize[1] = brfGeometry->SamplesPerLine;
-    if(frameSize[1] != m_SamplesPerLine)
+    if(frameSize[1] != m_PrimaryFrameSize[1])
     {
-      LOG_INFO("SamplesPerLine has changed from " << m_SamplesPerLine
+      LOG_INFO("SamplesPerLine has changed from " << m_PrimaryFrameSize[1]
                << " to " << frameSize[1] << ". Adjusting spacing and buffer sizes.");
-      m_SamplesPerLine = frameSize[1];
+      m_PrimaryFrameSize[1] = frameSize[1];
       AdjustBufferSizes();
       AdjustSpacing(false);
     }
-    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_PrimaryFrameSize[1] - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing(false);
@@ -326,16 +326,16 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     frameSize[0] = brfGeometry->SamplesPerLine * brfGeometry->Decimation;
     frameSize[1] = brfGeometry->LineCount;
-    if(frameSize != m_ExtraSources[0]->GetInputFrameSize())
+    if(frameSize != m_ExtraFrameSize)
     {
       LOG_INFO("Rf frame size updated. Adjusting buffer size and spacing.");
-      m_SamplesPerLine = brfGeometry->SamplesPerLine;
-      m_LineCount = brfGeometry->LineCount;
+      m_ExtraFrameSize[1] = brfGeometry->SamplesPerLine;
+      m_ExtraFrameSize[0] = brfGeometry->LineCount;
       m_SSDecimation = brfGeometry->Decimation;
       AdjustBufferSizes();
       AdjustSpacing(true);
     }
-    else if(this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1)) // we might need approximate equality check
+    else if(this->CurrentPixelSpacingMm[0] = m_ScanDepth / (m_ExtraFrameSize[1] * m_SSDecimation - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing(true);
@@ -349,15 +349,15 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
     {
       return; //the source is not defined, do not waste time on processing this frame
     }
-    if(frameSize != m_ExtraSources[0]->GetInputFrameSize())
+    if(frameSize != m_ExtraFrameSize)
     {
-      LOG_INFO("SamplesPerLine has changed from " << m_ExtraSources[0]->GetInputFrameSize()[1]
-               << " to " << frameSize[1] << ". Adjusting buffer size.");
-      m_SamplesPerLine = frameSize[1];
+      LOG_INFO("SamplesPerLine has changed from " << m_ExtraFrameSize[0] << "x" << m_ExtraFrameSize[1]
+          << " to " << frameSize[0] << "x" << frameSize[1] << ". Adjusting buffer size.");
+      m_ExtraFrameSize = frameSize;
       AdjustBufferSizes();
       AdjustSpacing(false);
     }
-    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_SamplesPerLine - 1)) // we might need approximate equality check
+    else if(this->CurrentPixelSpacingMm[1] != m_ScanDepth / (m_ExtraFrameSize[1] - 1)) // we might need approximate equality check
     {
       LOG_INFO("Scan Depth changed. Adjusting spacing.");
       AdjustSpacing(false);
@@ -423,7 +423,6 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
         this->ReconstructFrame(data, m_ExtraBuffer, frameSize);
         for(unsigned i = 0; i < m_ExtraSources.size(); i++)
         {
-          frameSize[0] = m_MWidth;
           if(m_ExtraSources[i]->AddItem(&m_ExtraBuffer[0],
                                         US_IMG_ORIENT_MF,
                                         frameSize, VTK_UNSIGNED_CHAR,
@@ -514,7 +513,7 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
 //----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
 {
-  FrameSizeType frameSize = { m_LineCount, m_SamplesPerLine, 1 };
+  FrameSizeType frameSize = m_PrimaryFrameSize;
 
   for(unsigned i = 0; i < m_PrimarySources.size(); i++)
   {
@@ -529,15 +528,15 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
              << ", pixel type: " << vtkImageScalarTypeNameMacro(m_PrimarySources[i]->GetPixelType())
              << ", buffer image orientation: "
              << igsioCommon::GetStringFromUsImageOrientation(m_PrimarySources[i]->GetInputImageOrientation()));
-    m_PrimaryBuffer.resize(m_SamplesPerLine * m_LineCount);
+    m_PrimaryBuffer.resize(m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0]);
   }
 
   for(unsigned i = 0; i < m_ExtraSources.size(); i++)
   {
     if(m_Mode == Mode::RF || m_Mode == Mode::BRF)
     {
-      frameSize[0] = m_SamplesPerLine * m_SSDecimation;
-      frameSize[1] = m_LineCount;
+      frameSize[0] = m_ExtraFrameSize[1] * m_SSDecimation;
+      frameSize[1] = m_ExtraFrameSize[0];
       m_ExtraSources[i]->SetPixelType(VTK_INT);
       m_ExtraSources[i]->SetImageType(US_IMG_RF_REAL);
       m_ExtraSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_FM);
@@ -551,7 +550,11 @@ void vtkPlusWinProbeVideoSource::AdjustBufferSizes()
       m_ExtraSources[i]->SetImageType(US_IMG_BRIGHTNESS);
       m_ExtraSources[i]->SetOutputImageOrientation(US_IMG_ORIENT_MF);
       m_ExtraSources[i]->SetInputImageOrientation(US_IMG_ORIENT_MF);
-      m_ExtraBuffer.resize(m_SamplesPerLine * m_MWidth);
+      if(m_ExtraBuffer.size() != m_MWidth * m_ExtraFrameSize[1])
+      {
+        m_ExtraBuffer.resize(m_MWidth * m_ExtraFrameSize[1]);
+        std::fill(m_ExtraBuffer.begin(), m_ExtraBuffer.end(), 0);
+      }
     }
 
     m_ExtraSources[i]->Clear(); // clear current buffer content
@@ -673,7 +676,8 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   m_ADCfrequency = GetADCSamplingRate();
   this->m_CustomFields["SamplingRate"].first = FRAMEFIELD_FORCE_SERVER_SEND;
   this->m_CustomFields["SamplingRate"].second = std::to_string(m_ADCfrequency);
-  m_LineCount = GetSSElementCount();
+  m_PrimaryFrameSize[0] = GetSSElementCount();
+  m_ExtraFrameSize[0] = m_PrimaryFrameSize[0];
   SetSCCompoundAngleCount(0);
 
   LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
@@ -745,7 +749,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   this->SetSpatialCompoundEnabled(m_SpatialCompoundEnabled); // also takes care of angle  and count
 
   //setup size for DirectX image
-  LOG_DEBUG("Setting output size to " << m_LineCount << "x" << m_SamplesPerLine);
+  LOG_DEBUG("Setting output size to " << m_PrimaryFrameSize[0] << "x" << m_PrimaryFrameSize[1]);
   char* sessionPtr = GetSessionPtr();
   bool success = WPVPSetSession(sessionPtr);
   if(!success)
@@ -754,7 +758,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     WPDisconnect();
     return PLUS_FAIL;
   }
-  WPSetSize(m_LineCount, m_SamplesPerLine);
+  WPSetSize(m_PrimaryFrameSize[0], m_PrimaryFrameSize[1]);
   if(!m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
@@ -1205,7 +1209,7 @@ void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
       SetMIsRevolving(m_MRevolvingEnabled);
       SetMPRF(m_MPRF);
       SetMAcousticLineIndex(m_MLineIndex);
-      ::SetMWidth(m_MWidth);
+      ::SetMWidth(m_ExtraFrameSize[1]);
       ::SetMAcousticLineCount(m_MAcousticLineCount);
     }
     SetPendingRecreateTables(true);
@@ -1395,8 +1399,8 @@ std::vector<double> vtkPlusWinProbeVideoSource::GetPrimarySourceSpacing()
   std::vector<double> spacing = { 0.0, 0.0, 1.0};
   if(!m_PrimarySources.empty())
   {
-    spacing[0] = this->GetTransducerWidthMm() / (m_LineCount - 1);
-    spacing[1] = m_ScanDepth / (m_SamplesPerLine - 1);
+    spacing[0] = this->GetTransducerWidthMm() / (m_PrimaryFrameSize[0] - 1);
+    spacing[1] = m_ScanDepth / (m_PrimaryFrameSize[1] - 1);
   }
   return spacing;
 }
@@ -1408,15 +1412,12 @@ std::vector<double> vtkPlusWinProbeVideoSource::GetExtraSourceSpacing()
   {
     if(GetBRFEnabled())
     {
-      spacing[0] = m_ScanDepth / (m_SamplesPerLine * m_SSDecimation - 1);
-      spacing[1] = this->GetTransducerWidthMm() / (m_LineCount - 1);
+      spacing[0] = m_ScanDepth / (m_ExtraFrameSize[1] * m_SSDecimation - 1);
+      spacing[1] = this->GetTransducerWidthMm() / (m_ExtraFrameSize[0] - 1);
     }
     else
     {
-      for(int i = 0; i < 3; i++)
-      {
-        spacing[i] = GetPrimarySourceSpacing()[i];
-      }
+      spacing = GetPrimarySourceSpacing();
     }
   }
   return spacing;
