@@ -455,7 +455,7 @@ vtkSmartPointer<vtkUnsignedCharArray> vtkPlusMkvSequenceIO::vtkInternal::EncodeF
   if (!igtlioVideoConverter::toIGTL(headerData, contentData, this->Encoder))
   {
     vtkErrorWithObjectMacro(External, "Could not create video message!");
-    return false;
+    return nullptr;
   }
 
   uint8_t* pointer = videoMessage->GetPackFragmentPointer(2);
