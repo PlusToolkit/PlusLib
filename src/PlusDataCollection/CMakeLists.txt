@@ -52,10 +52,14 @@ OPTION(PLUS_TEST_BKPROFOCUS "Enable testing of acquisition from BK ProFocus ultr
 OPTION(PLUS_USE_AGILENT "Provide support for the Agilent PCI digitizer." OFF)
 OPTION(PLUS_USE_OPTICAL_MARKER_TRACKER "Provide support of fiducial marker tracking. Requires PLUS_USE_OpenCV." OFF)
 OPTION(PLUS_USE_OPENHAPTICS "Provide support for OpenHaptics devices." OFF)
+OPTION(PLUS_USE_BLACKMAGIC_DECKLINK "Provide support for BlackMagic DeckLink capture cards." OFF)
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
+IF(PLUS_USE_LEAPMOTION)
+  OPTION(PLUS_TEST_LEAPMOTION "Enable testing for LeapMotion device" OFF)
+ENDIF()
 OPTION(PLUS_USE_CLARIUS "Provide support for Clarius ultrasound probes" OFF)
 
 OPTION(PLUS_TEST_ULTRASONIX "Enable testing of acquisition from Ultrasonix ultrasound systems. Enable this only if an Ultrasonix device accessible from this computer." OFF)
@@ -122,6 +126,7 @@ SET(Virtual_SRCS
   VirtualDevices/vtkPlusVirtualSwitcher.cxx
   VirtualDevices/vtkPlusVirtualCapture.cxx
   VirtualDevices/vtkPlusVirtualVolumeReconstructor.cxx
+  VirtualDevices/vtkPlusVirtualDeinterlacer.cxx
   )
 SET(Miscellaneous_SRCS
   FakeTracking/vtkPlusFakeTracker.cxx
@@ -174,6 +179,7 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     VirtualDevices/vtkPlusVirtualSwitcher.h
     VirtualDevices/vtkPlusVirtualCapture.h
     VirtualDevices/vtkPlusVirtualVolumeReconstructor.h
+    VirtualDevices/vtkPlusVirtualDeinterlacer.h
     )
   IF(PLUS_USE_TextRecognizer)
     LIST(APPEND Virtual_HDRS VirtualDevices/vtkPlusVirtualTextRecognizer.h)
@@ -578,6 +584,45 @@ IF(PLUS_USE_OPENHAPTICS)
 ENDIF()
 
 #--------------------------------------------------------------------------
+# BlackMagic DeckLink support
+IF(PLUS_USE_BLACKMAGIC_DECKLINK)
+  FIND_PACKAGE(DeckLinkSDK REQUIRED)
+
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    SET(BlackMagicDeckLink_HDRS
+      BlackMagic/vtkPlusDeckLinkVideoSource.h
+      BlackMagic/DeckLinkAPIWrapper.h
+	  BlackMagic/PlusOutputVideoFrame.h
+      ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIVersion.h
+    )
+  ENDIF()
+
+  SET(BlackMagicDeckLink_SRCS
+    BlackMagic/vtkPlusDeckLinkVideoSource.cxx
+    BlackMagic/DeckLinkAPIWrapper.cxx
+	BlackMagic/PlusOutputVideoFrame.cxx
+    )
+
+  IF(UNIX)
+    LIST(APPEND BlackMagicDeckLink_SRCS
+      ${DeckLinkSDK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
+      )
+  ENDIF()
+
+  LIST(APPEND ${PROJECT_NAME}_HDRS
+    ${BlackMagicDeckLink_HDRS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_SRCS
+    ${BlackMagicDeckLink_SRCS}
+    )
+
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    DeckLinkSDK
+    )
+ENDIF()
+
+#--------------------------------------------------------------------------
 # INTELREALSENSE support
 IF(PLUS_USE_INTELREALSENSE)
   SET(IntelRealSense_SRCS
@@ -862,19 +907,22 @@ IF(PLUS_USE_USDIGITALENCODERS_TRACKER)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/USDigitalEncodersTracking
-    ${USDIGITAL_SEI_INCLUDE_DIR}
     )
+
+  IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    SET(Bitness "x64")
+  ELSE()
+    SET(Bitness "x86")
+  ENDIF()
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    vtkSEIDrv
     )
+  SET(vtkSEIDrv_vcProj vtkSEIDrv)
 
   LIST(APPEND External_Libraries_Install
-    ${USDIGITAL_SEI_BINARY_DIR}/SEIDrv32${CMAKE_SHARED_LIBRARY_SUFFIX}
-    ${USDIGITAL_SEI_BINARY_DIR}/SEISrv32.exe
-    )
-  LIST(APPEND External_Libraries_Static_Install
-    ${USDIGITAL_SEI_LIB_DIR}/SEIDrv32${CMAKE_STATIC_LIBRARY_SUFFIX}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../SEIDrv/${Bitness}/USDigital${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../SEIDrv/${Bitness}/USDSEI${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 ENDIF()
 
@@ -998,13 +1046,21 @@ IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER )
   SET_PROPERTY(TARGET phidget PROPERTY IMPORTED_LOCATION ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX})
 
   LIST(APPEND ${PROJECT_NAME}_LIBS
-    phidget vtkxio
+    phidget
     )
   LIST(APPEND External_Libraries_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
   LIST(APPEND External_Libraries_Static_Install
     ${PHIDGET_SPATIAL_BINARY_DIR}/phidget22${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+ENDIF()
+
+#--------------------------------------------------------------------------
+# vkxio algortihms required (magnetometer, accelerometer, gyroscope)
+IF( PLUS_USE_PHIDGET_SPATIAL_TRACKER OR PLUS_USE_CLARIUS)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkxio
     )
 ENDIF()
 
@@ -1249,6 +1305,11 @@ IF(PLUS_USE_BKPROFOCUS_VIDEO)
   LIST(APPEND ${PROJECT_NAME}_LIBS
     vtkpng
     vtkInteractionImage
+    )
+
+  CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/BkProFocus/vtkPNGPrivate.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/vtkPNGPrivate.h
     )
 
   # CameraLink interface
@@ -1531,7 +1592,10 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Capistrano Labs support
 IF(PLUS_USE_CAPISTRANO_VIDEO)
-  IF(${CAPISTRANO_SDK_VERSION} STREQUAL cSDK2018)
+  IF(${CAPISTRANO_SDK_VERSION} STREQUAL "cSDK2019")
+    ADD_DEFINITIONS(-DCAPISTRANO_SDK2019)
+  ENDIF()
+  IF(${CAPISTRANO_SDK_VERSION} STREQUAL "cSDK2018")
     ADD_DEFINITIONS(-DCAPISTRANO_SDK2018)
   ENDIF()
   SET(Capistrano_SRCS
@@ -1782,7 +1846,7 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
     ${CMAKE_CURRENT_SOURCE_DIR}/PointGrey
     ${SPINNAKER_API_INCLUDE_DIR}
     )
-  
+
   IF(WIN32)
     # Windows libs
     LIST(APPEND ${PROJECT_NAME}_LIBS
@@ -1850,8 +1914,8 @@ IF(PLUS_USE_SPINNAKER_VIDEO)
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Reference_Version_1_0_0_Schema_1_1.xml
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLDevice_Usb3_Version_1_0_0_Schema_1_1.xml
     ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_GigE_Version_1_0_0_Schema_1_1.xml
-    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml 
-    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml 
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Reference_Version_1_0_0_Schema_1_1.xml
+    ${SPINNAKER_API_BINARY_DIR}/SFNC_GenTLInterface_Usb3_Version_1_0_0_Schema_1_1.xml
     )
 ENDIF()
 
@@ -2356,19 +2420,22 @@ ENDIF()
 # --------------------------------------------------------------------------
 # Build the library
 LIST(APPEND ${PROJECT_NAME}_LIBS
-  vtkPlusRendering
   vtkPlusCommon
   vtkPlusUsSimulator
   vtkPlusVolumeReconstruction
   vtkPlusImageProcessing
   )
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkPlusRendering
+    )
+ENDIF()
 
 LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
   ${PlusUsSimulator_INCLUDE_DIRS}
   )
 
 SET(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} CACHE INTERNAL "" FORCE) # Force parent scope update
-
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})
 FOREACH(p IN LISTS ${PROJECT_NAME}_INCLUDE_DIRS)
@@ -2392,6 +2459,12 @@ ENDIF()
 
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_LIBS})
 TARGET_LINK_LIBRARIES(vtk${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_PRIVATE_LIBS})
+
+IF(PLUS_USE_BLACKMAGIC_DECKLINK)
+  DeckLinkGenerateAPIFiles(vtk${PROJECT_NAME})
+  target_sources(vtk${PROJECT_NAME} PRIVATE ${MIDL_OUTPUT})
+  LIST(APPEND BlackMagicDeckLink_SRCS ${MIDL_OUTPUT})
+ENDIF()
 
 # --------------------------------------------------------------------------
 # Source groups
@@ -2442,13 +2515,14 @@ source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
+source_group("BlackMagic" FILES ${BlackMagicDeckLink_HDRS} ${BlackMagicDeckLink_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
 SET(PLUSLIB_DEPENDENCIES ${PLUSLIB_DEPENDENCIES} vtk${PROJECT_NAME} CACHE INTERNAL "" FORCE) # To force parent scope update
 LIST(REMOVE_DUPLICATES PLUSLIB_DEPENDENCIES)
 # Add this variable to UsePlusLib.cmake.in INCLUDE_PLUSLIB_MS_PROJECTS macro
-SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing CACHE INTERNAL "" FORCE)
+SET(vcProj_vtk${PROJECT_NAME} vtk${PROJECT_NAME};${PlusLib_BINARY_DIR}/src/${PROJECT_NAME}/vtk${PROJECT_NAME}.vcxproj;vtkPlusCommon;vtkPlusUsSimulator;vtkPlusImageProcessing;${vtkSEIDrv_vcProj} CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Copy external libraries to PLUS_EXECUTABLE_OUTPUT_PATH
@@ -2549,12 +2623,10 @@ INSTALL(FILES ${External_Libraries_Static_Install}
 
 IF(PLUS_USE_OPTITRACK AND OPTITRACK_MOTIVE_VERSION VERSION_GREATER_EQUAL "2.1.1")
   # Copy additional OptiTrack libraries
-  ADD_CUSTOM_COMMAND(
-    TARGET vtk${PROJECT_NAME}
-    POST_BUILD
+  ADD_CUSTOM_COMMAND( TARGET vtk${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
-    $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>/platforms/$<TARGET_FILE_NAME:Qt5::QWindowsIntegrationPlugin>
+    ${OPTITRACK_MOTIVE_DIR}/platforms/qwindows.dll
+    $<TARGET_FILE_DIR:vtk${PROJECT_NAME}>/platforms/qwindows.dll
     )
 ENDIF()
 

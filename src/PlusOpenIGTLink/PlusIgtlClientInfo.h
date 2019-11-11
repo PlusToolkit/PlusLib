@@ -47,12 +47,13 @@ public:
     std::string DeadlineMode;
     int         TargetBitrate;
     EncodingParameters()
-      : Lossless(true)
-      , MinKeyframeDistance(50)
-      , MaxKeyframeDistance(50)
-      , Speed(0)
-      , RateControl("")
-      , DeadlineMode("")
+      : FourCC("VP90")
+      , Lossless(false)
+      , MinKeyframeDistance(-1)
+      , MaxKeyframeDistance(-1)
+      , Speed(8)
+      , RateControl("Q")
+      , DeadlineMode("REALTIME")
       , TargetBitrate(-1)
     {
     }
@@ -70,7 +71,7 @@ public:
     /*! Class for decoding and encoding frames */
     vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
     ImageStream()
-      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+      : FrameConverter(nullptr)
     {
     };
   };
@@ -89,7 +90,7 @@ public:
     /*! Class for decoding and encoding frames */
     vtkSmartPointer<vtkIGSIOFrameConverter> FrameConverter;
     VideoStream()
-      : FrameConverter(vtkSmartPointer<vtkIGSIOFrameConverter>::New())
+      : FrameConverter(nullptr)
     {
     };
   };

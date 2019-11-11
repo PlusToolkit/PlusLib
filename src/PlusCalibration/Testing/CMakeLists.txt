@@ -151,7 +151,7 @@ ADD_TEST(CenterOfRotationCalibration-Ulterius
   --source-seq-file=${TestDataDir}/USTC_Ulterius_ProbeRotationData.igs.mha
   --baseline-file=${TestDataDir}/USTC_Ulterius_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES(CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-Ulterius PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ADD_TEST(CenterOfRotationCalibration-FrameGrabber
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -159,7 +159,7 @@ ADD_TEST(CenterOfRotationCalibration-FrameGrabber
   --source-seq-file=${TestDataDir}/USTC_FrameGrabber_ProbeRotationData.igs.mha
   --baseline-file=${TestDataDir}/USTC_FrameGrabber_StepperCalibrationResultBaseline.xml
   )
-SET_TESTS_PROPERTIES(CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-FrameGrabber PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 ADD_TEST(CenterOfRotationCalibration-3NWires
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkCenterOfRotationCalibAlgoTest
@@ -167,7 +167,7 @@ ADD_TEST(CenterOfRotationCalibration-3NWires
   --source-seq-file=${TestDataDir}/USTC_3NWires_ProbeRotation.igs.mha 
   --baseline-file=${TestDataDir}/USTC_3NWires_StepperCalibrationResultBaseline.xml 
   )
-SET_TESTS_PROPERTIES(CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR;WARNING")
+SET_TESTS_PROPERTIES(CenterOfRotationCalibration-3NWires PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
 
 #--------------------------------------------------------------------------------------------
 ADD_EXECUTABLE(vtkSpacingCalibAlgoTest vtkSpacingCalibAlgoTest.cxx)

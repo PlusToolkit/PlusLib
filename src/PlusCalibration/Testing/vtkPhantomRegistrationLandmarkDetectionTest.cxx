@@ -16,7 +16,9 @@ compares the results to a baseline
 #include "vtkAxis.h"
 #include "vtkChartXY.h"
 #include "vtkContextScene.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "vtkContextView.h"
+#endif
 #include "vtkPlusDataCollector.h"
 #include "vtkDirectory.h"
 #include "vtkDoubleArray.h"
@@ -84,6 +86,7 @@ PlusStatus ConstructTableSignal(std::deque<double>& x, std::deque<double>& y, vt
 void SaveMetricPlot(const char* filename, vtkTable* stylusRef, vtkTable* stylusTipRef, vtkTable* stylusTipSpeed, std::string& xAxisLabel,
                     std::string& yAxisLabel)
 {
+#ifdef PLUS_RENDERING_ENABLED
   // Set up the view
   vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
@@ -124,6 +127,9 @@ void SaveMetricPlot(const char* filename, vtkTable* stylusRef, vtkTable* stylusT
   writer->SetFileName(filename);
   writer->SetInputData(windowToImageFilter->GetOutput());
   writer->Write();
+#else
+  LOG_ERROR("Function not available when VTK_RENDERING_BACKEND is None!");
+#endif
 }
 
 PlusStatus ConstructSignalPlot(vtkIGSIOTrackedFrameList* trackedStylusTipFrames, std::string intermediateFileOutputDirectory, vtkXMLDataElement* aConfig)
@@ -181,7 +187,10 @@ PlusStatus ConstructSignalPlot(vtkIGSIOTrackedFrameList* trackedStylusTipFrames,
   std::string filename = intermediateFileOutputDirectory /*+ "\\StylusTracked.png"*/;
   std::string xLabel = "Time [s]";
   std::string yLabel = "Position Metric";
+
+#ifdef PLUS_RENDERING_ENABLED
   SaveMetricPlot(filename.c_str(), stylusRefTable, stylusTipRefTable,  stylusTipSpeedTable, xLabel, yLabel);
+#endif
   return PLUS_SUCCESS;
 }
 

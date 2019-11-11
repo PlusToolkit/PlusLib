@@ -13,7 +13,7 @@ TARGET_LINK_LIBRARIES(vtkPlusTransverseProcessEnhancerTest
 ADD_TEST(vtkPlusTransverseProcessEnhancerTest 
   ${PLUS_EXECUTABLE_OUTPUT_PATH}/vtkPlusTransverseProcessEnhancerTest
   --input-seq-file=${TestDataDir}/PlusTransverseProcessEnhancerTestData.igs.mha
-  --output-seq-file=${TestDataDir}/outputPlusTransverseProcessEnhancerTest.igs.mha
+  --output-seq-file=outputPlusTransverseProcessEnhancerTest.igs.mha
   --input-config-file=${ConfigFilesDir}/Testing/PlusTransverseProcessEnhancerTestingParameters.xml
   --save-intermediate-images=false
   )

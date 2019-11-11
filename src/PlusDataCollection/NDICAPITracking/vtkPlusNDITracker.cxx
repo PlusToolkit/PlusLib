@@ -1424,7 +1424,7 @@ PlusStatus vtkPlusNDITracker::ProbeSerialInternal()
       tasks.push_back(std::move(result));
     }
   }
-  for (int i = 0; i < tasks.size(); i++)
+  for (std::vector<std::future<void>>::size_type i = 0; i < tasks.size(); i++)
   {
     tasks[i].wait();
   }

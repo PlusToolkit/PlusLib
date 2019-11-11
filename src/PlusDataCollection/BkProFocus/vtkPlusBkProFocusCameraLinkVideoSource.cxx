@@ -541,7 +541,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
 
   LOG_TRACE("New frame received: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
             << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
-            << ", image type: " << igsioVideoFrame::GetStringFromUsImageType(imageType));
+            << ", image type: " << igsioCommon::GetStringFromUsImageType(imageType));
 
   vtkPlusChannel* channel = this->FindChannelByPlane();
 
@@ -569,7 +569,7 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
         // RF image is received and RF image is needed => no need for conversion
         break;
       }
-      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioVideoFrame::GetStringFromUsImageType(imageType) << " to RF");
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioCommon::GetStringFromUsImageType(imageType) << " to RF");
       return;
     }
     case BMode:
@@ -604,11 +604,11 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
         imageType = US_IMG_BRIGHTNESS;
         break;
       }
-      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioVideoFrame::GetStringFromUsImageType(imageType) << " to Brightness");
+      LOG_ERROR("The received frame is discarded, as it cannot be convert from " << igsioCommon::GetStringFromUsImageType(imageType) << " to Brightness");
       return;
     }
     default:
-      LOG_ERROR("The received frame is discarded, as the requested imaging mode (" << igsioVideoFrame::GetStringFromUsImageType(imageType) << ") is not supported");
+      LOG_ERROR("The received frame is discarded, as the requested imaging mode (" << igsioCommon::GetStringFromUsImageType(imageType) << ") is not supported");
       return;
   }
 
@@ -637,9 +637,9 @@ void vtkPlusBkProFocusCameraLinkVideoSource::NewFrameCallback(void* pixelDataPtr
     }
     LOG_INFO("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
              << ", pixel type: " << vtkImageScalarTypeNameMacro(pixelType)
-             << ", image type: " << igsioVideoFrame::GetStringFromUsImageType(imageType)
-             << ", device image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
-             << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetOutputImageOrientation()));
+             << ", image type: " << igsioCommon::GetStringFromUsImageType(imageType)
+             << ", device image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation())
+             << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetOutputImageOrientation()));
 
   }
 

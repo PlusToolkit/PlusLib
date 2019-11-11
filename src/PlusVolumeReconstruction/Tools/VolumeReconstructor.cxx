@@ -166,8 +166,8 @@ int main(int argc, char* argv[])
       LOG_ERROR("Invalid image to reference transform name: " << inputImageToReferenceTransformName);
       return EXIT_FAILURE;
     }
-    reconstructor->SetImageCoordinateFrame(imageToReferenceTransformName.From().c_str());
-    reconstructor->SetReferenceCoordinateFrame(imageToReferenceTransformName.To().c_str());
+    reconstructor->SetImageCoordinateFrame(imageToReferenceTransformName.From());
+    reconstructor->SetReferenceCoordinateFrame(imageToReferenceTransformName.To());
   }
 
   LOG_INFO("Set volume output extent...");

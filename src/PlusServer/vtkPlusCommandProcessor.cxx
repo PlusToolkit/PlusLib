@@ -16,6 +16,9 @@ See License.txt for details.
 #ifdef PLUS_USE_STEALTHLINK
   #include "vtkPlusStealthLinkCommand.h"
 #endif
+#ifdef PLUS_USE_CLARIUS
+#include "vtkPlusClariusCommand.h"
+#endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   #include "vtkPlusConoProbeLinkCommand.h"
 #endif
@@ -66,6 +69,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
   RegisterPlusCommand(vtkSmartPointer<vtkPlusAddRecordingDeviceCommand>::New());
 #ifdef PLUS_USE_STEALTHLINK
   RegisterPlusCommand(vtkSmartPointer<vtkPlusStealthLinkCommand>::New());
+#endif
+#ifdef PLUS_USE_CLARIUS
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusClariusCommand>::New());
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   RegisterPlusCommand(vtkSmartPointer<vtkPlusConoProbeLinkCommand>::New());
@@ -331,7 +337,6 @@ PlusStatus vtkPlusCommandProcessor::QueueCommandResponse(PlusStatus status, cons
 //------------------------------------------------------------------------------
 PlusStatus vtkPlusCommandProcessor::QueueGetImageMetaData(unsigned int clientId, const std::string& deviceName)
 {
-
   vtkSmartPointer<vtkPlusGetImageCommand> cmdGetImage = vtkSmartPointer<vtkPlusGetImageCommand>::New();
   cmdGetImage->SetCommandProcessor(this);
   cmdGetImage->SetClientId(clientId);

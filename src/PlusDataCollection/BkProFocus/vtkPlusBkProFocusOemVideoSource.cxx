@@ -8,6 +8,7 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
+#include "PlusCommon.h"
 #include "PixelCodec.h"
 #include "vtkPlusBkProFocusOemVideoSource.h"
 #include "vtkPlusChannel.h"
@@ -20,6 +21,11 @@ See License.txt for details.
 #include <vtksys/SystemTools.hxx>
 #include <vtkClientSocket.h>
 #include <vtkMath.h>
+
+// pngpriv is not copied into install directory with the rest of the vtkpng classes
+// This CMake configured header specifies the path to the header in the source code
+// #include <vtkpng/pngpriv.h>
+#include <vtkPNGPrivate.h>
 
 // STL includes
 #include <iostream>
@@ -34,8 +40,8 @@ See License.txt for details.
 
 static const int TIMESTAMP_SIZE = 4;
 
-const char* vtkPlusBkProFocusOemVideoSource::KEY_DEPTH          = "Depth";
-const char* vtkPlusBkProFocusOemVideoSource::KEY_GAIN           = "Gain";
+const char* vtkPlusBkProFocusOemVideoSource::KEY_DEPTH = "Depth";
+const char* vtkPlusBkProFocusOemVideoSource::KEY_GAIN = "Gain";
 
 vtkStandardNewMacro(vtkPlusBkProFocusOemVideoSource);
 
@@ -162,7 +168,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
   LOG_DEBUG("BK scanner address: " << this->ScannerAddress);
   LOG_DEBUG("BK scanner OEM port: " << this->OemPort);
   LOG_DEBUG("BK scanner Acquisition rate: " << this->AcquisitionRate);
-    
+
   if (this->OfflineTesting)
   {
     LOG_INFO("Offline testing on");
@@ -175,16 +181,16 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalConnect()
     if (!connected)
     {
       LOG_ERROR("Could not connect to BKProFocusOem:"
-                << " scanner address = " << this->ScannerAddress
-                << ", OEM port = " << this->OemPort);
+        << " scanner address = " << this->ScannerAddress
+        << ", OEM port = " << this->OemPort);
       return PLUS_FAIL;
     }
     LOG_DEBUG("Connected to BK scanner");
 
     if (!(this->RequestParametersFromScanner()
-          && this->ConfigEventsOn()
-          && this->SubscribeToParameterChanges()
-         ))
+      && this->ConfigEventsOn()
+      && this->SubscribeToParameterChanges()
+      ))
     {
       LOG_ERROR("Cound not init BK scanner");
       return PLUS_FAIL;
@@ -212,13 +218,13 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::StartContinuousDataStreaming()
   Example - Colour Enabled "QUERY:GRAB_FRAME \"ON\",20,\"OVERLAY\";";
   Example - Colour Disabled "QUERY:GRAB_FRAME \"ON\",20;";
   */
-  
+
   query = "QUERY:GRAB_FRAME \"ON\",";
 
   std::stringstream ss;
   ss << this->AcquisitionRate;
   query += ss.str().c_str();
-  
+
   if (this->ColorEnabled)
   {
     //Switch to power doppler
@@ -267,7 +273,9 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalDisconnect()
   this->StopRecording();
 
   if (this->Internal->VtkSocket->GetConnected())
-  { this->Internal->VtkSocket->CloseSocket(); }
+  {
+    this->Internal->VtkSocket->CloseSocket();
+  }
 
   return PLUS_SUCCESS;
 }
@@ -359,15 +367,15 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
       // we received color image
       this->Internal->DecodedImageFrame->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
       PlusStatus status = PixelCodec::ConvertToBmp24(PixelCodec::ComponentOrder_RGB, PixelCodec::PixelEncoding_BGR24, this->UltrasoundWindowSize[0], this->UltrasoundWindowSize[1],
-                          (unsigned char*) & (this->Internal->OemMessage[numBytesProcessed]),
-                          (unsigned char*)this->Internal->DecodedImageFrame->GetScalarPointer());
+        (unsigned char*) & (this->Internal->OemMessage[numBytesProcessed]),
+        (unsigned char*)this->Internal->DecodedImageFrame->GetScalarPointer());
     }
     else
     {
       this->Internal->DecodedImageFrame->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
       std::memcpy(this->Internal->DecodedImageFrame->GetScalarPointer(),
-                  (void*) & (this->Internal->OemMessage[numBytesProcessed]),
-                  uncompressedPixelBufferSize);
+        (void*) & (this->Internal->OemMessage[numBytesProcessed]),
+        uncompressedPixelBufferSize);
       LOG_TRACE(uncompressedPixelBufferSize << " bytes copied, start at " << numBytesProcessed); // 29
     }
   }
@@ -411,8 +419,8 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::InternalUpdate()
     aSource->SetInputFrameSize(frameSizeInPix[0], frameSizeInPix[1], frameSizeInPix[2]);
 
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
-              << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
-              << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+      << ", pixel type: " << vtkImageScalarTypeNameMacro(this->Internal->DecodedImageFrame->GetScalarType())
+      << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
     LOG_DEBUG("NumberOfScalarComponents: " << aSource->GetNumberOfScalarComponents());
   }
 
@@ -504,8 +512,8 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ProcessMessagesAndReadNextImage()
       }
     }
     else if ((messageString.compare("EVENT:TRANSDUCER_CONNECT;") == 0)
-             || (messageString.compare("EVENT:TRANSDUCER_DISCONNECT;") == 0)
-             || (messageString.compare("EVENT:TRANSDUCER_SELECTED;") == 0))
+      || (messageString.compare("EVENT:TRANSDUCER_DISCONNECT;") == 0)
+      || (messageString.compare("EVENT:TRANSDUCER_SELECTED;") == 0))
     {
       this->QueryTransducerList();//Need to query, as this can't be subscribed to
     }
@@ -561,7 +569,7 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::ReadNextMessage()
         LOG_TRACE("Number of bytes in binary data block size: " << numChars); // Typically 7 or 6
         if (numChars <= 1 || numChars >= 9)
         {
-          LOG_ERROR("Error in binary data block from BK OEM interface. Incorrect character after block start (#): " << character << "(char num: " << (int)character << ")" <<  " (should be 6 or 7) ");
+          LOG_ERROR("Error in binary data block from BK OEM interface. Incorrect character after block start (#): " << character << "(char num: " << (int)character << ")" << " (should be 6 or 7) ");
           return PLUS_FAIL;
         }
         else
@@ -752,7 +760,7 @@ void vtkPlusBkProFocusOemVideoSource::ParseGeometryScanarea(std::istringstream& 
   StopDepth_m = atof(stringVal.c_str());
 
   LOG_DEBUG("Ultrasound geometry. StartLineX_m: " << StartLineX_m << " StartLineY_m: " << StartLineY_m << " StartLineAngle_rad: " << StartLineAngle_rad <<
-            " StartDepth_m: " << StartDepth_m << " StopLineX_m: " << StopLineX_m << " StopLineY_m: " << StopLineY_m << " StopLineAngle_rad: " << StopLineAngle_rad << " StopDepth_m: " << StopDepth_m);
+    " StartDepth_m: " << StartDepth_m << " StopLineX_m: " << StopLineX_m << " StopLineY_m: " << StopLineY_m << " StopLineAngle_rad: " << StopLineAngle_rad << " StopDepth_m: " << StopDepth_m);
 }
 
 //-----------------------------------------------------------------------------
@@ -805,9 +813,9 @@ void vtkPlusBkProFocusOemVideoSource::ParseGeometryUsGrabFrame(std::istringstrea
   grabFramePixelBottom_pix = atoi(stringVal.c_str());
 
   LOG_DEBUG("Ultrasound grab frame geometry. grabFramePixelLeft_pix: " << grabFramePixelLeft_pix
-            << " grabFramePixelTop_pix: " << grabFramePixelTop_pix
-            << " grabFramePixelRight_pix: " << grabFramePixelRight_pix
-            << " grabFramePixelBottom_pix: " << grabFramePixelBottom_pix);
+    << " grabFramePixelTop_pix: " << grabFramePixelTop_pix
+    << " grabFramePixelRight_pix: " << grabFramePixelRight_pix
+    << " grabFramePixelBottom_pix: " << grabFramePixelBottom_pix);
 }
 
 //-----------------------------------------------------------------------------
@@ -1174,9 +1182,9 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuf
   int compression_type, filter_method;
   // get size and bit-depth of the PNG-image
   png_get_IHDR(png_ptr, info_ptr,
-               &width, &height,
-               &bit_depth, &color_type, &interlace_type,
-               &compression_type, &filter_method);
+    &width, &height,
+    &bit_depth, &color_type, &interlace_type,
+    &compression_type, &filter_method);
 
   // set-up the transformations
   // convert palettes to RGB
@@ -1243,16 +1251,24 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::DecodePngImage(unsigned char* pngBuf
   int bitDepth = png_get_bit_depth(png_ptr, info_ptr);
 #if (VTK_MAJOR_VERSION < 6)
   if (bitDepth <= 8)
-  { decodedImage->SetScalarTypeToUnsignedChar(); }
+  {
+    decodedImage->SetScalarTypeToUnsignedChar();
+  }
   else
-  { decodedImage->SetScalarTypeToUnsignedShort(); }
+  {
+    decodedImage->SetScalarTypeToUnsignedShort();
+  }
   decodedImage->SetNumberOfScalarComponents(numberOfScalarComponents);
   decodedImage->AllocateScalars();
 #else
   if (bitDepth <= 8)
-  { decodedImage->AllocateScalars(VTK_UNSIGNED_CHAR, numberOfScalarComponents); }
+  {
+    decodedImage->AllocateScalars(VTK_UNSIGNED_CHAR, numberOfScalarComponents);
+  }
   else
-  { decodedImage->AllocateScalars(VTK_UNSIGNED_SHORT, numberOfScalarComponents); }
+  {
+    decodedImage->AllocateScalars(VTK_UNSIGNED_SHORT, numberOfScalarComponents);
+  }
 #endif
 
 
@@ -1282,23 +1298,33 @@ PlusStatus vtkPlusBkProFocusOemVideoSource::AddParametersToFrameFields()
 {
   vtkPlusUsDevice::InternalUpdate();// Move to beginning of vtkPlusBkProFocusOemVideoSource::InternalUpdate()?
 
-  this->FrameFields[IGTLIO_KEY_PROBE_TYPE]   = igsioCommon::ToString<int>(this->GetProbeType());
+  this->FrameFields[IGTLIO_KEY_PROBE_TYPE].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_PROBE_TYPE].second = igsioCommon::ToString<int>(this->GetProbeType());
   std::string output;
   igsioCommon::JoinTokensIntoString<double>(this->CalculateOrigin(), output, ' ');
-  this->FrameFields[IGTLIO_KEY_ORIGIN]       = output;
+  this->FrameFields[IGTLIO_KEY_ORIGIN].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_ORIGIN].second = output;
   igsioCommon::JoinTokensIntoString<double>(this->CalculateAngles(), output, ' ');
-  this->FrameFields[IGTLIO_KEY_ANGLES]       = output;
+  this->FrameFields[IGTLIO_KEY_ANGLES].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_ANGLES].second = output;
   igsioCommon::JoinTokensIntoString<double>(this->CalculateBoundingBox(), output, ' ');
-  this->FrameFields[IGTLIO_KEY_BOUNDING_BOX] = output;
+  this->FrameFields[IGTLIO_KEY_BOUNDING_BOX].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_BOUNDING_BOX].second = output;
   igsioCommon::JoinTokensIntoString<double>(this->CalculateDepths(), output, ' ');
-  this->FrameFields[IGTLIO_KEY_DEPTHS]       = output;
-  this->FrameFields[IGTLIO_KEY_LINEAR_WIDTH] = igsioCommon::ToString<double>(this->CalculateLinearWidth());
+  this->FrameFields[IGTLIO_KEY_DEPTHS].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_DEPTHS].second = output;
+  this->FrameFields[IGTLIO_KEY_LINEAR_WIDTH].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_LINEAR_WIDTH].second = igsioCommon::ToString<double>(this->CalculateLinearWidth());
 
-  this->FrameFields[IGTLIO_KEY_SPACING_X]    = igsioCommon::ToString<double>(this->GetSpacingX());
-  this->FrameFields[IGTLIO_KEY_SPACING_Y]    = igsioCommon::ToString<double>(this->GetSpacingY());
+  this->FrameFields[IGTLIO_KEY_SPACING_X].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_SPACING_X].second = igsioCommon::ToString<double>(this->GetSpacingX());
+  this->FrameFields[IGTLIO_KEY_SPACING_Y].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[IGTLIO_KEY_SPACING_Y].second = igsioCommon::ToString<double>(this->GetSpacingY());
 
-  this->FrameFields[KEY_DEPTH]        = igsioCommon::ToString<double>(this->CalculateDepthMm());
-  this->FrameFields[KEY_GAIN]         = igsioCommon::ToString<int>(this->CalculateGain());
+  this->FrameFields[KEY_DEPTH].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[KEY_DEPTH].second = igsioCommon::ToString<double>(this->CalculateDepthMm());
+  this->FrameFields[KEY_GAIN].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->FrameFields[KEY_GAIN].second = igsioCommon::ToString<int>(this->CalculateGain());
 
   return PLUS_SUCCESS;
 }
@@ -1379,7 +1405,7 @@ std::vector<double> vtkPlusBkProFocusOemVideoSource::CalculateDepths()
     int* dimensions = this->Internal->DecodedImageFrame->GetDimensions();
     double* spacing = this->Internal->DecodedImageFrame->GetSpacing();
     retval.push_back(0);
-    retval.push_back(dimensions[1]*spacing[1]);
+    retval.push_back(dimensions[1] * spacing[1]);
     return retval;
   }
 

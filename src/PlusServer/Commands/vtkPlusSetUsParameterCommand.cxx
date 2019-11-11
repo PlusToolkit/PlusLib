@@ -204,6 +204,7 @@ PlusStatus vtkPlusSetUsParameterCommand::Execute()
              || parameterName == vtkPlusUsImagingParameters::KEY_GAIN
              || parameterName == vtkPlusUsImagingParameters::KEY_INTENSITY
              || parameterName == vtkPlusUsImagingParameters::KEY_CONTRAST
+             || parameterName == vtkPlusUsImagingParameters::KEY_POWER
              || parameterName == vtkPlusUsImagingParameters::KEY_DYNRANGE
              || parameterName == vtkPlusUsImagingParameters::KEY_ZOOM
              || parameterName == vtkPlusUsImagingParameters::KEY_SOUNDVELOCITY

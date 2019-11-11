@@ -13,7 +13,9 @@ See License.txt for details.
 #include "vtkImageActor.h"
 #include "vtkImageData.h"
 #include "vtkImageImport.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "vtkImageViewer2.h"
+#endif
 #include "vtkMatrix4x4.h"
 #include "vtkProp.h"
 #include "vtkRenderWindow.h"

@@ -12,7 +12,7 @@
 
 #include "PlusBrachyStepper.h"
 
-/*! \class CivcoBrachyStepper 
+/*! \class CivcoBrachyStepper
  * \brief Interface for position tracking using Civco brachy steppers
  *
  * Communication protocol for ED2 encoder controller from US digital
@@ -24,59 +24,57 @@
 class vtkPlusDataCollectionExport PlusCivcoBrachyStepper : public PlusBrachyStepper
 {
 public:
-
   /*! Constructor */
-  PlusCivcoBrachyStepper(unsigned long COMPort=1, unsigned long BaudRate=9600);
+  PlusCivcoBrachyStepper(unsigned long COMPort = 1, unsigned long BaudRate = 9600);
   /*! Destructor */
   virtual ~PlusCivcoBrachyStepper();
 
   /*! Connect to CIVCO stepper */
-  virtual PlusStatus Connect(); 
+  virtual PlusStatus Connect();
 
   /*! Disconnect from CIVCO stepper */
-  virtual PlusStatus Disconnect(); 
+  virtual PlusStatus Disconnect();
 
   /*! Get raw encoder values from stepper */
-  virtual PlusStatus GetEncoderValues(double &PPosition, 
-    double &GPosition, double &RPosition, unsigned long &PositionRequestNumber);
+  virtual PlusStatus GetEncoderValues(double& PPosition,
+                                      double& GPosition, double& RPosition, unsigned long& PositionRequestNumber);
 
   /*! Get device mode information */
-  virtual PlusStatus GetDeviceModelInfo( std::string& version, std::string& model, std::string& serial ); 
+  virtual PlusStatus GetDeviceModelInfo(std::string& version, std::string& model, std::string& serial);
 
   /*! Reset stepper */
   virtual PlusStatus ResetStepper();
 
   /*! Initialize stepper */
-  virtual PlusStatus InitializeStepper(std::string &CalibMsg);
+  virtual PlusStatus InitializeStepper(std::string& CalibMsg);
 
   /*! Set baud rate of communication */
-  virtual PlusStatus SetBaudRate(unsigned long BaudRate); 
+  virtual PlusStatus SetBaudRate(unsigned long BaudRate);
 
   /*! Set used COM port for communication */
-  virtual PlusStatus SetCOMPort(unsigned long COMPort); 
+  virtual PlusStatus SetCOMPort(unsigned long COMPort);
 
   /*! Return whether stepper is alive */
   virtual PlusStatus IsStepperAlive();
 
-protected: 
-
+protected:
   /*! IEEE Standard 754 floating point to double conversion  */
-  double ConvertFloatToDecimal( long floatPoint ); 
+  double ConvertFloatToDecimal(long floatPoint);
 
   /*! Returns number of devices found on the SEI bus */
-  long GetNumberOfSeiDevices(); 
+  long GetNumberOfSeiDevices();
 
   /*! Get information about the SEI device */
-  PlusStatus GetSeiDeviceInfo(long devnum, long &model, long &serialnum, long &version, long &addr); 
+  PlusStatus GetSeiDeviceInfo(long devnum, long& model, long& serialnum, long& version, long& addr);
 
   /*! Used COM port number */
-  long m_COMPort; 
+  long m_COMPort;
 
   /*! Baud rate */
-  long m_BaudRate; 
+  long m_BaudRate;
 
   /*! Device number */
-  long m_DeviceNumber; 
+  long m_DeviceNumber;
 
   /*! Device address */
   long m_DeviceAddress;

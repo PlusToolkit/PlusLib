@@ -102,6 +102,7 @@ typedef unsigned long int vtkMTimeType;
 #cmakedefine PLUS_USE_AGILENT
 #cmakedefine PLUS_USE_OpenCV_VIDEO
 #cmakedefine PLUS_USE_OPENHAPTICS
+#cmakedefine PLUS_USE_BLACKMAGIC_DECKLINK
 #cmakedefine PLUS_USE_V4L2
 #cmakedefine PLUS_USE_VTKVIDEOIO_MKV
 #cmakedefine PLUS_USE_INFRARED_SEEK_CAM
@@ -134,6 +135,8 @@ typedef unsigned long int vtkMTimeType;
 #define LINUXTOLERANCEPERCENT 8
 
 #cmakedefine HAVE_FUTURE
+
+#cmakedefine PLUS_RENDERING_ENABLED
 
 // Frequently needed STL includes
 #include <sstream>

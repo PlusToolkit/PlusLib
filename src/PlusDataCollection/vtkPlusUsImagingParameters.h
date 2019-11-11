@@ -27,8 +27,9 @@ Currently contains the following items
 * SectorPercent
 * GainPercent
 * TGC [initialgain, midgain, fargain]
-* Intensity
+* Intensity (brightness)
 * Contrast
+* PowerDb
 * DynRangeDb
 * ZoomFactor
 * Voltage
@@ -71,6 +72,7 @@ public:
   static const char* KEY_TGC;
   static const char* KEY_INTENSITY;
   static const char* KEY_CONTRAST;
+  static const char* KEY_POWER;
   static const char* KEY_SECTOR;
   static const char* KEY_ZOOM;
   static const char* KEY_SOUNDVELOCITY;
@@ -193,6 +195,12 @@ public:
   /*! Get the contrast of B-mode ultrasound */
   PlusStatus GetContrast(double& aContrast) const;
   double GetContrast() const;
+
+  /*! Set the power of B-mode ultrasound */
+  PlusStatus SetPowerDb(double aPower);
+  /*! Get the Power of B-mode ultrasound */
+  PlusStatus GetPowerDb(double& aPower) const;
+  double GetPowerDb() const;
 
   /*! Set the DynRange (dB) of B-mode ultrasound */
   PlusStatus SetDynRangeDb(double aDynRangeDb);

@@ -347,6 +347,7 @@ public:
 
   /*! Are we connected? */
   virtual int GetConnected() const;
+  virtual bool IsConnected() const;
 
   /*!
   Set the full-frame size.  This must be an allowed size for the device,
@@ -465,21 +466,21 @@ protected:
   This function can be called to add a video item to the specified video data sources
   */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioFieldMapType* customFields = NULL);
 
   /*!
   This function can be called to add a video item to the specified video data sources
   */
   virtual PlusStatus AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx,
       igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp = UNDEFINED_TIMESTAMP,
-      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioTrackedFrame::FieldMapType* customFields = NULL);
+      double filteredTimestamp = UNDEFINED_TIMESTAMP, const igsioFieldMapType* customFields = NULL);
 
   /*!
   This function is called by InternalUpdate() so that the subclasses
   can communicate information back to the vtkPlusDevice base class, which
   will in turn relay the information to the appropriate vtkPlusDataSource.
   */
-  virtual PlusStatus ToolTimeStampedUpdate(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const igsioTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus ToolTimeStampedUpdate(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const igsioFieldMapType* customFields = NULL);
 
   /*!
   This function is called by InternalUpdate() so that the subclasses
@@ -487,7 +488,7 @@ protected:
   will in turn relay the information to the appropriate vtkPlusDataSource.
   This function is for devices has no frame numbering, just auto increment tool frame number if new frame received
   */
-  virtual PlusStatus ToolTimeStampedUpdateWithoutFiltering(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const igsioTrackedFrame::FieldMapType* customFields = NULL);
+  virtual PlusStatus ToolTimeStampedUpdateWithoutFiltering(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const igsioFieldMapType* customFields = NULL);
 
   /*!
   Helper function used during configuration to locate the correct XML element for a device

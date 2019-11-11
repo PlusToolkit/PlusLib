@@ -11,7 +11,9 @@ See License.txt for details.
 
 // Local includes
 #include "PlusConfigure.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "PlusPlotter.h"
+#endif
 #include "vtkPlusBuffer.h"
 #include "vtkPlusHTMLGenerator.h"
 #include "vtkIGSIOSequenceIO.h"
@@ -187,11 +189,13 @@ int main(int argc, char** argv)
 
   std::string reportFile = vtksys::SystemTools::GetCurrentWorkingDirectory() + std::string("/TimestampReport.txt");
 
+#ifdef PLUS_RENDERING_ENABLED
   if (PlusPlotter::WriteTableToFile(*timestampReportTable, reportFile.c_str()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to write table to file");
     return PLUS_FAIL;
   }
+#endif
 
   if (vtkPlusLogger::Instance()->GetLogLevel() >= vtkPlusLogger::LOG_LEVEL_DEBUG)
   {

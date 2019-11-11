@@ -238,7 +238,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMessage(igtl::ImageMessage::Pointe
   }
 
   double timestamp = trackedFrame.GetTimestamp();
-  vtkSmartPointer<vtkImageData> frameImage = converter->GetUncompressedImage(trackedFrame.GetImageData());
+  vtkSmartPointer<vtkImageData> frameImage = converter->GetImageData(trackedFrame.GetImageData());
 
   igtl::TimeStamp::Pointer igtlFrameTime = igtl::TimeStamp::New();
   igtlFrameTime->SetTime(timestamp);
@@ -486,11 +486,11 @@ PlusStatus vtkPlusIgtlMessageCommon::PackImageMetaMessage(igtl::ImageMetaMessage
 //----------------------------------------------------------------------------
 #if defined(OpenIGTLink_ENABLE_VIDEOSTREAMING)
 PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointer videoMessage,
-  igsioTrackedFrame& trackedFrame,
-  vtkMatrix4x4& matrix,
-  vtkIGSIOFrameConverter* frameConverter/*=NULL*/,
-  std::string fourCC/*=""*/,
-  std::map<std::string,std::string> parameters)
+    igsioTrackedFrame& trackedFrame,
+    vtkMatrix4x4& matrix,
+    vtkIGSIOFrameConverter* frameConverter/*=NULL*/,
+    std::string fourCC/*=""*/,
+    std::map<std::string, std::string> parameters)
 {
   if (videoMessage.IsNull())
   {
@@ -505,7 +505,6 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   }
 
   vtkSmartPointer<vtkStreamingVolumeFrame> frame = trackedFrame.GetImageData()->GetEncodedFrame();
-
   std::string codecFourCC = fourCC;
   if (codecFourCC.empty() && frame)
   {
@@ -517,7 +516,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
     return PLUS_FAIL;
   }
 
-  frame = frameConverter->GetCompressedFrame(trackedFrame.GetImageData(), codecFourCC, parameters);
+  frame = frameConverter->GetEncodedFrame(trackedFrame.GetImageData(), codecFourCC, parameters);
   if (!frame)
   {
     LOG_ERROR("Could not encode frame!");
@@ -529,7 +528,7 @@ PlusStatus vtkPlusIgtlMessageCommon::PackVideoMessage(igtl::VideoMessage::Pointe
   unsigned int frameSize = frameData->GetSize() * frameData->GetElementComponentSize();
   codecFourCC = frame->GetCodecFourCC();
   int endian = (igtl_is_little_endian() == 1 ? IGTL_VIDEO_ENDIAN_LITTLE : IGTL_VIDEO_ENDIAN_BIG);
-  int dimensions[3] = { 0,0,0 };
+  int dimensions[3] = { 0, 0, 0 };
   frame->GetDimensions(dimensions);
   double spacing[3] = { 1.0, 1.0, 1.0 };
   int encodedFrameType = FrameTypeUnKnown;
@@ -591,7 +590,16 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTransformMessage(igtl::TransformMessage
   transformMessage->SetMetaDataElement("TransformStatus", IANA_TYPE_US_ASCII, igsioCommon::ConvertToolStatusToString(status));
   transformMessage->SetMatrix(igtlMatrix);
   transformMessage->SetTimeStamp(igtlTime);
-  transformMessage->SetDeviceName(strTransformName.c_str());
+  if (strTransformName.length() > IGTL_TDATA_LEN_NAME)
+  {
+    std::string shortenedName = strTransformName.substr(0, IGTL_TDATA_LEN_NAME);
+    transformMessage->SetDeviceName(shortenedName.c_str());
+    transformMessage->SetMetaDataElement("IGTL_DEVICE_NAME", IANA_TYPE_US_ASCII, strTransformName);
+  }
+  else
+  {
+    transformMessage->SetDeviceName(strTransformName.c_str());
+  }
   transformMessage->Pack();
 
   return PLUS_SUCCESS;
@@ -633,8 +641,15 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
   igtl::TimeStamp::Pointer igtlTime = igtl::TimeStamp::New();
   igtlTime->SetTime(timestamp);
 
+  uint32_t i = 0;
   for (auto it = names.begin(); it != names.end(); ++it)
   {
+    if (it->GetTransformName().empty())
+    {
+      LOG_ERROR("Unable to pack transform element in TDATA message. Skipping.");
+      continue;
+    }
+
     vtkNew<vtkMatrix4x4> vtkMat;
     ToolStatus status(TOOL_INVALID);
     if (repository.GetTransform(*it, vtkMat.GetPointer(), &status) != PLUS_SUCCESS)
@@ -650,14 +665,17 @@ PlusStatus vtkPlusIgtlMessageCommon::PackTrackingDataMessage(igtl::TrackingDataM
     }
 
     igtl::TrackingDataElement::Pointer trackElement = igtl::TrackingDataElement::New();
-    std::string shortenedName = it->GetTransformName().empty() ? "UnknownToUnknown" : it->GetTransformName().substr(0, IGTL_TDATA_LEN_NAME);
+    std::string shortenedName = it->GetTransformName().substr(0, IGTL_TDATA_LEN_NAME);
     trackElement->SetName(shortenedName.c_str());
     trackElement->SetType(igtl::TrackingDataElement::TYPE_6D);
     trackElement->SetMatrix(matrix);
     trackingDataMessage->AddTrackingDataElement(trackElement);
-    trackingDataMessage->SetMetaDataElement(shortenedName + "Status", IANA_TYPE_US_ASCII,  igsioCommon::ConvertToolStatusToString(status));
+    trackingDataMessage->SetMetaDataElement(it->GetTransformName() + "Status", IANA_TYPE_US_ASCII,  igsioCommon::ConvertToolStatusToString(status));
+    trackingDataMessage->SetMetaDataElement(it->GetTransformName() + "Index", IANA_TYPE_US_ASCII, igsioCommon::ToString(i));
+    ++i;
   }
 
+  trackingDataMessage->SetDeviceName("TDATA_" + igsioCommon::ToString(trackingDataMessage->GetNumberOfTrackingDataElements()) + "Elem");
   trackingDataMessage->SetTimeStamp(igtlTime);
   trackingDataMessage->Pack();
 
@@ -966,4 +984,10 @@ PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Poin
   stringMessage->Pack();
 
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusIgtlMessageCommon::PackStringMessage(igtl::StringMessage::Pointer stringMessage, const std::string& stringName, const std::string& stringValue, double timestamp)
+{
+  return PackStringMessage(stringMessage, stringName.c_str(), stringValue.c_str(), timestamp);
 }

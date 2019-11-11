@@ -310,7 +310,7 @@ PlusStatus vtkPlusImageProcessorVideoSource::InternalUpdate()
     aSource->SetInputFrameSize(processedTrackedFrame->GetFrameSize());
   }
 
-  igsioTrackedFrame::FieldMapType customFields = processedTrackedFrame->GetCustomFields();
+  igsioFieldMapType customFields = processedTrackedFrame->GetCustomFields();
   if (aSource->AddItem(processedTrackedFrame->GetImageData(), this->FrameNumber, frameTimestamp, frameTimestamp, &customFields) != PLUS_SUCCESS)
   {
     status = PLUS_FAIL;

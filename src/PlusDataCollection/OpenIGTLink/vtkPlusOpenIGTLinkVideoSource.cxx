@@ -140,7 +140,7 @@ PlusStatus vtkPlusOpenIGTLinkVideoSource::InternalUpdate()
     aSource->SetImageType(videoFrame->GetImageType());
     aSource->SetInputFrameSize(trackedFrame.GetFrameSize());
   }
-  igsioTrackedFrame::FieldMapType customFields = trackedFrame.GetCustomFields();
+  igsioFieldMapType customFields = trackedFrame.GetCustomFields();
   PlusStatus status = aSource->AddItem(trackedFrame.GetImageData(), this->FrameNumber, unfilteredTimestamp, filteredTimestamp, &customFields);
   this->Modified();
 

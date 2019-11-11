@@ -234,15 +234,14 @@ int vtkPlusIgtlMessageFactory::PackStringMessage(const PlusIgtlClientInfo& clien
 {
   for (std::vector<std::string>::const_iterator stringNameIterator = clientInfo.StringNames.begin(); stringNameIterator != clientInfo.StringNames.end(); ++stringNameIterator)
   {
-    const char* stringName = stringNameIterator->c_str();
-    const char* stringValue = trackedFrame.GetFrameField(stringName);
-    if (stringValue == NULL)
+    std::string stringValue = trackedFrame.GetFrameField(*stringNameIterator);
+    if (stringValue.empty())
     {
       // no value is available, do not send anything
       continue;
     }
     igtl::StringMessage::Pointer stringMessage = dynamic_cast<igtl::StringMessage*>(igtlMessage->Clone().GetPointer());
-    vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, stringName, stringValue, trackedFrame.GetTimestamp());
+    vtkPlusIgtlMessageCommon::PackStringMessage(stringMessage, *stringNameIterator, stringValue, trackedFrame.GetTimestamp());
     igtlMessages.push_back(stringMessage.GetPointer());
   }
   return 0; // message type does not produce errors
@@ -381,8 +380,20 @@ int vtkPlusIgtlMessageFactory::PackTransformMessage(const PlusIgtlClientInfo& cl
 
     igtl::Matrix4x4 igtlMatrix;
     vtkPlusIgtlMessageCommon::GetIgtlMatrix(igtlMatrix, &transformRepository, transformName);
-
-    igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer());
+    igtl::TransformMessage::Pointer transformMessage = dynamic_cast<igtl::TransformMessage*>(igtlMessage->Clone().GetPointer()); 
+    igsioFieldMapType frameFields = trackedFrame.GetFrameFields();
+    for (igsioFieldMapType::iterator iter = frameFields.begin(); iter != frameFields.end(); ++iter)
+    {
+      if (iter->first.find(transformName.GetTransformName()) == 0)
+      {
+        // field starts with transform name, check flags
+        if ((iter->second.first & igsioFrameFieldFlags::FRAMEFIELD_FORCE_SERVER_SEND) > 0)
+        {
+          std::string stripped = iter->first.substr(transformName.GetTransformName().length());
+          transformMessage->SetMetaDataElement(stripped, IANA_TYPE_US_ASCII, iter->second.second);
+        }
+      }
+    }
     vtkPlusIgtlMessageCommon::PackTransformMessage(transformMessage, transformName, igtlMatrix, status, trackedFrame.GetTimestamp());
     igtlMessages.push_back(transformMessage.GetPointer());
   }
@@ -426,7 +437,7 @@ int vtkPlusIgtlMessageFactory::PackImageMessage(const PlusIgtlClientInfo& client
     trackedFrame.GetFrameFieldNameList(frameFields);
     for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
     {
-      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+      if (trackedFrame.GetFrameField(*stringNameIterator).empty())
       {
         // No value is available, do not send anything
         LOG_WARNING("No metadata value for: " << *stringNameIterator)
@@ -482,7 +493,7 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
     trackedFrame.GetFrameFieldNameList(frameFields);
     for (std::vector<std::string>::const_iterator stringNameIterator = frameFields.begin(); stringNameIterator != frameFields.end(); ++stringNameIterator)
     {
-      if (trackedFrame.GetFrameField(*stringNameIterator) == NULL)
+      if (trackedFrame.GetFrameField(*stringNameIterator).empty())
       {
         // No value is available, do not send anything
         LOG_WARNING("No metadata value for: " << *stringNameIterator);
@@ -497,10 +508,10 @@ int vtkPlusIgtlMessageFactory::PackVideoMessage(const PlusIgtlClientInfo& client
     if (!videoStream.EncodeVideoParameters.Lossless)
     {
       parameters["rateControl"] = videoStream.EncodeVideoParameters.RateControl;
-      parameters["minimumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MinKeyframeDistance;
-      parameters["maximumKeyFrameDistance"] = videoStream.EncodeVideoParameters.MaxKeyframeDistance;
-      parameters["encodingSpeed"] = videoStream.EncodeVideoParameters.Speed;
-      parameters["bitRate"] = videoStream.EncodeVideoParameters.TargetBitrate;
+      parameters["minimumKeyFrameDistance"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.MinKeyframeDistance);
+      parameters["maximumKeyFrameDistance"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.MaxKeyframeDistance);
+      parameters["encodingSpeed"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.Speed);
+      parameters["bitRate"] = igsioCommon::ToString(videoStream.EncodeVideoParameters.TargetBitrate);
       parameters["deadlineMode"] = videoStream.EncodeVideoParameters.DeadlineMode;
     }
 

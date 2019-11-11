@@ -33,8 +33,8 @@ See License.txt for details.
 #include <time.h>
 
 #if ( _MSC_VER >= 1300 ) // Visual studio .NET
-  #pragma warning ( disable : 4311 )
-  #pragma warning ( disable : 4312 )
+#pragma warning ( disable : 4311 )
+#pragma warning ( disable : 4312 )
 #endif
 
 #define LOCAL_LOG_ERROR(msg) \
@@ -1040,7 +1040,7 @@ PlusStatus vtkPlusDevice::ReadConfiguration(vtkXMLDataElement* rootXMLElement)
   }
 
   // Continue with device configuration
-  int acquisitionRate = 0;
+  double acquisitionRate = 0;
   if (deviceXMLElement->GetScalarAttribute("AcquisitionRate", acquisitionRate))
   {
     this->SetAcquisitionRate(acquisitionRate);
@@ -1615,7 +1615,7 @@ PlusStatus vtkPlusDevice::ForceUpdate()
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const igsioTrackedFrame::FieldMapType* customFields /* = NULL */)
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, double unfilteredtimestamp, double filteredtimestamp, const igsioFieldMapType* customFields /* = NULL */)
 {
   if (aToolSourceId.empty())
   {
@@ -1644,7 +1644,7 @@ PlusStatus vtkPlusDevice::ToolTimeStampedUpdateWithoutFiltering(const std::strin
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, const igsioVideoFrame& frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
   for (std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
@@ -1659,7 +1659,7 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDataSource*>& videoSources, void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType, unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   PlusStatus result(PLUS_SUCCESS);
   for (std::vector<vtkPlusDataSource*>::const_iterator it = videoSources.begin(); it != videoSources.end(); ++it)
@@ -1674,7 +1674,7 @@ PlusStatus vtkPlusDevice::AddVideoItemToVideoSources(const std::vector<vtkPlusDa
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const igsioTrackedFrame::FieldMapType* customFields/*= NULL*/)
+PlusStatus vtkPlusDevice::ToolTimeStampedUpdate(const std::string& aToolSourceId, vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredtimestamp, const igsioFieldMapType* customFields/*= NULL*/)
 {
   if (aToolSourceId.empty())
   {
@@ -1823,6 +1823,12 @@ int vtkPlusDevice::RequestData(vtkInformation* vtkNotUsed(request), vtkInformati
 int vtkPlusDevice::GetConnected() const
 {
   return this->Connected;
+}
+
+//----------------------------------------------------------------------------
+bool vtkPlusDevice::IsConnected() const
+{
+  return this->Connected == 1;
 }
 
 //----------------------------------------------------------------------------

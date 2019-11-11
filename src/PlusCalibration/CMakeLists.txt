@@ -91,9 +91,20 @@ SET(${PROJECT_NAME}_LIBS
   vtkInteractionStyle
   vtkRenderingFreeType
   vtkFiltersStatistics
-  vtkPlusRendering
   vtkPlusCommon
   )
+IF(${ITK_VERSION_MAJOR} GREATER 4)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    ITKIOBruker
+    ITKIOJPEG2000
+    ITKIOMINC
+    )
+ENDIF()
+IF(PLUS_RENDERING_ENABLED)
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    vtkPlusRendering
+    )
+ENDIF()
 
 GENERATE_EXPORT_DIRECTIVE_FILE(vtk${PROJECT_NAME})
 ADD_LIBRARY(vtk${PROJECT_NAME} ${${PROJECT_NAME}_SRCS} ${${PROJECT_NAME}_HDRS})

@@ -25,7 +25,9 @@ See License.txt for details.
 #include <vtkCallbackCommand.h>
 #include <vtkCommand.h>
 #include <vtkImageData.h>
+#ifdef PLUS_RENDERING_ENABLED
 #include <vtkImageViewer.h>
+#endif
 #include <vtkMatrix4x4.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
@@ -68,8 +70,10 @@ public:
         RfProcessor->SetRfFrame(trackedFrame.GetImageData()->GetImage(), trackedFrame.GetImageData()->GetImageType());
         this->ImageData->ShallowCopy(RfProcessor->GetBrightnessScanConvertedImage());
       }
+#ifdef PLUS_RENDERING_ENABLED
       this->Viewer->SetInputData(this->ImageData);
       this->Viewer->Modified();
+#endif
     }
 
     if (TransformName.IsValid())
@@ -96,15 +100,19 @@ public:
       this->StepperTextActor->Modified();
     }
 
+#ifdef PLUS_RENDERING_ENABLED
     this->Viewer->Render();
 
     //update the timer so it will trigger again
     this->RenderWindowInteractor->CreateTimer(VTKI_TIMER_UPDATE);
+#endif
   }
 
   vtkPlusDataCollector* DataCollector;
   vtkPlusChannel* BroadcastChannel;
+#ifdef PLUS_RENDERING_ENABLED
   vtkImageViewer* Viewer;
+#endif
   vtkRenderWindowInteractor* RenderWindowInteractor;
   vtkTextActor* StepperTextActor;
   igsioTransformName TransformName;
@@ -244,6 +252,7 @@ int main(int argc, char** argv)
   }
   else
   {
+#ifdef PLUS_RENDERING_ENABLED
     if (dataCollector->GetDevice(videoDevice, "TrackedVideoDevice") != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to locate the device with Id=\"TrackedVideoDevice\". Check config file.");
@@ -312,6 +321,9 @@ int main(int argc, char** argv)
     //iren must be initialized so that it can handle events
     iren->Initialize();
     iren->Start();
+#else
+  LOG_WARNING("Cannot perform rendering when VTK_RENDERING_BACKEND is None!");
+#endif
   }
 
   dataCollector->Disconnect();

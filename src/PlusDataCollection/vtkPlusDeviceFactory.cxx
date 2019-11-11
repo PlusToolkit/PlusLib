@@ -18,6 +18,7 @@ See License.txt for details.
 #include "vtkPlusVirtualSwitcher.h"
 #include "vtkPlusVirtualCapture.h"
 #include "vtkPlusVirtualVolumeReconstructor.h"
+#include "vtkPlusVirtualDeinterlacer.h"
 #include "vtkPlusImageProcessorVideoSource.h"
 #include "vtkPlusGenericSerialDevice.h"
 #ifdef PLUS_USE_TextRecognizer
@@ -139,6 +140,10 @@ See License.txt for details.
   #include "vtkPlusSpinnakerVideoSource.h"
 #endif
 
+#ifdef PLUS_USE_BLACKMAGIC_DECKLINK
+  #include "BlackMagic/vtkPlusDeckLinkVideoSource.h"
+#endif
+
 #ifdef PLUS_USE_THORLABS_VIDEO
   #include "ThorLabs\vtkPlusThorLabsVideoSource.h"
 #endif
@@ -206,7 +211,7 @@ See License.txt for details.
 #endif
 
 #ifdef PLUS_USE_CLARIUS
-  #include "vtkPlusClarius.h" 
+  #include "vtkPlusClarius.h"
 #endif
 //----------------------------------------------------------------------------
 
@@ -321,6 +326,9 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 #ifdef PLUS_USE_SPINNAKER_VIDEO
   RegisterDevice("SpinnakerVideo", "vtkPlusSpinnakerVideoSource", (PointerToDevice)&vtkPlusSpinnakerVideoSource::New);
 #endif
+#ifdef PLUS_USE_BLACKMAGIC_DECKLINK
+  RegisterDevice("DeckLinkVideo", "vtkPlusDeckLinkVideoSource", (PointerToDevice)&vtkPlusDeckLinkVideoSource::New);
+#endif
 #ifdef PLUS_USE_THORLABS_VIDEO
   RegisterDevice("ThorLabsVideo", "vtkPlusThorLabsVideoSource", (PointerToDevice)&vtkPlusThorLabsVideoSource::New);
 #endif
@@ -392,6 +400,7 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
   RegisterDevice("VirtualDiscCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New); // for backward compatibility
   RegisterDevice("VirtualBufferedCapture", "vtkPlusVirtualCapture", (PointerToDevice)&vtkPlusVirtualCapture::New); // for backward compatibility
   RegisterDevice("VirtualVolumeReconstructor", "vtkPlusVirtualVolumeReconstructor", (PointerToDevice)&vtkPlusVirtualVolumeReconstructor::New);
+  RegisterDevice("VirtualDeinterlacer", "vtkPlusVirtualDeinterlacer", (PointerToDevice)&vtkPlusVirtualDeinterlacer::New);
 }
 
 //----------------------------------------------------------------------------

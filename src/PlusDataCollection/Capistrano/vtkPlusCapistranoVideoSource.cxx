@@ -710,7 +710,7 @@ std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
 }
 
 // ----------------------------------------------------------------------------
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
 int vtkPlusCapistranoVideoSource::GetHardwareVersion()
 {
   return usbHardwareVersion();
@@ -720,11 +720,12 @@ int vtkPlusCapistranoVideoSource::GetHighPassFilter()
 {
   return usbHighPassFilter();
 }
-
+#ifdef CAPISTRANO_SDK2018
 int vtkPlusCapistranoVideoSource::GetLowPassFilter()
 {
   return usbLowPassFilter();
 }
+#endif
 #endif
 
 
@@ -845,7 +846,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   }
 
   // Check How many US probe are connected. --------------------------------
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
   int numberOfAttachedBoards = usbNumberAttachedBoards();
 #else //cSDK2013 or cSDK2016
   int numberOfAttachedBoards = usbNumberAttachedProbes();
@@ -1101,7 +1102,8 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoVideoSource(bool pr
       spacingStream << " ";
     }
   }
-  this->CustomFields["ElementSpacing"] = spacingStream.str();
+  this->CustomFields["ElementSpacing"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+  this->CustomFields["ElementSpacing"].second = spacingStream.str();
 
   return PLUS_SUCCESS;
 }
@@ -1191,7 +1193,7 @@ PlusStatus vtkPlusCapistranoVideoSource::InternalUpdate()
              << ", display zoom: " << bmDisplayZoom()
              << ", probe depth scale (mm/sample):" << depthScale
              << ", buffer image orientation: "
-             << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+             << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
   }
 
   //igsioTrackedFrame::FieldMapType customFields;
@@ -1367,6 +1369,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetSampleFrequency(float sf)
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseFrequency(float pf)
 {
   this->PulseFrequency = pf;
+  this->Internal->SetUSProbePulserParamsFromDB(this->PulseFrequency);
   return PLUS_SUCCESS;
 }
 

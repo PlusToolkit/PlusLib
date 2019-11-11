@@ -27,7 +27,7 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   , DepthMm(-1)
   , GainPercent(-1)
   , DynRangeDb(-1)
-  , PowerPercent(-1)
+  , PowerDb(-1)
   , ConnectedToDevice(false)
 {
   this->FrameSize[0] = 512;
@@ -63,7 +63,7 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, GainPercent, deviceConfig);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PowerPercent, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PowerDb, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -80,7 +80,7 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   deviceConfig->SetDoubleAttribute("FrequencyMhz", this->FrequencyMhz);
   deviceConfig->SetDoubleAttribute("DynRangeDb", this->DynRangeDb);
   deviceConfig->SetDoubleAttribute("GainPercent", this->GainPercent);
-  deviceConfig->SetDoubleAttribute("PowerPercent", this->PowerPercent);
+  deviceConfig->SetDoubleAttribute("PowerDb", this->PowerDb);
   return PLUS_SUCCESS;
 }
 
@@ -111,7 +111,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->DepthMm > 0) {SetDepthMm(this->DepthMm); }
   if (this->GainPercent >= 0) {SetGainPercent(this->GainPercent); }
   if (this->DynRangeDb > 0) {SetDynRangeDb(this->DynRangeDb); }
-  if (this->PowerPercent >= 0) {SetPowerPercent(this->PowerPercent); }
+  if (this->PowerDb >= 0) {SetPowerDb(this->PowerDb); }
 
   return PLUS_SUCCESS;
 }
@@ -192,7 +192,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalUpdate()
     aSource->SetInputFrameSize(frameSizeInPix);
     LOG_DEBUG("Frame size: " << frameSizeInPix[0] << "x" << frameSizeInPix[1]
               << ", pixel type: " << vtkImageScalarTypeNameMacro(aSource->GetPixelType())
-              << ", buffer image orientation: " << igsioVideoFrame::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
+              << ", buffer image orientation: " << igsioCommon::GetStringFromUsImageOrientation(aSource->GetInputImageOrientation()));
     this->UncompressedVideoFrame.SetImageType(aSource->GetImageType());
     this->UncompressedVideoFrame.SetImageOrientation(aSource->GetInputImageOrientation());
   }
@@ -267,13 +267,13 @@ IMAGING_PARAMETER_GET(FrequencyMhz);
 IMAGING_PARAMETER_GET(DepthMm);
 IMAGING_PARAMETER_GET(GainPercent);
 IMAGING_PARAMETER_GET(DynRangeDb);
-IMAGING_PARAMETER_GET(PowerPercent);
+IMAGING_PARAMETER_GET(PowerDb);
 
 IMAGING_PARAMETER_SET(FrequencyMhz);
 IMAGING_PARAMETER_SET(DepthMm);
 IMAGING_PARAMETER_SET(GainPercent);
 IMAGING_PARAMETER_SET(DynRangeDb);
-IMAGING_PARAMETER_SET(PowerPercent);
+IMAGING_PARAMETER_SET(PowerDb);
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTelemedVideoSource::NotifyConfigured()
@@ -313,6 +313,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
 {
   PlusStatus status = PLUS_SUCCESS;
 
+  // FREQUENCY
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FREQUENCY)
     && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FREQUENCY))
   {
@@ -322,6 +323,8 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       status = PLUS_FAIL;
     }
   }
+
+  // DEPTH
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DEPTH)
     && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DEPTH))
   {
@@ -331,6 +334,8 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       status = PLUS_FAIL;
     }
   }
+
+  // GAIN
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_GAIN)
     && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_GAIN))
   {
@@ -340,12 +345,25 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       status = PLUS_FAIL;
     }
   }
+
+  // DYNAMIC RANGE
   if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_DYNRANGE)
     && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_DYNRANGE))
   {
     if (this->SetDynRangeDb(this->ImagingParameters->GetDynRangeDb()) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to set dynamic range imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+
+  // POWER
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_POWER)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_POWER))
+  {
+    if (this->SetPowerDb(this->ImagingParameters->GetPowerDb()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set power imaging parameter");
       status = PLUS_FAIL;
     }
   }

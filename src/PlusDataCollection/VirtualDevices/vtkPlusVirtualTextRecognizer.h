@@ -90,6 +90,9 @@ public:
   vtkSetObjectMacro(OutputChannel, vtkPlusChannel);
   vtkGetObjectMacro(OutputChannel, vtkPlusChannel);
 
+  vtkSetStdStringMacro(TessdataDirectory);
+  vtkGetStdStringMacro(TessdataDirectory);
+
 #ifdef PLUS_TEST_TextRecognizer
   ChannelFieldListMap& GetRecognitionFields();
 #endif
@@ -109,6 +112,8 @@ protected:
 
   /// Language used for detection
   std::string                 Language;
+
+  std::string                 TessdataDirectory;
 
   /// Main entry point for the tesseract API
   tesseract::TessBaseAPI*     TesseractAPI;

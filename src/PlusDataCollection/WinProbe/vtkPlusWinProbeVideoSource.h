@@ -75,6 +75,12 @@ public:
   /* Set the TGC value, index 0 to 7, value 0.0 to 40.0 */
   PlusStatus SetTimeGainCompensation(int index, double value);
 
+  /* Get the TGC First Gain Value near transducer face */
+  double GetFirstGainValue();
+
+  /* Set the TGC First Gain Value near transducer face */
+  PlusStatus SetFirstGainValue(double value);
+
   /* Get the focal depth, index 0 to 4 */
   float GetFocalPointDepth(int index);
 
@@ -132,6 +138,12 @@ public:
   void SetSpatialCompoundCount(int32_t value);
   int32_t GetSpatialCompoundCount();
 
+  void SetBHarmonicEnabled(bool value);
+  bool GetBHarmonicEnabled();
+
+  void SetBRFEnabled(bool value);
+  bool GetBRFEnabled();
+
   void SetMModeEnabled(bool value);
   bool GetMModeEnabled();
 
@@ -155,6 +167,11 @@ public:
 
   void SetMDepth(int32_t value);
   int32_t GetMDepth();
+
+  void SetBFrameRateLimit(int32_t value);
+  int32_t GetBFrameRateLimit();
+
+  int GetTransducerInternalID();
 
   enum class Mode
   {
@@ -184,6 +201,9 @@ public:
   int32_t MWidthFromSeconds(int value);
   int MSecondsFromWidth(int32_t value);
 
+  std::vector<double> GetPrimarySourceSpacing();
+  std::vector<double> GetExtraSourceSpacing();
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
@@ -204,14 +224,14 @@ protected:
   virtual PlusStatus InternalStopRecording() VTK_OVERRIDE;
 
   /*! Updates internal spacing based on current depth */
-  void AdjustSpacing();
+  void AdjustSpacing(bool value);
 
   /*! Updates buffer size based on current depth */
   void AdjustBufferSizes();
 
   friend int __stdcall frameCallback(int length, char* data, char* hHeader, char* hGeometry, char* hModeFrameHeader);
   void ReconstructFrame(char* data, std::vector<uint8_t>& buffer, const FrameSizeType& frameSize);
-  void FlipTexture(char* data, const FrameSizeType& frameSize);
+  void FlipTexture(char* data, const FrameSizeType& frameSize, int rowPitch);
   void FrameCallback(int length, char* data, char* hHeader, char* hGeometry);
 
   float m_ScanDepth = 26.0; //mm
@@ -221,13 +241,14 @@ protected:
   std::string m_TransducerID; //GUID
   double m_ADCfrequency = 60.0e6; //MHz
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
+  double first_timestamp = 0;
   double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
   unsigned m_LineCount = 128;
   unsigned m_SamplesPerLine = 0;
   std::vector<uint8_t> m_PrimaryBuffer;
   std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
-  igsioTrackedFrame::FieldMapType m_CustomFields;
+  igsioFieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
   float m_FocalPointDepth[4];
   uint16_t m_MinValue = 16; //noise floor
@@ -243,7 +264,10 @@ protected:
   int32_t m_MWidth = 256;
   int32_t m_MAcousticLineCount = 0;
   int32_t m_MDepth = 0;
-  uint8_t m_SSDecimation= 2;
+  uint8_t m_SSDecimation = 2;
+  double m_FirstGainValue = 15;
+  int32_t m_BFrameRateLimit = 0;
+  bool m_BHarmonicEnabled = false;
   std::vector<vtkPlusDataSource*> m_PrimarySources;
   std::vector<vtkPlusDataSource*> m_ExtraSources;
 

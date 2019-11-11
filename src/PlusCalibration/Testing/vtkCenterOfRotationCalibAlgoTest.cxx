@@ -13,7 +13,9 @@
 #include "PlusConfigure.h"
 
 #include "PlusFidPatternRecognition.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "PlusPlotter.h"
+#endif
 #include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkPlusHTMLGenerator.h"
 #include "vtkIGSIOSequenceIO.h"
@@ -163,6 +165,7 @@ int main(int argc, char** argv)
     LOG_INFO("Center of rotation calibration error - mean: " << std::fixed << errorMean << "  stdev: " << errorStdev);
   }
 
+#ifdef PLUS_RENDERING_ENABLED
   LOG_INFO("Testing report table generation and saving into file...");
   vtkTable* reportTable = centerOfRotationCalibAlgo->GetReportTable();
   if (reportTable != NULL)
@@ -178,6 +181,9 @@ int main(int argc, char** argv)
     LOG_ERROR("Failed to get report table!");
     numberOfFailures++;
   }
+#else
+  LOG_WARNING("Cannot generate table. Rendering is disabled!");
+#endif
 
   LOG_INFO("Testing HTML report generation...");
   vtkSmartPointer<vtkPlusHTMLGenerator> htmlGenerator = vtkSmartPointer<vtkPlusHTMLGenerator>::New();

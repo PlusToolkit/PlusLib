@@ -16,7 +16,7 @@
  \brief Class for acquiring ultrasound images from Capistrano Labs USB ultrasound systems.
 
  Requires PLUS_USE_CAPISTRANO_VIDEO option in CMake.
- Requires the Capistrano cSDK2018, cSDK2016, or cSDK2013 (SDK provided by Capistrano Labs).
+ Requires the Capistrano cSDK2019, cSDK2018, cSDK2016, or cSDK2013 (SDK provided by Capistrano Labs).
 
  \ingroup PlusLibDataCollection.
 */
@@ -43,15 +43,16 @@ public:
   /*! Get the version of SDK */
   virtual std::string GetSdkVersion();
 
-#ifdef CAPISTRANO_SDK2018
+#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
   /*! Get the hardware version. */
   virtual int GetHardwareVersion();
 
   /*! Get the high pass filter. */
   virtual int GetHighPassFilter();
-
+#ifdef CAPISTRANO_SDK2018
   /*! Get the low pass filter. */
   virtual int GetLowPassFilter();
+#endif
 #endif
 
   /* Update Speed of Sound */
@@ -277,7 +278,7 @@ protected:
   double                         LutCenter;
   double                         LutWindow;
 
-  igsioTrackedFrame::FieldMapType CustomFields;
+  igsioFieldMapType CustomFields;
 
 private:
   vtkPlusCapistranoVideoSource(const vtkPlusCapistranoVideoSource&);  // Not implemented

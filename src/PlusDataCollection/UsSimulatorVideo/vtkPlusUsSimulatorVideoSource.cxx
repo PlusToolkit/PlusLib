@@ -119,7 +119,7 @@ PlusStatus vtkPlusUsSimulatorVideoSource::InternalUpdate()
   outputChannel->GetMostRecentTimestamp(latestFrameAlreadyAddedTimestamp);
   if (latestFrameAlreadyAddedTimestamp >= latestTrackerTimestamp)
   {
-    // simulated frame has been already generated for this timestamp
+    LOG_DEBUG("Simulated frame has been already generated for timestamp: " << latestFrameAlreadyAddedTimestamp);
     return PLUS_SUCCESS;
   }
 
@@ -144,6 +144,7 @@ PlusStatus vtkPlusUsSimulatorVideoSource::InternalUpdate()
     return PLUS_FAIL;
   }
 
+  LOG_DEBUG("Simulated frame " << this->FrameNumber << " generated.");
   PlusStatus status = aSource->AddItem(
                         this->UsSimulator->GetOutput(), aSource->GetInputImageOrientation(), US_IMG_BRIGHTNESS, this->FrameNumber, latestTrackerTimestamp, latestTrackerTimestamp);
 

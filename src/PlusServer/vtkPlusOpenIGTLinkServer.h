@@ -332,6 +332,8 @@ private:
   static int ClientIdCounter;
 
   static const float CLIENT_SOCKET_TIMEOUT_SEC;
+
+  bool NewClientConnected;
 };
 
 #endif

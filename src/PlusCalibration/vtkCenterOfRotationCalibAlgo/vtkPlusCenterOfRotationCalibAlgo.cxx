@@ -7,7 +7,9 @@
 #include "PlusConfigure.h"
 
 #include "PlusMath.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "PlusPlotter.h"
+#endif
 #include "vtkPlusCenterOfRotationCalibAlgo.h"
 #include "vtkObjectFactory.h"
 #include "vtkIGSIOTrackedFrameList.h"
@@ -493,7 +495,9 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::UpdateReportTable()
 
   }
 
+#ifdef PLUS_RENDERING_ENABLED
   PlusPlotter::WriteTableToFile(*this->ReportTable, "RotationAxisCalibrationErrorReport.txt");
+#endif
 
   return PLUS_SUCCESS;
 }
@@ -564,11 +568,13 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int 
 
   std::string reportFileName = vtkPlusConfig::GetInstance()->GetApplicationStartTimestamp() + ".CenterOfRotationCalculationError.txt";
   std::string reportFile = vtkPlusConfig::GetInstance()->GetOutputPath(reportFileName);
+#ifdef PLUS_RENDERING_ENABLED
   if (PlusPlotter::WriteTableToFile(*reportTable, reportFile.c_str()) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to dump translation axis calibration report table to " << reportFile);
     return PLUS_FAIL;
   }
+#endif
   htmlReport->AddText("Center of Rotation Calculation Analysis", vtkPlusHTMLGenerator::H1);
 
   std::ostringstream report;
@@ -600,6 +606,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int 
 
     std::string outputImageFilename = std::string("w") + wireName.str() + "-PositionError.png";
     std::string outputImagePath = htmlReport->AddImageAutoFilename(outputImageFilename.c_str(), "Wire distance from transducer");
+#ifdef PLUS_RENDERING_ENABLED
     PlusPlotter::WriteScatterChartToFile("Probe position (mm)", "Wire distance from transducer (mm)", *reportTable, 0 /* ProbePosition */, 3 + i * 4 /* Wire#xRadius */, imageSize, outputImagePath.c_str());
 
     outputImageFilename = std::string("w") + wireName.str() + "-AngleError.png";
@@ -609,6 +616,7 @@ PlusStatus vtkPlusCenterOfRotationCalibAlgo::GenerateCenterOfRotationReport(int 
     outputImageFilename = std::string("w") + wireName.str() + "-ErrorHistogram.png";
     outputImagePath = htmlReport->AddImageAutoFilename(outputImageFilename.c_str(), "Wire distance from transducer - error histogram");
     PlusPlotter::WriteHistogramChartToFile("Wire distance from transducer - error histogram", *reportTable, 4 + i * 4 /* Wire#xRadius */, valueRangeMin, valueRangeMax, numberOfBins, imageSize, outputImagePath.c_str());
+#endif
   }
 
   htmlReport->AddHorizontalLine();

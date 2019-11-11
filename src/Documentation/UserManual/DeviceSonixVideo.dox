@@ -35,16 +35,16 @@ Common attributes:
   - \xmlAtt \ref LocalTimeOffsetSec \OptionalAtt{0}
   - \xmlAtt \b Timeout Timeout \c [ms] for receiving new frames by network function calls. If not specified then the current setting is used. \OptionalAtt{ }
   - \xmlElem \ref UsImagingParameters Imaging parameters container \RequiredAtt
-    - \xmlAtt \ref Contrast
-    - \xmlAtt \ref DepthMm
-    - \xmlAtt \ref DynRangeDb
-    - \xmlAtt \ref FrequencyMhz
-    - \xmlAtt \ref GainPercent
-    - \xmlAtt \ref TimeGainCompensation
-    - \xmlAtt \ref Intensity
-    - \xmlAtt \ref Sector
-    - \xmlAtt \ref ZoomFactor
-    - \xmlAtt \ref SoundVelocity
+    - \xmlAtt Contrast
+    - \xmlAtt DepthMm
+    - \xmlAtt DynRangeDb
+    - \xmlAtt FrequencyMhz
+    - \xmlAtt GainPercent
+    - \xmlAtt TimeGainCompensation
+    - \xmlAtt Intensity
+    - \xmlAtt Sector
+    - \xmlAtt ZoomFactor
+    - \xmlAtt SoundVelocity
   - \xmlElem \ref DataSources Multiple \c DataSource child elements are allowed, one for each data type (\c PortName indicates the data type) \RequiredAtt
     - \xmlElem \ref DataSource \RequiredAtt
       - \xmlAtt \ref PortName \RequiredAtt

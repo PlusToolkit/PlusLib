@@ -173,7 +173,7 @@ std::string vtkPlusBrachyTracker::GetBrachyToolSourceId(BRACHY_STEPPER_TOOL tool
   std::ostringstream toolPortName;
   toolPortName << tool;
   vtkPlusDataSource* trackerTool = NULL;
-  if (this->GetToolByPortName(toolPortName.str().c_str(), trackerTool) != PLUS_SUCCESS)
+  if (this->GetToolByPortName(toolPortName.str(), trackerTool) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get tool source ID by port: " << toolPortName.str());
     return "";
@@ -202,6 +202,11 @@ PlusStatus vtkPlusBrachyTracker::InternalUpdate()
     // Unable to get tracking information from tracker
     status = TOOL_REQ_TIMEOUT;
   }
+  LOG_TRACE("Encoder values: "
+    << "(Probe position) " << dProbePosition << ", "
+    << "(Probe rotation) " << dProbeRotation << ", "
+    << "(Template position) " << dTemplatePosition << ", "
+    << "(Frame number) " << frameNum);
 
   const double unfilteredTimestamp = vtkIGSIOAccurateTimer::GetSystemTime();
 
@@ -335,20 +340,20 @@ PlusStatus vtkPlusBrachyTracker::ReadConfiguration(vtkXMLDataElement* rootConfig
 
     if (STRCASECMP(PlusBrachyStepper::GetBrachyStepperTypeInString(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER).c_str(), brachyStepperType) == 0)
     {
-      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate()) ;
+      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate());
       this->Device->SetBrachyStepperType(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER);
       this->BrachyStepperType = PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_STEPPER;
 
     }
     else if (STRCASECMP(PlusBrachyStepper::GetBrachyStepperTypeInString(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER).c_str(), brachyStepperType) == 0)
     {
-      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate()) ;
+      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate());
       this->Device->SetBrachyStepperType(PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER);
       this->BrachyStepperType = PlusBrachyStepper::BURDETTE_MEDICAL_SYSTEMS_DIGITAL_MOTORIZED_STEPPER;
     }
     else if (STRCASECMP(PlusBrachyStepper::GetBrachyStepperTypeInString(PlusBrachyStepper::CMS_ACCUSEED_DS300).c_str(), brachyStepperType) == 0)
     {
-      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate()) ;
+      this->Device = new PlusCmsBrachyStepper(this->GetSerialPort(), this->GetBaudRate());
       this->Device->SetBrachyStepperType(PlusBrachyStepper::CMS_ACCUSEED_DS300);
       this->BrachyStepperType = PlusBrachyStepper::CMS_ACCUSEED_DS300;
     }
@@ -527,7 +532,7 @@ PlusStatus vtkPlusBrachyTracker::GetTrackedFrame(double timestamp, igsioTrackedF
   // RAW_ENCODER_VALUES
   ToolStatus rawEncoderValuesStatus = TOOL_OK;
   vtkSmartPointer<vtkMatrix4x4> rawEncoderValuesMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (this->GetRawEncoderValuesTransform(timestamp, rawEncoderValuesMatrix, rawEncoderValuesStatus)  != PLUS_SUCCESS)
+  if (this->GetRawEncoderValuesTransform(timestamp, rawEncoderValuesMatrix, rawEncoderValuesStatus) != PLUS_SUCCESS)
   {
     LOG_ERROR("Failed to get raw encoder values from buffer!");
     return PLUS_FAIL;

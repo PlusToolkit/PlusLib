@@ -49,6 +49,10 @@ public:
   vtkSetMacro(RefusePauseResumePolicy, bool);
   vtkBooleanMacro(RefusePauseResumePolicy, bool);
 
+  vtkGetMacro(InvertImage, bool);
+  vtkSetMacro(InvertImage, bool);
+  vtkBooleanMacro(InvertImage, bool);
+
 protected:
   vtkPlusLeapMotion();
   ~vtkPlusLeapMotion();
@@ -109,6 +113,7 @@ protected:
   bool                              RefusePauseResumePolicy;
   bool                              Initialized;
   bool                              ImageInitialized;
+  bool                              InvertImage;
 
   LEAP_CONNECTION                   Connection;
   unsigned int                      PollTimeoutMs;

@@ -298,7 +298,7 @@ PlusStatus vtkPlusDataSource::ReadConfiguration(vtkXMLDataElement* sourceElement
     if (usImageOrientation != NULL)
     {
       LOG_INFO("Selected US image orientation: " << usImageOrientation);
-      this->SetInputImageOrientation(igsioVideoFrame::GetUsImageOrientationFromString(usImageOrientation));
+      this->SetInputImageOrientation(igsioCommon::GetUsImageOrientationFromString(usImageOrientation));
       if (this->GetInputImageOrientation() == US_IMG_ORIENT_XX)
       {
         LOG_ERROR("Video image orientation is undefined - please set PortUsImageOrientation in the source configuration");
@@ -546,19 +546,19 @@ void vtkPlusDataSource::SetCustomProperty(const std::string& propertyName, const
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDataSource::AddItem(vtkImageData* frame, US_IMAGE_ORIENTATION usImageOrientation, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   return this->GetBuffer()->AddItem(frame, usImageOrientation, imageType, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(const igsioVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDataSource::AddItem(const igsioVideoFrame* frame, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   return this->GetBuffer()->AddItem(frame, frameNumber, this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(const igsioTrackedFrame::FieldMapType& customFields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
+PlusStatus vtkPlusDataSource::AddItem(const igsioFieldMapType& customFields, long frameNumber, double unfilteredTimestamp/*=UNDEFINED_TIMESTAMP*/,
                                       double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/)
 {
   return this->GetBuffer()->AddItem(customFields, frameNumber, unfilteredTimestamp, filteredTimestamp);
@@ -567,14 +567,14 @@ PlusStatus vtkPlusDataSource::AddItem(const igsioTrackedFrame::FieldMapType& cus
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, US_IMAGE_ORIENTATION usImageOrientation, const FrameSizeType& frameSizeInPx, igsioCommon::VTKScalarPixelType pixelType,
                                       unsigned int numberOfScalarComponents, US_IMAGE_TYPE imageType, int numberOfBytesToSkip, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/,
-                                      double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+                                      double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   return this->GetBuffer()->AddItem(imageDataPtr, usImageOrientation, frameSizeInPx, pixelType, numberOfScalarComponents, imageType, numberOfBytesToSkip, frameNumber,
                                     this->ClipRectangleOrigin, this->ClipRectangleSize, unfilteredTimestamp, filteredTimestamp, customFields);
 }
 
 //----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, const FrameSizeType& frameSize, unsigned int frameSizeInBytes, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDataSource::AddItem(void* imageDataPtr, const FrameSizeType& frameSize, unsigned int frameSizeInBytes, US_IMAGE_TYPE imageType, long frameNumber, double unfilteredTimestamp /*= UNDEFINED_TIMESTAMP*/, double filteredTimestamp /*= UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   return this->GetBuffer()->AddItem(imageDataPtr, frameSize, frameSizeInBytes, imageType, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
 }
@@ -635,9 +635,9 @@ PlusStatus vtkPlusDataSource::SetInputFrameSize(unsigned int x, unsigned int y, 
   igsioVideoFrame::FlipInfoType flipInfo;
   if (igsioVideoFrame::GetFlipAxes(this->InputImageOrientation, this->GetBuffer()->GetImageType(), this->GetBuffer()->GetImageOrientation(), flipInfo) != PLUS_SUCCESS)
   {
-    LOG_ERROR("Failed to convert image data to the requested orientation, from " << igsioVideoFrame::GetStringFromUsImageOrientation(this->InputImageOrientation) <<
-              " to " << igsioVideoFrame::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()) <<
-              " for a buffer of type " << igsioVideoFrame::GetStringFromUsImageType(this->GetBuffer()->GetImageType()));
+    LOG_ERROR("Failed to convert image data to the requested orientation, from " << igsioCommon::GetStringFromUsImageOrientation(this->InputImageOrientation) <<
+              " to " << igsioCommon::GetStringFromUsImageOrientation(this->GetBuffer()->GetImageOrientation()) <<
+              " for a buffer of type " << igsioCommon::GetStringFromUsImageType(this->GetBuffer()->GetImageType()));
     return PLUS_FAIL;
   }
 
@@ -711,7 +711,7 @@ PlusStatus vtkPlusDataSource::SetOutputImageOrientation(US_IMAGE_ORIENTATION ima
   if (imageOrientation != US_IMG_ORIENT_MF && imageOrientation != US_IMG_ORIENT_FM)
   {
     LOG_ERROR("vtkPlusDataSource::SetOutputImageOrientation failed: only standard MF and FM orientations are allowed, got "
-              << igsioVideoFrame::GetStringFromUsImageOrientation(imageOrientation));
+              << igsioCommon::GetStringFromUsImageOrientation(imageOrientation));
     return PLUS_FAIL;
   }
   return this->GetBuffer()->SetImageOrientation(imageOrientation);
@@ -918,7 +918,7 @@ PlusStatus vtkPlusDataSource::DeepCopyBufferTo(vtkPlusBuffer& bufferToFill)
 }
 
 //-----------------------------------------------------------------------------
-PlusStatus vtkPlusDataSource::AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioTrackedFrame::FieldMapType* customFields /*= NULL*/)
+PlusStatus vtkPlusDataSource::AddTimeStampedItem(vtkMatrix4x4* matrix, ToolStatus status, unsigned long frameNumber, double unfilteredTimestamp, double filteredTimestamp/*=UNDEFINED_TIMESTAMP*/, const igsioFieldMapType* customFields /*= NULL*/)
 {
   return this->GetBuffer()->AddTimeStampedItem(matrix, status, frameNumber, unfilteredTimestamp, filteredTimestamp, customFields);
 }

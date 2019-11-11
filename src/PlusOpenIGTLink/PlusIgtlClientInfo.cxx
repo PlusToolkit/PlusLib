@@ -51,9 +51,9 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
 
   PlusIgtlClientInfo clientInfo;
 
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ClientHeaderVersion, xmldata);
-  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(TDATARequested, xmldata);
-  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, TDATAResolution, xmldata);
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, ClientHeaderVersion, clientInfo.ClientHeaderVersion, xmldata);
+  XML_READ_BOOL_ATTRIBUTE_NONMEMBER_OPTIONAL(TDATARequested, clientInfo.TDATARequested, xmldata);
+  XML_READ_SCALAR_ATTRIBUTE_NONMEMBER_OPTIONAL(int, TDATAResolution, clientInfo.TDATAResolution, xmldata);
   if (xmldata->GetAttribute("Resolution") != NULL)
   {
     int resolution;
@@ -144,6 +144,8 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       ImageStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
+      stream.FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      stream.FrameConverter->EnableCacheOn();
 
       clientInfo.ImageStreams.push_back(stream);
     }
@@ -180,6 +182,8 @@ PlusStatus PlusIgtlClientInfo::SetClientInfoFromXmlData(vtkXMLDataElement* xmlda
       VideoStream stream;
       stream.EmbeddedTransformToFrame = embeddedTransformToFrame;
       stream.Name = name;
+      stream.FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+      stream.FrameConverter->EnableCacheOn();
 
       XML_FIND_NESTED_ELEMENT_OPTIONAL(encodingElem, videoElem, "Encoding");
       if (encodingElem)

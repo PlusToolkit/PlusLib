@@ -107,6 +107,7 @@ vtkPlusOpenIGTLinkServer::vtkPlusOpenIGTLinkServer()
   , GracePeriodLogLevel(vtkPlusLogger::LOG_LEVEL_DEBUG)
   , MissingInputGracePeriodSec(0.0)
   , BroadcastStartTime(0.0)
+  , NewClientConnected(false)
 {
 
 }
@@ -259,6 +260,7 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
       igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
       ClientData newClient;
       self->IgtlClients.push_back(newClient);
+      self->NewClientConnected = true;
 
       ClientData* client = &(self->IgtlClients.back());   // get a reference to the client data that is stored in the list
       client->ClientId = self->ClientIdCounter;
@@ -268,6 +270,26 @@ void* vtkPlusOpenIGTLinkServer::ConnectionReceiverThread(vtkMultiThreader::Threa
       client->ClientSocket->SetSendTimeout(self->DefaultClientSendTimeoutSec * 1000);
       client->ClientInfo = self->DefaultClientInfo;
       client->Server = self;
+
+      // Setup vtkIGSIOFrameConverters for each stream
+      for (std::vector<PlusIgtlClientInfo::ImageStream>::iterator imageStreamIterator = client->ClientInfo.ImageStreams.begin();
+        imageStreamIterator != client->ClientInfo.ImageStreams.end(); ++imageStreamIterator)
+      {
+        PlusIgtlClientInfo::ImageStream* imageStream = &(*imageStreamIterator);
+        if (!imageStream->FrameConverter)
+        {
+          imageStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        }
+      }
+      for (std::vector<PlusIgtlClientInfo::VideoStream>::iterator videoStreamIterator = client->ClientInfo.VideoStreams.begin();
+           videoStreamIterator != client->ClientInfo.VideoStreams.end(); ++videoStreamIterator)
+      {
+        PlusIgtlClientInfo::VideoStream* videoStream = &(*videoStreamIterator);
+        if (!videoStream->FrameConverter)
+        {
+          videoStream->FrameConverter = vtkSmartPointer<vtkIGSIOFrameConverter>::New();
+        }
+      }
 
       int port = 0;
       std::string address = "unknown";
@@ -604,7 +626,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(clientInfoMsg->GetBufferBodyPointer(), clientInfoMsg->GetBufferBodySize());
 
       int c = clientInfoMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || clientInfoMsg->GetBufferBodySize() == 0)
       {
         // Message received from client, need to lock to modify client info
         igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(self->IgtlClientsMutex);
@@ -632,7 +654,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
 
       // We are receiving old style commands, handle it
       int c = stringMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || stringMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName(headerMsg->GetDeviceName());
         if (deviceName.empty())
@@ -691,7 +713,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(commandMsg->GetBufferBodyPointer(), commandMsg->GetBufferBodySize());
 
       int c = commandMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || commandMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName(headerMsg->GetDeviceName());
 
@@ -732,7 +754,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(startTracking->GetBufferBodyPointer(), startTracking->GetBufferBodySize());
 
       int c = startTracking->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || startTracking->GetBufferBodySize() == 0)
       {
         client->ClientInfo.SetTDATAResolution(startTracking->GetResolution());
         client->ClientInfo.SetTDATARequested(true);
@@ -773,7 +795,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(polyDataMessage->GetBufferBodyPointer(), polyDataMessage->GetBufferBodySize());
 
       int c = polyDataMessage->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || polyDataMessage->GetBufferBodySize() == 0)
       {
         std::string fileName;
         // Check metadata for requisite parameters, if absent, check deviceName
@@ -851,7 +873,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getImageMetaMsg->GetBufferBodyPointer(), getImageMetaMsg->GetBufferBodySize());
 
       int c = getImageMetaMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getImageMetaMsg->GetBufferBodySize() == 0)
       {
         // Image meta message
         std::string deviceName("");
@@ -876,7 +898,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getImageMsg->GetBufferBodyPointer(), getImageMsg->GetBufferBodySize());
 
       int c = getImageMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getImageMsg->GetBufferBodySize() == 0)
       {
         std::string deviceName("");
         if (headerMsg->GetDeviceName() != NULL)
@@ -906,7 +928,7 @@ void* vtkPlusOpenIGTLinkServer::DataReceiverThread(vtkMultiThreader::ThreadInfo*
       clientSocket->Receive(getPointMsg->GetBufferBodyPointer(), getPointMsg->GetBufferBodySize());
 
       int c = getPointMsg->Unpack(self->IgtlMessageCrcCheckEnabled);
-      if (c & igtl::MessageHeader::UNPACK_BODY)
+      if (c & igtl::MessageHeader::UNPACK_BODY || getPointMsg->GetBufferBodySize() == 0)
       {
         std::string fileName;
         if (!getPointMsg->GetMetaDataElement("Filename", fileName))
@@ -1006,6 +1028,23 @@ PlusStatus vtkPlusOpenIGTLinkServer::SendTrackedFrame(igsioTrackedFrame& tracked
   {
     // Lock before we send message to the clients
     igsioLockGuard<vtkIGSIORecursiveCriticalSection> igtlClientsMutexGuardedLock(this->IgtlClientsMutex);
+    if (this->NewClientConnected)
+    {
+      for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
+      {
+        std::vector<PlusIgtlClientInfo::VideoStream> videoStreams = (*clientIterator).ClientInfo.VideoStreams;
+        for (std::vector<PlusIgtlClientInfo::VideoStream>::iterator videoStream = videoStreams.begin(); videoStream != videoStreams.end(); ++videoStream)
+        {
+          vtkIGSIOFrameConverter* frameConverter = videoStream->FrameConverter;
+          if (frameConverter)
+          {
+            frameConverter->RequestKeyFrameOn();
+          }
+        }
+      }
+    }
+    this->NewClientConnected = false;
+
     for (std::list<ClientData>::iterator clientIterator = this->IgtlClients.begin(); clientIterator != this->IgtlClients.end(); ++clientIterator)
     {
       igtl::ClientSocket::Pointer clientSocket = (*clientIterator).ClientSocket;

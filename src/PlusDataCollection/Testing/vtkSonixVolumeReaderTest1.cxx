@@ -88,6 +88,7 @@ int main ( int argc, char* argv[] )
   }
 
   vtkSmartPointer<vtkImageDifference> imgDiff = vtkSmartPointer<vtkImageDifference>::New();
+  imgDiff->AllowShiftOff();
 
   igsioVideoFrame baselineVideoFrame;
   if ( igsioVideoFrame::ReadImageFromFile( baselineVideoFrame, inputBaselineName.c_str() ) != PLUS_SUCCESS )

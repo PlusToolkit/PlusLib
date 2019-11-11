@@ -66,10 +66,10 @@ public:
   /*! Get the dynamic range of B-mode ultrasound (dB)*/
   PlusStatus GetDynRangeDb(double& aDynamicRange);
 
-  /*! Set the imaging power of B-mode ultrasound as percentage of maximum power (valid range: 0-100) */
-  PlusStatus SetPowerPercent(double aGainPercent);
-  /*! Get the imaging power of B-mode ultrasound as percentage of maximum power (valid range: 0-100) */
-  PlusStatus GetPowerPercent(double& aGainPercent);
+  /*! Set the imaging power of B-mode ultrasound as Db below max (valid range: -20 to0) */
+  PlusStatus SetPowerDb(double aPowerDb);
+  /*! Get the imaging power of B-mode ultrasound as percentage of maximum power (valid range: -20 to 0) */
+  PlusStatus GetPowerDb(double& aPowerDb);
 
   /*! Verify the device is correctly configured */
   virtual PlusStatus NotifyConfigured();
@@ -106,7 +106,7 @@ protected:
   double DepthMm;
   double GainPercent;
   double DynRangeDb;
-  double PowerPercent;
+  double PowerDb;
 
 private:
   vtkImageImport* importer;

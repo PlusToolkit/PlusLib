@@ -17,7 +17,9 @@ writes the buffer to a metafile and displays the live transform in a 3D view.
 #include "vtkPlusDataSource.h"
 #include "vtkPlusDevice.h"
 #include "igsioMath.h"
+#ifdef PLUS_RENDERING_ENABLED
 #include "vtkPlusToolAxesActor.h"
+#endif
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -41,7 +43,9 @@ class vtkMyCallback : public vtkCommand
 {
 public:
   static vtkMyCallback* New()
-  {return new vtkMyCallback;}
+  {
+    return new vtkMyCallback;
+  }
 
   vtkMyCallback()
   {
@@ -53,12 +57,14 @@ public:
   {
     this->StepperTextActor->Delete();
     this->StepperTextActor = NULL;
+#ifdef PLUS_RENDERING_ENABLED
     for (std::map<std::string, vtkPlusToolAxesActor*>::iterator it = this->ToolActors.begin(); it != this->ToolActors.end(); ++it)
     {
       //this->Renderer->RemoveActor(this->ToolActors[i]);
       it->second->Delete();
       it->second = NULL;
     }
+#endif
   }
 
   void Init()
@@ -96,23 +102,35 @@ public:
 
   void AddNewToolActor(const std::string& aToolId)
   {
+#ifdef PLUS_RENDERING_ENABLED
     vtkPlusToolAxesActor* actor = vtkPlusToolAxesActor::New();
     this->Renderer->AddActor(actor);
     actor->SetVisibility(false);
     this->ToolActors[aToolId] = actor;
     actor->SetName(aToolId);
+#else
+    LOG_WARNING("Cannot add actor when VTK_RENDERING_BACKEND is None!");
+#endif
   }
 
   void SetToolVisible(const std::string& aToolId, bool visible)
   {
+#ifdef PLUS_RENDERING_ENABLED
     this->ToolActors[aToolId]->SetVisibility(visible);
+#else
+    LOG_WARNING("Cannot change tool visibility when VTK_RENDERING_BACKEND is None!");
+#endif
   }
 
-  void SetToolToTrackerTransform(const std::string& aToolId, vtkMatrix4x4*  toolToTrackerTransform)
+  void SetToolToTrackerTransform(const std::string& aToolId, vtkMatrix4x4* toolToTrackerTransform)
   {
+#ifdef PLUS_RENDERING_ENABLED
     vtkSmartPointer<vtkTransform> normalizedTransform = vtkSmartPointer<vtkTransform>::New();
     normalizedTransform->SetMatrix(toolToTrackerTransform);
     this->ToolActors[aToolId]->SetUserTransform(normalizedTransform);
+#else
+    LOG_WARNING("Cannot set tool transform when VTK_RENDERING_BACKEND is None!");
+#endif
   }
 
   virtual void Execute(vtkObject* caller, unsigned long, void*)
@@ -166,7 +184,7 @@ public:
 
       if (status != TOOL_OK)
       {
-        ss  << "missing or out of view\n";
+        ss << "missing or out of view\n";
         SetToolVisible(tool->GetId(), false);
         continue;
       }
@@ -174,11 +192,11 @@ public:
       // There is a valid transform
       SetToolToTrackerTransform(tool->GetId(), toolToTrackerTransform);
       SetToolVisible(tool->GetId(), true);
-      ss  << std::fixed
-          << toolToTrackerTransform->GetElement(0, 0) << "   " << toolToTrackerTransform->GetElement(0, 1) << "   " << toolToTrackerTransform->GetElement(0, 2) << "   " << toolToTrackerTransform->GetElement(0, 3) << " / "
-          << toolToTrackerTransform->GetElement(1, 0) << "   " << toolToTrackerTransform->GetElement(1, 1) << "   " << toolToTrackerTransform->GetElement(1, 2) << "   " << toolToTrackerTransform->GetElement(1, 3) << " / "
-          << toolToTrackerTransform->GetElement(2, 0) << "   " << toolToTrackerTransform->GetElement(2, 1) << "   " << toolToTrackerTransform->GetElement(2, 2) << "   " << toolToTrackerTransform->GetElement(2, 3) << " / "
-          << toolToTrackerTransform->GetElement(3, 0) << "   " << toolToTrackerTransform->GetElement(3, 1) << "   " << toolToTrackerTransform->GetElement(3, 2) << "   " << toolToTrackerTransform->GetElement(3, 3) << "\n";
+      ss << std::fixed
+        << toolToTrackerTransform->GetElement(0, 0) << "   " << toolToTrackerTransform->GetElement(0, 1) << "   " << toolToTrackerTransform->GetElement(0, 2) << "   " << toolToTrackerTransform->GetElement(0, 3) << " / "
+        << toolToTrackerTransform->GetElement(1, 0) << "   " << toolToTrackerTransform->GetElement(1, 1) << "   " << toolToTrackerTransform->GetElement(1, 2) << "   " << toolToTrackerTransform->GetElement(1, 3) << " / "
+        << toolToTrackerTransform->GetElement(2, 0) << "   " << toolToTrackerTransform->GetElement(2, 1) << "   " << toolToTrackerTransform->GetElement(2, 2) << "   " << toolToTrackerTransform->GetElement(2, 3) << " / "
+        << toolToTrackerTransform->GetElement(3, 0) << "   " << toolToTrackerTransform->GetElement(3, 1) << "   " << toolToTrackerTransform->GetElement(3, 2) << "   " << toolToTrackerTransform->GetElement(3, 3) << "\n";
     }
 
     this->StepperTextActor->SetInput(ss.str().c_str());
@@ -202,7 +220,9 @@ public:
   vtkRenderer* Renderer;
   vtkRenderWindowInteractor* RenderWindowInteractor;
   vtkTextActor* StepperTextActor;
+#ifdef PLUS_RENDERING_ENABLED
   std::map<std::string, vtkPlusToolAxesActor*> ToolActors;
+#endif
   int TimerId;
 };
 
@@ -363,6 +383,7 @@ int main(int argc, char** argv)
   }
   else
   {
+#ifdef PLUS_RENDERING_ENABLED
     // Start live rendering
     vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -400,6 +421,9 @@ int main(int argc, char** argv)
     renderer->GetActiveCamera()->ParallelProjectionOn();
 
     iren->Start();
+#else
+    LOG_WARNING("Cannot render the scene when when VTK_RENDERING_BACKEND is None!");
+#endif
   }
 
   dataCollector->Disconnect();

@@ -10,6 +10,7 @@ See License.txt for details.
 #include "PlusMath.h"
 
 // VTK includes
+#include <vtkImageImport.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPlusDataSource.h>
@@ -58,6 +59,7 @@ vtkPlusLeapMotion::vtkPlusLeapMotion()
   , ImageInitialized(false)
   , LeftCameraSource(nullptr)
   , RightCameraSource(nullptr)
+  , InvertImage(false)
 {
   this->RequirePortNameInDeviceSetConfiguration = false;
   this->StartThreadForInternalUpdates = true; // polling based device
@@ -82,6 +84,7 @@ void vtkPlusLeapMotion::PrintSelf(ostream& os, vtkIndent indent)
   os << "Poll timeout (ms)" << this->PollTimeoutMs << std::endl;
   os << "Leap HMD policy" << (this->LeapHMDPolicy ? "TRUE" : "FALSE") << std::endl;
   os << "Override pause/resume policy" << (this->RefusePauseResumePolicy ? "TRUE" : "FALSE") << std::endl;
+  os << "Invert image:" << (this->InvertImage ? "TRUE" : "FALSE") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -91,6 +94,7 @@ PlusStatus vtkPlusLeapMotion::ReadConfiguration(vtkXMLDataElement* rootConfigEle
 
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(LeapHMDPolicy, deviceConfig);
   XML_READ_BOOL_ATTRIBUTE_OPTIONAL(RefusePauseResumePolicy, deviceConfig);
+  XML_READ_BOOL_ATTRIBUTE_OPTIONAL(InvertImage, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -102,6 +106,7 @@ PlusStatus vtkPlusLeapMotion::WriteConfiguration(vtkXMLDataElement* rootConfigEl
 
   XML_WRITE_BOOL_ATTRIBUTE(LeapHMDPolicy, deviceConfig);
   XML_WRITE_BOOL_ATTRIBUTE(RefusePauseResumePolicy, deviceConfig);
+  XML_WRITE_BOOL_ATTRIBUTE(InvertImage, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -380,11 +385,30 @@ PlusStatus vtkPlusLeapMotion::ToolTimeStampedUpdateBone(std::string boneName, eL
 
       vtkQuaternion<float> orientation;
       orientation.Set(bone.rotation.w, bone.rotation.x, bone.rotation.y, bone.rotation.z);
-      pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
       float axis[3];
       float angle = orientation.GetRotationAngleAndAxis(axis);
-      pose->RotateWXYZ(angle, axis);
-      if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP) != PLUS_SUCCESS)
+      pose->Translate(bone.next_joint.x, bone.next_joint.y, bone.next_joint.z);
+      pose->RotateWXYZ(vtkMath::DegreesFromRadians(angle), axis);
+      float x = bone.next_joint.x - bone.prev_joint.x;
+      float y = bone.next_joint.y - bone.prev_joint.y;
+      float z = bone.next_joint.z - bone.prev_joint.z;
+      float mag = std::sqrtf(x * x + y * y + z * z);
+      igsioFieldMapType fields;
+      {
+        std::stringstream ss;
+        ss << mag;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "lengthMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "lengthMm"].second = ss.str();
+      }
+
+      {
+        std::stringstream ss;
+        ss << bone.width;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "radiusMm"].first = FRAMEFIELD_FORCE_SERVER_SEND;
+        fields[boneName + "To" + this->ToolReferenceFrameName + "radiusMm"].second = ss.str();
+      }
+
+      if (this->ToolTimeStampedUpdate(boneName + "To" + this->ToolReferenceFrameName, pose->GetMatrix(), TOOL_OK, this->FrameNumber, UNDEFINED_TIMESTAMP, &fields) != PLUS_SUCCESS)
       {
         LOG_ERROR("Unable to record " << boneName << " transform.");
         return PLUS_FAIL;
@@ -649,11 +673,6 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
     FrameSizeType rightFrameSize{ imageEvent->image[1].properties.width, imageEvent->image[1].properties.height, 1 };
     if (!this->ImageInitialized)
     {
-      this->LeftCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
-      this->LeftCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-      this->RightCameraSource->SetInputImageOrientation(US_IMG_ORIENT_MN);
-      this->RightCameraSource->SetOutputImageOrientation(US_IMG_ORIENT_MF);
-
       // First image received, set up the data sources
       this->LeftCameraSource->SetInputFrameSize(leftFrameSize);
       this->RightCameraSource->SetInputFrameSize(rightFrameSize);
@@ -685,8 +704,45 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
       this->ImageInitialized = true;
     }
 
+    if (this->InvertImage)
+    {
+      // Invert left image
+      uint32_t byteCount = ((imageEvent->image[0].properties.format == eLeapImageFormat_RGBIr_Bayer)) ? 3 : 1 * leftFrameSize[0] * leftFrameSize[1] * leftFrameSize[2];
+      for (uint32_t i = 0; i < byteCount;)
+      {
+        ((unsigned char*)(imageEvent->image[0].data))[i] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i];
+        if (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)
+        {
+          ((unsigned char*)(imageEvent->image[0].data))[i + 1] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i + 1];
+          ((unsigned char*)(imageEvent->image[0].data))[i + 2] = 255 - ((unsigned char*)(imageEvent->image[0].data))[i + 2];
+          i = i + 3;
+        }
+        else
+        {
+          i++;
+        }
+      }
+
+      // Invert right image
+      byteCount = ((imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)) ? 3 : 1 * rightFrameSize[0] * rightFrameSize[1] * rightFrameSize[2];
+      for (uint32_t i = 0; i < rightFrameSize[0];)
+      {
+        ((unsigned char*)(imageEvent->image[1].data))[i] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i];
+        if (imageEvent->image[1].properties.format == eLeapImageFormat_RGBIr_Bayer)
+        {
+          ((unsigned char*)(imageEvent->image[1].data))[i + 1] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i + 1];
+          ((unsigned char*)(imageEvent->image[1].data))[i + 2] = 255 - ((unsigned char*)(imageEvent->image[1].data))[i + 2];
+          i = i + 3;
+        }
+        else
+        {
+          i++;
+        }
+      }
+    }
+
     this->LeftCameraSource->AddItem(imageEvent->image[0].data,
-                                    US_IMG_ORIENT_MN,
+                                    this->LeftCameraSource->GetInputImageOrientation(),
                                     leftFrameSize,
                                     VTK_UNSIGNED_CHAR,
                                     imageEvent->image[0].properties.bpp,
@@ -694,7 +750,7 @@ PlusStatus vtkPlusLeapMotion::OnImageEvent(const LEAP_IMAGE_EVENT* imageEvent)
                                     0,
                                     this->FrameNumber); // For now, use plus timestamps, until figure out how to offset leap timestamp by plus timestamp
     this->RightCameraSource->AddItem(imageEvent->image[0].data,
-                                     US_IMG_ORIENT_MN,
+                                     this->RightCameraSource->GetInputImageOrientation(),
                                      rightFrameSize,
                                      VTK_UNSIGNED_CHAR,
                                      imageEvent->image[1].properties.bpp,
