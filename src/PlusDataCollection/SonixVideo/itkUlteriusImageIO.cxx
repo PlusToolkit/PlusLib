@@ -13,7 +13,7 @@
 #include <string>
 #include <stdlib.h>
 #include "itkUlteriusImageIO.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 //#include "itkSpatialOrientation.h"
 //#include "itkSpatialOrientationAdapter.h"
 #include "itkIOCommon.h"
@@ -31,7 +31,7 @@ namespace itk
 
     // :TODO: check all the supported file formats (extensions) on the Ultrasonix GUI and add them here
 
-    /* From Ulterius1.2.1 SDK: 
+    /* From Ulterius1.2.1 SDK:
     udtScreen->.avi
     udtBPre->.bpr
     udtBPost->.b8
@@ -52,7 +52,7 @@ namespace itk
 
     this->AddSupportedReadExtension(".b8");
     this->AddSupportedReadExtension(".b32");
-  } 
+  }
 
   UlteriusImageIO::~UlteriusImageIO()
   {
@@ -64,13 +64,13 @@ namespace itk
   {
     Superclass::PrintSelf(os, indent);
     os << indent << "Type: " << m_FileHeaderPtr->type << "\n";
-    os << indent << "Number of frames: " << m_FileHeaderPtr->frames << "\n";  
+    os << indent << "Number of frames: " << m_FileHeaderPtr->frames << "\n";
   }
 
   // This method will only test if the header looks like a
   // UlteriusImage.
-  bool UlteriusImageIO::CanReadFile( const char* filename ) 
-  { 
+  bool UlteriusImageIO::CanReadFile( const char* filename )
+  {
     // First check the extension
     std::string fname = filename;
     if(  fname == "" )
@@ -102,7 +102,7 @@ namespace itk
 
 
   void UlteriusImageIO::ReadImageInformation()
-  { 
+  {
     if (!ReadHeader(m_FileName.c_str()))
     {
       itkExceptionMacro("File cannot be read: "
@@ -174,20 +174,20 @@ namespace itk
     directionAxis[2]=1.0;
     this->SetDirection( 2, directionAxis );
 
-  } 
+  }
 
 
   void UlteriusImageIO::Read(void* buffer)
-  { 
+  {
     std::ifstream file;
     file.open( m_FileName.c_str(), std::ios::in | std::ios::binary );
 
     // Set the file read pointer to the start of the pixel data
     file.seekg(sizeof(uFileHeader), std::ios::beg );
 
-    file.read(static_cast<char*>(buffer), static_cast<std::streamsize>(this->GetImageSizeInBytes()));    
+    file.read(static_cast<char*>(buffer), static_cast<std::streamsize>(this->GetImageSizeInBytes()));
     // :TODO: add error handling here
-  } 
+  }
 
   bool UlteriusImageIO::CanWriteFile( const char * name )
   {
@@ -195,15 +195,15 @@ namespace itk
   }
 
 
-  void 
+  void
     UlteriusImageIO
     ::WriteImageInformation(void)
   {
   }
 
-  void 
+  void
     UlteriusImageIO
-    ::Write( const void* buffer) 
+    ::Write( const void* buffer)
   {
   }
 
@@ -222,7 +222,7 @@ namespace itk
       local_InputStream.close();
       return false;
     }
-    local_InputStream.close(); 
+    local_InputStream.close();
 
     return true;
   }

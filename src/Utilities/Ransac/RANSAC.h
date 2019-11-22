@@ -22,7 +22,7 @@
   #include <itkMultiThreaderBase.h>
   #include <mutex>
 #endif
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 
 /**
  * This class implements a multi-threaded version of the RAndom SAmple
