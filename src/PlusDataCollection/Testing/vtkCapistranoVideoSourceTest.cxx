@@ -317,11 +317,15 @@ int main(int argc, char* argv[])
 
 	LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
 
-#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
-    LOG_INFO("Hardware version: " << capistranoDevice->GetHardwareVersion());
-    LOG_INFO("High-pass filter: " << capistranoDevice->GetHighPassFilter());
+    int retval = 0;
+#if defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+    capistranoDevice->GetHardwareVersion(retval);
+    LOG_INFO("Hardware version: " << retval);
+    capistranoDevice->GetHighPassFilter(retval);
+    LOG_INFO("High-pass filter: " << retval);
     #ifdef CAPISTRANO_SDK2018
-      LOG_INFO("Low-pass filter: " << capistranoDevice->GetLowPassFilter());
+      capistranoDevice->GetLowPassFilter(retval);
+      LOG_INFO("Low-pass filter: " << retval);
     #endif
 #endif
 
