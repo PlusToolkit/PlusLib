@@ -119,8 +119,11 @@ public:
   /* Probe servo derivative compensation */
   unsigned char GetDerivativeCompensation();
 
-  /* Set the pulser voltage of US probe */
+  /* Set the pulser voltage of US probe. Valid range is from 0.0 to 100.0. Values outside the range will be clipped to this range. */
   PlusStatus SetPulseVoltage(float pv);
+
+  /* Get the pulser voltage of US probe */
+  float GetPulseVoltage();
 
   /* Set the scan depth of US probe */
   PlusStatus SetScanDepth(float sd);
