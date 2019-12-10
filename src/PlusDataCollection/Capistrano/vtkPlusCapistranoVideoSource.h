@@ -16,7 +16,7 @@
  \brief Class for acquiring ultrasound images from Capistrano Labs USB ultrasound systems.
 
  Requires PLUS_USE_CAPISTRANO_VIDEO option in CMake.
- Requires the Capistrano cSDK2019, cSDK2018, cSDK2016, or cSDK2013 (SDK provided by Capistrano Labs).
+ Requires the Capistrano cSDK2019.2, cSDK2019, cSDK2018, cSDK2016, or cSDK2013 (SDK provided by Capistrano Labs).
 
  \ingroup PlusLibDataCollection.
 */
@@ -43,17 +43,14 @@ public:
   /*! Get the version of SDK */
   virtual std::string GetSdkVersion();
 
-#if defined CAPISTRANO_SDK2019 || CAPISTRANO_SDK2018
-  /*! Get the hardware version. */
-  virtual int GetHardwareVersion();
+  /*! Get the hardware version. Only implemented with Capistrano SDK 2018 and newer. */
+  PlusStatus GetHardwareVersion(int & HardwareVersion);
 
-  /*! Get the high pass filter. */
-  virtual int GetHighPassFilter();
-#ifdef CAPISTRANO_SDK2018
-  /*! Get the low pass filter. */
-  virtual int GetLowPassFilter();
-#endif
-#endif
+  /*! Get the high pass filter. Only implemented with Capistrano SDK 2018 and newer. */
+  PlusStatus GetHighPassFilter(int & HighPassFilter);
+
+  /*! Get the low pass filter. Only implemented with Capistrano SDK 2018. */
+  PlusStatus GetLowPassFilter(int & LowPassFilter);
 
   /* Update Speed of Sound */
   PlusStatus GetProbeVelocityDevice(float& aVel);
@@ -122,8 +119,11 @@ public:
   /* Probe servo derivative compensation */
   unsigned char GetDerivativeCompensation();
 
-  /* Set the pulser voltage of US probe */
+  /* Set the pulser voltage of US probe. Valid range is from 0.0 to 100.0. Values outside the range will be clipped to this range. */
   PlusStatus SetPulseVoltage(float pv);
+
+  /* Get the pulser voltage of US probe */
+  float GetPulseVoltage();
 
   /* Set the scan depth of US probe */
   PlusStatus SetScanDepth(float sd);
@@ -184,6 +184,26 @@ public:
 
   /*! Checks whether the device is frozen or live. */
   bool IsFrozen();
+
+  /*! Set MIS Mode on/off.
+  * When MIS mode is turned on, the bidirectional mode for imaging is automatically set.
+  * One should not return to unidirectional mode while MIS mode is on.
+  * When turning off MIS mode, the system is set back to unidirectional mode, automatically, again.
+  * Only implemented with Capistrano SDK 2019.2 and newer. */
+  PlusStatus SetMISMode(bool mode);
+
+  /* Get the MIS Mode state. Only implemented with Capistrano SDK 2019.2 and newer. */
+  PlusStatus GetMISMode(bool & MISMode);
+
+  /*! Set the pulse period used for the MIS mode.
+  * The number written into the register will determine the number of 240 MHz clock periods, plus one.
+  * That is, if 0 is written, that corresponds to 1, 240 MHz clock (or about 4.2 ns). A value of 50 would be 51 clocks (or 51*4.2ns = 214.2 ns).
+  * The maximum value written can be 126 (corresponding to 127 clocks which is 533.4 ns).
+  * Only implemented with Capistrano SDK 2019.2 and newer. */
+  PlusStatus SetMISPulsePeriod(unsigned int val);
+
+  /*! Get the pulse period used for the MIS mode. Only implemented with Capistrano SDK 2019.2 and newer. */
+  PlusStatus GetMISPulsePeriod(unsigned int & PulsePeriod);
 
 protected:
   /*! Constructor */
@@ -265,6 +285,11 @@ protected:
 
   bool                           Frozen;
   bool                           UpdateParameters;
+  bool                           MISMode;
+  unsigned int                   PulsePeriod;
+  int                            HardwareVersion;
+  int                            HighPassFilter;
+  int                            LowPassFilter;
   bool                           BidirectionalMode;
   int                            ProbeID;
   int                            ClockDivider;

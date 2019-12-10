@@ -14,9 +14,14 @@
 
 \section CapistranoInstallation Installation
 
-- Requires SDK provided by Capistrano Labs for compilation. Windows 64 bits platform only supported by cSDK2019 and cSDK2018.
+- Requires SDK provided by Capistrano Labs for compilation. Windows 64 bits platform only supported by cSDK2019.2, cSDK2019 and cSDK2018.
+  - cSDK2019.2: BmodeUSB DLL v315, USBprobe DLL v157
+  - cSDK2019  : BmodeUSB DLL v314, USBprobe DLL v154
+  - cSDK2018  : BmodeUSB DLL v314, USBprobe DLL v151
+  - cSDK2016  : BmodeUSB DLL v310, USBprobe DLL v127
+  - cSDK2013  : BmodeUSB DLL v309, USBprobe DLL v126
 - Requires USB drivers provided by Capistrano Labs for running. There are specific USB drivers for each cSDK version.
-  - If using cSDK2019, cSDK2018 or cSDK2016, Plus application will not start due to missing WDAPI1140.dll
+  - If using cSDK2019.2, cSDK2019, cSDK2018 or cSDK2016, Plus application will not start due to missing WDAPI1140.dll
   - If using cSDK2013, Plus application will not start due to missing WDAPI1010.dll
 
 \section CapistranoConfigSettings Device configuration settings
