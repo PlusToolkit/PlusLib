@@ -10,11 +10,13 @@ See License.txt for details.
 #include "AtracsysTracker.h"
 #include "vtkIGSIOAccurateTimer.h"
 #include "vtkPlusAtracsysTracker.h"
+#include "vtkPlusDataSource.h"
 
 // VTK includes
 #include <vtkMath.h>
-#include <vtkNew.h>
 #include <vtkMatrix4x4.h>
+#include <vtkNew.h>
+#include <vtkSmartPointer.h>
 
 // System includes
 #include <fstream>
@@ -30,11 +32,22 @@ See License.txt for details.
 #include "ftkPlatform.h"
 #include "ftkTypes.h"
 
-vtkStandardNewMacro(vtkPlusAtracsysTracker);
-
 // for convenience
 #define ATR_SUCCESS AtracsysTracker::ATRACSYS_RESULT::SUCCESS
 typedef AtracsysTracker::ATRACSYS_RESULT ATRACSYS_RESULT;
+
+vtkStandardNewMacro(vtkPlusAtracsysTracker);
+
+//----------------------------------------------------------------------------
+// Define command strings
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_FLAG        = "SetFlag";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LED_ENABLED     = "LedEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_LASER_ENABLED   = "LaserEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_VIDEO_ENABLED   = "VideoEnabled";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_SET_LED_RGBF    = "SetLED";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ENABLE_TOOL     = "EnableTool";
+const char* vtkPlusAtracsysTracker::ATRACSYS_COMMAND_ADD_TOOL        = "AddTool";
+
 
 //----------------------------------------------------------------------------
 class vtkPlusAtracsysTracker::vtkInternal
@@ -250,7 +263,7 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
     // TODO: add check for conflicting marker IDs
     std::string geomFilePath = vtkPlusConfig::GetInstance()->GetDeviceSetConfigurationPath(it->second);
     int geometryId;
-    if ((result = this->Internal->Tracker.LoadMarkerGeometry(geomFilePath, geometryId)) != ATR_SUCCESS)
+    if ((result = this->Internal->Tracker.LoadMarkerGeometryFromFile(geomFilePath, geometryId)) != ATR_SUCCESS)
     {
       LOG_ERROR(this->Internal->Tracker.ResultToString(result) << " This error occurred when trying to load geometry file at path: " << geomFilePath);
       return PLUS_FAIL;
@@ -268,25 +281,22 @@ PlusStatus vtkPlusAtracsysTracker::InternalConnect()
   this->Internal->Tracker.SetUserLEDState(0, 0, 255, 0);
 
   // pair active markers
-  if (this->Internal->DeviceType == AtracsysTracker::DEVICE_TYPE::SPRYTRACK_180)
+  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
   {
-    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(true)) != ATR_SUCCESS)
-    {
-      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-      return PLUS_FAIL;
-    }
-    LOG_INFO("Active marker pairing period started.");
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+    return PLUS_FAIL;
+  }
+  LOG_INFO("Active marker pairing period started.");
 
-    // sleep while waiting for tracker to pair active markers
-    vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
+  // sleep while waiting for tracker to pair active markers
+  vtkIGSIOAccurateTimer::Delay(this->Internal->ActiveMarkerPairingTimeSec);
 
-    LOG_INFO("Active marker pairing period ended.");
+  LOG_INFO("Active marker pairing period ended.");
 
-    if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
-    {
-      LOG_ERROR(this->Internal->Tracker.ResultToString(result));
-      return PLUS_FAIL;
-    }
+  if ((result = this->Internal->Tracker.EnableWirelessMarkerPairing(false)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result));
+    return PLUS_FAIL;
   }
   
   // make LED green, pairing is complete
@@ -351,12 +361,21 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   }
 
   std::map<int, std::string>::iterator it;
-  for (it = begin(this->Internal->FtkGeometryIdMappedToToolId); it != end(this->Internal->FtkGeometryIdMappedToToolId); it++)
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
   {
+    if (std::find(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), it->second) != this->DisabledToolIds.end())
+    {
+      // tracking of this tool has been disabled
+      vtkNew<vtkMatrix4x4> emptyTransform;
+      igsioTransformName toolTransformName(it->second, this->GetToolReferenceFrameName());
+      std::string toolSourceId = toolTransformName.GetTransformName();
+      ToolTimeStampedUpdate(toolSourceId, emptyTransform.GetPointer(), TOOL_OUT_OF_VIEW, this->FrameNumber, unfilteredTimestamp);
+      continue;
+    }
     bool toolUpdated = false;
 
     std::vector<AtracsysTracker::Marker>::iterator mit;
-    for (mit = begin(markers); mit != end(markers); mit++)
+    for (mit = markers.begin(); mit != markers.end(); mit++)
     {
       if (it->first != mit->GetGeometryID())
       {
@@ -389,4 +408,132 @@ PlusStatus vtkPlusAtracsysTracker::InternalUpdate()
   this->FrameNumber++;
  
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Command methods
+//----------------------------------------------------------------------------
+
+// LED
+PlusStatus vtkPlusAtracsysTracker::SetLedEnabled(bool enabled)
+{
+  if (this->Internal->Tracker.EnableUserLED(enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusAtracsysTracker::SetUserLEDState(int red, int green, int blue, int frequency, bool enabled /* = true */)
+{
+  if (this->Internal->Tracker.SetUserLEDState(red, green, blue, frequency, enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Tools
+PlusStatus vtkPlusAtracsysTracker::SetToolEnabled(std::string toolId, bool enabled)
+{
+  if (enabled)
+  {
+    // remove any occurances of ToolId in DisabledToolIds
+    this->DisabledToolIds.erase(std::remove(this->DisabledToolIds.begin(), this->DisabledToolIds.end(), toolId), this->DisabledToolIds.end());
+    return PLUS_SUCCESS;
+  }
+
+  // tool should be disabled, if it exists add to disabled list
+  bool toolExists = false;
+  std::map<int, std::string>::iterator it;
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
+  {
+    if (igsioCommon::IsEqualInsensitive(it->second, toolId))
+    {
+      toolExists = true;
+    }
+  }
+
+  if (!toolExists)
+  {
+    // trying to disable non-existant tool
+    LOG_ERROR("Tried to disable non-existant tool.");
+    return PLUS_FAIL;
+  }
+  
+  this->DisabledToolIds.push_back(toolId);
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusAtracsysTracker::AddToolGeometry(std::string toolId, std::string geomString)
+{
+  // make sure geometry with toolId doesn't already exist
+  bool toolExists = false;
+  std::map<int, std::string>::iterator it;
+  for (it = this->Internal->FtkGeometryIdMappedToToolId.begin(); it != this->Internal->FtkGeometryIdMappedToToolId.end(); it++)
+  {
+    if (igsioCommon::IsEqualInsensitive(it->second, toolId))
+    {
+      toolExists = true;
+    }
+  }
+
+  if (toolExists)
+  {
+    // trying to add a tool with an already-existing ID
+    LOG_ERROR("Tried to add tool with conflicting ToolId (" << toolId << ").");
+    return PLUS_FAIL;
+  }
+
+  int geometryId;
+  ATRACSYS_RESULT result;
+  if ((result = this->Internal->Tracker.LoadMarkerGeometryFromString(geomString, geometryId)) != ATR_SUCCESS)
+  {
+    LOG_ERROR(this->Internal->Tracker.ResultToString(result) << " This error occurred when trying to load the following geometry information: " << geomString);
+    return PLUS_FAIL;
+  }
+
+  // add datasources for this tool
+  vtkSmartPointer<vtkPlusDataSource> aDataSource = vtkSmartPointer<vtkPlusDataSource>::New();
+  aDataSource->SetReferenceCoordinateFrameName(this->ToolReferenceFrameName);
+  aDataSource->SetType(DATA_SOURCE_TYPE_TOOL);
+  aDataSource->SetId(toolId);
+  this->AddTool(aDataSource);
+
+  // add output channel for this tool
+  vtkPlusChannel* outChannel;
+  if (this->GetFirstOutputChannel(outChannel) != PLUS_SUCCESS)
+  {
+    LOG_ERROR("Failed to get output channel when adding Atracsys geometry.");
+    return PLUS_FAIL;
+  }
+  outChannel->AddTool(aDataSource);
+
+  // enable tool in Plus
+  
+
+  // register this tool internally
+  std::pair<int, std::string> newTool(geometryId, toolId);
+  this->Internal->FtkGeometryIdMappedToToolId.insert(newTool);
+
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+// Other
+PlusStatus vtkPlusAtracsysTracker::SetLaserEnabled(bool enabled)
+{
+  if (this->Internal->Tracker.SetLaserEnabled(enabled) != ATR_SUCCESS)
+  {
+    return PLUS_FAIL;
+  }
+  return PLUS_SUCCESS;
+}
+
+PlusStatus vtkPlusAtracsysTracker::SetVideoEnabled(bool enabled)
+{
+  // not implemented yet
+  return PLUS_FAIL;
 }

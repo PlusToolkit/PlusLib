@@ -22,6 +22,10 @@ See License.txt for details.
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   #include "vtkPlusConoProbeLinkCommand.h"
 #endif
+#ifdef PLUS_USE_ATRACSYS
+  #include "vtkPlusAtracsysCommand.h"
+#endif
+
 #include "vtkPlusAddRecordingDeviceCommand.h"
 #include "vtkPlusGetPolydataCommand.h"
 #include "vtkPlusGetTransformCommand.h"
@@ -75,6 +79,9 @@ vtkPlusCommandProcessor::vtkPlusCommandProcessor()
 #endif
 #ifdef PLUS_USE_OPTIMET_CONOPROBE
   RegisterPlusCommand(vtkSmartPointer<vtkPlusConoProbeLinkCommand>::New());
+#endif
+#ifdef PLUS_USE_ATRACSYS
+  RegisterPlusCommand(vtkSmartPointer<vtkPlusAtracsysCommand>::New());
 #endif
 }
 

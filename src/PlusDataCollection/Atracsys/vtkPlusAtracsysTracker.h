@@ -10,6 +10,8 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
+#include <string>
+
 /*!
 \class vtkPlusAtracsysTracker
 \brief Interface to the Atracsys trackers
@@ -46,6 +48,27 @@ public:
   /*!  */
   PlusStatus InternalUpdate();
 
+public:
+   // Commands
+  static const char* ATRACSYS_COMMAND_SET_FLAG;
+  static const char* ATRACSYS_COMMAND_LED_ENABLED;
+  static const char* ATRACSYS_COMMAND_LASER_ENABLED;
+  static const char* ATRACSYS_COMMAND_VIDEO_ENABLED;
+  static const char* ATRACSYS_COMMAND_SET_LED_RGBF; // F = LED flash frequency
+  static const char* ATRACSYS_COMMAND_ENABLE_TOOL;
+  static const char* ATRACSYS_COMMAND_ADD_TOOL;
+
+  // Command methods
+  // LED
+  PlusStatus SetLedEnabled(bool enabled);
+  PlusStatus SetUserLEDState(int red, int green, int blue, int frequency, bool enabled = true);
+  // Tools
+  PlusStatus SetToolEnabled(std::string toolId, bool enabled);
+  PlusStatus AddToolGeometry(std::string toolId, std::string geomString);
+  // Other
+  PlusStatus SetLaserEnabled(bool enabled);
+  PlusStatus SetVideoEnabled(bool enabled);
+
 protected:
   vtkPlusAtracsysTracker();
   ~vtkPlusAtracsysTracker();
@@ -59,6 +82,8 @@ private: // Functions
 
   /*! Stop the tracking system and bring it back to its initial state. */
   PlusStatus InternalStopRecording();
+
+  std::vector<std::string> DisabledToolIds;
 
   class vtkInternal;
   vtkInternal* Internal;
