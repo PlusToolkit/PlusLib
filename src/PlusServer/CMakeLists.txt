@@ -17,7 +17,6 @@ SET(${PROJECT_NAME}_CMD_SRCS
   Commands/vtkPlusSetUsParameterCommand.cxx
   Commands/vtkPlusGetUsParameterCommand.cxx
   Commands/vtkPlusAddRecordingDeviceCommand.cxx
-  Commands/vtkPlusAtracsysCommand.cxx
   )
 SET(${PROJECT_NAME}_SRCS
   vtkPlusOpenIGTLinkServer.cxx
@@ -43,7 +42,6 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     Commands/vtkPlusSetUsParameterCommand.h
     Commands/vtkPlusGetUsParameterCommand.h
     Commands/vtkPlusAddRecordingDeviceCommand.h
-    Commands/vtkPlusAtracsysCommand.h
     )
   SET(${PROJECT_NAME}_HDRS
     vtkPlusOpenIGTLinkServer.h
@@ -52,6 +50,13 @@ IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     vtkPlusCommandProcessor.h
     ${${PROJECT_NAME}_CMD_HDRS}
     )
+ENDIF()
+
+IF (PLUS_USE_ATRACSYS)
+  LIST(APPEND ${PROJECT_NAME}_SRCS Commands/vtkPlusAtracsysCommand.cxx)
+  IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
+    LIST(APPEND ${PROJECT_NAME}_HDRS Commands/vtkPlusAtracsysCommand.h)
+  ENDIF()
 ENDIF()
 
 IF(PLUS_USE_STEALTHLINK)
