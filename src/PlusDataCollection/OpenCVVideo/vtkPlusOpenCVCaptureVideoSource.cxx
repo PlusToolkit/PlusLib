@@ -194,37 +194,40 @@ PlusStatus vtkPlusOpenCVCaptureVideoSource::InternalConnect()
     return PLUS_FAIL;
   }
 
-  if (!this->Capture->set(cv::CAP_PROP_FPS, this->AcquisitionRate))
+  if (this->RequestedCaptureAPI != cv::CAP_GSTREAMER)
   {
-    LOG_WARNING("Unable to set requested acquisition rate: " << this->AcquisitionRate);
-  }
-  if (!this->FourCC.empty() && !this->Capture->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc(this->FourCC[0], this->FourCC[1], this->FourCC[2], this->FourCC[3])))
-  {
-    LOG_WARNING("Unable to set requested fourCC code: " << this->FourCC);
-  }
-  if (this->FrameSize[1] != 0)
-  {
-    if (!this->Capture->set(cv::CAP_PROP_FRAME_HEIGHT, this->FrameSize[1]))
+    if (!this->Capture->set(cv::CAP_PROP_FPS, this->AcquisitionRate))
     {
-      LOG_ERROR("Unable to set the requested height of the capture device.");
+      LOG_WARNING("Unable to set requested acquisition rate: " << this->AcquisitionRate);
     }
-    if (!this->Capture->set(cv::CAP_PROP_FRAME_WIDTH, this->FrameSize[0]))
+    if (!this->FourCC.empty() && !this->Capture->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc(this->FourCC[0], this->FourCC[1], this->FourCC[2], this->FourCC[3])))
     {
-      LOG_ERROR("Unable to set the requested width of the capture device.");
+      LOG_WARNING("Unable to set requested fourCC code: " << this->FourCC);
     }
-  }
-  if (!this->Capture->set(cv::CAP_PROP_AUTOFOCUS, this->AutofocusEnabled ? 1 : 0))
-  {
-    if (this->AutofocusEnabled)
+    if (this->FrameSize[1] != 0)
     {
-      LOG_WARNING("Could not set the autofocus property.");
+      if (!this->Capture->set(cv::CAP_PROP_FRAME_HEIGHT, this->FrameSize[1]))
+      {
+        LOG_ERROR("Unable to set the requested height of the capture device.");
+      }
+      if (!this->Capture->set(cv::CAP_PROP_FRAME_WIDTH, this->FrameSize[0]))
+      {
+        LOG_ERROR("Unable to set the requested width of the capture device.");
+      }
     }
-  }
-  if (!this->Capture->set(cv::CAP_PROP_AUTO_EXPOSURE, this->AutoexposureEnabled ? 1 : 0))
-  {
-    if (this->AutoexposureEnabled)
+    if (!this->Capture->set(cv::CAP_PROP_AUTOFOCUS, this->AutofocusEnabled ? 1 : 0))
     {
-      LOG_WARNING("Could not set the autoexposure property.");
+      if (this->AutofocusEnabled)
+      {
+        LOG_WARNING("Could not set the autofocus property.");
+      }
+    }
+    if (!this->Capture->set(cv::CAP_PROP_AUTO_EXPOSURE, this->AutoexposureEnabled ? 1 : 0))
+    {
+      if (this->AutoexposureEnabled)
+      {
+        LOG_WARNING("Could not set the autoexposure property.");
+      }
     }
   }
 
