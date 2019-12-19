@@ -177,6 +177,11 @@ public:
   void SetBFrameRateLimit(int32_t value);
   int32_t GetBFrameRateLimit();
 
+  void SetARFIEnabled(bool value);
+  bool GetARFIEnabled();
+  /*! If running in ARFI mode, does an ARFI push. Otherwise does nothing and returns failure status. */
+  PlusStatus ARFIPush();
+
   int GetTransducerInternalID();
 
   enum class Mode
@@ -186,6 +191,7 @@ public:
     RF, // RF mode only
     M, // M mode
     PW, // Pulsed Wave Doppler
+    ARFI, // Acoustic Radiation Force Impulse
     CFD // Color-Flow Doppler
   };
 
@@ -250,7 +256,7 @@ protected:
   double first_timestamp = 0;
   double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
   FrameSizeType m_PrimaryFrameSize = { 128, 256, 1 };
-  FrameSizeType m_ExtraFrameSize = { 128, 256, 1 };
+  FrameSizeType m_ExtraFrameSize = { 256, 128, 1 };
   std::vector<uint8_t> m_PrimaryBuffer;
   std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
