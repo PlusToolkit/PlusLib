@@ -5,18 +5,18 @@
 /* link this file in with the server and any clients */
 
 
- /* File created by MIDL compiler version 6.00.0366 */
-/* at Thu Apr 19 15:36:15 2012
+ /* File created by MIDL compiler version 8.01.0622 */
+/* at Tue Jan 19 04:14:07 2038
  */
-/* Compiler settings for ..\..\..\include\USGFWSDK\include\Usgfw2.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run)
-    protocol : dce , ms_ext, c_ext
+/* Compiler settings for Usgfw2.idl:
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0622 
+    protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
          __declspec(uuid()), __declspec(selectany), __declspec(novtable)
          DECLSPEC_UUID(), MIDL_INTERFACE()
 */
-//@@MIDL_FILE_HEADING(  )
+/* @@MIDL_FILE_HEADING(  ) */
 
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
 
@@ -63,9 +63,9 @@ typedef IID CLSID;
 #endif // CLSID_DEFINED
 
 #define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-        const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+        EXTERN_C __declspec(selectany) const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 
-#endif !_MIDL_USE_GUIDDEF_
+#endif // !_MIDL_USE_GUIDDEF_
 
 MIDL_DEFINE_GUID(IID, IID_IUsgDataView,0xBFEF8670,0xDBC1,0x4B47,0xBC,0x01,0xBB,0xBC,0xA1,0x74,0xDD,0x31);
 
@@ -305,6 +305,21 @@ MIDL_DEFINE_GUID(IID, IID_IUsgDeviceCapabilities,0x360D17D2,0xA12A,0x4bd0,0x80,0
 
 
 MIDL_DEFINE_GUID(IID, IID_IUsgUnits,0xE06602A1,0xEBE0,0x4E20,0xB3,0x9C,0xB9,0x38,0x06,0x04,0x34,0xBE);
+
+
+MIDL_DEFINE_GUID(IID, IID_ISampleGrabberFilter,0x4591F5BF,0xFBB2,0x4D6E,0xBD,0xAD,0xE6,0x29,0xE0,0x63,0x5F,0xFB);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUsgWindowRF,0x5E2238EF,0x0DA8,0x48C4,0x84,0xC5,0xE5,0xE6,0x11,0x94,0x04,0x5D);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUsgStreamEnable,0x33857397,0xF4BB,0x4B97,0x97,0x76,0x39,0xC5,0x07,0x36,0xF8,0xBA);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUsgDataSourceRF,0x3D9B6FC0,0x2AB7,0x4CFE,0x8B,0x04,0x32,0xD9,0x39,0xF8,0x0D,0xFE);
+
+
+MIDL_DEFINE_GUID(IID, IID_IUsgMultiBeam,0x5431298D,0x7FDF,0x439F,0x9D,0x23,0x1D,0xAF,0xDE,0x05,0x9F,0x19);
 
 
 MIDL_DEFINE_GUID(IID, LIBID_Usgfw2Lib,0x9F73D9AE,0xFAE1,0x4C82,0xAA,0x35,0x34,0x2A,0x0A,0xB1,0x73,0xD8);
