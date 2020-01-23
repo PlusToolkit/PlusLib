@@ -90,6 +90,9 @@ See License.txt for details.
 #ifdef PLUS_USE_LEAPMOTION
   #include "vtkPlusLeapMotion.h"
 #endif
+#ifdef PLUS_USE_STEAMVR
+  #include "vtkPlusSteamVR.h"
+#endif
 
 //----------------------------------------------------------------------------
 // Video sources
@@ -383,6 +386,10 @@ vtkPlusDeviceFactory::vtkPlusDeviceFactory()
 
 #ifdef PLUS_USE_CLARIUS
   RegisterDevice("Clarius", "vtkPlusClarius", (PointerToDevice)&vtkPlusClarius::New);
+#endif
+
+#ifdef PLUS_USE_STEAMVR
+  RegisterDevice("SteamVR", "vtkPlusSteamVR", (PointerToDevice)& vtkPlusSteamVR::New);
 #endif
 
   // Virtual Devices
