@@ -2396,18 +2396,15 @@ ENDIF()
 # --------------------------------------------------------------------------
 # SteamVR support
 IF(PLUS_USE_STEAMVR)
-
-  MESSAGE(STATUS "TEST: ${OVR_DIR}")
+  FIND_PACKAGE(OpenVR REQUIRED)
 
   SET(STEAMVR_SRCS
-    SteamVR/vtkPlusSteamVR.cxx
-    SteamVR/vtkPlusSteamVRUtility.cxx
+    SteamVR/vtkPlusSteamVRTracker.cxx
     )
+
   IF(MSVC OR ${CMAKE_GENERATOR} MATCHES "Xcode")
     SET(STEAMVR_HDRS
-      SteamVR/vtkPlusSteamVR.h
-      SteamVR/vtkPlusSteamVRUtility.h
-      SteamVR/openvr.h
+      SteamVR/vtkPlusSteamVRTracker.h
       )
   ENDIF()
 
@@ -2421,37 +2418,23 @@ IF(PLUS_USE_STEAMVR)
 
   LIST(APPEND ${PROJECT_NAME}_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/SteamVR
+    ${OpenVR_INCLUDE_DIRS}
     )
 
-    IF(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 4)
-      LIST(APPEND ${PROJECT_NAME}_LIBS
-      "${OVR_DIR}/lib/linux32/libopenvr_api.so" # this is the CMake targets produced by the external project or find module
-      )
-      LIST(APPEND External_Libraries_Install
-      "${OVR_DIR}/bin/linux32/libopenvr_api.so"
-      )
-    ELSEIF(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-      LIST(APPEND ${PROJECT_NAME}_LIBS
-      "${OVR_DIR}/lib/linux64/libopenvr_api.so" # this is the CMake targets produced by the external project or find module
-      )
-      LIST(APPEND External_Libraries_Install
-      "${OVR_DIR}/bin/linux64/libopenvr_api.so"
-      )
-    ELSEIF(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
-      LIST(APPEND ${PROJECT_NAME}_LIBS
-      "${OVR_DIR}/lib/win32/openvr_api.lib" # this is the CMake targets produced by the external project or find module
-      )
-      LIST(APPEND External_Libraries_Install
-      "${OVR_DIR}/bin/win32/openvr_api.dll"
-      )
-    ELSEIF(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-      LIST(APPEND ${PROJECT_NAME}_LIBS
-      "${OVR_DIR}/lib/win64/openvr_api.lib" # this is the CMake targets produced by the external project or find module
-      )
-      LIST(APPEND External_Libraries_Install
-      "${OVR_DIR}/bin/win64/openvr_api.dll"
-      )
+  LIST(APPEND ${PROJECT_NAME}_LIBS
+    OpenVR
+    )
+
+  GET_TARGET_PROPERTY(_install_file OpenVR IMPORTED_LOCATION_RELEASE)
+  IF(NOT _install_file)
+    GET_TARGET_PROPERTY(_install_file OpenVR IMPORTED_IMPLIB)
+    IF(NOT _install_file)
+      MESSAGE(FATAL_ERROR "Unable to locate OpenVR library to install. Check OpenVR installation.")
     ENDIF()
+  ENDIF()
+  LIST(APPEND External_Libraries_Install
+    ${_install_file}
+    )
 ENDIF()
 
 # --------------------------------------------------------------------------
@@ -2553,6 +2536,7 @@ source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracke
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 source_group("BlackMagic" FILES ${BlackMagicDeckLink_HDRS} ${BlackMagicDeckLink_SRCS})
+source_group("SteamVR" FILES ${STEAMVR_HDRS} ${STEAMVR_SRCS})
 
 # --------------------------------------------------------------------------
 # Set external MS project
