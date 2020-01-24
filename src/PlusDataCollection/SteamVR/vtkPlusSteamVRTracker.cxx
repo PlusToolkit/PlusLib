@@ -15,6 +15,9 @@ See License.txt for details.
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
 
+// OpenVR includes
+#include <openvr.h>
+
 // STL includes
 #include <sstream>
 
@@ -32,16 +35,9 @@ void vtkPlusSteamVRTracker::PrintSelf(ostream& os, vtkIndent indent)
 vtkPlusSteamVRTracker::vtkPlusSteamVRTracker()
   : vtkPlusDevice()
   , HMDSource(nullptr)
-  , GenericTrackerSource(nullptr)
-  , ControllerSource(nullptr)
+  , LeftControllerSource(nullptr)
+  , RightControllerSource(nullptr)
   , VRContext(nullptr)
-  , VRChaperone(nullptr)
-  , VROverlay(nullptr)
-  , VROverlayHandle(0)
-  , HMDRegistered(false)
-  , RegisteredControllerCount(0)
-  , GenericTrackerRegistered(false)
-  , ControllerRegistered(false)
   , SteamVRConnectionTimeout(10.0)
 {
   this->FrameNumber = 0;
@@ -56,31 +52,21 @@ vtkPlusSteamVRTracker::~vtkPlusSteamVRTracker()
     delete VRContext;
     VRContext = nullptr;
   }
-  if (VRChaperone != nullptr)
-  {
-    delete VRChaperone;
-    VRChaperone = nullptr;
-  }
-  if (VROverlay != nullptr)
-  {
-    delete VROverlay;
-    VROverlay = nullptr;
-  }
 
   if (HMDSource != nullptr)
   {
     HMDSource->Delete();
     HMDSource = nullptr;
   }
-  if (ControllerSource != nullptr)
+  if (LeftControllerSource != nullptr)
   {
-    ControllerSource->Delete();
-    ControllerSource = nullptr;
+    LeftControllerSource->Delete();
+    LeftControllerSource = nullptr;
   }
-  if (GenericTrackerSource != nullptr)
+  if (RightControllerSource != nullptr)
   {
-    GenericTrackerSource->Delete();
-    GenericTrackerSource = nullptr;
+    RightControllerSource->Delete();
+    RightControllerSource = nullptr;
   }
 }
 
@@ -109,7 +95,7 @@ PlusStatus vtkPlusSteamVRTracker::InternalConnect()
 
   if (this->VRContext == nullptr)
   {
-    LOG_ERROR("Unable to initialize SteamVR system: " vr::VR_GetVRInitErrorAsEnglishDescription(err));
+    LOG_ERROR("Unable to initialize SteamVR system: " << vr::VR_GetVRInitErrorAsEnglishDescription(err));
     return PLUS_FAIL;
   }
   else
@@ -121,12 +107,7 @@ PlusStatus vtkPlusSteamVRTracker::InternalConnect()
     {
       if (this->VRContext->IsTrackedDeviceConnected(td))
       {
-        vr::ETrackedDeviceClass tracked_device_class = this->VRContext->GetTrackedDeviceClass(td);
-
-        std::string td_type = GetTrackedDeviceClassString(tracked_device_class);
-        this->TrackedDeviceType[td] = td_type;
-
-        if (tracked_device_class == vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference)
+        if (this->VRContext->GetTrackedDeviceClass(td) == vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference)
         {
           baseStationsCount++;
         }
@@ -148,23 +129,27 @@ PlusStatus vtkPlusSteamVRTracker::InternalDisconnect()
 {
   LOG_TRACE("Shutting down SteamVR connection.");
   vr::VR_Shutdown();
+
+  return PLUS_SUCCESS;
 }
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusSteamVRTracker::InternalUpdate()
 {
+  vr::TrackedDevicePose_t trackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+
   // Obtain tracking device poses
-  this->VRContext->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, this->TrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+  this->VRContext->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, trackedDevicePose, vr::k_unMaxTrackedDeviceCount);
 
   vtkNew<vtkMatrix4x4> matrix;
   for (vr::TrackedDeviceIndex_t nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; nDevice++)
   {
-    if ((this->TrackedDevicePose[nDevice].bDeviceIsConnected) && (this->TrackedDevicePose[nDevice].bPoseIsValid))
+    if ((trackedDevicePose[nDevice].bDeviceIsConnected) && (trackedDevicePose[nDevice].bPoseIsValid))
     {
-      float v[3] = { this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][3], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][3], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][3] };
-      float r1[3] = { this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][0], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][1], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][2] };
-      float r2[3] = { this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][0], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][1], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][2] };
-      float r3[3] = { this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][0], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][1], this->TrackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][2] };
+      float v[3] = { trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][3], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][3], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][3] };
+      float r1[3] = { trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][0], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][1], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[0][2] };
+      float r2[3] = { trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][0], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][1], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[1][2] };
+      float r3[3] = { trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][0], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][1], trackedDevicePose[nDevice].mDeviceToAbsoluteTracking.m[2][2] };
 
       matrix->Identity();
       matrix->Element[0][0] = r1[0];
@@ -180,22 +165,22 @@ PlusStatus vtkPlusSteamVRTracker::InternalUpdate()
       matrix->Element[1][3] = v[1] * 1000;
       matrix->Element[2][3] = v[2] * 1000;
 
-      if (this->VRContext->GetTrackedDeviceClass(nDevice) == TrackedDeviceClass_HMD && this->HMDSource != nullptr)
+      if (this->VRContext->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_HMD && this->HMDSource != nullptr)
       {
         this->ToolTimeStampedUpdate(this->HMDSource->GetSourceId(), matrix, ToolStatus(TOOL_OK), this->FrameNumber, NULL, NULL);
       }
-      if (this->VRContext->GetTrackedDeviceClass(nDevice) == TrackedDeviceClass_Controller)
+      if (this->VRContext->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_Controller)
       {
-        if (this->VRContext->GetControllerRoleForTrackedDeviceIndex(nDevice) == TrackedControllerRole_LeftHand && this->LeftControllerSource != nullptr)
+        if (this->VRContext->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_LeftHand && this->LeftControllerSource != nullptr)
         {
           this->ToolTimeStampedUpdate(this->LeftControllerSource->GetSourceId(), matrix, ToolStatus(TOOL_OK), this->FrameNumber, NULL, NULL);
         }
-        else if (this->VRContext->GetControllerRoleForTrackedDeviceIndex(nDevice) == TrackedControllerRole_RightHand && this->RightControllerSource != nullptr)
+        else if (this->VRContext->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_RightHand && this->RightControllerSource != nullptr)
         {
           this->ToolTimeStampedUpdate(this->RightControllerSource->GetSourceId(), matrix, ToolStatus(TOOL_OK), this->FrameNumber, NULL, NULL);
         }
       }
-      else if (this->VRContext->GetTrackedDeviceClass(nDevice) == TrackedDeviceClass_GenericTracker)
+      else if (this->VRContext->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_GenericTracker)
       {
         vtkPlusDataSource* aSource(nullptr);
         if (this->GetToolByPortName("GenericTracker", aSource) == PLUS_SUCCESS)

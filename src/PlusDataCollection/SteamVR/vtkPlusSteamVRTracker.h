@@ -10,10 +10,12 @@ See License.txt for details.
 #include "vtkPlusDataCollectionExport.h"
 #include "vtkPlusDevice.h"
 
-// OpenVR includes
-#include <openvr.h>
-
 class vtkPlusDataSource;
+
+namespace vr
+{
+  class IVRSystem;
+}
 
 class vtkPlusDataCollectionExport vtkPlusSteamVRTracker : public vtkPlusDevice
 {
@@ -41,19 +43,11 @@ protected:
   virtual PlusStatus InternalDisconnect();
   virtual PlusStatus InternalUpdate();
 
-  void ProcessVREvent(const vr::VREvent_t& event);
-
   vtkPlusDataSource* HMDSource;
   vtkPlusDataSource* LeftControllerSource;
   vtkPlusDataSource* RightControllerSource;
 
   vr::IVRSystem* VRContext;
-  vr::IVRChaperone* VRChaperone;
-  vr::IVROverlay* VROverlay;
-  vr::VROverlayHandle_t VROverlayHandle;
-
-  vr::TrackedDevicePose_t TrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-  std::string TrackedDeviceType[vr::k_unMaxTrackedDeviceCount];
 
   double SteamVRConnectionTimeout;
 };
