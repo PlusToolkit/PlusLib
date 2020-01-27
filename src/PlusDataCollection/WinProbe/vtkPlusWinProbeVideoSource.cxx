@@ -729,6 +729,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
   SetTGCFirstGainValue(m_FirstGainValue);
   //SetPendingTGCUpdate(true);
+  SetBMultiFocalZoneCount(m_BMultiTxCount);
   for(int i = 0; i < 4; i++)
   {
     ::SetFocalPointDepth(i, m_FocalPointDepth[i]);
@@ -1028,6 +1029,29 @@ PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_FocalPointDepth[index] = ::GetFocalPointDepth(index);
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int32_t vtkPlusWinProbeVideoSource::GetBMultiFocalZoneCount()
+{
+  if(Connected)
+  {
+    m_BMultiTxCount = GetBMultiTxCount();
+  }
+  return m_BMultiTxCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetBMultiFocalZoneCount(int32_t count)
+{
+  assert(count >= 1 && count < 4);
+  m_BMultiTxCount = count;
+  if(Connected)
+  {
+    SetBMultiTxCount(count);
+    SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
 }
