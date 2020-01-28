@@ -87,6 +87,12 @@ public:
   /* Set the focal depth, index 0 to 4 */
   PlusStatus SetFocalPointDepth(int index, float depth);
 
+  /* Get the number of active focal zones, count 1 to 4 */
+  int32_t GetBMultiFocalZoneCount();
+
+  /* Set the number of active focal zones, count 1 to 4 */
+  PlusStatus SetBMultiFocalZoneCount(int32_t count);
+
   /* Whether or not to use device's built-in frame reconstruction */
   void SetUseDeviceFrameReconstruction(bool value) { m_UseDeviceFrameReconstruction = value; }
 
@@ -259,6 +265,7 @@ protected:
   float m_SpatialCompoundAngle = 10.0f;
   int32_t m_SpatialCompoundCount = 0;
   bool m_MRevolvingEnabled = false;
+  int32_t m_BMultiTxCount = 1;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;
   int32_t m_MWidth = 256;
