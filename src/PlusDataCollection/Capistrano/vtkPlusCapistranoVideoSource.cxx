@@ -1547,6 +1547,7 @@ unsigned char vtkPlusCapistranoVideoSource::GetDerivativeCompensation()
 PlusStatus vtkPlusCapistranoVideoSource::SetPulseVoltage(float pv)
 {
   usbSetPulseVoltage(pv);
+  this->Internal->ImagingParameters->SetProbeVoltage(pv);
   return PLUS_SUCCESS;
 }
 
