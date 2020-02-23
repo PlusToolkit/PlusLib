@@ -195,6 +195,8 @@ public:
     CFD // Color-Flow Doppler
   };
 
+  PlusStatus SetExtraSourceMode(Mode mode);
+
   /*! Sets the ultrasound imaging mode. */
   void SetMode(Mode mode)
   {

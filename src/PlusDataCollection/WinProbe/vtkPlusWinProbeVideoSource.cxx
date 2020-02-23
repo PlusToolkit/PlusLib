@@ -1197,41 +1197,111 @@ int32_t vtkPlusWinProbeVideoSource::GetSpatialCompoundCount()
 }
 
 //----------------------------------------------------------------------------
-
-void vtkPlusWinProbeVideoSource::SetBRFEnabled(bool value)
+PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
 {
-  if(Connected)
+  if((GetBRFEnabled() && mode == Mode::BRF) || (GetMModeEnabled() && mode == Mode::M) || (GetARFIEnabled() && mode == Mode::ARFI))
   {
-    if(m_Mode == Mode::M)
-    {
-      SetMIsEnabled(false);
-    }
-    if(m_Mode == Mode::ARFI)
-    {
-      SetARFIEnabled(false);
-    }
-    if(value)
-    {
-      SetHandleBRFInternally(false);
-      SetBFRFImageCaptureMode(2);
-    }
-    else
-    {
-      SetHandleBRFInternally(true);
-      SetBFRFImageCaptureMode(0);
-    }
+    return PLUS_SUCCESS;
   }
+  SetMIsEnabled(mode == Mode::M);
+  SetARFIIsEnabled(mode == Mode::ARFI);
 
-  if(value)
+  if(mode == Mode::BRF)
   {
-    m_Mode = Mode::BRF;
+    SetHandleBRFInternally(false);
+    SetBFRFImageCaptureMode(2);
   }
   else
   {
-    m_Mode = Mode::B;
+    SetHandleBRFInternally(true);
+    SetBFRFImageCaptureMode(0);
+  }
+
+  if(mode == Mode::M)
+  {
+    SetMIsRevolving(m_MRevolvingEnabled);
+    SetMPRF(m_MPRF);
+    SetMAcousticLineIndex(m_MLineIndex);
+    ::SetMWidth(m_MWidth);
+    ::SetMAcousticLineCount(m_MAcousticLineCount);
+  }
+  else if(mode == Mode::ARFI)
+  {
+    m_Mode = Mode::ARFI;
+    unsigned bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
+    unsigned arfiDataSize = 1024 * 16 * 64 * 30;
+    unsigned timeblockSize = (4 / 2) * 64 * 30;
+    m_ExtraFrameSize = { bSize + arfiDataSize + timeblockSize, 1, 1 };
+    this->AdjustBufferSizes();
+    std::vector<int32_t> zeroData(m_ExtraFrameSize[0] * m_ExtraFrameSize[1] * m_ExtraFrameSize[2], 0);
+    // add a fake zero-filled frame immediately, because the first frame seems to get lost somehow
+    for(unsigned i = 0; i < m_ExtraSources.size(); i++)
+    {
+      double timestamp = vtkIGSIOAccurateTimer::GetSystemTime();
+      if(m_ExtraSources[i]->AddItem(&zeroData[0],
+                                    US_IMG_ORIENT_FM,
+                                    m_ExtraFrameSize, VTK_INT,
+                                    1, US_IMG_RF_REAL, 0,
+                                    this->FrameNumber,
+                                    timestamp,
+                                    timestamp,
+                                    &m_CustomFields) != PLUS_SUCCESS)
+      {
+        LOG_WARNING("Error adding fake zeros item to ARFI video source " << m_ExtraSources[i]->GetSourceId());
+      }
+      else
+      {
+        LOG_WARNING("Success adding fake zeros item to ARFI video source ");
+      }
+    }
+    LOG_DEBUG("GetARFIIsRFSampleDataCaptureEnabled: " << GetARFIIsRFSampleDataCaptureEnabled());
+  }
+  SetPendingRecreateTables(true);
+  LOG_INFO("Mode changed to: " << this->ModeToString(mode));
+  m_Mode = mode;
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetBRFEnabled(bool value)
+{
+  if(value)
+  {
+    SetExtraSourceMode(Mode::BRF);
+  }
+  else
+  {
+    SetExtraSourceMode(Mode::B);
   }
 }
 
+//----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
+{
+  if(value)
+  {
+    SetExtraSourceMode(Mode::M);
+  }
+  else
+  {
+    SetExtraSourceMode(Mode::B);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetARFIEnabled(bool value)
+{
+  if(value)
+  {
+    SetExtraSourceMode(Mode::ARFI);
+  }
+  else
+  {
+    SetExtraSourceMode(Mode::B);
+  }
+}
+
+//----------------------------------------------------------------------------
 bool vtkPlusWinProbeVideoSource::GetBRFEnabled()
 {
   bool brfEnabled = (m_Mode == Mode::BRF);
@@ -1263,42 +1333,6 @@ bool vtkPlusWinProbeVideoSource::GetBHarmonicEnabled()
     m_BHarmonicEnabled = GetBIsHarmonic();
   }
   return m_BHarmonicEnabled;
-}
-
-//----------------------------------------------------------------------------
-
-void vtkPlusWinProbeVideoSource::SetMModeEnabled(bool value)
-{
-  if(Connected)
-  {
-    if(m_Mode == Mode::BRF)
-    {
-      SetBRFEnabled(false);
-    }
-    if(m_Mode == Mode::ARFI)
-    {
-      SetARFIEnabled(false);
-    }
-    SetMIsEnabled(value);
-    if(value)
-    {
-      SetMIsRevolving(m_MRevolvingEnabled);
-      SetMPRF(m_MPRF);
-      SetMAcousticLineIndex(m_MLineIndex);
-      ::SetMWidth(m_ExtraFrameSize[0]);
-      ::SetMAcousticLineCount(m_MAcousticLineCount);
-    }
-    SetPendingRecreateTables(true);
-    LOG_INFO("M-Mode enabled");
-  }
-  if(value)
-  {
-    m_Mode = Mode::M;
-  }
-  else
-  {
-    m_Mode = Mode::B;
-  }
 }
 
 bool vtkPlusWinProbeVideoSource::GetMModeEnabled()
@@ -1497,59 +1531,6 @@ std::vector<double> vtkPlusWinProbeVideoSource::GetExtraSourceSpacing()
     }
   }
   return spacing;
-}
-
-void vtkPlusWinProbeVideoSource::SetARFIEnabled(bool value)
-{
-  if(Connected)
-  {
-    if(m_Mode == Mode::M)
-    {
-      SetMIsEnabled(false);
-    }
-    if(m_Mode == Mode::BRF)
-    {
-      SetBRFEnabled(false);
-    }
-    SetARFIIsEnabled(value);
-    SetPendingRecreateTables(true);
-    if(value)
-    {
-      m_Mode = Mode::ARFI;
-      unsigned bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
-      unsigned arfiDataSize = 1024 * 16 * 64 * 30;
-      unsigned timeblockSize = (4 / 2) * 64 * 30;
-      m_ExtraFrameSize = { bSize + arfiDataSize + timeblockSize, 1, 1 };
-      this->AdjustBufferSizes();
-      std::vector<int32_t> zeroData(m_ExtraFrameSize[0] * m_ExtraFrameSize[1] * m_ExtraFrameSize[2], 0);
-      // add a fake zero-filled frame immediately, because the first frame seems to get lost somehow
-      for(unsigned i = 0; i < m_ExtraSources.size(); i++)
-      {
-        double timestamp = vtkIGSIOAccurateTimer::GetSystemTime();
-        if(m_ExtraSources[i]->AddItem(&zeroData[0],
-                                      US_IMG_ORIENT_FM,
-                                      m_ExtraFrameSize, VTK_INT,
-                                      1, US_IMG_RF_REAL, 0,
-                                      this->FrameNumber,
-                                      timestamp,
-                                      timestamp,
-                                      &m_CustomFields) != PLUS_SUCCESS)
-        {
-          LOG_WARNING("Error adding fake zeros item to ARFI video source " << m_ExtraSources[i]->GetSourceId());
-        }
-        else
-        {
-          LOG_WARNING("Success adding fake zeros item to ARFI video source ");
-        }
-      }
-
-      LOG_DEBUG("GetARFIIsRFSampleDataCaptureEnabled: " << GetARFIIsRFSampleDataCaptureEnabled());
-    }
-    else
-    {
-      m_Mode = Mode::B;
-    }
-  }
 }
 
 bool vtkPlusWinProbeVideoSource::GetARFIEnabled()
