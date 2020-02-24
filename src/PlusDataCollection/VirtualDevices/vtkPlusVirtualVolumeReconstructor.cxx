@@ -388,7 +388,9 @@ PlusStatus vtkPlusVirtualVolumeReconstructor::AddFrames(vtkIGSIOTrackedFrameList
     }
     // Insert slice for reconstruction
     bool insertedIntoVolume = false;
-    if (this->VolumeReconstructor->AddTrackedFrame(frame, this->TransformRepository, &insertedIntoVolume) != PLUS_SUCCESS)
+    bool isFirst = frameIndex == 0;
+    bool isLast = frameIndex + this->VolumeReconstructor->GetSkipInterval() >= numberOfFrames;
+    if (this->VolumeReconstructor->AddTrackedFrame(frame, this->TransformRepository, isFirst, isLast, &insertedIntoVolume) != PLUS_SUCCESS)
     {
       LOG_ERROR("Failed to add tracked frame to volume with frame #" << frameIndex);
       status = PLUS_FAIL;
