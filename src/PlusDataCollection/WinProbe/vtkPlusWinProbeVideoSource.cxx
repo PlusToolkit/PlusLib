@@ -41,6 +41,10 @@ void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "FocalPointDepth" << i << ": " << m_FocalPointDepth[i] << std::endl;
   }
+  for(int i = 0; i < 6; i++)
+  {
+    os << indent << "ARFIFocalPointDepth" << i << ": " << m_ARFIFocalPointDepth[i] << std::endl;
+  }
 
   os << indent << "CustomFields: " << std::endl;
   vtkIndent indent2 = indent.GetNextIndent();
@@ -102,6 +106,7 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
+  deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
 
   return PLUS_SUCCESS;
 }
@@ -138,6 +143,7 @@ PlusStatus vtkPlusWinProbeVideoSource::WriteConfiguration(vtkXMLDataElement* roo
 
   deviceConfig->SetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
   deviceConfig->SetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
+  deviceConfig->SetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
 
   return PLUS_SUCCESS;
 }
@@ -800,6 +806,17 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
 
+  SetARFIMultiFocalZoneCount(m_ARFIMultiTxCount);
+  for(int i = 0; i < 6; i++)
+  {
+    SetARFIFocalPointDepth(i, m_ARFIFocalPointDepth[i]);
+  }
+
+  SetARFITxTxCycleCount(m_ARFITxTxCycleCount);
+  SetARFITxTxCycleWidth(m_ARFITxTxCycleWidth);
+  SetARFITxCycleCount(m_ARFITxCycleCount);
+  SetARFITxCycleWidth(m_ARFITxCycleWidth);
+
   this->Connected = true; // the setters and getters check this
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
@@ -1107,6 +1124,70 @@ PlusStatus vtkPlusWinProbeVideoSource::SetFocalPointDepth(int index, float depth
 }
 
 //----------------------------------------------------------------------------
+float vtkPlusWinProbeVideoSource::GetARFIFocalPointDepth(int index)
+{
+  assert(index >= 0 && index < 6);
+  if(Connected)
+  {
+    switch (index) {
+    case 0:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal0();
+      break;
+    case 1:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal1();
+      break;
+    case 2:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal2();
+      break;
+    case 3:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal3();
+      break;
+    case 4:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal4();
+      break;
+    case 5:
+      m_ARFIFocalPointDepth[index] = GetARFIFocal5();
+      break;
+    }
+  }
+  return m_ARFIFocalPointDepth[index];
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIFocalPointDepth(int index, float depth)
+{
+  assert(index >= 0 && index < 6);
+  m_ARFIFocalPointDepth[index] = depth;
+  if(Connected)
+  {
+    switch (index) {
+    case 0:
+      SetARFIFocal0(depth);
+      break;
+    case 1:
+      SetARFIFocal1(depth);
+      break;
+    case 2:
+      SetARFIFocal2(depth);
+      break;
+    case 3:
+      SetARFIFocal3(depth);
+      break;
+    case 4:
+      SetARFIFocal4(depth);
+      break;
+    case 5:
+      SetARFIFocal5(depth);
+      break;
+    }
+    SetPendingRecreateTables(true);
+    //what we requested might be only approximately satisfied
+    m_ARFIFocalPointDepth[index] = GetARFIFocalPointDepth(index);
+  }
+  return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
 int32_t vtkPlusWinProbeVideoSource::GetBMultiFocalZoneCount()
 {
   if(Connected)
@@ -1119,7 +1200,7 @@ int32_t vtkPlusWinProbeVideoSource::GetBMultiFocalZoneCount()
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetBMultiFocalZoneCount(int32_t count)
 {
-  assert(count >= 1 && count < 4);
+  assert(count > 0 && count <= 4);
   m_BMultiTxCount = count;
   if(Connected)
   {
@@ -1127,6 +1208,120 @@ PlusStatus vtkPlusWinProbeVideoSource::SetBMultiFocalZoneCount(int32_t count)
     SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
+}
+
+//----------------------------------------------------------------------------
+int32_t vtkPlusWinProbeVideoSource::GetARFIMultiFocalZoneCount()
+{
+  if(Connected)
+  {
+    m_ARFIMultiTxCount = GetARFIMultiTxCount();
+  }
+  return m_ARFIMultiTxCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFIMultiFocalZoneCount(int32_t count)
+{
+  assert(count > 0 && count <= 6);
+  m_ARFIMultiTxCount = count;
+  if(Connected)
+  {
+    SetARFIMultiTxCount(count);
+    SetPendingRecreateTables(true);
+  }
+  return PLUS_SUCCESS;
+}
+
+bool vtkPlusWinProbeVideoSource::GetARFIIsX8BFEnabled()
+{
+  if(Connected)
+  {
+    quadBFCount = ::GetARFIIsX8BFEnabled() ? 2 : 1;
+  }
+  return quadBFCount == 2;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleCount(uint16_t propertyValue)
+{
+  assert(propertyValue > 0 && propertyValue <= 16);
+  m_ARFITxTxCycleCount = propertyValue;
+  if(Connected)
+  {
+    ::SetARFITxTxCycleCount(propertyValue);
+  }
+  return PLUS_SUCCESS;
+}
+
+uint16_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleCount()
+{
+  if(Connected)
+  {
+    m_ARFITxTxCycleCount = ::GetARFITxTxCycleCount();
+  }
+  return m_ARFITxCycleCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleWidth(uint8_t propertyValue)
+{
+  assert(propertyValue > 0 && propertyValue <= 255);
+  m_ARFITxTxCycleWidth = propertyValue;
+  if(Connected)
+  {
+    ::SetARFITxTxCycleWidth(propertyValue);
+  }
+  return PLUS_SUCCESS;
+}
+
+uint8_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleWidth()
+{
+  if(Connected)
+  {
+    m_ARFITxTxCycleWidth = ::GetARFITxTxCycleWidth();
+  }
+  return m_ARFITxTxCycleWidth;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleCount(uint16_t propertyValue)
+{
+  m_ARFITxCycleCount = propertyValue;
+  if(Connected)
+  {
+    ::SetARFITxTxCycleWidth(propertyValue);
+  }
+  return PLUS_SUCCESS;
+}
+
+uint16_t vtkPlusWinProbeVideoSource::GetARFITxCycleCount()
+{
+  if(Connected)
+  {
+    m_ARFITxCycleCount = ::GetARFITxCycleCount();
+  }
+  return m_ARFITxCycleCount;
+}
+
+//----------------------------------------------------------------------------
+PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleWidth(uint8_t propertyValue)
+{
+  m_ARFITxCycleWidth = propertyValue;
+  if(Connected)
+  {
+    ::SetARFITxCycleWidth(propertyValue);
+  }
+  return PLUS_SUCCESS;
+}
+
+uint8_t vtkPlusWinProbeVideoSource::GetARFITxCycleWidth()
+{
+  if(Connected)
+  {
+    m_ARFITxCycleWidth = ::GetARFITxCycleWidth();
+  }
+  return m_ARFITxCycleCount;
 }
 
 //----------------------------------------------------------------------------
@@ -1486,6 +1681,46 @@ int32_t vtkPlusWinProbeVideoSource::GetMDepth()
   }
   return m_MDepth;
 }
+
+void vtkPlusWinProbeVideoSource::SetARFIStartSample(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetARFIStartSample(value);
+    SetPendingRecreateTables(true);
+  }
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIStartSample()
+{
+  int32_t startSample = -1;
+  if(Connected)
+  {
+    startSample = ::GetARFIStartSample();
+  }
+  return startSample;
+}
+
+void vtkPlusWinProbeVideoSource::SetARFIStopSample(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetARFIStopSample(value);
+    SetPendingRecreateTables(true);
+  }
+}
+
+int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
+{
+  int32_t stopSample = -1;
+  if(Connected)
+  {
+    stopSample = ::GetARFIStopSample();
+  }
+  return stopSample;
+}
+
+
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
