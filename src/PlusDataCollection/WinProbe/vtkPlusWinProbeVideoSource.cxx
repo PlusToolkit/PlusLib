@@ -222,7 +222,7 @@ int vtkPlusWinProbeVideoSource::MSecondsFromWidth(int32_t value)
 
 // ----------------------------------------------------------------------------
 vtkPlusWinProbeVideoSource* thisPtr = nullptr;
-int32_t quadBFCount = 0; // number of 4x beamformers
+int32_t quadBFCount = 1; // number of 4x beamformers
 
 //-----------------------------------------------------------------------------
 // This callback function is invoked after each frame is ready
@@ -333,15 +333,9 @@ void vtkPlusWinProbeVideoSource::FrameCallback(int length, char* data, char* hHe
   {
     int bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
     int timeblock = (4 / quadBFCount) * arfiGeometry->LineRepeatCount * sizeof(int32_t) * 30;
-    timeblock = timeblock / 2;  // for x8 bf engine? why isn't quadBFCount taking this into account?
     int arfiDataSize = arfiGeometry->SamplesPerLine * arfiGeometry->LineCount * arfiGeometry->LineRepeatCount * 30 * sizeof(int32_t);
-    if(length > bSize + arfiDataSize + timeblock){
-      LOG_WARNING("The size of the ARFI frame data is larger than expected.");
-    }
-    else if(length < bSize + arfiDataSize + timeblock){
-      LOG_WARNING("The size of the ARFI frame data is smaller than expected.");
-    }
-    frameSize[0] = length / sizeof(int32_t);  // we want to include the time data to be saved
+    assert(length == bSize + arfiDataSize + timeblock);
+    frameSize[0] = (bSize + arfiDataSize + timeblock) / sizeof(int32_t);  // we want to include all data to be saved
     frameSize[1] = 1;
     frameSize[2] = 1;
     if(frameSize != m_ExtraFrameSize)
@@ -826,7 +820,14 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   }
   WPSetSize(m_PrimaryFrameSize[0], m_PrimaryFrameSize[1]);
   SetMaxDmaTransferSize(0x100000);
-  quadBFCount = GetARFISSQuadBFCount();
+  if(::GetARFIIsX8BFEnabled())
+  {
+    quadBFCount = 2;
+  }
+  else
+  {
+    quadBFCount = 1;
+  }
   if(!m_UseDeviceFrameReconstruction)
   {
     WPDXSetIsGetSpatialCompoundedTexEnabled(true);
@@ -1230,7 +1231,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetExtraSourceMode(Mode mode)
     m_Mode = Mode::ARFI;
     unsigned bSize = m_SSDecimation * m_PrimaryFrameSize[1] * m_PrimaryFrameSize[0];
     unsigned arfiDataSize = 1024 * 16 * 64 * 30;
-    unsigned timeblockSize = (4 / 2) * 64 * 30;
+    unsigned timeblockSize = (4 / quadBFCount) * 64 * 30;
     m_ExtraFrameSize = { bSize + arfiDataSize + timeblockSize, 1, 1 };
     this->AdjustBufferSizes();
     std::vector<int32_t> zeroData(m_ExtraFrameSize[0] * m_ExtraFrameSize[1] * m_ExtraFrameSize[2], 0);
