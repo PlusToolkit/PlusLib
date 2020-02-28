@@ -846,7 +846,6 @@ PlusStatus vtkPlusClarius::WritePosesToCsv(const ClariusImageInfo* nfo, int npos
       posInfo += (std::to_string(systemTime) + ",");
       posInfo += (std::to_string(convertedTime) + ",");
       posInfo += (std::to_string(nfo->tm) + ",");
-      posInfo += (std::to_string(nfo->micronsPerPixel) + ",");
       posInfo += (std::to_string(pos[i].tm) + ",");
       posInfo += (std::to_string(pos[i].ax) + ",");
       posInfo += (std::to_string(pos[i].ay) + ",");
