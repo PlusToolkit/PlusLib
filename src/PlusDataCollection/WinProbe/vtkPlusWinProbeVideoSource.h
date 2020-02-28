@@ -81,17 +81,56 @@ public:
   /* Set the TGC First Gain Value near transducer face */
   PlusStatus SetFirstGainValue(double value);
 
-  /* Get the focal depth, index 0 to 4 */
+  /* Get the B-Mode focal depth at a specific index, index 0 to 3 */
   float GetFocalPointDepth(int index);
 
-  /* Set the focal depth, index 0 to 4 */
+  /* Set the B-Mode focal depth at a specific index, index 0 to 3 */
   PlusStatus SetFocalPointDepth(int index, float depth);
 
-  /* Get the number of active focal zones, count 1 to 4 */
+  /* Get the ARFI focal depth at a specific index, index 0 to 5 */
+  float GetARFIFocalPointDepth(int index);
+
+  /* Set the ARFI focal depth at a specific index, index 0 to 5 */
+  PlusStatus SetARFIFocalPointDepth(int index, float depth);
+
+  /* Get the number of active focal zones for B-Mode, count 1 to 4 */
   int32_t GetBMultiFocalZoneCount();
 
-  /* Set the number of active focal zones, count 1 to 4 */
+  /* Set the number of active focal zones for B-Mode, count 1 to 4 */
   PlusStatus SetBMultiFocalZoneCount(int32_t count);
+
+  /* Get the number of active focal zones for ARFI, count 1 to 6 */
+  int32_t GetARFIMultiFocalZoneCount();
+
+  /* Set the number of active focal zones for ARFI, count 1 to 6 */
+  PlusStatus SetARFIMultiFocalZoneCount(int32_t count);
+
+  /* Get if the connected engine has an x8 beamformer. */
+  bool GetARFIIsX8BFEnabled();
+
+  /* Set the number of states in the transmit pulse. 1-16 */
+  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleCount(uint16_t propertyValue);
+
+  /* Get the number of states in the transmit pulse. 1-16 */
+  uint16_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleCount();
+
+  /* Set the width of the tx cycle. Determines the transmit frequency for non apodized transmits. 1-255 */
+  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleWidth(uint8_t propertyValue);
+
+  /* Get the width of the tx cycle. Determines the transmit frequency for non apodized transmits. 1-255 */
+  uint8_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleWidth();
+
+  /* Set the number of cycles in the ARFI push pulse. */
+  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleCount(uint16_t propertyValue);
+
+  /* Get the number of cycles in the ARFI push pulse. */
+  uint16_t vtkPlusWinProbeVideoSource::GetARFITxCycleCount();
+
+  /* Set the frequency of the push pulse. */
+  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleWidth(uint8_t propertyValue);
+
+  /* Get the frequency of the push pulse. */
+  uint8_t vtkPlusWinProbeVideoSource::GetARFITxCycleWidth();
 
   /* Whether or not to use device's built-in frame reconstruction */
   void SetUseDeviceFrameReconstruction(bool value) { m_UseDeviceFrameReconstruction = value; }
@@ -177,6 +216,15 @@ public:
   void SetBFrameRateLimit(int32_t value);
   int32_t GetBFrameRateLimit();
 
+  void SetARFIEnabled(bool value);
+  bool GetARFIEnabled();
+  /*! If running in ARFI mode, does an ARFI push. Otherwise does nothing and returns failure status. */
+  PlusStatus ARFIPush();
+  void SetARFIStartSample(int32_t value);
+  int32_t GetARFIStartSample();
+  void SetARFIStopSample(int32_t value);
+  int32_t GetARFIStopSample();
+
   int GetTransducerInternalID();
 
   enum class Mode
@@ -186,8 +234,11 @@ public:
     RF, // RF mode only
     M, // M mode
     PW, // Pulsed Wave Doppler
+    ARFI, // Acoustic Radiation Force Impulse
     CFD // Color-Flow Doppler
   };
+
+  PlusStatus SetExtraSourceMode(Mode mode);
 
   /*! Sets the ultrasound imaging mode. */
   void SetMode(Mode mode)
@@ -249,14 +300,15 @@ protected:
   double m_TimestampOffset = 0; //difference between program start time and latest internal timer restart
   double first_timestamp = 0;
   double m_LastTimestamp = 1000; //used to determine timer restarts and to update timestamp offset
-  unsigned m_LineCount = 128;
-  unsigned m_SamplesPerLine = 0;
+  FrameSizeType m_PrimaryFrameSize = { 128, 256, 1 };
+  FrameSizeType m_ExtraFrameSize = { 256, 128, 1 };
   std::vector<uint8_t> m_PrimaryBuffer;
   std::vector<uint8_t> m_ExtraBuffer;
   bool m_UseDeviceFrameReconstruction = true;
   igsioFieldMapType m_CustomFields;
   double m_TimeGainCompensation[8];
   float m_FocalPointDepth[4];
+  float m_ARFIFocalPointDepth[6];
   uint16_t m_MinValue = 16; //noise floor
   uint16_t m_MaxValue = 16384; //maximum typical value
   uint16_t m_Knee = 4096; // threshold value for switching from log to linear
@@ -266,6 +318,11 @@ protected:
   int32_t m_SpatialCompoundCount = 0;
   bool m_MRevolvingEnabled = false;
   int32_t m_BMultiTxCount = 1;
+  int32_t m_ARFIMultiTxCount = 1;
+  uint16_t m_ARFITxTxCycleCount = 2;
+  uint8_t m_ARFITxTxCycleWidth = 1;
+  uint16_t m_ARFITxCycleCount = 4096;
+  uint8_t m_ARFITxCycleWidth = 1;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;
   int32_t m_MWidth = 256;

@@ -123,19 +123,21 @@ int main(int argc, char* argv[])
 
   if(renderingOff)
   {
-    Sleep(2500); //allow some time to buffer frames
+    Sleep(1500);
+    WinProbeDevice->ARFIPush(); // in case we are in ARFI mode, invoke it
+    Sleep(8000); //allow some time to buffer frames
 
     vtkPlusChannel* bChannel(nullptr);
     if(WinProbeDevice->GetOutputChannelByName(bChannel, "VideoStream") != PLUS_SUCCESS)
     {
       LOG_ERROR("Unable to locate the channel with Id=\"VideoStream\". Check config file.");
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
 
     vtkPlusChannel* rfChannel(nullptr);
-    if(WinProbeDevice->GetOutputChannelByName(rfChannel, "RfStream") != PLUS_SUCCESS)
+    if(WinProbeDevice->GetOutputChannelByName(rfChannel, "AdditionalStream") != PLUS_SUCCESS)
     {
-      LOG_WARNING("Unable to locate the channel with Id=\"RFStream\". RF mode will not be used.");
+      LOG_WARNING("Unable to locate the channel with Id=\"AdditionalStream\". Additional mode will not be used.");
     }
 
     WinProbeDevice->FreezeDevice(true);
