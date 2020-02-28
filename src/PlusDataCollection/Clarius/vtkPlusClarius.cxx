@@ -419,16 +419,21 @@ PlusStatus vtkPlusClarius::InternalConnect()
     const char* path = device->PathToSecKey.c_str();
     ClariusNewImageFn SaveDataCallBackPtr = static_cast<ClariusNewImageFn>(&vtkPlusClarius::SaveDataCallback);
     ClariusFreezeFn FreezeCallBackFnPtr = static_cast<ClariusFreezeFn>(&vtkPlusClarius::FreezeFn);
+    ClariusButtonFn ButtonCallBackFnPtr = static_cast<ClariusButtonFn>(&vtkPlusClarius::ButtonFn);
     ClariusProgressFn ProgressCallBackFnPtr = static_cast<ClariusProgressFn>(&vtkPlusClarius::ProgressFn);
     ClariusErrorFn ErrorCallBackFnPtr = static_cast<ClariusErrorFn>(&vtkPlusClarius::ErrorFn);
+    
     try
     {
       if (clariusInitListener(argc, argv, path,
         SaveDataCallBackPtr,
         FreezeCallBackFnPtr,
+        ButtonCallBackFnPtr,
         ProgressCallBackFnPtr,
         ErrorCallBackFnPtr,
-        BLOCKINGCALL) < 0)
+        BLOCKINGCALL,
+        FrameWidth,
+        FrameHeight) < 0)
       {
         return PLUS_FAIL;
       }
@@ -562,6 +567,16 @@ void vtkPlusClarius::ProgressFn(int progress)
 {
   LOG_DEBUG("Download: " << progress << "%");
 }
+
+//----------------------------------------------------------------------------
+/*! callback for button clicks
+ * @param[in] btn 0 = up, 1 = down
+ * @param[in] clicks # of clicks performed*/
+void vtkPlusClarius::ButtonFn(int btn, int clicks)
+{
+  LOG_DEBUG("button: " << btn << "clicks: " << clicks << "%");
+}
+
 
 //----------------------------------------------------------------------------
 /*! callback for a new image sent from the scanner

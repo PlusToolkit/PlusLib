@@ -167,6 +167,7 @@ protected:
   static void ErrorFn(const char* err);
   static void FreezeFn(int val);
   static void ProgressFn(int progress);
+  static void ButtonFn(int button, int clicks);
 
   /*!
   Callback function for raw data request
