@@ -303,6 +303,7 @@ IF(PLUS_USE_ICCAPTURING_VIDEO AND PLUS_RENDERING_ENABLED)
 ENDIF()
 
 #*************************** vtkPlusClariusTest1 ***************************
+
 IF(PLUS_USE_CLARIUS)
   ADD_EXECUTABLE(vtkPlusClariusTest1 vtkClariusTest.cxx)
   SET_TARGET_PROPERTIES(vtkPlusClariusTest1 PROPERTIES FOLDER Tests)

@@ -212,6 +212,10 @@ See License.txt for details.
 #ifdef PLUS_USE_CLARIUS
 #include "vtkPlusClarius.h"
 #endif
+
+#ifdef PLUS_USE_CLARIUS
+  #include "vtkPlusClarius.h" 
+#endif
 //----------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlusDeviceFactory);

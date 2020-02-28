@@ -56,6 +56,7 @@ OPTION(PLUS_USE_BLACKMAGIC_DECKLINK "Provide support for BlackMagic DeckLink cap
 OPTION(PLUS_USE_INFRARED_SEEK_CAM "Provide support for capturing an Infrared Seek Cam" OFF)
 OPTION(PLUS_USE_INFRARED_TEQ1_CAM "Provide support for capturing an Infrared Therma Expert Q1 Camera capture stream" OFF)
 OPTION(PLUS_USE_WITMOTIONTRACKER "Provide support for the WitMotion class of inertial measurement units" OFF)
+
 OPTION(PLUS_USE_LEAPMOTION "Provide support for the LeapMotion hand tracker" OFF)
 IF(PLUS_USE_LEAPMOTION)
   OPTION(PLUS_TEST_LEAPMOTION "Enable testing for LeapMotion device" OFF)
@@ -2533,6 +2534,7 @@ source_group("OpenHaptics" FILES ${OpenHaptics_HDRS} ${OpenHaptics_SRCS})
 source_group("V4L2" FILES ${V4L2_Video_HDRS} ${V4L2_Video_SRCS})
 source_group("InfraredSeekCam" FILES ${Infrared_SeekCam_HDRS} ${Infrared_SeekCam_SRCS})
 source_group("WitMotionTracker" FILES ${WitMotionTracker_HDRS} ${WitMotionTracker_SRCS})
+
 source_group("LeapMotion" FILES ${LeapMotion_HDRS} ${LeapMotion_SRCS})
 source_group("ClariusVideo" FILES ${CLARIUS_HDRS} ${CLARIUS_SRCS})
 source_group("BlackMagic" FILES ${BlackMagicDeckLink_HDRS} ${BlackMagicDeckLink_SRCS})
