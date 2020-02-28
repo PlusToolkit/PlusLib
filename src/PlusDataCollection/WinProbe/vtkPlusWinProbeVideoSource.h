@@ -261,6 +261,8 @@ public:
   std::vector<double> GetPrimarySourceSpacing();
   std::vector<double> GetExtraSourceSpacing();
 
+  PlusStatus SendCommand(const char * command);
+
 protected:
   /*! Constructor */
   vtkPlusWinProbeVideoSource();
