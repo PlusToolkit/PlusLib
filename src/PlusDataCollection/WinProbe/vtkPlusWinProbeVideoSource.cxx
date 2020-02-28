@@ -1816,3 +1816,13 @@ int32_t vtkPlusWinProbeVideoSource::GetBFrameRateLimit()
   }
   return m_BFrameRateLimit;
 }
+
+PlusStatus vtkPlusWinProbeVideoSource::SendCommand(const char * command)
+{
+  if (Connected)
+  {
+    ::SendCommand(command);
+    return PLUS_SUCCESS;
+  }
+  return PLUS_FAIL;
+}
