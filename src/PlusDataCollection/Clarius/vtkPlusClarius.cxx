@@ -684,9 +684,9 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
   }
 
   aSource->AddItem(
-    _image.data, // pointer to char array
+    _image.data(), // pointer to char array
     aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
-                                         // Set to MN to keep the orientation of the image the same as on tablet
+                                         // Set to UN to keep the orientation of the image the same as on tablet
     aSource->GetInputFrameSize(),
     VTK_UNSIGNED_CHAR,
     frameBufferBytesPerPixel,
