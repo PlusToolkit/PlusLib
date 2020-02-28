@@ -109,28 +109,28 @@ public:
   bool GetARFIIsX8BFEnabled();
 
   /* Set the number of states in the transmit pulse. 1-16 */
-  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleCount(uint16_t propertyValue);
+  PlusStatus SetARFITxTxCycleCount(uint16_t propertyValue);
 
   /* Get the number of states in the transmit pulse. 1-16 */
-  uint16_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleCount();
+  uint16_t GetARFITxTxCycleCount();
 
   /* Set the width of the tx cycle. Determines the transmit frequency for non apodized transmits. 1-255 */
-  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleWidth(uint8_t propertyValue);
+  PlusStatus SetARFITxTxCycleWidth(uint8_t propertyValue);
 
   /* Get the width of the tx cycle. Determines the transmit frequency for non apodized transmits. 1-255 */
-  uint8_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleWidth();
+  uint8_t GetARFITxTxCycleWidth();
 
   /* Set the number of cycles in the ARFI push pulse. */
-  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleCount(uint16_t propertyValue);
+  PlusStatus SetARFITxCycleCount(uint16_t propertyValue);
 
   /* Get the number of cycles in the ARFI push pulse. */
-  uint16_t vtkPlusWinProbeVideoSource::GetARFITxCycleCount();
+  uint16_t GetARFITxCycleCount();
 
   /* Set the frequency of the push pulse. */
-  PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleWidth(uint8_t propertyValue);
+  PlusStatus SetARFITxCycleWidth(uint8_t propertyValue);
 
   /* Get the frequency of the push pulse. */
-  uint8_t vtkPlusWinProbeVideoSource::GetARFITxCycleWidth();
+  uint8_t GetARFITxCycleWidth();
 
   /* Whether or not to use device's built-in frame reconstruction */
   void SetUseDeviceFrameReconstruction(bool value) { m_UseDeviceFrameReconstruction = value; }
