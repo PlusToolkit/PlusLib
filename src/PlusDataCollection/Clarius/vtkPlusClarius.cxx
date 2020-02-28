@@ -385,7 +385,7 @@ PlusStatus vtkPlusClarius::InternalConnect()
   if (this->ImuEnabled)
   {
     this->RawImuDataStream.open(this->ImuOutputFileName, std::ofstream::app);
-    this->RawImuDataStream << "FrameNum,SystemTimestamp,ConvertedTimestamp,ImageTimestamp,MicronsPerPixel,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
+    this->RawImuDataStream << "FrameNum,SystemTimestamp,ConvertedTimestamp,ImageTimestamp,ImuTimeStamp,ax,ay,az,gx,gy,gz,mx,my,mz,\n";
 
     this->RawImuDataStream.close();
   }
@@ -641,9 +641,9 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
 
   // Set Image Properties
   aSource->SetInputFrameSize(nfo->width, nfo->height, 1);
-  int frameBufferBytesPerPixel = 1; // we will add grayscale images to the buffer, which has 1 byte per pixel
+  int frameBufferBytesPerPixel = (nfo->bitsPerPixel / 8);
   int frameSizeInBytes = nfo->width * nfo->height * frameBufferBytesPerPixel;
-  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel); // number of scalar componects is the same as number of channels per pixel
+  aSource->SetNumberOfScalarComponents(frameBufferBytesPerPixel);
 
   // need to copy newImage to new char vector vtkDataSource::AddItem() do not accept const char array
   std::vector<char> _image;
@@ -653,11 +653,6 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
     _image.resize(img_sz);
   }
   memcpy(_image.data(), newImage, img_sz);
-  // Use opencv library to convert BGRA pixels to grayscale.
-  cv::Mat cvimg = cv::Mat(nfo->width, nfo->height, CV_8UC4);
-  cvimg.data = (unsigned char *)_image.data();
-  cv::Mat grayimg = cv::Mat(nfo->width, nfo->height, CV_8UC1);
-  cv::cvtColor(cvimg, grayimg, CV_BGRA2GRAY);
 
   // the clarius timestamp is in nanoseconds
   device->ClariusLastTimestamp = static_cast<double>((double)nfo->tm / (double)1000000000);
@@ -689,7 +684,7 @@ void vtkPlusClarius::SaveDataCallback(const void* newImage, const ClariusImageIn
   }
 
   aSource->AddItem(
-    grayimg.data, // pointer to char array
+    _image.data, // pointer to char array
     aSource->GetInputImageOrientation(), // refer to this url: http://perk-software.cs.queensu.ca/plus/doc/nightly/dev/UltrasoundImageOrientation.html for reference;
                                          // Set to MN to keep the orientation of the image the same as on tablet
     aSource->GetInputFrameSize(),
