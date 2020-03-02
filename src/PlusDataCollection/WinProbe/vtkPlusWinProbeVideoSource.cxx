@@ -810,6 +810,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   for(int i = 0; i < 6; i++)
   {
     SetARFIFocalPointDepth(i, m_ARFIFocalPointDepth[i]);
+    m_ARFIFocalPointDepth[i] = GetARFIFocalPointDepth(i);
   }
 
   SetARFITxTxCycleCount(m_ARFITxTxCycleCount);
@@ -1129,26 +1130,7 @@ float vtkPlusWinProbeVideoSource::GetARFIFocalPointDepth(int index)
   assert(index >= 0 && index < 6);
   if(Connected)
   {
-    switch (index) {
-    case 0:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal0();
-      break;
-    case 1:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal1();
-      break;
-    case 2:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal2();
-      break;
-    case 3:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal3();
-      break;
-    case 4:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal4();
-      break;
-    case 5:
-      m_ARFIFocalPointDepth[index] = GetARFIFocal5();
-      break;
-    }
+    m_ARFIFocalPointDepth[index] = WPGetARFIFocalDepth(index);
   }
   return m_ARFIFocalPointDepth[index];
 }
@@ -1160,29 +1142,10 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFIFocalPointDepth(int index, float d
   m_ARFIFocalPointDepth[index] = depth;
   if(Connected)
   {
-    switch (index) {
-    case 0:
-      SetARFIFocal0(depth);
-      break;
-    case 1:
-      SetARFIFocal1(depth);
-      break;
-    case 2:
-      SetARFIFocal2(depth);
-      break;
-    case 3:
-      SetARFIFocal3(depth);
-      break;
-    case 4:
-      SetARFIFocal4(depth);
-      break;
-    case 5:
-      SetARFIFocal5(depth);
-      break;
-    }
+    WPSetARFIFocalDepth(index, depth);
     SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
-    m_ARFIFocalPointDepth[index] = GetARFIFocalPointDepth(index);
+    m_ARFIFocalPointDepth[index] = WPGetARFIFocalDepth(index);
   }
   return PLUS_SUCCESS;
 }
