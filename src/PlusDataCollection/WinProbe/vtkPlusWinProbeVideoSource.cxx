@@ -1683,7 +1683,25 @@ int32_t vtkPlusWinProbeVideoSource::GetARFIStopSample()
   return stopSample;
 }
 
+//----------------------------------------------------------------------------
+void vtkPlusWinProbeVideoSource::SetARFIPushOffset(int32_t value)
+{
+  if(Connected)
+  {
+    ::SetARFIPushOffset(value);
+    SetPendingRecreateTables(true);
+  }
+}
 
+//----------------------------------------------------------------------------
+int32_t vtkPlusWinProbeVideoSource::GetARFIPushOffset()
+{
+  if(Connected)
+  {
+    m_ARFIPushOffset = ::GetARFIPushOffset();
+  }
+  return m_ARFIPushOffset;
+}
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusWinProbeVideoSource::SetTransducerID(std::string guid)
