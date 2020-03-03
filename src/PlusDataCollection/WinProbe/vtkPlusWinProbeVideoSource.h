@@ -222,8 +222,12 @@ public:
   PlusStatus ARFIPush();
   void SetARFIStartSample(int32_t value);
   int32_t GetARFIStartSample();
+
   void SetARFIStopSample(int32_t value);
   int32_t GetARFIStopSample();
+
+  void SetARFIPushOffset(int32_t value);
+  int32_t GetARFIPushOffset();
 
   int GetTransducerInternalID();
 
@@ -325,6 +329,7 @@ protected:
   uint8_t m_ARFITxTxCycleWidth = 1;
   uint16_t m_ARFITxCycleCount = 4096;
   uint8_t m_ARFITxCycleWidth = 1;
+  int32_t m_ARFIPushOffset = -12;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;
   int32_t m_MWidth = 256;
