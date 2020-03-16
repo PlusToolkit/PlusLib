@@ -36,19 +36,14 @@ public:
   /*! Write current main config settings to XML. */
   virtual PlusStatus WriteConfiguration(vtkXMLDataElement*);
 
-  /*! Probe to see if the tracking system is present. */
-  PlusStatus Probe();
-
   /*! Connect to the tracker hardware */
   PlusStatus InternalConnect();
 
-  /*! Disconnect from the tracker hardware */
-  PlusStatus InternalDisconnect();
-
-  /*!
-  Get an update from the tracking system and push the new transforms to the tools.
-  */
+  /*! Get an update from the tracking system and push the new transforms to the tools. */
   virtual PlusStatus InternalUpdate();
+
+  /*! Verify the device has been correctly configured */
+  virtual PlusStatus NotifyConfigured();
 
   /* This device is a virtual tracker. */
   virtual bool IsTracker() const { return true; }
@@ -58,17 +53,8 @@ protected:
   vtkPlusOpticalMarkerTracker();
   ~vtkPlusOpticalMarkerTracker();
 
-  /*! Start the tracking system. */
-  PlusStatus InternalStartRecording();
-
-  /*! Stop the tracking system and bring it back to its initial state. */
-  PlusStatus InternalStopRecording();
-
   class vtkInternal;
   vtkInternal* Internal;
-
-  unsigned int FrameNumber;
-  double LastProcessedInputDataTimestamp;
 
 private:
   vtkPlusOpticalMarkerTracker(const vtkPlusOpticalMarkerTracker&);
