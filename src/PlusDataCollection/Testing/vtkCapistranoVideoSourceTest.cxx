@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
 	LOG_INFO("SDK version: " << capistranoDevice->GetSdkVersion());
 
     int retval = 0;
-#if defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
     capistranoDevice->GetHardwareVersion(retval);
     LOG_INFO("Hardware version: " << retval);
     capistranoDevice->GetHighPassFilter(retval);
