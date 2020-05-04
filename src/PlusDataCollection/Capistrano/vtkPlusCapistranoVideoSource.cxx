@@ -712,7 +712,7 @@ std::string vtkPlusCapistranoVideoSource::GetSdkVersion()
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetHardwareVersion(int & HardwareVersion)
 {
-  #if defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+  #if (CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
     HardwareVersion = usbHardwareVersion();
     return PLUS_SUCCESS;
   #else
@@ -724,7 +724,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetHardwareVersion(int & HardwareVersio
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetHighPassFilter(int & HighPassFilter)
 {
-  #if defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+  #if (CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
     HighPassFilter = usbHighPassFilter();
     return PLUS_SUCCESS;
   #else
@@ -822,6 +822,19 @@ PlusStatus vtkPlusCapistranoVideoSource::InitializeCapistranoProbe()
   // After a successful call to usbFindProbes, other probe-related functions may be called.
   // These include: usbInitializeProbes, usbProbeHandle, usbSelectProbe.
   usbErrorString errorStatus = {0};
+  #ifdef CAPISTRANO_SDK2019_3
+    const char* string = (std::getenv("APPDATA") + std::string("\\CLI")).c_str();
+    size_t len = strlen(string);
+    WCHAR* unistring=new WCHAR[len + 1];
+    int result = MultiByteToWideChar(CP_OEMCP, 0, string, -1, unistring, len + 1);
+    const char* filename = "debug.txt";
+    size_t len_fn = strlen(filename);
+    WCHAR* filename_uni=new WCHAR[len_fn + 1];
+    int result_fn = MultiByteToWideChar(CP_OEMCP, 0, filename, -1, filename_uni, len_fn + 1);
+    usbUseFileNamePath((LPTSTR)filename_uni, (LPTSTR)unistring);
+    delete unistring;
+    delete filename_uni;
+  #endif
   ULONG status = usbFindProbes(errorStatus);
   LOG_DEBUG("Find USB probes: status=" << status << ", details: " << errorStatus);
   if (status != ERROR_SUCCESS)
@@ -868,7 +881,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetupProbe(int probeID)
   }
 
   // Check How many US probe are connected. --------------------------------
-#if defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
+#if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2) || defined(CAPISTRANO_SDK2019) || defined(CAPISTRANO_SDK2018)
   int numberOfAttachedBoards = usbNumberAttachedBoards();
 #else //cSDK2013 or cSDK2016
   int numberOfAttachedBoards = usbNumberAttachedProbes();
@@ -1364,7 +1377,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetUpdateParameters(bool b)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetMISMode(bool mode)
 {
-  #ifdef CAPISTRANO_SDK2019_2
+  #if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
     this->MISMode = mode;
     usbWriteSpecialFunction(0x6d697300, mode);
     this->BidirectionalMode = mode;
@@ -1377,7 +1390,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetMISMode(bool mode)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::GetMISMode(bool & MISMode)
 {
-  #ifdef CAPISTRANO_SDK2019_2
+  #if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
     MISMode = this->MISMode;
     return PLUS_SUCCESS;
   #else
@@ -1389,7 +1402,7 @@ PlusStatus vtkPlusCapistranoVideoSource::GetMISMode(bool & MISMode)
 // ----------------------------------------------------------------------------
 PlusStatus vtkPlusCapistranoVideoSource::SetMISPulsePeriod(unsigned int val)
 {
-  #ifdef CAPISTRANO_SDK2019_2
+  #if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
     usbWriteSpecialFunction(0x6d697301, val);
     return PLUS_SUCCESS;
   #else
@@ -1400,7 +1413,7 @@ PlusStatus vtkPlusCapistranoVideoSource::SetMISPulsePeriod(unsigned int val)
 // ----------------------------------------------------------------------------
 PlusStatus  vtkPlusCapistranoVideoSource::GetMISPulsePeriod(unsigned int & PulsePeriod)
 {
-  #ifdef CAPISTRANO_SDK2019_2
+  #if defined(CAPISTRANO_SDK2019_3) || defined(CAPISTRANO_SDK2019_2)
     PulsePeriod = usbWriteSpecialFunction(0x6d697302, 0);
     return PLUS_SUCCESS;
   #else
