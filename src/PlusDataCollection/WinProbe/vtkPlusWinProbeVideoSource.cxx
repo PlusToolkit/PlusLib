@@ -19,6 +19,46 @@ See License.txt for details.
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlusWinProbeVideoSource);
 
+int32_t focalCountFromDepthsArray(float* depths, unsigned arraySize)
+{
+  std::vector<float> nonZeroes;
+  for (unsigned i = 0; i < arraySize; i++)
+  {
+    if (depths[i] != 0)
+    {
+      nonZeroes.push_back(depths[i]);
+    }
+  }
+  std::sort(nonZeroes.begin(), nonZeroes.end());
+
+  unsigned i = 1;
+  while (i < nonZeroes.size())
+  {
+    if (nonZeroes[i] == nonZeroes[i - 1])
+    {
+      nonZeroes.erase(nonZeroes.begin() + i); // remove duplicate
+    }
+    else // check next index
+    {
+      ++i;
+    }
+  }
+  int32_t count = nonZeroes.size();
+
+  // copy sorted non-zero array back into original array
+  for (i = 0; i < nonZeroes.size(); i++)
+  {
+    depths[i] = nonZeroes[i];
+  }
+  // fill rest of the array with zeroes
+  for (; i < arraySize; i++)
+  {
+    depths[i] = 0;
+  }
+
+  return count;
+}
+
 // ----------------------------------------------------------------------------
 void vtkPlusWinProbeVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
@@ -105,8 +145,17 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   }
 
   deviceConfig->GetVectorAttribute("TimeGainCompensation", 8, m_TimeGainCompensation);
-  deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
-  deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
+
+  m_BMultiTxCount = deviceConfig->GetVectorAttribute("FocalPointDepth", 4, m_FocalPointDepth);
+  if (m_BMultiTxCount) // examine for duplicates
+  {
+    m_BMultiTxCount = focalCountFromDepthsArray(m_FocalPointDepth, m_BMultiTxCount);
+  }
+  m_ARFIMultiTxCount = deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
+  if (m_ARFIMultiTxCount) // examine for duplicates
+  {
+	// m_ARFIMultiTxCount = focalCountFromDepthsArray(&m_ARFIFocalPointDepth[1], m_ARFIMultiTxCount - 1); // first value is special
+  }
 
   return PLUS_SUCCESS;
 }
@@ -790,6 +839,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   LOG_DEBUG("GetHandleBRFInternally: " << GetHandleBRFInternally());
   LOG_DEBUG("GetBFRFImageCaptureMode: " << GetBFRFImageCaptureMode());
   SetPendingRecreateTables(true);
+  this->Connected = true; // the setters and getters check this
 
   //apply requested settings
   for(int i = 0; i < 8; i++)
@@ -818,7 +868,6 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
   SetARFITxCycleCount(m_ARFITxCycleCount);
   SetARFITxCycleWidth(m_ARFITxCycleWidth);
 
-  this->Connected = true; // the setters and getters check this
   this->SetTransmitFrequencyMHz(m_Frequency);
   this->SetVoltage(m_Voltage);
   this->SetScanDepthMm(m_ScanDepth);
