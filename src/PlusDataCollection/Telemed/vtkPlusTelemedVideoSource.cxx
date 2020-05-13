@@ -23,7 +23,8 @@ vtkStandardNewMacro(vtkPlusTelemedVideoSource); // Corresponds to the implementa
 
 //----------------------------------------------------------------------------
 vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
-  : FrequencyMhz(-1)
+  : ProbeId(0)
+  , FrequencyMhz(-1)
   , DepthMm(-1)
   , GainPercent(-1)
   , DynRangeDb(-1)
@@ -59,6 +60,7 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_FIND_DEVICE_ELEMENT_REQUIRED_FOR_READING(deviceConfig, rootConfigElement);
   XML_READ_STD_ARRAY_ATTRIBUTE_OPTIONAL(int, 3, FrameSize, deviceConfig);
 
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(int, ProbeId, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DepthMm, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FrequencyMhz, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
@@ -76,6 +78,7 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   int frameSize[3] = { this->FrameSize[0], this->FrameSize[1], this->FrameSize[2] };
   deviceConfig->SetVectorAttribute("FrameSize", 3, frameSize);
 
+  deviceConfig->SetIntAttribute("ProbeId", this->ProbeId);
   deviceConfig->SetDoubleAttribute("DepthMm", this->DepthMm);
   deviceConfig->SetDoubleAttribute("FrequencyMhz", this->FrequencyMhz);
   deviceConfig->SetDoubleAttribute("DynRangeDb", this->DynRangeDb);
@@ -99,7 +102,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
     this->Device = new TelemedUltrasound();
   }
   this->Device->SetMaximumFrameSize(this->FrameSize);
-  if (this->Device->Connect() != PLUS_SUCCESS)
+  if (this->Device->Connect(this->ProbeId) != PLUS_SUCCESS)
   {
     LOG_ERROR("vtkPlusTelemedVideoSource device initialization failed");
     this->ConnectedToDevice = false;

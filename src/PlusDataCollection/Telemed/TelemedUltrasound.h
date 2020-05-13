@@ -20,7 +20,7 @@ public:
   TelemedUltrasound();
   virtual ~TelemedUltrasound();
 
-  PlusStatus Connect();
+  PlusStatus Connect(int probeId = 0);
   void Disconnect();
 
   unsigned char* CaptureFrame();
@@ -85,7 +85,7 @@ private:
   BITMAP Bitmap;
 
 public:
-  void CreateUsgControls();
+  void CreateUsgControls(int probeId=0);
 
 public:
   // IUnknown

@@ -66,7 +66,7 @@ void TelemedUltrasound::SetMaximumFrameSize(const FrameSizeType& maxFrameSize)
 }
 
 //----------------------------------------------------------------------------
-PlusStatus TelemedUltrasound::Connect()
+PlusStatus TelemedUltrasound::Connect(int probeId /* = 0 */)
 {
   HINSTANCE hInst = GetModuleHandle(NULL);
 
@@ -111,7 +111,7 @@ PlusStatus TelemedUltrasound::Connect()
   size_t toAllocate = (this->Bitmap.bmWidth + 16) * (this->Bitmap.bmHeight + 4);
   this->MemoryBitmapBuffer.resize(toAllocate, 0);
 
-  CreateUsgControls();
+  CreateUsgControls(probeId);
 
   return PLUS_SUCCESS;
 }
@@ -341,9 +341,9 @@ void TelemedUltrasound::CreateUsgControl(IUsgDataView* data_view, const IID& typ
 }
 
 //----------------------------------------------------------------------------
-void TelemedUltrasound::CreateUsgControls()
+void TelemedUltrasound::CreateUsgControls(int probeId /* = 0 */)
 {
-  HRESULT hr = S_OK;
+  HRESULT hr = S_OK; 
   IUnknown* tmp_obj = NULL;
 
   do
@@ -416,9 +416,15 @@ void TelemedUltrasound::CreateUsgControls()
       break;
     }
 
-    // get first available probe
+    // get probe
     tmp_obj = NULL;
-    probes_collection->Item(0, &tmp_obj);
+    if (probeId >= probes_count || probeId < 0)
+    {
+      // invalid probe id provided, connect to first probe
+      LOG_WARNING("Attempted to connect to non-existant US probe with ID " << probeId << ". There are only " << probes_count << " probes connected. Connecting to default probe with ID 0.");
+      probeId = 0;
+    }
+    probes_collection->Item(probeId, &tmp_obj);
     probes_collection->Release();
     probes_collection = NULL;
     if (tmp_obj == NULL)

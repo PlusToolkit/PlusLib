@@ -46,6 +46,10 @@ public:
   /*! Get an update from the tracking system and push the new transforms to the tools. This function is called by the tracker thread.*/
   PlusStatus InternalUpdate();
 
+  /*! Get / set ultrasound probe ID */
+  vtkSetMacro(ProbeId, int);
+  vtkGetMacro(ProbeId, int);
+
   /*! Set ultrasound transmitter frequency (MHz) */
   PlusStatus SetFrequencyMhz(double aFrequencyMhz);
   /*! Get ultrasound transmitter frequency (MHz) */
@@ -102,6 +106,7 @@ protected:
 
   FrameSizeType FrameSize;
 
+  int ProbeId;
   double FrequencyMhz;
   double DepthMm;
   double GainPercent;
