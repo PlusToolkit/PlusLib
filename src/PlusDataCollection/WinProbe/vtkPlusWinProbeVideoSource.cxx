@@ -151,11 +151,12 @@ PlusStatus vtkPlusWinProbeVideoSource::ReadConfiguration(vtkXMLDataElement* root
   {
     m_BMultiTxCount = focalCountFromDepthsArray(m_FocalPointDepth, m_BMultiTxCount);
   }
-  m_ARFIMultiTxCount = deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
-  if (m_ARFIMultiTxCount) // examine for duplicates
-  {
+  deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
+  // m_ARFIMultiTxCount = deviceConfig->GetVectorAttribute("ARFIFocalPointDepth", 6, m_ARFIFocalPointDepth);
+  // if (m_ARFIMultiTxCount) // examine for duplicates
+  // {
 	// m_ARFIMultiTxCount = focalCountFromDepthsArray(&m_ARFIFocalPointDepth[1], m_ARFIMultiTxCount - 1); // first value is special
-  }
+  // }
 
   return PLUS_SUCCESS;
 }
@@ -856,7 +857,7 @@ PlusStatus vtkPlusWinProbeVideoSource::InternalConnect()
     m_FocalPointDepth[i] = ::GetFocalPointDepth(i);
   }
 
-  SetARFIMultiFocalZoneCount(m_ARFIMultiTxCount);
+  // SetARFIMultiFocalZoneCount(m_ARFIMultiTxCount);
   for(int i = 0; i < 6; i++)
   {
     SetARFIFocalPointDepth(i, m_ARFIFocalPointDepth[i]);
