@@ -1007,7 +1007,6 @@ PlusStatus vtkPlusWinProbeVideoSource::SetVoltage(uint8_t voltage)
   if(Connected)
   {
     ::SetVoltage(voltage);
-    SetPendingRecreateTables(true);
     //what we requested might be only approximately satisfied
     m_Voltage = ::GetVoltage();
   }
@@ -1263,6 +1262,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleCount(uint16_t propertyVa
   if(Connected)
   {
     ::SetARFITxTxCycleCount(propertyValue);
+    SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
 }
@@ -1284,6 +1284,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFITxTxCycleWidth(uint8_t propertyVal
   if(Connected)
   {
     ::SetARFITxTxCycleWidth(propertyValue);
+    SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
 }
@@ -1304,6 +1305,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleCount(uint16_t propertyValu
   if(Connected)
   {
     ::SetARFITxCycleCount(propertyValue);
+    SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
 }
@@ -1324,6 +1326,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleWidth(uint8_t propertyValue
   if(Connected)
   {
     ::SetARFITxCycleWidth(propertyValue);
+    SetPendingRecreateTables(true);
   }
   return PLUS_SUCCESS;
 }
