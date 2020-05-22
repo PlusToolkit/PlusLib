@@ -326,9 +326,9 @@ protected:
   int32_t m_BMultiTxCount = 1;
   int32_t m_ARFIMultiTxCount = 1;
   uint16_t m_ARFITxTxCycleCount = 2;
-  uint8_t m_ARFITxTxCycleWidth = 1;
+  uint8_t m_ARFITxTxCycleWidth = 10;
   uint16_t m_ARFITxCycleCount = 4096;
-  uint8_t m_ARFITxCycleWidth = 1;
+  uint8_t m_ARFITxCycleWidth = 15;
   int32_t m_ARFIPushOffset = -12;
   int32_t m_MPRF = 100;
   int32_t m_MLineIndex = 60;

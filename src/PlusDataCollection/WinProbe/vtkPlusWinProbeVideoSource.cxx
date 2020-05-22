@@ -1273,7 +1273,7 @@ uint16_t vtkPlusWinProbeVideoSource::GetARFITxTxCycleCount()
   {
     m_ARFITxTxCycleCount = ::GetARFITxTxCycleCount();
   }
-  return m_ARFITxCycleCount;
+  return m_ARFITxTxCycleCount;
 }
 
 //----------------------------------------------------------------------------
@@ -1303,7 +1303,7 @@ PlusStatus vtkPlusWinProbeVideoSource::SetARFITxCycleCount(uint16_t propertyValu
   m_ARFITxCycleCount = propertyValue;
   if(Connected)
   {
-    ::SetARFITxTxCycleWidth(propertyValue);
+    ::SetARFITxCycleCount(propertyValue);
   }
   return PLUS_SUCCESS;
 }
@@ -1334,7 +1334,7 @@ uint8_t vtkPlusWinProbeVideoSource::GetARFITxCycleWidth()
   {
     m_ARFITxCycleWidth = ::GetARFITxCycleWidth();
   }
-  return m_ARFITxCycleCount;
+  return m_ARFITxCycleWidth;
 }
 
 //----------------------------------------------------------------------------
