@@ -29,6 +29,7 @@ vtkPlusTelemedVideoSource::vtkPlusTelemedVideoSource()
   , GainPercent(-1)
   , DynRangeDb(-1)
   , PowerDb(-1)
+  , FocusDepth(-1)
   , ConnectedToDevice(false)
 {
   this->FrameSize[0] = 512;
@@ -66,6 +67,7 @@ PlusStatus vtkPlusTelemedVideoSource::ReadConfiguration(vtkXMLDataElement* rootC
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, DynRangeDb, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, GainPercent, deviceConfig);
   XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, PowerDb, deviceConfig);
+  XML_READ_SCALAR_ATTRIBUTE_OPTIONAL(double, FocusDepth, deviceConfig);
 
   return PLUS_SUCCESS;
 }
@@ -84,6 +86,7 @@ PlusStatus vtkPlusTelemedVideoSource::WriteConfiguration(vtkXMLDataElement* root
   deviceConfig->SetDoubleAttribute("DynRangeDb", this->DynRangeDb);
   deviceConfig->SetDoubleAttribute("GainPercent", this->GainPercent);
   deviceConfig->SetDoubleAttribute("PowerDb", this->PowerDb);
+  deviceConfig->SetDoubleAttribute("FocusDepth", this->FocusDepth);
   return PLUS_SUCCESS;
 }
 
@@ -115,6 +118,7 @@ PlusStatus vtkPlusTelemedVideoSource::InternalConnect()
   if (this->GainPercent >= 0) {SetGainPercent(this->GainPercent); }
   if (this->DynRangeDb > 0) {SetDynRangeDb(this->DynRangeDb); }
   if (this->PowerDb >= 0) {SetPowerDb(this->PowerDb); }
+  if (this->FocusDepth >= 0 && this->FocusDepth <= 1) { SetFocusDepth(this->FocusDepth); }
 
   return PLUS_SUCCESS;
 }
@@ -271,12 +275,14 @@ IMAGING_PARAMETER_GET(DepthMm);
 IMAGING_PARAMETER_GET(GainPercent);
 IMAGING_PARAMETER_GET(DynRangeDb);
 IMAGING_PARAMETER_GET(PowerDb);
+IMAGING_PARAMETER_GET(FocusDepth);
 
 IMAGING_PARAMETER_SET(FrequencyMhz);
 IMAGING_PARAMETER_SET(DepthMm);
 IMAGING_PARAMETER_SET(GainPercent);
 IMAGING_PARAMETER_SET(DynRangeDb);
 IMAGING_PARAMETER_SET(PowerDb);
+IMAGING_PARAMETER_SET(FocusDepth);
 
 //----------------------------------------------------------------------------
 PlusStatus vtkPlusTelemedVideoSource::NotifyConfigured()
@@ -370,5 +376,17 @@ PlusStatus vtkPlusTelemedVideoSource::InternalApplyImagingParameterChange()
       status = PLUS_FAIL;
     }
   }
+
+  // FOCUS DEPTH
+  if (this->ImagingParameters->IsSet(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH)
+    && this->ImagingParameters->IsPending(vtkPlusUsImagingParameters::KEY_FOCUS_DEPTH))
+  {
+    if (this->SetFocusDepth(this->ImagingParameters->GetFocusDepth()) != PLUS_SUCCESS)
+    {
+      LOG_ERROR("Failed to set focus depth imaging parameter");
+      status = PLUS_FAIL;
+    }
+  }
+
   return status;
 }

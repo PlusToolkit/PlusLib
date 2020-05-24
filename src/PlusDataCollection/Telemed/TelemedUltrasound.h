@@ -44,6 +44,9 @@ public:
   PlusStatus SetPowerDb(double powerDb);
   PlusStatus GetPowerDb(double& powerDb);
 
+  PlusStatus SetFocusDepth(double focusDepth);
+  PlusStatus GetFocusDepth(double& focusDepth);
+
   PlusStatus SetDynRangeDb(double dynRangeDb);
   PlusStatus GetDynRangeDb(double& dynRangeDb);
 
@@ -62,6 +65,7 @@ private:
   IUsgGain* m_b_gain_ctrl;
   IUsgDynamicRange* m_b_dynrange_ctrl;
   IUsgProbeFrequency3* m_b_frequency_ctrl;
+  IUsgFocus* m_b_focus_ctrl;
 
   IConnectionPoint* m_usg_device_change_cpnt; // connection point for device change events
   DWORD m_usg_device_change_cpnt_cookie;

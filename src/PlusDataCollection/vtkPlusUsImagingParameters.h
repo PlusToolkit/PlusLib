@@ -24,6 +24,7 @@ This class exists mainly for two reasons:
 Currently contains the following items
 * FrequencyMhz
 * DepthMm
+* FocusDepth (normalized [0,1])
 * SectorPercent
 * GainPercent
 * TGC [initialgain, midgain, fargain]
@@ -67,6 +68,7 @@ public:
   static const char* XML_ELEMENT_TAG;
   static const char* KEY_FREQUENCY;
   static const char* KEY_DEPTH;
+  static const char* KEY_FOCUS_DEPTH;
   static const char* KEY_DYNRANGE;
   static const char* KEY_GAIN;
   static const char* KEY_TGC;
@@ -170,6 +172,12 @@ public:
   /*! Get the depth (mm) of B-mode ultrasound */
   PlusStatus GetDepthMm(double& aDepthMm) const;
   double GetDepthMm() const;
+
+  /*! Set the focus depth (normalized [0,1]) of B-mode ultrasound */
+  PlusStatus SetFocusDepth(double aFocusDepth);
+  /*! Get the focus depth (normalized [0,1]) of B-mode ultrasound */
+  PlusStatus GetFocusDepth(double& aFocusDepth) const;
+  double GetFocusDepth() const;
 
   /*! Set the Gain (%) of B-mode ultrasound; valid range: 0-100 */
   PlusStatus SetGainPercent(double aGainPercent);
